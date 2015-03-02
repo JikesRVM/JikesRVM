@@ -254,6 +254,7 @@ public abstract class IREnumeration {
      * Construct an enumeration for all instructions, both implicit and
      * explicit in the IR, for a given basic block
      *
+     * @param ir the containing IR
      * @param block the basic block whose instructions this enumerates
      */
     public AllInstructionsEnum(IR ir, BasicBlock block) {
@@ -335,7 +336,7 @@ public abstract class IREnumeration {
       } else {
         implicitDefs = null;
       }
-      if (ir.inSSAForm() && (instr.operator != PHI)) {
+      if (ir.inSSAForm() && (instr.operator() != PHI)) {
         // Phi instructions store the heap SSA in the actual
         // instruction
         heapOperands = ir.HIRInfo.dictionary.getHeapDefs(instr);
@@ -419,7 +420,7 @@ public abstract class IREnumeration {
       } else {
         implicitUses = null;
       }
-      if (ir.inSSAForm() && (instr.operator != PHI)) {
+      if (ir.inSSAForm() && (instr.operator() != PHI)) {
         // Phi instructions store the heap SSA in the actual
         // instruction
         heapOperands = ir.HIRInfo.dictionary.getHeapUses(instr);

@@ -85,28 +85,28 @@ public final class IntConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the lower 8 bits (as an int) of value
+   * @return the lower 8 bits (as an int) of value
    */
   public int lower8() {
     return Bits.lower8(value);
   }
 
   /**
-   * Return the lower 16 bits (as an int) of value
+   * @return the lower 16 bits (as an int) of value
    */
   public int lower16() {
     return Bits.lower16(value);
   }
 
   /**
-   * Return the upper 16 bits (as an int) of value
+   * @return the upper 16 bits (as an int) of value
    */
   public int upper16() {
     return Bits.upper16(value);
   }
 
   /**
-   * Return the upper 24 bits (as an int) of value
+   * @return the upper 24 bits (as an int) of value
    */
   public int upper24() {
     return Bits.upper24(value);

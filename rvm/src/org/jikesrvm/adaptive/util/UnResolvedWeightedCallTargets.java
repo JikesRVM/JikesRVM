@@ -35,6 +35,9 @@ public abstract class UnResolvedWeightedCallTargets {
    * NOTE: This method may change the representation of the target
    * method.  The caller must be sure to update their backing store of
    * UnResolvedWeightedCallTargets accordingly to avoid losing the update.
+   *
+   * @param target the target method
+   * @return the object representing the method's targets
    */
   public final UnResolvedWeightedCallTargets incrementCount(MethodReference target) {
     return augmentCount(target, 1);
@@ -45,6 +48,10 @@ public abstract class UnResolvedWeightedCallTargets {
    * NOTE: This method may change the representation of the target
    * method.  The caller must be sure to update their backing store of
    * UnResolvedWeightedCallTargets accordingly to avoid losing the update.
+   *
+   * @param target the target method
+   * @param amount the amount to add
+   * @return the object representing the method's targets
    */
   public abstract UnResolvedWeightedCallTargets augmentCount(MethodReference target, double amount);
 
@@ -55,13 +62,13 @@ public abstract class UnResolvedWeightedCallTargets {
   public abstract void decay(double rate);
 
   /**
-   * totalWeight of all call targets
+   * @return total weight of all call targets
    */
   public abstract double totalWeight();
 
   /**
    * @param goal MethodReference that is the only statically possible target
-   * @return the filtered call targets or null if no such target exists
+   * @return the filtered call targets or {@code null} if no such target exists
    */
   public abstract UnResolvedWeightedCallTargets filter(MethodReference goal);
 

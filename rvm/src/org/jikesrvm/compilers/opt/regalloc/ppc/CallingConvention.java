@@ -221,7 +221,7 @@ public abstract class CallingConvention extends IRTools {
     }
 
     Instruction prologueInstr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
-    if (VM.VerifyAssertions) VM._assert(prologueInstr.operator == IR_PROLOGUE);
+    if (VM.VerifyAssertions) VM._assert(prologueInstr.operator() == IR_PROLOGUE);
     Instruction start = prologueInstr.nextInstructionInCodeOrder();
 
     int int_index = 0;

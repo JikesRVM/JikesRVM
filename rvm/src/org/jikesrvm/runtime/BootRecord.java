@@ -208,7 +208,7 @@ public class BootRecord {
   @Entrypoint
   int externalSignalFlag;
 
-  // Host operating system entrypoints - see "sys.C"
+  // Host operating system entrypoints - see "sys.cpp"
   //
 
   // lowlevel write to console

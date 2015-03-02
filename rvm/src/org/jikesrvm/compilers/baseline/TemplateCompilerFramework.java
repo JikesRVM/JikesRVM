@@ -121,9 +121,6 @@ public abstract class TemplateCompilerFramework
    */
   protected final boolean isUnpreemptible;
 
-  /**
-   * Construct a BaselineCompilerImpl
-   */
   protected TemplateCompilerFramework(CompiledMethod cm) {
     compiledMethod = cm;
     method = (NormalMethod) cm.getMethod();
@@ -166,7 +163,7 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Print a message to mark the start of machine code printing for a method
-   * @param method
+   * @param method the method that will be compiled
    */
   protected final void printStartHeader(RVMMethod method) {
     VM.sysWrite(getCompilerName());
@@ -181,7 +178,7 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Print a message to mark the end of machine code printing for a method
-   * @param method
+   * @param method the method that was compiled
    */
   protected final void printEndHeader(RVMMethod method) {
     VM.sysWrite(getCompilerName());
@@ -217,6 +214,8 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Main code generation loop.
+   *
+   * @return generated machine code
    */
   protected final MachineCode genCode() {
 
@@ -1997,7 +1996,7 @@ public abstract class TemplateCompilerFramework
               }
               default:
                 if (VM.TraceOnStackReplacement) {
-                  VM.sysWrite("Unexpected PSEUDO code " + VM.intAsHexString(pseudo_opcode) + "\n");
+                  VM.sysWrite("Unexpected PSEUDO code " + Services.intAsHexString(pseudo_opcode) + "\n");
                 }
                 if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
                 break;
@@ -2136,8 +2135,10 @@ public abstract class TemplateCompilerFramework
   protected abstract void emit_deferred_prologue();
 
   /**
-   * Emit the code to implement the spcified magic.
+   * Emits the code to implement the spcified magic.
    * @param magicMethod desired magic
+   *
+   * @return {@code true} if code was emitted
    */
   protected abstract boolean emit_Magic(MethodReference magicMethod);
 

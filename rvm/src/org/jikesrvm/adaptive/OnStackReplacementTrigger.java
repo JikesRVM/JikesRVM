@@ -26,9 +26,6 @@ import org.vmmagic.unboxed.Offset;
  */
 public class OnStackReplacementTrigger {
 
-  /**
-   * Trigger an OSR from a running thread.
-   */
   @NoInline
   @Unpreemptible
   public static void trigger(int ypTakenInCMID, Offset tsFromFPoff, Offset ypTakenFPoff, int whereFrom) {

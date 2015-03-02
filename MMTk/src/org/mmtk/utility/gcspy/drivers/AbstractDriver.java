@@ -110,10 +110,11 @@ public abstract class AbstractDriver {
   }
 
   /**
-   * Create a subspace for this space.
+   * Creates a subspace for this space.
    * Subspace provide useful facilities for contiguous spaces, even if
    * a space contains only one.
    * @param mmtkSpace The MMTk space
+   * @return the created subspace
    */
   @Interruptible
   protected Subspace createSubspace(Space mmtkSpace) {
@@ -127,6 +128,7 @@ public abstract class AbstractDriver {
    * @param spaceName The name of this driver.
    * @param maxTileNum the maximum number of tiles in this space.
    * @param mainSpace Is this the main space?
+   * @return the created server space
    */
   @Interruptible
   protected ServerSpace createServerSpace(ServerInterpreter server,
@@ -273,8 +275,8 @@ public abstract class AbstractDriver {
   }
 
   /**
-   * Is the server connected to a GCspy client?
    * @param event The current event
+   * @return whether the server is connected to a GCspy client
    */
   public boolean isConnected(int event) {
     return server.isConnected(event);
@@ -411,6 +413,7 @@ public abstract class AbstractDriver {
   }
 
   /** Set the control
+   * @param index the index of the tile
    * @param value The value to set
    */
   protected void setControl(int index, byte value) {

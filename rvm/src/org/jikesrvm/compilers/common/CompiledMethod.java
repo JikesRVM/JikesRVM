@@ -121,7 +121,8 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Set the cmid and method fields
+   * @param id the compiled method id
+   * @param m the method that this compiled method belongs to
    */
   public CompiledMethod(int id, RVMMethod m) {
     cmid = id;
@@ -132,7 +133,7 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Return the compiled method id for this compiled method
+   * @return the compiled method id for this compiled method
    */
   @Uninterruptible
   public final int getId() {
@@ -140,7 +141,7 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Return the RVMMethod associated with this compiled method
+   * @return the RVMMethod associated with this compiled method
    */
   @Uninterruptible
   public final RVMMethod getMethod() {
@@ -148,8 +149,8 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Does this method have a bridge from native annotation, important when
-   * walking the stack
+   * @return whether this method has a bridge from native annotation (important when
+   * walking the stack)
    */
   @Uninterruptible
   public final boolean hasBridgeFromNativeAnnotation() {
@@ -277,7 +278,9 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Record that the compilation is complete.
+   * Records that the compilation is complete.
+   *
+   * @param code the method's code
    */
   public final void compileComplete(CodeArray code) {
     instructions = code;
@@ -320,8 +323,7 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Check if the compiled method is marked as outdated,
-   * called by Thread
+   * @return {@code true} if the compiled method is marked as outdated
    */
   @Uninterruptible
   public final boolean isOutdated() {
@@ -329,7 +331,7 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Has compilation completed?
+   * @return {@code true} if compilation has completed
    */
   @Uninterruptible
   public final boolean isCompiled() {
@@ -337,7 +339,7 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Is the compiled code invalid?
+   * @return {@code true} if the compiled code is invalid
    */
   @Uninterruptible
   public final boolean isInvalid() {
@@ -345,7 +347,7 @@ public abstract class CompiledMethod {
   }
 
   /**
-   * Is the compiled code obsolete?
+   * @return {@code true} if the compiled code is obsolete
    */
   @Uninterruptible
   public final boolean isObsolete() {
@@ -392,7 +394,7 @@ public abstract class CompiledMethod {
   public abstract String getCompilerName();
 
   /**
-   * Get handler to deal with stack unwinding and exception delivery for this
+   * @return a handler to deal with stack unwinding and exception delivery for this
    * compiled method's stackframes.
    */
   @Uninterruptible
@@ -506,17 +508,23 @@ public abstract class CompiledMethod {
   public abstract void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out);
 
   /**
-   * Set the stack browser to the innermost logical stack frame of this method
+   * Set the stack browser to the innermost logical stack frame of this method.
+   *
+   * @param browser the browser
+   * @param instr the offset of the instruction
    */
   public abstract void set(StackBrowser browser, Offset instr);
 
   /**
    * Advance the StackBrowser up one internal stack frame, if possible
+   *
+   * @param browser the browser to advance
+   * @return whether the browser advanced a frame
    */
   public boolean up(StackBrowser browser) { return false; }
 
   /**
-   * Return the number of bytes used to encode the compiler-specific mapping
+   * @return the number of bytes used to encode the compiler-specific mapping
    * information for this compiled method.
    * Used to gather statistics on the space costs of mapping schemes.
    */

@@ -151,6 +151,9 @@ public class Statics {
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
+   *
+   * @param slot the JTOC slot index
+   * @return the JTOC offset
    */
   @Uninterruptible
   public static Offset slotAsOffset(int slot) {
@@ -159,6 +162,9 @@ public class Statics {
 
   /**
    * Conversion from JTOC offset to JTOC slot index.
+   *
+   * @param offset the JTOC offset
+   * @return the JTOC slot index
    */
   @Uninterruptible
   public static int offsetAsSlot(Offset offset) {
@@ -167,14 +173,14 @@ public class Statics {
   }
 
   /**
-   * Return the lowest slot number in use
+   * @return the lowest slot number in use
    */
   public static int getLowestInUseSlot() {
     return nextNumericSlot + 1;
   }
 
   /**
-   * Return the highest slot number in use
+   * @return the highest slot number in use
    */
   public static int getHighestInUseSlot() {
     return nextReferenceSlot - (VM.BuildFor32Addr ? 1 : 2);
@@ -283,6 +289,9 @@ public class Statics {
   /**
    * Marks a slot that was previously a field as being a literal as its value is
    * final.
+   *
+   * @param size the slot's size
+   * @param fieldOffset the field's offset in the JTOC
    */
   public static synchronized void markAsNumericLiteral(int size, Offset fieldOffset) {
     int slot = offsetAsSlot(fieldOffset);
@@ -297,6 +306,8 @@ public class Statics {
   /**
    * Marks a slot that was previously a field as being a literal as its value is
    * final.
+   *
+   * @param fieldOffset the field's offset in the JTOC
    */
   public static synchronized void markAsReferenceLiteral(Offset fieldOffset) {
     Object literal = getSlotContentsAsObject(fieldOffset);
@@ -408,7 +419,7 @@ public class Statics {
   }
 
   /**
-   * Fetch number of numeric JTOC slots currently allocated.
+   * @return number of numeric JTOC slots currently allocated.
    */
   @Uninterruptible
   public static int getNumberOfNumericSlots() {
@@ -416,7 +427,7 @@ public class Statics {
   }
 
   /**
-   * Fetch number of reference JTOC slots currently allocated.
+   * @return number of reference JTOC slots currently allocated.
    */
   @Uninterruptible
   public static int getNumberOfReferenceSlots() {
@@ -424,7 +435,7 @@ public class Statics {
   }
 
   /**
-   * Fetch total number of slots comprising the JTOC.
+   * @return total number of slots comprising the JTOC.
    */
   @Uninterruptible
   public static int getTotalNumberOfSlots() {
@@ -482,7 +493,7 @@ public class Statics {
   }
 
   /**
-   * Get size occupied by a reference
+   * @return size occupied by a reference
    */
   @Uninterruptible
   public static int getReferenceSlotSize() {
@@ -490,7 +501,7 @@ public class Statics {
   }
 
   /**
-   * Fetch JTOC object (for JNI environment and GC).
+   * @return JTOC object (for JNI environment and GC).
    */
   @Uninterruptible
   public static Address getSlots() {
@@ -498,7 +509,7 @@ public class Statics {
   }
 
   /**
-   * Fetch JTOC object (for JNI environment and GC).
+   * @return JTOC object (for JNI environment and GC).
    */
   @Uninterruptible
   public static int[] getSlotsAsIntArray() {
@@ -506,7 +517,8 @@ public class Statics {
   }
 
   /**
-   * Fetch contents of a slot, as an integer
+   * @param offset the slot's offset in the JTOC
+   * @return contents of a slot, as an integer
    */
   @Uninterruptible
   public static int getSlotContentsAsInt(Offset offset) {
@@ -519,7 +531,8 @@ public class Statics {
   }
 
   /**
-   * Fetch contents of a slot-pair, as a long integer.
+   * @param offset the slot's offset
+   * @return contents of a slot-pair, as a long integer.
    */
   @Uninterruptible
   public static long getSlotContentsAsLong(Offset offset) {
@@ -540,7 +553,8 @@ public class Statics {
   }
 
   /**
-   * Fetch contents of a slot, as an object.
+   * @param offset the slot's offset
+   * @return contents of a slot, as an object.
    */
   @Uninterruptible
   public static Object getSlotContentsAsObject(Offset offset) {
@@ -552,7 +566,8 @@ public class Statics {
   }
 
   /**
-   * Fetch contents of a slot, as an Address.
+   * @param offset the slot's offset
+   * @return contents of a slot, as an Address.
    */
   @UninterruptibleNoWarn("Interruptible code only reachable during boot image creation")
   public static Address getSlotContentsAsAddress(Offset offset) {
@@ -582,6 +597,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as an integer.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, int value) {
@@ -594,6 +612,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as an float.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, float value) {
@@ -606,6 +627,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as a double.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, double value) {
@@ -626,6 +650,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as a long integer.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, long value) {
@@ -645,6 +672,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as an object.
+   *
+   * @param offset the slot's offset
+   * @param object new value for the slot
    */
   @UninterruptibleNoWarn("Interruptible code only reachable during boot image creation")
   public static void setSlotContents(Offset offset, Object object) {
@@ -668,6 +698,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as a CodeArray.
+   *
+   * @param offset the slot's offset
+   * @param code  new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, CodeArray code) {
@@ -675,7 +708,10 @@ public class Statics {
   }
 
   /**
-   * Set contents of a slot, as a CodeArray.
+   * Set contents of a slot, as a TIB.
+   *
+   * @param offset the slot's offset
+   * @param tib new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, TIB tib) {
@@ -684,6 +720,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as a Word.
+   *
+   * @param offset the slot's offset
+   * @param word new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Word word) {
@@ -700,6 +739,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as a Address
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Address value) {
@@ -716,6 +758,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as a Extent
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Extent value) {
@@ -732,6 +777,9 @@ public class Statics {
 
   /**
    * Set contents of a slot, as a Offset
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Offset value) {

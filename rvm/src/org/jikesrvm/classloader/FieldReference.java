@@ -50,14 +50,14 @@ public final class FieldReference extends MemberReference {
   }
 
   /**
-   * How many stackslots do value of this type take?
+   * @return number of stack slots that a value of this type takes
    */
   public int getNumberOfStackSlots() {
     return getFieldContentsType().getStackWords();
   }
 
   /**
-   * Get size of the field's value, in bytes.
+   * @return size of the field's value, in bytes.
    */
   @Uninterruptible
   public int getSize() {
@@ -65,7 +65,12 @@ public final class FieldReference extends MemberReference {
   }
 
   /**
-   * Do this and that definitely refer to the different fields?
+   * Do this and that definitely refer to different fields?
+   *
+   * @param that the reference to compare with
+   * @return {@code true} if the fields are definitely different, {@code false}
+   *  if it's not known (e.g. because at least one of the field references is
+   *  unresolved)
    */
   public boolean definitelyDifferent(FieldReference that) {
     if (this == that) return false;
@@ -80,6 +85,11 @@ public final class FieldReference extends MemberReference {
 
   /**
    * Do this and that definitely refer to the same field?
+   *
+   * @param that the reference to compare with
+   * @return {@code true} if the fields are definitely the same, {@code false}
+   *  if it's not known (e.g. because at least one of the field references is
+   *  unresolved)
    */
   public boolean definitelySame(FieldReference that) {
     if (this == that) return true;
@@ -93,15 +103,12 @@ public final class FieldReference extends MemberReference {
   }
 
   /**
-   * Has the field reference already been resolved into a target method?
+   * @return {@code true} if the field reference already been resolved into a target method
    */
   public boolean isResolved() {
     return resolvedMember != null;
   }
 
-  /**
-   * For use by RVMField constructor
-   */
   void setResolvedMember(RVMField it) {
     if (VM.VerifyAssertions) VM._assert(resolvedMember == null || resolvedMember == it);
     resolvedMember = it;

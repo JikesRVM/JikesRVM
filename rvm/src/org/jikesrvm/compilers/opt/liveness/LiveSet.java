@@ -302,7 +302,7 @@ public class LiveSet {
    */
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("");
+    StringBuilder buf = new StringBuilder();
     if (first == null) {
       buf.append("empty");
     } else {

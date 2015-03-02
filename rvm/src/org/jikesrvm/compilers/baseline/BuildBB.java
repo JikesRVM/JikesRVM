@@ -67,8 +67,10 @@ final class BuildBB {
   int bytelength;
 
   /**
-   * Analyze the bytecodes and build the basic blocks with their predecessors.
+   * Analyzes the bytecodes and builds the basic blocks with their predecessors.
    * The results will be used by BuildReferenceMaps
+   *
+   * @param method the method whose bytecodes will be analyzed
    */
   public void determineTheBasicBlocks(NormalMethod method) {
     ExceptionHandlerMap exceptions;   // Used to get a hold of the try Start, End and Handler lists
@@ -439,6 +441,9 @@ final class BuildBB {
    * marked in byte code beyond "index"). If the basic block is already set up and
    * this is a backward branch then we must check if the block needs splitting,
    * branching to the middle of a block is not allowed.
+   *
+   * @param index the byte index of the branch instruction
+   * @param branchtarget the target byte index
    */
   private void processBranchTarget(int index, int branchtarget) {
 
@@ -466,6 +471,9 @@ final class BuildBB {
    * branchtarget location is the start of a block (and if not, then split the
    * existing block into two) Need to register the block that ends at "index"
    * as a predecessor of the block that starts at branchtarget.
+   *
+   * @param index the byte index of the branch instruction
+   * @param branchtarget the target byte index
    */
   private void processBackwardBranch(int index, int branchtarget) {
     BasicBlock existingBB, currentBB, newBB;
@@ -525,6 +533,10 @@ final class BuildBB {
 
   /**
    * process the effect of the ret instructions on the precedance table
+   *
+   * @param retList a list of basic blocks with return instructions. Each block
+   *  is represented by its basic block number.
+   * @param nextRetList maximum index in the list
    */
   private void processRetList(int[] retList, int nextRetList) {
     // block 0 not used
@@ -539,7 +551,13 @@ final class BuildBB {
   }
 
   /**
-   * scan back from ret instruction to jsr call sites
+   * Scans back from ret instruction to jsr call sites.
+   *
+   * @param pred the basic block number of the predecessor block
+   * @param retBB the basic block that contains the return
+   * @param otherRetCount the number of other returns (i.e. non-matching)
+   *  returns that were found on the path
+   * @param seenAlready list of blocks that have already been seen
    */
   private void findAndSetJSRCallSite(int pred, BasicBlock retBB, int otherRetCount, boolean[] seenAlready) {
     seenAlready[pred] = true;
@@ -568,7 +586,10 @@ final class BuildBB {
   }
 
   /**
-   * setup jsr call site
+   * Does the setup for a jsr call site.
+   *
+   * @param entryBB a basic block with a jsr entry
+   * @param retBB a basic block with a matching return
    */
   private void setupJSRCallSite(BasicBlock entryBB, BasicBlock retBB) {
     int newBB;
@@ -592,6 +613,8 @@ final class BuildBB {
   /**
    * For every handler, make a block that starts with the handler PC
    * Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void setupHandlerBBs(ExceptionHandlerMap exceptions) {
     int[] tryHandlerPC = exceptions.getHandlerPC();
@@ -609,6 +632,8 @@ final class BuildBB {
   /**
    * For every try start, make a block that starts with the Try start,
    * mark it as a try start. Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void setupTryStartBBs(ExceptionHandlerMap exceptions) {
     int[] tryStartPC = exceptions.getStartPC();
@@ -626,6 +651,8 @@ final class BuildBB {
   /**
    * For every handler, mark the blocks in its try block as its predecessors.
    * Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void processExceptionHandlers(ExceptionHandlerMap exceptions) {
     int[] tryStartPC = exceptions.getStartPC();
@@ -652,6 +679,8 @@ final class BuildBB {
    * Mark all the blocks within try range as being Try blocks
    * used for determining the stack maps for Handler blocks
    * Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void markTryBlocks(ExceptionHandlerMap exceptions) {
     int[] tryStartPC = exceptions.getStartPC();
@@ -675,6 +704,9 @@ final class BuildBB {
    * block as their predecessor; which is registered in "processExceptionHandlers"
    * Otherwise, the athrow acts as a branch to the exit and that should be marked
    * here. Note exceptions may be null.
+   *
+   * @param exceptions exception handler information
+   * @param athrowIndex byte index of the athrow
    */
   private void processAthrow(ExceptionHandlerMap exceptions, int athrowIndex) {
     if (exceptions != null) {
@@ -700,7 +732,9 @@ final class BuildBB {
   /********************************/
 
   /**
-   * add a basic block to the list
+   * Adds a basic block.
+   *
+   * @param newBB the block to add
    */
   private void addBasicBlock(BasicBlock newBB) {
     // Check whether basicBlock array must be grown.

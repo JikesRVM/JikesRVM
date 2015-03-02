@@ -34,9 +34,6 @@ public final class ITable implements RuntimeTable<Object> {
    */
   private final Object[] data;
 
-  /**
-   * Private constructor. Can not create instances.
-   */
   private ITable(int size) {
     this.data = new Object[size];
   }

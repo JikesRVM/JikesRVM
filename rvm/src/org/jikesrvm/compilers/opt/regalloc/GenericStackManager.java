@@ -49,7 +49,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 /**
  * Class to manage the allocation of the "compiler-independent" portion of
  * the stackframe.
- * <p>
  */
 public abstract class GenericStackManager extends IRTools {
 
@@ -63,8 +62,9 @@ public abstract class GenericStackManager extends IRTools {
   protected static final int WORDSIZE = BYTES_IN_ADDRESS;
 
   protected IR ir;
-  protected int frameSize;      // = 0;  (by default)
-  protected boolean allocFrame; // = false;  (by default)
+  protected RegisterAllocatorState regAllocState;
+  protected int frameSize;
+  protected boolean allocFrame;
 
   /**
    * Object holding register preferences
@@ -140,28 +140,36 @@ public abstract class GenericStackManager extends IRTools {
    * An object used to track adjustments to the GC maps induced by scratch
    * registers
    */
-  protected final ScratchMap scratchMap = new ScratchMap();
+  protected ScratchMap scratchMap;
 
   ScratchMap getScratchMap() { return scratchMap; }
 
   /**
    * Perform some architecture-specific initialization.
+   *
+   * @param ir the IR
    */
   public abstract void initForArch(IR ir);
 
   /**
-   * Is a particular instruction a system call?
+   * @param s the instruction to check
+   * @return whether the instruction is a system call?
    */
   public abstract boolean isSysCall(Instruction s);
 
   /**
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
+   *
+   * @param r the symbolic register
+   * @param s the instruction that has an occurrence of the register
+   * @return {@code true} if the symbolic register needs to be a scratch
+   *  register
    */
   public abstract boolean needScratch(Register r, Instruction s);
 
   /**
-   * Allocate a new spill location and grow the
+   * Allocates a new spill location and grows the
    * frame size to reflect the new layout.
    *
    * @param type the type to spill
@@ -170,13 +178,13 @@ public abstract class GenericStackManager extends IRTools {
   public abstract int allocateNewSpillLocation(int type);
 
   /**
-   * Clean up some junk that's left in the IR after register allocation,
-   * and add epilogue code.
+   * Cleans up some junk that's left in the IR after register allocation,
+   * and adds epilogue code.
    */
   public abstract void cleanUpAndInsertEpilogue();
 
   /**
-   * Return the size of the fixed portion of the stack.
+   * Returns the size of the fixed portion of the stack.
    * (in other words, the difference between the framepointer and
    * the stackpointer after the prologue of the method completes).
    * @return size in bytes of the fixed portion of the stackframe
@@ -184,7 +192,7 @@ public abstract class GenericStackManager extends IRTools {
   public abstract int getFrameFixedSize();
 
   /**
-   * Compute the number of stack words needed to hold nonvolatile
+   * Computes the number of stack words needed to hold nonvolatile
    * registers.
    *
    * Side effects:
@@ -197,7 +205,7 @@ public abstract class GenericStackManager extends IRTools {
   public abstract void computeNonVolatileArea();
 
   /**
-   * Insert the prologue for a normal method.
+   * Inserts the prologue for a normal method.
    */
   public abstract void insertNormalPrologue();
 
@@ -217,6 +225,8 @@ public abstract class GenericStackManager extends IRTools {
    * dead.  Mark this.
    *
    * <p>Invalidate any scratch register assignments that are illegal in s.
+   *
+   * @param s the instruction to process
    */
   public abstract void restoreScratchRegistersBefore(Instruction s);
 
@@ -230,7 +240,6 @@ public abstract class GenericStackManager extends IRTools {
    */
   public abstract void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb);
 
-  // Get the spill location previously assigned to the symbolic
   /**
    * Should we use information from linear scan in choosing scratch
    * registers?
@@ -242,17 +251,21 @@ public abstract class GenericStackManager extends IRTools {
    * If so, the following holds a pointer to some information from linear
    * scan analysis.
    */
-  private LinearScan.ActiveSet activeSet = null;
+  private ActiveSet activeSet = null;
 
   /**
-   * Replace all occurrences of register r1 in an instruction with register
+   * Replaces all occurrences of register r1 in an instruction with register
    * r2.
    *
    * Also, for any register r3 that is spilled to the same location as
    * r1, replace r3 with r2.
+   *
+   * @param s instruction to process
+   * @param r1 register to replace
+   * @param r2 the replacement register
    */
   private void replaceRegisterWithScratch(Instruction s, Register r1, Register r2) {
-    int spill1 = RegisterAllocatorState.getSpill(r1);
+    int spill1 = regAllocState.getSpill(r1);
     for (Enumeration<Operand> e = s.getOperands(); e.hasMoreElements();) {
       Operand op = e.nextElement();
       if (op != null) {
@@ -260,7 +273,7 @@ public abstract class GenericStackManager extends IRTools {
           Register r3 = op.asRegister().getRegister();
           if (r3 == r1) {
             op.asRegister().setRegister(r2);
-          } else if (RegisterAllocatorState.getSpill(r3) == spill1) {
+          } else if (regAllocState.getSpill(r3) == spill1) {
             op.asRegister().setRegister(r2);
           }
         }
@@ -302,8 +315,11 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Spill the contents of a scratch register to memory before
+   * Spills the contents of a scratch register to memory before
    * instruction s.
+   *
+   * @param scratch the scratch register to spill
+   * @param s the instruction before which the spill needs to occur
    */
   protected void unloadScratchRegisterBefore(Instruction s, ScratchRegister scratch) {
     // if the scratch register is not dirty, don't need to write anything,
@@ -313,26 +329,31 @@ public abstract class GenericStackManager extends IRTools {
     // spill the contents of the scratch register
     Register scratchContents = scratch.currentContents;
     if (scratchContents != null) {
-      int location = RegisterAllocatorState.getSpill(scratchContents);
+      int location = regAllocState.getSpill(scratchContents);
       insertSpillBefore(s, scratch.scratch, getValueType(scratchContents), location);
     }
 
   }
 
   /**
-   * Restore the contents of a scratch register before instruction s.
+   * Restores the contents of a scratch register before instruction s if
+   * necessary.
+   *
+   * @param scratch the scratch register whose contents may need to be restored
+   * @param s the instruction before which the restores needs to occur
    */
   protected void reloadScratchRegisterBefore(Instruction s, ScratchRegister scratch) {
     if (scratch.hadToSpill()) {
       // Restore the live contents into the scratch register.
-      int location = RegisterAllocatorState.getSpill(scratch.scratch);
+      int location = regAllocState.getSpill(scratch.scratch);
       insertUnspillBefore(s, scratch.scratch, getValueType(scratch.scratch), location);
     }
   }
 
   /**
-   * Return the set of scratch registers which are currently reserved
-   * for use in instruction s.
+   * @param s the instruction whose reserved scratch registers are of interest
+   * @return the scratch registers which are currently reserved
+   * for use in the instruction (may be an empty list but will never be {@code null})
    */
   private ArrayList<Register> getReservedScratchRegisters(Instruction s) {
     ArrayList<Register> result = new ArrayList<Register>(3);
@@ -357,14 +378,15 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param r the symbolic register to hold
    * @param s the instruction for which we need r in a register
+   * @return a register as described above or {@code null}
    */
   private ScratchRegister getCurrentScratchRegister(Register r, Instruction s) {
     for (ScratchRegister sr : scratchInUse) {
       if (sr.currentContents == r) {
         return sr;
       }
-      int location = RegisterAllocatorState.getSpill(sr.currentContents);
-      int location2 = RegisterAllocatorState.getSpill(r);
+      int location = regAllocState.getSpill(sr.currentContents);
+      int location2 = regAllocState.getSpill(r);
       if (location == location2) {
         // OK. We're currently holding a different symbolic register r2 in
         // a scratch register, and r2 is mapped to the same spill location
@@ -382,10 +404,9 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * If register r is currently in use as a scratch register,
-   * then return that scratch register.<p>
-   *
-   * Else return {@code null}.
+   * @param r the register to check
+   * @return the scratch register for r if it's currently in use as a scratch register,
+   *  {@code null} otherwise
    */
   private ScratchRegister getPhysicalScratchRegister(Register r) {
     for (ScratchRegister sr : scratchInUse) {
@@ -401,6 +422,8 @@ public abstract class GenericStackManager extends IRTools {
    *
    * For any register which is dirty, note this in the scratch map for
    * instruction s.
+   *
+   * @param s the instruction which needs an update in the scratch map
    */
   private void markDirtyScratchRegisters(Instruction s) {
     for (ScratchRegister scratch : scratchInUse) {
@@ -418,6 +441,9 @@ public abstract class GenericStackManager extends IRTools {
    *
    * SPECIAL CASE: If s is a return instruction, only restore the scratch
    * registers that are used by s.  The others are dead.
+   *
+   * @param s the instruction before which the scratch registers need to be
+   *  restored
    */
   private void restoreAllScratchRegistersBefore(Instruction s) {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
@@ -448,11 +474,14 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Is a particular register dead immediately before instruction s.
+   * @param r the register
+   * @param s the instruction
+   * @return {@code true} if the register is dead immediately before
+   *  the instruction
    */
   public boolean isDeadBefore(Register r, Instruction s) {
 
-    LinearScan.BasicInterval bi = activeSet.getBasicInterval(r, s);
+    BasicInterval bi = activeSet.getBasicInterval(r, s);
     // If there is no basic interval containing s, then r is dead before
     // s.
     if (bi == null) {
@@ -460,15 +489,17 @@ public abstract class GenericStackManager extends IRTools {
     } else {
       // If the basic interval begins at s, then r is dead before
       // s.
-      return bi.getBegin() == LinearScan.getDFN(s);
+      return bi.getBegin() == regAllocState.getDFN(s);
     }
   }
 
   /**
-   * Insert code as needed so that after instruction s, the value of
+   * Inserts code as needed so that after instruction s, the value of
    * a symbolic register will be held in a particular scratch physical
    * register.
    *
+   * @param s the instruction after which the value will be held in scratch
+   * @param symb the register whose value needs to be held in scratch
    * @param beCheap don't expend much effort optimizing scratch
    * assignments
    * @return the physical scratch register that holds the value
@@ -484,8 +515,8 @@ public abstract class GenericStackManager extends IRTools {
     Register current = sr.currentContents;
 
     if (current != null && current != symb) {
-      int location = RegisterAllocatorState.getSpill(current);
-      int location2 = RegisterAllocatorState.getSpill(symb);
+      int location = regAllocState.getSpill(current);
+      int location2 = regAllocState.getSpill(symb);
       if (location != location2) {
         insertSpillBefore(s, sr.scratch, getValueType(current), location);
       }
@@ -498,8 +529,11 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Is it legal to assign symbolic register symb to scratch register phys
-   * in instruction s?
+   * @param symb the symbolic register that we want to assign
+   * @param phys the scratch register
+   * @param s the instruction where the assignment would take place
+   * @return whether it's legal to assign the symbolic register to the scratch register
+   *  in the given instruction
    */
   protected boolean isLegal(Register symb, Register phys, Instruction s) {
     // If the physical scratch register already appears in s, so we can't
@@ -511,13 +545,13 @@ public abstract class GenericStackManager extends IRTools {
 
     // Further assure legality for all other symbolic registers in symb
     // which are mapped to the same spill location as symb.
-    int location = RegisterAllocatorState.getSpill(symb);
+    int location = regAllocState.getSpill(symb);
     for (Enumeration<Operand> e = s.getOperands(); e.hasMoreElements();) {
       Operand op = e.nextElement();
       if (op.isRegister()) {
         Register r = op.asRegister().getRegister();
         if (r.isSymbolic()) {
-          if (location == RegisterAllocatorState.getSpill(r)) {
+          if (location == regAllocState.getSpill(r)) {
             if (getRestrictions().isForbidden(r, phys, s)) {
               return false;
             }
@@ -531,10 +565,13 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Get a scratch register to hold symbolic register symb in instruction
+   * Gets a scratch register to hold symbolic register symb in instruction
    * s.
    *
+   * @param symb the symbolic register to hold
+   * @param s the instruction where the scratch register is needed
    * @param beCheap don't expend too much effort
+   * @return a scratch register, never {@code null}
    */
   private ScratchRegister getScratchRegister(Register symb, Instruction s, boolean beCheap) {
 
@@ -576,11 +613,15 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Find a register which can serve as a scratch
+   * Finds a register which can serve as a scratch
    * register for symbolic register r in instruction s.
    *
-   * <p> Insert spills if necessary to ensure that the returned scratch
+   * <p> Inserts spills if necessary to ensure that the returned scratch
    * register is free for use.
+   *
+   * @param r the symbolic register that needs a scratch
+   * @param s the instruction where the scratch register is needed
+   * @return a scratch register, never {@code null}
    */
   private ScratchRegister getScratchRegisterUsingIntervals(Register r, Instruction s) {
     ArrayList<Register> reservedScratch = getReservedScratchRegisters(s);
@@ -600,15 +641,19 @@ public abstract class GenericStackManager extends IRTools {
         phys = getFirstGPRNotUsedIn(r, s, reservedScratch);
       }
     }
-    return createScratchBefore(s, phys, r);
+    return createScratchBefore(regAllocState, s, phys, r);
   }
 
   /**
-   * Find the first available register which can serve as a scratch
+   * Finds the first available register which can serve as a scratch
    * register for symbolic register r in instruction s.
    *
-   * <p> Insert spills if necessary to ensure that the returned scratch
+   * <p> Inserts spills if necessary to ensure that the returned scratch
    * register is free for use.
+   *
+   * @param r the symbolic register that needs a scratch
+   * @param s the instruction where the scratch register is needed
+   * @return a scratch register, never {@code null}
    */
   private ScratchRegister getFirstAvailableScratchRegister(Register r, Instruction s) {
     ArrayList<Register> reservedScratch = getReservedScratchRegisters(s);
@@ -619,14 +664,16 @@ public abstract class GenericStackManager extends IRTools {
     } else {
       phys = getFirstGPRNotUsedIn(r, s, reservedScratch);
     }
-    return createScratchBefore(s, phys, r);
+    return createScratchBefore(regAllocState, s, phys, r);
   }
 
   /**
-   * Assign symbolic register symb to a physical register, and insert code
+   * Assigns symbolic register symb to a physical register, and inserts code
    * before instruction s to load the register from the appropriate stack
    * location.
    *
+   * @param s the instruction before which the register needs to be loaded
+   * @param symb the symbolic register to be assigned to a scratch
    * @param beCheap don't expend to much effort to optimize scratch
    * assignments
    * @return the physical register used to hold the value when it is
@@ -648,7 +695,7 @@ public abstract class GenericStackManager extends IRTools {
       // Now load up the scratch register.
       // since symbReg must have been previously spilled, get the spill
       // location previous assigned to symbReg
-      int location = RegisterAllocatorState.getSpill(symb);
+      int location = regAllocState.getSpill(symb);
       insertUnspillBefore(s, sr.scratch, getValueType(symb), location);
 
       // we have not yet written to sr, so mark it 'clean'
@@ -666,18 +713,24 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Make physical register r available to be used as a scratch register
+   * Make physicals register r available to be used as a scratch register
    * before instruction s.  In instruction s, r will hold the value of
    * register symb.
+   * @param regAllocState TODO
+   * @param s the instruction before which the scratch register will be created
+   * @param r the physical register to be used as scratch
+   * @param symb the symbolic register which needs a scratch register
+   *
+   * @return the scratch register that will hold the value
    */
-  private ScratchRegister createScratchBefore(Instruction s, Register r, Register symb) {
+  private ScratchRegister createScratchBefore(RegisterAllocatorState regAllocState, Instruction s, Register r, Register symb) {
     int type = PhysicalRegisterSet.getPhysicalRegisterType(r);
-    int spillLocation = RegisterAllocatorState.getSpill(r);
+    int spillLocation = regAllocState.getSpill(r);
     if (spillLocation <= 0) {
       // no spillLocation yet assigned to the physical register.
       // allocate a new location and assign it for the physical register
       spillLocation = allocateNewSpillLocation(type);
-      RegisterAllocatorState.setSpill(r, spillLocation);
+      regAllocState.setSpill(r, spillLocation);
     }
 
     ScratchRegister sr = getPhysicalScratchRegister(r);
@@ -724,40 +777,27 @@ public abstract class GenericStackManager extends IRTools {
     return sr;
   }
 
-  /**
-   * Does instruction s use the spill location for a given register?
-   */
   private boolean usesSpillLocation(Register r, Instruction s) {
-    int location = RegisterAllocatorState.getSpill(r);
+    int location = regAllocState.getSpill(r);
     return usesSpillLocation(location, s);
   }
 
-  /**
-   * Assuming instruction s uses the spill location for a given register,
-   * return the symbolic register that embodies that use.
-   */
   private Register spillLocationUse(Register r, Instruction s) {
-    int location = RegisterAllocatorState.getSpill(r);
+    int location = regAllocState.getSpill(r);
     return spillLocationUse(location, s);
   }
 
-  /**
-   * Does instruction s define the spill location for a given register?
-   */
   private boolean definesSpillLocation(Register r, Instruction s) {
-    int location = RegisterAllocatorState.getSpill(r);
+    int location = regAllocState.getSpill(r);
     return definesSpillLocation(location, s);
   }
 
-  /**
-   * Does instruction s define spill location loc?
-   */
   private boolean definesSpillLocation(int loc, Instruction s) {
     for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
       Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         Register r = op.asRegister().getRegister();
-        if (RegisterAllocatorState.getSpill(r) == loc) {
+        if (regAllocState.getSpill(r) == loc) {
           return true;
         }
       }
@@ -765,15 +805,12 @@ public abstract class GenericStackManager extends IRTools {
     return false;
   }
 
-  /**
-   * Does instruction s use spill location loc?
-   */
   private boolean usesSpillLocation(int loc, Instruction s) {
     for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
       Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         Register r = op.asRegister().getRegister();
-        if (RegisterAllocatorState.getSpill(r) == loc) {
+        if (regAllocState.getSpill(r) == loc) {
           return true;
         }
       }
@@ -787,13 +824,17 @@ public abstract class GenericStackManager extends IRTools {
    *
    * Note that at most one such register can be used, since at most one
    * live register can use a given spill location.
+   *
+   * @param s instruction to check
+   * @param loc spill location
+   * @return the symbolic register that belongs to the spill location
    */
   private Register spillLocationUse(int loc, Instruction s) {
     for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
       Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         Register r = op.asRegister().getRegister();
-        if (RegisterAllocatorState.getSpill(r) == loc) {
+        if (regAllocState.getSpill(r) == loc) {
           return r;
         }
       }
@@ -803,11 +844,15 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Return a FPR that does not appear in instruction s, to be used as a
+   * Returns a FPR that does not appear in instruction s, to be used as a
    * scratch register to hold register r.
-   * Except, do NOT return any register that is a member of the reserved set.
+   * Except, does NOT return any register that is a member of the reserved set.
    * <p>
-   * Throw an exception if none found.
+   * @param r the register that needs a scratch register
+   * @param s the instruction for which the scratch register is needed
+   * @param reserved the registers that must not be used
+   * @return a free FPR
+   * @throws OptimizingCompilerException if no free FPR was found
    */
   private Register getFirstFPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -829,8 +874,11 @@ public abstract class GenericStackManager extends IRTools {
    * before instruction s, to hold symbolic register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
-   * <p>
-   * Return {@code null} if none found
+   *
+   * @param r the register that needs a scratch register
+   * @param s the instruction for which the scratch register is needed
+   * @param reserved the registers that must not be used
+   * @return {@code null} if no register found, a dead and unused FPR otherwise
    */
   private Register getFirstDeadFPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -851,8 +899,10 @@ public abstract class GenericStackManager extends IRTools {
    * register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
-   *
-   * Throw an exception if none found.
+   * @param r the register that needs a scratch register
+   * @param s the instruction for which the scratch register is needed
+   * @param reserved the registers that must not be used
+   * @return a free GPR
    */
   private Register getFirstGPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -879,8 +929,10 @@ public abstract class GenericStackManager extends IRTools {
    * before instruction s, to hold symbolic register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
-   * <p>
-   * return {@code null} if none found.
+   * @param r the register that needs a scratch register
+   * @param s the instruction for which the scratch register is needed
+   * @param reserved the registers that must not be used
+   * @return {@code null} if no register found, a dead and unused GPR otherwise
    */
   private Register getFirstDeadGPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -901,9 +953,6 @@ public abstract class GenericStackManager extends IRTools {
     return null;
   }
 
-  /**
-   * Does register r appear in instruction s?
-   */
   private boolean appearsIn(Register r, Instruction s) {
     for (Enumeration<Operand> e = s.getOperands(); e.hasMoreElements();) {
       Operand op = e.nextElement();
@@ -916,27 +965,28 @@ public abstract class GenericStackManager extends IRTools {
     if (VM
         .BuildForIA32 &&
                       r.isFloatingPoint() &&
-                      (Operators.helper.isFNInit(s.operator) || Operators.helper.isFClear(s.operator))) {
+                      (Operators.helper.isFNInit(s.operator()) || Operators.helper.isFClear(s.operator()))) {
       return true;
     }
 
     // Assume that all volatile registers 'appear' in all call
     // instructions
-    return s.isCall() && s.operator != CALL_SAVE_VOLATILE && r.isVolatile();
+    return s.isCall() && s.operator() != CALL_SAVE_VOLATILE && r.isVolatile();
   }
 
   /**
-   * Is s a PEI with a reachable catch block?
+   * @param s the instruction to check
+   * @param instructionsBB the block that contains the instruction
+   * @return whether the instruction is s a PEI (potentially excepting
+   *  instruction, i.e. it can throw an exception) with a reachable catch
+   *  block
    */
-  private boolean isPEIWithCatch(Instruction s) {
+  private boolean isPEIWithCatch(Instruction s, BasicBlock instructionsBB) {
     if (s.isPEI()) {
-      // TODO: optimize this away by passing the basic block in.
-      BasicBlock b = s.getBasicBlock();
-
       // TODO: add a more efficient accessor on BasicBlock to
       // determine whether there's a catch block for a particular
       // instruction.
-      if (b.getApplicableExceptionalOut(s).hasMoreElements()) {
+      if (instructionsBB.getApplicableExceptionalOut(s).hasMoreElements()) {
         return true;
       }
     }
@@ -944,7 +994,8 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Return the offset from the frame pointer for the place to store the
+   * @param n number of the non-volatile GPR
+   * @return the offset from the frame pointer for the place to store the
    * nth nonvolatile GPR.
    */
   protected int getNonvolatileGPROffset(int n) {
@@ -952,7 +1003,8 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Return the offset from the frame pointer for the place to store the
+   * @param n number of the non-volatile FPR
+   * @return the offset from the frame pointer for the place to store the
    * nth nonvolatile FPR.
    */
   protected int getNonvolatileFPROffset(int n) {
@@ -960,16 +1012,13 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * PROLOGUE/EPILOGUE. must be done after register allocation
+   * PROLOGUE/EPILOGUE. Note: This must be done after register allocation!
    */
   public final void insertPrologueAndEpilogue() {
     insertPrologue();
     cleanUpAndInsertEpilogue();
   }
 
-  /**
-   * Insert the prologue.
-   */
   private void insertPrologue() {
     // compute the number of stack words needed to hold nonvolatile
     // registers
@@ -997,9 +1046,9 @@ public abstract class GenericStackManager extends IRTools {
    * After register allocation, go back through the IR and insert
    * compensating code to deal with spills.
    *
-   * @param set information from linear scan analysis
+   * @param set information from linear scan analysis (may be {@code null})
    */
-  public void insertSpillCode(LinearScan.ActiveSet set) {
+  public void insertSpillCode(ActiveSet set) {
     if (USE_LINEAR_SCAN) {
       activeSet = set;
     }
@@ -1011,12 +1060,12 @@ public abstract class GenericStackManager extends IRTools {
     // walk over each instruction in the IR
     for (Enumeration<BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements();) {
       BasicBlock bb = blocks.nextElement();
+
+      // If the following is true, don't expend effort trying to
+      // optimize scratch assignements
+      boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
+
       for (Enumeration<Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
-
-        // If the following is true, don't expend effort trying to
-        // optimize scratch assignements
-        boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
-
         Instruction s = e.nextElement();
         if (VERBOSE_DEBUG) {
           System.out.println(s);
@@ -1027,7 +1076,7 @@ public abstract class GenericStackManager extends IRTools {
         restoreScratchRegistersBefore(s);
 
         // we must spill all scratch registers before leaving this basic block
-        if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || s.isReturn()) {
+        if (s.operator() == BBEND || isPEIWithCatch(s, bb) || s.isBranch() || s.isReturn()) {
           restoreAllScratchRegistersBefore(s);
         }
 
@@ -1097,7 +1146,7 @@ public abstract class GenericStackManager extends IRTools {
                   // replace the register in the target instruction.
                   replaceRegisterWithScratch(s, r, scratch.scratch);
                 } else {
-                  if (s.operator != YIELDPOINT_OSR) {
+                  if (s.operator() != YIELDPOINT_OSR) {
                     if (VM.BuildForIA32) {
                       // No need to use a scratch register here.
                       replaceOperandWithSpillLocation(s, op.asRegister());
@@ -1170,24 +1219,28 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Are we required to allocate a stack frame for this method?
+   * @return {@code true} if and only if a stack frame
+   *  must be allocated for this method
    */
   protected boolean frameIsRequired() { return frameRequired; }
 
   /**
-   * Record that we need a stack frame for this method.
+   * Records that we need a stack frame for this method.
    */
   protected void setFrameRequired() {
     frameRequired = true;
   }
 
   /**
-   * Does this IR have a prologue yieldpoint?
+   * @return {@code true} if and only if this IR has a prologue yieldpoint
    */
   protected boolean hasPrologueYieldpoint() { return prologueYieldpoint; }
 
   /**
-   * Ensure param passing area of size - STACKFRAME_HEADER_SIZE bytes
+   * Ensure that there's enough space for passing parameters. We need
+   * {@code size - STACKFRAME_HEADER_SIZE} bytes.
+   *
+   * @param s space needed for parameters
    */
   public void allocateParameterSpace(int s) {
     if (spillPointer < s) {
@@ -1197,7 +1250,7 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Allocate the specified number of bytes in the stackframe,
+   * Allocates the specified number of bytes in the stackframe,
    * returning the offset to the start of the allocated space.
    *
    * @param size the number of bytes to allocate
@@ -1212,13 +1265,15 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * We encountered a magic (get/set framepointer) that is going to force
-   * us to acutally create the stack frame.
+   * us to actually create the stack frame.
    */
   public void forceFrameAllocation() { frameRequired = true; }
 
   /**
    * We encountered a float/int conversion that uses
    * the stack as temporary storage.
+   *
+   * @return offset to the start of the allocated space
    */
   public int allocateSpaceForConversion() {
     if (conversionOffset == 0) {
@@ -1231,6 +1286,8 @@ public abstract class GenericStackManager extends IRTools {
    * We encountered a catch block that actually uses its caught
    * exception object; allocate a stack slot for the exception delivery
    * code to use to pass the exception object to us.
+   *
+   * @return offset to the start of the allocated space
    */
   public int allocateSpaceForCaughtException() {
     if (caughtExceptionOffset == 0) {
@@ -1241,14 +1298,16 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * Called as part of the register allocator startup.
-   * (1) examine the IR to determine whether or not we need to
-   *     allocate a stack frame
-   * (2) given that decison, determine whether or not we need to have
+   * <ol>
+   *   <li>examine the IR to determine whether or not we need to
+   *     allocate a stack frame</li>
+   *   <li>given that decison, determine whether or not we need to have
    *     prologue/epilogue yieldpoints.  If we don't need them, remove them.
-   *     Set up register preferences.
-   * (3) initialization code for the old RegisterManager.
-   * (4) save caughtExceptionOffset where the exception deliverer can find it
-   * (5) initialize the restrictions object
+   *     Set up register preferences.</li>
+   *   <li>initialization code for the old RegisterManager</li>
+   *   <li>save caughtExceptionOffset where the exception deliverer can find it</li>
+   *   <li>initialize the restrictions object</li>
+   * </ol>
    * @param ir the IR
    */
   public void prepare(IR ir) {
@@ -1306,7 +1365,7 @@ public abstract class GenericStackManager extends IRTools {
     boolean removeYieldpoints = isSingleBlock && !preventYieldPointRemoval;
 
     // In adaptive systems if we require a frame, we don't remove
-    //  any yield poits
+    //  any yield points
     if (VM.BuildForAdaptiveSystem && frameRequired) {
       removeYieldpoints = false;
     }
@@ -1330,6 +1389,8 @@ public abstract class GenericStackManager extends IRTools {
 
     // (3) initialization
     this.ir = ir;
+    this.regAllocState = ir.MIRInfo.regAllocState;
+    this.scratchMap = new ScratchMap(regAllocState);
     pref.initialize(ir);
     frameSize = spillPointer;
     initForArch(ir);
@@ -1342,7 +1403,9 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Set up register restrictions
+   * Sets up register restrictions.
+   *
+   * @param ir the IR which will get the restrictions
    */
   public final void computeRestrictions(IR ir) {
     restrict.init(ir);
@@ -1374,6 +1437,7 @@ public abstract class GenericStackManager extends IRTools {
    * of the value stored in the register.
    * Note: This routine returns INT_VALUE for longs
    *
+   * @param r a symbolic register
    * @return one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, CONDITION_VALUE
    */
   public final byte getValueType(Register r) {
@@ -1396,10 +1460,10 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   *  Find a nonvolatile register to allocate starting at the reg corresponding
-   *  to the symbolic register passed
-   *
-   *  TODO: Clean up this interface.
+   * Find a nonvolatile register to allocate starting at the reg corresponding
+   * to the symbolic register passed.
+   * <p>
+   * TODO: Clean up this interface.
    *
    *  @param symbReg the place to start the search
    *  @return the allocated register or null
@@ -1419,7 +1483,9 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * Class to represent a physical register currently allocated as a
-   * scratch register.
+   * scratch register. A scratch register is a register that is reserved
+   * for use in spills and unspills. It is not available as a normal register
+   * for the register allocation.
    */
   protected static final class ScratchRegister {
     /**

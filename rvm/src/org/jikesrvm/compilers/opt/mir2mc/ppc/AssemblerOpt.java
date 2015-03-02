@@ -14,8 +14,13 @@ package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Iterator;
+
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.Services;
@@ -48,8 +53,10 @@ import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.ppc.ArchConstants;
 import org.jikesrvm.ppc.Disassembler;
+import org.jikesrvm.util.EmptyIterator;
 
 /**
  * Assemble PowerPC MIR into binary code.
@@ -85,91 +92,48 @@ public abstract class AssemblerOpt implements ArchConstants {
 
   private int unresolvedBranches = 0;
 
+  private BranchInformationForBackPatching branchBackPatching;
+
+  private final IR ir;
+
+  private final boolean shouldPrint;
+
   /**
-   * Generate machine code into ir.MIRInfo.machinecode.
+   * @param bcSize currently unused. Still present because we need
+   *  to have compatible constructors with all other architectures
+   *  and IA32 still has this parameter.
+   * @param print whether to print the generated machine code
+   * @param ir the IR object for the opt compilation
+   */
+  public AssemblerOpt(int bcSize, boolean print, IR ir) {
+    this.ir = ir;
+    this.shouldPrint = print;
+  }
+
+  /**
+   * Generates machine code into ir.MIRInfo.machinecode.
    *
-   * @param ir the IR to generate
-   * @param shouldPrint should we print the machine code?
    * @return the number of machinecode instructions generated
    */
-  public static int generateCode(IR ir, boolean shouldPrint) {
+  public int generateCode() {
     ir.MIRInfo.machinecode = ArchitectureSpecific.CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
-    return new ArchitectureSpecificOpt.AssemblerOpt().genCode(ir, shouldPrint);
+    return genCode(ir, shouldPrint);
   }
 
   protected final int genCode(IR ir, boolean shouldPrint) {
     int mi = 0;
     CodeArray machinecodes = ir.MIRInfo.machinecode;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    int labelCountEstimate = ir.cfg.numberOfNodes();
+    branchBackPatching = new BranchInformationForBackPatching(labelCountEstimate);
     boolean unsafeCondDispl = machinecodes.length() > MAX_COND_DISPL;
     //boolean unsafeDispl = machinecodes.length() > MAX_DISPL;
+    MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       int inst = p.operator().instTemplate;
       switch (p.getOpcode()) {
         case LABEL_opcode:
-          // Back-patch any forward branches to it.
-          // The Label instructions scratchObject holds the head of a
-          // linked list of the (forward) branch instructions with this
-          // label as their target.
-          for (BranchSrcElement bSrc = (BranchSrcElement) p.scratchObject; bSrc != null; bSrc = bSrc.next) {
-            Instruction branchStmt = bSrc.source;
-            int bo = branchStmt.getmcOffset() - (1 << LG_INSTRUCTION_WIDTH);
-            int bi = bo >> LG_INSTRUCTION_WIDTH;
-            int targetOffset = (mi - bi) << LG_INSTRUCTION_WIDTH;
-            boolean setLink = false;
-
-            if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH) {
-              throw new OptimizingCompilerException("CodeGen", "Branch positive offset too large: ", targetOffset);
-            }
-
-            switch (branchStmt.getOpcode()) {
-              case PPC_B_opcode:
-              case PPC_BL_opcode:
-                machinecodes.set(bi, machinecodes.get(bi) | targetOffset & LI_MASK);
-                break;
-              case PPC_DATA_LABEL_opcode:
-                machinecodes.set(bi, targetOffset);
-                break;
-                // Since resolveBranch and patch already check the range
-                // of target offset, and will fail if it is out of range
-              case IG_PATCH_POINT_opcode:
-                // do nothing
-                break;
-              case PPC_BCL_opcode:
-                setLink = true;
-                // fall through!
-              default:          // conditional branches
-                if (targetOffset <= MAX_COND_DISPL << 2) {// one word is enough
-                  machinecodes.set(bi, machinecodes.get(bi) | targetOffset & BD_MASK);
-                  if (DEBUG) {
-                    VM.sysWrite("**** Forward Short Cond. Branch ****\n");
-                    VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
-                  }
-                } else {          // one word is not enough
-                  // we're moving the "real" branch ahead 1 instruction
-                  // if it's a GC point (eg BCL for yieldpoint) then we must
-                  // make sure the GCMap is generated at the correct mc offset.
-                  branchStmt.setmcOffset(branchStmt.getmcOffset() + (1 << LG_INSTRUCTION_WIDTH));
-                  // flip the condition and skip the next branch instruction
-                  machinecodes.set(bi, flipCondition(machinecodes.get(bi)));
-                  machinecodes.set(bi, machinecodes.get(bi) | (2 << LG_INSTRUCTION_WIDTH));
-                  machinecodes.set(bi, machinecodes.get(bi) & 0xfffffffe);       // turn off link bit.
-                  // make a long branch
-                  machinecodes.set(bi + 1, Btemplate | ((targetOffset - 4) & LI_MASK));
-                  if (setLink) {
-                    machinecodes.set(bi + 1, machinecodes.get(bi + 1) | 1);          // turn on link bit.
-                  }
-                  if (DEBUG) {
-                    VM.sysWrite("**** Forward Long Cond. Branch ****\n");
-                    VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
-                    VM.sysWrite(disasm(machinecodes.get(bi + 1), 0) + "\n");
-                  }
-                }
-                break;
-            }
-            unresolvedBranches--;
-          }
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          backpatchForwardBranches(p, machinecodes, mi, mcOffsets);
           break;
 
         case BBEND_opcode:
@@ -177,21 +141,21 @@ public abstract class AssemblerOpt implements ArchConstants {
         case UNINT_END_opcode:
         case GUARD_MOVE_opcode:
         case GUARD_COMBINE_opcode:
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           break;
 
         case PPC_DATA_INT_opcode: {
           int value = MIR_DataInt.getValue(p).value;
           machinecodes.set(mi++, value);
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
         case PPC_DATA_LABEL_opcode: {
           Instruction target = MIR_DataLabel.getTarget(p).target;
-          int targetOffset = resolveBranch(p, target, mi);
+          int targetOffset = resolveBranch(p, target, mi, mcOffsets);
           machinecodes.set(mi++, targetOffset);
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -203,7 +167,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Condition.getValue1Bit(p).value & REG_MASK;
           int op2 = MIR_Condition.getValue2Bit(p).value & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -231,7 +195,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -242,7 +206,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -260,7 +224,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_Load.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -270,7 +234,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_Load.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -287,7 +251,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_Store.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -299,7 +263,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_LoadUpdate.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_LoadUpdate.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -308,7 +272,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_LoadUpdate.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_LoadUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -318,7 +282,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Trap.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Trap.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -328,7 +292,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Trap.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Trap.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -342,7 +306,7 @@ public abstract class AssemblerOpt implements ArchConstants {
             op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
           }
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -357,7 +321,7 @@ public abstract class AssemblerOpt implements ArchConstants {
             op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
           }
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -369,7 +333,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op2 = 1;
           inst = VM.BuildFor64Addr ? PPC64_TDI.instTemplate : PPC_TWI.instTemplate;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -380,7 +344,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | op1));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -394,7 +358,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -407,7 +371,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -417,7 +381,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -427,7 +391,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           int op3high = 1;  //op3low = 0, so op3 == 32
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op3high << 5)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -439,7 +403,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -450,7 +414,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -481,7 +445,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -496,7 +460,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -506,7 +470,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Move.getValue(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -519,7 +483,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op2 = (32 - shift);
           int op3 = shift;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -532,7 +496,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op2 = shift;
           int op3 = (31 - shift);
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 1)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -542,7 +506,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -554,7 +518,7 @@ public abstract class AssemblerOpt implements ArchConstants {
             int op2 = (32 - shift);
             int op3 = shift;
             machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           } else {
             int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
             int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
@@ -572,7 +536,7 @@ public abstract class AssemblerOpt implements ArchConstants {
                               (op2high << 1) |
                               (op3low << 6) |
                               (op3high << 5)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           }
         }
         break;
@@ -583,7 +547,7 @@ public abstract class AssemblerOpt implements ArchConstants {
             int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
             int op2 = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           } else {
             int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
             int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
@@ -591,7 +555,7 @@ public abstract class AssemblerOpt implements ArchConstants {
             int op2low = op2 & 0x1F;
             int op2high = (op2 & 0x20) >>> 5;
             machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           }
         }
         break;
@@ -604,7 +568,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op2low = op2 & 0x1F;
           int op2high = (op2 & 0x20) >>> 5;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -626,7 +590,7 @@ public abstract class AssemblerOpt implements ArchConstants {
                             (op2high << 1) |
                             (op3low << 6) |
                             (op3high << 5)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -650,7 +614,7 @@ public abstract class AssemblerOpt implements ArchConstants {
                             (op2high << 1) |
                             (op3low << 6) |
                             (op3high << 5)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -676,7 +640,7 @@ public abstract class AssemblerOpt implements ArchConstants {
                             (op2high << 1) |
                             (op3low << 6) |
                             (op3high << 5)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -702,7 +666,7 @@ public abstract class AssemblerOpt implements ArchConstants {
                             (op2high << 1) |
                             (op3low << 6) |
                             (op3high << 5)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -715,7 +679,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -727,7 +691,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -743,7 +707,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -755,15 +719,15 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
         case PPC_B_opcode: {
           BranchOperand o = MIR_Branch.getTarget(p);
-          int targetOffset = resolveBranch(p, o.target, mi);
+          int targetOffset = resolveBranch(p, o.target, mi, mcOffsets);
           machinecodes.set(mi++, inst | (targetOffset & LI_MASK));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -772,7 +736,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           /* p   , == bcctr  0x14,BI */
         {                     // INDIRECT BRANCH (Target == null)
           machinecodes.set(mi++, inst);
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -789,11 +753,11 @@ public abstract class AssemblerOpt implements ArchConstants {
           // 1 <= op <= 7
           int bo_bi = op0 << 2 | op1;
           BranchOperand o = MIR_CondBranch.getTarget(p);
-          int targetOffset = resolveBranch(p, o.target, mi);
+          int targetOffset = resolveBranch(p, o.target, mi, mcOffsets);
           if (targetOffset == 0) {            // unresolved branch
             if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
             machinecodes.set(mi++, inst | (bo_bi << 16));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
             if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
             if (unsafeCondDispl) {            // assume we might need two words
               machinecodes.set(mi++, NOPtemplate);   // for now fill with NOP
@@ -808,12 +772,12 @@ public abstract class AssemblerOpt implements ArchConstants {
             if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
             // make a long branch to the target
             machinecodes.set(mi++, Btemplate | ((targetOffset - 4) & LI_MASK));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
             if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
           } else {              // one word is enough
             if (DEBUG) VM.sysWrite("**** Backward Short Cond. Branch ****\n");
             machinecodes.set(mi++, inst | (bo_bi << 16) | (targetOffset & BD_MASK));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
             if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
           }
         }
@@ -830,7 +794,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           // 1 <= op <= 7
           int bo_bi = op0 << 2 | op1;
           machinecodes.set(mi++, inst | (bo_bi << 16));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0));
         }
         break;
@@ -838,9 +802,9 @@ public abstract class AssemblerOpt implements ArchConstants {
         case PPC_BL_opcode:
         case PPC_BL_SYS_opcode: {                     // CALL
           BranchOperand o = MIR_Call.getTarget(p);
-          int targetOffset = resolveBranch(p, o.target, mi);
+          int targetOffset = resolveBranch(p, o.target, mi, mcOffsets);
           machinecodes.set(mi++, inst | (targetOffset & LI_MASK));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -852,7 +816,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           /* p   , == bcctrl 0x14,BI */
         {                     // INDIRECT CALL (Target == null)
           machinecodes.set(mi++, inst);
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -864,11 +828,11 @@ public abstract class AssemblerOpt implements ArchConstants {
           // 1 <= op <= 7
           int bo_bi = op0 << 2 | op1;
           BranchOperand o = MIR_CondCall.getTarget(p);
-          int targetOffset = resolveBranch(p, o.target, mi);
+          int targetOffset = resolveBranch(p, o.target, mi, mcOffsets);
           if (targetOffset == 0) {            // unresolved branch
             if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
             machinecodes.set(mi++, inst | (bo_bi << 16));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
             if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
             if (unsafeCondDispl) {            // assume we need two words
               machinecodes.set(mi++, NOPtemplate);    // for now fill with NOP
@@ -890,13 +854,13 @@ public abstract class AssemblerOpt implements ArchConstants {
               flipCondition(bo_bi<<16), 2<<2);
               // make a long branch to the target
               machinecodes.set(mi++, Btemplate | ((targetOffset-4) & LI_MASK));
-              p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+              mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
               if (DEBUG) printInstruction(mi-1, Btemplate, targetOffset-4);
             */
           } else {              // one instruction is enough
             if (DEBUG) VM.sysWrite("**** Backward Short Cond. Branch ****\n");
             machinecodes.set(mi++, inst | (bo_bi << 16) | (targetOffset & BD_MASK));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
             if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
           }
         }
@@ -910,7 +874,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           // 1 <= op <= 7
           int bo_bi = op0 << 2 | op1;
           machinecodes.set(mi++, inst | (bo_bi << 16));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0));
         }
         break;
@@ -921,7 +885,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -932,7 +896,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -942,7 +906,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -953,7 +917,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -961,7 +925,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Move.getValue(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -975,7 +939,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -985,7 +949,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -995,7 +959,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1005,7 +969,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 6)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1023,7 +987,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op2 = MIR_Ternary.getValue2(p).getRegister().number & REG_MASK;
           int op3 = MIR_Ternary.getValue3(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 6) | (op3 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1038,7 +1002,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
           int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1048,7 +1012,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
           int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1059,13 +1023,13 @@ public abstract class AssemblerOpt implements ArchConstants {
             int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
             int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           } else {
             int op0 = MIR_Load.getResult(p).getRegister().number & REG_MASK;
             int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
             int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           }
         }
         break;
@@ -1080,7 +1044,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
           int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1091,7 +1055,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = MIR_StoreUpdate.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_StoreUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1101,7 +1065,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
           int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1111,13 +1075,13 @@ public abstract class AssemblerOpt implements ArchConstants {
             int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
             int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           } else {
             int op0 = MIR_Store.getValue(p).getRegister().number & REG_MASK;
             int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
             int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           }
         }
         break;
@@ -1128,13 +1092,13 @@ public abstract class AssemblerOpt implements ArchConstants {
             int op1 = MIR_StoreUpdate.getAddress(p).getRegister().number & REG_MASK;
             int op2 = MIR_StoreUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           } else {
             int op0 = MIR_StoreUpdate.getValue(p).getRegister().number & REG_MASK;
             int op1 = (MIR_StoreUpdate.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
             int op2 = MIR_StoreUpdate.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
-            p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+            mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
           }
         }
         break;
@@ -1143,7 +1107,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
           int op1 = phys.getSPR(MIR_Move.getValue(p).getRegister());
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1151,7 +1115,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = phys.getSPR(MIR_Move.getResult(p).getRegister());
           int op1 = MIR_Move.getValue(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1159,14 +1123,14 @@ public abstract class AssemblerOpt implements ArchConstants {
         case PPC_MFTBU_opcode: {
           int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
         case PPC_SYNC_opcode:
         case PPC_ISYNC_opcode: {
           machinecodes.set(mi++, inst);
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1180,7 +1144,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           int op0 = MIR_CacheOp.getAddress(p).getRegister().number & REG_MASK;
           int op1 = MIR_CacheOp.getOffset(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 11)));
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
@@ -1194,10 +1158,10 @@ public abstract class AssemblerOpt implements ArchConstants {
           // resolve the target instruction, in LABEL_opcode,
           // add one case for IG_PATCH_POINT
           /* int targetOffset = */
-          resolveBranch(p, target, mi);
+          resolveBranch(p, target, mi, mcOffsets);
 
           machinecodes.set(mi++, NOPtemplate);
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
 
           if (DEBUG_CODE_PATCH) {
             VM.sysWrite("to be patched at ", mi - 1);
@@ -1231,37 +1195,96 @@ public abstract class AssemblerOpt implements ArchConstants {
   }
 
   /**
-   * Used to build a link list of unresolved forward branches
-   * on the target label instr.
+   * Back-patches any forward branches to the given instruction.
+   * <p>
+   * Note: The updated index into the machine code array would normally need
+   * to be returned but this method currently does not modify the index.
+   *
+   * @param branchTarget the LABEL instruction to process
+   * @param machinecodes machine code array
+   * @param machineCodeIndex current index into the machine code array
+   * @param mcOffsets machine code offsets
    */
-  private static final class BranchSrcElement {
-    Instruction source;
-    BranchSrcElement next;
+  private void backpatchForwardBranches(Instruction branchTarget,
+      CodeArray machinecodes, int machineCodeIndex, MachineCodeOffsets mcOffsets) {
+    Iterator<Instruction> branchSources = branchBackPatching.getBranchSources(branchTarget);
+    while (branchSources.hasNext()) {
+      Instruction branchStmt = branchSources.next();
+      int bo = mcOffsets.getMachineCodeOffset(branchStmt) -
+          (1 << LG_INSTRUCTION_WIDTH);
+      int bi = bo >> LG_INSTRUCTION_WIDTH;
+      int targetOffset = (machineCodeIndex - bi) << LG_INSTRUCTION_WIDTH;
+      boolean setLink = false;
 
-    BranchSrcElement(Instruction src, BranchSrcElement Next) {
-      source = src;
-      next = Next;
+      if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH) {
+        throw new OptimizingCompilerException("CodeGen", "Branch positive offset too large: ", targetOffset);
+      }
+
+      switch (branchStmt.getOpcode()) {
+        case PPC_B_opcode:
+        case PPC_BL_opcode:
+          machinecodes.set(bi, machinecodes.get(bi) | targetOffset & LI_MASK);
+          break;
+        case PPC_DATA_LABEL_opcode:
+          machinecodes.set(bi, targetOffset);
+          break;
+          // Since resolveBranch and patch already check the range
+          // of target offset, and will fail if it is out of range
+        case IG_PATCH_POINT_opcode:
+          // do nothing
+          break;
+        case PPC_BCL_opcode:
+          setLink = true;
+          // fall through!
+        default:          // conditional branches
+          if (targetOffset <= MAX_COND_DISPL << 2) {// one word is enough
+            machinecodes.set(bi, machinecodes.get(bi) | targetOffset & BD_MASK);
+            if (DEBUG) {
+              VM.sysWrite("**** Forward Short Cond. Branch ****\n");
+              VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
+            }
+          } else {          // one word is not enough
+            // we're moving the "real" branch ahead 1 instruction
+            // if it's a GC point (eg BCL for yieldpoint) then we must
+            // make sure the GCMap is generated at the correct mc offset.
+            int oldOffset = mcOffsets.getMachineCodeOffset(branchStmt);
+            mcOffsets.setMachineCodeOffset(branchStmt, oldOffset +
+                (1 << LG_INSTRUCTION_WIDTH));
+            // flip the condition and skip the next branch instruction
+            machinecodes.set(bi, flipCondition(machinecodes.get(bi)));
+            machinecodes.set(bi, machinecodes.get(bi) | (2 << LG_INSTRUCTION_WIDTH));
+            machinecodes.set(bi, machinecodes.get(bi) & 0xfffffffe);       // turn off link bit.
+            // make a long branch
+            machinecodes.set(bi + 1, Btemplate | ((targetOffset - 4) & LI_MASK));
+            if (setLink) {
+              machinecodes.set(bi + 1, machinecodes.get(bi + 1) | 1);          // turn on link bit.
+            }
+            if (DEBUG) {
+              VM.sysWrite("**** Forward Long Cond. Branch ****\n");
+              VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
+              VM.sysWrite(disasm(machinecodes.get(bi + 1), 0) + "\n");
+            }
+          }
+          break;
+      }
+      unresolvedBranches--;
     }
+    mcOffsets.setMachineCodeOffset(branchTarget, machineCodeIndex << LG_INSTRUCTION_WIDTH);
   }
 
-  /**
-   * Resolve a branch instruction to a machine code offset.
-   * @param src
-   * @param tgt
-   * @param mi
-   */
-  private int resolveBranch(Instruction src, Instruction tgt, int mi) {
-    if (tgt.getmcOffset() < 0) {
+  private int resolveBranch(Instruction src, Instruction tgt, int mi,
+      MachineCodeOffsets mcOffsets) {
+    int targetsMcOffset = mcOffsets.getMachineCodeOffset(tgt);
+    if (targetsMcOffset < 0) {
       unresolvedBranches++;
       // forward branch target, which has not been fixed yet.
-      // Unresolved forward branch stmts will form a linked list
-      // via the scratchObject of the label instruction.
-      // These branch stmts will be back-patched as part of assembly of LABEL
-      tgt.scratchObject = new BranchSrcElement(src, (BranchSrcElement) tgt.scratchObject);
+      // Unresolved forward branch stmts will be saved now and
+      // will be back-patched later as part of the assembly of LABEL
+      branchBackPatching.addBranchSourceForLabel(src, tgt);
       return 0;
     } else {
       // backward branch target, which has been fixed.
-      int targetOffset = tgt.getmcOffset() - (mi << LG_INSTRUCTION_WIDTH);
+      int targetOffset = targetsMcOffset - (mi << LG_INSTRUCTION_WIDTH);
       if (targetOffset < (MIN_DISPL << LG_INSTRUCTION_WIDTH)) {
         throw new OptimizingCompilerException("CodeGen", " Branch negative offset too large: ", targetOffset);
       }
@@ -1327,5 +1350,46 @@ public abstract class AssemblerOpt implements ArchConstants {
      */
     // make a B IMM instruction
     code.set(patchOffset, (18 << 26) | (rel32 & LI_MASK));
+  }
+
+  /**
+   * Contains information about of unresolved forward branches
+   * for the respective target label instructions.
+   */
+  private static final class BranchInformationForBackPatching {
+    /**
+     * An estimate for the number of sources that a branch target may have.
+     * <p>
+     * TODO This could likely be improved by information from measurements.
+     * The current value was chosen merely because the default capacity
+     * of 16 is likely too large.
+     */
+    private static final int BRANCH_SOURCE_COUNT_ESTIMATE = 4;
+
+    private Map<Instruction, Deque<Instruction>> labelToBranchSources;
+
+    BranchInformationForBackPatching(int labelCountEstimate) {
+      int noRehashCapacity = (labelCountEstimate / 2) * 3;
+      labelToBranchSources =
+        new HashMap<Instruction, Deque<Instruction>>(noRehashCapacity);
+    }
+
+    void addBranchSourceForLabel(Instruction branchSource, Instruction label) {
+      Deque<Instruction> queue = labelToBranchSources.get(label);
+      if (queue == null) {
+        queue = new ArrayDeque(BRANCH_SOURCE_COUNT_ESTIMATE);
+        labelToBranchSources.put(label, queue);
+      }
+      queue.addFirst(branchSource);
+    }
+
+    Iterator<Instruction> getBranchSources(Instruction label) {
+      Deque<Instruction> sources = labelToBranchSources.get(label);
+      if (sources == null) {
+        return EmptyIterator.<Instruction>getInstance();
+      }
+      return sources.iterator();
+    }
+
   }
 }

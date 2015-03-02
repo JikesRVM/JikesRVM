@@ -32,14 +32,12 @@ public abstract class SpecializedMethod {
   /** This specialized method's id */
   protected final int id;
 
-  /**
-   * Constructor.
-   */
   protected SpecializedMethod(int id) {
     this.id = id;
   }
 
   /**
+   * @param type the type whose specialzed method is to be returned
    * @return the specialized method for the given type.
    */
   public abstract CodeArray specializeMethod(RVMType type);

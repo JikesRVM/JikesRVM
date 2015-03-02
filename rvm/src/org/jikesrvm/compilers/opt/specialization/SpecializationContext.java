@@ -18,15 +18,23 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 interface SpecializationContext {
 
   /**
-   * Find or create a specialized version of source for this
+   * Finds or creates a specialized version of source for this
    * context.  Do NOT compile it immediately.  However, DO
-   * allocate an spmd if needed
+   * allocate an spmd if needed.
+   *
+   * @param source the method that needs a specialized version
+   * @return the created specialized method
    */
   SpecializedMethod findOrCreateSpecializedVersion(NormalMethod source);
 
   /**
-   * Generate code for a specialized version of source in this
+   * Generates code for a specialized version of source in this
    * context.
+   *
+   * @param source the method whose specialized version will be
+   *  compiled
+   * @return the compiled method associated with the specialized method
+   *  version
    */
   CompiledMethod specialCompile(NormalMethod source);
 }

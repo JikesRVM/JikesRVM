@@ -113,7 +113,7 @@ public final class InlineSequence {
   }
 
   /**
-   * return the depth of inlining: (0 corresponds to no inlining)
+   * @return the depth of inlining: (0 corresponds to no inlining)
    */
   public int getInlineDepth() {
     int depth = 0;
@@ -126,7 +126,7 @@ public final class InlineSequence {
   }
 
   /**
-   * Return the root method of this inline sequence
+   * @return the root method of this inline sequence
    */
   public NormalMethod getRootMethod() {
     InlineSequence parent = this;
@@ -137,7 +137,8 @@ public final class InlineSequence {
   }
 
   /**
-   * Does this inline sequence contain a given method?
+   * @param m the method to search for
+   * @return whether this inline sequence contains a given method
    */
   public boolean containsMethod(RVMMethod m) {
     if (method == m) return true;

@@ -141,9 +141,6 @@ public final class IndexPropagation extends CompilerPhase {
       this.key = key;
     }
 
-    /**
-     * Return the key
-     */
     HeapVariable<?> getKey() {
       return key;
     }
@@ -349,9 +346,6 @@ public final class IndexPropagation extends CompilerPhase {
       this.key = key;
     }
 
-    /**
-     * Return the key
-     */
     HeapVariable<?> getKey() {
       return key;
     }

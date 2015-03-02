@@ -30,8 +30,10 @@ public class AdaptiveInlining {
   private static final CallDensityListener callDensityListener = new CallDensityListener();
 
   /**
-   * Set parameters.
-   * Must be called after parsing command-line.
+   * Creates the dynamic call graph. This method must be called after
+   * parsing the command-line.
+   *
+   * @param options the AOS options
    */
   static void boot(AOSOptions options) {
     // create and register the dcg as a decayable object

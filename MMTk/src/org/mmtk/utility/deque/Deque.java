@@ -33,7 +33,8 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   *
+   * @param buf the buffer's address
+   * @return the buffer's offset
    */
   @Inline
   protected final Offset bufferOffset(Address buf) {

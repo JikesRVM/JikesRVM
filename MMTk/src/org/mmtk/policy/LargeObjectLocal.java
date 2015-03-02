@@ -70,12 +70,16 @@ public final class LargeObjectLocal extends LargeObjectAllocator {
   /**
    * Prepare for a collection.  Clear the treadmill to-space head and
    * prepare the collector.  If paranoid, perform a sanity check.
+   *
+   * @param fullHeap whether the collection will be full heap
    */
   public void prepare(boolean fullHeap) {
   }
 
   /**
    * Finish up after a collection.
+   *
+   * @param fullHeap whether the collection was full heap
    */
   public void release(boolean fullHeap) {
   }

@@ -40,17 +40,11 @@ public abstract class ThreadLocalState {
     // do nothing - everything is already set up.
   }
 
-  /**
-   * Return the current RVMThread object
-   */
   @Uninterruptible
   public static RVMThread getCurrentThread() {
     return Magic.getESIAsThread();
   }
 
-  /**
-   * Set the current RVMThread object
-   */
   @Uninterruptible
   public static void setCurrentThread(RVMThread p) {
     Magic.setESIAsThread(p);

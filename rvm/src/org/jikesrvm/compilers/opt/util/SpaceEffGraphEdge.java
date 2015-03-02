@@ -35,7 +35,7 @@ public class SpaceEffGraphEdge implements GraphEdge {
    * are reserved for SpaceEffGraph.  Classes that subclass this one
    * can use the remaining 28 bits
    */
-  protected int scratch;
+  protected int flags;
 
   static final int VISITED = 0x10000000; // general purpose
 
@@ -44,30 +44,30 @@ public class SpaceEffGraphEdge implements GraphEdge {
 
   static final int INFO_MASK = 0x0fffffff;
 
-  public final boolean visited() { return (scratch & VISITED) != 0; }
+  public final boolean visited() { return (flags & VISITED) != 0; }
 
-  public final boolean backEdge() { return (scratch & BACK_EDGE) != 0; }
+  public final boolean backEdge() { return (flags & BACK_EDGE) != 0; }
 
-  public final boolean dominatorEdge() { return (scratch & DOMINATOR) != 0; }
+  public final boolean dominatorEdge() { return (flags & DOMINATOR) != 0; }
 
-  public final void setVisited() { scratch |= VISITED; }
+  public final void setVisited() { flags |= VISITED; }
 
-  public final void setBackEdge() { scratch |= BACK_EDGE; }
+  public final void setBackEdge() { flags |= BACK_EDGE; }
 
-  public final void setDominatorEdge() { scratch |= DOMINATOR; }
+  public final void setDominatorEdge() { flags |= DOMINATOR; }
 
-  public final void clearVisited() { scratch &= ~VISITED; }
+  public final void clearVisited() { flags &= ~VISITED; }
 
-  public final void clearBackEdge() { scratch &= ~BACK_EDGE; }
+  public final void clearBackEdge() { flags &= ~BACK_EDGE; }
 
-  public final void clearDominatorEdge() { scratch &= ~DOMINATOR; }
+  public final void clearDominatorEdge() { flags &= ~DOMINATOR; }
 
   public final int getInfo() {
-    return scratch & INFO_MASK;
+    return flags & INFO_MASK;
   }
 
   public final void setInfo(int value) {
-    scratch = (scratch & ~INFO_MASK) | (value & INFO_MASK);
+    flags = (flags & ~INFO_MASK) | (value & INFO_MASK);
   }
 
   /**

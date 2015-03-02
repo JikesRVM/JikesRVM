@@ -72,6 +72,10 @@ public final class FieldAnalysis extends CompilerPhase {
    *    <li> it's an array of primitive
    *    <li> it's an array of final
    * </ul>
+   *
+   * @param tref the type
+   * @return {@code true} if the type is a candidate for
+   *  type analysis, i.e. if it's a non-final reference type
    */
   private static boolean isCandidate(TypeReference tref) {
     RVMType t = tref.peekType();
@@ -89,8 +93,11 @@ public final class FieldAnalysis extends CompilerPhase {
   }
 
   /**
-   * Have we determined a single concrete type for a field? If so,
-   * return the concrete type.  Else, return null.
+   * Gets the a single concrete type for a field, if there is one.
+   *
+   * @param f the field that's of interest
+   * @return the concrete type of a field if available, {@code null}
+   *  otherwise
    */
   public static TypeReference getConcreteType(RVMField f) {
     // don't bother for primitives and arrays of primitives
@@ -174,7 +181,10 @@ public final class FieldAnalysis extends CompilerPhase {
   private static final FieldDatabase db = new FieldDatabase();
 
   /**
-   * Record that a method writes an unknown concrete type to a field.
+   * Records that a method writes an unknown concrete type to a field.
+   *
+   * @param m the writing method
+   * @param f the written field
    */
   private static synchronized void recordBottom(RVMMethod m, RVMField f) {
     // for now, only track private fields
@@ -199,6 +209,10 @@ public final class FieldAnalysis extends CompilerPhase {
   /**
    * Record that a method stores an object of a particular concrete type
    * to a field.
+   *
+   * @param m the writing method
+   * @param f the written field
+   * @param t the concrete type
    */
   private static synchronized void recordConcreteType(RVMMethod m, RVMField f, TypeReference t) {
     // for now, only track private fields
@@ -228,6 +242,9 @@ public final class FieldAnalysis extends CompilerPhase {
    * during boot image writing.  For these special cases,
    * give up. TODO: work around this by recomputing the summary at
    * runtime?
+   *
+   * @param f the field to check
+   * @return {@code true} if the field information may be incorrect
    */
   private static boolean isTrouble(RVMField f) {
     return f.getDeclaringClass() == RVMType.JavaLangStringType;

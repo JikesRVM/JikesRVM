@@ -122,7 +122,7 @@ public abstract class JNICompiler implements BaselineConstants {
   public static final int SAVED_GPRS_FOR_JNI = NATIVE_NONVOLATILE_GPRS.length + NATIVE_NONVOLATILE_FPRS.length + 1;
 
   /**
-   * Compile a method to handle the Java to C transition and back
+   * Compiles a method to handle the Java to C transition and back
    * Transitioning from Java to C then back:
    * <ol>
    * <li>Set up stack frame and save non-volatile registers<li>
@@ -144,6 +144,9 @@ public abstract class JNICompiler implements BaselineConstants {
    * <li>Release JNI refs</li>
    * <li>Restore stack and place result in register</li>
    * </ol>
+   *
+   * @param method the method to compile
+   * @return the compiled method (always a {@link JNICompiledMethod})
    */
   public static synchronized CompiledMethod compile(NativeMethod method) {
     // Meaning of constant offset into frame (assuming 4byte word size):
@@ -562,8 +565,8 @@ public abstract class JNICompiler implements BaselineConstants {
   }
 
   /**
-   * Handle the C to Java transition:  JNI methods in JNIFunctions.java.
-   * Create a prologue for the baseline compiler.
+   * Handles the C to Java transition:  JNI methods in JNIFunctions.java.
+   * Creates a prologue for the baseline compiler.
    * <pre>
    * NOTE:
    *   -We need THREAD_REGISTER to access Java environment; we can get it from
@@ -596,6 +599,11 @@ public abstract class JNICompiler implements BaselineConstants {
    *            |            |                   |            |
    *             low memory                        low memory
    * </pre>
+   *
+   * @param asm the assembler to use
+   * @param method the method that's being compiled (i.e. the method which is a bridge
+   *  from native).
+   * @param methodID the id of the compiled method
    */
   public static void generateGlueCodeForJNIMethod(Assembler asm, NormalMethod method, int methodID) {
     // Variable tracking the depth of the stack as we generate the prologue
@@ -847,8 +855,11 @@ public abstract class JNICompiler implements BaselineConstants {
   }
 
   /**
-   * Handle the C to Java transition:  JNI methods in JNIFunctions.java.
-   * Create an epilogue for the baseline compiler.
+   * Handles the C to Java transition:  JNI methods in JNIFunctions.java.
+   * Creates an epilogue for the baseline compiler.
+   *
+   * @param asm the assembler to use
+   * @param method the method that's being compiled
    */
   public static void generateEpilogForJNIMethod(Assembler asm, RVMMethod method) {
     // assume RVM TR regs still valid. potentially T1 & T0 contain return

@@ -36,7 +36,10 @@ public final class CounterBasedSampling {
   static int globalCounter = resetValue;
 
   /**
-   * Perform at system boot.
+   * Initializes counter based sampling. Called when the VM boots.
+   *
+   * @param options the options for the AOS (and therefore also
+   *  counter-based sampling)
    */
   public static void boot(AOSOptions options) {
     // Initialize the counter values

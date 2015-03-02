@@ -73,7 +73,6 @@ import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
-import org.jikesrvm.compilers.opt.regalloc.RegisterAllocatorState;
 import org.jikesrvm.ia32.ArchConstants;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import org.jikesrvm.runtime.ArchEntrypoints;
@@ -113,10 +112,9 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Return the size of a type of value, in bytes.
-   * NOTE: For the purpose of register allocation, an x87 FLOAT_VALUE is 64 bits!
-   *
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
+   * @return the size of a type of value, in bytes.
+   * NOTE: For the purpose of register allocation, an x87 FLOAT_VALUE is 64 bits!
    */
   private static byte getSizeOfType(byte type) {
     switch (type) {
@@ -133,9 +131,8 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Return the move operator for a type of value.
-   *
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
+   * @return the move operator for a type of value.
    */
   private static Operator getMoveOperator(byte type) {
     switch (type) {
@@ -629,7 +626,7 @@ public abstract class StackManager extends GenericStackManager {
 
     // Get the spill location previously assigned to the symbolic
     // register.
-    int location = RegisterAllocatorState.getSpill(symb.getRegister());
+    int location = regAllocState.getSpill(symb.getRegister());
 
     // Create a memory operand M representing the spill location.
     int size;
@@ -649,9 +646,6 @@ public abstract class StackManager extends GenericStackManager {
     s.replaceOperand(symb, M);
   }
 
-  /**
-   * Does a memory operand hold a symbolic register?
-   */
   private boolean hasSymbolicRegister(MemoryOperand M) {
     if (M.base != null && !M.base.getRegister().isPhysical()) return true;
     if (M.index != null && !M.index.getRegister().isPhysical()) return true;
@@ -659,8 +653,9 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Is s a MOVE instruction that can be generated without resorting to
-   * scratch registers?
+   * @param s the instruction to check
+   * @return {@code true} if and only if the instruction is a MOVE instruction
+   *  that can be generated without resorting to scratch registers
    */
   private boolean isScratchFreeMove(Instruction s) {
     if (s.operator() != IA32_MOV) return false;
@@ -705,10 +700,10 @@ public abstract class StackManager extends GenericStackManager {
   public boolean needScratch(Register r, Instruction s) {
     // We never need a scratch register for a floating point value in an
     // FMOV instruction.
-    if (r.isFloatingPoint() && s.operator == IA32_FMOV) return false;
+    if (r.isFloatingPoint() && s.operator() == IA32_FMOV) return false;
 
     // never need a scratch register for a YIELDPOINT_OSR
-    if (s.operator == YIELDPOINT_OSR) return false;
+    if (s.operator() == YIELDPOINT_OSR) return false;
 
     // Some MOVEs never need scratch registers
     if (isScratchFreeMove(s)) return false;
@@ -716,6 +711,17 @@ public abstract class StackManager extends GenericStackManager {
     // If s already has a memory operand, it is illegal to introduce
     // another.
     if (s.hasMemoryOperand()) return true;
+
+    // If r appears more than once in the instruction, we can't
+    // use a memory operand for all occurrences, so we will need a scratch
+    int count = 0;
+    for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+      Operand op = ops.nextElement();
+      if (op.isRegister() && op.asRegister().getRegister() == r) {
+        count++;
+      }
+    }
+    if (count > 1) return true;
 
     // Check the architecture restrictions.
     if (RegisterRestrictions.mustBeInRegister(r, s)) return true;
@@ -727,6 +733,9 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Before instruction s, insert code to adjust ESP so that it lies at a
    * particular offset from its usual location.
+   *
+   * @param s the instruction before which ESP must have the desired offset
+   * @param desiredOffset the desired offset
    */
   private void moveESPBefore(Instruction s, int desiredOffset) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -755,14 +764,15 @@ public abstract class StackManager extends GenericStackManager {
     if (PhysicalDefUse.definesEFLAGS(s.operator())) {
       return true;
     }
-    if (s.operator == BBEND) return true;
+    if (s.operator() == BBEND) return true;
     return canModifyEFLAGS(s.nextInstructionInCodeOrder());
   }
 
   /**
    * Attempt to rewrite a move instruction to a NOP.
    *
-   * @return true iff the transformation applies
+   * @param s the instruction to rewrite
+   * @return {@code true} if and only if the transformation applies
    */
   private boolean mutateMoveToNop(Instruction s) {
     Operand result = MIR_Move.getResult(s);
@@ -777,9 +787,11 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Rewrite a move instruction if it has 2 memory operands.
+   * Rewrites a move instruction if it has 2 memory operands.
    * One of the 2 memory operands must be a stack location operand.  Move
    * the SP to the appropriate location and use a push or pop instruction.
+   *
+   * @param s the instruction to rewrite
    */
   private void rewriteMoveInstruction(Instruction s) {
     // first attempt to mutate the move into a noop
@@ -808,7 +820,7 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Walk through the IR.  For each StackLocationOperand, replace the
+   * Walks through the IR.  For each StackLocationOperand, replace the
    * operand with the appropriate MemoryOperand.
    */
   private void rewriteStackLocations() {
@@ -931,9 +943,9 @@ public abstract class StackManager extends GenericStackManager {
       boolean removed = false;
       boolean unloaded = false;
       if (definedIn(scratch.scratch, s) ||
-          (s.isCall() && s.operator != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile()) ||
-          (s.operator == IA32_FNINIT && scratch.scratch.isFloatingPoint()) ||
-          (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
+          (s.isCall() && s.operator() != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile()) ||
+          (s.operator() == IA32_FNINIT && scratch.scratch.isFloatingPoint()) ||
+          (s.operator() == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
         if (VERBOSE_DEBUG) {
@@ -961,7 +973,7 @@ public abstract class StackManager extends GenericStackManager {
 
       if (usedIn(scratch.scratch, s) ||
           !isLegal(scratch.currentContents, scratch.scratch, s) ||
-          (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
+          (s.operator() == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // first spill the currents contents of the scratch register to
         // memory
         if (!unloaded) {
@@ -1002,6 +1014,8 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Initialize some architecture-specific state needed for register
    * allocation.
+   *
+   * @param ir the IR that's being processed
    */
   @Override
   public void initForArch(IR ir) {
@@ -1015,6 +1029,6 @@ public abstract class StackManager extends GenericStackManager {
 
   @Override
   public boolean isSysCall(Instruction s) {
-    return s.operator == IA32_SYSCALL;
+    return s.operator() == IA32_SYSCALL;
   }
 }

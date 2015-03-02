@@ -64,7 +64,8 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Constructor
+   * @param logGranularity TODO needs documentation
+   * @param shared whether the instance will be shared between threads
    */
   public DoublyLinkedList(int logGranularity, boolean shared) {
     head = Address.zero();

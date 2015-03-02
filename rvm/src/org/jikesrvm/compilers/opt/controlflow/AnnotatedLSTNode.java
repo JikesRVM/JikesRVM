@@ -208,7 +208,7 @@ public final class AnnotatedLSTNode extends LSTNode {
            (strideValue != null) &&
            isConstant(strideValue) &&
            (iteratorInstr != null) &&
-           ((iteratorInstr.operator.opcode == INT_ADD_opcode) || (iteratorInstr.operator.opcode == INT_SUB_opcode));
+           ((iteratorInstr.getOpcode() == INT_ADD_opcode) || (iteratorInstr.getOpcode() == INT_SUB_opcode));
   }
 
   /**
@@ -238,7 +238,7 @@ public final class AnnotatedLSTNode extends LSTNode {
            (strideValue != null) &&
            isLoopInvariant(strideValue, loop, header) &&
            (iteratorInstr != null) &&
-           ((iteratorInstr.operator.opcode == INT_ADD_opcode) || (iteratorInstr.operator.opcode == INT_SUB_opcode));
+           ((iteratorInstr.getOpcode() == INT_ADD_opcode) || (iteratorInstr.getOpcode() == INT_SUB_opcode));
   }
 
   /**
@@ -253,6 +253,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is this value modified by the loop?
    *
+   * @param op an operand
    * @return whether the value is modified
    */
   public boolean isInvariant(Operand op) {
@@ -288,7 +289,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Is the loop iterator monotonic?
+   * @return whether the loop iterator is monotonic
    */
   public boolean isMonotonic() {
     return isConstant(strideValue);
@@ -300,9 +301,9 @@ public final class AnnotatedLSTNode extends LSTNode {
    * @return the constant stride value
    */
   public int getMonotonicStrideValue() {
-    if (iteratorInstr.operator.opcode == INT_SUB_opcode) {
+    if (iteratorInstr.getOpcode() == INT_SUB_opcode) {
       return -((IntConstantOperand) strideValue).value;
-    } else if (iteratorInstr.operator.opcode == INT_ADD_opcode) {
+    } else if (iteratorInstr.getOpcode() == INT_ADD_opcode) {
       return ((IntConstantOperand) strideValue).value;
     } else {
       throw new Error("Error reading stride value");
@@ -310,7 +311,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Is the loop iterator a monotonic increasing value
+   * @return whether the loop iterator is a monotonic increasing value
    */
   public boolean isMonotonicIncreasing() {
     if ((!isMonotonic()) ||
@@ -325,7 +326,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Is the loop iterator a monotonic decreasing value
+   * @return whether the loop iterator is a monotonic decreasing value
    */
   public boolean isMonotonicDecreasing() {
     if ((!isMonotonic()) ||
@@ -340,7 +341,8 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Does this basic block appear in the loop?
+   * @param block the block to chck for
+   * @return {@code true} if the basic block appears in the loop
    */
   public boolean contains(BasicBlock block) {
     return (block.getNumber() < loop.length()) && loop.get(block.getNumber());
@@ -399,7 +401,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Dump a human readable description of the loop
+   * Dumps a human readable description of the loop.
    */
   public void dump() {
     VM.sysWrite("********* START OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method + "\n");
@@ -475,15 +477,16 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Convert instruction to String in of AnnotatedLSTNode format
+   * Converts instruction to String in of AnnotatedLSTNode format.
    *
    * @param ir    Containing IR
    * @param instr The instruction to dump
+   * @return the converted string
    */
   static String instructionToString(IR ir, Instruction instr) {
     StringBuilder sb = new StringBuilder();
     sb.append(instr.bcIndex).append("\t").append(instr.isPEI() ? "E" : " ").append(instr.isGCPoint() ? "G " : "  ");
-    if (instr.operator == LABEL) {
+    if (instr.operator() == LABEL) {
       sb.append("LABEL").append(Label.getBlock(instr).block.getNumber());
       if (Label.getBlock(instr).block.getInfrequent()) {
         sb.append(" (Infrequent)");
@@ -491,7 +494,7 @@ public final class AnnotatedLSTNode extends LSTNode {
     } else {
       IREnumeration.AllDefsEnum defs = new IREnumeration.AllDefsEnum(ir, instr);
       IREnumeration.AllUsesEnum uses = new IREnumeration.AllUsesEnum(ir, instr);
-      sb.append(instr.operator).append("\n\t     defs: ");
+      sb.append(instr.operator()).append("\n\t     defs: ");
       while (defs.hasMoreElements()) {
         sb.append(defs.nextElement().toString());
         if (defs.hasMoreElements()) {
@@ -531,7 +534,7 @@ public final class AnnotatedLSTNode extends LSTNode {
       return true;
     } else {
       Instruction opInstr = definingInstruction(op);
-      if ((opInstr.operator.opcode == INT_ADD_opcode) || (opInstr.operator.opcode == INT_SUB_opcode)) {
+      if ((opInstr.getOpcode() == INT_ADD_opcode) || (opInstr.getOpcode() == INT_SUB_opcode)) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         return ((val1.isConstant() && isFixedDistanceFromPhiIterator(val2)) ||
@@ -553,7 +556,7 @@ public final class AnnotatedLSTNode extends LSTNode {
       return 0;
     } else {
       Instruction opInstr = definingInstruction(op);
-      if (opInstr.operator.opcode == INT_ADD_opcode) {
+      if (opInstr.getOpcode() == INT_ADD_opcode) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
@@ -562,7 +565,7 @@ public final class AnnotatedLSTNode extends LSTNode {
           if (VM.VerifyAssertions) VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) + val2.asIntConstant().value;
         }
-      } else if (opInstr.operator.opcode == INT_SUB_opcode) {
+      } else if (opInstr.getOpcode() == INT_SUB_opcode) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
@@ -629,7 +632,7 @@ public final class AnnotatedLSTNode extends LSTNode {
                   break;
                 } else if (itrInst.isAllocation() ||
                            itrInst.isDynamicLinkingPoint() ||
-                           (itrInst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) ||
+                           (itrInst.getOpcode() >= ARCH_INDEPENDENT_END_opcode) ||
                            itrInst.isPEI() ||
                            itrInst.isThrow() ||
                            itrInst.isImplicitLoad() ||
@@ -687,7 +690,7 @@ public final class AnnotatedLSTNode extends LSTNode {
                   break;
                 } else if (itrInst.isAllocation() ||
                            itrInst.isDynamicLinkingPoint() ||
-                           (itrInst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) ||
+                           (itrInst.getOpcode() >= ARCH_INDEPENDENT_END_opcode) ||
                            itrInst.isPEI() ||
                            itrInst.isThrow() ||
                            itrInst.isImplicitLoad() ||
@@ -733,6 +736,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    *
    * @param block to generate instructions into
    * @param op the operand we hope to use before the loop
+   * @return a (possibly new) operand
    */
   public Operand generateLoopInvariantOperand(BasicBlock block, Operand op) {
     Instruction instr = definingInstruction(op);
@@ -752,7 +756,7 @@ public final class AnnotatedLSTNode extends LSTNode {
         result.setRegister(ir.regpool.getReg(result));
       }
       Instruction resultInstruction;
-      Operator operator = instr.operator;
+      Operator operator = instr.operator();
       switch (operator.format) {
         case InstructionFormat.Binary_format:
           resultInstruction =
@@ -847,9 +851,9 @@ public final class AnnotatedLSTNode extends LSTNode {
 
   /**
    * Find the instruction that defines an operand.
-   * If the operand is a register, return the instruction that defines it, else return the operands instruction
-   *
    * @param op The operand we're searching for the definition of
+   * @return If the operand is a register, return the instruction that defines it.
+   * Else return the operand's instruction.
    */
   public static Instruction definingInstruction(Operand op) {
     Instruction result = op.instruction;
@@ -876,6 +880,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is the a particular block in this loop?
    *
+   * @param block the block to check for
    * @return {@code true} iff block is in the loop
    */
   public boolean isInLoop(BasicBlock block) {
@@ -926,6 +931,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * Check the edges out of a block are within the loop
    *
    * @param block to check
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void checkOutEdgesAreInLoop(BasicBlock block) throws NonRegularLoopException {
     // The blocks (copy of) that are branched to from this block
@@ -948,6 +954,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * Check the edges into a block are from within the loop
    *
    * @param block to check
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void checkInEdgesAreInLoop(BasicBlock block) throws NonRegularLoopException {
     // The blocks (copy of) that branch to this block
@@ -1007,7 +1014,8 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Process the loop header basic block
+   * Process the loop header basic block.
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void processHeader() throws NonRegularLoopException {
     // The blocks (copy of) that branch to this block
@@ -1045,7 +1053,8 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Process the loop exit basic block
+   * Process the loop exit basic block.
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void processExit() throws NonRegularLoopException {
     // If the exit isn't the header block, check it doesn't have in edges from outside the loop
@@ -1077,8 +1086,8 @@ public final class AnnotatedLSTNode extends LSTNode {
       ifCmpInstr = exit.firstBranchInstruction();
       if (ifCmpInstr == null) {
         throw new NonRegularLoopException("Exit block branch doesn't have a (1st) branching instruction.");
-      } else if (ifCmpInstr.operator.opcode != INT_IFCMP_opcode) {
-        throw new NonRegularLoopException("branch is int_ifcmp but " + ifCmpInstr.operator + "\n");
+      } else if (ifCmpInstr.getOpcode() != INT_IFCMP_opcode) {
+        throw new NonRegularLoopException("branch is int_ifcmp but " + ifCmpInstr.operator() + "\n");
       } else {
         // Get the terminal and iterator operations
         carriedLoopIterator = follow(IfCmp.getVal1(ifCmpInstr));
@@ -1146,10 +1155,10 @@ public final class AnnotatedLSTNode extends LSTNode {
           // No => error
           throw new NonRegularLoopException("No iterator definition found.");
         } else
-        if ((iteratorInstr.operator.opcode != INT_ADD_opcode) && (iteratorInstr.operator.opcode != INT_SUB_opcode)) {
+        if ((iteratorInstr.getOpcode() != INT_ADD_opcode) && (iteratorInstr.getOpcode() != INT_SUB_opcode)) {
           // Is it an instruction we recognise?
           // TODO: support more iterator instructions
-          throw new NonRegularLoopException("Unrecognized iterator operator " + iteratorInstr.operator);
+          throw new NonRegularLoopException("Unrecognized iterator operator " + iteratorInstr.operator());
         } else {
           // only carry on further analysis if we think we can understand the loop
           // Does this iterator instruction use the same register as it defines
@@ -1201,6 +1210,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * Process a regular block within the loop
    *
    * @param block The basic block to process
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void processLoopBlock(BasicBlock block) throws NonRegularLoopException {
     checkInEdgesAreInLoop(block);
@@ -1228,16 +1238,13 @@ public final class AnnotatedLSTNode extends LSTNode {
      */
     private final String _summary;
 
-    /**
-     * Constructor
-     */
     NonRegularLoopException(String s) {
       super(s);
       _summary = s;
     }
 
     /**
-     * A brief description of the error
+     * @return a brief description of the error
      */
     String summary() {
       return _summary;

@@ -30,7 +30,6 @@ import org.jikesrvm.classloader.MethodReference;
  * Takes a single argument: the name of the file containing the ASCII
  * annotations.  Each line of the file corresponds to an annotation
  * for one method and has the following format:
- * <p>
  * <pre>
  * CallSite &lt; classloader, classname, method, signature&gt; method_size byte_code_index &lt;callee_classloader, classname, method, signature&gt; method_size weight: weight
  * </pre>
@@ -44,12 +43,6 @@ import org.jikesrvm.classloader.MethodReference;
  */
 public class DynamicCallFileInfoReader {
 
-  /**
-   * Read annotations from a specified file. Reads all annotations at
-   * once and returns a collection of compiler advice attributes.
-   *
-   * @param file The annotation file to be read
-   */
   public static void readDynamicCallFile(String file, boolean boot) {
     BufferedReader fileIn = null;
 

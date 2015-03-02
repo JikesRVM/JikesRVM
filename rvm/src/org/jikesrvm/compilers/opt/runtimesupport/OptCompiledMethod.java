@@ -29,6 +29,7 @@ import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.osr.EncodedOSRMap;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
@@ -83,9 +84,42 @@ public final class OptCompiledMethod extends CompiledMethod {
     if (eTable == null) {
       return -1;
     } else {
-      return ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
+      int catchOffset = ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
+      dealWithPossibleRemovalOfCatchBlockByTheOptCompiler(instructionOffset,
+          exceptionType, catchOffset);
+      return catchOffset;
     }
   }
+
+  @Uninterruptible
+  private void dealWithPossibleRemovalOfCatchBlockByTheOptCompiler(
+      Offset instructionOffset, RVMType exceptionType, int catchOffset) {
+    if (OptExceptionTable.belongsToUnreachableCatchBlock(catchOffset)) {
+      if (VM.VerifyAssertions) {
+        VM.sysWriteln("Attempted to use a catch block that was determined to be unreachable" +
+            " by the optimizing compiler and thus removed from the IR before " +
+            "code was generated for it.");
+        VM.sysWrite("Instruction offset: ");
+        VM.sysWrite(instructionOffset);
+        VM.sysWriteln();
+        VM.sysWrite("Exception type: ");
+        VM.sysWrite(exceptionType.getDescriptor());
+        VM.sysWriteln();
+        ExceptionTable.printExceptionTableUninterruptible(eTable);
+        VM._assert(VM.NOT_REACHED,
+            "Attempted to use catch block that was removed from the code by the opt compiler!");
+      } else {
+        if (VM.TraceExceptionDelivery) {
+          VM.sysWriteln("Found a catch block that was determined by the optimizing" +
+              " compiler to be unreachable (and thus removed), ignoring it.");
+        }
+        // Nothing more to do. The unreachable catch block marker is negative which
+        // will cause the exception delivery code to ignore the catch block.
+      }
+    }
+  }
+
+
 
   /**
    * Fetch symbolic reference to a method that's called
@@ -238,7 +272,7 @@ public final class OptCompiledMethod extends CompiledMethod {
 
   @Interruptible
   public void createFinalOSRMap(IR ir) {
-    this._osrMap = EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap);
+    this._osrMap = EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap, ir.MIRInfo.mcOffsets);
   }
 
   public EncodedOSRMap getOSRMap() {
@@ -357,7 +391,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Return the number of non-volatile GPRs used by this method.
+   * @return the number of non-volatile GPRs used by this method.
    */
   public int getNumberOfNonvolatileGPRs() {
     if (VM.BuildForPowerPC) {
@@ -371,7 +405,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Return the number of non-volatile FPRs used by this method.
+   * @return the number of non-volatile FPRs used by this method.
    */
   public int getNumberOfNonvolatileFPRs() {
     if (VM.BuildForPowerPC) {
@@ -384,9 +418,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     return -1;
   }
 
-  /**
-   * Set the number of non-volatile GPRs used by this method.
-   */
   public void setNumberOfNonvolatileGPRs(short n) {
     if (VM.BuildForPowerPC) {
       setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_GPRS - n);
@@ -397,9 +428,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
-  /**
-   * Set the number of non-volatile FPRs used by this method.
-   */
   public void setNumberOfNonvolatileFPRs(short n) {
     if (VM.BuildForPowerPC) {
       setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_FPRS - n);
@@ -410,9 +438,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
-  /**
-   * Print the eTable
-   */
   @Interruptible
   public void printExceptionTable() {
     if (eTable != null) ExceptionTable.printExceptionTable(eTable);
@@ -463,19 +488,18 @@ public final class OptCompiledMethod extends CompiledMethod {
     // (2) if we have patch points, create the map.
     if (patchPoints != 0) {
       patchMap = new int[patchPoints * 2];
+      MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
       int idx = 0;
       for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         if (s.operator() == IG_PATCH_POINT) {
-          int patchPoint = s.getmcOffset();
-          int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
+          int patchPoint = mcOffsets.getMachineCodeOffset(s);
+          int newTarget = mcOffsets.getMachineCodeOffset(InlineGuard.getTarget(s).target);
           // A patch map is the offset of the last byte of the patch point
           // and the new branch immediate to lay down if the code is ever patched.
           if (VM.BuildForIA32) {
             patchMap[idx++] = patchPoint - 1;
             patchMap[idx++] = newTarget - patchPoint;
           } else if (VM.BuildForPowerPC) {
-
-            // otherwise, it must be RFOR_POWERPC
             /* since currently we use only one NOP scheme, the offset
             * is adjusted for one word
             */
@@ -491,7 +515,9 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Apply the code patches to the INSTRUCTION array of cm
+   * Applies the code patches to the INSTRUCTION array of cm.
+   *
+   * @param cm the method which will be patched
    */
   @Interruptible
   public void applyCodePatches(CompiledMethod cm) {

@@ -181,13 +181,14 @@ public final class ReorderingPhase extends CompilerPhase {
     int numBlocks = 0;
     TreeSet<Edge> edges = new TreeSet<Edge>();
     LinkedHashSet<BasicBlock> chainHeads = new LinkedHashSet<BasicBlock>();
+    HashMap<BasicBlock, BasicBlock> associatedChain = new HashMap<BasicBlock, BasicBlock>();
     BasicBlock entry = ir.cfg.entry();
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == ir.cfg.firstInCodeOrder());
 
     for (BasicBlock bb = entry; bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       numBlocks++;
       chainHeads.add(bb);
-      bb.scratchObject = bb;
+      associatedChain.put(bb, bb);
       BasicBlock ft = bb.getFallThroughBlock();
       if (ft != null) {
         bb.appendInstruction(Goto.create(GOTO, ft.makeJumpTarget()));
@@ -219,7 +220,9 @@ public final class ReorderingPhase extends CompilerPhase {
         if (DEBUG) VM.sysWriteln("\tTarget is not at start of a chain");
         continue;
       }
-      if (e.source.scratchObject == e.target.scratchObject) {
+      BasicBlock sourceChain = associatedChain.get(e.source);
+      BasicBlock targetChain = associatedChain.get(e.target);
+      if (sourceChain == targetChain) {
         if (DEBUG) VM.sysWriteln("\tSource and target are in same chain");
         continue;
       }
@@ -228,9 +231,9 @@ public final class ReorderingPhase extends CompilerPhase {
       ir.cfg.linkInCodeOrder(e.source, e.target);
       // Yuck....we should really use near-linear time union find here
       // Doing this crappy thing makes us O(N^2) in the worst case.
-      BasicBlock newChain = (BasicBlock) e.source.scratchObject;
+      BasicBlock newChain = sourceChain;
       for (BasicBlock ptr = e.target; ptr != null; ptr = ptr.nextBasicBlockInCodeOrder()) {
-        ptr.scratchObject = newChain;
+        associatedChain.put(ptr, newChain);
       }
     }
 
@@ -243,16 +246,16 @@ public final class ReorderingPhase extends CompilerPhase {
 
     // (3) Summarize inter-chain edges.
     for (Edge e : edges) {
-      if (e.source.scratchObject != e.target.scratchObject) {
-        Object sourceChain = e.source.scratchObject;
-        Object targetChain = e.target.scratchObject;
+      BasicBlock sourceChain = associatedChain.get(e.source);
+      BasicBlock targetChain = associatedChain.get(e.target);
+      if (sourceChain != targetChain) {
         ChainInfo sourceInfo = chainInfo.get(sourceChain);
         ChainInfo targetInfo = chainInfo.get(targetChain);
         if (DEBUG) VM.sysWriteln("Inter-chain edge " + sourceChain + "->" + targetChain + " (" + e.weight + ")");
-        Object value = sourceInfo.outWeights.get(targetInfo);
+        Float value = sourceInfo.outWeights.get(targetInfo);
         float weight = e.weight;
         if (value != null) {
-          weight += (Float) value;
+          weight += value;
         }
         sourceInfo.outWeights.put(targetInfo, weight);
         targetInfo.inWeight += e.weight;
@@ -287,7 +290,7 @@ public final class ReorderingPhase extends CompilerPhase {
       if (chainInfo.isEmpty()) break; // no chains left to place.
       for (ChainInfo target : nextChoice.outWeights.keySet()) {
         if (DEBUG) VM.sysWrite("\toutedge " + target);
-        float weight = (Float) nextChoice.outWeights.get(target);
+        float weight = nextChoice.outWeights.get(target);
         if (DEBUG) VM.sysWriteln(" = " + weight);
         target.placedWeight += weight;
         target.inWeight -= weight;
@@ -341,7 +344,7 @@ public final class ReorderingPhase extends CompilerPhase {
     final BasicBlock head;
     float placedWeight;
     float inWeight;
-    final HashMap<ChainInfo, Object> outWeights = new HashMap<ChainInfo, Object>();
+    final HashMap<ChainInfo, Float> outWeights = new HashMap<ChainInfo, Float>();
 
     ChainInfo(BasicBlock h) {
       head = h;
@@ -354,6 +357,7 @@ public final class ReorderingPhase extends CompilerPhase {
   }
 
   private static final class Edge implements Comparable<Edge> {
+
     final BasicBlock source;
     final BasicBlock target;
     final float weight;
@@ -366,7 +370,41 @@ public final class ReorderingPhase extends CompilerPhase {
 
     @Override
     public String toString() {
-      return weight + ": " + source.toString() + " -> " + target.toString();
+      return weight + ": " + source + " -> " + target;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((source == null) ? 0 : source.hashCode());
+      result = prime * result + ((target == null) ? 0 : target.hashCode());
+      result = prime * result + Float.floatToIntBits(weight);
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Edge other = (Edge) obj;
+      if (source == null) {
+        if (other.source != null)
+          return false;
+      } else if (!source.equals(other.source))
+        return false;
+      if (target == null) {
+        if (other.target != null)
+          return false;
+      } else if (!target.equals(other.target))
+        return false;
+      if (Float.floatToIntBits(weight) != Float.floatToIntBits(other.weight))
+        return false;
+      return true;
     }
 
     @Override

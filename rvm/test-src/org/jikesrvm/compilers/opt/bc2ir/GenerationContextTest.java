@@ -30,6 +30,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
+import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
@@ -67,6 +68,7 @@ import org.jikesrvm.compilers.opt.ir.MonitorOp;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Nullary;
 import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.OsrBarrier;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Return;
@@ -96,6 +98,8 @@ import org.vmmagic.unboxed.Offset;
 @RunWith(VMRequirements.class)
 @Category(RequiresJikesRVM.class)
 public class GenerationContextTest {
+
+  private int currentRegisterNumber = -1;
 
   @Test
   public void constructorIsCorrectForTheSimplestMethods() throws Exception {
@@ -836,6 +840,11 @@ public class GenerationContextTest {
     assertThatChecksWontBeSkipped(gc);
   }
 
+  private RegisterOperand createMockRegisterOperand(TypeReference tr) {
+    Register r = new Register(currentRegisterNumber--);
+    return new RegisterOperand(r, tr);
+  }
+
   @Test
   public void basicChildContextsWorkCorrectly() throws Exception {
     NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
@@ -848,11 +857,9 @@ public class GenerationContextTest {
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
 
     MethodOperand methOp = MethodOperand.STATIC(callee);
-    Register regMinus1 = new Register(-1);
-    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    RegisterOperand result = createMockRegisterOperand(TypeReference.JavaLangObject);
     Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
-    Register regMinus2 = new Register(-2);
-    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 0, objectParam);
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
@@ -860,7 +867,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
     RegisterOperand expectedLocalForObjectParam = child.makeLocal(0, objectParam);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
@@ -894,7 +901,7 @@ public class GenerationContextTest {
   private void assertMoveOperationIsCorrect(Instruction call,
       Operator moveOperator, RegisterOperand formal, RegisterOperand actual, Instruction move) {
     assertSame(call.position, move.position);
-    assertThat(move.operator, is(moveOperator));
+    assertThat(move.operator(), is(moveOperator));
     assertThat(move.bcIndex, is(PROLOGUE_BCI));
     RegisterOperand moveResult = Move.getResult(move);
     assertTrue(moveResult.sameRegisterPropertiesAs(formal));
@@ -923,12 +930,12 @@ public class GenerationContextTest {
 
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
     Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, outermostCaller);
-    GenerationContext nextInnerContext = GenerationContext.createChildContext(outermostContext, ebag, callee, noCheckStoreInstr);
+    GenerationContext nextInnerContext = outermostContext.createChildContext(ebag, callee, noCheckStoreInstr);
     assertThat(nextInnerContext.getOriginalMethod(), is(outermostCaller));
 
     NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
     Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
-    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+    GenerationContext innermostContext = nextInnerContext.createChildContext(ebag, nextInnerCallee, noNullCheckInstr);
     assertThat(innermostContext.getOriginalMethod(), is(outermostCaller));
   }
 
@@ -946,8 +953,7 @@ public class GenerationContextTest {
     MethodOperand methOp = MethodOperand.VIRTUAL(callee.getMemberRef().asMethodReference(), callee);
     Instruction callInstr = Call.create(CALL, null, null, methOp, 5);
 
-    Register regIntMin = new Register(Integer.MIN_VALUE);
-    RegisterOperand receiver = new RegisterOperand(regIntMin, TypeReference.JavaLangObject);
+    RegisterOperand receiver = createMockRegisterOperand(TypeReference.JavaLangObject);
     assertFalse(receiver.isPreciseType());
     assertFalse(receiver.isDeclaredType());
     receiver.setPreciseType();
@@ -964,7 +970,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1087,8 +1093,7 @@ public class GenerationContextTest {
     MethodOperand methOp = MethodOperand.VIRTUAL(callee.getMemberRef().asMethodReference(), callee);
     Instruction callInstr = Call.create(CALL, null, null, methOp, 5);
 
-    Register regIntMin = new Register(Integer.MIN_VALUE);
-    RegisterOperand receiver = new RegisterOperand(regIntMin, callee.getDeclaringClass().getTypeRef());
+    RegisterOperand receiver = createMockRegisterOperand(callee.getDeclaringClass().getTypeRef());
     assertFalse(receiver.isPreciseType());
     assertFalse(receiver.isDeclaredType());
     receiver.setPreciseType();
@@ -1105,7 +1110,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1174,22 +1179,19 @@ public class GenerationContextTest {
   }
 
   private RegisterOperand prepareCallWithLongParam(Instruction callInstr) {
-    Register regMinus5 = new Register(-5);
-    RegisterOperand longParam = new RegisterOperand(regMinus5, TypeReference.Long);
+    RegisterOperand longParam = createMockRegisterOperand(TypeReference.Long);
     Call.setParam(callInstr, 4, longParam);
     return longParam;
   }
 
   private RegisterOperand prepareCallWithIntParam(Instruction callInstr) {
-    Register regMinus4 = new Register(-4);
-    RegisterOperand intParam = new RegisterOperand(regMinus4, TypeReference.Int);
+    RegisterOperand intParam = createMockRegisterOperand(TypeReference.Int);
     Call.setParam(callInstr, 3, intParam);
     return intParam;
   }
 
   private RegisterOperand prepareCallWithDoubleParam(Instruction callInstr) {
-    Register regMinus3 = new Register(-3);
-    RegisterOperand doubleParam = new RegisterOperand(regMinus3, TypeReference.Double);
+    RegisterOperand doubleParam = createMockRegisterOperand(TypeReference.Double);
     Call.setParam(callInstr, 2, doubleParam);
     return doubleParam;
   }
@@ -1222,7 +1224,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1233,7 +1235,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForReceiverParam = child.makeLocal(0, thisArg.getType());
     expectedLocalForReceiverParam.setPreciseType();
     RegisterOperand expectedNullCheckGuard = child.makeNullCheckGuard(expectedLocalForReceiverParam.getRegister());
-    BC2IR.setGuard(expectedLocalForReceiverParam, expectedNullCheckGuard);
+    BC2IR.setGuardForRegOp(expectedLocalForReceiverParam, expectedNullCheckGuard);
     assertNotNull(expectedNullCheckGuard);
 
     RegisterOperand firstArg = child.getArguments()[1].asRegister();
@@ -1259,10 +1261,10 @@ public class GenerationContextTest {
 
     Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     Instruction guardMove = prologueRealInstr.nextElement();
-    assertThat(guardMove.operator, is(GUARD_MOVE));
+    assertThat(guardMove.operator(), is(GUARD_MOVE));
     assertThat(guardMove.bcIndex, is(UNKNOWN_BCI));
-    RegisterOperand moveResult = Move.getResult(guardMove);
-    assertTrue(moveResult.sameRegisterPropertiesAs(expectedNullCheckGuard));
+    RegisterOperand guardMoveResult = Move.getResult(guardMove);
+    assertTrue(guardMoveResult.sameRegisterPropertiesAs(expectedNullCheckGuard));
     Operand moveValue = Move.getVal(guardMove);
     assertTrue(moveValue.isTrueGuard());
     assertNull(guardMove.position);
@@ -1270,7 +1272,13 @@ public class GenerationContextTest {
     Instruction receiverMove = prologueRealInstr.nextElement();
     Operand expectedReceiver = receiver.copy();
     //TODO definite non-nullness of constant operand is not being verified
-    assertMoveOperationIsCorrectForNonRegisterActual(callInstr, REF_MOVE, expectedLocalForReceiverParam, expectedReceiver, receiverMove);
+    assertSame(callInstr.position, receiverMove.position);
+    assertThat(receiverMove.operator(), is(REF_MOVE));
+    assertThat(receiverMove.bcIndex, is(PROLOGUE_BCI));
+    RegisterOperand receiverMoveResult = Move.getResult(receiverMove);
+    assertTrue(receiverMoveResult.sameRegisterPropertiesAsExceptForGuardWhichIsSimilar(expectedLocalForReceiverParam));
+    Operand receiverMoveValue = Move.getVal(receiverMove);
+    assertTrue(receiverMoveValue.similar(expectedReceiver));
 
     Instruction objectMove = prologueRealInstr.nextElement();
     RegisterOperand objectParamCopy = objectParam.copy().asRegister();
@@ -1300,20 +1308,8 @@ public class GenerationContextTest {
     assertThatChecksWontBeSkipped(gc);
   }
 
-  private void assertMoveOperationIsCorrectForNonRegisterActual(Instruction call,
-      Operator moveOperator, RegisterOperand formal, Operand actual, Instruction move) {
-    assertSame(call.position, move.position);
-    assertThat(move.operator, is(moveOperator));
-    assertThat(move.bcIndex, is(PROLOGUE_BCI));
-    RegisterOperand moveResult = Move.getResult(move);
-    assertTrue(moveResult.sameRegisterPropertiesAsExceptForScratchObject(formal));
-    Operand moveValue = Move.getVal(move);
-    assertTrue(moveValue.similar(actual));
-  }
-
   private RegisterOperand prepareCallWithObjectParam(Instruction callInstr) {
-    Register regMinus2 = new Register(-2);
-    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 1, objectParam);
     return objectParam;
   }
@@ -1336,7 +1332,7 @@ public class GenerationContextTest {
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    gc.createChildContext(ebag, callee, callInstr);
   }
 
   private static class InvalidReceiverOperand extends Operand {
@@ -1366,8 +1362,7 @@ public class GenerationContextTest {
     MethodOperand methOp = MethodOperand.VIRTUAL(callee.getMemberRef().asMethodReference(), callee);
     Instruction callInstr = Call.create(CALL, null, null, methOp, 1);
 
-    Register regIntMin = new Register(Integer.MIN_VALUE);
-    RegisterOperand objectParam = new RegisterOperand(regIntMin, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     assertFalse(objectParam.isPreciseType());
     assertFalse(objectParam.isDeclaredType());
     objectParam.setPreciseType();
@@ -1380,7 +1375,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1442,21 +1437,21 @@ public class GenerationContextTest {
 
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoBoundCheckAnnotation");
     Instruction noBoundsInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext noBoundsContext = GenerationContext.createChildContext(gc, ebag, callee, noBoundsInstr);
+    GenerationContext noBoundsContext = gc.createChildContext(ebag, callee, noBoundsInstr);
     assertTrue(noBoundsContext.noBoundsChecks());
     assertFalse(noBoundsContext.noNullChecks());
     assertFalse(noBoundsContext.noCheckStoreChecks());
 
     callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
     Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext noCheckStoreContext = GenerationContext.createChildContext(gc, ebag, callee, noCheckStoreInstr);
+    GenerationContext noCheckStoreContext = gc.createChildContext(ebag, callee, noCheckStoreInstr);
     assertFalse(noCheckStoreContext.noBoundsChecks());
     assertFalse(noCheckStoreContext.noNullChecks());
     assertTrue(noCheckStoreContext.noCheckStoreChecks());
 
     callee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
     Instruction noNullChecks = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext noNullCheckContext = GenerationContext.createChildContext(gc, ebag, callee, noNullChecks);
+    GenerationContext noNullCheckContext = gc.createChildContext(ebag, callee, noNullChecks);
     assertFalse(noNullCheckContext.noBoundsChecks());
     assertTrue(noNullCheckContext.noNullChecks());
     assertFalse(noNullCheckContext.noCheckStoreChecks());
@@ -1482,7 +1477,7 @@ public class GenerationContextTest {
     NormalMethod callee = getNormalMethodForTest("emptySynchronizedStaticMethod");
     Instruction callInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
     ExceptionHandlerBasicBlockBag ebag = gc.getEnclosingHandlers();
-    GenerationContext childContext = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext childContext = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatExceptionHandlersWereGenerated(childContext);
 
@@ -1596,7 +1591,7 @@ public class GenerationContextTest {
     int nodeNumber = 23456;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1630,7 +1625,7 @@ public class GenerationContextTest {
     Instruction callInstr = buildCallInstructionForStaticMethodWithoutReturn(interruptibleCallee, nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, interruptibleCallee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, interruptibleCallee, callInstr);
 
     Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     assertThatNoMoreInstructionsExist(prologueRealInstr);
@@ -1664,7 +1659,7 @@ public class GenerationContextTest {
     Instruction callInstr = buildCallInstructionForStaticMethodWithoutReturn(interruptibleCallee, nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext child = GenerationContext.createChildContext(parent, ebag, interruptibleCallee, callInstr);
+    GenerationContext child = parent.createChildContext(ebag, interruptibleCallee, callInstr);
     setTransferableProperties(targetNumberOfNodes, child);
 
     child.transferStateToParent();
@@ -1849,7 +1844,7 @@ public class GenerationContextTest {
     TypeReference localType = nm.getDeclaringClass().getTypeRef();
     RegisterOperand regOp = gc.makeLocal(localNumber, localType);
     TrueGuardOperand guard = new TrueGuardOperand();
-    regOp.scratchObject = guard;
+    regOp.setGuard(guard);
 
     regOp.setParameter();
     regOp.setNonVolatile();
@@ -1859,7 +1854,7 @@ public class GenerationContextTest {
     regOp.setPositiveInt();
 
     RegisterOperand newRegOpWithInheritance = gc.makeLocal(localNumber, regOp);
-    Operand scratchObject = (Operand) newRegOpWithInheritance.scratchObject;
+    Operand scratchObject = newRegOpWithInheritance.getGuard();
     assertTrue(scratchObject.isTrueGuard());
     assertTrue(newRegOpWithInheritance.isParameter());
     assertTrue(newRegOpWithInheritance.isNonVolatile());
@@ -1872,7 +1867,7 @@ public class GenerationContextTest {
   @Test
   public void getLocalNumberForRegisterReturnsMinusOneIfNotALocal() throws Exception {
     GenerationContext gc = createMostlyEmptyContext("emptyInstanceMethodWithoutAnnotations");
-    Register reg = new Register(-1);
+    Register reg = new Register(currentRegisterNumber--);
     reg.setLong();
     reg.setLocal();
     int localNumber = gc.getLocalNumberFor(reg, TypeReference.Long);
@@ -1939,11 +1934,12 @@ public class GenerationContextTest {
     Register reg = regOp.getRegister();
 
     RegisterOperand expectedNullCheckGuard = gc.makeNullCheckGuard(reg);
-    expectedNullCheckGuard.scratchObject = new TrueGuardOperand();
+    RegisterOperand copiedGuard = expectedNullCheckGuard.copy().asRegister();
+    expectedNullCheckGuard.setGuard(new TrueGuardOperand());
 
     RegisterOperand actual = gc.makeNullCheckGuard(reg);
-    assertTrue(actual.sameRegisterPropertiesAsExceptForScratchObject(expectedNullCheckGuard));
-    assertNull(actual.scratchObject);
+    assertTrue(actual.sameRegisterPropertiesAs(copiedGuard));
+    assertNull(actual.getGuard());
   }
 
 
@@ -1963,7 +1959,7 @@ public class GenerationContextTest {
     gc.resync();
 
     RegisterOperand newNullCheckGuard = gc.makeNullCheckGuard(thisReg);
-    assertFalse(newNullCheckGuard.sameRegisterPropertiesAsExceptForScratchObject(thisNullCheckGuard));
+    assertFalse(newNullCheckGuard.sameRegisterPropertiesAs(thisNullCheckGuard));
   }
 
   @Test
@@ -1980,7 +1976,7 @@ public class GenerationContextTest {
     gc.resync();
 
     RegisterOperand newNullCheckGuard = gc.makeNullCheckGuard(thisReg);
-    assertTrue(newNullCheckGuard.sameRegisterPropertiesAsExceptForScratchObject(thisNullCheckGuard));
+    assertTrue(newNullCheckGuard.sameRegisterPropertiesAs(thisNullCheckGuard));
   }
 
   @Test(expected = NullPointerException.class)
@@ -2024,11 +2020,11 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
     Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext nextInnerContext = GenerationContext.createChildContext(gc, ebag, callee, noCheckStoreInstr);
+    GenerationContext nextInnerContext = gc.createChildContext(ebag, callee, noCheckStoreInstr);
 
     NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
     Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
-    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+    GenerationContext innermostContext = nextInnerContext.createChildContext(ebag, nextInnerCallee, noNullCheckInstr);
 
     assertThat(innermostContext.methodIsSelectedForDebuggingWithMethodToPrint(), is(true));
   }
@@ -2041,6 +2037,105 @@ public class GenerationContextTest {
     String methodNameFromOpts = iterator.next();
     assertThat(methodNameFromOpts, is(methodName));
     return opts;
+  }
+
+  @Test
+  public void canSaveInformationAboutOSRBarriers() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("emptyStaticMethodWithoutAnnotations");
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    gc.saveOSRBarrierForInst(osrBarrier, call);
+    Instruction barrier = gc.getOSRBarrierFromInst(call);
+    assertThat(barrier, is(osrBarrier));
+  }
+
+  @Test
+  public void childContextsSaveOSRBarrierInformationInOutermostParent() throws Exception {
+    NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = new OptOptions();
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext outermost = new GenerationContext(nm, null, cm, opts, io);
+
+    Class<?>[] classArgs = {Object.class};
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
+
+    MethodOperand methOp = MethodOperand.STATIC(callee);
+    RegisterOperand result = createMockRegisterOperand(TypeReference.JavaLangObject);
+    Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
+    Call.setParam(callInstr, 0, objectParam);
+    callInstr.position = new InlineSequence(nm);
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    child.saveOSRBarrierForInst(osrBarrier, call);
+    assertThat(outermost.getOSRBarrierFromInst(call), is(osrBarrier));
+
+    GenerationContext child2 = child.createChildContext(ebag, callee, callInstr);
+    Instruction osrBarrier2 = createMockOSRBarrier();
+    Instruction call2 = createMockCall();
+    child2.saveOSRBarrierForInst(osrBarrier2, call2);
+    assertThat(outermost.getOSRBarrierFromInst(call2), is(osrBarrier2));
+  }
+
+  @Test
+  public void childContextsQueryOSRBarrierInformationViaOutermostParent() throws Exception {
+    NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = new OptOptions();
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext outermost = new GenerationContext(nm, null, cm, opts, io);
+
+    Class<?>[] classArgs = {Object.class};
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
+
+    MethodOperand methOp = MethodOperand.STATIC(callee);
+    RegisterOperand result = createMockRegisterOperand(TypeReference.JavaLangObject);
+    Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
+    Call.setParam(callInstr, 0, objectParam);
+    callInstr.position = new InlineSequence(nm);
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    child.saveOSRBarrierForInst(osrBarrier, call);
+    assertThat(outermost.getOSRBarrierFromInst(call), is(osrBarrier));
+    assertThat(child.getOSRBarrierFromInst(call), is(osrBarrier));
+
+    GenerationContext child2 = outermost.createChildContext(ebag, callee, callInstr);
+    assertThat(child2.getOSRBarrierFromInst(call), is(osrBarrier));
+  }
+
+  private Instruction createMockCall() {
+    return Call.create(CALL, null, null, null, 0);
+  }
+
+  private Instruction createMockOSRBarrier() {
+    return OsrBarrier.create(OSR_BARRIER, null, 0);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void savingNoLongerWorksAfterOSRBarrierInformationWasDiscarded() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("methodForInliningTests");
+    gc.discardOSRBarrierInformation();
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    gc.saveOSRBarrierForInst(osrBarrier, call);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void getOSRBarrierCausesNPEAfterOSRBarrierInformationWasDiscarded() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("methodForInliningTests");
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    gc.saveOSRBarrierForInst(osrBarrier, call);
+    gc.discardOSRBarrierInformation();
+    gc.getOSRBarrierFromInst(call);
   }
 
 }

@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
  * An object that returns an estimate of the relative cost of spilling a
  * symbolic register, based on basic block frequencies.
  */
-class BlockCountSpillCost extends SpillCostEstimator {
+final class BlockCountSpillCost extends SpillCostEstimator {
 
   BlockCountSpillCost(IR ir) {
     calculate(ir);

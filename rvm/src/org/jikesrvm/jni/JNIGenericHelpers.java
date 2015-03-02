@@ -105,9 +105,6 @@ public abstract class JNIGenericHelpers {
     return contents;
   }
 
-  /**
-   * Create a string from the given charset decoder and bytebuffer
-   */
   private static String createString(CharsetDecoder csd, ByteBuffer bbuf) throws CharacterCodingException {
     char[] v;
     int o;
@@ -186,7 +183,11 @@ public abstract class JNIGenericHelpers {
 
 
   /**
-   * Convert a String into a a malloced region
+   * Converts a String into a a malloced regions.
+   *
+   * @param str the string to convert
+   * @param copyBuffer start address for a newly allocated buffer
+   * @param len length of the buffer
    */
   public static void createUTFForCFromString(String str, Address copyBuffer, int len) {
     ByteBuffer bbuf =

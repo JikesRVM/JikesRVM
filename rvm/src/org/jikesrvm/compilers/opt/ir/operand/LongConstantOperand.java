@@ -59,14 +59,14 @@ public final class LongConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the lower 32 bits (as an int) of value
+   * @return the lower 32 bits (as an int) of value
    */
   public int lower32() {
     return Bits.lower32(value);
   }
 
   /**
-   * Return the upper 32 bits (as an int) of value
+   * @return the upper 32 bits (as an int) of value
    */
   public int upper32() {
     return Bits.upper32(value);

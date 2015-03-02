@@ -25,8 +25,11 @@ abstract class SpillCostEstimator {
   private final HashMap<Register, Double> map = new HashMap<Register, Double>();
 
   /**
-   * Return a number that represents an estimate of the relative cost of
-   * spilling register r.
+   * Returns a number that represents an estimate of the relative cost of
+   * spilling register {@code r}.
+   *
+   * @param r the register to check
+   * @return a cost estimate for spilling; may be zero
    */
   double getCost(Register r) {
     Double d = map.get(r);
@@ -38,12 +41,17 @@ abstract class SpillCostEstimator {
   }
 
   /**
-   * Calculate the estimated cost for each register.
+   * Calculates the estimated cost for each register.
+   *
+   * @param ir the IR object
    */
   abstract void calculate(IR ir);
 
   /**
-   * Update the cost for a particular register.
+   * Updates the cost for a particular register.
+   *
+   * @param r register whose cost is to be updated
+   * @param delta change in cost for the register
    */
   protected void update(Register r, double delta) {
     double c = getCost(r);

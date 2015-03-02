@@ -389,7 +389,6 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     return state;
   }
 
-  /** auxillary functions to get value from different places. */
   private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {

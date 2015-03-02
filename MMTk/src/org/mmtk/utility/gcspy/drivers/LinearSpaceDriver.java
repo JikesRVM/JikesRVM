@@ -109,9 +109,11 @@ import org.vmmagic.pragma.*;
   @Override
   protected String getDriverName() { return "MMTk LinearSpaceDriver"; }
 
-  /**
+  /*
    * Private creator methods to create the Streams.
    */
+
+
   @Interruptible
   private IntStream createScalarUsedSpaceStream() {
     return VM.newGCspyIntStream(

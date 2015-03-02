@@ -54,7 +54,7 @@ public final class ReferenceMaps implements BaselineConstants {
   private JSRInfo jsrInfo;
 
   /**
-   * size of individual maps
+   * @return size of individual maps
    */
   private int bytesPerMap() {
     return ((bitsPerMap + 7) / 8) + 1;
@@ -106,6 +106,10 @@ public final class ReferenceMaps implements BaselineConstants {
    *
    * If the located site is within the scope of a jsr subroutine
    *  the index value returned is a negative number.
+   *
+   * @param machCodeOffset offset into machine code (see above for constraints)
+   * @param method the method that contains the gc point
+   * @return index of the appropriate stack map
    */
   public int locateGCPoint(Offset machCodeOffset, RVMMethod method) {
 
@@ -190,8 +194,8 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * @param index offset in the reference stack frame,
    * @param siteindex index that indicates the callsite (siteindex),
-   * @return return the offset where the next reference can be found.
-   * @return NOMORE when no more pointers can be found
+   * @return return the offset where the next reference can be found,
+   *  {@link #NOMORE} when no more pointers can be found
    */
   public int getNextRefIndex(int index, int siteindex) {
     if (VM.TraceStkMaps) {
@@ -376,10 +380,6 @@ public final class ReferenceMaps implements BaselineConstants {
     }
   }
 
-  /**
-   * For debugging (used with CheckRefMaps)
-   *  Note: all maps are the same size
-   */
   public int getStackDepth(int mapid) {
     return bytesPerMap();
   }
@@ -395,9 +395,6 @@ public final class ReferenceMaps implements BaselineConstants {
     return size;
   }
 
-  /**
-   * start setting up the reference maps for this method.
-   */
   @Interruptible
   public void startNewMaps(int gcPointCount, int jsrCount, int parameterWords) {
     //  normal map information
@@ -731,6 +728,7 @@ public final class ReferenceMaps implements BaselineConstants {
    * and referencemap array if necessary
    *
    * @param jsrSiteMap   unusualMap to be added to array
+   * @return number of the added map in the array
    */
   @Interruptible
   private int addUnusualMap(UnusualMaps jsrSiteMap) {
@@ -785,6 +783,8 @@ public final class ReferenceMaps implements BaselineConstants {
    *
    * @param mapid             Index of map of instruction where map is required
    *                          ( this value was returned by locateGCpoint)
+   *
+   * @return the index of the JSR invoker
    */
   public int setupJSRSubroutineMap(int mapid) {
 
@@ -885,6 +885,8 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * After code is generated, translate the bytecode indices
    * recorded in MCSites array into real machine code offsets.
+   *
+   * @param b2m map of byte code index to machine code offsets
    */
   public void translateByte2Machine(int[] b2m) {
     for (int i = 0; i < MCSites.length; i++) {
@@ -893,13 +895,13 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * convert a portion of an array word of Bytes into a bitmap of references
-   * i.e. given a byte array,
-   *    a starting offset in the array,
-   *    the length to scan,
-   *    and the type of byte to scan for
-   *   ... convert the area in the array to a
-   *        word of bits ... max length is 31 i.e. BITS_PER_MAP_ELEMENT
+   * Convert a portion of an array word of Bytes into a bitmap of references.
+   *
+   * @param curBBMap a byte array that describes the contents of the local variables and the java stack
+   * @param offset a starting offset in the array
+   * @param len length of the scan, max is {@link #BITS_PER_MAP_ELEMENT}
+   * @param reftype the type of byte to scan for
+   * @return a bitword
    */
   private byte convertMapElement(byte[] curBBMap, int offset, int len, byte reftype) {
     byte bitmap = 0;
@@ -914,7 +916,7 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * get Next free word in referencemaps for GC call sites
+   * @return next free word in referencemaps for GC call sites
    */
   @Interruptible
   private int getNextMapElement() {
@@ -1100,7 +1102,7 @@ public final class ReferenceMaps implements BaselineConstants {
 
   /**
    * Makes a deep copy of {@code from} into {@code jsrInfo.extraUnusualMap}
-   * @param from
+   * @param from the map to copy from
    */
   private void unusualMapcopy(UnusualMaps from) {
     jsrInfo.extraUnusualMap.setReturnAddressIndex(from.getReturnAddressIndex());
@@ -1451,6 +1453,8 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * Show the basic information for a single map. This is for testing
    * use.
+   *
+   * @param MCSiteIndex index of the machine code site
    */
   public void showAMap(int MCSiteIndex) {
     VM.sysWriteln("show the map for MCSite index= ", MCSiteIndex);

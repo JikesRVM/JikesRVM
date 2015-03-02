@@ -18,6 +18,7 @@ import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -58,6 +59,8 @@ public class LICM extends CompilerPhase {
   private static final boolean DEBUG = false;
   /** Generate verbose debug output? */
   private static boolean VERBOSE = false;
+
+  private Map<Instruction, Integer> instructionNumbers;
 
   /**
    * Constructor for this compiler phase
@@ -131,7 +134,7 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * Returns the name of the phase
+   * @return the name of the phase
    */
   @Override
   public String getName() {
@@ -150,13 +153,13 @@ public class LICM extends CompilerPhase {
   //------------------------- Implementation -------------------------
 
   /**
-   * Is it save to move the given instruction, depending on we are
-   * in heapSSA form or not?
-   * @param inst
-   * @param ir
+   * @param inst the instruction that might be moved
+   * @param ir the governing iR
+   * @return whether it is safe to move the given instruction, depending on
+   *  the properties of the IR (is it in heapSSA form or not?)
    */
   public static boolean shouldMove(Instruction inst, IR ir) {
-    if ((inst.isAllocation()) || inst.isDynamicLinkingPoint() || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
+    if ((inst.isAllocation()) || inst.isDynamicLinkingPoint() || inst.getOpcode() >= ARCH_INDEPENDENT_END_opcode) {
       return false;
     }
 
@@ -165,7 +168,7 @@ public class LICM extends CompilerPhase {
       return false;
     }
 
-    switch (inst.operator.opcode) {
+    switch (inst.getOpcode()) {
       case INT_MOVE_opcode:
       case LONG_MOVE_opcode:
       case INT_COND_MOVE_opcode:
@@ -306,7 +309,9 @@ public class LICM extends CompilerPhase {
 
   /**
    * Schedule this instruction as early as possible
-   * @param inst
+   * @param inst the instruction to schedule
+   * @return the instruction that serves as the new lower bound (exclusive)
+   *  for further scheduling
    */
   private Instruction scheduleEarly(Instruction inst) {
     Instruction _earlyPos;
@@ -340,7 +345,7 @@ public class LICM extends CompilerPhase {
 
     /* don't put memory stores or PEIs on speculative path */
     if ((inst.isPEI() && !ir.options.SSA_LICM_IGNORE_PEI) || inst.isImplicitStore()) {
-      while (!postDominates(getBlock(inst), getBlock(_earlyPos))) {
+      while (!postDominates(getBlock(inst), getBlock(_earlyPos), ir)) {
         _earlyPos = dominanceSuccessor(_earlyPos, inst);
       }
     }
@@ -355,10 +360,6 @@ public class LICM extends CompilerPhase {
     return _earlyPos;
   }
 
-  /**
-   * Schedule as late as possible.
-   * @param inst
-   */
   BasicBlock scheduleLate(Instruction inst) {
     if (DEBUG) VM.sysWrite("Schedule Late: " + inst + "\n");
 
@@ -417,6 +418,10 @@ public class LICM extends CompilerPhase {
    * return `a's successor on the path from `a' to `b' in the dominator
    * tree. `a' must dominate `b' and `a' and `b' must belong to
    * different blocks.
+   *
+   * @param a an instruction matching the constraints from the description
+   * @param b another instruction matching the constraints from the description
+   * @return the dominance successor of a
    */
   private Instruction dominanceSuccessor(Instruction a, Instruction b) {
     BasicBlock aBlock = getBlock(a);
@@ -436,8 +441,13 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * compare a and b according to their depth in the dominator tree
+   * Compares two instructions according to their depth in the dominator tree
    * and return the one with the greatest depth.
+   *
+   * @param a an instruction
+   * @param b another instruction
+   * @return the instruction with the greatest depth in the dominator
+   *  tree
    */
   private Instruction maxDominatorDepth(Instruction a, Instruction b) {
     BasicBlock aBlock = getBlock(a);
@@ -472,8 +482,16 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * Schedule me as early as possible,
+   * Schedules an instruction as early as possible,
    * but behind the definitions in e and behind earlyPos
+   *
+   * @param e the definitions that must have been occurred before the new
+   *  position of the instruction
+   * @param earlyPos the instruction that serves as a lower bound (exclusive)
+   *  for the position
+   * @param inst the instruction to schedule
+   * @return the instruction that serves as the new lower bound (exclusive)
+   *  for further scheduling
    */
   private Instruction scheduleScalarDefsEarly(Enumeration<Operand> e, Instruction earlyPos,
                                                   Instruction inst) {
@@ -491,8 +509,16 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * Schedule me as early as possible,
-   * but behind the definitions of op[i] and behind earlyPos
+   * Schedules an instruction as early as possible,
+   * but behind the definitions of op[i] and behind earlyPos.
+   *
+   * @param op the definitions that must have been occurred before the new
+   *  position of the instruction
+   * @param earlyPos the instruction that serves as a lower bound (exclusive)
+   *  for the position
+   * @param me the instruction to schedule
+   * @return the instruction that serves as the new lower bound (exclusive)
+   *  for further scheduling
    */
   Instruction scheduleHeapDefsEarly(HeapOperand<?>[] op, Instruction earlyPos, Instruction me) {
     if (op == null) return earlyPos;
@@ -529,10 +555,6 @@ public class LICM extends CompilerPhase {
     return res;
   }
 
-  /**
-   * Schedule me as late as possible,
-   * but in front of my uses and before latePos
-   */
   private BasicBlock scheduleScalarUsesLate(Instruction inst, BasicBlock lateBlock) {
     Operand resOp = getResult(inst);
 
@@ -552,10 +574,6 @@ public class LICM extends CompilerPhase {
     return lateBlock;
   }
 
-  /**
-   * Schedule me as early as possible,
-   * but behind the definitions of op[i] and behind earlyPos
-   */
   BasicBlock scheduleHeapUsesLate(Instruction inst, BasicBlock lateBlock) {
     //VM.sysWrite (" scheduleHeapUsesLate\n");
     Operand[] defs = ssad.getHeapDefs(inst);
@@ -582,8 +600,8 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * Return the instruction that defines the operand.
-   * @param op
+   * @param op the operand that's being defined
+   * @return the instruction that defines the operand.
    */
   Instruction definingInstruction(Operand op) {
     if (op instanceof HeapOperand) {
@@ -619,8 +637,8 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * Get the result operand of the instruction
-   * @param inst
+   * @param inst an instruction
+   * @return the result operand of the instruction
    */
   Operand getResult(Instruction inst) {
     if (ResultCarrier.conforms(inst)) {
@@ -636,9 +654,13 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * Visit the blocks between the late and the early position along
+   * Visits the blocks between the late and the early position along
    * their path in the dominator tree.
-   * Return the block with the smallest execution costs.
+   *
+   * @param earlyPos the early position
+   * @param lateBlock the late position
+   * @param inst the instruction to schedule
+   * @return the block with the smallest execution costs
    */
   BasicBlock upto(Instruction earlyPos, BasicBlock lateBlock, Instruction inst) {
 
@@ -686,15 +708,15 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * How expensive is it to place an instruction in this block?
+   * Determines how expensive it is to place an instruction in this block.
+   *
+   * @param b a basic block
+   * @return the block's execution frequency
    */
   final float frequency(BasicBlock b) {
     return b.getExecutionFrequency();
   }
 
-  /**
-   * move `inst' behind `pred'
-   */
   void move(Instruction inst, BasicBlock to) {
 
     BasicBlock _origBlock = getOrigBlock(inst);
@@ -730,8 +752,8 @@ public class LICM extends CompilerPhase {
       relocated.add(inst);
     }
 
-    if (DEBUG && moved.add(inst.operator)) {
-      VM.sysWrite("m(" + (ir.IRStage == IR.LIR ? "l" : "h") + ") " + inst.operator + "\n");
+    if (DEBUG && moved.add(inst.operator())) {
+      VM.sysWrite("m(" + (ir.IRStage == IR.LIR ? "l" : "h") + ") " + inst.operator() + "\n");
     }
     if (VERBOSE) {
       VM.sysWrite(ir.IRStage == IR.LIR ? "%" : "#");
@@ -748,109 +770,88 @@ public class LICM extends CompilerPhase {
 
   /**
    * does a post dominate b?
-   * @param a
-   * @param b
+   * @param a the possible post-dominator
+   * @param b the possibly post-dominated block
+   * @param ir the IR that contains the blocks
+   * @return whether the first block post-dominates the second block
    */
-  boolean postDominates(BasicBlock a, BasicBlock b) {
+  boolean postDominates(BasicBlock a, BasicBlock b, IR ir) {
     boolean res;
     if (a == b) {
       return true;
     }
     //VM.sysWrite ("does " + a + " postdominate " + b + "?: ");
-    DominatorInfo info = (DominatorInfo) b.scratchObject;
+    DominatorInfo info = ir.getDominators().getDominatorInfo(b);
     res = info.isDominatedBy(a);
     //VM.sysWrite (res ? "yes\n" : "no\n");
     return res;
   }
 
-  /**
-   * Get the basic block of an instruction
-   * @param inst
-   */
   BasicBlock getBlock(Instruction inst) {
-    return block[inst.scratch];
+    return block[instructionNumbers.get(inst)];
   }
 
-  /**
-   * Set the basic block for an instruction
-   * @param inst
-   * @param b
-   */
   void setBlock(Instruction inst, BasicBlock b) {
-    block[inst.scratch] = b;
+    block[instructionNumbers.get(inst)] = b;
   }
 
-  /**
-   * Get the early position of an instruction
-   * @param inst
-   */
   Instruction getEarlyPos(Instruction inst) {
-    return earlyPos[inst.scratch];
+    return earlyPos[instructionNumbers.get(inst)];
   }
 
-  /**
-   * Set the early position for an instruction
-   * @param inst
-   * @param pos
-   */
   void setEarlyPos(Instruction inst, Instruction pos) {
-    earlyPos[inst.scratch] = pos;
+    earlyPos[instructionNumbers.get(inst)] = pos;
   }
 
-  /**
-   * Get the block, where the instruction was originally located
-   * @param inst
-   */
   BasicBlock getOrigBlock(Instruction inst) {
-    return origBlock[inst.scratch];
+    return origBlock[instructionNumbers.get(inst)];
   }
 
-  /**
-   * Set the block, where the instruction is originally located.
-   * @param inst
-   * @param b
-   */
   void setOrigBlock(Instruction inst, BasicBlock b) {
-    origBlock[inst.scratch] = b;
+    origBlock[instructionNumbers.get(inst)] = b;
   }
 
   /**
    * In what state (initial, early, late, done) is this instruction
-   * @param inst
+   * @param inst the instruction to check
+   * @return the instruction's state
    */
   int getState(Instruction inst) {
-    return state[inst.scratch];
+    return state[instructionNumbers.get(inst)];
   }
 
   /**
    * Set the state (initial, early, late, done) of the instruction
-   * @param inst
-   * @param s
+   * @param inst the instruction
+   * @param s the state
    */
   void setState(Instruction inst, int s) {
-    state[inst.scratch] = s;
+    state[instructionNumbers.get(inst)] = s;
   }
 
   //------------------------------------------------------------
   // initialization
   //------------------------------------------------------------
 
-  /**
-   * initialize the state of the algorithm
-   */
   void initialize(IR ir) {
     this.ir = ir;
 
     relocated = new HashSet<Instruction>();
     // Note: the following unfactors the CFG
     new DominatorsPhase(true).perform(ir);
-    Dominators.computeApproxPostdominators(ir);
+    Dominators dominators = new Dominators();
+    dominators.computeApproxPostdominators(ir);
+    ir.setDominators(dominators);
     dominator = ir.HIRInfo.dominatorTree;
     if (DEBUG) VM.sysWrite("" + dominator.toString() + "\n");
-    int instructions = ir.numberInstructions();
+
+    instructionNumbers = ir.numberInstructionsViaMap();
+    int instructions = instructionNumbers.size();
+
     ssad = ir.HIRInfo.dictionary;
     DefUse.computeDU(ir);
     ssad.recomputeArrayDU();
+
     // also number implicit heap phis
     Enumeration<BasicBlock> e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
@@ -858,8 +859,7 @@ public class LICM extends CompilerPhase {
       Iterator<Instruction> pe = ssad.getHeapPhiInstructions(b);
       while (pe.hasNext()) {
         Instruction inst = pe.next();
-        inst.scratch = instructions++;
-        inst.scratchObject = null;
+        instructionNumbers.put(inst, Integer.valueOf(instructions++));
       }
     }
     state = new int[instructions];
@@ -966,7 +966,7 @@ public class LICM extends CompilerPhase {
   static final int CL_LOADS_AND_STORES = 3;
   static final int CL_COMPLEX = 4;
 
-  /**
+  /*
    * check that inside the loop, the heap variable is only used/defed
    * by simple, non-volatile loads/stores<p>
    *
@@ -1001,12 +1001,19 @@ public class LICM extends CompilerPhase {
     return CL_LOADS_ONLY;
   }
 
-  /**
-   * check that inside the loop, the heap variable is only used/defed
-   * by simple, non-volatile loads/stores<p>
+  /*
+   * TODO document xidx parameter and turn this comment into proper JavaDoc.
+   * <p>
+   * Checks that inside the loop, the heap variable is only used/defed
+   * by simple, non-volatile loads/stores
    *
-   * returns one of:
-   * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX
+   * @param inst a phi instruction
+   * @param hop the result operand of the phi instruction
+   * @param xidx
+   * @param block the block that contains the phi instruction
+   *
+   * @return one of {@link #CL_LOADS_ONLY}, {@link #CL_STORES_ONLY},
+   * {@link #CL_LOADS_AND_STORES}, {@link #CL_COMPLEX}
    */
   private int checkLoop(Instruction inst, HeapOperand<Object> hop, int xidx, BasicBlock block) {
     HashSet<Instruction> seen = new HashSet<Instruction>();
@@ -1036,7 +1043,7 @@ public class LICM extends CompilerPhase {
             workList.insert(z);
           }
         }
-      } else if ((y.isPEI()) || !LocationCarrier.conforms(y) || y.operator.isAcquire() || y.operator.isRelease()) {
+      } else if ((y.isPEI()) || !LocationCarrier.conforms(y) || y.operator().isAcquire() || y.operator().isRelease()) {
         return CL_COMPLEX;
       } else {
         // check for access to volatile field
@@ -1094,7 +1101,7 @@ public class LICM extends CompilerPhase {
     return b != block && dominator.dominates(b, block);
   }
 
-  /**
+  /*
    * In the consumers of `inst', replace uses of `inst's result
    * with uses of `replacement'
    */

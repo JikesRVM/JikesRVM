@@ -221,6 +221,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierBoolean(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -234,6 +235,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierBooleanImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -247,6 +249,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierByte(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -260,6 +263,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierByteImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -273,6 +277,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierChar(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -286,6 +291,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierCharImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -299,6 +305,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierDouble(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -312,6 +319,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierDoubleImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -325,6 +333,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierFloat(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -338,6 +347,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierFloatImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -351,6 +361,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierInt(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -364,6 +375,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierIntImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -377,6 +389,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierLong(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -390,6 +403,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierLongImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -403,6 +417,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierShort(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -416,6 +431,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierShortImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -429,6 +445,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierWord(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -442,6 +459,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierWordImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -455,6 +473,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierAddress(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -468,6 +487,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierAddressImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -481,6 +501,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierExtent(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -494,6 +515,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierExtentImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -507,6 +529,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierOffset(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -520,6 +543,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierOffsetImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {

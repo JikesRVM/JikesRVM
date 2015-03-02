@@ -93,6 +93,8 @@ public class YieldPoints extends CompilerPhase {
 
   /**
    * Process all loop heads in a loop nest by inserting a backedge yieldpoint in each of them.
+   *
+   * @param n a loop node
    */
   private void processLoopNest(LSTNode n) {
     for (java.util.Enumeration<LSTNode> e = n.getChildren(); e.hasMoreElements();) {

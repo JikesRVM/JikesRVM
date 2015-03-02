@@ -36,7 +36,9 @@ public class Xml {
   }
 
   /**
-   * Close the innermost XML tag and pop it from the stack.
+   * Closes the innermost XML tag and pops it from the stack.
+   *
+   * @param name the tag's name
    */
   public static void closeTag(String name) {
     Log.write("</"); Log.write(name); Log.writeln(">");

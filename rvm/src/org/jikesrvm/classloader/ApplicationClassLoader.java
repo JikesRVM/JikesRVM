@@ -17,6 +17,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.StringTokenizer;
+
+import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 
@@ -101,7 +103,7 @@ public class ApplicationClassLoader extends URLClassLoader {
     return myName +
            (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "") +
            (createdWithRunningVM ? "" : "-NOTcreatedWithRunningVM") +
-           (DBG ? "@" + VM.addressAsHexString(Magic.objectAsAddress(this)) : "");
+           (DBG ? "@" + Services.addressAsHexString(Magic.objectAsAddress(this)) : "");
   }
 
   @Override

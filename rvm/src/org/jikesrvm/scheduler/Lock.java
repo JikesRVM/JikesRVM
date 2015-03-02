@@ -225,8 +225,13 @@ public final class Lock {
     }
     return lockHeavyLocked(o);
   }
-  /** Complete the task of acquiring the heavy lock, assuming that the mutex
-      is already acquired (locked). */
+
+  /**
+   * Completes the task of acquiring the heavy lock, assuming that the mutex
+      is already acquired (locked).
+   * @param o the object whose lock is to be acquired
+   * @return whether locking succeeded
+   */
   @Unpreemptible
   public boolean lockHeavyLocked(Object o) {
     if (lockedObject != o) { // lock disappeared before we got here
@@ -302,6 +307,7 @@ public final class Lock {
    * the mutex for this lock is held when deflate is called.
    *
    * @param o the object from which this lock is to be disassociated
+   * @param lockOffset the lock's offset from the object
    */
   private void deflate(Object o, Offset lockOffset) {
     if (VM.VerifyAssertions) {
@@ -325,7 +331,7 @@ public final class Lock {
   }
 
   /**
-   * Get the thread id of the current owner of the lock.
+   * @return the thread id of the current owner of the lock.
    */
   public int getOwnerId() {
     return ownerId;
@@ -333,13 +339,15 @@ public final class Lock {
 
   /**
    * Update the lock's recursion count.
+   *
+   * @param c new recursion count
    */
   public void setRecursionCount(int c) {
     recursionCount = c;
   }
 
   /**
-   * Get the lock's recursion count.
+   * @return the lock's recursion count.
    */
   public int getRecursionCount() {
     return recursionCount;
@@ -347,13 +355,15 @@ public final class Lock {
 
   /**
    * Set the object that this lock is referring to.
+   *
+   * @param o the new locked object
    */
   public void setLockedObject(Object o) {
     lockedObject = o;
   }
 
   /**
-   * Get the object that this lock is referring to.
+   * @return the object that this lock is referring to.
    */
   public Object getLockedObject() {
     return lockedObject;
@@ -412,14 +422,16 @@ public final class Lock {
   }
 
   /**
-   * Is this lock blocking thread t?
+   * @param t a thread
+   * @return whether this lock is blocking the given thread
    */
   protected boolean isBlocked(RVMThread t) {
     return entering.isQueued(t);
   }
 
   /**
-   * Is this thread t waiting on this lock?
+   * @param t a thread
+   * @return whether the thread is waiting on this lock
    */
   protected boolean isWaiting(RVMThread t) {
     return waiting.isQueued(t);
@@ -527,6 +539,8 @@ public final class Lock {
    * Recycles an unused heavy-weight lock.  Locks are deallocated
    * to processor specific lists, so normally no synchronization
    * is required to obtain or release a lock.
+   *
+   * @param l the unused lock
    */
   protected static void free(Lock l) {
     l.active = false;
@@ -563,6 +577,8 @@ public final class Lock {
 
   /**
    * Grow the locks table by allocating a new spine chunk.
+   *
+   * @param id the lock's index in the table
    */
   @UnpreemptibleNoWarn("The caller is prepared to lose control when it allocates a lock")
   static void growLocks(int id) {
@@ -590,7 +606,7 @@ public final class Lock {
   }
 
   /**
-   * Return the number of lock slots that have been allocated. This provides
+   * @return the number of lock slots that have been allocated. This provides
    * the range of valid lock ids.
    */
   public static int numLocks() {
@@ -658,6 +674,8 @@ public final class Lock {
 
   /**
    * scan lock queues for thread and report its state
+   * @param t the thread whose state is of interest
+   * @return the thread state in human readable form
    */
   @Interruptible
   public static String getThreadState(RVMThread t) {

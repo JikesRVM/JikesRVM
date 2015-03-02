@@ -85,6 +85,8 @@ public class TableBasedDynamicLinker {
    * Method invoked from MemberReference to
    * ensure that there is space in the dynamic linking table for
    * the given member reference.
+   *
+   * @param id id of the member reference
    */
   static synchronized void ensureCapacity(int id) {
     if (id >= memberOffsets.length) {

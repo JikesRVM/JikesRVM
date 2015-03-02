@@ -28,11 +28,12 @@ public class DF_Solution extends HashMap<Object, DF_LatticeCell> {
    */
   @Override
   public String toString() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     for (DF_LatticeCell cell : values()) {
-      result = result + cell + "\n";
+      result.append(cell);
+      result.append("\n");
     }
-    return result;
+    return result.toString();
   }
 
   /**

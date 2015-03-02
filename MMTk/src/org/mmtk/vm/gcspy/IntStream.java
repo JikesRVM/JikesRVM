@@ -57,6 +57,7 @@ import org.vmmagic.pragma.*;
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    */
   public IntStream(
          AbstractDriver driver,

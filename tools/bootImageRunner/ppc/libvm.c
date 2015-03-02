@@ -16,7 +16,7 @@
  *
  * This file deals with loading of the vm boot image into a memory segment
  * and branching to its startoff code.  It also deals with interrupt and
- * exception handling.   The file "sys.C" contains the o/s support services
+ * exception handling.   The file "sys.cpp" contains the o/s support services
  * required by the java class libraries.
  *
  * PowerPC version for AIX, Linux, and Mac OS X

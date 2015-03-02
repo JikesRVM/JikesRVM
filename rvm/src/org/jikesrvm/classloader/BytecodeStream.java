@@ -480,6 +480,7 @@ public class BytecodeStream {
   /**
    * Returns a reference to a field, for use prior to the class being loaded.<p>
    * Used for getstatic, putstatic, getfield, putfield
+   * @param constantPool the constant pool for the class
    * @return field reference
    */
   public final FieldReference getFieldReference(int[] constantPool) {
@@ -509,6 +510,7 @@ public class BytecodeStream {
   /**
    * Returns a reference to a field, for use prior to the class being loaded.<p>
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
+   * @param constantPool the constant pool for the class
    * @return method reference
    */
   public final MethodReference getMethodReference(int[] constantPool) {
@@ -677,6 +679,7 @@ public class BytecodeStream {
   /**
    * Returns the type of a constant at a given constant pool index (as a byte).<p>
    * Used for ldc, ldc_w, ldc2_w
+   * @param index index into constant pool
    * @return constant type
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -697,6 +700,7 @@ public class BytecodeStream {
   /**
    * Returns the constant at a given constant pool index (as an int).<p>
    * Used for ldc, ldc_w
+   * @param index index into constant pool
    * @return int constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -719,6 +723,7 @@ public class BytecodeStream {
   /**
    * Returns the constant at a given constant pool index (as a long).<p>
    * Used for ldc2_w
+   * @param index index into constant pool
    * @return long constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -740,6 +745,7 @@ public class BytecodeStream {
   /**
    * Returns the constant at a given constant pool index (as a float).<p>
    * Used for ldc, ldc_w
+   * @param index index into constant pool
    * @return float constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -763,6 +769,7 @@ public class BytecodeStream {
   /**
    * Returns the constant at a given constant pool index (as a double).<p>
    * Used for ldc2_w
+   * @param index index into constant pool
    * @return double constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -785,6 +792,7 @@ public class BytecodeStream {
   /**
    * Returns the constant at a given constant pool index (as a String).<p>
    * Used for ldc, ldc_w
+   * @param index index into constant pool
    * @return String constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()

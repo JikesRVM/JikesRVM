@@ -31,7 +31,6 @@ import org.vmmagic.unboxed.*;
  * <i>SSGCspy</i> plan.
  *
  * See {@link SSGCspy} for an overview of the GC-spy mechanisms.
- * <p>
  *
  * @see SSMutator
  * @see SSGCspy

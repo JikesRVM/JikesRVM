@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.controlflow;
 
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -42,6 +43,8 @@ public class LSTGraph extends SpaceEffGraph {
   protected LSTNode rootNode;
   /** Map of bb to LSTNode of innermost loop containing bb */
   private final HashMap<BasicBlock, LSTNode> loopMap;
+
+  private IR ir;
 
   /**
    * The main entry point
@@ -75,11 +78,6 @@ public class LSTGraph extends SpaceEffGraph {
     return node != null && node.firstOutEdge() == null && node.loop != null;
   }
 
-  /**
-   * Is the edge from source to target an exit from the loop containing source?
-   * @param source the basic block that is the source of the edge
-   * @param target the basic block that is the target of the edge
-   */
   public boolean isLoopExit(BasicBlock source, BasicBlock target) {
     LSTNode snode = loopMap.get(source);
     LSTNode tnode = loopMap.get(target);
@@ -113,11 +111,12 @@ public class LSTGraph extends SpaceEffGraph {
   }
 
   private String dumpIt(LSTNode n) {
-    String ans = n.toString() + "\n";
+    StringBuilder ans = new StringBuilder(n.toString());
+    ans.append('\n');
     for (Enumeration<LSTNode> e = n.getChildren(); e.hasMoreElements();) {
-      ans += dumpIt(e.nextElement());
+      ans.append(dumpIt(e.nextElement()));
     }
-    return ans;
+    return ans.toString();
   }
 
   /*
@@ -139,6 +138,7 @@ public class LSTGraph extends SpaceEffGraph {
    * @param  ir the IR
    */
   private LSTGraph(IR ir) {
+    this.ir = ir;
     loopMap = new HashMap<BasicBlock, LSTNode>();
 
     ControlFlowGraph cfg = ir.cfg;
@@ -148,13 +148,15 @@ public class LSTGraph extends SpaceEffGraph {
     cfg.clearDFS();
     entry.sortDFS();
     int dfn = 0;
+    Map<SpaceEffGraphNode, Integer> dfnMap = new HashMap<SpaceEffGraphNode, Integer>();
     for (SpaceEffGraphNode node = entry; node != null; node = node.nextSorted) {
       node.clearLoopHeader();
-      node.scratch = dfn++;
+      dfnMap.put(node, Integer.valueOf(dfn++));
       clearBackEdges(node);
     }
     cfg.clearDFS();
-    findBackEdges(entry, ir.cfg.numberOfNodes());
+    int bbCount = ir.cfg.numberOfNodes();
+    findBackEdges(entry, bbCount, dfnMap);
 
     // entry node is considered the LST head
     LSTNode lstheader = new LSTNode(entry);
@@ -235,8 +237,9 @@ public class LSTGraph extends SpaceEffGraph {
    *  to determine back edges.
    * @param bb        The basic block to process
    * @param numBlocks The number of basic blocks
+   * @param dfnMap numbering from the depth first traversal
    */
-  private void findBackEdges(BasicBlock bb, int numBlocks) {
+  private void findBackEdges(BasicBlock bb, int numBlocks, Map<SpaceEffGraphNode, Integer> dfnMap) {
     Stack<BasicBlock> stack = new Stack<BasicBlock>();
     SpaceEffGraphNode.OutEdgeEnumeration[] BBenum = new SpaceEffGraphNode.OutEdgeEnumeration[numBlocks];
 
@@ -262,19 +265,19 @@ public class LSTGraph extends SpaceEffGraph {
         SpaceEffGraphEdge outEdge = (SpaceEffGraphEdge) e.next();
 
         BasicBlock outbb = (BasicBlock) outEdge.toNode();
-        if (LTDominatorInfo.isDominatedBy(bb, outbb)) {   // backedge
+        if (LTDominatorInfo.isDominatedBy(bb, outbb, ir)) {   // backedge
           outbb.setLoopHeader();
           outEdge.setBackEdge();
           if (DEBUG) {
             System.out.println("backedge from " +
-                               bb.scratch +
+                               dfnMap.get(bb) +
                                " ( " + bb + " ) " +
-                               outbb.scratch +
+                               dfnMap.get(outbb) +
                                " ( " + outbb + " ) ");
           }
         } else if (!outbb.dfsVisited()) {
           // irreducible loop test
-          if (outbb.scratch < bb.scratch) {
+          if (dfnMap.get(outbb) < dfnMap.get(bb)) {
             throw new OptimizingCompilerException("irreducible loop found!");
           }
           // simulate a recursive call

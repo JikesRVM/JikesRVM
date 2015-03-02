@@ -216,6 +216,7 @@ public final class SanityChecker {
    * incrementing counters and enqueuing if this is the first
    * visit to the object.
    *
+   * @param trace the trace to use for processing
    * @param object The object to mark.
    * @param root {@code true} If the object is a root.
    */

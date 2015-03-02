@@ -50,6 +50,7 @@ public final class TopSort extends Stack<SortedGraphNode> {
    * @param forward should we treat edges as forward?
    *  This is the second version of the implementation
    *   (see CVS file for older one)
+   * @return the last sorted node
    */
   public static SortedGraphNode buildTopological(TopSortInterface graph, boolean forward) {
 

@@ -36,9 +36,6 @@ public final class MSTraceLocal extends TraceLocal {
    */
   private final ObjectReferenceDeque modBuffer;
 
-  /**
-   * Constructor
-   */
   public MSTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
     super(MS.SCAN_MARK, trace);
     this.modBuffer = modBuffer;

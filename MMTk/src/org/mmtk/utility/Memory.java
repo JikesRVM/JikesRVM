@@ -113,7 +113,7 @@ public class Memory {
    * @return {@code true} if the region is zeroed
    */
   @Inline
-  public static boolean IsZeroed(Address start, int bytes) {
+  public static boolean isZeroed(Address start, int bytes) {
     return isSet(start, bytes, false, 0);
   }
 
@@ -177,6 +177,9 @@ public class Memory {
    * @param bytes The size of the region to check, in bytes
    * @param verbose If {@code true}, produce verbose output
    * @param value The value to which the memory should be set
+   * @return {@code true} if the memory range is set to the given value,
+   *  {@code false} if there's at least one address where another value
+   *  is saved
    */
   @NoInline
   private static boolean isSet(Address start, int bytes, boolean verbose,

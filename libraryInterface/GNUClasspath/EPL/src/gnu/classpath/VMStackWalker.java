@@ -12,23 +12,22 @@
  */
 package gnu.classpath;
 
-/** This is a cheap stack browser.  Better would be something like
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.StackBrowser;
+
+/**
+ * This is a cheap stack browser.  Better would be something like
  * the Jikes RVM {@link StackBrowser} class.
  * <p>
  * This is our interface to GNU Classpath.  We quote the official
  * Classpath Javadoc here, as part of clearly describing the interface.
  * Never the less, look at the source code of the GNU Class
  * (classpath/vm/reference/gnu/classpath/VMStackWalker.java) for the latest
- * description of what these methods should do.
+ * description of what these methods should do. NOTE: we do not quote
+ * any JavaDoc that would cause JavaDoc warnings to be emitted in JDK8.
  */
-
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.StackBrowser;
-import org.jikesrvm.runtime.Entrypoints;
-
-import org.jikesrvm.classloader.RVMType;
-
-
 public final class VMStackWalker {
 
   /**
@@ -114,24 +113,12 @@ public final class VMStackWalker {
     return classes;
   }
 
-  /**
-   * Classpath's Javadoc for this method is:
-   * <blockquote>
-   * Get the class associated with the method invoking the method
-   * invoking this method, or <code>null</code> if the stack is not
-   * that deep (e.g., invoked via JNI invocation API). This method
-   * is an optimization for the expression <code>getClassContext()[1]</code>
-   * and should return the same result.
-   *
-   * <p>
-   * VM implementers are encouraged to provide a more efficient
-   * version of this method.
-   * </blockquote>
-   */
+  // JavaDoc not quoted because Classpath 0.97.2's JavaDoc is missing a @return tag
   public static Class<?> getCallingClass() {
     return getCallingClass(1);  // Skip this method (getCallingClass())
   }
 
+  // JavaDoc not quoted because Classpath 0.97.2's JavaDoc is missing a @return tag
   public static Class<?> getCallingClass(int skip) {
     StackBrowser b = new StackBrowser();
     VM.disableGC();
@@ -157,16 +144,7 @@ public final class VMStackWalker {
     return ret.getClassForType();
   }
 
-  /**
-   * Classpath's Javadoc for this method is:
-   * <blockquote>
-   * Get the class loader associated with the Class returned by
-   * <code>getCallingClass()</code>, or <code>null</code> if no
-   * such class exists or it is the boot loader. This method is an optimization
-   * for the expression <code>getClassContext()[1].getClassLoader()</code>
-   * and should return the same result.
-   * </blockquote>
-   */
+  // JavaDoc not quoted because Classpath 0.97.2's JavaDoc is missing a @return tag
   public static ClassLoader getCallingClassLoader() {
     Class<?> caller = getCallingClass(1); // skip getCallingClassLoader
     if (caller == null)

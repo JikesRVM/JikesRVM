@@ -192,7 +192,7 @@ public final class Simple extends CompilerPhase {
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       // Sort most frequently defined operands onto lhs
-      if (Binary.conforms(s) && s.operator.isCommutative() &&
+      if (Binary.conforms(s) && s.operator().isCommutative() &&
           Binary.getVal1(s).isRegister() && Binary.getVal2(s).isRegister()) {
         RegisterOperand rop1 = Binary.getVal1(s).asRegister();
         RegisterOperand rop2 = Binary.getVal2(s).asRegister();

@@ -48,7 +48,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param property_file_property The name of the property that sets
    * the location of the properties file
    * @param default_property_file The default properties file.
-   *
+   * @return the built properties
    */
   private Properties getProperties(String property_file_property, String default_property_file) {
     Properties props = new Properties();
@@ -88,7 +88,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
   @Override
   public boolean getBooleanProperty(String name, boolean dflt) {
     String value = props.getProperty(name,Boolean.toString(dflt));
-    return Boolean.valueOf(value);
+    return Boolean.parseBoolean(value);
   }
 
   @Override
@@ -96,13 +96,13 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
     String value = props.getProperty(name);
     if (value == null)
       throw new RuntimeException("Undefined property "+name);
-    return Boolean.valueOf(value);
+    return Boolean.parseBoolean(value);
   }
 
   @Override
   public int getIntProperty(String name, int dflt) {
     String value = props.getProperty(name,Integer.toString(dflt));
-    return Integer.valueOf(value);
+    return Integer.parseInt(value);
   }
 
   @Override
@@ -110,7 +110,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
     String value = props.getProperty(name);
     if (value == null)
       throw new RuntimeException("Undefined property "+name);
-    return Integer.valueOf(value);
+    return Integer.parseInt(value);
   }
 
   @Override

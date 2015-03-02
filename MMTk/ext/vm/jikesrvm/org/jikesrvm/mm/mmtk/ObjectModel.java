@@ -221,6 +221,7 @@ import org.vmmagic.unboxed.Word;
    *
    * @param object the address of the object
    * @param idx the index of the bit
+   * @return {@code true} if argument bit is 1, {@code false} if it is 0
    */
   public boolean testAvailableBit(ObjectReference object, int idx) {
     return org.jikesrvm.objectmodel.ObjectModel.testAvailableBit(object.toObject(), idx);

@@ -56,6 +56,8 @@ public class DebugUtil {
    * Check if an address appears to point to an instance of RVMType
    *
    * @param typeAddress the address to check
+   * @return {@code true} if and only if the address appears to
+   *  be an an instance of RVMType
    */
   @Uninterruptible
   public static boolean validType(ObjectReference typeAddress) {
@@ -78,7 +80,12 @@ public class DebugUtil {
   }  // dumpAllThreadStacks
 
   /**
-   * Check if a ref, its tib pointer &amp; type pointer are all in the heap
+   * Checks if a reference, its TIB pointer and type pointer
+   * are all in the heap.
+   *
+   * @param ref the reference to check
+   * @return {@code true} if and only if the reference
+   *  refers to a valid object
    */
   @Uninterruptible
   public static boolean validObject(Object ref) {

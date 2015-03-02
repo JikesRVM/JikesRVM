@@ -81,9 +81,6 @@ public final class Statistics extends org.mmtk.vm.Statistics {
     sysCall.sysPerfEventEnable();
   }
 
-  /**
-   * Read a performance event
-   */
   @Override
   public void perfEventRead(int id, long[] values) {
     sysCall.sysPerfEventRead(id, values);

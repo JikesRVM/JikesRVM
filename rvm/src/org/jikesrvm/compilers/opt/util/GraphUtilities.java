@@ -25,6 +25,10 @@ public class GraphUtilities {
    * acyclic graph in topological order. <p>
    *
    * Note: if G is cyclic, results are undefined
+   *
+   * @param G the graph to enumerate
+   * @return an enumeration of the graph in topological order, as defined
+   *  above
    */
   public static Enumeration<GraphNode> enumerateTopSort(Graph G) {
     return enumerateTopSort(G, G.enumerateNodes());

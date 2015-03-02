@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt.controlflow;
 
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
@@ -43,15 +45,14 @@ public class Dominators {
    */
   static boolean COMPUTE_POST_DOMINATORS = false;
 
+  private Map<BasicBlock, DominatorInfo> dominatorInfo;
+
   /**
    * Calculate the dominators for an IR.
-   * <p> After this pass, each basic block's scrach field points to
-   * an <code> DominatorInfo </code> object, which holds the dominators
-   * of the basic block.
    *
    * @param ir the IR in question
    */
-  public static void perform(IR ir) {
+  public void perform(IR ir) {
     if (ir.hasReachableExceptionHandlers()) {
       throw new OperationNotImplementedException("IR with exception handlers");
     }
@@ -87,13 +88,9 @@ public class Dominators {
    * dominators in the factored CFG rather than the normal CFG.
    * <p> (No exception is thrown if the input IR has handler blocks.)
    *
-   * <p> After this pass, each basic block's scratch field points to
-   * an DominatorInfo object, which holds the dominators
-   * of the basic block.
-   *
    * @param ir the IR in question
    */
-  public static void computeApproxDominators(IR ir) {
+  public void computeApproxDominators(IR ir) {
     DominatorSystem system = new DominatorSystem(ir);
     if (DEBUG) {
       System.out.print("Solving...");
@@ -123,13 +120,10 @@ public class Dominators {
 
   /**
    * Calculate the postdominators for an IR.
-   * <p> After this pass, each basic block's scrach field points to
-   * an DominatorInfo object, which holds the postdominators
-   * of the basic block.
    *
    * @param ir the IR in question
    */
-  public static void computeApproxPostdominators(IR ir) {
+  public void computeApproxPostdominators(IR ir) {
     Dominators.COMPUTE_POST_DOMINATORS = true;
     DominatorSystem system = new DominatorSystem(ir);
     if (DEBUG) {
@@ -160,17 +154,18 @@ public class Dominators {
   }
 
   /**
-   * For each basic block in the data flow system solution,
-   * create an <code> DominatorInfo </code> and store it in the basic
-   * blocks scratchObject
+   * Creates a {@code DominatorInfo} for each basic block
+   * in the data flow system solution.
    *
    * @param solution the solution to the Dominators equations
    */
-  public static void updateBlocks(DF_Solution solution) {
+  public void updateBlocks(DF_Solution solution) {
+    int capacityToPreventRehash = (int) (solution.size() * 1.4f);
+    dominatorInfo = new HashMap<BasicBlock, DominatorInfo>(capacityToPreventRehash);
     for (final DF_LatticeCell latticeCell : solution.values()) {
       DominatorCell cell = (DominatorCell) latticeCell;
       BasicBlock b = cell.block;
-      b.scratchObject = new DominatorInfo(cell.dominators);
+      dominatorInfo.put(b, new DominatorInfo(cell.dominators));
       if (DEBUG) {
         System.out.println("Dominators of " + b + ":" + cell.dominators);
       }
@@ -181,11 +176,15 @@ public class Dominators {
    * Print the (already calculated) dominators.
    * @param ir the IR
    */
-  public static void printDominators(IR ir) {
+  public void printDominators(IR ir) {
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock b = e.nextElement();
-      DominatorInfo i = (DominatorInfo) b.scratchObject;
+      DominatorInfo i = dominatorInfo.get(b);
       System.out.println("Dominators of " + b + ":" + i.dominators);
     }
+  }
+
+  public DominatorInfo getDominatorInfo(BasicBlock b) {
+    return dominatorInfo.get(b);
   }
 }

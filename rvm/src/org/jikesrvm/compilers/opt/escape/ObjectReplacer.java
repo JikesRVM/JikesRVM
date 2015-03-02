@@ -93,7 +93,7 @@ final class ObjectReplacer implements AggregateReplacer {
    * allocation site
    *
    * @param inst the allocation site
-   * @param ir
+   * @param ir the governing IR
    * @return the object, or null if illegal
    */
   public static ObjectReplacer getReplacer(Instruction inst, IR ir) {
@@ -168,6 +168,8 @@ final class ObjectReplacer implements AggregateReplacer {
    * @param use the use to replace
    * @param scalars an array of scalar register operands to replace
    *                  the object's fields with
+   * @param fields the object's fields
+   * @param visited the registers that were already seen
    */
   private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, ArrayList<RVMField> fields, Set<Register> visited) {
     Instruction inst = use.instruction;
@@ -283,6 +285,13 @@ final class ObjectReplacer implements AggregateReplacer {
 
   /**
    * Some cases we don't handle yet. TODO: handle them.
+   *
+   * @param ir the IR to check
+   * @param reg the register whose uses are being checked
+   * @param klass the class of the newly created object
+   * @param visited registers that were already seen
+   *
+   * @return {@code true} if the IR contains a case that we don't handle yet
    */
   private static boolean containsUnsupportedUse(IR ir, Register reg, RVMClass klass, Set<Register> visited) {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {

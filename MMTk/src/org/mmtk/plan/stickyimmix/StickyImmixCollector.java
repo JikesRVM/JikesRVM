@@ -33,7 +33,7 @@ import org.vmmagic.pragma.*;
  * (through <code>trace</code> and the <code>collectionPhase</code>
  * method).<p>
  *
- * @see StickyImmix for an overview of the algorithm.<p>
+ * @see StickyImmix for an overview of the algorithm.
  * @see StickyImmixMutator
  * @see StopTheWorldCollector
  * @see CollectorContext

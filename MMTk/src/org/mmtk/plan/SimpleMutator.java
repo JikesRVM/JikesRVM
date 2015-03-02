@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * MMTk assumes that the VM instantiates instances of MutatorContext
  * in thread local storage (TLS) for each application thread. Accesses
  * to this state are therefore assumed to be low-cost during mutator
- * time.<p>
+ * time.
  *
  * @see MutatorContext
  */

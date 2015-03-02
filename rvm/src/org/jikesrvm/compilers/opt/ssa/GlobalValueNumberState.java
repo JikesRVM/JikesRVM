@@ -136,9 +136,6 @@ public final class GlobalValueNumberState {
     }
   }
 
-  /**
-   * Merge the congruence classes containing vertices v1 and v2.;
-   */
   void mergeClasses(ValueGraphVertex v1, ValueGraphVertex v2) {
     if (DEBUG) {
       System.out.println("@@@@ mergeClasses called with v1 = " + v1 + " ; v2 = " + v2);
@@ -484,6 +481,7 @@ public final class GlobalValueNumberState {
    * even if the value numbers are currently the same.
    * @param v1 first vertex
    * @param v2 second vertex
+   * @return whether the notes are assumed to be congruent
    */
   private boolean checkCongruence(ValueGraphVertex v1, ValueGraphVertex v2) {
     if (v1 == v2) {
@@ -511,15 +509,18 @@ public final class GlobalValueNumberState {
   }
 
   /**
-   * Does a given label indicate that the object has a constant value?
+   * @param label a label
+   * @return whether a given label indicates that the object has a constant value
    */
   private static boolean isConstant(Object label) {
     return (label instanceof ConstantOperand);
   }
 
   /**
-   * Does a given label indicate that the object is created at an
-   * allocation site?
+   * @param label a label
+   * @return whether a given label indicates that the object is created at an
+   * allocation site
+
    */
   private static boolean isBornAtAllocation(Object label) {
     return (label instanceof Instruction);

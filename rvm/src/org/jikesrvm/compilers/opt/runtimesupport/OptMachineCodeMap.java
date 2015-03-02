@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.INSTRUMENTATION_BCI;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 
 import java.util.ArrayList;
 
@@ -33,6 +34,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -72,9 +74,6 @@ import org.vmmagic.unboxed.Offset;
  */
 public final class OptMachineCodeMap {
 
-  /**
-   * Private constructor, object should be created via create
-   */
   private OptMachineCodeMap(int[] _MCInformation, int[] _gcMaps, int[] _inlineEncoding) {
     MCInformation = _MCInformation;
     gcMaps = _gcMaps;
@@ -82,18 +81,10 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Private constructor for no information.
-   */
-  private OptMachineCodeMap() {
-    MCInformation = null;
-    gcMaps = null;
-    inlineEncoding = null;
-  }
-
-  /**
-   * Create the map, called during compilation
+   * Creates the map, called during compilation
    * @param ir   the ir object for this method
    * @param machineCodeSize the number of machine code instructions generated.
+   * @return the created map
    */
   static OptMachineCodeMap create(IR ir, int machineCodeSize) {
     /** Dump maps as methods are compiled */
@@ -109,7 +100,8 @@ public final class OptMachineCodeMap {
     }
 
     // create all machine code maps
-    final OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap, DUMP_MAPS);
+    MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
+    final OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap, DUMP_MAPS, mcOffsets);
 
     if (DUMP_MAP_SIZES) {
       map.recordStats(ir.method,
@@ -121,7 +113,7 @@ public final class OptMachineCodeMap {
       VM.sysWrite("Final Machine code information:\n");
       map.dumpMCInformation(DUMP_MAPS);
       for (Instruction i = ir.firstInstructionInCodeOrder(); i != null; i = i.nextInstructionInCodeOrder()) {
-        VM.sysWriteln(i.getmcOffset() + "\t" + i);
+        VM.sysWriteln(mcOffsets.getMachineCodeOffset(i) + "\t" + i);
       }
     }
     return map;
@@ -239,26 +231,18 @@ public final class OptMachineCodeMap {
     return OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
   }
 
-  /**
-   * Returns the GC map information for the GC map information entry passed
-   * @param  index     GCmap entry
-   */
   @Uninterruptible
   public int gcMapInformation(int index) {
     return OptGCMap.gcMapInformation(index, gcMaps);
   }
 
-  /**
-   * Determines if the register map information for the entry passed is true
-   * @param  entry            map entry
-   * @param  registerNumber   the register number
-   */
   @Uninterruptible
   public boolean registerIsSet(int entry, int registerNumber) {
     return OptGCMap.registerIsSet(entry, registerNumber, gcMaps);
   }
 
   /**
+   * @param currentIndex index for current location
    * @return the next (relative) location or -1 for no more locations
    */
   @Uninterruptible
@@ -271,11 +255,12 @@ public final class OptMachineCodeMap {
   ///////////////////////////////////////
 
   /**
-   * Do a binary search of the machine code maps to find the index
+   * Does a binary search of the machine code maps to find the index
    * in MCInformation where the entry for the argument machine code
    * offset starts. Will return -1 if the entry doesn't exist.
    *
    * @param MCOffset the machine code offset of interest
+   * @return -1 if no entry exists, the index of the matching entry otherwise
    */
   @Uninterruptible
   private int findMCEntry(Offset MCOffset) {
@@ -331,8 +316,10 @@ public final class OptMachineCodeMap {
    *  It is called during the compilation of the method, not at GC time.
    *  @param irMap  the irmap to translate from
    *  @param DUMP_MAPS dump while we work
+   *  @param mcOffsets machine code offset information
+   *  @return the machine code map
    */
-  private static OptMachineCodeMap generateMCInformation(GCIRMap irMap, boolean DUMP_MAPS) {
+  private static OptMachineCodeMap generateMCInformation(GCIRMap irMap, boolean DUMP_MAPS, MachineCodeOffsets mcOffsets) {
     CallSiteTree inliningMap = new CallSiteTree();
     int numEntries = 0;
 
@@ -363,11 +350,14 @@ public final class OptMachineCodeMap {
       if (DUMP_MAPS) VM.sysWrite("IR Map for " + instr + "\n\t" + irMapElem);
 
       // retrieve the machine code offset (in bytes) from the instruction,
-      int mco = instr.getmcOffset();
+      ensureCorrectMapConstruction(mcOffsets, instr);
+      int mco = mcOffsets.getMachineCodeOffset(instr);
+
       if (mco < 0) {
         VM.sysWrite("Negative machine code MCOffset found:" + mco);
         Instruction i = irMapElem.getInstruction();
-        VM.sysWrite(i.bcIndex + ", " + i + ", " + i.getmcOffset() + "\n");
+        int machineCodeOffsetForI = mcOffsets.getMachineCodeOffset(i);
+        VM.sysWrite(i.bcIndex + ", " + i + ", " + machineCodeOffsetForI + "\n");
         throw new OptimizingCompilerException("Negative machine code MCOffset found");
       }
       // create GC map and get GCI
@@ -466,6 +456,40 @@ public final class OptMachineCodeMap {
     int[] gcMaps = gcMapBuilder.finish();
 
     return new OptMachineCodeMap(mcInformation, gcMaps, inlineEncoding);
+  }
+
+  /**
+   * Ensures correct map construction by either correcting oddities or failing
+   * immediately in case of errors.
+   *
+   * @param mcOffsets machine code offset information
+   * @param instr the instruction to be processed
+   */
+  private static void ensureCorrectMapConstruction(
+      MachineCodeOffsets mcOffsets, Instruction instr) {
+    if (mcOffsets.lacksMachineCodeOffset(instr)) {
+      // In non-interruptible code, we may encounter an IR_PROLOGUE instruction
+      // without a machine code offset. This can happen in the following way:
+      // - GC maps are built. The prologue instruction is present at this stage.
+      // - After register allocation (and after all GC Maps have been updated),
+      //   the prologue and epilogue will be created. Because the method is
+      //   not interruptible, no stack overflow check will be inserted and the
+      //   prologue instruction will be removed.
+      // - Machine code offsets are set by the Assembler. The instruction does not
+      //   get an offset because it is no longer present in the IR.
+      // - The machine code maps are created from the GC maps via this class
+      //   which runs into the instruction with the machine code offset.
+      // This is merely an oddity and not a problem because runtime services
+      // will not query the machine code maps for non-interruptible code.
+      // Therefore, it is justified to add a special case for this.
+      if (instr.getOpcode() == IR_PROLOGUE_opcode) {
+        mcOffsets.fabricateMachineCodeOffsetForPrologueInstruction(instr);
+      } else {
+        // Unknown case, most likely an error.
+        throw new OptimizingCompilerException("Found instruction without valid machine code offset during " +
+            "generation of machine code information: " + instr);
+      }
+    }
   }
 
   ////////////////////////////////////////////
@@ -587,7 +611,8 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Is the entry a big entry?
+   * @param entry the entry's index
+   * @return whether the the entry is a big entry
    */
   @Uninterruptible
   @Inline
@@ -599,7 +624,8 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Is the entry a big entry?
+   * @param entry the entry's index
+   * @return whether the the entry is a huge entry
    */
   @Uninterruptible
   @Inline
@@ -625,10 +651,6 @@ public final class OptMachineCodeMap {
     }
   }
 
-  /**
-   * Prints the MCInformation for this entry
-   * @param entry  the entry to print
-   */
   private void printMCInformationEntry(int entry, boolean DUMP_MAPS) {
     if (DUMP_MAPS) {
       String sep = "\tMC: ";
@@ -668,13 +690,6 @@ public final class OptMachineCodeMap {
     }
   }
 
-  /**
-   * Gather cumulative stats about the space consumed by maps.
-   * @param method
-   * @param mapSize
-   * @param machineCodeSize
-   * @param DUMP_MAP_SIZES
-   */
   private void recordStats(RVMMethod method, int mapSize, int machineCodeSize, boolean DUMP_MAP_SIZES) {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double) mapSize / machineCodeSize;
@@ -694,7 +709,7 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Total bytes of machine code maps
+   * @return total bytes of machine code maps
    */
   int size() {
     int size = TYPE.peekType().asClass().getInstanceSize();
@@ -817,7 +832,7 @@ public final class OptMachineCodeMap {
   /**
    * A machine code map when no information is present
    */
-  private static final OptMachineCodeMap emptyMachineCodeMap = new OptMachineCodeMap();
+  private static final OptMachineCodeMap emptyMachineCodeMap = new OptMachineCodeMap(null, null, null);
 
   private static final TypeReference TYPE = TypeReference.findOrCreate(OptMachineCodeMap.class);
 }

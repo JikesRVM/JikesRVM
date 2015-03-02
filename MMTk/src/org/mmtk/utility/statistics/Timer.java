@@ -138,9 +138,9 @@ public class Timer extends LongCounter {
   }
 
   /**
-   * Get the current value of the timer in milliseconds
+   * @return the current value of the timer in milliseconds
    */
-  final double getTotalMillis() {
+  public final double getTotalMillis() {
     return VM.statistics.nanosToMillis(totalCount);
   }
 

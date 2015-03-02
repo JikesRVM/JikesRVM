@@ -176,9 +176,6 @@ public abstract class UTF8Convert {
     return visitor.getResult();
   }
 
-  /**
-   * Generate exception messages without bloating code
-   */
   @NoInline
   private static void throwDataFormatException(String message, int location) throws UTFDataFormatException {
     throw new UTFDataFormatException(message + " at location " + location);
@@ -371,9 +368,6 @@ public abstract class UTF8Convert {
     }
   }
 
-  /**
-   * Returns the length of a string's UTF encoded form.
-   */
   @Pure
   public static int utfLength(String s) {
     int utflen = 0;

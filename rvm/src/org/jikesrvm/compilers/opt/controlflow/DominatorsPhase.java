@@ -97,12 +97,10 @@ public final class DominatorsPhase extends CompilerPhase {
       // and it doesn't return normally
       ir.HIRInfo.dominatorsAreComputed = false;
 
-      // compute (forward) dominators,
-      // leaves info in scratch object of basic blocks
+      // compute (forward) dominators
       LTDominators.perform(ir, true, unfactor);
 
-      // create the dominator tree, relies on dominator info being
-      // in scratch object of basic blocks
+      // create the dominator tree
       DominatorTree.perform(ir, true);
 
       // create the loop structured tree (LST)

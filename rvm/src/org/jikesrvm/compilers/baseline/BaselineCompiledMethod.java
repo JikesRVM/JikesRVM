@@ -106,6 +106,9 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * before accessing, substract size of value you want to access.<p>
    * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT<br>
    * e.g. to load long: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_LONG
+   *
+   * @param localIndex the index for the local general purpose variable
+   * @return location of the general purpose variable with the given index
    */
   @Uninterruptible
   public short getGeneralLocalLocation(int localIndex) {
@@ -118,38 +121,38 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * before accessing, substract size of value you want to access.<p>
    * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT<br>
    * e.g. to load double: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
+   *
+   * @param localIndex the index for the local general purpose variable
+   * @return location of the floating point variable with the given index
    */
   @Uninterruptible
   public short getFloatLocalLocation(int localIndex) {
     return BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFloatLocations, (NormalMethod) method);
   }
 
-  /** Offset onto stack of a particular general purpose operand stack location */
   @Uninterruptible
   public short getGeneralStackLocation(int stackIndex) {
     return BaselineCompilerImpl.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
-  /** Offset onto stack of a particular operand stack location for a floating point value */
   @Uninterruptible
   public short getFloatStackLocation(int stackIndex) {
     // for now same implementation as getGeneralStackLocation
     return getGeneralStackLocation(stackIndex);
   }
 
-  /** Last general purpose register holding part of the operand stack */
+  /** @return last general purpose register holding part of the operand stack */
   @Uninterruptible
   public int getLastFixedStackRegister() {
     return lastFixedStackRegister;
   }
 
-  /** Last floating point register holding part of the operand stack */
+  /** @return last floating point register holding part of the operand stack */
   @Uninterruptible
   public int getLastFloatStackRegister() {
     return lastFloatStackRegister;
   }
 
-  /** Constructor */
   public BaselineCompiledMethod(int id, RVMMethod m) {
     super(id, m);
     NormalMethod nm = (NormalMethod) m;
@@ -183,7 +186,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   }
 
   /**
-   * Get the exception deliverer for this kind of compiled method
+   * @return the exception deliverer for this kind of compiled method
    */
   @Override
   @Uninterruptible
@@ -215,6 +218,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   }
 
   /**
+   * @param instructionOffset the instruction's offset in the code for the method
    * @return The line number, a positive integer.  Zero means unable to find.
    */
   @Override
@@ -320,13 +324,17 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     if (eTable != null) ExceptionTable.printExceptionTable(eTable);
   }
 
-  /** Set the lock acquisition offset for synchronized methods */
+  /**
+   * Sets the lock acquisition offset for synchronized methods.
+   *
+   * @param off new offset
+   */
   public void setLockAcquisitionOffset(int off) {
     if (VM.VerifyAssertions) VM._assert((off & 0xFFFF) == off);
     lockOffset = (char) off;
   }
 
-  /** Get the lock acquisition offset */
+  /** @return the lock acquisition offset */
   @Uninterruptible
   public Offset getLockAcquisitionOffset() {
     return Offset.fromIntZeroExtend(lockOffset);
@@ -337,7 +345,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     hasCounters = true;
   }
 
-  /** Does the method have a counters array? */
+  /** @return whether the method has a counters array */
   @Uninterruptible
   public boolean hasCounterArray() {
     return hasCounters;

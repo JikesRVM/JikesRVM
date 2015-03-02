@@ -30,7 +30,7 @@ import org.vmmagic.pragma.*;
  * This class manages the allocation of pages for a space.  When a
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
- * be satisfied (for either reason) a GC may be triggered.<p>
+ * be satisfied (for either reason) a GC may be triggered.
  */
 @Uninterruptible
 public final class FreeListPageResource extends PageResource {
@@ -87,6 +87,7 @@ public final class FreeListPageResource extends PageResource {
    * be some set of pages, according to demand and availability.
    *
    * @param space The space to which this resource is attached
+   * @param metaDataPagesPerRegion the number of meta data pages per region
    */
   public FreeListPageResource(Space space, int metaDataPagesPerRegion) {
     super(space);

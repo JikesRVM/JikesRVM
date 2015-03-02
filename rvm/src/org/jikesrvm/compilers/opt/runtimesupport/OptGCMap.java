@@ -83,7 +83,9 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * Called to complete the encoding and return the final int[]
+   * Completes the encoding of the map.
+   *
+   * @return the final GC map
    */
   @Interruptible
   public int[] finish() {
@@ -168,22 +170,12 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   ////////////////////////////////////////////
   // Methods called at GC time
   ////////////////////////////////////////////
-  /**
-   * Returns the GC map information for the GC map information entry passed
-   * @param  entry     map entry
-   * @param  gcMap     the gc map
-   */
-  public static int gcMapInformation(int entry, int[] gcMap) {
+
+  public static int gcMapInformation(int mapEntry, int[] gcMap) {
     // before returning remember to clear the MSB.
-    return gcMap[entry] & ~NEXT_BIT;
+    return gcMap[mapEntry] & ~NEXT_BIT;
   }
 
-  /**
-   * Determines if the register map information for the entry passed is true
-   * @param  entry            map entry
-   * @param  registerNumber   the register number
-   * @param  gcMap            the encoded GCMap
-   */
   public static boolean registerIsSet(int entry, int registerNumber, int[] gcMap) {
     if (VM.VerifyAssertions) {
       VM._assert(registerNumber >= FIRST_GCMAP_REG && registerNumber <= LAST_GCMAP_REG, "Bad registerNumber");
@@ -198,7 +190,8 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * @param  gcMap            the encoded GCMap
+   * @param currentIndex the index of the current location
+   * @param gcMap the encoded GCMap
    * @return the next (relative) location or -1 for no more locations
    */
   public static int nextLocation(int currentIndex, int[] gcMap) {
@@ -211,10 +204,6 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
     }
   }
 
-  /**
-   *  This method maps a register number to its bit position
-   *  @param registerNumber the register number of interest
-   */
   private static int getRegBitPosition(int registerNumber) {
     //  Because we can't use bit position 0 (that is the next bit), we
     // adjust depending on the value of FIRST_GCMAP_REG

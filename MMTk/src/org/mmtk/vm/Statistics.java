@@ -18,44 +18,68 @@ import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible
 public abstract class Statistics {
+
   /**
-   * Read cycle counter
+   * Read cycle counter. This has the same semantics
+   * as {@link java.lang.System#nanoTime()}.
+   *
+   * @return current time in nanoseconds
    */
   public abstract long nanoTime();
 
   /**
-   * Convert nanoseconds to milliseconds
+   * Converts nanoseconds to milliseconds
+   *
+   * @param c time in nanoseconds
+   * @return time in milliseconds
    */
   public abstract double nanosToMillis(long c);
 
   /**
-   * Convert nanoseconds to seconds
+   * Converts nanoseconds to seconds
+   *
+   * @param c time in nanoseconds
+   * @return time in seconds
    */
   public abstract double nanosToSecs(long c);
 
   /**
-   * Convert milliseconds to nanoseconds
+   * Converts milliseconds to nanoseconds
+   *
+   * @param t time in milliseconds
+   * @return time in nanoseconds
    */
   public abstract long millisToNanos(double t);
 
   /**
    * Convert seconds to nanoseconds
+   *
+   * @param t time in seconds
+   * @return time in nanoseconds
    */
   public abstract long secsToNanos(double t);
 
   /**
    * Read the cycle counter
+   * @return number of cycles
    */
   public abstract long cycles();
 
   /**
-   * Initialize performance events
+   * Initializes performance events.
+   *
+   * @param events the events to initialize. This is a comma-separated
+   *  list of event names.
    */
   @Interruptible
   public abstract void perfEventInit(String events);
 
   /**
-   * Read a performance event value
+   * Reads a performance event value.
+   *
+   * @param counter the event's id
+   * @param values a buffer that will hold the return values of the
+   * read (3 64-bit values).
    */
   public abstract void perfEventRead(int counter, long[] values);
 }

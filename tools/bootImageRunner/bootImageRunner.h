@@ -64,14 +64,14 @@ extern const char *bootRMapFilename;	/* Defined in libvm.C */
 // name of program that will load and run RVM
 extern char *Me;		// Defined in libvm.C
 
-/* libvm.C and RunBootImage.C */
+/* libvm.C and RunBootImage.cpp */
 extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
 
-/* defined in libvm.c, used in sys.C */
+/* defined in libvm.c, used in sys.cpp */
 extern jmp_buf primordial_jb;
 
-/* Defined in RunBootImage.C */
+/* Defined in RunBootImage.cpp */
 #ifdef __cplusplus
 unsigned int parse_memory_size(
     const char *sizeName, const char *sizeFlag,
@@ -84,20 +84,20 @@ extern int verboseBoot;
 /* define in sys.c, used in libvm.c */
 extern void sysInitialize();
 
-/* Defined in libvm.C; used in RunBootImage.C */
+/* Defined in libvm.C; used in RunBootImage.cpp */
 extern int createVM(void);
 
-/* Used in libvm.C; Defined in sys.C */
+/* Used in libvm.C; Defined in sys.cpp */
 extern int getArrayLength(void* ptr);
 
-/* Used in libvm.C; Defined in sys.C */
+/* Used in libvm.C; Defined in sys.cpp */
 extern int getTimeSlice_msec(void);
 
-/* sys.C and RunBootImage.C */
+/* sys.cpp and RunBootImage.cpp */
 extern void findMappable(void);
 
 #ifdef RVM_FOR_POWERPC
-/* Used in libvm.C, sys.C.  Defined in assembly code: */
+/* Used in libvm.C, sys.cpp.  Defined in assembly code: */
 extern void bootThread(int jtoc,int pr, int ti_or_ip, int fp); // assembler routine
 #else
 extern int bootThread(void *ip, void *pr, void *sp); // assembler routine
@@ -115,22 +115,22 @@ extern int bootThread(void *ip, void *pr, void *sp); // assembler routine
 // These are defined in libvm.C.
 extern void *getJTOC(void);
 
-/* These are defined in sys.C; used in syswrap.C */
+/* These are defined in sys.cpp; used in syswrap.C */
 extern jint GetEnv(JavaVM *, void **, jint);
 
-// Defined in sys.C.; used in libvm.C
+// Defined in sys.cpp.; used in libvm.C
 extern void sysSyncCache(void *, size_t size);
-// Defined in sys.C.  Used in libvm.C.
+// Defined in sys.cpp.  Used in libvm.C.
 extern void processTimerTick(void);
-// Defined in sys.C.  Used in libvm.C.
+// Defined in sys.cpp.  Used in libvm.C.
 extern void* getThreadId();
 
 #ifdef __MACH__
-// Defined in sys.C; intiialized in RunBootImage.C
+// Defined in sys.cpp; intiialized in RunBootImage.cpp
 extern mach_timebase_info_data_t timebaseInfo;
 #endif
 
-// Defined in jvm.C. Used in harmony.c
+// Defined in jvm.cpp. Used in harmony.c
 extern struct JavaVM_ sysJavaVM;
 #ifdef __cplusplus
 }

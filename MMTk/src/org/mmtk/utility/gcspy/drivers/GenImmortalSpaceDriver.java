@@ -82,9 +82,11 @@ import org.vmmagic.pragma.*;
     return "MMTk GenImmortalSpaceDriver";
   }
 
-  /**
+  /*
    * Helper methods to create the additional streams
- */
+   */
+
+
   @Interruptible
   private ShortStream createRemsetStream() {
     return VM.newGCspyShortStream(

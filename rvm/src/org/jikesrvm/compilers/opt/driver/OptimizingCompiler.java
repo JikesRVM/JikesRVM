@@ -76,10 +76,11 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
       e.isFatal = true;
       throw e;
     } catch (Throwable e) {
-      VM.sysWriteln(e.toString());
-      throw new OptimizingCompilerException("Compiler",
-                                                "untrapped failure during init, " +
-                                                " Converting to OptimizingCompilerException");
+      OptimizingCompilerException oe = new OptimizingCompilerException("Compiler",
+          "untrapped failure during init, " +
+          " Converting to OptimizingCompilerException");
+      oe.initCause(e);
+      throw oe;
     }
   }
 
@@ -139,7 +140,7 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
   private static boolean isInitialized = false;
 
   /**
-   * Has the optimizing compiler been initialized?
+   * @return whether the the optimizing compiler has been initialized
    */
   public static boolean isInitialized() {
     return isInitialized;
@@ -229,9 +230,9 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
   }
 
   /**
-   * Print the IR along with a message
-   * @param ir
-   * @param message
+   * Prints the IR along with a message.
+   * @param ir the IR to print
+   * @param message the message to print
    */
   public static void printInstructions(IR ir, String message) {
     header(message, ir.method);
@@ -240,9 +241,9 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
   }
 
   /**
-   * Print a message of a method name
-   * @param method
-   * @param options
+   * Prints a message of a method name.
+   * @param method the method to print
+   * @param options the print options for the optimizing compiler
    */
   private static void printMethodMessage(NormalMethod method, OptOptions options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT) {
@@ -275,8 +276,11 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
   }
 
   /**
-   * Check whether opt compilation of a particular method is supported.
-   * If not, throw a non-fatal run-time exception.
+   * Checks whether opt compilation of a particular method is supported.
+   * If not, throws a non-fatal run-time exception.
+   *
+   * @param method the method to check
+   * @param options options for printing
    */
   private static void checkSupported(NormalMethod method, OptOptions options) {
     if (method.getDeclaringClass().hasDynamicBridgeAnnotation()) {

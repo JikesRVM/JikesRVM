@@ -21,11 +21,9 @@ import org.jikesrvm.compilers.opt.ir.IR;
 
 public class ArchitectureSpecificOpt {
   public static final class AssemblerOpt extends org.jikesrvm.compilers.opt.mir2mc.@_ARCH_@.AssemblerOpt {
-  @_PPC_QUOTE_@
     public AssemblerOpt(int bcSize, boolean print, IR ir) {
       super(bcSize, print, ir);
     }
-  //*/
   }
   public static final class BURS_Debug extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Debug {}
   public static final class BURS_STATE extends org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_STATE {

@@ -92,6 +92,8 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
    *
    * NOTE: For optimal performance this call must be implemented in a way
    * it can be inlined and optimized within the allocation sequence.
+   *
+   * @return the number of distinct size classes
    */
   @Inline
   private int sizeClassCount() {

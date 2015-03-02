@@ -28,7 +28,7 @@ import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
 public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
 
   /**
-   * Return the total number of physical registers.
+   * @return the total number of physical registers.
    */
   public abstract int getNumberOfPhysicalRegisters();
 
@@ -42,9 +42,6 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
    */
   public abstract Register getTR();
 
-  /**
-   * @return the nth physical GPR
-   */
   public abstract Register getGPR(int n);
 
   /**
@@ -52,61 +49,32 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
    */
   public abstract Register getFirstReturnGPR();
 
-  /**
-   * @return the nth physical FPR
-   */
   public abstract Register getFPR(int n);
 
   /**
+   * @param n register number
    * @return the nth physical register in the pool.
    */
   public abstract Register get(int n);
 
-  /**
-   * Enumerate all the physical registers in this set.
-   */
   public abstract Enumeration<Register> enumerateAll();
 
-  /**
-   * Enumerate all the GPRs in this set.
-   */
   public abstract Enumeration<Register> enumerateGPRs();
 
-  /**
-   * Enumerate all the volatile GPRs in this set.
-   */
   public abstract Enumeration<Register> enumerateVolatileGPRs();
 
-  /**
-   * Enumerate all the nonvolatile GPRs in this set.
-   */
   public abstract Enumeration<Register> enumerateNonvolatileGPRs();
 
-  /**
-   * Enumerate all the volatile FPRs in this set.
-   */
   public abstract Enumeration<Register> enumerateVolatileFPRs();
 
-  /**
-   * Enumerate all the nonvolatile FPRs in this set.
-   */
   public abstract Enumeration<Register> enumerateNonvolatileFPRs();
 
-  /**
-   * Enumerate all the volatile physical registers
-   */
   public abstract Enumeration<Register> enumerateVolatiles();
 
-  /**
-   * Enumerate all the nonvolatile GPRs in this set, backwards
-   */
   public Enumeration<Register> enumerateNonvolatileGPRsBackwards() {
     return new ReverseEnumerator<Register>(enumerateNonvolatileGPRs());
   }
 
-  /**
-   * Enumerate all the nonvolatile FPRs in this set, backwards.
-   */
   public Enumeration<Register> enumerateNonvolatileFPRsBackwards() {
     return new ReverseEnumerator<Register>(enumerateNonvolatileFPRs());
   }

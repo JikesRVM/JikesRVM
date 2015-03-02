@@ -83,7 +83,9 @@ public abstract class Option {
   }
 
   /**
-   * Update the next pointer in the Option chain.
+   * Updates the next pointer in the Option chain.
+   *
+   * @param o the next option in the chain
    */
   void setNext(Option o) {
     next = o;

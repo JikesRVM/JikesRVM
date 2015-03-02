@@ -34,6 +34,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
 
   /**
    * Private constructor. Can not create instances.
+   * @param size size of the function table
    */
   private FunctionTable(int size) {
     this.data = new CodeArray[size];

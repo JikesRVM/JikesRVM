@@ -85,6 +85,8 @@ public final class UnboxedType extends RVMType {
   /**
    * Create an instance of a {@link UnboxedType}
    * @param tr   The canonical type reference for this primitive
+   *
+   * @return the newly created unboxed type for the type reference
    */
   static UnboxedType createUnboxedType(TypeReference tr) {
     Atom name;
@@ -106,7 +108,7 @@ public final class UnboxedType extends RVMType {
     try {
       classForType = Class.forName(name.classNameFromDescriptor());
     } catch (Exception e) {
-      throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor());
+      throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor(), e);
     }
 
     return new UnboxedType(tr, classForType, name, stackWords, memoryBytes);

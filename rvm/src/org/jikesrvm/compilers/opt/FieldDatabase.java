@@ -39,7 +39,8 @@ final class FieldDatabase {
   }
 
   /**
-   * return the concrete type of a field, or null if none determined
+   * @param f the field in question
+   * @return the concrete type of a field, or null if none determined
    */
   public TypeReference getConcreteType(RVMField f) {
     FieldDatabaseEntry e = db.get(f);

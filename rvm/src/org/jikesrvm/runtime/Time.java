@@ -20,6 +20,13 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public class Time {
 
+  /** boot time in milliseconds */
+  private static long bootTime;
+
+  public static void boot() {
+    bootTime = currentTimeMillis();
+  }
+
   /**
    * Convert a long representing a time in nanoseconds into
    * a double representing the same time in milliseconds.
@@ -39,6 +46,8 @@ public class Time {
    * This method should only be used for approximate timing in frequently executed code.
    * We intentionally do not provide an API for converting from cycles to seconds because
    * the conversion cannot be reliably supported on all of our platforms.
+   *
+   * @return the value of the hardware cycle counter
    */
   public static long cycles() {
     return Magic.getTimeBase();
@@ -55,7 +64,7 @@ public class Time {
   }
 
   /**
-   * Time in milliseconds (epoch Jan 1 1970).
+   * @return current time in milliseconds (epoch Jan 1 1970).
    */
   public static long currentTimeMillis() {
     return SysCall.sysCall.sysCurrentTimeMillis();
@@ -67,5 +76,9 @@ public class Time {
 
   public static long secsToNanos(double secs) {
     return (long)(secs*1E9);
+  }
+
+  public static long bootTime() {
+    return bootTime;
   }
 }

@@ -226,15 +226,17 @@ public final class MethodOperand extends Operand {
   }
 
   /**
-   * Record whether this operand represents a method call that never
-   * returns (such as a call to athrow());
+   * Records whether this operand represents a method call that never
+   * returns (such as a call to athrow()).
+   *
+   * @param neverReturns whether this function will return
    */
   public void setIsNonReturningCall(boolean neverReturns) {
     isNonReturningCall = neverReturns;
   }
 
   /**
-   * Return whether this operand is the off branch of a guarded inline
+   * @return whether this operand is the off branch of a guarded inline
    */
   public boolean isGuardedInlineOffBranch() {
     return isGuardedInlineOffBranch;
@@ -242,14 +244,18 @@ public final class MethodOperand extends Operand {
 
   /**
    * Record that this operand is the off branch of a guarded inline
+   *
+   * @param f if the operand is in the off branch of a guarded inline
    */
   public void setIsGuardedInlineOffBranch(boolean f) {
     isGuardedInlineOffBranch = f;
   }
 
   /**
-   * Refine the target information. Used to reduce the set of
+   * Refines the target information. Used to reduce the set of
    * targets for an invokevirtual.
+   *
+   * @param target method to use for refining of information
    */
   public void refine(RVMMethod target) {
     this.target = target;
@@ -257,8 +263,10 @@ public final class MethodOperand extends Operand {
   }
 
   /**
-   * Refine the target information. Used to reduce the set of
+   * Refines the target information. Used to reduce the set of
    * targets for an invokevirtual.
+   *
+   * @param targetClass class to use for refining of information
    */
   public void refine(RVMType targetClass) {
     this.target = targetClass.findVirtualMethod(memRef.getName(), memRef.getDescriptor());
@@ -268,6 +276,9 @@ public final class MethodOperand extends Operand {
   /**
    * Refine the target information. Used to reduce the set of
    * targets for an invokevirtual.
+   *
+   * @param target the target method
+   * @param isPreciseTarget whether the target is precise
    */
   public void refine(RVMMethod target, boolean isPreciseTarget) {
     this.target = target;

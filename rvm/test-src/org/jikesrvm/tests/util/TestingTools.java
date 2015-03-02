@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.tests.util;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.EPILOGUE_BLOCK_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.PROLOGUE_BLOCK_BCI;
+import static org.junit.Assume.assumeThat;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.JikesRVMSupport;
 import java.lang.reflect.Method;
@@ -21,11 +26,17 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
+import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
 public class TestingTools {
@@ -68,6 +79,18 @@ public class TestingTools {
     return (NormalMethod) rvmm;
   }
 
+  public static NormalMethod getNoArgumentConstructor(Class<?> declaringClass) throws Exception {
+    RVMType type = java.lang.JikesRVMSupport.getTypeForClass(declaringClass);
+    RVMClass clazz = type.asClass();
+    RVMMethod[] constructors = clazz.getConstructorMethods();
+    for (RVMMethod method : constructors) {
+      if (method.getParameterTypes().length == 0) {
+        return (NormalMethod) method;
+      }
+    }
+    throw new NoSuchMethodException("Did not find a no-argument constructor!");
+  }
+
   private static Instruction setByteCodeIndex(int byteCodeIndex) {
     Instruction instruction = Call.create(org.jikesrvm.compilers.opt.ir.Operators.CALL, null, null, null, null, 0);
     instruction.setBytecodeIndex(byteCodeIndex);
@@ -82,8 +105,26 @@ public class TestingTools {
     return new InlineSequence(getNormalMethod(declaringClass, methodName), node, setByteCodeIndex(ByteCodeIndex));
   }
 
+  public static void addEmptyCFGToIR(IR ir) {
+    ir.cfg = new ControlFlowGraph(0);
+    BasicBlock prologue = new BasicBlock(PROLOGUE_BLOCK_BCI, null, ir.cfg);
+    BasicBlock epilogue = new BasicBlock(EPILOGUE_BLOCK_BCI, null, ir.cfg);
+    ir.cfg.addLastInCodeOrder(prologue);
+    ir.cfg.addLastInCodeOrder(epilogue);
+    BasicBlock exit = ir.cfg.exit();
+    epilogue.insertOut(exit);
+  }
+
   public static RVMField getRVMFieldForField(Field field) {
     return JikesRVMSupport.getFieldOf(field);
+  }
+
+  public static void assumeThatVMIsBuildForOptCompiler() {
+    assumeThat(VM.BuildForOptCompiler, is(Boolean.TRUE));
+  }
+
+  public static void assumeThatVMIsNotBuildForOptCompiler() {
+    assumeThat(VM.BuildForOptCompiler, is(Boolean.FALSE));
   }
 
 }

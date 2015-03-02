@@ -32,7 +32,10 @@ public class Poisoned extends MS {
   }
 
   /**
-   * Poison a reference value.
+   * Poisons a reference value.
+   *
+   * @param reference the reference to poison
+   * @return the poisoned value
    */
   @Inline
   public static Word poison(ObjectReference reference) {
@@ -40,7 +43,10 @@ public class Poisoned extends MS {
   }
 
   /**
-   * DePoison a reference value.
+   * DePoisons a reference value.
+   *
+   * @param value the reference to dePoison
+   * @return the dePoisoned value
    */
   @Inline
   public static ObjectReference depoison(Word value) {

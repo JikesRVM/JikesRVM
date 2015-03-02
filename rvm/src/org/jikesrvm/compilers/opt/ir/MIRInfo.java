@@ -13,7 +13,9 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.compilers.opt.regalloc.LinearScan;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
+import org.jikesrvm.compilers.opt.regalloc.LinearScanState;
+import org.jikesrvm.compilers.opt.regalloc.RegisterAllocatorState;
 import org.jikesrvm.osr.VariableMap;
 
 /**
@@ -41,7 +43,7 @@ public final class MIRInfo {
   /**
    * The frame size of the current method
    */
-  public int FrameSize;
+  public int frameSize;
 
   /**
    * The number of floating point stack slots allocated.
@@ -76,7 +78,11 @@ public final class MIRInfo {
   /**
    * Information needed for linear scan.
    */
-  public LinearScan.LinearScanState linearScanState = null;
+  public LinearScanState linearScanState = null;
+
+  public RegisterAllocatorState regAllocState = null;
+
+  public MachineCodeOffsets mcOffsets = null;
 
   public MIRInfo(IR ir) {
     ir.compiledMethod.setSaveVolatile(ir.method.getDeclaringClass().hasSaveVolatileAnnotation());

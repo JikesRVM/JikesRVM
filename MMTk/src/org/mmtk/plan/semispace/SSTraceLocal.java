@@ -25,15 +25,13 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public class SSTraceLocal extends TraceLocal {
-  /**
-   * Constructor
-   */
+
   public SSTraceLocal(Trace trace, boolean specialized) {
     super(specialized ? SS.SCAN_SS : -1, trace);
   }
 
   /**
-   * Constructor
+   * @param trace the associated global trace
    */
   public SSTraceLocal(Trace trace) {
     this(trace, true);

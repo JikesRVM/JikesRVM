@@ -43,6 +43,7 @@ final class FinalMIRExpansionDriver extends CompilerPhase {
       ir.verify("right before Final MIR Expansion", true);
     }
 
+    ir.MIRInfo.mcOffsets = new MachineCodeOffsets();
     ir.MIRInfo.mcSizeEstimate = FinalMIRExpansion.expand(ir);
   }
 }

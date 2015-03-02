@@ -96,9 +96,11 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    */
 
   /**
-   * Prepare for a new collection increment.  For the mark-sweep
+   * Prepares for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
+   *
+   * @param fullHeap whether the collection will be full heap
    */
   public void prepare(boolean fullHeap) {
     if (fullHeap) {
@@ -114,6 +116,8 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
+   *
+   * @param fullHeap whether the collection was full heap
    */
   public void release(boolean fullHeap) {
     // sweep the large objects
@@ -123,8 +127,10 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   }
 
   /**
-   * Sweep through the large pages, releasing all superpages on the
+   * Sweeps through the large pages, releasing all superpages on the
    * "from space" treadmill.
+   *
+   * @param sweepNursery whether to sweep the nursery
    */
   private void sweepLargePages(boolean sweepNursery) {
     while (true) {
@@ -189,6 +195,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * have a mark bit set in the superpage header.
    *
    * @param object The object which has been marked.
+   * @param nurseryObject whether the object is in the nursery
    */
   @Inline
   private void internalMarkObject(ObjectReference object, boolean nurseryObject) {
@@ -222,11 +229,12 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   }
 
   /**
-   * Atomically attempt to set the mark bit of an object.  Return <code>true</code>
-   * if successful, <code>false</code> if the mark bit was already set.
+   * Atomically attempt to set the mark bit of an object.
    *
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
+   * @return {@code true} if successful, {@code false} if the
+   *  mark bit was already set.
    */
   @Inline
   private boolean testAndMark(ObjectReference object, byte value) {

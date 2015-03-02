@@ -111,6 +111,10 @@ public abstract class RuntimeMeasurements {
   /**
    * Called from Thread.yieldpoint every time it is invoked due to
    * a timer interrupt.
+   *
+   * @param whereFrom source of the yieldpoint (e.g. backedge)
+   * @param yieldpointServiceMethodFP the frame pointer of the service
+   *  method that is responsible for handling the yieldpoint
    */
   @Uninterruptible
   public static void takeTimerSample(int whereFrom, Address yieldpointServiceMethodFP) {
@@ -202,6 +206,10 @@ public abstract class RuntimeMeasurements {
 
   /**
    * Called from Thread.yieldpoint when it is time to take a CBS method sample.
+   *
+   * @param whereFrom source of the yieldpoint (e.g. backedge)
+   * @param yieldpointServiceMethodFP the frame pointer of the service
+   *  method that is responsible for handling the yieldpoint
    */
   @Uninterruptible
   public static void takeCBSMethodSample(int whereFrom, Address yieldpointServiceMethodFP) {
@@ -234,6 +242,10 @@ public abstract class RuntimeMeasurements {
 
   /**
    * Called from Thread.yieldpoint when it is time to take a CBS call sample.
+   *
+   * @param whereFrom source of the yieldpoint (e.g. backedge)
+   * @param yieldpointServiceMethodFP the frame pointer of the service
+   *  method that is responsible for handling the yieldpoint
    */
   @Uninterruptible
   public static void takeCBSCallSample(int whereFrom, Address yieldpointServiceMethodFP) {
@@ -279,16 +291,18 @@ public abstract class RuntimeMeasurements {
   static int decayEventCounter = 0;
 
   /**
-   *  Register an object that should be decayed.
+   *  Registers an object that should be decayed.
    *  The passed object will have its decay method called when the
    *  decaying thread decides it is time for the system to decay.
+   *
+   *  @param obj the object to decay
    */
   public static void registerDecayableObject(Decayable obj) {
     decayObjects.add(obj);
   }
 
   /**
-   * Decay all registered decayable objects.
+   * Decays all registered decayable objects.
    */
   public static void decayDecayableObjects() {
     decayEventCounter++;
@@ -309,15 +323,18 @@ public abstract class RuntimeMeasurements {
   static Vector<Reportable> reportObjects = new Vector<Reportable>();
 
   /**
-   * Register an object that wants to have its report method called
-   * whenever RuntimeMeasurements.report is called
+   * Registers an object that wants to have its report method called
+   * whenever RuntimeMeasurements.report is called.
+   *
+   * @param obj the object to report about
    */
   public static void registerReportableObject(Reportable obj) {
     reportObjects.add(obj);
   }
 
   /**
-   * Reset to all registered reportable objects
+   * Calls {@link Reportable#reset()} on all registered reportable
+   * objects.
    */
   public static void resetReportableObjects() {
     for (Reportable obj : reportObjects) {
@@ -326,7 +343,8 @@ public abstract class RuntimeMeasurements {
   }
 
   /**
-   * Report to all registered reportable objects
+   * Calls {@link Reportable#report()} on all registered reportable
+   * objects.
    */
   private static void reportReportableObjects() {
     for (Reportable obj : reportObjects) {
@@ -335,7 +353,7 @@ public abstract class RuntimeMeasurements {
   }
 
   /**
-   * Report the current state of runtime measurements
+   * Reports the current state of runtime measurements.
    */
   public static void report() {
     reportReportableObjects();

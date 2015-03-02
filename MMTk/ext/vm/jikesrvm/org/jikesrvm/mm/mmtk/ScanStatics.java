@@ -44,6 +44,8 @@ public final class ScanStatics {
    * Scan static variables (JTOC) for object references.  Executed by
    * all GC threads in parallel, with each doing a portion of the
    * JTOC.
+   *
+   * @param trace the trace to use for scanning
    */
   @Inline
   @Uninterruptible
@@ -79,6 +81,8 @@ public final class ScanStatics {
    * the reference is invalid, dump stack and die.
    *
    * @param refaddr The address of the reference in question.
+   * @param slot the index of the slot. This is necessary to trace
+   *  where the reference came from in case it turns out to be invalid.
    */
   @Uninterruptible
   private static void checkReference(Address refaddr, int slot) {

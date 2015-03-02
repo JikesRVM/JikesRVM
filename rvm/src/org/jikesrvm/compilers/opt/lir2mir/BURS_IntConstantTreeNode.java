@@ -28,6 +28,8 @@ final class BURS_IntConstantTreeNode extends BURS_TreeNode {
 
   /**
    * Constructor for interior node.
+   *
+   * @param val a constant int value
    */
   BURS_IntConstantTreeNode(int val) {
     super(Operators.INT_CONSTANT_opcode);

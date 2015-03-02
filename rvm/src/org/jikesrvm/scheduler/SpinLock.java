@@ -221,6 +221,8 @@ public final class SpinLock {
    * presumably due to contention with another processor.  Backoff a
    * little to increase the likelihood that a subsequent retry will
    * succeed.
+   *
+   * @param n the number of attempts
    */
   @NoInline
   private void handleMicrocontention(int n) {

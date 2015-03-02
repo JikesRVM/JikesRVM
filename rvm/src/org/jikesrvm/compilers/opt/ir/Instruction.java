@@ -145,8 +145,6 @@ public final class Instruction {
    * BITFIELD used to encode {@link #operatorInfo}.
    * NB: OI_INVALID must be default value!
    */
-  @SuppressWarnings("unused")
-  // FIXME use it or lose it!
   private static final byte OI_INVALID = 0x00;
   /** BITFIELD used to encode {@link #operatorInfo}. */
   private static final byte OI_PEI_VALID = 0x01;
@@ -156,12 +154,10 @@ public final class Instruction {
   private static final byte OI_GC_VALID = 0x04;
   /** BITFIELD used to encode {@link #operatorInfo}. */
   private static final byte OI_GC = 0x08;
-  /** BITFIELD used to encode {@link #operatorInfo}. */
-  private static final byte MARK1 = 0x20;
-  /** BITFIELD used to encode {@link #operatorInfo}. */
-  private static final byte MARK2 = 0x40;
+
   /*
-   * NOTE: There are currently two free bits: 0x10 and 0x80.
+   * NOTE: There are currently several free bits: 0x10, 0x20,
+   * 0x40 and 0x80.
    */
 
   /**
@@ -186,42 +182,10 @@ public final class Instruction {
   public InlineSequence position;
 
   /**
-   * A scratch word to be used as needed by analyses/optimizations to store
-   * information during an optimization.<p>
-   * Cannot be used to communicate information between compiler phases since
-   * any phase is allowed to mutate it.<p>
-   * Cannot safely be assumed to have a particular value at the start of
-   * a phase.<p>
-   * Typical uses:
-   * <ul>
-   *   <li>scratch bits to encode true/false or numbering
-   *   <li>store an index into a lookaside array of other information.
-   * </ul>
-   */
-  public int scratch;
-
-  /**
-   * A scratch object to be used as needed by analyses/optimizations to store
-   * information during an optimization.<p>
-   * Cannot be used to communicate information between compiler phases since
-   * any phase is allowed to mutate it.<p>
-   * Cannot safely be assumed to have a particular value at the start of
-   * a phase.<p>
-   * To be used when more than one word of information is needed and
-   * lookaside arrays are not desirable.<p>
-   * Typical uses:  attribute objects or links to shared data
-   */
-  public Object scratchObject;
-
-  /**
    * The operator for this instruction.<p>
-   * The preferred idiom is to use the {@link #operator()} accessor method
-   * instead of accessing this field directly, but we are still in the process
-   * of updating old code.<p>
-   * The same operator object can be shared by many instruction objects.<p>
-   * TODO: finish conversion and make this field private.
+   * The same operator object can be shared by many instruction objects.
    */
-  public Operator operator;
+  private Operator operator;
 
   /**
    * The next instruction in the intra-basic-block list of instructions,
@@ -240,7 +204,7 @@ public final class Instruction {
    * information.
    * @see Operator
    */
-  private byte operatorInfo;
+  private byte operatorInfo = OI_INVALID;
 
   /**
    * The operands of this instruction.
@@ -409,12 +373,15 @@ public final class Instruction {
   }
 
   /**
-   * Get the basic block that contains this instruction.
+   * Gets the basic block that contains this instruction.
+   * <p>
    * Note: this instruction takes O(1) time for LABEL and BBEND
    * instructions, but will take O(# of instrs in the block)
    * for all other instructions. Therefore, although it can be used
    * on any instruction, care must be taken when using it to avoid
    * doing silly O(N^2) work for what could be done in O(N) work.
+   *
+   * @return basic block that contains the instruction
    */
   public BasicBlock getBasicBlock() {
     if (isBbFirst()) {
@@ -460,36 +427,16 @@ public final class Instruction {
   }
 
   /**
-   * Get the offset into the machine code array (in bytes) that
-   * corresponds to the first byte after this instruction.<p>
-   * This method only returns a valid value after it has been set as a
-   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.<p>
-   * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
-   *
-   * @return the offset (in bytes) of the machinecode instruction
-   *         generated for this IR instruction in the final machinecode
-   */
-  public int getmcOffset() {
-    return scratch;
-  }
-
-  /**
-   * Only for use by {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode}; sets the machine
-   * code offset of the instruction as described in {@link #getmcOffset}.
-   *
-   * @param mcOffset the offset (in bytes) for this instruction.
-   */
-  public void setmcOffset(int mcOffset) {
-    scratch = mcOffset;
-  }
-
-  /**
    * Return the instruction's operator.
    *
    * @return the operator
    */
   public Operator operator() {
     return operator;
+  }
+
+  public void changeOperatorTo(Operator newlySetOperator) {
+    operator = newlySetOperator;
   }
 
   /**
@@ -697,7 +644,8 @@ public final class Instruction {
   }
 
   /**
-   * Does this instruction hold any memory or stack location operands?
+   * @return {@code true} if this instruction holds any memory or
+   *  stack location operands
    */
   public boolean hasMemoryOperand() {
     for (int i = 0; i < ops.length; i++) {
@@ -1217,54 +1165,6 @@ public final class Instruction {
   }
 
   /**
-   * Is the first mark bit of the instruction set?
-   *
-   * @return <code>true</code> if the first mark bit is set
-   *         or <code>false</code> if it is not.
-   */
-  boolean isMarked1() {
-    return (operatorInfo & MARK1) != 0;
-  }
-
-  /**
-   * Is the second mark bit of the instruction set?
-   *
-   * @return <code>true</code> if the first mark bit is set
-   *         or <code>false</code> if it is not.
-   */
-  boolean isMarked2() {
-    return (operatorInfo & MARK2) != 0;
-  }
-
-  /**
-   * Set the first mark bit of the instruction.
-   */
-  void setMark1() {
-    operatorInfo |= MARK1;
-  }
-
-  /**
-   * Set the second mark bit of the instruction.
-   */
-  void setMark2() {
-    operatorInfo |= MARK2;
-  }
-
-  /**
-   * Clear the first mark bit of the instruction.
-   */
-  void clearMark1() {
-    operatorInfo &= ~MARK1;
-  }
-
-  /**
-   * Clear the second mark bit of the instruction.
-   */
-  void clearMark2() {
-    operatorInfo &= ~MARK2;
-  }
-
-  /**
    * Return the probability (in the range 0.0 - 1.0) that this two-way
    * branch instruction is taken (as opposed to falling through).
    *
@@ -1500,7 +1400,7 @@ public final class Instruction {
   /**
    * Insertion: Insert newInstr immediately before this in the
    * instruction stream.
-   * Can't insert before a LABEL instruction, since it must be the last
+   * Can't insert before a LABEL instruction, since it must be the first
    * instruction in its basic block.
    *
    * @param newInstr the instruction to insert, must not be in
@@ -1992,6 +1892,8 @@ public final class Instruction {
   /**
    * Allow BURS a back door into linkWithNext. This method should only be called
    * within BURS.
+   *
+   * @param other the next instruction
    */
   public void BURS_backdoor_linkWithNext(Instruction other) {
     linkWithNext(other);
@@ -2011,4 +1913,5 @@ public final class Instruction {
     }
     return false;
   }
+
 }

@@ -12,8 +12,6 @@
  */
 package org.jikesrvm;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSFAIL;
@@ -23,6 +21,7 @@ import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.JMXSupport;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMember;
@@ -40,8 +39,10 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.SysCall;
+import org.jikesrvm.runtime.Time;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
+
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.MainThread;
 import org.jikesrvm.scheduler.Synchronization;
@@ -234,6 +235,7 @@ public class VM extends Properties {
     //
     String bootstrapClasses = CommandLineArgs.getBootstrapClasses();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader: ", bootstrapClasses);
+    Callbacks.addClassLoadedMonitor(JMXSupport.CLASS_LOADING_JMX_SUPPORT);
     RVMClassLoader.boot();      // Wipe out cached application class loader
     BootstrapClassLoader.boot(bootstrapClasses);
 
@@ -496,6 +498,7 @@ public class VM extends Properties {
     // Inform interested subsystems that VM is fully booted.
     VM.fullyBooted = true;
     MemoryManager.fullyBootedVM();
+    org.jikesrvm.mm.mminterface.JMXSupport.fullyBootedVM();
     BaselineCompiler.fullyBootedVM();
     TraceEngine.engine.fullyBootedVM();
 
@@ -582,6 +585,8 @@ public class VM extends Properties {
       SysCall.sysCall.sysEnableAlignmentChecking();
     }
 
+    Time.boot();
+
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
@@ -618,7 +623,7 @@ public class VM extends Properties {
    * <p>
    * This method is called only while the VM boots.
    *
-   * @param className
+   * @param className class whose initializer needs to be run
    */
   @Interruptible
   static void runClassInitializer(String className) {
@@ -721,72 +726,6 @@ public class VM extends Properties {
     throw new RuntimeException((msg1 != null ? msg1 : "") + msg2);
   }
 
-  /**
-   * Format a 32 bit number as "0x" followed by 8 hex digits.
-   * Do this without referencing Integer or Character classes,
-   * in order to avoid dynamic linking.
-   * TODO: move this method to Services.
-   * @param number
-   * @return a String with the hex representation of the integer
-   */
-  @Interruptible
-  public static String intAsHexString(int number) {
-    char[] buf = new char[10];
-    int index = 10;
-    while (--index > 1) {
-      int digit = number & 0x0000000f;
-      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
-      number >>= 4;
-    }
-    buf[index--] = 'x';
-    buf[index] = '0';
-    return new String(buf);
-  }
-
-  /**
-   * Format a 64 bit number as "0x" followed by 16 hex digits.
-   * Do this without referencing Long or Character classes,
-   * in order to avoid dynamic linking.
-   * TODO: move this method to Services.
-   * @param number
-   * @return a String with the hex representation of the long
-   */
-  @Interruptible
-  public static String longAsHexString(long number) {
-    char[] buf = new char[18];
-    int index = 18;
-    while (--index > 1) {
-      int digit = (int) (number & 0x000000000000000fL);
-      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
-      number >>= 4;
-    }
-    buf[index--] = 'x';
-    buf[index] = '0';
-    return new String(buf);
-  }
-
-  /**
-   * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
-   * Do this without referencing Integer or Character classes,
-   * in order to avoid dynamic linking.
-   * TODO: move this method to Services.
-   * @param addr  The 32/64 bit number to format.
-   * @return a String with the hex representation of an Address
-   */
-  @Interruptible
-  public static String addressAsHexString(Address addr) {
-    int len = 2 + (BITS_IN_ADDRESS >> 2);
-    char[] buf = new char[len];
-    while (--len > 1) {
-      int digit = addr.toInt() & 0x0F;
-      buf[len] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
-      addr = addr.toWord().rshl(4).toAddress();
-    }
-    buf[len--] = 'x';
-    buf[len] = '0';
-    return new String(buf);
-  }
-
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
   // accessed via EntryPoints
   @Entrypoint
@@ -876,12 +815,9 @@ public class VM extends Properties {
   /* don't waste code space inlining these --dave */
   public static void write(char[] value, int len) {
     for (int i = 0, n = len; i < n; ++i) {
-      if (runningVM)
-        /*  Avoid triggering a potential read barrier
-         *
-         *  TODO: Convert this to use org.mmtk.vm.Barriers.getArrayNoBarrier
-         */ {
-        write(Magic.getCharAtOffset(value, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_CHAR)));
+      if (runningVM) {
+        //  Avoid triggering a potential read barrier
+        write(Services.getArrayNoBarrier(value, i));
       } else {
         write(value[i]);
       }
@@ -1093,7 +1029,9 @@ public class VM extends Properties {
   }
   /**
    * Low level print to console.
-   * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
+   * @param value print value
+   * @param fieldWidth the number of characters that the output should contain. If the value
+   *  is too small, the output will be filled up with enough spaces, starting from the left
    */
   @NoInline
   /* don't waste code space inlining these --dave */
@@ -1162,9 +1100,10 @@ public class VM extends Properties {
     write(b ? "true" : "false");
   }
 
-  /**
+  /*
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
+
   @NoInline
   public static void sysWrite(Atom a) {
     swLock();
@@ -2686,6 +2625,8 @@ public class VM extends Properties {
    * enforces a stack discipline; we need it for the JNI Get*Critical and
    * Release*Critical functions.  Should be matched with a subsequent call to
    * enableGC().
+   *
+   * @param recursiveOK whether recursion is allowed.
    */
   @Inline
   @Unpreemptible("We may boost the size of the stack with GC disabled and may get preempted doing this")
@@ -2751,6 +2692,8 @@ public class VM extends Properties {
    * possibly-recursive {@link #disableGC} request.  This enforces a stack discipline;
    * we need it for the JNI Get*Critical and Release*Critical functions.
    * Should be matched with a preceding call to {@link #disableGC}.
+   *
+   * @param recursiveOK unused (!)
    */
   @Inline
   public static void enableGC(boolean recursiveOK) {
@@ -2772,17 +2715,19 @@ public class VM extends Properties {
   }
 
   /**
-   * Is this a build for 32bit addressing? NB. this method is provided
-   * to give a hook to the IA32 assembler that won't be compiled away
-   * by javac
+   * @return whether this is a build for 32bit addressing.
+   * NB. this method is provided to give a hook to the IA32
+   * assembler that won't be compiled away by javac.
    */
   public static boolean buildFor32Addr() {
     return BuildFor32Addr;
   }
 
   /**
-   * Is this a build for SSE2? NB. this method is provided to give a
-   * hook to the IA32 assembler that won't be compiled away by javac
+   * @return whether this is a build for SSE2.
+   * NB. this method is provided to give a hook to the IA32
+   * assembler that won't be compiled away by javac.
+
    */
   public static boolean buildForSSE2() {
     return BuildForSSE2;

@@ -42,7 +42,7 @@ fi
 
 export TMP_GDB_COMMANDS=$RVM_HOME/gdb.commandlineArgs
 
-echo -n "set args" > $TMP_GDB_COMMANDS
+echo -n "set args " > $TMP_GDB_COMMANDS
 echo $BASE_ARGS | tr ' ' '\n' | awk '{print "\"" $1 "\"" }' | tr '\n' ' ' >> $TMP_GDB_COMMANDS
 #echo $* | tr ' ' '\n' | awk '{print "\"" $1 "\"" }' >> $TMP_GDB_COMMANDS
 for arg in "$@"; do

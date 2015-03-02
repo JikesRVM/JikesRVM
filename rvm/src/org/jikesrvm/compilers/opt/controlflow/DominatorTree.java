@@ -39,13 +39,11 @@ public class DominatorTree extends Tree {
   /**
    * A structure used to quickly index into the DominatorVertex tree
    */
-  private DominatorTreeNode[] dominatorInfoMap;
+  private final DominatorTreeNode[] dominatorInfoMap;
 
   /**
    * Build a dominator tree from an IR. NOTE: the dominator
    * information MUST be computed BEFORE calling this method!
-   * We assume the scratch object of each basic block contains
-   * the LTDominatorInfo object holding this information.
    *
    * @param ir the governing IR
    * @param forward are we building regular dominators or post-dominators?
@@ -126,10 +124,10 @@ public class DominatorTree extends Tree {
       DominatorTreeNode blockNode = dominatorInfoMap[block.getNumber()];
 
       // if parent = null, this is the root of the tree, nothing to do
-      if (LTDominatorInfo.getInfo(block) == null) {
+      if (LTDominatorInfo.getInfo(block, ir) == null) {
         System.out.println("info field is null for block: " + block);
       }
-      BasicBlock parent = LTDominatorInfo.getInfo(block).getDominator();
+      BasicBlock parent = LTDominatorInfo.getInfo(block, ir).getDominator();
       if (parent != null) {
         DominatorTreeNode parentNode = dominatorInfoMap[parent.getNumber()];
 

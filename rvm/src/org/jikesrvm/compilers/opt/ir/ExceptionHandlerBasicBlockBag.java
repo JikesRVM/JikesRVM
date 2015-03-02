@@ -57,8 +57,10 @@ public final class ExceptionHandlerBasicBlockBag {
   }
 
   /**
-   * take an element out f the bag.  Throw an exception if the block
-   * to remove is not in the bag
+   * Takes an element out of the bag. Throws an exception if the block
+   * to remove is not in the bag.
+   *
+   * @param bb the block to remove
    */
   public void remove(BasicBlock bb) {
     for (int i = 0; i < local.length; i++) {
@@ -105,7 +107,9 @@ public final class ExceptionHandlerBasicBlockBag {
         try {
           ans = cur_bag.local[cur_idx++];
         } catch (NullPointerException e) {
-          throw new java.util.NoSuchElementException();
+          java.util.NoSuchElementException nse = new java.util.NoSuchElementException();
+          nse.initCause(e);
+          throw nse;
         }
         // Now advance state to point to next element.
         if (cur_idx == cur_bag.local.length) {

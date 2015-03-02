@@ -187,6 +187,7 @@ public class InterfaceInvocation {
    *       we don't have to worry about making it space efficient.
    *
    * @param klass the RVMClass whose IMT we are going to build.
+   * @param interfaces the interfaces that the class implements
    * @return an IMTDict that describes the IMT we need to build for the class.
    */
   private static IMTDict buildIMTDict(RVMClass klass, RVMClass[] interfaces) {
@@ -212,9 +213,6 @@ public class InterfaceInvocation {
     return d;
   }
 
-  /**
-   * Populate an indirect IMT for C using the IMTDict d
-   */
   private static void populateIMT(RVMClass klass, IMTDict d) {
     TIB tib = klass.getTypeInformationBlock();
     IMT IMT = MemoryManager.newIMT();
@@ -223,10 +221,6 @@ public class InterfaceInvocation {
     tib.setImt(IMT);
   }
 
-  /**
-   * Build and install an iTable for the given class interface pair
-   * (used for iTable miss on searched iTables).
-   */
   private static void installITable(RVMClass C, RVMClass I) {
     TIB tib = C.getTypeInformationBlock();
     ITableArray iTables = tib.getITableArray();
@@ -255,9 +249,6 @@ public class InterfaceInvocation {
     iTables.set(0, iTable);
   }
 
-  /**
-   * Build a single ITable for the pair of class C and interface I
-   */
   private static ITable buildITable(RVMClass C, RVMClass I) {
     RVMMethod[] interfaceMethods = I.getDeclaredMethods();
     TIB tib = C.getTypeInformationBlock();
@@ -290,7 +281,10 @@ public class InterfaceInvocation {
   */
 
   /**
-   * Return the index of the interface method m in the itable
+   * @param klass the interface class
+   * @param mname method name
+   * @param mdesc method descriptor
+   * @return the index of the interface method m in the itable or -1 if none found
    */
   public static int getITableIndex(RVMClass klass, Atom mname, Atom mdesc) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForITableInterfaceInvocation);

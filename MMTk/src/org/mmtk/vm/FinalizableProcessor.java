@@ -36,7 +36,11 @@ public abstract class FinalizableProcessor {
   public abstract void scan(TraceLocal trace, boolean nursery);
 
   /**
-   * Iterate over and forward entries in the table.
+   * Iterates over and forward entries in the table.
+   *
+   * @param trace the trace to use for the processing of the references
+   * @param nursery if {@code true}, scan only references generated since
+   *  last scan. Otherwise, scan all references.
    */
   public abstract void forward(TraceLocal trace, boolean nursery);
 }

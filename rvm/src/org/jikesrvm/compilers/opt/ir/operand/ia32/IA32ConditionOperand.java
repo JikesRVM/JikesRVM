@@ -56,7 +56,8 @@ public final class IA32ConditionOperand extends Operand {
   }
 
   /**
-   * flip the direction of the condition (return this, mutated to flip value)
+   * flip the direction of the condition
+   * @return this, mutated to flip value
    */
   public IA32ConditionOperand flipCode() {
     switch (value) {
@@ -116,7 +117,7 @@ public final class IA32ConditionOperand extends Operand {
 
   /**
    * change the condition when operands are flipped
-   * (return this mutated to change value)
+   * @return this mutated to change value
    */
   public IA32ConditionOperand flipOperands() {
     switch (value) {
@@ -151,8 +152,10 @@ public final class IA32ConditionOperand extends Operand {
   }
 
   /**
-   * Construct the IA32 Condition Operand that corresponds to the
-   * argument ConditionOperand
+   * Constructs the IA32 Condition Operand that corresponds to the
+   * argument ConditionOperand.
+   *
+   * @param c the template
    */
   public IA32ConditionOperand(ConditionOperand c) {
     translate(c);

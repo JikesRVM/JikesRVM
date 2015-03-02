@@ -30,7 +30,7 @@ public class PairTest {
     Pair<Integer, Integer> p1 = new Pair<Integer, Integer>(1, 1);
     Pair<Integer, Integer> p2 = new Pair<Integer, Integer>(2, 2);
     Pair<Integer, Integer> p3 = new Pair<Integer, Integer>(2, 2);
-    assertTrue(p2.equals(p3));
+    assertEquals(p2, p3);
     assertFalse(p1.equals(p2));
   }
 }

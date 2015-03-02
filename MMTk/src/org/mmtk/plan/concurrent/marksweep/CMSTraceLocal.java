@@ -25,8 +25,10 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public final class CMSTraceLocal extends TraceLocal {
+
+
   /**
-   * Constructor
+   * @param trace the global trace class to use
    */
   public CMSTraceLocal(Trace trace) {
     super(trace);

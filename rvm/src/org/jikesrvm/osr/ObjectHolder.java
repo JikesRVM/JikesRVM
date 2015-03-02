@@ -24,7 +24,8 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * ObjectHolder helps the specialized prologue to load reference
- * get around of GC problem
+ * get around of GC problem.<p>
+ * TODO this class needs better comments.
  */
 @Uninterruptible
 public class ObjectHolder {
@@ -49,7 +50,9 @@ public class ObjectHolder {
     }
   }
 
-  /**
+  /*
+   * TODO add better documentation and turn this into a JavaDoc comment.
+   *
    * The VM scope descriptor extractor can hand in an object here
    */
   @Interruptible
@@ -70,7 +73,9 @@ public class ObjectHolder {
     return n;
   }
 
-  /**
+  /*
+   * TODO add better documentation and turn this into a JavaDoc comment.
+   *
    * Get the object handed in before, only called by specialized code.
    */
   @Inline
@@ -83,7 +88,9 @@ public class ObjectHolder {
     return obj;
   }
 
-  /**
+  /*
+   * TODO add better documentation and turn this into a JavaDoc comment.
+   *
    * Clean objects. This method is called by specialized bytecode prologue
    * Uses magic because it must be uninterruptible
    */

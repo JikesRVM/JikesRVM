@@ -56,6 +56,10 @@ public class ParallelCollectorGroup {
    *
    * Initialization
    */
+
+  /**
+   * @param name human-readable name of the collector group
+   */
   public ParallelCollectorGroup(String name) {
     this.name = name;
   }
@@ -113,7 +117,7 @@ public class ParallelCollectorGroup {
   }
 
   /**
-   * Has the cycle been aborted?
+   * @return whether the cycle has been aborted
    */
   public boolean isAborted() {
     return aborted;

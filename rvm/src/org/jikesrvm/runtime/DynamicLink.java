@@ -35,7 +35,6 @@ public final class DynamicLink {
   /** how method was called at that site */
   private int bytecode;
 
-  /** set the dynamic link information. */
   public void set(MethodReference methodRef, int bytecode) {
     this.methodRef = methodRef;
     this.bytecode = bytecode;

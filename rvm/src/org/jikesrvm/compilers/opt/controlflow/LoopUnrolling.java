@@ -25,6 +25,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB;
 
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -56,6 +58,14 @@ public class LoopUnrolling extends CompilerPhase {
 
   static final boolean DEBUG = false;
   static final int MAX_BLOCKS_FOR_NAIVE_UNROLLING = 20;
+
+  private final Map<BasicBlock, BasicBlock> copiedBlocks;
+  private int theVisit = 1;
+  private Map<Instruction, Integer> visitInts;
+
+  public LoopUnrolling() {
+    copiedBlocks = new HashMap<BasicBlock, BasicBlock>();
+  }
 
   /**
    * Returns the name of the phase.
@@ -104,7 +114,12 @@ public class LoopUnrolling extends CompilerPhase {
     new DominatorsPhase(true).perform(ir);
     DefUse.computeDU(ir);
 
-    ir.setInstructionScratchWord(0);
+    visitInts = new HashMap<Instruction, Integer>();
+    Enumeration<Instruction> instEnum = ir.forwardInstrEnumerator();
+    while (instEnum.hasMoreElements()) {
+      Instruction inst = instEnum.nextElement();
+      visitInts.put(inst, Integer.valueOf(0));
+    }
 
     unrollLoops(ir);
 
@@ -112,9 +127,6 @@ public class LoopUnrolling extends CompilerPhase {
     ir.cfg.compactNodeNumbering();
   }
 
-  /**
-   * unroll the loops in the given IR.
-   */
   void unrollLoops(IR ir) {
     LSTGraph lstg = ir.HIRInfo.loopStructureTree;
 
@@ -124,11 +136,6 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  /**
-   * loop unrolling on a given loop structure sub tree
-   * @param t
-   * @param ir
-   */
   int unrollLoopTree(LSTNode t, IR ir, int target) {
     int height = 1;
     Enumeration<GraphNode> e = t.outNodes();
@@ -259,7 +266,7 @@ public class LoopUnrolling extends CompilerPhase {
     Instruction origBranch = exitBlock.firstBranchInstruction();
     if (origBranch != exitBlock.lastRealInstruction()) {
       Instruction aGoto = origBranch.nextInstructionInCodeOrder();
-      if (aGoto.operator.opcode != GOTO_opcode) {
+      if (aGoto.getOpcode() != GOTO_opcode) {
         report("7 too complex exit\n");
         return true;
       }
@@ -271,8 +278,8 @@ public class LoopUnrolling extends CompilerPhase {
       succBlock = exitBlock.getFallThroughBlock();
     }
 
-    if (origBranch.operator.opcode != INT_IFCMP_opcode) {
-      report("8 branch isn't int_ifcmp: " + origBranch.operator + ".\n");
+    if (origBranch.getOpcode() != INT_IFCMP_opcode) {
+      report("8 branch isn't int_ifcmp: " + origBranch.operator() + ".\n");
       return true;
     }
 
@@ -344,9 +351,9 @@ public class LoopUnrolling extends CompilerPhase {
       return true;
     }
 
-    if (iterator.operator.opcode != INT_ADD_opcode) {
+    if (iterator.getOpcode() != INT_ADD_opcode) {
       //dumpIR (ir, "malformed");
-      report("16 iterator is no addition: " + iterator.operator + "\n");
+      report("16 iterator is no addition: " + iterator.operator() + "\n");
       return true;
     }
 
@@ -666,7 +673,7 @@ public class LoopUnrolling extends CompilerPhase {
         while (be.hasMoreElements()) {
           BasicBlock out = be.nextElement();
           if (out != t.header && CFGTransformations.inLoop(out, nloop)) {
-            BasicBlock outCopy = (BasicBlock) out.scratchObject;
+            BasicBlock outCopy = copiedBlocks.get(out);
             currentBlock.redirectOuts(out, outCopy, ir);
           }
         }
@@ -682,7 +689,7 @@ public class LoopUnrolling extends CompilerPhase {
             BasicBlock out = be.nextElement();
             if (out == t.header) {
               BasicBlock headerCopy;
-              headerCopy = (BasicBlock) t.header.scratchObject;
+              headerCopy = copiedBlocks.get(t.header);
               currentBlock.redirectOuts(t.header, headerCopy, ir);
             }
           }
@@ -742,14 +749,12 @@ public class LoopUnrolling extends CompilerPhase {
     if (DEBUG) VM.sysWrite("] " + s);
   }
 
-  private static int theVisit = 1;
-
-  private static Operand follow(Operand use) {
+  private Operand follow(Operand use) {
     theVisit++;
     return _follow(use);
   }
 
-  private static Operand _follow(Operand use) {
+  private Operand _follow(Operand use) {
     while (true) {
       if (!(use instanceof RegisterOperand)) return use;
       RegisterOperand rop = (RegisterOperand) use;
@@ -759,8 +764,11 @@ public class LoopUnrolling extends CompilerPhase {
       if (!Move.conforms(def)) return use;
       if (defs.hasMoreElements()) {return use;}
 
-      if (def.scratch == theVisit) return use;
-      def.scratch = theVisit;
+      Integer defInt = visitInts.get(def);
+      if (defInt.intValue() == theVisit) {
+        return use;
+      }
+      visitInts.put(def, Integer.valueOf(theVisit));
 
       use = Move.getVal(def);
     }
@@ -810,7 +818,7 @@ public class LoopUnrolling extends CompilerPhase {
         if (CFGTransformations.inLoop(inst.getBasicBlock(), nloop)) {
           if (Move.conforms(inst)) {
             invariant &= printDefs(Move.getVal(inst), nloop, depth - 1);
-          } else if (inst.operator.opcode == ARRAYLENGTH_opcode) {
+          } else if (inst.getOpcode() == ARRAYLENGTH_opcode) {
             invariant &= printDefs(GuardedUnary.getVal(inst), nloop, depth);
           } else {
             invariant = false;
@@ -825,7 +833,7 @@ public class LoopUnrolling extends CompilerPhase {
 
   @SuppressWarnings("unused")
   // For debugging
-  private static void _printDefs(Operand op) {
+  private void _printDefs(Operand op) {
     if (op instanceof RegisterOperand) {
       Register reg = ((RegisterOperand) op).getRegister();
       Enumeration<RegisterOperand> defs = DefUse.defs(reg);
@@ -842,30 +850,8 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  static void linkToLST(IR ir) {
-    Enumeration<BasicBlock> e = ir.getBasicBlocks();
-    while (e.hasMoreElements()) {
-      e.nextElement().scratchObject = null;
-      e.nextElement().scratch = 0;
-    }
-    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
-    if (lstg != null) markHeaders((LSTNode) lstg.firstNode());
-  }
-
-  // for all loops:
-  // make the header block point to the corresponding loop structure tree node.
-  private static void markHeaders(LSTNode t) {
-    BasicBlock header = t.header;
-    header.scratchObject = t;
-    Enumeration<GraphNode> e = t.outNodes();
-    while (e.hasMoreElements()) {
-      LSTNode n = (LSTNode) e.nextElement();
-      markHeaders(n);
-    }
-  }
-
   // inserts unrollFactor copies of the loop after seqStart
-  static BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, BitVector nloop, int blocks,
+  BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, BitVector nloop, int blocks,
                                          BasicBlock header, BasicBlock exitBlock, BasicBlock seqStart) {
     // make some copies of the original loop
 
@@ -935,7 +921,7 @@ public class LoopUnrolling extends CompilerPhase {
         while (be.hasMoreElements()) {
           BasicBlock out = be.nextElement();
           if (CFGTransformations.inLoop(out, nloop)) {
-            cb.redirectOuts(out, (BasicBlock) out.scratchObject, ir);
+            cb.redirectOuts(out, copiedBlocks.get(out), ir);
           }
         }
         cb.recomputeNormalOut(ir);
@@ -948,10 +934,10 @@ public class LoopUnrolling extends CompilerPhase {
     return handles;
   }
 
-  static BasicBlock copyAndLinkBlock(IR ir, BasicBlock seqLast, BasicBlock block) {
+  BasicBlock copyAndLinkBlock(IR ir, BasicBlock seqLast, BasicBlock block) {
     BasicBlock copy = block.copyWithoutLinks(ir);
     ir.cfg.linkInCodeOrder(seqLast, copy);
-    block.scratchObject = copy;
+    copiedBlocks.put(block, copy);
     return copy;
   }
 
@@ -964,7 +950,7 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  static final class RealDefs implements Enumeration<Operand> {
+  final class RealDefs implements Enumeration<Operand> {
     private Enumeration<RegisterOperand> defs = null;
     private Operand use;
     private RealDefs others = null;
@@ -1007,10 +993,10 @@ public class LoopUnrolling extends CompilerPhase {
 
       res = defs.nextElement();
       Instruction inst = res.instruction;
-      if (!(Move.conforms(inst)) || inst.scratch == theVisit) {
+      if (!(Move.conforms(inst)) || visitInts.get(inst).intValue() == theVisit) {
         return res;
       }
-      inst.scratch = theVisit;
+      visitInts.put(inst, Integer.valueOf(theVisit));
 
       others = new RealDefs(Move.getVal(inst), theVisit);
       if (!(others.hasMoreElements())) return res;

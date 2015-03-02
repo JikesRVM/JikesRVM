@@ -108,7 +108,7 @@ public class CommandLineArgs {
     /** Sorting method for Comparable. Sort by string value */
     @Override
     public int compareTo(Prefix o) {
-      return -value.compareTo(o.value);
+      return o.value.compareTo(value);
     }
     /** Equals method to be consistent with Comparable */
     @Override
@@ -433,6 +433,27 @@ public class CommandLineArgs {
     return null;
   }
 
+  /**
+   * @return the original arguments specified on the command line, without the
+   *  ones for the main class
+   */
+  public static String[] getInputArgs() {
+    String[] inputArgs = new String[args.length];
+    int lastIndex = 0;
+    for (int i = 0; i < args.length; ++i) {
+      if (arg_types[i] == PrefixType.APPLICATION_ARG) {
+        continue;
+      }
+      if (args[i] == null) {
+        continue;
+      }
+      inputArgs[lastIndex++] = findPrefix(arg_types[i]).value + args[i];
+    }
+    String[] finalArgs = new String[lastIndex];
+    System.arraycopy(inputArgs, 0, finalArgs, 0, lastIndex);
+    return finalArgs;
+  }
+
   private static String getRvmRoot() {
     return null;
   }
@@ -474,17 +495,19 @@ public class CommandLineArgs {
     }
 
     // concatenate all bootclasspath entries
-    String result = vmClasses;
+    StringBuilder result = new StringBuilder(vmClasses);
 
     for(int c = 0; c < prependClasses.length; c++) {
-      result = prependClasses[c] + ":" + result;
+      result.insert(0, ":");
+      result.insert(0, prependClasses[c]);
     }
 
     for(int c = 0; c < appendClasses.length; c++) {
-      result = result + ":" + appendClasses[c];
+      result.append(":");
+      result.append(appendClasses[c]);
     }
 
-    return result;
+    return result.toString();
   }
 
   /**
@@ -737,7 +760,7 @@ public class CommandLineArgs {
           break;
         case JAVAAGENT_ARG:
           /* Extract jar file from the -javaagent:<jar>[=options] form */
-          int equalsPos = arg.indexOf("=");
+          int equalsPos = arg.indexOf('=');
           String jarPath;
           if (equalsPos != -1) {
             jarPath = arg.substring(0, equalsPos);
@@ -809,6 +832,12 @@ public class CommandLineArgs {
    *
    * At the moment, we have a maximum limit of an unsigned integer.  If
    *
+   * @param sizeName the option's name
+   * @param sizeFlag the flag's name, e.g. mx (as in "-Xmx")
+   * @param defaultFactor factor for modifying sizes, e.g. "K", "M" or "pages"
+   * @param roundTo round up to a multiple of this number
+   * @param fullArg the full command line argument, e.g. "-Xmx200M"
+   * @param subArg the value for the argument, e.g. "200M"
    * @return Negative values on error.
    *      Otherwise, positive or zero values as bytes.
    * */
@@ -833,9 +862,12 @@ public class CommandLineArgs {
       buf = new byte[buflen];
     }
 
-    /** Read argument # @param i
-     * Assume arguments are encoded in the platform's
-     * "default character set". */
+    /**
+     * Reads an argument assuming that the arguments are encoded in the
+     * platform's "default character set".
+     * @param i the number of the argument to read
+     * @return the read argument
+     */
     @SuppressWarnings({"deprecation"})
     String getArg(int i) {
       int cnt;
@@ -847,7 +879,6 @@ public class CommandLineArgs {
         buflen += 1024;
         buf = new byte[buflen];
       }
-      if (VM.VerifyAssertions) VM._assert(cnt != -1);
       /*
        * Implementation note: Do NOT use the line below, which uses the
        * three-argument constructor for String, the one that respects the native
@@ -875,7 +906,6 @@ public class CommandLineArgs {
     }
   }
 
-  /** Convenience method for calling stringToBytes */
   private static byte[] s2b(String arg) {
     return stringToBytes(null, arg);
   }

@@ -98,6 +98,3 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer {
     registers.unwindStackFrame();
   }
 }
-
-
-

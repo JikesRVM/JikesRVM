@@ -197,7 +197,8 @@ public class RCBase extends StopTheWorld {
    */
 
   /**
-   *
+   * @param object an object reference
+   * @return whether the object is subject to collection by reference counting
    */
   public static final boolean isRCObject(ObjectReference object) {
     return !object.isNull() && (Space.isInSpace(REF_COUNT, object) || Space.isInSpace(REF_COUNT_LOS, object));

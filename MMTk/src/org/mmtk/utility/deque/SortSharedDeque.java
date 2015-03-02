@@ -41,9 +41,9 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Constructor
-   *
-   * @param rps The space from which the instance should obtain buffers.
+   * @param name human-readable name of ther queue
+   * @param rps The space from which the instance should obtain buffers
+   * @param arity the queue's arity (number of words per entry)
    */
   public SortSharedDeque(String name, RawPageSpace rps, int arity) {
     super(name, rps, arity);

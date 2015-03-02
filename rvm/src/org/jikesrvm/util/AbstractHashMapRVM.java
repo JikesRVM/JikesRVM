@@ -34,6 +34,9 @@ abstract class AbstractHashMapRVM<K, V> {
     /**
      * Change the next bucket after this bucket, possibly constructing a new
      * abstract bucket.
+     *
+     * @param n the new value for the next bucket
+     * @return previous bucket of the given bucket
      */
     abstract AbstractBucket<K, V> setNext(AbstractBucket<K, V> n);
 
@@ -44,9 +47,6 @@ abstract class AbstractHashMapRVM<K, V> {
     abstract void setValue(V v);
   }
 
-  /**
-   * Are two keys the same?
-   */
   abstract boolean same(K key1, K key2);
 
   abstract int hashTheKey(K key);
@@ -79,7 +79,9 @@ abstract class AbstractHashMapRVM<K, V> {
 
   /**
    * Advise against growing the buckets if they are immortal, as it will lead
-   * to multiple sets of buckets that will be scanned
+   * to multiple sets of buckets that will be scanned.
+   *
+   * @return whether it is allowed to grow the map
    */
   private boolean growMapAllowed() {
     return !VM.runningVM || !MemoryManager.isImmortal(buckets);

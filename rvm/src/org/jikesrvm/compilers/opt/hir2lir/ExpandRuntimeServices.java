@@ -627,16 +627,10 @@ public final class ExpandRuntimeServices extends CompilerPhase {
     ir.gc.close();
   }
 
-  /**
-   * Inline a call instruction
-   */
   private void inline(Instruction inst, IR ir) {
     inline(inst, ir, false);
   }
 
-  /**
-   * Inline a call instruction
-   */
   private void inline(Instruction inst, IR ir, boolean noCalleeExceptions) {
     // Save and restore inlining control state.
     // Some options have told us to inline this runtime service,
@@ -692,6 +686,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
    * @param inst the current instruction
    * @param next the next instruction
    * @param ir the IR
+   * @param fieldRef the field that needs the barrier
    */
   private void primitiveObjectFieldStoreHelper(RVMMethod target, Instruction inst, Instruction next, IR ir, FieldReference fieldRef) {
     Instruction wb =

@@ -44,7 +44,6 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  * replicated test, at the possible cost of trapping an
  * execution in the uncommon-case trace that might have
  * been able to use a subset of to common-case trace.
- * <p>
  */
 public class StaticSplitting extends CompilerPhase {
 
@@ -125,6 +124,8 @@ public class StaticSplitting extends CompilerPhase {
    *      infrequently executed block. Therefore we identify
    *      the block as a splitting candidate.
    * </ul>
+   *
+   * @param ir the governing IR
    */
   private void simpleCandidateSearch(IR ir) {
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
@@ -135,7 +136,7 @@ public class StaticSplitting extends CompilerPhase {
       BasicBlock coldPrev = findColdPrev(cand);
       if (coldPrev == null) continue;
       if (tooBig(cand, ir.options.CONTROL_STATIC_SPLITTING_MAX_COST)) continue;
-      BasicBlock coldSucc = findColdSucc(cand, candTest);
+      BasicBlock coldSucc = findColdSucc(candTest);
       if (containsOSRPoint(coldSucc)) continue;
       if (DEBUG) {
         VM.sysWrite("Found candidate \n");
@@ -149,9 +150,10 @@ public class StaticSplitting extends CompilerPhase {
   }
 
   /**
-   * Split a node where we can safely not
+   * Splits a node where we can safely not
    * replicate the on-branch in the cloned node.
    * @param ci description of the split candidate.
+   * @param ir the governing IR
    */
   private void splitCandidate(CandInfo ci, IR ir) {
     BasicBlock cand = ci.candBB;
@@ -175,8 +177,9 @@ public class StaticSplitting extends CompilerPhase {
   }
 
   /**
-   * Return the candidate test in b, or <code>null</code> if
-   * b does not have one.
+   * @param bb a basic block
+   * @return the candidate test or {@code null} if
+   * there is no single test (i.e. no test or multiple tests)
    */
   private Instruction getCandidateTest(BasicBlock bb) {
     Instruction test = null;
@@ -193,7 +196,8 @@ public class StaticSplitting extends CompilerPhase {
   }
 
   /**
-   * Return the cold predecessor to the argument block.
+   * @param bb a basic block
+   * @return the cold predecessor to the argument block.
    * If there is not exactly 1, return {@code null}.
    */
   private BasicBlock findColdPrev(BasicBlock bb) {
@@ -209,10 +213,11 @@ public class StaticSplitting extends CompilerPhase {
   }
 
   /**
-   * Return the off-trace successor of b
+   * @param test an instruction for a candidate test
+   * @return the off-trace successor of b
    * (on and off relative to the argument test)
    */
-  private BasicBlock findColdSucc(BasicBlock bb, Instruction test) {
+  private BasicBlock findColdSucc(Instruction test) {
     return test.getBranchTarget();
   }
 
@@ -221,6 +226,10 @@ public class StaticSplitting extends CompilerPhase {
    * are doing the splitting based on
    * static hints, we are only willing to
    * copy a very small amount of code.
+   *
+   * @param bb block to check
+   * @param maxCost maximum cost that is acceptable
+   * @return whether the block is too big
    */
   private boolean tooBig(BasicBlock bb, int maxCost) {
     int cost = 0;

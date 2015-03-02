@@ -77,7 +77,7 @@ import org.vmmagic.unboxed.Offset;
  * things must occur: first the pointed to object must be kept alive,
  * and second, if the pointed to object is moved by a copying
  * collector, the pointer into the object must be adjusted so it now
- * points into the newly copied object.<p>
+ * points into the newly copied object
  */
 @Uninterruptible public final class ScanThread {
 
@@ -154,6 +154,10 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Wrapper for {@link TraceLocal#reportDelayedRootEdge(Address)} that allows
    * sanity checking of the address.
+   *
+   * @param trace the trace on which {@link TraceLocal#reportDelayedRootEdge(Address)}
+   *  will be called
+   * @param addr see JavaDoc of {@link TraceLocal#reportDelayedRootEdge(Address)}
    */
   private static void reportDelayedRootEdge(TraceLocal trace, Address addr) {
     if (VALIDATE_REFS) checkReference(addr);
@@ -219,6 +223,8 @@ import org.vmmagic.unboxed.Offset;
    * instance variables of this type, which are initialized here.
    *
    * @param trace The trace instance to use for reporting locations.
+   * @param processCodeLocations whether to process parts of the thread
+   *  that could point to code (e.g. exception registers).
    * @param thread Thread for the thread whose stack is being scanned
    * @param gprs The general purpose registers associated with the
    * stack being scanned (normally extracted from the thread).
@@ -226,6 +232,10 @@ import org.vmmagic.unboxed.Offset;
    * we're about to scan.
    * @param fp The frame pointer for the top frame of the stack we're
    * about to scan.
+   * @param initialIPLoc the address of the initial location of the instruction
+   *  pointer
+   * @param topFrame The top frame of the stack being scanned, or zero
+   * if this is to be inferred from the thread (normally the case).
    * @param sentinelFp The frame pointer at which the stack scan should stop.
    */
   private void startScan(TraceLocal trace,
@@ -261,6 +271,7 @@ import org.vmmagic.unboxed.Offset;
    * stack being scanned (normally extracted from the thread).
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
+   * @param sentinelFp the frame pointer at which the stack scan should stop
    */
   private void scanThreadInternal(Address gprs, int verbosity, Address sentinelFp) {
     if (false) {
@@ -310,14 +321,13 @@ import org.vmmagic.unboxed.Offset;
    * registers for code pointers.  If the codeLocations deque is null,
    * then scanning for code pointers is not required, so we don't need
    * to do anything. (SB: Why only code pointers?).
-   *
+   * <p>
    * Dave G:  The contents of the GPRs of the exceptionRegisters
    * are handled during normal stack scanning
    * (@see org.jikesrvm.runtime.compilers.common.HardwareTrapCompiledMethod.
    * It looks to me like the main goal of this method is to ensure that the
    * method in which the trap happened isn't treated as dead code and collected
    * (if it's been marked as obsolete, we are setting its activeOnStackFlag below).
-   *
    */
   private void getHWExceptionRegisters() {
     ArchitectureSpecific.Registers exReg = thread.getExceptionRegisters();
@@ -377,6 +387,7 @@ import org.vmmagic.unboxed.Offset;
    *
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
+   * @return the frame pointer of the frame that was just scanned
    */
   private Address scanFrame(int verbosity) {
     /* set up iterators etc, and skip the frame if appropriate */
@@ -524,6 +535,8 @@ import org.vmmagic.unboxed.Offset;
    * the stack scanning process, which enables interior pointer
    * offsets to be correctly computed.
    *
+   * @param code start address of the machine code array associated
+   *  with the method
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
    */

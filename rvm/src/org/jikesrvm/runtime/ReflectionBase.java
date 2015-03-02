@@ -24,13 +24,11 @@ import org.vmmagic.pragma.NoInline;
  */
 public abstract class ReflectionBase {
 
-  /** Throw error with argument */
   @NoInline
   private static void throwIllegalArgumentException() throws IllegalArgumentException {
     throw new IllegalArgumentException();
   }
 
-  /** Unwrap boolean for call */
   @Inline
   protected static boolean unboxAsBoolean(Object obj) {
     if ((obj == null) || !(obj instanceof Boolean)) {
@@ -39,13 +37,11 @@ public abstract class ReflectionBase {
     return ((Boolean)obj).booleanValue();
   }
 
-  /** Wrap result as boolean */
   @Inline
   protected static Object boxAsBoolean(boolean b) {
     return b;
   }
 
-  /** Unwrap boolean for call */
   @Inline
   protected static byte unboxAsByte(Object obj) {
     if ((obj == null) || !(obj instanceof Byte)) {
@@ -54,13 +50,11 @@ public abstract class ReflectionBase {
     return ((Byte)obj).byteValue();
   }
 
-  /** Wrap result as byte */
   @Inline
   protected static Object boxAsByte(byte b) {
     return b;
   }
 
-  /** Unwrap short for call */
   @Inline
   protected static short unboxAsShort(Object obj) {
     if ((obj == null) || (!(obj instanceof Short) && !(obj instanceof Byte))) {
@@ -69,13 +63,11 @@ public abstract class ReflectionBase {
     return ((Number)obj).shortValue();
   }
 
-  /** Wrap result as short */
   @Inline
   protected static Object boxAsShort(short s) {
     return s;
   }
 
-  /** Unwrap char for call */
   @Inline
   protected static char unboxAsChar(Object obj) {
     if ((obj == null) || !(obj instanceof Character)) {
@@ -84,13 +76,11 @@ public abstract class ReflectionBase {
     return ((Character)obj).charValue();
   }
 
-  /** Wrap result as char */
   @Inline
   protected static Object boxAsChar(char c) {
     return c;
   }
 
-  /** Unwrap int for call */
   @Inline
   protected static int unboxAsInt(Object obj) {
     if ((obj == null) ||
@@ -101,13 +91,11 @@ public abstract class ReflectionBase {
     return ((Number)obj).intValue();
   }
 
-  /** Wrap result as int */
   @Inline
   protected static Object boxAsInt(int i) {
     return i;
   }
 
-  /** Unwrap long for call */
   @Inline
   protected static long unboxAsLong(Object obj) {
     if ((obj == null) ||
@@ -119,13 +107,11 @@ public abstract class ReflectionBase {
     return ((Number)obj).longValue();
   }
 
-  /** Wrap result as long */
   @Inline
   protected static Object boxAsLong(long l) {
     return l;
   }
 
-  /** Unwrap float for call */
   @Inline
   protected static float unboxAsFloat(Object obj) {
     if ((obj == null) || !(obj instanceof Float)) {
@@ -134,13 +120,11 @@ public abstract class ReflectionBase {
     return ((Float)obj).floatValue();
   }
 
-  /** Wrap result as float */
   @Inline
   protected static Object boxAsFloat(float f) {
     return f;
   }
 
-  /** Unwrap double for call */
   @Inline
   protected static double unboxAsDouble(Object obj) {
     if ((obj == null) ||
@@ -150,7 +134,6 @@ public abstract class ReflectionBase {
     return ((Number)obj).doubleValue();
   }
 
-  /** Wrap result as double */
   @Inline
   protected static Object boxAsDouble(double d) {
     return d;
@@ -167,6 +150,7 @@ public abstract class ReflectionBase {
 
   /**
    * Invoke reflective method being wrapped by this object
+   * @param method the method to invoke
    * @param obj object for virtual method invocation
    * @param args arguments to method call
    * @return the object that is the result of the invoke

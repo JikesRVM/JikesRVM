@@ -13,6 +13,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
+import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -79,8 +80,8 @@ public class SpecialCompiler {
    * NOTE: this is different from optCompile which resets the
   *    bytecode after compilation. I believe this minimizes the
   *    work to change both compilers.
-   * @param state
-   * @return a BaselineCompiledMethod
+   * @param state the execution state for the compilation
+   * @return the compiled method produced by the baseline compiler
    */
   public static CompiledMethod baselineCompile(ExecutionState state) {
     NormalMethod method = state.getMethod();
@@ -116,7 +117,7 @@ public class SpecialCompiler {
       VM.sysWriteln("BASE : done, CMID 0x" +
                     Integer.toHexString(newCompiledMethod.getId()) +
                     "(" + newCompiledMethod.getId() + ") JTOC offset " +
-                    VM.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
+                    Services.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
     }
 
     return newCompiledMethod;
@@ -131,6 +132,9 @@ public class SpecialCompiler {
    *   <li>compile the method.
    *   <li>restore bytecode, exception, linenumber map to the original one.
    * </ol>
+   *
+   * @param state the execution state for the compilation
+   * @return the compiled method produced by the optimizing compiler
    */
   public static CompiledMethod optCompile(ExecutionState state) {
 

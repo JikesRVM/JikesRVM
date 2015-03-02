@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
  *
  * Specifically, this class defines <i>Immix</i> mutator-time allocation
  * and per-mutator thread collection semantics (flushing and restoring
- * per-mutator allocator state).<p>
+ * per-mutator allocator state).
  *
  * @see Immix
  * @see org.mmtk.policy.immix.CollectorLocal

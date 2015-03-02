@@ -155,9 +155,8 @@ public final class MethodCountData implements Reportable {
   }
 
   /**
-   * Get the current count for a given compiled method id.
-   *
    * @param cmid compiled method id
+   * @return the current count for a given compiled method id.
    */
   public synchronized double getData(int cmid) {
     int index = findHeapIdx(cmid);
@@ -381,10 +380,10 @@ public final class MethodCountData implements Reportable {
   }
 
   /**
-   * Find the index that is already being used to hold the counts for cmid.
-   * If no such index exists, return 0.
+   * Finds the index that is already being used to hold the counts for cmid.
    *
    * @param cmid compiled method id
+   * @return 0 if no index exists, the index otherwise
    */
   private int findHeapIdx(int cmid) {
     if (cmid < map.length) {

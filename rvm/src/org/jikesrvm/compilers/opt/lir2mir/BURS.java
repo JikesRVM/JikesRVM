@@ -38,7 +38,6 @@ public abstract class BURS {
   protected final BURS_TreeNode Register = new BURS_TreeNode(REGISTER_opcode);
   protected final BURS_TreeNode BranchTarget = new BURS_TreeNode(BRANCH_TARGET_opcode);
 
-  // initialize scratch field for expression tree labeling.
   BURS(IR ir) {
     this.ir = ir;
     NullTreeNode.setNumRegisters(0);
@@ -52,8 +51,10 @@ public abstract class BURS {
   protected Instruction lastInstr;
 
   /**
-   * Prepare to convert a block. Must be called before invoke.
-   * @param bb
+   * Prepares for conversion of a block. This method must be called before
+   * using an invoke method from the subclasses.
+   *
+   * @param bb a basic block
    */
   final void prepareForBlock(BasicBlock bb) {
     if (DEBUG) {
@@ -64,8 +65,10 @@ public abstract class BURS {
   }
 
   /**
-   * Must be called after invoke for all non-empty blocks.
-   * @param bb
+   * Finalizes a block. This method must be called after
+   * using an invoke method for all non-empty blocks.
+   *
+   * @param bb a basic block
    */
   final void finalizeBlock(BasicBlock bb) {
     lastInstr.BURS_backdoor_linkWithNext(bb.lastInstruction());
@@ -78,6 +81,8 @@ public abstract class BURS {
 
   /**
    * Appends an instruction, i.e. emits an MIR instruction.
+   *
+   * @param instruction the instruction to emit
    */
   public final void append(Instruction instruction) {
     lastInstr.BURS_backdoor_linkWithNext(instruction);

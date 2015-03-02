@@ -25,6 +25,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -77,7 +78,7 @@ import org.jikesrvm.util.Pair;
  * <a href="http://www.research.ibm.com/jalapeno/publication.html#sas00">
  *  Unified Analysis of Arrays and Object References in Strongly Typed
  *  Languages </a> for an overview of Array SSA form.  More implementation
- *  details are documented in {@link SSA <code> SSA.java</code>}.
+ *  details are documented in {@link SSA}.
  *
  * @see SSA
  * @see SSAOptions
@@ -495,8 +496,8 @@ public class EnterSSA extends CompilerPhase {
             s.isPEI() ||
             Label.conforms(s) ||
             BBend.conforms(s) ||
-            s.operator.opcode == UNINT_BEGIN_opcode ||
-            s.operator.opcode == UNINT_END_opcode) {
+            s.getOpcode() == UNINT_BEGIN_opcode ||
+            s.getOpcode() == UNINT_END_opcode) {
           dictionary.registerInstruction(s, b);
         }
       }
@@ -588,6 +589,8 @@ public class EnterSSA extends CompilerPhase {
    * @param defs defs[i] represents the basic blocks that define
    *            symbolic register i.
    * @param symbolics symbolics[i] is symbolic register number i
+   * @param excludeGuards whether guard registers should be excluded
+   *  from SSA
    */
   private void insertPhiFunctions(IR ir, BitVector[] defs, Register[] symbolics, boolean excludeGuards) {
     for (int r = 0; r < defs.length; r++) {
@@ -758,6 +761,9 @@ public class EnterSSA extends CompilerPhase {
    */
   private void search(BasicBlock X, Stack<RegisterOperand>[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
+
+    HashMap<Register, Register> pushedRegs = new HashMap<Register, Register>();
+
     for (Enumeration<Instruction> ie = X.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction A = ie.nextElement();
       if (A.operator() != PHI) {
@@ -790,7 +796,7 @@ public class EnterSSA extends CompilerPhase {
           if (DEBUG) System.out.println("PUSH " + r2 + " FOR " + r1 + " BECAUSE " + A);
           S[r1.getNumber()].push(new RegisterOperand(r2, rop.getType()));
           rop.setRegister(r2);
-          r2.scratchObject = r1;
+          pushedRegs.put(r2, r1);
         }
       }
     } // end of first loop
@@ -846,7 +852,7 @@ public class EnterSSA extends CompilerPhase {
         Register newReg = newOp.asRegister().getRegister();
         if (newReg.isSSA()) continue;
         if (newReg.isPhysical()) continue;
-        Register r1 = (Register) newReg.scratchObject;
+        Register r1 = pushedRegs.get(newReg);
         S[r1.getNumber()].pop();
         if (DEBUG) System.out.println("POP " + r1);
       }
@@ -962,7 +968,7 @@ public class EnterSSA extends CompilerPhase {
       Instruction A = a.nextElement();
       if (!dictionary.usesHeapVariable(A) && !dictionary.defsHeapVariable(A)) continue;
       // retrieve the Heap Variables defined by A
-      if (A.operator != PHI) {
+      if (A.operator() != PHI) {
         HeapOperand<Object>[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
           for (HeapOperand<Object> def : defs) {
@@ -1030,30 +1036,33 @@ public class EnterSSA extends CompilerPhase {
     }
   }
 
+  private enum PhiTypeInformation {
+    NO_NULL_TYPE, FOUND_NULL_TYPE
+  }
+
   /*
    * Compute type information for operands in each phi instruction.
    *
    * PRECONDITION: Def-use chains computed.
    * SIDE EFFECT: empties the scalarPhis set
-   * SIDE EFFECT: bashes the Instruction scratch field.
    */
-  private static final int NO_NULL_TYPE = 0;
-  private static final int FOUND_NULL_TYPE = 1;
-
   private void rectifyPhiTypes() {
     if (DEBUG) System.out.println("Rectify phi types.");
     removeAllUnreachablePhis(scalarPhis);
+    int noRehashCapacity = (int) (scalarPhis.size() * 1.5f);
+    HashMap<Instruction, PhiTypeInformation> phiTypes =
+        new HashMap<Instruction, PhiTypeInformation>(noRehashCapacity) ;
     while (!scalarPhis.isEmpty()) {
       boolean didSomething = false;
       for (Iterator<Instruction> i = scalarPhis.iterator(); i.hasNext();) {
         Instruction phi = i.next();
-        phi.scratch = NO_NULL_TYPE;
+        phiTypes.put(phi, PhiTypeInformation.NO_NULL_TYPE);
         if (DEBUG) System.out.println("PHI: " + phi);
-        TypeReference meet = meetPhiType(phi);
+        TypeReference meet = meetPhiType(phi, phiTypes);
         if (DEBUG) System.out.println("MEET: " + meet);
         if (meet != null) {
           didSomething = true;
-          if (phi.scratch == NO_NULL_TYPE) i.remove();
+          if (phiTypes.get(phi) == PhiTypeInformation.NO_NULL_TYPE) i.remove();
           RegisterOperand result = (RegisterOperand) Phi.getResult(phi);
           result.setType(meet);
           for (Enumeration<RegisterOperand> e = DefUse.uses(result.getRegister()); e.hasMoreElements();) {
@@ -1072,9 +1081,6 @@ public class EnterSSA extends CompilerPhase {
     }
   }
 
-  /**
-   * Remove all phis that are unreachable
-   */
   private void removeAllUnreachablePhis(HashSet<Instruction> scalarPhis) {
     boolean iterateAgain = false;
     do {
@@ -1107,11 +1113,6 @@ public class EnterSSA extends CompilerPhase {
     } while (iterateAgain);
   }
 
-  /**
-   * Remove all unreachable operands from scalar phi functions<p>
-   *
-   * NOT CURRENTLY USED
-   */
   @SuppressWarnings("unused")
   private void removeUnreachableOperands(HashSet<Instruction> scalarPhis) {
     for (Instruction phi : scalarPhis) {
@@ -1141,20 +1142,19 @@ public class EnterSSA extends CompilerPhase {
 
   /**
    * Return the meet of the types on the rhs of a phi instruction
-   * <p>
-   * SIDE EFFECT: bashes the Instruction scratch field.
    *
    * @param s phi instruction
+   * @param phiTypes TODO
+   * @return the meet of the types
    */
-  private static TypeReference meetPhiType(Instruction s) {
-
+  private static TypeReference meetPhiType(Instruction s, Map<Instruction, PhiTypeInformation> phiTypes) {
     TypeReference result = null;
     for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
       Operand val = Phi.getValue(s, i);
       if (val instanceof UnreachableOperand) continue;
       TypeReference t = val.getType();
       if (t == null) {
-        s.scratch = FOUND_NULL_TYPE;
+        phiTypes.put(s, PhiTypeInformation.FOUND_NULL_TYPE);
       } else if (result == null) {
         result = t;
       } else {
@@ -1180,12 +1180,6 @@ public class EnterSSA extends CompilerPhase {
     return result;
   }
 
-  /**
-   * Find a parameter type.
-   *
-   * <p> Given a register that holds a parameter, look at the register's
-   * use chain to find the type of the parameter
-   */
   @SuppressWarnings("unused")
   private TypeReference findParameterType(Register p) {
     RegisterOperand firstUse = p.useList;

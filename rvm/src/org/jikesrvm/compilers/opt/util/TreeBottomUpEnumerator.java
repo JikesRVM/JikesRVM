@@ -69,7 +69,7 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
 
   /**
    * A postorder depth first traversal, adding nodes to the list
-   * @param node
+   * @param node the node to start at
    */
   private void DFS(TreeNode node) {
     Enumeration<TreeNode> childEnum = node.getChildren();

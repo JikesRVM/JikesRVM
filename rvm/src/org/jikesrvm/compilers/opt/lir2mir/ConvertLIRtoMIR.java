@@ -47,7 +47,6 @@ import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.NullCheckCombining;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.depgraph.DepGraph;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
@@ -420,7 +419,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
         // Use Normal instruction selection.
         burs.prepareForBlock(bb);
         // I. Build Dependence graph for the basic block
-        DepGraph dgraph = new DepGraph(ir, bb.firstRealInstruction(), bb.lastRealInstruction(), bb);
+        NormalBURS_DepGraph dgraph = new NormalBURS_DepGraph(ir, bb.firstRealInstruction(), bb.lastRealInstruction(), bb);
         if (options.PRINT_DG_BURS) {
           // print dependence graph.
           OptimizingCompiler.header("DepGraph", ir.method);

@@ -186,19 +186,6 @@ public final class Register {
 
   public void clearValidation() { flags &= ~VALIDATION; }
 
-  public Object scratchObject;
-
-  /**
-   * Used in dependence graph construction.
-   */
-  public void setdNode(org.jikesrvm.compilers.opt.depgraph.DepGraphNode a) {
-    scratchObject = a;
-  }
-
-  public org.jikesrvm.compilers.opt.depgraph.DepGraphNode dNode() {
-    return (org.jikesrvm.compilers.opt.depgraph.DepGraphNode) scratchObject;
-  }
-
   /**
    * Used to store register lists.
    * Computed on demand by IR.computeDU().
@@ -207,6 +194,9 @@ public final class Register {
 
   /**
    * This accessor is only valid when register lists are valid
+   *
+   * @return the first definition of this register or {@code null} if
+   *  no def list is available
    */
   public Instruction getFirstDef() {
     if (defList == null) {
@@ -220,11 +210,6 @@ public final class Register {
    * The number of uses; used by flow-insensitive optimizations
    */
   public int useCount;
-
-  /**
-   * A field optimizations can use as they choose
-   */
-  public int scratch;
 
   public Register(int Number) {
     number = Number;
@@ -345,10 +330,6 @@ public final class Register {
     return mapsToRegister;
   }
 
-  public int getSpillAllocated() {
-    return scratch;
-  }
-
   @Override
   public int hashCode() {
     return number;
@@ -379,4 +360,5 @@ public final class Register {
     return Next;
   }
   /* end of inlined behavior */
+
 }

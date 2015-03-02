@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
  *
- * See {@link SS} for an overview of the semi-space algorithm.<p>
+ * See {@link SS} for an overview of the semi-space algorithm.
  *
  * @see SS
  * @see SSCollector

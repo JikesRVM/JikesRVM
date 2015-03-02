@@ -57,7 +57,9 @@ public class Controller implements Callbacks.ExitMonitor,
   private static String[] optCompilerOptions = new String[0];
 
   /**
-   * Add a deferred command line argument
+   * Adds a deferred command line argument.
+   *
+   * @param arg the deferred arguments
    */
   public static void addOptCompilerOption(String arg) {
     String[] tmp = new String[optCompilerOptions.length + 1];
@@ -69,7 +71,7 @@ public class Controller implements Callbacks.ExitMonitor,
   }
 
   /**
-   * Get the deferred command line arguments
+   * @return the deferred command line arguments
    */
   public static String[] getOptCompilerOptions() {return optCompilerOptions;}
 

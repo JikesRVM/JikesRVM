@@ -25,8 +25,9 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public final class MCForwardTraceLocal extends TraceLocal {
+
   /**
-   * Constructor
+   * @param trace the associated global trace
    */
   public MCForwardTraceLocal(Trace trace) {
     super(MC.SCAN_FORWARD, trace);

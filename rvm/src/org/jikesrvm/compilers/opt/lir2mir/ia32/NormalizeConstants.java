@@ -132,11 +132,4 @@ public abstract class NormalizeConstants {
     }
   }
 
-  /**
-   * IA32 supports 32 bit int immediates, so nothing to do.
-   */
-  static Operand asImmediateOrReg(Operand addr, Instruction s, IR ir) {
-    return addr;
-  }
-
 }

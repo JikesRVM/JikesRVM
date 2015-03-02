@@ -56,12 +56,12 @@ class UniformlyGeneratedGVN {
       Instruction s = e.nextElement();
       // Check if s is a fixed-point add/subtract instruction with
       // a constant second operand
-      if (s.operator == INT_ADD ||
-          s.operator == LONG_ADD ||
-          s.operator == REF_ADD ||
-          s.operator == REF_SUB ||
-          s.operator == INT_SUB ||
-          s.operator == LONG_SUB) {
+      if (s.operator() == INT_ADD ||
+          s.operator() == LONG_ADD ||
+          s.operator() == REF_ADD ||
+          s.operator() == REF_SUB ||
+          s.operator() == INT_SUB ||
+          s.operator() == LONG_SUB) {
         Operand val2 = Binary.getVal2(s);
         if (val2.isConstant()) {
           Operand lhs = Binary.getResult(s);

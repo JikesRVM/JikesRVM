@@ -311,16 +311,16 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     if (space < 0) return name.toLowerCase();
 
     String word = name.substring(0, space);
-    String key = word.toLowerCase();
+    StringBuilder key = new StringBuilder(word.toLowerCase());
 
     do {
       int old = space+1;
       space = name.indexOf(' ', old);
       if (space < 0) {
-        key += name.substring(old);
-        return key;
+        key.append(name.substring(old));
+        return key.toString();
       }
-      key += name.substring(old, space);
+      key.append(name.substring(old, space));
     } while (true);
   }
 

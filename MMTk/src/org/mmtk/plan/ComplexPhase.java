@@ -76,7 +76,7 @@ public final class ComplexPhase extends Phase {
   }
 
   /**
-   * The number of scheduled sub phases.
+   * @return the number of scheduled sub phases.
    */
   protected int count() {
     return scheduledSubPhases.length;

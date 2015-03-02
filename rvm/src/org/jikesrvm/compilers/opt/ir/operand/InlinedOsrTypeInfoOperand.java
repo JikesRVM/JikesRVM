@@ -82,16 +82,16 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
    */
   @Override
   public String toString() {
-    StringBuffer buf = new StringBuffer("(");
+    StringBuilder buf = new StringBuilder("(");
 
     for (int i = 0, n = methodids.length; i < n; i++) {
-      buf.append(bcindexes[i]).append("@").append(MemberReference.getMemberRef(methodids[i]).getName()).append(" : ");
+      buf.append(bcindexes[i]).append('@').append(MemberReference.getMemberRef(methodids[i]).getName()).append(" : ");
 
       for (int j = 0, m = localTypeCodes[i].length; j < m; j++) {
         buf.append((char) localTypeCodes[i][j]);
       }
 
-      buf.append(",");
+      buf.append(',');
       for (int j = 0, m = stackTypeCodes[i].length; j < m; j++) {
         buf.append((char) stackTypeCodes[i][j]);
       }
@@ -100,7 +100,7 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
         buf.append(" | ");
       }
     }
-    buf.append(")");
-    return new String(buf);
+    buf.append(')');
+    return buf.toString();
   }
 }

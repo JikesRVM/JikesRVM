@@ -57,8 +57,11 @@ import org.vmmagic.pragma.NonMovingAllocation;
 /**
  * Native interface to support configuring of channel to run in a non-blocking
  * manner and support scatter/gather io operations.
- *
+ * <p>
  * JikesRVM-specific implementation by Robin Garner and Filip Pizlo.
+ * <p>
+ * Note: JavaDoc from GNU Classpath has been deleted on methods where it would
+ * cause JavaDoc warnings.
  */
 public final class VMChannel
 {
@@ -78,16 +81,6 @@ public final class VMChannel
     kind = Kind.OTHER;
   }
 
-  /**
-   * This constructor is used by the POSIX reference implementation;
-   * other virtual machines need not support it.
-   *
-   * <strong>Important:</strong> do not call this in library code that is
-   * not specific to Classpath's reference implementation.
-   *
-   * @param native_fd The native file descriptor integer.
-   * @throws IOException
-   */
   VMChannel(final int native_fd) throws IOException
   {
     this();
@@ -145,12 +138,6 @@ public final class VMChannel
   private static native int stderr_fd();
 
 
-  /**
-   * Set the file descriptor to have the required blocking
-   * setting.
-   *
-   * @param blocking The blocking flag to set.
-   */
   public void setBlocking(boolean blocking) throws IOException
   {
     setBlocking(nfd.getNativeFD(), blocking);
@@ -204,17 +191,17 @@ public final class VMChannel
   private static final LocalByteArray localByteArray = new LocalByteArray() ;
 
   /**
-   * Read the specified byte buffer.
+   * Reads a byte buffer directly using the supplied file descriptor.
    *
-   * @param dst
-   * @return the number of bytes actually read
-   * @throws IOException
+   * @param dst Direct Byte Buffer to read to.
+   * @return Number of bytes read.
+   * @throws IOException If an error occurs or dst is not a direct buffers.
    */
   public int read(ByteBuffer dst) throws IOException {
     return read(dst,dst.position(),dst.limit()-dst.position());
   }
 
-  /**
+  /*
    * Read a byte buffer, given a starting position and length.
    * Looks at the type of buffer and decides which is the fastest way
    * to perform the write.  If the buffer is backed by a byte array, use
@@ -255,6 +242,8 @@ public final class VMChannel
    * that, and copy the result to the target array.
    *
    * @param dst Byte array to read to
+   * @param pos Starting offset in the buffer
+   * @param len Number of bytes to read
    * @return Number of bytes read.
    * @throws IOException If an error occurs or dst is not a direct buffers.
    */
@@ -282,7 +271,7 @@ public final class VMChannel
    * @param position Starting offset in the buffer
    * @param len Number of bytes to read
    * @return Number of bytes read, or -1 for end of file.
-   * @throws IOException
+   * @throws IOException when an error occurs during reading
    */
   private static int read(int fd, byte[] dst, int position, int len) throws IOException {
     if (VM.VerifyAssertions) VM._assert(MemoryManager.willNeverMove(dst));
@@ -299,19 +288,13 @@ public final class VMChannel
   /**
    * Classpath's native read method.  Slow, due to the amount of JNI processing.
    *
-   * @param fd
-   * @param dst
+   * @param fd the file descriptor of the file to read
+   * @param dst the buffer that the read bytes will be written to
    * @return the number of bytes actually read
-   * @throws IOException
+   * @throws IOException when an error occurs during reading
    */
   private static native int read(int fd, ByteBuffer dst) throws IOException;
 
-  /**
-   * Read a single byte.
-   *
-   * @return The byte read, or -1 on end of file.
-   * @throws IOException
-   */
   public int read() throws IOException
   {
     //return read(nfd.getNativeFD());
@@ -348,14 +331,6 @@ public final class VMChannel
       int offset, int length)
   throws IOException;
 
-  /**
-   * Receive a datagram on this channel, returning the host address
-   * that sent the datagram.
-   *
-   * @param dst Where to store the datagram.
-   * @return The host address that sent the datagram.
-   * @throws IOException
-   */
   public SocketAddress receive(ByteBuffer dst) throws IOException
   {
     if (kind != Kind.SOCK_DGRAM)
@@ -390,8 +365,10 @@ public final class VMChannel
    * Writes from a byte array using the supplied file descriptor.
    *
    * @param src The source buffer.
+   * @param pos Starting offset in the buffer
+   * @param len Number of bytes to write
    * @return Number of bytes written.
-   * @throws IOException
+   * @throws IOException when an error occurs during writing
    */
   public int write(byte[] src, int pos, int len) throws IOException {
     if (MemoryManager.willNeverMove(src)) {
@@ -437,11 +414,11 @@ public final class VMChannel
    * Use JikesRVM's internal read function - the fast way.
    *
    * @param fd File descriptor
-   * @param src SOurce buffer
+   * @param src Source buffer
    * @param pos Starting offset in the buffer
    * @param len Number of bytes to write
    * @return Number of bytes written.
-   * @throws IOException
+   * @throws IOException when an error occurs during writing
    */
   private static int write(int fd, byte[] src, int pos, int len) throws IOException {
     int bytes = FileSystem.writeBytes(fd,src,pos,len);
@@ -453,24 +430,13 @@ public final class VMChannel
   /**
    * Classpath's native write method.  Slow, due to the amount of JNI processing.
    *
-   * @param fd
-   * @param src
+   * @param fd the file's descriptor
+   * @param src the source buffer for the bytes that will be written
    * @return Number of bytes written
-   * @throws IOException
+   * @throws IOException when an error occurs during writing
    */
   private static native int write(int fd, ByteBuffer src) throws IOException;
 
-  /**
-   * Writes from byte buffers directly using the supplied file descriptor.
-   * Assumes the that buffer list contains DirectBuffers.  Will perform
-   * as gathering write.
-   *
-   * @param srcs
-   * @param offset
-   * @param length
-   * @return Number of bytes written.
-   * @throws IOException
-   */
   public long writeGathering(ByteBuffer[] srcs, int offset, int length)
   throws IOException
   {
@@ -499,14 +465,6 @@ public final class VMChannel
       int offset, int length)
   throws IOException;
 
-  /**
-   * Send a datagram to the given address.
-   *
-   * @param src The source buffer.
-   * @param dst The destination address.
-   * @return The number of bytes written.
-   * @throws IOException
-   */
   public int send(ByteBuffer src, InetSocketAddress dst)
   throws IOException
   {
@@ -529,12 +487,6 @@ public final class VMChannel
   private static native int send6(int fd, ByteBuffer src, byte[] addr, int port)
   throws IOException;
 
-  /**
-   * Write a single byte.
-   *
-   * @param b The byte to write.
-   * @throws IOException
-   */
   public void write(int b) throws IOException
   {
     //write(nfd.getNativeFD(), b);
@@ -668,13 +620,6 @@ public final class VMChannel
   private static native int getsockname(int fd, ByteBuffer name)
   throws IOException;
 
-  /**
-   * Returns the socket address of the remote peer this channel is connected
-   * to, or null if this channel is not yet connected.
-   *
-   * @return The peer address.
-   * @throws IOException
-   */
   public InetSocketAddress getPeerAddress() throws IOException
   {
     if (!nfd.isValid())
@@ -727,14 +672,6 @@ public final class VMChannel
 
   // File-specific methods.
 
-  /**
-   * Open a file at PATH, initializing the native state to operate on
-   * that open file.
-   *
-   * @param path The absolute file path.
-   * @throws IOException If the file cannot be opened, or if this
-   *  channel was previously initialized.
-   */
   public void openFile(String path, int mode) throws IOException
   {
     if (nfd.isValid() || nfd.isClosed())

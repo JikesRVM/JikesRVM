@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt.controlflow;
 
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
@@ -58,12 +60,17 @@ public class LTDominators extends Stack<BasicBlock> {
    */
   private final ControlFlowGraph cfg;
 
+  private Map<BasicBlock, LTDominatorInfo> ltDominators;
+
+  private final IR ir;
+
   /**
    * The constructor, called by the perform method
-   * @param ir
+   * @param ir the governing IR
    * @param forward Should we compute regular dominators, or post-dominators?
    */
   LTDominators(IR ir, boolean forward) {
+    this.ir = ir;
     cfg = ir.cfg;               // save the cfg for easy access
     this.forward = forward;     // save the forward flag
   }
@@ -83,6 +90,7 @@ public class LTDominators extends Stack<BasicBlock> {
       }
     }
     LTDominators dom = new LTDominators(ir, forward);
+    ir.setLtDominators(dom);
     dom.analyze(ir);
   }
 
@@ -95,12 +103,10 @@ public class LTDominators extends Stack<BasicBlock> {
    */
   public static void approximate(IR ir, boolean forward) {
     LTDominators dom = new LTDominators(ir, forward);
+    ir.setLtDominators(dom);
     dom.analyze(ir);
   }
 
-  /**
-   * analyze dominators
-   */
   protected void analyze(IR ir) {
     if (DEBUG) {
       System.out.println("   Here's the CFG for method: " + ir.method.getName() + "\n" + ir.cfg);
@@ -126,7 +132,9 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Check to make sure all nodes were reached
+   * Checks that all nodes were reached.
+   *
+   * @param ir the governing IR
    */
   private void checkReachability(IR ir) {
     if (!forward) {
@@ -148,9 +156,13 @@ public class LTDominators extends Stack<BasicBlock> {
   private void step1() {
     // allocate the vertex array, one element for each basic block, starting
     // at 1
-    vertex = new BasicBlock[cfg.numberOfNodes() + 1];
+    int size = cfg.numberOfNodes() + 1;
+    vertex = new BasicBlock[size];
     DFSCounter = 0;
     if (DEBUG) { System.out.println("Initializing blocks:"); }
+
+    int noRehashCapacity = (int) (size * 1.4f);
+    ltDominators = new HashMap<BasicBlock, LTDominatorInfo>(noRehashCapacity);
 
     // Initialize each block with an empty set of predecessors and
     // a 0 for a semidominator
@@ -158,7 +170,7 @@ public class LTDominators extends Stack<BasicBlock> {
       BasicBlock block = bbEnum.nextElement();
       // We don't compute a result for the exit node in the forward direction
       if (!forward || !block.isExit()) {
-        block.scratchObject = new LTDominatorInfo(block);
+        ltDominators.put(block, new LTDominatorInfo(block));
         if (DEBUG) {
           printNextNodes(block);
         }
@@ -201,16 +213,16 @@ public class LTDominators extends Stack<BasicBlock> {
     }
     Enumeration<BasicBlock> e = getNextNodes(block);
     while (e.hasMoreElements()) {
-      System.out.print(" ");
+      System.out.print(' ');
       System.out.print(e.nextElement());
     }
     System.out.println();
   }
 
   /**
-   * Returns an enumeration of the "next" nodes (either out or in) for the
-   * passed block depending on which way we are viewing the graph
    * @param block the basic block of interest
+   * @return an enumeration of the "next" nodes (either out or in) for the
+   * passed block depending on which way we are viewing the graph
    */
   private Enumeration<BasicBlock> getNextNodes(BasicBlock block) {
     Enumeration<BasicBlock> bbEnum;
@@ -223,9 +235,9 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Returns an enumeration of the "prev" nodes (either in or out) for the
-   * passed block depending on which way we are viewing the graph
    * @param block the basic block of interest
+   * @return an enumeration of the "prev" nodes (either in or out) for the
+   * passed block depending on which way we are viewing the graph
    */
   private Enumeration<BasicBlock> getPrevNodes(BasicBlock block) {
     Enumeration<BasicBlock> bbEnum;
@@ -271,13 +283,13 @@ public class LTDominators extends Stack<BasicBlock> {
       }
 
       Enumeration<BasicBlock> e;
-      e = LTDominatorInfo.getInfo(block).getEnum();
+      e = LTDominatorInfo.getInfo(block, ir).getEnum();
 
       if (e == null) {
         if (DEBUG) { System.out.println(" Initial processing of " + block); }
 
         DFSCounter++;
-        LTDominatorInfo.getInfo(block).setSemiDominator(DFSCounter);
+        LTDominatorInfo.getInfo(block, ir).setSemiDominator(DFSCounter);
         vertex[DFSCounter] = block;
         e = getNextNodes(block);
       } else {
@@ -294,11 +306,11 @@ public class LTDominators extends Stack<BasicBlock> {
           continue;  // inner loop
         }
         if (getSemi(next) == 0) {
-          LTDominatorInfo.getInfo(next).setParent(block);
+          LTDominatorInfo.getInfo(next, ir).setParent(block);
 
           // simulate a recursive call
           // save the enumeration state for resumption later
-          LTDominatorInfo.getInfo(block).setEnum(e);
+          LTDominatorInfo.getInfo(block, ir).setEnum(e);
 
           if (DEBUG) { System.out.println(" Pushing" + next); }
           push(next);
@@ -323,7 +335,7 @@ public class LTDominators extends Stack<BasicBlock> {
     for (int i = DFSCounter; i > 1; i--) {
       // block = vertex[i]
       BasicBlock block = vertex[i];
-      LTDominatorInfo blockInfo = LTDominatorInfo.getInfo(block);
+      LTDominatorInfo blockInfo = LTDominatorInfo.getInfo(block, ir);
 
       if (DEBUG) { System.out.println(" Processing: " + block + "\n"); }
 
@@ -342,14 +354,14 @@ public class LTDominators extends Stack<BasicBlock> {
       }  // while prev
 
       // add "block" to bucket(vertex(semi(block)));
-      LTDominatorInfo.getInfo(vertex[blockInfo.getSemiDominator()]).
+      LTDominatorInfo.getInfo(vertex[blockInfo.getSemiDominator()], ir).
           addToBucket(block);
 
       // LINK(parent(block), block)
       LINK(blockInfo.getParent(), block);
 
       // foreach block2 in bucket(parent(block)) do
-      java.util.Iterator<BasicBlock> bucketEnum = LTDominatorInfo.getInfo(getParent(block)).getBucketIterator();
+      java.util.Iterator<BasicBlock> bucketEnum = LTDominatorInfo.getInfo(getParent(block), ir).getBucketIterator();
       while (bucketEnum.hasNext()) {
         BasicBlock block2 = bucketEnum.next();
 
@@ -361,9 +373,9 @@ public class LTDominators extends Stack<BasicBlock> {
         // else
         //    dom(block2) = parent(block)
         if (getSemi(u) < getSemi(block2)) {
-          LTDominatorInfo.getInfo(block2).setDominator(u);
+          LTDominatorInfo.getInfo(block2, ir).setDominator(u);
         } else {
-          LTDominatorInfo.getInfo(block2).setDominator(getParent(block));
+          LTDominatorInfo.getInfo(block2, ir).setDominator(getParent(block));
         }
       }         // while bucket has more elements
     }           // for DFSCounter .. 1
@@ -407,7 +419,7 @@ public class LTDominators extends Stack<BasicBlock> {
   private void compress(BasicBlock block) {
     if (getAncestor(getAncestor(block)) != null) {
       compress(getAncestor(block));
-      LTDominatorInfo blockInfo = LTDominatorInfo.getInfo(block);
+      LTDominatorInfo blockInfo = LTDominatorInfo.getInfo(block, ir);
       if (getSemi(getLabel(getAncestor(block))) < getSemi(getLabel(block))) {
         blockInfo.setLabel(getLabel(getAncestor(block)));
       }
@@ -431,23 +443,23 @@ public class LTDominators extends Stack<BasicBlock> {
     BasicBlock s = block2;
     while (getSemi(getLabel(block2)) < getSemi(getLabel(getChild(s)))) {
       if (getSize(s) + getSize(getChild(getChild(s))) >= 2 * getSize(getChild(s))) {
-        LTDominatorInfo.getInfo(getChild(s)).setAncestor(s);
-        LTDominatorInfo.getInfo(s).setChild(getChild(getChild(s)));
+        LTDominatorInfo.getInfo(getChild(s), ir).setAncestor(s);
+        LTDominatorInfo.getInfo(s, ir).setChild(getChild(getChild(s)));
       } else {
-        LTDominatorInfo.getInfo(getChild(s)).setSize(getSize(s));
-        LTDominatorInfo.getInfo(s).setAncestor(getChild(s));
+        LTDominatorInfo.getInfo(getChild(s), ir).setSize(getSize(s));
+        LTDominatorInfo.getInfo(s, ir).setAncestor(getChild(s));
         s = getChild(s);
       }
     }
-    LTDominatorInfo.getInfo(s).setLabel(getLabel(block2));
-    LTDominatorInfo.getInfo(block1).setSize(getSize(block1) + getSize(block2));
+    LTDominatorInfo.getInfo(s, ir).setLabel(getLabel(block2));
+    LTDominatorInfo.getInfo(block1, ir).setSize(getSize(block1) + getSize(block2));
     if (getSize(block1) < 2 * getSize(block2)) {
       BasicBlock tmp = s;
       s = getChild(block1);
-      LTDominatorInfo.getInfo(block1).setChild(tmp);
+      LTDominatorInfo.getInfo(block1, ir).setChild(tmp);
     }
     while (s != null) {
-      LTDominatorInfo.getInfo(s).setAncestor(block1);
+      LTDominatorInfo.getInfo(s, ir).setAncestor(block1);
       s = getChild(s);
     }
     if (DEBUG) {
@@ -465,7 +477,7 @@ public class LTDominators extends Stack<BasicBlock> {
       // if dom(block) != vertex[semi(block)]
       if (getDom(block) != vertex[getSemi(block)]) {
         // dom(block) = dom(dom(block))
-        LTDominatorInfo.getInfo(block).setDominator(getDom(getDom(block)));
+        LTDominatorInfo.getInfo(block, ir).setDominator(getDom(getDom(block)));
       }
     }
   }
@@ -476,75 +488,69 @@ public class LTDominators extends Stack<BasicBlock> {
   //
 
   /**
-   * Returns the current dominator for the passed block
-   * @param block
-   * @return the domiator for the passed block
+   * @param block the block whose dominator is of interest
+   * @return the dominator for the passed block
    */
   private BasicBlock getDom(BasicBlock block) {
-    return LTDominatorInfo.getInfo(block).getDominator();
+    return LTDominatorInfo.getInfo(block, ir).getDominator();
   }
 
   /**
-   * Returns the parent for the passed block
-   * @param block
+   * @param block the block whose parent is of interest
    * @return the parent for the passed block
    */
   private BasicBlock getParent(BasicBlock block) {
-    return LTDominatorInfo.getInfo(block).getParent();
+    return LTDominatorInfo.getInfo(block, ir).getParent();
   }
 
   /**
-   * Returns the ancestor for the passed block
-   * @param block
+   * @param block the block whose ancestor is of interest
    * @return the ancestor for the passed block
    */
   private BasicBlock getAncestor(BasicBlock block) {
-    return LTDominatorInfo.getInfo(block).getAncestor();
+    return LTDominatorInfo.getInfo(block, ir).getAncestor();
   }
 
   /**
-   * returns the label for the passed block or null if the block is null
-   * @param block
-   * @return the label for the passed block or null if the block is null
+   * @param block the block whose label is of interest
+   * @return the label for the passed block or {@code null} if the block is
+   *  {@code null}
    */
   private BasicBlock getLabel(BasicBlock block) {
     if (block == null) {
       return null;
     }
-    return LTDominatorInfo.getInfo(block).getLabel();
+    return LTDominatorInfo.getInfo(block, ir).getLabel();
   }
 
   /**
-   * Returns the current semidominator for the passed block
-   * @param block
+   * @param block the block whose semidominator is of interest
    * @return the semidominator for the passed block
    */
   private int getSemi(BasicBlock block) {
     if (block == null) {
       return 0;
     }
-    return LTDominatorInfo.getInfo(block).getSemiDominator();
+    return LTDominatorInfo.getInfo(block, ir).getSemiDominator();
   }
 
   /**
-   * returns the size associated with the block
-   * @param block
-   * @return the size of the block or 0 if the block is null
+   * @param block block the block whose size is of interest
+   * @return the size of the block or 0 if the block is {@code null}
    */
   private int getSize(BasicBlock block) {
     if (block == null) {
       return 0;
     }
-    return LTDominatorInfo.getInfo(block).getSize();
+    return LTDominatorInfo.getInfo(block, ir).getSize();
   }
 
   /**
-   * Get the child node for this block
-   * @param block
+   * @param block the block whose child is of interest
    * @return the child node
    */
   private BasicBlock getChild(BasicBlock block) {
-    return LTDominatorInfo.getInfo(block).getChild();
+    return LTDominatorInfo.getInfo(block, ir).getChild();
   }
 
   /**
@@ -568,10 +574,10 @@ public class LTDominators extends Stack<BasicBlock> {
       BasicBlock block = bbEnum.nextElement();
       // We don't compute a result for the exit node for forward direction
       if (!forward || !block.isExit()) {
-        System.out.println("Dominators of " + block + ":" + LTDominatorInfo.getInfo(block).dominators(block, ir));
+        System.out.println("Dominators of " + block + ":" + LTDominatorInfo.getInfo(block, ir).dominators(block, ir));
       }
     }
-    System.out.println("\n");
+    System.out.println('\n');
   }
 
   /**
@@ -584,7 +590,7 @@ public class LTDominators extends Stack<BasicBlock> {
       if (forward && block.isExit()) {
         continue;
       }
-      LTDominatorInfo info = (LTDominatorInfo) block.scratchObject;
+      LTDominatorInfo info = ir.getLtDominators().getInfo(block);
       System.out.println(" " + block + " " + info);
     }
     // Visit each node in reverse DFS order, except for the root, which
@@ -593,4 +599,9 @@ public class LTDominators extends Stack<BasicBlock> {
       System.out.println(" Vertex: " + i + " " + vertex[i]);
     }
   }
+
+  LTDominatorInfo getInfo(BasicBlock bb) {
+    return ltDominators.get(bb);
+  }
+
 }

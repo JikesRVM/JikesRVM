@@ -38,9 +38,6 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
   */
  private final ObjectReferenceDeque modBuffer;
 
-  /**
-   * Constructor
-   */
   public StickyMSNurseryTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
     super(StickyMS.SCAN_NURSERY, trace);
     this.modBuffer = modBuffer;

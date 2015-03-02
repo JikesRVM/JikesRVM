@@ -27,6 +27,7 @@ import org.vmmagic.Pragma;
 @Target({ElementType.FIELD})
 @Pragma
 public @interface RuntimeFinal {
-  /** The value of the field. Currently only boolean values can be RuntimeFinal. */
+  /** @return value of the field at runtime.
+   * Currently only boolean values can be RuntimeFinal. */
   boolean value();
 }

@@ -136,7 +136,7 @@ import org.vmmagic.unboxed.Offset;
  * in John's thesis.
  * In particular this code takes a different approach to JSRs (inlining them),
  * and has more advanced and effective implementation of the inlining
- * transformation. <p>
+ * transformation.
  *
  *
  * @see IRGenOptions
@@ -2294,7 +2294,7 @@ public final class BC2IR {
           } else {
             TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
             if (isNonNull(op2)) {
-              s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, getGuard(op2));
+              s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, copyGuardFromOperand(op2));
             } else {
               s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), typeOp);
             }
@@ -2340,7 +2340,7 @@ public final class BC2IR {
           } else {
             TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
             if (isNonNull(op2)) {
-              s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, getGuard(op2));
+              s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, copyGuardFromOperand(op2));
             } else {
               s = InstanceOf.create(INSTANCEOF, t, typeOp, op2);
             }
@@ -2799,6 +2799,11 @@ public final class BC2IR {
    * If a non-void return, then create a result operand and push it
    * on the stack.
    * Create the call instruction and initialize all its operands.
+   *
+   * @param meth the method to call
+   * @param methOp data about the method
+   *
+   * @return the newly created call instruction
    */
   private Instruction _callHelper(MethodReference meth, MethodOperand methOp) {
     int numHiddenParams = methOp.isStatic() ? 0 : 1;
@@ -2852,7 +2857,7 @@ public final class BC2IR {
       if (val.isRegister()) {
         returningRegister = true;
         ret.setInheritableFlags(val.asRegister());
-        setGuard(ret, getGuard(val));
+        setGuardForRegOp(ret, copyGuardFromOperand(val));
       }
       appendInstruction(Move.create(operator, ret, val));
       // pass analysis facts about val back to our caller
@@ -2895,20 +2900,13 @@ public final class BC2IR {
     if (DBG_INSTR || DBG_SELECTED) db("-> " + s.bcIndex + ":\t" + s);
   }
 
-  /**
-   * HACK: Mark current basic block unsafe for scheduling.
-   * TODO: remove when we've got UNINT_BEGIN/END working correctly.
-   */
-  void markBBUnsafeForScheduling() {
-    currentBBLE.block.setUnsafeToSchedule();
-  }
-
   //// MAKE A FIELD REFERENCE.
   /**
    * Make a field reference operand referring to the given field with the
    * given type.
    *
    * @param f desired field
+   * @return a new location operand
    */
   private LocationOperand makeStaticFieldRef(FieldReference f) {
     return new LocationOperand(f);
@@ -2923,6 +2921,7 @@ public final class BC2IR {
    * Make a type operand that refers to the given type.
    *
    * @param type desired type
+   * @return a new type operand
    */
   private TypeOperand makeTypeOperand(TypeReference type) {
     if (VM.VerifyAssertions) VM._assert(type != null);
@@ -2933,6 +2932,7 @@ public final class BC2IR {
    * Make a type operand that refers to the given type.
    *
    * @param type desired type
+   * @return a new type operand
    */
   private TypeOperand makeTypeOperand(RVMType type) {
     if (VM.VerifyAssertions) VM._assert(type != null);
@@ -2951,6 +2951,7 @@ public final class BC2IR {
   /**
    * Fetch the value of the next operand, a constant, from the bytecode
    * stream.
+   * @param index constant pool index
    * @return the value of a literal constant from the bytecode stream,
    * encoding as a constant IR operand
    */
@@ -2981,10 +2982,11 @@ public final class BC2IR {
 
   //// LOAD LOCAL VARIABLE ONTO STACK.
   /**
-   * Simulate a load from a given local variable of an int.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of an int.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_iload(int index) {
     Operand r = getLocal(index);
@@ -2998,10 +3000,11 @@ public final class BC2IR {
   }
 
   /**
-   * Simulate a load from a given local variable of a float.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a float.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_fload(int index) {
     Operand r = getLocal(index);
@@ -3015,10 +3018,11 @@ public final class BC2IR {
   }
 
   /**
-   * Simulate a load from a given local variable of a reference.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a reference.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_aload(int index) {
     Operand r = getLocal(index);
@@ -3035,10 +3039,11 @@ public final class BC2IR {
   }
 
   /**
-   * Simulate a load from a given local variable of a long.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a long.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_lload(int index) {
     Operand r = getLocalDual(index);
@@ -3052,10 +3057,11 @@ public final class BC2IR {
   }
 
   /**
-   * Simulate a load from a given local variable of a double.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a double.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_dload(int index) {
     Operand r = getLocalDual(index);
@@ -3070,11 +3076,11 @@ public final class BC2IR {
 
   //// INCREMENT A LOCAL VARIABLE.
   /**
-   * Simulate the incrementing of a given int local variable.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates the incrementing of a given int local variable.
    *
    * @param index local variable number
    * @param amount amount to increment by
+   * @return the generated instruction, never {@code null}
    */
   private Instruction do_iinc(int index, int amount) {
     Operand r = getLocal(index);
@@ -3103,10 +3109,12 @@ public final class BC2IR {
 
   //// POP FROM STACK AND STORE INTO LOCAL VARIABLE.
   /**
-   * Simulate a store into a given local variable of an int/long/double/float
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a store into a given local variable of an int/long/double/float
    *
    * @param index local variable number
+   * @param op1 the value to store
+   * @return {@code null} if no instruction is necessary, the generated
+   *  instruction otherwise
    */
   private Instruction do_store(int index, Operand op1) {
     TypeReference type = op1.getType();
@@ -3155,10 +3163,11 @@ public final class BC2IR {
   }
 
   /**
-   * Simulate a store into a given local variable of an object ref.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a store into a given local variable of an object ref.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, the generated
+   *  instruction otherwise
    */
   private Instruction do_astore(int index) {
     Operand op1 = pop();
@@ -3200,8 +3209,8 @@ public final class BC2IR {
       op0 = gc.makeLocal(index, rop1);
       if (hasGuard(rop1)) {
         RegisterOperand g0 = gc.makeNullCheckGuard(op0.getRegister());
-        appendInstruction(Move.create(GUARD_MOVE, g0.copyRO(), getGuard(rop1)));
-        setGuard(op0, g0);
+        appendInstruction(Move.create(GUARD_MOVE, g0.copyRO(), copyGuardFromOperand(rop1)));
+        setGuardForRegOp(op0, g0);
       }
     } else {
       op0 = gc.makeLocal(index, type);
@@ -3258,30 +3267,10 @@ public final class BC2IR {
   }
 
   /**
-   * Push a copy of the given operand onto simulated stack.
+   * Pushes a copy of the given operand onto simulated stack.
    *
    * @param op1 operand to push
-   * @param b1 bytecode index to associate with the pushed operand
-   */
-  @SuppressWarnings("unused")
-  private Instruction pushCopy(Operand op1, int b1) {
-    if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
-    if (op1 instanceof RegisterOperand) {
-      RegisterOperand reg = (RegisterOperand) op1;
-      if (!reg.getRegister().isLocal()) {
-        lastInstr = null;       // to prevent eliminating this temporary.
-      }
-      stack.push(reg.copy());
-    } else {
-      stack.push(op1.copy());
-    }
-    return null;
-  }
-
-  /**
-   * Push a copy of the given operand onto simulated stack.
-   *
-   * @param op1 operand to push
+   * @return always {@code null}
    */
   private Instruction pushCopy(Operand op1) {
     if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
@@ -3299,14 +3288,16 @@ public final class BC2IR {
 
   //// POP OPERAND FROM THE STACK.
   /**
-   * Pop an operand from the stack. No type checking is performed.
+   * Pops an operand from the stack. No type checking is performed.
+   * @return the popped operand
    */
   Operand pop() {
     return stack.pop();
   }
 
   /**
-   * Pop an int operand from the stack.
+   * Pops an int operand from the stack.
+   * @return the popped operand
    */
   public Operand popInt() {
     Operand r = pop();
@@ -3315,7 +3306,8 @@ public final class BC2IR {
   }
 
   /**
-   * Pop a float operand from the stack.
+   * Pops a float operand from the stack.
+   * @return the popped operand
    */
   Operand popFloat() {
     Operand r = pop();
@@ -3324,7 +3316,8 @@ public final class BC2IR {
   }
 
   /**
-   * Pop a ref operand from the stack.
+   * Pops a ref operand from the stack.
+   * @return the popped operand
    */
   public Operand popRef() {
     Operand r = pop();
@@ -3333,7 +3326,8 @@ public final class BC2IR {
   }
 
   /**
-   * Pop a ref operand from the stack.
+   * Pops an address operand from the stack.
+   * @return the popped operand
    */
   public Operand popAddress() {
     Operand r = pop();
@@ -3342,7 +3336,8 @@ public final class BC2IR {
   }
 
   /**
-   * Pop a long operand from the stack.
+   * Pops a long operand from the stack.
+   * @return the popped operand
    */
   Operand popLong() {
     Operand r = pop();
@@ -3352,7 +3347,8 @@ public final class BC2IR {
   }
 
   /**
-   * Pop a double operand from the stack.
+   * Pops a double operand from the stack.
+   * @return the popped operand
    */
   Operand popDouble() {
     Operand r = pop();
@@ -3362,7 +3358,7 @@ public final class BC2IR {
   }
 
   /**
-   * Pop a dummy operand from the stack.
+   * Pops a dummy operand from the stack.
    */
   void popDummy() {
     Operand r = pop();
@@ -3370,7 +3366,9 @@ public final class BC2IR {
   }
 
   /**
-   * Pop an operand of the given type from the stack.
+   * Pops an operand of the given type from the stack.
+   * @param type the expected type of the operand
+   * @return the popped operand
    */
   Operand pop(TypeReference type) {
     Operand r = pop();
@@ -3459,10 +3457,11 @@ public final class BC2IR {
 
   //// GET TYPE OF AN OPERAND.
   /**
-   * Return the data type of the given operand, assuming that the operand is
-   * an array reference. (and not a null constant.)
+   * Returns the data type of the given operand, assuming that the operand is
+   * an array reference. (and not a {@code null} constant.)
    *
    * @param op operand to get type of
+   * @return operand's data type
    */
   public TypeReference getArrayTypeOf(Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
@@ -3470,10 +3469,11 @@ public final class BC2IR {
   }
 
   /**
-   * Return the data type of the given operand, assuming that the operand is
-   * a reference. (and not a null constant.)
+   * Returns the data type of the given operand, assuming that the operand is
+   * a reference. (and not a {@code null} constant.)
    *
    * @param op operand to get type of
+   * @return operand's data type
    */
   private TypeReference getRefTypeOf(Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
@@ -3545,7 +3545,7 @@ public final class BC2IR {
   }
 
   /**
-   * Return a string representation of the current basic block set.
+   * @return a string representation of the current basic block set.
    */
   private String printBlocks() {
     StringBuilder res = new StringBuilder();
@@ -3565,28 +3565,28 @@ public final class BC2IR {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.scratchObject == null) ||
-                   (rop.scratchObject instanceof RegisterOperand) ||
-                   (rop.scratchObject instanceof TrueGuardOperand));
+        VM._assert((rop.getGuard() == null) ||
+                   (rop.getGuard() instanceof RegisterOperand) ||
+                   (rop.getGuard() instanceof TrueGuardOperand));
       }
-      return rop.scratchObject != null;
+      return rop.getGuard() != null;
     } else {
       return op.isConstant();
     }
   }
 
   public static boolean hasGuard(RegisterOperand rop) {
-    return rop.scratchObject != null;
+    return rop.getGuard() != null;
   }
 
   public static boolean hasLessConservativeGuard(RegisterOperand rop1, RegisterOperand rop2) {
-    if (rop1.scratchObject == rop2.scratchObject) {
+    if (rop1.getGuard() == rop2.getGuard()) {
       return false;
     }
-    if (rop1.scratchObject instanceof Operand) {
-      if (rop2.scratchObject instanceof Operand) {
-        Operand op1 = (Operand) rop1.scratchObject;
-        Operand op2 = (Operand) rop2.scratchObject;
+    if (rop1.getGuard() instanceof Operand) {
+      if (rop2.getGuard() instanceof Operand) {
+        Operand op1 = rop1.getGuard();
+        Operand op2 = rop2.getGuard();
         if (op2 instanceof TrueGuardOperand) {
           // rop2 is top therefore rop1 can't be less conservative!
           return false;
@@ -3605,21 +3605,21 @@ public final class BC2IR {
   public void markGuardlessNonNull(RegisterOperand rop) {
     RegisterOperand g = gc.makeNullCheckGuard(rop.getRegister());
     appendInstruction(Move.create(GUARD_MOVE, g, new TrueGuardOperand()));
-    rop.scratchObject = g.copy();
+    rop.setGuard(g.copy());
   }
 
-  public static Operand getGuard(Operand op) {
+  public static Operand copyGuardFromOperand(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.scratchObject == null) ||
-                   (rop.scratchObject instanceof RegisterOperand) ||
-                   (rop.scratchObject instanceof TrueGuardOperand));
+        VM._assert((rop.getGuard() == null) ||
+                   (rop.getGuard() instanceof RegisterOperand) ||
+                   (rop.getGuard() instanceof TrueGuardOperand));
       }
-      if (rop.scratchObject == null) {
+      if (rop.getGuard() == null) {
         return null;
       } else {
-        return ((Operand) rop.scratchObject).copy();
+        return rop.getGuard().copy();
       }
     }
     if (VM.VerifyAssertions) {
@@ -3628,8 +3628,8 @@ public final class BC2IR {
     return new TrueGuardOperand();
   }
 
-  public static void setGuard(RegisterOperand rop, Operand guard) {
-    rop.scratchObject = guard;
+  public static void setGuardForRegOp(RegisterOperand rop, Operand guard) {
+    rop.setGuard(guard);
   }
 
   private void setCurrentGuard(Operand guard) {
@@ -3659,7 +3659,8 @@ public final class BC2IR {
   }
 
   /**
-   * Generate a null-check instruction for the given operand.
+   * Generates a null-check instruction for the given operand.
+   * @param ref the reference to check for null
    * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   public boolean do_NullCheck(Operand ref) {
@@ -3677,7 +3678,7 @@ public final class BC2IR {
     if (ref instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) ref;
       if (hasGuard(rop)) {
-        Operand guard = getGuard(rop);
+        Operand guard = copyGuardFromOperand(rop);
         setCurrentGuard(guard);
         if (DBG_ELIMNULL) {
           db("null check of " + ref + " is not necessary; guarded by " + guard);
@@ -3690,7 +3691,7 @@ public final class BC2IR {
       appendInstruction(NullCheck.create(NULL_CHECK, guard, ref.copy()));
       rectifyStateWithNullPtrExceptionHandler();
       setCurrentGuard(guard);
-      setGuard(rop, guard);
+      setGuardForRegOp(rop, guard);
       if (DBG_ELIMNULL) db(rop + " is guarded by " + guard);
       // Now, try to leverage this null check by updating
       // other unguarded (and thus potentially null)
@@ -3711,7 +3712,7 @@ public final class BC2IR {
             if (DBG_ELIMNULL) {
               db("setting local #" + number + "(" + loc + ") to non-null");
             }
-            setGuard((RegisterOperand) loc, guard);
+            setGuardForRegOp((RegisterOperand) loc, guard);
           }
           setLocal(number, loc);
         }
@@ -3730,13 +3731,13 @@ public final class BC2IR {
           if (sreg.getRegister() == rop.getRegister()) {
             if (hasGuard(sreg)) {
               if (DBG_ELIMNULL) {
-                db(sreg + " on stack already with guard " + getGuard(sreg));
+                db(sreg + " on stack already with guard " + copyGuardFromOperand(sreg));
               }
             } else {
               if (DBG_ELIMNULL) {
                 db("setting " + sreg + " on stack to be guarded by " + guard);
               }
-              setGuard(sreg, guard);
+              setGuardForRegOp(sreg, guard);
             }
           }
         }
@@ -3753,7 +3754,9 @@ public final class BC2IR {
   }
 
   /**
-   * Generate a boundscheck instruction for the given operand and index.
+   * Generates a boundscheck instruction for the given operand and index.
+   * @param ref the array reference
+   * @param index the array index
    * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   public boolean do_BoundsCheck(Operand ref, Operand index) {
@@ -3769,7 +3772,8 @@ public final class BC2IR {
   }
 
   /**
-   * Generate a check for 0 for the given operand
+   * Generates a check for 0 for the given operand
+   * @param div the value to check
    * @return {@code true} if an unconditional trap is generated, {@code false} otherwise
    */
   private boolean do_IntZeroCheck(Operand div) {
@@ -3795,7 +3799,8 @@ public final class BC2IR {
   }
 
   /**
-   * Generate a check for 0 for the given operand
+   * Generates a checks for 0 for the given operand
+   * @param div the value to check
    * @return {@code true} if an unconditional trap is generated, {@code false} otherwise
    */
   private boolean do_LongZeroCheck(Operand div) {
@@ -3875,7 +3880,7 @@ public final class BC2IR {
     RegisterOperand guard = gc.getTemps().makeTempValidation();
     if (isNonNull(elem)) {
       RegisterOperand newGuard = gc.getTemps().makeTempValidation();
-      appendInstruction(Binary.create(GUARD_COMBINE, newGuard, getGuard(elem), getCurrentGuard()));
+      appendInstruction(Binary.create(GUARD_COMBINE, newGuard, copyGuardFromOperand(elem), getCurrentGuard()));
       appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK_NOTNULL,
                                           guard,
                                           ref.copy(),
@@ -3891,13 +3896,14 @@ public final class BC2IR {
 
   //// GENERATE BRANCHING INSTRUCTIONS.
   /**
-   * Get or create a block at the specified target.
+   * Gets or creates a block at the specified target.
    * Rectifies current state with target state.
    * Instructions to rectify state are appended to currentBBLE.
    * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
    *
    * @param target target index
+   * @return a block, never {@code null}
    */
   private BasicBlockLE getOrCreateBlock(int target) {
     return getOrCreateBlock(target, currentBBLE, stack, _localState);
@@ -3916,6 +3922,7 @@ public final class BC2IR {
    *                  and to which stack rectification instructions are added.
    * @param simStack stack state to rectify, or {@code null}
    * @param simLocals local state to rectify, or {@code null}
+   * @return a block, never {@code null}
    */
   private BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, Operand[] simLocals) {
     if ((target > bcodes.index()) && (target < runoff)) {
@@ -4015,7 +4022,7 @@ public final class BC2IR {
                   RegisterOperand locr = (RegisterOperand) loc;
                   RegisterOperand tlocr = locr.copyU2U();
                   guard = gc.makeNullCheckGuard(tlocr.getRegister());
-                  setGuard(tlocr, guard.copyD2U());
+                  setGuardForRegOp(tlocr, guard.copyD2U());
                   tlocr.clearDeclaredType();
                   tlocr.clearPreciseType();
                   tlocr.setType(type2);
@@ -4047,7 +4054,7 @@ public final class BC2IR {
                   }
                   RegisterOperand locr = (RegisterOperand) loc;
                   guard = gc.makeNullCheckGuard(locr.getRegister());
-                  setGuard(locr, guard.copyD2U());
+                  setGuardForRegOp(locr, guard.copyD2U());
                   locr.clearDeclaredType();
                   locr.clearPreciseType();
                   locr.setType(type2);
@@ -4318,7 +4325,7 @@ public final class BC2IR {
           if (loc instanceof RegisterOperand) {
             RegisterOperand locr = (RegisterOperand) loc;
             guard = gc.makeNullCheckGuard(locr.getRegister());
-            setGuard(locr, guard.copyD2U());
+            setGuardForRegOp(locr, guard.copyD2U());
             setLocal(locNum, loc);
           }
         }
@@ -4333,7 +4340,7 @@ public final class BC2IR {
             RegisterOperand locr = (RegisterOperand) loc;
             RegisterOperand tlocr = locr.copyU2U();
             guard = gc.makeNullCheckGuard(locr.getRegister());
-            setGuard(tlocr, guard.copyD2U());
+            setGuardForRegOp(tlocr, guard.copyD2U());
             setLocal(locNum, tlocr);
             branch = generateTarget(offset);
             generated = true;
@@ -4596,6 +4603,7 @@ public final class BC2IR {
    * Very similar to the above, but since we aren't told what might be thrown,
    * we are forced to connect to every in scope handler and can't
    * identify a definite target.
+   *
    */
   private void rectifyStateWithExceptionHandlers(boolean linkToExitIfUncaught) {
     currentBBLE.block.setCanThrowExceptions();
@@ -4645,6 +4653,7 @@ public final class BC2IR {
    * @param call the call instruction being considered for inlining
    * @param isExtant is the receiver of a virtual method an extant object?
    * @param realBCI the real bytecode index of the call instruction, not adjusted because of OSR
+   * @return the inline decision (which cannot be {@code null})
    */
   private InlineDecision shouldInline(Instruction call, boolean isExtant, int realBCI) {
     if (Call.getMethod(call).getTarget() == null) {
@@ -4668,13 +4677,12 @@ public final class BC2IR {
     }
 
     // Insert OsrBarrier point before the callsite which is going to be
-    // inlined, attach the OsrBarrier instruction to callsite's scratch
-    // object, then the callee can find this barrier
+    // inlined. The callee can find this barrier via its generation context.
 
     // verify it
     if (this.osrGuardedInline) {
       if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
-      callSite.scratchObject = lastOsrBarrier;
+      gc.saveOSRBarrierForInst(lastOsrBarrier, callSite);
     }
 
     // Execute the inline decision.
@@ -4878,7 +4886,11 @@ public final class BC2IR {
     return barrier;
   }
 
-  /** special process for long/double constants */
+  /**
+   * special process for long/double constants
+   * @param op a long constant
+   * @return a new operand
+   */
   private Operand _prepareLongConstant(Operand op) {
     /* for long and double constants, always move them to a register,
      * therefor, BURS will split it in two registers.
@@ -4889,7 +4901,11 @@ public final class BC2IR {
     return t.copyD2U();
   }
 
-  /** special process for long/double constants */
+  /**
+   * special process for long/double constants
+   * @param op a double constant
+   * @return a new operand
+   */
   private Operand _prepareDoubleConstant(Operand op) {
     /* for long and double constants, always move them to a register,
      * therefor, BURS will split it in two registers.
@@ -4952,11 +4968,15 @@ public final class BC2IR {
    * which provides type and variable information.
    * The OsrPoint instruction is going to be refilled immediately
    * after BC2IR, before any other optimizations.
+   *
+   * @param barrier the OSR barrier instruction
+   * @param gc context that has information about OSR
+   * @return the osr point instruction
    */
-  public static Instruction _osrHelper(Instruction barrier) {
+  public static Instruction _osrHelper(Instruction barrier, GenerationContext gc) {
     Instruction inst = OsrPoint.create(YIELDPOINT_OSR, null,  // currently unknown
                                            0);    // currently unknown
-    inst.scratchObject = barrier;
+    gc.saveOSRBarrierForInst(barrier, inst);
     return inst;
   }
 
@@ -4967,6 +4987,7 @@ public final class BC2IR {
    * local variable is assumed to contain a particular value.)
    *
    * @param i local variable number
+   * @return a copy of the local variable
    */
   private Operand getLocal(int i) {
     Operand local = _localState[i];
@@ -4980,6 +5001,7 @@ public final class BC2IR {
    * of operand (if the local variable is assumed to contain a given value.)
    *
    * @param i local variable number
+   * @return a copy of the local variable
    */
   private Operand getLocalDual(int i) {
     if (VM.VerifyAssertions) VM._assert(_localState[i + 1] == DUMMY);

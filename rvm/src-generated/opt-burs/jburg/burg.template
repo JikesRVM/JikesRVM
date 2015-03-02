@@ -106,18 +106,19 @@ public class BURS_STATE extends BURS_Helpers {
 
    public static String dumpTree(String out, BURS_TreeNode p, int indent) {
      if (p == null) return out;
+     StringBuilder result = new StringBuilder(out);
      for (int i=0; i<indent; i++)
-       out = out + "   ";
-     out = out + p;
-     out = out + '\n';
+       result.append("   ");
+     result.append(p);
+     result.append('\n');
      if (p.child1 != null) {
        indent++;
-       out = out + dumpTree("",p.child1,indent);
+       result.append(dumpTree("",p.child1,indent));
        if (p.child2 != null) {
-	 out = out + dumpTree("",p.child2,indent);
+         result.append(dumpTree("",p.child2,indent));
        }
      }
-     return out;
+     return result.toString();
    }
 
    /**

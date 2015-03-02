@@ -24,6 +24,7 @@ import org.jikesrvm.compilers.opt.depgraph.DepGraphEdge;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COMBINE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COND_MOVE;
@@ -33,6 +34,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.OTHER_OPERAND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
+
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -71,7 +73,7 @@ final class NormalBURS extends BURS {
    * then generate MIR instructions based on the labeling.
    * @param dg the dependence graph.
    */
-  public void invoke(DepGraph dg) {
+  public void invoke(NormalBURS_DepGraph dg) {
     if (DEBUG) dg.printDepGraph();
     BURS_STATE burs = new BURS_STATE(this);
     buildTrees(dg);
@@ -88,6 +90,10 @@ final class NormalBURS extends BURS {
   // Implementation
   ////////////////////////////////
 
+  private NormalBURS_DepGraphNode castNode(SpaceEffGraphNode node) {
+    return (NormalBURS_DepGraphNode) node;
+  }
+
   /**
    * Stage 1: Complete the expression trees and identify tree roots.
    * Complete BURS trees by adding leaf nodes as needed, and
@@ -103,7 +109,7 @@ final class NormalBURS extends BURS {
     for (DepGraphNode n = bbNodes; n != null; n = (DepGraphNode) n.getNext()) {
       // Initialize n.treeNode
       BURS_TreeNode cur_parent = new BURS_TreeNode(n);
-      n.scratchObject = cur_parent;
+      castNode(n).setCurrentParent(cur_parent);
       Instruction instr = n.instruction();
       // cur_parent = current parent node for var length IR instructions
       // loop for USES of an instruction
@@ -122,7 +128,7 @@ final class NormalBURS extends BURS {
           if (e == null) {        // operand is leaf
             child = Register;
           } else {
-            child = (BURS_TreeNode) e.fromNode().scratchObject;
+            child = castNode(e.fromNode()).getCurrentParent();
           }
         } else if (op instanceof IntConstantOperand) {
           child = new BURS_IntConstantTreeNode(((IntConstantOperand) op).value);
@@ -171,7 +177,7 @@ final class NormalBURS extends BURS {
       }
 
       if (mustBeTreeRoot(n)) {
-        makeTreeRoot((BURS_TreeNode) n.scratchObject);
+        makeTreeRoot(castNode(n).getCurrentParent());
       }
     }
   }
@@ -198,7 +204,7 @@ final class NormalBURS extends BURS {
     }
     if (n.dg_node != null) {
       n.dg_node.nextSorted = root;
-      n.dg_node.scratch = 0;
+      castNode(n.dg_node).setPredecessorCount(0);
     }
   }
 
@@ -230,7 +236,7 @@ final class NormalBURS extends BURS {
       SpaceEffGraphEdge e = problemEdges[i];
       SpaceEffGraphNode src = e.fromNode();
       SpaceEffGraphNode dst = e.toNode();
-      BURS_TreeNode n = (BURS_TreeNode) src.scratchObject;
+      BURS_TreeNode n = castNode(src).getCurrentParent();
       if (n.isTreeRoot()) continue; // some other problem edge already forced it
       SpaceEffGraphNode srcRoot = src.nextSorted;
       SpaceEffGraphNode dstRoot = dst.nextSorted;
@@ -275,9 +281,9 @@ final class NormalBURS extends BURS {
   // Is goal reachable via any edge in the current tree?
   private boolean reachableRoot(SpaceEffGraphNode current, SpaceEffGraphNode goal, int searchnum) {
     if (current == goal) return true;
-    if (current.scratch == searchnum) return false;
-    current.scratch = searchnum;
-    BURS_TreeNode root = (BURS_TreeNode) current.scratchObject;
+    if (castNode(current).getPredecessorCount() == searchnum) return false;
+    castNode(current).setPredecessorCount(searchnum);
+    BURS_TreeNode root = castNode(current).getCurrentParent();
     return reachableChild(root, goal, searchnum);
   }
 
@@ -307,7 +313,7 @@ final class NormalBURS extends BURS {
     // Initialize tree root field for all nodes
     for (int i = 0; i < numTreeRoots; i++) {
       BURS_TreeNode n = treeRoots[i];
-      n.dg_node.scratch = 0;
+      castNode(n.dg_node).setPredecessorCount(0);
       initTreeRootNode(n, n.dg_node);
     }
 
@@ -317,14 +323,14 @@ final class NormalBURS extends BURS {
       for (SpaceEffGraphEdge in = node.firstInEdge(); in != null; in = in.getNextIn()) {
         SpaceEffGraphNode source_treeRoot = in.fromNode().nextSorted;
         if (source_treeRoot != n_treeRoot) {
-          n_treeRoot.scratch++;
+          castNode(n_treeRoot).incPredecessorCount();
         }
       }
     }
     if (DEBUG) {
       for (int i = 0; i < numTreeRoots; i++) {
         BURS_TreeNode n = treeRoots[i];
-        VM.sysWrite(n.dg_node.scratch + ":" + n + "\n");
+        VM.sysWrite(castNode(n.dg_node).getPredecessorCount() + ":" + n + "\n");
       }
     }
   }
@@ -352,7 +358,7 @@ final class NormalBURS extends BURS {
     // Append tree roots with predCount = 0 to readySet
     for (int i = 0; i < numTreeRoots; i++) {
       BURS_TreeNode n = treeRoots[i];
-      if (n.dg_node.scratch == 0) {
+      if (castNode(n.dg_node).getPredecessorCount() == 0) {
         readySetInsert(n);
       }
     }
@@ -429,10 +435,11 @@ final class NormalBURS extends BURS {
       for (SpaceEffGraphEdge out = dgnode.firstOutEdge(); out != null; out = out.getNextOut()) {
         SpaceEffGraphNode dest = out.toNode().nextSorted;
         if (source != dest) {
-          int count = --dest.scratch;
+          castNode(dest).decPredecessorCount();
+          int count = castNode(dest).getPredecessorCount();
           if (DEBUG) VM.sysWrite(count + ": edge " + source + " to " + dest + "\n");
           if (count == 0) {
-            readySetInsert((BURS_TreeNode) dest.scratchObject);
+            readySetInsert(castNode(dest).getCurrentParent());
           }
         }
       }
@@ -440,11 +447,14 @@ final class NormalBURS extends BURS {
   }
 
   /**
-   * Return {@code true} if node n must be a root of a BURS tree
-   * based only on its register true dependencies.
-   * If the node might later have to be marked as a tree
+   * Checks if the given node needs to be a tree rode.
+   * If the node does not need to be a tree root right now
+   * but might later have to be marked as a tree
    * root, then include in a set of problem nodes.
+   *
    * @param n the dep graph node in question.
+   * @return {@code true} if node n must be a root of a BURS tree
+   * based only on its register true dependencies.
    */
   private boolean mustBeTreeRoot(DepGraphNode n) {
     // A "fan-out" node must be a root of a BURS tree.
@@ -509,6 +519,9 @@ final class NormalBURS extends BURS {
    * Initialize nextSorted for nodes in tree rooted at t i.e.
    * for all register true descendants of t up to but not including
    * any new tree roots.
+   *
+   * @param t the BURS node
+   * @param treeRoot the dependence graph node that belongs to the BURS node
    */
   private void initTreeRootNode(BURS_TreeNode t, SpaceEffGraphNode treeRoot) {
     // Recurse
@@ -573,14 +586,11 @@ final class NormalBURS extends BURS {
   private BURS_TreeNode[] heap = new BURS_TreeNode[16];
   private int numElements = 0;
 
-  /**
-   * Add a node to the ready set.
-   */
   private void readySetInsert(BURS_TreeNode node) {
     Instruction s = node.getInstruction();
-    if (s.operator == GUARD_COMBINE ||
-        s.operator == GUARD_COND_MOVE ||
-        s.operator == GUARD_MOVE ||
+    if (s.operator() == GUARD_COMBINE ||
+        s.operator() == GUARD_COND_MOVE ||
+        s.operator() == GUARD_MOVE ||
         !ResultCarrier.conforms(s)) {
       // Adjust numRegisters to bias away from picking trees that
       // are rooted in result carriers, since they start a new live
@@ -607,16 +617,10 @@ final class NormalBURS extends BURS {
     }
   }
 
-  /**
-   * Are there nodes to process on the stack?
-   */
   private boolean readySetNotEmpty() {
     return numElements > 0;
   }
 
-  /**
-   * Remove a node from the ready set
-   */
   private BURS_TreeNode readySetRemove() {
     BURS_TreeNode ans = heap[1];
     heap[1] = heap[numElements--];
@@ -669,4 +673,5 @@ final class NormalBURS extends BURS {
   private boolean haveProblemEdges() {
     return numProblemEdges > 0;
   }
+
 }

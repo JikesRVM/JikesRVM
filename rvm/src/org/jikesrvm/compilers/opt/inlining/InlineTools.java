@@ -33,7 +33,9 @@ import org.vmmagic.pragma.Inline;
 public abstract class InlineTools {
 
   /**
-   * Does class <code>A</code> directly implement the interface <code>B</code>?
+   * @param A a class
+   * @param B an interface
+   * @return whether class <code>A</code> directly implement the interface <code>B</code>?
    */
   public static boolean implementsInterface(Class<?> A, Class<?> B) {
     for (Class<?> i : A.getInterfaces()) {
@@ -58,6 +60,7 @@ public abstract class InlineTools {
    * a mispredicted dynamic dispatch?
    *
    * @param callee the callee method
+   * @return whether a guard is needed
    */
   public static boolean needsGuard(RVMMethod callee) {
     return !(callee.isFinal() ||
@@ -69,8 +72,14 @@ public abstract class InlineTools {
 
   /**
    * Is the method CURRENTLY final (not overridden by any subclass)?
+   * <p>
    * Note that this says nothing about whether or not the method will
-   * be overriden by future dynamically loaded classes.
+   * be overridden by future dynamically loaded classes.
+   *
+   * @param callee the method to check
+   * @param searchSubclasses whether so search subclasses.
+   * @return whether the method is currently final. This will be a
+   *  conservative approximation if subclasses are not searched.
    */
   public static boolean isCurrentlyFinal(RVMMethod callee, boolean searchSubclasses) {
     RVMClass klass = callee.getDeclaringClass();

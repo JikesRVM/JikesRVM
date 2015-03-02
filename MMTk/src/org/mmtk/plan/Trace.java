@@ -30,7 +30,8 @@ public class Trace {
   final SharedDeque rootLocationPool;
 
   /**
-   * Constructor
+   * @param metaDataSpace the space to use for allocation for this
+   *  instance
    */
   public Trace(RawPageSpace metaDataSpace) {
     valuePool = new SharedDeque("valuePool",metaDataSpace, 1);
@@ -63,7 +64,8 @@ public class Trace {
   }
 
   /**
-   * Is there any work outstanding in this trace. That is are there any pages in the pools.
+   * @return whether there is any work outstanding in this trace.
+   *  That is are there any pages in the pools.
    */
   public boolean hasWork() {
     return (valuePool.enqueuedPages() + rootLocationPool.enqueuedPages()) > 0;

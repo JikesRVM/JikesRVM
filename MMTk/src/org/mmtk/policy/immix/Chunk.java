@@ -40,7 +40,7 @@ public class Chunk {
   }
 
   /**
-   * Return the number of pages of metadata required per chunk.
+   * @return the number of pages of metadata required per chunk
    */
   static int getRequiredMetaDataPages() {
     Extent bytes = Extent.fromIntZeroExtend(ROUNDED_METADATA_BYTES_PER_CHUNK);

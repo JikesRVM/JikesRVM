@@ -17,6 +17,9 @@ package org.jikesrvm;
  * that is not yet implemented.
  */
 public class UnimplementedError extends VirtualMachineError {
+
+  private static final long serialVersionUID = 1L;
+
   /**
    * Constructs a new instance of this class with its
    * walkback filled in.
@@ -34,6 +37,5 @@ public class UnimplementedError extends VirtualMachineError {
     super(detailMessage + ": not implemented");
   }
 
-  private static final long serialVersionUID = 1L;
 }
 

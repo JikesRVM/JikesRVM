@@ -27,15 +27,18 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
+import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
@@ -94,10 +97,10 @@ public final class GenerationContext {
   //////////
 
   /**
-   * The parent of this context is the context that called
-   * {@link #createChildContext(GenerationContext, ExceptionHandlerBasicBlockBag, NormalMethod, Instruction)}
-   * to create this context. This field is {@code null} if this context is the outermost
-   * one.
+   * The parent of this context is the context that the method
+   * {@link #createChildContext(ExceptionHandlerBasicBlockBag, NormalMethod, Instruction)}
+   * was called upon in order to create this context. This field is {@code null}
+   * if this context is the outermost one.
    */
   private GenerationContext parent;
 
@@ -224,6 +227,20 @@ public final class GenerationContext {
    */
   private Operand result;
 
+  /////////
+  // Information for on-stack replacement barriers
+  /////////
+
+  /**
+   * Mapping of instructions to on-stack replacement (OSR) barriers. The
+   * key is always a call instruction or an OSR yieldpoint instruction,
+   * the value is an OSR barrier instruction.
+   * <p>
+   * Child contexts save this information in their outermost parent
+   * context, so this field will be {@code null} for child contexts.
+   */
+  private Map<Instruction, Instruction> instToOSRBarriers;
+
   //////////
   // Main public methods
   /////////
@@ -276,7 +293,7 @@ public final class GenerationContext {
       RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
       RegisterOperand guard = makeNullCheckGuard(thisOp.getRegister());
-      BC2IR.setGuard(thisOp, guard);
+      BC2IR.setGuardForRegOp(thisOp, guard);
       appendInstruction(prologue, Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()), PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
@@ -309,6 +326,7 @@ public final class GenerationContext {
     }
 
     enclosingHandlers = null;
+    instToOSRBarriers = new LinkedHashMap<Instruction, Instruction>();
 
     completePrologue(true);
     completeEpilogue(true);
@@ -316,33 +334,34 @@ public final class GenerationContext {
   }
 
   /**
-   * Create a child generation context from parent &amp; callerBB to
-   * generate IR for callsite.
-   * Make this 'static' to avoid confusing parent/child fields.
+   * Creates a child generation context from this context
+   * and callerBB to generate IR for callsite.
    *
-   * @param parent the parent gc
    * @param ebag the enclosing exception handlers (null if none)
    * @param callee the callee method to be inlined
    *        (may _not_ be equal to Call.getMethod(callSite).method)
    * @param callSite the Call instruction to be inlined.
    * @return the child context
    */
-  public static GenerationContext createChildContext(GenerationContext parent, ExceptionHandlerBasicBlockBag ebag,
+  public GenerationContext createChildContext(ExceptionHandlerBasicBlockBag ebag,
                                                   NormalMethod callee, Instruction callSite) {
+    // Note: In this method, use "this" explicitly to refer to parent fields in order
+    // to avoid confusing parent/child fields.
+
     GenerationContext child = new GenerationContext();
     child.method = callee;
-    if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
+    if (this.options.frequencyCounters() || this.options.inverseFrequencyCounters()) {
       child.branchProfiles = EdgeCounts.getBranchProfiles(callee);
     }
-    child.parent = parent;
-    child.original_cm = parent.original_cm;
+    child.parent = this;
+    child.original_cm = this.original_cm;
 
     // Some state gets directly copied to the child
-    child.options = parent.options;
-    child.temps = parent.temps;
-    child._ncGuards = parent._ncGuards;
-    child.exit = parent.exit;
-    child.inlinePlan = parent.inlinePlan;
+    child.options = this.options;
+    child.temps = this.temps;
+    child._ncGuards = this._ncGuards;
+    child.exit = this.exit;
+    child.inlinePlan = this.inlinePlan;
 
     // Now inherit state based on callSite
     child.inlineSequence = new InlineSequence(child.method, callSite.position, callSite);
@@ -358,7 +377,7 @@ public final class GenerationContext {
     }
 
     // Initialize the child CFG, prologue, and epilogue blocks
-    child.cfg = new ControlFlowGraph(parent.cfg.numberOfNodes());
+    child.cfg = new ControlFlowGraph(this.cfg.numberOfNodes());
     child.prologue = new BasicBlock(PROLOGUE_BCI, child.inlineSequence, child.cfg);
     child.prologue.exceptionHandlers = ebag;
     child.epilogue = new BasicBlock(EPILOGUE_BCI, child.inlineSequence, child.cfg);
@@ -396,7 +415,7 @@ public final class GenerationContext {
         local.setPreciseType();
         // Constants trivially non-null
         RegisterOperand guard = child.makeNullCheckGuard(local.getRegister());
-        BC2IR.setGuard(local, guard);
+        BC2IR.setGuardForRegOp(local, guard);
         child.prologue.appendInstruction(Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()));
       } else {
         OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
@@ -540,7 +559,11 @@ public final class GenerationContext {
   }
 
   /**
-   * Return the Register used to for local i of TypeReference type
+   * Returns the Register used to for local i of TypeReference type.
+   *
+   * @param i local number
+   * @param type local's type
+   * @return the Register for the local
    */
   Register localReg(int i, TypeReference type) {
     Register[] pool = getPool(type);
@@ -552,53 +575,58 @@ public final class GenerationContext {
   }
 
   /**
-   * Should null checks be generated?
+   * @return {@code true} if and only if null checks should be generated
    */
   boolean noNullChecks() {
     return method.hasNoNullCheckAnnotation();
   }
 
   /**
-   * Should bounds checks be generated?
+   * @return {@code true} if and only if bounds checks should be generated
    */
   boolean noBoundsChecks() {
     return method.hasNoBoundsCheckAnnotation();
   }
 
   /**
-   * Should checkstore checks be generated?
+   * @return {@code true} if and only if checkstore checks should be generated
    */
   boolean noCheckStoreChecks() {
     return method.hasNoCheckStoreAnnotation();
   }
 
   /**
-   * Make a register operand that refers to the given local variable number
+   * Makes a register operand that refers to the given local variable number
    * and has the given type.
    *
    * @param i local variable number
    * @param type desired data type
+   * @return the newly created register operand
    */
   RegisterOperand makeLocal(int i, TypeReference type) {
     return new RegisterOperand(localReg(i, type), type);
   }
 
   /**
-   * Make a register operand that refers to the given local variable number,
+   * Makes a register operand that refers to the given local variable number,
    * and inherits its properties (type, flags) from props
    *
    * @param i local variable number
    * @param props RegisterOperand to inherit flags from
+   * @return the newly created register operand
    */
   RegisterOperand makeLocal(int i, RegisterOperand props) {
     RegisterOperand local = makeLocal(i, props.getType());
     local.setInheritableFlags(props);
-    BC2IR.setGuard(local, BC2IR.getGuard(props));
+    BC2IR.setGuardForRegOp(local, BC2IR.copyGuardFromOperand(props));
     return local;
   }
 
   /**
-   * Get the local number for a given register
+   * Gets the local number for a given register
+   * @param reg the register whose local number should be found out
+   * @param type the register's type
+   * @return the local number of -1 if not found
    */
   int getLocalNumberFor(Register reg, TypeReference type) {
     Register[] pool = getPool(type);
@@ -610,6 +638,13 @@ public final class GenerationContext {
 
   /**
    * Is the operand a particular bytecode local?
+   *
+   * @param op the operand to check
+   * @param i the local's index
+   * @param type the local's type
+   *
+   * @return {@code true} if and only if the given operand is a
+   *  an operand for the given bytecode local
    */
   boolean isLocal(Operand op, int i, TypeReference type) {
     if (op instanceof RegisterOperand) {
@@ -627,8 +662,11 @@ public final class GenerationContext {
   private HashMap<Register, RegisterOperand> _ncGuards;
 
   /**
-   * Make a register operand to use as a null check guard for the
+   * Makes a register operand to use as a null check guard for the
    * given register.
+   *
+   * @param ref the register to check for null
+   * @return the guard operand
    */
   RegisterOperand makeNullCheckGuard(Register ref) {
     RegisterOperand guard = _ncGuards.get(ref);
@@ -686,8 +724,10 @@ public final class GenerationContext {
   private GenerationContext() {}
 
   /**
-   * Fill in the rest of the method prologue.
+   * Fills in the rest of the method prologue.
    * PRECONDITION: arguments &amp; temps have been setup/initialized.
+   *
+   * @param isOutermost is this the outermost context (i.e. not an inlined context)
    */
   private void completePrologue(boolean isOutermost) {
     // Deal with Uninteruptible code.
@@ -715,6 +755,8 @@ public final class GenerationContext {
   /**
    * Fill in the rest of the method epilogue.
    * PRECONDITION: arguments &amp; temps have been setup/initialized.
+   *
+   * @param isOutermost is this the outermost context (i.e. not an inlined context)
    */
   private void completeEpilogue(boolean isOutermost) {
     // Deal with implicit monitorexit for synchronized methods.
@@ -742,6 +784,8 @@ public final class GenerationContext {
    * If the method is synchronized then we wrap it in a
    * synthetic exception handler that unlocks &amp; rethrows
    * PRECONDITION: cfg, arguments &amp; temps have been setup/initialized.
+   *
+   * @param isOutermost is this the outermost context (i.e. not an inlined context)
    */
   private void completeExceptionHandlers(boolean isOutermost) {
     if (method.isSynchronized() && !options.ESCAPE_INVOKEE_THREAD_LOCAL) {
@@ -795,6 +839,8 @@ public final class GenerationContext {
   /**
    * Get the object for locking for synchronized methods.
    * either the class object or the this ptr.
+   *
+   * @return an operand for the appropriate lock object
    */
   private Operand getLockObject() {
     if (method.isStatic()) {
@@ -867,7 +913,10 @@ public final class GenerationContext {
    * output is not omitted during generation of IR for methods
    * that are inlined into a method that is supposed to be printed.
    *
-   *  @see BC2IR#DBG_SELECTIVE
+   * @return {@code true} if and only if this method is selected for
+   *  debugging as described above
+   *
+   * @see BC2IR#DBG_SELECTIVE
    */
   boolean methodIsSelectedForDebuggingWithMethodToPrint() {
     boolean originalMethodSelected = options.hasMETHOD_TO_PRINT() &&
@@ -893,6 +942,29 @@ public final class GenerationContext {
   public void markExceptionHandlersAsGenerated() {
     this.generatedExceptionHandlers = true;
   }
+
+  public void saveOSRBarrierForInst(Instruction osrBarrier,
+      Instruction inst) {
+    if (VM.VerifyAssertions) {
+      VM._assert(osrBarrier.operator() == OSR_BARRIER,
+          "Unexpected operator for OSR barrier");
+      boolean sourceInstOk = inst.operator() == CALL ||
+          inst.operator() == YIELDPOINT_OSR;
+      VM._assert(sourceInstOk,
+          "Unexpected operator for instruction that has a barrier");
+    }
+
+    getOutermostContext().instToOSRBarriers.put(inst, osrBarrier);
+  }
+
+  public Instruction getOSRBarrierFromInst(Instruction inst) {
+    return getOutermostContext().instToOSRBarriers.get(inst);
+  }
+
+  public void discardOSRBarrierInformation() {
+    instToOSRBarriers = null;
+  }
+
 
   ///////////
   // Getters and setters that need to be public
@@ -950,11 +1022,7 @@ public final class GenerationContext {
    * @return the original method (root of the calling context tree)
    */
   NormalMethod getOriginalMethod() {
-    GenerationContext outermostContext = this;
-    while (outermostContext.parent != null) {
-      outermostContext = outermostContext.parent;
-    }
-    return outermostContext.method;
+    return getOutermostContext().method;
   }
 
   CompiledMethod getOriginalCompiledMethod() {
@@ -983,6 +1051,14 @@ public final class GenerationContext {
 
   InlineOracle getInlinePlan() {
     return inlinePlan;
+  }
+
+  private GenerationContext getOutermostContext() {
+    GenerationContext outermostContext = this;
+    while (outermostContext.parent != null) {
+      outermostContext = outermostContext.parent;
+    }
+    return outermostContext;
   }
 
 }

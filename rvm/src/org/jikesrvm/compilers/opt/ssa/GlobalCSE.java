@@ -243,10 +243,6 @@ public final class GlobalCSE extends CompilerPhase {
     }
   }
 
-  /**
-   * Get the result operand of the instruction
-   * @param inst
-   */
   private RegisterOperand getResult(Instruction inst) {
     if (ResultCarrier.conforms(inst)) {
       return ResultCarrier.getResult(inst);
@@ -257,21 +253,17 @@ public final class GlobalCSE extends CompilerPhase {
     return null;
   }
 
-  /**
-   * should this instruction be cse'd  ?
-   * @param inst
-   */
   private boolean shouldCSE(Instruction inst) {
 
     if ((inst.isAllocation()) ||
         inst.isDynamicLinkingPoint() ||
         inst.isImplicitLoad() ||
         inst.isImplicitStore() ||
-        inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
+        inst.getOpcode() >= ARCH_INDEPENDENT_END_opcode) {
       return false;
     }
 
-    switch (inst.operator.opcode) {
+    switch (inst.getOpcode()) {
       case INT_MOVE_opcode:
       case LONG_MOVE_opcode:
       case CHECKCAST_opcode:

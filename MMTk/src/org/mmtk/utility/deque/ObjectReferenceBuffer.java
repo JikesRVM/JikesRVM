@@ -118,7 +118,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure {
   }
 
   /**
-   * Return {@code true} if this buffer is locally empty
+   * @return {@code true} if this buffer is locally empty
    */
   public final boolean isFlushed() {
     return values.isFlushed();

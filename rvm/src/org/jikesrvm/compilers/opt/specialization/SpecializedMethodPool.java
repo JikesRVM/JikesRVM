@@ -24,16 +24,10 @@ public final class SpecializedMethodPool {
   static int specializedMethodCount = 0;
   static CodeArray[] specializedMethods = new CodeArray[SPECIALIZED_METHOD_COUNT];
 
-  /**
-   * Return the number of specialized methods
-   */
   public int getSpecializedMethodCount() {
     return specializedMethodCount;
   }
 
-  /**
-   * Register the specialized instructions for a method.
-   */
   static void registerCompiledMethod(SpecializedMethod m) {
     int smid = m.getSpecializedMethodIndex();
     CompiledMethod cm = m.getCompiledMethod();
@@ -41,15 +35,18 @@ public final class SpecializedMethodPool {
   }
 
   /**
-   * Associate a particular compiled method with a specialized method id.
+   * Associates a particular compiled method with a specialized method id.
+   *
+   * @param cm the compiled method
+   * @param smid the id of the specialized method
    */
   public static void storeSpecializedMethod(CompiledMethod cm, int smid) {
     specializedMethods[smid] = cm.getEntryCodeArray();
   }
 
   /**
-   * Is there a compiled version of a particular specialized method?
-   * @param smid
+   * @param smid the id of the specialized method
+   * @return whether thereis  a compiled version of a particular specialized method
    */
   public static boolean hasCompiledVersion(int smid) {
     return specializedMethods[smid] != null;

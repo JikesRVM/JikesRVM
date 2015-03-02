@@ -13,8 +13,13 @@
 package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 
 /**
@@ -27,63 +32,54 @@ import org.jikesrvm.compilers.opt.ir.Register;
  */
 public class RegisterAllocatorState {
 
+  private int[] spills;
+
+  private CompoundInterval[] intervals;
+
+  private Map<Instruction, Integer> depthFirstNumbers;
+
+  RegisterAllocatorState(int registerCount) {
+    spills = new int[registerCount];
+    intervals = new CompoundInterval[registerCount];
+  }
+
   /**
-   *  Resets the physical register info
+   * Resets the physical register info.
+   *
+   * @param ir the IR whose info is to be reset
    */
-  static void resetPhysicalRegisters(IR ir) {
+  void resetPhysicalRegisters(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     for (Enumeration<Register> e = phys.enumerateAll(); e.hasMoreElements();) {
       Register reg = e.nextElement();
       reg.deallocateRegister();
       reg.mapsToRegister = null;  // mapping from real to symbolic
-      //    putPhysicalRegResurrectList(reg, null);
       reg.defList = null;
       reg.useList = null;
       setSpill(reg, 0);
     }
   }
 
-  /**
-   * Special use of scratchObject field as "resurrect lists" for real registers
-   * TODO: use another field for safety; scratchObject is also used by
-   *  clan LinearScanLiveAnalysis
-   */
-  /*
-  static void putPhysicalRegResurrectList(Register r,
-                                          LinearScanLiveInterval li) {
-    if (VM.VerifyAssertions) VM._assert(r.isPhysical());
-    r.scratchObject = li;
-  }
-  */
-  /**
-   *
-   * Special use of scratchObject field as "resurrect lists" for real registers
-   * TODO: use another field for safety; scratchObject is also used by
-   *  clan LinearScanLiveAnalysis
-   */
-  /*
-  static LinearScanLiveInterval getPhysicalRegResurrectList(Register r) {
-    if (VM.VerifyAssertions) VM._assert(r.isPhysical());
-    return (LinearScanLiveInterval) r.scratchObject;
-  }
-  */
-  static void setSpill(Register reg, int spill) {
+  void setSpill(Register reg, int spill) {
     reg.spillRegister();
-    reg.scratch = spill;
+    spills[reg.number] = spill;
   }
 
-  public static int getSpill(Register reg) {
-    return reg.scratch;
+  public int getSpill(Register reg) {
+    return spills[reg.number];
   }
 
   /**
-   * Record that register A and register B are associated with each other
+   * Records that register A and register B are associated with each other
    * in a bijection.<p>
    *
    * The register allocator uses this state to indicate that a symbolic
    * register is presently allocated to a physical register.
+   *
+   * @param A first register
+   * @param B second register
    */
-  static void mapOneToOne(Register A, Register B) {
+  void mapOneToOne(Register A, Register B) {
     Register aFriend = getMapping(A);
     Register bFriend = getMapping(B);
     if (aFriend != null) {
@@ -97,16 +93,19 @@ public class RegisterAllocatorState {
   }
 
   /**
+   * @param r a register
    * @return the register currently mapped 1-to-1 to r
    */
-  static Register getMapping(Register r) {
+  Register getMapping(Register r) {
     return r.mapsToRegister;
   }
 
   /**
-   * Clear any 1-to-1 mapping for register R.
+   * Clears any 1-to-1 mapping for a register.
+   *
+   * @param r the register whose mapping is to be cleared
    */
-  static void clearOneToOne(Register r) {
+  void clearOneToOne(Register r) {
     if (r != null) {
       Register s = getMapping(r);
       if (s != null) {
@@ -115,4 +114,100 @@ public class RegisterAllocatorState {
       r.mapsToRegister = null;
     }
   }
+
+  /**
+   *  Returns the interval associated with the passed register.
+   *  @param reg the register
+   *  @return the live interval or {@code null}
+   */
+  CompoundInterval getInterval(Register reg) {
+    return intervals[reg.number];
+  }
+
+  /**
+   * Initializes data structures for depth first numbering.
+   * @param instructionCount an estimate of the total number of instructions.
+   */
+  void initializeDepthFirstNumbering(int instructionCount) {
+    int noRehashCapacity = (int) (instructionCount * 1.5f);
+    depthFirstNumbers = new HashMap<Instruction, Integer>(noRehashCapacity);
+  }
+
+  /**
+   *  Associates the passed live interval with the passed register.
+   *
+   *  @param reg the register
+   *  @param interval the live interval
+   */
+  void setInterval(Register reg, CompoundInterval interval) {
+    intervals[reg.number] = interval;
+  }
+
+  /**
+   *  Associates the passed dfn number with the instruction
+   *  @param inst the instruction
+   *  @param dfn the dfn number
+   */
+  void setDFN(Instruction inst, int dfn) {
+    depthFirstNumbers.put(inst, Integer.valueOf(dfn));
+  }
+
+  /**
+   *  returns the dfn associated with the passed instruction
+   *  @param inst the instruction
+   *  @return the associated dfn
+   */
+  public int getDFN(Instruction inst) {
+    return depthFirstNumbers.get(inst);
+  }
+
+  /**
+   *  Prints the DFN numbers associated with each instruction.
+   *
+   *  @param ir the IR that contains the instructions
+   */
+  void printDfns(IR ir) {
+    System.out.println("DFNS: **** " + ir.getMethod() + "****");
+    for (Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst =
+        inst.nextInstructionInCodeOrder()) {
+      System.out.println(getDFN(inst) + " " + inst);
+    }
+  }
+
+  /**
+   * @param live the live interval
+   * @param bb the basic block for the live interval
+   * @return the Depth-first-number of the beginning of the live interval. If the
+   * interval is open-ended, the dfn for the beginning of the basic block will
+   * be returned instead.
+   */
+  int getDfnBegin(LiveIntervalElement live, BasicBlock bb) {
+    Instruction begin = live.getBegin();
+    int dfnBegin;
+    if (begin != null) {
+      dfnBegin = getDFN(begin);
+    } else {
+      dfnBegin = getDFN(bb.firstInstruction());
+    }
+    return dfnBegin;
+  }
+
+  /**
+   * @param live the live interval
+   * @param bb the basic block for the live interval
+   * @return the Depth-first-number of the end of the live interval. If the
+   * interval is open-ended, the dfn for the end of the basic block will
+   * be returned instead.
+   */
+  int getDfnEnd(LiveIntervalElement live, BasicBlock bb) {
+    Instruction end = live.getEnd();
+    int dfnEnd;
+    if (end != null) {
+      dfnEnd = getDFN(end);
+    } else {
+      dfnEnd = getDFN(bb.lastInstruction());
+    }
+    return dfnEnd;
+  }
+
 }

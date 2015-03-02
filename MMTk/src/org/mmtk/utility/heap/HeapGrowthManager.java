@@ -90,6 +90,9 @@ import org.vmmagic.unboxed.*;
   /**
    * Initialize heap size parameters and the mechanisms
    * used to adaptively change heap size.
+   *
+   * @param initial the initial heap size
+   * @param max the maximum heap size
    */
   public static void boot(Extent initial, Extent max) {
     initialHeapSize = initial;
@@ -142,6 +145,9 @@ import org.vmmagic.unboxed.*;
    * Record the time taken by the current GC;
    * used to compute gc load, one of the inputs
    * into the heap size management function
+   *
+   * @param time number of time taking for current GC, in
+   *  milliseconds
    */
   public static void recordGCTime(double time) {
     accumulatedGCTime += time;

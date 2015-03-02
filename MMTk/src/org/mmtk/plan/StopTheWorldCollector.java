@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  * MMTk assumes that the VM instantiates instances of CollectorContext
  * in thread local storage (TLS) for each thread participating in
  * collection.  Accesses to this state are therefore assumed to be
- * low-cost during mutator time.<p>
+ * low-cost during mutator time.
  *
  * @see CollectorContext
  */

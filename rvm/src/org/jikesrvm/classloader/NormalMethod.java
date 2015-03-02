@@ -185,7 +185,7 @@ public final class NormalMethod extends RVMMethod {
   }
 
   /**
-   * Space required by this method for its local variables, in words.
+   * @return space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
   @Uninterruptible
@@ -194,7 +194,7 @@ public final class NormalMethod extends RVMMethod {
   }
 
   /**
-   * Space required by this method for its operand stack, in words.
+   * @return space required by this method for its operand stack, in words.
    */
   @Uninterruptible
   public int getOperandWords() {
@@ -227,9 +227,6 @@ public final class NormalMethod extends RVMMethod {
     dynamicLink.set(getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);
   }
 
-  /**
-   * Size of bytecodes for this method
-   */
   public int getBytecodeLength() {
     return bytecodes.length;
   }
@@ -245,6 +242,7 @@ public final class NormalMethod extends RVMMethod {
 
   /**
    * Return the line number information for the argument bytecode index.
+   * @param bci bytecode index
    * @return The line number, a positive integer.  Zero means unable to find.
    */
   @Uninterruptible
@@ -522,6 +520,7 @@ public final class NormalMethod extends RVMMethod {
 
   /**
    * For use by {@link RVMClass#allBootImageTypesResolved()} only.
+   * @param constantPool the constant pool
    */
   void recomputeSummary(int[] constantPool) {
     if (hasFieldRead()) {
@@ -535,6 +534,7 @@ public final class NormalMethod extends RVMMethod {
   /**
    * This method computes a summary of interesting method characteristics
    * and stores an encoding of the summary as an int.
+   * @param constantPool the constant pool
    */
   private void computeSummary(int[] constantPool) {
     int calleeSize = 0;

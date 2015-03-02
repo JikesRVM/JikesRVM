@@ -84,6 +84,8 @@ public final class GCMapIteratorGroup {
    * thread's saved gprs[] (in thread.contextRegisters.gprs)
    * <p>
    * @param thread  Thread whose registers and stack are to be scanned
+   * @param registerLocation start address of the memory location where
+   *  register contents are saved
    */
   @Uninterruptible
   public void newStackWalk(RVMThread thread, Address registerLocation) {

@@ -26,9 +26,6 @@ public final class SanityTraceLocal extends TraceLocal {
 
   private final SanityChecker sanityChecker;
 
-  /**
-   * Constructor
-   */
   public SanityTraceLocal(Trace trace, SanityChecker sanityChecker) {
     super(trace);
     this.sanityChecker = sanityChecker;

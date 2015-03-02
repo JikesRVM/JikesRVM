@@ -129,16 +129,13 @@ public class GenerateMagic {
    *              ir containing this magic
    * @param gc must be bc2ir.gc
    * @param meth the RVMMethod that is the magic method
+   * @return {@code true} if and only if magic was generated
    */
   static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, MethodReference meth)
       throws MagicNotImplementedException {
 
     if (gc.getMethod().hasNoInlinePragma()) gc.forceFrameAllocation();
 
-    // HACK: Don't schedule any bbs containing unsafe magics.
-    // TODO: move this to individual magics that are unsafe.
-    // -- igor 08/13/1999
-    bc2ir.markBBUnsafeForScheduling();
     Atom methodName = meth.getName();
 
     boolean address = (meth.getType() == TypeReference.Address);
@@ -539,7 +536,7 @@ public class GenerateMagic {
       // The object being specialized
       Operand objectOperand = bc2ir.pop(types[1]);
       Call.setParam(call, 0, objectOperand);
-      Operand guard = BC2IR.getGuard(objectOperand);
+      Operand guard = BC2IR.copyGuardFromOperand(objectOperand);
       if (guard == null) {
         // it's magic, so assume that it's OK....
         guard = new TrueGuardOperand();
@@ -642,7 +639,7 @@ public class GenerateMagic {
       if(val.isObjectConstant()) {
         bc2ir.push(new ObjectConstantOperand(val.getType().peekType(), Offset.zero()));
       } else {
-        Operand guard = BC2IR.getGuard(val);
+        Operand guard = BC2IR.copyGuardFromOperand(val);
         if (guard == null) {
           // it's magic, so assume that it's OK....
           guard = new TrueGuardOperand();

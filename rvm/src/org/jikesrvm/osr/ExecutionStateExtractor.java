@@ -36,15 +36,15 @@ import org.vmmagic.unboxed.Offset;
 
 public abstract class ExecutionStateExtractor {
   /**
-   * Returns a VM scope descriptor (ExecutionState) for a compiled method
-   * on the top of a thread stack, (or a list of descriptors for an inlined
-   * method).
-   *
    * @param thread a suspended RVM thread
    * @param tsFromFPoff the frame pointer offset of the threadSwitchFrom method
    * @param ypTakenFPoff the frame pointer offset of the real method where
    *                      yield point was taken. tsFrom is the callee of ypTaken
    * @param cmid the compiled method id of ypTaken
+   *
+   * @return a VM scope descriptor (ExecutionState) for a compiled method
+   * on the top of a thread stack, (or a list of descriptors for an inlined
+   * method).
    */
   public abstract ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset ypTakenFPoff, int cmid);
 

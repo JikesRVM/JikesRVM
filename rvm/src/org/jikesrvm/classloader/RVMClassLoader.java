@@ -34,7 +34,7 @@ import org.jikesrvm.Properties;
 import org.jikesrvm.VM;
 
 /**
- * Manufacture type descriptions as needed by the running virtual machine. <p>
+ * Manufacture type descriptions as needed by the running virtual machine.
  */
 public class RVMClassLoader {
 
@@ -306,7 +306,9 @@ public class RVMClassLoader {
   }
 
   /**
-   * Initialize for boot image writing
+   * Initialize for boot image writing.
+   *
+   * @param bootstrapClasspath the bootstrap classpath to load the classes from
    */
   public static void init(String bootstrapClasspath) {
     // specify where the VM's core classes and resources live

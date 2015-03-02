@@ -61,99 +61,99 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
 
       switch (s.getOpcode()) {
       case REF_ADD_opcode:
-        s.operator = INT_ADD;
+        s.changeOperatorTo(INT_ADD);
         break;
       case REF_SUB_opcode:
-        s.operator = INT_SUB;
+        s.changeOperatorTo(INT_SUB);
         break;
       case REF_NEG_opcode:
-        s.operator = INT_NEG;
+        s.changeOperatorTo(INT_NEG);
         break;
       case REF_NOT_opcode:
-        s.operator = INT_NOT;
+        s.changeOperatorTo(INT_NOT);
         break;
       case REF_AND_opcode:
-        s.operator = INT_AND;
+        s.changeOperatorTo(INT_AND);
         break;
       case REF_OR_opcode:
-        s.operator = INT_OR;
+        s.changeOperatorTo(INT_OR);
         break;
       case REF_XOR_opcode:
-        s.operator = INT_XOR;
+        s.changeOperatorTo(INT_XOR);
         break;
       case REF_SHL_opcode:
-        s.operator = INT_SHL;
+        s.changeOperatorTo(INT_SHL);
         break;
       case REF_SHR_opcode:
-        s.operator = INT_SHR;
+        s.changeOperatorTo(INT_SHR);
         break;
       case REF_USHR_opcode:
-        s.operator = INT_USHR;
+        s.changeOperatorTo(INT_USHR);
         break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case BOOLEAN_CMP_ADDR_opcode:
-        s.operator = BOOLEAN_CMP_INT;
+        s.changeOperatorTo(BOOLEAN_CMP_INT);
         break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case FLOAT_ADD_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_ADD;
+          s.changeOperatorTo(FP_ADD);
         break;
       case DOUBLE_ADD_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_ADD;
+          s.changeOperatorTo(FP_ADD);
         break;
       case FLOAT_SUB_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_SUB;
+          s.changeOperatorTo(FP_SUB);
         break;
       case DOUBLE_SUB_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_SUB;
+          s.changeOperatorTo(FP_SUB);
         break;
       case FLOAT_MUL_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_MUL;
+          s.changeOperatorTo(FP_MUL);
         break;
       case DOUBLE_MUL_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_MUL;
+          s.changeOperatorTo(FP_MUL);
         break;
       case FLOAT_DIV_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_DIV;
+          s.changeOperatorTo(FP_DIV);
         break;
       case DOUBLE_DIV_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_DIV;
+          s.changeOperatorTo(FP_DIV);
         break;
       case FLOAT_REM_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_REM;
+          s.changeOperatorTo(FP_REM);
         break;
       case DOUBLE_REM_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_REM;
+          s.changeOperatorTo(FP_REM);
         break;
       case FLOAT_NEG_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_NEG;
+          s.changeOperatorTo(FP_NEG);
         break;
       case DOUBLE_NEG_opcode:
         if (!SSE2_FULL)
-          s.operator = FP_NEG;
+          s.changeOperatorTo(FP_NEG);
         break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case INT_COND_MOVE_opcode:
       case REF_COND_MOVE_opcode:
-        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV);
+        s.changeOperatorTo(CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV));
         break;
       case FLOAT_COND_MOVE_opcode:
       case DOUBLE_COND_MOVE_opcode:
-        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_FCMOV : CMP_FCMOV;
+        s.changeOperatorTo(CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_FCMOV : CMP_FCMOV);
         break;
 
       case GUARD_COND_MOVE_opcode:
@@ -164,57 +164,57 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
       // BURS doesn't really care, so consolidate to reduce rule space
       case INT_2FLOAT_opcode:
         if (!SSE2_FULL)
-          s.operator = INT_2FP;
+          s.changeOperatorTo(INT_2FP);
         break;
       case INT_2DOUBLE_opcode:
         if (!SSE2_FULL)
-          s.operator = INT_2FP;
+          s.changeOperatorTo(INT_2FP);
         break;
       case LONG_2FLOAT_opcode:
         if (!SSE2_FULL)
-          s.operator = LONG_2FP;
+          s.changeOperatorTo(LONG_2FP);
         break;
       case LONG_2DOUBLE_opcode:
         if (!SSE2_FULL)
-          s.operator = LONG_2FP;
+          s.changeOperatorTo(LONG_2FP);
         break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case REF_LOAD_opcode:
-        s.operator = INT_LOAD;
+        s.changeOperatorTo(INT_LOAD);
         break;
       case REF_STORE_opcode:
-        s.operator = INT_STORE;
+        s.changeOperatorTo(INT_STORE);
         break;
       case REF_ALOAD_opcode:
-        s.operator = INT_ALOAD;
+        s.changeOperatorTo(INT_ALOAD);
         break;
       case REF_ASTORE_opcode:
-        s.operator = INT_ASTORE;
+        s.changeOperatorTo(INT_ASTORE);
         break;
       case REF_MOVE_opcode:
-        s.operator = INT_MOVE;
+        s.changeOperatorTo(INT_MOVE);
         break;
       case REF_IFCMP_opcode:
-        s.operator = INT_IFCMP;
+        s.changeOperatorTo(INT_IFCMP);
         break;
       case ATTEMPT_ADDR_opcode:
-        s.operator = ATTEMPT_INT;
+        s.changeOperatorTo(ATTEMPT_INT);
         break;
       case PREPARE_ADDR_opcode:
-        s.operator = PREPARE_INT;
+        s.changeOperatorTo(PREPARE_INT);
         break;
       case INT_2ADDRSigExt_opcode:
-        s.operator = INT_MOVE;
+        s.changeOperatorTo(INT_MOVE);
         break;
       case INT_2ADDRZerExt_opcode:
-        s.operator = INT_MOVE;
+        s.changeOperatorTo(INT_MOVE);
         break;
       case ADDR_2INT_opcode:
-        s.operator = INT_MOVE;
+        s.changeOperatorTo(INT_MOVE);
         break;
       case LONG_2ADDR_opcode:
-        s.operator = LONG_2INT;
+        s.changeOperatorTo(LONG_2INT);
         break;
       }
     }

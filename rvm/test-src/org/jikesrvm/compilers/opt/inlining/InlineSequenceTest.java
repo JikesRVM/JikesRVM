@@ -55,8 +55,7 @@ public class InlineSequenceTest {
     InlineSequence t1 = createInlineSequence(t0, 0, Methods.class, "m");
     InlineSequence t2 = createInlineSequence(t1, 1, Methods.class, "m");
 
-    assertTrue(s2.equals(t2));
-
+    assertEquals(s2, t2);
   }
 
   @Test

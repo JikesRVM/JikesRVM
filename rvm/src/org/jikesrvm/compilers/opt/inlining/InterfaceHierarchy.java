@@ -35,6 +35,8 @@ public class InterfaceHierarchy {
    * Notify this dictionary that a new class has been initialized.
    * This method updates the dictionary to record the interface
    * implementors.
+   *
+   * @param c class that was initialized
    */
   public static synchronized void notifyClassInitialized(RVMClass c) {
     if (!c.isInterface()) {
@@ -45,7 +47,10 @@ public class InterfaceHierarchy {
   }
 
   /**
-   * Note that class c implements interface I;
+   * Notes that a class implements an interface.
+   *
+   * @param c the class that implements the interface
+   * @param I the implemented interface
    */
   private static void noteImplements(RVMClass c, RVMClass I) {
     ImmutableEntryHashSetRVM<RVMClass> implementsSet = findOrCreateSet(I);
@@ -53,7 +58,8 @@ public class InterfaceHierarchy {
   }
 
   /**
-   * Return the set of classes that implement a given interface. Create a
+   * @param I the implemented interface
+   * @return the set of classes that implement a given interface. Create a
    * set if none found.
    */
   private static synchronized ImmutableEntryHashSetRVM<RVMClass> findOrCreateSet(RVMClass I) {
@@ -66,7 +72,8 @@ public class InterfaceHierarchy {
   }
 
   /**
-   * Return the set of all classes known to implement interface I.
+   * @return the set of all classes known to implement the interface
+   * @param I the implemented interface
    */
   private static ImmutableEntryHashSetRVM<RVMClass> allImplementors(RVMClass I) {
     // get the set of classes registered as implementing I
@@ -90,7 +97,8 @@ public class InterfaceHierarchy {
   }
 
   /**
-   * Return the set of all classes known to extend C
+   * @param C an interface
+   * @return the set of all classes known to extend C
    */
   private static ImmutableEntryHashSetRVM<RVMClass> allSubClasses(RVMClass C) {
     ImmutableEntryHashSetRVM<RVMClass> result = new ImmutableEntryHashSetRVM<RVMClass>(5);
@@ -109,6 +117,9 @@ public class InterfaceHierarchy {
    * defines the interface method foo, then return the unique
    * implementation.  If there is not a unique implementation, return
    * null.
+   *
+   * @param foo an interface method
+   * @return the unique implementation if it exists, {@code null} otherwise
    */
   public static synchronized RVMMethod getUniqueImplementation(RVMMethod foo) {
     RVMClass I = foo.getDeclaringClass();

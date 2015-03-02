@@ -37,8 +37,6 @@ import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
-import org.jikesrvm.compilers.opt.liveness.LiveIntervalEnumeration;
-import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 import org.jikesrvm.compilers.opt.util.SortedGraphNode;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
@@ -84,7 +82,6 @@ import org.vmmagic.pragma.NoInline;
  * Conventionally, we refer to the <em>real</em> instructions of
  * the block as those that are between the LABEL and the BBEND.
  * We say that the block is empty if it contains no real instructions.
- * <p>
  *
  * @see IR
  * @see Instruction
@@ -101,8 +98,9 @@ public class BasicBlock extends SortedGraphNode {
   static final short EXCEPTION_HANDLER = 0x04;
   /** Bitfield used in flag encoding */
   static final short REACHABLE_FROM_EXCEPTION_HANDLER = 0x08;
-  /** Bitfield used in flag encoding */
-  static final short UNSAFE_TO_SCHEDULE = 0x10;
+
+  // the flag for 0x10 was removed and is now free
+
   /** Bitfield used in flag encoding */
   static final short INFREQUENT = 0x20;
   /** Bitfield used in flag encoding */
@@ -193,9 +191,6 @@ public class BasicBlock extends SortedGraphNode {
 
   final void initInOutSets() { }
 
-  /**
-   * Make an EXIT node.
-   */
   static BasicBlock makeExit() {
     return new BasicBlock();
   }
@@ -301,45 +296,6 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Clear the scratch object from previous uses
-   * (rename scratchObject manipulations for GCMaps/RegAlloc).
-   */
-  public final void initializeLiveRange() {
-    scratchObject = null;
-  }
-
-  /**
-   * @return an enumeration of the live interval elements for this basic
-   * block.
-   */
-  public final LiveIntervalEnumeration enumerateLiveIntervals() {
-    return new LiveIntervalEnumeration((LiveIntervalElement) scratchObject);
-  }
-
-  /**
-   * Returns NULL or an LiveIntervalElement (GCMaps/RegAlloc).
-   * @return scratchObject cast as an LiveIntevalElement
-   */
-  public final LiveIntervalElement getFirstLiveIntervalElement() {
-    if (scratchObject != null) {
-      return (LiveIntervalElement) scratchObject;
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Prepend a live interval element to the list being maintained
-   * in scratchObject (GCMaps/RegAlloc).
-   *
-   * @param li the live interval element to add
-   */
-  public final void prependLiveIntervalElement(LiveIntervalElement li) {
-    li.setNext((LiveIntervalElement) scratchObject);
-    scratchObject = li;
-  }
-
-  /**
    * Can this block possibly throw an exception?
    * May conservatively return true even if the block
    * does not contain a PEI.
@@ -420,17 +376,6 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Has the block been marked as being unsafe to schedule
-   * (due to the presence of Magic)?
-   *
-   * @return <code>true</code> if the block is marked as unsafe
-   *         to schedule or <code>false</code> if it is not
-   */
-  public final boolean isUnsafeToSchedule() {
-    return (flags & UNSAFE_TO_SCHEDULE) != 0;
-  }
-
-  /**
    * Has the block been marked as being infrequently executed?
    * NOTE: Only blocks that are truly icy cold should be marked
    * as infrequent.
@@ -491,13 +436,6 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Mark the block as being unsafe to schedule.
-   */
-  public final void setUnsafeToSchedule() {
-    flags |= UNSAFE_TO_SCHEDULE;
-  }
-
-  /**
    * Mark the block as being infrequently executed.
    */
   public final void setInfrequent() {
@@ -549,13 +487,6 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Clear the unsafe to schedule property of the block
-   */
-  public final void clearUnsafeToSchedule() {
-    flags &= ~UNSAFE_TO_SCHEDULE;
-  }
-
-  /**
    * Clear the infrequently executed property of the block
    */
   public final void clearInfrequent() {
@@ -589,24 +520,6 @@ public class BasicBlock extends SortedGraphNode {
       setMayThrowUncaughtException();
     } else {
       clearMayThrowUncaughtException();
-    }
-  }
-
-  @SuppressWarnings("unused")
-  // FIXME can this be deleted ??
-  private void setIsExceptionHandlerBasicBlock(boolean v) {
-    if (v) {
-      setExceptionHandlerBasicBlock();
-    } else {
-      clearExceptionHandlerBasicBlock();
-    }
-  }
-
-  private void setUnsafeToSchedule(boolean v) {
-    if (v) {
-      setUnsafeToSchedule();
-    } else {
-      clearUnsafeToSchedule();
     }
   }
 
@@ -685,28 +598,29 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Return the estimated relative execution frequency of the block
+   * @return the estimated relative execution frequency of the block
    */
   public final float getExecutionFrequency() {
     return freq;
   }
 
-  /**
-   * Set the estimated relative execution frequency of this block.
-   */
   public final void setExecutionFrequency(float f) {
     freq = f;
   }
 
   /**
-   * Scale the estimated relative execution frequency of this block.
+   * Scales the estimated relative execution frequency of this block.
+   *
+   * @param f scale factor
    */
   public final void scaleExecutionFrequency(float f) {
     freq *= f;
   }
 
   /**
-   * Augment the estimated relative execution frequency of this block.
+   * Augments the estimated relative execution frequency of this block.
+   *
+   * @param f value to add
    */
   public final void augmentExecutionFrequency(float f) {
     freq += f;
@@ -814,7 +728,7 @@ public class BasicBlock extends SortedGraphNode {
     if (isEmpty()) return false;
     Instruction s = lastRealInstruction();
 
-    if (VM.BuildForIA32 && Operators.helper.isAdviseESP(s.operator)) {
+    if (VM.BuildForIA32 && Operators.helper.isAdviseESP(s.operator())) {
       s = s.getPrev();
     }
 
@@ -1191,6 +1105,8 @@ public class BasicBlock extends SortedGraphNode {
    *
    * TODO check if warning is still current and if there's info on
    *  CMVC Defect 171189 anywhere
+   *
+   * @param ir the containing IR
    */
   public final void recomputeNormalOut(IR ir) {
     deleteNormalOut();
@@ -1311,7 +1227,6 @@ public class BasicBlock extends SortedGraphNode {
     BB2.exceptionHandlers = BB1.exceptionHandlers;
     BB2.setCanThrowExceptions(BB1.canThrowExceptions());
     BB2.setMayThrowUncaughtException(BB1.mayThrowUncaughtException());
-    BB2.setUnsafeToSchedule(BB1.isUnsafeToSchedule());
     BB2.setExecutionFrequency(BB1.getExecutionFrequency());
 
     BB1.deleteNormalOut();
@@ -1413,6 +1328,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @param ir the governing IR
    * @param b the block to replicate
+   * @return the replicated basic block
    */
   public final BasicBlock replicateThisOut(IR ir, BasicBlock b) {
     return replicateThisOut(ir, b, this);
@@ -1429,6 +1345,7 @@ public class BasicBlock extends SortedGraphNode {
    * @param ir the governing IR
    * @param b the block to replicate
    * @param pred code order predecessor for new block
+   * @return the replicated basic block
    */
   public final BasicBlock replicateThisOut(IR ir, BasicBlock b, BasicBlock pred) {
     // don't replicate the exit node
@@ -1502,6 +1419,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @param b     the original target
    * @param bCopy the future target
+   * @param ir the IR that contains this basic block
    */
   public final void redirectOuts(BasicBlock b, BasicBlock bCopy, IR ir) {
     BranchOperand copyTarget = bCopy.makeJumpTarget();
@@ -1555,7 +1473,6 @@ public class BasicBlock extends SortedGraphNode {
     temp.exceptionHandlers = exceptionHandlers;
     temp.setCanThrowExceptions(canThrowExceptions());
     temp.setMayThrowUncaughtException(mayThrowUncaughtException());
-    temp.setUnsafeToSchedule(isUnsafeToSchedule());
     temp.setExecutionFrequency(getExecutionFrequency() * wf);
     for (Enumeration<BasicBlock> e = getOut(); e.hasMoreElements();) {
       BasicBlock out = e.nextElement();
@@ -1640,7 +1557,6 @@ public class BasicBlock extends SortedGraphNode {
     // Merge misc BB state
     setCanThrowExceptions(canThrowExceptions() || succBB.canThrowExceptions());
     setMayThrowUncaughtException(mayThrowUncaughtException() || succBB.mayThrowUncaughtException());
-    setUnsafeToSchedule(isUnsafeToSchedule() || succBB.isUnsafeToSchedule());
     if (succBB.getInfrequent()) setInfrequent();
 
     return true;
@@ -1675,6 +1591,8 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * Prune away exceptional out edges that are not reachable given this
    * block's instructions.
+   *
+   * @param ir the IR that contains this block
    */
   final void pruneExceptionalOut(IR ir) {
     int n = getNumberOfExceptionalOut();

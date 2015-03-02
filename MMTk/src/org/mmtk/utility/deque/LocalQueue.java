@@ -74,6 +74,7 @@ import org.vmmagic.unboxed.*;
    *
    * @param arity The arity of the values stored in this queue: the
    * buffer must contain enough space for this many words.
+   * @return whether there are values available for a dequeue
    */
   @Inline
   protected final boolean checkDequeue(int arity) {

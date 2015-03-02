@@ -92,18 +92,22 @@ public abstract class ObjectModel {
   public abstract int getCurrentSize(ObjectReference object);
 
   /**
-   * Return the next object in the heap under contiguous allocation
+   * @param object the current object
+   * @return the object reference for the next object in the heap under
+   *  contiguous allocation
    */
   public abstract ObjectReference getNextObject(ObjectReference object);
 
   /**
-   * Return an object reference from knowledge of the low order word
+   * @param start the start address of the object
+   * @return an object reference from knowledge of the low order word
    */
   public abstract ObjectReference getObjectFromStartAddress(Address start);
   /**
    * Gets a pointer to the address just past the end of the object.
    *
-   * @param object The objecty.
+   * @param object The object
+   * @return the address of the first word after the the object
    */
   public abstract Address getObjectEndAddress(ObjectReference object);
 
@@ -117,16 +121,14 @@ public abstract class ObjectModel {
   public abstract byte[] getTypeDescriptor(ObjectReference ref);
 
   /**
-   * Is the passed object an array?
-   *
    * @param object address of the object
+   * @return whether the passed object is an array
    */
   public abstract boolean isArray(ObjectReference object);
 
   /**
-   * Is the passed object a primitive array?
-   *
    * @param object address of the object
+   * @return whether the passed object is a primitive array
    */
   public abstract boolean isPrimitiveArray(ObjectReference object);
 
@@ -224,6 +226,7 @@ public abstract class ObjectModel {
    * Checks if a reference of the given type in another object is
    * inherently acyclic.  The type is given as a TIB.
    *
+   * @param typeRef the type of the reference (as a TIB)
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */

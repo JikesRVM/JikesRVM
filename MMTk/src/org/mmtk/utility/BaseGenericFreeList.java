@@ -130,6 +130,7 @@ import org.vmmagic.pragma.*;
    * Allocate <code>size</code> units. Return the unit ID
    *
    * @param size  The number of units to be allocated
+   * @param unit TODO needs documentation
    * @return The index of the first of the <code>size</code>
    * contiguous units, or -1 if the request can't be satisfied
    */
@@ -146,6 +147,8 @@ import org.vmmagic.pragma.*;
    * Allocate <code>size</code> units. Return the unit ID
    *
    * @param size  The number of units to be allocated
+   * @param unit TODO needs documentation
+   * @param unitSize TODO needs documentation
    * @return The index of the first of the <code>size</code>
    * contiguous units, or -1 if the request can't be satisfied
    */
@@ -228,6 +231,7 @@ import org.vmmagic.pragma.*;
    * everything
    *
    * @param units The number of units in the heap
+   * @param grain TODO needs documentation
    */
   protected final void initializeHeap(int units, int grain) {
     // Initialize the sentinels

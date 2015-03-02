@@ -25,6 +25,7 @@ import org.vmmagic.unboxed.Address;
 public interface ObjectAddressRemapper {
   /**
    * Map an object to an address.
+   * @param <T> the object's type
    * @param object in "local" virtual machine
    * @return its address in a foreign virtual machine
    */
@@ -39,6 +40,7 @@ public interface ObjectAddressRemapper {
 
   /**
    * Avoid duplicates of certain objects
+   * @param <T> the object's type
    * @param object to intern
    * @return interned object
    */

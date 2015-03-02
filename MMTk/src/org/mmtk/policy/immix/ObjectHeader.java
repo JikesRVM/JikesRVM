@@ -169,6 +169,7 @@ public class ObjectHeader {
   /**
    * Return the mark state incremented or decremented by one.
    *
+   * @param state the mark state
    * @param increment If {@code true}, then return the incremented value else return the decremented value
    * @return the mark state incremented or decremented by one.
    */

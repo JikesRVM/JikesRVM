@@ -37,7 +37,7 @@ public abstract class AbstractRegisterPool {
   protected int currentNum;
 
   /**
-   * Return the first symbolic register in this pool.
+   * @return the first symbolic register in this pool.
    */
   public Register getFirstSymbolicRegister() {
     return start;
@@ -92,9 +92,6 @@ public abstract class AbstractRegisterPool {
     }
   }
 
-  /**
-   * Remove register from register pool.
-   */
   public void removeRegister(Register reg) {
     registerListremove(reg);
   }

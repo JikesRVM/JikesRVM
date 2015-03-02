@@ -55,11 +55,16 @@ public final class SwitchBranchProfile extends BranchProfile {
 
   @Override
   public String toString() {
-    String res = bci + "\tswitch     < " + (int) counts[0];
+    StringBuilder result = new StringBuilder();
+    result.append(bci);
+    result.append("\tswitch     < ");
+    result.append((int) counts[0]);
     for (int i = 1; i < counts.length; i++) {
-      res += ", " + (int) counts[i];
+      result.append(", ");
+      result.append((int) counts[i]);
     }
-    return res + " >";
+    result.append(" >");
+    return result.toString();
   }
 
   private static float sumCounts(int[] counts, int start, int numEntries) {

@@ -111,7 +111,9 @@ public class Monitor {
     acquireCount++;
   }
   /**
-   * Relock the mutex after using unlockCompletely.
+   * Relocks the mutex after using {@link #unlockCompletely()}.
+   *
+   * @param recCount the recursion count
    */
   @NoInline
   @NoOptCompile
@@ -185,8 +187,10 @@ public class Monitor {
     }
   }
   /**
-   * Relock the mutex after using {@link #unlockCompletely()} and notify
+   * Relocks the mutex after using {@link #unlockCompletely()} and notify
    * the threading subsystem.
+   *
+   * @param recCount the recursion count
    */
   @NoInline
   @NoOptCompile
@@ -228,9 +232,11 @@ public class Monitor {
       sysCall.sysMonitorExit(monitor);
     }
   }
+
   /**
-   * Completely release the lock, ignoring recursion.  Returns the
-   * recursion count.
+   * Completely releases the lock, ignoring recursion.
+   *
+   * @return the recursion count
    */
   @NoInline
   @NoOptCompile
@@ -271,6 +277,10 @@ public class Monitor {
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
    * {@link #timedWaitAbsoluteWithHandshake(long)} instead.
+   *
+   * @param whenWakeupNanos the absolute time point that must be reached
+   *  before the wait is over when no call to {@link #broadcast()} occurs
+   *  in the meantime
    */
   @NoInline
   @NoOptCompile
@@ -293,6 +303,10 @@ public class Monitor {
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
    * {@link #timedWaitRelativeWithHandshake(long)} instead.
+   *
+   * @param delayNanos the number of nanoseconds that need to pass
+   *  from the call of this method until the wait is over when no call
+   *  to {@link #broadcast()} occurs in the meantime
    */
   @NoInline
   @NoOptCompile
@@ -346,6 +360,10 @@ public class Monitor {
    * mutex not held.  This is useful for cases where the subsystem that
    * requested you to block needs to acquire the lock you were trying to
    * acquire when the blocking request came.
+   *
+   * @param whenWakeupNanos the absolute time point that must be reached
+   *  before the wait is over when no call to {@link #broadcast()} occurs
+   *  in the meantime
    */
   @NoInline
   @NoOptCompile
@@ -379,6 +397,10 @@ public class Monitor {
    * mutex not held.  This is useful for cases where the subsystem that
    * requested you to block needs to acquire the lock you were trying to
    * acquire when the blocking request came.
+   *
+   * @param delayNanos the number of nanoseconds that need to pass
+   *  from the call of this method until the wait is over when no call
+   *  to {@link #broadcast()} occurs in the meantime
    */
   @NoInline
   @NoOptCompile

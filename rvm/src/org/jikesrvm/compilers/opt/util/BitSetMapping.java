@@ -17,18 +17,10 @@ package org.jikesrvm.compilers.opt.util;
  * objects.
  */
 public interface BitSetMapping {
-  /**
-   * Return the object numbered n.
-   */
+
   Object getMappedObject(int n);
 
-  /**
-   * Return the number of a given object.
-   */
   int getMappedIndex(Object o);
 
-  /**
-   * Return the size of the domain of the bijection.
-   */
   int getMappingSize();
 }

@@ -39,6 +39,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCOND;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 
 /**
  * Wrappers around PowerPC-specific IR common to both 32 & 64 bit
@@ -149,7 +150,7 @@ public abstract class MachineSpecificIRPowerPC extends MachineSpecificIR {
   /* unique to PowerPC */
   @Override
   public final boolean isPowerPCTrapOperand(Operand operand) {
-    return operand instanceof PowerPCConditionOperand;
+    return operand instanceof PowerPCTrapOperand;
   }
 
   @Override

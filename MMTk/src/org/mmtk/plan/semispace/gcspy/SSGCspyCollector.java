@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
  * This class implements <i>per-collector thread</i> behavior and state for the
  * <i>SSGCspy</i> plan.<p>
  *
- * See {@link SSGCspy} for an overview of the GC-spy mechanisms.<p>
+ * See {@link SSGCspy} for an overview of the GC-spy mechanisms.
  *
  * @see SSCollector
  * @see SSGCspy
@@ -202,8 +202,8 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Print some debugging info
-   * @param scannedSpace
+   * Prints some debugging info.
+   * @param scannedSpace the space that was scanned
    */
   private void debugSpaces(CopySpace scannedSpace) {
     Log.write("SSGCspyCollector.gcspyGatherData: gather data for active semispace ");
@@ -216,7 +216,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Reset all root streams.<p>
+   * Reset all root streams.
    */
   void resetRootStreams() {
     SSGCspy.ss0Driver.resetRootsStream();

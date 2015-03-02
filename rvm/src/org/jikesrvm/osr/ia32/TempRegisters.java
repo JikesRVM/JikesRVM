@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import org.jikesrvm.VM;
+import org.jikesrvm.Services;
 import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.ia32.Registers;
 import org.vmmagic.unboxed.Address;
@@ -48,10 +48,10 @@ public class TempRegisters implements ArchConstants {
   }
 
   public void dumpContents() {
-    System.err.println("OSR_TempRegister: @" + VM.addressAsHexString(ip));
+    System.err.println("OSR_TempRegister: @" + Services.addressAsHexString(ip));
     System.err.println("  GPRS: ");
     for (int i = 0; i < NUM_GPRS; i++) {
-      System.err.println("    (" + i + "," + VM.addressAsHexString(gprs.get(i).toAddress()) + ")");
+      System.err.println("    (" + i + "," + Services.addressAsHexString(gprs.get(i).toAddress()) + ")");
     }
 
     System.err.println();

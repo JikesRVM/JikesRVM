@@ -66,7 +66,7 @@ public final class JNIEnvironment {
    * a function pointer.
    * This is an array of such triples that matches JNIFunctions.
    */
-  public static LinkageTripletTable LinkageTriplets;
+  public static LinkageTripletTable linkageTriplets;
 
   /**
    * This is the pointer to the shared JNIFunction table.
@@ -80,7 +80,7 @@ public final class JNIEnvironment {
   // used by native code
   @Entrypoint
   private final Address externalJNIFunctions =
-      VM.BuildForPowerOpenABI ? Magic.objectAsAddress(LinkageTriplets) : Magic.objectAsAddress(JNIFunctions);
+      VM.BuildForPowerOpenABI ? Magic.objectAsAddress(linkageTriplets) : Magic.objectAsAddress(JNIFunctions);
 
   /**
    * For saving processor register on entry to native,
@@ -258,7 +258,9 @@ public final class JNIEnvironment {
   }
 
   /**
-   * Atomically copy and install a new JNIRefArray
+   * Atomically copies and installs a new JNIRefArray.
+   *
+   * @param newrefs the new JNIRefArray
    */
   @Uninterruptible
   private void replaceJNIRefs(AddressArray newrefs) {
@@ -273,6 +275,8 @@ public final class JNIEnvironment {
    * NB only used for Intel
    * @param ref reference to place on stack or value of saved frame pointer
    * @param isRef false if the reference isn't a frame pointer
+   * @return new offset of current top in JNIRefs array or 0 if
+   *  the reference is zero and a framepointer
    */
   @Uninterruptible("Encoding arguments on stack that won't be seen by GC")
   @Inline
@@ -483,14 +487,16 @@ public final class JNIEnvironment {
   /**
    * Initialize the array of JNI functions.
    * This function is called during bootimage writing.
+   *
+   * @param functions the function table to initialize
    */
   public static void initFunctionTable(FunctionTable functions) {
     JNIFunctions = functions;
     if (VM.BuildForPowerOpenABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
-      LinkageTriplets = LinkageTripletTable.allocate(functions.length());
+      linkageTriplets = LinkageTripletTable.allocate(functions.length());
       for (int i = 0; i < functions.length(); i++) {
-        LinkageTriplets.set(i, AddressArray.create(3));
+        linkageTriplets.set(i, AddressArray.create(3));
       }
     }
   }
@@ -503,7 +509,7 @@ public final class JNIEnvironment {
     if (VM.BuildForPowerOpenABI) {
       // fill in the TOC and IP entries for each linkage triplet
       for (int i = 0; i < JNIFunctions.length(); i++) {
-        AddressArray triplet = LinkageTriplets.get(i);
+        AddressArray triplet = linkageTriplets.get(i);
         triplet.set(1, Magic.getTocPointer());
         triplet.set(0, Magic.objectAsAddress(JNIFunctions.get(i)));
       }

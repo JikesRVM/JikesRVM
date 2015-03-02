@@ -16,7 +16,7 @@
  *
  * This file deals with loading of the vm boot image into a memory segment and
  * branching to its startoff code. It also deals with interrupt and exception handling.
- * The file "sys.C" contains the o/s support services required by the java class libraries.
+ * The file "sys.cpp" contains the o/s support services required by the java class libraries.
  *
  * IA32 version for Linux
  */
@@ -124,11 +124,6 @@ static void vwriteFmt(int fd, const char fmt[], va_list ap)
     NONNULL(2) __attribute__((format (printf, 2, 0)));
 static void vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
     NONNULL(3) __attribute__((format (printf, 3, 0)));
-#if 0                           // this isn't needed right now, but may be in
-                                // the future.
-static void writeTrace(const char fmt[], ...)
-    NONNULL(1) __attribute__((format (printf, 1, 2)));
-#endif
 static void writeErr(const char fmt[], ...)
     NONNULL(1) __attribute__((format (printf, 1, 2)));
 
@@ -251,19 +246,6 @@ isVmSignal(Address ip, Address vpAddress)
     return inRVMAddressSpace(ip) && inRVMAddressSpace(vpAddress);
 }
 
-#if 0                           // this isn't needed right now, but may be in
-                                // the future.
-static void
-writeTrace(const char fmt[], ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vwriteFmt(SysTraceFd, fmt, ap);
-    va_end(ap);
-}
-#endif
-
-
 static void
 writeErr(const char fmt[], ...)
 {
@@ -335,7 +317,7 @@ static unsigned char alignCheckHandlerInstBuf[100]; // ought to be enough to hol
 // if enabled, print a character for each alignment trap (whether or not we ignore it)
 static int alignCheckVerbose = 0;
 
-// statistics defined in sys.C
+// statistics defined in sys.cpp
 extern volatile int numNativeAlignTraps;
 extern volatile int numEightByteAlignTraps;
 extern volatile int numBadAlignTraps;
@@ -1052,7 +1034,7 @@ createVM(void)
     bootRecord->bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
     bootRecord->verboseBoot      = verboseBoot;
 
-    /* write sys.C linkage information into boot record */
+    /* write sys.cpp linkage information into boot record */
 
     setLinkage(bootRecord);
     if (lib_verbose) {

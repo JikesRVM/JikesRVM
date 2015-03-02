@@ -137,9 +137,12 @@ public class FileSystem {
   }
 
   /**
-   * Read multiple bytes.
+   * Reads multiple bytes.
    *
+   * @param fd the file descriptor for the file that should be read from
    * @param buf a pinned byte array to read into
+   * @param off the offset in the buffer to read into
+   * @param cnt the number of bytes to read
    * @return -2: i/o error, -1: timeout, &gt;=0: number of bytes read
    */
   @NoInline
@@ -155,9 +158,12 @@ public class FileSystem {
   }
 
   /**
-   * Write multiple bytes.
+   * Writes multiple bytes.
    *
+   * @param fd the file descriptor for the file that should be written to
    * @param buf a pinned byte array to write from
+   * @param off the offset in the buffer to start writing from
+   * @param cnt the number of bytes to write
    * @return -2: i/o error, -1: timeout, &gt;=0: number of bytes written
    */
   @NoInline

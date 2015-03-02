@@ -52,12 +52,14 @@ public @interface Inline {
     AssertionsDisabled
   }
   /**
-   * When to inline, default When.Always
+   * @return when to inline, default When.Always
    */
   When value() default When.Always;
   /**
    * Arguments that must be constant to cause inlining. NB for static methods 0
-   * is the first argument whilst for virtual methods 0 is this
+   * is the first argument whilst for virtual methods 0 is this.
+   *
+   * @return indexes of the arguments that must be constant to cause inlining
    */
   int[] arguments() default {};
 }

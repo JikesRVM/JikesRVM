@@ -199,6 +199,10 @@ public final class ControllerThread extends SystemThread {
    * some initial data in the call graph to work with.  The goal of this
    * restriction is to avoid making early bad decisions that we don't get
    * a chance to revisit because methods get to maxOptLevel too quickly.
+   *
+   * @return {@code true} if we need to restrict the optimization levels
+   *  to ensure that we don't make bad optimization decisions, {@code false}
+   *  if no restriction is necessary
    */
   public boolean earlyRestrictOptLevels() {
     return dcgOrg != null && !dcgOrg.someDataAvailable();
@@ -211,7 +215,7 @@ public final class ControllerThread extends SystemThread {
   ///////////////////////
 
   /**
-   *  Create the compilationThread and schedule it
+   *  Creates and schedules the compilationThread.
    */
   private void createCompilationThread() {
     CompilationThread ct = new CompilationThread();
@@ -225,7 +229,7 @@ public final class ControllerThread extends SystemThread {
   private void createDynamicCallGraphOrganizer() {
     if (dcgOrg == null) {
       dcgOrg = new DynamicCallGraphOrganizer(new EdgeListener());
-      Controller.organizers.addElement(dcgOrg);
+      Controller.organizers.add(dcgOrg);
     }
   }
 
@@ -237,7 +241,7 @@ public final class ControllerThread extends SystemThread {
     AOSOptions opts = Controller.options;
 
     if (opts.GATHER_PROFILE_DATA) {
-      Controller.organizers.addElement(new AccumulatingMethodSampleOrganizer());
+      Controller.organizers.add(new AccumulatingMethodSampleOrganizer());
 
       createDynamicCallGraphOrganizer();
     }
@@ -254,11 +258,11 @@ public final class ControllerThread extends SystemThread {
       Controller.methodSamples = new MethodCountData();
 
       // Install organizer to drive method recompilation
-      Controller.organizers.addElement(new MethodSampleOrganizer(opts.DERIVED_FILTER_OPT_LEVEL));
+      Controller.organizers.add(new MethodSampleOrganizer(opts.DERIVED_FILTER_OPT_LEVEL));
       // Additional set up for feedback directed inlining
       if (opts.ADAPTIVE_INLINING) {
         Organizer decayOrganizer = new DecayOrganizer(new YieldCounterListener(opts.DECAY_FREQUENCY));
-        Controller.organizers.addElement(decayOrganizer);
+        Controller.organizers.add(decayOrganizer);
         createDynamicCallGraphOrganizer();
       }
     }

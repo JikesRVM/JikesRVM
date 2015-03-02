@@ -82,16 +82,6 @@ public class Inliner {
     BasicBlock bb = callSite.getBasicBlock().segregateInstruction(callSite, ir);
     BasicBlock in = bb.prevBasicBlockInCodeOrder();
     BasicBlock out = bb.nextBasicBlockInCodeOrder();
-    // Clear the sratch object of any register operands being
-    // passed as parameters.
-    // BC2IR uses this field for its own purposes, and will be confused
-    // if the scratch object has been used by someone else and not cleared.
-    for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
-      Operand arg = Call.getParam(callSite, i);
-      if (arg instanceof RegisterOperand) {
-        ((RegisterOperand) arg).scratchObject = null;
-      }
-    }
     // We need to ensure that inlining the CALL instruction does not
     // insert any new exceptional edges into the CFG that were not
     // present before the inlining.  Note that inlining the CALL may
@@ -163,7 +153,7 @@ public class Inliner {
                       " at bytecode " + callSite.bcIndex + "\n");
         }
         // (b)
-        children[i] = GenerationContext.createChildContext(parent, ebag, callee, callSite);
+        children[i] = parent.createChildContext(ebag, callee, callSite);
         BC2IR.generateHIR(children[i]);
         children[i].transferStateToParent();
       }
@@ -209,8 +199,8 @@ public class Inliner {
 
       if (inlDec.OSRTestFailed()) {
         // note where we're storing the osr barrier instruction
-        Instruction lastOsrBarrier = (Instruction)callSite.scratchObject;
-        Instruction s = BC2IR._osrHelper(lastOsrBarrier);
+        Instruction lastOsrBarrier = parent.getOSRBarrierFromInst(callSite);
+        Instruction s = BC2IR._osrHelper(lastOsrBarrier, parent);
         s.position = callSite.position;
         s.bcIndex = callSite.bcIndex;
         testFailed.appendInstruction(s);
@@ -441,8 +431,7 @@ public class Inliner {
                     " into " + callSite.position.getMethod() +
                     " at bytecode " + callSite.bcIndex + "\n");
       }
-      GenerationContext child = GenerationContext.
-          createChildContext(parent, ebag, callee, callSite);
+      GenerationContext child = parent.createChildContext(ebag, callee, callSite);
       BC2IR.generateHIR(child);
       child.transferStateToParent();
       return child;

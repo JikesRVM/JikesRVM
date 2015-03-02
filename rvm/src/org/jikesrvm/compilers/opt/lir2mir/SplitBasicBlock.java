@@ -46,9 +46,13 @@ public final class SplitBasicBlock extends CompilerPhase {
   }
 
   /**
-   * Splits basic block
+   * Splits a basic block.
    *
-   * @return {@code null} if no splitting is done, returns the second block if splitting is done.
+   * @param bb the block to process
+   * @param ir the IR that contains the block
+   *
+   * @return {@code null} if no splitting is done, returns the second block
+   *  if splitting is done.
    */
   BasicBlock splitEachBlock(BasicBlock bb, IR ir) {
     if (ir.options.L2M_MAX_BLOCK_SIZE <= 0) {

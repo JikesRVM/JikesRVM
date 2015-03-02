@@ -271,6 +271,11 @@ public class BytecodeTraverser {
 
   /**
    * Compute stack heights of bytecode stream (used for osr prologue)
+   *
+   * @param method the method that's subject to OSR
+   * @param bcodes the bytecode stream for the OSR prologue
+   * @param stackHeights the original stack heights computed by the baseline
+   *  compiler
    */
   public void prologueStackHeights(NormalMethod method, BytecodeStream bcodes, int[] stackHeights) {
     if (VM.TraceOnStackReplacement) {

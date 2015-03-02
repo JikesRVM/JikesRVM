@@ -83,7 +83,8 @@ public class ThreadQueue {
   }
 
   /**
-   * Private helper. Gets the next pointer of cur unless cur is {@code null}, in which
+   * @param cur a thread
+   * @return the next pointer of cur unless cur is {@code null}, in which
    * case it returns head.
    */
   private RVMThread getNext(RVMThread cur) {
@@ -95,8 +96,11 @@ public class ThreadQueue {
   }
 
   /**
-   * Private helper. Sets the next pointer of cur to value unless cur is {@code null},
+   * Sets the next pointer of cur to value unless cur is {@code null},
    * in which case it sets head. Also sets tail as appropriate.
+   *
+   * @param cur a thread
+   * @param value a value for the next pointer of the given thread
    */
   private void setNext(RVMThread cur, RVMThread value) {
     if (cur == null) {
@@ -113,9 +117,12 @@ public class ThreadQueue {
   }
 
   /**
-   * Remove the given thread from the queue if the thread is still on the queue.
+   * Removes the given thread from the queue if the thread is still on the queue.
    * Does nothing (and returns in O(1)) if the thread is not on the queue. Also
    * does nothing (and returns in O(1)) if the thread is on a different queue.
+   *
+   * @param t thread to remove from the queue
+   * @return whether the given thread was removed from the queue
    */
   public boolean remove(RVMThread t) {
     if (t.queuedOn != this)

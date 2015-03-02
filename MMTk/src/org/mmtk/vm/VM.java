@@ -251,12 +251,20 @@ public final class VM {
   }
 
   /**
-   * Create a new ServerInterpreter instance using the appropriate
-   * VM-specific concrete ServerInterpreter sub-class.
+   * Create a new ServerSpace instance using the appropriate VM-specific
+   * concrete ServerSpace sub-class.
    *
-   * @see ServerInterpreter
+   * @param serverInterpreter The server that owns this space
+   * @param serverName The server's name
+   * @param driverName The space driver's name
+   * @param title Title for the space
+   * @param blockInfo A label for each block
+   * @param tileNum Max number of tiles in this space
+   * @param unused A label for unused blocks
+   * @param mainSpace Whether this space is the main space
    *
-   * @return A concrete VM-specific ServerInterpreter instance.
+   * @see ServerSpace
+   * @return A concrete VM-specific ServerSpace instance.
    */
   public static ServerSpace newGCspyServerSpace(
       ServerInterpreter serverInterpreter,
@@ -290,6 +298,7 @@ public final class VM {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific ByteStream instance.
@@ -332,6 +341,7 @@ public final class VM {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific IntStream instance.
@@ -374,6 +384,7 @@ public final class VM {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific IntStream instance.

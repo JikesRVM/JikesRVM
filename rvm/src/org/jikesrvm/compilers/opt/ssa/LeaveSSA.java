@@ -208,9 +208,7 @@ public class LeaveSSA extends CompilerPhase {
     }
   }
 
-  /**
-   * substitute variables renamed in control parents
-   */
+  // substitute variables renamed in control parents
   private void performRename(BasicBlock bb, DominatorTree dom, VariableStacks s) {
     if (DEBUG) VM.sysWriteln("performRename: " + bb);
 
@@ -604,6 +602,8 @@ public class LeaveSSA extends CompilerPhase {
    * Special treatment for guard registers:
    * Remove guard-phis by evaluating operands into same register.
    * If this target register is not unique, unite the alternatives.
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuards(IR ir) {
     // 0. initialization
@@ -616,14 +616,22 @@ public class LeaveSSA extends CompilerPhase {
 
   Instruction guardPhis = null;
 
+  private HashMap<Instruction, Instruction> inst2guardPhi;
+  private HashMap<Register, Integer> guardRegUnion;
+  private HashMap<Register, Register> associatedRegisters;
+
   /**
    * Initialization for removal of guard phis.
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuardsInit(IR ir) {
     guardPhis = null;
     Enumeration<Instruction> e = ir.forwardInstrEnumerator();
 
     // visit all instructions, looking for guard phis
+
+    inst2guardPhi = new HashMap<Instruction, Instruction>();
 
     while (e.hasMoreElements()) {
       Instruction inst = e.nextElement();
@@ -634,8 +642,7 @@ public class LeaveSSA extends CompilerPhase {
       if (!r.isValidation()) continue;
 
       // force all operands of Phis into registers.
-
-      inst.scratchObject = guardPhis;
+      inst2guardPhi.put(inst, guardPhis);
       guardPhis = inst;
 
       int values = Phi.getNumberOfValues(inst);
@@ -657,16 +664,20 @@ public class LeaveSSA extends CompilerPhase {
       }
     }
 
+    guardRegUnion = new HashMap<Register, Integer>();
+    associatedRegisters = new HashMap<Register, Register>();
     // visit all guard registers, init union/find
     for (Register r = ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
-      r.scratch = 1;
-      r.scratchObject = r;
+      guardRegUnion.put(r, Integer.valueOf(1));
+      associatedRegisters.put(r, r);
     }
   }
 
   /**
    * Determine target register for guard phi operands
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuardsDetermineReg(IR ir) {
     Instruction inst = guardPhis;
@@ -683,12 +694,14 @@ public class LeaveSSA extends CompilerPhase {
           }
         }
       }
-      inst = (Instruction) inst.scratchObject;
+      inst = inst2guardPhi.get(inst);
     }
   }
 
   /**
    * Rename registers and delete Phis.
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuardsFinalize(IR ir) {
     DefUse.computeDU(ir);
@@ -709,40 +722,36 @@ public class LeaveSSA extends CompilerPhase {
     Instruction inst = guardPhis;
     while (inst != null) {
       inst.remove();
-      inst = (Instruction) inst.scratchObject;
+      inst = inst2guardPhi.get(inst);
     }
   }
 
-  /**
-   * union step of union/find for guard registers during unSSA
-   */
   private Register guardUnion(Register from, Register to) {
     Register a = guardFind(from);
     Register b = guardFind(to);
     if (a == b) return a;
-    if (a.scratch == b.scratch) {
-      a.scratch++;
-      b.scratchObject = a;
+    int aUnion = guardRegUnion.get(a);
+    int bUnion = guardRegUnion.get(b);
+    if (aUnion == bUnion) {
+      guardRegUnion.put(a, Integer.valueOf(aUnion+1));
+      associatedRegisters.put(b, a);
       return a;
     }
-    if (a.scratch > b.scratch) {
-      b.scratchObject = a;
+    if (aUnion > bUnion) {
+      associatedRegisters.put(b, a);
       return a;
     }
-    a.scratchObject = b;
+    associatedRegisters.put(a, b);
     return b;
   }
 
-  /**
-   * find step of union/find for guard registers during unSSA
-   */
   private Register guardFind(Register r) {
     Register start = r;
-    if (VM.VerifyAssertions) VM._assert(r.scratchObject != null);
-    while (r.scratchObject != r) r = (Register) r.scratchObject;
-    while (start.scratchObject != r) {
-      start.scratchObject = r;
-      start = (Register) start.scratchObject;
+    if (VM.VerifyAssertions) VM._assert(associatedRegisters.get(r) != null);
+    while (associatedRegisters.get(r) != r) r = associatedRegisters.get(r);
+    while (associatedRegisters.get(start) != r) {
+      associatedRegisters.put(start, r);
+      start = associatedRegisters.get(start);
     }
     return r;
   }

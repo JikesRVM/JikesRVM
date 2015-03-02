@@ -24,12 +24,6 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
  */
 public class SpaceEffGraphNode implements GraphNode {
 
-  /** scratch field: optimizations use as they wish */
-  public Object scratchObject;
-
-  /** any optimization can use this for its own purposes */
-  public int scratch;
-
   /**
    * The following word is used for various purposes. The first
    * 8 bits are used for flags, and the remaining 24 bits for any
@@ -74,12 +68,6 @@ public class SpaceEffGraphNode implements GraphNode {
   public final void clearFlags() { info &= ~(DFS_VISITED | TOP_VISITED | ON_STACK); }
 
   public final void clearLoopHeader() { info &= ~LOOP_HEADER; }
-
-  @Override
-  public int getScratch() { return scratch; }
-
-  @Override
-  public int setScratch(int scratch) { return this.scratch = scratch; }
 
   public final void setNumber(int value) {
     info = (info & ~INFO_MASK) | (value & INFO_MASK);
@@ -226,8 +214,11 @@ public class SpaceEffGraphNode implements GraphNode {
   }
 
   /**
-   * replaces the in edge matching e1 with e2.
+   * Replaces the in edge matching e1 with e2.
    * maintains the ordering of edges<p>
+   *
+   * @param e1 original edge
+   * @param e2 new edge
    *
    * TODO YUCK: this data structure is messy.  I assume this is in the name
    * of efficiency, but it makes control flow graph manipulations
@@ -260,34 +251,34 @@ public class SpaceEffGraphNode implements GraphNode {
     e1.nextIn = null;
   }
 
-  /* returns true if the node is the single predecessor/successor of
-     this block */
-
+  /**
+   * @param inNode the node that might be the single predecessor
+   * @return {@code true} if the node is the single predecessor of this node
+   */
   public final boolean hasOneIn(SpaceEffGraphNode inNode) {
     SpaceEffGraphEdge first = _inEdgeStart;
     return (first != null) && (first.nextIn == null) && (first.fromNode() == inNode);
   }
 
+  /**
+   *
+   * @param outNode the node that might be the single successor
+   * @return {@code true} if the node is the single successor of this node
+   */
   public final boolean hasOneOut(SpaceEffGraphNode outNode) {
     SpaceEffGraphEdge first = _outEdgeStart;
     return (first != null) && (first.nextOut == null) && (first.toNode() == outNode);
   }
-
-  /* replaces an oldnode with a new node */
 
   public final void replaceOut(SpaceEffGraphNode oldOut, SpaceEffGraphNode newOut) {
     deleteOut(oldOut);
     insertOut(newOut);
   }
 
-  /* inserts an outgoing edge to a node 'to' */
-
   public final void insertOut(SpaceEffGraphNode to, SpaceEffGraphEdge e) {
     this.appendOutEdge(e);
     to.appendInEdge(e);
   }
-
-  /* same as before, if you don't care the edge type */
 
   public final void insertOut(SpaceEffGraphNode to) {
     if (this.pointsOut(to)) return;
@@ -296,14 +287,10 @@ public class SpaceEffGraphNode implements GraphNode {
     to.appendInEdge(e);
   }
 
-  /* delete an outgoing edge to a node */
-
   public final void deleteOut(SpaceEffGraphNode node) {
     SpaceEffGraphEdge edge = this.removeOut(node);
     node.removeIn(edge);
   }
-
-  /* delete an outgoing edge  */
 
   public final void deleteOut(SpaceEffGraphEdge e) {
     SpaceEffGraphNode to = e.toNode();
@@ -311,38 +298,8 @@ public class SpaceEffGraphNode implements GraphNode {
     to.removeIn(e);
   }
 
-  /* mark nodes in a DFS manner, result written in 'scratch' */
-  /* NOTE: it assummes that the 'dfs' flag has been cleared before */
-
-  public final void markDFN(int DFN) {
-    setDfsVisited();
-    for (SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut) {
-      SpaceEffGraphNode n = e.toNode();
-      if (!n.dfsVisited()) {
-        n.markDFN(DFN);
-      }
-    }
-    scratch = DFN - 1;
-  }
-
-  /* mark nodes according to the SCC (Strongly Connected Component Number),
-     result written in 'scratch'
-     NOTE: it assumes that the 'dfs' flag has been cleared before */
-
-  public final void markSCC(int currSCC) {
-    setDfsVisited();
-    scratch = currSCC;
-    for (SpaceEffGraphEdge e = _inEdgeStart; e != null; e = e.nextIn) {
-      SpaceEffGraphNode n = e.fromNode();
-      if (!n.dfsVisited()) {
-        n.markSCC(currSCC);
-      }
-    }
-  }
-
   /* sort nodes according to DFS. result is a list of nodes with the current
      as root.  Note: it assumes that the dfs flags have been cleared before */
-
   public final void sortDFS() {
     _sortDFS(null);
   }
@@ -765,6 +722,5 @@ public class SpaceEffGraphNode implements GraphNode {
     // return next node
     return Next;
   }
+
 }
-
-

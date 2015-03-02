@@ -12,6 +12,7 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
@@ -25,6 +26,7 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -119,6 +121,7 @@ public class Services {
    *
    * @param dest char array to copy into.
    * @param destOffset Offset into <code>dest</code> where we start copying
+   * @param s string to print
    *
    * @return 1 plus the index of the last character written.  If we were to
    *         write zero characters (which we won't) then we would return
@@ -128,9 +131,8 @@ public class Services {
    *         <code>dest.length</code>, if the array <code>dest</code> was
    *         completely filled by the call, or it may have a value greater
    *         than <code>dest.length</code>, if the info needs more than
-   *         <code>dest.length - offset</code> characters of space.
-   *
-   * @return  -1 if <code>offset</code> is negative.
+   *         <code>dest.length - offset</code> characters of space. If
+   *         <code>destOffset</code> is negative, return -1.
    *
    * the MMTk {@link org.mmtk.utility.Log} class).
    */
@@ -156,6 +158,17 @@ public class Services {
    * @param src Char array to copy from
    * @param srcStart index of the first character of <code>src</code> to copy.
    * @param srcEnd index after the last character of <code>src</code> to copy.
+   *
+  *  @return 1 plus the index of the last character written.  If we were to
+   *  write zero characters (which we won't) then we would return
+   *  <code>offset</code>.  This is intended to represent the first
+   *  unused position in the array <code>dest</code>.  However, it also
+   *  serves as a pseudo-overflow check:  It may have the value
+   *  <code>dest.length</code>, if the array <code>dest</code> was
+   *  completely filled by the call, or it may have a value greater
+   *  than <code>dest.length</code>, if the info needs more than
+   *  <code>dest.length - offset</code> characters of space. If
+   *  <code>destOffset</code> is negative, return -1.
    */
   public static int sprintf(char[] dest, int destOffset, char[] src, int srcStart, int srcEnd) {
     for (int i = srcStart; i < srcEnd; ++i) {
@@ -193,6 +206,7 @@ public class Services {
    *
    * @param dest char array to copy into.
    * @param offset Offset into <code>dest</code> where we start copying
+   * @param l a whole number to write before the string
    *
    * @return 1 plus the index of the last character written.  If we were to
    *         write zero characters (which we won't) then we would return
@@ -202,9 +216,8 @@ public class Services {
    *         <code>dest.length</code>, if the array <code>dest</code> was
    *         completely filled by the call, or it may have a value greater
    *         than <code>dest.length</code>, if the info needs more than
-   *         <code>dest.length - offset</code> characters of space.
-   *
-   * @return  -1 if <code>offset</code> is negative.
+   *         <code>dest.length - offset</code> characters of space. If
+   *         <code>offset</code> is negative, return -1.
    */
   public static int sprintf(char[] dest, int offset, long l) {
     boolean negative = l < 0;
@@ -235,8 +248,10 @@ public class Services {
   }
 
   /**
-   * Get exclusive access to {@link #intBuffer}, the buffer for building
+   * Gets exclusive access to {@link #intBuffer}, the buffer for building
    * string representations of integers.
+   *
+   * @return a buffer to use for building representations of integers (e.g. longs or ints)
    */
   private static char[] grabIntBuffer() {
     if (!intBufferLockOffset.isMax()) {
@@ -257,11 +272,6 @@ public class Services {
     }
   }
 
-  /**
-   * Utility printing function.
-   * @param i
-   * @param blank
-   */
   @Interruptible
   public static String getHexString(int i, boolean blank) {
     StringBuilder buf = new StringBuilder(8);
@@ -327,6 +337,72 @@ public class Services {
     }
     print("% of ");
     println(quantity);
+  }
+
+  /**
+   * Format a 32 bit number as "0x" followed by 8 hex digits.
+   * Do this without referencing Integer or Character classes,
+   * in order to avoid dynamic linking.
+   *
+   * @param number the number to format
+   * @return a String with the hex representation of the integer
+   */
+  @Interruptible
+  public static String intAsHexString(int number) {
+    char[] buf = new char[10];
+    int index = 10;
+    while (--index > 1) {
+      int digit = number & 0x0000000f;
+      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
+      number >>= 4;
+    }
+    buf[index--] = 'x';
+    buf[index] = '0';
+    return new String(buf);
+  }
+
+  /**
+   * Format a 64 bit number as "0x" followed by 16 hex digits.
+   * Do this without referencing Long or Character classes,
+   * in order to avoid dynamic linking.
+   *
+   * @param number the number to format
+   * @return a String with the hex representation of the long
+   */
+  @Interruptible
+  public static String longAsHexString(long number) {
+    char[] buf = new char[18];
+    int index = 18;
+    while (--index > 1) {
+      int digit = (int) (number & 0x000000000000000fL);
+      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
+      number >>= 4;
+    }
+    buf[index--] = 'x';
+    buf[index] = '0';
+    return new String(buf);
+  }
+
+  /**
+   * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
+   * Do this without referencing Integer or Character classes,
+   * in order to avoid dynamic linking.
+   *
+   * @param addr  The 32/64 bit number to format.
+   * @return a String with the hex representation of an Address
+   */
+  @Interruptible
+  public static String addressAsHexString(Address addr) {
+    int len = 2 + (BITS_IN_ADDRESS >> 2);
+    char[] buf = new char[len];
+    while (--len > 1) {
+      int digit = addr.toInt() & 0x0F;
+      buf[len] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
+      addr = addr.toWord().rshl(4).toAddress();
+    }
+    buf[len--] = 'x';
+    buf[len] = '0';
+    return new String(buf);
   }
 
   /**
@@ -442,4 +518,5 @@ public class Services {
     else
       return src[index];
   }
+
 }

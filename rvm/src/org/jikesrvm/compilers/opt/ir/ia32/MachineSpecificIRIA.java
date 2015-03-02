@@ -183,7 +183,7 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
   @Override
   public boolean mutateFMOVs(LiveIntervalElement live, Register register, int dfnbegin, int dfnend) {
     Instruction end = live.getEnd();
-    if (end != null && end.operator == IA32_FMOV) {
+    if (end != null && end.operator() == IA32_FMOV) {
       if (dfnend == dfnbegin) {
         // if end, an FMOV, both begins and ends the live range,
         // then end is dead.  Change it to a NOP and return null.
@@ -196,7 +196,7 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
             VM._assert(value.isRegister());
             VM._assert(MIR_Move.getValue(end).asRegister().getRegister() == register);
           }
-          end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
+          end.changeOperatorTo(IA32_FMOV_ENDING_LIVE_RANGE);
         }
       }
     }
