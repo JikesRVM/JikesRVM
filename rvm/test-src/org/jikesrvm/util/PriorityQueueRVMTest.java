@@ -21,8 +21,8 @@ public class PriorityQueueRVMTest {
   @Test
   public void testInsertAndNumElements() {
     PriorityQueueRVM queue = new PriorityQueueRVM();
-    queue.insert(1, new Integer(1));
-    queue.insert(1, new Integer(2));
+    queue.insert(1, Integer.valueOf(1));
+    queue.insert(1, Integer.valueOf(2));
     assertEquals(2, queue.numElements());
   }
 
@@ -30,16 +30,16 @@ public class PriorityQueueRVMTest {
   public void testIsEmpty() {
     PriorityQueueRVM queue = new PriorityQueueRVM();
     assertTrue(queue.isEmpty());
-    queue.insert(1, new Integer(1));
+    queue.insert(1, Integer.valueOf(1));
     assertFalse(queue.isEmpty());
   }
 
   @Test
   public void testDeleteMin() {
     PriorityQueueRVM queue = new PriorityQueueRVM();
-    queue.insert(1, new Integer(1));
-    queue.insert(1, new Integer(2));
-    queue.insert(2, new Integer(3));
+    queue.insert(1, Integer.valueOf(1));
+    queue.insert(1, Integer.valueOf(2));
+    queue.insert(2, Integer.valueOf(3));
     queue.deleteMin();
     assertEquals(1.0, queue.rootValue(),0.0);
   }
@@ -47,10 +47,10 @@ public class PriorityQueueRVMTest {
   @Test
   public void testRootValue() {
     PriorityQueueRVM queue = new PriorityQueueRVM();
-    queue.insert(1, new Integer(1));
-    queue.insert(2, new Integer(2));
-    queue.insert(3, new Integer(3));
-    queue.insert(3, new Integer(4));
+    queue.insert(1, Integer.valueOf(1));
+    queue.insert(2, Integer.valueOf(2));
+    queue.insert(3, Integer.valueOf(3));
+    queue.insert(3, Integer.valueOf(4));
     assertEquals(3.0, queue.rootValue(),0.0);
   }
 }

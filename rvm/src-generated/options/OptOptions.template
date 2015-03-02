@@ -73,7 +73,11 @@ $$$$ END LET USE_OPT_LEVELS
   }
 
 
-  /** accessor to get OPT level */
+  /**
+   * Gets the current opt level.
+   *
+   * @return the current opt level
+   */
   public int getOptLevel() {
     return OPTIMIZATION_LEVEL;
   }
@@ -81,6 +85,8 @@ $$$$ END LET USE_OPT_LEVELS
   /**
    * Set the options to encode the optimizations enabled at the given opt label
    * and disabled all optimizations that are not enabled at the given opt label
+   *
+   * @param level optimization level, must be at least 0
    */
   public void setOptLevel(int level) {
      OPTIMIZATION_LEVEL = level;

@@ -105,7 +105,7 @@ public class MemoryTest {
     doAligned16BitCopyForShorts(largeShortArray, copyStart, copyLength,
         copyDest);
 
-    srcPosValue = verifyThatCopyingToShortArrayWasCorrect(
+    verifyThatCopyingToShortArrayWasCorrect(
         largeShortArray, copyLength, copyDest, srcPosValue);
   }
 
@@ -157,7 +157,7 @@ public class MemoryTest {
 
     doAligned32CopyForInts(largeIntArray, copyStart, copyLength, copyDest);
 
-    srcPosValue = verifyThatCopyingToIntArrayWasCorrect(largeIntArray,
+    verifyThatCopyingToIntArrayWasCorrect(largeIntArray,
         copyLength, copyDest, srcPosValue);
   }
 
@@ -209,7 +209,7 @@ public class MemoryTest {
 
     doAligned64CopyForLongs(largeLongArray, copyStart, copyLength, copyDest);
 
-    srcPosValue = verifiyThatCopyingToLongArrayWasCorrect(largeLongArray,
+    verifiyThatCopyingToLongArrayWasCorrect(largeLongArray,
         copyLength, copyDest, srcPosValue);
   }
 

@@ -1186,6 +1186,12 @@ public class GenerateAssembler {
     emitTab(1);
     emit("/**\n");
     emitTab(1);
+    emit(" * @param bcSize initial machine code buffer size.\n");
+    emitTab(1);
+    emit(" * @param print whether to dump generated machine code.\n");
+    emitTab(1);
+    emit(" * @param ir the IR object for the opt compilation.\n");
+    emitTab(1);
     emit(" * @see org.jikesrvm.ArchitectureSpecific.Assembler\n");
     emitTab(1);
     emit(" */\n");

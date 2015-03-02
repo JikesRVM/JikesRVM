@@ -159,7 +159,6 @@ public final class RegisterOperand extends Operand {
    */
   public RegisterOperand copyRO() {
     RegisterOperand temp = new RegisterOperand(register, type);
-    temp.info = info;
     temp.flags = flags;
     temp.flags2 = flags2;
     temp.scratchObject = scratchObject;
@@ -408,16 +407,6 @@ public final class RegisterOperand extends Operand {
 
   /** Clear this from being a guard operand from a null check */
   public void clearNullCheck() { flags2 &= ~NULL_CHECK; }
-
-  /** Get info scratch short */
-  public short getInfo() {
-    return info;
-  }
-
-  /** Set info scratch short */
-  public void setInfo(short value) {
-    info = value;
-  }
 
   /**
    * Sets scratch object of the register operand to parameter. (sic)
