@@ -1071,9 +1071,6 @@ sysThreadBind(int UNUSED cpuId)
 #endif
 }
 
-/** jump buffer for primordial thread */
-jmp_buf primordial_jb;
-
 #ifdef RVM_FOR_HARMONY
 extern "C" int
 sysThreadStartup(void *args)

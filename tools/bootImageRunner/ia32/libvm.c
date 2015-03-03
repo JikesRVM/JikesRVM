@@ -82,6 +82,10 @@ extern "C" void setLinkage(BootRecord*);
 #include "../bootImageRunner.h" // In tools/bootImageRunner
 
 // These are definitions of items declared in bootImageRunner.h
+
+/* jump buffer for primordial thread */
+jmp_buf primordial_jb;
+
 /* Sink for messages relating to serious errors detected by C runtime. */
 FILE *SysErrorFile = stderr;
 static int SysErrorFd = 2;              // not used outside this file.
