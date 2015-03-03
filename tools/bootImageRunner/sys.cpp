@@ -148,9 +148,6 @@ extern "C" void sysMonitorBroadcast(Word);
 // #define DEBUG_SYS
 // #define DEBUG_THREAD
 
-// static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
-// static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
-
 #ifdef RVM_FOR_HARMONY
 extern "C" int sysThreadStartup(void *args);
 #else
