@@ -18,8 +18,10 @@
 
 // Aix and Linux version.  PowerPC and IA32.
 
+#include "sys.h"
+
 // Only called externally from Java programs.
-extern "C" void sysExit(int) __attribute__((noreturn));
+extern "C" void sysExit(int) NORETURN;
 
 //Solaris needs BSD_COMP to be set to enable the FIONREAD ioctl
 #if defined (__SVR4) && defined (__sun)
