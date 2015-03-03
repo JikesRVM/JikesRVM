@@ -16,4 +16,10 @@
 
 #include "cAttributePortability.h"
 
+#ifdef __cplusplus
+#define EXTERNAL extern "C"
+#else
+#define EXTERNAL
+#endif
+
 #endif // RVM_SYSCALL_DEFINITIONS

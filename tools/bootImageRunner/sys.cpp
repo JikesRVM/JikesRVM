@@ -21,7 +21,7 @@
 #include "sys.h"
 
 // Only called externally from Java programs.
-extern "C" void sysExit(int) NORETURN;
+EXTERNAL void sysExit(int) NORETURN;
 
 //Solaris needs BSD_COMP to be set to enable the FIONREAD ioctl
 #if defined (__SVR4) && defined (__sun)
@@ -32,8 +32,8 @@ extern "C" void sysExit(int) NORETURN;
 //
 #ifdef _AIX43
 #include </usr/include/unistd.h>
-extern "C" void profil(void *, uint, ulong, uint);
-extern "C" int sched_yield(void);
+EXTERNAL void profil(void *, uint, ulong, uint);
+EXTERNAL int sched_yield(void);
 #endif
 
 // Enable syscall on Linux / glibc
@@ -57,7 +57,7 @@ extern "C" int sched_yield(void);
 
 #ifdef __GLIBC__
 /* use glibc internal longjmp to bypass fortify checks */
-extern "C" void __libc_longjmp (jmp_buf buf, int val) \
+EXTERNAL void __libc_longjmp (jmp_buf buf, int val) \
                     __attribute__ ((__noreturn__));
 #define rvm_longjmp(buf, ret) \
         __libc_longjmp(buf, ret)
@@ -120,8 +120,8 @@ extern "C" void __libc_longjmp (jmp_buf buf, int val) \
 #include <inttypes.h>           // uintptr_t
 
 #ifdef _AIX
-extern "C" timer_t gettimerid(int timer_type, int notify_type);
-extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
+EXTERNAL timer_t gettimerid(int timer_type, int notify_type);
+EXTERNAL int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
 #include <sys/events.h>
 #endif
 
@@ -139,24 +139,24 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include <pthread.h>
 #endif
 
-extern "C" Word sysMonitorCreate();
-extern "C" void sysMonitorDestroy(Word);
-extern "C" void sysMonitorEnter(Word);
-extern "C" void sysMonitorExit(Word);
-extern "C" void sysMonitorTimedWait(Word, long long);
-extern "C" void sysMonitorWait(Word);
-extern "C" void sysMonitorBroadcast(Word);
+EXTERNAL Word sysMonitorCreate();
+EXTERNAL void sysMonitorDestroy(Word);
+EXTERNAL void sysMonitorEnter(Word);
+EXTERNAL void sysMonitorExit(Word);
+EXTERNAL void sysMonitorTimedWait(Word, long long);
+EXTERNAL void sysMonitorWait(Word);
+EXTERNAL void sysMonitorBroadcast(Word);
 
 // #define DEBUG_SYS
 // #define DEBUG_THREAD
 
 #ifdef RVM_FOR_HARMONY
-extern "C" int sysThreadStartup(void *args);
+EXTERNAL int sysThreadStartup(void *args);
 #else
-extern "C" void *sysThreadStartup(void *args);
+EXTERNAL void *sysThreadStartup(void *args);
 #endif
 
-extern "C" void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
+EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 
 /* This routine is not yet used by all of the functions that return strings in
  * buffers, but I hope that it will be one day. */
@@ -185,7 +185,7 @@ TLS_KEY_TYPE createThreadLocal() {
 }
 
 // Create keys for thread-specific data.
-extern "C" void
+EXTERNAL void
 sysCreateThreadSpecificDataKeys(void)
 {
     int rc;
@@ -211,13 +211,13 @@ void setThreadLocal(TLS_KEY_TYPE key, void * value) {
     }
 }
 
-extern "C" void
+EXTERNAL void
 sysStashVMThread(Address vmThread)
 {
     setThreadLocal(VmThreadKey, (void*)vmThread);
 }
 
-extern "C" void *
+EXTERNAL void *
 getVmThread()
 {
     return GET_THREAD_LOCAL(VmThreadKey);
@@ -225,7 +225,7 @@ getVmThread()
 
 // Console write (java character).
 //
-extern "C" void
+EXTERNAL void
 sysConsoleWriteChar(unsigned value)
 {
     char c = (value > 127) ? '?' : (char)value;
@@ -235,7 +235,7 @@ sysConsoleWriteChar(unsigned value)
 
 // Console write (java integer).
 //
-extern "C" void
+EXTERNAL void
 sysConsoleWriteInteger(int value, int hexToo)
 {
     if (hexToo==0 /*false*/)
@@ -248,7 +248,7 @@ sysConsoleWriteInteger(int value, int hexToo)
 
 // Console write (java long).
 //
-extern "C" void
+EXTERNAL void
 sysConsoleWriteLong(long long value, int hexToo)
 {
     if (hexToo==0 /*false*/)
@@ -266,7 +266,7 @@ sysConsoleWriteLong(long long value, int hexToo)
 
 // Console write (java double).
 //
-extern "C" void
+EXTERNAL void
 sysConsoleWriteDouble(double value,  int postDecimalDigits)
 {
     if (value != value) {
@@ -289,7 +289,7 @@ volatile int numBadAlignTraps;
 static volatile int numEnableAlignCheckingCalls = 0;
 static volatile int numDisableAlignCheckingCalls = 0;
 
-extern "C" void sysEnableAlignmentChecking() {
+EXTERNAL void sysEnableAlignmentChecking() {
   numEnableAlignCheckingCalls++;
   if (numEnableAlignCheckingCalls > numDisableAlignCheckingCalls) {
     asm("pushf\n\t"
@@ -298,14 +298,14 @@ extern "C" void sysEnableAlignmentChecking() {
   }
 }
 
-extern "C" void sysDisableAlignmentChecking() {
+EXTERNAL void sysDisableAlignmentChecking() {
   numDisableAlignCheckingCalls++;
   asm("pushf\n\t"
       "andl $0xfffbffff,(%esp)\n\t"
       "popf");
 }
 
-extern "C" void sysReportAlignmentChecking() {
+EXTERNAL void sysReportAlignmentChecking() {
   fprintf(SysTraceFile, "\nAlignment checking report:\n\n");
   fprintf(SysTraceFile, "# native traps (ignored by default):             %d\n", numNativeAlignTraps);
   fprintf(SysTraceFile, "# 8-byte access traps (ignored by default):      %d\n", numEightByteAlignTraps);
@@ -328,17 +328,17 @@ extern "C" void sysReportAlignmentChecking() {
 
 #else
 
-extern "C" void sysEnableAlignmentChecking() { }
-extern "C" void sysDisableAlignmentChecking() { }
-extern "C" void sysReportAlignmentChecking() { }
+EXTERNAL void sysEnableAlignmentChecking() { }
+EXTERNAL void sysDisableAlignmentChecking() { }
+EXTERNAL void sysReportAlignmentChecking() { }
 
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
 Word DeathLock = NULL;
 
-extern "C" void VMI_Initialize();
+EXTERNAL void VMI_Initialize();
 
-extern "C" void
+EXTERNAL void
 sysInitialize()
 {
 #ifdef RVM_FOR_HARMONY
@@ -354,7 +354,7 @@ static const bool debugging = false;
 
 // Exit with a return code.
 //
-extern "C" void
+EXTERNAL void
 sysExit(int value)
 {
     // alignment checking: report info before exiting, then turn off checking
@@ -393,7 +393,7 @@ sysExit(int value)
 //           buffer to fill
 // Returned: number of bytes written to buffer (-1: arg didn't fit, buffer too small)
 //
-extern "C" int
+EXTERNAL int
 sysArg(int argno, char *buf, int buflen)
 {
     if (argno == -1) { // return arg count
@@ -432,7 +432,7 @@ sysArg(int argno, char *buf, int buflen)
          -2: Indicates that the envar was unset.  This is distinguished
         from a zero-length value (see above).
 */
-extern "C" int
+EXTERNAL int
 sysGetenv(const char *varName, char *buf, int limit)
 {
     return loadResultBuf(buf, limit, getenv(varName));
@@ -482,7 +482,7 @@ loadResultBuf(char * dest, int limit, const char *src)
 /*
  * Performance counter support using the linux perf event system.
  */
-extern "C" {
+EXTERNAL {
 #ifndef RVM_WITH_PERFEVENT
 void sysPerfEventInit(int events) {}
 void sysPerfEventCreate(int id, const char *eventName) {}
@@ -561,7 +561,7 @@ void sysPerfEventRead(int id, long long *values)
   }
 }
 #endif
-} // extern "C"
+}
 
 //------------------------//
 // Filesystem operations. //
@@ -573,7 +573,7 @@ void sysPerfEventRead(int id, long long *values)
 // Returned: status (-1=error)
 //
 // As of August 2003, this is never used. --Steve Augart
-extern "C" int
+EXTERNAL int
 sysStat(char *name, int kind)
 {
 #ifdef DEBUG_SYS
@@ -609,7 +609,7 @@ sysStat(char *name, int kind)
 //           kind of access perm to check for (see FileSystem.ACCESS_W_OK)
 // Returned: 0 on success (-1=error)
 //
-extern "C" int
+EXTERNAL int
 sysAccess(char *name, int kind)
 {
 #ifdef DEBUG_SYS
@@ -624,7 +624,7 @@ sysAccess(char *name, int kind)
 // Returned: >=0: count, ThreadIOConstants_FD_INVALID: bad file descriptor,
 //          -1: other error
 //
-extern "C" int
+EXTERNAL int
 sysBytesAvailable(int fd)
 {
     int count = 0;
@@ -636,7 +636,7 @@ sysBytesAvailable(int fd)
     return count;
 }
 
-extern "C" int
+EXTERNAL int
 sysSyncFile(int fd)
 {
     if (fsync(fd) != 0) {
@@ -652,7 +652,7 @@ sysSyncFile(int fd)
 // Taken:    file descriptor
 // Returned: data read (-3: error, -2: operation would block, -1: eof, >= 0: valid)
 //
-extern "C" int
+EXTERNAL int
 sysReadByte(int fd)
 {
     unsigned char ch;
@@ -683,7 +683,7 @@ again:
 //           data to write
 // Returned: -2 operation would block, -1: error, 0: success
 //
-extern "C" int
+EXTERNAL int
 sysWriteByte(int fd, int data)
 {
     char ch = data;
@@ -708,7 +708,7 @@ again:
 //           number of bytes requested
 // Returned: number of bytes delivered (-2: error, -1: socket would have blocked)
 //
-extern "C" int
+EXTERNAL int
 sysReadBytes(int fd, char *buf, int cnt)
 {
     //fprintf(SysTraceFile, "%s: read %d 0x%08x %d\n", Me, fd, buf, cnt);
@@ -736,7 +736,7 @@ again:
 // Returned: number of bytes written (-2: error, -1: socket would have blocked,
 //           -3 EPIPE error)
 //
-extern "C" int
+EXTERNAL int
 sysWriteBytes(int fd, char *buf, int cnt)
 {
 // fprintf(SysTraceFile, "%s: write %d 0x%08x %d\n", Me, fd, buf, cnt);
@@ -782,7 +782,7 @@ static int sysClose(int fd)
 // Taken: the file descriptor
 // Returned: 0 if sucessful, nonzero otherwise
 //
-extern "C" int
+EXTERNAL int
 sysSetFdCloseOnExec(int fd)
 {
     return fcntl(fd, F_SETFD, FD_CLOEXEC);
@@ -790,7 +790,7 @@ sysSetFdCloseOnExec(int fd)
 
 /////////////////// time operations /////////////////
 
-extern "C" long long
+EXTERNAL long long
 sysCurrentTimeMillis()
 {
     int rc;
@@ -815,7 +815,7 @@ sysCurrentTimeMillis()
 mach_timebase_info_data_t timebaseInfo;
 #endif
 
-extern "C" long long
+EXTERNAL long long
 sysNanoTime()
 {
 	long long retVal;
@@ -855,7 +855,7 @@ sysNanoTime()
  * We don't return anything, since we don't need to right now.  Just try to
  * sleep; if interrupted, return.
  */
-extern "C" void
+EXTERNAL void
 sysNanoSleep(long long howLongNanos)
 {
     struct timespec req;
@@ -895,7 +895,7 @@ sysNanoSleep(long long howLongNanos)
 // than that, we would want to use a static variable to indicate that we'd
 // already printed the WARNING messages and were not about to print any more.
 
-extern "C" int
+EXTERNAL int
 sysNumProcessors()
 {
     static int firstRun = 1;
@@ -973,7 +973,7 @@ sysNumProcessors()
 // Create a native thread
 // Taken:    register values to use for pthread startup
 // Returned: virtual processor's OS handle
-extern "C" Word
+EXTERNAL Word
 sysThreadCreate(Address tr, Address ip, Address fp)
 {
     Address    *sysThreadArguments;
@@ -1034,7 +1034,7 @@ sysThreadCreate(Address tr, Address ip, Address fp)
     return (Word)sysThreadHandle;
 }
 
-extern "C" int
+EXTERNAL int
 sysThreadBindSupported()
 {
   int result=0;
@@ -1047,7 +1047,7 @@ sysThreadBindSupported()
   return result;
 }
 
-extern "C" void
+EXTERNAL void
 sysThreadBind(int UNUSED cpuId)
 {
     // bindprocessor() seems to be only on AIX
@@ -1074,10 +1074,10 @@ sysThreadBind(int UNUSED cpuId)
 }
 
 #ifdef RVM_FOR_HARMONY
-extern "C" int
+EXTERNAL int
 sysThreadStartup(void *args)
 #else
-extern "C" void *
+EXTERNAL void *
 sysThreadStartup(void *args)
 #endif
 {
@@ -1168,13 +1168,13 @@ sysThreadStartup(void *args)
   This happens to be only called once, at thread startup time, but please
   don't rely on that fact.
 */
-extern "C" Word
+EXTERNAL Word
 sysGetThreadId()
 {
     return (Word)getThreadId();
 }
 
-extern "C" void*
+EXTERNAL void*
 getThreadId()
 {
     
@@ -1195,7 +1195,7 @@ getThreadId()
   signal handling stack for the thread.)
 
   This is only called once, at thread startup time. */
-extern "C" void
+EXTERNAL void
 sysSetupHardwareTrapHandler()
 {
     int rc;                     // retval from subfunction.
@@ -1253,7 +1253,7 @@ sysSetupHardwareTrapHandler()
 // Taken:    nothing
 // Returned: nothing
 //
-extern "C" void
+EXTERNAL void
 sysThreadYield()
 {
     /** According to the Linux manpage, sched_yield()'s presence can be
@@ -1295,7 +1295,7 @@ static int hasPthreadPriority(Word thread_id)
 // Return a handle which can be used to manipulate a threads priority
 // on Linux this will be the kernel thread_id, on other systems the
 // standard thread id.
-extern "C" Word
+EXTERNAL Word
 sysGetThreadPriorityHandle()
 {
     // gettid() syscall is Linux specific, detect its syscall number macro
@@ -1316,7 +1316,7 @@ static int defaultPriority(int policy)
 }
 
 // Get the thread priority as an offset from the default.
-extern "C" int
+EXTERNAL int
 sysGetThreadPriority(Word thread, Word handle)
 {
     // use pthread priority mechanisms where possible
@@ -1342,7 +1342,7 @@ sysGetThreadPriority(Word thread, Word handle)
 }
 
 // Set the thread priority as an offset from the default.
-extern "C" int
+EXTERNAL int
 sysSetThreadPriority(Word thread, Word handle, int priority)
 {
     // fast path
@@ -1378,7 +1378,7 @@ typedef struct {
 } vmmonitor_t;
 #endif
 
-extern "C" Word
+EXTERNAL Word
 sysMonitorCreate()
 {
 #ifdef RVM_FOR_HARMONY
@@ -1392,7 +1392,7 @@ sysMonitorCreate()
     return (Word)monitor;
 }
 
-extern "C" void
+EXTERNAL void
 sysMonitorDestroy(Word _monitor)
 {
 #ifdef RVM_FOR_HARMONY
@@ -1405,7 +1405,7 @@ sysMonitorDestroy(Word _monitor)
 #endif
 }
 
-extern "C" void
+EXTERNAL void
 sysMonitorEnter(Word _monitor)
 {
 #ifdef RVM_FOR_HARMONY
@@ -1416,7 +1416,7 @@ sysMonitorEnter(Word _monitor)
 #endif
 }
 
-extern "C" void
+EXTERNAL void
 sysMonitorExit(Word _monitor)
 {
 #ifdef RVM_FOR_HARMONY
@@ -1427,7 +1427,7 @@ sysMonitorExit(Word _monitor)
 #endif
 }
 
-extern "C" void
+EXTERNAL void
 sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 {
 #ifdef RVM_FOR_HARMONY
@@ -1454,7 +1454,7 @@ sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 #endif
 }
 
-extern "C" void
+EXTERNAL void
 sysMonitorWait(Word _monitor)
 {
 #ifdef RVM_FOR_HARMONY
@@ -1465,7 +1465,7 @@ sysMonitorWait(Word _monitor)
 #endif
 }
 
-extern "C" void
+EXTERNAL void
 sysMonitorBroadcast(Word _monitor)
 {
 #ifdef RVM_FOR_HARMONY
@@ -1476,7 +1476,7 @@ sysMonitorBroadcast(Word _monitor)
 #endif
 }
 
-extern "C" void
+EXTERNAL void
 sysThreadTerminate()
 {
 #ifdef RVM_FOR_POWERPC
@@ -1493,25 +1493,25 @@ sysThreadTerminate()
 // Arithmetic operations. //
 //------------------------//
 
-extern "C" long long
+EXTERNAL long long
 sysLongDivide(long long a, long long b)
 {
     return a/b;
 }
 
-extern "C" long long
+EXTERNAL long long
 sysLongRemainder(long long a, long long b)
 {
     return a % b;
 }
 
-extern "C" double
+EXTERNAL double
 sysLongToDouble(long long a)
 {
     return (double)a;
 }
 
-extern "C" float
+EXTERNAL float
 sysLongToFloat(long long a)
 {
     return (float)a;
@@ -1520,7 +1520,7 @@ sysLongToFloat(long long a)
 double maxlong = 0.5 + (double)0x7fffffffffffffffLL;
 double maxint  = 0.5 + (double)0x7fffffff;
 
-extern "C" int
+EXTERNAL int
 sysFloatToInt(float a)
 {
     if (maxint <= a) return 0x7fffffff;
@@ -1529,7 +1529,7 @@ sysFloatToInt(float a)
     return (int)a;
 }
 
-extern "C" int
+EXTERNAL int
 sysDoubleToInt(double a)
 {
     if (maxint <= a) return 0x7fffffff;
@@ -1538,7 +1538,7 @@ sysDoubleToInt(double a)
     return (int)a;
 }
 
-extern "C" long long
+EXTERNAL long long
 sysFloatToLong(float a)
 {
     if (maxlong <= a) return 0x7fffffffffffffffLL;
@@ -1546,7 +1546,7 @@ sysFloatToLong(float a)
     return (long long)a;
 }
 
-extern "C" long long
+EXTERNAL long long
 sysDoubleToLong(double a)
 {
     if (maxlong <= a) return 0x7fffffffffffffffLL;
@@ -1556,7 +1556,7 @@ sysDoubleToLong(double a)
 
 // sysDoubleRemainder is only used on PPC
 #include <math.h>
-extern "C" double
+EXTERNAL double
 sysDoubleRemainder(double a, double b)
 {
     double tmp = remainder(a, b);
@@ -1589,7 +1589,7 @@ sysDoubleRemainder(double a, double b)
    is safe to call Float.valueOf or Double.valueOf.   This is only used in
    parsing command-line arguments, so we can safely print error messages that
    assume the user specified this number as part of a command-line argument. */
-extern "C" float
+EXTERNAL float
 sysPrimitiveParseFloat(const char * buf)
 {
     if (! buf[0] ) {
@@ -1623,7 +1623,7 @@ sysPrimitiveParseFloat(const char * buf)
 // This is only used in
 // parsing command-line arguments, so we can safely print error messages that
 // assume the user specified this number as part of a command-line argument.
-extern "C" int
+EXTERNAL int
 sysPrimitiveParseInt(const char * buf)
 {
     if (! buf[0] ) {
@@ -1654,7 +1654,7 @@ sysPrimitiveParseInt(const char * buf)
 
 /** Parse memory sizes.
     @return negative values to indicate errors. */
-extern "C" jlong
+EXTERNAL jlong
 sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
                                             or "initial stack" or
                                             "maximum stack" */
@@ -1682,7 +1682,7 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
 
 // Memory to memory copy. Memory regions must not overlap.
 //
-extern "C" void
+EXTERNAL void
 sysCopy(void *dst, const void *src, Extent cnt)
 {
     memcpy(dst, src, cnt);
@@ -1690,7 +1690,7 @@ sysCopy(void *dst, const void *src, Extent cnt)
 
 // Memory to memory copy. Memory regions may overlap.
 //
-extern "C" void
+EXTERNAL void
 sysMemmove(void *dst, const void *src, Extent cnt)
 {
     memmove(dst, src, cnt);
@@ -1728,13 +1728,13 @@ checkFree(void* mem)
 
 // Allocate memory.
 //
-extern "C" void *
+EXTERNAL void *
 sysMalloc(int length)
 {
     return checkMalloc(length);
 }
 
-extern "C" void *
+EXTERNAL void *
 sysCalloc(int length)
 {
   return checkCalloc(1, length);
@@ -1742,14 +1742,14 @@ sysCalloc(int length)
 
 // Release memory.
 //
-extern "C" void
+EXTERNAL void
 sysFree(void *location)
 {
     checkFree(location);
 }
 
 // Zero a range of memory with non-temporal instructions on x86
-extern "C" void
+EXTERNAL void
 sysZeroNT(void *dst, Extent cnt)
 {
 #ifdef RVM_FOR_SSE2
@@ -1797,7 +1797,7 @@ sysZeroNT(void *dst, Extent cnt)
 
 // Zero a range of memory bytes.
 //
-extern "C" void
+EXTERNAL void
 sysZero(void *dst, Extent cnt)
 {
     memset(dst, 0x00, cnt);
@@ -1808,7 +1808,7 @@ sysZero(void *dst, Extent cnt)
 //           size of range, in bytes (must be multiple of page size, 4096)
 // Returned: nothing
 //
-extern "C" void
+EXTERNAL void
 sysZeroPages(void *dst, int cnt)
 {
     // uncomment one of the following
@@ -1879,7 +1879,7 @@ sysZeroPages(void *dst, int cnt)
 // Returned: nothing
 //
 //
-extern "C" void
+EXTERNAL void
 sysSyncCache(void UNUSED *address, size_t UNUSED  size)
 {
 #ifdef DEBUG_SYS
@@ -1932,7 +1932,7 @@ sysSyncCache(void UNUSED *address, size_t UNUSED  size)
 //        offset (Java long)  [to cover 64 bit file systems]
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 
-extern "C" void *
+EXTERNAL void *
 sysMMap(char *start , size_t length ,
         int protection , int flags ,
         int fd , Offset offset)
@@ -1944,7 +1944,7 @@ sysMMap(char *start , size_t length ,
 // Same as mmap, but with more debugging support.
 // Returned: address of region if successful; errno (1 to 127) otherwise
 
-extern "C" void *
+EXTERNAL void *
 sysMMapErrno(char *start , size_t length ,
         int protection , int flags ,
         int fd , Offset offset)
@@ -1972,7 +1972,7 @@ sysMMapErrno(char *start , size_t length ,
 //        length of region (Java EXTENT)
 //        new protection (Java int)
 // Returned: 0 (success) or -1 (failure) (Java int)
-extern "C" int
+EXTERNAL int
 sysMProtect(char *start, size_t length, int prot)
 {
     return mprotect(start, length, prot);
@@ -1981,7 +1981,7 @@ sysMProtect(char *start, size_t length, int prot)
 // getpagesize
 // Taken: (no arguments)
 // Returned: page size in bytes (Java int)
-extern "C" int
+EXTERNAL int
 sysGetPageSize()
 {
     return (int)(getpagesize());
@@ -1990,7 +1990,7 @@ sysGetPageSize()
 //
 // Sweep through memory to find which areas of memory are mappable.
 // This is invoked from a command-line argument.
-extern "C" void
+EXTERNAL void
 findMappable()
 {
     int granularity = 1 << 22; // every 4 megabytes
@@ -2025,7 +2025,7 @@ findMappable()
 // Taken:
 // Returned: a handler for this library, null if none loaded
 //
-extern "C" void*
+EXTERNAL void*
 sysDlopen(char *libname)
 {
     void * libHandler;
@@ -2047,131 +2047,131 @@ sysDlopen(char *libname)
 // Taken:
 // Returned:
 //
-extern "C" void*
+EXTERNAL void*
 sysDlsym(Address libHandler, char *symbolName)
 {
     return dlsym((void *) libHandler, symbolName);
 }
 
-extern "C" int
+EXTERNAL int
 getArrayLength(void* ptr)
 {
     return *(int*)(((char *)ptr) + ObjectModel_ARRAY_LENGTH_OFFSET);
 }
 
 // VMMath
-extern "C" double
+EXTERNAL double
 sysVMMathSin(double a) {
     return sin(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathCos(double a) {
     return cos(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathTan(double a) {
     return tan(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathAsin(double a) {
     return asin(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathAcos(double a) {
     return acos(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathAtan(double a) {
     return atan(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathAtan2(double a, double b) {
     return atan2(a, b);
 }
 
 
-extern "C" double
+EXTERNAL double
 sysVMMathCosh(double a) {
     return cosh(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathSinh(double a) {
     return sinh(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathTanh(double a) {
     return tanh(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathExp(double a) {
     return exp(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathLog(double a) {
     return log(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathSqrt(double a) {
     return sqrt(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathPow(double a, double b) {
     return pow(a, b);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathIEEEremainder(double a, double b) {
     return remainder(a, b);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathCeil(double a) {
     return ceil(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathFloor(double a) {
     return floor(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathRint(double a) {
     return rint(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathCbrt(double a) {
     return cbrt(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathExpm1(double a) {
     return expm1(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathHypot(double a, double b) {
     return hypot(a, b);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathLog10(double a) {
     return log10(a);
 }
 
-extern "C" double
+EXTERNAL double
 sysVMMathLog1p(double a) {
     return log1p(a);
 }
@@ -2182,7 +2182,7 @@ sysVMMathLog1p(double a) {
 //NOTE It is the responsibility of the calling code to
 //     check that server, driver etc are non-null.
 
-extern "C" {
+EXTERNAL {
 #include "gcspy_gc_stream.h"
 #include "gcspy_main_server.h"
 #include "gcspy_gc_driver.h"
@@ -2199,7 +2199,7 @@ static gcspy_main_server_t server;
 static int stream_count = 0;
 static int stream_len;
 
-extern "C" gcspy_gc_stream_t *
+EXTERNAL gcspy_gc_stream_t *
 gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x(%s), id=%d...",
@@ -2212,7 +2212,7 @@ gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
   return stream;
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
   int len;
 #if GCSPY_TRACE
@@ -2228,7 +2228,7 @@ gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
   gcspy_driverEndOutput(driver);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driverName,
                  char *title, char *blockInfo, int tileNum,
                  char *unused, int mainSpace) {
@@ -2244,7 +2244,7 @@ gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driv
                    unused, mainSpace);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x(s)\n",
@@ -2253,7 +2253,7 @@ gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
   gcspy_driverInitOutput(driver);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverResize: driver=%x(%s), size %d\n",
@@ -2262,7 +2262,7 @@ gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
   gcspy_driverResize(driver, size);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, char *format, long value) {
   char buffer[128];
   sprintf(buffer, format, value);
@@ -2272,7 +2272,7 @@ gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, char *format, long 
   gcspy_driverSetTileName(driver, tile, buffer);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, Address start, Address end) {
   char name[256];
 #ifndef RVM_FOR_32_ADDR
@@ -2283,7 +2283,7 @@ gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, Address start,
   gcspyDriverSetTileName(driver, tile, name, 0);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverSpaceInfo (gcspy_gc_driver_t *driver, char *spaceInfo) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x(%s), spaceInfo = +%s+(%x)\n", driver, driver->name, spaceInfo, spaceInfo);
@@ -2291,7 +2291,7 @@ gcspyDriverSpaceInfo (gcspy_gc_driver_t *driver, char *spaceInfo) {
   gcspy_driverSpaceInfo(driver, spaceInfo);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverStartComm: driver=%x(%s)\n", driver, driver->name);
@@ -2299,7 +2299,7 @@ gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
   gcspy_driverStartComm(driver);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n",
@@ -2310,7 +2310,7 @@ gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
   gcspy_driverStream(driver, id, len);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
 #if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
@@ -2321,7 +2321,7 @@ gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
   gcspy_driverStreamByteValue(driver, val);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
 #if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
@@ -2332,7 +2332,7 @@ gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
   gcspy_driverStreamShortValue(driver, val);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
 #if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
@@ -2343,7 +2343,7 @@ gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
   gcspy_driverStreamIntValue(driver, val);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n",
@@ -2354,7 +2354,7 @@ gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
   gcspy_driverSummary(driver, id, len);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
 #if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
@@ -2366,7 +2366,7 @@ gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
 }
 
 /* Note: passed driver but uses driver->interpreter */
-extern "C" void
+EXTERNAL void
 gcspyIntWriteControl (gcspy_gc_driver_t *driver, int id, int len) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyIntWriteControl: driver=%x(%s), interpreter=%x, id=%d, len=%d\n", driver, driver->name, driver->interpreter, id, len);
@@ -2376,7 +2376,7 @@ gcspyIntWriteControl (gcspy_gc_driver_t *driver, int id, int len) {
   gcspy_intWriteControl(driver->interpreter, id, len);
 }
 
-extern "C" gcspy_gc_driver_t *
+EXTERNAL gcspy_gc_driver_t *
 gcspyMainServerAddDriver (gcspy_main_server_t *server) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerAddDriver: server address = %x(%s), adding driver...", server, server->name);
@@ -2388,7 +2388,7 @@ gcspyMainServerAddDriver (gcspy_main_server_t *server) {
   return driver;
 }
 
-extern "C" void
+EXTERNAL void
 gcspyMainServerAddEvent (gcspy_main_server_t *server, int event, const char *name) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerAddEvent: server address = %x(%s), event=%d, name=%s\n", server, server->name, event, name);
@@ -2396,7 +2396,7 @@ gcspyMainServerAddEvent (gcspy_main_server_t *server, int event, const char *nam
   gcspy_mainServerAddEvent(server, event, name);
 }
 
-extern "C" gcspy_main_server_t *
+EXTERNAL gcspy_main_server_t *
 gcspyMainServerInit (int port, int len, const char *name, int verbose) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerInit: server=%x, port=%d, len=%d, name=%s, verbose=%d\n", &server, port, len, name, verbose);
@@ -2405,7 +2405,7 @@ gcspyMainServerInit (int port, int len, const char *name, int verbose) {
   return &server;
 }
 
-extern "C" int
+EXTERNAL int
 gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerIsConnected: server=%x, event=%d...", &server, event);
@@ -2422,13 +2422,13 @@ gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
 
 typedef void gcspyMainServerOuterLoop_t(gcspy_main_server_t *);
 
-extern "C" gcspyMainServerOuterLoop_t *
+EXTERNAL gcspyMainServerOuterLoop_t *
 gcspyMainServerOuterLoop () {
   /* return gcspy_mainServerOuterLoop;*/
   return gcspy_mainServerMainLoop;
 }
 
-extern "C" void
+EXTERNAL void
 gcspyMainServerSafepoint (gcspy_main_server_t *server, int event) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerSafepoint: server=%x, event=%d\n", &server, event);
@@ -2436,7 +2436,7 @@ gcspyMainServerSafepoint (gcspy_main_server_t *server, int event) {
   gcspy_mainServerSafepoint(server, event);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyMainServerSetGeneralInfo (gcspy_main_server_t *server, char *generalInfo) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerSetGeneralInfo: server=%x, info=%s\n", &server, generalInfo);
@@ -2444,7 +2444,7 @@ gcspyMainServerSetGeneralInfo (gcspy_main_server_t *server, char *generalInfo) {
   gcspy_mainServerSetGeneralInfo(server, generalInfo);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyMainServerStartCompensationTimer (gcspy_main_server_t *server) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerStartCompensationTimer: server=%x\n", server);
@@ -2452,7 +2452,7 @@ gcspyMainServerStartCompensationTimer (gcspy_main_server_t *server) {
   gcspy_mainServerStartCompensationTimer(server);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyMainServerStopCompensationTimer (gcspy_main_server_t *server) {
 #if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyMainServerStopCompensationTimer: server=%x\n", server);
@@ -2460,7 +2460,7 @@ gcspyMainServerStopCompensationTimer (gcspy_main_server_t *server) {
   gcspy_mainServerStopCompensationTimer(server);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
 //#ifndef __linux__
 //  printf("I am not Linux!");
@@ -2485,7 +2485,7 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
   }
 }
 
-extern "C" void
+EXTERNAL void
 gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamName,
                  int minValue, int maxValue, int zeroValue, int defaultValue,
                  char *stringPre, char *stringPost, int presentation, int paintStyle,
@@ -2507,7 +2507,7 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
 		   indexMaxStream, &colour);
 }
 
-extern "C" void
+EXTERNAL void
 gcspyFormatSize (char *buffer, int size) {
 #if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
@@ -2518,7 +2518,7 @@ gcspyFormatSize (char *buffer, int size) {
 #endif
 }
 
-extern "C" int
+EXTERNAL int
 gcspySprintf(char *str, const char *format, char *arg) {
 #if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
