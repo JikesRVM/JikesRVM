@@ -364,7 +364,7 @@ sysExit(int value)
       sysDisableAlignmentChecking();
     }
     #endif // RVM_WITH_ALIGNMENT_CHECKING
-	
+
     if (lib_verbose & value != 0) {
         fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
     }
@@ -377,7 +377,7 @@ sysExit(int value)
 
     if (DeathLock) sysMonitorEnter(DeathLock);
     if (debugging && value!=0) {
-	abort();
+        abort();
     }
     exit(value);
 }
@@ -630,7 +630,7 @@ sysBytesAvailable(int fd)
     int count = 0;
     if (ioctl(fd, FIONREAD, &count) == -1)
     {
-	return -1;
+        return -1;
     }
 // fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
@@ -818,28 +818,28 @@ mach_timebase_info_data_t timebaseInfo;
 EXTERNAL long long
 sysNanoTime()
 {
-	long long retVal;
+    long long retVal;
 #ifndef __MACH__
-	struct timespec tp;
+    struct timespec tp;
     int rc = clock_gettime(CLOCK_REALTIME, &tp);
-	if (rc != 0) {
-		retVal = rc;
-	    if (lib_verbose) {
-	        fprintf(stderr, "sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
-	    }
-	} else {
-		retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
-	}
+    if (rc != 0) {
+        retVal = rc;
+        if (lib_verbose) {
+              fprintf(stderr, "sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
+        }
+    } else {
+        retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
+    }
 #else
-        struct timeval tv;
+    struct timeval tv;
 
-        gettimeofday(&tv,NULL);
+    gettimeofday(&tv,NULL);
 
-        retVal=tv.tv_sec;
-        retVal*=1000;
-        retVal*=1000;
-        retVal+=tv.tv_usec;
-        retVal*=1000;
+    retVal=tv.tv_sec;
+    retVal*=1000;
+    retVal*=1000;
+    retVal+=tv.tv_usec;
+    retVal*=1000;
 #endif
     return retVal;
 }
@@ -1019,7 +1019,7 @@ sysThreadCreate(Address tr, Address ip, Address fp)
         fprintf(SysErrorFile, "%s: pthread_create failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-    
+
     if ((rc = pthread_detach(sysThreadHandle)))
     {
         fprintf(SysErrorFile, "%s: pthread_detach failed (rc=%d)\n", Me, rc);
@@ -1484,7 +1484,7 @@ sysThreadTerminate()
 #endif
     jmp_buf *jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
     if (jb==NULL) {
-	jb=&primordial_jb;
+        jb=&primordial_jb;
     }
     rvm_longjmp(*jb,1);
 }
@@ -1757,35 +1757,35 @@ sysZeroNT(void *dst, Extent cnt)
   unsigned int len = cnt;
 
   __asm__ volatile (
-		    ".align 4 \n\t"
-		    "cmp $0x10, %%esi \n\t"
-		    "jl 0f \n\t"
-		    "pxor %%xmm0, %%xmm0 \n\t"
-		    "16: \n\t"
-		    "test $0xf, %%edi \n\t"
-		    "je 64f \n\t"
-		    "movb $0,(%%edi) \n\t"
-		    "inc %%edi \n\t"
-		    "dec %%esi \n\t"
-		    "jmp 16b \n\t"
-		    "64: \n\t"
-		    "cmp $128, %%esi \n\t"
-		    "jl 0f \n\t"
-		    "movntdq %%xmm0, 0x0(%%edi) \n\t"
-		    "movntdq %%xmm0, 0x10(%%edi) \n\t"
-		    "movntdq %%xmm0, 0x20(%%edi) \n\t"
-		    "movntdq %%xmm0, 0x30(%%edi) \n\t"
-		    "movntdq %%xmm0, 0x40(%%edi) \n\t"
-		    "movntdq %%xmm0, 0x50(%%edi) \n\t"
-		    "movntdq %%xmm0, 0x60(%%edi) \n\t"
-		    "movntdq %%xmm0, 0x70(%%edi) \n\t"
-		  
-		    "add $128, %%edi \n\t"
-		    "sub $128, %%esi \n\t"
-		    "jmp 64b \n\t"
-		    "0: \n\t"
-		    "sfence \n\t"
-		    : "+S"(len),"+D" ( buf ));
+        ".align 4 \n\t"
+        "cmp $0x10, %%esi \n\t"
+        "jl 0f \n\t"
+        "pxor %%xmm0, %%xmm0 \n\t"
+        "16: \n\t"
+        "test $0xf, %%edi \n\t"
+        "je 64f \n\t"
+        "movb $0,(%%edi) \n\t"
+        "inc %%edi \n\t"
+        "dec %%esi \n\t"
+        "jmp 16b \n\t"
+        "64: \n\t"
+        "cmp $128, %%esi \n\t"
+        "jl 0f \n\t"
+        "movntdq %%xmm0, 0x0(%%edi) \n\t"
+        "movntdq %%xmm0, 0x10(%%edi) \n\t"
+        "movntdq %%xmm0, 0x20(%%edi) \n\t"
+        "movntdq %%xmm0, 0x30(%%edi) \n\t"
+        "movntdq %%xmm0, 0x40(%%edi) \n\t"
+        "movntdq %%xmm0, 0x50(%%edi) \n\t"
+        "movntdq %%xmm0, 0x60(%%edi) \n\t"
+        "movntdq %%xmm0, 0x70(%%edi) \n\t"
+
+        "add $128, %%edi \n\t"
+        "sub $128, %%esi \n\t"
+        "jmp 64b \n\t"
+        "0: \n\t"
+        "sfence \n\t"
+        : "+S"(len),"+D" ( buf ));
 
   while (__builtin_expect (len--, 0)){
     *buf++ = 0;
@@ -2498,13 +2498,13 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
   fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n",
                    stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue, defaultValue,
-		   stringPre, stringPost, presentation, paintStyle,
-		   indexMaxStream, &colour, colour.red, colour.green, colour.blue);
+       stringPre, stringPost, presentation, paintStyle,
+       indexMaxStream, &colour, colour.red, colour.green, colour.blue);
 #endif
   gcspy_streamInit(stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue,defaultValue,
-		   stringPre, stringPost, presentation, paintStyle,
-		   indexMaxStream, &colour);
+       stringPre, stringPost, presentation, paintStyle,
+       indexMaxStream, &colour);
 }
 
 EXTERNAL void
@@ -2530,8 +2530,4 @@ gcspySprintf(char *str, const char *format, char *arg) {
   return res;
 }
 
-
 #endif
-
-
-
