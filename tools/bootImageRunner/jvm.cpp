@@ -85,7 +85,7 @@ DestroyJavaVM(JavaVM UNUSED * vm)
  */
 static
 jint
-AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
+AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
 {
     JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
     jint version;

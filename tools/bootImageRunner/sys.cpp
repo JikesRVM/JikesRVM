@@ -1050,7 +1050,7 @@ sysThreadBindSupported()
 }
 
 EXTERNAL void
-sysThreadBind(int UNUSED cpuId)
+sysThreadBind(int cpuId)
 {
     TRACE_PRINTF(SysTraceFile, "%s: sysThreadBind\n", Me);
     // bindprocessor() seems to be only on AIX
@@ -1911,7 +1911,7 @@ sysZeroPages(void *dst, int cnt)
 //
 //
 EXTERNAL void
-sysSyncCache(void UNUSED *address, size_t UNUSED  size)
+sysSyncCache(void *address, size_t size)
 {
     TRACE_PRINTF(SysTraceFile, "%s: sync %p %zd\n", Me, address, size);
 
