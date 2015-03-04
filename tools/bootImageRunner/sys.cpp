@@ -175,15 +175,14 @@ TLS_KEY_TYPE createThreadLocal() {
 EXTERNAL void
 sysCreateThreadSpecificDataKeys(void)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysCreateThreadSpecificDataKeys\n", Me);
     int rc;
 
     // Create a key for thread-specific data so we can associate
     // the id of the Processor object with the pthread it is running on.
     VmThreadKey = createThreadLocal();
     TerminateJmpBufKey = createThreadLocal();
-#ifdef DEBUG_SYS
-    fprintf(stderr, "%s: vm processor key=%u\n", Me, VmThreadKey);
-#endif
+    TRACE_PRINTF(stderr, "%s: vm processor key=%lu\n", Me, VmThreadKey);
 }
 
 void setThreadLocal(TLS_KEY_TYPE key, void * value) {
@@ -201,6 +200,7 @@ void setThreadLocal(TLS_KEY_TYPE key, void * value) {
 EXTERNAL void
 sysStashVMThread(Address vmThread)
 {
+    TRACE_PRINTF(SysErrorFile, "%s: sysStashVmProcessorInPthread %p\n", Me, vmThread);
     setThreadLocal(VmThreadKey, (void*)vmThread);
 }
 
@@ -277,6 +277,7 @@ static volatile int numEnableAlignCheckingCalls = 0;
 static volatile int numDisableAlignCheckingCalls = 0;
 
 EXTERNAL void sysEnableAlignmentChecking() {
+  TRACE_PRINTF(SysTraceFile, "%s: sysEnableAlignmentChecking\n", Me);
   numEnableAlignCheckingCalls++;
   if (numEnableAlignCheckingCalls > numDisableAlignCheckingCalls) {
     asm("pushf\n\t"
@@ -286,6 +287,7 @@ EXTERNAL void sysEnableAlignmentChecking() {
 }
 
 EXTERNAL void sysDisableAlignmentChecking() {
+  TRACE_PRINTF(SysTraceFile, "%s: sysDisableAlignmentChecking\n", Me);
   numDisableAlignCheckingCalls++;
   asm("pushf\n\t"
       "andl $0xfffbffff,(%esp)\n\t"
@@ -328,6 +330,7 @@ EXTERNAL void VMI_Initialize();
 EXTERNAL void
 sysInitialize()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysInitialize\n", Me);
 #ifdef RVM_FOR_HARMONY
     VMI_Initialize();
 #endif
@@ -344,6 +347,7 @@ static const bool debugging = false;
 EXTERNAL void
 sysExit(int value)
 {
+    TRACE_PRINTF(SysErrorFile, "%s: sysExit %d\n", Me, value);
     // alignment checking: report info before exiting, then turn off checking
     #ifdef RVM_WITH_ALIGNMENT_CHECKING
     if (numEnableAlignCheckingCalls > 0) {
@@ -383,6 +387,7 @@ sysExit(int value)
 EXTERNAL int
 sysArg(int argno, char *buf, int buflen)
 {
+    TRACE_PRINTF(SysErrorFile, "%s: sysArg %d\n", Me, argno);
     if (argno == -1) { // return arg count
         return JavaArgc;
         /***********
@@ -422,6 +427,7 @@ sysArg(int argno, char *buf, int buflen)
 EXTERNAL int
 sysGetenv(const char *varName, char *buf, int limit)
 {
+    TRACE_PRINTF(SysErrorFile, "%s: sysGetenv %s\n", Me, varName);
     return loadResultBuf(buf, limit, getenv(varName));
 }
 
@@ -483,6 +489,7 @@ static struct perf_event_attr *perf_event_attrs;
 
 void sysPerfEventInit(int numEvents)
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventInit\n", Me);
   int ret = pfm_initialize();
   if (ret != PFM_SUCCESS) {
     errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
@@ -504,6 +511,7 @@ void sysPerfEventInit(int numEvents)
 
 void sysPerfEventCreate(int id, const char *eventName)
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventCreate\n", Me);
   struct perf_event_attr *pe = (perf_event_attrs + id);
   int ret = pfm_get_perf_event_encoding(eventName, PFM_PLM3, pe, NULL, NULL);
   if (ret != PFM_SUCCESS) {
@@ -520,6 +528,7 @@ void sysPerfEventCreate(int id, const char *eventName)
 
 void sysPerfEventEnable()
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventEnable\n", Me);
   if (enabled) {
     if (prctl(PR_TASK_PERF_EVENTS_ENABLE)) {
       err(1, "error in prctl(PR_TASK_PERF_EVENTS_ENABLE)");
@@ -529,6 +538,7 @@ void sysPerfEventEnable()
 
 void sysPerfEventDisable()
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventDisable\n", Me);
   if (enabled) {
     if (prctl(PR_TASK_PERF_EVENTS_DISABLE)) {
       err(1, "error in prctl(PR_TASK_PERF_EVENTS_DISABLE)");
@@ -538,6 +548,7 @@ void sysPerfEventDisable()
 
 void sysPerfEventRead(int id, long long *values)
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventRead\n", Me);
   size_t expectedBytes = 3 * sizeof(long long);
   int ret = read(perf_event_fds[id], values, expectedBytes);
   if (ret < 0) {
@@ -563,9 +574,7 @@ void sysPerfEventRead(int id, long long *values)
 EXTERNAL int
 sysStat(char *name, int kind)
 {
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: stat %s\n", Me, name);
-#endif
+    TRACE_PRINTF(SysTraceFile, "%s: sysStat %s %d\n", Me, name, kind);
 
     struct stat info;
 
@@ -599,10 +608,7 @@ sysStat(char *name, int kind)
 EXTERNAL int
 sysAccess(char *name, int kind)
 {
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: access %s\n", Me, name);
-#endif
-
+    TRACE_PRINTF(SysTraceFile, "%s: sysAccess %s\n", Me, name);
     return access(name, kind);
 }
 
@@ -614,24 +620,25 @@ sysAccess(char *name, int kind)
 EXTERNAL int
 sysBytesAvailable(int fd)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: bytesAvailable %d\n", Me, fd);
     int count = 0;
     if (ioctl(fd, FIONREAD, &count) == -1)
     {
         return -1;
     }
-// fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
+    TRACE_PRINTF(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
 }
 
 EXTERNAL int
 sysSyncFile(int fd)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sync %d\n", Me, fd);
     if (fsync(fd) != 0) {
         // some kinds of files cannot be sync'ed, so don't print error message
         // however, do return error code in case some application cares
         return -1;
     }
-
     return 0;
 }
 
@@ -642,6 +649,7 @@ sysSyncFile(int fd)
 EXTERNAL int
 sysReadByte(int fd)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: readByte %d\n", Me, fd);
     unsigned char ch;
     int rc;
 
@@ -674,6 +682,7 @@ EXTERNAL int
 sysWriteByte(int fd, int data)
 {
     char ch = data;
+    TRACE_PRINTF(SysTraceFile, "%s: writeByte %d %c\n", Me, fd, ch);
 again:
     int rc = write(fd, &ch, 1);
     if (rc == 1)
@@ -698,7 +707,7 @@ again:
 EXTERNAL int
 sysReadBytes(int fd, char *buf, int cnt)
 {
-    //fprintf(SysTraceFile, "%s: read %d 0x%08x %d\n", Me, fd, buf, cnt);
+    TRACE_PRINTF(SysTraceFile, "%s: read %d %p %d\n", Me, fd, buf, cnt);
 again:
     int rc = read(fd, buf, cnt);
     if (rc >= 0)
@@ -706,7 +715,7 @@ again:
     int err = errno;
     if (err == EAGAIN)
     {
-        // fprintf(SysTraceFile, "%s: read on %d would have blocked: needs retry\n", Me, fd);
+        TRACE_PRINTF(SysTraceFile, "%s: read on %d would have blocked: needs retry\n", Me, fd);
         return -1;
     }
     else if (err == EINTR)
@@ -726,7 +735,7 @@ again:
 EXTERNAL int
 sysWriteBytes(int fd, char *buf, int cnt)
 {
-// fprintf(SysTraceFile, "%s: write %d 0x%08x %d\n", Me, fd, buf, cnt);
+    TRACE_PRINTF(SysTraceFile, "%s: write %d %p %d\n", Me, fd, buf, cnt);
 again:
     int rc = write(fd, buf, cnt);
     if (rc >= 0)
@@ -734,14 +743,14 @@ again:
     int err = errno;
     if (err == EAGAIN)
     {
-        // fprintf(SysTraceFile, "%s: write on %d would have blocked: needs retry\n", Me, fd);
+        TRACE_PRINTF(SysTraceFile, "%s: write on %d would have blocked: needs retry\n", Me, fd);
         return -1;
     }
     if (err == EINTR)
         goto again; // interrupted by signal; try again
     if (err == EPIPE)
     {
-        //fprintf(SysTraceFile, "%s: write on %d with nobody to read it\n", Me, fd);
+        TRACE_PRINTF(SysTraceFile, "%s: write on %d with nobody to read it\n", Me, fd);
         return -3;
     }
     fprintf(SysTraceFile, "%s: write error %d (%s) on %d\n", Me,
@@ -757,6 +766,7 @@ again:
 //
 static int sysClose(int fd)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: close %d\n", Me, fd);
     if ( -1 == fd ) return -1;
     int rc = close(fd);
     if (rc == 0) return 0; // success
@@ -772,6 +782,7 @@ static int sysClose(int fd)
 EXTERNAL int
 sysSetFdCloseOnExec(int fd)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: setFdCloseOnExec %d\n", Me, fd);
     return fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
 
@@ -780,6 +791,7 @@ sysSetFdCloseOnExec(int fd)
 EXTERNAL long long
 sysCurrentTimeMillis()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysCurrentTimeMillis\n", Me);
     int rc;
     long long returnValue;
     struct timeval tv;
@@ -805,6 +817,7 @@ mach_timebase_info_data_t timebaseInfo;
 EXTERNAL long long
 sysNanoTime()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysNanoTime\n", Me);
     long long retVal;
 #ifndef __MACH__
     struct timespec tp;
@@ -847,6 +860,7 @@ sysNanoSleep(long long howLongNanos)
 {
     struct timespec req;
     const long long nanosPerSec = 1000LL * 1000 * 1000;
+    TRACE_PRINTF(SysTraceFile, "%s: sysNanosleep %lld\n", Me, howLongNanos);
     req.tv_sec = howLongNanos / nanosPerSec;
     req.tv_nsec = howLongNanos % nanosPerSec;
     int ret = nanosleep(&req, (struct timespec *) NULL);
@@ -887,6 +901,7 @@ sysNumProcessors()
 {
     static int firstRun = 1;
     int numCpus = -1;  /* -1 means failure. */
+    TRACE_PRINTF(SysTraceFile, "%s: sysNumProcessors\n", Me);  
 
 #ifdef __GNU_LIBRARY__      // get_nprocs is part of the GNU C library.
     /* get_nprocs_conf will give us a how many processors the operating
@@ -945,7 +960,7 @@ sysNumProcessors()
 #endif
 
     if (numCpus < 0) {
-        if (firstRun) fprintf(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
+        if (firstRun) TRACE_PRINTF(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
                               " are online; assuming 1\n", Me);
         numCpus = 1;            // Default
     }
@@ -965,6 +980,8 @@ sysThreadCreate(Address tr, Address ip, Address fp)
 {
     Address    *sysThreadArguments;
     int            rc;
+    
+    TRACE_PRINTF(SysTraceFile, "%s: sysThreadCreate %p %p %p\n", Me, tr, ip, fp);
 
     // create arguments
     //
@@ -1012,10 +1029,7 @@ sysThreadCreate(Address tr, Address ip, Address fp)
         fprintf(SysErrorFile, "%s: pthread_detach failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-#endif
-
-#ifdef DEBUG_THREAD
-        fprintf(SysTraceFile, "%s: thread create 0x%08x\n", Me, (Address) sysThreadHandle);
+    TRACE_PRINTF(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (Address) sysThreadHandle);
 #endif
 
     return (Word)sysThreadHandle;
@@ -1025,6 +1039,7 @@ EXTERNAL int
 sysThreadBindSupported()
 {
   int result=0;
+  TRACE_PRINTF(SysTraceFile, "%s: sysThreadBindSupported\n", Me);
 #ifdef RVM_FOR_AIX
   result=1;
 #endif
@@ -1037,6 +1052,7 @@ sysThreadBindSupported()
 EXTERNAL void
 sysThreadBind(int UNUSED cpuId)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysThreadBind\n", Me);
     // bindprocessor() seems to be only on AIX
 #ifdef RVM_FOR_AIX
     int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
@@ -1113,13 +1129,8 @@ sysThreadStartup(void *args)
         Address ip       = ((Address *)args)[1];
         Address fp       = ((Address *)args)[2];
 
-#ifdef DEBUG_THREAD
-#ifndef RVM_FOR_32_ADDR
-        fprintf(SysTraceFile, "%s: sysThreadStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, tr, ip, fp);
-#else
-        fprintf(SysTraceFile, "%s: sysThreadStartup: pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, tr, ip, fp);
-#endif
-#endif
+        TRACE_PRINTF(SysTraceFile, "%s: sysThreadStartup: pr=%p ip=%p fp=%p\n", Me, tr, ip, fp);
+
         // branch to vm code
         //
 #ifndef RVM_FOR_POWERPC
@@ -1158,6 +1169,7 @@ sysThreadStartup(void *args)
 EXTERNAL Word
 sysGetThreadId()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysGetThreadId\n", Me);
     return (Word)getThreadId();
 }
 
@@ -1171,9 +1183,7 @@ getThreadId()
     void* thread = (void*)pthread_self();
 #endif
 
-#ifdef DEBUG_THREAD
-        fprintf(SysTraceFile, "%s: getThreadId: thread %x\n", Me, thread);
-#endif
+    TRACE_PRINTF(SysTraceFile, "%s: getThreadId: thread %x\n", Me, thread);
     return thread;
 }
 
@@ -1243,6 +1253,8 @@ sysSetupHardwareTrapHandler()
 EXTERNAL void
 sysThreadYield()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysThreadYield\n", Me);
+
     /** According to the Linux manpage, sched_yield()'s presence can be
      *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
      *  that is not present to use the sysconf feature, searching against
@@ -1285,6 +1297,7 @@ static int hasPthreadPriority(Word thread_id)
 EXTERNAL Word
 sysGetThreadPriorityHandle()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysGetThreadPriorityHandle\n", Me);
     // gettid() syscall is Linux specific, detect its syscall number macro
     #ifdef SYS_gettid
     pid_t tid = (pid_t) syscall(SYS_gettid);
@@ -1306,6 +1319,7 @@ static int defaultPriority(int policy)
 EXTERNAL int
 sysGetThreadPriority(Word thread, Word handle)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysGetThreadPriority\n", Me);
     // use pthread priority mechanisms where possible
     if (hasPthreadPriority(thread)) {
         struct sched_param param;
@@ -1332,6 +1346,7 @@ sysGetThreadPriority(Word thread, Word handle)
 EXTERNAL int
 sysSetThreadPriority(Word thread, Word handle, int priority)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysSetThreadPriority\n", Me);
     // fast path
     if (sysGetThreadPriority(thread, handle) == priority)
         return 0;
@@ -1368,6 +1383,7 @@ typedef struct {
 EXTERNAL Word
 sysMonitorCreate()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMonitorCreate\n", Me);
 #ifdef RVM_FOR_HARMONY
     hythread_monitor_t monitor;
     hythread_monitor_init_with_name(&monitor, 0, NULL);
@@ -1382,6 +1398,7 @@ sysMonitorCreate()
 EXTERNAL void
 sysMonitorDestroy(Word _monitor)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMonitorDestroy\n", Me);
 #ifdef RVM_FOR_HARMONY
     hythread_monitor_destroy((hythread_monitor_t)_monitor);
 #else
@@ -1395,6 +1412,7 @@ sysMonitorDestroy(Word _monitor)
 EXTERNAL void
 sysMonitorEnter(Word _monitor)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMonitorEnter\n", Me);
 #ifdef RVM_FOR_HARMONY
     hythread_monitor_enter((hythread_monitor_t)_monitor);
 #else
@@ -1406,6 +1424,7 @@ sysMonitorEnter(Word _monitor)
 EXTERNAL void
 sysMonitorExit(Word _monitor)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMonitorExit\n", Me);
 #ifdef RVM_FOR_HARMONY
     hythread_monitor_exit((hythread_monitor_t)_monitor);
 #else
@@ -1417,6 +1436,7 @@ sysMonitorExit(Word _monitor)
 EXTERNAL void
 sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMonitorTimedWaitAbsolute\n", Me);
 #ifdef RVM_FOR_HARMONY
     // syscall wait is absolute, but harmony monitor wait is relative.
     whenWakeupNanos -= sysNanoTime();
@@ -1444,6 +1464,7 @@ sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 EXTERNAL void
 sysMonitorWait(Word _monitor)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMonitorWait\n", Me);
 #ifdef RVM_FOR_HARMONY
     hythread_monitor_wait((hythread_monitor_t)_monitor);
 #else
@@ -1455,6 +1476,7 @@ sysMonitorWait(Word _monitor)
 EXTERNAL void
 sysMonitorBroadcast(Word _monitor)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMonitorBroadcast\n", Me);
 #ifdef RVM_FOR_HARMONY
     hythread_monitor_notify_all((hythread_monitor_t)_monitor);
 #else
@@ -1466,6 +1488,7 @@ sysMonitorBroadcast(Word _monitor)
 EXTERNAL void
 sysThreadTerminate()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysThreadTerminate\n", Me);
 #ifdef RVM_FOR_POWERPC
     asm("sync");
 #endif
@@ -1483,24 +1506,28 @@ sysThreadTerminate()
 EXTERNAL long long
 sysLongDivide(long long a, long long b)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysLongDivide %lld / %lld\n", Me, a, b);  
     return a/b;
 }
 
 EXTERNAL long long
 sysLongRemainder(long long a, long long b)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysLongRemainder %lld %% %lld\n", Me, a, b);
     return a % b;
 }
 
 EXTERNAL double
 sysLongToDouble(long long a)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysLongToDouble %lld\n", Me, a);
     return (double)a;
 }
 
 EXTERNAL float
 sysLongToFloat(long long a)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysLongToFloat %lld\n", Me, a);
     return (float)a;
 }
 
@@ -1510,6 +1537,7 @@ double maxint  = 0.5 + (double)0x7fffffff;
 EXTERNAL int
 sysFloatToInt(float a)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysFloatToInt %f\n", Me, a);
     if (maxint <= a) return 0x7fffffff;
     if (a <= -maxint) return 0x80000000;
     if (a != a) return 0; // NaN => 0
@@ -1519,6 +1547,7 @@ sysFloatToInt(float a)
 EXTERNAL int
 sysDoubleToInt(double a)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysDoubleToInt %f\n", Me, a);
     if (maxint <= a) return 0x7fffffff;
     if (a <= -maxint) return 0x80000000;
     if (a != a) return 0; // NaN => 0
@@ -1528,6 +1557,7 @@ sysDoubleToInt(double a)
 EXTERNAL long long
 sysFloatToLong(float a)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysFloatToLong %f\n", Me, a);
     if (maxlong <= a) return 0x7fffffffffffffffLL;
     if (a <= -maxlong) return 0x8000000000000000LL;
     return (long long)a;
@@ -1536,6 +1566,7 @@ sysFloatToLong(float a)
 EXTERNAL long long
 sysDoubleToLong(double a)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysDoubleToLong %f\n", Me, a);
     if (maxlong <= a) return 0x7fffffffffffffffLL;
     if (a <= -maxlong) return 0x8000000000000000LL;
     return (long long)a;
@@ -1546,6 +1577,7 @@ sysDoubleToLong(double a)
 EXTERNAL double
 sysDoubleRemainder(double a, double b)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysDoubleRemainder %f %% %f\n", Me, a);
     double tmp = remainder(a, b);
     if (a > 0.0) {
         if (b > 0.0) {
@@ -1579,6 +1611,7 @@ sysDoubleRemainder(double a, double b)
 EXTERNAL float
 sysPrimitiveParseFloat(const char * buf)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysPrimitiveParseFloat %s\n", Me, buf);
     if (! buf[0] ) {
    fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
       " argument that is supposed to be a"
@@ -1613,6 +1646,7 @@ sysPrimitiveParseFloat(const char * buf)
 EXTERNAL int
 sysPrimitiveParseInt(const char * buf)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysPrimitiveParseInt %s\n", Me, buf);
     if (! buf[0] ) {
    fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
       " argument that is supposed to be an integer\n", Me);
@@ -1651,6 +1685,7 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
                    const char *token /* e.g., "-Xms200M" or "-Xms200" */,
                    const char *subtoken /* e.g., "200M" or "200" */)
 {
+    TRACE_PRINTF(SysErrorFile, "%s: sysParseMemorySize %s\n", Me, token);
     bool fastExit = false;
     unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
                                          (unsigned) roundTo, token, subtoken,
@@ -1672,6 +1707,7 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
 EXTERNAL void
 sysCopy(void *dst, const void *src, Extent cnt)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysCopy %p %p %d\n", Me, dst, src, cnt);
     memcpy(dst, src, cnt);
 }
 
@@ -1680,6 +1716,7 @@ sysCopy(void *dst, const void *src, Extent cnt)
 EXTERNAL void
 sysMemmove(void *dst, const void *src, Extent cnt)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMemmove %p %p %d\n", Me, dst, src, cnt);
     memmove(dst, src, cnt);
 }
 
@@ -1718,12 +1755,14 @@ checkFree(void* mem)
 EXTERNAL void *
 sysMalloc(int length)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMalloc %d\n", Me, length);
     return checkMalloc(length);
 }
 
 EXTERNAL void *
 sysCalloc(int length)
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysCalloc %d\n", Me, length);
   return checkCalloc(1, length);
 }
 
@@ -1732,6 +1771,7 @@ sysCalloc(int length)
 EXTERNAL void
 sysFree(void *location)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysFree %p\n", Me, location);
     checkFree(location);
 }
 
@@ -1739,6 +1779,7 @@ sysFree(void *location)
 EXTERNAL void
 sysZeroNT(void *dst, Extent cnt)
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysZeroNT %p %d\n", Me, dst, cnt);
 #ifdef RVM_FOR_SSE2
   char *buf = (char *) dst;
   unsigned int len = cnt;
@@ -1787,6 +1828,7 @@ sysZeroNT(void *dst, Extent cnt)
 EXTERNAL void
 sysZero(void *dst, Extent cnt)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysZero %p %d\n", Me, dst, cnt);
     memset(dst, 0x00, cnt);
 }
 
@@ -1803,6 +1845,8 @@ sysZeroPages(void *dst, int cnt)
 #define STRATEGY 1 /* for optimum pBOB numbers */
 // #define STRATEGY 2 /* for more realistic workload */
 // #define STRATEGY 3 /* as yet untested */
+
+    TRACE_PRINTF(SysTraceFile, "%s: sysZeroPages %p %d\n", Me, dst, cnt);
 
 #if (STRATEGY == 1)
     // Zero memory by touching all the bytes.
@@ -1869,9 +1913,7 @@ sysZeroPages(void *dst, int cnt)
 EXTERNAL void
 sysSyncCache(void UNUSED *address, size_t UNUSED  size)
 {
-#ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: sync 0x%08x %d\n", Me, (unsigned)address, size);
-#endif
+    TRACE_PRINTF(SysTraceFile, "%s: sync %p %zd\n", Me, address, size);
 
 #ifdef RVM_FOR_POWERPC
   #ifdef RVM_FOR_AIX
@@ -1924,6 +1966,8 @@ sysMMap(char *start , size_t length ,
         int protection , int flags ,
         int fd , Offset offset)
 {
+   TRACE_PRINTF(SysTraceFile, "%s: sysMMap %p %zd %d %d %d %d\n",
+                 Me, start, length, protection, flags, fd, offset);
    void *result=mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
    return result;
 }
@@ -1936,6 +1980,8 @@ sysMMapErrno(char *start , size_t length ,
         int protection , int flags ,
         int fd , Offset offset)
 {
+  TRACE_PRINTF(SysTraceFile, "%s: sysMMapErrno %p %d %d %d %d %d\n",
+               Me, start, length, protection, flags, fd, offset);
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
@@ -1947,9 +1993,8 @@ sysMMapErrno(char *start , size_t length ,
 #endif
     return (void *) errno;
   }else{
-#ifdef DEBUG_SYS
-    printf("mmap worked - region = [0x%x ... 0x%x]    size = %d\n", res, ((int)res) + length, length);
-#endif
+    TRACE_PRINTF(SysTraceFile, "mmap succeeded- region = [%p ... %p]    size = %zd\n",
+                res, (void*)(((size_t)res) + length), length);
     return res;
   }
 }
@@ -1962,6 +2007,8 @@ sysMMapErrno(char *start , size_t length ,
 EXTERNAL int
 sysMProtect(char *start, size_t length, int prot)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysMProtect %p %zd %d\n",
+                 Me, start, length, prot);
     return mprotect(start, length, prot);
 }
 
@@ -1971,6 +2018,7 @@ sysMProtect(char *start, size_t length, int prot)
 EXTERNAL int
 sysGetPageSize()
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysGetPageSize\n", Me);
     return (int)(getpagesize());
 }
 
@@ -1985,6 +2033,7 @@ sysGetPageSize()
 EXTERNAL void*
 sysDlopen(char *libname)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysDlopen %s\n", Me, libname);
     void * libHandler;
     do {
         libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
@@ -2007,6 +2056,7 @@ sysDlopen(char *libname)
 EXTERNAL void*
 sysDlsym(Address libHandler, char *symbolName)
 {
+    TRACE_PRINTF(SysTraceFile, "%s: sysDlsym %s\n", Me, symbolName);
     return dlsym((void *) libHandler, symbolName);
 }
 
@@ -2019,117 +2069,139 @@ getArrayLength(void* ptr)
 // VMMath
 EXTERNAL double
 sysVMMathSin(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathSin %f\n", Me, a);
     return sin(a);
 }
 
 EXTERNAL double
 sysVMMathCos(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathCos %f\n", Me, a);
     return cos(a);
 }
 
 EXTERNAL double
 sysVMMathTan(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathTan %f\n", Me, a);
     return tan(a);
 }
 
 EXTERNAL double
 sysVMMathAsin(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathAsin %f\n", Me, a);
     return asin(a);
 }
 
 EXTERNAL double
 sysVMMathAcos(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathAcos %f\n", Me, a);
     return acos(a);
 }
 
 EXTERNAL double
 sysVMMathAtan(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathAtan %f\n", Me, a);
     return atan(a);
 }
 
 EXTERNAL double
 sysVMMathAtan2(double a, double b) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathAtan2 %f %f\n", Me, a, b);
     return atan2(a, b);
 }
 
-
 EXTERNAL double
 sysVMMathCosh(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathCosh %f\n", Me, a);
     return cosh(a);
 }
 
 EXTERNAL double
 sysVMMathSinh(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathSinh %f\n", Me, a);
     return sinh(a);
 }
 
 EXTERNAL double
 sysVMMathTanh(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathTanh %f\n", Me, a);
     return tanh(a);
 }
 
 EXTERNAL double
 sysVMMathExp(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathExp %f\n", Me, a);
     return exp(a);
 }
 
 EXTERNAL double
 sysVMMathLog(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathLog %f\n", Me, a);
     return log(a);
 }
 
 EXTERNAL double
 sysVMMathSqrt(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathSqrt %f\n", Me, a);
     return sqrt(a);
 }
 
 EXTERNAL double
 sysVMMathPow(double a, double b) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathPow %f %f\n", Me, a, b);
     return pow(a, b);
 }
 
 EXTERNAL double
 sysVMMathIEEEremainder(double a, double b) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathIEEEremainder %f %f\n", Me, a, b);
     return remainder(a, b);
 }
 
 EXTERNAL double
 sysVMMathCeil(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathCeil %f\n", Me, a);
     return ceil(a);
 }
 
 EXTERNAL double
 sysVMMathFloor(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathFloor %f\n", Me, a);
     return floor(a);
 }
 
 EXTERNAL double
 sysVMMathRint(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathRint %f\n", Me, a);
     return rint(a);
 }
 
 EXTERNAL double
 sysVMMathCbrt(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathCbrt %f\n", Me, a);
     return cbrt(a);
 }
 
 EXTERNAL double
 sysVMMathExpm1(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathExpm1 %f\n", Me, a);
     return expm1(a);
 }
 
 EXTERNAL double
 sysVMMathHypot(double a, double b) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathHypot %f %f\n", Me, a, b);
     return hypot(a, b);
 }
 
 EXTERNAL double
 sysVMMathLog10(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathLog10 %f\n", Me, a);
     return log10(a);
 }
 
 EXTERNAL double
 sysVMMathLog1p(double a) {
+    TRACE_PRINTF(SysTraceFile, "%s: sysVMMathLog1p %f\n", Me, a);
     return log1p(a);
 }
 
@@ -2153,35 +2225,31 @@ static gcspy_main_server_t server;
 
 // debugging
 #define GCSPY_TRACE 0
+#define GCSPY_TRACE_PRINTF(...) if(GCSPY_TRACE) fprintf(PORTLIB, SysTraceFile, __VA_ARGS__)
+
 static int stream_count = 0;
 static int stream_len;
 
 EXTERNAL gcspy_gc_stream_t *
 gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x(%s), id=%d...",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverAddStream: driver=%x(%s), id=%d...",
           driver, driver->name, id);
-#endif
   gcspy_gc_stream_t *stream = gcspy_driverAddStream(driver, id);
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "stream=%x\n", stream);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "stream=%x\n", stream);
   return stream;
 }
 
 EXTERNAL void
 gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
   int len;
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x(%s), len=%d, written=%d\n",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverEndOutput: driver=%x(%s), len=%d, written=%d\n",
                         driver, driver->name, stream_len, stream_count);
   stream_count = 0;
   /*??*/
   gcspy_buffered_output_t *output =
       gcspy_command_stream_get_output(driver->interpreter);
   len = gcspy_bufferedOutputGetLen(output);
-  fprintf(SysTraceFile, "gcspyDriverEndOutput: interpreter has len=%d\n", len);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverEndOutput: interpreter has len=%d\n", len);
   gcspy_driverEndOutput(driver);
 }
 
@@ -2189,13 +2257,10 @@ EXTERNAL void
 gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driverName,
                  char *title, char *blockInfo, int tileNum,
                  char *unused, int mainSpace) {
-
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, serverName=%s, driverName=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, serverName=%s, driverName=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n",
                    driver, id, serverName, driverName,
                    title, blockInfo, tileNum,
                    unused, mainSpace);
-#endif
   gcspy_driverInit(driver, id, serverName, driverName,
                    title, blockInfo, tileNum,
                    unused, mainSpace);
@@ -2203,19 +2268,15 @@ gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driv
 
 EXTERNAL void
 gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x(s)\n",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverInitOutput: driver=%x(s)\n",
           driver, driver->name);
-#endif
   gcspy_driverInitOutput(driver);
 }
 
 EXTERNAL void
 gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverResize: driver=%x(%s), size %d\n",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverResize: driver=%x(%s), size %d\n",
           driver, driver->name, size);
-#endif
   gcspy_driverResize(driver, size);
 }
 
@@ -2223,9 +2284,7 @@ EXTERNAL void
 gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, char *format, long value) {
   char buffer[128];
   sprintf(buffer, format, value);
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x(%s), tile %d %s\n", driver, driver->name, tile, buffer);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverSetTileName: driver=%x(%s), tile %d %s\n", driver, driver->name, tile, buffer);
   gcspy_driverSetTileName(driver, tile, buffer);
 }
 
@@ -2242,138 +2301,100 @@ gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, Address start,
 
 EXTERNAL void
 gcspyDriverSpaceInfo (gcspy_gc_driver_t *driver, char *spaceInfo) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x(%s), spaceInfo = +%s+(%x)\n", driver, driver->name, spaceInfo, spaceInfo);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x(%s), spaceInfo = +%s+(%x)\n", driver, driver->name, spaceInfo, spaceInfo);
   gcspy_driverSpaceInfo(driver, spaceInfo);
 }
 
 EXTERNAL void
 gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverStartComm: driver=%x(%s)\n", driver, driver->name);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverStartComm: driver=%x(%s)\n", driver, driver->name);
   gcspy_driverStartComm(driver);
 }
 
 EXTERNAL void
 gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n",
           driver, driver->name, id, driver->streams[id].name, len);
   stream_count = 0;
   stream_len = len;
-#endif
   gcspy_driverStream(driver, id, len);
 }
 
 EXTERNAL void
 gcspyDriverStreamByteValue (gcspy_gc_driver_t *driver, int val) {
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
-#endif
-#if GCSPY_TRACE
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverStreamByteValue: driver=%x, val=%d\n", driver, val);
   stream_count++;
-#endif
   gcspy_driverStreamByteValue(driver, val);
 }
 
 EXTERNAL void
 gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
-#endif
-#if GCSPY_TRACE
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverStreamShortValue: driver=%x, val=%d\n", driver, val);
   stream_count++;
-#endif
   gcspy_driverStreamShortValue(driver, val);
 }
 
 EXTERNAL void
 gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
-#endif
-#if GCSPY_TRACE
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
   stream_count++;
-#endif
   gcspy_driverStreamIntValue(driver, val);
 }
 
 EXTERNAL void
 gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n",
           driver, driver->name, id, driver->streams[id].name, len);
   stream_count = 0;
   stream_len = len;
-#endif
   gcspy_driverSummary(driver, id, len);
 }
 
 EXTERNAL void
 gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
-#endif
-#if GCSPY_TRACE
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
   stream_count++;
-#endif
   gcspy_driverSummaryValue(driver, val);
 }
 
 /* Note: passed driver but uses driver->interpreter */
 EXTERNAL void
 gcspyIntWriteControl (gcspy_gc_driver_t *driver, int id, int len) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyIntWriteControl: driver=%x(%s), interpreter=%x, id=%d, len=%d\n", driver, driver->name, driver->interpreter, id, len);
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyIntWriteControl: driver=%x(%s), interpreter=%x, id=%d, len=%d\n", driver, driver->name, driver->interpreter, id, len);
   stream_count = 0;
   stream_len = len;
-#endif
   gcspy_intWriteControl(driver->interpreter, id, len);
 }
 
 EXTERNAL gcspy_gc_driver_t *
 gcspyMainServerAddDriver (gcspy_main_server_t *server) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerAddDriver: server address = %x(%s), adding driver...", server, server->name);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerAddDriver: server address = %x(%s), adding driver...", server, server->name);
   gcspy_gc_driver_t *driver = gcspy_mainServerAddDriver(server);
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "address = %d\n", driver);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "address = %d\n", driver);
   return driver;
 }
 
 EXTERNAL void
 gcspyMainServerAddEvent (gcspy_main_server_t *server, int event, const char *name) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerAddEvent: server address = %x(%s), event=%d, name=%s\n", server, server->name, event, name);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerAddEvent: server address = %x(%s), event=%d, name=%s\n", server, server->name, event, name);
   gcspy_mainServerAddEvent(server, event, name);
 }
 
 EXTERNAL gcspy_main_server_t *
 gcspyMainServerInit (int port, int len, const char *name, int verbose) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerInit: server=%x, port=%d, len=%d, name=%s, verbose=%d\n", &server, port, len, name, verbose);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerInit: server=%x, port=%d, len=%d, name=%s, verbose=%d\n", &server, port, len, name, verbose);
   gcspy_mainServerInit(&server, port, len, name, verbose);
   return &server;
 }
 
 EXTERNAL int
 gcspyMainServerIsConnected (gcspy_main_server_t *server, int event) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerIsConnected: server=%x, event=%d...", &server, event);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerIsConnected: server=%x, event=%d...", &server, event);
   int res = gcspy_mainServerIsConnected(server, event);
-#if GCSPY_TRACE
   if (res)
-    fprintf(SysTraceFile, "connected\n");
+    GCSPY_TRACE_PRINTF(SysTraceFile, "connected\n");
   else
-    fprintf(SysTraceFile, "not connected\n");
-#endif
+    GCSPY_TRACE_PRINTF(SysTraceFile, "not connected\n");
   return res;
 }
 
@@ -2387,33 +2408,25 @@ gcspyMainServerOuterLoop () {
 
 EXTERNAL void
 gcspyMainServerSafepoint (gcspy_main_server_t *server, int event) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerSafepoint: server=%x, event=%d\n", &server, event);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerSafepoint: server=%x, event=%d\n", &server, event);
   gcspy_mainServerSafepoint(server, event);
 }
 
 EXTERNAL void
 gcspyMainServerSetGeneralInfo (gcspy_main_server_t *server, char *generalInfo) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerSetGeneralInfo: server=%x, info=%s\n", &server, generalInfo);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerSetGeneralInfo: server=%x, info=%s\n", &server, generalInfo);
   gcspy_mainServerSetGeneralInfo(server, generalInfo);
 }
 
 EXTERNAL void
 gcspyMainServerStartCompensationTimer (gcspy_main_server_t *server) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerStartCompensationTimer: server=%x\n", server);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerStartCompensationTimer: server=%x\n", server);
   gcspy_mainServerStartCompensationTimer(server);
 }
 
 EXTERNAL void
 gcspyMainServerStopCompensationTimer (gcspy_main_server_t *server) {
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyMainServerStopCompensationTimer: server=%x\n", server);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyMainServerStopCompensationTimer: server=%x\n", server);
   gcspy_mainServerStopCompensationTimer(server);
 }
 
@@ -2423,9 +2436,7 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
 //  printf("I am not Linux!");
 //     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 //#endif __linux__
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
   pthread_t tid;
   int res = pthread_create(&tid, NULL,
                           (pthread_start_routine_t) loop,  server);
@@ -2435,9 +2446,7 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
   }
 
   if(wait) {
-#if GCSPY_TRACE
-    fprintf(SysTraceFile, "gcspy_mainServerWaitForClient: server=%x\n", server);
-#endif
+    GCSPY_TRACE_PRINTF(SysTraceFile, "gcspy_mainServerWaitForClient: server=%x\n", server);
     gcspy_mainServerWaitForClient(server);
   }
 }
@@ -2451,13 +2460,11 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
   colour.red = (unsigned char) red;
   colour.green = (unsigned char) green;
   colour.blue = (unsigned char) blue;
-#if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n",
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n",
                    stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue, defaultValue,
        stringPre, stringPost, presentation, paintStyle,
        indexMaxStream, &colour, colour.red, colour.green, colour.blue);
-#endif
   gcspy_streamInit(stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue,defaultValue,
        stringPre, stringPost, presentation, paintStyle,
@@ -2466,24 +2473,16 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
 
 EXTERNAL void
 gcspyFormatSize (char *buffer, int size) {
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "gcspyFormatSize: size=%d...", size);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "gcspyFormatSize: size=%d...", size);
   strcpy(buffer, gcspy_formatSize(size));
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "buffer=%s\n", buffer);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "buffer=%s\n", buffer);
 }
 
 EXTERNAL int
 gcspySprintf(char *str, const char *format, char *arg) {
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "sprintf: str=%x, format=%s, arg=%s\n", str, format, arg);
   int res = sprintf(str, format, arg);
-#if (GCSPY_TRACE > 1)
-  fprintf(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
-#endif
+  GCSPY_TRACE_PRINTF(SysTraceFile, "sprintf: result=%s (%x)\n", str, str);
   return res;
 }
 

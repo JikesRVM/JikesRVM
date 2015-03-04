@@ -35,5 +35,8 @@
 #define LINUX
 #endif
 
+/** Trace execution of syscalls */
+#define TRACE 0
+#define TRACE_PRINTF if(TRACE)fprintf
 
 #endif // RVM_SYSCALL_DEFINITIONS
