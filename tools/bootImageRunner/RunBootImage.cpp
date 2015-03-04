@@ -42,6 +42,7 @@
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
 #include <sys/utsname.h>        // for uname(2)
+#include <sys/mman.h>        // for uname(2)
 #if (defined __linux__) || (defined (__SVR4) && defined (__sun))
 #include <ucontext.h>
 #include <signal.h>
@@ -77,6 +78,8 @@ static const unsigned BYTES_IN_PAGE = MMTk_Constants_BYTES_IN_PAGE;
 
 static bool strequal(const char *s1, const char *s2);
 static bool strnequal(const char *s1, const char *s2, size_t n);
+
+void findMappable();
 
 // Definitions of constants for handling C command-line arguments
 
@@ -719,3 +722,30 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     return tot;
 }
 
+//
+// Sweep through memory to find which areas of memory are mappable.
+// This is invoked from a command-line argument.
+void findMappable()
+{
+    int granularity = 1 << 22; // every 4 megabytes
+    int max = (1 << 30) / (granularity >> 2);
+    int pageSize = getpagesize();
+    for (int i=0; i<max; i++) {
+        char *start = (char *) (i * granularity);
+        int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+        int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
+        void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
+        int fail = (result == (void *) -1);
+#if RVM_FOR_32_ADDR
+        printf("0x%x: ", (Address) start);
+#else
+        printf("0x%llx: ", (Address) start);
+#endif
+        if (fail) {
+            printf("FAILED with errno %d: %s\n", errno, strerror(errno));
+        } else {
+            printf("SUCCESS\n");
+            munmap(start, (size_t) pageSize);
+        }
+    }
+}
