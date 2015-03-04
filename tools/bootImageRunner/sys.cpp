@@ -36,11 +36,6 @@ EXTERNAL void profil(void *, uint, ulong, uint);
 EXTERNAL int sched_yield(void);
 #endif
 
-// Enable syscall on Linux / glibc
-#ifdef RVM_FOR_LINUX
-#define _GNU_SOURCE
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>      // getenv() and others
 #include <unistd.h>
@@ -125,15 +120,7 @@ EXTERNAL int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t 
 #include <sys/events.h>
 #endif
 
-#define NEED_VIRTUAL_MACHINE_DECLARATIONS
-#define NEED_EXIT_STATUS_CODES
-#include "InterfaceDeclarations.h"
-#include "bootImageRunner.h"    // In tools/bootImageRunner.
-
 #ifdef RVM_FOR_HARMONY
-#ifdef RVM_FOR_LINUX
-#define LINUX
-#endif
 #include "hythread.h"
 #else
 #include <pthread.h>

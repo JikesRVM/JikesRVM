@@ -14,6 +14,15 @@
 #ifndef RVM_SYSCALL_DEFINITIONS
 #define RVM_SYSCALL_DEFINITIONS
 
+// Enable syscall on Linux / glibc
+#ifdef RVM_FOR_LINUX
+#define _GNU_SOURCE
+#endif
+
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_EXIT_STATUS_CODES
+#include "InterfaceDeclarations.h"
+#include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "cAttributePortability.h"
 
 #ifdef __cplusplus
@@ -21,5 +30,10 @@
 #else
 #define EXTERNAL
 #endif
+
+#if (defined RVM_FOR_LINUX) && (defined RVM_FOR_HARMONY)
+#define LINUX
+#endif
+
 
 #endif // RVM_SYSCALL_DEFINITIONS
