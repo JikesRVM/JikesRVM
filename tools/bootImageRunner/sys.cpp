@@ -20,9 +20,6 @@
 
 #include "sys.h"
 
-// Only called externally from Java programs.
-EXTERNAL void sysExit(int) NORETURN;
-
 //Solaris needs BSD_COMP to be set to enable the FIONREAD ioctl
 #if defined (__SVR4) && defined (__sun)
 #define BSD_COMP

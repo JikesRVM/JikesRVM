@@ -421,7 +421,6 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             }
             CONSOLE_PRINTF(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
             SysTraceFile = ftmp;
-            SysTraceFd = fileno(ftmp);
             continue;
         }
         if (strnequal(token, nonStandardArgs[BOOTIMAGE_CODE_FILE_INDEX], 6)) {

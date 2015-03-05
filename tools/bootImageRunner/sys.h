@@ -25,6 +25,11 @@
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "cAttributePortability.h"
 
+/** Sink for messages relating to serious errors detected by C runtime. */
+extern FILE *SysErrorFile;
+/* Sink for trace messages produced by VM.sysWrite(). */
+extern FILE *SysTraceFile;
+
 #define CONSOLE_PRINTF(...) fprintf(__VA_ARGS__)
 
 #ifdef __cplusplus
@@ -40,5 +45,8 @@
 /** Trace execution of syscalls */
 #define TRACE 0
 #define TRACE_PRINTF if(TRACE)fprintf
+
+/** Only called externally from Java programs. */
+EXTERNAL void sysExit(int) NORETURN;
 
 #endif // RVM_SYSCALL_DEFINITIONS
