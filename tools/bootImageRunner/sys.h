@@ -25,6 +25,8 @@
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "cAttributePortability.h"
 
+#define CONSOLE_PRINTF(...) fprintf(__VA_ARGS__)
+
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
 #else

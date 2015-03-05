@@ -165,7 +165,7 @@ TLS_KEY_TYPE createThreadLocal() {
     rc = pthread_key_create(&key, 0);
 #endif
     if (rc != 0) {
-        fprintf(SysErrorFile, "%s: alloc tls key failed (err=%d)\n", Me, rc);
+        CONSOLE_PRINTF(SysErrorFile, "%s: alloc tls key failed (err=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     return key;
@@ -191,7 +191,7 @@ void setThreadLocal(TLS_KEY_TYPE key, void * value) {
     int rc = pthread_setspecific(key, value);
 #endif
     if (rc != 0) {
-        fprintf(SysErrorFile, "%s: set tls failed (err=%d)\n", Me, rc);
+        CONSOLE_PRINTF(SysErrorFile, "%s: set tls failed (err=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 }
@@ -212,33 +212,33 @@ EXTERNAL void sysConsoleWriteChar(unsigned value)
 {
     char c = (value > 127) ? '?' : (char)value;
     // use high level stdio to ensure buffering policy is observed
-    fprintf(SysTraceFile, "%c", c);
+    CONSOLE_PRINTF(SysTraceFile, "%c", c);
 }
 
 /** Console write (java integer). */
 EXTERNAL void sysConsoleWriteInteger(int value, int hexToo)
 {
     if (hexToo==0 /*false*/)
-        fprintf(SysTraceFile, "%d", value);
+        CONSOLE_PRINTF(SysTraceFile, "%d", value);
     else if (hexToo==1 /*true - also print in hex*/)
-        fprintf(SysTraceFile, "%d (0x%08x)", value, value);
+        CONSOLE_PRINTF(SysTraceFile, "%d (0x%08x)", value, value);
     else    /* hexToo==2 for only in hex */
-        fprintf(SysTraceFile, "0x%08x", value);
+        CONSOLE_PRINTF(SysTraceFile, "0x%08x", value);
 }
 
 /** Console write (java long). */
 EXTERNAL void sysConsoleWriteLong(long long value, int hexToo)
 {
     if (hexToo==0 /*false*/)
-        fprintf(SysTraceFile, "%lld", value);
+        CONSOLE_PRINTF(SysTraceFile, "%lld", value);
     else if (hexToo==1 /*true - also print in hex*/) {
         int value1 = (value >> 32) & 0xFFFFFFFF;
         int value2 = value & 0xFFFFFFFF;
-        fprintf(SysTraceFile, "%lld (0x%08x%08x)", value, value1, value2);
+        CONSOLE_PRINTF(SysTraceFile, "%lld (0x%08x%08x)", value, value1, value2);
     } else { /* hexToo==2 for only in hex */
         int value1 = (value >> 32) & 0xFFFFFFFF;
         int value2 = value & 0xFFFFFFFF;
-        fprintf(SysTraceFile, "0x%08x%08x", value1, value2);
+        CONSOLE_PRINTF(SysTraceFile, "0x%08x%08x", value1, value2);
     }
 }
 
@@ -246,11 +246,11 @@ EXTERNAL void sysConsoleWriteLong(long long value, int hexToo)
 EXTERNAL void sysConsoleWriteDouble(double value,  int postDecimalDigits)
 {
     if (value != value) {
-        fprintf(SysTraceFile, "NaN");
+        CONSOLE_PRINTF(SysTraceFile, "NaN");
     } else {
         if (postDecimalDigits > 9) postDecimalDigits = 9;
         char tmp[5] = {'%', '.', '0'+postDecimalDigits, 'f', 0};
-        fprintf(SysTraceFile, tmp, value);
+        CONSOLE_PRINTF(SysTraceFile, tmp, value);
     }
 }
 
@@ -284,14 +284,14 @@ EXTERNAL void sysDisableAlignmentChecking() {
 }
 
 EXTERNAL void sysReportAlignmentChecking() {
-  fprintf(SysTraceFile, "\nAlignment checking report:\n\n");
-  fprintf(SysTraceFile, "# native traps (ignored by default):             %d\n", numNativeAlignTraps);
-  fprintf(SysTraceFile, "# 8-byte access traps (ignored by default):      %d\n", numEightByteAlignTraps);
-  fprintf(SysTraceFile, "# bad access traps (throw exception by default): %d (should be zero)\n\n", numBadAlignTraps);
-  fprintf(SysTraceFile, "# calls to sysEnableAlignmentChecking():         %d\n", numEnableAlignCheckingCalls);
-  fprintf(SysTraceFile, "# calls to sysDisableAlignmentChecking():        %d\n\n", numDisableAlignCheckingCalls);
-  fprintf(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
-  fprintf(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
+  CONSOLE_PRINTF(SysTraceFile, "\nAlignment checking report:\n\n");
+  CONSOLE_PRINTF(SysTraceFile, "# native traps (ignored by default):             %d\n", numNativeAlignTraps);
+  CONSOLE_PRINTF(SysTraceFile, "# 8-byte access traps (ignored by default):      %d\n", numEightByteAlignTraps);
+  CONSOLE_PRINTF(SysTraceFile, "# bad access traps (throw exception by default): %d (should be zero)\n\n", numBadAlignTraps);
+  CONSOLE_PRINTF(SysTraceFile, "# calls to sysEnableAlignmentChecking():         %d\n", numEnableAlignCheckingCalls);
+  CONSOLE_PRINTF(SysTraceFile, "# calls to sysDisableAlignmentChecking():        %d\n\n", numDisableAlignCheckingCalls);
+  CONSOLE_PRINTF(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
+  CONSOLE_PRINTF(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
 
   // cause a native trap to see if traps are enabled
   volatile int dummy[2];
@@ -299,9 +299,9 @@ EXTERNAL void sysReportAlignmentChecking() {
   *(int*)((char*)dummy + 1) = 0x12345678;
   int enabled = (numNativeAlignTraps != prevNumNativeTraps);
 
-  fprintf(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
-  fprintf(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
-  fprintf(SysTraceFile, "Current status of alignment checking:            %s (should be on)\n\n", (enabled ? "on" : "off"));
+  CONSOLE_PRINTF(SysTraceFile, "# native traps again (to see if changed):        %d\n", numNativeAlignTraps);
+  CONSOLE_PRINTF(SysTraceFile, "# 8-byte access again (to see if changed):       %d\n\n", numEightByteAlignTraps);
+  CONSOLE_PRINTF(SysTraceFile, "Current status of alignment checking:            %s (should be on)\n\n", (enabled ? "on" : "off"));
 }
 
 #else
@@ -343,7 +343,7 @@ EXTERNAL void sysExit(int value)
     #endif // RVM_WITH_ALIGNMENT_CHECKING
 
     if (lib_verbose & value != 0) {
-        fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
+        CONSOLE_PRINTF(SysErrorFile, "%s: exit %d\n", Me, value);
     }
 
     fflush(SysErrorFile);
@@ -641,13 +641,13 @@ again:
     switch ( rc = read(fd, &ch, 1))
     {
     case  1:
-        /*fprintf(SysTraceFile, "%s: read (byte) ch is %d\n", Me, (int) ch);*/
+        /*CONSOLE_PRINTF(SysTraceFile, "%s: read (byte) ch is %d\n", Me, (int) ch);*/
         return (int) ch;
     case  0:
-        /*fprintf(SysTraceFile, "%s: read (byte) rc is 0\n", Me);*/
+        /*CONSOLE_PRINTF(SysTraceFile, "%s: read (byte) rc is 0\n", Me);*/
         return -1;
     default:
-        /*fprintf(SysTraceFile, "%s: read (byte) rc is %d\n", Me, rc);*/
+        /*CONSOLE_PRINTF(SysTraceFile, "%s: read (byte) rc is %d\n", Me, rc);*/
         if (errno == EAGAIN)
             return -2;  // Read would have blocked
         else if (errno == EINTR)
@@ -676,7 +676,7 @@ again:
     else if (errno == EINTR)
         goto again; // interrupted by signal; try again
     else {
-        fprintf(SysErrorFile, "%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
+        CONSOLE_PRINTF(SysErrorFile, "%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
                 fd, errno, strerror(errno));
         return -1; // some kind of error
     }
@@ -704,7 +704,7 @@ again:
     }
     else if (err == EINTR)
         goto again; // interrupted by signal; try again
-    fprintf(SysTraceFile, "%s: read error %d (%s) on %d\n", Me,
+    CONSOLE_PRINTF(SysTraceFile, "%s: read error %d (%s) on %d\n", Me,
             err, strerror(err), fd);
     return -2;
 }
@@ -737,7 +737,7 @@ again:
         TRACE_PRINTF(SysTraceFile, "%s: write on %d with nobody to read it\n", Me, fd);
         return -3;
     }
-    fprintf(SysTraceFile, "%s: write error %d (%s) on %d\n", Me,
+    CONSOLE_PRINTF(SysTraceFile, "%s: write error %d (%s) on %d\n", Me,
             err, strerror( err ), fd);
     return -2;
 }
@@ -807,7 +807,7 @@ EXTERNAL long long sysNanoTime()
     if (rc != 0) {
         retVal = rc;
         if (lib_verbose) {
-              fprintf(stderr, "sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
+              CONSOLE_PRINTF(stderr, "sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
         }
     } else {
         retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
@@ -851,7 +851,7 @@ EXTERNAL void sysNanoSleep(long long howLongNanos)
             /* EINTR is expected, since we do use signals internally. */
             return;
 
-        fprintf(SysErrorFile, "%s: nanosleep(<tv_sec=%ld,tv_nsec=%ld>) failed:"
+        CONSOLE_PRINTF(SysErrorFile, "%s: nanosleep(<tv_sec=%ld,tv_nsec=%ld>) failed:"
                 " %s (errno=%d)\n"
                 "  That should never happen; please report it as a bug.\n",
                 Me, req.tv_sec, req.tv_nsec,
@@ -894,7 +894,7 @@ EXTERNAL int sysNumProcessors()
     numCpus = get_nprocs();
     // It is not clear if get_nprocs can ever return failure; assume it might.
     if (numCpus < 1) {
-       if (firstRun) fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
+       if (firstRun) CONSOLE_PRINTF(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
        /* Continue on.  Try to get a better answer by some other method, not
           that it's likely, but this should not be a fatal error. */
     }
@@ -909,7 +909,7 @@ EXTERNAL int sysNumProcessors()
         len = sizeof(numCpus);
         errno = 0;
         if (sysctl(mib, 2, &numCpus, &len, NULL, 0) < 0) {
-            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
+            if (firstRun) CONSOLE_PRINTF(SysTraceFile, "%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
                     " errno = %d\n", Me, errno);
             numCpus = -1;       // failed so far...
         };
@@ -925,7 +925,7 @@ EXTERNAL int sysNumProcessors()
          */
         numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
         if (numCpus < 0) {
-            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
+            if (firstRun) CONSOLE_PRINTF(SysTraceFile, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
                     " failed\n", Me);
         }
     }
@@ -935,7 +935,7 @@ EXTERNAL int sysNumProcessors()
     if (numCpus < 0) {
         numCpus = _system_configuration.ncpus;
         if (numCpus < 0) {
-            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: _system_configuration.ncpus"
+            if (firstRun) CONSOLE_PRINTF(SysTraceFile, "%s: WARNING: _system_configuration.ncpus"
                     " has the insane value %d\n" , Me, numCpus);
         }
     }
@@ -948,7 +948,7 @@ EXTERNAL int sysNumProcessors()
     }
 
 #ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: sysNumProcessors: returning %d\n", Me, numCpus );
+    CONSOLE_PRINTF(SysTraceFile, "%s: sysNumProcessors: returning %d\n", Me, numCpus );
 #endif
     firstRun = 0;
     return numCpus;
@@ -978,7 +978,7 @@ EXTERNAL Word sysThreadCreate(Address tr, Address ip, Address fp)
 
     if ((rc = hythread_create(&sysThreadHandle, 0, HYTHREAD_PRIORITY_NORMAL, 0, sysThreadStartup, sysThreadArguments)))
     {
-        fprintf(SysErrorFile, "%s: hythread_create failed (rc=%d)\n", Me, rc);
+        CONSOLE_PRINTF(SysErrorFile, "%s: hythread_create failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #else
@@ -988,7 +988,7 @@ EXTERNAL Word sysThreadCreate(Address tr, Address ip, Address fp)
     // create attributes
     //
     if ((rc = pthread_attr_init(&sysThreadAttributes))) {
-        fprintf(SysErrorFile, "%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
+        CONSOLE_PRINTF(SysErrorFile, "%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
@@ -1003,13 +1003,13 @@ EXTERNAL Word sysThreadCreate(Address tr, Address ip, Address fp)
                              sysThreadStartup,
                              sysThreadArguments)))
     {
-        fprintf(SysErrorFile, "%s: pthread_create failed (rc=%d)\n", Me, rc);
+        CONSOLE_PRINTF(SysErrorFile, "%s: pthread_create failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     if ((rc = pthread_detach(sysThreadHandle)))
     {
-        fprintf(SysErrorFile, "%s: pthread_detach failed (rc=%d)\n", Me, rc);
+        CONSOLE_PRINTF(SysErrorFile, "%s: pthread_detach failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     TRACE_PRINTF(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (Address) sysThreadHandle);
@@ -1037,10 +1037,10 @@ EXTERNAL void sysThreadBind(int cpuId)
     // bindprocessor() seems to be only on AIX
 #ifdef RVM_FOR_AIX
     int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
-    fprintf(SysTraceFile, "%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
+    CONSOLE_PRINTF(SysTraceFile, "%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
 
     if (rc) {
-        fprintf(SysErrorFile, "%s: bindprocessor failed (errno=%d): ", Me, errno);
+        CONSOLE_PRINTF(SysErrorFile, "%s: bindprocessor failed (errno=%d): ", Me, errno);
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -1072,7 +1072,7 @@ EXTERNAL void * sysThreadStartup(void *args)
     stack.ss_flags = 0;
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
-        fprintf(stderr,"sigaltstack failed (errno=%d)\n",errno);
+        CONSOLE_PRINTF(stderr,"sigaltstack failed (errno=%d)\n",errno);
         exit(1);
     }
 
@@ -1124,7 +1124,7 @@ EXTERNAL void * sysThreadStartup(void *args)
 
         // not reached
         //
-        fprintf(SysTraceFile, "%s: sysThreadStartup: failed\n", Me);
+        CONSOLE_PRINTF(SysTraceFile, "%s: sysThreadStartup: failed\n", Me);
     }
 #ifdef RVM_FOR_HARMONY
     return 0;
@@ -1187,7 +1187,7 @@ EXTERNAL void sysSetupHardwareTrapHandler()
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
         /* Only fails with EINVAL, ENOMEM, EPERM */
-        fprintf (SysErrorFile, "sigaltstack failed (errno=%d): ", errno);
+        CONSOLE_PRINTF (SysErrorFile, "sigaltstack failed (errno=%d): ", errno);
         perror(NULL);
         sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
     }
@@ -1212,7 +1212,7 @@ EXTERNAL void sysSetupHardwareTrapHandler()
      * EINVAL EFAULT.  */
 #endif
     if (rc) {
-        fprintf (SysErrorFile, "pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
+        CONSOLE_PRINTF (SysErrorFile, "pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
         perror(NULL);
         sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
     }
@@ -1419,14 +1419,14 @@ EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNan
     ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
     ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
 #ifdef DEBUG_THREAD
-      fprintf(stderr, "starting wait at %lld until %lld (%ld, %ld)\n",
+      CONSOLE_PRINTF(stderr, "starting wait at %lld until %lld (%ld, %ld)\n",
              sysNanoTime(),whenWakeupNanos,ts.tv_sec,ts.tv_nsec);
       fflush(stderr);
 #endif
     vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
     int rc = pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
 #ifdef DEBUG_THREAD
-      fprintf(stderr, "returned from wait at %lld instead of %lld with res = %d\n",
+      CONSOLE_PRINTF(stderr, "returned from wait at %lld instead of %lld with res = %d\n",
              sysNanoTime(),whenWakeupNanos,rc);
       fflush(stderr);
 #endif
@@ -1578,7 +1578,7 @@ EXTERNAL float sysPrimitiveParseFloat(const char * buf)
 {
     TRACE_PRINTF(SysTraceFile, "%s: sysPrimitiveParseFloat %s\n", Me, buf);
     if (! buf[0] ) {
-   fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+   CONSOLE_PRINTF(SysErrorFile, "%s: Got an empty string as a command-line"
       " argument that is supposed to be a"
       " floating-point number\n", Me);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -1588,13 +1588,13 @@ EXTERNAL float sysPrimitiveParseFloat(const char * buf)
     errno = 0;
     float f = (float)strtod(buf, &end);
     if (errno) {
-   fprintf(SysErrorFile, "%s: Trouble while converting the"
+   CONSOLE_PRINTF(SysErrorFile, "%s: Trouble while converting the"
       " command-line argument \"%s\" to a"
       " floating-point number: %s\n", Me, buf, strerror(errno));
    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (*end != '\0') {
-        fprintf(SysErrorFile, "%s: Got a command-line argument that"
+        CONSOLE_PRINTF(SysErrorFile, "%s: Got a command-line argument that"
       " is supposed to be a floating-point value,"
       " but isn't: %s\n", Me, buf);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -1614,7 +1614,7 @@ EXTERNAL int sysPrimitiveParseInt(const char * buf)
 {
     TRACE_PRINTF(SysTraceFile, "%s: sysPrimitiveParseInt %s\n", Me, buf);
     if (! buf[0] ) {
-   fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+   CONSOLE_PRINTF(SysErrorFile, "%s: Got an empty string as a command-line"
       " argument that is supposed to be an integer\n", Me);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
@@ -1622,18 +1622,18 @@ EXTERNAL int sysPrimitiveParseInt(const char * buf)
     errno = 0;
     long l = strtol(buf, &end, 0);
     if (errno) {
-   fprintf(SysErrorFile, "%s: Trouble while converting the"
+   CONSOLE_PRINTF(SysErrorFile, "%s: Trouble while converting the"
       " command-line argument \"%s\" to an integer: %s\n",
       Me, buf, strerror(errno));
    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (*end != '\0') {
-        fprintf(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but isn't: %s\n", Me, buf);
+        CONSOLE_PRINTF(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but isn't: %s\n", Me, buf);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     int32_t ret = l;
     if ((long) ret != l) {
-        fprintf(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but its value does not fit into a Java 32-bit integer: %s\n", Me, buf);
+        CONSOLE_PRINTF(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but its value does not fit into a Java 32-bit integer: %s\n", Me, buf);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     return ret;
@@ -1694,7 +1694,7 @@ static void* checkMalloc(int length)
 {
     void *result=malloc(length);
     if (inRVMAddressSpace((Address)result)) {
-      fprintf(stderr,"malloc returned something that is in RVM address space: %p\n",result);
+      CONSOLE_PRINTF(stderr,"malloc returned something that is in RVM address space: %p\n",result);
     }
     return result;
 }
@@ -1703,7 +1703,7 @@ static void* checkCalloc(int numElements, int sizeOfOneElement)
 {
     void *result=calloc(numElements,sizeOfOneElement);
     if (inRVMAddressSpace((Address)result)) {
-      fprintf(stderr,"calloc returned something that is in RVM address space: %p\n",result);
+      CONSOLE_PRINTF(stderr,"calloc returned something that is in RVM address space: %p\n",result);
     }
     return result;
 }
@@ -1822,7 +1822,7 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
     int rc = munmap(dst, cnt);
     if (rc != 0)
     {
-        fprintf(SysErrorFile, "%s: munmap failed (errno=%d): ", Me, errno);
+        CONSOLE_PRINTF(SysErrorFile, "%s: munmap failed (errno=%d): ", Me, errno);
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -1830,7 +1830,7 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
     void *addr = mmap(dst, cnt, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
     if (addr == (void *)-1)
     {
-        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): ", Me, errno);
+        CONSOLE_PRINTF(SysErrorFile, "%s: mmap failed (errno=%d): ", Me, errno);
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -1847,7 +1847,7 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
     int rc = disclaim((char *)dst, cnt, ZERO_MEM);
     if (rc != 0)
     {
-        fprintf(SysErrorFile, "%s: disclaim failed (errno=%d): ", Me, errno);
+        CONSOLE_PRINTF(SysErrorFile, "%s: disclaim failed (errno=%d): ", Me, errno);
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -1876,7 +1876,7 @@ EXTERNAL void sysSyncCache(void *address, size_t size)
     _sync_cache_range((caddr_t) address, size);
   #else
     if (size < 0) {
-      fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
+      CONSOLE_PRINTF(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
       sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
@@ -1940,7 +1940,7 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
                Me, start, length, protection, flags, fd, offset);
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
-    fprintf(SysErrorFile, "%s: sysMMapErrno %p %d %d %d %d %d failed with %d.\n",
+    CONSOLE_PRINTF(SysErrorFile, "%s: sysMMapErrno %p %d %d %d %d %d failed with %d.\n",
                    Me, start, length, protection, flags, fd, offset, errno);
     return (void *) errno;
   }else{
@@ -1993,7 +1993,7 @@ EXTERNAL void* sysDlopen(char *libname)
     }
     while( (libHandler == 0 /*null*/) && (errno == EINTR) );
     if (libHandler == 0) {
-        fprintf(SysErrorFile,
+        CONSOLE_PRINTF(SysErrorFile,
                 "%s: error loading library %s: %s\n", Me,
                 libname, dlerror());
 //      return 0;
@@ -2151,7 +2151,7 @@ static gcspy_main_server_t server;
 
 // debugging
 #define GCSPY_TRACE 0
-#define GCSPY_TRACE_PRINTF(...) if(GCSPY_TRACE) fprintf(PORTLIB, SysTraceFile, __VA_ARGS__)
+#define GCSPY_TRACE_PRINTF(...) if(GCSPY_TRACE) CONSOLE_PRINTF(PORTLIB, SysTraceFile, __VA_ARGS__)
 
 static int stream_count = 0;
 static int stream_len;
@@ -2337,7 +2337,7 @@ EXTERNAL void gcspyStartserver (gcspy_main_server_t *server, int wait, void *loo
   int res = pthread_create(&tid, NULL,
                           (pthread_start_routine_t) loop,  server);
   if (res != 0) {
-      fprintf(SysErrorFile,"Couldn't create thread.\n");
+      CONSOLE_PRINTF(SysErrorFile,"Couldn't create thread.\n");
       exit(EXIT_STATUS_MISC_TROUBLE);
   }
 
