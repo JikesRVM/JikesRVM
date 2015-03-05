@@ -171,7 +171,7 @@ TLS_KEY_TYPE createThreadLocal() {
     return key;
 }
 
-// Create keys for thread-specific data.
+/** Create keys for thread-specific data. */
 EXTERNAL void
 sysCreateThreadSpecificDataKeys(void)
 {
@@ -210,8 +210,7 @@ getVmThread()
     return GET_THREAD_LOCAL(VmThreadKey);
 }
 
-// Console write (java character).
-//
+/** Console write (java character). */
 EXTERNAL void
 sysConsoleWriteChar(unsigned value)
 {
@@ -220,8 +219,7 @@ sysConsoleWriteChar(unsigned value)
     fprintf(SysTraceFile, "%c", c);
 }
 
-// Console write (java integer).
-//
+/** Console write (java integer). */
 EXTERNAL void
 sysConsoleWriteInteger(int value, int hexToo)
 {
@@ -233,8 +231,7 @@ sysConsoleWriteInteger(int value, int hexToo)
         fprintf(SysTraceFile, "0x%08x", value);
 }
 
-// Console write (java long).
-//
+/** Console write (java long). */
 EXTERNAL void
 sysConsoleWriteLong(long long value, int hexToo)
 {
@@ -251,8 +248,7 @@ sysConsoleWriteLong(long long value, int hexToo)
     }
 }
 
-// Console write (java double).
-//
+/** Console write (java double). */
 EXTERNAL void
 sysConsoleWriteDouble(double value,  int postDecimalDigits)
 {
@@ -342,8 +338,7 @@ static bool systemExiting = false;
 
 static const bool debugging = false;
 
-// Exit with a return code.
-//
+/** Exit with a return code. */
 EXTERNAL void
 sysExit(int value)
 {
@@ -373,17 +368,16 @@ sysExit(int value)
     exit(value);
 }
 
-// Access host o/s command line arguments.
-// Taken:    -1
-//           null
-// Returned: number of arguments
-//
-// /or/
-//
-// Taken:    arg number sought
-//           buffer to fill
-// Returned: number of bytes written to buffer (-1: arg didn't fit, buffer too small)
-//
+/**
+ * Access host o/s command line arguments.
+ * Taken:    -1
+ *           null
+ * Returned: number of arguments
+ *          /or/
+ * Taken:    arg number sought
+ *           buffer to fill
+ * Returned: number of bytes written to buffer (-1: arg didn't fit, buffer too small)
+ */
 EXTERNAL int
 sysArg(int argno, char *buf, int buflen)
 {
@@ -409,21 +403,19 @@ sysArg(int argno, char *buf, int buflen)
     /* NOTREACHED */
 }
 
-/** Get the value of an enviroment variable.  (This refers to the C
-    per-process environment.)   Used, indirectly, by VMSystem.getenv()
-
-    Taken:    VARNAME, name of the envar we want.
-         BUF, a buffer in which to place the value of that envar
-              LIMIT, the size of BUF
-
-    Returned: See the convention documented in loadResultBuf().
-
-         0: A return value of 0 indicates that the envar was set with a
-         zero-length value.   (Distinguised from unset, see below)
-
-         -2: Indicates that the envar was unset.  This is distinguished
-        from a zero-length value (see above).
-*/
+/**
+ * Get the value of an enviroment variable.  (This refers to the C
+ * per-process environment.)   Used, indirectly, by VMSystem.getenv()
+ *
+ * Taken:     VARNAME, name of the envar we want.
+ *            BUF, a buffer in which to place the value of that envar
+ *            LIMIT, the size of BUF
+ * Returned:  See the convention documented in loadResultBuf().
+ *            0: A return value of 0 indicates that the envar was set with a
+ *             zero-length value.   (Distinguised from unset, see below)
+ *            -2: Indicates that the envar was unset.  This is distinguished
+ *            from a zero-length value (see above).
+ */
 EXTERNAL int
 sysGetenv(const char *varName, char *buf, int limit)
 {
@@ -432,8 +424,8 @@ sysGetenv(const char *varName, char *buf, int limit)
 }
 
 
-
-/* Copy SRC, a null-terminated string or a NULL pointer, into DEST, a buffer
+/**
+ * Copy SRC, a null-terminated string or a NULL pointer, into DEST, a buffer
  * with LIMIT characters capacity.   This is a helper function used by
  * sysGetEnv() and, later on, to be used by other functions returning strings
  * to Java.
@@ -565,12 +557,12 @@ void sysPerfEventRead(int id, long long *values)
 // Filesystem operations. //
 //------------------------//
 
-// Get file status.
-// Taken:    null terminated filename
-//           kind of info desired (see FileSystem.STAT_XXX)
-// Returned: status (-1=error)
-//
-// As of August 2003, this is never used. --Steve Augart
+/**
+ * Get file status.
+ * Taken:   null terminated filename
+ *          kind of info desired (see FileSystem.STAT_XXX)
+ * Returned: status (-1=error)
+ */
 EXTERNAL int
 sysStat(char *name, int kind)
 {
@@ -600,11 +592,12 @@ sysStat(char *name, int kind)
     return -1; // unrecognized request
 }
 
-// Check user's perms.
-// Taken:    null terminated filename
-//           kind of access perm to check for (see FileSystem.ACCESS_W_OK)
-// Returned: 0 on success (-1=error)
-//
+/**
+ * Check user's perms.
+ * Taken:     null terminated filename
+ *            kind of access perm to check for (see FileSystem.ACCESS_W_OK)
+ * Returned:  0 on success (-1=error)
+ */
 EXTERNAL int
 sysAccess(char *name, int kind)
 {
@@ -612,11 +605,12 @@ sysAccess(char *name, int kind)
     return access(name, kind);
 }
 
-// How many bytes can be read from file/socket without blocking?
-// Taken:    file/socket descriptor
-// Returned: >=0: count, ThreadIOConstants_FD_INVALID: bad file descriptor,
-//          -1: other error
-//
+/**
+ * How many bytes can be read from file/socket without blocking?
+ * Taken:     file/socket descriptor
+ * Returned:  >=0: count
+ *            -1: other error
+ */
 EXTERNAL int
 sysBytesAvailable(int fd)
 {
@@ -630,6 +624,12 @@ sysBytesAvailable(int fd)
     return count;
 }
 
+/**
+ * Syncs a file.
+ * Taken:     file/socket descriptor
+ * Returned:  0: everything ok
+ *            -1: error
+ */
 EXTERNAL int
 sysSyncFile(int fd)
 {
@@ -642,10 +642,11 @@ sysSyncFile(int fd)
     return 0;
 }
 
-// Read one byte from file.
-// Taken:    file descriptor
-// Returned: data read (-3: error, -2: operation would block, -1: eof, >= 0: valid)
-//
+/**
+ * Reads one byte from file.
+ * Taken:     file descriptor
+ * Returned:  data read (-3: error, -2: operation would block, -1: eof, >= 0: valid)
+ */
 EXTERNAL int
 sysReadByte(int fd)
 {
@@ -673,11 +674,12 @@ again:
     }
 }
 
-// Write one byte to file.
-// Taken:    file descriptor
-//           data to write
-// Returned: -2 operation would block, -1: error, 0: success
-//
+/**
+ * Writes one byte to file.
+ * Taken:     file descriptor
+ *            data to write
+ * Returned:  -2 operation would block, -1: error, 0: success
+ */
 EXTERNAL int
 sysWriteByte(int fd, int data)
 {
@@ -698,12 +700,13 @@ again:
     }
 }
 
-// Read multiple bytes from file or socket.
-// Taken:    file or socket descriptor
-//           buffer to be filled
-//           number of bytes requested
-// Returned: number of bytes delivered (-2: error, -1: socket would have blocked)
-//
+/**
+ * Reads multiple bytes from file or socket.
+ * Taken:     file or socket descriptor
+ *            buffer to be filled
+ *            number of bytes requested
+ * Returned:  number of bytes delivered (-2: error, -1: socket would have blocked)
+ */
 EXTERNAL int
 sysReadBytes(int fd, char *buf, int cnt)
 {
@@ -725,13 +728,14 @@ again:
     return -2;
 }
 
-// Write multiple bytes to file or socket.
-// Taken:    file or socket descriptor
-//           buffer to be written
-//           number of bytes to write
-// Returned: number of bytes written (-2: error, -1: socket would have blocked,
-//           -3 EPIPE error)
-//
+/**
+ * Writes multiple bytes to file or socket.
+ * Taken:     file or socket descriptor
+ *            buffer to be written
+ *            number of bytes to write
+ * Returned:  number of bytes written (-2: error, -1: socket would have blocked,
+ *            -3 EPIPE error)
+ */
 EXTERNAL int
 sysWriteBytes(int fd, char *buf, int cnt)
 {
@@ -758,12 +762,13 @@ again:
     return -2;
 }
 
-// Close file or socket.
-// Taken:    file/socket descriptor
-// Returned:  0: success
-//           -1: file/socket not currently open
-//           -2: i/o error
-//
+/**
+ * Close file or socket.
+ * Taken:     file/socket descriptor
+ * Returned:  0: success
+ *            -1: file/socket not currently open
+ *            -2: i/o error
+ */
 static int sysClose(int fd)
 {
     TRACE_PRINTF(SysTraceFile, "%s: close %d\n", Me, fd);
@@ -774,11 +779,11 @@ static int sysClose(int fd)
     return -2; // some other error
 }
 
-// Set the close-on-exec flag for given file descriptor.
-//
-// Taken: the file descriptor
-// Returned: 0 if sucessful, nonzero otherwise
-//
+/**
+ * Sets the close-on-exec flag for given file descriptor.
+ * Taken:     the file descriptor
+ * Returned:  0 if sucessful, nonzero otherwise
+ */
 EXTERNAL int
 sysSetFdCloseOnExec(int fd)
 {
@@ -845,7 +850,8 @@ sysNanoTime()
 }
 
 
-/** Routine to sleep for a number of nanoseconds (howLongNanos).  This is
+/**
+ * Routine to sleep for a number of nanoseconds (howLongNanos).  This is
  * ridiculous on regular Linux, where we actually only sleep in increments of
  * 1/HZ (1/100 of a second on x86).  Luckily, Linux will round up.
  *
@@ -887,15 +893,16 @@ sysNanoSleep(long long howLongNanos)
 #include <sys/systemcfg.h>
 #endif
 
-// How many physical cpu's are present and actually online?
-// Assume 1 if no other good ansewr.
-// Taken:    nothing
-// Returned: number of cpu's
-//
-// Note: this function is only called once.  If it were called more often
-// than that, we would want to use a static variable to indicate that we'd
-// already printed the WARNING messages and were not about to print any more.
-
+/**
+ * How many physical cpu's are present and actually online?
+ * Assume 1 if no other good answer.
+ * Taken:     nothing
+ * Returned:  number of cpu's
+ *
+ * Note: this function is only called once.  If it were called more often
+ * than that, we would want to use a static variable to indicate that we'd
+ * already printed the WARNING messages and were not about to print any more.
+ */
 EXTERNAL int
 sysNumProcessors()
 {
@@ -972,9 +979,11 @@ sysNumProcessors()
     return numCpus;
 }
 
-// Create a native thread
-// Taken:    register values to use for pthread startup
-// Returned: virtual processor's OS handle
+/**
+ * Creates a native thread.
+ * Taken:     register values to use for pthread startup
+ * Returned:  virtual processor's OS handle
+ */
 EXTERNAL Word
 sysThreadCreate(Address tr, Address ip, Address fp)
 {
@@ -1154,18 +1163,15 @@ sysThreadStartup(void *args)
 #endif
 }
 
-// Routines to support sleep/wakeup of idle threads:
-// CRA, Maria
-// 09/14/00
-//
+// Routines to support sleep/wakeup of idle threads
 
-/*
-  sysGetThreadId() just returns the thread ID of
-  the current thread.
-
-  This happens to be only called once, at thread startup time, but please
-  don't rely on that fact.
-*/
+/**
+ * sysGetThreadId() just returns the thread ID of the current thread.
+ *
+ * This happens to be only called once, at thread startup time, but please
+ * don't rely on that fact.
+ *
+ */
 EXTERNAL Word
 sysGetThreadId()
 {
@@ -1187,11 +1193,13 @@ getThreadId()
     return thread;
 }
 
-/* Perform some initialization related to
-  per-thread signal handling for that thread. (Block SIGCONT, set up a special
-  signal handling stack for the thread.)
-
-  This is only called once, at thread startup time. */
+/**
+ * Perform some initialization related to
+ * per-thread signal handling for that thread. (Block SIGCONT, set up a special
+ * signal handling stack for the thread.)
+ *
+ * This is only called once, at thread startup time.
+ */
 EXTERNAL void
 sysSetupHardwareTrapHandler()
 {
@@ -1221,7 +1229,6 @@ sysSetupHardwareTrapHandler()
     /*
      * Block the CONT signal.  This makes SIGCONT reach this
      * pthread only when this pthread performs a sigwait().
-     * --Maria
      */
     sigset_t input_set, output_set;
     sigemptyset(&input_set);
@@ -1245,11 +1252,9 @@ sysSetupHardwareTrapHandler()
 
 }
 
-//
-// Yield execution of current virtual processor back to o/s.
-// Taken:    nothing
-// Returned: nothing
-//
+/**
+ * Yields execution back to o/s.
+ */
 EXTERNAL void
 sysThreadYield()
 {
@@ -1258,10 +1263,10 @@ sysThreadYield()
     /** According to the Linux manpage, sched_yield()'s presence can be
      *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
      *  that is not present to use the sysconf feature, searching against
-     *  _SC_PRIORITY_SCHEDULING.  However, I don't really trust it, since
+     *  _SC_PRIORITY_SCHEDULING.  However, this may not be reliable, since
      *  the AIX 5.1 include files include this definition:
      *      ./unistd.h:#undef _POSIX_PRIORITY_SCHEDULING
-     *  so my trust that it is implemented properly is scanty.  --augart
+     *  so it is likely that this is not implemented properly.
      */
 #ifdef RVM_FOR_HARMONY
     hythread_yield();
@@ -1270,13 +1275,14 @@ sysThreadYield()
 #endif
 }
 
-// Determine if a given thread can use pthread_setschedparam to
-// configure its priority, this is based on the current priority
-// of the thread.
-//
-// The result will be true on all systems other than Linux where
-// pthread_setschedparam cannot be used with SCHED_OTHER policy.
-//
+/**
+ * Determine if a given thread can use pthread_setschedparam to
+ * configure its priority, this is based on the current priority
+ * of the thread.
+ *
+ * The result will be true on all systems other than Linux where
+ * pthread_setschedparam cannot be used with SCHED_OTHER policy.
+ */
 static int hasPthreadPriority(Word thread_id)
 {
     struct sched_param param;
@@ -1291,9 +1297,11 @@ static int hasPthreadPriority(Word thread_id)
     return 0;
 }
 
-// Return a handle which can be used to manipulate a threads priority
-// on Linux this will be the kernel thread_id, on other systems the
-// standard thread id.
+/**
+ * Return a handle which can be used to manipulate a threads priority
+ * on Linux this will be the kernel thread_id, on other systems the
+ * standard thread id.
+ */
 EXTERNAL Word
 sysGetThreadPriorityHandle()
 {
@@ -1307,7 +1315,9 @@ sysGetThreadPriorityHandle()
     return (Word) getThreadId();
 }
 
-// Compute the default (or middle) priority for a given policy.
+/**
+ * Compute the default (or middle) priority for a given policy.
+ */
 static int defaultPriority(int policy)
 {
     int min = sched_get_priority_min(policy);
@@ -1315,7 +1325,9 @@ static int defaultPriority(int policy)
     return min + ((max - min) / 2);
 }
 
-// Get the thread priority as an offset from the default.
+/**
+ * Get the thread priority as an offset from the default.
+ */
 EXTERNAL int
 sysGetThreadPriority(Word thread, Word handle)
 {
@@ -1342,7 +1354,9 @@ sysGetThreadPriority(Word thread, Word handle)
     return 0;
 }
 
-// Set the thread priority as an offset from the default.
+/**
+ * Set the thread priority as an offset from the default.
+ */
 EXTERNAL int
 sysSetThreadPriority(Word thread, Word handle, int priority)
 {
@@ -1572,8 +1586,11 @@ sysDoubleToLong(double a)
     return (long long)a;
 }
 
-// sysDoubleRemainder is only used on PPC
 #include <math.h>
+
+/**
+ * Only used on PPC.
+ */
 EXTERNAL double
 sysDoubleRemainder(double a, double b)
 {
@@ -1603,11 +1620,14 @@ sysDoubleRemainder(double a, double b)
     return tmp;
 }
 
-/* Used to parse command line arguments that are
-   doubles and floats early in booting before it
-   is safe to call Float.valueOf or Double.valueOf.   This is only used in
-   parsing command-line arguments, so we can safely print error messages that
-   assume the user specified this number as part of a command-line argument. */
+/**
+ * Used to parse command line arguments that are doubles and floats early in
+ * booting before it is safe to call Float.valueOf or Double.valueOf.
+ *
+ * This is only used in parsing command-line arguments, so we can safely
+ * print error messages that assume the user specified this number as part
+ * of a command-line argument.
+ */
 EXTERNAL float
 sysPrimitiveParseFloat(const char * buf)
 {
@@ -1637,12 +1657,14 @@ sysPrimitiveParseFloat(const char * buf)
     return f;
 }
 
-// Used to parse command line arguments that are
-// ints and bytes early in booting before it
-// is safe to call Integer.parseInt and Byte.parseByte
-// This is only used in
-// parsing command-line arguments, so we can safely print error messages that
-// assume the user specified this number as part of a command-line argument.
+/**
+ * Used to parse command line arguments that are ints and bytes early in
+ * booting before it is safe to call Integer.parseInt and Byte.parseByte.
+ *
+ * This is only used in parsing command-line arguments, so we can safely
+ * print error messages that assume the user specified this number as part
+ * of a command-line argument.
+ */
 EXTERNAL int
 sysPrimitiveParseInt(const char * buf)
 {
@@ -1673,15 +1695,20 @@ sysPrimitiveParseInt(const char * buf)
     return ret;
 }
 
-/** Parse memory sizes.
-    @return negative values to indicate errors. */
+/**
+ * Parse memory sizes. Negative return values indicate errors.
+ * Taken:     name of the memory area (one of ("initial heap", "maximum heap",
+ *              "initial stack", "maximum stack")
+ *            flag for size (e.g., "ms" or "mx" or "ss" or "sg" or "sx")
+ *            default factor (e.g. "M" or "K")
+ *            rounding target (e.g. to 4 or to PAGE_SIZE_BYTES)
+ *            whole token (e.g. "-Xms200M" or "-Xms200")
+ *            subtoken (e.g. "200M" or "200")
+ * Returned   negative value for errors
+ */
 EXTERNAL jlong
-sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
-                                            or "initial stack" or
-                                            "maximum stack" */
-                   const char *sizeFlag, // e.g., "ms" or "mx" or "ss" or "sg" or "sx"
-                   const char *defaultFactor, // "M" or "K" are used
-                   int roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+sysParseMemorySize(const char *sizeName, const char *sizeFlag,
+                   const char *defaultFactor, int roundTo,
                    const char *token /* e.g., "-Xms200M" or "-Xms200" */,
                    const char *subtoken /* e.g., "200M" or "200" */)
 {
@@ -1702,8 +1729,7 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
 // Memory operations //
 //-------------------//
 
-// Memory to memory copy. Memory regions must not overlap.
-//
+/** Memory to memory copy. Memory regions must not overlap. */
 EXTERNAL void
 sysCopy(void *dst, const void *src, Extent cnt)
 {
@@ -1711,8 +1737,7 @@ sysCopy(void *dst, const void *src, Extent cnt)
     memcpy(dst, src, cnt);
 }
 
-// Memory to memory copy. Memory regions may overlap.
-//
+/** Memory to memory copy. Memory regions may overlap. */
 EXTERNAL void
 sysMemmove(void *dst, const void *src, Extent cnt)
 {
@@ -1750,8 +1775,7 @@ checkFree(void* mem)
     free(mem);
 }
 
-// Allocate memory.
-//
+/** Allocate memory. */
 EXTERNAL void *
 sysMalloc(int length)
 {
@@ -1766,8 +1790,7 @@ sysCalloc(int length)
   return checkCalloc(1, length);
 }
 
-// Release memory.
-//
+/** Release memory. */
 EXTERNAL void
 sysFree(void *location)
 {
@@ -1775,7 +1798,7 @@ sysFree(void *location)
     checkFree(location);
 }
 
-// Zero a range of memory with non-temporal instructions on x86
+/* Zero a range of memory with non-temporal instructions on x86 */
 EXTERNAL void
 sysZeroNT(void *dst, Extent cnt)
 {
@@ -1823,8 +1846,7 @@ sysZeroNT(void *dst, Extent cnt)
 #endif    
 }
 
-// Zero a range of memory bytes.
-//
+/** Zero a range of memory bytes. */
 EXTERNAL void
 sysZero(void *dst, Extent cnt)
 {
@@ -1832,11 +1854,12 @@ sysZero(void *dst, Extent cnt)
     memset(dst, 0x00, cnt);
 }
 
-// Zero a range of memory pages.
-// Taken:    start of range (must be a page boundary)
-//           size of range, in bytes (must be multiple of page size, 4096)
-// Returned: nothing
-//
+/**
+ * Zeros a range of memory pages.
+ * Taken:     start of range (must be a page boundary)
+ *            size of range, in bytes (must be multiple of page size, 4096)
+ * Returned:  nothing
+ */
 EXTERNAL void
 sysZeroPages(void *dst, int cnt)
 {
@@ -1901,15 +1924,17 @@ sysZeroPages(void *dst, int cnt)
 #undef STRATEGY
 }
 
-//PNT: use a soft handshake whenever we do this.
-// Synchronize caches: force data in dcache to be written out to main memory
-// so that it will be seen by icache when instructions are fetched back.
-//
-// Taken:    start of address range
-//           size of address range (bytes)
-// Returned: nothing
-//
-//
+/**
+ * Synchronize caches: force data in dcache to be written out to main memory
+ * so that it will be seen by icache when instructions are fetched back.
+ *
+ * Note: If other processors need to execute isync (e.g. for code patching),
+ * this has to be done via soft handshakes.
+ *
+ * Taken:     start of address range
+ *            size of address range (bytes)
+ * Returned:  nothing
+ */
 EXTERNAL void
 sysSyncCache(void *address, size_t size)
 {
@@ -1952,15 +1977,16 @@ sysSyncCache(void *address, size_t size)
 // MMAP operations //
 //-----------------//
 
-// mmap - general case
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        desired protection (Java int)
-//        flags (Java int)
-//        file descriptor (Java int)
-//        offset (Java long)  [to cover 64 bit file systems]
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-
+/**
+ * mmap - general case
+ * Taken:     start address (Java ADDRESS)
+ *            length of region (Java EXTENT)
+ *            desired protection (Java int)
+ *            flags (Java int)
+ *            file descriptor (Java int)
+ *            offset (Java long)  [to cover 64 bit file systems]
+ * Returned:  address of region (or -1 on failure) (Java ADDRESS)
+ */
 EXTERNAL void *
 sysMMap(char *start , size_t length ,
         int protection , int flags ,
@@ -1972,9 +1998,10 @@ sysMMap(char *start , size_t length ,
    return result;
 }
 
-// Same as mmap, but with more debugging support.
-// Returned: address of region if successful; errno (1 to 127) otherwise
-
+/**
+ * Same as mmap, but with more debugging support.
+ * Returned: address of region if successful; errno (1 to 127) otherwise
+ */
 EXTERNAL void *
 sysMMapErrno(char *start , size_t length ,
         int protection , int flags ,
@@ -1994,11 +2021,13 @@ sysMMapErrno(char *start , size_t length ,
   }
 }
 
-// mprotect
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        new protection (Java int)
-// Returned: 0 (success) or -1 (failure) (Java int)
+/**
+ * mprotect.
+ * Taken:     start address (Java ADDRESS)
+ *            length of region (Java EXTENT)
+ *            new protection (Java int)
+ * Returned:  0 (success) or -1 (failure) (Java int)
+ */
 EXTERNAL int
 sysMProtect(char *start, size_t length, int prot)
 {
@@ -2007,9 +2036,11 @@ sysMProtect(char *start, size_t length, int prot)
     return mprotect(start, length, prot);
 }
 
-// getpagesize
-// Taken: (no arguments)
-// Returned: page size in bytes (Java int)
+/**
+ * getpagesize.
+ * Taken:     (no arguments)
+ * Returned:  page size in bytes (Java int)
+ */
 EXTERNAL int
 sysGetPageSize()
 {
@@ -2021,10 +2052,11 @@ sysGetPageSize()
 // JNI operations //
 //----------------//
 
-// Load dynamic library.
-// Taken:
-// Returned: a handler for this library, null if none loaded
-//
+
+/**
+ * Load dynamic library.
+ * Returned:  a handler for this library, null if none loaded
+ */
 EXTERNAL void*
 sysDlopen(char *libname)
 {
@@ -2044,10 +2076,7 @@ sysDlopen(char *libname)
     return libHandler;
 }
 
-// Look up symbol in dynamic library.
-// Taken:
-// Returned:
-//
+/** Look up symbol in dynamic library. */
 EXTERNAL void*
 sysDlsym(Address libHandler, char *symbolName)
 {
@@ -2062,6 +2091,7 @@ getArrayLength(void* ptr)
 }
 
 // VMMath
+
 EXTERNAL double
 sysVMMathSin(double a) {
     TRACE_PRINTF(SysTraceFile, "%s: sysVMMathSin %f\n", Me, a);
