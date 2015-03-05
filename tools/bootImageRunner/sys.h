@@ -19,8 +19,8 @@
 #define _GNU_SOURCE
 #endif
 
-#define NEED_VIRTUAL_MACHINE_DECLARATIONS
-#define NEED_EXIT_STATUS_CODES
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS 1
+#define NEED_EXIT_STATUS_CODES 1
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "cAttributePortability.h"
