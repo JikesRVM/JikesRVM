@@ -736,15 +736,10 @@ void findMappable()
         int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
         void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
         int fail = (result == (void *) -1);
-#if RVM_FOR_32_ADDR
-        printf("0x%x: ", (Address) start);
-#else
-        printf("0x%llx: ", (Address) start);
-#endif
         if (fail) {
-            printf("FAILED with errno %d: %s\n", errno, strerror(errno));
+            fprintf(SysTraceFile, "%p FAILED with errno %d: %s\n", start, errno, strerror(errno));
         } else {
-            printf("SUCCESS\n");
+            fprintf(SysTraceFile, "%p SUCCESS\n", start);
             munmap(start, (size_t) pageSize);
         }
     }

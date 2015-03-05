@@ -1984,13 +1984,8 @@ sysMMapErrno(char *start , size_t length ,
                Me, start, length, protection, flags, fd, offset);
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
-#if RVM_FOR_32_ADDR
-    fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %d) failed with %d: ",
-       (Address) start, (unsigned) length, protection, flags, fd, offset, errno);
-#else
-    fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
-       (Address) start, (unsigned) length, protection, flags, errno);
-#endif
+    fprintf(SysErrorFile, "%s: sysMMapErrno %p %d %d %d %d %d failed with %d.\n",
+                   Me, start, length, protection, flags, fd, offset, errno);
     return (void *) errno;
   }else{
     TRACE_PRINTF(SysTraceFile, "mmap succeeded- region = [%p ... %p]    size = %zd\n",
@@ -2291,11 +2286,7 @@ gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, char *format, long 
 EXTERNAL void
 gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, Address start, Address end) {
   char name[256];
-#ifndef RVM_FOR_32_ADDR
-  snprintf(name, sizeof name, "   [%016llx-%016llx)", start, end);
-#else
-  snprintf(name, sizeof name, "   [%08x-%08x)", start, end);
-#endif
+  snprintf(name, sizeof name, "   [%p-%p)", start, end);
   gcspyDriverSetTileName(driver, tile, name, 0);
 }
 
