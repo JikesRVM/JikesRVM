@@ -118,6 +118,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
                     Magic.attemptInt(this,offset,LOCKED,QUEUEING)) ||
                    (oldState==LOCKED_QUEUED &&
                     Magic.attemptInt(this,offset,LOCKED_QUEUED,QUEUEING))) {
+          Magic.sync();
           queue.enqueue(me);
           Magic.sync();
           state=LOCKED_QUEUED;
@@ -157,6 +158,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
         break;
       } else if (oldState==LOCKED_QUEUED &&
                  Magic.attemptInt(this,offset,LOCKED_QUEUED,QUEUEING)) {
+        Magic.sync();
         RVMThread toAwaken=queue.dequeue();
         if (VM.VerifyAssertions) VM._assert(toAwaken!=null);
         boolean queueEmpty=queue.isEmpty();
