@@ -723,17 +723,17 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.jburg.dir}"/>
     <exec executable="${bison.exe}" failonerror="true">
       <arg value="--output=${build.jburg.dir}/gram.c"/>
-      <arg value="${basedir}/rvm/src-generated/opt-burs/jburg/gram.y"/>
+      <arg path="${basedir}/rvm/src-generated/opt-burs/jburg/gram.y"/>
     </exec>
     <exec executable="${c.exe}" failonerror="true">
       <arg
           line="-Wextra -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wno-aggregate-return -Wnested-externs -Wconversion -Wsign-compare -fkeep-inline-functions -Wno-unused -Wno-strict-prototypes -Wno-undef"/>
       <arg value="-I"/>
-      <arg value="${basedir}/rvm/src-generated/opt-burs/jburg"/>
+      <arg path="${basedir}/rvm/src-generated/opt-burs/jburg"/>
       <arg value="-o"/>
-      <arg value="${build.jburg.dir}/jburg"/>
-      <arg value="${basedir}/rvm/src-generated/opt-burs/jburg/jburg.c"/>
-      <arg value="${build.jburg.dir}/gram.c"/>
+      <arg path="${build.jburg.dir}/jburg"/>
+      <arg path="${basedir}/rvm/src-generated/opt-burs/jburg/jburg.c"/>
+      <arg path="${build.jburg.dir}/gram.c"/>
     </exec>
     <touch file="${generated.dir}/JBurg-uptodate"/>
   </target>
@@ -905,15 +905,15 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.ia32-assembler-opt.dir}"/>
     <GenerateFromTemplate>
       <args>
-        <arg value="${ia32-assembler-opt.dir}/InstructionFormatTables.template"/>
-        <arg value="${build.ia32-assembler-opt.dir}/InstructionFormatTables.java"/>
+        <arg path="${ia32-assembler-opt.dir}/InstructionFormatTables.template"/>
+        <arg path="${build.ia32-assembler-opt.dir}/InstructionFormatTables.java"/>
         <arg value="FORMAT_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/InstructionFormatList.dat"/>
       </args>
     </GenerateFromTemplate>
     <GenerateFromTemplate>
       <args>
-        <arg value="${ia32-assembler-opt.dir}/OperatorFormatTables.template"/>
-        <arg value="${build.ia32-assembler-opt.dir}/OperatorFormatTables.java"/>
+        <arg path="${ia32-assembler-opt.dir}/OperatorFormatTables.template"/>
+        <arg path="${build.ia32-assembler-opt.dir}/OperatorFormatTables.java"/>
         <arg value="OPERATOR_FILE=${basedir}/rvm/src-generated/opt-ir/ia32/OperatorList.dat"/>
       </args>
     </GenerateFromTemplate>
@@ -1661,7 +1661,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-ra"/>
       <arg value="${target.bootimage.rmap.address}"/>
       <arg value="-out"/>
-      <arg value="${build.native}/InterfaceDeclarations.h"/>
+      <arg path="${build.native}/InterfaceDeclarations.h"/>
     </java>
   </target>
 
@@ -1751,7 +1751,7 @@ Check to make sure all required properties are specified. This includes properti
     <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
       <arg line="${rvm.common.args} ${cpp.args}"/>
       <arg value="-P"/>
-      <arg value="${basedir}/tools/bootImageRunner/ppc/bootThread.c"/>
+      <arg path="${basedir}/tools/bootImageRunner/ppc/bootThread.c"/>
     </exec>
   </target>
 
@@ -1759,8 +1759,8 @@ Check to make sure all required properties are specified. This includes properti
     <exec executable="${c.exe}" failonerror="true">
       <arg line="${shld.args}"/>
       <arg value="-o"/>
-      <arg value="${build.base}/${target.dll-prefix}gcspy${target.dll-ext}"/>
-      <arg value="${jikesrvm.dir}/tools/gcspy-stub/src/gcspy_main_server.c"/>
+      <arg path="${build.base}/${target.dll-prefix}gcspy${target.dll-ext}"/>
+      <arg path="${jikesrvm.dir}/tools/gcspy-stub/src/gcspy_main_server.c"/>
     </exec>
   </target>
 
@@ -1784,8 +1784,8 @@ Check to make sure all required properties are specified. This includes properti
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args} -lpthread ${c++.librt}"/>
       <arg value="-o"/>
-      <arg value="${build.base}/${rvm.dll}"/>
-      <arg value="${bl.dir}/jvm.cpp"/>
+      <arg path="${build.base}/${rvm.dll}"/>
+      <arg path="${bl.dir}/jvm.cpp"/>
     </exec>
 
     <!-- create vmi shared library -->
@@ -1800,9 +1800,9 @@ Check to make sure all required properties are specified. This includes properti
         <exec executable="${c.exe}" failonerror="true">
           <arg line="${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
           <arg value="-o"/>
-          <arg value="${build.base}/${vmi.dll}"/>
-          <arg value="${bl.dir}/harmony.c"/>
-          <arg value="libraryInterface/Harmony/ASF/native/vmls.c"/>
+          <arg path="${build.base}/${vmi.dll}"/>
+          <arg path="${bl.dir}/harmony.c"/>
+          <arg path="libraryInterface/Harmony/ASF/native/vmls.c"/>
           <arg value="-Wl,--version-script=${bl.dir}/harmony.exp"/>
         </exec>
       </sequential>
@@ -1813,10 +1813,10 @@ Check to make sure all required properties are specified. This includes properti
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
-      <arg value="${build.base}/${rvmdynlib.dll}"/>
+      <arg path="${build.base}/${rvmdynlib.dll}"/>
       <arg value="-L${build.base}"/>
       <arg value="-lrvm"/>
-      <arg value="${bl.dir}/org_jikesrvm_runtime_DynamicLibrary.c"/>
+      <arg path="${bl.dir}/org_jikesrvm_runtime_DynamicLibrary.c"/>
     </exec>
 
     <condition property="perfevent.lib" value="-lpfm" else="">
@@ -1831,7 +1831,7 @@ Check to make sure all required properties are specified. This includes properti
         <exec executable="${c++.exe}" failonerror="true">
           <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c++.librt} -lpthread ${c++.rdynamic} -g"/>
           <arg value="-o"/>
-          <arg value="${build.base}/JikesRVM"/>
+          <arg path="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
           <arg value="-ldl"/>
           <arg line="-lrvm"/>
@@ -1846,7 +1846,7 @@ Check to make sure all required properties are specified. This includes properti
         <exec executable="${c++.exe}" failonerror="true">
           <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c++.librt} -lpthread ${c++.rdynamic} -g"/>
           <arg value="-o"/>
-          <arg value="${build.base}/JikesRVM"/>
+          <arg path="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
 	  <arg value="-L${harmony.lib.dir}"/>
           <arg value="-ldl"/>
@@ -1865,16 +1865,16 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="build-debug-symbols" if="rvm.debug-symbols">
     <exec executable="${perl.exe}" failonerror="true">
-      <arg value="${basedir}/tools/bootImageRunner/parse_map.perl"/>
-      <arg value="${build.base}/RVM.map"/>
-      <arg value="${build.base}/JikesRVM-symbols.s"/>
+      <arg path="${basedir}/tools/bootImageRunner/parse_map.perl"/>
+      <arg path="${build.base}/RVM.map"/>
+      <arg path="${build.base}/JikesRVM-symbols.s"/>
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">
       <arg value="-c"/>
       <arg value="-o"/>
-      <arg value="${build.base}/JikesRVM-symbols.o"/>
-      <arg value="${build.base}/JikesRVM-symbols.s"/>
+      <arg path="${build.base}/JikesRVM-symbols.o"/>
+      <arg path="${build.base}/JikesRVM-symbols.s"/>
     </exec>
   </target>
 
