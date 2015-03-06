@@ -202,7 +202,7 @@ public class GenerateInterfaceDeclarations {
     p("------*/\n\n");
 
     pln("#if defined NEED_BOOT_RECORD_DECLARATIONS || defined NEED_VIRTUAL_MACHINE_DECLARATIONS");
-    pln("#include <inttypes.h>");
+    pln("#include <stdint.h>");
     if (VM.BuildFor32Addr) {
       pln("#define Address uint32_t");
       pln("#define Offset int32_t");
