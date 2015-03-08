@@ -2148,7 +2148,7 @@ static gcspy_main_server_t server;
 
 // debugging
 #define GCSPY_TRACE 0
-#define GCSPY_TRACE_PRINTF(...) if(GCSPY_TRACE) CONSOLE_PRINTF(PORTLIB, SysTraceFile, __VA_ARGS__)
+#define GCSPY_TRACE_PRINTF(...) if(GCSPY_TRACE) CONSOLE_PRINTF(__VA_ARGS__)
 
 static int stream_count = 0;
 static int stream_len;
