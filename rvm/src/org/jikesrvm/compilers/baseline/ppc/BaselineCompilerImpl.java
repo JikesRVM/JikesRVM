@@ -19,6 +19,7 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.BYTES_IN_OFFSET;
 import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
@@ -650,6 +651,16 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   private void popAddr(int reg) {
     asm.emitLAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS, FP);
+    discardSlot();
+  }
+
+  /**
+   * Emits the code to pop an Offset (a value of the unboxed type Offset)
+   * from the expression stack into the register 'reg'.
+   * @param reg register to pop the value into
+   */
+  private void popOffset(int reg) {
+    asm.emitLAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_OFFSET, FP);
     discardSlot();
   }
 
@@ -3901,7 +3912,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           asm.emitLAddr(T0, 0, T0);    // *(base)
           pushAddr(T0);                 // push *(base)
         } else {
-          popInt(T1);                   // pop offset
+          popOffset(T1);                // pop offset
           popAddr(T0);                  // pop base
           asm.emitLAddrX(T0, T1, T0);   // *(base+offset)
           pushAddr(T0);                 // push *(base+offset)
@@ -3916,7 +3927,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           asm.emitLHZ(T0, 0, T0);       // load with zero extension.
           pushInt(T0);                  // push *(base)
         } else {
-          popInt(T1);                   // pop offset
+          popOffset(T1);                // pop offset
           popAddr(T0);                  // pop base
           asm.emitLHZX(T0, T1, T0);     // load with zero extension.
           pushInt(T0);                  // push *(base+offset)
@@ -3931,7 +3942,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           asm.emitLHA(T0, 0, T0);       // load with sign extension.
           pushInt(T0);                  // push *(base)
         } else {
-          popInt(T1);                   // pop offset
+          popOffset(T1);                // pop offset
           popAddr(T0);                  // pop base
           asm.emitLHAX(T0, T1, T0);     // load with sign extension.
           pushInt(T0);                  // push *(base+offset)
@@ -3946,7 +3957,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           asm.emitEXTSB(T0, T0);        // sign extend
           pushInt(T0);                  // push *(base)
         } else {
-          popInt(T1);                   // pop offset
+          popOffset(T1);                // pop offset
           popAddr(T0);                  // pop base
           asm.emitLBZX(T0, T1, T0);     // load with zero extension.
           asm.emitEXTSB(T0, T0);        // sign extend
@@ -3962,7 +3973,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           asm.emitLInt(T0, 0, T0);     // *(base)
           pushInt(T0);                  // push *(base)
         } else {
-          popInt(T1);                   // pop offset
+          popOffset(T1);                // pop offset
           popAddr(T0);                  // pop base
           asm.emitLIntX(T0, T1, T0);    // *(base+offset)
           pushInt(T0);                  // push *(base+offset)
@@ -3977,7 +3988,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           asm.emitLFD(F0, 0, T1);      // *(base)
           pushDouble(F0);               // push double
         } else {
-          popInt(T2);                   // pop offset
+          popOffset(T2);                // pop offset
           popAddr(T1);                  // pop base
           asm.emitLFDX(F0, T1, T2);    // *(base+offset)
           pushDouble(F0);               // push *(base+offset)
@@ -3998,7 +4009,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           // this Integer is not sign extended !!
           pushInt(T0);                             // push *(base+offset)
         } else {
-          popInt(T1);                              // pop offset
+          popOffset(T1);                              // pop offset
           popAddr(T0);                             // pop base
           asm.emitLWARX(T0, T1, T0);              // *(base+offset), setting reservation address
           // this Integer is not sign extended !!
@@ -4017,7 +4028,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           // this Integer is not sign extended !!
           pushAddr(T0);                             // push *(base+offset)
         } else {
-          popInt(T1);                              // pop offset
+          popOffset(T1);                              // pop offset
           popAddr(T0);                             // pop base
           if (VM.BuildFor64Addr) {
             asm.emitLDARX(T0, T1, T0);              // *(base+offset), setting reservation address
@@ -4048,7 +4059,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           fr.resolve(asm);
           pushInt(T0);                           // push success of store
         } else {
-          popInt(T1);                            // pop offset
+          popOffset(T1);                         // pop offset
           popInt(T2);                            // pop newValue
           discardSlot();                         // ignore oldValue
           popAddr(T0);                           // pop base
@@ -4077,7 +4088,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           fr.resolve(asm);
           pushInt(T0);                           // push success of store
         } else {
-          popInt(T1);                              // pop offset
+          popOffset(T1);                           // pop offset
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
           popAddr(T0);                             // pop base
@@ -4107,7 +4118,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
             popAddr(T0);                 // pop base
             asm.emitSTAddrX(T1, 0, T0);   // *(base) = newvalue
           } else {
-            popInt(T1);                  // pop offset
+            popOffset(T1);               // pop offset
             popAddr(T2);                 // pop newvalue
             popAddr(T0);                 // pop base
             asm.emitSTAddrX(T2, T1, T0); // *(base+offset) = newvalue
@@ -4121,7 +4132,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
             popAddr(T0);                 // pop base
             asm.emitSTBX(T1, 0, T0);      // *(base) = newvalue
           } else {
-            popInt(T1);                  // pop offset
+            popOffset(T1);               // pop offset
             popInt(T2);                  // pop newvalue
             popAddr(T0);                 // pop base
             asm.emitSTBX(T2, T1, T0);    // *(base+offset) = newvalue
@@ -4135,7 +4146,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
             popAddr(T0);                 // pop base
             asm.emitSTWX(T1, 0, T0);      // *(base+offset) = newvalue
           } else {
-            popInt(T1);                  // pop offset
+            popOffset(T1);               // pop offset
             popInt(T2);                  // pop newvalue
             popAddr(T0);                 // pop base
             asm.emitSTWX(T2, T1, T0);    // *(base+offset) = newvalue
@@ -4149,7 +4160,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
             popAddr(T0);                 // pop base
             asm.emitSTHX(T1, 0, T0);      // *(base) = newvalue
           } else {
-            popInt(T1);                  // pop offset
+            popOffset(T1);               // pop offset
             popInt(T2);                  // pop newvalue
             popAddr(T0);                 // pop base
             asm.emitSTHX(T2, T1, T0);    // *(base+offset) = newvalue
@@ -4168,7 +4179,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
               asm.emitSTD(T1, 0, T0);           // *(base) = newvalue
             }
           } else {
-            popInt(T1);                           // pop offset
+            popOffset(T1);                        // pop offset
             popLong(T3, T2);                      // pop newvalue low and high
             popAddr(T0);                          // pop base
             if (VM.BuildFor32Addr) {
@@ -4274,12 +4285,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         asm.emitSTAddrX(T2, T0, T1);                  // store value in array
       }
     } else if (methodName == MagicNames.getIntAtOffset) {
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitLIntX(T0, T1, T0); // *(object+offset)
       pushInt(T0); // push *(object+offset)
     } else if (methodName == MagicNames.getFloatAtOffset) {
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitLWZX(T0, T1, T0); // *(object+offset)
       pushInt(T0); // push *(object+offset),
@@ -4294,28 +4305,28 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       if (methodToBeCalled.getParameterTypes().length == 3) {
         discardSlot(); // discard locationMetadata parameter
       }
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitLAddrX(T0, T1, T0); // *(object+offset)
       pushAddr(T0); // push *(object+offset)
     } else if (methodName == MagicNames.getUnsignedByteAtOffset) {
-      popInt(T1);   // pop offset
+      popOffset(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
       pushInt(T0);    // push *(object+offset)
     } else if (methodName == MagicNames.getByteAtOffset) {
-      popInt(T1);   // pop offset
+      popOffset(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
       asm.emitEXTSB(T0, T0); // sign extend
       pushInt(T0);    // push *(object+offset)
     } else if (methodName == MagicNames.getCharAtOffset) {
-      popInt(T1);   // pop offset
+      popOffset(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLHZX(T0, T1, T0);   // load char with zero extension.
       pushInt(T0);    // push *(object+offset)
     } else if (methodName == MagicNames.getShortAtOffset) {
-      popInt(T1);   // pop offset
+      popOffset(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLHAX(T0, T1, T0);   // load short with sign extension.
       pushInt(T0);    // push *(object+offset)
@@ -4324,7 +4335,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         discardSlot(); // discard locationMetadata parameter
       }
       popInt(T2); // pop newvalue
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
     } else if (methodName == MagicNames.setObjectAtOffset || methodName == MagicNames.setWordAtOffset ||
@@ -4334,7 +4345,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         discardSlot(); // discard locationMetadata parameter
       }
       popAddr(T2); // pop newvalue
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTAddrX(T2, T1, T0); // *(object+offset) = newvalue
     } else if (methodName == MagicNames.setByteAtOffset || methodName == MagicNames.setBooleanAtOffset) {
@@ -4342,7 +4353,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         discardSlot(); // discard locationMetadata parameter
       }
       popInt(T2); // pop newvalue
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
     } else if (methodName == MagicNames.setCharAtOffset || methodName == MagicNames.setShortAtOffset) {
@@ -4350,11 +4361,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         discardSlot(); // discard locationMetadata parameter
       }
       popInt(T2); // pop newvalue
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTHX(T2, T1, T0); // *(object+offset) = newvalue
     } else if (methodName == MagicNames.getLongAtOffset || methodName == MagicNames.getDoubleAtOffset) {
-      popInt(T2); // pop offset
+      popOffset(T2); // pop offset
       popAddr(T1); // pop object
       asm.emitLFDX(F0, T1, T2);
       pushDouble(F0);
@@ -4363,7 +4374,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         discardSlot(); // discard locationMetadata parameter
       }
       popLong(T3, T2);
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       if (VM.BuildFor32Addr) {
         asm.emitSTWX(T3, T1, T0); // *(object+offset) = newvalue low
@@ -4395,7 +4406,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         (VM.BuildFor32Addr && (methodName == MagicNames.prepareObject)) ||
         (VM.BuildFor32Addr && (methodName == MagicNames.prepareAddress)) ||
         (VM.BuildFor32Addr && (methodName == MagicNames.prepareWord))) {
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitLWARX(T0, T1, T0); // *(object+offset), setting thread's reservation address
       // this Integer is not sign extended !!
@@ -4404,7 +4415,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         (VM.BuildFor64Addr && (methodName == MagicNames.prepareObject)) ||
         (VM.BuildFor64Addr && (methodName == MagicNames.prepareAddress)) ||
         (VM.BuildFor64Addr && (methodName == MagicNames.prepareWord))) {
-      popInt(T1); // pop offset
+      popOffset(T1); // pop offset
       popAddr(T0); // pop object
       if (VM.BuildFor64Addr) {
         asm.emitLDARX(T0, T1, T0); // *(object+offset), setting thread's reservation address
@@ -4419,7 +4430,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         (VM.BuildFor32Addr && (methodName == MagicNames.attemptWord))) {
       popInt(T2);  // pop newValue
       discardSlot(); // ignore oldValue
-      popInt(T1);  // pop offset
+      popOffset(T1);  // pop offset
       popAddr(T0);  // pop object
       asm.emitSTWCXr(T2, T1, T0); // store new value and set CR0
       asm.emitLVAL(T0, 0);  // T0 := false
@@ -4434,7 +4445,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         (VM.BuildFor64Addr && (methodName == MagicNames.attemptWord))) {
       popAddr(T2);  // pop newValue
       discardSlot(); // ignore oldValue
-      popInt(T1);  // pop offset
+      popOffset(T1);  // pop offset
       popAddr(T0);  // pop object
       if (VM.BuildFor64Addr) {
         asm.emitSTDCXr(T2, T1, T0); // store new value and set CR0
