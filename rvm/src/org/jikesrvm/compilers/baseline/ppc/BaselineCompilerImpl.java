@@ -715,6 +715,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitLAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS + (idx << LOG_BYTES_IN_STACKSLOT), FP);
   }
 
+  /**
+   * Emits the code to peek an unboxed (i.e. pointer-sized) value
+   * from the expression stack into the register 'reg'.
+   * @param reg register to peek the value into
+   */
+  public final void peekUnboxed(int reg, int idx) {
+    asm.emitLAddr(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_ADDRESS + (idx << LOG_BYTES_IN_STACKSLOT), FP);
+  }
+
   /*
   * Loading constants
   */
