@@ -47,6 +47,13 @@ extern FILE *SysTraceFile;
 #define LINUX
 #endif
 
+#ifdef RVM_WITH_ALIGNMENT_CHECKING
+extern volatile int numEnableAlignCheckingCalls;
+EXTERNAL void sysEnableAlignmentChecking();
+EXTERNAL void sysDisableAlignmentChecking();
+EXTERNAL void sysReportAlignmentChecking();
+#endif
+
 /** Trace execution of syscalls */
 #define TRACE 0
 #define TRACE_PRINTF if(TRACE)fprintf
