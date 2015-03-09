@@ -46,6 +46,10 @@ extern FILE *SysTraceFile;
 #define TRACE 0
 #define TRACE_PRINTF if(TRACE)fprintf
 
+extern void* checkMalloc(int length);
+extern void* checkCalloc(int numElements, int sizeOfOneElement);
+extern void checkFree(void* mem);
+
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;
 
