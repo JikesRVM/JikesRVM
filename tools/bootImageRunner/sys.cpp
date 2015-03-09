@@ -58,10 +58,7 @@ EXTERNAL void __libc_longjmp (jmp_buf buf, int val) \
         longjmp(buf, ret)
 #endif /* !__GLIBC__ */
 
-#ifdef RVM_WITH_PERFEVENT
-#include <perfmon/pfmlib_perf_event.h>
-#include <err.h>
-#endif
+
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS) 
 #include <sys/stat.h>
@@ -443,95 +440,6 @@ static int loadResultBuf(char * dest, int limit, const char *src)
    if (src[i] == '\0')
        return i;      // done, return # of chars needed for SRC
     }
-}
-
-/*
- * Performance counter support using the linux perf event system.
- */
-EXTERNAL {
-#ifndef RVM_WITH_PERFEVENT
-void sysPerfEventInit(int events) {}
-void sysPerfEventCreate(int id, const char *eventName) {}
-void sysPerfEventEnable() {}
-void sysPerfEventDisable() {}
-void sysPerfEventRead(int id, long long *values) {}
-#else
-static int enabled = 0;
-static int *perf_event_fds;
-static struct perf_event_attr *perf_event_attrs;
-
-void sysPerfEventInit(int numEvents)
-{
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventInit\n", Me);
-  int ret = pfm_initialize();
-  if (ret != PFM_SUCCESS) {
-    errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
-  }
-
-  perf_event_fds = (int*)checkCalloc(numEvents, sizeof(int));
-  if (!perf_event_fds) {
-    errx(1, "error allocating perf_event_fds");
-  }
-  perf_event_attrs = (struct perf_event_attr *)checkCalloc(numEvents, sizeof(struct perf_event_attr));
-  if (!perf_event_attrs) {
-    errx(1, "error allocating perf_event_attrs");
-  }
-  for(int i=0; i < numEvents; i++) {
-    perf_event_attrs[i].size = sizeof(struct perf_event_attr);
-  }
-  enabled = 1;
-}
-
-void sysPerfEventCreate(int id, const char *eventName)
-{
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventCreate\n", Me);
-  struct perf_event_attr *pe = (perf_event_attrs + id);
-  int ret = pfm_get_perf_event_encoding(eventName, PFM_PLM3, pe, NULL, NULL);
-  if (ret != PFM_SUCCESS) {
-    errx(1, "error creating event %d '%s': %s\n", id, eventName, pfm_strerror(ret));
-  }
-  pe->read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
-  pe->disabled = 1;
-  pe->inherit = 1;
-  perf_event_fds[id] = perf_event_open(pe, 0, -1, -1, 0);
-  if (perf_event_fds[id] == -1) {
-    err(1, "error in perf_event_open for event %d '%s'", id, eventName);
-  }
-}
-
-void sysPerfEventEnable()
-{
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventEnable\n", Me);
-  if (enabled) {
-    if (prctl(PR_TASK_PERF_EVENTS_ENABLE)) {
-      err(1, "error in prctl(PR_TASK_PERF_EVENTS_ENABLE)");
-    }
-  }
-}
-
-void sysPerfEventDisable()
-{
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventDisable\n", Me);
-  if (enabled) {
-    if (prctl(PR_TASK_PERF_EVENTS_DISABLE)) {
-      err(1, "error in prctl(PR_TASK_PERF_EVENTS_DISABLE)");
-    }
-  }
-}
-
-void sysPerfEventRead(int id, long long *values)
-{
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventRead\n", Me);
-  size_t expectedBytes = 3 * sizeof(long long);
-  int ret = read(perf_event_fds[id], values, expectedBytes);
-  if (ret < 0) {
-    err(1, "error reading event: %s", strerror(errno));
-  }
-  if (ret != expectedBytes) {
-    errx(1, "read of perf event did not return 3 64-bit values");
-  }
-}
-#endif
 }
 
 //------------------------//
