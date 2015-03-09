@@ -19,6 +19,11 @@
 #define _GNU_SOURCE
 #endif
 
+//Solaris needs BSD_COMP to be set to enable the FIONREAD ioctl
+#if defined (__SVR4) && defined (__sun)
+#define BSD_COMP
+#endif
+
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS 1
 #define NEED_EXIT_STATUS_CODES 1
 #include "InterfaceDeclarations.h"
