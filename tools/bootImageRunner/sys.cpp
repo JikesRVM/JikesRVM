@@ -877,14 +877,3 @@ EXTERNAL void sysThreadTerminate()
     }
     rvm_longjmp(*jb,1);
 }
-
-
-//----------------//
-// JNI operations //
-//----------------//
-
-
-EXTERNAL int getArrayLength(void* ptr)
-{
-    return *(int*)(((char *)ptr) + ObjectModel_ARRAY_LENGTH_OFFSET);
-}
