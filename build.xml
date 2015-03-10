@@ -1743,7 +1743,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
-    <property name="rvm.syscall.src" value="${bl.dir}/sysAlignmentCheck.cpp ${bl.dir}/sysConsole.cpp ${bl.dir}/sysGCSpy.cpp ${bl.dir}/sysIO.cpp ${bl.dir}/sysMath.cpp ${bl.dir}/sysMemory.cpp ${bl.dir}/sysPerfEvent.cpp ${bl.dir}/sysTime.cpp"/>
+    <property name="rvm.syscall.src" value="${bl.dir}/sysAlignmentCheck.cpp ${bl.dir}/sysConsole.cpp ${bl.dir}/sysGCSpy.cpp ${bl.dir}/sysIO.cpp ${bl.dir}/sysLibrary.cpp ${bl.dir}/sysMath.cpp ${bl.dir}/sysMemory.cpp ${bl.dir}/sysPerfEvent.cpp ${bl.dir}/sysTime.cpp"/>
     <property name="rvm.src" value="${bl.dir}/RunBootImage.cpp ${rvm.syscall.src} ${bl.dir}/sys.cpp ${rvm.arch.src}"/>
   </target>
 

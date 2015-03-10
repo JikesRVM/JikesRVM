@@ -1008,35 +1008,6 @@ EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
 //----------------//
 
 
-/**
- * Load dynamic library.
- * Returned:  a handler for this library, null if none loaded
- */
-EXTERNAL void* sysDlopen(char *libname)
-{
-    TRACE_PRINTF(SysTraceFile, "%s: sysDlopen %s\n", Me, libname);
-    void * libHandler;
-    do {
-        libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
-    }
-    while( (libHandler == 0 /*null*/) && (errno == EINTR) );
-    if (libHandler == 0) {
-        CONSOLE_PRINTF(SysErrorFile,
-                "%s: error loading library %s: %s\n", Me,
-                libname, dlerror());
-//      return 0;
-    }
-
-    return libHandler;
-}
-
-/** Look up symbol in dynamic library. */
-EXTERNAL void* sysDlsym(Address libHandler, char *symbolName)
-{
-    TRACE_PRINTF(SysTraceFile, "%s: sysDlsym %s\n", Me, symbolName);
-    return dlsym((void *) libHandler, symbolName);
-}
-
 EXTERNAL int getArrayLength(void* ptr)
 {
     return *(int*)(((char *)ptr) + ObjectModel_ARRAY_LENGTH_OFFSET);
