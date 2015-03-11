@@ -65,4 +65,50 @@ extern void checkFree(void* mem);
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;
 
+/**
+ * FIXME The rest of the file consists of includes for non-linux systems
+ * and old systems. Anyone that has access to such a system could help us
+ * out by deleting unnecessary definitions from here and moving what is
+ * needed to the respective sys*.cpp files.
+ */
+
+// Work around AIX headerfile differences: AIX 4.3 vs earlier releases
+#ifdef _AIX43
+#include </usr/include/unistd.h>
+EXTERNAL void profil(void *, uint, ulong, uint);
+EXTERNAL int sched_yield(void);
+#endif
+
+#ifdef _AIX
+EXTERNAL timer_t gettimerid(int timer_type, int notify_type);
+EXTERNAL int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
+#include <sys/events.h>
+#endif
+
+#if (defined RVM_FOR_SOLARIS)
+#include <netinet/in.h>
+#endif
+
+/* OSX/Darwin */
+#if (defined __MACH__)
+#include <sys/stat.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/ioctl.h>
+#include <mach-o/dyld.h>
+#include <mach/host_priv.h>
+#include <mach/mach_init.h>
+#include <mach/mach_host.h>
+#include <mach/vm_map.h>
+#include <mach/processor_info.h>
+#include <mach/processor.h>
+#include <mach/thread_act.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+/* As of 10.4, dlopen comes with the OS */
+#include <dlfcn.h>
+#define MAP_ANONYMOUS MAP_ANON
+#include <sched.h>
+#endif
+
 #endif // RVM_SYSCALL_DEFINITIONS
