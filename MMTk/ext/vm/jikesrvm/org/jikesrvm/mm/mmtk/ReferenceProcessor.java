@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.options.Options;
 
@@ -319,38 +318,79 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param nursery Scan only the newly created references
    */
   @Override
-  public void scan(TraceLocal trace, boolean nursery) {
+  public void scan(TraceLocal trace, boolean nursery, boolean retain) {
     unforwardedReferences = references;
 
     if (TRACE) VM.sysWriteln("Starting ReferenceGlue.scan(",semanticsStr,")");
     int toIndex = nursery ? nurseryIndex : 0;
 
     if (TRACE_DETAIL) VM.sysWriteln(semanticsStr," Reference table is ",Magic.objectAsAddress(references));
-    for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
-      ObjectReference reference = getReference(fromIndex);
-
-      /* Determine liveness (and forward if necessary) the reference */
-      ObjectReference newReference = processReference(trace,reference);
-      if (!newReference.isNull()) {
-        setReference(toIndex++,newReference);
-        if (TRACE_DETAIL) {
-          int index = toIndex-1;
-          VM.sysWrite("SCANNED ",index);
-          VM.sysWrite(" ",references.get(index));
-          VM.sysWrite(" -> ");
-          VM.sysWriteln(getReferent(references.get(index).toObjectReference()));
+    if (retain) {
+      for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
+          ObjectReference reference = getReference(fromIndex);
+          retainReferent(trace, reference);
         }
+    } else {
+      for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
+        ObjectReference reference = getReference(fromIndex);
+
+        /* Determine liveness (and forward if necessary) the reference */
+        ObjectReference newReference = processReference(trace,reference);
+        if (!newReference.isNull()) {
+          setReference(toIndex++,newReference);
+          if (TRACE_DETAIL) {
+            int index = toIndex-1;
+            VM.sysWrite("SCANNED ",index);
+            VM.sysWrite(" ",references.get(index));
+            VM.sysWrite(" -> ");
+            VM.sysWriteln(getReferent(references.get(index).toObjectReference()));
+          }
+               }
+             }
+      if (Options.verbose.getValue() >= 3) {
+        VM.sysWrite(semanticsStr);
+        VM.sysWriteln(" references: ",maxIndex," -> ",toIndex);
       }
+      nurseryIndex = maxIndex = toIndex;
     }
-    if (Options.verbose.getValue() >= 3) {
-      VM.sysWrite(semanticsStr);
-      VM.sysWriteln(" references: ",maxIndex," -> ",toIndex);
-    }
-    nurseryIndex = maxIndex = toIndex;
 
     /* flush out any remset entries generated during the above activities */
     Selected.Mutator.get().flushRememberedSets();
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.scan(",semanticsStr,")");
+  }
+
+  /**
+   * This method deals only with soft references. It retains the referent
+   * if the reference is definitely reachable.
+   * @param reference the address of the reference. This may or may not
+   * be the address of a heap object, depending on the VM.
+   * @param trace the thread local trace element.
+   */
+  protected void retainReferent(TraceLocal trace, ObjectReference reference) {
+    if (VM.VerifyAssertions) VM._assert(!reference.isNull());
+    if (VM.VerifyAssertions) VM._assert(semantics == Semantics.SOFT);
+
+    if (TRACE_DETAIL) {
+      VM.sysWrite("Processing reference: ",reference);
+    }
+
+    if (!trace.isLive(reference)) {
+      /*
+       * Reference is currently unreachable but may get reachable by the
+       * following trace. We postpone the decision.
+       */
+      return;
+    }
+
+    /*
+     * Reference is definitely reachable.  Retain the referent.
+     */
+    ObjectReference referent = getReferent(reference);
+    if (!referent.isNull())
+      trace.retainReferent(referent);
+    if (TRACE_DETAIL) {
+      VM.sysWriteln(" ~> ", referent.toAddress(), " (retained)");
+    }
   }
 
   /**
@@ -412,6 +452,12 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
 
   /**
    * Processes a reference with the current semantics.
+   * <p>
+   * This method deals with  a soft reference as if it were a weak reference, i.e.
+   * it does not retain the referent. To retain the referent, use
+   * {@link #retainReferent(TraceLocal, ObjectReference)} followed by a transitive
+   * closure phase.
+   *
    * @param reference the address of the reference. This may or may not
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
@@ -457,24 +503,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
 
     if (TRACE_DETAIL)  VM.sysWrite(" => ",newReference);
-
-    if (semantics == Semantics.SOFT) {
-      /*
-       * Unless we've completely run out of memory, we keep
-       * softly reachable objects alive.
-       */
-      if (!Plan.isEmergencyCollection()) {
-        if (TRACE_DETAIL) VM.sysWrite(" (soft) ");
-        trace.retainReferent(oldReferent);
-      }
-    } else if (semantics == Semantics.PHANTOM) {
-      /*
-       * The spec says we should forward the reference.  Without unsafe uses of
-       * reflection, the application can't tell the difference whether we do or not,
-       * so we don't forward the reference.
-       */
-//    trace.retainReferent(oldReferent);
-    }
 
     if (trace.isLive(oldReferent)) {
       if (VM.VerifyAssertions) {

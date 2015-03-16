@@ -73,20 +73,24 @@ public abstract class SimpleCollector extends ParallelCollector {
 
     if (phaseId == Simple.SOFT_REFS) {
       if (primary) {
-        if (Options.noReferenceTypes.getValue())
-          VM.softReferences.clear();
-        else
-          VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+        if (!Options.noReferenceTypes.getValue()) {
+          if (!Plan.isEmergencyCollection()) {
+            VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery(),true);
+          }
+        }
       }
       return;
     }
 
     if (phaseId == Simple.WEAK_REFS) {
       if (primary) {
-        if (Options.noReferenceTypes.getValue())
+        if (Options.noReferenceTypes.getValue()) {
+          VM.softReferences.clear();
           VM.weakReferences.clear();
-        else
-          VM.weakReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+        } else {
+            VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery(), false);
+            VM.weakReferences.scan(getCurrentTrace(),global().isCurrentGCNursery(), false);
+        }
       }
       return;
     }
@@ -106,7 +110,7 @@ public abstract class SimpleCollector extends ParallelCollector {
         if (Options.noReferenceTypes.getValue())
           VM.phantomReferences.clear();
         else
-          VM.phantomReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+          VM.phantomReferences.scan(getCurrentTrace(),global().isCurrentGCNursery(),false);
       }
       return;
     }
