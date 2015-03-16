@@ -357,23 +357,18 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * Put this Reference object on its ReferenceQueue (if it has one)
    * when its referent is no longer sufficiently reachable. The
    * definition of "reachable" is defined by the semantics of the
-   * particular subclass of Reference. The implementation of this
-   * routine is determined by the the implementation of
-   * java.lang.ref.ReferenceQueue in GNU classpath. It is in this
-   * class rather than the public Reference class to ensure that Jikes
-   * has a safe way of enqueueing the object, one that cannot be
-   * overridden by the application program.
-   *
-   * ************************ TODO *********************************
-   * Change this so that we don't call reference.enqueue directly
-   * as this can be overridden by the user.
-   * ***************************************************************
+   * particular subclass of Reference.
+   * <p>
+   * The implementation of this routine is determined by the the
+   * implementation of java.lang.ref.ReferenceQueue in the class library.
+   * It is in this class rather than the public Reference class to
+   * ensure that Jikes has a safe way of enqueueing the object,
+   * one that cannot be overridden by the application program.
    *
    * @see java.lang.ref.ReferenceQueue
    * @param addr the address of the Reference object
    * @return <code>true</code> if the reference was enqueued
    */
-  @Unpreemptible
   public boolean enqueueReference(ObjectReference addr) {
     Reference<?> reference = (Reference<?>)addr.toObject();
     return reference.enqueueInternal();
@@ -423,7 +418,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @return an updated reference (e.g. with a new address) if the reference
    *  is still live, {@code ObjectReference.nullReference()} otherwise
    */
-  @UninterruptibleNoWarn("Call out to ReferenceQueue API")
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 
