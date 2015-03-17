@@ -582,6 +582,58 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
 
   /**
+   * Generates a primitive array store for the given size.
+   *
+   * @param size in bytes of the array store to generate
+   */
+  private void primitiveArrayStoreHelper(int size) {
+    Barriers.compileModifyCheck(asm, (size == 8) ? 3*WORDSIZE : 2*WORDSIZE);
+    if (VM.BuildFor32Addr) {
+      if (size == 8) {
+        asm.emitPOP_Reg(S1);       // S1 is the low value
+      }
+      asm.emitPOP_Reg(T1);         // T1 is the value/high value
+      asm.emitPOP_Reg(T0);         // T0 is array index
+      asm.emitPOP_Reg(S0);         // S0 is array ref
+    } else {
+      asm.emitPOP_Reg(T1);         // T1 is the value
+      if (size == 8) {
+        adjustStack(WORDSIZE, true); // throw away slot
+      }
+      asm.emitPOP_Reg(T0);         // T0 is array index
+      asm.emitPOP_Reg(S0);         // S0 is array ref
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
+    genBoundsCheck(asm, T0, S0);   // T0 is index, S0 is address of array
+    switch (size) {
+      case 8:
+        if (VM.BuildFor32Addr) {
+          asm.emitMOV_RegIdx_Reg(S0, T0, LONG, NO_SLOT, S1);  // [S0+T0<<<3] <- S1
+          asm.emitMOV_RegIdx_Reg(S0, T0, LONG, ONE_SLOT, T1); // [4+S0+T0<<<3] <- T1
+        } else {
+          asm.emitMOV_RegIdx_Reg_Quad(S0, T0, LONG, NO_SLOT, T1); // [S0+T0<<<3] <- T1
+        }
+        break;
+      case 4:
+        asm.emitMOV_RegIdx_Reg(S0, T0, WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+        break;
+      case 2:
+        // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+        asm.emitMOV_RegIdx_Reg_Word(S0, T0, SHORT, NO_SLOT, T1);
+        break;
+      case 1:
+        asm.emitMOV_RegIdx_Reg_Byte(S0, T0, BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+        break;
+      default:
+        if (VM.VerifyAssertions) {
+          VM._assert(VM.NOT_REACHED, "Unhandled byte size!");
+        } else {
+          VM.sysFail("Unhandled byte size");
+        }
+    }
+  }
+
+  /**
    * Private helper to perform an array bounds check
    * @param index offset from current SP to the array index
    * @param arrayRef offset from current SP to the array reference
@@ -592,70 +644,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
   }
 
-  /**
-   * Private helper to perform a char or short array store
-   */
-  private void arrayStore16bitHelper() {
-    // original castore assembler
-    asm.emitPOP_Reg(T1); // T1 is the value
-    asm.emitPOP_Reg(T0); // T0 is array index
-    asm.emitPOP_Reg(S0); // S0 is array ref
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
-    // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
-    asm.emitMOV_RegIdx_Reg_Word(S0, T0, SHORT, NO_SLOT, T1);
-  }
-
-  /**
-   * Private helper to perform a float or int array store
-   */
-  private void arrayStore32bitHelper() {
-    // original iastore assembler
-    asm.emitPOP_Reg(T1); // T1 is the value
-    asm.emitPOP_Reg(T0); // T0 is array index
-    asm.emitPOP_Reg(S0); // S0 is array ref
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
-    asm.emitMOV_RegIdx_Reg(S0, T0, WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
-  }
-
-  /**
-   * Private helper to perform a long or double array store
-   */
-  private void arrayStore64bitHelper() {
-    // original lastore assembler
-    if (VM.BuildFor32Addr) {
-      if (SSE2_BASE) {
-        asm.emitMOVQ_Reg_RegInd(XMM0, SP); // XMM0 is the value
-        adjustStack(WORDSIZE * 2, true); // remove value from the stack
-        asm.emitPOP_Reg(T0); // T0 is array index
-        asm.emitPOP_Reg(S0); // S0 is array ref
-      } else {
-        asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS); // T0 is the array index
-        asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS); // S0 is the array ref
-        asm.emitMOV_Reg_RegInd(T1, SP); // low part of long value
-      }
-    } else {
-      asm.emitPOP_Reg(T1); // T1 is the value
-      adjustStack(WORDSIZE, true); // throw away slot
-      asm.emitPOP_Reg(T0); // T0 is array index
-      asm.emitPOP_Reg(S0); // S0 is array ref
-    }
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
-    if (VM.BuildFor32Addr) {
-      if (SSE2_BASE) {
-        asm.emitMOVQ_RegIdx_Reg(S0, T0, LONG, NO_SLOT, XMM0); // [S0+T0<<<3] <- XMM0
-      } else {
-        // [S0 + T0<<3 + 0] <- T1 store low part into array
-        asm.emitMOV_RegIdx_Reg(S0, T0, LONG, NO_SLOT, T1);
-        asm.emitMOV_Reg_RegDisp(T1, SP, ONE_SLOT); // high part of long value
-        // [S0 + T0<<3 + 4] <- T1 store high part into array
-        adjustStack(WORDSIZE * 4, false); // remove index and ref from the stack
-        asm.emitMOV_RegIdx_Reg(S0, T0, LONG, ONE_SLOT, T1);
-      }
-    } else {
-      asm.emitMOV_RegIdx_Reg_Quad(S0, T0, LONG, NO_SLOT, T1); // [S0+T0<<<3] <- T1
-    }
-  }
-
   @Override
   protected final void emit_iastore() {
     Barriers.compileModifyCheck(asm, 8);
@@ -663,7 +651,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierInt(asm, this);
     } else {
-      arrayStore32bitHelper();
+      primitiveArrayStoreHelper(4);
     }
   }
 
@@ -674,7 +662,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierFloat(asm, this);
     } else {
-      arrayStore32bitHelper();
+      primitiveArrayStoreHelper(4);
     }
   }
 
@@ -698,7 +686,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierChar(asm, this);
     } else {
-      arrayStore16bitHelper();
+      primitiveArrayStoreHelper(2);
     }
   }
 
@@ -709,7 +697,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierShort(asm, this);
     } else {
-      arrayStore16bitHelper();
+      primitiveArrayStoreHelper(2);
     }
   }
 
@@ -720,11 +708,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierByte(asm, this);
     } else {
-      asm.emitPOP_Reg(T1); // T1 is the value
-      asm.emitPOP_Reg(T0); // T0 is array index
-      asm.emitPOP_Reg(S0); // S0 is array ref
-      genBoundsCheck(asm, T0, S0);         // T0 is index, S0 is address of array
-      asm.emitMOV_RegIdx_Reg_Byte(S0, T0, BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+      primitiveArrayStoreHelper(1);
     }
   }
 
@@ -735,7 +719,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       boundsCheckHelper(TWO_SLOTS, THREE_SLOTS);
       Barriers.compileArrayStoreBarrierLong(asm, this);
     } else {
-      arrayStore64bitHelper();
+      primitiveArrayStoreHelper(8);
     }
   }
 
@@ -746,7 +730,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       boundsCheckHelper(TWO_SLOTS, THREE_SLOTS);
       Barriers.compileArrayStoreBarrierDouble(asm, this);
     } else {
-      arrayStore64bitHelper();
+      primitiveArrayStoreHelper(8);
     }
   }
 
