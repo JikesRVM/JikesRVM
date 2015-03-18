@@ -38,6 +38,7 @@ import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.FPU_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
 import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.S1;
 import static org.jikesrvm.ia32.BaselineConstants.SP;
 import static org.jikesrvm.ia32.BaselineConstants.T0;
 import static org.jikesrvm.ia32.BaselineConstants.T0_SAVE_OFFSET;
@@ -120,6 +121,11 @@ final class BaselineMagic {
    * If a bad reference is encountered should we halt the VM?
    */
   private static final boolean FAIL_ON_BAD_REFERENCES = true;
+
+  /** Constant for constructing quad-word (= 64 bit) Attempt generators */
+  private static final boolean QUAD_WORD = true;
+  /** Constant for constructing double-word (= 32 bit) Attempt generators */
+  private static final boolean DOUBLE_WORD = false;
 
   /**
    * Entry point to generating magic
@@ -269,18 +275,38 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
       asm.emitPOP_Reg(T0);                      // address
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegInd(T0);                  // pushes [T0+0]
+      } else {
+        asm.emitMOV_Reg_RegInd(T0, T0);         // 32bit load
+        asm.emitPUSH_Reg(T0);                   // 64bit push
+      }
+    }
+  }
+  /**
+   * Load a 64bit quantity from an address
+   */
+  private static final class Load64 extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      // No offset
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
+      asm.emitPOP_Reg(T0);                      // address
       asm.emitPUSH_RegInd(T0);                  // pushes [T0+0]
     }
   }
   static {
     MagicGenerator g = new Load32();
+    generators.put(getMethodReference(Address.class, MagicNames.loadInt, int.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.prepareInt, int.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.loadFloat, float.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Load64();
+    }
     generators.put(getMethodReference(Address.class, MagicNames.loadAddress, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.prepareAddress, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.loadWord, Word.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.prepareWord, Word.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.loadInt, int.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.prepareInt, int.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.loadFloat, float.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new LateReferenceCheckDecorator(NO_SLOT, g);
     }
@@ -297,27 +323,49 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // object ref
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegIdx(T0, S0, BYTE, NO_SLOT); // pushes [T0+S0]
+      } else {
+        asm.emitMOV_Reg_RegIdx(T0, T0, S0, BYTE, NO_SLOT); // 32bit load
+        asm.emitPUSH_Reg(T0);               // 64bit push
+      }
+    }
+  }
+  /**
+   * Load a 64bit quantity from an address and offset parameter
+   */
+  private static final class Load64_Offset extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      // No offset
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
+      asm.emitPOP_Reg(S0);                  // offset
+      asm.emitPOP_Reg(T0);                  // object ref
       asm.emitPUSH_RegIdx(T0, S0, BYTE, NO_SLOT); // pushes [T0+S0]
     }
   }
+
   static {
     MagicGenerator g = new Load32_Offset();
-    generators.put(getMethodReference(Address.class, MagicNames.loadAddress, Offset.class, Address.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.prepareAddress, Offset.class, Address.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.loadWord, Offset.class, Word.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.prepareWord, Offset.class, Word.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.loadInt, Offset.class, int.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.prepareInt, Offset.class, int.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.loadFloat, Offset.class, float.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getIntAtOffset, Object.class, Offset.class, int.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getFloatAtOffset, Object.class, Offset.class, float.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.prepareInt, Object.class, Offset.class, int.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Load64_Offset();
+    }
+    generators.put(getMethodReference(Magic.class, MagicNames.prepareAddress, Object.class, Offset.class, Address.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.prepareWord, Object.class, Offset.class, Word.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.loadAddress, Offset.class, Address.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.prepareAddress, Offset.class, Address.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.loadWord, Offset.class, Word.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.prepareWord, Offset.class, Word.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getWordAtOffset, Object.class, Offset.class, Word.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getAddressAtOffset, Object.class, Offset.class, Address.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getExtentAtOffset, Object.class, Offset.class, Extent.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getOffsetAtOffset, Object.class, Offset.class, Offset.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.prepareInt, Object.class, Offset.class, int.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.prepareAddress, Object.class, Offset.class, Address.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.prepareWord, Object.class, Offset.class, Word.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new LateReferenceCheckDecorator(NO_SLOT, g);
     }
@@ -541,15 +589,30 @@ final class BaselineMagic {
       // No offset
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // address
-      asm.emitMOV_RegInd_Reg(S0, T0);         // [S0+0] <- T0
+      asm.emitMOV_RegInd_Reg(S0, T0);        // [S0+0] <- T0
+    }
+  }
+  /**
+   * Store a 64bit quantity to an address
+   */
+  private static final class Store64 extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      // No offset
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // address
+      asm.emitMOV_RegInd_Reg_Quad(S0, T0);   // [S0+0] <- T0
     }
   }
   static {
     MagicGenerator g = new Store32();
-    generators.put(getMethodReference(Address.class, MagicNames.store, Address.class, void.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.store, Word.class, void.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.store, int.class, void.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.store, float.class, void.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Store64();
+    }
+    generators.put(getMethodReference(Address.class, MagicNames.store, Address.class, void.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.store, Word.class, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(NO_SLOT, g);
     }
@@ -569,12 +632,28 @@ final class BaselineMagic {
       asm.emitMOV_RegIdx_Reg(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
     }
   }
+  /**
+   * Store a 64bit quantity to an address plus offset
+   */
+  private static final class Store64_Offset extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      // Store at offset
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(T1);                   // address
+      asm.emitMOV_RegIdx_Reg_Quad(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+    }
+  }
   static {
     MagicGenerator g = new Store32_Offset();
-    generators.put(getMethodReference(Address.class, MagicNames.store, Address.class, Offset.class, void.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.store, Word.class, Offset.class, void.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.store, int.class, Offset.class, void.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.store, float.class, Offset.class, void.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Store64_Offset();
+    }
+    generators.put(getMethodReference(Address.class, MagicNames.store, Address.class, Offset.class, void.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.store, Word.class, Offset.class, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(ONE_SLOT, g);
     }
@@ -594,10 +673,26 @@ final class BaselineMagic {
       asm.emitMOV_RegIdx_Reg(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
     }
   }
+  /**
+   * Store a 64bit quantity to an address plus offset in the format used in
+   * {@link Magic}
+   */
+  private static final class Magic_Store64 extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T1);                   // obj ref
+      asm.emitMOV_RegIdx_Reg_Quad(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+    }
+  }
   static {
     MagicGenerator g = new Magic_Store32();
     generators.put(getMethodReference(Magic.class, MagicNames.setIntAtOffset, Object.class, Offset.class, int.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setFloatAtOffset, Object.class, Offset.class, float.class, void.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Magic_Store64();
+    }
     generators.put(getMethodReference(Magic.class, MagicNames.setWordAtOffset, Object.class, Offset.class, Word.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setAddressAtOffset, Object.class, Offset.class, Address.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setExtentAtOffset, Object.class, Offset.class, Extent.class, void.class), g);
@@ -622,14 +717,31 @@ final class BaselineMagic {
       asm.emitMOV_RegIdx_Reg(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
     }
   }
+  /**
+   * Store a 64bit quantity to an address plus offset in the format used in
+   * {@link Magic} with an additional meta-data argument
+   */
+  private static final class Magic_Store64_MD extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);                   // discard meta-data
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T1);                   // obj ref
+      asm.emitMOV_RegIdx_Reg_Quad(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+    }
+  }
   static {
     MagicGenerator g = new Magic_Store32_MD();
     generators.put(getMethodReference(Magic.class, MagicNames.setIntAtOffset, Object.class, Offset.class, int.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setFloatAtOffset, Object.class, Offset.class, float.class, int.class, void.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Magic_Store64_MD();
+    }
     generators.put(getMethodReference(Magic.class, MagicNames.setWordAtOffset, Object.class, Offset.class, Word.class, int.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setAddressAtOffset, Object.class, Offset.class, Address.class, int.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setOffsetAtOffset, Object.class, Offset.class, Offset.class, int.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setExtentAtOffset, Object.class, Offset.class, Extent.class, int.class, void.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.setFloatAtOffset, Object.class, Offset.class, float.class, int.class, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(ONE_SLOT, g);
     }
@@ -903,29 +1015,39 @@ final class BaselineMagic {
   }
 
   /**
-   * Compare and swap a 32bit value
+   * Compare and swap a 32/64 bit value
    */
-  private static final class Attempt32 extends MagicGenerator {
+  private static final class Attempt extends MagicGenerator {
+    /** Perform quad word CAS */
+    private final boolean quad;
+    Attempt(boolean quad) {
+      this.quad = quad;
+    }
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T1);          // newVal
-      asm.emitPOP_Reg(EAX);         // oldVal (EAX is implicit arg to LCMPX
+      asm.emitPOP_Reg(EAX);         // oldVal (EAX/T0 is implicit arg to LCMPXCHG)
       // No offset
-      asm.emitMOV_Reg_RegInd(S0, SP);  // S0 = base
+      asm.emitPOP_Reg(S1);          // S1 = base
+      asm.emitXOR_Reg_Reg(S0, S0);  // S0 = 0
       asm.emitLockNextInstruction();
-      asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
-      asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(EQ); // skip if compare fails
-      asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
-      fr.resolve(asm);
+      if(!quad) {
+        asm.emitCMPXCHG_RegInd_Reg(S1, T1);      // atomic compare-and-exchange
+      } else {
+        asm.emitCMPXCHG_RegInd_Reg_Quad(S1, T1); // atomic compare-and-exchange
+      }
+      asm.emitSET_Cond_Reg_Byte(EQ, S0); // S0 = (EAX == [S1]) ? 1 : 0
+      asm.emitPUSH_Reg(S0);
     }
   }
   static {
-    MagicGenerator g = new Attempt32();
+    MagicGenerator g = new Attempt(DOUBLE_WORD);
+    generators.put(getMethodReference(Address.class, MagicNames.attempt, int.class, int.class, boolean.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Attempt(QUAD_WORD);
+    }
     generators.put(getMethodReference(Address.class, MagicNames.attempt, Address.class, Address.class, boolean.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.attempt, Word.class, Word.class, boolean.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.attempt, int.class, int.class, boolean.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(NO_SLOT, g);
       g = new EarlyReferenceCheckDecorator(ONE_SLOT, g);
@@ -934,30 +1056,45 @@ final class BaselineMagic {
   }
 
   /**
-   * Compare and swap a 32bit value at an address plus offset
+   * Compare and swap a 32/64 bit value at an address plus offset
    */
-  private static final class Attempt32_Offset extends MagicGenerator {
+  private static final class Attempt_Offset extends MagicGenerator {
+    /** Perform quad word CAS */
+    private final boolean quad;
+    Attempt_Offset(boolean quad) {
+      this.quad = quad;
+    }
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Offset passed
-      asm.emitPOP_Reg(S0);        // S0 = offset
+      asm.emitPOP_Reg(S1);        // S1 = offset
       asm.emitPOP_Reg(T1);          // newVal
       asm.emitPOP_Reg(EAX);         // oldVal (EAX is implicit arg to LCMPX
-      asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
+      asm.emitPOP_Reg(S0);          // S0 = base
+      if (VM.BuildFor32Addr) {
+        asm.emitADD_Reg_Reg(S1, S0); // S1 = base+offset
+      } else {
+        asm.emitADD_Reg_Reg_Quad(S1, S0); // S1 = base+offset
+      }
+      asm.emitXOR_Reg_Reg(S0, S0);  // S0 = 0
       asm.emitLockNextInstruction();
-      asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
-      asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(EQ); // skip if compare fails
-      asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
-      fr.resolve(asm);
+      if (!quad) {
+        asm.emitCMPXCHG_RegInd_Reg(S1, T1);      // atomic compare-and-exchange
+      } else {
+        asm.emitCMPXCHG_RegInd_Reg_Quad(S1, T1); // atomic compare-and-exchange
+      }
+      asm.emitSET_Cond_Reg_Byte(EQ, S0); // S0 = (EAX == [S0]) ? 1 : 0
+      asm.emitPUSH_Reg(S0);
     }
   }
   static {
-    MagicGenerator g = new Attempt32_Offset();
+    MagicGenerator g = new Attempt_Offset(DOUBLE_WORD);
+    generators.put(getMethodReference(Address.class, MagicNames.attempt, int.class, int.class, Offset.class, boolean.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Attempt_Offset(QUAD_WORD);
+    }
     generators.put(getMethodReference(Address.class, MagicNames.attempt, Address.class, Address.class, Offset.class, boolean.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.attempt, Word.class, Word.class, Offset.class, boolean.class), g);
-    generators.put(getMethodReference(Address.class, MagicNames.attempt, int.class, int.class, Offset.class, boolean.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(ONE_SLOT, g);
       g = new EarlyReferenceCheckDecorator(TWO_SLOTS, g);
@@ -966,9 +1103,14 @@ final class BaselineMagic {
   }
 
   /**
-   * Compare and swap a 32bit value in the format used in {@link Magic}
+   * Compare and swap a 32/64 bit value in the format used in {@link Magic}
    */
-  private static final class Magic_Attempt32 extends MagicGenerator {
+  private static final class Magic_Attempt extends MagicGenerator {
+    /** Perform quad word CAS */
+    private final boolean quad;
+    Magic_Attempt(boolean quad) {
+      this.quad = quad;
+    }
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // attempt gets called with four arguments: base, offset, oldVal, newVal
@@ -977,20 +1119,30 @@ final class BaselineMagic {
       // (operation on memory is atomic)
       asm.emitPOP_Reg(T1);            // newVal
       asm.emitPOP_Reg(EAX);           // oldVal (EAX is implicit arg to LCMPXCNG
-      asm.emitPOP_Reg(S0);            // S0 = offset
-      asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
+      asm.emitPOP_Reg(S1);            // S1 = offset
+      asm.emitPOP_Reg(S0);            // S0 = base
+      if(VM.BuildFor32Addr) {
+        asm.emitADD_Reg_Reg(S1, S0);  // S1 = base+offset
+      } else {
+        asm.emitADD_Reg_Reg_Quad(S1, S0); // S1 = base+offset
+      }
+      asm.emitXOR_Reg_Reg(S0, S0);    // S0 = 0
       asm.emitLockNextInstruction();
-      asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
-      asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(EQ); // skip if compare fails
-      asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
-      fr.resolve(asm);
+      if(!quad) {
+        asm.emitCMPXCHG_RegInd_Reg(S1, T1);      // atomic compare-and-exchange
+      } else {
+        asm.emitCMPXCHG_RegInd_Reg_Quad(S1, T1); // atomic compare-and-exchange
+      }
+      asm.emitSET_Cond_Reg_Byte(EQ, S0); // S0 = (EAX == [S1]) ? 1 : 0
+      asm.emitPUSH_Reg(S0);
     }
   }
   static {
-    MagicGenerator g = new Magic_Attempt32();
+    MagicGenerator g = new Magic_Attempt(DOUBLE_WORD);
     generators.put(getMethodReference(Magic.class, MagicNames.attemptInt, Object.class, Offset.class, int.class, int.class, boolean.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new Magic_Attempt(QUAD_WORD);
+    }
     generators.put(getMethodReference(Magic.class, MagicNames.attemptAddress, Object.class, Offset.class, Address.class, Address.class, boolean.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.attemptWord, Object.class, Offset.class, Word.class, Word.class, boolean.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
@@ -1011,26 +1163,41 @@ final class BaselineMagic {
       // returns ([base+offset] == oldVal)
       // if ([base+offset] == oldVal) [base+offset] := newVal
       // (operation on memory is atomic)
-      //t1:t0 with s0:ebx
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);
-      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // T1:T0 (EDX:EAX) -> oldVal
-      asm.emitMOV_RegDisp_Reg(SP, THREE_SLOTS, EBX);  // Save EBX
-      asm.emitMOV_RegDisp_Reg(SP, TWO_SLOTS, ESI);    // Save ESI
-      asm.emitMOV_Reg_RegInd(EBX, SP);
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);      // S0:EBX (ECX:EBX) -> newVal
-      asm.emitMOV_Reg_RegDisp(ESI, SP, FIVE_SLOTS);   // ESI := base
-      asm.emitADD_Reg_RegDisp(ESI, SP, FOUR_SLOTS);   // ESI += offset
-      asm.emitLockNextInstruction();
-      asm.emitCMPXCHG8B_RegInd(ESI);                  // atomic compare-and-exchange
-      ForwardReference fr1 = asm.forwardJcc(NE); // skip if compare fails
-      asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 1);     // 'push' true (overwriting base)
-      ForwardReference fr2 = asm.forwardJMP();     // skip if compare fails
-      fr1.resolve(asm);
-      asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 0);     // 'push' false (overwriting base)
-      fr2.resolve(asm);
-      asm.emitMOV_Reg_RegDisp(EBX, SP, THREE_SLOTS);  // Restore EBX
-      asm.emitMOV_Reg_RegDisp(ESI, SP, TWO_SLOTS);    // Restore ESI
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*5);            // adjust SP popping the 4 args (6 slots) and pushing the result
+      if(VM.BuildFor32Addr) {
+        //t1:t0 with s0:ebx
+        asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);
+        asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // T1:T0 (EDX:EAX) -> oldVal
+        asm.emitMOV_RegDisp_Reg(SP, THREE_SLOTS, EBX);  // Save EBX
+        asm.emitMOV_RegDisp_Reg(SP, TWO_SLOTS, ESI);    // Save ESI
+        asm.emitMOV_Reg_RegInd(EBX, SP);
+        asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);      // S0:EBX (ECX:EBX) -> newVal
+        asm.emitMOV_Reg_RegDisp(ESI, SP, FIVE_SLOTS);   // ESI := base
+        asm.emitADD_Reg_RegDisp(ESI, SP, FOUR_SLOTS);   // ESI += offset
+        asm.emitLockNextInstruction();
+        asm.emitCMPXCHG8B_RegInd(ESI);                  // atomic compare-and-exchange
+        ForwardReference fr1 = asm.forwardJcc(NE); // skip if compare fails
+        asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 1);     // 'push' true (overwriting base)
+        ForwardReference fr2 = asm.forwardJMP();     // skip if compare fails
+        fr1.resolve(asm);
+        asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 0);     // 'push' false (overwriting base)
+        fr2.resolve(asm);
+        asm.emitMOV_Reg_RegDisp(EBX, SP, THREE_SLOTS);  // Restore EBX
+        asm.emitMOV_Reg_RegDisp(ESI, SP, TWO_SLOTS);    // Restore ESI
+        asm.emitADD_Reg_Imm(SP, WORDSIZE*5);            // adjust SP popping the 4 args (6 slots) and pushing the result
+      } else {
+        asm.emitPOP_Reg(T1);            // newVal
+        asm.emitPOP_Reg(EAX);           // junk
+        asm.emitPOP_Reg(EAX);           // oldVal (EAX/T0 is implicit arg to LCMPXCHG)
+        asm.emitPOP_Reg(S1);            // junk
+        asm.emitPOP_Reg(S1);            // S1 = offset
+        asm.emitPOP_Reg(S0);            // S0 = base
+        asm.emitADD_Reg_Reg_Quad(S1, S0); // S1 = base+offset
+        asm.emitXOR_Reg_Reg(S0, S0);    // S0 = 0
+        asm.emitLockNextInstruction();
+        asm.emitCMPXCHG_RegInd_Reg_Quad(S1, T1); // atomic compare-and-exchange
+        asm.emitSET_Cond_Reg_Byte(EQ, S0); // S0 = (EAX == [S1]) ? 1 : 0
+        asm.emitPUSH_Reg(S0);
+      }
     }
   }
   static {
@@ -1894,7 +2061,11 @@ final class BaselineMagic {
   private static final class GetFramePointer extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      asm.emitLEA_Reg_RegDisp(S0, SP, sd);
+      if (VM.BuildFor32Addr) {
+        asm.emitLEA_Reg_RegDisp(S0, SP, sd);
+      } else {
+        asm.emitLEA_Reg_RegDisp_Quad(S0, SP, sd);
+      }
       asm.emitPUSH_Reg(S0);
     }
   }
