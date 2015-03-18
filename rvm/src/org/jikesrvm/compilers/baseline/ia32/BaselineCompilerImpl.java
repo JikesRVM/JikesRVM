@@ -481,6 +481,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_iaload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // push [S0+T0<<2]
     asm.emitPUSH_RegIdx(S0, T0, WORD, NO_SLOT);
@@ -496,6 +499,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_aaload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(T1); // T1 is array ref
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     genBoundsCheck(asm, T0, T1); // T0 is index, T1 is address of array
     if (NEEDS_OBJECT_ALOAD_BARRIER) {
       // rewind 2 args on stack
@@ -511,6 +517,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_caload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     if (VM.BuildFor32Addr) {
@@ -525,6 +534,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_saload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     if (VM.BuildFor32Addr) {
@@ -539,6 +551,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_baload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(S0); // S0 is array ref
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     if (VM.BuildFor32Addr) {
@@ -553,6 +568,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_laload() {
     asm.emitPOP_Reg(T0); // T0 is array index
     asm.emitPOP_Reg(T1); // T1 is array ref
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     if (VM.BuildFor32Addr && SSE2_BASE) {
       adjustStack(WORDSIZE*-2, true); // create space for result
     }

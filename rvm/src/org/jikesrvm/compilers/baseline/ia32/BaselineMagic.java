@@ -2177,6 +2177,9 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);          // T0 is array index
       asm.emitPOP_Reg(S0);          // S0 is array ref
+      if (VM.BuildFor64Addr) {
+        asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+      }
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // push [S0+T0<<2]
       asm.emitPUSH_RegIdx(S0, T0, WORD, NO_SLOT);
@@ -2191,6 +2194,9 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);          // T0 is array index
       asm.emitPOP_Reg(S0);          // S0 is array ref
+      if (VM.BuildFor64Addr) {
+        asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+      }
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // push [S0+T0<<3]
       asm.emitPUSH_RegIdx(S0, T0, LONG, NO_SLOT);
@@ -2220,6 +2226,9 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
+      if (VM.BuildFor64Addr) {
+        asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+      }
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // T1 = (int)[S0+T0<<1]
       asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, BYTE, NO_SLOT);
@@ -2238,9 +2247,12 @@ final class BaselineMagic {
   private static final class Store32_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      Barriers.compileModifyCheck(asm, 8);
+      Barriers.compileModifyCheck(asm, 2*WORDSIZE);
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
+      if (VM.BuildFor64Addr) {
+        asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+      }
       asm.emitPOP_Reg(S0); // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);            // T0 is index, S0 is address of array
       asm.emitMOV_RegIdx_Reg(S0, T0, WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
@@ -2253,9 +2265,12 @@ final class BaselineMagic {
   private static final class Store64_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      Barriers.compileModifyCheck(asm, 8);
+      Barriers.compileModifyCheck(asm, 2*WORDSIZE);
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
+      if (VM.BuildFor64Addr) {
+        asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+      }
       asm.emitPOP_Reg(S0); // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
       asm.emitMOV_RegIdx_Reg_Quad(S0, T0, LONG, NO_SLOT, T1); // [S0 + T0<<2] <- T1
@@ -2283,9 +2298,12 @@ final class BaselineMagic {
   private static final class Store8_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      Barriers.compileModifyCheck(asm, 8);
+      Barriers.compileModifyCheck(asm, 2*WORDSIZE);
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
+      if (VM.BuildFor64Addr) {
+        asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+      }
       asm.emitPOP_Reg(S0); // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
       asm.emitMOV_RegIdx_Reg_Byte(S0, T0, BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
