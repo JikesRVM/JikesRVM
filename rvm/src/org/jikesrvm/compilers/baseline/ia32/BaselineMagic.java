@@ -329,9 +329,9 @@ final class BaselineMagic {
   }
 
   /**
-   * Load a 32bit quantity from an address and offset parameter
+   * Load a word-sized quantity from an address and offset parameter
    */
-  private static final class Magic_Load32_MD extends MagicGenerator {
+  private static final class Magic_LoadWord_MD extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(S0);                  // discard meta-data
@@ -342,7 +342,7 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Magic_Load32_MD();
+    MagicGenerator g = new Magic_LoadWord_MD();
     generators.put(getMethodReference(Magic.class, MagicNames.getWordAtOffset, Object.class, Offset.class, int.class, Word.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getAddressAtOffset, Object.class, Offset.class, int.class, Address.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getExtentAtOffset, Object.class, Offset.class, int.class, Extent.class), g);
@@ -481,9 +481,9 @@ final class BaselineMagic {
   }
 
   /**
-   * Load a 64bit quantity from an address
+   * Load a long-sized quantity from an address
    */
-  private static final class Load64 extends MagicGenerator {
+  private static final class LoadLong extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
@@ -498,16 +498,16 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Load64();
+    MagicGenerator g = new LoadLong();
     generators.put(getMethodReference(Address.class, MagicNames.loadDouble, double.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.loadLong, long.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.prepareLong, long.class), g);
   }
 
   /**
-   * Load a 32bit quantity from an address plus offset
+   * Load a long-sized quantity from an address plus offset
    */
-  private static final class Load64_Offset extends MagicGenerator {
+  private static final class LoadLong_Offset extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Load at offset
@@ -523,7 +523,7 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Load64_Offset();
+    MagicGenerator g = new LoadLong_Offset();
     generators.put(getMethodReference(Address.class, MagicNames.loadDouble, Offset.class, double.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.loadLong, Offset.class, long.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.prepareLong, Offset.class, long.class), g);
@@ -787,9 +787,9 @@ final class BaselineMagic {
   }
 
   /**
-   * Store a 64bit quantity to an address
+   * Store a long-sized quantity to an address
    */
-  private static final class Store64 extends MagicGenerator {
+  private static final class StoreLong extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
@@ -808,15 +808,15 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Store64();
+    MagicGenerator g = new StoreLong();
     generators.put(getMethodReference(Address.class, MagicNames.store, long.class, void.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.store, double.class, void.class), g);
   }
 
   /**
-   * Store a 64bit quantity to an address plus offset
+   * Store a long-sized quantity to an address plus offset
    */
-  private static final class Store64_Offset extends MagicGenerator {
+  private static final class StoreLong_Offset extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Store at offset
@@ -836,16 +836,16 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Store64_Offset();
+    MagicGenerator g = new StoreLong_Offset();
     generators.put(getMethodReference(Address.class, MagicNames.store, long.class, Offset.class, void.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.store, double.class, Offset.class, void.class), g);
   }
 
   /**
-   * Store a 64bit quantity to an address plus offset in the format used in
+   * Store a long-sized quantity to an address plus offset in the format used in
    * {@link Magic}
    */
-  private static final class Magic_Store64 extends MagicGenerator {
+  private static final class Magic_StoreLong extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       if (VM.BuildFor32Addr) {
@@ -866,16 +866,16 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Magic_Store64();
+    MagicGenerator g = new Magic_StoreLong();
     generators.put(getMethodReference(Magic.class, MagicNames.setLongAtOffset, Object.class, Offset.class, long.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setDoubleAtOffset, Object.class, Offset.class, double.class, void.class), g);
   }
 
   /**
-   * Store a 64bit quantity to an address plus offset in the format used in
+   * Store a long-sized quantity to an address plus offset in the format used in
    * {@link Magic} with an additional meta-data argument
    */
-  private static final class Magic_Store64_MD extends MagicGenerator {
+  private static final class Magic_StoreLong_MD extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                   // discard meta-data
@@ -897,7 +897,7 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Magic_Store64_MD();
+    MagicGenerator g = new Magic_StoreLong_MD();
     generators.put(getMethodReference(Magic.class, MagicNames.setLongAtOffset, Object.class, Offset.class, long.class, int.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setDoubleAtOffset, Object.class, Offset.class, double.class, int.class, void.class), g);
   }
@@ -1002,9 +1002,9 @@ final class BaselineMagic {
   }
 
   /**
-   * Compare and swap a 64bit value in the format used in {@link Magic}
+   * Compare and swap a long-sized value in the format used in {@link Magic}
    */
-  private static final class Magic_Attempt64 extends MagicGenerator {
+  private static final class Magic_AttemptLong extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // attempt gets called with four arguments: base, offset, oldVal, newVal
@@ -1034,7 +1034,7 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Magic_Attempt64();
+    MagicGenerator g = new Magic_AttemptLong();
     generators.put(getMethodReference(Magic.class, MagicNames.attemptLong, Object.class, Offset.class, long.class, long.class, boolean.class), g);
   }
 
