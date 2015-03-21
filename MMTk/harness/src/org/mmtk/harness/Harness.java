@@ -47,9 +47,6 @@ public class Harness {
   /** Option for the MMTk plan (prefix) to use */
   public static final Bits bits = new Bits();
 
-  /** Option for the number of collector threads */
-  public static final Collectors collectors = new Collectors();
-
   /** Option for the MMTk plan (prefix) to use */
   public static final Plan plan = new Plan();
 

@@ -14,7 +14,6 @@ package org.mmtk.harness.vm;
 
 import java.util.concurrent.BlockingQueue;
 
-import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.Mutators;
 import org.mmtk.harness.scheduler.Scheduler;
@@ -23,7 +22,7 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
 import org.mmtk.utility.Log;
-
+import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.*;
 
 /**
@@ -71,7 +70,7 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /** @return The number of registered <code>CollectorContext</code> instances. */
   @Override
-  public int collectorCount() { return Harness.collectors.getValue(); }
+  public int collectorCount() { return Options.threads.getValue(); }
 
   private BlockingQueue<Mutator> mutators = null;
 
