@@ -106,12 +106,15 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * TODO support concurrent scans
    * <p>
    * TODO the nursery/mature logic could be improved
+   * <p>
+   * TODO does the MMTk harness need to handle the retain parameter?
    */
   @Override
-  public synchronized void scan(TraceLocal trace, boolean nursery) {
+  public synchronized void scan(TraceLocal trace, boolean nursery, boolean retain) {
     Clock.stop();
     Trace.trace(Item.REFERENCES, "Scanning %s references: current = %d, new = %d, %s",
-        semantics,currentRefs.size(), newRefs.size(), nursery  ? "nursery" : "full-heap");
+        semantics,currentRefs.size(), newRefs.size(), nursery  ? "nursery" : "full-heap",
+        retain ? "retaining references" : "not retaining references");
     Clock.start();
     if (!nursery) {
       scanReferenceSet(trace, currentRefs);
