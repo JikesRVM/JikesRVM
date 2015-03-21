@@ -365,7 +365,7 @@ public final class ControlFlowGraph extends SpaceEffGraph {
   // the caller wants.
   private static final class NodeEnumeration<T> implements Enumeration<T> {
     private SpaceEffGraphNode _node;
-    private SpaceEffGraphNode _end;
+    private final SpaceEffGraphNode _end;
 
     public NodeEnumeration(ControlFlowGraph cfg) {
       _node = cfg.entry();

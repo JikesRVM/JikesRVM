@@ -49,7 +49,7 @@ public class StickyImmixCollector extends ImmixCollector {
   /**
    *
    */
-  private StickyImmixNurseryTraceLocal nurseryTrace;
+  private final StickyImmixNurseryTraceLocal nurseryTrace;
   private final ImmixAllocator nurseryCopy;
 
   /****************************************************************************

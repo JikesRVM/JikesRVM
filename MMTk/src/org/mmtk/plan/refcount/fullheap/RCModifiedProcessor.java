@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class RCModifiedProcessor extends TransitiveClosure {
 
-  private RCCollector collector;
+  private final RCCollector collector;
 
   public RCModifiedProcessor(RCCollector ctor) {
     this.collector = ctor;

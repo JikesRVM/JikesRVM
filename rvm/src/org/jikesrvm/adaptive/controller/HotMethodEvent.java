@@ -28,7 +28,7 @@ public abstract class HotMethodEvent {
   /**
    * The compiled method associated querries.
    */
-  private CompiledMethod cm;
+  private final CompiledMethod cm;
 
   public final int getCMID() { return cm.getId(); }
 
@@ -56,7 +56,7 @@ public abstract class HotMethodEvent {
   /**
    * Number of samples attributed to this method.
    */
-  private double numSamples;
+  private final double numSamples;
 
   public final double getNumSamples() { return numSamples; }
 

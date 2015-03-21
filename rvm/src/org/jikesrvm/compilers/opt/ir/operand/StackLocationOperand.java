@@ -24,18 +24,18 @@ public final class StackLocationOperand extends Operand {
   /**
    * Is the offset from the top or bottom of stack frame?
    */
-  private boolean fromTop;
+  private final boolean fromTop;
 
   /**
    * The offset (top/bottom of stack frame) corresponding
    * to this stack location.
    */
-  private int offset;
+  private final int offset;
 
   /**
    * Size (in bytes) reserved for the value of this operand.
    */
-  private byte size;
+  private final byte size;
 
   /**
    * @param fromTop is the offset from the top of bottom of the frame?

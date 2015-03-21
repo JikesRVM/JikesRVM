@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
 
   // Instance variables
   private AbstractDriver[] registeredDrivers;
-  private ImmortalSpaceDriver.Closure closure;
+  private final ImmortalSpaceDriver.Closure closure;
 
   /**
    * Create a new driver for an immortal Contiguous MMTk space.

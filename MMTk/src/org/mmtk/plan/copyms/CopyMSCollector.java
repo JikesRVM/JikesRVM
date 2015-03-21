@@ -45,8 +45,8 @@ public class CopyMSCollector extends StopTheWorldCollector {
   /**
    *
    */
-  private MarkSweepLocal mature;
-  private CopyMSTraceLocal trace;
+  private final MarkSweepLocal mature;
+  private final CopyMSTraceLocal trace;
 
   protected final LargeObjectLocal los;
 

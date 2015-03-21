@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.*;
 public abstract class OptionSet {
   private Option head;
   private Option tail;
-  private boolean loggingChanges;
+  private final boolean loggingChanges;
 
   /**
    * Initialize the option set so that options can be created.

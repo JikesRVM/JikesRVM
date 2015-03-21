@@ -59,10 +59,10 @@ import org.vmmagic.unboxed.Address;
   protected int summary1;
 
   /** The minimum value for tiles */
-  private int min;
+  private final int min;
 
   /** The maximum value for tiles */
-  private int max;
+  private final int max;
 
   /** use summaries? */
   protected boolean summaryEnabled;

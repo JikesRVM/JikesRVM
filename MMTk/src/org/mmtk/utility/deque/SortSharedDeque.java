@@ -290,7 +290,7 @@ import org.vmmagic.unboxed.*;
    *
    */
   private int stackLoc;
-  private AddressArray stackBase;
+  private final AddressArray stackBase;
 
   /*
    * Allocate memory for the stack and initialize it with the first range

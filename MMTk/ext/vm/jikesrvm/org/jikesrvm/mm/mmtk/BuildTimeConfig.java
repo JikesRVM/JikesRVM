@@ -34,7 +34,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
   /**
    * The underlying properties object
    */
-  private Properties props;
+  private final Properties props;
 
   public BuildTimeConfig(String property_file_property, String default_property_file) {
     props = getProperties(property_file_property,default_property_file);

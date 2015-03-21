@@ -27,7 +27,7 @@ public class ControllerCollectorContext extends CollectorContext {
   private Monitor lock;
 
   /** The set of worker threads to use */
-  private ParallelCollectorGroup workers;
+  private final ParallelCollectorGroup workers;
 
   /** Flag used to control the 'race to request' */
   private boolean requestFlag;

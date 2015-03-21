@@ -68,8 +68,8 @@ public final class ImmixSpace extends Space {
   private boolean inCollection;
   private int linesConsumed = 0;
 
-  private Lock mutatorLock = VM.newLock(getName()+"mutator");
-  private Lock gcLock = VM.newLock(getName()+"gc");
+  private final Lock mutatorLock = VM.newLock(getName()+"mutator");
+  private final Lock gcLock = VM.newLock(getName()+"gc");
 
   private Address allocBlockCursor = Address.zero();
   private Address allocBlockSentinel = Address.zero();

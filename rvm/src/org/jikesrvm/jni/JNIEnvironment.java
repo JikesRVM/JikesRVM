@@ -129,7 +129,7 @@ public final class JNIEnvironment {
    * true if the bottom stack frame is native,
    * such as thread for CreateJVM or AttachCurrentThread
    */
-  private  boolean alwaysHasNativeFrame;
+  private final  boolean alwaysHasNativeFrame;
 
   /**
    * references passed to native code

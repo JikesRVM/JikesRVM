@@ -18,11 +18,11 @@ import org.jikesrvm.tests.util.StringBuilderOutputStream;
 
 public class TestOutput implements OptTestHarnessOutput {
 
-  private StringBuilderOutputStream out;
-  private StringBuilderOutputStream err;
+  private final StringBuilderOutputStream out;
+  private final StringBuilderOutputStream err;
 
-  private PrintStream sysOut;
-  private PrintStream sysErr;
+  private final PrintStream sysOut;
+  private final PrintStream sysErr;
 
   TestOutput() {
   out = new StringBuilderOutputStream();

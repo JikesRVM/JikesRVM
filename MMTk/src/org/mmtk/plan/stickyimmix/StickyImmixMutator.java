@@ -46,7 +46,7 @@ public class StickyImmixMutator extends ImmixMutator {
   /**
    *
    */
-  private ObjectReferenceDeque modBuffer;
+  private final ObjectReferenceDeque modBuffer;
 
   /****************************************************************************
    *

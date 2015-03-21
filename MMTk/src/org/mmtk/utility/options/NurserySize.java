@@ -20,8 +20,8 @@ import org.vmmagic.pragma.*;
  */
 public final class NurserySize {
   // values
-  private FixedNursery fixedNursery;
-  private BoundedNursery boundedNursery;
+  private final FixedNursery fixedNursery;
+  private final BoundedNursery boundedNursery;
 
   /**
    * Create the options.

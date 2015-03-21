@@ -47,7 +47,7 @@ public class StickyMSMutator extends MSMutator {
   /**
    *
    */
-  private ObjectReferenceDeque modBuffer;
+  private final ObjectReferenceDeque modBuffer;
 
   /****************************************************************************
    *

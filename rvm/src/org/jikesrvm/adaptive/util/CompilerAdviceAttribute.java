@@ -50,8 +50,8 @@ public class CompilerAdviceAttribute {
   private Atom className;  // The name of the class for the compiler site
   private Atom methodName; // The name of the method for the compiler site
   private Atom methodSig;  // The signature of the method
-  private int compiler;   // The compiler to use for the method
-  private int optLevel;   // The optimization level
+  private final int compiler;   // The compiler to use for the method
+  private final int optLevel;   // The optimization level
 
   /**
    * Initialization of key compiler advice data structure.

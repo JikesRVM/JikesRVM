@@ -21,8 +21,8 @@ import java.util.Map;
 
 public class TestFileAccess extends DefaultFileAccess implements FileAccess {
 
-  private Map<String, String> fileNameToContent;
-  private StringBuilder fileContent;
+  private final Map<String, String> fileNameToContent;
+  private final StringBuilder fileContent;
 
   public TestFileAccess() {
     fileNameToContent = new HashMap<String, String>(1);

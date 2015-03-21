@@ -65,12 +65,12 @@ public final class ControllerPlan {
   /**
    *  The associate compilation plan
    */
-  private CompilationPlan compPlan;
+  private final CompilationPlan compPlan;
 
   /**
    *  The time we created this plan
    */
-  private int timeCreated;
+  private final int timeCreated;
 
   /**
    *  The time compilation began
@@ -85,17 +85,17 @@ public final class ControllerPlan {
   /**
    *  The speedup we were expecting
    */
-  private double expectedSpeedup;
+  private final double expectedSpeedup;
 
   /**
    *  The compilation time we were expecting
    */
-  private double expectedCompilationTime;
+  private final double expectedCompilationTime;
 
   /**
    *  The priority associated with this plan
    */
-  private double priority;
+  private final double priority;
 
   /**
    *  The compiled method ID for this plan
@@ -105,7 +105,7 @@ public final class ControllerPlan {
   /**
    *  The compiled method ID for the previous plan for this method
    */
-  private int prevCMID;
+  private final int prevCMID;
 
   /**
    *  The status of this plan

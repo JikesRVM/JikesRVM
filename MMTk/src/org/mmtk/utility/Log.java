@@ -90,7 +90,7 @@ public class Log {
    */
 
   /** buffer to store written message until flushing */
-  private char [] buffer = new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
+  private final char [] buffer = new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
 
   /** location of next character to be written */
   private int bufferIndex = 0;
@@ -106,7 +106,7 @@ public class Log {
   private boolean threadIdFlag = false;
 
   /** buffer for building string representations of longs */
-  private char[] tempBuffer = new char[TEMP_BUFFER_SIZE];
+  private final char[] tempBuffer = new char[TEMP_BUFFER_SIZE];
 
   /** constructor */
   public Log() {

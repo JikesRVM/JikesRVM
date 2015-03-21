@@ -27,8 +27,8 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class ConcurrentZeroingContext extends CollectorContext {
 
-  private PageResource pr;
-  private Monitor lock;
+  private final PageResource pr;
+  private final Monitor lock;
   private volatile int trigger;
 
   public ConcurrentZeroingContext(PageResource pr) {

@@ -14,8 +14,6 @@ package org.jikesrvm.classloader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertThat;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;

@@ -152,7 +152,7 @@ public final class DepGraphEdge extends SpaceEffGraphEdge {
   /**
    * The destination operand (of a REG_TRUE dependence)
    */
-  private RegisterOperand _destOperand;
+  private final RegisterOperand _destOperand;
 
   /**
    * Augment the type of the dependence edge.

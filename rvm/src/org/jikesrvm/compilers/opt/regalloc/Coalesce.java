@@ -35,7 +35,7 @@ import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
  */
 class Coalesce {
 
-  private Map<Instruction, Integer> instNumbers;
+  private final Map<Instruction, Integer> instNumbers;
 
   Coalesce(Map<Instruction, Integer> instNumbers) {
     this.instNumbers = instNumbers;
