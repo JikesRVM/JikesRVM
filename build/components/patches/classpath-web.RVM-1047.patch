@@ -2,9 +2,9 @@
 # He has mentioned that the support for  floats is limited so this patch might not be suitable for GNU Classpath.
 # We are using this patch because it helps us to run the h2 benchmark of DaCapo 9.12.
 # The upstream bug report for the more general issue of better support for format strings is at http://gcc.gnu.org/bugzilla/show_bug.cgi?id=32809 .
---- java/util/Formatter.java	2011-09-27 14:15:42.092030742 +0200
-+++ java/util/Formatter.java	2013-07-18 16:16:42.744562532 +0200
-@@ -51,6 +51,8 @@ import java.io.OutputStreamWriter;
+--- java/util/Formatter.java  2011-09-27 14:15:42.092030742 +0200
++++ java/util/Formatter.java  2013-07-18 16:16:42.744562532 +0200
+@@ -51,6 +51,8 @@
  import java.io.PrintStream;
  import java.io.UnsupportedEncodingException;
  import java.math.BigInteger;
@@ -13,11 +13,11 @@
  import java.text.DateFormatSymbols;
  import java.text.DecimalFormatSymbols;
  
-@@ -914,6 +916,60 @@ public final class Formatter
+@@ -914,6 +916,60 @@
      genericFormat(builder.toString(), flags, width, precision);
    }
  
-+	private void floatingDecimalConversion(Object arg, int flags, int width, 
++  private void floatingDecimalConversion(Object arg, int flags, int width, 
 +    int precision, char conversion) 
 +    throws IOException {
 +    
@@ -28,7 +28,7 @@
 +      bd = new BigDecimal(((Number)arg).doubleValue());
 +    }else
 +      throw new IllegalFormatConversionException(conversion, arg.getClass());
-+      
++     
 +
 +    //int prec = bd.precision() - bd.scale() + (precision < 0 ? 6 : precision);
 +    //MathContext mc = new MathContext(prec);
@@ -42,44 +42,44 @@
 +    int resultWidth = builder.length();
 +    if (resultWidth < width)
 +      {
-+	char fill = ((flags & FormattableFlags.ZERO) != 0) ? '0' : ' ';
-+	if ((flags & FormattableFlags.LEFT_JUSTIFY) != 0)
-+	  {
-+	    // Left justify.  
-+	    if (fill == ' ')
-+	      insertPoint = builder.length();
-+	  }
-+	else
-+	  {
-+	    // Right justify.  Insert spaces before the radix prefix
-+	    // and sign.
-+	    insertPoint = 0;
-+	  }
-+	while (resultWidth++ < width)
-+	  builder.insert(insertPoint, fill);
++ char fill = ((flags & FormattableFlags.ZERO) != 0) ? '0' : ' ';
++ if ((flags & FormattableFlags.LEFT_JUSTIFY) != 0)
++   {
++     // Left justify.  
++     if (fill == ' ')
++       insertPoint = builder.length();
++   }
++ else
++   {
++     // Right justify.  Insert spaces before the radix prefix
++     // and sign.
++     insertPoint = 0;
++   }
++ while (resultWidth++ < width)
++   builder.insert(insertPoint, fill);
 +      }
 +
 +    String result = builder.toString();
 +    if ((flags & FormattableFlags.UPPERCASE) != 0)
 +      {
-+	if (fmtLocale == null)
-+	  result = result.toUpperCase();
-+	else
-+	  result = result.toUpperCase(fmtLocale);
++ if (fmtLocale == null)
++   result = result.toUpperCase();
++ else
++   result = result.toUpperCase(fmtLocale);
 +      }
 +
 +    out.append(result);
 +  }
 +
-   /** 
-    * Emit a single date or time conversion to a StringBuilder.  
+   /**
+    * Emit a single date or time conversion to a StringBuilder.
     *
-@@ -1393,7 +1449,7 @@ public final class Formatter
- 		// scientificNotationConversion();
- 		break;
- 	      case 'f':
--		// floatingDecimalConversion();
-+		  floatingDecimalConversion(argument, flags, width, precision, origConversion);
- 		break;
- 	      case 'g':
- 		// smartFloatingConversion();
+@@ -1393,7 +1449,7 @@
+                 // scientificNotationConversion();
+                 break;
+               case 'f':
+-                // floatingDecimalConversion();
++                floatingDecimalConversion(argument, flags, width, precision, origConversion);
+                 break;
+               case 'g':
+                 // smartFloatingConversion();

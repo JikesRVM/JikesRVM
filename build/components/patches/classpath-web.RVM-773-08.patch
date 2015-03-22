@@ -1,0 +1,14 @@
+# This is GNU Classpath commit 2016893a79012414f0dd2475230e17bf0b846aed .
+diff --git a/native/jni/java-util/Makefile.am b/native/jni/java-util/Makefile.am
+index 59ddc74..f2281a8 100644
+--- a/native/jni/java-util/Makefile.am
++++ b/native/jni/java-util/Makefile.am
+@@ -2,6 +2,8 @@ nativeexeclib_LTLIBRARIES = libjavautil.la
+ 
+ libjavautil_la_SOURCES = java_util_VMTimeZone.c
+ 
++libjavautil_la_LIBADD = $(top_builddir)/native/jni/classpath/jcl.lo
++
+ AM_LDFLAGS = @CLASSPATH_MODULE@
+ AM_CPPFLAGS = @CLASSPATH_INCLUDES@
+ AM_CFLAGS = @WARNING_CFLAGS@ @STRICT_WARNING_CFLAGS@ @ERROR_CFLAGS@ \

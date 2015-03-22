@@ -9,15 +9,15 @@ diff -u java/lang/reflect/Constructor.java java/lang/reflect/Constructor.java
    }
  
    private Constructor()
-@@ -315,7 +314,7 @@
-     throws InstantiationException, IllegalAccessException,
-            InvocationTargetException
+@@ -316,7 +315,7 @@
    {
--    return (T) cons.construct(args);
-+    return (T) cons.construct(args, this);
+     // Inescapable as the VM layer is 1.4 based.
+     @SuppressWarnings("unchecked")
+-      T ins = (T) cons.construct(args);
++      T ins = (T) cons.construct(args, this);
+     return ins;
    }
  
-   /**
 diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
 --- java/lang/reflect/Field.java	2008-08-18 18:02:47.000000000 +0100
 +++ java/lang/reflect/Field.java	2008-08-18 18:03:45.000000000 +0100
@@ -29,7 +29,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -258,7 +257,7 @@
+@@ -257,7 +256,7 @@
    public Object get(Object o)
      throws IllegalAccessException
    {
@@ -38,7 +38,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -281,7 +280,7 @@
+@@ -280,7 +279,7 @@
    public boolean getBoolean(Object o)
      throws IllegalAccessException
    {
@@ -47,7 +47,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -304,7 +303,7 @@
+@@ -303,7 +302,7 @@
    public byte getByte(Object o)
      throws IllegalAccessException
    {
@@ -56,7 +56,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -325,7 +324,7 @@
+@@ -324,7 +323,7 @@
    public char getChar(Object o)
      throws IllegalAccessException
    {
@@ -65,7 +65,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -348,7 +347,7 @@
+@@ -347,7 +346,7 @@
    public short getShort(Object o)
      throws IllegalAccessException
    {
@@ -74,7 +74,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -371,7 +370,7 @@
+@@ -370,7 +369,7 @@
    public int getInt(Object o)
      throws IllegalAccessException
    {
@@ -83,7 +83,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -394,7 +393,7 @@
+@@ -393,7 +392,7 @@
    public long getLong(Object o)
      throws IllegalAccessException
    {
@@ -101,7 +101,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
 
    /**
-@@ -441,7 +440,7 @@
+@@ -440,7 +439,7 @@
    public double getDouble(Object o)
      throws IllegalAccessException
    {
@@ -110,7 +110,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -492,7 +491,7 @@
+@@ -491,7 +490,7 @@
    public void set(Object o, Object value)
      throws IllegalAccessException
    {
@@ -119,7 +119,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -515,7 +514,7 @@
+@@ -514,7 +513,7 @@
    public void setBoolean(Object o, boolean value)
      throws IllegalAccessException
    {
@@ -128,7 +128,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -538,7 +537,7 @@
+@@ -537,7 +536,7 @@
    public void setByte(Object o, byte value)
      throws IllegalAccessException
    {
@@ -137,7 +137,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -561,7 +560,7 @@
+@@ -560,7 +559,7 @@
    public void setChar(Object o, char value)
      throws IllegalAccessException
    {
@@ -146,7 +146,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -584,7 +583,7 @@
+@@ -583,7 +582,7 @@
    public void setShort(Object o, short value)
      throws IllegalAccessException
    {
@@ -155,7 +155,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -607,7 +606,7 @@
+@@ -606,7 +605,7 @@
    public void setInt(Object o, int value)
      throws IllegalAccessException
    {
@@ -164,7 +164,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -630,7 +629,7 @@
+@@ -629,7 +628,7 @@
    public void setLong(Object o, long value)
      throws IllegalAccessException
    {
@@ -173,7 +173,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -653,7 +652,7 @@
+@@ -652,7 +651,7 @@
    public void setFloat(Object o, float value)
      throws IllegalAccessException
    {
@@ -182,7 +182,7 @@ diff -u java/lang/reflect/Field.java java/lang/reflect/Field.java
    }
  
    /**
-@@ -676,7 +675,7 @@
+@@ -675,7 +674,7 @@
    public void setDouble(Object o, double value)
      throws IllegalAccessException
    {
@@ -202,7 +202,7 @@ diff -u java/lang/reflect/Method.java java/lang/reflect/Method.java
    }
  
    /**
-@@ -328,7 +327,7 @@
+@@ -324,7 +323,7 @@
    public Object invoke(Object o, Object... args)
      throws IllegalAccessException, InvocationTargetException
    {
@@ -218,7 +218,7 @@ diff -u vm/reference/java/lang/reflect/VMConstructor.java vm/reference/java/lang
    Class clazz;
    int slot;
  
--  /** 
+-  /**
 -   * This field allows us to refer back to the main constructor instance.
 -   *  It is set by the constructor of Constructor.
 -   */
@@ -242,16 +242,16 @@ diff -u vm/reference/java/lang/reflect/VMField.java vm/reference/java/lang/refle
 @@ -46,12 +46,6 @@
    String name;
    int slot;
-   
--  /** 
+ 
+-  /**
 -   * This field allows us to refer back to the main constructor instance.
 -   *  It is set by the constructor of Field.
 -   */
 -  Field f;
 -
-   VMField(Class declaringClass, String name, int slot)
+   VMField(Class clazz, String name, int slot)
    {
-     this.declaringClass = declaringClass;
+     this.clazz = clazz;
 @@ -112,16 +106,16 @@
     *         requires an instance
     * @throws ExceptionInInitializerError if accessing a static field triggered
@@ -503,7 +503,7 @@ diff -u vm/reference/java/lang/reflect/VMMethod.java vm/reference/java/lang/refl
    String name;
    int slot;
  
--  /** 
+-  /**
 -   * This field allows us to refer back to the main constructor instance.
 -   *  It is set by the constructor of Field.
 -   */
@@ -511,7 +511,7 @@ diff -u vm/reference/java/lang/reflect/VMMethod.java vm/reference/java/lang/refl
 -
    public Class getDeclaringClass()
    {
-     return declaringClass;
+     return clazz;
 @@ -93,7 +87,7 @@
     */
    native Class[] getExceptionTypes();
@@ -521,4 +521,4 @@ diff -u vm/reference/java/lang/reflect/VMMethod.java vm/reference/java/lang/refl
      throws IllegalAccessException, InvocationTargetException;
  
    /**
-Only in vm/reference/java/lang/reflect: VMMethod.java.orig
+

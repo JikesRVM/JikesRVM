@@ -1,0 +1,16 @@
+# This is GNU Classpath commit ff4476344a8af63c973f99a388a8ef5a3e08f106 .
+diff --git a/native/jni/java-io/java_io_VMConsole.c b/native/jni/java-io/java_io_VMConsole.c
+index 2883f5f..3ce0a48 100644
+--- a/native/jni/java-io/java_io_VMConsole.c
++++ b/native/jni/java-io/java_io_VMConsole.c
+@@ -47,6 +47,10 @@ exception statement from your version. */
+ 
+ /*************************************************************************/
+ 
++#ifndef IUCLC
++#define IUCLC 0
++#endif
++
+ #define TERMIOS_ECHO_IFLAGS (IUCLC|IXON|IXOFF|IXANY)
+ #define TERMIOS_ECHO_LFLAGS (ECHO|ECHOE|ECHOK|ECHONL|TOSTOP)
+ 

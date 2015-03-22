@@ -1,0 +1,46 @@
+# Taken from upstream GNU Classpath commit 8f5047352c3d318df8e691373d9a89fde64c9245 .
+diff --git a/java/text/DateFormatSymbols.java b/java/text/DateFormatSymbols.java
+index 53e7ba0..6b0d3a1 100644
+--- a/java/text/DateFormatSymbols.java
++++ b/java/text/DateFormatSymbols.java
+@@ -55,6 +55,7 @@ import java.util.Properties;
+ import java.util.ResourceBundle;
+ import java.util.ServiceLoader;
+ import java.util.TimeZone;
++import java.util.regex.Pattern;
+ 
+ import java.util.spi.TimeZoneNameProvider;
+ 
+@@ -100,6 +101,10 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+       }
+   }
+ 
++  private static final Pattern ZONE_SEP = Pattern.compile("\u00a9");
++
++  private static final Pattern FIELD_SEP = Pattern.compile("\u00ae");
++
+   /**
+    * The timezone strings supplied by the runtime.
+    */
+@@ -161,7 +166,7 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+     for (int a = 0; a < bundles.size(); ++a)
+       {
+         String localeData = bundles.get(a).getString(name);
+-        String[] array = localeData.split("\u00ae", size);
++        String[] array = FIELD_SEP.split(localeData, size);
+         for (int b = 0; b < data.length; ++b)
+           {
+             if (array.length > b && array[b] != null && data[b].isEmpty() && !array[b].isEmpty())
+@@ -191,10 +196,10 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+             int index = 0;
+             String country = locale.getCountry();
+             String data = res.getString("zoneStrings");
+-            String[] zones = data.split("\u00a9");
++            String[] zones = ZONE_SEP.split(data);
+             for (int a = 0; a < zones.length; ++a)
+               {
+-                String[] strings = zones[a].split("\u00ae");
++                String[] strings = FIELD_SEP.split(zones[a]);
+                 String type = properties.getProperty(strings[0] + "." + country);
+                 if (type == null)
+                   type = properties.getProperty(strings[0] + ".DEFAULT");

@@ -1,0 +1,19 @@
+# This is GNU Classpath commit d0dbd5beebaf92e6ade9d136c57b0b46572fc41e .
+diff --git a/autogen.sh b/autogen.sh
+index adb8f0c..df0095f 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -34,6 +34,13 @@ if $have_libtool ; then : ; else
+ 	DIE=1
+ fi
+ 
++if [ ! -e $(aclocal --print-ac-dir)/gettext.m4 ] ; then
++	echo
++	echo "You must have gettext package and, if applicable to your"
++	echo "system, gettext-devel package installed to compile $PROJECT."
++	DIE=1
++fi
++
+ if test "$DIE" -eq 1; then
+ 	exit 1
+ fi
