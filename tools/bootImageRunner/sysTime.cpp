@@ -21,7 +21,7 @@ mach_timebase_info_data_t timebaseInfo;
 
 EXTERNAL long long sysCurrentTimeMillis()
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysCurrentTimeMillis\n", Me);
+    TRACE_PRINTF("%s: sysCurrentTimeMillis\n", Me);
     int rc;
     long long returnValue;
     struct timeval tv;
@@ -41,7 +41,7 @@ EXTERNAL long long sysCurrentTimeMillis()
 
 EXTERNAL long long sysNanoTime()
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysNanoTime\n", Me);
+    TRACE_PRINTF("%s: sysNanoTime\n", Me);
     long long retVal;
 #ifndef __MACH__
     struct timespec tp;
@@ -49,7 +49,7 @@ EXTERNAL long long sysNanoTime()
     if (rc != 0) {
         retVal = rc;
         if (lib_verbose) {
-              CONSOLE_PRINTF(stderr, "sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
+              ERROR_PRINTF("sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
         }
     } else {
         retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;

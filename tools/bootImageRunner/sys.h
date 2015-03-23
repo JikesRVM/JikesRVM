@@ -35,7 +35,7 @@ extern FILE *SysErrorFile;
 /* Sink for trace messages produced by VM.sysWrite(). */
 extern FILE *SysTraceFile;
 
-#define CONSOLE_PRINTF(...) fprintf(__VA_ARGS__)
+#define CONSOLE_PRINTF(...) fprintf(SysTraceFile, __VA_ARGS__)
 
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
@@ -54,9 +54,12 @@ EXTERNAL void sysDisableAlignmentChecking();
 EXTERNAL void sysReportAlignmentChecking();
 #endif
 
+
+#define ERROR_PRINTF(...) fprintf(SysErrorFile, __VA_ARGS__)
+
 /** Trace execution of syscalls */
 #define TRACE 0
-#define TRACE_PRINTF if(TRACE)fprintf
+#define TRACE_PRINTF(...) if(TRACE) fprintf(SysTraceFile, __VA_ARGS__)
 
 extern void* checkMalloc(int length);
 extern void* checkCalloc(int numElements, int sizeOfOneElement);
