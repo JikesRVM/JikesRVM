@@ -40,7 +40,7 @@ public abstract class Configuration {
   public static final boolean BuildForGnuClasspath = @_RVM_WITH_GNU_CLASSPATH_@;
   public static final boolean BuildForHarmony = @_RVM_WITH_HARMONY_@;
 
-  public static final boolean LittleEndian = BuildForIA32;
+  public static final boolean LittleEndian = @_RVM_FOR_LITTLE_ENDIAN_@;
 
   /* ABI selection.  Exactly one of these variables will be true in each build. */
   public static final boolean BuildForMachOABI = BuildForOsx;

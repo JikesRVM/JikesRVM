@@ -139,6 +139,7 @@
       ${jikesrvm.dir}/build/targets directory without the .properties suffix.
     </fail>
     <test-property name="target.arch" location="${target.file}"/>
+    <test-property name="target.endianness" location="${target.file}"/>
     <test-property name="target.os" location="${target.file}"/>
     <test-property name="target.bootimage.code.address" location="${target.file}"/>
     <test-property name="target.bootimage.data.address" location="${target.file}"/>
@@ -974,6 +975,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_FOR_POWERPC" value="true" else="false">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
+    <condition property="pp_RVM_FOR_LITTLE_ENDIAN" value="true" else="false">
+      <equals arg1="${target.endianness}" arg2="little"/>
+    </condition>
     <condition property="pp_RVM_FOR_32_ADDR" value="true" else="false">
       <equals arg1="${target.address.size}" arg2="32"/>
     </condition>
@@ -1025,6 +1029,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_CONFIGURATION_" value="${config.name}"/>      	
         <filter token="_RVM_ARCH_HELPER_" value="${pp_RVM_ARCH_HELPER}"/>
         <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
+        <filter token="_RVM_FOR_LITTLE_ENDIAN_" value="${pp_RVM_FOR_LITTLE_ENDIAN}"/>
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
         <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
@@ -1554,7 +1559,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.class.path" refid="rvm.class.path"/>
 
     <condition property="endian_opt" value="-littleEndian" else="">
-      <equals arg1="${target.arch}" arg2="ia32"/>
+      <equals arg1="${target.endianness}" arg2="little"/>
     </condition>
 
     <condition property="bootimage.classlib" value="Harmony">
