@@ -13,7 +13,7 @@
 #ifndef JRVM_OSX_IA32_UCONTEXT
 #define JRVM_OSX_IA32_UCONTEXT
 
-#ifdef __DARWIN_UNIX03 
+#ifdef __DARWIN_UNIX03
 #define DARWIN_PREFIX(x) __##x
 #else
 #define DARWIN_PREFIX(x) ##x

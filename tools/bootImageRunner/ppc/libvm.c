@@ -664,7 +664,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #endif // RVM_FOR_AIX
 
     if (noise) fprintf(stderr,"just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
-    
+
     jtoc=(Address)getJTOC();
 
     // fetch address of java exception handler

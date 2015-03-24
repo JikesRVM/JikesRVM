@@ -105,7 +105,7 @@ extern int bootThread(void *ip, void *pr, void *sp); // assembler routine
 #else
 #include <pthread.h>
 #define TLS_KEY_TYPE pthread_key_t
-#define GET_THREAD_LOCAL(key) pthread_getspecific(key) 
+#define GET_THREAD_LOCAL(key) pthread_getspecific(key)
 #endif
 
 // These are defined in libvm.C.
