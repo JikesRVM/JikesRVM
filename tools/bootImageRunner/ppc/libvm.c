@@ -313,6 +313,9 @@ BootRecord *theBootRecord;
 
 /**** These are definitions of items declared in bootImageRunner.h ****/
 
+/* jump buffer for primordial thread */
+jmp_buf primordial_jb;
+
 /* Sink for messages relating to serious errors detected by C runtime. */
 FILE *SysErrorFile = stderr;
 

@@ -98,7 +98,10 @@
   </target>
 
   <target name="build" depends="build-gcspy-client" description="Download GCSpy and build.">
-    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
+    <patch patchfile="${components.patch.dir}/GCSpy-CorrectOptionSpelling.patch"
+           dir="${gcspy.dir}" strip="0"/>
+
+      <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
       <arg value="clean"/>
       <arg value="all"/>
       <arg value="install"/>

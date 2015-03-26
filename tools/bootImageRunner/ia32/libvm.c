@@ -82,6 +82,10 @@ extern "C" void setLinkage(BootRecord*);
 #include "../bootImageRunner.h" // In tools/bootImageRunner
 
 // These are definitions of items declared in bootImageRunner.h
+
+/* jump buffer for primordial thread */
+jmp_buf primordial_jb;
+
 /* Sink for messages relating to serious errors detected by C runtime. */
 FILE *SysErrorFile = stderr;
 static int SysErrorFd = 2;              // not used outside this file.
@@ -779,10 +783,6 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     sp = sp - __SIZEOF_POINTER__; /* next parameter is info for array bounds trap */
     *(int *) sp = (Address)*(unsigned *) (localNativeThreadAddress + Thread_arrayIndexTrapParam_offset);
     IA32_EDX(context) = *(int *)sp; // also pass second param in EDX.
-    sp = sp - __SIZEOF_POINTER__; /* return address - looks like called from failing instruction */
-    sp = sp - __SIZEOF_POINTER__; /* next parameter is info for array bounds trap */
-    ((int *)sp)[0] = ((unsigned *)(localNativeThreadAddress + Thread_arrayIndexTrapParam_offset))[0];
-    IA32_EDX(context) = ((int *)sp)[0]; // also pass second param in EDX.
     sp = sp - __SIZEOF_POINTER__; /* return address - looks like called from failing instruction */
     *(Address *) sp = instructionFollowing;
 

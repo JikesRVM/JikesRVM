@@ -38,14 +38,10 @@ extern "C" {
 #else
 #define Offset int64_t
 #endif
-// Sink for messages relating to serious errors detected by C runtime.
-extern FILE *SysErrorFile;    // sink for serious error messages
-extern FILE *SysErrorFile;	// libvm.C
-// extern int SysErrorFd;	// in IA32 libvm.C, not in powerpc.
-
-// Sink for trace messages produced by VM.sysWrite().
-extern FILE *SysTraceFile;	// libvm.C
-extern int   SysTraceFd;	// libvm.C
+/** Sink for messages relating to serious errors detected by C runtime. */
+extern FILE *SysErrorFile;
+/* Sink for trace messages produced by VM.sysWrite(). */
+extern FILE *SysTraceFile;
 
 // Command line arguments to be passed to boot image.
 //
@@ -68,7 +64,7 @@ extern char *Me;		// Defined in libvm.C
 extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
 
-/* defined in libvm.c, used in sys.cpp */
+/* jump buffer for primordial thread */
 extern jmp_buf primordial_jb;
 
 /* Defined in RunBootImage.cpp */
