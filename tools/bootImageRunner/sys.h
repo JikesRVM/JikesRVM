@@ -54,6 +54,11 @@ EXTERNAL void sysDisableAlignmentChecking();
 EXTERNAL void sysReportAlignmentChecking();
 #endif
 
+EXTERNAL Word sysMonitorCreate();
+EXTERNAL void sysMonitorDestroy(Word);
+EXTERNAL void sysMonitorEnter(Word);
+EXTERNAL void sysMonitorExit(Word);
+
 /** Trace execution of syscalls */
 #define TRACE 0
 #define TRACE_PRINTF if(TRACE)fprintf

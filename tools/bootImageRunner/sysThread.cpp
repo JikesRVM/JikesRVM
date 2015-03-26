@@ -49,10 +49,6 @@ EXTERNAL void __libc_longjmp (jmp_buf buf, int val) \
 #endif /* !__GLIBC__ */
 
 
-EXTERNAL Word sysMonitorCreate();
-EXTERNAL void sysMonitorDestroy(Word);
-EXTERNAL void sysMonitorEnter(Word);
-EXTERNAL void sysMonitorExit(Word);
 EXTERNAL void sysMonitorTimedWait(Word, long long);
 EXTERNAL void sysMonitorWait(Word);
 EXTERNAL void sysMonitorBroadcast(Word);
