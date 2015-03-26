@@ -176,9 +176,6 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract int sysMProtect(Address start, Extent length, int prot);
 
-  @SysCallTemplate
-  public abstract int sysGetPageSize();
-
   // threads
   @SysCallTemplate
   public abstract int sysNumProcessors();

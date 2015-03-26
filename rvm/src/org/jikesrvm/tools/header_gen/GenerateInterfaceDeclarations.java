@@ -473,9 +473,6 @@ public class GenerateInterfaceDeclarations {
                               ";\n");
     p("static const int FileSystem_STAT_LENGTH                 = " + FileSystem.STAT_LENGTH + ";\n");
 
-    // Value in org.mmtk.vm.Constants:
-    p("static const int MMTk_Constants_BYTES_IN_PAGE            = " + org.mmtk.utility.Constants.BYTES_IN_PAGE + ";\n");
-
     // fields in RVMThread
     //
     Offset offset = Entrypoints.threadStackField.getOffset();

@@ -13,10 +13,9 @@
 
 package org.jikesrvm.tuningfork;
 
+import org.jikesrvm.runtime.Memory;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.Space.SpaceVisitor;
-import org.mmtk.utility.Constants;
-
 import com.ibm.tuningfork.tracegen.chunk.Chunk;
 
 /**
@@ -50,7 +49,7 @@ public class SpaceDescriptorChunk extends Chunk {
     seek(pos);
 
     /* Pages per byte */
-    addInt(Constants.BYTES_IN_PAGE);
+    addInt(Memory.getPagesize());
 
     /* Possible heap range */
     /* TODO: Horrific 32 bit assumption.

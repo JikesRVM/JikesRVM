@@ -214,11 +214,8 @@ public final class Unsafe {
 
   @Inline
   public int pageSize(){
-    // FIXME needs to return proper page size, which requires
-    // proper page size determination (see RVM-816)
-    return 4096;
+    return Memory.getPagesize();
   }
-
 
   @Inline
   public void putLongVolatile(Object obj,long offset,long value) {

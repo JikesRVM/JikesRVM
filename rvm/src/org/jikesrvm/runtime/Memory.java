@@ -36,6 +36,8 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public class Memory {
 
+  private static final int UNKNOWN = -1;
+
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory
   ////////////////////////
@@ -560,25 +562,48 @@ public class Memory {
     return SysCall.sysCall.sysMProtect(address, size, prot) == 0;
   }
 
-  private static int pagesize = -1;
-  private static int pagesizeLog = -1;
+  private static int pagesize = UNKNOWN;
+  private static int pagesizeLog = UNKNOWN;
 
   /**
-   * Do getpagesize call
-   * @return page size
+   * Sets the page size.
+   * <p>
+   * Note: this method may only be called once, at boot time. Multithreading is not
+   * yet enabled at this point, so no synchronization is necessary.
+   * @param pageSizeFromBootRecord the page size
    */
-  public static int getPagesize() {
-    if (pagesize == -1) {
-      pagesize = SysCall.sysCall.sysGetPageSize();
-      pagesizeLog = -1;
+  public static void setPageSize(Extent pageSizeFromBootRecord) {
+    if (pagesize == UNKNOWN) {
+      int newPageSize = pageSizeFromBootRecord.toInt();
+      if (VM.VerifyAssertions) VM._assert(Extent.fromIntSignExtend(newPageSize).EQ(pageSizeFromBootRecord));
+      pagesize = newPageSize;
+      pagesizeLog = UNKNOWN;
       int temp = pagesize;
       while (temp > 0) {
         temp >>>= 1;
         pagesizeLog++;
       }
       if (VM.VerifyAssertions) VM._assert((1 << pagesizeLog) == pagesize);
+      return;
     }
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  public static int getPagesize() {
+    if (VM.VerifyAssertions) VM._assert(pagesize != UNKNOWN);
     return pagesize;
+  }
+
+  public static int getPagesizeLog() {
+    if (VM.VerifyAssertions) VM._assert(pagesizeLog != UNKNOWN);
+    return pagesizeLog;
+  }
+
+  public static byte getPagesizeLogAsByte() {
+    int pageSizeLog = getPagesizeLog();
+    byte pageSizeLogByte = (byte) pageSizeLog;
+    if (VM.VerifyAssertions) VM._assert(pageSizeLog == pageSizeLogByte);
+    return pageSizeLogByte;
   }
 
   public static void dumpMemory(Address start, int beforeBytes, int afterBytes) {

@@ -32,6 +32,13 @@ import org.vmmagic.pragma.*;
 
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory {
 
+  /**
+   * A lie about the size of a virtual memory page. MMTk currently
+   * assumes that the page size is known at bootimage building time (see RVM-816),
+   * so we need to pass some kind of value.
+   */
+  private static final int LOG_BYTES_IN_PAGE_LIE = 12;
+
   @Override
   protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }
   @Override
@@ -45,7 +52,7 @@ import org.vmmagic.pragma.*;
   @Override
   protected final byte getLogBytesInWordConstant() { return SizeConstants.LOG_BYTES_IN_WORD; }
   @Override
-  protected final byte getLogBytesInPageConstant() { return SizeConstants.LOG_BYTES_IN_PAGE; }
+  protected final byte getLogBytesInPageConstant() { return LOG_BYTES_IN_PAGE_LIE; }
   @Override
   protected final byte getLogMinAlignmentConstant() { return JavaHeader.LOG_MIN_ALIGNMENT;}
   @Override
