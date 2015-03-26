@@ -439,11 +439,6 @@ public class GenerateInterfaceDeclarations {
         ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
     p("\n");
 
-    // values in ObjectModel
-    //
-    pln("ObjectModel_ARRAY_LENGTH_OFFSET = ", ObjectModel.getArrayLengthOffset());
-    pln();
-
     // values in RuntimeEntrypoints
     //
     p("static const int Runtime_TRAP_UNKNOWN        = " + RuntimeEntrypoints.TRAP_UNKNOWN + ";\n");
