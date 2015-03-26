@@ -19,6 +19,11 @@
 #define _GNU_SOURCE
 #endif
 
+//Solaris needs BSD_COMP to be set to enable the FIONREAD ioctl
+#if defined (__SVR4) && defined (__sun)
+#define BSD_COMP
+#endif
+
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS 1
 #define NEED_EXIT_STATUS_CODES 1
 #include "InterfaceDeclarations.h"
@@ -42,9 +47,20 @@ extern FILE *SysTraceFile;
 #define LINUX
 #endif
 
+#ifdef RVM_WITH_ALIGNMENT_CHECKING
+extern volatile int numEnableAlignCheckingCalls;
+EXTERNAL void sysEnableAlignmentChecking();
+EXTERNAL void sysDisableAlignmentChecking();
+EXTERNAL void sysReportAlignmentChecking();
+#endif
+
 /** Trace execution of syscalls */
 #define TRACE 0
 #define TRACE_PRINTF if(TRACE)fprintf
+
+extern void* checkMalloc(int length);
+extern void* checkCalloc(int numElements, int sizeOfOneElement);
+extern void checkFree(void* mem);
 
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;
