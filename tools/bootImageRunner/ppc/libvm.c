@@ -1206,6 +1206,7 @@ createVM(void)
     //
     bootRecord.initialHeapSize  = initialHeapSize;
     bootRecord.maximumHeapSize  = maximumHeapSize;
+    bootRecord.bytesInPage = pageSize;
     bootRecord.bootImageDataStart   = (Address) bootDataRegion;
     bootRecord.bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
     bootRecord.bootImageCodeStart   = (Address) bootCodeRegion;

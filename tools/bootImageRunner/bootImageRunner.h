@@ -63,6 +63,7 @@ extern char *Me;		// Defined in libvm.C
 /* libvm.C and RunBootImage.cpp */
 extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
+extern uint64_t pageSize;
 
 /* jump buffer for primordial thread */
 extern jmp_buf primordial_jb;

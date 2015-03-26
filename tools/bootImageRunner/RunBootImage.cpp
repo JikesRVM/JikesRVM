@@ -69,16 +69,17 @@
 
 uint64_t initialHeapSize;       /* Declared in bootImageRunner.h */
 uint64_t maximumHeapSize;       /* Declared in bootImageRunner.h */
+uint64_t pageSize;              /* Declared in bootImageRunner.h */
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
 
 static int DEBUG = 0;                   // have to set this from a debugger
-static const unsigned BYTES_IN_PAGE = MMTk_Constants_BYTES_IN_PAGE;
 
 static bool strequal(const char *s1, const char *s2);
 static bool strnequal(const char *s1, const char *s2, size_t n);
 
 void findMappable();
+int determinePageSize();
 
 // Definitions of constants for handling C command-line arguments
 
@@ -393,7 +394,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
             subtoken = token + 4;
             initialHeapSize
-                = parse_memory_size("initial heap size", "ms", "", BYTES_IN_PAGE,
+                = parse_memory_size("initial heap size", "ms", "", pageSize,
                                     token, subtoken, fastExit);
             if (*fastExit)
                 break;
@@ -403,7 +404,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
             subtoken = token + 4;
             maximumHeapSize
-                = parse_memory_size("maximum heap size", "mx", "", BYTES_IN_PAGE,
+                = parse_memory_size("maximum heap size", "mx", "", pageSize,
                                     token, subtoken, fastExit);
             if (*fastExit)
                 break;
@@ -495,6 +496,13 @@ main(int argc, const char **argv)
     ++argv, --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
+
+    // Determine page size information
+    pageSize = (uint64_t) determinePageSize();
+    if (pageSize <= 0) {
+      printf("RunBootImage.main(): invalid page size %u", pageSize);
+      exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+    }
 
     setvbuf(stdout,NULL,_IONBF,0);
     setvbuf(stderr,NULL,_IONBF,0);
@@ -643,7 +651,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
            default. (This is a change from  previous Jikes RVM behaviour.)  */
         factor = 1.0;
     } else if (strequal(endp, "pages") ) {
-        factor = BYTES_IN_PAGE;
+        factor = pageSize;
     /* Handle constructs like "M" and "K" */
     } else if ( endp[1] == '\0' ) {
         factorStr = endp;
@@ -690,14 +698,14 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         CONSOLE_PRINTF( "\t    in bytes, using \"-X%s<positive number>\",\n", sizeFlag);
         CONSOLE_PRINTF( "\tor, in kilobytes, using \"-X%s<positive number>K\",\n", sizeFlag);
         CONSOLE_PRINTF( "\tor, in virtual memory pages of %u bytes, using\n"
-                "\t\t\"-X%s<positive number>pages\",\n", BYTES_IN_PAGE,
+                "\t\t\"-X%s<positive number>pages\",\n", pageSize,
                 sizeFlag);
         CONSOLE_PRINTF( "\tor, in megabytes, using \"-X%s<positive number>M\",\n", sizeFlag);
         CONSOLE_PRINTF( "\tor, in gigabytes, using \"-X%s<positive number>G\"\n", sizeFlag);
         CONSOLE_PRINTF( "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
         if (roundTo != 1) {
             CONSOLE_PRINTF( "  The # of bytes will be rounded up to a multiple of");
-            if (roundTo == BYTES_IN_PAGE) CONSOLE_PRINTF( "\n  the virtual memory page size: ");
+            if (roundTo == pageSize) CONSOLE_PRINTF( "\n  the virtual memory page size: ");
             CONSOLE_PRINTF( "%u\n", roundTo);
         }
         return 0U;              // Distinguished value meaning trouble.
@@ -713,7 +721,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                 "%s: Rounding up %s size from %u bytes to %u,\n"
                 "\tthe next multiple of %u bytes%s\n",
                 Me, sizeName, tot, newTot, roundTo,
-                roundTo == BYTES_IN_PAGE ?
+                roundTo == pageSize ?
                            ", the virtual memory page size" : "");
         tot = newTot;
     }
@@ -727,7 +735,6 @@ void findMappable()
 {
     int granularity = 1 << 22; // every 4 megabytes
     int max = (1 << 30) / (granularity >> 2);
-    int pageSize = getpagesize();
     for (int i=0; i<max; i++) {
         char *start = (char *) (i * granularity);
         int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
@@ -741,4 +748,23 @@ void findMappable()
             munmap(start, (size_t) pageSize);
         }
     }
+}
+
+/**
+ * Determines the page size.
+ * Taken:     (no arguments)
+ * Returned:  page size in bytes (Java int)
+ */
+int determinePageSize()
+{
+    TRACE_PRINTF("%s: determinePageSize\n", Me);
+    int pageSize = -1;
+#ifdef _SC_PAGESIZE
+    pageSize = (int) sysconf(_SC_PAGESIZE);
+#elif _SC_PAGE_SIZE
+    pageSize = (int) sysconf(_SC_PAGE_SIZE);
+#else
+    pageSize = (int) getpagesize();
+#endif
+    return pageSize;
 }

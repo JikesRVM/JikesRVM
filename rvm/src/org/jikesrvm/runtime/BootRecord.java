@@ -152,6 +152,9 @@ public class BootRecord {
    */
   public Extent maximumHeapSize;
 
+  /** size of a virtual memory page in bytes */
+  public Extent bytesInPage;
+
   @Untraced
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
   // C-style termination with sentinel values
@@ -251,7 +254,6 @@ public class BootRecord {
   public Address sysMMapIP;
   public Address sysMMapErrnoIP;
   public Address sysMProtectIP;
-  public Address sysGetPageSizeIP;
 
   // threads
   public Address sysNumProcessorsIP;

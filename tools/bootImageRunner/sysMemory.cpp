@@ -17,7 +17,7 @@
 #include <errno.h> // error numbers
 #include <string.h> // memcpy & memmove
 #include <sys/mman.h> // mmap
-#include <unistd.h> // getpagesize
+
 
 #ifdef RVM_FOR_AIX
 #include <sys/cache.h>
@@ -245,17 +245,6 @@ EXTERNAL int sysMProtect(char *start, size_t length, int prot)
     TRACE_PRINTF("%s: sysMProtect %p %zd %d\n",
                  Me, start, length, prot);
     return mprotect(start, length, prot);
-}
-
-/**
- * getpagesize.
- * Taken:     (no arguments)
- * Returned:  page size in bytes (Java int)
- */
-EXTERNAL int sysGetPageSize()
-{
-    TRACE_PRINTF("%s: sysGetPageSize\n", Me);
-    return (int)(getpagesize());
 }
 
 /** Memory to memory copy. Memory regions must not overlap. */

@@ -12,12 +12,11 @@
  */
 package org.jikesrvm.options;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_PAGE;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_PAGE;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_PRINTED_HELP_MESSAGE;
 
 import org.jikesrvm.CommandLineArgs;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.Memory;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
@@ -337,12 +336,12 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
   @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(Memory.getPagesize()-1).toWord().rshl(Memory.getPagesizeLog()).toInt();
   }
 
   @Override
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {
-    return Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
+    return Word.fromIntZeroExtend(pages).lsh(Memory.getPagesizeLog()).toExtent();
   }
 }

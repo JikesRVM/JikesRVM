@@ -77,11 +77,6 @@ public final class SizeConstants {
   public static final int LOG_BITS_IN_OFFSET = LOG_BITS_IN_BYTE + LOG_BYTES_IN_OFFSET;
   public static final int BITS_IN_OFFSET = 1 << LOG_BITS_IN_OFFSET;
 
-  public static final int LOG_BYTES_IN_PAGE = 12;
-  public static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
-  public static final int LOG_BITS_IN_PAGE = LOG_BITS_IN_BYTE + LOG_BYTES_IN_PAGE;
-  public static final int BITS_IN_PAGE = 1 << LOG_BITS_IN_PAGE;
-
   private SizeConstants() {
     // prevent instantiation
   }
