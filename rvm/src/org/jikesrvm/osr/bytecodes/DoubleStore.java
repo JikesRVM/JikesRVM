@@ -21,7 +21,7 @@ import static org.jikesrvm.classloader.BytecodeConstants.JBC_dstore;
 public class DoubleStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;
-  private int lnum;
+  private final int lnum;
 
   public DoubleStore(int local) {
     this.lnum = local;

@@ -28,7 +28,7 @@
  */
 EXTERNAL int sysStat(char *name, int kind)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysStat %s %d\n", Me, name, kind);
+    TRACE_PRINTF("%s: sysStat %s %d\n", Me, name, kind);
 
     struct stat info;
 
@@ -62,7 +62,7 @@ EXTERNAL int sysStat(char *name, int kind)
  */
 EXTERNAL int sysAccess(char *name, int kind)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysAccess %s\n", Me, name);
+    TRACE_PRINTF("%s: sysAccess %s\n", Me, name);
     return access(name, kind);
 }
 
@@ -74,13 +74,13 @@ EXTERNAL int sysAccess(char *name, int kind)
  */
 EXTERNAL int sysBytesAvailable(int fd)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: bytesAvailable %d\n", Me, fd);
+    TRACE_PRINTF("%s: bytesAvailable %d\n", Me, fd);
     int count = 0;
     if (ioctl(fd, FIONREAD, &count) == -1)
     {
         return -1;
     }
-    TRACE_PRINTF(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
+    TRACE_PRINTF("%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
 }
 
@@ -92,7 +92,7 @@ EXTERNAL int sysBytesAvailable(int fd)
  */
 EXTERNAL int sysSyncFile(int fd)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sync %d\n", Me, fd);
+    TRACE_PRINTF("%s: sync %d\n", Me, fd);
     if (fsync(fd) != 0) {
         // some kinds of files cannot be sync'ed, so don't print error message
         // however, do return error code in case some application cares
@@ -108,7 +108,7 @@ EXTERNAL int sysSyncFile(int fd)
  */
 EXTERNAL int sysReadByte(int fd)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: readByte %d\n", Me, fd);
+    TRACE_PRINTF("%s: readByte %d\n", Me, fd);
     unsigned char ch;
     int rc;
 
@@ -116,13 +116,13 @@ again:
     switch ( rc = read(fd, &ch, 1))
     {
     case  1:
-        /*CONSOLE_PRINTF(SysTraceFile, "%s: read (byte) ch is %d\n", Me, (int) ch);*/
+        /*CONSOLE_PRINTF("%s: read (byte) ch is %d\n", Me, (int) ch);*/
         return (int) ch;
     case  0:
-        /*CONSOLE_PRINTF(SysTraceFile, "%s: read (byte) rc is 0\n", Me);*/
+        /*CONSOLE_PRINTF("%s: read (byte) rc is 0\n", Me);*/
         return -1;
     default:
-        /*CONSOLE_PRINTF(SysTraceFile, "%s: read (byte) rc is %d\n", Me, rc);*/
+        /*CONSOLE_PRINTF("%s: read (byte) rc is %d\n", Me, rc);*/
         if (errno == EAGAIN)
             return -2;  // Read would have blocked
         else if (errno == EINTR)
@@ -141,7 +141,7 @@ again:
 EXTERNAL int sysWriteByte(int fd, int data)
 {
     char ch = data;
-    TRACE_PRINTF(SysTraceFile, "%s: writeByte %d %c\n", Me, fd, ch);
+    TRACE_PRINTF("%s: writeByte %d %c\n", Me, fd, ch);
 again:
     int rc = write(fd, &ch, 1);
     if (rc == 1)
@@ -151,7 +151,7 @@ again:
     else if (errno == EINTR)
         goto again; // interrupted by signal; try again
     else {
-        CONSOLE_PRINTF(SysErrorFile, "%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
+        ERROR_PRINTF("%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
                 fd, errno, strerror(errno));
         return -1; // some kind of error
     }
@@ -166,7 +166,7 @@ again:
  */
 EXTERNAL int sysReadBytes(int fd, char *buf, int cnt)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: read %d %p %d\n", Me, fd, buf, cnt);
+    TRACE_PRINTF("%s: read %d %p %d\n", Me, fd, buf, cnt);
 again:
     int rc = read(fd, buf, cnt);
     if (rc >= 0)
@@ -174,12 +174,12 @@ again:
     int err = errno;
     if (err == EAGAIN)
     {
-        TRACE_PRINTF(SysTraceFile, "%s: read on %d would have blocked: needs retry\n", Me, fd);
+        TRACE_PRINTF("%s: read on %d would have blocked: needs retry\n", Me, fd);
         return -1;
     }
     else if (err == EINTR)
         goto again; // interrupted by signal; try again
-    CONSOLE_PRINTF(SysTraceFile, "%s: read error %d (%s) on %d\n", Me,
+    ERROR_PRINTF("%s: read error %d (%s) on %d\n", Me,
             err, strerror(err), fd);
     return -2;
 }
@@ -194,7 +194,7 @@ again:
  */
 EXTERNAL int sysWriteBytes(int fd, char *buf, int cnt)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: write %d %p %d\n", Me, fd, buf, cnt);
+    TRACE_PRINTF("%s: write %d %p %d\n", Me, fd, buf, cnt);
 again:
     int rc = write(fd, buf, cnt);
     if (rc >= 0)
@@ -202,17 +202,17 @@ again:
     int err = errno;
     if (err == EAGAIN)
     {
-        TRACE_PRINTF(SysTraceFile, "%s: write on %d would have blocked: needs retry\n", Me, fd);
+        TRACE_PRINTF("%s: write on %d would have blocked: needs retry\n", Me, fd);
         return -1;
     }
     if (err == EINTR)
         goto again; // interrupted by signal; try again
     if (err == EPIPE)
     {
-        TRACE_PRINTF(SysTraceFile, "%s: write on %d with nobody to read it\n", Me, fd);
+        TRACE_PRINTF("%s: write on %d with nobody to read it\n", Me, fd);
         return -3;
     }
-    CONSOLE_PRINTF(SysTraceFile, "%s: write error %d (%s) on %d\n", Me,
+    ERROR_PRINTF("%s: write error %d (%s) on %d\n", Me,
             err, strerror( err ), fd);
     return -2;
 }
@@ -226,7 +226,7 @@ again:
  */
 static int sysClose(int fd)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: close %d\n", Me, fd);
+    TRACE_PRINTF("%s: close %d\n", Me, fd);
     if ( -1 == fd ) return -1;
     int rc = close(fd);
     if (rc == 0) return 0; // success
@@ -241,6 +241,6 @@ static int sysClose(int fd)
  */
 EXTERNAL int sysSetFdCloseOnExec(int fd)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: setFdCloseOnExec %d\n", Me, fd);
+    TRACE_PRINTF("%s: setFdCloseOnExec %d\n", Me, fd);
     return fcntl(fd, F_SETFD, FD_CLOEXEC);
 }

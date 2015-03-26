@@ -38,7 +38,7 @@ static struct perf_event_attr *perf_event_attrs;
 
 void sysPerfEventInit(int numEvents)
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventInit\n", Me);
+  TRACE_PRINTF("%s: sysPerfEventInit\n", Me);
   int ret = pfm_initialize();
   if (ret != PFM_SUCCESS) {
     errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
@@ -60,7 +60,7 @@ void sysPerfEventInit(int numEvents)
 
 void sysPerfEventCreate(int id, const char *eventName)
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventCreate\n", Me);
+  TRACE_PRINTF("%s: sysPerfEventCreate\n", Me);
   struct perf_event_attr *pe = (perf_event_attrs + id);
   int ret = pfm_get_perf_event_encoding(eventName, PFM_PLM3, pe, NULL, NULL);
   if (ret != PFM_SUCCESS) {
@@ -77,7 +77,7 @@ void sysPerfEventCreate(int id, const char *eventName)
 
 void sysPerfEventEnable()
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventEnable\n", Me);
+  TRACE_PRINTF("%s: sysPerfEventEnable\n", Me);
   if (enabled) {
     if (prctl(PR_TASK_PERF_EVENTS_ENABLE)) {
       err(1, "error in prctl(PR_TASK_PERF_EVENTS_ENABLE)");
@@ -87,7 +87,7 @@ void sysPerfEventEnable()
 
 void sysPerfEventDisable()
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventDisable\n", Me);
+  TRACE_PRINTF("%s: sysPerfEventDisable\n", Me);
   if (enabled) {
     if (prctl(PR_TASK_PERF_EVENTS_DISABLE)) {
       err(1, "error in prctl(PR_TASK_PERF_EVENTS_DISABLE)");
@@ -97,7 +97,7 @@ void sysPerfEventDisable()
 
 void sysPerfEventRead(int id, long long *values)
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysPerfEventRead\n", Me);
+  TRACE_PRINTF("%s: sysPerfEventRead\n", Me);
   size_t expectedBytes = 3 * sizeof(long long);
   int ret = read(perf_event_fds[id], values, expectedBytes);
   if (ret < 0) {

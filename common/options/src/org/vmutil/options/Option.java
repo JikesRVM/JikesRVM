@@ -48,10 +48,10 @@ public abstract class Option {
   public static final int XML = 2;
 
   // Per option values
-  private int type;
-  private String name;
-  private String description;
-  private String key;
+  private final int type;
+  private final String name;
+  private final String description;
+  private final String key;
   private Option next;
 
   protected OptionSet set;

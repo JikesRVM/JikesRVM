@@ -47,7 +47,7 @@ public class ParallelCollectorGroup {
   private volatile boolean aborted;
 
   /** Used to count threads during calls to rendezvous() */
-  private int[] rendezvousCounter = new int[2];
+  private final int[] rendezvousCounter = new int[2];
 
   /** Which rendezvous counter is currently in use */
   private volatile int currentRendezvousCounter;

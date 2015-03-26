@@ -456,26 +456,36 @@ public final class RVMArray extends RVMType {
    * Also forces the resolution of the element type.
    */
   @Override
-  public synchronized void resolve() {
-    if (isResolved()) return;
+  public void resolve() {
+    synchronized (this) {
+      if (isResolved()) return;
+      if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
+    }
 
-    if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
-
+    // Resolving the element type requires a lock on the RVMType object that
+    // represents the element type. It does *not* require the lock of this object.
+    // It is thus safe to release the lock on this object while the element type is
+    // being resolved. This helps to to prevent deadlocks when compiling with multiple
+    // threads.
     elementType.resolve();
 
-    // Using the type information block for java.lang.Object as a template,
-    // build a type information block for this new array type by copying the
-    // virtual method fields and substituting an appropriate type field.
-    //
-    TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
+    synchronized (this) {
+      if (isResolved()) return;
 
-    int alignCode = elementType.isReferenceType() ? HandInlinedScanning.referenceArray() : HandInlinedScanning.primitiveArray();
-    TIB allocatedTib = MemoryManager.newTIB(javaLangObjectTIB.numVirtualMethods(), alignCode);
-    superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
-    doesImplement = DynamicTypeCheck.buildDoesImplement(this);
-    publishResolved(allocatedTib, superclassIds, doesImplement);
+      // Using the type information block for java.lang.Object as a template,
+      // build a type information block for this new array type by copying the
+      // virtual method fields and substituting an appropriate type field.
+      //
+      TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
 
-    MemoryManager.notifyClassResolved(this);
+      int alignCode = elementType.isReferenceType() ? HandInlinedScanning.referenceArray() : HandInlinedScanning.primitiveArray();
+      TIB allocatedTib = MemoryManager.newTIB(javaLangObjectTIB.numVirtualMethods(), alignCode);
+      superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
+      doesImplement = DynamicTypeCheck.buildDoesImplement(this);
+      publishResolved(allocatedTib, superclassIds, doesImplement);
+
+      MemoryManager.notifyClassResolved(this);
+    }
   }
 
   /**

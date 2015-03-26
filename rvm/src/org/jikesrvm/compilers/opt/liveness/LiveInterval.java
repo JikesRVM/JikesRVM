@@ -27,7 +27,7 @@ public final class LiveInterval {
 
   private static final boolean DEBUG = false;
 
-  private HashMap<BasicBlock, LiveIntervalElement> liveIntervals;
+  private final HashMap<BasicBlock, LiveIntervalElement> liveIntervals;
 
   public LiveInterval() {
     liveIntervals = new HashMap<BasicBlock, LiveIntervalElement>();

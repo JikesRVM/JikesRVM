@@ -33,8 +33,8 @@ public class SizeCounter {
   /**
    *
    */
-  private EventCounter units;
-  private EventCounter volume;
+  private final EventCounter units;
+  private final EventCounter volume;
 
   /****************************************************************************
    *

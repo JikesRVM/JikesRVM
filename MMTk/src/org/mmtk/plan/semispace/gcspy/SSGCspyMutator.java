@@ -53,7 +53,7 @@ import org.vmmagic.unboxed.*;
   private static final boolean LOS_FROMSPACE = false; // gather from fromspace
 
   /** Per-mutator allocator into GCspy's space */
-  private BumpPointer gcspy = new ImmortalLocal(SSGCspy.gcspySpace);
+  private final BumpPointer gcspy = new ImmortalLocal(SSGCspy.gcspySpace);
 
 
 

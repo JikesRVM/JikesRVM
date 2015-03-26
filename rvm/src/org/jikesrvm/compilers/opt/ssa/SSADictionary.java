@@ -158,7 +158,7 @@ public final class SSADictionary {
    * This structure holds the next number to assign when creating
    * a new heap variable name for a given type
    */
-  private HashMap<Object, Integer> nextNumber = new HashMap<Object, Integer>();
+  private final HashMap<Object, Integer> nextNumber = new HashMap<Object, Integer>();
 
   /**
    * A mapping from <code> BasicBlock </code> to <code> ArrayList

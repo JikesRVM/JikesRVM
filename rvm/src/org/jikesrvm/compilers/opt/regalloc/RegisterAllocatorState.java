@@ -32,9 +32,9 @@ import org.jikesrvm.compilers.opt.ir.Register;
  */
 public class RegisterAllocatorState {
 
-  private int[] spills;
+  private final int[] spills;
 
-  private CompoundInterval[] intervals;
+  private final CompoundInterval[] intervals;
 
   private Map<Instruction, Integer> depthFirstNumbers;
 

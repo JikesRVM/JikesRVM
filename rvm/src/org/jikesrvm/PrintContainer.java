@@ -33,7 +33,7 @@ public final class PrintContainer {
 
   /** Print via PrintWriter */
   private static class WithPrintWriter extends PrintLN {
-    private PrintWriter out;
+    private final PrintWriter out;
 
     WithPrintWriter(PrintWriter out) {
       this.out = out;
@@ -65,7 +65,7 @@ public final class PrintContainer {
 
   /** Print via PrintStream */
   private static class WithPrintStream extends PrintLN {
-    private PrintStream out;
+    private final PrintStream out;
 
     WithPrintStream(PrintStream out) {
       this.out = out;

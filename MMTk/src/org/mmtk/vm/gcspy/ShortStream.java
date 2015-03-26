@@ -33,8 +33,8 @@ import org.vmmagic.pragma.*;
   /**
    *
    */
-  private short[] data;         // The stream data
-  private short defaultValue;   // The default value for the data items
+  private final short[] data;         // The stream data
+  private final short defaultValue;   // The default value for the data items
 
   /****************************************************************************
    *

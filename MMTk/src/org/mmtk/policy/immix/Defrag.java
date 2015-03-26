@@ -39,7 +39,7 @@ public class Defrag {
   private int availableCleanPagesForDefrag;
   private boolean defragSpaceExhausted = true;
   private int[][] spillMarkHistograms;
-  private int[] spillAvailHistogram = new int[SPILL_HISTOGRAM_BUCKETS];
+  private final int[] spillAvailHistogram = new int[SPILL_HISTOGRAM_BUCKETS];
   public static SizeCounter defragCleanBytesUsed = new SizeCounter("cleanUsed");
 
   /* verbose stats (used only on stats runs since they induce overhead when gathered) */

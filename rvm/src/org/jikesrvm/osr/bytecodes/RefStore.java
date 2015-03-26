@@ -20,7 +20,7 @@ import static org.jikesrvm.classloader.BytecodeConstants.JBC_astore;
 public class RefStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;
-  private int lnum;
+  private final int lnum;
 
   public RefStore(int local) {
     this.lnum = local;

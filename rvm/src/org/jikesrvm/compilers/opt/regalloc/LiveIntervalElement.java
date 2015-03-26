@@ -39,7 +39,7 @@ public final class LiveIntervalElement {
    * instruction where the live interval ends
    * (null if alive at basic block exit)
    */
-  private Instruction end;
+  private final Instruction end;
 
   /**
    * The basic block holding this live interval element

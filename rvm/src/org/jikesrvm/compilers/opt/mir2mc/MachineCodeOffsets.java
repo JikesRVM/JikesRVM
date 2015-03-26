@@ -29,7 +29,7 @@ import org.jikesrvm.VM;
  */
 public final class MachineCodeOffsets {
 
-  private Map<Instruction, Integer> mcOffsets;
+  private final Map<Instruction, Integer> mcOffsets;
 
   MachineCodeOffsets() {
     this.mcOffsets = new HashMap<Instruction, Integer>();

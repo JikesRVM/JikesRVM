@@ -90,7 +90,7 @@ public class BytecodeTraverser {
   private int addr;
 
   private byte[] visitedpc;
-  private boolean TRACE = false;
+  private final boolean TRACE = false;
 
   // when computing infor for partial bytecodes
   // donot following bytecodes out of range

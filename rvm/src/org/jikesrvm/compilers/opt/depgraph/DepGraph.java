@@ -75,7 +75,7 @@ public class DepGraph extends SpaceEffGraph {
    */
   private final IR ir;
 
-  private DepGraphNode[] depGraphNodes;
+  private final DepGraphNode[] depGraphNodes;
 
   /**
    * Constructor (computes the dependence graph!).

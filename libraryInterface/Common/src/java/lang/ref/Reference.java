@@ -138,7 +138,7 @@ public abstract class Reference<T> {
   }
 
   @Uninterruptible
-  public boolean enqueueInternal() {
+  public final boolean enqueueInternal() {
     if (nextOnQueue == null && queue != null) {
       queue.enqueueInternal(this);
       queue = null;

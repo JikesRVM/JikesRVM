@@ -133,7 +133,7 @@ vmiError JNICALL IterateSystemProperties (VMInterface * vmi, vmiSystemPropertyIt
  *
  * @return a VMInterface pointer
  */
-VMInterface* JNICALL 
+VMInterface* JNICALL
 VMI_GetVMIFromJavaVM(JavaVM* vm)
 {
     return &vmi;
@@ -146,7 +146,7 @@ VMI_GetVMIFromJavaVM(JavaVM* vm)
  *
  * @return a VMInterface pointer
  */
-VMInterface* JNICALL 
+VMInterface* JNICALL
 VMI_GetVMIFromJNIEnv(JNIEnv* env)
 {
     return &vmi;

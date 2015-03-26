@@ -547,17 +547,24 @@ Ljava/security/ProtectionDomain;
 [Ljava/security/ProtectionDomain;
 [Ljava/lang/Package;
 
+Ljava/util/regex/Matcher;
 Ljava/util/regex/Pattern;
+Lgnu/java/util/regex/BacktrackStack;
 Lgnu/java/util/regex/RESyntax;
+Lgnu/java/util/regex/CharIndexedCharArray;
+Lgnu/java/util/regex/CharIndexedCharSequence;
+Lgnu/java/util/regex/CharIndexedInputStream;
+Lgnu/java/util/regex/CharIndexed;
+Lgnu/java/util/regex/CharIndexedStringBuffer;
+Lgnu/java/util/regex/CharIndexedString;
 Lgnu/java/util/regex/RE;
 Lgnu/java/util/regex/RE$CharUnit;
 Lgnu/java/util/regex/RE$IntPair;
 Ljava/util/BitSet;
+Lgnu/java/util/regex/REToken;
 Lgnu/java/util/regex/RETokenChar;
+Lgnu/java/util/regex/RETokenEnd;
 Lgnu/java/util/regex/RETokenEndSub;
-Ljava/util/regex/Matcher;
-Lgnu/java/util/regex/CharIndexed;
-Lgnu/java/util/regex/CharIndexedCharSequence;
 Lgnu/java/util/regex/REMatch;
 
 Ljava/util/logging/Logger;

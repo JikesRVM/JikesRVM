@@ -17,6 +17,8 @@ target.arch=
 target.os=
 # Must be 32 or 64
 target.address.size=
+# Must be little for little endian. Anything else will be interpreted as big endian.
+target.endianness=
 
 target.bootimage.code.address=
 target.bootimage.data.address=

@@ -40,7 +40,7 @@ public final class MethodSampleOrganizer extends Organizer {
    *  Filter out all opt-compiled methods that were compiled
    * at this level or higher.
    */
-  private int filterOptLevel;
+  private final int filterOptLevel;
 
   /**
    * @param filterOptLevel   filter out all opt-compiled methods that

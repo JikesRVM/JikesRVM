@@ -1871,7 +1871,7 @@ public class BasicBlock extends SortedGraphNode {
 
   // Arbitrary constructed enumeration of some set of basic blocks
   static final class ComputedBBEnum implements Enumeration<BasicBlock> {
-    private BasicBlock[] blocks;
+    private final BasicBlock[] blocks;
     private int numBlocks;
     private int current;
 

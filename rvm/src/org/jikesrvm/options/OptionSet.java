@@ -36,7 +36,7 @@ import org.vmutil.options.StringOption;
  */
 public final class OptionSet extends org.vmutil.options.OptionSet {
 
-  private String prefix;
+  private final String prefix;
 
   public static final OptionSet gc = new OptionSet("-X:gc");
 

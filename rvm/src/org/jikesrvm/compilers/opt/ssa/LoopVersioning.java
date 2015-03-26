@@ -298,11 +298,12 @@ public final class LoopVersioning extends CompilerPhase {
   /**
    * SSA options
    */
-  private SSAOptions desiredSSAOptions;
+  private final SSAOptions desiredSSAOptions;
   /**
    * Compiler phases called from this one
    */
-  private CompilerPhase enterSSA, leaveSSA, domPhase;
+  private CompilerPhase enterSSA, leaveSSA;
+  private final CompilerPhase domPhase;
   /**
    * Run inside SSA sub-phase
    */

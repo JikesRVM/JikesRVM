@@ -75,6 +75,7 @@
     <gcTest class="FinalizeTest"/>
     <gcTest class="InlineAllocation"/>
     <gcTest class="ReferenceTest"/>
+    <gcTest class="SoftReferenceClearingTest"/>
     <gcTest class="ReferenceStress"/>
 
     <!-- FixedLive has specific statistics and in performance mode forces O2 initial compilation -->

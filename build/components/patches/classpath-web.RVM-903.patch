@@ -23589,7 +23589,7 @@ diff -urNw classpath/external/jsr166/java/util/concurrent/TransferQueue.java cla
 +}
 --- classpath2/java/util/Collections.java	2008-01-08 08:11:25.000000000 +1100
 +++ classpath/java/util/Collections.java	2010-10-29 01:49:10.000000000 +1100
-@@ -292,6 +292,23 @@
+@@ -294,6 +294,23 @@
      return new EmptyList<T>();
    }
  

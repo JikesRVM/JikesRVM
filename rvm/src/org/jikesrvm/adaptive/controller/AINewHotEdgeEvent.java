@@ -38,7 +38,7 @@ public final class AINewHotEdgeEvent extends HotMethodEvent implements Controlle
    * NB: Boost factor is a value &gt;= 1.0!
    * (1.0 means no boost, 1.1 means a 10% improvement, etc).
    */
-  private double boostFactor;
+  private final double boostFactor;
 
   public double getBoostFactor() { return boostFactor; }
 

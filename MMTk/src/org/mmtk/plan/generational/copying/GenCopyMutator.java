@@ -51,7 +51,7 @@ public class GenCopyMutator extends GenMutator {
    * "pretenure" objects into this space otherwise used only by
    * the collector)
    */
-  private CopyLocal mature;
+  private final CopyLocal mature;
 
   /****************************************************************************
    *

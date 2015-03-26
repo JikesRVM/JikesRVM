@@ -45,7 +45,7 @@ public class StickyMSCollector extends MSCollector {
   /**
    *
    */
-  private StickyMSNurseryTraceLocal nurseryTrace;
+  private final StickyMSNurseryTraceLocal nurseryTrace;
 
   /****************************************************************************
    * Initialization

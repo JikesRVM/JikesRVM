@@ -315,7 +315,7 @@ vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
 #ifdef RVM_WITH_ALIGNMENT_CHECKING
 
 // these vars help implement the two-phase trap handler approach for alignment checking
-static unsigned int alignCheckHandlerJumpLocation = 0; // 
+static unsigned int alignCheckHandlerJumpLocation = 0; //
 static unsigned char alignCheckHandlerInstBuf[100]; // ought to be enough to hold two instructions :P
 
 // if enabled, print a character for each alignment trap (whether or not we ignore it)
@@ -341,7 +341,7 @@ int handleAlignmentTrap(int signo, void* context) {
       greg_t  *gregs = mc->gregs;               // general purpose registers
       // get the faulting IP
       unsigned int localInstructionAddress     = gregs[REG_EIP];
-      
+
       // decide what kind of alignment error this is and whether to ignore it;
       // if we ignore it, then the normal handler will take care of it
       int ignore = 0;
@@ -381,7 +381,7 @@ int handleAlignmentTrap(int signo, void* context) {
           numBadAlignTraps++;
         }
       }
-      
+
       if (ignore) {
         // we can ignore the exception by returning to a code block
         // that we create that consists of
@@ -406,7 +406,7 @@ int handleAlignmentTrap(int signo, void* context) {
         return 1;
       }
     }
-    
+
     // alignment checking: handle the second phase of align traps that the code above decided to ignore
     if (alignCheckHandlerJumpLocation) {
       // get needed structures
@@ -421,7 +421,7 @@ int handleAlignmentTrap(int signo, void* context) {
       alignCheckHandlerJumpLocation = 0;
       return 1;
     }
-    
+
     return 0;
 }
 
@@ -439,7 +439,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
       }
     }
 #endif // RVM_WITH_ALIGNMENT_CHECKING
-    
+
     unsigned int localInstructionAddress;
 
     if (lib_verbose)
@@ -476,7 +476,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     if (isVmSignal(localInstructionAddress, localNativeThreadAddress))
     {
 	if (lib_verbose) fprintf(SysTraceFile,"it's a VM signal.\n");
-	
+
         if (signo == SIGSEGV /*&& check the adddress TODO */)
             isRecoverable = 1;
 
@@ -485,13 +485,13 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
         else if (signo == SIGTRAP)
             isRecoverable = 0;
-            
+
         // alignment checking: hardware alignment exceptions are recoverable (i.e., we want to jump to the Java handler)
         #ifdef RVM_WITH_ALIGNMENT_CHECKING
         else if (signo == SIGBUS)
             isRecoverable = 1;
         #endif // RVM_WITH_ALIGNMENT_CHECKING
-            
+
         else
             writeErr("%s: WHOOPS.  Got a signal (%s; #%d) that the hardware signal handler wasn't prepared for.\n", Me,  strsignal(signo), signo);
     } else {
@@ -547,7 +547,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
          */
 
 //Solaris doesn't seem to support these
-#if !(defined (__SVR4) && defined (__sun)) 
+#if !(defined (__SVR4) && defined (__sun))
 	if (IA32_FPREGS(context)) {
 		writeErr("fp0 0x%04x%04x%04x%04x%04x\n",
 				IA32_STMM(context, 0, 0) & 0xffff,
@@ -1147,7 +1147,7 @@ createVM(void)
         fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
         return 1;
     }
-    
+
     /* set up initial stack frame */
     Address ip   = bootRecord->ipRegister;
     Address jtoc = bootRecord->tocRegister;
@@ -1156,7 +1156,7 @@ createVM(void)
 
     tr = *(Address *) (bootRecord->tocRegister
 		       + bootRecord->bootThreadOffset);
-    
+
     /* initialize the thread id jtoc, and framepointer fields in the primordial
      * processor object.
      */

@@ -31,7 +31,7 @@ public final class PerfEvent extends LongCounter {
   private boolean overflowed;
 
   /** The index of the counter in the native array */
-  private int index;
+  private final int index;
 
   /** The previously read value of the counter (used to detect overflow) */
   private long previousValue;

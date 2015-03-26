@@ -64,7 +64,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
    * operation is done.  During this states any lock/unlock attempts will
    * spin until the lock reverts to some other state. */
   private static final int QUEUEING = 4;
-  private ThreadQueue queue;
+  private final ThreadQueue queue;
   @Entrypoint
   private int state;
 

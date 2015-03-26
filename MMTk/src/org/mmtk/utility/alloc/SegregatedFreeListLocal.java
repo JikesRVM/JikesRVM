@@ -69,7 +69,7 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    */
   public SegregatedFreeListLocal(S space) {
     super(space);
-    this.currentBlock = AddressArray.create(space.sizeClassCount());
+    this.currentBlock = AddressArray.create(SegregatedFreeListSpace.sizeClassCount());
   }
 
   /****************************************************************************
@@ -152,7 +152,7 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    * then free lists are remembered for each block.
    */
   public final void flush() {
-    for (int sizeClass = 0; sizeClass < space.sizeClassCount(); sizeClass++) {
+    for (int sizeClass = 0; sizeClass < SegregatedFreeListSpace.sizeClassCount(); sizeClass++) {
       Address block = currentBlock.get(sizeClass);
       if (!block.isZero()) {
         Address cell = freeList.get(sizeClass);

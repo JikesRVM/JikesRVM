@@ -35,8 +35,10 @@ public abstract class ReferenceProcessor {
    *
    * @param trace the thread local trace element.
    * @param nursery {@code true} if it is safe to only scan new references.
+   * @param retain whether to retain those references whose referents are not
+   *  reachable
    */
-  public abstract void scan(TraceLocal trace, boolean nursery);
+  public abstract void scan(TraceLocal trace, boolean nursery, boolean retain);
 
   /**
    * Iterate over all references and forward.

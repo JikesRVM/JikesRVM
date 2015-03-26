@@ -207,7 +207,7 @@ public class SharedDeque extends Deque {
   private final String name;
 
   /** Raw page space from which to allocate */
-  private RawPageSpace rps;
+  private final RawPageSpace rps;
 
   /** Number of words per entry */
   private final int arity;
@@ -233,7 +233,7 @@ public class SharedDeque extends Deque {
   protected volatile Address tail;
   @Entrypoint
   private volatile int bufsenqueued;
-  private Lock lock;
+  private final Lock lock;
 
   private static final long WARN_PERIOD = (long)(2*1E9);
   private static final long TIMEOUT_PERIOD = 10 * WARN_PERIOD;

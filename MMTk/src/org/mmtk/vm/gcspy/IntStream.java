@@ -31,9 +31,9 @@ import org.vmmagic.pragma.*;
    */
 
   /** The stream data */
-  private int[] data;
+  private final int[] data;
   /** The default value for the data items */
-  private int defaultValue;
+  private final int defaultValue;
 
 
   /****************************************************************************

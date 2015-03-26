@@ -28,7 +28,7 @@ public final class ChunkList {
   private static final int ENTRIES_IN_CHUNK_MAP_BLOCK = (BYTES_IN_PAGE<<LOG_PAGES_IN_CHUNK_MAP_BLOCK)>>LOG_BYTES_IN_ADDRESS;
   private static final int CHUNK_MAP_BLOCKS = 1<<4;
   private static final int MAX_ENTRIES_IN_CHUNK_MAP = ENTRIES_IN_CHUNK_MAP_BLOCK * CHUNK_MAP_BLOCKS;
-  private AddressArray chunkMap =  AddressArray.create(CHUNK_MAP_BLOCKS);
+  private final AddressArray chunkMap =  AddressArray.create(CHUNK_MAP_BLOCKS);
   private int chunkMapLimit = -1;
   private int chunkMapCursor = -1;
 

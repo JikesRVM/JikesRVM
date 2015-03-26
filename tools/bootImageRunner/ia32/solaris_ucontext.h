@@ -42,7 +42,7 @@
 
 // FIXME: These don't seem to have a Solaris equivalent
 #define IA32_FPFAULTDATA(context)     (0xFFFFFFFF)
-#define IA32_FPSTATE(context) (0xFFFFFFF) 
+#define IA32_FPSTATE(context) (0xFFFFFFF)
 #define IA32_OLDMASK(context) (0xFFFFFFFF)
 
 // reg = 0..7, n = 0 .. 3

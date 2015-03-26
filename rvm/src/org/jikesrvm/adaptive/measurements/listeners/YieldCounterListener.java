@@ -57,9 +57,9 @@ public final class YieldCounterListener extends NullListener {
   @Override
   public void reset() { }
 
-  private int yieldThreshold;
+  private final int yieldThreshold;
   @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"})
 // Accessed via EntryPoints
-  private int numYields = 0;
+  private final int numYields = 0;
   private int totalYields = 0;
 }

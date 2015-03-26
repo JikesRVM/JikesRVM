@@ -11,10 +11,10 @@
 @@ -170,6 +173,9 @@
        public void remove()
        {
- 	PriorityQueue.this.remove(index);
-+	// removal promotes another element to the slot just vacated,
-+	// so we need to rewind to pick up the newly promoted element.
-+	--index;
+         PriorityQueue.this.remove(index);
++        // removal promotes another element to the slot just vacated,
++        // so we need to rewind to pick up the newly promoted element.
++        --index;
        }
      };
    }

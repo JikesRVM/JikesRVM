@@ -101,8 +101,8 @@ class OptTestHarness {
   RVMClass mainClass;
   String[] mainArgs;
 
-  private OptTestHarnessOutput output;
-  private FileAccess fileAccess;
+  private final OptTestHarnessOutput output;
+  private final FileAccess fileAccess;
 
   OptTestHarness(OptTestHarnessOutput output, OptOptions optOptions, FileAccess fileAccess) {
     this.output = output;
@@ -520,7 +520,7 @@ class OptTestHarness {
     private long start = 0;
     private long end = 0;
 
-    private OptTestHarnessOutput output;
+    private final OptTestHarnessOutput output;
 
     Performance(OptTestHarnessOutput output) {
       this.output = output;

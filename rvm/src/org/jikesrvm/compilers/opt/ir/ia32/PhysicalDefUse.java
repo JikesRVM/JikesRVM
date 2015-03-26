@@ -133,7 +133,7 @@ public abstract class PhysicalDefUse {
   public static final class PDUEnumeration implements Enumeration<Register> {
     private int code;
     private int curMask;
-    private PhysicalRegisterSet phys;
+    private final PhysicalRegisterSet phys;
 
     PDUEnumeration(int c, IR ir) {
       phys = ir.regpool.getPhysicalRegisterSet();

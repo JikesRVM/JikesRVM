@@ -171,30 +171,30 @@ static const char* nonStandardUsage[] = {
 static void
 usage(void)
 {
-    CONSOLE_PRINTF(SysTraceFile,"Usage: %s [-options] class [args...]\n", Me);
-    CONSOLE_PRINTF(SysTraceFile,"          (to execute a class)\n");
-    CONSOLE_PRINTF(SysTraceFile,"   or  %s [-options] -jar jarfile [args...]\n",Me);
-    CONSOLE_PRINTF(SysTraceFile,"          (to execute a jar file)\n");
-    CONSOLE_PRINTF(SysTraceFile,"\nwhere options include:\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -cp -classpath <directories and zip/jar files separated by :>\n");
-    CONSOLE_PRINTF(SysTraceFile,"              set search path for application classes and resources\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -D<name>=<value>\n");
-    CONSOLE_PRINTF(SysTraceFile,"              set a system property\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -verbose[:class|:gc|:jni]\n");
-    CONSOLE_PRINTF(SysTraceFile,"              enable verbose output\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -version  print version\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -showversion\n");
-    CONSOLE_PRINTF(SysTraceFile,"              print version and continue\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -fullversion\n");
-    CONSOLE_PRINTF(SysTraceFile,"              like version but with more information\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -? -help  print this message\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -X        print help on non-standard options\n");
-    CONSOLE_PRINTF(SysTraceFile,"    -javaagent:<jarpath>[=<options>]\n");
-    CONSOLE_PRINTF(SysTraceFile,"              load Java programming language agent, see java.lang.instrument\n");
+    CONSOLE_PRINTF("Usage: %s [-options] class [args...]\n", Me);
+    CONSOLE_PRINTF("          (to execute a class)\n");
+    CONSOLE_PRINTF("   or  %s [-options] -jar jarfile [args...]\n",Me);
+    CONSOLE_PRINTF("          (to execute a jar file)\n");
+    CONSOLE_PRINTF("\nwhere options include:\n");
+    CONSOLE_PRINTF("    -cp -classpath <directories and zip/jar files separated by :>\n");
+    CONSOLE_PRINTF("              set search path for application classes and resources\n");
+    CONSOLE_PRINTF("    -D<name>=<value>\n");
+    CONSOLE_PRINTF("              set a system property\n");
+    CONSOLE_PRINTF("    -verbose[:class|:gc|:jni]\n");
+    CONSOLE_PRINTF("              enable verbose output\n");
+    CONSOLE_PRINTF("    -version  print version\n");
+    CONSOLE_PRINTF("    -showversion\n");
+    CONSOLE_PRINTF("              print version and continue\n");
+    CONSOLE_PRINTF("    -fullversion\n");
+    CONSOLE_PRINTF("              like version but with more information\n");
+    CONSOLE_PRINTF("    -? -help  print this message\n");
+    CONSOLE_PRINTF("    -X        print help on non-standard options\n");
+    CONSOLE_PRINTF("    -javaagent:<jarpath>[=<options>]\n");
+    CONSOLE_PRINTF("              load Java programming language agent, see java.lang.instrument\n");
 
-    CONSOLE_PRINTF(SysTraceFile,"\n For more information see http://jikesrvm.sourceforge.net\n");
+    CONSOLE_PRINTF("\n For more information see http://jikesrvm.sourceforge.net\n");
 
-    CONSOLE_PRINTF(SysTraceFile,"\n");
+    CONSOLE_PRINTF("\n");
 }
 
 /*
@@ -203,29 +203,29 @@ usage(void)
 static void
 nonstandard_usage()
 {
-    CONSOLE_PRINTF(SysTraceFile,"Usage: %s [options] class [args...]\n",Me);
-    CONSOLE_PRINTF(SysTraceFile,"          (to execute a class)\n");
-    CONSOLE_PRINTF(SysTraceFile,"where options include\n");
+    CONSOLE_PRINTF("Usage: %s [options] class [args...]\n",Me);
+    CONSOLE_PRINTF("          (to execute a class)\n");
+    CONSOLE_PRINTF("where options include\n");
     for (const char * const *msgp = nonStandardUsage; *msgp; ++msgp) {
-        CONSOLE_PRINTF(SysTraceFile, "%s\n", *msgp);
+        CONSOLE_PRINTF( "%s\n", *msgp);
     }
 }
 
 static void
 shortVersion()
 {
-    CONSOLE_PRINTF(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
+    CONSOLE_PRINTF( "%s %s\n",rvm_configuration, rvm_version);
 }
 
 static void
 fullVersion()
 {
     shortVersion();
-    CONSOLE_PRINTF(SysTraceFile, "\thost config: %s\n\ttarget config: %s\n",
+    CONSOLE_PRINTF( "\thost config: %s\n\ttarget config: %s\n",
             rvm_host_configuration, rvm_target_configuration);
-    CONSOLE_PRINTF(SysTraceFile, "\theap default initial size: %u MiBytes\n",
+    CONSOLE_PRINTF( "\theap default initial size: %u MiBytes\n",
             heap_default_initial_size/(1024*1024));
-    CONSOLE_PRINTF(SysTraceFile, "\theap default maximum size: %u MiBytes\n",
+    CONSOLE_PRINTF( "\theap default maximum size: %u MiBytes\n",
             heap_default_maximum_size/(1024*1024));
 }
 
@@ -299,14 +299,14 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                 ++endp;
 
             if (vb < 0) {
-                CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
+                CONSOLE_PRINTF("%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
                 *fastExit = true; break;
             } else if (errno == ERANGE
                        || vb > INT_MAX ) {
-                CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
+                CONSOLE_PRINTF("%s: \"%s\": too big a number to represent internally\n", Me, token);
                 *fastExit = true; break;
             } else if (*endp) {
-                CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
+                CONSOLE_PRINTF("%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
                 *fastExit = true; break;
             }
 
@@ -355,17 +355,17 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                     ++endp;
 
                 if (level < 0) {
-                    CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
+                    CONSOLE_PRINTF( "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
                     *fastExit = true;
                 } else if (errno == ERANGE || level > INT_MAX ) {
-                    CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
+                    CONSOLE_PRINTF( "%s: \"%s\": too big a number to represent internally\n", Me, token);
                     *fastExit = true;
                 } else if (*endp) {
-                    CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
+                    CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
                     *fastExit = true;
                 }
                 if (*fastExit) {
-                    CONSOLE_PRINTF(SysTraceFile, "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
+                    CONSOLE_PRINTF( "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
                     break;
                 }
             }
@@ -375,12 +375,12 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             char *buf = (char *) malloc(bufsiz);
             int ret = snprintf(buf, bufsiz, "-X:gc:verbose=%ld", level);
             if (ret < 0) {
-                CONSOLE_PRINTF(stderr, "%s: Internal error processing the argument"
+                ERROR_PRINTF("%s: Internal error processing the argument"
                         " \"%s\"\n", Me, token);
                 exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
             }
             if ((unsigned) ret >= bufsiz) {
-                CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": %ld is too big a number"
+                ERROR_PRINTF( "%s: \"%s\": %ld is too big a number"
                         " to process internally\n", Me, token, level);
                 *fastExit = true;
                 break;
@@ -414,12 +414,12 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             subtoken = token + 14;
             FILE* ftmp = fopen(subtoken, "a");
             if (!ftmp) {
-                CONSOLE_PRINTF(SysTraceFile, "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
+                CONSOLE_PRINTF( "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
                 *fastExit = true;
                 break;
                 continue;
             }
-            CONSOLE_PRINTF(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
+            CONSOLE_PRINTF( "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
             SysTraceFile = ftmp;
             continue;
         }
@@ -495,7 +495,7 @@ main(int argc, const char **argv)
     ++argv, --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
-    
+
     setvbuf(stdout,NULL,_IONBF,0);
     setvbuf(stderr,NULL,_IONBF,0);
 
@@ -539,7 +539,7 @@ main(int argc, const char **argv)
     }
 
     if (maximumHeapSize < initialHeapSize) {
-        CONSOLE_PRINTF(SysTraceFile, "%s: maximum heap size %lu MiB is less than initial heap size %lu MiB\n",
+        CONSOLE_PRINTF( "%s: maximum heap size %lu MiB is less than initial heap size %lu MiB\n",
                 Me, (unsigned long) maximumHeapSize/(1024*1024),
                 (unsigned long) initialHeapSize/(1024*1024));
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
@@ -558,17 +558,17 @@ main(int argc, const char **argv)
     }
 
     if (!bootCodeFilename) {
-        CONSOLE_PRINTF(SysTraceFile, "%s: please specify name of boot image code file using \"-X:ic=<filename>\"\n", Me);
+        CONSOLE_PRINTF( "%s: please specify name of boot image code file using \"-X:ic=<filename>\"\n", Me);
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
     if (!bootDataFilename) {
-        CONSOLE_PRINTF(SysTraceFile, "%s: please specify name of boot image data file using \"-X:id=<filename>\"\n", Me);
+        CONSOLE_PRINTF( "%s: please specify name of boot image data file using \"-X:id=<filename>\"\n", Me);
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
     if (!bootRMapFilename) {
-        CONSOLE_PRINTF(SysTraceFile, "%s: please specify name of boot image ref map file using \"-X:ir=<filename>\"\n", Me);
+        CONSOLE_PRINTF( "%s: please specify name of boot image ref map file using \"-X:ir=<filename>\"\n", Me);
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
@@ -579,7 +579,7 @@ main(int argc, const char **argv)
 
     int ret = createVM();
     if (ret == 1) {
-	CONSOLE_PRINTF(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
+	ERROR_PRINTF("%s: Could not create the virtual machine; goodbye\n", Me);
 	exit(EXIT_STATUS_MISC_TROUBLE);
     }
     return 0; // this thread dies, but VM keeps running
@@ -629,7 +629,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                                    of the prototype. */
     userNum = strtold(subtoken, &endp);
     if (endp == subtoken) {
-        CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
+        CONSOLE_PRINTF( "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
         *fastExit = true;
     }
 
@@ -648,7 +648,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     } else if ( endp[1] == '\0' ) {
         factorStr = endp;
     } else {
-        CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
+        CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
                 " unit of memory size\n", Me, token, endp);
         *fastExit = true;
     }
@@ -660,7 +660,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         else if (e == 'k' || e == 'K') factor = 1024.0;
         else if (e == '\0') factor = 1.0;
         else {
-            CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
+            CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
                     " unit of memory size\n", Me, token, factorStr);
             *fastExit = true;
         }
@@ -669,10 +669,10 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     // Note: on underflow, strtod() returns 0.
     if (!*fastExit) {
         if (userNum <= 0.0) {
-            CONSOLE_PRINTF(SysTraceFile,
+            CONSOLE_PRINTF(
                     "%s: You may not specify a %s %s;\n",
                     Me, userNum < 0.0 ? "negative" : "zero", sizeName);
-            CONSOLE_PRINTF(SysTraceFile, "\tit just doesn't make any sense.\n");
+            CONSOLE_PRINTF( "\tit just doesn't make any sense.\n");
             *fastExit = true;
         }
     }
@@ -680,25 +680,25 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     if (!*fastExit) {
         if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) )
         {
-            CONSOLE_PRINTF(SysTraceFile, "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
+            CONSOLE_PRINTF( "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
             *fastExit = true;
         }
     }
 
     if (*fastExit) {
-        CONSOLE_PRINTF(SysTraceFile, "\tPlease specify %s as follows:\n", sizeName);
-        CONSOLE_PRINTF(SysTraceFile, "\t    in bytes, using \"-X%s<positive number>\",\n", sizeFlag);
-        CONSOLE_PRINTF(SysTraceFile, "\tor, in kilobytes, using \"-X%s<positive number>K\",\n", sizeFlag);
-        CONSOLE_PRINTF(SysTraceFile, "\tor, in virtual memory pages of %u bytes, using\n"
+        CONSOLE_PRINTF( "\tPlease specify %s as follows:\n", sizeName);
+        CONSOLE_PRINTF( "\t    in bytes, using \"-X%s<positive number>\",\n", sizeFlag);
+        CONSOLE_PRINTF( "\tor, in kilobytes, using \"-X%s<positive number>K\",\n", sizeFlag);
+        CONSOLE_PRINTF( "\tor, in virtual memory pages of %u bytes, using\n"
                 "\t\t\"-X%s<positive number>pages\",\n", BYTES_IN_PAGE,
                 sizeFlag);
-        CONSOLE_PRINTF(SysTraceFile, "\tor, in megabytes, using \"-X%s<positive number>M\",\n", sizeFlag);
-        CONSOLE_PRINTF(SysTraceFile, "\tor, in gigabytes, using \"-X%s<positive number>G\"\n", sizeFlag);
-        CONSOLE_PRINTF(SysTraceFile, "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
+        CONSOLE_PRINTF( "\tor, in megabytes, using \"-X%s<positive number>M\",\n", sizeFlag);
+        CONSOLE_PRINTF( "\tor, in gigabytes, using \"-X%s<positive number>G\"\n", sizeFlag);
+        CONSOLE_PRINTF( "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
         if (roundTo != 1) {
-            CONSOLE_PRINTF(SysTraceFile, "  The # of bytes will be rounded up to a multiple of");
-            if (roundTo == BYTES_IN_PAGE) CONSOLE_PRINTF(SysTraceFile, "\n  the virtual memory page size: ");
-            CONSOLE_PRINTF(SysTraceFile, "%u\n", roundTo);
+            CONSOLE_PRINTF( "  The # of bytes will be rounded up to a multiple of");
+            if (roundTo == BYTES_IN_PAGE) CONSOLE_PRINTF( "\n  the virtual memory page size: ");
+            CONSOLE_PRINTF( "%u\n", roundTo);
         }
         return 0U;              // Distinguished value meaning trouble.
     }
@@ -709,7 +709,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     unsigned tot = (unsigned) tot_d;
     if (tot % roundTo) {
         unsigned newTot = tot + roundTo - (tot % roundTo);
-        CONSOLE_PRINTF(SysTraceFile,
+        CONSOLE_PRINTF(
                 "%s: Rounding up %s size from %u bytes to %u,\n"
                 "\tthe next multiple of %u bytes%s\n",
                 Me, sizeName, tot, newTot, roundTo,
@@ -735,9 +735,9 @@ void findMappable()
         void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
         int fail = (result == (void *) -1);
         if (fail) {
-            CONSOLE_PRINTF(SysTraceFile, "%p FAILED with errno %d: %s\n", start, errno, strerror(errno));
+            CONSOLE_PRINTF( "%p FAILED with errno %d: %s\n", start, errno, strerror(errno));
         } else {
-            CONSOLE_PRINTF(SysTraceFile, "%p SUCCESS\n", start);
+            CONSOLE_PRINTF( "%p SUCCESS\n", start);
             munmap(start, (size_t) pageSize);
         }
     }

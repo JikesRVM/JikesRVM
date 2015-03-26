@@ -29,7 +29,7 @@ void* checkMalloc(int length)
 {
     void *result=malloc(length);
     if (inRVMAddressSpace((Address)result)) {
-      CONSOLE_PRINTF(stderr,"malloc returned something that is in RVM address space: %p\n",result);
+      ERROR_PRINTF("malloc returned something that is in RVM address space: %p\n",result);
     }
     return result;
 }
@@ -38,7 +38,7 @@ void* checkCalloc(int numElements, int sizeOfOneElement)
 {
     void *result=calloc(numElements,sizeOfOneElement);
     if (inRVMAddressSpace((Address)result)) {
-      CONSOLE_PRINTF(stderr,"calloc returned something that is in RVM address space: %p\n",result);
+      ERROR_PRINTF("calloc returned something that is in RVM address space: %p\n",result);
     }
     return result;
 }
@@ -51,27 +51,27 @@ void checkFree(void* mem)
 /** Allocate memory. */
 EXTERNAL void * sysMalloc(int length)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysMalloc %d\n", Me, length);
+    TRACE_PRINTF("%s: sysMalloc %d\n", Me, length);
     return checkMalloc(length);
 }
 
 EXTERNAL void * sysCalloc(int length)
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysCalloc %d\n", Me, length);
+  TRACE_PRINTF("%s: sysCalloc %d\n", Me, length);
   return checkCalloc(1, length);
 }
 
 /** Release memory. */
 EXTERNAL void sysFree(void *location)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysFree %p\n", Me, location);
+    TRACE_PRINTF("%s: sysFree %p\n", Me, location);
     checkFree(location);
 }
 
 /* Zero a range of memory with non-temporal instructions on x86 */
 EXTERNAL void sysZeroNT(void *dst, Extent cnt)
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysZeroNT %p %d\n", Me, dst, cnt);
+  TRACE_PRINTF("%s: sysZeroNT %p %d\n", Me, dst, cnt);
 #ifdef RVM_FOR_SSE2
   char *buf = (char *) dst;
   unsigned int len = cnt;
@@ -118,7 +118,7 @@ EXTERNAL void sysZeroNT(void *dst, Extent cnt)
 /** Zero a range of memory bytes. */
 EXTERNAL void sysZero(void *dst, Extent cnt)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysZero %p %d\n", Me, dst, cnt);
+    TRACE_PRINTF("%s: sysZero %p %d\n", Me, dst, cnt);
     memset(dst, 0x00, cnt);
 }
 
@@ -136,7 +136,7 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
 // #define STRATEGY 2 /* for more realistic workload */
 // #define STRATEGY 3 /* as yet untested */
 
-    TRACE_PRINTF(SysTraceFile, "%s: sysZeroPages %p %d\n", Me, dst, cnt);
+    TRACE_PRINTF("%s: sysZeroPages %p %d\n", Me, dst, cnt);
 
 #if (STRATEGY == 1)
     // Zero memory by touching all the bytes.
@@ -157,7 +157,7 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
     int rc = munmap(dst, cnt);
     if (rc != 0)
     {
-        CONSOLE_PRINTF(SysErrorFile, "%s: munmap failed (errno=%d): ", Me, errno);
+        ERROR_PRINTF("%s: munmap failed (errno=%d): ", Me, errno);
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -165,7 +165,7 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
     void *addr = mmap(dst, cnt, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
     if (addr == (void *)-1)
     {
-        CONSOLE_PRINTF(SysErrorFile, "%s: mmap failed (errno=%d): ", Me, errno);
+        ERROR_PRINTF("%s: mmap failed (errno=%d): ", Me, errno);
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -182,7 +182,7 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
     int rc = disclaim((char *)dst, cnt, ZERO_MEM);
     if (rc != 0)
     {
-        CONSOLE_PRINTF(SysErrorFile, "%s: disclaim failed (errno=%d): ", Me, errno);
+        ERROR_PRINTF("%s: disclaim failed (errno=%d): ", Me, errno);
         perror(NULL);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
@@ -205,7 +205,7 @@ EXTERNAL void * sysMMap(char *start , size_t length ,
         int protection , int flags ,
         int fd , Offset offset)
 {
-   TRACE_PRINTF(SysTraceFile, "%s: sysMMap %p %zd %d %d %d %d\n",
+   TRACE_PRINTF("%s: sysMMap %p %zd %d %d %d %d\n",
                  Me, start, length, protection, flags, fd, offset);
    void *result=mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
    return result;
@@ -219,15 +219,15 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
         int protection , int flags ,
         int fd , Offset offset)
 {
-  TRACE_PRINTF(SysTraceFile, "%s: sysMMapErrno %p %d %d %d %d %d\n",
+  TRACE_PRINTF("%s: sysMMapErrno %p %d %d %d %d %d\n",
                Me, start, length, protection, flags, fd, offset);
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
-    CONSOLE_PRINTF(SysErrorFile, "%s: sysMMapErrno %p %d %d %d %d %d failed with %d.\n",
+    ERROR_PRINTF("%s: sysMMapErrno %p %d %d %d %d %d failed with %d.\n",
                    Me, start, length, protection, flags, fd, offset, errno);
     return (void *) errno;
   }else{
-    TRACE_PRINTF(SysTraceFile, "mmap succeeded- region = [%p ... %p]    size = %zd\n",
+    TRACE_PRINTF("mmap succeeded- region = [%p ... %p]    size = %zd\n",
                 res, (void*)(((size_t)res) + length), length);
     return res;
   }
@@ -242,7 +242,7 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
  */
 EXTERNAL int sysMProtect(char *start, size_t length, int prot)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysMProtect %p %zd %d\n",
+    TRACE_PRINTF("%s: sysMProtect %p %zd %d\n",
                  Me, start, length, prot);
     return mprotect(start, length, prot);
 }
@@ -254,21 +254,21 @@ EXTERNAL int sysMProtect(char *start, size_t length, int prot)
  */
 EXTERNAL int sysGetPageSize()
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysGetPageSize\n", Me);
+    TRACE_PRINTF("%s: sysGetPageSize\n", Me);
     return (int)(getpagesize());
 }
 
 /** Memory to memory copy. Memory regions must not overlap. */
 EXTERNAL void sysCopy(void *dst, const void *src, Extent cnt)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysCopy %p %p %d\n", Me, dst, src, cnt);
+    TRACE_PRINTF("%s: sysCopy %p %p %d\n", Me, dst, src, cnt);
     memcpy(dst, src, cnt);
 }
 
 /** Memory to memory copy. Memory regions may overlap. */
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sysMemmove %p %p %d\n", Me, dst, src, cnt);
+    TRACE_PRINTF("%s: sysMemmove %p %p %d\n", Me, dst, src, cnt);
     memmove(dst, src, cnt);
 }
 
@@ -288,14 +288,14 @@ EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt)
  */
 EXTERNAL void sysSyncCache(void *address, size_t size)
 {
-    TRACE_PRINTF(SysTraceFile, "%s: sync %p %zd\n", Me, address, size);
+    TRACE_PRINTF("%s: sync %p %zd\n", Me, address, size);
 
 #ifdef RVM_FOR_POWERPC
   #ifdef RVM_FOR_AIX
     _sync_cache_range((caddr_t) address, size);
   #else
     if (size < 0) {
-      CONSOLE_PRINTF(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
+      ERROR_PRINTF("%s: tried to sync a region of negative size!\n", Me);
       sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
