@@ -137,7 +137,7 @@
   <target name="test" depends="prepare-ant-tasks,ensure-mmtk-harness,init">
     <startResults/>
  
-    <!-- Run all scripts on the main threads -->
+    <!-- Run all scripts on the main collectors -->
     <runAllScripts tag="GenImmix"    plan="GenImmix"/>
     <runAllScripts tag="SemiSpace"   plan="SS"/>
     <runAllScripts tag="MarkSweep"   plan="MS"/>
@@ -145,7 +145,7 @@
     <runAllScripts tag="Poisoned"    plan="Poisoned"/>
     <runAllScripts tag="PrimitiveWB" plan="PrimitiveWB"/>
 
-    <!-- Run the faster scripts on the less mainstream threads -->
+    <!-- Run the faster scripts on the less mainstream collectors -->
     <runFastScripts tag="GenMS"            plan="GenMS"/>
     <runFastScripts tag="GenCopy"          plan="GenCopy"/>
     <runFastScripts tag="CopyMS-fast"      plan="MS"/>
@@ -155,18 +155,18 @@
     <runFastScripts tag="StickyImmix-fast" plan="StickyImmix"/>
     <runFastScripts tag="StickyMS-fast"    plan="StickyMS"/>
     
-    <!-- Run the multithreaded scripts on selected threads -->
+    <!-- Run the multithreaded scripts on selected collectors -->
     <runMtScripts tag="GenImmix-mt"    plan="GenImmix"/>
     <runMtScripts tag="GenMS-mt"       plan="GenMS"/>
     <runMtScripts tag="SemiSpace-mt"   plan="SS"/>
     <runMtScripts tag="MarkSweep-mt"   plan="MS"/>
     <runMtScripts tag="Immix-mt"       plan="Immix"/>
     
-    <!-- Run the multithreaded scripts on selected threads using the deterministic scheduler -->
+    <!-- Run the multithreaded scripts on selected collectors using the deterministic scheduler -->
     <runMtScripts tag="GenImmix-dt" scheduler="DETERMINISTIC" plan="GenImmix"/>
     <runMtScripts tag="GenMS-dt"    scheduler="DETERMINISTIC" plan="GenMS"/>
     
-    <!-- Run all scripts in 64-bit mode on the production threads -->
+    <!-- Run all scripts in 64-bit mode on the production collectors -->
     <runAllScripts tag="GenImmix-64"   bits="64" plan="GenImmix"/>
     <runAllScripts tag="GenMS-64"      bits="64" plan="GenMS"/>
     
