@@ -136,7 +136,7 @@
 
   <target name="test" depends="prepare-ant-tasks,ensure-mmtk-harness,init">
     <startResults/>
-
+ 
     <!-- Run all scripts on the main threads -->
     <runAllScripts tag="GenImmix"    plan="GenImmix"/>
     <runAllScripts tag="SemiSpace"   plan="SS"/>
@@ -165,11 +165,12 @@
     <!-- Run the multithreaded scripts on selected threads using the deterministic scheduler -->
     <runMtScripts tag="GenImmix-dt" scheduler="DETERMINISTIC" plan="GenImmix"/>
     <runMtScripts tag="GenMS-dt"    scheduler="DETERMINISTIC" plan="GenMS"/>
-    <finishResults/>
     
     <!-- Run all scripts in 64-bit mode on the production threads -->
     <runAllScripts tag="GenImmix-64"   bits="64" plan="GenImmix"/>
     <runAllScripts tag="GenMS-64"      bits="64" plan="GenMS"/>
+    
+    <finishResults/>
   </target>
 
 </project>
