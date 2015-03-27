@@ -36,10 +36,10 @@ public final class HeapLayoutConstants {
     Address.@_ADDRESS_METHOD_@( @_MAXIMUM_MAPPABLE_ADDRESS_@ );
 
   /** The maximum boot image data size */
-  public static final int BOOT_IMAGE_DATA_SIZE = 56<<20;
+  public static final int BOOT_IMAGE_DATA_SIZE = (BOOT_IMAGE_CODE_START.diff(BOOT_IMAGE_DATA_START).toInt());
 
   /** The maximum boot image code size */
-  public static final int BOOT_IMAGE_CODE_SIZE = 24<<20;
+  public static final int BOOT_IMAGE_CODE_SIZE = (BOOT_IMAGE_RMAP_START.diff(BOOT_IMAGE_CODE_START).toInt());
 
   /* Typical compression ratio is about 1/20 */
   public static final int BAD_MAP_COMPRESSION = 5;  // conservative heuristic
