@@ -96,6 +96,8 @@ Building Options:
      --clear-cc       Clear out the component caches
      --harmony        Build with harmony (instead of classpath)
      --answer-yes     Answer yes for all messages from the script that require confirmation. This option may be useful for headless builds.
+     --timestamp-file Print contents of the timestamp file at the beginning and end of the build 
+                        Note: Cross-building (i.e. different host and target is not supported by this option)
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -179,6 +181,7 @@ GetOptions(
   "ext-lib-dir=s" => \$extlibdir,
   "comp-cache-dir=s" => \$compcachedir,
   "clear-cc" => \$clearcc,
+  "timestamp-file=s" => \$timestampfile,
   "e|email-report" => \$email_report) or bad_usage();
 
 if ($with_acheck) {
@@ -581,6 +584,17 @@ if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
 }
 
 #
+# Timestamp (pre-build)
+#
+if ($timestampfile ne "") {
+  $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (pre build): \"; cat $timestampfile ; echo \n'";
+  print "$timestampCmd\n";
+  if (! $dry_run) {
+    system ($timestampCmd);
+  }
+}
+
+#
 # Clean up first ?
 #
 if ($nuke && $target ne $local) {
@@ -923,6 +937,17 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   print "$rsync\n";
   if(! $dry_run) {
     system($rsync);
+  }
+}
+
+#
+# Timestamp (post-build)
+#
+if ($timestampfile ne "") {
+  # timestampCmd is still set from pre-build
+  $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (post build): \"; cat $timestampfile ; echo \n'";
+  if (! $dry_run) {
+    system ($timestampCmd);
   }
 }
 
