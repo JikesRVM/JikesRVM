@@ -12,21 +12,19 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.HeapLayoutConstants.MAXIMUM_MAPPABLE;
-
 import static org.mmtk.utility.Constants.LOG_BYTES_IN_MBYTE;
 
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.SizeConstants;
-
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -44,7 +42,7 @@ import org.vmmagic.pragma.*;
   @Override
   protected final Address getHeapEndConstant() { return MAXIMUM_MAPPABLE; }
   @Override
-  protected final Address getAvailableStartConstant() { return BOOT_IMAGE_CODE_END; }
+  protected final Address getAvailableStartConstant() { return BOOT_IMAGE_END; }
   @Override
   protected final Address getAvailableEndConstant() { return MAXIMUM_MAPPABLE; }
   @Override
@@ -66,9 +64,13 @@ import org.vmmagic.pragma.*;
 
   private static ImmortalSpace bootSpace;
 
-  /* FIXME the following was established via trial and error :-( */
-  //  private static int BOOT_SEGMENT_MB = 4+(BOOT_IMAGE_SIZE.toInt()>>LOG_BYTES_IN_MBYTE);
-  private static int BOOT_SEGMENT_MB = (0x10000000>>LOG_BYTES_IN_MBYTE);
+  private static final int BOOT_SEGMENT_MB;
+
+  static {
+    Offset bootSegmentBytes = BOOT_IMAGE_END.diff(BOOT_IMAGE_DATA_START);
+    BOOT_SEGMENT_MB = org.jikesrvm.runtime.Memory.alignUp(bootSegmentBytes.toInt(),
+        Space.BYTES_IN_CHUNK) >>> LOG_BYTES_IN_MBYTE;
+  }
 
   /**
    * Return the space associated with/reserved for the VM.  In the
