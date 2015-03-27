@@ -56,7 +56,7 @@
     <attribute name="plan" default="org.mmtk.plan.nogc.NoGC"/>
     <attribute name="scheduler" default="JAVA"/>
     <attribute name="gcevery" default="NONE"/>
-    <attribute name="collectors" default="2"/>
+    <attribute name="threads" default="2"/>
     <attribute name="bits" default="32"/>
     <sequential>
       <property name="test.@{tag}.@{script}.output.file" value="${output.dir}/@{tag}.@{script}.txt"/>
@@ -72,7 +72,7 @@
         <arg value="scheduler=@{scheduler}"/>
         <arg value="plan=@{plan}"/>
         <arg value="gcEvery=@{gcevery}"/>
-        <arg value="collectors=@{collectors}"/>
+        <arg value="threads=@{threads}"/>
         <arg value="bits=@{bits}"/>
       </java>
       <findStatistic tag="@{tag}" file="${test.@{tag}.@{script}.output.file}" execution="@{script}" pattern="SUCCESS" key="success"/>
@@ -127,17 +127,17 @@
     <attribute name="plan"/>
     <attribute name="scheduler" default="JAVA"/>
     <sequential>
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent1" collectors="8"/>      
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent2" collectors="8"/>
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Spawn" collectors="4"/>
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="SpreadAlloc16" collectors="16"/>
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent1" threads="8"/>      
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent2" threads="8"/>
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Spawn" threads="4"/>
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="SpreadAlloc16" threads="16"/>
     </sequential>
   </macrodef>
 
   <target name="test" depends="prepare-ant-tasks,ensure-mmtk-harness,init">
     <startResults/>
 
-    <!-- Run all scripts on the main collectors -->
+    <!-- Run all scripts on the main threads -->
     <runAllScripts tag="GenImmix"    plan="GenImmix"/>
     <runAllScripts tag="SemiSpace"   plan="SS"/>
     <runAllScripts tag="MarkSweep"   plan="MS"/>
@@ -145,7 +145,7 @@
     <runAllScripts tag="Poisoned"    plan="Poisoned"/>
     <runAllScripts tag="PrimitiveWB" plan="PrimitiveWB"/>
 
-    <!-- Run the faster scripts on the less mainstream collectors -->
+    <!-- Run the faster scripts on the less mainstream threads -->
     <runFastScripts tag="GenMS"            plan="GenMS"/>
     <runFastScripts tag="GenCopy"          plan="GenCopy"/>
     <runFastScripts tag="CopyMS-fast"      plan="MS"/>
@@ -155,19 +155,19 @@
     <runFastScripts tag="StickyImmix-fast" plan="StickyImmix"/>
     <runFastScripts tag="StickyMS-fast"    plan="StickyMS"/>
     
-    <!-- Run the multithreaded scripts on selected collectors -->
+    <!-- Run the multithreaded scripts on selected threads -->
     <runMtScripts tag="GenImmix-mt"    plan="GenImmix"/>
     <runMtScripts tag="GenMS-mt"       plan="GenMS"/>
     <runMtScripts tag="SemiSpace-mt"   plan="SS"/>
     <runMtScripts tag="MarkSweep-mt"   plan="MS"/>
     <runMtScripts tag="Immix-mt"       plan="Immix"/>
     
-    <!-- Run the multithreaded scripts on selected collectors using the deterministic scheduler -->
+    <!-- Run the multithreaded scripts on selected threads using the deterministic scheduler -->
     <runMtScripts tag="GenImmix-dt" scheduler="DETERMINISTIC" plan="GenImmix"/>
     <runMtScripts tag="GenMS-dt"    scheduler="DETERMINISTIC" plan="GenMS"/>
     <finishResults/>
     
-    <!-- Run all scripts in 64-bit mode on the production collectors -->
+    <!-- Run all scripts in 64-bit mode on the production threads -->
     <runAllScripts tag="GenImmix-64"   bits="64" plan="GenImmix"/>
     <runAllScripts tag="GenMS-64"      bits="64" plan="GenMS"/>
   </target>
