@@ -270,7 +270,6 @@
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
       <sequential>
-        <ant antfile="build/components/ecj.xml" target="ensure"/>
         <ant antfile="build/components/classpath.xml" target="ensure"/>
       </sequential>
     </if>

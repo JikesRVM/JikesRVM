@@ -154,7 +154,7 @@ public class ThreadQueue {
         " from queue!");
     dump();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return false; // make javac happy
+    return false;
   }
 
   public boolean isQueued(RVMThread t) {

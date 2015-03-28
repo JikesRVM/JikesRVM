@@ -27,10 +27,8 @@ public class JikesRVMSupport {
     return new Method(new VMMethod(m));
   }
 
-  //Can't type-check this without <T> type<T>, which breaks javac
-  @SuppressWarnings("unchecked")
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
-    return new Constructor(new VMConstructor(m));
+    return new Constructor<T>(new VMConstructor(m));
   }
 
   public static VMConstructor createVMConstructor(RVMMethod m) {
