@@ -400,6 +400,7 @@ public class VM extends Properties {
     runClassInitializer("java.lang.annotation.ElementType");
     runClassInitializer("java.lang.Thread$State");
     if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.VMClassLoader");
     }
 
@@ -422,7 +423,6 @@ public class VM extends Properties {
 
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
-      runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.reflect.Proxy");
       runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
     }
