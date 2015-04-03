@@ -213,6 +213,8 @@ public final class RVMThread extends ThreadContext {
    * definitions for thread status for interaction of Java-native transitions
    * and requests for threads to stop.  THESE ARE PRIVATE TO THE SCHEDULER, and
    * are only used deep within the stack.
+   * Note: If you change the assignments, update READABLE_EXEC_STATUS to ensure
+   * correct debug output.
    */
   /**
    * Thread has not yet started. This state holds right up until just before we
@@ -293,6 +295,10 @@ public final class RVMThread extends ThreadContext {
 
   /** Not actually a state but just a marker. */
   public static final int LAST_EXEC_STATUS = 8;
+
+  private static final String[] READABLE_EXEC_STATUS =
+    {"NEW", "IN_JAVA", "IN_NATIVE", "IN_JNI", "IN_JAVA_TO_BLOCK",
+      "BLOCKED_IN_NATIVE", "BLOCKED_IN_JNI", "TERMINATED", "LAST_EXEC_STATUS"};
 
   public static boolean notRunning(int state) {
     return state == NEW || state == TERMINATED;
@@ -1298,8 +1304,8 @@ public final class RVMThread extends ThreadContext {
       int curStatus=getExecStatus();
       if (curStatus!=expected) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state.");
-        VM.sysWriteln("Expected: ",expected);
-        VM.sysWriteln("Observed: ",curStatus);
+        VM.sysWriteln("Expected: ",READABLE_EXEC_STATUS[expected]);
+        VM.sysWriteln("Observed: ",READABLE_EXEC_STATUS[curStatus]);
         VM._assert(curStatus==expected);
       }
     }
@@ -1311,9 +1317,9 @@ public final class RVMThread extends ThreadContext {
       if (curStatus!=expected1 &&
           curStatus!=expected2) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state.");
-        VM.sysWriteln("Expected: ",expected1);
-        VM.sysWriteln("      or: ",expected2);
-        VM.sysWriteln("Observed: ",curStatus);
+        VM.sysWriteln("Expected: ",READABLE_EXEC_STATUS[expected1]);
+        VM.sysWriteln("      or: ",READABLE_EXEC_STATUS[expected2]);
+        VM.sysWriteln("Observed: ",READABLE_EXEC_STATUS[curStatus]);
         VM._assert(curStatus==expected1 ||
                    curStatus==expected2);
       }
@@ -1325,8 +1331,8 @@ public final class RVMThread extends ThreadContext {
       int curStatus=getExecStatus();
       if (curStatus==unexpected) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state.");
-        VM.sysWriteln("Unexpected: ",unexpected);
-        VM.sysWriteln("  Observed: ",curStatus);
+        VM.sysWriteln("Unexpected: ",READABLE_EXEC_STATUS[unexpected]);
+        VM.sysWriteln("  Observed: ",READABLE_EXEC_STATUS[curStatus]);
         VM._assert(curStatus!=unexpected);
       }
     }
@@ -1338,9 +1344,9 @@ public final class RVMThread extends ThreadContext {
       if (curStatus==unexpected1 ||
           curStatus==unexpected2) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state for thread", threadSlot);
-        VM.sysWriteln("Unexpected: ",unexpected1);
-        VM.sysWriteln("       and: ",unexpected2);
-        VM.sysWriteln("  Observed: ",curStatus);
+        VM.sysWriteln("Unexpected: ",READABLE_EXEC_STATUS[unexpected1]);
+        VM.sysWriteln("       and: ",READABLE_EXEC_STATUS[unexpected2]);
+        VM.sysWriteln("  Observed: ",READABLE_EXEC_STATUS[curStatus]);
         VM._assert(curStatus!=unexpected1 &&
                    curStatus!=unexpected2);
       }
@@ -1839,7 +1845,8 @@ public final class RVMThread extends ThreadContext {
       if (traceReallyBlock) {
         hadReallyBlocked=true;
         VM.sysWriteln("Thread #", threadSlot,
-                      " is really blocked with status ", getExecStatus());
+                      " is really blocked with status ",
+                      READABLE_EXEC_STATUS[getExecStatus()]);
         VM.sysWriteln("Thread #", threadSlot,
             " has fp = ", Magic.getFramePointer());
         if (dumpStackOnBlock) {
@@ -2045,7 +2052,7 @@ public final class RVMThread extends ThreadContext {
       VM.sysWriteln("Thread #", t.getThreadSlot(),
           " in leaveJNIBlockedFromJNIFunctionCall");
       VM.sysWriteln("thread address = ",Magic.objectAsAddress(t));
-      VM.sysWriteln("state = ", t.getExecStatus());
+      VM.sysWriteln("state = ", READABLE_EXEC_STATUS[t.getExecStatus()]);
       VM.sysWriteln("jtoc = ", Magic.getJTOC());
     }
     t.leaveJNIBlocked();
@@ -2061,7 +2068,7 @@ public final class RVMThread extends ThreadContext {
     if (traceReallyBlock) {
       VM.sysWriteln("Thread #", t.getThreadSlot(),
           " in leaveJNIBlockedFromCallIntoNative");
-      VM.sysWriteln("state = ", t.getExecStatus());
+      VM.sysWriteln("state = ", READABLE_EXEC_STATUS[t.getExecStatus()]);
       VM.sysWriteln("jtoc = ", Magic.getJTOC());
     }
     t.leaveJNIBlocked();
@@ -2161,7 +2168,7 @@ public final class RVMThread extends ThreadContext {
                 monitor().timedWaitRelativeNoHandshake(1000L * 1000L * 1000L); // 1 sec
                 if (traceReallyBlock) {
                   VM.sysWriteln("Thread #", threadSlot, "'s status is ",
-                                getExecStatus());
+                      READABLE_EXEC_STATUS[getExecStatus()]);
                 }
                 assertUnacceptableStates(IN_NATIVE);
               } else {
@@ -4848,7 +4855,7 @@ public final class RVMThread extends ThreadContext {
     if (t == null) {
       VM.sysWrite("none");
     } else {
-      VM.sysWrite(t.threadSlot, "(", t.getExecStatus());
+      VM.sysWrite(t.threadSlot, "(", READABLE_EXEC_STATUS[t.getExecStatus()]);
       if (t.isAboutToTerminate) {
         VM.sysWrite("T");
       }
@@ -5024,7 +5031,7 @@ public final class RVMThread extends ThreadContext {
       offset = Services.sprintf(dest, offset, "-collector"); // gc thread?
     }
     offset = Services.sprintf(dest, offset, "-");
-    offset = Services.sprintf(dest, offset, getExecStatus());
+    offset = Services.sprintf(dest, offset, READABLE_EXEC_STATUS[getExecStatus()]);
     offset = Services.sprintf(dest, offset, "-");
     offset = Services.sprintf(dest, offset, java.lang.JikesRVMSupport
         .getEnumName(waiting));

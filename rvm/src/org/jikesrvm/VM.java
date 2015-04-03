@@ -1674,6 +1674,17 @@ public class VM extends Properties {
   }
 
   @NoInline
+  public static void sysWriteln(String s1, int i1, String s2, String s3) {
+    swLock();
+    write(s1);
+    write(i1);
+    write(s2);
+    write(s3);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
   public static void sysWrite(String s1, String s2, String s3, String s4) {
     swLock();
     write(s1);
