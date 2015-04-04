@@ -81,17 +81,7 @@ public final class VMThrowable {
     }
     if (VM.fullyBooted) {
       try {
-        StackTraceElement[] elements = new StackTraceElement[vmElements.length];
-        for (int i=0; i < vmElements.length; i++) {
-          StackTrace.Element vmElement = vmElements[i];
-          String fileName = vmElement.getFileName();
-          int lineNumber = vmElement.getLineNumber();
-          String className = vmElement.getClassName();
-          String methodName = vmElement.getMethodName();
-          boolean isNative = vmElement.isNative();
-          elements[i] = new StackTraceElement(fileName, lineNumber, className, methodName, isNative);
-        }
-        return elements;
+        return JikesRVMSupport.convertToJavaClassLibraryStackTrace(vmElements);
       } catch (Throwable t) {
         VM.sysWriteln("Error constructing StackTraceElements: dumping stack");
       }
@@ -127,4 +117,5 @@ public final class VMThrowable {
     }
     return zeroLengthStackTrace;
   }
+
 }

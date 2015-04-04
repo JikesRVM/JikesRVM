@@ -15,6 +15,7 @@ package org.jikesrvm.runtime;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 
+import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.Options;
 import org.jikesrvm.classloader.Atom;
@@ -50,11 +51,24 @@ public class StackTrace {
   private static int lastTraceIndex = 0;
 
   /**
-   * Create a trace for the call stack of RVMThread.getThreadForStackTrace
-   * (normally the current thread unless we're in GC)
+   * Create a trace for the call stack of the current thread
    */
   @NoInline
   public StackTrace() {
+    this(RVMThread.getCurrentThread());
+  }
+
+  /**
+   * Constructs a stack trace.
+   * <p>
+   * Note: no inlining directives here because they aren't necessary for correctness.
+   * This class removes all frames belonging to its methods.
+   *
+   * @param rvmThread the thread whose stack is examined. It is the caller's
+   *  responsibility to block that thread if required.
+   */
+  public StackTrace(RVMThread rvmThread) {
+    assertThreadBlockedOrCurrent(rvmThread);
     boolean isVerbose = false;
     int traceIndex = 0;
     if (VM.VerifyAssertions && VM.VerboseStackTracePeriod > 0) {
@@ -64,14 +78,13 @@ public class StackTrace {
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
     }
-    RVMThread t = RVMThread.getCurrentThread();
     // (1) Count the number of frames comprising the stack.
-    int numFrames = countFramesUninterruptible(t);
+    int numFrames = countFramesUninterruptible(rvmThread);
     // (2) Construct arrays to hold raw data
     compiledMethods = new int[numFrames];
     instructionOffsets = new int[numFrames];
     // (3) Fill in arrays
-    recordFramesUninterruptible(t);
+    recordFramesUninterruptible(rvmThread);
     // Debugging trick: print every nth stack trace created
     if (isVerbose) {
       VM.disableGC();
@@ -79,6 +92,22 @@ public class StackTrace {
       RVMThread.dumpStack();
       VM.sysWriteln("END Verbosely dumping stack at time of creating StackTrace # ", traceIndex, " ]");
       VM.enableGC();
+    }
+  }
+
+  private void assertThreadBlockedOrCurrent(RVMThread rvmThread) {
+    if (VM.VerifyAssertions) {
+      if (rvmThread != RVMThread.getCurrentThread()) {
+        rvmThread.monitor().lockNoHandshake();
+        boolean blocked = rvmThread.isBlocked();
+        rvmThread.monitor().unlock();
+        if (!blocked) {
+          String msg = "Can only dump stack of blocked threads if not dumping" +
+              " own stack but thread " +  rvmThread + " was in state " +
+              rvmThread.getExecStatus() + " and wasn't blocked!";
+          VM._assert(VM.NOT_REACHED, msg);
+        }
+      }
     }
   }
 
@@ -95,8 +124,13 @@ public class StackTrace {
   private int countFramesUninterruptible(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     Address fp;
-    /* Stack trace for the current thread */
-    fp = Magic.getFramePointer();
+    /* Stack trace for the thread */
+    if (stackTraceThread == RVMThread.getCurrentThread()) {
+      fp = Magic.getFramePointer();
+    } else {
+      Registers contextRegisters = stackTraceThread.getContextRegisters();
+      fp =  contextRegisters.fp;
+    }
     fp = Magic.getCallerFramePointer(fp);
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = Magic.getCompiledMethodID(fp);
@@ -130,8 +164,13 @@ public class StackTrace {
     int stackFrameCount = 0;
     Address fp;
     Address ip;
-    /* Stack trace for the current thread */
-    fp = Magic.getFramePointer();
+    /* Stack trace for the thread */
+    if (stackTraceThread == RVMThread.getCurrentThread()) {
+      fp = Magic.getFramePointer();
+    } else {
+      Registers contextRegisters = stackTraceThread.getContextRegisters();
+      fp =  contextRegisters.fp;
+    }
     ip = Magic.getReturnAddress(fp);
     fp = Magic.getCallerFramePointer(fp);
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
@@ -274,6 +313,11 @@ public class StackTrace {
   public Element[] getStackTrace(Throwable cause) {
     int first = firstRealMethod(cause);
     int last = lastRealMethod(first);
+    Element[] elements = buildStackTrace(first, last);
+    return elements;
+  }
+
+  private Element[] buildStackTrace(int first, int last) {
     Element[] elements = new Element[countFrames(first, last)];
     if (!VM.BuildForOptCompiler) {
       int element = 0;
@@ -420,12 +464,9 @@ public class StackTrace {
       }
 
       // (1) remove any StackTrace frames
-      while((element < compiledMethods.length) &&
-            (compiledMethod != null) &&
-            compiledMethod.getMethod().getDeclaringClass().getClassForType() == StackTrace.class) {
-        element++;
-        compiledMethod = getCompiledMethod(element);
-      }
+      element = removeStackTraceFrames(element);
+      compiledMethod = getCompiledMethod(element);
+
       // (2) remove any VMThrowable frames
       if (VM.BuildForGnuClasspath) {
         while((element < compiledMethods.length) &&
@@ -473,6 +514,39 @@ public class StackTrace {
       return element;
     }
   }
+
+  /**
+   * Finds the first non-VM method in the stack trace. In this case, the assumption
+   * is that no exception occurred which makes the job of this method much easier
+   * than of {@link #firstRealMethod(Throwable)}: it is only necessary to skip
+   * frames from this class.
+   *
+   * @return the index of the method or else 0
+   */
+  private int firstRealMethod() {
+    return removeStackTraceFrames(0);
+  }
+
+  /**
+   * Removes all frames from the StackTrace class (i.e. this class) from
+   * the stack trace by skipping them.
+   * <p>
+   * Note: Callers must update all data relating to the element index themselves.
+   *
+   * @param element the element index
+   * @return an updated element index
+   */
+  private int removeStackTraceFrames(int element) {
+    CompiledMethod compiledMethod = getCompiledMethod(element);
+    while((element < compiledMethods.length) &&
+          (compiledMethod != null) &&
+          compiledMethod.getMethod().getDeclaringClass().getClassForType() == StackTrace.class) {
+      element++;
+      compiledMethod = getCompiledMethod(element);
+    }
+    return element;
+  }
+
   /**
    * Find the first non-VM method at the end of the stack trace
    * @param first the first real method of the stack trace
@@ -522,5 +596,25 @@ public class StackTrace {
       return max;
     }
   }
+
+  /**
+   * Gets a stack trace at the current point in time, assuming the thread didn't
+   * throw any exception.
+   *
+   * @param framesToSkip count of frames to skip. Note: frames from this class are always
+   * skipped and thus not included in the count. For example, if the caller were
+   * {@code foo()} and you wanted to skip {@code foo}'s frame, you would pass
+   * {@code 1}.
+   *
+   * @return a stack trace
+   */
+  public Element[] stackTraceNoException(int framesToSkip) {
+    if (VM.VerifyAssertions) VM._assert(framesToSkip >= 0, "Cannot skip negative amount of frames");
+    int first = firstRealMethod();
+    first += framesToSkip;
+    int last = lastRealMethod(first);
+    return buildStackTrace(first, last);
+  }
+
 }
 
