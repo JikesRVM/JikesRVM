@@ -3437,7 +3437,7 @@ public final class RVMThread extends ThreadContext {
       }
       waiting = Waiting.RUNNABLE;
       if (STATS) {
-        totalWaitTime += (System.currentTimeMillis() - waitTimeStart);
+        totalWaitTime += (sysCall.sysCurrentTimeMillis() - waitTimeStart);
       }
     }
     // check if we should exit in a special way
