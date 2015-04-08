@@ -2247,7 +2247,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       if (VM.BuildFor32Addr) {
         asm.emitPUSH_RegOff(T0, BYTE, Magic.getTocPointer().toWord().toOffset());
       } else {
-        asm.emitMOV_Reg_RegOff(T0, T0, BYTE, Magic.getTocPointer().toWord().toOffset());
+        asm.emitMOV_Reg_RegOff_Quad(T0, T0, BYTE, Magic.getTocPointer().toWord().toOffset());
         asm.emitPUSH_Reg(T0);
       }
     } else { // field is two words (double or long)
