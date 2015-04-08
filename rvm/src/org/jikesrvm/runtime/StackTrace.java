@@ -129,7 +129,7 @@ public class StackTrace {
       fp = Magic.getFramePointer();
     } else {
       Registers contextRegisters = stackTraceThread.getContextRegisters();
-      fp =  contextRegisters.fp;
+      fp =  contextRegisters.getInnermostFramePointer();
     }
     fp = Magic.getCallerFramePointer(fp);
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
@@ -169,7 +169,7 @@ public class StackTrace {
       fp = Magic.getFramePointer();
     } else {
       Registers contextRegisters = stackTraceThread.getContextRegisters();
-      fp =  contextRegisters.fp;
+      fp =  contextRegisters.getInnermostFramePointer();
     }
     ip = Magic.getReturnAddress(fp);
     fp = Magic.getCallerFramePointer(fp);
