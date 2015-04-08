@@ -74,8 +74,7 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
 
     sp = sp.minus(SizeConstants.BYTES_IN_ADDRESS);                                 // allow for one local
     contextRegisters.gprs.set(ESP.value(), sp.toWord());
-    contextRegisters.fp = fp;
-    contextRegisters.ip = ip;
+    contextRegisters.setInnermost(ip, fp);
   }
 
   /* unique to IA */
