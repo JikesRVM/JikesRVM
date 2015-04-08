@@ -131,7 +131,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator {
    */
   @Override
   public Address getFirstSpillLoc() {
-    return framePtr.minus(-StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
+    return framePtr.plus(StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
   }
 
   /**

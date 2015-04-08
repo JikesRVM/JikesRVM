@@ -55,6 +55,10 @@ public final class Offset {
     return null;
   }
 
+  public Offset plus(Offset off2) {
+    return null;
+  }
+
   public Offset minus(int byteSize) {
     return null;
   }

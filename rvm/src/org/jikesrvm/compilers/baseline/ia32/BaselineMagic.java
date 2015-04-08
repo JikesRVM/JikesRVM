@@ -1567,6 +1567,7 @@ final class BaselineMagic {
     generators.put(getMethodReference(Address.class, MagicNames.wordPlus, Offset.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordPlus, Extent.class, Address.class), g);
     generators.put(getMethodReference(Extent.class, MagicNames.wordPlus, Extent.class, Extent.class), g);
+    generators.put(getMethodReference(Offset.class, MagicNames.wordPlus, Offset.class, Offset.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Word.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Offset.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordPlus, Extent.class, Word.class), g);
@@ -2090,9 +2091,9 @@ final class BaselineMagic {
   }
   static {
     generators.put(getMethodReference(Magic.class, MagicNames.getCallerFramePointer, Address.class, Address.class),
-        new GetValueAtDisplacement(Offset.fromIntSignExtend(STACKFRAME_FRAME_POINTER_OFFSET)));
+        new GetValueAtDisplacement(STACKFRAME_FRAME_POINTER_OFFSET));
     generators.put(getMethodReference(Magic.class, MagicNames.getCompiledMethodID, Address.class, int.class),
-        new GetValueAtDisplacement(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)));
+        new GetValueAtDisplacement(STACKFRAME_METHOD_ID_OFFSET));
     MagicGenerator g = new GetValueAtDisplacement(ObjectModel.getArrayLengthOffset());
     generators.put(getMethodReference(Magic.class, MagicNames.getArrayLength, Object.class, int.class), g);
     Class<?>[] unboxedTypes = new Class<?>[]{AddressArray.class, CodeArray.class, ExtentArray.class, FunctionTable.class, IMT.class, ObjectReferenceArray.class, OffsetArray.class, TIB.class, WordArray.class};
@@ -2122,9 +2123,9 @@ final class BaselineMagic {
   }
   static {
     generators.put(getMethodReference(Magic.class, MagicNames.setCallerFramePointer, Address.class, Address.class, void.class),
-        new SetValueAtDisplacement(Offset.fromIntSignExtend(STACKFRAME_FRAME_POINTER_OFFSET)));
+        new SetValueAtDisplacement(STACKFRAME_FRAME_POINTER_OFFSET));
     generators.put(getMethodReference(Magic.class, MagicNames.setCompiledMethodID, Address.class, int.class, void.class),
-        new SetValueAtDisplacement(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)));
+        new SetValueAtDisplacement(STACKFRAME_METHOD_ID_OFFSET));
   }
 
   /**
@@ -2321,9 +2322,9 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       if (VM.BuildFor32Addr) {
-        asm.emitADD_RegInd_Imm(SP, STACKFRAME_RETURN_ADDRESS_OFFSET);
+        asm.emitADD_RegInd_Imm(SP, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt());
       } else {
-        asm.emitADD_RegInd_Imm_Quad(SP, STACKFRAME_RETURN_ADDRESS_OFFSET);
+        asm.emitADD_RegInd_Imm_Quad(SP, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt());
       }
     }
   }

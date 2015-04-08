@@ -80,7 +80,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   private final int parameterWords;
-  private int firstLocalOffset;
+  private Offset firstLocalOffset;
 
   static final Offset NO_SLOT = Offset.zero();
   static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
@@ -116,14 +116,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Uninterruptible
   public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
-    return offsetToLocation(getStartLocalOffset(m) -
-                            (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on Intel
+    // we currently do not use location arrays on Intel
+    return offsetToLocation(getStartLocalOffset(m).minus(index << LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
   public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
-    return offsetToLocation(getStartLocalOffset(m) -
-                            (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on Intel
+    // we currently do not use location arrays on Intel
+    return offsetToLocation(getStartLocalOffset(m).minus(index << LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
@@ -132,13 +132,19 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   @Uninterruptible
+  public static short offsetToLocation(Offset offset) {
+    return (short)-offset.toInt();
+  }
+
+
+  @Uninterruptible
   public static short offsetToLocation(int offset) {
     return (short)-offset;
   }
 
   @Uninterruptible
-  public static int getEmptyStackOffset(NormalMethod m) {
-    return getFirstLocalOffset(m) - (m.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
+  public static short getEmptyStackOffset(NormalMethod m) {
+    return (short)getFirstLocalOffset(m).minus(m.getLocalWords() << LG_WORDSIZE).plus(WORDSIZE).toInt();
   }
 
   /**
@@ -151,19 +157,19 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * @return offset of first parameter
    */
   @Uninterruptible
-  private static int getFirstLocalOffset(NormalMethod method) {
+  private static Offset getFirstLocalOffset(NormalMethod method) {
     if (method.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
-      return STACKFRAME_BODY_OFFSET - (JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
+      return STACKFRAME_BODY_OFFSET.minus(JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
     } else if (method.hasBaselineSaveLSRegistersAnnotation()) {
-      return STACKFRAME_BODY_OFFSET - (SAVED_GPRS_FOR_SAVE_LS_REGISTERS << LG_WORDSIZE);
+      return STACKFRAME_BODY_OFFSET.minus(SAVED_GPRS_FOR_SAVE_LS_REGISTERS << LG_WORDSIZE);
     } else {
-      return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
+      return STACKFRAME_BODY_OFFSET.minus(SAVED_GPRS << LG_WORDSIZE);
     }
   }
 
   @Uninterruptible
-  private static int getStartLocalOffset(NormalMethod method) {
-    return getFirstLocalOffset(method) + WORDSIZE;
+  private static Offset getStartLocalOffset(NormalMethod method) {
+    return getFirstLocalOffset(method).plus(WORDSIZE);
   }
 
   /**
@@ -3272,7 +3278,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       JNICompiler.generateGlueCodeForJNIMethod(asm, method, compiledMethod.getId());
       // set some constants for the code generation of the rest of the method
       // firstLocalOffset is shifted down because more registers are saved
-      firstLocalOffset = STACKFRAME_BODY_OFFSET - (JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
+      firstLocalOffset = STACKFRAME_BODY_OFFSET.minus(JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
     } else {
       /* paramaters are on the stack and/or in registers;  There is space
        * on the stack for all the paramaters;  Parameter slots in the
@@ -3300,7 +3306,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       /*
        * NOTE: until the end of the prologue SP holds the framepointer.
        */
-      if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET == -WORDSIZE);
+      if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET.toInt() == -WORDSIZE);
       asm.emitPUSH_Imm(compiledMethod.getId());
 
       /*
@@ -3350,7 +3356,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       }
 
       // copy registers to callee's stackframe
-      firstLocalOffset = STACKFRAME_BODY_OFFSET - savedRegistersSize;
+      firstLocalOffset = STACKFRAME_BODY_OFFSET.minus(savedRegistersSize);
       Offset firstParameterOffset = Offset.fromIntSignExtend(savedRegistersSize + STACKFRAME_HEADER_SIZE + (parameterWords << LG_WORDSIZE) - WORDSIZE);
       genParameterCopy(firstParameterOffset);
       int emptyStackOffset = (method.getLocalWords() << LG_WORDSIZE) - (parameterWords << LG_WORDSIZE);
@@ -4186,7 +4192,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * @return the SP offset
    */
   private Offset fp2spOffset(Offset offset) {
-    int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;
+    Offset offsetToFrameHead = Offset.fromIntSignExtend(stackHeights[biStart] << LG_WORDSIZE).minus(firstLocalOffset);
     return offset.plus(offsetToFrameHead);
   }
 
