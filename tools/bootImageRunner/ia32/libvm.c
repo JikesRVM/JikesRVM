@@ -175,7 +175,7 @@ bootThread (void *ip, void *tr, void *sp)
 
 #include <disasm.h>
 
-unsigned int
+Address
 getInstructionFollowing(unsigned int faultingInstructionAddress)
 {
     int Illegal = 0;
@@ -206,7 +206,7 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
 // alignment checking: helps with making decision when an alignment trap occurs
 #ifdef RVM_WITH_ALIGNMENT_CHECKING
 void
-getInstOpcode(unsigned int faultingInstructionAddress, char MnemonicBuffer[256])
+getInstOpcode(Address faultingInstructionAddress, char MnemonicBuffer[256])
 {
     int Illegal = 0;
     char HexBuffer[256], OperandBuffer[256];
@@ -315,7 +315,7 @@ vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
 #ifdef RVM_WITH_ALIGNMENT_CHECKING
 
 // these vars help implement the two-phase trap handler approach for alignment checking
-static unsigned int alignCheckHandlerJumpLocation = 0; //
+static Address alignCheckHandlerJumpLocation = 0; //
 static unsigned char alignCheckHandlerInstBuf[100]; // ought to be enough to hold two instructions :P
 
 // if enabled, print a character for each alignment trap (whether or not we ignore it)
@@ -340,7 +340,7 @@ int handleAlignmentTrap(int signo, void* context) {
       mcontext_t *mc = &(uc->uc_mcontext);      // machine context
       greg_t  *gregs = mc->gregs;               // general purpose registers
       // get the faulting IP
-      unsigned int localInstructionAddress     = gregs[REG_EIP];
+      Address localInstructionAddress     = gregs[REG_EIP];
 
       // decide what kind of alignment error this is and whether to ignore it;
       // if we ignore it, then the normal handler will take care of it
@@ -402,7 +402,7 @@ int handleAlignmentTrap(int signo, void* context) {
         alignCheckHandlerInstBuf[length + 1] = 0x43; // not sure which interrupt this is, but it works
         // save the next instruction
         gregs[REG_EFL] &= 0xfffbffff;
-        gregs[REG_EIP] = (unsigned int)(void*)alignCheckHandlerInstBuf;
+        gregs[REG_EIP] = (Address)(void*)alignCheckHandlerInstBuf;
         return 1;
       }
     }
@@ -440,7 +440,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     }
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
-    unsigned int localInstructionAddress;
+    Address localInstructionAddress;
 
     if (lib_verbose)
 	fprintf(SysTraceFile,"hardwareTrapHandler: thread = %p\n", getThreadId());
@@ -517,6 +517,15 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         writeErr("fs            0x%08x\n", IA32_FS(context));
         writeErr("gs            0x%08x\n", IA32_GS(context));
         writeErr("ss            0x%08x\n", IA32_SS(context));
+#else
+        writeErr("r8           0x%08x\n", IA32_R8(context));
+        writeErr("r9           0x%08x\n", IA32_R9(context));
+        writeErr("r10           0x%08x\n", IA32_R10(context));
+        writeErr("r11           0x%08x\n", IA32_R11(context));
+        writeErr("r12           0x%08x\n", IA32_R12(context));
+        writeErr("r13           0x%08x\n", IA32_R13(context));
+        writeErr("r14           0x%08x\n", IA32_R14(context));
+        writeErr("r15           0x%08x\n", IA32_R15(context));
 #endif
         writeErr("edi           0x%08x\n", IA32_EDI(context));
         writeErr("esi -- PR/VP  0x%08x\n", IA32_ESI(context));
@@ -636,8 +645,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
 
     int HardwareTrapMethodId = bootRecord->hardwareTrapMethodId;
-    unsigned int javaExceptionHandlerAddress =
-        *(unsigned int *) (localJTOC + bootRecord->deliverHardwareExceptionOffset);
+    Address javaExceptionHandlerAddress =
+        *(Address *) (localJTOC + bootRecord->deliverHardwareExceptionOffset);
 
     DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
@@ -708,6 +717,16 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     vmr_gprs[Constants_EBP] = IA32_EBP(context);
     vmr_gprs[Constants_ESI] = IA32_ESI(context);
     vmr_gprs[Constants_EDI] = IA32_EDI(context);
+#ifdef __x86_64__
+    vmr_gprs[Constants_R8]  = IA32_R8(context);
+    vmr_gprs[Constants_R9]  = IA32_R9(context);
+    vmr_gprs[Constants_R10] = IA32_R10(context);
+    vmr_gprs[Constants_R11] = IA32_R11(context);
+    vmr_gprs[Constants_R12] = IA32_R12(context);
+    vmr_gprs[Constants_R13] = IA32_R13(context);
+    vmr_gprs[Constants_R14] = IA32_R14(context);
+    vmr_gprs[Constants_R15] = IA32_R15(context);
+#endif //__x86_64__
 
     /* set the next instruction for the failing frame */
     instructionFollowing = getInstructionFollowing(localInstructionAddress);
@@ -855,27 +874,27 @@ softwareSignalHandler(int signo,
 
         DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
-        unsigned int localJTOC = VmToc;
+        Address localJTOC = VmToc;
         int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
 
         /* get the frame pointer from thread object  */
-        unsigned int localNativeThreadAddress       = IA32_ESI(context);
-        unsigned int localFrameAddress =
-            *(unsigned *) (localNativeThreadAddress + Thread_framePointer_offset);
+        Address localNativeThreadAddress       = IA32_ESI(context);
+        Address localFrameAddress =
+            *(Address *) (localNativeThreadAddress + Thread_framePointer_offset);
 
         /* setup stack frame to contain the frame pointer */
-        long unsigned int *sp = (long unsigned int *) IA32_ESP(context);
+        Address *sp = (Address *) IA32_ESP(context);
 
         /* put fp as a  parameter on the stack  */
         IA32_ESP(context) = IA32_ESP(context) - __SIZEOF_POINTER__;
-        sp = (long unsigned int *) IA32_ESP(context);
+        sp = (Address *) IA32_ESP(context);
         *sp = localFrameAddress;
         // must pass localFrameAddress in first param register!
         IA32_EAX(context) = localFrameAddress;
 
         /* put a return address of zero on the stack */
         IA32_ESP(context) = IA32_ESP(context) - __SIZEOF_POINTER__;
-        sp = (long unsigned int *) IA32_ESP(context);
+        sp = (Address *) IA32_ESP(context);
         *sp = 0;
 
         /* goto dumpStackAndDie routine (in Scheduler) as if called */
