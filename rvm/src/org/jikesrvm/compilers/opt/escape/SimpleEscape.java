@@ -345,7 +345,7 @@ class SimpleEscape extends CompilerPhase {
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
       if (use.getType().isPrimitiveType()) {
-        return false;
+        return true;
       }
       if (checkEscapesMethod(use, ir, visited)) {
         return true;
