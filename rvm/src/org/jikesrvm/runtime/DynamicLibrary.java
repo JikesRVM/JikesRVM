@@ -136,14 +136,14 @@ public final class DynamicLibrary {
   private static native int runJNI_OnLoad(Address JNI_OnLoadAddress);
 
   /**
-   * Check JNI version is &le; 1.4 and if not throw an
+   * Check JNI version is &ge; 1 and &le; 1.4 and if not throw an
    * UnsatisfiedLinkError
    * @param version to check
    */
   private static void checkJNIVersion(int version) {
     int major = version >>> 16;
     int minor = version & 0xFFFF;
-    if (major > 1 || minor > 4) {
+    if (major != 1 || minor > 4) {
       throw new UnsatisfiedLinkError("Unsupported JNI version: " + major + "." + minor);
     }
   }
