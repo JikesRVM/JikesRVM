@@ -40,7 +40,6 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.FileSystem;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -452,26 +451,6 @@ public class GenerateInterfaceDeclarations {
     p("static const int Runtime_TRAP_MUST_IMPLEMENT = " + RuntimeEntrypoints.TRAP_MUST_IMPLEMENT + ";\n");
     p("static const int Runtime_TRAP_STORE_CHECK = " + RuntimeEntrypoints.TRAP_STORE_CHECK + ";\n");
     pln();
-
-    // values in FileSystem
-    //
-    p("static const int FileSystem_OPEN_READ                 = " + FileSystem.OPEN_READ + ";\n");
-    p("static const int FileSystem_OPEN_WRITE                 = " + FileSystem.OPEN_WRITE + ";\n");
-    p("static const int FileSystem_OPEN_MODIFY                 = " + FileSystem.OPEN_MODIFY + ";\n");
-    p("static const int FileSystem_OPEN_APPEND                 = " + FileSystem.OPEN_APPEND + ";\n");
-    p("static const int FileSystem_SEEK_SET                 = " + FileSystem.SEEK_SET + ";\n");
-    p("static const int FileSystem_SEEK_CUR                 = " + FileSystem.SEEK_CUR + ";\n");
-    p("static const int FileSystem_SEEK_END                 = " + FileSystem.SEEK_END + ";\n");
-    p("static const int FileSystem_STAT_EXISTS                 = " + FileSystem.STAT_EXISTS + ";\n");
-    p("static const int FileSystem_STAT_IS_FILE                 = " + FileSystem.STAT_IS_FILE + ";\n");
-    p("static const int FileSystem_STAT_IS_DIRECTORY                 = " + FileSystem.STAT_IS_DIRECTORY + ";\n");
-    p("static const int FileSystem_STAT_IS_READABLE                 = " + FileSystem.STAT_IS_READABLE + ";\n");
-    p("static const int FileSystem_STAT_IS_WRITABLE                 = " + FileSystem.STAT_IS_WRITABLE + ";\n");
-    p("static const int FileSystem_STAT_LAST_MODIFIED                 = " +
-      FileSystem
-          .STAT_LAST_MODIFIED +
-                              ";\n");
-    p("static const int FileSystem_STAT_LENGTH                 = " + FileSystem.STAT_LENGTH + ";\n");
 
     // fields in RVMThread
     //
