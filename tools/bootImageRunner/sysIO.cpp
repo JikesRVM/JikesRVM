@@ -14,11 +14,8 @@
 #include "sys.h"
 
 #include <errno.h>
-#include <fcntl.h> // fcntl
 #include <string.h> // strerror
 #include <unistd.h> // read, close, fsync, ...
-#include <sys/stat.h> // stat data structure
-#include <sys/ioctl.h> // ioctl
 
 /**
  * Reads one byte from file.
