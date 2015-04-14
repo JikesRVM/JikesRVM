@@ -157,10 +157,19 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- * Simple flow-insensitive escape analysis
+ * Simple flow-insensitive intra-procedural escape analysis.
+ * <p>
+ * Information about other procedures is only used when examining call instructions.
+ * <p>
+ * TODO list:
+ * <ul>
+ *   <li>This would be more effective if formulated as a data-flow problem,
+ *    and solved with iteration.</li>
+ *   <li>Needs reference information if based on existing algorithm</li>
+ *   <li>Needs a testsuite that demonstrates the capabilities of the analysis</li>
+ *   <li>Consider implementing a more powerful analysis</li>
+ * </ul>
  *
- * <p> TODO: This would be more effective if formulated as a data-flow
- *       problem, and solved with iteration
  */
 class SimpleEscape extends CompilerPhase {
   /**
@@ -196,7 +205,7 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Perform the escape analysis for a method.
+   * Performs the escape analysis for a method.
    *
    * <p> Side effect: updates method summary database to hold
    *                escape analysis result for parameters
@@ -298,12 +307,14 @@ class SimpleEscape extends CompilerPhase {
   private static final OptimizationPlanElement escapePlan = initEscapePlan();
 
   /**
-   * Check all appearances of a register, to see if any object pointed
-   * to by this register may escape this thread and/or method.
+   * Checks all appearances of a register, to see if any instruction in
+   * this method causes the object pointed to by the register to escape
+   * this thread and/or method.
    *
    * @param reg the register to check
    * @param ir the governing IR
-   * @return true if it may escape this thread, false otherwise
+   * @return {@code true} if it may escape this thread,
+   *  {@code false} otherwise
    */
   private static AnalysisResult checkAllAppearances(Register reg, IR ir) {
     return new AnalysisResult(!checkIfUseEscapesThread(reg, ir, null),
@@ -494,7 +505,7 @@ class SimpleEscape extends CompilerPhase {
           return true;
         }
         // try to get a method summary for the called method
-        MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);
+        MethodSummary summ = getMethodSummaryIfAvailable(mop.getTarget(), ir.options);
         if (summ == null) {
           // couldn't get one. assume the object escapes
           return true;
@@ -783,23 +794,18 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Finds or creates a method summary.
+   * Returns a method summary if present.
    * <p>
-   * If a method summary exists for a method, get it.
-   * Else, iff SIMPLE_ESCAPE_IPA,
-   *   perform escape analysis, which will create the method
-   *    summary as a side effect, and return the summary
-   * <p>
-   * TODO rethink naming of this method. Other findOrCreate methods
-   * always create something if it does not exists. This one has
-   * conditions for creating an object.
+   * In the special case of enabled eager method summary computation,
+   * this method will perform escape analysis for the requested method,
+   * which will create the method summary as a side effect.
    *
    * @param m the method whose summary is sought
    * @param options options to determine whether to create a summary
    *  if it does not exist
    * @return a method summary or {@code null}.
    */
-  private static MethodSummary findOrCreateMethodSummary(RVMMethod m, OptOptions options) {
+  private static MethodSummary getMethodSummaryIfAvailable(RVMMethod m, OptOptions options) {
     MethodSummary summ = SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
       if (options.ESCAPE_SIMPLE_IPA) {
