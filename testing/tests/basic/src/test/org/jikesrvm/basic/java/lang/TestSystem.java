@@ -18,7 +18,7 @@ package test.org.jikesrvm.basic.java.lang;
  * Currently only covers {@link System#arraycopy(Object, int, Object, int, int)}.
  * <p>
  * Overflow of {@code srcPos + length} and {@code dstPos + length} is by design
- * not tested. Currently, the bootimage runner sets a maximum heap size if none is
+ * not tested. Currently, the bootloader sets a maximum heap size if none is
  * given. That heap size is not enough for allocation of arrays in the order of
  * magnitude that would be required for a realistic test.
  **/

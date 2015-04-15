@@ -33,7 +33,7 @@ public final class DynamicLibrary {
       new ImmutableEntryHashMapRVM<String, DynamicLibrary>();
 
   /**
-   * Add symbol for the boot image runner to find symbols within it.
+   * Add symbol for the bootloader to find symbols within it.
    */
   public static void boot() {
     System.loadLibrary("rvmdynlib");

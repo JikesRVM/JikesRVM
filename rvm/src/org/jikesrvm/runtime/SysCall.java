@@ -301,7 +301,7 @@ public abstract class SysCall {
   /**
    * Primitive parsing of memory sizes, with proper error handling,
    * and so on. For all the gory details, see the code in the
-   * bootimage runner.
+   * bootloader.
    * <p>
    * Note: all byte array parameters for this method represent Strings.
    *

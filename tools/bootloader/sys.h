@@ -68,7 +68,7 @@ extern void checkFree(void* mem);
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;
 
-/* Routines used elsewhere within boot image runner */
+/* Routines used elsewhere within bootloader */
 EXTERNAL void findMappable();
 
 

@@ -53,6 +53,8 @@
 
   <!-- Location of files for SysCalls. These are subject to annotation processing -->
   <property name="syscall.dir" location="${main.java}/org/jikesrvm/runtime/"/>
+  <!-- Bootloader directory -->
+  <property name="bl.dir" location="${basedir}/tools/bootloader"/>
 
   <!-- Directories for IR and BURS (used in gen-opt-ir and gen-opt-ir-uptodate-check targets) -->	
   <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
@@ -1696,8 +1698,6 @@ Check to make sure all required properties are specified. This includes properti
   <!-- Setup any properties required during native compile of bootloader -->
   <target name="check-bootloader-properties" depends="setup-filter-properties">
     <check-host-and-target-match message="can not build the bootloader."/>
-    <property name="bl.dir" location="${basedir}/tools/bootImageRunner"/>
-
     <condition property="gen-ppc-bootThread" value="true">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
@@ -1756,7 +1756,7 @@ Check to make sure all required properties are specified. This includes properti
     <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
       <arg line="${rvm.common.args} ${cpp.args}"/>
       <arg value="-P"/>
-      <arg path="${basedir}/tools/bootImageRunner/ppc/bootThread.c"/>
+      <arg path="${bl.dir}/ppc/bootThread.c"/>
     </exec>
   </target>
 
@@ -1870,7 +1870,7 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="build-debug-symbols" if="rvm.debug-symbols">
     <exec executable="${perl.exe}" failonerror="true">
-      <arg path="${basedir}/tools/bootImageRunner/parse_map.perl"/>
+      <arg path="${bl.dir}/parse_map.perl"/>
       <arg path="${build.base}/RVM.map"/>
       <arg path="${build.base}/JikesRVM-symbols.s"/>
     </exec>
@@ -1901,7 +1901,7 @@ Check to make sure all required properties are specified. This includes properti
         <include name="BootImageWriterOutput.txt"/>
       </fileset>
     </copy>
-    <copy file="${basedir}/tools/bootImageRunner/rvm.classpath" tofile="${dist.base}/rvm">
+    <copy file="${bl.dir}/rvm.classpath" tofile="${dist.base}/rvm">
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
@@ -1951,7 +1951,7 @@ target.jni-suffix=${target.jni-suffix}
         <include name="BootImageWriterOutput.txt"/>
       </fileset>
     </copy>
-    <copy file="${basedir}/tools/bootImageRunner/rvm.harmony" tofile="${dist.base}/rvm">
+    <copy file="${bl.dir}/rvm.harmony" tofile="${dist.base}/rvm">
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
