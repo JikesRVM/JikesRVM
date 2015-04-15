@@ -30,7 +30,6 @@
  *      robust.
  */
 #include <stdio.h>
-#include <assert.h>             // assert()
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -711,8 +710,9 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         return 0U;              // Distinguished value meaning trouble.
     }
     long double tot_d = userNum * factor;
-    assert(tot_d <= (UINT_MAX - roundTo));
-    assert(tot_d >= 1);
+    if (tot_d > (UINT_MAX - roundTo) || tot_d < 1) {
+      ERROR_PRINTF("Unexpected memory size %f", tot_d);
+    }
 
     unsigned tot = (unsigned) tot_d;
     if (tot % roundTo) {
