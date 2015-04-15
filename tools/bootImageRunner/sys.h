@@ -68,6 +68,10 @@ extern void checkFree(void* mem);
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;
 
+/* Routines used elsewhere within boot image runner */
+EXTERNAL void findMappable();
+
+
 /**
  * FIXME The rest of the file consists of includes for non-linux systems
  * and old systems. Anyone that has access to such a system could help us
