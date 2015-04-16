@@ -371,7 +371,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- **************************************************************************** -->
 
   <target name="setup-filter-properties" depends="check-properties">
-    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1" else="">
+    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1" else="-DRVM_FOR_IA32=1">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
