@@ -395,7 +395,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- **************************************************************************** -->
 
   <target name="setup-filter-properties" depends="check-properties">
-    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1" else="">
+    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1" else="-DRVM_FOR_IA32=1">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
@@ -1912,6 +1912,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <!-- create jvm shared library -->
+    <echo message="Creating rvm.dll"/>
     <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args} -lpthread ${c++.librt}"/>
@@ -1920,7 +1921,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg path="${bl.dir}/jvm.cpp"/>
     </exec>
 
-    <!-- create vmi shared library -->
+    <!-- create vmi shared library (if building for Harmony)-->
     <condition property="vmi.dll" value="${target.dll-prefix}vmi${target.dll-ext}" else="">
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
     </condition>
@@ -1929,6 +1930,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
+        <echo message="Creating vmi.dll"/>
         <exec executable="${c.exe}" failonerror="true">
           <arg line="${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
           <arg value="-o"/>
@@ -1941,6 +1943,7 @@ Check to make sure all required properties are specified. This includes properti
     </if>
 
     <!-- create rvmdynlib shared library -->
+    <echo message="Creating rvmdynlib.dll"/>
     <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args}"/>
@@ -1948,7 +1951,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg path="${build.base}/${rvmdynlib.dll}"/>
       <arg value="-L${build.base}"/>
       <arg value="-lrvm"/>
-      <arg path="${bl.dir}/org_jikesrvm_runtime_DynamicLibrary.c"/>
+      <arg path="${bl.dir}/jni/org_jikesrvm_runtime_DynamicLibrary.c"/>
     </exec>
 
     <condition property="perfevent.lib" value="-lpfm" else="">
@@ -1960,6 +1963,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
       <sequential>
+        <echo message="Creating JikesRVM"/>
         <exec executable="${c++.exe}" failonerror="true">
           <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c++.librt} -lpthread ${c++.rdynamic} -g"/>
           <arg value="-o"/>
@@ -1975,6 +1979,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
+        <echo message="Creating JikesRVM"/>
         <exec executable="${c++.exe}" failonerror="true">
           <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c++.librt} -lpthread ${c++.rdynamic} -g"/>
           <arg value="-o"/>
@@ -1997,6 +2002,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
+        <echo message="Creating JikesRVM"/>
         <exec executable="${c++.exe}" failonerror="true">
           <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c++.librt} -lpthread ${c++.rdynamic} -g"/>
           <arg value="-o"/>
