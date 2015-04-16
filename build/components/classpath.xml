@@ -19,7 +19,7 @@
   <!-- in target patch-classpath-web                                -->
   <property name="classpath.version" value="99"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
-  <property name="classpath.patchlevel" value="14"/>
+  <property name="classpath.patchlevel" value="16"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
@@ -101,6 +101,10 @@
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-git.RVM-750.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-853.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-855.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>    
     <patch patchfile="${components.patch.dir}/classpath-git.RVM-881.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-git.RVM-878.patch"
@@ -151,6 +155,10 @@
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-781-04.patch"
            dir="${classpath.package.dir}/classpath/" strip="1"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-787.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-853.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-855.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-878.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
@@ -236,7 +244,6 @@
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
       <env key="OBJECT_MODE" value="${cp.objectmode}" />
-      <env key="JAVAC" value="${ecj.dir}/ecj" />
       <arg value="--enable-jni"/>
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>

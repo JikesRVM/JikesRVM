@@ -1,0 +1,45 @@
+# Patch by Bodo Stroesser for GNU Classpath, adjusted to apply cleanly to current git HEAD
+# see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=35589 for the report in GNU Classpath
+--- gnu/xml/stream/SAXParser.java	2015-03-27 21:41:00.000000000 +0100
++++ gnu/xml/stream/SAXParser.java	2015-03-27 21:42:08.000000000 +0100
+@@ -913,6 +913,9 @@
+               entityResolver.resolveEntity(publicId, systemId);
+             if (input != null)
+               {
++                Reader r = input.getCharacterStream();
++                if (r != null)
++                  return r;
+                 InputStream in = input.getByteStream();
+                 if (in == null)
+                   {
+--- gnu/xml/stream/XMLParser.java	2015-03-27 21:43:37.000000000 +0100
++++ gnu/xml/stream/XMLParser.java	2015-03-27 21:45:23.000000000 +0100
+@@ -1550,19 +1550,23 @@
+     if (name == null || "".equals(name))
+       report = false;
+     InputStream in = null;
++    Reader r = null;
+     if (resolver != null)
+       {
+         Object obj = resolver.resolveEntity(ids.publicId, url, getXMLBase(),
+                                             null);
+         if (obj instanceof InputStream)
+           in = (InputStream) obj;
++        if (obj instanceof Reader)
++          r = (Reader) obj;
+       }
+-    if (in == null)
++    if (in == null && r == null) {
+       in = resolve(url);
+-    if (in == null)
+-      error("unable to resolve external entity",
+-            (ids.systemId != null) ? ids.systemId : ids.publicId);
+-    pushInput(new Input(in, null, ids.publicId, url, name, null, report,
++      if (in == null)
++        error("unable to resolve external entity",
++              (ids.systemId != null) ? ids.systemId : ids.publicId);
++    }
++    pushInput(new Input(in, r, ids.publicId, url, name, null, report,
+                         normalize));
+     input.init();
+     if (tryRead(TEST_XML_DECL))
