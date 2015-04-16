@@ -1786,28 +1786,30 @@ Check to make sure all required properties are specified. This includes properti
 
     <!-- create jvm shared library -->
     <echo message="Creating rvm.dll"/>
-    <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
+    <path id="rvm.dll">
+      <pathelement path="${build.base}/${target.dll-prefix}rvm${target.dll-ext}"/>
+    </path>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args} -lpthread ${c++.librt}"/>
       <arg value="-o"/>
-      <arg path="${build.base}/${rvm.dll}"/>
+      <arg path="${toString:rvm.dll}"/>
       <arg path="${bl.dir}/jvm.cpp"/>
     </exec>
 
     <!-- create vmi shared library (if building for Harmony)-->
-    <condition property="vmi.dll" value="${target.dll-prefix}vmi${target.dll-ext}" else="">
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-    </condition>
     <if>
       <conditions>
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
         <echo message="Creating vmi.dll"/>
+        <path id="vmi.dll">
+          <pathelement path="${build.base}/${target.dll-prefix}vmi${target.dll-ext}"/>
+        </path>
         <exec executable="${c.exe}" failonerror="true">
           <arg line="${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
           <arg value="-o"/>
-          <arg path="${build.base}/${vmi.dll}"/>
+          <arg path="${toString:vmi.dll}"/>
           <arg path="${bl.dir}/harmony.c"/>
           <arg path="libraryInterface/Harmony/ASF/native/vmls.c"/>
           <arg value="-Wl,--version-script=${bl.dir}/harmony.exp"/>
