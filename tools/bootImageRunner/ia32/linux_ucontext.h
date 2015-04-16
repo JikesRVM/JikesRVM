@@ -45,6 +45,14 @@
 #  define IA32_ESI(context)  (__GREGS(context)[REG_RSI])
 #  define IA32_EBP(context)  (__GREGS(context)[REG_RBP])
 #  define IA32_ESP(context) (__GREGS(context)[REG_RSP])
+#  define IA32_R8(context)  (__GREGS(context)[REG_R8])
+#  define IA32_R9(context)  (__GREGS(context)[REG_R9])
+#  define IA32_R10(context)  (__GREGS(context)[REG_R10])
+#  define IA32_R11(context)  (__GREGS(context)[REG_R11])
+#  define IA32_R12(context) (__GREGS(context)[REG_R12])
+#  define IA32_R13(context) (__GREGS(context)[REG_R13])
+#  define IA32_R14(context) (__GREGS(context)[REG_R14])
+#  define IA32_R15(context) (__GREGS(context)[REG_R15])
 #  define IA32_EIP(context)  (__GREGS(context)[REG_RIP])
 #endif
 

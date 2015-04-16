@@ -30,7 +30,6 @@
  *      robust.
  */
 #include <stdio.h>
-#include <assert.h>             // assert()
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -711,8 +710,9 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         return 0U;              // Distinguished value meaning trouble.
     }
     long double tot_d = userNum * factor;
-    assert(tot_d <= (UINT_MAX - roundTo));
-    assert(tot_d >= 1);
+    if (tot_d > (UINT_MAX - roundTo) || tot_d < 1) {
+      ERROR_PRINTF("Unexpected memory size %f", tot_d);
+    }
 
     unsigned tot = (unsigned) tot_d;
     if (tot % roundTo) {
@@ -726,28 +726,6 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         tot = newTot;
     }
     return tot;
-}
-
-//
-// Sweep through memory to find which areas of memory are mappable.
-// This is invoked from a command-line argument.
-void findMappable()
-{
-    int granularity = 1 << 22; // every 4 megabytes
-    int max = (1 << 30) / (granularity >> 2);
-    for (int i=0; i<max; i++) {
-        char *start = (char *) (i * granularity);
-        int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-        int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
-        void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
-        int fail = (result == (void *) -1);
-        if (fail) {
-            CONSOLE_PRINTF( "%p FAILED with errno %d: %s\n", start, errno, strerror(errno));
-        } else {
-            CONSOLE_PRINTF( "%p SUCCESS\n", start);
-            munmap(start, (size_t) pageSize);
-        }
-    }
 }
 
 /**

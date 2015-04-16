@@ -59,11 +59,11 @@
     <scalabench name="scaladoc" heapsize="456"/>
     <scalabench name="scalap" heapsize="228"/>
     <scalabench name="scalariform" heapsize="180"/>
+    <scalabench name="tmt" heapsize="372"/>
 
-    <!-- the following benchmarks don't run on the Jikes RVM as of 2015-04-02
+    <!-- the following benchmarks don't run on the Jikes RVM as of 2015-04-08
     <scalabench name="scalatest" heapsize="1000"/> output validation fails
     <scalabench name="scalaxb" heapsize="1000"/> files aren't found
-    <scalabench name="tmt" heapsize="1000"/> requires getThreadInfoForID from JMX thread bean
     -->
 
     <finishResults/>

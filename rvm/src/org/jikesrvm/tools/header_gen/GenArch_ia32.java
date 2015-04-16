@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.tools.header_gen;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.ia32.RegisterConstants;
@@ -41,6 +42,16 @@ final class GenArch_ia32 extends GenArch {
     p("static const int Constants_EBP                    = " + RegisterConstants.EBP.value() + ";\n");
     p("static const int Constants_ESI                    = " + RegisterConstants.ESI.value() + ";\n");
     p("static const int Constants_EDI                    = " + RegisterConstants.EDI.value() + ";\n");
+    if (VM.BuildFor64Addr) {
+      p("static const int Constants_R8                    = " + RegisterConstants.R8.value() + ";\n");
+      p("static const int Constants_R9                    = " + RegisterConstants.R9.value() + ";\n");
+      p("static const int Constants_R10                    = " + RegisterConstants.R10.value() + ";\n");
+      p("static const int Constants_R11                    = " + RegisterConstants.R11.value() + ";\n");
+      p("static const int Constants_R12                    = " + RegisterConstants.R12.value() + ";\n");
+      p("static const int Constants_R13                    = " + RegisterConstants.R13.value() + ";\n");
+      p("static const int Constants_R14                    = " + RegisterConstants.R14.value() + ";\n");
+      p("static const int Constants_R15                    = " + RegisterConstants.R15.value() + ";\n");
+    }
     p("static const int Constants_STACKFRAME_BODY_OFFSET             = " +
       StackframeLayoutConstants.STACKFRAME_BODY_OFFSET + ";\n");
     p("static const int Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = " +

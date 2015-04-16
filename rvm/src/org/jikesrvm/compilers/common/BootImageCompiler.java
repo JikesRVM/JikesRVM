@@ -27,11 +27,15 @@ import org.jikesrvm.compilers.baseline.BaselineBootImageCompiler;
  */
 public abstract class BootImageCompiler {
 
-  protected static BootImageCompiler baseCompiler = new BaselineBootImageCompiler();
-  protected static BootImageCompiler optCompiler = VM.BuildForAdaptiveSystem ? new org.jikesrvm.compilers.opt.driver.OptimizingBootImageCompiler() : null;
+  protected static final BootImageCompiler baseCompiler;
+  protected static final BootImageCompiler optCompiler;
+  protected static final BootImageCompiler compiler;
 
-  protected static BootImageCompiler compiler = VM.BuildWithBaseBootImageCompiler ? baseCompiler : optCompiler;
-
+  static {
+    baseCompiler = new BaselineBootImageCompiler();
+    optCompiler = VM.BuildForAdaptiveSystem ? new org.jikesrvm.compilers.opt.driver.OptimizingBootImageCompiler() : null;
+    compiler = VM.BuildWithBaseBootImageCompiler ? baseCompiler : optCompiler;
+  }
 
   /**
    * Initialize boot image compiler.
@@ -70,11 +74,15 @@ public abstract class BootImageCompiler {
   }
 
   public static CompiledMethod compile(NormalMethod method, TypeReference[] params) {
-    if (VM.BuildForAdaptiveSystem && VM.BuildWithBaseBootImageCompiler && method.getDeclaringClass().hasSaveVolatileAnnotation()) {
-      // Force opt compilation of SaveVolatile methods.
-      return optCompiler.compileMethod(method, params);
-    } else {
-      return compiler.compileMethod(method, params);
+    try {
+      if (VM.BuildForAdaptiveSystem && VM.BuildWithBaseBootImageCompiler && method.getDeclaringClass().hasSaveVolatileAnnotation()) {
+        // Force opt compilation of SaveVolatile methods.
+        return optCompiler.compileMethod(method, params);
+      } else {
+        return compiler.compileMethod(method, params);
+      }
+    } catch (Exception e) {
+      throw new Error("Exception during compilation of " + method, e);
     }
   }
 
