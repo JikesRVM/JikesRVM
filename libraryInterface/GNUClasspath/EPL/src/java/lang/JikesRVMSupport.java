@@ -18,7 +18,6 @@ import java.lang.instrument.Instrumentation;
 import org.jikesrvm.classloader.RVMType;
 import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;              // for VerifyAssertions and _assert()
-import org.jikesrvm.runtime.StackTrace;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -127,20 +126,4 @@ public class JikesRVMSupport {
   public static String getEnumName(Enum<?> e) {
     return e.name;
   }
-
-  public static StackTraceElement[] convertToJavaClassLibraryStackTrace(
-      StackTrace.Element[] vmElements) {
-    StackTraceElement[] elements = new StackTraceElement[vmElements.length];
-    for (int i=0; i < vmElements.length; i++) {
-      StackTrace.Element vmElement = vmElements[i];
-      String fileName = vmElement.getFileName();
-      int lineNumber = vmElement.getLineNumber();
-      String className = vmElement.getClassName();
-      String methodName = vmElement.getMethodName();
-      boolean isNative = vmElement.isNative();
-      elements[i] = new StackTraceElement(fileName, lineNumber, className, methodName, isNative);
-    }
-    return elements;
-  }
-
 }

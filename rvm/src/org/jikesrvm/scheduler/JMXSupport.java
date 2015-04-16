@@ -196,15 +196,7 @@ public class JMXSupport {
         rvmThread.unblock(RVMThread.stackTraceBlockAdapter);
     }
 
-    if (VM.BuildForGnuClasspath) {
-      StackTraceElement[] stackTrace =
-          JikesRVMSupport.convertToJavaClassLibraryStackTrace(elements);
-      return stackTrace;
-    } else {
-      // convertToJavaClassLibraryStackTrace was written for GNU Classpath.
-      // Need to check whether we could generalise it to other class libraries.
-      throw new Error("getStackTraceForThread: need to implement conversion to StackTraceElement[]");
-    }
+    return JikesRVMStackTraceSupport.convertToJavaClassLibraryStackTrace(elements);
   }
 
 }

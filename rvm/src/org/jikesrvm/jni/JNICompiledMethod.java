@@ -88,6 +88,12 @@ public final class JNICompiledMethod extends CompiledMethod {
   }
 
   @Override
+  @Uninterruptible
+  public int findLineNumberForInstruction(Offset instructionOffset) {
+    return NATIVE_METHOD_LINE_NUMBER;
+  }
+
+  @Override
   @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     return -1;

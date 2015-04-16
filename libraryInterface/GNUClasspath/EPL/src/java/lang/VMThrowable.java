@@ -20,7 +20,7 @@ import org.jikesrvm.scheduler.RVMThread;
  */
 public final class VMThrowable {
   /** The stack trace for this throwable */
-  private StackTrace stackTrace;
+  private final StackTrace stackTrace;
 
   /**
    * Zero length array of stack trace elements, returned when handling an OOM or
@@ -81,7 +81,7 @@ public final class VMThrowable {
     }
     if (VM.fullyBooted) {
       try {
-        return JikesRVMSupport.convertToJavaClassLibraryStackTrace(vmElements);
+        return JikesRVMStackTraceSupport.convertToJavaClassLibraryStackTrace(vmElements);
       } catch (Throwable t) {
         VM.sysWriteln("Error constructing StackTraceElements: dumping stack");
       }

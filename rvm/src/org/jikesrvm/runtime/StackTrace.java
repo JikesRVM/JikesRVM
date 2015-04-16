@@ -279,7 +279,11 @@ public class StackTrace {
       } else if (isTrap) {
         return "<hardware trap>";
       } else {
-        return method.getName().toString();
+        if (method != null) {
+          return method.getName().toString();
+        } else {
+          return "<unknown method: method was null>";
+        }
       }
     }
 

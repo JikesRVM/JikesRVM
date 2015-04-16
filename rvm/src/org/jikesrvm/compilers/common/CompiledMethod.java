@@ -44,6 +44,9 @@ public abstract class CompiledMethod {
   public static final int JNI = 4; // java to Native C transition frame
   public static final int NUM_COMPILER_TYPES = 4;
 
+  /** Line number for native methods defined by the constructor of java.lang.StackTraceElement */
+  public static final int NATIVE_METHOD_LINE_NUMBER = -2;
+
   /*
    * constants for flags
    */
@@ -482,7 +485,7 @@ public abstract class CompiledMethod {
    *
    * @param instructionOffset of machine instruction from start of this method, in bytes
    * @return source line number
-   * (0 == no line info available, 1 == first line of source file)
+   * (0 == no line info available, 1 == first line of source file, -2 == native method))
    *
    */
   @Uninterruptible
