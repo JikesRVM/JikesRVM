@@ -181,7 +181,7 @@ public class VMSystemProperties {
    * arguments.
    * <p>
    * The following are set by the "runrvm" script before we go into the C
-   * boot image runner, by passing them as command-line args with the -D flag:
+   * bootloader, by passing them as command-line args with the -D flag:
    * <p>
    * os.name, os.arch, os.version
    * user.name, user.home, user.dir
