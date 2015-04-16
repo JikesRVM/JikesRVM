@@ -1821,7 +1821,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg path="${build.base}/${rvmdynlib.dll}"/>
       <arg value="-L${build.base}"/>
       <arg value="-lrvm"/>
-      <arg path="${bl.dir}/org_jikesrvm_runtime_DynamicLibrary.c"/>
+      <arg path="${bl.dir}/jni/org_jikesrvm_runtime_DynamicLibrary.c"/>
     </exec>
 
     <condition property="perfevent.lib" value="-lpfm" else="">
