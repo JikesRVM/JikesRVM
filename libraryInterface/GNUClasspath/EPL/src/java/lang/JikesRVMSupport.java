@@ -16,9 +16,7 @@ import java.security.ProtectionDomain;
 import java.lang.instrument.Instrumentation;
 
 import org.jikesrvm.classloader.RVMType;
-
 import org.vmmagic.pragma.*;
-
 import org.jikesrvm.VM;              // for VerifyAssertions and _assert()
 import org.jikesrvm.scheduler.RVMThread;
 
@@ -128,4 +126,5 @@ public class JikesRVMSupport {
   public static String getEnumName(Enum<?> e) {
     return e.name;
   }
+
 }

@@ -15,6 +15,8 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+
 import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
 
 /**
@@ -144,13 +146,13 @@ public interface StackframeLayoutConstants {
   int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   /** offset of caller's return address from FP */
-  int STACKFRAME_RETURN_ADDRESS_OFFSET = WORDSIZE;
+  Offset STACKFRAME_RETURN_ADDRESS_OFFSET = Offset.fromIntSignExtend(WORDSIZE);
   /** base of this frame */
-  int STACKFRAME_FRAME_POINTER_OFFSET = 0;
+  Offset STACKFRAME_FRAME_POINTER_OFFSET = Offset.zero();
   /** offset of method id from FP */
-  int STACKFRAME_METHOD_ID_OFFSET = -WORDSIZE;
+  Offset STACKFRAME_METHOD_ID_OFFSET = Offset.fromIntSignExtend(-WORDSIZE);
   /** offset of work area from FP */
-  int STACKFRAME_BODY_OFFSET = -2*WORDSIZE;
+  Offset STACKFRAME_BODY_OFFSET = Offset.fromIntSignExtend(-2*WORDSIZE);
   /** size of frame header, in bytes */
   int STACKFRAME_HEADER_SIZE = 3*WORDSIZE;
 

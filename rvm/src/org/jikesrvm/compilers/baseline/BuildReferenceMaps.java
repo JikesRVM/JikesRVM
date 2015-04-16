@@ -319,6 +319,22 @@ final class BuildReferenceMaps {
             }
           }
         }
+        if (currPendingRET == null) {
+          int[] preds = basicBlocks[currBBNum].getPredecessors();
+          for (int i = 0; i < preds.length; i++) {
+            int predBB = preds[i];
+            if (bbPendingRETs[predBB] != null) {
+              currPendingRET = bbPendingRETs[predBB];
+              break;
+            }
+          }
+        }
+        if (VM.VerifyAssertions) {
+          if (currPendingRET == null) {
+            String msg = "No pending return found in block " + currBBNum;
+            VM._assert(VM.NOT_REACHED, msg);
+          }
+        }
       } else {
         currPendingRET = null;
       }

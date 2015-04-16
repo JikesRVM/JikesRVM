@@ -68,7 +68,7 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
   public final void initializeStack(ArchitectureSpecific.Registers contextRegisters, Address ip, Address sp) {
     Address fp;
     sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.minus(SizeConstants.BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);
+    fp = sp.minus(SizeConstants.BYTES_IN_ADDRESS).minus(STACKFRAME_BODY_OFFSET);
     Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
     Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 

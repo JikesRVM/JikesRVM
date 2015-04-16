@@ -464,6 +464,7 @@ public class VM extends Properties {
     runClassInitializer("java.lang.annotation.ElementType");
     runClassInitializer("java.lang.Thread$State");
     if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.VMClassLoader");
     }
 
@@ -504,7 +505,6 @@ public class VM extends Properties {
 
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
-      runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.reflect.Proxy");
       runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
     }
@@ -1751,6 +1751,17 @@ public class VM extends Properties {
     write(i1);
     write(s1);
     write(s2);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, int i1, String s2, String s3) {
+    swLock();
+    write(s1);
+    write(i1);
+    write(s2);
+    write(s3);
     writeln();
     swUnlock();
   }

@@ -97,7 +97,7 @@ public abstract class JNICompiler implements BaselineConstants {
   // --- Java to C fields ---
 
   /** Location of non-volatile EDI register when saved to stack */
-  static final Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
+  static final Offset EDI_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
   /** Location of non-volatile EBX register when saved to stack */
   static final Offset EBX_SAVE_OFFSET = EDI_SAVE_OFFSET.minus(WORDSIZE);
   /** Location of non-volatile EBP register when saved to stack */
@@ -113,7 +113,7 @@ public abstract class JNICompiler implements BaselineConstants {
    * will be clobbered by a transition from Java to C.  Only used in
    * the prologue &amp; epilogue for JNIFunctions.
    */
-  private static final Offset SAVED_JAVA_FP_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
+  private static final Offset SAVED_JAVA_FP_OFFSET = STACKFRAME_BODY_OFFSET;
 
   /**
    * The following is used in BaselineCompilerImpl to compute offset to first local.
@@ -203,7 +203,7 @@ public abstract class JNICompiler implements BaselineConstants {
     ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), SP);
 
     // set first word of header: method ID
-    if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET == -WORDSIZE);
+    if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET.toInt() == -WORDSIZE);
     asm.emitPUSH_Imm(cm.getId());
 
     // save nonvolatile registrs: EDI, EBX, EBP
@@ -610,7 +610,7 @@ public abstract class JNICompiler implements BaselineConstants {
     int stackDepth=0;
     // 1st word of header = return address already pushed by CALL
     // 2nd word of header = space for frame pointer
-    if (VM.VerifyAssertions) VM._assert(STACKFRAME_FRAME_POINTER_OFFSET == stackDepth << LG_WORDSIZE);
+    if (VM.VerifyAssertions) VM._assert(STACKFRAME_FRAME_POINTER_OFFSET.toInt() == stackDepth << LG_WORDSIZE);
     asm.emitPUSH_Reg(EBP);
     stackDepth--;
     // start new frame:  set FP to point to the new frame
@@ -620,11 +620,11 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitMOV_Reg_Reg_Quad(EBP, SP);
     }
     // set 3rd word of header: method ID
-    if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET == stackDepth << LG_WORDSIZE);
+    if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET.toInt() == stackDepth << LG_WORDSIZE);
     asm.emitPUSH_Imm(methodID);
     stackDepth--;
     // buy space for the SAVED_JAVA_FP
-    if (VM.VerifyAssertions) VM._assert(STACKFRAME_BODY_OFFSET == stackDepth << LG_WORDSIZE);
+    if (VM.VerifyAssertions) VM._assert(STACKFRAME_BODY_OFFSET.toInt() == stackDepth << LG_WORDSIZE);
     asm.emitPUSH_Reg(T0);
     stackDepth--;
     // store non-volatiles
@@ -649,7 +649,7 @@ public abstract class JNICompiler implements BaselineConstants {
       }
     }
     if (VM.VerifyAssertions) {
-      boolean b = stackDepth << LG_WORDSIZE == STACKFRAME_BODY_OFFSET - (SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
+      boolean b = stackDepth << LG_WORDSIZE == STACKFRAME_BODY_OFFSET.toInt() - (SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
       if (!b) {
         String msg = "of2fp="+stackDepth+" sg4j="+SAVED_GPRS_FOR_JNI;
         VM._assert(VM.NOT_REACHED, msg);

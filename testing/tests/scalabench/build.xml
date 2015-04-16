@@ -51,19 +51,19 @@
        if you need heap sizes for an evaluation. -->
 
     <!-- known to work -->
+    <scalabench name="actors" heapsize="270"/>
+    <scalabench name="apparat" heapsize="270"/>
+    <scalabench name="factorie" heapsize="576"/>
     <scalabench name="kiama" heapsize="222"/>
     <scalabench name="scalac" heapsize="468"/>
     <scalabench name="scaladoc" heapsize="456"/>
     <scalabench name="scalap" heapsize="228"/>
     <scalabench name="scalariform" heapsize="180"/>
 
-    <!-- the following benchmarks don't run on the Jikes RVM as of 2015-03-14
-    <scalabench name="actors" heapsize="1000"/>
-    <scalabench name="apparat" heapsize="1000"/>
-    <scalabench name="factorie" heapsize="1000"/>
-    <scalabench name="scalatest" heapsize="1000"/>
-    <scalabench name="scalaxb" heapsize="1000"/>
-    <scalabench name="tmt" heapsize="1000"/>
+    <!-- the following benchmarks don't run on the Jikes RVM as of 2015-04-02
+    <scalabench name="scalatest" heapsize="1000"/> output validation fails
+    <scalabench name="scalaxb" heapsize="1000"/> files aren't found
+    <scalabench name="tmt" heapsize="1000"/> requires getThreadInfoForID from JMX thread bean
     -->
 
     <finishResults/>
