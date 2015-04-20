@@ -27,7 +27,6 @@
   <property name="plugin.jar" value="${plugin.jar.dir}/jikes-rvm-assertion-style-checkstyle-plugin.jar"/>
   <property name="plugin.package-config" value="${plugin.basedir}/checkstyle_packages.xml"/>
   <property name="plugin.test.output.xml" value="${plugin.dir}/checkstyle-report-for-testfile.xml"/>
-  <property name="plugin.test.output.html" value="${plugin.dir}/checkstyle-report-for-testfile.html"/>
   <property name="plugin.test.output.txt" value="${plugin.dir}/checkstyle-report-for-testfile.txt"/>
   <property name="plugin.test.expected" value="${plugin.basedir}/test-file/AssertionStyleTest.expected"/>
 
@@ -52,9 +51,6 @@
       <fileset dir="tools" includes="**/AssertionStyleTest.java"/>
     </checkstyle>
 
-    <xslt in="${plugin.test.output.xml}"
-           out="${plugin.test.output.html}"
-           style="${checkstyle.dir}/contrib/checkstyle-simple.xsl"/>
     <xslt in="${plugin.test.output.xml}"
            out="${plugin.test.output.txt}"
            style="build/checkstyle/text-output-without-file.xsl"/>

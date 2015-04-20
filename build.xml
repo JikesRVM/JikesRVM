@@ -2224,9 +2224,6 @@ target.jni-suffix=${target.jni-suffix}
     </checkstyle>
 
     <xslt in="${build.dir}/checkstyle/report.xml"
-           out="${build.dir}/checkstyle/report.html"
-           style="${checkstyle.dir}/contrib/checkstyle-simple.xsl"/>
-    <xslt in="${build.dir}/checkstyle/report.xml"
            out="${build.dir}/checkstyle/report.txt"
            style="build/checkstyle/text-output.xsl"/>
 
