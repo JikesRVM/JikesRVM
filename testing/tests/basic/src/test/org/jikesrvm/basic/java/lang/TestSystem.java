@@ -391,7 +391,7 @@ public class TestSystem {
 
   private static void checkIntArrays() {
     System.out.println("Checking int[] arrays");
-    final int[] intArray = {-Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE-1, Integer.MAX_VALUE};
+    final int[] intArray = {-Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
     System.out.println("Checking that IndexOutOfBoundsException is thrown when expected.");
     checkSrcPosIsNegative(intArray);
     checkDestPosIsNegative(intArray);
@@ -422,14 +422,14 @@ public class TestSystem {
     System.out.println("Checking that copying to the same array works with overlap (from greater position to lesser)");
     System.arraycopy(intArray, 1, intArray, 0, 4);
     boolean copyDoesNotOverwrite = intArray[0] == -1 && intArray[1] == 0 &&
-        intArray[2] == 1 && intArray[3] == Integer.MAX_VALUE-1 && intArray[4] == Integer.MAX_VALUE-1 &&
+        intArray[2] == 1 && intArray[3] == Integer.MAX_VALUE - 1 && intArray[4] == Integer.MAX_VALUE - 1 &&
         intArray[5] == Integer.MAX_VALUE;
     if (copyDoesNotOverwrite) {
       printSuccess();
     } else {
       printFailure();
     }
-    final int[] intArrayCopy = {-Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE-1, Integer.MAX_VALUE};
+    final int[] intArrayCopy = {-Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE - 1, Integer.MAX_VALUE};
     System.out.println("Checking that copying to the same array works with overlap (from lesser position to greater)");
     System.arraycopy(intArrayCopy, 0, intArrayCopy, 1, 4);
     boolean copyDoesNotOverwriteLG = intArrayCopy[0] == Integer.MIN_VALUE && intArrayCopy[1] == Integer.MIN_VALUE &&
@@ -443,7 +443,7 @@ public class TestSystem {
   }
 
   private static void checkLongArrays() {
-    final long[] longArray = {-Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE-1, Long.MAX_VALUE};
+    final long[] longArray = {-Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE - 1, Long.MAX_VALUE};
     System.out.println("Checking that IndexOutOfBoundsException is thrown when expected.");
     checkSrcPosIsNegative(longArray);
     checkDestPosIsNegative(longArray);
@@ -474,14 +474,14 @@ public class TestSystem {
     System.out.println("Checking that copying to the same array works with overlap (from greater position to lesser)");
     System.arraycopy(longArray, 1, longArray, 0, 4);
     boolean copyDoesNotOverwrite = longArray[0] == -1L && longArray[1] == 0L &&
-        longArray[2] == 1L && longArray[3] == Long.MAX_VALUE-1 && longArray[4] == Long.MAX_VALUE-1 &&
+        longArray[2] == 1L && longArray[3] == Long.MAX_VALUE - 1 && longArray[4] == Long.MAX_VALUE - 1 &&
         longArray[5] == Long.MAX_VALUE;
     if (copyDoesNotOverwrite) {
       printSuccess();
     } else {
       printFailure();
     }
-    final long[] longArrayCopy = {-Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE-1, Long.MAX_VALUE};
+    final long[] longArrayCopy = {-Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE - 1, Long.MAX_VALUE};
     System.out.println("Checking that copying to the same array works with overlap (from lesser position to greater)");
     System.arraycopy(longArrayCopy, 0, longArrayCopy, 1, 4);
     boolean copyDoesNotOverwriteLG = longArrayCopy[0] == Long.MIN_VALUE && longArrayCopy[1] == Long.MIN_VALUE &&

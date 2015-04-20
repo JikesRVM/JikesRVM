@@ -49,16 +49,16 @@ public class StackAllocator {
   public StackAllocator(Address baseAddress, Extent spaceSize, Extent stackSize) {
     this.baseAddress = baseAddress;
     this.topAddress = baseAddress.plus(spaceSize);
-    this.stackSize = (int)(stackSize.toLong()/BYTES_IN_PAGE);
+    this.stackSize = (int)(stackSize.toLong() / BYTES_IN_PAGE);
 
-    long spacePages = spaceSize.toLong()/BYTES_IN_PAGE;
-    int nStacks = (int)((spacePages-2)/(this.stackSize+1));
+    long spacePages = spaceSize.toLong() / BYTES_IN_PAGE;
+    int nStacks = (int)((spacePages - 2) / (this.stackSize + 1));
 
     this.allocated = new boolean[nStacks];
   }
 
   public int sizeInBytes() {
-    return stackSize*BYTES_IN_PAGE;
+    return stackSize * BYTES_IN_PAGE;
   }
 
   /**
@@ -69,7 +69,7 @@ public class StackAllocator {
   private Address baseAddress(int i) {
     /* Address of the first stack */
     Address base = baseAddress.plus(BYTES_IN_PAGE);
-    return base.plus((stackSize+1)*BYTES_IN_PAGE*i);
+    return base.plus((stackSize + 1) * BYTES_IN_PAGE * i);
   }
 
   /**
@@ -79,7 +79,7 @@ public class StackAllocator {
    */
   private Address alloc(int i) {
     if (allocated[i]) {
-      throw new AssertionError("Stack "+i+" is already allocated");
+      throw new AssertionError("Stack " + i + " is already allocated");
     }
     Address base = baseAddress(i);
     SimulatedMemory.map(base,sizeInBytes());
@@ -93,7 +93,7 @@ public class StackAllocator {
    */
   private void free(int i) {
     if (!allocated[i]) {
-      throw new AssertionError("Stack "+i+" is not allocated");
+      throw new AssertionError("Stack " + i + " is not allocated");
     }
     Address base = baseAddress(i);
     SimulatedMemory.unmap(base,sizeInBytes());
@@ -105,7 +105,7 @@ public class StackAllocator {
    * @return
    */
   public synchronized Address alloc() {
-    for (int i=0; i < allocated.length; i++) {
+    for (int i = 0; i < allocated.length; i++) {
       if (!allocated[i]) {
         return alloc(i);
       }
@@ -119,16 +119,17 @@ public class StackAllocator {
    * @param stack
    */
   public synchronized void free(Address stack) {
-    int index = (int)(stack.diff(baseAddress(0)).toLong()/(sizeInBytes()+BYTES_IN_PAGE));
-    assert baseAddress(index).EQ(stack) : "Stack "+index+" has base address "+baseAddress(index)+", freeing stack "+stack;
+    int index = (int)(stack.diff(baseAddress(0)).toLong() / (sizeInBytes() + BYTES_IN_PAGE));
+    assert baseAddress(index).EQ(stack) : "Stack " + index + " has base address " +
+        baseAddress(index) + ", freeing stack " + stack;
     free(index);
   }
 
   private void dump() {
-    System.err.println("Stack space base: "+baseAddress);
-    System.err.println("Stack space limit: "+topAddress);
-    System.err.println("Stack space size: "+topAddress.diff(baseAddress).toLong()/1024+" KB");
-    System.err.println("Stack size: "+stackSize+" pages ("+(stackSize*BYTES_IN_PAGE)/1024+" KB)");
-    System.err.println("Stacks available: "+allocated.length);
+    System.err.println("Stack space base: " + baseAddress);
+    System.err.println("Stack space limit: " + topAddress);
+    System.err.println("Stack space size: " + topAddress.diff(baseAddress).toLong() / 1024 + " KB");
+    System.err.println("Stack size: " + stackSize + " pages (" + (stackSize * BYTES_IN_PAGE) / 1024 + " KB)");
+    System.err.println("Stacks available: " + allocated.length);
   }
 }

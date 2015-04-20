@@ -42,7 +42,7 @@ final class FieldVector {
    *  and {@code v2} when this method is called.
    */
   public RVMField[] finish() {
-    synchronized(RVMField.class) {
+    synchronized (RVMField.class) {
       RVMField[] result = popularFVs.get(this);
       if (result != null) {
         array = result;
@@ -58,7 +58,7 @@ final class FieldVector {
   @Override
   public int hashCode() {
     int val = 0;
-    for (int i=cnt-1; i >= 0; i--) {
+    for (int i = cnt - 1; i >= 0; i--) {
       val ^= array[i].hashCode();
     }
     return val;
@@ -69,7 +69,7 @@ final class FieldVector {
     if (obj instanceof FieldVector) {
       FieldVector that = (FieldVector)obj;
       if (cnt != that.cnt) return false;
-      for(int i=cnt-1; i>=0; i--) {
+      for (int i = cnt - 1; i >= 0; i--) {
         if (array[i] != that.array[i]) return false;
       }
       return true;

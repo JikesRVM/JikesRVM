@@ -251,7 +251,7 @@ public abstract class WeightedCallTargets {
         }
 
         MultiTarget filtered = new MultiTarget();
-        for (int i=0; i<methods.length; i++) {
+        for (int i = 0; i < methods.length; i++) {
           RVMMethod method = methods[i];
           if (method != null && RuntimeEntrypoints.isAssignableWith(goal.getDeclaringClass(), method.getDeclaringClass())) {
             filtered.augmentCount(method, weights[i]);

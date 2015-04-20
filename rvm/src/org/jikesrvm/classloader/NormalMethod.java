@@ -271,7 +271,7 @@ public final class NormalMethod extends RVMMethod {
    * @return {@code true}, if it is (with prologue)
    */
   public boolean isForOsrSpecialization() {
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       return synthesizedBytecodes.get(this) != null;
     }
   }
@@ -296,13 +296,13 @@ public final class NormalMethod extends RVMMethod {
     System.arraycopy(prologue, 0, newBytecodes, 0, prologue.length);
     System.arraycopy(bytecodes, 0, newBytecodes, prologue.length, bytecodes.length);
 
-    synchronized(osrPrologues) {
+    synchronized (osrPrologues) {
       osrPrologues.put(this, prologue);
     }
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       synthesizedBytecodes.put(this, newBytecodes);
     }
-    synchronized(savedOperandWords) {
+    synchronized (savedOperandWords) {
       savedOperandWords.put(this, Integer.valueOf(operandWords));
     }
     if (newStackHeight > operandWords) {
@@ -319,13 +319,13 @@ public final class NormalMethod extends RVMMethod {
         VM._assert(synthesizedBytecodes.get(this) != null);
       }
     }
-    synchronized(osrPrologues) {
+    synchronized (osrPrologues) {
       osrPrologues.remove(this);
     }
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       synthesizedBytecodes.remove(this);
     }
-    synchronized(savedOperandWords) {
+    synchronized (savedOperandWords) {
       this.operandWords = (short)(savedOperandWords.get(this).intValue());
       savedOperandWords.remove(this);
     }
@@ -337,8 +337,8 @@ public final class NormalMethod extends RVMMethod {
    *         0 otherwise.
    */
   public int getOsrPrologueLength() {
-    if(isForOsrSpecialization()) {
-      synchronized(osrPrologues) {
+    if (isForOsrSpecialization()) {
+      synchronized (osrPrologues) {
         return osrPrologues.get(this).length;
       }
     } else {
@@ -357,7 +357,7 @@ public final class NormalMethod extends RVMMethod {
       }
     }
     byte[] osrPrologue;
-    synchronized(osrPrologues) {
+    synchronized (osrPrologues) {
       osrPrologue = osrPrologues.get(this);
     }
     return new BytecodeStream(this, osrPrologue);
@@ -369,7 +369,7 @@ public final class NormalMethod extends RVMMethod {
    */
   public BytecodeStream getOsrSynthesizedBytecodes() {
     byte[] bytecodes;
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       bytecodes = synthesizedBytecodes.get(this);
       if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     }
@@ -710,7 +710,7 @@ public final class NormalMethod extends RVMMethod {
           FieldReference fldRef = bcodes.getFieldReference(constantPool);
           if (fldRef.getFieldContentsType().isPrimitiveType()) {
             RVMField fld = fldRef.peekResolvedField();
-            if (fld == null || !fld.isFinal()){
+            if (fld == null || !fld.isFinal()) {
               calleeSize += SIMPLE_OPERATION_COST;
             }
           } else {

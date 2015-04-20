@@ -28,7 +28,7 @@ class MutatorThread extends RawThread {
   public MutatorThread(Schedulable code, RawThreadModel model) {
     super(model);
     this.code = code;
-    setName("Mutator-"+model.nextMutatorId());
+    setName("Mutator-" + model.nextMutatorId());
   }
 
   @Override

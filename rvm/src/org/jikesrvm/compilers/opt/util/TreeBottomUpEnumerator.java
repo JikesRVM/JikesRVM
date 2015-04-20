@@ -41,7 +41,7 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
   TreeBottomUpEnumerator(TreeNode root) {
     list = new ArrayList<TreeNode>();
 
-    if (root!=null) {
+    if (root != null) {
       // Perform a DFS, saving nodes in postorder
       DFS(root);
     }

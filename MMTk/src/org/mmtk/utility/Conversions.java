@@ -107,7 +107,7 @@ import org.vmmagic.pragma.*;
   }
 
   public static int bytesToPagesUp(Extent bytes) {
-    return bytes.plus(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(BYTES_IN_PAGE - 1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }
 
   public static int bytesToPages(Extent bytes) {
@@ -136,7 +136,7 @@ import org.vmmagic.pragma.*;
   }
 
   public static int pageAlign(int value) {
-    return (value>>LOG_BYTES_IN_PAGE)<<LOG_BYTES_IN_PAGE;
+    return (value >> LOG_BYTES_IN_PAGE) << LOG_BYTES_IN_PAGE;
   }
 
   public static boolean isPageAligned(Address address) {

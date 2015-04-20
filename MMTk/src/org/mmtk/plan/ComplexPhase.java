@@ -68,7 +68,7 @@ public final class ComplexPhase extends Phase {
   private void checkPhases() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(scheduledSubPhases.length > 0);
-      for(int scheduledPhase: scheduledSubPhases) {
+      for (int scheduledPhase: scheduledSubPhases) {
         VM.assertions._assert(getSchedule(scheduledPhase) > 0);
         VM.assertions._assert(getPhaseId(scheduledPhase) > 0);
       }

@@ -62,14 +62,14 @@ final class MemoryPage {
    * @return
    */
   private Address cellAddress(int index) {
-    return pageAddress.plus(index<<LOG_BYTES_IN_CELL);
+    return pageAddress.plus(index << LOG_BYTES_IN_CELL);
   }
 
   /**
    * Zero the memory in this page.
    */
   public void zero() {
-    for(int i=0; i < data.length; i++) {
+    for (int i = 0; i < data.length; i++) {
       write(i, 0);
     }
   }
@@ -84,7 +84,7 @@ final class MemoryPage {
    */
   @SuppressWarnings("cast") // Make cast explicit, because oddness can happen
   private long longFrom2Ints(int high, int low) {
-    return (((long)high) << 32) |(((long)low & 0xFFFFFFFFL));
+    return (((long)high) << 32) | (((long)low & 0xFFFFFFFFL));
   }
 
   /**
@@ -116,7 +116,7 @@ final class MemoryPage {
    */
   public char getChar(Address address) {
     int bitShift = ((address.toInt()) & ~CELL_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
-    assert bitShift == 0 || bitShift == 16: "misaligned char access at "+address;
+    assert bitShift == 0 || bitShift == 16 : "misaligned char access at " + address;
     int index = getIndex(address);
     return (char)(read(index) >>> bitShift);
   }
@@ -127,7 +127,7 @@ final class MemoryPage {
    * @return The contents of the int at the address
    */
   public int getInt(Address address) {
-    assert ((address.toInt()) % MemoryConstants.BYTES_IN_INT) == 0: "misaligned 4b access at "+address;
+    assert ((address.toInt()) % MemoryConstants.BYTES_IN_INT) == 0 : "misaligned 4b access at " + address;
     return read(getIndex(address));
   }
 
@@ -138,7 +138,7 @@ final class MemoryPage {
    */
   public long getLong(Address address) {
     if (SimulatedMemory.ALIGN_CHECK_LONG) {
-      assert ((address.toLong()) % MemoryConstants.BYTES_IN_LONG) == 0: "misaligned 8b access at "+address;
+      assert ((address.toLong()) % MemoryConstants.BYTES_IN_LONG) == 0 : "misaligned 8b access at " + address;
     }
     return longFrom2Ints(getInt(address.plus(BYTES_IN_CELL)),getInt(address));
   }
@@ -158,7 +158,7 @@ final class MemoryPage {
   @SuppressWarnings("cast")
   public synchronized char setChar(Address address, char value) {
     int shift = (address.toInt() & ~MemoryConstants.INT_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
-    assert shift == 0 || shift == 16: "misaligned 2b access at "+address+", shift="+shift;
+    assert shift == 0 || shift == 16 : "misaligned 2b access at " + address + ", shift=" + shift;
     int mask = 0x0000FFFF << shift;
     int newValue = (((int)value) << shift) & mask;
     int index = getIndex(address);
@@ -169,7 +169,7 @@ final class MemoryPage {
   }
 
   public synchronized int setInt(Address address, int value) {
-    assert ((address.toInt()) % MemoryConstants.BYTES_IN_INT) == 0: "misaligned 4b access at "+address;
+    assert ((address.toInt()) % MemoryConstants.BYTES_IN_INT) == 0 : "misaligned 4b access at " + address;
     int index = getIndex(address);
     int old = read(index);
     write(index, value);
@@ -178,16 +178,16 @@ final class MemoryPage {
 
   public synchronized long setLong(Address address, long value) {
     if (SimulatedMemory.ALIGN_CHECK_LONG) {
-      assert ((address.toInt()) % MemoryConstants.BYTES_IN_LONG) == 0: "misaligned 8b access at "+address;
+      assert ((address.toInt()) % MemoryConstants.BYTES_IN_LONG) == 0 : "misaligned 8b access at " + address;
     }
     try {
     int index = getIndex(address);
-    long old = longFrom2Ints(read(index+1), read(index));
+    long old = longFrom2Ints(read(index + 1), read(index));
     write(index, (int)(value & 0xFFFFFFFFL));
-    write(index+1, (int)(value >>> 32));
+    write(index + 1, (int)(value >>> 32));
     return old;
     } catch (RuntimeException e) {
-      System.err.println("Error setting address "+address);
+      System.err.println("Error setting address " + address);
       throw e;
     }
   }
@@ -244,14 +244,14 @@ final class MemoryPage {
    */
   private boolean[] getWatchPoints() {
     boolean[] result = null;
-    for(Address addr: SimulatedMemory.watches) {
+    for (Address addr: SimulatedMemory.watches) {
       if (SimulatedMemory.onSamePage(addr,pageAddress)) {
         if (result == null) {
           result = new boolean[data.length];
         }
         int index = getIndex(addr);
         result[index] = true;
-        System.err.println("Watching address "+addr);
+        System.err.println("Watching address " + addr);
       }
     }
     return result;

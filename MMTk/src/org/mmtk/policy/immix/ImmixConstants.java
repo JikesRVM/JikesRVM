@@ -44,28 +44,28 @@ public class ImmixConstants {
   public static final float DEFAULT_DEFRAG_FREE_HEADROOM_FRACTION = (float) 0.0;
   /* sizes etc */
   static final int LOG_BYTES_IN_BLOCK = (LOG_BYTES_IN_PAGE > 15 ? LOG_BYTES_IN_PAGE : 15);
-  public static final int BYTES_IN_BLOCK = 1<<LOG_BYTES_IN_BLOCK;
+  public static final int BYTES_IN_BLOCK = 1 << LOG_BYTES_IN_BLOCK;
   static final int LOG_PAGES_IN_BLOCK = LOG_BYTES_IN_BLOCK - LOG_BYTES_IN_PAGE;
-  static final int PAGES_IN_BLOCK = 1<<LOG_PAGES_IN_BLOCK;
-  static final int LOG_BLOCKS_IN_CHUNK = LOG_BYTES_IN_CHUNK-LOG_BYTES_IN_BLOCK;
-  static final int BLOCKS_IN_CHUNK = 1<<LOG_BLOCKS_IN_CHUNK;
+  static final int PAGES_IN_BLOCK = 1 << LOG_PAGES_IN_BLOCK;
+  static final int LOG_BLOCKS_IN_CHUNK = LOG_BYTES_IN_CHUNK - LOG_BYTES_IN_BLOCK;
+  static final int BLOCKS_IN_CHUNK = 1 << LOG_BLOCKS_IN_CHUNK;
 
   public static final int LOG_BYTES_IN_LINE = 8;
   static final int LOG_LINES_IN_BLOCK = LOG_BYTES_IN_BLOCK - LOG_BYTES_IN_LINE;
-  public static final short LINES_IN_BLOCK = (short) (1<<LOG_LINES_IN_BLOCK);
+  public static final short LINES_IN_BLOCK = (short) (1 << LOG_LINES_IN_BLOCK);
   static final int LOG_LINES_IN_CHUNK = LOG_BYTES_IN_CHUNK - LOG_BYTES_IN_LINE;
-  static final int LINES_IN_CHUNK = 1<<LOG_LINES_IN_CHUNK;
+  static final int LINES_IN_CHUNK = 1 << LOG_LINES_IN_CHUNK;
 
-  public static final int BYTES_IN_LINE = 1<<LOG_BYTES_IN_LINE;
+  public static final int BYTES_IN_LINE = 1 << LOG_BYTES_IN_LINE;
 
-  public static final int MAX_IMMIX_OBJECT_BYTES = BYTES_IN_BLOCK>>1;
+  public static final int MAX_IMMIX_OBJECT_BYTES = BYTES_IN_BLOCK >> 1;
 
   private static final int LOG_BLOCKS_IN_RECYCLE_ALLOC_CHUNK = 4; // 3 + 15 -> 19 (512KB)
   private static final int LOG_BYTES_IN_RECYCLE_ALLOC_CHUNK = LOG_BLOCKS_IN_RECYCLE_ALLOC_CHUNK + LOG_BYTES_IN_BLOCK;
-  static final int BYTES_IN_RECYCLE_ALLOC_CHUNK = 1<<LOG_BYTES_IN_RECYCLE_ALLOC_CHUNK;
+  static final int BYTES_IN_RECYCLE_ALLOC_CHUNK = 1 << LOG_BYTES_IN_RECYCLE_ALLOC_CHUNK;
 
   public static final short MAX_BLOCK_MARK_STATE = LINES_IN_BLOCK;
-         static final short MAX_CONSV_SPILL_COUNT = (short) (LINES_IN_BLOCK/2);
+         static final short MAX_CONSV_SPILL_COUNT = (short) (LINES_IN_BLOCK / 2);
   public static final short SPILL_HISTOGRAM_BUCKETS = (short) (MAX_CONSV_SPILL_COUNT + 1);
   public static final short MARK_HISTOGRAM_BUCKETS = (short) (LINES_IN_BLOCK + 1);
 

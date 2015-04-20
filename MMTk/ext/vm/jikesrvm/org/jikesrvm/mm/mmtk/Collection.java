@@ -62,7 +62,7 @@ public class Collection extends org.mmtk.vm.Collection {
   @Override
   @Unpreemptible
   public void blockForGC() {
-    RVMThread t=RVMThread.getCurrentThread();
+    RVMThread t = RVMThread.getCurrentThread();
     t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
     RVMThread.observeExecStatusAtSTW(t.getExecStatus());
     RVMThread.getCurrentThread().block(RVMThread.gcBlockAdapter);

@@ -124,20 +124,20 @@ public class HeapSnapshot implements HeapVisitor {
     if (count == null) {
       count = Integer.valueOf(0);
     }
-    spaceStats.put(name, count+1);
+    spaceStats.put(name, count + 1);
   }
 
   @Override
   public void visitObject(ObjectReference object, boolean root, boolean marked) {
     if (VERBOSE) {
-      Trace.trace(Item.SANITY,"Visiting %sobject at address %s",root ? "root ":"",object);
+      Trace.trace(Item.SANITY,"Visiting %sobject at address %s",root ? "root " : "",object);
     }
     int id = ObjectModel.getId(object);
     if (!ObjectModel.hasValidId(object)) {
-      System.err.printf("### Invalid %sobject id=%d found at address %s%n",root ? "root ":"", id, object);
+      System.err.printf("### Invalid %sobject id=%d found at address %s%n",root ? "root " : "", id, object);
     }
     if (VERBOSE) {
-      Trace.trace(Item.SANITY,"Visiting %sobject %d at address %s",root ? "root ":"",id,object);
+      Trace.trace(Item.SANITY,"Visiting %sobject %d at address %s",root ? "root " : "",id,object);
     }
     HeapEntry entry = byAddress.get(object);
     if (!marked) {

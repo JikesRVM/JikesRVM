@@ -75,7 +75,7 @@ class ThreadQueue implements Collection<RawThread> {
 
   @Override
   public synchronized int size() {
-    assert cqueue.size() <= counter.get() : "queue size = "+cqueue.size()+", counter="+counter.get();
+    assert cqueue.size() <= counter.get() : "queue size = " + cqueue.size() + ", counter=" + counter.get();
     return cqueue.size();
   }
 

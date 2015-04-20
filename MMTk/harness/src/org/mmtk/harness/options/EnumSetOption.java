@@ -59,7 +59,7 @@ public class EnumSetOption extends Option {
         return i;
       }
     }
-    fail("Invalid Enumeration Value, \""+string+"\"");
+    fail("Invalid Enumeration Value, \"" + string + "\"");
     return -1;
   }
 

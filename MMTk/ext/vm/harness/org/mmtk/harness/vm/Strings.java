@@ -31,7 +31,7 @@ public class Strings extends org.mmtk.vm.Strings {
   @Override
   public int copyStringToChars(String src, char [] dst, int dstBegin, int dstEnd) {
     int count = 0;
-    for (int i=0; i <src.length(); i++) {
+    for (int i = 0; i < src.length(); i++) {
       if (dstBegin > dstEnd) break;
       dst[dstBegin] = src.charAt(i);
       dstBegin++;

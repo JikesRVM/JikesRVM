@@ -37,7 +37,7 @@ class NativeThreadsWorker extends Thread {
        float fp  = (float)17.8;
        if (name == "pong") loopcntr = 75;
        for (int i = 0; i < loopcntr; ++i) {
-           if ((name == "ping") ||(name == "ping2")) {
+           if ((name == "ping") || (name == "ping2")) {
              //  call a native function
              say(name, "calling nativeFoo");
              retval = tNativeThreads.nativeFoo(RVMThread.getCurrentThread().getIndex());
@@ -58,13 +58,13 @@ class NativeThreadsWorker extends Thread {
              //  sleep(300);
              //}
              //catch (InterruptedException e) {}
-           } else {// pong story
+           } else { // pong story
              // others sleep for a while and then call java  function
              say(name, "about to sleep for 100 msec");
              try {
                say(name, "sleeping");
                sleep(100);
-             } catch (InterruptedException e) {}
+             } catch (InterruptedException e) { }
              say(name, "after sleep -calling javaFoo");
              retval = tNativeThreads.javaFoo(10);
              say(name, "return from javaFoo");

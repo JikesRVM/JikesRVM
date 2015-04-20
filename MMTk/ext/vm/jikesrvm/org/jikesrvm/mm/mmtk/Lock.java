@@ -90,38 +90,38 @@ import org.jikesrvm.scheduler.ThreadQueue;
   @Override
   public void acquire() {
     RVMThread me = RVMThread.getCurrentThread();
-    Offset offset=Entrypoints.lockStateField.getOffset();
-    boolean acquired=false;
-    for (int i=0; me.isOnQueue() || i < SPIN_LIMIT;++i) {
-      int oldState=Magic.prepareInt(this,offset);
+    Offset offset = Entrypoints.lockStateField.getOffset();
+    boolean acquired = false;
+    for (int i = 0; me.isOnQueue() || i < SPIN_LIMIT;++i) {
+      int oldState = Magic.prepareInt(this,offset);
       // NOTE: we could be smart here and break out of the spin if we see
       // that the state is CLEAR_QUEUED or LOCKED_QUEUED, or we could even
       // check the queue directly and see if there is anything on it; this
       // would make the lock slightly more fair.
-      if ((oldState==CLEAR &&
+      if ((oldState == CLEAR &&
            Magic.attemptInt(this,offset,CLEAR,LOCKED)) ||
-          (oldState==CLEAR_QUEUED &&
+          (oldState == CLEAR_QUEUED &&
            Magic.attemptInt(this,offset,CLEAR_QUEUED,LOCKED_QUEUED))) {
-        acquired=true;
+        acquired = true;
         break;
       }
     }
     if (!acquired) {
       for (;;) {
-        int oldState=Magic.prepareInt(this,offset);
-        if ((oldState==CLEAR &&
+        int oldState = Magic.prepareInt(this,offset);
+        if ((oldState == CLEAR &&
              Magic.attemptInt(this,offset,CLEAR,LOCKED)) ||
-            (oldState==CLEAR_QUEUED &&
+            (oldState == CLEAR_QUEUED &&
              Magic.attemptInt(this,offset,CLEAR_QUEUED,LOCKED_QUEUED))) {
           break;
-        } else if ((oldState==LOCKED &&
+        } else if ((oldState == LOCKED &&
                     Magic.attemptInt(this,offset,LOCKED,QUEUEING)) ||
-                   (oldState==LOCKED_QUEUED &&
+                   (oldState == LOCKED_QUEUED &&
                     Magic.attemptInt(this,offset,LOCKED_QUEUED,QUEUEING))) {
           Magic.sync();
           queue.enqueue(me);
           Magic.sync();
-          state=LOCKED_QUEUED;
+          state = LOCKED_QUEUED;
           me.monitor().lockNoHandshake();
           while (queue.isQueued(me)) {
             // use waitNoHandshake instead of waitWithHandshake because this is NOT a GC point!
@@ -144,29 +144,29 @@ import org.jikesrvm.scheduler.ThreadQueue;
 
   @Override
   public void release() {
-    where=-1;
-    thread=null;
+    where = -1;
+    thread = null;
     Magic.sync();
-    Offset offset=Entrypoints.lockStateField.getOffset();
+    Offset offset = Entrypoints.lockStateField.getOffset();
     for (;;) {
-      int oldState=Magic.prepareInt(this,offset);
-      if (VM.VerifyAssertions) VM._assert(oldState==LOCKED ||
-                                          oldState==LOCKED_QUEUED ||
-                                          oldState==QUEUEING);
-      if (oldState==LOCKED &&
+      int oldState = Magic.prepareInt(this,offset);
+      if (VM.VerifyAssertions) VM._assert(oldState == LOCKED ||
+                                          oldState == LOCKED_QUEUED ||
+                                          oldState == QUEUEING);
+      if (oldState == LOCKED &&
           Magic.attemptInt(this,offset,LOCKED,CLEAR)) {
         break;
-      } else if (oldState==LOCKED_QUEUED &&
+      } else if (oldState == LOCKED_QUEUED &&
                  Magic.attemptInt(this,offset,LOCKED_QUEUED,QUEUEING)) {
         Magic.sync();
-        RVMThread toAwaken=queue.dequeue();
-        if (VM.VerifyAssertions) VM._assert(toAwaken!=null);
-        boolean queueEmpty=queue.isEmpty();
+        RVMThread toAwaken = queue.dequeue();
+        if (VM.VerifyAssertions) VM._assert(toAwaken != null);
+        boolean queueEmpty = queue.isEmpty();
         Magic.sync();
         if (queueEmpty) {
-          state=CLEAR;
+          state = CLEAR;
         } else {
-          state=CLEAR_QUEUED;
+          state = CLEAR_QUEUED;
         }
         toAwaken.monitor().lockedBroadcastNoHandshake();
         break;

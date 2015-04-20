@@ -38,7 +38,7 @@ public class Memory {
 
   /** zero operations greater than this size are done using the
    * underlying OS implementation of zero() */
-  private static final int SMALL_REGION_THRESHOLD = 1<<8; // empirically chosen
+  private static final int SMALL_REGION_THRESHOLD = 1 << 8; // empirically chosen
 
 
   /****************************************************************************
@@ -159,7 +159,7 @@ public class Memory {
   }
 
   private static void assertAligned(Word value) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT - 1)).isZero());
   }
 
   private static void assertAligned(Extent value) {

@@ -39,8 +39,8 @@ class TestGC {
 
     System.loadLibrary("TestGC");
 
-    if (args.length!=0) {
-        for (int i=0; i<args.length; i++) {
+    if (args.length != 0) {
+        for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-quiet")) {
                 verbose = false;
                 setVerboseOff();
@@ -65,7 +65,7 @@ class TestGC {
 
         Address newAddress1 = Magic.objectAsAddress(str1);
         Address newAddress2 = Magic.objectAsAddress(str2);
-        if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
+        if (oldAddress1 != newAddress1 && oldAddress2 != newAddress2) {
             printVerbose("Objects have been moved by GC:");
         } else {
             printVerbose("Objects have NOT been moved by GC:");
@@ -82,7 +82,7 @@ class TestGC {
     //   checkTest( 0, (str1==returnobj), "GC with copying during native code" );
     // else
     //   checkTest( 0, (str1==returnobj), "GC without copying during native code" );
-    checkTest(0, (str1==returnobj), "GC during native code");
+    checkTest(0, (str1 == returnobj), "GC during native code");
   }
 
   static void printVerbose(String str) {
@@ -91,7 +91,7 @@ class TestGC {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       System.out.println("PASS: " + testName);
     } else {
       allTestPass = false;

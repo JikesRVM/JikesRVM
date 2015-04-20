@@ -34,7 +34,7 @@ public final class SpecializedMethodManager {
    * @param type the type that was instantiated
    */
   public static void notifyTypeInstantiated(RVMType type) {
-    for(int i=0; i < numSpecializedMethods; i++) {
+    for (int i = 0; i < numSpecializedMethods; i++) {
       if (methods[i] == null) {
         initializeSpecializedMethod(i);
       }
@@ -47,7 +47,7 @@ public final class SpecializedMethodManager {
    * @param type the type whose methods need to be refreshed
    */
   public static void refreshSpecializedMethods(RVMType type) {
-    for(int i=0; i < numSpecializedMethods; i++) {
+    for (int i = 0; i < numSpecializedMethods; i++) {
       if (VM.VerifyAssertions) VM._assert(methods[i] != null, "Specialized method missing!");
       type.setSpecializedMethod(i, methods[i].specializeMethod(type));
     }

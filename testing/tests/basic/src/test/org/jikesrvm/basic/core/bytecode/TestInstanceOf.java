@@ -51,9 +51,13 @@ class TestInstanceOf {
     try { final Cloneable o = (Cloneable) x; success(); } catch (final ClassCastException cce) { failure(); }
   }
 
-  private static void failure() {System.out.print("0");}
+  private static void failure() {
+    System.out.print("0");
+  }
 
-  private static void success() {System.out.print("1");}
+  private static void success() {
+    System.out.print("1");
+  }
 
   @SuppressWarnings({"ConstantConditions"})
   private static void testInstanceOf(final Object x) {

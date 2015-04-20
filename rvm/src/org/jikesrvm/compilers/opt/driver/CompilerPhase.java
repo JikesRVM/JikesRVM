@@ -204,7 +204,7 @@ public abstract class CompilerPhase {
         //}
       }
     }
-    if (ir.options.PRINT_PHASES) VM.sysWrite(getName() + " (" + ir.method.toString()+ ")");
+    if (ir.options.PRINT_PHASES) VM.sysWrite(getName() + " (" + ir.method.toString() + ")");
 
     perform(ir);                // DOIT!!
 

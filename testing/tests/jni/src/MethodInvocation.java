@@ -56,7 +56,7 @@ class MethodInvocation {
   public static char staticReturnChar(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    if (val1=='a')
+    if (val1 == 'a')
       return 'b';
     else
       return 'c';    // didn't get the expected argument, force test to fail
@@ -135,7 +135,7 @@ class MethodInvocation {
   public char virtualReturnChar(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    if (val1=='x')
+    if (val1 == 'x')
       return 'y';
     else
       return 'z';    // didn't get the expected argument, force test to fail
@@ -207,7 +207,7 @@ class MethodInvocation {
 
     System.loadLibrary("MethodInvocation");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -303,7 +303,7 @@ class MethodInvocation {
   }
 
   static void checkTest(int returnValue, String testName) {
-    if (returnValue==0) {
+    if (returnValue == 0) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

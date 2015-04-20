@@ -23,7 +23,7 @@ class ExceptionTest2 {
     try {
       return run2();
     } catch (IndexOutOfBoundsException e5) {
-      System.out.println(" IndexOutOfBoundsException: '" + e5 +"', but caught in run()!!!");
+      System.out.println(" IndexOutOfBoundsException: '" + e5 + "', but caught in run()!!!");
     }
     System.out.println(" At End");
 

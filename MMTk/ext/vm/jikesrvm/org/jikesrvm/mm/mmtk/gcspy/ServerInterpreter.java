@@ -46,7 +46,7 @@ import org.vmmagic.unboxed.Address;
         Log.writeln("-- Initialising main server on port ",port);
 
       Address tmp = GCspy.util.getBytes(name);
-      server = sysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose?1:0);
+      server = sysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose ? 1 : 0);
 
       if (DEBUG) {
         Log.writeln("gcspy_main_server_t address = "); Log.writeln(server);
@@ -90,7 +90,7 @@ import org.vmmagic.unboxed.Address;
       if (DEBUG) { Log.write("Starting GCSpy server, wait="); Log.writeln(wait); }
 
       Address serverOuterLoop = sysCall.gcspyMainServerOuterLoop();
-      sysCall.gcspyStartserver(server, wait?1:0, serverOuterLoop);
+      sysCall.gcspyStartserver(server, wait ? 1 : 0, serverOuterLoop);
     }
   }
 
@@ -145,6 +145,6 @@ import org.vmmagic.unboxed.Address;
 
   @Override
   public int computeHeaderSize() {
-    return JAVA_HEADER_BYTES+OTHER_HEADER_BYTES;
+    return JAVA_HEADER_BYTES + OTHER_HEADER_BYTES;
   }
 }

@@ -44,11 +44,11 @@ public class ConcurrentZeroingContext extends CollectorContext {
   }
 
   @Override
-  public void run(){
+  public void run() {
     if (Options.verbose.getValue() >= 2) {
       Log.writeln("ZeroingThread running");
     }
-    while(true) {
+    while (true) {
       lock.lock();
       while (trigger == 0) {
         lock.await();

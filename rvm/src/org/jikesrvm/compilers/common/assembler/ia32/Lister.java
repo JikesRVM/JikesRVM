@@ -298,7 +298,7 @@ public final class Lister implements RegisterConstants {
 
   public void RRA(int i, String op, MachineRegister R0, Address d) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 +" ", DEST_AREA_SIZE));
+    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }

@@ -155,7 +155,7 @@ public final class PiNodes extends CompilerPhase {
    */
   private void insertPiIfNodes(IR ir) {
     Enumeration<Instruction> e = ir.forwardInstrEnumerator();
-    while(e.hasMoreElements()) {
+    while (e.hasMoreElements()) {
       Instruction instr = e.nextElement();
       // TODO: what other compareops generate useful assertions?
       if (IfCmp.conforms(instr) || InlineGuard.conforms(instr)) {

@@ -149,13 +149,13 @@ final class VMClassLoader {
         }
       } else if (file.isFile()) {
         ZipFile zip;
-        synchronized(bootjars) {
+        synchronized (bootjars) {
           zip = bootjars.get(file.getName());
         }
-        if(zip == null) {
+        if (zip == null) {
           try {
             zip = new ZipFile(file);
-            synchronized(bootjars) {
+            synchronized (bootjars) {
               bootjars.put(file.getName(), zip);
             }
           } catch (IOException e) {

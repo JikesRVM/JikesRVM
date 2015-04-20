@@ -1305,7 +1305,7 @@ public abstract class Simplifier extends IRTools {
               Instruction sign = Binary.create(INT_SHR, tempInt1, GuardedBinary.getVal1(s).copy(), IC(31));
               sign.copyPosition(s);
               s.insertBefore(sign);
-              Instruction masked = Binary.create(INT_AND, tempInt2, tempInt1.copyRO(), IC((1 << power)-1));
+              Instruction masked = Binary.create(INT_AND, tempInt2, tempInt1.copyRO(), IC((1 << power) - 1));
               masked.copyPosition(s);
               s.insertBefore(masked);
               Instruction adjusted = Binary.create(INT_ADD, tempInt3, tempInt2.copyRO(), GuardedBinary.getClearVal1(s));
@@ -1407,7 +1407,7 @@ public abstract class Simplifier extends IRTools {
               lastShiftWasShort = true;
             } else {
               // need separate shift and add
-              cost+=2;
+              cost += 2;
               lastShiftWasShort = false;
             }
             lastShift = i;
@@ -1417,7 +1417,7 @@ public abstract class Simplifier extends IRTools {
         for (int i = 1; i < BITS_IN_ADDRESS; i++) {
           if ((val2 & (1L << i)) != 0) {
             // each 1 requires a shift and add
-            cost+=2;
+            cost += 2;
           }
         }
         for (int i = BITS_IN_ADDRESS; i < numBits; i++) {
@@ -1431,7 +1431,7 @@ public abstract class Simplifier extends IRTools {
         for (int i = 1; i < numBits; i++) {
           if ((val2 & (1L << i)) != 0) {
             // each 1 requires a shift and add
-            cost+=2;
+            cost += 2;
           }
         }
       }
@@ -1463,9 +1463,9 @@ public abstract class Simplifier extends IRTools {
             Instruction shift;
             RegisterOperand shiftResult = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
             if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS &&
-                lastShiftResult != null && ((i-lastShift) <= 3) && (i > 3) && !lastShiftWasShort) {
+                lastShiftResult != null && ((i - lastShift) <= 3) && (i > 3) && !lastShiftWasShort) {
               // We can produce a short shift (1, 2 or 3) using the result of the last shift
-              shift = Binary.create(shiftLeftOperator, shiftResult, lastShiftResult.copyRO(), IC(i-lastShift));
+              shift = Binary.create(shiftLeftOperator, shiftResult, lastShiftResult.copyRO(), IC(i - lastShift));
               lastShiftWasShort = true;
             } else {
               shift = Binary.create(shiftLeftOperator, shiftResult, val1Operand.copyRO(), IC(i));
@@ -2303,7 +2303,7 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-          if ((val2 == 1L)||(val2 == -1L)) {                 // x % 1L == 0
+          if ((val2 == 1L) || (val2 == -1L)) {                 // x % 1L == 0
             Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
@@ -3246,7 +3246,7 @@ public abstract class Simplifier extends IRTools {
         // Look for a precise method call to a pure method with all constant arguments
         RVMMethod method = methOp.getTarget();
         int n = Call.getNumberOfParams(s);
-        for(int i=0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
           Operand param = Call.getParam(s,i);
           if (!param.isConstant() || param.isNullConstant()) {
             return DefUseEffect.UNCHANGED;
@@ -3261,12 +3261,12 @@ public abstract class Simplifier extends IRTools {
           thisArg = boxConstantOperand((ConstantOperand)Call.getParam(s,0), method.getDeclaringClass().getTypeRef());
           n--;
           otherArgs = new Object[n];
-          for(int i=0; i < n; i++) {
-            otherArgs[i] = boxConstantOperand((ConstantOperand)Call.getParam(s,i+1),paramTypes[i]);
+          for (int i = 0; i < n; i++) {
+            otherArgs[i] = boxConstantOperand((ConstantOperand)Call.getParam(s,i + 1),paramTypes[i]);
           }
         } else {
           otherArgs = new Object[n];
-          for(int i=0; i < n; i++) {
+          for (int i = 0; i < n; i++) {
             otherArgs[i] = boxConstantOperand((ConstantOperand)Call.getParam(s,i),paramTypes[i]);
           }
         }
@@ -3277,7 +3277,7 @@ public abstract class Simplifier extends IRTools {
             result = Reflection.invoke(method, null, thisArg, otherArgs, false);
           } else {
             Class<?>[] argTypes = new Class<?>[n];
-            for(int i=0; i < n; i++) {
+            for (int i = 0; i < n; i++) {
               argTypes[i] = Call.getParam(s,i).getType().resolve().getClassForType();
             }
             m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
@@ -3289,7 +3289,7 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.UNCHANGED;
         }
         if (result == null) throw new OptimizingCompilerException("Method " + m + "/" + method + " returned null");
-        if(method.getReturnType().isVoidType()) {
+        if (method.getReturnType().isVoidType()) {
           Empty.mutate(s, NOP);
           return DefUseEffect.REDUCED;
         } else {
@@ -3309,7 +3309,7 @@ public abstract class Simplifier extends IRTools {
    * @param t the type of the object (needed to differentiate primitive from numeric types..)
    * @return the object
    */
-  private static Object boxConstantOperand(ConstantOperand op, TypeReference t){
+  private static Object boxConstantOperand(ConstantOperand op, TypeReference t) {
     if (op.isObjectConstant()) {
       return op.asObjectConstant().value;
     } else if (op.isLongConstant()) {
@@ -3329,9 +3329,9 @@ public abstract class Simplifier extends IRTools {
     } else if (t.isShortType()) {
       return (short)op.asIntConstant().value;
     } else {
-      throw new OptimizingCompilerException("Trying to box an VM magic unboxed type ("+op+
-                                            ")for a pure method call is not possible:\n"+op.instruction+
-                                            "\n at "+op.instruction.position);
+      throw new OptimizingCompilerException("Trying to box an VM magic unboxed type (" + op +
+                                            ")for a pure method call is not possible:\n" + op.instruction +
+                                            "\n at " + op.instruction.position);
     }
   }
   /**
@@ -3340,7 +3340,7 @@ public abstract class Simplifier extends IRTools {
    * @param t the type of the object (needed to differentiate primitive from numeric types..)
    * @return the constant operand
    */
-  private static ConstantOperand boxConstantObjectAsOperand(Object x, TypeReference t){
+  private static ConstantOperand boxConstantObjectAsOperand(Object x, TypeReference t) {
     if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
     if (x == null) {
       throw new Error("Field of type: " + t + " is null");

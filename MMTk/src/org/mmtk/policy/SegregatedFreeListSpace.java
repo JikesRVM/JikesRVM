@@ -52,7 +52,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; // (1<<(INUSE_BITS-1))-1;
-  protected static final int MAX_CELL_SIZE = 8<<10;
+  protected static final int MAX_CELL_SIZE = 8 << 10;
   public static final int MAX_FREELIST_OBJECT_BYTES = MAX_CELL_SIZE;
 
   // live bits etc
@@ -62,7 +62,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   private static final int LIVE_BYTES_PER_REGION = 1 << (EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_LIVE_COVERAGE);
   private static final Word WORD_SHIFT_MASK = Word.one().lsh(LOG_BITS_IN_WORD).minus(Extent.one());
   private static final int LOG_LIVE_WORD_STRIDE = LOG_LIVE_COVERAGE + LOG_BYTES_IN_WORD;
-  private static final Extent LIVE_WORD_STRIDE = Extent.fromIntSignExtend(1<<LOG_LIVE_WORD_STRIDE);
+  private static final Extent LIVE_WORD_STRIDE = Extent.fromIntSignExtend(1 << LOG_LIVE_WORD_STRIDE);
   private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.minus(1).toWord().not();
   private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
   protected static final int META_DATA_PAGES_PER_REGION_WITH_BITMAP = Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
@@ -73,7 +73,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   // calculate worst case fragmentation very conservatively
   private static final int NEW_SIZECLASS_OVERHEAD = sizeClassCount();  // one page wasted per size class
   private static final int METADATA_OVERHEAD = META_DATA_PAGES_PER_REGION_WITH_BITMAP; // worst case scenario
-  public static final float WORST_CASE_FRAGMENTATION = 1 + ((NEW_SIZECLASS_OVERHEAD + METADATA_OVERHEAD)/(float) EmbeddedMetaData.BYTES_IN_REGION);
+  public static final float WORST_CASE_FRAGMENTATION = 1 + ((NEW_SIZECLASS_OVERHEAD + METADATA_OVERHEAD) / (float) EmbeddedMetaData.BYTES_IN_REGION);
 
   /****************************************************************************
    *
@@ -179,7 +179,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   public Address getAllocationBlock(int sizeClass, AddressArray freeList) {
     lock.acquire();
     Address block;
-    while(!(block = availableBlockHead.get(sizeClass)).isZero()) {
+    while (!(block = availableBlockHead.get(sizeClass)).isZero()) {
       availableBlockHead.set(sizeClass, BlockAllocator.getNext(block));
       lock.release();
 
@@ -268,8 +268,8 @@ public abstract class SegregatedFreeListSpace extends Space {
            cellSize is also supposed to be multiple, this should do
            the trick: */
         blockHeaderSize[sc] = BlockAllocator.blockSize(blk) - cells * cellSize[sc];
-        if (((usableBytes < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
-            ((usableBytes > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
+        if (((usableBytes < BYTES_IN_PAGE) && (cells * 2 > MAX_CELLS)) ||
+            ((usableBytes > (BYTES_IN_PAGE >> 1)) && (cells > MIN_CELLS)))
           break;
       }
     }
@@ -355,34 +355,34 @@ public abstract class SegregatedFreeListSpace extends Space {
 
     if (BYTES_IN_ADDRESS == 4) { // 32-bit
       if (COMPACT_SIZE_CLASSES)
-        return ((sc <  8) ? (sc +  1) <<  2:
-                (sc < 12) ? (sc -  3) <<  3:
-                (sc < 16) ? (sc -  7) <<  4:
-                (sc < 18) ? (sc - 13) <<  6:
-                (sc < 21) ? (sc - 16) <<  8:
+        return ((sc <  8) ? (sc +  1) <<  2 :
+                (sc < 12) ? (sc -  3) <<  3 :
+                (sc < 16) ? (sc -  7) <<  4 :
+                (sc < 18) ? (sc - 13) <<  6 :
+                (sc < 21) ? (sc - 16) <<  8 :
                             (sc - 19) << 10);
       else
-        return ((sc < 16) ? (sc +  1) <<  2:
-                (sc < 20) ? (sc - 11) <<  4:
-                (sc < 24) ? (sc - 15) <<  5:
-                (sc < 28) ? (sc - 19) <<  6:
-                (sc < 34) ? (sc - 25) <<  8:
+        return ((sc < 16) ? (sc +  1) <<  2 :
+                (sc < 20) ? (sc - 11) <<  4 :
+                (sc < 24) ? (sc - 15) <<  5 :
+                (sc < 28) ? (sc - 19) <<  6 :
+                (sc < 34) ? (sc - 25) <<  8 :
                             (sc - 31) << 10);
     } else { // 64-bit
       if (COMPACT_SIZE_CLASSES)
-        return ((sc < 12) ? (sc +  1) <<  3:
-                (sc < 14) ? (sc -  5) <<  4:
-                (sc < 16) ? (sc -  9) <<  5:
-                (sc < 19) ? (sc - 12) <<  6:
-                (sc < 20) ? (sc - 15) <<  7:
-                (sc < 21) ? (sc - 18) <<  9:
+        return ((sc < 12) ? (sc +  1) <<  3 :
+                (sc < 14) ? (sc -  5) <<  4 :
+                (sc < 16) ? (sc -  9) <<  5 :
+                (sc < 19) ? (sc - 12) <<  6 :
+                (sc < 20) ? (sc - 15) <<  7 :
+                (sc < 21) ? (sc - 18) <<  9 :
                             (sc - 19) << 10);
       else
-        return ((sc < 14) ? (sc +  1) <<  3:
-                (sc < 21) ? (sc -  6) <<  4:
-                (sc < 24) ? (sc - 13) <<  5:
-                (sc < 28) ? (sc - 18) <<  6:
-                (sc < 34) ? (sc - 25) <<  8:
+        return ((sc < 14) ? (sc +  1) <<  3 :
+                (sc < 21) ? (sc -  6) <<  4 :
+                (sc < 24) ? (sc - 13) <<  5 :
+                (sc < 28) ? (sc - 18) <<  6 :
+                (sc < 34) ? (sc - 25) <<  8 :
                             (sc - 31) << 10);
     }
   }
@@ -599,7 +599,7 @@ public abstract class SegregatedFreeListSpace extends Space {
     } else {
       boolean live = false;
       Address cursor = block;
-      while(cursor.LT(block.plus(blockSize))) {
+      while (cursor.LT(block.plus(blockSize))) {
         live |= BlockAllocator.checkBlockMeta(cursor);
         if (clearMarks)
           BlockAllocator.clearBlockMeta(cursor);
@@ -620,7 +620,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   protected void clearBlockMark(Address block, Extent blockSize) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!maintainSideBitmap());
     Address cursor = block;
-    while(cursor.LT(block.plus(blockSize))) {
+    while (cursor.LT(block.plus(blockSize))) {
       BlockAllocator.clearBlockMeta(cursor);
       cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
     }
@@ -737,7 +737,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   public void parallelSweepCells(Sweeper sweeper) {
     for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
       Address block;
-      while(!(block = getSweepBlock(sizeClass)).isZero()) {
+      while (!(block = getSweepBlock(sizeClass)).isZero()) {
         boolean liveBlock = sweepCells(sweeper, block, sizeClass);
         if (!liveBlock) {
           BlockAllocator.setNext(block, Address.zero());
@@ -962,7 +962,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   protected void zeroLiveBits() {
-    Extent bytes = Extent.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
+    Extent bytes = Extent.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION >> LOG_LIVE_COVERAGE);
    if (contiguous) {
       Address end = ((FreeListPageResource)pr).getHighWater();
       Address cursor = start;
@@ -972,7 +972,7 @@ public abstract class SegregatedFreeListSpace extends Space {
         cursor = cursor.plus(EmbeddedMetaData.BYTES_IN_REGION);
       }
     } else {
-      for(Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
+      for (Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
         Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
         VM.memory.zero(false, metadata, bytes);
       }

@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.*;
   private static final int BASE_EXPONENT = BITS_IN_INT - MANTISSA_BITS;
 
   private static int discontiguousSpaceIndex = 0;
-  private static final int DISCONTIG_INDEX_INCREMENT = 1<<TYPE_BITS;
+  private static final int DISCONTIG_INDEX_INCREMENT = 1 << TYPE_BITS;
 
   /****************************************************************************
    *
@@ -92,8 +92,8 @@ import org.vmmagic.unboxed.*;
     int mantissa = tmp.toInt();
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(tmp.lsh(BASE_EXPONENT + exponent).EQ(start.toWord()));
-    return (mantissa<<MANTISSA_SHIFT) |
-           (exponent<<EXPONENT_SHIFT) |
+    return (mantissa << MANTISSA_SHIFT) |
+           (exponent << EXPONENT_SHIFT) |
            (chunks << SIZE_SHIFT) |
            ((top) ? TYPE_CONTIGUOUS_HI : TYPE_CONTIGUOUS);
   }

@@ -58,7 +58,7 @@ class QuotedStringTokenizer {
         int bs = s.indexOf('\\', st);
         if (bs == -1) break;
         sb.append(s.substring(st, bs));
-        sb.append(s.substring(bs+1, bs+2));
+        sb.append(s.substring(bs + 1, bs + 2));
         st = bs + 2;
       }
       sb.append(s.substring(st));

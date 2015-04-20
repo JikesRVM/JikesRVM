@@ -190,7 +190,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       bridgeParameterTypes = bridgeTarget.getParameterTypes();
       if (dynamicLink.isInvokedWithImplicitThisParameter()) {
         bridgeParameterInitialIndex = -1;
-        bridgeSpilledParamInitialOffset = 2*WORDSIZE; // this + return addr
+        bridgeSpilledParamInitialOffset = 2 * WORDSIZE; // this + return addr
       } else {
         bridgeParameterInitialIndex = 0;
         bridgeSpilledParamInitialOffset = WORDSIZE; // return addr
@@ -364,10 +364,10 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
           }
         } else if (bridgeParameterType.isLongType()) {
           bridgeRegisterIndex += VM.BuildFor32Addr ? 2 : 1;
-          bridgeRegisterLocation = bridgeRegisterLocation.minus(2*WORDSIZE);
-          bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(2*WORDSIZE);
+          bridgeRegisterLocation = bridgeRegisterLocation.minus(2 * WORDSIZE);
+          bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(2 * WORDSIZE);
         } else if (bridgeParameterType.isDoubleType()) {
-          bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(2*WORDSIZE);
+          bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(2 * WORDSIZE);
         } else if (bridgeParameterType.isFloatType()) {
           bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(WORDSIZE);
         } else {

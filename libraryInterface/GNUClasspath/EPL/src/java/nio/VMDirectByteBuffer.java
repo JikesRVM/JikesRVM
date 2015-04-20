@@ -36,8 +36,8 @@ final class VMDirectByteBuffer {
   /** Read bytes at index into dst */
   static void get(Pointer address, int index, byte[] dst, int offset, int length) {
     Address startAddress = getAddressFromPointer(address);
-    for (int i=0; i<length; i++) {
-      dst[offset+i] = startAddress.loadByte(Offset.fromIntSignExtend(index+i));
+    for (int i = 0; i < length; i++) {
+      dst[offset + i] = startAddress.loadByte(Offset.fromIntSignExtend(index + i));
     }
   }
   /** Write byte at index */
@@ -47,8 +47,8 @@ final class VMDirectByteBuffer {
   /** Write bytes at offset in src into buffer */
   static void put(Pointer address, int index, byte[] src, int offset, int length) {
     Address startAddress = getAddressFromPointer(address);
-    for (int i=0; i<length; i++) {
-      startAddress.store(src[offset+i], Offset.fromIntSignExtend(index+i));
+    for (int i = 0; i < length; i++) {
+      startAddress.store(src[offset + i], Offset.fromIntSignExtend(index + i));
     }
   }
   /** Adjust pointer by offset */
@@ -58,8 +58,8 @@ final class VMDirectByteBuffer {
   /** Copy region in buffer to another region */
   static void shiftDown(Pointer address, int dst_offset, int src_offset, int count) {
     Address startAddress = getAddressFromPointer(address);
-    for (int i=0; i < count; i++) {
-      startAddress.store(startAddress.loadByte(Offset.fromIntSignExtend(src_offset+i)), Offset.fromIntSignExtend(dst_offset+i));
+    for (int i = 0; i < count; i++) {
+      startAddress.store(startAddress.loadByte(Offset.fromIntSignExtend(src_offset + i)), Offset.fromIntSignExtend(dst_offset + i));
     }
   }
 }

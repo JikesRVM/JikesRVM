@@ -308,12 +308,12 @@ public final class TIB implements RuntimeTable<Object> {
     int logIPI = LOG_BYTES_IN_INT - ArchConstants.LG_INSTRUCTION_WIDTH;
     if (VM.VerifyAssertions) VM._assert(ArchConstants.LG_INSTRUCTION_WIDTH <= LOG_BYTES_IN_INT);
     int mask = 0xFFFFFFFF >>> (((1 << logIPI) - 1) << LOG_BITS_IN_BYTE);
-    for(int i = 0; i < lazyMethodInvokerTrampolineWords(); i++) {
+    for (int i = 0; i < lazyMethodInvokerTrampolineWords(); i++) {
       Word currentWord = Word.zero();
       int base = i << logIPW;
-      for(int j=0; j < (1 << logIPW) && (base + j) < source.length(); j++) {
+      for (int j = 0; j < (1 << logIPW) && (base + j) < source.length(); j++) {
         Word currentEntry = Word.fromIntZeroExtend(source.get(base + j) & mask);
-        currentEntry = currentEntry.lsh(((VM.LittleEndian ? j : (1 << logIPW) - (j+1)) << ArchConstants.LG_INSTRUCTION_WIDTH) << LOG_BITS_IN_BYTE);
+        currentEntry = currentEntry.lsh(((VM.LittleEndian ? j : (1 << logIPW) - (j + 1)) << ArchConstants.LG_INSTRUCTION_WIDTH) << LOG_BITS_IN_BYTE);
         currentWord = currentWord.or(currentEntry);
       }
       set(targetSlot + i, currentWord);

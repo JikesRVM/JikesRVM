@@ -152,7 +152,7 @@ import org.vmmagic.unboxed.*;
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
-    if(DEBUG) {
+    if (DEBUG) {
       Log.writeln("SSGCspyMutator.gcspyGatherData, event=", event);
       Log.writeln("SSGCspyMutator.gcspyGatherData, port=", GCspy.getGCspyPort());
     }

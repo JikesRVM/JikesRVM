@@ -102,7 +102,8 @@ public class GcSanity {
       dumpDifferencesAndDie();
     }
     assert before.sizeByAddress() == after.sizeByAddress() :
-      "before : "+before.sizeByAddress()+" objects, after: "+after.sizeByAddress()+" objects";
+      "before : " + before.sizeByAddress() + " objects, after: " +
+        after.sizeByAddress() + " objects";
 
     /*
      * Assert that the collection preserved the live set
@@ -148,7 +149,7 @@ public class GcSanity {
   }
 
   private void printSpaceStats(String tag, HeapSnapshot snapshot) {
-    Trace.printf(Item.SANITY,tag+" ");
+    Trace.printf(Item.SANITY,tag + " ");
     for (Map.Entry<String,Integer> statistic : snapshot.getSpaceStats().entrySet()) {
       String name = statistic.getKey();
       int count = statistic.getValue();

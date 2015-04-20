@@ -120,9 +120,9 @@ public final class FreeListPageResource extends PageResource {
   public int getAvailablePhysicalPages() {
     int rtn = pagesCurrentlyOnFreeList;
     if (!contiguous) {
-      int chunks = Map.getAvailableDiscontiguousChunks()-Map.getChunkConsumerCount();
+      int chunks = Map.getAvailableDiscontiguousChunks() - Map.getChunkConsumerCount();
       if (chunks < 0) chunks = 0;
-      rtn += chunks*(Space.PAGES_IN_CHUNK-metaDataPagesPerRegion);
+      rtn += chunks * (Space.PAGES_IN_CHUNK - metaDataPagesPerRegion);
     }
     return rtn;
   }
@@ -268,7 +268,7 @@ public final class FreeListPageResource extends PageResource {
     Address region = space.growDiscontiguousSpace(requiredChunks);
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
-      int regionEnd = regionStart + (requiredChunks*Space.PAGES_IN_CHUNK) - 1;
+      int regionEnd = regionStart + (requiredChunks * Space.PAGES_IN_CHUNK) - 1;
       freeList.setUncoalescable(regionStart);
       freeList.setUncoalescable(regionEnd + 1);
       for (int p = regionStart; p < regionEnd; p += Space.PAGES_IN_CHUNK) {
@@ -299,7 +299,7 @@ public final class FreeListPageResource extends PageResource {
 
     /* nail down all pages associated with the chunk, so it is no longer on our free list */
     int chunkStart = Conversions.bytesToPages(chunk.diff(start));
-    int chunkEnd = chunkStart + (numChunks*Space.PAGES_IN_CHUNK);
+    int chunkEnd = chunkStart + (numChunks * Space.PAGES_IN_CHUNK);
     while (chunkStart < chunkEnd) {
       freeList.setUncoalescable(chunkStart);
       if (metaDataPagesPerRegion > 0)
@@ -346,7 +346,7 @@ public final class FreeListPageResource extends PageResource {
   public int adjustForMetaData(int pages) { return pages; }
 
   public Address getHighWater() {
-    return start.plus(Extent.fromIntSignExtend(highWaterMark<<LOG_BYTES_IN_PAGE));
+    return start.plus(Extent.fromIntSignExtend(highWaterMark << LOG_BYTES_IN_PAGE));
   }
 
   /**

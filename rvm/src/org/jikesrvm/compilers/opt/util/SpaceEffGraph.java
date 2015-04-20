@@ -349,7 +349,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
       }
       res.append("\n");
       visitedNodes.clear();
-      duplicatedNodes=0;
+      duplicatedNodes = 0;
       res.append("Out nodes:\n");
       for (SpaceEffGraphEdge out = n.firstOutEdge(); out != null; out = out.getNextOut()) {
         if (visitedNodes.contains(out)) {

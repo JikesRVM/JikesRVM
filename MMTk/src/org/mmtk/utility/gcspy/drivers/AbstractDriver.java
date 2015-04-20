@@ -137,7 +137,7 @@ public abstract class AbstractDriver {
                   boolean mainSpace) {
     // Set the block label
     String tmp = "Block Size: " + ((blockSize < 1024) ?
-                     blockSize + " bytes\n":
+                     blockSize + " bytes\n" :
                      (blockSize / 1024) + " Kbytes\n");
 
     // Create a single GCspy Space
@@ -190,7 +190,7 @@ public abstract class AbstractDriver {
       }
       id++;
     }
-    throw new IndexOutOfBoundsException("Too many streams added to driver "+name);
+    throw new IndexOutOfBoundsException("Too many streams added to driver " + name);
   }
 
   /**
@@ -453,7 +453,7 @@ public abstract class AbstractDriver {
       Log.writeln(" to ", start + len);
     }
     changed = true;
-    for (int i = start; i < (start+len); ++i) {
+    for (int i = start; i < (start + len); ++i) {
       // Cannot be both USED and UNUSED or BACKGROUND
       if (controlIsBackground(tag) || controlIsUnused(tag))
         setControl(i, (byte)~CONTROL_USED);

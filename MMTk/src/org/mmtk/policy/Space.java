@@ -166,7 +166,7 @@ public abstract class Space {
         VM.assertions.fail(name + " starting on non-aligned boundary: " + start.toLong() + " bytes");
       }
     } else if (vmRequest.top) {
-      if (Map.isFinalized()) VM.assertions.fail("heap is narrowed after regionMap is finalized: "+ name);
+      if (Map.isFinalized()) VM.assertions.fail("heap is narrowed after regionMap is finalized: " + name);
       heapLimit = heapLimit.minus(extent);
       start = heapLimit;
     } else {
@@ -469,7 +469,7 @@ public abstract class Space {
    * @return The number of chunks needed to satisfy the request
    */
   public static int requiredChunks(int pages) {
-    Extent extent = chunkAlign(Extent.fromIntZeroExtend(pages<<LOG_BYTES_IN_PAGE), false);
+    Extent extent = chunkAlign(Extent.fromIntZeroExtend(pages << LOG_BYTES_IN_PAGE), false);
     return extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
   }
 
@@ -574,7 +574,7 @@ public abstract class Space {
         Log.writeln();
       } else {
         Log.write("D [");
-        for(Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
+        for (Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
           Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
           if (!Map.getNextContiguousRegion(a).isZero())
@@ -635,7 +635,7 @@ public abstract class Space {
           Log.write("->");
           Log.writeln(space.start.plus(space.extent.minus(1)));
         }
-        Mmapper.ensureMapped(space.start, space.extent.toInt()>>LOG_BYTES_IN_PAGE);
+        Mmapper.ensureMapped(space.start, space.extent.toInt() >> LOG_BYTES_IN_PAGE);
       }
     }
   }
@@ -648,7 +648,7 @@ public abstract class Space {
   public static void eagerlyMmapMMTkDiscontiguousSpaces() {
     Address regionStart = Space.getDiscontigStart();
     Address regionEnd = Space.getDiscontigEnd();
-    int pages = regionEnd.diff(regionStart).toInt()>>LOG_BYTES_IN_PAGE;
+    int pages = regionEnd.diff(regionStart).toInt() >> LOG_BYTES_IN_PAGE;
     if (Options.verbose.getValue() > 2) {
       Log.write("Mapping discontiguous spaces ");
       Log.write(regionStart);

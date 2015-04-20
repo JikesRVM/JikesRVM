@@ -88,7 +88,7 @@ public class BooleanCounter extends Counter {
    * Set the boolean to {@code true} for this phase, increment the total.
    */
   public void set() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Stats.phase == Stats.MAX_PHASES -1 || !state[Stats.phase]);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Stats.phase == Stats.MAX_PHASES - 1 || !state[Stats.phase]);
     state[Stats.phase] = true;
     total++;
   }

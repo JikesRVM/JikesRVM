@@ -16,7 +16,7 @@ class T {
   }
 
   int foo() {
-    for (int i=0; i<1000; i++)
+    for (int i = 0; i < 1000; i++)
       ;
     return x;
   }

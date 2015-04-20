@@ -220,9 +220,13 @@ In class SubSubClass extends SubClassInDifferentPackage:
     try { final O_J2 o = (O_J2) x; success(); } catch (final ClassCastException cce) { failure(); }
   }
 
-  private static void failure() {System.out.print("0");}
+  private static void failure() {
+    System.out.print("0");
+  }
 
-  private static void success() {System.out.print("1");}
+  private static void success() {
+    System.out.print("1");
+  }
 
   private static void testInstanceOf(final Object x) {
     io(A.class, (x instanceof A));
@@ -262,7 +266,7 @@ In class SubSubClass extends SubClassInDifferentPackage:
 
   @SuppressWarnings({"UnusedDeclaration"})
   private static void io(final Class type, final boolean test) {
-    System.out.print(test?"1":"0");
+    System.out.print(test ? "1" : "0");
   }
   }
 

@@ -93,7 +93,7 @@ import org.vmmagic.pragma.*;
       if (idx >= RVMThread.numThreads) {
         return null;
       } else {
-        RVMThread t=RVMThread.threads[idx];
+        RVMThread t = RVMThread.threads[idx];
         if (t.activeMutatorContext) {
           return t;
         }

@@ -83,10 +83,10 @@ import org.vmmagic.unboxed.Word;
    *
    */
   private static final int LOG_DEFAULT_STEP_SIZE = 30; // 1G: let the external slow path dominate
-  private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
+  private static final int STEP_SIZE = 1 << (SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
   protected static final int LOG_BLOCK_SIZE = LOG_BYTES_IN_PAGE + 3;
   protected static final Word BLOCK_MASK = Word.one().lsh(LOG_BLOCK_SIZE).minus(Word.one());
-  private static final int BLOCK_SIZE = (1<<LOG_BLOCK_SIZE);
+  private static final int BLOCK_SIZE = (1 << LOG_BLOCK_SIZE);
 
 
   // Offsets into header
@@ -265,7 +265,7 @@ import org.vmmagic.unboxed.Word;
    */
   private static Address getCardMetaData(Address card) {
     Address metadata = EmbeddedMetaData.getMetaDataBase(card);
-    return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES-LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
+    return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES - LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
   }
 
   /**

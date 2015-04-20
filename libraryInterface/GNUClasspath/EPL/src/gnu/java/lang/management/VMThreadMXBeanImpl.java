@@ -182,7 +182,7 @@ final class VMThreadMXBeanImpl {
         stackTrace = JMXSupport.getStackTraceForThread(rvmThread);
         int newMax = Math.min(stackTrace.length, maxDepth);
         StackTraceElement[] reducedStackTrace = new StackTraceElement[newMax];
-        int srcPos = stackTrace.length-newMax;
+        int srcPos = stackTrace.length - newMax;
         System.arraycopy(stackTrace, srcPos, reducedStackTrace,
             0, newMax);
         stackTrace = reducedStackTrace;

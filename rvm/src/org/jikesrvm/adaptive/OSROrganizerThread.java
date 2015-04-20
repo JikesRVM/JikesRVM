@@ -42,7 +42,7 @@ public final class OSROrganizerThread extends SystemThread {
       if (!this.osr_flag) {
         rvmThread.monitor().waitWithHandshake();
       }
-      this.osr_flag=false; /* if we get another activation after here
+      this.osr_flag = false; /* if we get another activation after here
                               then we should rescan the threads array */
       rvmThread.monitor().unlock();
 
@@ -56,23 +56,23 @@ public final class OSROrganizerThread extends SystemThread {
   @Uninterruptible
   public void activate() {
     rvmThread.monitor().lockNoHandshake();
-    osr_flag=true;
+    osr_flag = true;
     rvmThread.monitor().broadcast();
     rvmThread.monitor().unlock();
   }
 
   private void processOsrRequest() {
     // scan RVMThread.threads (scan down so we don't miss anything)
-    for (int i=RVMThread.numThreads-1;i>=0;i--) {
+    for (int i = RVMThread.numThreads - 1; i >= 0; i--) {
       Magic.sync();
-      RVMThread t=RVMThread.threads[i];
-      if (t!=null) {
-        boolean go=false;
+      RVMThread t = RVMThread.threads[i];
+      if (t != null) {
+        boolean go = false;
         t.monitor().lockNoHandshake();
         // NOTE: if threads are being removed, we may see a thread twice
         if (t.requesting_osr) {
-          t.requesting_osr=false;
-          go=true;
+          t.requesting_osr = false;
+          go = true;
         }
         t.monitor().unlock();
         if (go) {

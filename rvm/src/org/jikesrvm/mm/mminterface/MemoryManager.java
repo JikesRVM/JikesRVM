@@ -442,11 +442,11 @@ public final class MemoryManager {
     int allocator = Plan.ALLOC_DEFAULT;
     if (type.isArrayType()) {
       RVMType elementType = type.asArray().getElementType();
-      if (elementType.isPrimitiveType() || elementType.isUnboxedType()){
+      if (elementType.isPrimitiveType() || elementType.isUnboxedType()) {
         allocator = Plan.ALLOC_NON_REFERENCE;
       }
     }
-    if(type.isNonMoving()) {
+    if (type.isNonMoving()) {
       allocator = Plan.ALLOC_NON_MOVING;
     }
     byte[] typeBA = type.getDescriptor().toByteArray();

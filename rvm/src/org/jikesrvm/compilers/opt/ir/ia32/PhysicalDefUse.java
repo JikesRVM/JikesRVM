@@ -51,7 +51,7 @@ public abstract class PhysicalDefUse {
   /** The processor register is used/defined */
   public static final int maskTR = 0x0400;
   /** The ESP register is used/defined */
-  public static final int maskESP= 0x0800;
+  public static final int maskESP = 0x0800;
   /* Meta mask for the enumeration. */
   /** First mask bit */
   private static final int maskHIGH = 0x0800;

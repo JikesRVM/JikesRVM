@@ -19,7 +19,7 @@ public final class ObjectReferenceArray {
   private ObjectReferenceArray(int size) {
     data = new ObjectReference[size];
     ObjectReference nullRef = ObjectReference.nullReference();
-    for(int i=0; i<size;i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = nullRef;
     }
   }

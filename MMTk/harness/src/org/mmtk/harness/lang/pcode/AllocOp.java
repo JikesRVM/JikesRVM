@@ -64,8 +64,8 @@ public final class AllocOp extends TernaryOp {
     } catch (OutOfMemory e) {
       throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Error allocating object id:"+ObjectModel.lastObjectId()+" refs:"+getRefCount(frame)+
-          " ints: "+getDataCount(frame)+" align:"+getDoubleAlign(frame)+" site:"+site,e);
+      throw new RuntimeException("Error allocating object id:" + ObjectModel.lastObjectId() + " refs:" + getRefCount(frame) +
+          " ints: " + getDataCount(frame) + " align:" + getDoubleAlign(frame) + " site:" + site,e);
     }
     setResult(frame,new ObjectValue(object));
     if (Harness.gcEveryAlloc()) {

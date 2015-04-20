@@ -37,7 +37,7 @@ public final class VMThrowable {
    * Create the VMThrowable
    * @return constructed VMThrowable
    */
-  static VMThrowable fillInStackTrace(Throwable parent){
+  static VMThrowable fillInStackTrace(Throwable parent) {
     if (!VM.fullyBooted) {
       return null;
     } else if (RVMThread.getCurrentThread().isCollectorThread()) {

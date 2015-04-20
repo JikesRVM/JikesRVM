@@ -101,7 +101,7 @@ public final class OptLinker {
   public static Object new2DArray(int methodId, int dim0, int dim1, int typeId)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     // validate arguments
-    if ((dim0 < 0)||(dim1 < 0)) throw new NegativeArraySizeException();
+    if ((dim0 < 0) || (dim1 < 0)) throw new NegativeArraySizeException();
 
     // create array
     //

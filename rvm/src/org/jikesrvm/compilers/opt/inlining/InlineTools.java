@@ -160,9 +160,9 @@ public abstract class InlineTools {
         reductionFactor -= opts.INLINE_OBJECT_CONST_ARG_BONUS;
       }
     }
-    reductionFactor = Math.max(reductionFactor, 1.0-opts.INLINE_MAX_ARG_BONUS);
+    reductionFactor = Math.max(reductionFactor, 1.0 - opts.INLINE_MAX_ARG_BONUS);
     if (opts.INLINE_CALL_DEPTH_COST != 0.00) {
-      double depthCost = Math.pow(1.0+opts.INLINE_CALL_DEPTH_COST, state.getInlineDepth()+1);
+      double depthCost = Math.pow(1.0 + opts.INLINE_CALL_DEPTH_COST, state.getInlineDepth() + 1);
       return (int) (sizeEstimate * reductionFactor * depthCost);
     } else {
       return (int) (sizeEstimate * reductionFactor);
@@ -192,7 +192,7 @@ public abstract class InlineTools {
       case AllArgumentsAreConstant: {
         boolean result = true;
         Instruction s = state.getCallInstruction();
-        for (int i=0, n=Call.getNumberOfParams(s); i < n; i++) {
+        for (int i = 0, n = Call.getNumberOfParams(s); i < n; i++) {
           if (!Call.getParam(s, i).isConstant()) {
             result = false;
             break;

@@ -34,7 +34,7 @@ public final class Branch extends UnaryOp {
    * @param target Jump target
    */
   public Branch(AST source, Register cond, boolean branchOn, int target) {
-    super(source, "if"+branchOn,cond);
+    super(source, "if" + branchOn,cond);
     this.target = target;
     this.branchOn = branchOn;
   }
@@ -48,7 +48,7 @@ public final class Branch extends UnaryOp {
    * @param branchOn Sense of the comparison
    */
   public Branch(AST source, Register cond, boolean branchOn) {
-    super(source,"if"+branchOn,cond);
+    super(source,"if" + branchOn,cond);
     this.branchOn = branchOn;
   }
 

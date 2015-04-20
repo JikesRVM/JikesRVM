@@ -64,7 +64,7 @@ public final class InterfaceMethodSignature {
    * @return the interface method signature
    */
   public static synchronized InterfaceMethodSignature findOrCreate(MemberReference ref) {
-    InterfaceMethodSignature key = new InterfaceMethodSignature(ref.getName(), ref.getDescriptor(), nextId+1);
+    InterfaceMethodSignature key = new InterfaceMethodSignature(ref.getName(), ref.getDescriptor(), nextId + 1);
     InterfaceMethodSignature val = dictionary.get(key);
     if (val != null) return val;
     nextId++;

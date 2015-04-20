@@ -48,7 +48,7 @@ public final class SimulatedMemory {
    * @return addr rounded down accordingly
    */
   private static Address alignDown(Address addr, int modulus) {
-    Word mask = Word.fromIntSignExtend(modulus-1).not();
+    Word mask = Word.fromIntSignExtend(modulus - 1).not();
     return addr.toWord().and(mask).toAddress();
   }
 
@@ -333,7 +333,7 @@ public final class SimulatedMemory {
     assert size % BYTES_IN_PAGE == 0;
     assert start.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
 
-    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
+    for (Address p = start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       Trace.trace(Item.MEMORY, "Mapping %s:%d", p, BYTES_IN_PAGE);
       pageTable.mapPage(p);
     }
@@ -358,7 +358,7 @@ public final class SimulatedMemory {
     assert start.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
     Clock.start();
 
-    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
+    for (Address p = start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       pageTable.unmapPage(p);
       Clock.tick();
     }
@@ -380,7 +380,7 @@ public final class SimulatedMemory {
     Address last = start.plus(size);
     Clock.start();
 
-    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
+    for (Address p = start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       pageTable.setNonReadable(p);
       Clock.tick();
     }
@@ -401,7 +401,7 @@ public final class SimulatedMemory {
     Trace.trace(Item.MEMORY,"unprotect(%s,%d)\n", start.toString(), size);
     Clock.start();
     Address last = start.plus(size);
-    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
+    for (Address p = start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       pageTable.setReadable(p);
       Clock.tick();
     }
@@ -433,11 +433,11 @@ public final class SimulatedMemory {
 
     MemoryPage page = getPage(start);
     Address pageAddress = start;
-    for(int i=0; i < size; i += BYTES_IN_INT) {
+    for (int i = 0; i < size; i += BYTES_IN_INT) {
       Address curAddr = start.plus(i);
       if (!onSamePage(pageAddress, curAddr)) {
         page = getPage(curAddr);
-        pageAddress=curAddr;
+        pageAddress = curAddr;
       }
       page.setInt(curAddr, 0);
       Clock.tick();
@@ -456,7 +456,7 @@ public final class SimulatedMemory {
     Trace.trace(Item.MEMORY,"zeroPages(%s,%d)\n", start.toString(), size);
     Clock.start();
     Address last = start.plus(size);
-    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
+    for (Address p = start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       pageTable.zeroPage(p);
     }
   }
@@ -474,7 +474,7 @@ public final class SimulatedMemory {
   public static void dumpMemory(Address start, int beforeBytes, int afterBytes) {
     Address begin = Address.fromIntZeroExtend((start.toInt() - beforeBytes) & WORD_MASK);
     int bytes = (beforeBytes + afterBytes);
-    for(int i=0; i < bytes; i += BYTES_IN_WORD) {
+    for (int i = 0; i < bytes; i += BYTES_IN_WORD) {
       Address cur = begin.plus(i);
       System.err.println(cur + ": " + getWord(cur));
     }

@@ -120,7 +120,7 @@ public class RVMClassLoader {
       } else {
         // search command line arguments to see if assertions are enabled
         boolean result = false;
-        if(enabledAssertionStrings != null) {
+        if (enabledAssertionStrings != null) {
           for (String s : enabledAssertionStrings) {
             if (s.equals(klass.getTypeRef().getName().classNameFromDescriptor()) ||
                 klass.getPackageName().startsWith(s)) {

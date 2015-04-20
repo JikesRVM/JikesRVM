@@ -18,7 +18,7 @@ class TestStop {
     final Worker w = new Worker();
     w.start();
     while (!w.running) {
-      try { Thread.sleep(1000); } catch (InterruptedException e) {}
+      try { Thread.sleep(1000); } catch (InterruptedException e) { }
     }
 
     XThread.say("sending interrupt");
@@ -26,7 +26,7 @@ class TestStop {
 
     XThread.say("waiting for TestStopWorker to die");
     while (w.isAlive()) {
-      try { Thread.sleep(1000); } catch (InterruptedException e) {}
+      try { Thread.sleep(1000); } catch (InterruptedException e) { }
     }
 
     XThread.say("bye");

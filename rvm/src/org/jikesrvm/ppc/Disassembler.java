@@ -1047,7 +1047,7 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
     destination = target;
     cr_field = (BI >> 2);
     /* Build disassembly without target, added on later... */
-    if (cr_field != 0) {/* Not CR 0 ? */
+    if (cr_field != 0) { /* Not CR 0 ? */
       return "        ".substring(mnemonic.length()) +
              mnemonic +
              "   " +
@@ -1127,7 +1127,7 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
         LK = bits(inst, 31, 31);
         cr_field = (byte) (BI >> 2);
         branch_name = build_branch_op(BO, 1 << (3 - (BI & 3)), LK, 0, ext_opcode);
-        if (cr_field != 0) {/* Not CR 0 ? */
+        if (cr_field != 0) { /* Not CR 0 ? */
           return "        ".substring(branch_name.length()) + branch_name + "   " + cr_field;
         } else {
           return "        ".substring(branch_name.length()) + branch_name;
@@ -1345,7 +1345,7 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
         if (common_opt != null) {
           asm_mnemonic = mnemonic.substring(0, 2) + common_opt;
           return "        ".substring(asm_mnemonic.length()) + asm_mnemonic + "   " + rname(rt);
-        } else {/* reserved register? */
+        } else { /* reserved register? */
           return "        ".substring(mnemonic.length()) + mnemonic + "   " + intAsHexString(SPR) + "," + rname(rt);
         }
       case 4:
@@ -1614,13 +1614,13 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
     int dec_ctr = 0;/* Decrement count register */
 
     c = "b";
-    if ((br_opt & 4) != 0) {/* Don't decrement count register */
+    if ((br_opt & 4) != 0) { /* Don't decrement count register */
       if ((br_opt & 16) != 0) {
         uncond = 1;
       } else if ((br_opt & 8) != 0) {
         pos_cond = 1;
       }
-    } else {/* Decrement count register */
+    } else { /* Decrement count register */
       dec_ctr = 1;
       if ((br_opt & 2) != 0) {
         ctr_zero = 1;
@@ -1669,7 +1669,7 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
       c += 'r';
     } else if (ext_op == 528) {
       c += 'c';
-      if (uncond != 0) {/* Can't confuse with br conditional */
+      if (uncond != 0) { /* Can't confuse with br conditional */
         c += "tr";
       }
     }

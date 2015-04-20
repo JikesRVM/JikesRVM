@@ -123,18 +123,18 @@ public class FinalizeTest {
 
     // This should be enough allocation to force toDieMatureMature into
     // the mature space, and to process all finalizers in a nursery collection
-    for (int i=0; i < 1E5; i++) {
+    for (int i = 0; i < 1E5; i++) {
       @SuppressWarnings("unused")
       Object o = new byte[512];
     }
     System.gc();
     toDieMature = null;
-    for (int i=0; i < 1E5; i++) {
+    for (int i = 0; i < 1E5; i++) {
       @SuppressWarnings("unused")
       Object o = new byte[512];
     }
 
-    sum += liveNM.hashCode()+liveM.hashCode()+liveLarge.hashCode();
+    sum += liveNM.hashCode() + liveM.hashCode() + liveLarge.hashCode();
     System.out.println(sum);
     System.out.println("Overall: SUCCESS");
   }

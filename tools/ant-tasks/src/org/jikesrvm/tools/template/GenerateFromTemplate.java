@@ -234,7 +234,7 @@ public class GenerateFromTemplate {
     argc = 2;
     for (int i = 2; i < limit; i++) {
       if (args[i].indexOf("=") < 0)
-        args[ argc-1 ] = args[ argc-1 ] + " " + args[ i ];
+        args[ argc - 1 ] = args[ argc - 1 ] + " " + args[ i ];
       else {
         args[ argc++ ] = args[ i ];
       }
@@ -242,24 +242,24 @@ public class GenerateFromTemplate {
 
     FileInputStream inStream = null;
     FileOutputStream outStream = null;
-    if (DEBUG) System.out.println("in:"+args[0]+"\nout:"+args[1]);
+    if (DEBUG) System.out.println("in:" + args[0] + "\nout:" + args[1]);
     try {
       if (args[0].indexOf(File.separator) != -1)
-          inDir = args[0].substring(0, args[0].lastIndexOf(File.separator)+1);
+          inDir = args[0].substring(0, args[0].lastIndexOf(File.separator) + 1);
       else
           inDir = "";
-      if (DEBUG) System.out.println("inDir="+inDir);
+      if (DEBUG) System.out.println("inDir=" + inDir);
       inStream = new FileInputStream(args[0]);
       outStream = new FileOutputStream(args[1]);
 
-      String[] vars = new String[argc-2];
-      String[] vals = new String[argc-2];
+      String[] vars = new String[argc - 2];
+      String[] vals = new String[argc - 2];
       for (int i = 2; i < argc; i++) {
          String arg = args[i];
          int pos = arg.indexOf("=");
-         vars[i-2] = arg.substring(0, pos);
-         vals[i-2] = arg.substring(pos+1);
-         if (DEBUG) System.out.println(vars[i-2]+" = "+vals[i-2]);
+         vars[i - 2] = arg.substring(0, pos);
+         vals[i - 2] = arg.substring(pos + 1);
+         if (DEBUG) System.out.println(vars[i - 2] + " = " + vals[i - 2]);
       }
 
       GenerateFromTemplate gft = new GenerateFromTemplate(inStream, outStream);
@@ -271,7 +271,9 @@ public class GenerateFromTemplate {
       try {
         inStream.close();
         outStream.close();
-      } catch (Exception e) {}
+      } catch (Exception ignore) {
+        // ignored because there's nothing that can be done here
+      }
     }
   }
 
@@ -299,10 +301,10 @@ public class GenerateFromTemplate {
       String inLine;
       // loop over strings
       for (inLine = readLine(); inLine != null; inLine = readLine()) {
-        if (DEBUG) System.out.println("from input:"+inLine);
+        if (DEBUG) System.out.println("from input:" + inLine);
         if (!isTemplateLine(inLine)) {
           if (DEBUG) System.out.println("not template line, continuing...");
-          out.print(inLine+"\n");
+          out.print(inLine + "\n");
           continue;
         }
         Vector<Object> region = buildTemplateRegion(inLine);
@@ -322,7 +324,7 @@ public class GenerateFromTemplate {
     Vector<Object> region = new Vector<Object>();
     region.addElement(inLine);
     Command command = getTemplateCommand(inLine);
-    if (DEBUG) System.out.println("template command #"+command);
+    if (DEBUG) System.out.println("template command #" + command);
     switch (command) {
        case FOREACH:
        case LOOP:
@@ -346,7 +348,7 @@ public class GenerateFromTemplate {
         if (command == Command.END) break;
         region.addElement(buildTemplateRegion(inLine));
       } else {
-         if (DEBUG) System.out.println("adding line to region :"+inLine);
+         if (DEBUG) System.out.println("adding line to region :" + inLine);
          region.addElement(inLine);
       }
     }
@@ -369,7 +371,7 @@ public class GenerateFromTemplate {
           intern.addElement(buildTemplateRegion(inLine));
         }
       } else {
-         if (DEBUG) System.out.println("adding line to region :"+inLine);
+         if (DEBUG) System.out.println("adding line to region :" + inLine);
          intern.addElement(inLine);
       }
     }
@@ -392,7 +394,7 @@ public class GenerateFromTemplate {
       if (isTemplateLine(inLine)) {
         region.addElement(buildTemplateRegion(inLine));
       } else {
-         if (DEBUG) System.out.println("adding line to region :"+inLine);
+         if (DEBUG) System.out.println("adding line to region :" + inLine);
          region.addElement(inLine);
       }
     }
@@ -405,7 +407,7 @@ public class GenerateFromTemplate {
     if (endMatch < 0) {
       endMatch = line.length();
     }
-    if (DEBUG) System.out.println("getting template command :"+line.substring(startMatch));
+    if (DEBUG) System.out.println("getting template command :" + line.substring(startMatch));
     Command i;
     try {
       i = Enum.valueOf(Command.class, line.substring(startMatch, endMatch));
@@ -415,7 +417,7 @@ public class GenerateFromTemplate {
       throw newE;
     }
     params = line.substring(endMatch);
-    if (DEBUG) System.out.println("command is " + i + ". params ="+params);
+    if (DEBUG) System.out.println("command is " + i + ". params =" + params);
     return i;
   }
 
@@ -444,9 +446,9 @@ public class GenerateFromTemplate {
     }
     while (line.endsWith("\\")) {
       if (line.endsWith("\\\\")) {
-        line = line.substring(0, line.length()-2) + "\n" + data.readLine();
+        line = line.substring(0, line.length() - 2) + "\n" + data.readLine();
       } else {
-        line = line.substring(0, line.length()-1) + data.readLine();
+        line = line.substring(0, line.length() - 1) + data.readLine();
       }
     }
     return line;
@@ -473,18 +475,18 @@ public class GenerateFromTemplate {
        int dotdot = fval.indexOf("..");
        if (dotdot != -1 && dotdot == fval.lastIndexOf("..")) {
           start = fval.substring(0, dotdot);
-          end = fval.substring(dotdot+2);
+          end = fval.substring(dotdot + 2);
        } else {
           start = fval;
        }
     }
 
-    if (DEBUG) System.out.println("doing foreach with varname "+var_name+
-                                  " on data file :"+file_name);
+    if (DEBUG) System.out.println("doing foreach with varname " + var_name +
+                                  " on data file :" + file_name);
     if (DEBUG && select != null) {
-       System.out.print("   selecting records with "+select);
-       if (end == null) System.out.println(" equal to \""+start+"\"");
-       else System.out.println(" between \""+start+"\" and \""+end+"\"");
+       System.out.print("   selecting records with " + select);
+       if (end == null) System.out.println(" equal to \"" + start + "\"");
+       else System.out.println(" between \"" + start + "\" and \"" + end + "\"");
     }
 
     // open data file
@@ -505,7 +507,7 @@ public class GenerateFromTemplate {
       fpl_v.addElement(st.countTokens());
       while (st.hasMoreTokens()) {
         String tok = st.nextToken();
-        if (DEBUG) System.out.println("read field "+fields_v.size()+" :"+tok);
+        if (DEBUG) System.out.println("read field " + fields_v.size() + " :" + tok);
         fields_v.addElement(tok);
       }
     }
@@ -547,7 +549,7 @@ public class GenerateFromTemplate {
 
       if (select != null) {
         for (int j = 0; j < fields.length; j++) {
-          if (DEBUG) System.out.println("checking if select is field "+fields[j]);
+          if (DEBUG) System.out.println("checking if select is field " + fields[j]);
           if (select.equals(fields[j])) {
             String value = fieldData[j];
             if (value.equals(start)) inRange = true;
@@ -567,7 +569,7 @@ public class GenerateFromTemplate {
         try {
           String currentLine = (String) region.elementAt(j);
           String result = substitute(currentLine, var_name, fields, fieldData);
-          out.print(result+"\n");
+          out.print(result + "\n");
         } catch (ClassCastException e) {
           @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
           Vector<Object> oldRegion = (Vector<Object>)region.elementAt(j);
@@ -582,7 +584,7 @@ public class GenerateFromTemplate {
 
   void processLoopRegion(Vector region) throws IOException {
     // get var name and data values
-    if (DEBUG) System.out.println("params=\""+params+"\"");
+    if (DEBUG) System.out.println("params=\"" + params + "\"");
     QuotedStringTokenizer pst = new QuotedStringTokenizer(params);
     if (!pst.hasMoreTokens())
        throw new IOException("Missing var name in LOOP");
@@ -593,7 +595,7 @@ public class GenerateFromTemplate {
        int dotdot = v_i.indexOf("..");
        if (dotdot != -1 && dotdot == v_i.lastIndexOf("..")) {
           int start = Integer.parseInt(v_i.substring(0, dotdot));
-          int end = Integer.parseInt(v_i.substring(dotdot+2));
+          int end = Integer.parseInt(v_i.substring(dotdot + 2));
           for (int j = start; j <= end; j++)
              valvec.addElement(Integer.toString(j));
        } else
@@ -603,9 +605,9 @@ public class GenerateFromTemplate {
     for (int i = 0; i < values.length; i++)
        values[i] = valvec.elementAt(i);
 
-    if (DEBUG) System.out.println("doing loop with varname "+var_name+
-                                  " on values :"+
-                                  params.substring(var_name.length()+1));
+    if (DEBUG) System.out.println("doing loop with varname " + var_name +
+                                  " on values :" +
+                                  params.substring(var_name.length() + 1));
 
     // Loop through data values.
     for (int curValue = 0; curValue < values.length; curValue++) {
@@ -615,17 +617,17 @@ public class GenerateFromTemplate {
           String currentLine = (String) region.elementAt(j);
           // String result = substitute(currentLine, var_name, values[curValue]);
           String result = substitute(currentLine,
-                                     var_name+"."+indexField,
+                                     var_name + "." + indexField,
                                      Integer.toString(curValue));
           result = substitute(result, var_name, values[curValue]);
-          out.print(result+"\n");
+          out.print(result + "\n");
         } catch (ClassCastException e) {
           @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
           Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
           // Vector newRegion = substituteInRegion(oldRegion, var_name,
           //                                       values[curValue]);
           Vector<Object> newRegion = substituteInRegion(oldRegion,
-                                                var_name+"."+indexField,
+                                                var_name + "." + indexField,
                                                 Integer.toString(curValue));
           newRegion = substituteInRegion(newRegion, var_name, values[curValue]);
           processTemplateRegion(newRegion);
@@ -636,7 +638,7 @@ public class GenerateFromTemplate {
 
   void processCountRegion(Vector region) throws IOException {
     // get var name and data values
-    if (DEBUG) System.out.println("params=\""+params+"\"");
+    if (DEBUG) System.out.println("params=\"" + params + "\"");
     QuotedStringTokenizer pst = new QuotedStringTokenizer(params);
     if (!pst.hasMoreTokens())
        throw new IOException("Missing var name in COUNT");
@@ -647,7 +649,7 @@ public class GenerateFromTemplate {
        int dotdot = v_i.indexOf("..");
        if (dotdot != -1 && dotdot == v_i.lastIndexOf("..")) {
           int start = Integer.parseInt(v_i.substring(0, dotdot));
-          int end = Integer.parseInt(v_i.substring(dotdot+2));
+          int end = Integer.parseInt(v_i.substring(dotdot + 2));
           for (int j = start; j <= end; j++)
              count++;
        } else
@@ -655,17 +657,17 @@ public class GenerateFromTemplate {
     }
     String value = Integer.toString(count);
 
-    if (DEBUG) System.out.println("doing count with varname "+var_name+
-                                  " on values :"+
-                                  params.substring(var_name.length()+1)+
-                                  "; count="+value);
+    if (DEBUG) System.out.println("doing count with varname " + var_name +
+                                  " on values :" +
+                                  params.substring(var_name.length() + 1) +
+                                  "; count=" + value);
 
     // Count through each line in region.
     for (int j = 1; j < region.size(); j++) {
       try {
         String currentLine = (String) region.elementAt(j);
         String result = substitute(currentLine, var_name, value);
-        out.print(result+"\n");
+        out.print(result + "\n");
       } catch (ClassCastException e) {
         @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
         Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
@@ -779,8 +781,8 @@ public class GenerateFromTemplate {
         case StreamTokenizer.TT_WORD:   if (st.sval.equals("@LENGTH"))
                               return evalLength(st);
                            else
-                              throw new IOException("Invalid token: "+tok);
-        default:           throw new IOException("Invalid token: "+tok);
+                              throw new IOException("Invalid token: " + tok);
+        default:           throw new IOException("Invalid token: " + tok);
      }
   }
 
@@ -851,13 +853,14 @@ public class GenerateFromTemplate {
 
   private String evalLet(StreamTokenizer st) throws IOException {
      String val = evalStrExpr(st);
-     if (st.nextToken() != StreamTokenizer.TT_EOF) throw new IOException("Extra input: '"+st.ttype+"'");
+     if (st.nextToken() != StreamTokenizer.TT_EOF)
+       throw new IOException("Extra input: '" + st.ttype + "'");
      return val;
   }
 
   void processLetRegion(Vector region) throws IOException {
     // get var name and data values
-    if (DEBUG) System.out.println("params=\""+params+"\"");
+    if (DEBUG) System.out.println("params=\"" + params + "\"");
     StringReader sr = new StringReader(params);
     StreamTokenizer pst = new StreamTokenizer(sr);
 //    pst.resetSyntax(); pst.parseNumbers(); pst.whitespaceChars(0, ' ');
@@ -875,8 +878,8 @@ public class GenerateFromTemplate {
     pst.pushBack();
     String value = evalLet(pst);
 
-    if (DEBUG) System.out.println("doing let with varname "+var_name+
-                                  " and value=\""+value+"\"");
+    if (DEBUG) System.out.println("doing let with varname " + var_name +
+                                  " and value=\"" + value + "\"");
 
     // Execute region assigning data value.
     // Count through each line in region.
@@ -884,7 +887,7 @@ public class GenerateFromTemplate {
       try {
         String currentLine = (String) region.elementAt(j);
         String result = substitute(currentLine, var_name, value);
-        out.print(result+"\n");
+        out.print(result + "\n");
       } catch (ClassCastException e) {
         @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
         Vector<Object> oldRegion = (Vector) region.elementAt(j);
@@ -896,7 +899,7 @@ public class GenerateFromTemplate {
 
   void processJoinRegion(Vector<Object> region) throws IOException {
     // get var name and data values
-    if (DEBUG) System.out.println("params=\""+params+"\"");
+    if (DEBUG) System.out.println("params=\"" + params + "\"");
     QuotedStringTokenizer pst = new QuotedStringTokenizer(params);
     if (!pst.hasMoreTokens())
        throw new IOException("Missing var name in JOIN");
@@ -912,8 +915,8 @@ public class GenerateFromTemplate {
           value += sep + pst.nextToken();
     }
 
-    if (DEBUG) System.out.println("doing join with varname "+var_name+
-                                  " and value=\""+value+"\"");
+    if (DEBUG) System.out.println("doing join with varname " + var_name +
+                                  " and value=\"" + value + "\"");
 
     // Execute region assigning data value.
     // Count through each line in region.
@@ -921,7 +924,7 @@ public class GenerateFromTemplate {
       try {
         String currentLine = (String) region.elementAt(j);
         String result = substitute(currentLine, var_name, value);
-        out.print(result+"\n");
+        out.print(result + "\n");
       } catch (ClassCastException e) {
         @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
         Vector<Object> oldRegion = (Vector<Object>) region.elementAt(j);
@@ -933,7 +936,7 @@ public class GenerateFromTemplate {
 
   void processSplitRegion(Vector<Object> region) throws IOException {
     // get data value and var names
-    if (DEBUG) System.out.println("params=\""+params+"\"");
+    if (DEBUG) System.out.println("params=\"" + params + "\"");
     QuotedStringTokenizer pst = new QuotedStringTokenizer(params);
     if (!pst.hasMoreTokens())
        throw new IOException("Missing value in SPLIT");
@@ -955,9 +958,9 @@ public class GenerateFromTemplate {
        else
           values[i] = "";
 
-    if (DEBUG) System.out.println("doing split with value \""+value+
-                                  "\" to vars :"+
-                                  params.substring(value.length()+3));
+    if (DEBUG) System.out.println("doing split with value \"" + value +
+                                  "\" to vars :" +
+                                  params.substring(value.length() + 3));
 
     // Count through each line in region.
     for (int j = 1; j < region.size(); j++) {
@@ -966,7 +969,7 @@ public class GenerateFromTemplate {
         // Loop through vars.
         for (int curVar = 0; curVar < var_names.length; curVar++)
           result = substitute(result, var_names[curVar], values[curVar]);
-        out.print(result+"\n");
+        out.print(result + "\n");
       } catch (ClassCastException e) {
         Vector<Object> newRegion = (Vector<Object>) region.elementAt(j);
         // Loop through vars.
@@ -989,7 +992,7 @@ public class GenerateFromTemplate {
     for (int j = 1; j < region.size(); j++) {
       try {
         String currentLine = (String) region.elementAt(j);
-        out.print(currentLine+"\n");
+        out.print(currentLine + "\n");
       } catch (ClassCastException e) {
         @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
         Vector<Object> tmpRegion = (Vector<Object>) region.elementAt(j);
@@ -999,7 +1002,7 @@ public class GenerateFromTemplate {
 
     out = old_out;
 
-    if (DEBUG) System.out.println("doing eval: evaluating\n"+sw);
+    if (DEBUG) System.out.println("doing eval: evaluating\n" + sw);
 
     LineNumberReader old_in = in;
     in = new LineNumberReader(new StringReader(sw.toString()));
@@ -1007,10 +1010,10 @@ public class GenerateFromTemplate {
     String inLine;
     // loop over strings in the newly created region
     for (inLine = readLine(); inLine != null; inLine = readLine()) {
-      if (DEBUG) System.out.println("from input:"+inLine);
+      if (DEBUG) System.out.println("from input:" + inLine);
       if (!isTemplateLine(inLine)) {
         if (DEBUG) System.out.println("not template line, continuing...");
-        out.print(inLine+"\n");
+        out.print(inLine + "\n");
         continue;
       }
       Vector<Object> newRegion = buildTemplateRegion(inLine);
@@ -1064,9 +1067,9 @@ public class GenerateFromTemplate {
 
     if (DEBUG) {
       if (value.length > 0)
-        System.out.println("doing conditional "+arg+" "+op+" "+value[0]);
+        System.out.println("doing conditional " + arg + " " + op + " " + value[0]);
       else
-        System.out.println("doing conditional "+arg+" "+op+" <NO ARGUMENT TOKEN FOUND>");
+        System.out.println("doing conditional " + arg + " " + op + " <NO ARGUMENT TOKEN FOUND>");
     }
 
     // Evaluate conditional.
@@ -1085,7 +1088,7 @@ public class GenerateFromTemplate {
     for (int j = 0; j < newRegion.size(); j++) {
       try {
         String currentLine = (String) newRegion.elementAt(j);
-        out.print(currentLine+"\n");
+        out.print(currentLine + "\n");
       } catch (ClassCastException e) {
         @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
         Vector<Object> tmpRegion = (Vector<Object>) newRegion.elementAt(j);
@@ -1099,7 +1102,7 @@ public class GenerateFromTemplate {
     for (int j = 1; j < region.size(); j++) {
       try {
         String result = (String) region.elementAt(j);
-        out.print(result+"\n");
+        out.print(result + "\n");
       } catch (ClassCastException e) {
         @SuppressWarnings("unchecked") // Suppress complaints that we are casting to an erased type
         Vector<Object> newRegion = (Vector<Object>)region.elementAt(j);
@@ -1153,8 +1156,8 @@ public class GenerateFromTemplate {
     int varlen = var.length();
     int oidx = 0;
     for (;;) {
-      if (DEBUG) System.out.println("checking for occurrence of "+var+
-                                    " in :"+input.substring(oidx));
+      if (DEBUG) System.out.println("checking for occurrence of " + var +
+                                    " in :" + input.substring(oidx));
       int idx = input.indexOf(var, oidx);
       if (idx == -1) break;
 
@@ -1169,10 +1172,10 @@ public class GenerateFromTemplate {
       for (int i = 0; i < fields.length; i++) {
         String fld = fields[i];
         int flen = fld.length();
-        if (DEBUG) System.out.println("checking if it is field "+fld);
+        if (DEBUG) System.out.println("checking if it is field " + fld);
         if (input.regionMatches(idx, fld, 0, flen)) {
           String value = fieldData[i];
-          if (DEBUG) System.out.println("field matches. outputting data :"+
+          if (DEBUG) System.out.println("field matches. outputting data :" +
                                         value);
           out.append(value);
           idx += flen;

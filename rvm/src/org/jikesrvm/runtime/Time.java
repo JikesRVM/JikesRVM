@@ -34,7 +34,7 @@ public class Time {
    * @return c converted to milliseconds
    */
   public static double nanosToMillis(long c) {
-    return (c)/1e6;
+    return (c) / 1e6;
   }
 
   /**
@@ -71,11 +71,11 @@ public class Time {
   }
 
   public static double nanosToSecs(long nanos) {
-    return (nanos)/1E9;
+    return (nanos) / 1E9;
   }
 
   public static long secsToNanos(double secs) {
-    return (long)(secs*1E9);
+    return (long)(secs * 1E9);
   }
 
   public static long bootTime() {

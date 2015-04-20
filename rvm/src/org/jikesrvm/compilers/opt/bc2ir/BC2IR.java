@@ -1619,7 +1619,7 @@ public final class BC2IR {
             } else if (field.isRuntimeFinal()) {
               if (VM.VerifyAssertions) VM._assert(fieldType.isBooleanType());
               boolean rhsBool = field.getRuntimeFinalValue();
-              push(new IntConstantOperand(rhsBool? 1 : 0));
+              push(new IntConstantOperand(rhsBool ? 1 : 0));
               break;
             }
           }
@@ -3523,7 +3523,7 @@ public final class BC2IR {
           if (ClassLoaderProxy.includesType(parentType, childType) == NO) {
             VM.sysWriteln("type reference equality " + (parentType == childType));
             Enumeration<InlineSequence> callHierarchy = gc.getInlineSequence().enumerateFromRoot();
-            while(callHierarchy.hasMoreElements()) {
+            while (callHierarchy.hasMoreElements()) {
               VM.sysWriteln(callHierarchy.nextElement().toString());
             }
             String msg = parentType + " not assignable with " + childType;

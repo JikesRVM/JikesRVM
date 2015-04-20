@@ -53,7 +53,7 @@ public class OnStackReplacementTrigger {
     while (!thread.osr_done) {
       thread.monitor().waitWithHandshake();
     }
-    thread.osr_done=false;
+    thread.osr_done = false;
     thread.monitor().unlock();
   }
 }

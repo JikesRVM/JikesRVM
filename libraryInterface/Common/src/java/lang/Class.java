@@ -358,9 +358,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (isPrimitive()) {
       return name;
     } else if (isInterface()) {
-      return "interface "+name;
+      return "interface " + name;
     } else {
-      return "class "+name;
+      return "class " + name;
     }
   }
 
@@ -423,7 +423,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Class<?> getComponentType() {
-    return type.isArrayType() ? type.asArray().getElementType().getClassForType(): null;
+    return type.isArrayType() ? type.asArray().getElementType().getClassForType() : null;
   }
 
   public Class<?>[] getDeclaredClasses() throws SecurityException {
@@ -563,12 +563,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       typeString = new StringBuilder("()");
     } else {
       typeString = new StringBuilder("(");
-      for (int i=0; i < parameterTypes.length-1; i++) {
+      for (int i = 0; i < parameterTypes.length - 1; i++) {
         Class<?> c = parameterTypes[i];
         typeString.append(c.toString());
         typeString.append(", ");
       }
-      typeString.append(parameterTypes[parameterTypes.length-1]);
+      typeString.append(parameterTypes[parameterTypes.length - 1]);
       typeString.append(')');
     }
     throw new NoSuchMethodException(name + typeString);
@@ -592,7 +592,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (maxDepth == -1) {
       browser.init();
       maxDepth = 0;
-      while(browser.hasMoreFrames()) {
+      while (browser.hasMoreFrames()) {
         maxDepth++;
         browser.up();
       }
@@ -603,7 +603,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
     Class<?>[] result = new Class[maxDepth];
     browser.init();
-    for (int i=0; i < maxDepth; i++) {
+    for (int i = 0; i < maxDepth; i++) {
       result[i] = browser.getCurrentClass().getClassForType();
       browser.up();
     }
@@ -637,7 +637,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Class<?> getEnclosingClass() {
     if (type.isClassType()) {
       TypeReference enclosingClass = type.asClass().getEnclosingClass();
-      if(enclosingClass != null) {
+      if (enclosingClass != null) {
         return enclosingClass.resolve().getClassForType();
       } else {
         return null;
@@ -677,7 +677,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @Pure
   public boolean isEnum() {
-    if(type.isClassType()) {
+    if (type.isClassType()) {
       return type.asClass().isEnum();
     } else {
       return false;
@@ -771,7 +771,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     RVMMethod[] methods = type.asClass().getConstructorMethods();
     Constructor<?>[] ans = new Constructor[methods.length];
-    for (int i = 0; i<methods.length; i++) {
+    for (int i = 0; i < methods.length; i++) {
       ans[i] = JikesRVMSupport.createConstructor(methods[i]);
     }
     return ans;
@@ -799,7 +799,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
           } catch (SecurityException e) {
             throw new ClassNotFoundException("Security exception when" +
                                              " trying to get a classloader so we can load the" +
-                                             " class named \"" + className +"\"", e);
+                                             " class named \"" + className + "\"", e);
           }
         }
       }
@@ -840,7 +840,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   // --- newInstance ---
 
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {0})
   public T newInstance() throws IllegalAccessException, InstantiationException,
     ExceptionInInitializerError, SecurityException {
 

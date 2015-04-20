@@ -32,7 +32,7 @@ class DeBruijn {
 
     String str = "";
 
-    for (int i=0, val=mask; i<length; ++i) {
+    for (int i = 0, val = mask; i < length; ++i) {
       val <<= 1;
       val &= mask;
       if (table[val]) {
@@ -43,7 +43,7 @@ class DeBruijn {
         } else {
           table[val] = true;
           //      System.out.print("1");
-          str = str +"1";
+          str = str + "1";
         }
       } else {
         table[val] = true;

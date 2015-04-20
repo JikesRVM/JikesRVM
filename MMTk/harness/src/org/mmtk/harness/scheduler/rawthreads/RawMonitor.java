@@ -30,7 +30,7 @@ public class RawMonitor extends org.mmtk.vm.Monitor {
   private final ThreadQueue waitList;
 
   RawMonitor(RawThreadModel model, String name) {
-    this.lock = new RawLock(model,name+"Lock");
+    this.lock = new RawLock(model,name + "Lock");
     this.name = name;
     this.model = model;
     this.waitList = new ThreadQueue(name);

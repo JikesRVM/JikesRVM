@@ -68,8 +68,8 @@ public final class ImmixSpace extends Space {
   private boolean inCollection;
   private int linesConsumed = 0;
 
-  private final Lock mutatorLock = VM.newLock(getName()+"mutator");
-  private final Lock gcLock = VM.newLock(getName()+"gc");
+  private final Lock mutatorLock = VM.newLock(getName() + "mutator");
+  private final Lock gcLock = VM.newLock(getName() + "gc");
 
   private Address allocBlockCursor = Address.zero();
   private Address allocBlockSentinel = Address.zero();
@@ -229,7 +229,7 @@ public final class ImmixSpace extends Space {
    * @return The number of pages allocated since the last collection
    */
   public int getPagesAllocated() {
-    return linesConsumed>>(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_LINE);
+    return linesConsumed >> (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
   }
 
   /**
@@ -280,7 +280,7 @@ public final class ImmixSpace extends Space {
       Block.setBlockAsInUse(rtn);
       Chunk.updateHighWater(rtn);
       if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-        Log.write("gs["); Log.write(rtn); Log.write(" -> "); Log.write(rtn.plus(BYTES_IN_BLOCK-1)); Log.write(" copy: "); Log.write(copy); Log.writeln("]");
+        Log.write("gs["); Log.write(rtn); Log.write(" -> "); Log.write(rtn.plus(BYTES_IN_BLOCK - 1)); Log.write(" copy: "); Log.write(copy); Log.writeln("]");
       }
     }
 
@@ -649,11 +649,11 @@ public final class ImmixSpace extends Space {
    */
   private int getUsableLinesInRegion(Address start, Address end, int[] spillAvailHistogram) {
     int usableLines = 0;
-    Address blockCursor = Chunk.isAligned(start) ? start.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK) : start;
+    Address blockCursor = Chunk.isAligned(start) ? start.plus(Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK) : start;
     Address blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
     Address chunkCursor = Chunk.align(blockCursor);
-    if (Chunk.getByteOffset(end) < Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK)
-      end = Chunk.align(end).plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
+    if (Chunk.getByteOffset(end) < Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK)
+      end = Chunk.align(end).plus(Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK);
 
     for (int i = 0; i <= MAX_CONSV_SPILL_COUNT; i++) spillAvailHistogram[i] = 0;
 
@@ -671,7 +671,7 @@ public final class ImmixSpace extends Space {
       if (blockCursor.GT(highwater)) {
         chunkCursor = chunkMap.nextChunk(chunkCursor);
         if (chunkCursor.isZero()) break;
-        blockCursor = chunkCursor.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
+        blockCursor = chunkCursor.plus(Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK);
         blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
         highwater = Chunk.getHighWater(chunkCursor);
       } else

@@ -352,7 +352,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r3 = asm.forwardJcc(EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(BYTES_IN_DOUBLE*2));
+      asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(BYTES_IN_DOUBLE * 2));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(2), 0);
       fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM2, XMM2);
@@ -360,7 +360,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r4 = asm.forwardJcc(EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(BYTES_IN_DOUBLE*3));
+      asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(BYTES_IN_DOUBLE * 3));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(3), 0);
       fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM3, XMM3);
@@ -608,7 +608,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     asm.emitPUSH_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset()); // push TR.framePointer
     asm.emitPOP_RegDisp(S0, fpOffset);                  // T0.contextRegisters.fp = pushed framepointer
     if (VM.BuildFor32Addr) {
-      asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // discard 2 words of parameters (T0, T1)
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);                // discard 2 words of parameters (T0, T1)
       asm.emitMOV_Reg_RegDisp(S0, S0, gprsOffset);       // S0 = T0.contextRegisters.gprs;
       asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE), SP); // T0.contextRegisters.gprs[#SP] := SP
       for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
@@ -618,7 +618,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
                                 NONVOLATILE_GPRS[i]);
       }
     } else {
-      asm.emitADD_Reg_Imm_Quad(SP, 2*WORDSIZE);                // discard 2 words of parameters (T0, T1)
+      asm.emitADD_Reg_Imm_Quad(SP, 2 * WORDSIZE);                // discard 2 words of parameters (T0, T1)
       asm.emitMOV_Reg_RegDisp_Quad(S0, S0, gprsOffset);  // S0 = T0.contextRegisters.gprs;
       asm.emitMOV_RegDisp_Reg_Quad(S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE), SP); // T0.contextRegisters.gprs[#SP] := SP
       for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {

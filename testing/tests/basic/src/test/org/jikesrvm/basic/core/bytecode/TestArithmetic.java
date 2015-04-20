@@ -203,21 +203,21 @@ class TestArithmetic {
 
     // Rotate tests
     System.out.print("Expected: 10 Actual: ");
-    System.out.println((int5 << 1)|(int5 >>> -1)); // Rotate left by 1
+    System.out.println((int5 << 1) | (int5 >>> -1)); // Rotate left by 1
     System.out.print("Expected: 10 Actual: ");
-    System.out.println((int5 >>> -1)|(int5 << 1)); // Rotate left by 1
+    System.out.println((int5 >>> -1) | (int5 << 1)); // Rotate left by 1
     System.out.print("Expected: -2147483646 Actual: ");
-    System.out.println((int5 << -1)|(int5 >>> 1)); // Rotate right by 1
+    System.out.println((int5 << -1) | (int5 >>> 1)); // Rotate right by 1
     System.out.print("Expected: -2147483646 Actual: ");
-    System.out.println((int5 >>> 1)|(int5 << -1)); // Rotate right by 1
+    System.out.println((int5 >>> 1) | (int5 << -1)); // Rotate right by 1
     System.out.print("Expected: 10 Actual: ");
-    System.out.println((int5 << int1)|(int5 >>> -int1)); // Rotate left by 1
+    System.out.println((int5 << int1) | (int5 >>> -int1)); // Rotate left by 1
     System.out.print("Expected: 10 Actual: ");
-    System.out.println((int5 >>> -int1)|(int5 << int1)); // Rotate left by 1
+    System.out.println((int5 >>> -int1) | (int5 << int1)); // Rotate left by 1
     System.out.print("Expected: -2147483646 Actual: ");
-    System.out.println((int5 << -int1)|(int5 >>> int1)); // Rotate right by 1
+    System.out.println((int5 << -int1) | (int5 >>> int1)); // Rotate right by 1
     System.out.print("Expected: -2147483646 Actual: ");
-    System.out.println((int5 >>> int1)|(int5 << -int1)); // Rotate right by 1
+    System.out.println((int5 >>> int1) | (int5 << -int1)); // Rotate right by 1
   }
 
   private static void ltest() {
@@ -540,7 +540,7 @@ class TestArithmetic {
     System.out.println(Integer.toHexString(Float.floatToIntBits(a % b)));  // frem
 
     System.out.print("Expected: NaN Actual: ");
-    System.out.println(float0/float0);
+    System.out.println(float0 / float0);
 
     System.out.print("Expected: NaN Actual: ");
     System.out.println(Float.NaN + Float.NaN);
@@ -597,40 +597,40 @@ class TestArithmetic {
     System.out.println(Float.NEGATIVE_INFINITY < float1);
 
     System.out.print("Expected: true Actual: ");
-    System.out.println((-float1/0.0) == (-float1/0.0));
+    System.out.println((-float1 / 0.0) == (-float1 / 0.0));
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println(float1/0.0);
+    System.out.println(float1 / 0.0);
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((float1/0.0) + 2.0);
+    System.out.println((float1 / 0.0) + 2.0);
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((float1/0.0) * 0.5);
+    System.out.println((float1 / 0.0) * 0.5);
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((float1/0.0) + (float1/0.0));
+    System.out.println((float1 / 0.0) + (float1 / 0.0));
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((float1/0.0) * (float1/0.0));
+    System.out.println((float1 / 0.0) * (float1 / 0.0));
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println(Math.abs(-float1/0.0));
+    System.out.println(Math.abs(-float1 / 0.0));
 
     System.out.print("Expected: -Infinity Actual: ");
-    System.out.println(-float1/0.0);
+    System.out.println(-float1 / 0.0);
 
     System.out.print("Expected: -Infinity Actual: ");
-    System.out.println((-float1/0.0) + 2.0);
+    System.out.println((-float1 / 0.0) + 2.0);
 
     System.out.print("Expected: -Infinity Actual: ");
-    System.out.println((-float1/0.0) * 0.5);
+    System.out.println((-float1 / 0.0) * 0.5);
 
     System.out.print("Expected: 2147483647 Actual: ");
-    System.out.println((int)(float1/0.0));
+    System.out.println((int)(float1 / 0.0));
 
     System.out.print("Expected: -2147483648 Actual: ");
-    System.out.println((int)(-float1/0.0));
+    System.out.println((int)(-float1 / 0.0));
 
     System.out.print("Expected: 0 Actual: ");
     System.out.println((int)Float.NaN);
@@ -661,7 +661,7 @@ class TestArithmetic {
     System.out.println(Long.toHexString(Double.doubleToLongBits(a % b)));  // drem
 
     System.out.print("Expected: NaN Actual: ");
-    System.out.println(double0/double0);
+    System.out.println(double0 / double0);
 
     System.out.print("Expected: NaN Actual: ");
     System.out.println(Double.NaN + Double.NaN);
@@ -718,40 +718,40 @@ class TestArithmetic {
     System.out.println(Double.NEGATIVE_INFINITY < double1);
 
     System.out.print("Expected: true Actual: ");
-    System.out.println((-double1/0.0) == (-double1/0.0));
+    System.out.println((-double1 / 0.0) == (-double1 / 0.0));
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println(double1/0.0);
+    System.out.println(double1 / 0.0);
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((double1/0.0) + 2.0);
+    System.out.println((double1 / 0.0) + 2.0);
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((double1/0.0) * 0.5);
+    System.out.println((double1 / 0.0) * 0.5);
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((double1/0.0) + (double1/0.0));
+    System.out.println((double1 / 0.0) + (double1 / 0.0));
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println((double1/0.0) * (double1/0.0));
+    System.out.println((double1 / 0.0) * (double1 / 0.0));
 
     System.out.print("Expected: Infinity Actual: ");
-    System.out.println(Math.abs(-double1/0.0));
+    System.out.println(Math.abs(-double1 / 0.0));
 
     System.out.print("Expected: -Infinity Actual: ");
-    System.out.println(-double1/0.0);
+    System.out.println(-double1 / 0.0);
 
     System.out.print("Expected: -Infinity Actual: ");
-    System.out.println((-double1/0.0) + 2.0);
+    System.out.println((-double1 / 0.0) + 2.0);
 
     System.out.print("Expected: -Infinity Actual: ");
-    System.out.println((-double1/0.0) * 0.5);
+    System.out.println((-double1 / 0.0) * 0.5);
 
     System.out.print("Expected: 2147483647 Actual: ");
-    System.out.println((int)(double1/0.0));
+    System.out.println((int)(double1 / 0.0));
 
     System.out.print("Expected: -2147483648 Actual: ");
-    System.out.println((int)(-double1/0.0));
+    System.out.println((int)(-double1 / 0.0));
 
     System.out.print("Expected: 0 Actual: ");
     System.out.println((int)Double.NaN);

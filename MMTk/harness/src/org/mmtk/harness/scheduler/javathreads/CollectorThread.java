@@ -28,7 +28,7 @@ class CollectorThread extends JavaThread {
   protected CollectorThread(JavaThreadModel model, CollectorContext context, boolean daemon) {
     this.context = context;
     this.model = model;
-    setName("Collector-"+(++collectorId));
+    setName("Collector-" + (++collectorId));
     setDaemon(daemon);
     setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       @Override

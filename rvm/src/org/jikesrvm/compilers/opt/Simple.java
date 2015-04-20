@@ -198,7 +198,7 @@ public final class Simple extends CompilerPhase {
         RegisterOperand rop2 = Binary.getVal2(s).asRegister();
         // Simple SSA based test
         if (rop1.getRegister().isSSA()) {
-          if(rop2.getRegister().isSSA()) {
+          if (rop2.getRegister().isSSA()) {
             // ordering is arbitrary, ignore
           } else {
             // swap

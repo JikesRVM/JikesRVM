@@ -160,9 +160,9 @@ public enum Operator {
   }
 
   public Value operate(Value operand) {
-    throw new RuntimeException("Unsupported unary operation, "+this);
+    throw new RuntimeException("Unsupported unary operation, " + this);
   }
   public Value operate(Value lhs, Value rhs) {
-    throw new RuntimeException("Unsupported binary operation, "+this);
+    throw new RuntimeException("Unsupported binary operation, " + this);
   }
 }

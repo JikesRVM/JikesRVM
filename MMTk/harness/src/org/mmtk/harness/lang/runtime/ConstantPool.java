@@ -58,6 +58,6 @@ public class ConstantPool {
   }
 
   public static Value get(int index) {
-    return values.get((-index)-1);
+    return values.get((-index) - 1);
   }
 }

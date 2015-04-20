@@ -72,11 +72,11 @@ public final class TypeReference {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /**
    * Dictionary of all TypeReference instances.
    */
-  private static TypeReference[][] types = new TypeReference[3][1<<LOG_ROW_SIZE];
+  private static TypeReference[][] types = new TypeReference[3][1 << LOG_ROW_SIZE];
 
   /**
    * Used to assign Ids.  Id 0 is not used. Ids are compressed and
@@ -332,8 +332,8 @@ public final class TypeReference {
       int column = val.id >> LOG_ROW_SIZE;
       if (column == types.length) {
         // Grow the array of types if necessary
-        TypeReference[][] tmp = new TypeReference[column+1][];
-        for (int i=0; i < column; i++) {
+        TypeReference[][] tmp = new TypeReference[column + 1][];
+        for (int i = 0; i < column; i++) {
           tmp[i] = types[i];
         }
         types = tmp;

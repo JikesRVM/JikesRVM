@@ -595,7 +595,7 @@ public class VM extends Properties {
    * {@code if (VM.VerifyAssertions) VM._assert(xxx);}
    * @param b the assertion to verify
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value = Inline.When.AllArgumentsAreConstant)
   public static void _assert(boolean b) {
     _assert(b, null, null);
   }
@@ -610,12 +610,12 @@ public class VM extends Properties {
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {0})
   public static void _assert(boolean b, String message) {
     _assert(b, message, null);
   }
 
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {0})
   public static void _assert(boolean b, String msg1, String msg2) {
     if (!VM.VerifyAssertions) {
       sysWriteln("vm: somebody forgot to conditionalize their call to assert with");
@@ -2264,10 +2264,10 @@ public class VM extends Properties {
   @NoInline
   public static void bugReportMessage() {
     VM.sysWriteln("********************************************************************************");
-    VM.sysWriteln("*                      Abnormal termination of Jikes RVM                       *\n"+
-                  "* Jikes RVM terminated abnormally indicating a problem in the virtual machine. *\n"+
-                  "* Jikes RVM relies on community support to get debug information. Help improve *\n"+
-                  "* Jikes RVM for everybody by reporting this error. Please see:                 *\n"+
+    VM.sysWriteln("*                      Abnormal termination of Jikes RVM                       *\n" +
+                  "* Jikes RVM terminated abnormally indicating a problem in the virtual machine. *\n" +
+                  "* Jikes RVM relies on community support to get debug information. Help improve *\n" +
+                  "* Jikes RVM for everybody by reporting this error. Please see:                 *\n" +
                   "*                      http://jikesrvm.org/Reporting+Bugs                      *");
     VM.sysWriteln("********************************************************************************");
   }
@@ -2281,7 +2281,7 @@ public class VM extends Properties {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
-    if(!RVMThread.getCurrentThread().isCollectorThread()) {
+    if (!RVMThread.getCurrentThread().isCollectorThread()) {
       RVMThread.traceback(message);
     } else {
       VM.sysWriteln("Died in GC:");
@@ -2590,7 +2590,7 @@ public class VM extends Properties {
     //
     if (Magic.getFramePointer().minus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
         .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
-      RVMThread.resizeCurrentStack(myThread.getStackLength()+
+      RVMThread.resizeCurrentStack(myThread.getStackLength() +
           ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
     }
 

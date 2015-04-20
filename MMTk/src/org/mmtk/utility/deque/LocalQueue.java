@@ -94,7 +94,7 @@ import org.vmmagic.unboxed.*;
    * @return The first entry on the queue.
    */
   @Inline
-  protected final Address uncheckedDequeue(){
+  protected final Address uncheckedDequeue() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.minus(BYTES_IN_ADDRESS);
     return head.loadAddress();

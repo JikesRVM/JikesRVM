@@ -62,7 +62,7 @@ public class TestingTools {
   public static Byte[] boxed(byte [] bytes) {
     Byte[] boxedBytes = new Byte[bytes.length];
 
-    for (int i=0; i<boxedBytes.length; i++) {
+    for (int i = 0; i < boxedBytes.length; i++) {
         boxedBytes[i] = bytes[i];
     }
 

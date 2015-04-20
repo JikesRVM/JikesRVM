@@ -451,7 +451,7 @@ public abstract class Phase {
 
     /* The main phase execution loop */
     int scheduledPhase;
-    while((scheduledPhase = getCurrentPhase(isEvenPhase)) > 0) {
+    while ((scheduledPhase = getCurrentPhase(isEvenPhase)) > 0) {
       short schedule = getSchedule(scheduledPhase);
       short phaseId = getPhaseId(scheduledPhase);
       Phase p = getPhase(phaseId);
@@ -684,7 +684,7 @@ public abstract class Phase {
    * Pause all of the timers for the complex phases sitting in the stack.
    */
   private static void pauseComplexTimers() {
-    for(int i=phaseStackPointer; i >=0; i--) {
+    for (int i = phaseStackPointer; i >= 0; i--) {
       Phase p = getPhase(getPhaseId(phaseStack[i]));
       if (p.timer != null) p.timer.stop();
     }
@@ -694,7 +694,7 @@ public abstract class Phase {
    * Resume all of the timers for the complex phases sitting in the stack.
    */
   private static void resumeComplexTimers() {
-    for(int i=phaseStackPointer; i >=0; i--) {
+    for (int i = phaseStackPointer; i >= 0; i--) {
       Phase p = getPhase(getPhaseId(phaseStack[i]));
       if (p.timer != null) p.timer.start();
     }

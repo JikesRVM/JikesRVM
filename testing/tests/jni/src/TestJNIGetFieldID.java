@@ -12,7 +12,9 @@
  */
 
 public class TestJNIGetFieldID {
-  static {System.loadLibrary("TestJNIGetFieldID");}
+  static {
+    System.loadLibrary("TestJNIGetFieldID");
+  }
 
   // set to true to get messages for each test
   static boolean verbose = true;
@@ -32,7 +34,7 @@ public class TestJNIGetFieldID {
   }
 
   public static void main(String[] args) {
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
       }
@@ -45,7 +47,7 @@ public class TestJNIGetFieldID {
         if (verbose) System.out.println("instance_a: fail");
         allTestPass = false;
       }
-    } catch(Throwable e) {
+    } catch (Throwable e) {
       if (verbose) System.out.println("instance_a: fail");
       allTestPass = false;
     }
@@ -57,7 +59,7 @@ public class TestJNIGetFieldID {
         if (verbose) System.out.println("static_s: fail");
         allTestPass = false;
       }
-    } catch(Throwable e) {
+    } catch (Throwable e) {
       if (verbose) System.out.println("static_s: fail");
       allTestPass = false;
     }
@@ -69,7 +71,7 @@ public class TestJNIGetFieldID {
         if (verbose) System.out.println("static_f: fail");
         allTestPass = false;
       }
-    } catch(Throwable e) {
+    } catch (Throwable e) {
       if (verbose) System.out.println("static_f: fail");
       allTestPass = false;
     }
@@ -81,7 +83,7 @@ public class TestJNIGetFieldID {
         if (verbose) System.out.println("static_I.f: fail");
         allTestPass = false;
       }
-    } catch(Throwable e) {
+    } catch (Throwable e) {
       if (verbose) System.out.println("static_f: fail");
       allTestPass = false;
     }

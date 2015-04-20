@@ -45,7 +45,7 @@ public abstract class MemberReference {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /**
    * Dictionary of all MemberReference instances.
    */
@@ -100,8 +100,8 @@ public abstract class MemberReference {
     TableBasedDynamicLinker.ensureCapacity(key.id);
     int column = key.id >> LOG_ROW_SIZE;
     if (column == members.length) {
-      MemberReference[][] tmp = new MemberReference[column+1][];
-      for (int i=0; i < column; i++) {
+      MemberReference[][] tmp = new MemberReference[column + 1][];
+      for (int i = 0; i < column; i++) {
         tmp[i] = members[i];
       }
       members = tmp;
@@ -148,7 +148,7 @@ public abstract class MemberReference {
       TypeReference tref = TypeReference.findOrCreate(cl, dc);
       return findOrCreate(tref, mn, md);
     } catch (Exception e) {
-      VM.sysWriteln("Warning: error parsing for class "+clName+": "+e);
+      VM.sysWriteln("Warning: error parsing for class " + clName + ": " + e);
       return null;
     }
   }

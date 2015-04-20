@@ -19,7 +19,7 @@ class testCounts {
         int[] a = new int[n];
         int length = a.length;
 
-        for(int i = 0 ; i < length ; i++) {
+        for (int i = 0 ; i < length ; i++) {
             a[i] = a[i] + 1;
         }
     }

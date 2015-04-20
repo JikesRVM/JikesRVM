@@ -44,7 +44,7 @@ class StringFunctions {
 
     System.loadLibrary("StringFunctions");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -63,14 +63,14 @@ class StringFunctions {
     checkTest(0, (returnString.equals(hiTon)), "accessNewString");
 
     returnValue = accessGetStringLength(hiTon);
-    checkTest(0, (returnValue==5), "accessGetStringLength");
+    checkTest(0, (returnValue == 5), "accessGetStringLength");
 
     returnString = accessNewStringUTF(hiSteve);
     printVerbose("accessNewStringUTF returnString = " + returnString + ".");
     checkTest(0, (returnString.equals(hiSteve)), "accessNewStringUTF");
 
     returnValue = accessGetStringUTFLength(hiSteve);
-    checkTest(0, (returnValue==7), "accessGetStringUTFLength");
+    checkTest(0, (returnValue == 7), "accessGetStringUTFLength");
 
     returnString = testGetReleaseStringChars(hiTony);
     checkTest(0, (returnString.equals(hiTony)), "testGetReleaseStringChars");
@@ -93,7 +93,7 @@ class StringFunctions {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

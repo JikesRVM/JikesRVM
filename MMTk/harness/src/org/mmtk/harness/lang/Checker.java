@@ -96,8 +96,8 @@ public class Checker extends Visitor {
     for (Type actualParamType : formalTypes) {
       Type formalParamType = actualTypeIter.next();
       if (!formalParamType.isCompatibleWith(actualParamType)) {
-        fail(marker,"Actual parameter of type "+actualParamType+
-            " is incompatible with formal param of type "+formalParamType);
+        fail(marker,"Actual parameter of type " + actualParamType +
+            " is incompatible with formal param of type " + formalParamType);
       }
     }
   }
@@ -172,7 +172,7 @@ public class Checker extends Visitor {
         if ((lhsType == Type.BOOLEAN && rhsType.isObject()) ||
             (lhsType.isObject() && rhsType == Type.BOOLEAN)) {
           ok = true;
-        } else if (lhsType.isObject() && rhsType.isObject()){
+        } else if (lhsType.isObject() && rhsType.isObject()) {
           ok = true;
         } else {
           ok = false;
@@ -181,7 +181,7 @@ public class Checker extends Visitor {
         ok = false;
       }
       if (!ok) {
-        fail(exp,"Type mismatch between "+lhsType+" and "+rhsType);
+        fail(exp,"Type mismatch between " + lhsType + " and " + rhsType);
       }
     }
     if (Operator.booleanOperators.contains(op)) {
@@ -299,7 +299,7 @@ public class Checker extends Visitor {
     if (ret.hasReturnValue()) {
       Type type = getTypeOf(ret.getRhs());
       if (!returnType.isCompatibleWith(type)) {
-        fail(ret,"Returning a "+type+" in a method declared as "+returnType);
+        fail(ret,"Returning a " + type + " in a method declared as " + returnType);
       }
       return type;
     } else if (returnType != Type.VOID) {
@@ -341,7 +341,7 @@ public class Checker extends Visitor {
     Type rhsType = getTypeOf(store.getRhs());
     Type fieldType = store.getFieldType();
     if (!fieldType.isCompatibleWith(rhsType)) {
-      fail(store,"Storefield to a "+fieldType+" must have type "+fieldType+", not "+rhsType);
+      fail(store,"Storefield to a " + fieldType + " must have type " + fieldType + ", not " + rhsType);
     }
     return Type.VOID;
   }
@@ -358,11 +358,11 @@ public class Checker extends Visitor {
     UserType objectType = (UserType)t;
     Field field = objectType.getField(store.getFieldName());
     if (field == null) {
-      fail(store,"The type "+objectType+" does not have a field called "+store.getFieldName());
+      fail(store,"The type " + objectType + " does not have a field called " + store.getFieldName());
     }
     Type fieldType = field.getType();
     if (!fieldType.isCompatibleWith(getTypeOf(store.getRhs()))) {
-      fail(store,"Storefield to a "+fieldType+" must have type "+fieldType);
+      fail(store,"Storefield to a " + fieldType + " must have type " + fieldType);
     }
     return Type.VOID;
   }
@@ -386,7 +386,7 @@ public class Checker extends Visitor {
   @Override
   public Object visit(Variable var) {
     if (!isInitialized[var.getSlot()]) {
-      fail(var,"Variable "+var.getSymbol().getName()+" is not initialized before use");
+      fail(var,"Variable " + var.getSymbol().getName() + " is not initialized before use");
     }
     return var.getSymbol().getType();
   }

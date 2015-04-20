@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Override
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value = Inline.When.AllArgumentsAreConstant)
   public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
@@ -57,7 +57,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Override
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
   public final void _assert(boolean cond, String message) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");

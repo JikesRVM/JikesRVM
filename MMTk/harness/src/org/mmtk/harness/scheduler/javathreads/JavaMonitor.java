@@ -65,7 +65,7 @@ public class JavaMonitor extends org.mmtk.vm.Monitor {
   @Override
   public void await() {
     trace("await", "in");
-    synchronized(monitor) {
+    synchronized (monitor) {
       int savedCount = counter;
       trace("await", "unlocking");
       unlock();
@@ -77,7 +77,7 @@ public class JavaMonitor extends org.mmtk.vm.Monitor {
         } catch (InterruptedException e) { }
       }
       if (timedOut(start)) {
-        Harness.dumpStateAndExit("Timed out waiting for notification at "+name+", held by");
+        Harness.dumpStateAndExit("Timed out waiting for notification at " + name + ", held by");
       }
       trace("await", "waking ...");
       lock();
@@ -88,7 +88,7 @@ public class JavaMonitor extends org.mmtk.vm.Monitor {
   @Override
   public void broadcast() {
     trace("broadcast", "in");
-    synchronized(monitor) {
+    synchronized (monitor) {
       counter++;
       monitor.notifyAll();
     }
@@ -98,17 +98,17 @@ public class JavaMonitor extends org.mmtk.vm.Monitor {
   @Override
   public void lock() {
     trace("lock", "in");
-    synchronized(monitor) {
+    synchronized (monitor) {
       long start = startWait();
       while (isLocked && !timedOut(start)) {
         try {
-          trace("lock", "wait for "+holder.getName());
+          trace("lock", "wait for " + holder.getName());
           monitor.wait();
         } catch (InterruptedException e) { }
       }
       if (timedOut(start)) {
         String holderName = holder == null ? "<no-one>" : holder.getName();
-        Harness.dumpStateAndExit("Timed out waiting for "+name+", held by "+holderName);
+        Harness.dumpStateAndExit("Timed out waiting for " + name + ", held by " + holderName);
       }
       isLocked = true;
       holder = Thread.currentThread();
@@ -119,7 +119,7 @@ public class JavaMonitor extends org.mmtk.vm.Monitor {
   @Override
   public void unlock() {
     trace("unlock", "in");
-    synchronized(monitor) {
+    synchronized (monitor) {
       assert isLocked;
       isLocked = false;
       holder = null;

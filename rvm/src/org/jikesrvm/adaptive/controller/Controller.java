@@ -73,7 +73,7 @@ public class Controller implements Callbacks.ExitMonitor,
   /**
    * @return the deferred command line arguments
    */
-  public static String[] getOptCompilerOptions() {return optCompilerOptions;}
+  public static String[] getOptCompilerOptions() { return optCompilerOptions;}
 
   /**
    * The controller thread, it makes all the decisions

@@ -44,7 +44,7 @@ public class PlanSpecificConfig {
     plans.put(plan.getName(),plan);
     for (String alias : aliases) {
       if (plans.containsKey(alias)) {
-        throw new Error("A plan with the name "+alias+" has already been registered");
+        throw new Error("A plan with the name " + alias + " has already been registered");
       }
       plans.put(alias,plan);
     }
@@ -66,7 +66,7 @@ public class PlanSpecificConfig {
     register(
         new PlanSpecific("org.mmtk.plan.generational.copying.GenCopy")
         .addExpectedSpaces("nursery", "ss0", "ss1")
-        .heapFactor(18816/BASE_HEAP),
+        .heapFactor(18816 / BASE_HEAP),
         "GenCopy");
     register(
         new PlanSpecific("org.mmtk.plan.generational.immix.GenImmix")
@@ -83,7 +83,7 @@ public class PlanSpecificConfig {
     register(
         new PlanSpecific("org.mmtk.plan.markcompact.MC")
         .addExpectedSpaces("mc")
-        .heapFactor(10496/BASE_HEAP),
+        .heapFactor(10496 / BASE_HEAP),
         "MC", "MarkCompact");
     register(
         new PlanSpecific("org.mmtk.plan.marksweep.MS")
@@ -99,21 +99,21 @@ public class PlanSpecificConfig {
     register(
         new PlanSpecific("org.mmtk.plan.semispace.usePrimitiveWriteBarriers.UsePrimitiveWriteBarriers")
         .addExpectedSpaces("ss0", "ss1")
-        .heapFactor(18816/BASE_HEAP),
+        .heapFactor(18816 / BASE_HEAP),
         "UsePrimitiveWriteBarriers", "PrimitiveWB");
     register(
         new PlanSpecific("org.mmtk.plan.refcount.fullheap.RC")
         .addExpectedSpaces("rclos", "rc")
-        .heapFactor(9856/BASE_HEAP),
+        .heapFactor(9856 / BASE_HEAP),
         "RC");
     register(
         new PlanSpecific("org.mmtk.plan.refcount.generational.GenRC")
         .addExpectedSpaces("nursery", "rclos", "rc")
-        .heapFactor(9984/BASE_HEAP),
+        .heapFactor(9984 / BASE_HEAP),
         "GenRC");
     register(
         new PlanSpecific("org.mmtk.plan.semispace.SS")
-        .heapFactor(18816/BASE_HEAP)
+        .heapFactor(18816 / BASE_HEAP)
         .addExpectedSpaces("ss0", "ss1"),
         "SS", "SemiSpace");
     register(
@@ -136,7 +136,7 @@ public class PlanSpecificConfig {
   public static PlanSpecific get(String name) {
     PlanSpecific plan = plans.get(name);
     if (plan == null) {
-      System.err.println("No plan specific configuration for "+name+", using defaults");
+      System.err.println("No plan specific configuration for " + name + ", using defaults");
       return DEFAULTS;
     }
     return plan;
@@ -152,7 +152,7 @@ public class PlanSpecificConfig {
   public static String planClass(String name) {
     PlanSpecific plan = plans.get(name);
     if (plan == null) {
-      System.err.println("No plan specific configuration for "+name);
+      System.err.println("No plan specific configuration for " + name);
       return name;
     }
     return plan.getName();

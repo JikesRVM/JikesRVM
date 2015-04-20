@@ -280,7 +280,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     for (; localIndex < nLocalWords; localIndex++) {
       byte currentLocal = localTypes[localIndex];
 
-      if (needsFloatRegister(currentLocal)) {//float or double
+      if (needsFloatRegister(currentLocal)) { //float or double
         if (!use_nonvolatile_registers || (nextFloatLocalRegister > LAST_FLOAT_LOCAL_REGISTER)) {
           localFloatLocations[localIndex] = offsetToLocation(localOffset(localIndex));
         } else {
@@ -429,8 +429,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     if (VM.VerifyAssertions) {
       boolean pushDoesNotOverwrite = (spTopOffset - bytesActuallyWritten) >= fullStackOffset;
       if (!pushDoesNotOverwrite) {
-        String msg = " spTopOffset="+spTopOffset+", empty="+emptyStackOffset+
-            ", full="+fullStackOffset+", bw="+bytesActuallyWritten;
+        String msg = " spTopOffset=" + spTopOffset + ", empty=" + emptyStackOffset +
+            ", full=" + fullStackOffset + ", bw=" + bytesActuallyWritten;
         VM._assert(VM.NOT_REACHED, msg);
       }
     }
@@ -3098,7 +3098,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else if ((VM.BuildFor32Addr) && (srcType == LONG_TYPE)) {
       asm.emitSTW(src, dest - BYTES_IN_LONG, FP);
       asm.emitSTW(src + 1, dest - BYTES_IN_LONG + 4, FP);
-    } else {//default
+    } else { //default
       asm.emitSTAddr(src, dest - BYTES_IN_ADDRESS, FP);
     }
   }
@@ -3114,7 +3114,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else if ((VM.BuildFor32Addr) && (srcType == LONG_TYPE)) {
       asm.emitLWZ(dest, src - BYTES_IN_LONG, FP);
       asm.emitLWZ(dest + 1, src - BYTES_IN_LONG + 4, FP);
-    } else {//default
+    } else { //default
       asm.emitLAddr(dest, src - BYTES_IN_ADDRESS, FP);
     }
   }
@@ -3188,7 +3188,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         }
       }
 
-    } else {// no matching types
+    } else { // no matching types
       if ((srcType == DOUBLE_TYPE) && (destType == LONG_TYPE) && srcIsRegister && !destIsRegister) {
         asm.emitSTFD(src, locationToOffset(dest) - BYTES_IN_DOUBLE, FP);
       } else if ((srcType == LONG_TYPE) && (destType == DOUBLE_TYPE) && destIsRegister && !srcIsRegister) {
@@ -3397,7 +3397,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   // Emit code to discard stackframe and return to caller.
   //
   private void genEpilogue() {
-    if (klass.hasDynamicBridgeAnnotation()) {// Restore non-volatile registers.
+    if (klass.hasDynamicBridgeAnnotation()) { // Restore non-volatile registers.
       // we never return from a DynamicBridge frame
       asm.emitTAddrWI(-1);
     } else {
@@ -4008,7 +4008,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       // Prepares all take the form:
       // ..., Address, [Offset] -> ..., Value
 
-      if ((methodName == MagicNames.prepareInt)||
+      if ((methodName == MagicNames.prepareInt) ||
           (VM.BuildFor32Addr && (methodName == MagicNames.prepareWord)) ||
           (VM.BuildFor32Addr && (methodName == MagicNames.prepareObjectReference)) ||
           (VM.BuildFor32Addr && (methodName == MagicNames.prepareAddress))) {
@@ -4027,7 +4027,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         return true;
       }
 
-      if ((methodName == MagicNames.prepareLong)||
+      if ((methodName == MagicNames.prepareLong) ||
           (VM.BuildFor64Addr && (methodName == MagicNames.prepareWord)) ||
           (VM.BuildFor64Addr && (methodName == MagicNames.prepareObjectReference)) ||
           (VM.BuildFor64Addr && (methodName == MagicNames.prepareAddress))) {

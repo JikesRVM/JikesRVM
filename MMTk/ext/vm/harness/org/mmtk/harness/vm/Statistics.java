@@ -61,6 +61,6 @@ public class Statistics extends org.mmtk.vm.Statistics {
   public void perfEventInit(String events) {
     if (events.equals(""))
       return;
-    throw new UnsupportedOperationException("Statistics#perfEventInit("+events+"): Not Implemented");
+    throw new UnsupportedOperationException("Statistics#perfEventInit(" + events + "): Not Implemented");
   }
 }

@@ -2308,7 +2308,7 @@ public class JNIFunctions {
       if (traceJNI)
         VM.sysWriteln("called GetFieldID with classJREF = ",classJREF);
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
-      if (VM.VerifyAssertions) VM._assert(cls!=null);
+      if (VM.VerifyAssertions) VM._assert(cls != null);
       String fieldString = JNIHelpers.createStringFromC(fieldNameAddress);
       Atom fieldName = Atom.findOrCreateAsciiAtom(fieldString);
 
@@ -2319,7 +2319,7 @@ public class JNIFunctions {
       // Iterate in reverse order since if there are multiple instance
       // fields of the same name & descriptor we want to find the most derived one.
       RVMField[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
-      for (int i = fields.length-1; i>=0; i--) {
+      for (int i = fields.length - 1; i >= 0; i--) {
         RVMField f = fields[i];
         if (f.getName() == fieldName && f.getDescriptor() == descriptor) {
           return f.getId();
@@ -5947,7 +5947,7 @@ public class JNIFunctions {
 
     try {
       String str = (String) env.getJNIRef(strJREF);
-      String region = str.substring(start, start+len);
+      String region = str.substring(start, start + len);
       // Get length of C string
       int utflen = UTF8Convert.utfLength(region) + 1; // for terminating zero
       JNIHelpers.createUTFForCFromString(region, buf, utflen);

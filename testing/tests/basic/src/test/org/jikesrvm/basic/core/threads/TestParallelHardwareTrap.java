@@ -19,10 +19,10 @@ public class TestParallelHardwareTrap {
 
   public static void main(String[] args) {
     System.out.println("Running: TestParallelHardwareTrap");
-    for(int i=0; i<10; i++) {
+    for (int i = 0; i < 10; i++) {
       new Thread(new Runnable() {
         public void run() {
-          for(int i=0; i < 10000; i++) {
+          for (int i = 0; i < 10000; i++) {
             causeAndHandleNPE();
           }
           synchronized (oLock) {
@@ -36,7 +36,9 @@ public class TestParallelHardwareTrap {
       while (done < 10) {
         try {
           oLock.wait();
-        } catch (InterruptedException ie) {}
+        } catch (InterruptedException ie) {
+          // ignore
+        }
       }
     }
     System.out.println("Finished: TestParallelHardwareTrap");

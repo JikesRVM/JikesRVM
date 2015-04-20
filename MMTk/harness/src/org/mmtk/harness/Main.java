@@ -50,7 +50,7 @@ public class Main {
 
     /* Parse the script */
     String scriptFile = args[0];
-    if(!scriptFile.endsWith(".script")) {
+    if (!scriptFile.endsWith(".script")) {
       scriptFile += ".script";
     }
     /* First argument is the test script name */
@@ -87,7 +87,7 @@ public class Main {
     Env.setStackSpace(new StackAllocator(
         Memory.getHeapstartaddress(),
         Memory.getVmspacesize(),
-        Extent.fromIntZeroExtend(1024*1024)));
+        Extent.fromIntZeroExtend(1024 * 1024)));
     CompiledMethod.setWatchedVariables(new WatchedVariables());
 
     try {

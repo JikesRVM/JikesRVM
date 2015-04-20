@@ -49,9 +49,9 @@ public class JavaLock extends org.mmtk.harness.scheduler.Lock {
    */
   @Override
   public void acquire() {
-    synchronized(this) {
+    synchronized (this) {
       long start = startWait();
-      while(holder != null && !timedOut(start)) {
+      while (holder != null && !timedOut(start)) {
         try {
           wait(WAIT_TIME);
         } catch (InterruptedException ie) {
@@ -59,7 +59,7 @@ public class JavaLock extends org.mmtk.harness.scheduler.Lock {
       }
       if (timedOut(start)) {
         String holderName = holder == null ? "<no-one>" : holder.getName();
-        Harness.dumpStateAndExit("Timed out waiting for "+name+", held by "+holderName);
+        Harness.dumpStateAndExit("Timed out waiting for " + name + ", held by " + holderName);
       }
       holder = Thread.currentThread();
     }
@@ -75,7 +75,7 @@ public class JavaLock extends org.mmtk.harness.scheduler.Lock {
    */
   @Override
   public void release() {
-    synchronized(this) {
+    synchronized (this) {
       holder = null;
       this.notifyAll();
     }

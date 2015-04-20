@@ -27,7 +27,7 @@ class TestArray {
      }
      try {
         run1(11);
-     } catch(Exception e) {
+     } catch (Exception e) {
         System.out.println(e);
      }
      return true;

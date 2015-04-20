@@ -43,7 +43,7 @@ public final class SysCallProcessor extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> annotations,
       RoundEnvironment roundEnv) {
-    if (roundEnv.processingOver()){
+    if (roundEnv.processingOver()) {
       // No cleanup is necessary for this processor, so just return
       return false;
     }

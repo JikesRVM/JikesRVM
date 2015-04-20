@@ -119,7 +119,7 @@ public class Memory {
           (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)))))) {
         // relative alignment is the same
         Address endPtr = srcPtr.plus(copyBytes);
-        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
+        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1).not()).toAddress();
 
         if (BYTES_IN_COPY == 8) {
           if (srcPtr.toWord().and(Word.fromIntZeroExtend(1)).NE(Word.zero())) {
@@ -229,7 +229,7 @@ public class Memory {
           (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)))))) {
         // relative alignment is the same
         Address endPtr = srcPtr.plus(copyBytes);
-        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
+        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1).not()).toAddress();
 
         if (BYTES_IN_COPY == 8) {
           if (srcPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
@@ -367,7 +367,7 @@ public class Memory {
     } else {
       Offset numBytes = Offset.fromIntSignExtend(copyBytes);
       if (BYTES_IN_COPY == 8 && copyBytes != 0) {
-        Word wordMask = Word.fromIntZeroExtend(BYTES_IN_COPY-1);
+        Word wordMask = Word.fromIntZeroExtend(BYTES_IN_COPY - 1);
         Word srcAlignment = src.toWord().and(wordMask);
         if (srcAlignment.EQ(dst.toWord().and(wordMask))) {
           Offset i = Offset.zero();
@@ -495,7 +495,7 @@ public class Memory {
   public static final int PROT_EXEC = 4;
 
   public static final int MAP_PRIVATE = 2;
-  public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : (VM.BuildForSolaris) ? 0x10 :256;
+  public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : (VM.BuildForSolaris) ? 0x10 : 256;
   public static final int MAP_ANONYMOUS = (VM.BuildForLinux) ? 32 : (VM.BuildForOsx) ? 0x1000 : (VM.BuildForSolaris) ? 0x100 : 16;
 
   public static boolean isPageMultiple(int val) {

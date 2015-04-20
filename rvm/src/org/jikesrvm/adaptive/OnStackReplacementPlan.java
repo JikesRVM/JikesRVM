@@ -133,7 +133,7 @@ public class OnStackReplacementPlan {
     }
 
     suspendedThread.monitor().lockNoHandshake();
-    suspendedThread.osr_done=true;
+    suspendedThread.osr_done = true;
     suspendedThread.monitor().broadcast();
     suspendedThread.monitor().unlock();
   }

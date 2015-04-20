@@ -30,7 +30,7 @@ public class TestUnresolved {
       temp5[] test = new temp5[2];
       test[0] = new temp5();
       test[1] = new temp6();
-      for (int i=0; i< 2; i++) {
+      for (int i = 0; i < 2; i++) {
         System.out.println(test[i].foo());
       }
       return true;
@@ -43,19 +43,19 @@ public class TestUnresolved {
 
    static long foo1(temp a) {
        long t = a.c;
-       a.c = t +1;
+       a.c = t + 1;
        return t;
    }
 
    static long foo2() {
        long t = temp1.y;
-       temp1.y = t+1;
+       temp1.y = t + 1;
        return t;
    }
 
    static double foo3() {
        double t = temp1.z;
-       temp1.z = t+1;
+       temp1.z = t + 1;
        return t;
    }
 
@@ -65,7 +65,7 @@ public class TestUnresolved {
       x.key = 2L;
       System.out.println(x.key);
       long t = temp3.temp;
-      t = t +1;
+      t = t + 1;
       temp3.temp = t;
       System.out.println(t);
       System.out.println(temp3.temp);

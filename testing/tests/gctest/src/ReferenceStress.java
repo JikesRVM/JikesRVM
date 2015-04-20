@@ -56,12 +56,12 @@ public class ReferenceStress {
     Element list = new Element(null);
     Integer serial = Integer.valueOf(0);
 
-    for (int i=0; i < liveSize; i++) {
+    for (int i = 0; i < liveSize; i++) {
       list = new Element(list);
       map.put(list, serial++);
     }
 
-    for (int j=0; j < iterations; j++) {
+    for (int j = 0; j < iterations; j++) {
       Element cursor = list;
       int inserts = 0;
       while (cursor != null) {
@@ -72,7 +72,7 @@ public class ReferenceStress {
         inserts++;
       }
       if (verbose) {
-        System.out.println("Map size "+map.size()+", list length "+list.length());
+        System.out.println("Map size " + map.size() + ", list length " + list.length());
       }
       report(inserts);
     }
@@ -92,7 +92,7 @@ public class ReferenceStress {
     int iterations = 100;
     int threads = 2;
 
-    for (int i=0; i < args.length; i++) {
+    for (int i = 0; i < args.length; i++) {
       if (args[i].charAt(0) == '-') {
         if (args[i].equals("-verbose")) {
           verbose = true;
@@ -103,25 +103,25 @@ public class ReferenceStress {
         } else if (args[i].equals("-size")) {
           liveSize = Integer.valueOf(args[++i]);
         } else {
-          System.out.println("Unrecognized switch "+args[i]);
+          System.out.println("Unrecognized switch " + args[i]);
           usage();
         }
       } else if (args[i].equals("perf") || args[i].equals("base")) {
         // parameter has no effect
       } else {
-        System.out.println("Unrecognized parameter "+args[i]);
+        System.out.println("Unrecognized parameter " + args[i]);
         usage();
       }
     }
 
-    System.out.println("Running "+threads+" threads with "+liveSize+" entries for "+iterations+" iterations");
+    System.out.println("Running " + threads + " threads with " + liveSize + " entries for " + iterations + " iterations");
 
     Thread[] threadTable = new Thread[threads];
 
     final int finalLiveSize = liveSize;
     final int finalIterations = iterations;
 
-    for (int i=0; i < threads; i++) {
+    for (int i = 0; i < threads; i++) {
       threadTable[i] = new Thread() {
         public void run() {
           thrash(finalLiveSize, finalIterations);
@@ -132,18 +132,18 @@ public class ReferenceStress {
     long start = System.nanoTime();
 
     // Start the threads
-    for (int i=0; i < threads; i++) {
+    for (int i = 0; i < threads; i++) {
       threadTable[i].start();
     }
 
     // Wait for them to complete
-    for (int i=0; i < threads; i++) {
+    for (int i = 0; i < threads; i++) {
       try {
         threadTable[i].join();
       } catch (InterruptedException e) {
       }
     }
-    long time = (System.nanoTime() - start)/1000000;
+    long time = (System.nanoTime() - start) / 1000000;
     System.out.println(elements + " references inserted in " + time + "ms.");
     System.out.println("Overall: SUCCESS");
   }

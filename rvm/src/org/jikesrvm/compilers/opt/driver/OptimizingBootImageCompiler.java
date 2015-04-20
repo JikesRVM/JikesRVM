@@ -123,7 +123,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
       } catch (OptimizingCompilerException e) {
         if (e.isFatal) {
           // An unexpected error when building the opt boot image should be fatal
-          VM.sysWriteln("Error compiling method: "+method);
+          VM.sysWriteln("Error compiling method: " + method);
           e.printStackTrace();
           System.exit(EXIT_STATUS_OPT_COMPILER_FAILED);
         } else {

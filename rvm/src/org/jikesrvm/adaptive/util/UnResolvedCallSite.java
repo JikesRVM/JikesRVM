@@ -47,7 +47,7 @@ public final class UnResolvedCallSite {
   /**
    * @return call site's bytecode index in its method
    */
-  public int getBytecodeIndex() {return bcIndex;}
+  public int getBytecodeIndex() { return bcIndex; }
 
   /**
    * @return string representation of call site

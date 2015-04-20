@@ -134,57 +134,57 @@ public final class RVMAnnotation {
     Object value;
     switch (elementValue_tag) {
       case'B': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Byte);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Byte);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (byte) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'C': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Char);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Char);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (char) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'D': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Double);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Double);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         long longValue = Statics.getSlotContentsAsLong(offset);
         value = Double.longBitsToDouble(longValue);
         break;
       }
       case'F': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Float);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Float);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         int intValue = Statics.getSlotContentsAsInt(offset);
         value = Float.intBitsToFloat(intValue);
         break;
       }
       case'I': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Int);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Int);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'J': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Long);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Long);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsLong(offset);
         break;
       }
       case'S': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Short);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Short);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (short) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'Z': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Boolean);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Boolean);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsInt(offset) == 1;
         break;
       }
       case's': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangString);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangString);
         value = ClassFileReader.getUtf(constantPool, input.readUnsignedShort()).toString();
         break;
       }
@@ -200,7 +200,7 @@ public final class RVMAnnotation {
         break;
       }
       case'c': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangClass);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangClass);
         int classInfoIndex = input.readUnsignedShort();
         // Value should be a class but resolving the class at this point could cause infinite recursion in class loading
         TypeReference unresolvedValue = TypeReference.findOrCreate(classLoader, ClassFileReader.getUtf(constantPool, classInfoIndex));
@@ -350,7 +350,7 @@ public final class RVMAnnotation {
     } else if (value instanceof Object[]) {
       Object[] values = (Object[])value;
       boolean typeChanged = false;
-      for (int i=0; i < values.length; i++) {
+      for (int i = 0; i < values.length; i++) {
         Object newVal = firstUse(values[i]);
         if (newVal.getClass() != values[i].getClass()) {
           typeChanged = true;
@@ -359,7 +359,7 @@ public final class RVMAnnotation {
       }
       if (typeChanged) {
         Object[] newValues = (Object[])Array.newInstance(values[0].getClass(), values.length);
-        for (int i=0; i < values.length; i++) {
+        for (int i = 0; i < values.length; i++) {
           newValues[i] = values[i];
         }
         return newValues;
@@ -395,7 +395,7 @@ public final class RVMAnnotation {
         if (elementValuePairs.length != that.elementValuePairs.length) {
           return false;
         }
-        for (int i=0; i<elementValuePairs.length; i++) {
+        for (int i = 0; i < elementValuePairs.length; i++) {
           if (!elementValuePairs[i].equals(that.elementValuePairs[i])) {
             return false;
           }
@@ -421,9 +421,10 @@ public final class RVMAnnotation {
     result.append(type.resolve().getClassForType().getName());
     result.append('(');
     try {
-      for (int i=0; i < annotationMethods.length; i++) {
-        String name=annotationMethods[i].getName().toUnicodeString();
-        Object value=getElementValue(name, annotationMethods[i].getReturnType().resolve().getClassForType());
+      for (int i = 0; i < annotationMethods.length; i++) {
+        String name = annotationMethods[i].getName().toUnicodeString();
+        Object value = getElementValue(name,
+            annotationMethods[i].getReturnType().resolve().getClassForType());
         result.append(elementString(name, value));
         if (i < (annotationMethods.length - 1)) {
           result.append(", ");
@@ -541,7 +542,7 @@ public final class RVMAnnotation {
               return false;
             }
           } else {
-            if(!Arrays.equals((Object[]) objA, (Object[]) objB)) {
+            if (!Arrays.equals((Object[]) objA, (Object[]) objB)) {
               return false;
             }
           }
@@ -636,7 +637,7 @@ public final class RVMAnnotation {
         } else {
             // Reading the value lets us make a MemberReference that is likely to be correct.
             meth = MemberReference.findOrCreate(type, name,
-                    Atom.findOrCreateAsciiAtom("()"+TypeReference.findOrCreate(value.getClass()).getName())
+                    Atom.findOrCreateAsciiAtom("()" + TypeReference.findOrCreate(value.getClass()).getName())
             ).asMethodReference();
         }
       }
@@ -651,7 +652,7 @@ public final class RVMAnnotation {
     @Pure
     Object getValue() {
       if (!notFirstUse) {
-        synchronized(this) {
+        synchronized (this) {
           value = firstUse(value);
           notFirstUse = true;
         }

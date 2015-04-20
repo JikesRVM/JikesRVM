@@ -41,7 +41,7 @@ public final class OffsetArray implements RuntimeTable<Offset> {
   private OffsetArray(int size) {
     data = new Offset[size];
     Offset zero = Offset.zero();
-    for (int i=0; i<size; i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = zero;
     }
   }

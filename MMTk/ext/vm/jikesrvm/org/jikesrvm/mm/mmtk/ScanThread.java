@@ -135,16 +135,16 @@ import org.vmmagic.unboxed.Offset;
    */
   public static void scanThread(RVMThread thread, TraceLocal trace,
                                 boolean processCodeLocations, boolean newRootsSufficient) {
-    if (DEFAULT_VERBOSITY>=1) {
+    if (DEFAULT_VERBOSITY >= 1) {
       VM.sysWriteln("scanning ",thread.getThreadSlot());
     }
 
     /* get the gprs associated with this thread */
-    Registers regs=thread.getContextRegisters();
+    Registers regs = thread.getContextRegisters();
     Address gprs = Magic.objectAsAddress(regs.gprs);
 
-    Address ip=regs.getInnermostInstructionAddress();
-    Address fp=regs.getInnermostFramePointer();
+    Address ip = regs.getInnermostInstructionAddress();
+    Address fp = regs.getInnermostFramePointer();
     regs.clear();
     regs.setInnermost(ip,fp);
 
@@ -182,7 +182,7 @@ import org.vmmagic.unboxed.Offset;
                                  boolean processCodeLocations,
                                  Address gprs, Address topFrame, boolean newRootsSufficent) {
     // figure out if the thread should be scanned at all; if not, exit
-    if (thread.getExecStatus()==RVMThread.NEW || thread.getIsAboutToTerminate()) {
+    if (thread.getExecStatus() == RVMThread.NEW || thread.getIsAboutToTerminate()) {
       return;
     }
     /* establish ip and fp for the stack to be scanned */
@@ -603,7 +603,7 @@ import org.vmmagic.unboxed.Offset;
     if (VM.BuildForAix) {
       GCMapIterator iterator = iteratorGroup.getJniIterator();
       Address refaddr =  iterator.getNextReferenceAddress();
-      while(!refaddr.isZero()) {
+      while (!refaddr.isZero()) {
         reportDelayedRootEdge(trace, refaddr);
         refaddr = iterator.getNextReferenceAddress();
       }
@@ -705,7 +705,7 @@ import org.vmmagic.unboxed.Offset;
       Offset offset = compiledMethod.getInstructionOffset(ip);
       iterator = iteratorGroup.selectIterator(compiledMethod);
       iterator.setupIterator(compiledMethod, offset, fp);
-      int i=0;
+      int i = 0;
       for (Address addr = iterator.getNextReferenceAddress();
            !addr.isZero();
            addr = iterator.getNextReferenceAddress()) {
@@ -788,7 +788,7 @@ import org.vmmagic.unboxed.Offset;
     Address start,end;
     if (VM.BuildForIA32) {
       if (prevFp.isZero()) {
-        start = fp.minus(20*BYTES_IN_ADDRESS);
+        start = fp.minus(20 * BYTES_IN_ADDRESS);
         Log.writeln("--- 20 words of stack frame with fp = ", fp);
       } else {
         start = prevFp;    // start at callee fp

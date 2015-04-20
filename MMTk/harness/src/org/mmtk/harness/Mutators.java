@@ -49,7 +49,7 @@ public final class Mutators {
    * @return The non-{@code null} mutators
    */
   public static synchronized BlockingQueue<Mutator> getAll() {
-    BlockingQueue<Mutator> result = new ArrayBlockingQueue<Mutator>(mutators.size()+1);
+    BlockingQueue<Mutator> result = new ArrayBlockingQueue<Mutator>(mutators.size() + 1);
     for (Mutator m : mutators) {
       if (m != null) {
         result.add(m);

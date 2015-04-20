@@ -38,7 +38,7 @@ public class Clock {
     void enter() {
       nesting++;
       if (nesting < 1) {
-        System.out.println("Nesting = "+nesting);
+        System.out.println("Nesting = " + nesting);
       }
       assert inHarness();
     }

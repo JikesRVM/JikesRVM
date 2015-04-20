@@ -46,7 +46,7 @@ public abstract class JNIGenericHelpers {
    * @return the length of the string in bytes
    */
   public static int strlen(Address ptr) {
-    int length=0;
+    int length = 0;
     // align address to size of machine
     while (!ptr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_ADDRESS - 1)).isZero()) {
       byte bits = ptr.loadByte(Offset.fromIntZeroExtend(length));
@@ -70,17 +70,17 @@ public abstract class JNIGenericHelpers {
     }
     while (true) {
       Word bytes = ptr.loadWord(Offset.fromIntZeroExtend(length));
-      if(!bytes.minus(onesToSubtract).and(maskToTestHighBits).isZero()) {
+      if (!bytes.minus(onesToSubtract).and(maskToTestHighBits).isZero()) {
         if (VM.LittleEndian) {
-          for(int byteOff=0; byteOff < BYTES_IN_ADDRESS; byteOff++) {
-            if(bytes.and(Word.fromIntZeroExtend(0xFF)).isZero()) {
+          for (int byteOff = 0; byteOff < BYTES_IN_ADDRESS; byteOff++) {
+            if (bytes.and(Word.fromIntZeroExtend(0xFF)).isZero()) {
               return length + byteOff;
             }
             bytes = bytes.rshl(8);
           }
         } else {
-          for(int byteOff=BYTES_IN_ADDRESS-1; byteOff >= 0; byteOff--) {
-            if(bytes.rshl(byteOff*8).and(Word.fromIntZeroExtend(0xFF)).isZero()) {
+          for (int byteOff = BYTES_IN_ADDRESS - 1; byteOff >= 0; byteOff--) {
+            if (bytes.rshl(byteOff * 8).and(Word.fromIntZeroExtend(0xFF)).isZero()) {
               return length + (BYTES_IN_ADDRESS - 1 - byteOff);
             }
           }
@@ -110,7 +110,7 @@ public abstract class JNIGenericHelpers {
     int o;
     int c;
     CharBuffer cbuf = csd.decode(bbuf);
-    if(cbuf.hasArray()) {
+    if (cbuf.hasArray()) {
       v = cbuf.array();
       o = cbuf.position();
       c = cbuf.remaining();
@@ -141,7 +141,7 @@ public abstract class JNIGenericHelpers {
           java.nio.JikesRVMSupport.newDirectByteBuffer(stringAddress,
                                                        strlen(stringAddress));
         return createString(csd, bbuf);
-      } catch(Exception ex){
+      } catch (Exception ex) {
         // Any problems fall through to default encoding
       }
     }
@@ -171,7 +171,7 @@ public abstract class JNIGenericHelpers {
         } else {
           return UTF8Convert.fromUTF8(bbuf);
         }
-      } catch(Exception ex){
+      } catch (Exception ex) {
         // Any problems fall through to default encoding
       }
     }
@@ -205,7 +205,7 @@ public abstract class JNIGenericHelpers {
       UTF8Convert.toUTF8(str, bbuf);
     }
     // store terminating zero
-    copyBuffer.store((byte)0, Offset.fromIntZeroExtend(len-1));
+    copyBuffer.store((byte)0, Offset.fromIntZeroExtend(len - 1));
   }
 
   /**

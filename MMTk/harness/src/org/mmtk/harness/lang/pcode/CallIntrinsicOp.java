@@ -56,6 +56,6 @@ public final class CallIntrinsicOp extends CallOp {
 
   @Override
   public String toString() {
-    return super.toString().replace("call","call "+method.getName());
+    return super.toString().replace("call","call " + method.getName());
   }
 }

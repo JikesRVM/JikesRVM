@@ -150,7 +150,7 @@ public abstract class TraceLocal extends TransitiveClosure {
     Offset offset = interiorRef.diff(target.toAddress());
     ObjectReference newTarget = traceObject(target, root);
     if (VM.VERIFY_ASSERTIONS) {
-      if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1<<24))) {
+      if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1 << 24))) {
         // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta to interior pointer");
         Log.write("       object base = "); Log.writeln(target);

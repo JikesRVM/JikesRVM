@@ -103,7 +103,7 @@ public final class SpinLock {
   @Entrypoint
   @Untraced
   RVMThread latestContender;
-  public boolean lockHeld() { return latestContender!=null; }
+  public boolean lockHeld() { return latestContender != null; }
   // FIXME: save the string somewhere.
   public void lock(String s) {
     lock();
@@ -231,12 +231,12 @@ public final class SpinLock {
     if (n > 100) {
       // PNT: FIXME: we're dying here ... maybe we're deadlocking?
       VM.sysWriteln("Unexpectedly large spin lock contention on ",Magic.objectAsAddress(this));
-      RVMThread t=latestContender;
-      if (t==null) {
+      RVMThread t = latestContender;
+      if (t == null) {
         VM.sysWriteln("Unexpectedly large spin lock contention in ",RVMThread.getCurrentThreadSlot(),"; lock held by nobody");
       } else {
         VM.sysWriteln("Unexpectedly large spin lock contention in ",RVMThread.getCurrentThreadSlot(),"; lock held by ",t.getThreadSlot());
-        if (t!=RVMThread.getCurrentThread()) {
+        if (t != RVMThread.getCurrentThread()) {
           VM.sysWriteln("But -- at least the spin lock is held by a different thread.");
         }
       }

@@ -31,7 +31,7 @@ final class MutatorThread extends JavaThread {
   MutatorThread(JavaThreadModel model, Schedulable code) {
     this.model = model;
     this.code = code;
-    setName("Mutator-"+(++mutatorId));
+    setName("Mutator-" + (++mutatorId));
     Trace.trace(Item.SCHEDULER, "MutatorThread created");
   }
 

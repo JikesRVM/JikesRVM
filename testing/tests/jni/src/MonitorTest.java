@@ -32,7 +32,7 @@ class MonitorTest {
   static void accessCountUnderNativeLock(int increment) {
 
     // lock the same object again to test nested monitor enter
-    synchronized(stringObject) {
+    synchronized (stringObject) {
       globalCount += increment;
     }
   }
@@ -52,7 +52,7 @@ class MonitorTest {
 
     System.loadLibrary("MonitorTest");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();

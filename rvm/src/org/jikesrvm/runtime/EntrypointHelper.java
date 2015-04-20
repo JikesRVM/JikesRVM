@@ -122,7 +122,7 @@ public class EntrypointHelper {
         if (method != null) {
           return method;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getMethod: can't resolve class=" +
             klass + " member=" + member + " desc=" + makeDescriptor(argTypes), t);
       }
@@ -170,7 +170,7 @@ public class EntrypointHelper {
         if (field != null) {
           return field;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getField: can't resolve class=" +
             klass + " member=" + member + " desc=" + type, t);
       }
@@ -200,7 +200,7 @@ public class EntrypointHelper {
         if (field != null) {
           return field;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getField: can't resolve class=" +
             klass + " member=" + member + " desc=" + type, t);
       }
@@ -231,7 +231,7 @@ public class EntrypointHelper {
           m.setRuntimeServiceMethod(true);
           return m;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getField: can't resolve class=" +
             klass + " member=" + member + " desc=" + descriptor, t);
       }

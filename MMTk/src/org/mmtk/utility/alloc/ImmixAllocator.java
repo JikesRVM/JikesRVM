@@ -229,8 +229,8 @@ public class ImmixAllocator extends Allocator {
       line = space.getNextAvailableLine(markTable, line);
       if (line < LINES_IN_BLOCK) {
         int endLine = space.getNextUnavailableLine(markTable, line);
-        cursor = recyclableBlock.plus(Extent.fromIntSignExtend(line<<LOG_BYTES_IN_LINE));
-        limit = recyclableBlock.plus(Extent.fromIntSignExtend(endLine<<LOG_BYTES_IN_LINE));
+        cursor = recyclableBlock.plus(Extent.fromIntSignExtend(line << LOG_BYTES_IN_LINE));
+        limit = recyclableBlock.plus(Extent.fromIntSignExtend(endLine << LOG_BYTES_IN_LINE));
         if (SANITY_CHECK_LINE_MARKS) {
           Address tmp = cursor;
           while (tmp.LT(limit)) {
@@ -245,7 +245,7 @@ public class ImmixAllocator extends Allocator {
               Log.write("     hw: "); Log.write(Chunk.getHighWater(Chunk.align(cursor)));
               Log.writeln(" values: ");
               Address tmp2 = cursor;
-              while(tmp2.LT(limit)) { Log.write(tmp2.loadByte()); Log.write(" ");}
+              while (tmp2.LT(limit)) { Log.write(tmp2.loadByte()); Log.write(" ");}
               Log.writeln();
             }
             VM.assertions._assert(tmp.loadByte() == (byte) 0);
@@ -313,13 +313,13 @@ public class ImmixAllocator extends Allocator {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Block.isUnused(recyclableBlock));
     Block.setBlockAsReused(recyclableBlock);
 
-    lineUseCount += (LINES_IN_BLOCK-markState);
+    lineUseCount += (LINES_IN_BLOCK - markState);
     return true; // found something good
   }
 
   private void zeroBlock(Address block) {
     // FIXME: efficiency check here!
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block.toWord().and(Word.fromIntSignExtend(BYTES_IN_BLOCK-1)).isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block.toWord().and(Word.fromIntSignExtend(BYTES_IN_BLOCK - 1)).isZero());
     VM.memory.zero(false, block, Extent.fromIntZeroExtend(BYTES_IN_BLOCK));
    }
 

@@ -43,13 +43,13 @@ public class AddressTestBasic {
   final Address zero = Address.zero();
   final Address one = Address.fromIntSignExtend(1);
   final Address large = Address.fromIntSignExtend(Integer.MAX_VALUE);
-  final Address veryLarge = Address.fromIntSignExtend(Integer.MIN_VALUE/2);
+  final Address veryLarge = Address.fromIntSignExtend(Integer.MIN_VALUE / 2);
   final Address largest = Address.max();
 
   final Address zero() { return Address.fromIntSignExtend(0); }
   final Address one() { return Address.fromIntSignExtend(1); }
   final Address large() { return  Address.fromIntSignExtend(Integer.MAX_VALUE); }
-  final Address veryLarge() { return Address.fromIntSignExtend(Integer.MIN_VALUE/2); }
+  final Address veryLarge() { return Address.fromIntSignExtend(Integer.MIN_VALUE / 2); }
   final Address largest() { return Address.max(); }
 
   @Test
@@ -243,8 +243,8 @@ public class AddressTestBasic {
     Address[] righties = new Address[] {
         zero(), one(), large(), veryLarge(), largest()
     };
-    for (int i=0; i < lefties.length; i++) {
-      for (int j=0; j < righties.length; j++) {
+    for (int i = 0; i < lefties.length; i++) {
+      for (int j = 0; j < righties.length; j++) {
         if (i == j)
           assertTrue(lefties[i].EQ(righties[j]));
         else
@@ -261,8 +261,8 @@ public class AddressTestBasic {
     Address[] righties = new Address[] {
         zero(), one(), large(), veryLarge(), largest()
     };
-    for (int i=0; i < lefties.length; i++) {
-      for (int j=0; j < righties.length; j++) {
+    for (int i = 0; i < lefties.length; i++) {
+      for (int j = 0; j < righties.length; j++) {
         if (i == j)
           assertFalse(lefties[i].NE(righties[j]));
         else

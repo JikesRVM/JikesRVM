@@ -33,7 +33,7 @@ public final class ObjectReferenceArray implements RuntimeTable<ObjectReference>
 
   private ObjectReferenceArray(int size) {
     data = new ObjectReference[size];
-    for (int i=0; i<size; i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = ObjectReference.nullReference();
     }
   }

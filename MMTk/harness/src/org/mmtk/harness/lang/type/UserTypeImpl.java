@@ -53,7 +53,7 @@ public class UserTypeImpl extends AbstractType implements UserType {
   @Override
   public void defineField(String fieldName, Type fieldType) {
     if (fields.containsKey(fieldName)) {
-      throw new RuntimeException("Type "+getName()+" already contains a field called "+fieldName);
+      throw new RuntimeException("Type " + getName() + " already contains a field called " + fieldName);
     }
     int offset = fieldType.isObject() ? referenceFields++ : dataFields++;
     Field field = new Field(fieldName,fieldType,offset);

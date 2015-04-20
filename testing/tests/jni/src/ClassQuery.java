@@ -45,7 +45,7 @@ class ClassQuery extends ClassQuerySuper {
 
     System.loadLibrary("ClassQuery");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -64,7 +64,7 @@ class ClassQuery extends ClassQuerySuper {
     }
 
     returncls = testSuperClass(subcls);
-    checkTest(returnValue, (supercls==returncls), "GetSuperclass");
+    checkTest(returnValue, (supercls == returncls), "GetSuperclass");
 
 
     /***********************************************
@@ -146,7 +146,7 @@ class ClassQuery extends ClassQuerySuper {
     try {
       subcls = Class.forName("ClassQuery");
       ClassQuery blankObj = (ClassQuery) testAllocObject(subcls);
-      if (blankObj.toTestConstructor==2)    // shouldn't have been initialized
+      if (blankObj.toTestConstructor == 2)    // shouldn't have been initialized
         returnValue = 1;
       else
         returnValue = 0;
@@ -164,7 +164,7 @@ class ClassQuery extends ClassQuerySuper {
     try {
       returncls = testGetObjectClass(obj1);
       subcls = Class.forName("java.lang.String");
-      checkTest(0, (returncls==subcls), "GetObjectClass");
+      checkTest(0, (returncls == subcls), "GetObjectClass");
     } catch (ClassNotFoundException e) {
       checkTest(0, false, "GetObjectClass");
     }
@@ -186,7 +186,7 @@ class ClassQuery extends ClassQuerySuper {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

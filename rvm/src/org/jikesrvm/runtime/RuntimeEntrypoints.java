@@ -176,7 +176,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
   static void aastore(Object[] arrayRef, int index, Object value) throws ArrayStoreException, ArrayIndexOutOfBoundsException {
     checkstore(arrayRef, value);
     int nelts = ObjectModel.getArrayLength(arrayRef);
-    if (index >=0 && index < nelts) {
+    if (index >= 0 && index < nelts) {
       Services.setArrayUninterruptible(arrayRef, index, value);
     } else {
       throw new ArrayIndexOutOfBoundsException(index);
@@ -188,7 +188,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
   static void aastoreUninterruptible(Object[] arrayRef, int index, Object value) {
     if (VM.VerifyAssertions) {
       int nelts = ObjectModel.getArrayLength(arrayRef);
-      VM._assert(index >=0 && index < nelts);
+      VM._assert(index >= 0 && index < nelts);
     }
     Services.setArrayUninterruptible(arrayRef, index, value);
   }
@@ -231,7 +231,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    *             so we need not repeat it here
    */
   @Pure
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value = Inline.When.AllArgumentsAreConstant)
   public static boolean isAssignableWith(RVMType lhs, RVMType rhs) {
     if (!lhs.isResolved()) {
       lhs.resolve();
@@ -955,7 +955,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
       innerArrayType.instantiate();
     }
 
-    for (int i=0; i<dim0; i++) {
+    for (int i = 0; i < dim0; i++) {
       newArray[i] = resolvedNewArray(dim1, innerArrayType);
     }
 

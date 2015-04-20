@@ -40,12 +40,12 @@ public class BootImageWorker implements Runnable {
       if (verbose) {
         startTime = System.currentTimeMillis();
         myCount = count.incrementAndGet();
-        BootImageWriterMessages.say(startTime + ": "+ myCount +" starting " + type);
+        BootImageWriterMessages.say(startTime + ": " + myCount + " starting " + type);
       }
       type.instantiate();
       if (verbose) {
         long stopTime = System.currentTimeMillis();
-        BootImageWriterMessages.say(stopTime + ": "+ myCount +" finish " + type +
+        BootImageWriterMessages.say(stopTime + ": " + myCount + " finish " + type +
             " duration: " + (stopTime - startTime));
       }
     } catch (Throwable t) {

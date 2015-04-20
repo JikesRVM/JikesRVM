@@ -11,7 +11,7 @@
  *  regarding copyright ownership.
  */
 class TestArithmetic {
-  public static void main(String[] args){
+  public static void main(String[] args) {
     run();
   }
 
@@ -69,31 +69,31 @@ class TestArithmetic {
 
   static void itest(int a,int b) {
 
-    if ((a+1) != 4) {
+    if ((a + 1) != 4) {
       System.out.print("\n ****** want: 4\n got: ");
       System.out.println(a  +   1);  // iadd
       testSuccess = false;
     }
 
-    if ((a-1) != 2) {
+    if ((a - 1) != 2) {
       System.out.print("\n ****** want: 2\n got: ");
       System.out.println(a  -   1);  // isub
       testSuccess = false;
     }
 
-    if ((a*3) != 9) {
+    if ((a * 3) != 9) {
       System.out.print("\n ****** want: 9\n got: ");
       System.out.println(a  *   3);  // imul
       testSuccess = false;
     }
 
-    if ((a/b) != 1) {
+    if ((a / b) != 1) {
       System.out.print("\n ****** want: 1\n got: ");
       System.out.println(a  /   b);  // idiv
       testSuccess = false;
     }
 
-    if ((a%b) != 1) {
+    if ((a % b) != 1) {
       System.out.print("\n ****** want: 1\n got: ");
       System.out.println(a  %   b);  // irem
       testSuccess = false;
@@ -128,7 +128,7 @@ class TestArithmetic {
       testSuccess = false;
     }
 
-    if ((a^b) != 272) {
+    if ((a ^ b) != 272) {
       System.out.print("\n ****** want: 272\n got: ");
       System.out.println(a  ^   b);  // ixor
       testSuccess = false;
@@ -138,7 +138,7 @@ class TestArithmetic {
   }
 
   static void itest2(int a) {
-    if ((a <<1) != -6) {
+    if ((a << 1) != -6) {
       System.out.print("\n ****** want: -6\n got: ");
       System.out.println(a  <<  1);  // ishl
       testSuccess = false;
@@ -172,31 +172,31 @@ class TestArithmetic {
   }
 
   static void ltest(long a, long b) {
-    if ((a+b) != 10000000002L) {
+    if ((a + b) != 10000000002L) {
       System.out.print("\n ****** want: 10000000002\n got: ");
       System.out.println(a +  b);  // ladd
       testSuccess = false;
     }
 
-    if ((a-b) != 9999999998L) {
+    if ((a - b) != 9999999998L) {
       System.out.print("\n ****** want: 9999999998\n got: ");
       System.out.println(a -  b);  // lsub
       testSuccess = false;
     }
 
-    if ((a*b) != 20000000000L) {
+    if ((a * b) != 20000000000L) {
       System.out.print("\n ****** want: 20000000000\n got: ");
       System.out.println(a *  b);  // lmul
       testSuccess = false;
     }
 
-    if ((a/b) != 5000000000L) {
+    if ((a / b) != 5000000000L) {
       System.out.print("\n ****** want: 5000000000\n got: ");
       System.out.println(a /  b);  // ldiv
       testSuccess = false;
     }
 
-    if ((a%b) != 0) {
+    if ((a % b) != 0) {
       System.out.print("\n ****** want: 0\n got: ");
       System.out.println(a %  b);  // lrem
       testSuccess = false;
@@ -241,7 +241,7 @@ class TestArithmetic {
       testSuccess = false;
     }
 
-    if ((a^b) != 1224979098644775184L) {
+    if ((a ^ b) != 1224979098644775184L) {
       System.out.print("\n ****** want: 1224979098644775184\n got: ");
       System.out.println(a ^   b);  // lxor
       testSuccess = false;
@@ -270,7 +270,7 @@ class TestArithmetic {
       testSuccess = false;
     }
 
-    if ((a>>>1) !=  9223372036854775806L) {
+    if ((a >>> 1) !=  9223372036854775806L) {
       System.out.print("\n ****** want: 9223372036854775806\n got: ");
       System.out.println(a >>> 1);  // lushr
       testSuccess = false;
@@ -296,13 +296,13 @@ class TestArithmetic {
       testSuccess = false;
     }
 
-    if ((a*b) != 2.0) {
+    if ((a * b) != 2.0) {
       System.out.print("\n ****** want: 2.0\n got: ");
       System.out.println(a * b);  // fmul
       testSuccess = false;
     }
 
-    if ((a/b) != 0.5) {
+    if ((a / b) != 0.5) {
       System.out.print("\n ****** want: 0.5\n got: ");
       System.out.println(a / b);  // fdiv
       testSuccess = false;
@@ -319,7 +319,7 @@ class TestArithmetic {
     ftest1(a,b);
   }
   static void ftest1(float a, float b) {
-    float c = a%b;
+    float c = a % b;
     if (c != 0.6F) {
       System.out.print("\n ****** want: 0.6\n got: ");
       System.out.println(c);  // frem
@@ -334,25 +334,25 @@ class TestArithmetic {
   }
 
   static void dtest(double a, double b) {
-    if ((a+b) != 3.0) {
+    if ((a + b) != 3.0) {
       System.out.print("\n ****** want: 3.0\n got: ");
       System.out.println(a + b);  // dadd
       testSuccess = false;
     }
 
-    if ((a-b) != -1.0) {
+    if ((a - b) != -1.0) {
       System.out.print("\n ****** want: -1.0\n got: ");
       System.out.println(a - b);  // dsub
       testSuccess = false;
     }
 
-    if ((a*b) != 2.0) {
+    if ((a * b) != 2.0) {
       System.out.print("\n ****** want: 2.0\n got: ");
       System.out.println(a * b);  // dmul
       testSuccess = false;
     }
 
-    if ((a/b) != 0.5) {
+    if ((a / b) != 0.5) {
       System.out.print("\n ****** want: 0.5\n got: ");
       System.out.println(a / b);  // ddiv
       testSuccess = false;
@@ -370,7 +370,7 @@ class TestArithmetic {
   }
 
   static void dtest1(double a, double b) {
-    if ((a%b) != 0.6) {
+    if ((a % b) != 0.6) {
       System.out.print("\n ****** want: 0.6\n got: ");
       System.out.println(a % b);  // drem
       testSuccess = false;

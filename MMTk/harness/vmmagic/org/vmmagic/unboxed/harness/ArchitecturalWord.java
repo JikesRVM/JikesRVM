@@ -64,7 +64,7 @@ public abstract class ArchitecturalWord {
    * @param bits TODO
    */
   public static void init(int bits) {
-    assert bits == 32 || bits == 64 : "Unsupported bit width, "+bits;
+    assert bits == 32 || bits == 64 : "Unsupported bit width, " + bits;
     if (model == null) {
       model = bits == 32 ? BITS32 : BITS64;
     }

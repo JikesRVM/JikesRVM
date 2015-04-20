@@ -301,7 +301,7 @@ public final class RVMClass extends RVMType {
    */
   public boolean isAnonymousClass() {
     if (enclosingClass == null || enclosingClass.peekType() == null) return false;
-    for(TypeReference t: enclosingClass.peekType().asClass().getDeclaredClasses()) {
+    for (TypeReference t: enclosingClass.peekType().asClass().getDeclaredClasses()) {
       if (t == typeRef) return false;
     }
     return true;
@@ -435,17 +435,17 @@ public final class RVMClass extends RVMType {
    * Sets the resolvedMember in all declared members.
    */
   void setResolvedMembers() {
-    for(RVMField field: declaredFields) {
+    for (RVMField field: declaredFields) {
       /* Make all declared fields appear resolved */
       field.getMemberRef().asFieldReference().setResolvedMember(field);
     }
-    for(RVMMethod method: declaredMethods) {
+    for (RVMMethod method: declaredMethods) {
       /* Make all declared methods appear resolved */
       method.getMemberRef().asMethodReference().setResolvedMember(method);
     }
     if (virtualMethods != null) {
       /* Possibly created Miranda methods */
-      for(RVMMethod method: virtualMethods) {
+      for (RVMMethod method: virtualMethods) {
         if (method.getDeclaringClass() == this) {
           method.getMemberRef().asMethodReference().setResolvedMember(method);
         }
@@ -581,7 +581,7 @@ public final class RVMClass extends RVMType {
       newObjectCache = new Object[1];
     } else {
       newObjectCache = new Object[objectCache.length + 1];
-      for (int i=0; i < objectCache.length; i++) {
+      for (int i = 0; i < objectCache.length; i++) {
         newObjectCache[i] = objectCache[i];
       }
     }
@@ -815,7 +815,7 @@ public final class RVMClass extends RVMType {
    */
   public int getNumberOfNonFinalReferences() {
     int count = 0;
-    for(RVMField field: declaredFields) {
+    for (RVMField field: declaredFields) {
       if (!field.isFinal()) {
         count++;
       }
@@ -1051,7 +1051,7 @@ public final class RVMClass extends RVMType {
       instanceSize = ObjectModel.computeScalarHeaderSize(this);
       alignment = BYTES_IN_ADDRESS;
       thinLockOffset = ObjectModel.defaultThinLockOffset();
-      depth=0;
+      depth = 0;
     } else {
       depth = superClass.depth + 1;
       thinLockOffset = superClass.thinLockOffset;
@@ -1430,7 +1430,7 @@ public final class RVMClass extends RVMType {
       typeInformationBlock.initializeInternalLazyCompilationTrampoline();
 
       // Initialize slots in the TIB for virtual methods
-      for(int i=0; i < virtualMethods.length; i++) {
+      for (int i = 0; i < virtualMethods.length; i++) {
         RVMMethod method = virtualMethods[i];
         if (method.isPrivate() && method.getDeclaringClass() != this) {
           typeInformationBlock.setVirtualMethod(i, null); // an inherited private method....will never be invoked via this TIB
@@ -1485,17 +1485,17 @@ public final class RVMClass extends RVMType {
     int fieldOffset = field.getOffset().toInt();
     referenceOffsets = MemoryManager.newNonMovingIntArray(oldOffsets.length + 1);
     int i;
-    for(i=0; i < oldOffsets.length && oldOffsets[i] < fieldOffset; i++) {
+    for (i = 0; i < oldOffsets.length && oldOffsets[i] < fieldOffset; i++) {
       referenceOffsets[i] = oldOffsets[i];
     }
     referenceOffsets[i++] = fieldOffset;
-    while(i < referenceOffsets.length) {
-      referenceOffsets[i] = oldOffsets[i-1];
+    while (i < referenceOffsets.length) {
+      referenceOffsets[i] = oldOffsets[i - 1];
       i++;
     }
     SpecializedMethodManager.refreshSpecializedMethods(this);
 
-    for(RVMClass klass: subClasses) {
+    for (RVMClass klass: subClasses) {
       klass.makeFieldTraced(field);
     }
   }
@@ -1517,7 +1517,7 @@ public final class RVMClass extends RVMType {
     }
 
     if (state == CLASS_INITIALIZER_FAILED) {
-      throw new NoClassDefFoundError(this+" (initialization failure)");
+      throw new NoClassDefFoundError(this + " (initialization failure)");
     }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) initialize " + this);
@@ -1940,8 +1940,9 @@ public final class RVMClass extends RVMType {
       // Avoid reflection on reflection base class
       return null;
     }
-    int[] constantPool = new int[methodToCall.getParameterTypes().length+3];
-    String reflectionClassName = "Lorg/jikesrvm/classloader/ReflectionBase$$Reflect"+methodToCall.getMemberRef().getId()+";";
+    int[] constantPool = new int[methodToCall.getParameterTypes().length + 3];
+    String reflectionClassName = "Lorg/jikesrvm/classloader/ReflectionBase$$Reflect" +
+        methodToCall.getMemberRef().getId() + ";";
     TypeReference reflectionClass = TypeReference.findOrCreate(reflectionClassName);
     RVMType klass = reflectionClass.peekType();
     if (klass == null) {

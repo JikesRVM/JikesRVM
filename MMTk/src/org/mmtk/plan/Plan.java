@@ -184,7 +184,7 @@ public abstract class Plan {
 
     // Determine the default collector context.
     Class<? extends Plan> mmtkPlanClass = this.getClass().asSubclass(Plan.class);
-    while(!mmtkPlanClass.getName().startsWith("org.mmtk.plan")) {
+    while (!mmtkPlanClass.getName().startsWith("org.mmtk.plan")) {
       mmtkPlanClass = mmtkPlanClass.getSuperclass().asSubclass(Plan.class);
     }
     String contextClassName = mmtkPlanClass.getName() + "Collector";
@@ -230,7 +230,7 @@ public abstract class Plan {
     if (Options.verbose.getValue() > 3) VM.config.printConfig();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
-    pretenureThreshold = (int) ((Options.nurserySize.getMaxNursery()<<LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+    pretenureThreshold = (int) ((Options.nurserySize.getMaxNursery() << LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
   }
 
   /**

@@ -77,7 +77,7 @@ public class SymbolTable {
     if (reservedWords.contains(name))
       throw new RuntimeException(name + " is a reserved word");
     if (table.containsKey(name))
-      throw new RuntimeException("Symbol "+name+" already defined");
+      throw new RuntimeException("Symbol " + name + " already defined");
     Symbol symbol = new Symbol(this,name,type);
     table.put(name, symbol);
     stackMap.add(new Declaration(symbol));

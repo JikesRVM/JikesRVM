@@ -203,17 +203,17 @@ public class ObjectReferenceDequeTest {
         ObjectReferenceDeque[] deques = new ObjectReferenceDeque[NDEQUES];
 
         shared.prepareNonBlocking();
-        for (int d=0; d < NDEQUES; d++) {
+        for (int d = 0; d < NDEQUES; d++) {
           deques[d] = new ObjectReferenceDeque("deque+d",shared);
-          for (int i=0; i < ENTRIES; i++) {
-            deques[d].push(o(d*100000+i+1));
+          for (int i = 0; i < ENTRIES; i++) {
+            deques[d].push(o(d * 100000 + i + 1));
           }
           deques[d].flushLocal();
         }
-        for (int i=0; i < ENTRIES * NDEQUES; i++) {
+        for (int i = 0; i < ENTRIES * NDEQUES; i++) {
           Assert.assertFalse(deques[0].pop().isNull());
         }
-        for (int d=0; d < NDEQUES; d++) {
+        for (int d = 0; d < NDEQUES; d++) {
           Assert.assertTrue(deques[d].isEmpty());
         }
         shared.reset();
@@ -230,10 +230,10 @@ public class ObjectReferenceDequeTest {
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
         shared.prepareNonBlocking();
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque.push(o(i));
         }
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque.push(o(i));
           Assert.assertFalse(deque.pop().isNull());
           Assert.assertFalse(deque.pop().isNull());
@@ -252,14 +252,14 @@ public class ObjectReferenceDequeTest {
       public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque1 = new ObjectReferenceDeque("deque1",shared);
-        ObjectReferenceDeque deque2= new ObjectReferenceDeque("deque2",shared);
+        ObjectReferenceDeque deque2 = new ObjectReferenceDeque("deque2",shared);
 
         shared.prepareNonBlocking();
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque1.push(o(i));
           deque2.push(o(i));
         }
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque1.push(o(i));
           Assert.assertFalse(deque1.pop().isNull());
           Assert.assertFalse(deque1.pop().isNull());
@@ -299,21 +299,21 @@ public class ObjectReferenceDequeTest {
       this.n = n;
       this.ordinal = ordinal;
       this.ins = ins;
-      this.deque = new ObjectReferenceDeque("deque"+ordinal,shared);
+      this.deque = new ObjectReferenceDeque("deque" + ordinal,shared);
     }
 
     @Override
     public void run() {
-      for (int i=0; i < ins; i++) {
-        add(o(1+i*n+ordinal));
+      for (int i = 0; i < ins; i++) {
+        add(o(1 + i * n + ordinal));
       }
       deque.flushLocal();
-      synchronized(shared) { counter += ins; }
-      int d=0;
+      synchronized (shared) { counter += ins; }
+      int d = 0;
       while (!deque.isEmpty()) {
         d++;
         Assert.assertFalse(deque.pop().isNull());
-        synchronized(shared) { counter--; }
+        synchronized (shared) { counter--; }
       }
       //System.out.printf("Thread %d pushed %d items, popped %d%n",ordinal,ins,d);
     }

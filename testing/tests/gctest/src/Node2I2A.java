@@ -30,11 +30,11 @@ class Node2I2A {
       long start = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
       Node2I2A head = new Node2I2A();
       Node2I2A cur = head;
-      for (int i=0; i<estimateSize; i++) {
+      for (int i = 0; i < estimateSize; i++) {
         cur.cdr = new Node2I2A();
         cur = cur.cdr;
       }
-      synchronized(fakeLock) {
+      synchronized (fakeLock) {
         // This seemingly useless lock operation prevents the optimizing
         // compiler from doing redundant load elimination of the internal fields
         // used to compute freeMemory in the watson semispace collector.

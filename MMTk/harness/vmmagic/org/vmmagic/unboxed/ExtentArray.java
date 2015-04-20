@@ -19,7 +19,7 @@ public final class ExtentArray {
   private ExtentArray(int size) {
     data = new Extent[size];
     Extent zero = Extent.zero();
-    for(int i=0; i<size;i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = zero;
     }
   }

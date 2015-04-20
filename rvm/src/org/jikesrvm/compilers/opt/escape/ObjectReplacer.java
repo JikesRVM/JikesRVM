@@ -173,7 +173,7 @@ final class ObjectReplacer implements AggregateReplacer {
    */
   private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, ArrayList<RVMField> fields, Set<Register> visited) {
     Instruction inst = use.instruction;
-    try{
+    try {
       switch (inst.getOpcode()) {
       case PUTFIELD_opcode: {
         FieldReference fr = PutField.getLocation(inst).getFieldRef();
@@ -226,7 +226,7 @@ final class ObjectReplacer implements AggregateReplacer {
             visited = new HashSet<Register>();
           }
           Register copy = TypeCheck.getResult(inst).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
             transform2(copy, inst, scalars, fields, visited);
             // NB will remove inst
@@ -264,7 +264,7 @@ final class ObjectReplacer implements AggregateReplacer {
           visited = new HashSet<Register>();
         }
         Register copy = Move.getResult(use.instruction).getRegister();
-        if(!visited.contains(copy)) {
+        if (!visited.contains(copy)) {
           visited.add(copy);
           transform2(copy, inst, scalars, fields, visited);
           // NB will remove inst
@@ -277,7 +277,7 @@ final class ObjectReplacer implements AggregateReplacer {
         throw new OptimizingCompilerException("ObjectReplacer: unexpected use " + inst);
       }
     } catch (Exception e) {
-      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use ("+ use +") of: "+ inst);
+      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use (" + use + ") of: " + inst);
       oe.initCause(e);
       throw oe;
     }
@@ -314,9 +314,9 @@ final class ObjectReplacer implements AggregateReplacer {
               visited = new HashSet<Register>();
             }
             Register copy = TypeCheck.getResult(use.instruction).getRegister();
-            if(!visited.contains(copy)) {
+            if (!visited.contains(copy)) {
               visited.add(copy);
-              if(containsUnsupportedUse(ir, copy, klass, visited)) {
+              if (containsUnsupportedUse(ir, copy, klass, visited)) {
                 return true;
               }
             }
@@ -339,9 +339,9 @@ final class ObjectReplacer implements AggregateReplacer {
             visited = new HashSet<Register>();
           }
           Register copy = Move.getResult(use.instruction).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
-            if(containsUnsupportedUse(ir, copy, klass, visited)) {
+            if (containsUnsupportedUse(ir, copy, klass, visited)) {
               return true;
             }
           }

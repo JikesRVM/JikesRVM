@@ -116,7 +116,7 @@ public class GenMS extends Gen {
 
   @Override
   public int getMaturePhysicalPagesAvail() {
-    return (int) (msSpace.availablePhysicalPages()/MarkSweepSpace.WORST_CASE_FRAGMENTATION);
+    return (int) (msSpace.availablePhysicalPages() / MarkSweepSpace.WORST_CASE_FRAGMENTATION);
   }
 
   /*****************************************************************************

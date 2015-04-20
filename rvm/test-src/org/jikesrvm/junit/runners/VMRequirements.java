@@ -55,7 +55,7 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
     return System.getProperty("java.vm.vendor").equals("Jikes RVM Project");
   }
 
-  private void ignoreTest(FrameworkMethod method, RunNotifier notifier, Description description){
+  private void ignoreTest(FrameworkMethod method, RunNotifier notifier, Description description) {
     EachTestNotifier eachTestNotifier = new EachTestNotifier(notifier, description);
     eachTestNotifier.fireTestIgnored();
   }

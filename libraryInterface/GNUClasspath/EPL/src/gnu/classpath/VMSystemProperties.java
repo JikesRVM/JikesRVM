@@ -172,7 +172,7 @@ public class VMSystemProperties {
     String jlp = CommandLineArgs.getEnvironmentArg("java.library.path");
     String snp = CommandLineArgs.getEnvironmentArg("java.home");
     if (jlp == null) jlp = ".";
-    p.put("java.library.path", snp + p.get("path.separator") +jlp);
+    p.put("java.library.path", snp + p.get("path.separator") + jlp);
   }
 
 

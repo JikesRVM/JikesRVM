@@ -157,7 +157,7 @@ import org.vmmagic.pragma.*;
                      "Scalar Objects stream",
                      (short)0,
                      // Say, max value = 50% of max possible
-                     (short)(maxObjectsPerBlock(blockSize)/2),
+                     (short)(maxObjectsPerBlock(blockSize) / 2),
                      (short)0,
                      (short)0,
                      "Scalars: ",
@@ -176,7 +176,7 @@ import org.vmmagic.pragma.*;
                      "Array Primitive stream",
                      (short)0,
                      // Say, typical primitive array size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Primitive arrays: ",
@@ -195,7 +195,7 @@ import org.vmmagic.pragma.*;
                      "Array Objects stream",
                      (short)0,
                      // Say, typical ref array size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Reference arrays: ",
@@ -214,7 +214,7 @@ import org.vmmagic.pragma.*;
                      "Roots stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Roots: ",
@@ -233,7 +233,7 @@ import org.vmmagic.pragma.*;
                      "References from immortal stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "References from immortal space: ",
@@ -286,7 +286,7 @@ import org.vmmagic.pragma.*;
     int required = countTileNum(start, end, subspace.getBlockSize());
 
     // Reset the subspace
-    if(required != current)
+    if (required != current)
       subspace.reset(start, end, 0, required);
 
     if (DEBUG) {
@@ -331,7 +331,7 @@ import org.vmmagic.pragma.*;
     Address addr = obj.toAddress();
 
     if (VM.VERIFY_ASSERTIONS) {
-      if(addr.LT(lastAddress.plus(lastSize))) {
+      if (addr.LT(lastAddress.plus(lastSize))) {
         Log.write("\nContiguousSpaceDriver finds addresses going backwards: ");
         Log.write("last="); Log.write(lastAddress);
         Log.write(" last size="); Log.write(lastSize);
@@ -353,7 +353,7 @@ import org.vmmagic.pragma.*;
           totalArrayUsedSpace += length;
         }
       } else {
-        if(!this.scanCheckPrimitiveArray(obj, index, total, length)) {
+        if (!this.scanCheckPrimitiveArray(obj, index, total, length)) {
           // real object
           scalarObjectsStream.increment(index, (short)1);
           if (total) {
@@ -377,7 +377,7 @@ import org.vmmagic.pragma.*;
    * @return {@code true} if this Object is an array of primitives.
    */
   protected boolean scanCheckPrimitiveArray(ObjectReference obj, int index, boolean total, int length) {
-    if(VM.objectModel.isPrimitiveArray(obj)) {
+    if (VM.objectModel.isPrimitiveArray(obj)) {
       arrayPrimitiveStream.increment(index, (short)1);
       if (total) {
         totalPrimitives++;
@@ -468,7 +468,7 @@ import org.vmmagic.pragma.*;
    * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRoot(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       rootsStream.increment(index, (short)1);
@@ -498,7 +498,7 @@ import org.vmmagic.pragma.*;
    */
   @Override
   public boolean handleReferenceFromImmortalSpace(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       refFromImmortalStream.increment(index, (short)1);

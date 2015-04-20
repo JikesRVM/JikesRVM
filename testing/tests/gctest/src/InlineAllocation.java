@@ -124,10 +124,10 @@ class InlineAllocation {
     alloc3Size -= trivialSize;
     alloc4Size -= trivialSize;
 
-    System.out.println("Approximate scalar allocation size is "+alloc1Size);
-    System.out.println("Approximate small array allocation is "+alloc2Size);
-    System.out.println("Approximate large array allocation is "+alloc3Size);
-    System.out.println("Approximate unknown size array allocation is "+alloc4Size);
+    System.out.println("Approximate scalar allocation size is " + alloc1Size);
+    System.out.println("Approximate small array allocation is " + alloc2Size);
+    System.out.println("Approximate large array allocation is " + alloc3Size);
+    System.out.println("Approximate unknown size array allocation is " + alloc4Size);
 
     boolean fail = false;
     if (alloc1Size > alloc1Limit) {

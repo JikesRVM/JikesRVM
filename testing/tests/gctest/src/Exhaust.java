@@ -56,7 +56,7 @@ class Exhaust {
   @NoInline
   public static void runTest() {
     int size = itemSize;
-    for (int i=1; i<=rounds; i++) {
+    for (int i = 1; i <= rounds; i++) {
       o.println("Starting round " + i + " with size = " + size);
 
       first = new Object[1];

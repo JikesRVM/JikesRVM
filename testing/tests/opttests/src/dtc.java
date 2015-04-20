@@ -26,31 +26,31 @@ class A {
     ifNonNullCheck(null);
     checkcast(null);
     nonNullCheckcast(null);
-    System.out.println("A? "+new A().test1());
-    System.out.println("B? "+new B().test1());
-    System.out.println("C? "+new C().test1());
-    System.out.println("E? "+new E().test1());
-    System.out.println("G? "+new G().test1());
-    System.out.println("Y? "+new Y().test1());
-    System.out.println("A? "+new A().test1());
-    System.out.println("B? "+new B().test1());
-    System.out.println("C? "+new C().test1());
-    System.out.println("E? "+new E().test1());
-    System.out.println("G? "+new G().test1());
-    System.out.println("Y? "+new Y().test1());
+    System.out.println("A? " + new A().test1());
+    System.out.println("B? " + new B().test1());
+    System.out.println("C? " + new C().test1());
+    System.out.println("E? " + new E().test1());
+    System.out.println("G? " + new G().test1());
+    System.out.println("Y? " + new Y().test1());
+    System.out.println("A? " + new A().test1());
+    System.out.println("B? " + new B().test1());
+    System.out.println("C? " + new C().test1());
+    System.out.println("E? " + new E().test1());
+    System.out.println("G? " + new G().test1());
+    System.out.println("Y? " + new Y().test1());
 
-    System.out.println("A? "+new A().test2());
-    System.out.println("B? "+new B().test2());
-    System.out.println("C? "+new C().test2());
-    System.out.println("E? "+new E().test2());
-    System.out.println("G? "+new G().test2());
-    System.out.println("Y? "+new Y().test2());
-    System.out.println("A? "+new A().test2());
-    System.out.println("B? "+new B().test2());
-    System.out.println("C? "+new C().test2());
-    System.out.println("E? "+new E().test2());
-    System.out.println("G? "+new G().test2());
-    System.out.println("Y? "+new Y().test2());
+    System.out.println("A? " + new A().test2());
+    System.out.println("B? " + new B().test2());
+    System.out.println("C? " + new C().test2());
+    System.out.println("E? " + new E().test2());
+    System.out.println("G? " + new G().test2());
+    System.out.println("Y? " + new Y().test2());
+    System.out.println("A? " + new A().test2());
+    System.out.println("B? " + new B().test2());
+    System.out.println("C? " + new C().test2());
+    System.out.println("E? " + new E().test2());
+    System.out.println("G? " + new G().test2());
+    System.out.println("Y? " + new Y().test2());
     System.out.println(test4(new A()));
     System.out.println(test4(new int[3]));
 
@@ -94,10 +94,10 @@ class A {
   }
 
   static void check(A a) {
-    System.out.println(" is X? "+(a instanceof X));
-    System.out.println(" is B? "+(a instanceof B));
-    System.out.println(" is C? "+(a instanceof C));
-    System.out.println(" is D? "+(a instanceof D));
+    System.out.println(" is X? " + (a instanceof X));
+    System.out.println(" is B? " + (a instanceof B));
+    System.out.println(" is C? " + (a instanceof C));
+    System.out.println(" is D? " + (a instanceof D));
   }
 
   static void ifNonNullCheck(A a) {
@@ -267,21 +267,21 @@ class A {
   }
 
   static void arrayChecks(Object a) {
-    System.err.println("Testing "+a);
-    System.out.println(" is X[]? "+(a instanceof X[]));
-    System.out.println(" is B[]? "+(a instanceof B[]));
-    System.out.println(" is C[]? "+(a instanceof C[]));
-    System.out.println(" is D[]? "+(a instanceof D[]));
-    System.out.println(" is A? "+(a instanceof A));
-    System.out.println(" is I[]? "+(a instanceof I[]));
-    System.out.println(" is J[]? "+(a instanceof J[]));
-    System.out.println(" is A[][]? "+(a instanceof A[][]));
-    System.out.println(" is Object[]? "+(a instanceof Object[]));
+    System.err.println("Testing " + a);
+    System.out.println(" is X[]? " + (a instanceof X[]));
+    System.out.println(" is B[]? " + (a instanceof B[]));
+    System.out.println(" is C[]? " + (a instanceof C[]));
+    System.out.println(" is D[]? " + (a instanceof D[]));
+    System.out.println(" is A? " + (a instanceof A));
+    System.out.println(" is I[]? " + (a instanceof I[]));
+    System.out.println(" is J[]? " + (a instanceof J[]));
+    System.out.println(" is A[][]? " + (a instanceof A[][]));
+    System.out.println(" is Object[]? " + (a instanceof Object[]));
   }
 
   static void checkStore(Object[] xs, Object x) {
     try {
-      System.err.println("Stored "+x+" into "+xs);
+      System.err.println("Stored " + x + " into " + xs);
       xs[1] = x;
       System.out.println("Worked");
     } catch (ArrayStoreException e) {
@@ -291,7 +291,7 @@ class A {
 
   static void checkAStore(A[] xs, A x) {
     try {
-      System.err.println("checkAStore: Stored "+x+" into "+xs);
+      System.err.println("checkAStore: Stored " + x + " into " + xs);
       xs[1] = x;
       System.out.println("Worked");
     } catch (ArrayStoreException e) {
@@ -348,14 +348,14 @@ class A {
   }
 
   static void doit() {
-    System.out.println("A is [Object?"+instanceOfObjectArray(new A()));
-    System.out.println("[A is [Object?"+instanceOfObjectArray(new A[5]));
-    System.out.println("[[A is [Object?"+instanceOfObjectArray(new A[3][2]));
-    System.out.println("[I is [Object?"+instanceOfObjectArray(new int[10]));
-    System.out.println("[[I is [Object?"+instanceOfObjectArray(new int[10][2]));
-    System.out.println("[[[I is [Object?"+instanceOfObjectArray(new int[10][2][1]));
-    System.out.println("[L is [Object?"+instanceOfObjectArray(new L[3]));
-    System.out.println("[[L is [Object?"+instanceOfObjectArray(new L[3][2]));
+    System.out.println("A is [Object?" + instanceOfObjectArray(new A()));
+    System.out.println("[A is [Object?" + instanceOfObjectArray(new A[5]));
+    System.out.println("[[A is [Object?" + instanceOfObjectArray(new A[3][2]));
+    System.out.println("[I is [Object?" + instanceOfObjectArray(new int[10]));
+    System.out.println("[[I is [Object?" + instanceOfObjectArray(new int[10][2]));
+    System.out.println("[[[I is [Object?" + instanceOfObjectArray(new int[10][2][1]));
+    System.out.println("[L is [Object?" + instanceOfObjectArray(new L[3]));
+    System.out.println("[[L is [Object?" + instanceOfObjectArray(new L[3][2]));
   }
 
   static boolean instanceOfObjectArray(Object x) {

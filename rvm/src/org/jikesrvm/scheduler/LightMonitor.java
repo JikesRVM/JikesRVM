@@ -36,19 +36,19 @@ public final class LightMonitor {
   int recCount;
 
   public LightMonitor() {
-    waiting=new ThreadQueue();
-    entering=new ThreadQueue();
-    mutex=new SpinLock();
+    waiting = new ThreadQueue();
+    entering = new ThreadQueue();
+    mutex = new SpinLock();
   }
 
   @Unpreemptible
   public void lockWithHandshake() {
-    RVMThread me=RVMThread.getCurrentThread();
-    if (holder==me) {
+    RVMThread me = RVMThread.getCurrentThread();
+    if (holder == me) {
       recCount++;
     } else {
       mutex.lock();
-      while (holder!=null) {
+      while (holder != null) {
         entering.enqueue(me);
         mutex.unlock();
         me.monitor().lockNoHandshake();
@@ -58,24 +58,24 @@ public final class LightMonitor {
         me.monitor().unlock();
         mutex.lock();
       }
-      holder=me;
+      holder = me;
       mutex.unlock();
-      recCount=1;
+      recCount = 1;
     }
   }
 
   public void unlock() {
-    if (recCount>1) {
+    if (recCount > 1) {
       recCount--;
     } else {
-      if (VM.VerifyAssertions) VM._assert(recCount==1);
-      if (VM.VerifyAssertions) VM._assert(holder==RVMThread.getCurrentThread());
+      if (VM.VerifyAssertions) VM._assert(recCount == 1);
+      if (VM.VerifyAssertions) VM._assert(holder == RVMThread.getCurrentThread());
       mutex.lock();
-      RVMThread toAwaken=entering.dequeue();
-      holder=null;
-      recCount=0;
+      RVMThread toAwaken = entering.dequeue();
+      holder = null;
+      recCount = 0;
       mutex.unlock();
-      if (toAwaken!=null) {
+      if (toAwaken != null) {
         toAwaken.monitor().lockedBroadcastNoHandshake();
       }
     }
@@ -83,10 +83,10 @@ public final class LightMonitor {
 
   @Interruptible
   private void waitImpl(long whenAwake) {
-    if (VM.VerifyAssertions) VM._assert(recCount>=1);
-    if (VM.VerifyAssertions) VM._assert(holder==RVMThread.getCurrentThread());
+    if (VM.VerifyAssertions) VM._assert(recCount >= 1);
+    if (VM.VerifyAssertions) VM._assert(holder == RVMThread.getCurrentThread());
 
-    RVMThread me=RVMThread.getCurrentThread();
+    RVMThread me = RVMThread.getCurrentThread();
 
     boolean throwInterrupt = false;
     Throwable throwThis = null;
@@ -94,15 +94,15 @@ public final class LightMonitor {
     mutex.lock();
     waiting.enqueue(me);
     mutex.unlock();
-    int myRecCount=recCount;
-    recCount=1;
+    int myRecCount = recCount;
+    recCount = 1;
     unlock();
 
     me.monitor().lockNoHandshake();
     while (waiting.isQueued(me) &&
-           (whenAwake!=0 || sysCall.sysNanoTime() < whenAwake) &&
+           (whenAwake != 0 || sysCall.sysNanoTime() < whenAwake) &&
            !me.hasInterrupt && me.asyncThrowable == null) {
-      if (whenAwake==0) {
+      if (whenAwake == 0) {
         me.monitor().waitWithHandshake();
       } else {
         me.monitor().timedWaitAbsoluteWithHandshake(whenAwake);
@@ -123,7 +123,7 @@ public final class LightMonitor {
     mutex.unlock();
 
     lockWithHandshake();
-    recCount=myRecCount;
+    recCount = myRecCount;
 
     // check if we should exit in a special way
     if (throwThis != null) {
@@ -146,15 +146,15 @@ public final class LightMonitor {
 
   @Interruptible
   public void timedWaitRelativeInterruptibly(long delayNanos) {
-    waitImpl(sysCall.sysNanoTime()+delayNanos);
+    waitImpl(sysCall.sysNanoTime() + delayNanos);
   }
 
   public void broadcast() {
     for (;;) {
       mutex.lock();
-      RVMThread toAwaken=waiting.dequeue();
+      RVMThread toAwaken = waiting.dequeue();
       mutex.unlock();
-      if (toAwaken==null) break;
+      if (toAwaken == null) break;
       toAwaken.monitor().lockedBroadcastNoHandshake();
     }
   }

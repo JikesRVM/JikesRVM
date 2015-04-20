@@ -13,7 +13,7 @@
 public class whet {
 
 
-static final int ITERATIONS=3000; /* 10 Million Whetstone instructions */
+static final int ITERATIONS = 3000; /* 10 Million Whetstone instructions */
 
 static double           x1, x2, x3, x4, x, y, z, t, t1, t2;
 static double[]         e1 = new double[4];
@@ -50,7 +50,7 @@ public static void run() {
         x1 =  1.0;
         x2 = x3 = x4 = -1.0;
 
-        for(i = 1; i <= n1; i += 1) {
+        for (i = 1; i <= n1; i += 1) {
                 x1 = (x1 + x2 + x3 - x4) * t;
                 x2 = (x1 + x2 - x3 - x4) * t;
                 x3 = (x1 - x2 + x3 + x4) * t;
@@ -64,7 +64,7 @@ public static void run() {
         e1[0] =  1.0;
         e1[1] = e1[2] = e1[3] = -1.0;
 
-        for (i = 1; i <= n2; i +=1) {
+        for (i = 1; i <= n2; i += 1) {
                 e1[0] = (e1[0] + e1[1] + e1[2] - e1[3]) * t;
                 e1[1] = (e1[0] + e1[1] - e1[2] + e1[3]) * t;
                 e1[2] = (e1[0] - e1[1] + e1[2] + e1[3]) * t;
@@ -108,7 +108,7 @@ public static void run() {
         l = 3;
 
         for (i = 1; i <= n6; i += 1) {
-                j = j * (k - j) * (l -k);
+                j = j * (k - j) * (l - k);
                 k = l * k - (l - j) * k;
                 l = (l - k) * (k + j);
 
@@ -132,7 +132,7 @@ public static void run() {
 
         x = y = z = 1.0;
 
-        for (i = 1; i <= n8; i +=1)
+        for (i = 1; i <= n8; i += 1)
             p3(x, y, z);
         pout(n8, j, k, x, y, z, z);
 
@@ -147,7 +147,7 @@ public static void run() {
         e1[2] = 3.0;
         e1[3] = 4.0;
 
-        for(i = 1; i <= n9; i += 1)
+        for (i = 1; i <= n9; i += 1)
                 p0();
         pout(n9, j, k, e1[0], e1[1], e1[2], e1[3]);
 
@@ -156,7 +156,7 @@ public static void run() {
         j = 2;
         k = 3;
 
-        for(i = 1; i <= n10; i +=1) {
+        for (i = 1; i <= n10; i += 1) {
                 j = j + k;
                 k = j + k;
                 j = k - j;
@@ -177,7 +177,7 @@ public static void run() {
 private static void pa(double[] e) {
         int j;
 
-        for (j=0; j < 6; j++) {
+        for (j = 0; j < 6; j++) {
         e[0] = (e[0] + e[1] + e[2] - e[3]) * t;
         e[1] = (e[0] + e[1] - e[2] + e[3]) * t;
         e[2] = (e[0] - e[1] + e[2] + e[3]) * t;
@@ -189,7 +189,7 @@ private static void pa(double[] e) {
 private static void p3(double x, double y, double w) {
         x  = t * (x + y);
         y  = t * (x + y);
-        z = (x + y) /t2;
+        z = (x + y) / t2;
 }
 
 
@@ -207,7 +207,7 @@ private static void pout(int n, int j, int k, double x1, double x2, double x3, d
                       //" " + Double.doubleToLongBits(x2) +
                       //" " + Double.doubleToLongBits(x3) +
                       //" " + Double.doubleToLongBits(x4) +
-                      " " + n + " " +j + " " + k);
+                      " " + n + " " + j + " " + k);
 }
 
 }

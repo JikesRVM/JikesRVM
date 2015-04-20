@@ -152,9 +152,9 @@ public interface StackframeLayoutConstants {
   /** offset of method id from FP */
   Offset STACKFRAME_METHOD_ID_OFFSET = Offset.fromIntSignExtend(-WORDSIZE);
   /** offset of work area from FP */
-  Offset STACKFRAME_BODY_OFFSET = Offset.fromIntSignExtend(-2*WORDSIZE);
+  Offset STACKFRAME_BODY_OFFSET = Offset.fromIntSignExtend(-2 * WORDSIZE);
   /** size of frame header, in bytes */
-  int STACKFRAME_HEADER_SIZE = 3*WORDSIZE;
+  int STACKFRAME_HEADER_SIZE = 3 * WORDSIZE;
 
   /** space to save entire FPU state.  The FPU state is saved only for 'bridge' frames */
   int FPU_STATE_SIZE = 108;

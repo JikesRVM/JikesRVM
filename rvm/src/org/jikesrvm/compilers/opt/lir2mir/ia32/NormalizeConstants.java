@@ -66,7 +66,7 @@ public abstract class NormalizeConstants {
           if (use != null) {
             if (use instanceof ObjectConstantOperand) {
               ObjectConstantOperand oc = (ObjectConstantOperand) use;
-              if(oc.isMovableObjectConstant()) {
+              if (oc.isMovableObjectConstant()) {
                 RegisterOperand rop = ir.regpool.makeTemp(use.getType());
                 Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
                 Offset offset = oc.offset;

@@ -90,15 +90,15 @@ public class AbstractAST implements AST {
   @Override
   public String sourceLocation(String prefix) {
     if (source == null) {
-      return prefix+"<no source available>";
+      return prefix + "<no source available>";
     }
-    return prefix+source.getLine(getLine())+"\n"+
-    spaces(prefix.length())+spaces(getColumn()-1)+"^";
+    return prefix + source.getLine(getLine()) + "\n" +
+    spaces(prefix.length()) + spaces(getColumn() - 1) + "^";
   }
 
   private static String spaces(int n) {
     StringBuilder str = new StringBuilder(n);
-    for (int i=0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
       str.append(' ');
     }
     return str.toString();

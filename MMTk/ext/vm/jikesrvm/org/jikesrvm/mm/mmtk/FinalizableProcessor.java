@@ -88,48 +88,48 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   @UnpreemptibleNoWarn("Non-preemptible but yield when table needs to be grown")
   public void add(Object object) {
     lock.acquire();
-    while (maxIndex>=table.length() || maxIndex >= freeReady()) {
-      int newTableSize=-1;
-      int newReadyForFinalizeSize=-1;
-      AddressArray newTable=null;
-      Object[] newReadyForFinalize=null;
+    while (maxIndex >= table.length() || maxIndex >= freeReady()) {
+      int newTableSize = -1;
+      int newReadyForFinalizeSize = -1;
+      AddressArray newTable = null;
+      Object[] newReadyForFinalize = null;
 
-      if (maxIndex>=table.length()) {
-        newTableSize=STRESS ? table.length() + 1 : (int)(table.length() * GROWTH_FACTOR);
+      if (maxIndex >= table.length()) {
+        newTableSize = STRESS ? table.length() + 1 : (int)(table.length() * GROWTH_FACTOR);
       }
 
-      if (maxIndex>=freeReady()) {
-        newReadyForFinalizeSize=table.length() + countReady();
-        if (newReadyForFinalizeSize<=readyForFinalize.length) {
-          newReadyForFinalizeSize=-1;
+      if (maxIndex >= freeReady()) {
+        newReadyForFinalizeSize = table.length() + countReady();
+        if (newReadyForFinalizeSize <= readyForFinalize.length) {
+          newReadyForFinalizeSize = -1;
         }
       }
 
       {
         lock.release();
-        if (newTableSize>=0) {
-          newTable=AddressArray.create(newTableSize);
+        if (newTableSize >= 0) {
+          newTable = AddressArray.create(newTableSize);
         }
-        if (newReadyForFinalizeSize>=0) {
-          newReadyForFinalize=new Object[newReadyForFinalizeSize];
+        if (newReadyForFinalizeSize >= 0) {
+          newReadyForFinalize = new Object[newReadyForFinalizeSize];
         }
         lock.acquire();
       }
 
-      if (maxIndex>=table.length() && newTable!=null) {
-        for (int i=0; i < table.length(); i++) {
+      if (maxIndex >= table.length() && newTable != null) {
+        for (int i = 0; i < table.length(); i++) {
           newTable.set(i, table.get(i));
         }
         table = newTable;
       }
 
-      if (maxIndex>=freeReady() && newReadyForFinalize!=null) {
+      if (maxIndex >= freeReady() && newReadyForFinalize != null) {
         int j = 0;
-        for(int i=nextReadyIndex; i < lastReadyIndex && i < readyForFinalize.length; i++) {
+        for (int i = nextReadyIndex; i < lastReadyIndex && i < readyForFinalize.length; i++) {
           newReadyForFinalize[j++] = readyForFinalize[i];
         }
         if (lastReadyIndex < nextReadyIndex) {
-          for(int i=0; i < lastReadyIndex; i++) {
+          for (int i = 0; i < lastReadyIndex; i++) {
             newReadyForFinalize[j++] = readyForFinalize[i];
           }
         }
@@ -159,7 +159,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    */
   @Override
   public void forward(TraceLocal trace, boolean nursery) {
-    for (int i=0 ; i < maxIndex; i++) {
+    for (int i = 0 ; i < maxIndex; i++) {
       ObjectReference ref = table.get(i).toObjectReference();
       table.set(i, trace.getForwardedFinalizable(ref).toAddress());
     }

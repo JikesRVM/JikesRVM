@@ -55,6 +55,6 @@ public class ChunkQueue {
   private static final class Node {
     final RawChunk chunk;
     Node next;
-    Node(RawChunk c) { this.chunk=c; }
+    Node(RawChunk c) { this.chunk = c; }
   };
 }

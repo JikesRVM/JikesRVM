@@ -35,7 +35,7 @@ public class ObjectReferenceTest {
 
   @Test
   public void testHashCode() {
-    for (int i=MemoryConstants.LOG_BITS_IN_BYTE; i < BITS; i++) {
+    for (int i = MemoryConstants.LOG_BITS_IN_BYTE; i < BITS; i++) {
       ObjectReference ref = Word.one().lsh(i).toAddress().toObjectReference();
       assertTrue(ref.hashCode() != 0);
     }
@@ -48,13 +48,13 @@ public class ObjectReferenceTest {
 
   @Test
   public void testToAddress() {
-    for (int i=0; i < 32; i++) {
+    for (int i = 0; i < 32; i++) {
       ObjectReference ref = Word.one().lsh(i).toAddress().toObjectReference();
       assertTrue(ref.toAddress().toInt() == 1 << i);
     }
-    for (int i=32; i < BITS; i++) {
+    for (int i = 32; i < BITS; i++) {
       ObjectReference ref = Word.one().lsh(i).toAddress().toObjectReference();
-      assertTrue(ref.toAddress().toLong() == 1L<<i);
+      assertTrue(ref.toAddress().toLong() == 1L << i);
     }
   }
 
@@ -62,12 +62,12 @@ public class ObjectReferenceTest {
   public void testEqualsObject() {
     ObjectReference[] lrefs = new ObjectReference[BITS];
     ObjectReference[] rrefs = new ObjectReference[BITS];
-    for (int i=0; i < BITS; i++) {
+    for (int i = 0; i < BITS; i++) {
       lrefs[i] = Word.one().lsh(i).toAddress().toObjectReference();
-      rrefs[i] = Address.fromLong(1L<<i).toObjectReference();
+      rrefs[i] = Address.fromLong(1L << i).toObjectReference();
     }
-    for (int i=0; i < BITS; i++) {
-      for (int j=0; j < BITS; j++) {
+    for (int i = 0; i < BITS; i++) {
+      for (int j = 0; j < BITS; j++) {
         if (i == j) {
           assertTrue(lrefs[i].equals(rrefs[j]));
           assertTrue(lrefs[i].hashCode() == rrefs[j].hashCode());
@@ -87,8 +87,8 @@ public class ObjectReferenceTest {
   @Test
   public void testToString() {
     final String format = BITS == 64 ? "0x%016x" : "0x%08x";
-    for (int i=0; i < BITS; i++) {
-      final String expected = String.format(format, 1L<<i);
+    for (int i = 0; i < BITS; i++) {
+      final String expected = String.format(format, 1L << i);
       assertEquals(Word.one().lsh(i).toAddress().toObjectReference().toString(),
           expected);
     }

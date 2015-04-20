@@ -35,7 +35,7 @@ public class Temporary {
       Trace.trace(Item.COMPILER,"Acquire new temporary, %s", tmp);
       return tmp;
     }
-    Register result = freePool.remove(freePool.size()-1);
+    Register result = freePool.remove(freePool.size() - 1);
     Trace.trace(Item.COMPILER,"Acquire temporary, %s", result);
     result.setUsed();
     result.setType(type);

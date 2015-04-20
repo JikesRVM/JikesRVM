@@ -70,6 +70,6 @@ public final class EmbeddedMetaData {
   public static Extent getMetaDataOffset(Address address,
                                                   int logCoverage,
                                                   int logAlign) {
-    return address.toWord().and(REGION_MASK).rshl(logCoverage+logAlign).lsh(logAlign).toExtent();
+    return address.toWord().and(REGION_MASK).rshl(logCoverage + logAlign).lsh(logAlign).toExtent();
   }
 }

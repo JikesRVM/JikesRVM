@@ -91,7 +91,7 @@ class TestStackAccess {
       System.out.print(x4);   // iload
       */
     return Integer.toString(x0) + Integer.toString(x1) +
-      Integer.toString(x2) +Integer.toString(x3) +
+      Integer.toString(x2) + Integer.toString(x3) +
       Integer.toString(x4) ;
   }
 
@@ -110,7 +110,7 @@ class TestStackAccess {
       System.out.print(x4);   // fload
       */
     return Float.toString(x0) + Float.toString(x1) +
-      Float.toString(x2) +Float.toString(x3) +
+      Float.toString(x2) + Float.toString(x3) +
       Float.toString(x4) ;
   }
 
@@ -254,7 +254,7 @@ class TestStackAccess {
       System.out.print(x3);   // dload_3
       */
 
-      return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2) +
+      return Integer.toString(x0) + Integer.toString(x1) + Integer.toString(x2) +
              Double.toString(x3);
       }
 
@@ -272,7 +272,7 @@ class TestStackAccess {
       System.out.print(x3);
       System.out.print(x4);   // dload
       */
-      return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2) +
+      return Integer.toString(x0) + Integer.toString(x1) + Integer.toString(x2) +
              Integer.toString(x3) + Double.toString(x4);
       }
 
@@ -292,12 +292,12 @@ class TestStackAccess {
       // System.out.print(t.buf[t.pos++]);           // dup_x1
 
       sa = sb = 1;                               // dup2
-      str += Long.toString(sa+sb);
+      str += Long.toString(sa + sb);
 
       // System.out.print(sa + sb);
 
       t.a = t.b = 1;                             // dup2_x1
-      str += Long.toString(t.a+t.b);
+      str += Long.toString(t.a + t.b);
       // System.out.print(t.a + t.b);
 
       str += Long.toString(t.lbuf[t.lpos]++);

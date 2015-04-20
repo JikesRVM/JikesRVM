@@ -75,8 +75,8 @@ public final class Constants {
   public static final int LOG_CARD_BYTES = LOG_CARD_UNITS + LOG_CARD_GRAIN;
   public static final int LOG_CARD_META_BYTES = EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_CARD_BYTES + LOG_CARD_META_SIZE;
   public static final int LOG_CARD_META_PAGES = LOG_CARD_META_BYTES - VM.LOG_BYTES_IN_PAGE;
-  public static final int CARD_META_PAGES_PER_REGION = SUPPORT_CARD_SCANNING ? (1<<LOG_CARD_META_PAGES) : 0;
-  public static final int CARD_MASK = (1<<LOG_CARD_BYTES) - 1;
+  public static final int CARD_META_PAGES_PER_REGION = SUPPORT_CARD_SCANNING ? (1 << LOG_CARD_META_PAGES) : 0;
+  public static final int CARD_MASK = (1 << LOG_CARD_BYTES) - 1;
 
 
   /****************************************************************************
@@ -89,7 +89,7 @@ public final class Constants {
   /**
    *
    */
-  public static final byte LOG_BYTES_IN_CHAR= 1;
+  public static final byte LOG_BYTES_IN_CHAR = 1;
   public static final int BYTES_IN_CHAR = 1 << LOG_BYTES_IN_CHAR;
   public static final byte LOG_BITS_IN_CHAR = LOG_BITS_IN_BYTE + LOG_BYTES_IN_CHAR;
   public static final int BITS_IN_CHAR = 1 << LOG_BITS_IN_CHAR;
@@ -149,7 +149,7 @@ public final class Constants {
    * The maximum alignment request the vm will make. This must be a
    * power of two multiple of the minimum alignment.
    */
-  public static final int MAX_ALIGNMENT = MIN_ALIGNMENT<<VM.MAX_ALIGNMENT_SHIFT;
+  public static final int MAX_ALIGNMENT = MIN_ALIGNMENT << VM.MAX_ALIGNMENT_SHIFT;
 
   /**
    * The VM will add at most this value minus BYTES_IN_INT bytes of

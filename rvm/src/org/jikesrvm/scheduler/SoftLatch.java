@@ -45,7 +45,7 @@ public class SoftLatch {
    * as that thread awakes further threads will be blocked.
    */
   public synchronized void open() {
-    open=true;
+    open = true;
     notifyAll();
   }
 
@@ -54,7 +54,7 @@ public class SoftLatch {
    * to block.
    */
   public synchronized void close() {
-    open=false;
+    open = false;
   }
 
   /**
@@ -84,6 +84,6 @@ public class SoftLatch {
         throw new Error(e);
       }
     }
-    open=false;
+    open = false;
   }
 }

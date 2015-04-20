@@ -334,7 +334,7 @@ public abstract class CallingConvention extends IRTools
           // Pass the parameter in a register.
           RegisterOperand real;
           if (ArchConstants.SSE2_FULL) {
-            real = new RegisterOperand(phys.getFPRParam(nFPRParams-1), paramType);
+            real = new RegisterOperand(phys.getFPRParam(nFPRParams - 1), paramType);
             if (paramType.isFloatType()) {
               call.insertBefore(MIR_Move.create(IA32_MOVSS, real, param));
             } else {

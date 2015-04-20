@@ -33,6 +33,6 @@ public class BootImageMemberLookupError extends Error {
   @Override
   public String getMessage() {
     return "Unable to find (RVM): " + rvmMember + " in JDK by reflection (" +
-    jdkMember + ") for object "+ (o != null ? o.getClass().toString() : "") + " : " + o;
+    jdkMember + ") for object " + (o != null ? o.getClass().toString() : "") + " : " + o;
   }
 }

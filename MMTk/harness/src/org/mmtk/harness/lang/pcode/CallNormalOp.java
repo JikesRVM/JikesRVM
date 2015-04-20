@@ -70,7 +70,7 @@ public final class CallNormalOp extends CallOp implements ResolvableOp {
 
   @Override
   public String toString() {
-    return super.toString().replace("call","call "+method.getName());
+    return super.toString().replace("call","call " + method.getName());
   }
 }
 
