@@ -77,7 +77,7 @@ class StringRegion {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

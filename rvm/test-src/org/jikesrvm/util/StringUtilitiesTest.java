@@ -22,7 +22,7 @@ public class StringUtilitiesTest {
 
   @Test
   public void testStringToBytesNullTerminated() {
-    assertEquals(ST+"\0", asciiBytesToString(stringToBytesNullTerminated(ST)));
+    assertEquals(ST + "\0", asciiBytesToString(stringToBytesNullTerminated(ST)));
   }
 
   @Test

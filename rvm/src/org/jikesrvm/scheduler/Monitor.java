@@ -61,7 +61,7 @@ import org.vmmagic.unboxed.Word;
 @NonMoving
 public class Monitor {
   Word monitor;
-  int holderSlot=-1; // use the slot so that we're even more GC safe
+  int holderSlot = -1; // use the slot so that we're even more GC safe
   int recCount;
   public int acquireCount;
   /**
@@ -103,8 +103,8 @@ public class Monitor {
     int mySlot = RVMThread.getCurrentThreadSlot();
     if (mySlot != holderSlot) {
       sysCall.sysMonitorEnter(monitor);
-      if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-      if (VM.VerifyAssertions) VM._assert(recCount==0);
+      if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+      if (VM.VerifyAssertions) VM._assert(recCount == 0);
       holderSlot = mySlot;
     }
     recCount++;
@@ -119,10 +119,10 @@ public class Monitor {
   @NoOptCompile
   public void relockNoHandshake(int recCount) {
     sysCall.sysMonitorEnter(monitor);
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    holderSlot=RVMThread.getCurrentThreadSlot();
-    this.recCount=recCount;
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    holderSlot = RVMThread.getCurrentThreadSlot();
+    this.recCount = recCount;
     acquireCount++;
   }
   /**
@@ -156,8 +156,8 @@ public class Monitor {
     int mySlot = RVMThread.getCurrentThreadSlot();
     if (mySlot != holderSlot) {
       lockWithHandshakeNoRec();
-      if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-      if (VM.VerifyAssertions) VM._assert(recCount==0);
+      if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+      if (VM.VerifyAssertions) VM._assert(recCount == 0);
       holderSlot = mySlot;
     }
     recCount++;
@@ -214,10 +214,10 @@ public class Monitor {
         RVMThread.leaveNative();
       }
     }
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    holderSlot=RVMThread.getCurrentThreadSlot();
-    this.recCount=recCount;
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    holderSlot = RVMThread.getCurrentThreadSlot();
+    this.recCount = recCount;
   }
   /**
    * Release the lock.  This method should (in principle) be non-blocking,
@@ -227,8 +227,8 @@ public class Monitor {
   @NoInline
   @NoOptCompile
   public void unlock() {
-    if (--recCount==0) {
-      holderSlot=-1;
+    if (--recCount == 0) {
+      holderSlot = -1;
       sysCall.sysMonitorExit(monitor);
     }
   }
@@ -241,9 +241,9 @@ public class Monitor {
   @NoInline
   @NoOptCompile
   public int unlockCompletely() {
-    int result=recCount;
-    recCount=0;
-    holderSlot=-1;
+    int result = recCount;
+    recCount = 0;
+    holderSlot = -1;
     sysCall.sysMonitorExit(monitor);
     return result;
   }
@@ -259,14 +259,14 @@ public class Monitor {
   @NoInline
   @NoOptCompile
   public void waitNoHandshake() {
-    int recCount=this.recCount;
-    this.recCount=0;
-    holderSlot=-1;
+    int recCount = this.recCount;
+    this.recCount = 0;
+    holderSlot = -1;
     sysCall.sysMonitorWait(monitor);
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    this.recCount=recCount;
-    holderSlot=RVMThread.getCurrentThreadSlot();
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    this.recCount = recCount;
+    holderSlot = RVMThread.getCurrentThreadSlot();
   }
   /**
    * Wait until someone calls {@link #broadcast()}, or until the clock
@@ -285,14 +285,14 @@ public class Monitor {
   @NoInline
   @NoOptCompile
   public void timedWaitAbsoluteNoHandshake(long whenWakeupNanos) {
-    int recCount=this.recCount;
-    this.recCount=0;
-    holderSlot=-1;
+    int recCount = this.recCount;
+    this.recCount = 0;
+    holderSlot = -1;
     sysCall.sysMonitorTimedWaitAbsolute(monitor, whenWakeupNanos);
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    this.recCount=recCount;
-    holderSlot=RVMThread.getCurrentThreadSlot();
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    this.recCount = recCount;
+    holderSlot = RVMThread.getCurrentThreadSlot();
   }
   /**
    * Wait until someone calls {@link #broadcast()}, or until at least
@@ -311,8 +311,8 @@ public class Monitor {
   @NoInline
   @NoOptCompile
   public void timedWaitRelativeNoHandshake(long delayNanos) {
-    long now=sysCall.sysNanoTime();
-    timedWaitAbsoluteNoHandshake(now+delayNanos);
+    long now = sysCall.sysNanoTime();
+    timedWaitAbsoluteNoHandshake(now + delayNanos);
   }
   /**
    * Wait until someone calls {@link #broadcast()}.
@@ -342,7 +342,7 @@ public class Monitor {
   private void waitWithHandshakeImpl() {
     RVMThread.enterNative();
     waitNoHandshake();
-    int recCount=unlockCompletely();
+    int recCount = unlockCompletely();
     RVMThread.leaveNative();
     relockWithHandshakeImpl(recCount);
   }
@@ -379,7 +379,7 @@ public class Monitor {
   private void timedWaitAbsoluteWithHandshakeImpl(long whenWakeupNanos) {
     RVMThread.enterNative();
     timedWaitAbsoluteNoHandshake(whenWakeupNanos);
-    int recCount=unlockCompletely();
+    int recCount = unlockCompletely();
     RVMThread.leaveNative();
     relockWithHandshakeImpl(recCount);
   }
@@ -416,7 +416,7 @@ public class Monitor {
   private void timedWaitRelativeWithHandshakeImpl(long delayNanos) {
     RVMThread.enterNative();
     timedWaitRelativeNoHandshake(delayNanos);
-    int recCount=unlockCompletely();
+    int recCount = unlockCompletely();
     RVMThread.leaveNative();
     relockWithHandshakeImpl(recCount);
   }
@@ -449,7 +449,7 @@ public class Monitor {
 
   @NoInline
   public static boolean lockNoHandshake(Monitor l) {
-    if (l==null) {
+    if (l == null) {
       return false;
     } else {
       l.lockNoHandshake();

@@ -83,9 +83,9 @@ public final class Register {
 
   public static String nameOf(int index) {
     if (index >= 0) {
-      return "t"+index;
+      return "t" + index;
     }
-    return "c"+(-index-1);
+    return "c" + (-index - 1);
   }
 
   @Override

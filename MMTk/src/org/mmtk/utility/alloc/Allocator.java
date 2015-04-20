@@ -98,7 +98,7 @@ public abstract class Allocator {
       VM.assertions._assert(!(fillAlignmentGap && region.isZero()));
       VM.assertions._assert(alignment <= MAX_ALIGNMENT);
       VM.assertions._assert(offset >= 0);
-      VM.assertions._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
+      VM.assertions._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT - 1)).isZero());
       VM.assertions._assert((alignment & (MIN_ALIGNMENT - 1)) == 0);
       VM.assertions._assert((offset & (MIN_ALIGNMENT - 1)) == 0);
     }

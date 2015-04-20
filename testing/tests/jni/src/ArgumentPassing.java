@@ -529,7 +529,7 @@ class ArgumentPassing {
 
     System.loadLibrary("ArgumentPassing");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -757,15 +757,15 @@ class ArgumentPassing {
     long actualLong = returnLong(0x12345678);
     int hi = (int) (actualLong >> 32);
     int lo = (int) (actualLong);
-    returnValue = ((hi==0x00001234) && (lo==0x56780000)) ? 0 : 1;
+    returnValue = ((hi == 0x00001234) && (lo == 0x56780000)) ? 0 : 1;
     checkTest(returnValue, "returnLong");
 
     float actualFloat = returnFloat((float) (1.5));
-    returnValue = (actualFloat==((float) 1.5)) ? 0 : 1;
+    returnValue = (actualFloat == ((float) 1.5)) ? 0 : 1;
     checkTest(returnValue, "returnFloat");
 
     double actualDouble = returnDouble(3.5);
-    returnValue = (actualDouble==3.5) ? 0 : 1;
+    returnValue = (actualDouble == 3.5) ? 0 : 1;
     checkTest(returnValue, "returnDouble");
 
     // Summarize
@@ -785,7 +785,7 @@ class ArgumentPassing {
   }
 
   static void checkTest(int returnValue, String testName) {
-    if (returnValue==0) {
+    if (returnValue == 0) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

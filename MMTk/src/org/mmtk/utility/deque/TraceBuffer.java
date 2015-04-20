@@ -63,12 +63,12 @@ import org.vmmagic.unboxed.*;
   /*
    * Debugging and trace reducing constants
    */
-  public static final boolean OMIT_ALLOCS=false;
-  public static final boolean OMIT_UPDATES=false;
-  public static final boolean OMIT_BOOTALLOCS=false;
-  public static final boolean OMIT_UNREACHABLES=false;
-  public static final boolean OMIT_OTHERS=false;
-  public static final boolean OMIT_OUTPUT=OMIT_ALLOCS && OMIT_UPDATES &&
+  public static final boolean OMIT_ALLOCS = false;
+  public static final boolean OMIT_UPDATES = false;
+  public static final boolean OMIT_BOOTALLOCS = false;
+  public static final boolean OMIT_UNREACHABLES = false;
+  public static final boolean OMIT_OTHERS = false;
+  public static final boolean OMIT_OUTPUT = OMIT_ALLOCS && OMIT_UPDATES &&
                                           OMIT_OTHERS;
 
 

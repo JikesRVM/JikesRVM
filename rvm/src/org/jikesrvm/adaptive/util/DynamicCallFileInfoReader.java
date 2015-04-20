@@ -111,7 +111,7 @@ public class DynamicCallFileInfoReader {
           Controller.dcg.incrementEdge(caller, bci, callee, weight);
         }
       } catch (Exception e) {
-        VM.sysWriteln("Caught exception: "+e);
+        VM.sysWriteln("Caught exception: " + e);
       }
     } else {
       VM.sysFail("Format error in dynamic call graph file");

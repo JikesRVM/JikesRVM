@@ -88,37 +88,37 @@ public class WordTest {
 
   @Test
   public void testToInt() {
-    for (int i=0; i < 32; i++) {
-      assertTrue(Word.fromIntZeroExtend(1<<i).toInt() == (1<<i));
+    for (int i = 0; i < 32; i++) {
+      assertTrue(Word.fromIntZeroExtend(1 << i).toInt() == (1 << i));
     }
   }
 
   @Test
   public void testToLong() {
-    for (int i=0; i < 8*MemoryConstants.BYTES_IN_WORD; i++) {
-      assertTrue(Word.fromLong(1L<<i).toLong() == (1L<<i));
+    for (int i = 0; i < 8 * MemoryConstants.BYTES_IN_WORD; i++) {
+      assertTrue(Word.fromLong(1L << i).toLong() == (1L << i));
     }
   }
 
   @Test
   public void testToAddress() {
-    for (int i=0; i < 8*MemoryConstants.BYTES_IN_WORD; i++) {
-      assertTrue(Word.fromLong(1L<<i).toAddress().EQ(Address.fromLong(1L<<i)));
+    for (int i = 0; i < 8 * MemoryConstants.BYTES_IN_WORD; i++) {
+      assertTrue(Word.fromLong(1L << i).toAddress().EQ(Address.fromLong(1L << i)));
     }
   }
 
   @Test
   public void testToOffset() {
-    for (int i=0; i < 8*MemoryConstants.BYTES_IN_WORD; i++) {
-      assertTrue(Word.fromLong(1L<<i).toOffset().EQ(
-          Address.fromLong(1L<<i).diff(Address.zero())));
+    for (int i = 0; i < 8 * MemoryConstants.BYTES_IN_WORD; i++) {
+      assertTrue(Word.fromLong(1L << i).toOffset().EQ(
+          Address.fromLong(1L << i).diff(Address.zero())));
     }
   }
 
   @Test
   public void testToExtent() {
-    for (int i=0; i < 32; i++) {
-      assertTrue(Word.fromLong(1<<i).toExtent().EQ(Extent.fromIntSignExtend(1<<i)));
+    for (int i = 0; i < 32; i++) {
+      assertTrue(Word.fromLong(1 << i).toExtent().EQ(Extent.fromIntSignExtend(1 << i)));
     }
   }
 
@@ -343,24 +343,24 @@ public class WordTest {
 
   @Test
   public void testLsh() {
-    for (int i=0; i < 32; i++) {
-      assertTrue(Word.one().lsh(i).toInt() == (1<<i));
-      assertTrue(Word.one().lsh(i).toLong() == (1L<<i));
+    for (int i = 0; i < 32; i++) {
+      assertTrue(Word.one().lsh(i).toInt() == (1 << i));
+      assertTrue(Word.one().lsh(i).toLong() == (1L << i));
     }
     if (is64bit()) {
-      for (int i=0; i < 64; i++) {
-        assertTrue(Word.one().lsh(i).toLong() == (1L<<i));
+      for (int i = 0; i < 64; i++) {
+        assertTrue(Word.one().lsh(i).toLong() == (1L << i));
       }
     }
   }
 
   @Test
   public void testRshl() {
-    for (int i=0; i < 32; i++) {
+    for (int i = 0; i < 32; i++) {
       assertTrue(Word.one().lsh(i).rshl(i).EQ(Word.one()));
     }
     if (is64bit()) {
-      for (int i=0; i < 64; i++) {
+      for (int i = 0; i < 64; i++) {
         assertTrue(Word.one().lsh(i).rshl(i).EQ(Word.one()));
       }
     }
@@ -368,13 +368,13 @@ public class WordTest {
 
   @Test
   public void testRsha() {
-    for (int i=0; i < 31; i++) {
+    for (int i = 0; i < 31; i++) {
       assertTrue(Word.one().lsh(i).rsha(i).EQ(Word.one()));
     }
     if (is32bit()) {
       assertTrue(Word.one().lsh(31).rsha(31).EQ(Word.max()));
     } else {
-      for (int i=0; i < 63; i++) {
+      for (int i = 0; i < 63; i++) {
         assertTrue(Word.one().lsh(i).rsha(i).EQ(Word.one()));
       }
       assertTrue(Word.one().lsh(63).rsha(63).EQ(Word.max()));

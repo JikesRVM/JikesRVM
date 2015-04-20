@@ -120,7 +120,7 @@ public class CompiledMethod implements Schedulable {
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder();
-    int i=0;
+    int i = 0;
     for (PseudoOp op : contents) {
       buf.append(String.format("%4d : %s%n",i++,op));
     }
@@ -179,6 +179,6 @@ public class CompiledMethod implements Schedulable {
    * @return The size of the stack frame for this method, in words.
    */
   public int frameSize() {
-    return getDecls().size()+getnTemps();
+    return getDecls().size() + getnTemps();
   }
 }

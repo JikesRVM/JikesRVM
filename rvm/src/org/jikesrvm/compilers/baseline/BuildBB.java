@@ -432,7 +432,7 @@ final class BuildBB {
     }
 
     // can not support jsrs with unboxed types at the moment
-    if (VM.VerifyAssertions && !VM.BuildForHarmony) VM._assert(VM.runningVM || numJsrs == 0|| !hasMagic);
+    if (VM.VerifyAssertions && !VM.BuildForHarmony) VM._assert(VM.runningVM || numJsrs == 0 || !hasMagic);
   }
 
   /********************************/
@@ -505,7 +505,9 @@ final class BuildBB {
       // Find the last instruction prior to the branch target;
       //  that's the end of the new block
       //
-      for (i = branchtarget - 1; byteToBlockMap[i] == BasicBlock.NOTBLOCK; i--) {}
+      for (i = branchtarget - 1; byteToBlockMap[i] == BasicBlock.NOTBLOCK; i--) {
+        // count as described in the comment above the loop header
+      }
 
       newBlockEnd = i;
       newBB.setEnd(i);

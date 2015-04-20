@@ -47,7 +47,7 @@ class LargeAlloc {
     long startUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     while (used < limit) {
       int curSize = itemSize;
-      for (int i=0; i<sizeCount; i++) {
+      for (int i = 0; i < sizeCount; i++) {
         junk = new byte[curSize];
         used += itemSize;
         curSize = (int) (curSize * sizeRatio);

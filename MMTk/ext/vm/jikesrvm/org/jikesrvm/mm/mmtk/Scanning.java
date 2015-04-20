@@ -129,15 +129,15 @@ public final class Scanning extends org.mmtk.vm.Scanning {
     int size = JNIEnvironment.JNIFunctions.length();
     int chunkSize = size / threads;
     int start = cc.parallelWorkerOrdinal() * chunkSize;
-    int end = (cc.parallelWorkerOrdinal()+1 == threads) ? size : threads * chunkSize;
+    int end = (cc.parallelWorkerOrdinal() + 1 == threads) ? size : threads * chunkSize;
 
-    for(int i=start; i < end; i++) {
+    for (int i = start; i < end; i++) {
       trace.processRootEdge(jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS), true);
     }
 
     Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.linkageTriplets);
     if (!linkageTriplets.isZero()) {
-      for(int i=start; i < end; i++) {
+      for (int i = start; i < end; i++) {
         trace.processRootEdge(linkageTriplets.plus(i << LOG_BYTES_IN_ADDRESS), true);
       }
     }
@@ -147,9 +147,9 @@ public final class Scanning extends org.mmtk.vm.Scanning {
     size = JNIGlobalRefTable.JNIGlobalRefs.length();
     chunkSize = size / threads;
     start = cc.parallelWorkerOrdinal() * chunkSize;
-    end = (cc.parallelWorkerOrdinal()+1 == threads) ? size : threads * chunkSize;
+    end = (cc.parallelWorkerOrdinal() + 1 == threads) ? size : threads * chunkSize;
 
-    for(int i=start; i < end; i++) {
+    for (int i = start; i < end; i++) {
       trace.processRootEdge(jniGlobalRefs.plus(i << LOG_BYTES_IN_ADDRESS), true);
     }
   }

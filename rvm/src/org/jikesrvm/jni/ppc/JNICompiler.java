@@ -221,7 +221,7 @@ public abstract class JNICompiler
 
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);         // get status for thread
-    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));            // we should be in java code?
+    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));            // we should be in java code?
     ForwardReference notInJava = asm.emitForwardBC(NE);
     asm.emitLVAL(S0, RVMThread.IN_JNI);             // S0  <- new state value
     asm.emitSTWCXr(S0, S1, THREAD_REGISTER);        // attempt to change state to IN_JNI
@@ -299,7 +299,7 @@ public abstract class JNICompiler
     asm.emitLAddrOffset(THREAD_REGISTER, THREAD_REGISTER, Entrypoints.JNIEnvSavedTRField.getOffset());
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);     // get status for processor
-    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));         // are we IN_JNI code?
+    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));         // are we IN_JNI code?
     ForwardReference blocked = asm.emitForwardBC(NE);
 
     asm.emitLVAL(S0, RVMThread.IN_JAVA);               // S0  <- new state value
@@ -1349,7 +1349,7 @@ public abstract class JNICompiler
 
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);               // get status for processor
-    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));       // check if GC in progress, blocked in native mode
+    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));       // check if GC in progress, blocked in native mode
     ForwardReference frBlocked = asm.emitForwardBC(NE);
 
     asm.emitLVAL(S0, RVMThread.IN_JAVA);                // S0  <- new state value
@@ -1456,7 +1456,7 @@ public abstract class JNICompiler
     //
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);
-    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));
+    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));
     ForwardReference notInJava = asm.emitForwardBC(NE);
     asm.emitLVAL(S0, RVMThread.IN_JNI);
     asm.emitSTWCXr(S0, S1, THREAD_REGISTER);

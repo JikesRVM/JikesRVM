@@ -1687,7 +1687,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
     mc.addInstruction(mi);
   }
 
-  static final int HWSYNCtemplate = 31<<26 | 598<<1;
+  static final int HWSYNCtemplate = 31 << 26 | 598 << 1;
 
   public final void emitHWSYNC() {
     int mi = HWSYNCtemplate;

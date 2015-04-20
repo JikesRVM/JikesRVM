@@ -82,7 +82,7 @@ public class ParallelCollectorGroup {
     this.lock = VM.newHeavyCondLock("CollectorContextGroup");
     this.triggerCount = 1;
     this.contexts = new ParallelCollector[size];
-    for(int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
       try {
         contexts[i] = klass.newInstance();
         contexts[i].group = this;
@@ -163,7 +163,7 @@ public class ParallelCollectorGroup {
    * @return {@code true} if the context is a member.
    */
   public boolean isMember(CollectorContext context) {
-    for(CollectorContext c: contexts) {
+    for (CollectorContext c: contexts) {
       if (c == context) {
         return true;
       }
@@ -180,12 +180,12 @@ public class ParallelCollectorGroup {
     lock.lock();
     int i = currentRendezvousCounter;
     int me = rendezvousCounter[i]++;
-    if (me == contexts.length-1) {
+    if (me == contexts.length - 1) {
       currentRendezvousCounter ^= 1;
       rendezvousCounter[currentRendezvousCounter] = 0;
       lock.broadcast();
     } else {
-      while(rendezvousCounter[i] < contexts.length) {
+      while (rendezvousCounter[i] < contexts.length) {
         lock.await();
       }
     }

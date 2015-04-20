@@ -63,7 +63,7 @@ public abstract class Value {
     if (klass.isAssignableFrom(this.getClass())) {
       return this;
     }
-    throw new RuntimeException(getClass()+" cannot be marshalled into a Java Object");
+    throw new RuntimeException(getClass() + " cannot be marshalled into a Java Object");
   }
 
   @Override

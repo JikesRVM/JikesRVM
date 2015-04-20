@@ -33,7 +33,7 @@ import org.jikesrvm.objectmodel.RuntimeTable;
   private ExtentArray(int size) {
     data = new Extent[size];
     Extent zero = Extent.zero();
-    for (int i=0; i<size; i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = zero;
     }
   }

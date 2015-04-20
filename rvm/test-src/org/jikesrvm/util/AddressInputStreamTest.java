@@ -96,7 +96,7 @@ public class AddressInputStreamTest {
   @Test
   public void availableIsLengthMinusReadBytes() throws IOException {
     streamFromByteArray.read();
-    assertEquals(byteArray.length-1, streamFromByteArray.available());
+    assertEquals(byteArray.length - 1, streamFromByteArray.available());
   }
 
   @Test

@@ -76,13 +76,13 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
     // Split into 'name' and 'value' strings
     int split = arg.indexOf('=');
     if (split == -1) {
-      System.err.println("  Illegal option specification!\n  \""+arg+
+      System.err.println("  Illegal option specification!\n  \"" + arg +
                   "\" must be specified as a name-value pair in the form of option=value");
       return false;
     }
 
     String name = arg.substring(0,split);
-    String value = arg.substring(split+1);
+    String value = arg.substring(split + 1);
 
     Option o = getOption(name);
 
@@ -103,21 +103,21 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
           int ival = Integer.parseInt(value);
           ((IntOption)o).setValue(ival);
           return true;
-        } catch (NumberFormatException nfe) {}
+        } catch (NumberFormatException nfe) { }
         return false;
       case Option.ADDRESS_OPTION:
         try {
           int ival = Integer.parseInt(value,16);
           ((AddressOption)o).setValue(ival);
           return true;
-        } catch (NumberFormatException nfe) {}
+        } catch (NumberFormatException nfe) { }
         return false;
       case Option.FLOAT_OPTION:
         try {
           float fval = Float.parseFloat(value);
           ((FloatOption)o).setValue(fval);
           return true;
-        } catch (NumberFormatException nfe) {}
+        } catch (NumberFormatException nfe) { }
         return false;
       case Option.STRING_OPTION:
         ((StringOption)o).setValue(value);
@@ -139,14 +139,14 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
           ((PagesOption)o).setBytes(Extent.fromIntZeroExtend(ival * factor));
           return true;
         } catch (NumberFormatException nfe) {
-        } catch (IndexOutOfBoundsException nfe) {}
+        } catch (IndexOutOfBoundsException nfe) { }
         return false;
       case Option.MICROSECONDS_OPTION:
         try {
           int ival = Integer.parseInt(value);
           ((MicrosecondsOption)o).setMicroseconds(ival);
           return true;
-        } catch (NumberFormatException nfe) {}
+        } catch (NumberFormatException nfe) { }
         return false;
       case ENUM_SET_OPTION:
         ((EnumSetOption)o).setValue(value);
@@ -173,7 +173,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
       values.add(Integer.valueOf(element));
     }
     int[] result = new int[values.size()];
-    for (int i=0; i < result.length; i++) {
+    for (int i = 0; i < result.length; i++) {
       result[i] = values.pollFirst();
     }
     return result;
@@ -191,7 +191,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
       values.add(Word.fromLong(value));
     }
     Word[] result = new Word[values.size()];
-    for (int i=0; i < result.length; i++) {
+    for (int i = 0; i < result.length; i++) {
       result[i] = values.pollFirst();
     }
     return result;
@@ -218,7 +218,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
       if (o.getType() == Option.BOOLEAN_OPTION) {
         String key = o.getKey();
         System.err.print(key);
-        for (int c = key.length(); c<39;c++) {
+        for (int c = key.length(); c < 39; c++) {
           System.err.print(" ");
         }
         System.err.println(o.getDescription());
@@ -235,7 +235,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
           o.getType() != Option.ENUM_OPTION) {
         String key = o.getKey();
         System.err.print(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           System.err.print(" ");
         }
         switch (o.getType()) {
@@ -258,7 +258,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
       if (o.getType() == Option.ENUM_OPTION) {
         String key = o.getKey();
         System.err.print(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           System.err.print(" ");
         }
         System.err.println(o.getDescription());
@@ -289,7 +289,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         System.err.print("\t");
         System.err.print(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           System.err.print(" ");
         }
         System.err.print(" = ");
@@ -306,7 +306,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         System.err.print("\t");
         System.err.print(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           System.err.print(" ");
         }
         System.err.print(" = ");
@@ -322,7 +322,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         System.err.print("\t");
         System.err.print(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           System.err.print(" ");
         }
         System.err.print(" = ");
@@ -384,7 +384,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
     String key = word.toLowerCase();
 
     do {
-      int old = space+1;
+      int old = space + 1;
       space = name.indexOf(' ', old);
       if (space < 0) {
         key += name.substring(old);
@@ -407,7 +407,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
   @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(MemoryConstants.BYTES_IN_PAGE-1).toWord().rshl(MemoryConstants.LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(MemoryConstants.BYTES_IN_PAGE - 1).toWord().rshl(MemoryConstants.LOG_BYTES_IN_PAGE).toInt();
   }
 
   @Override

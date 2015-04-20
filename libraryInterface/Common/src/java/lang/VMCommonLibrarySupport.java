@@ -37,7 +37,7 @@ final class VMCommonLibrarySupport {
    * Method just to throw an illegal access exception without being inlined
    */
   @NoInline
-  private static void throwNewIllegalAccessException(RVMMember member, RVMClass accessingClass) throws IllegalAccessException{
+  private static void throwNewIllegalAccessException(RVMMember member, RVMClass accessingClass) throws IllegalAccessException {
     throw new IllegalAccessException("Access to " + member + " is denied to " + accessingClass);
   }
   /* ---- General Reflection Support ---- */

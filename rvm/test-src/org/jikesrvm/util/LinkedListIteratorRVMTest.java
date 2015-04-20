@@ -80,7 +80,7 @@ public class LinkedListIteratorRVMTest {
   }
 
   @Test
-  public void testEmptyList(){
+  public void testEmptyList() {
     LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     ListIterator<Integer> it = list.listIterator();
     assertFalse(it.hasNext());

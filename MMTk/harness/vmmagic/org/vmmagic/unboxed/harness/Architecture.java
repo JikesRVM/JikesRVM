@@ -43,7 +43,7 @@ public enum Architecture {
   };
 
   private static final int LOG_BITS_IN_BYTE = 3;
-  private static final int BITS_IN_BYTE = 1<<LOG_BITS_IN_BYTE;
+  private static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
 
   abstract ArchitecturalWord fromLong(long value);
   abstract ArchitecturalWord fromIntZeroExtend(int value);
@@ -51,11 +51,11 @@ public enum Architecture {
   public abstract int logBitsInWord();
 
   public final int bitsInWord() {
-    return 1<<logBitsInWord();
+    return 1 << logBitsInWord();
   }
 
   public final int bytesInWord() {
-    return bitsInWord()/BITS_IN_BYTE;
+    return bitsInWord() / BITS_IN_BYTE;
   }
 
   public final int logBytesInWord() {

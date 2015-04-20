@@ -52,7 +52,7 @@ public class Chunk {
     Address start = getFirstUsableBlock(chunk);
     Address cursor = Block.getBlockMarkStateAddress(start);
     for (int index = FIRST_USABLE_BLOCK_INDEX; index < BLOCKS_IN_CHUNK; index++) {
-      Address block = chunk.plus(index<<LOG_BYTES_IN_BLOCK);
+      Address block = chunk.plus(index << LOG_BYTES_IN_BLOCK);
       if (block.GT(end)) break;
       final boolean defragSource = space.inImmixDefragCollection() && Block.isDefragSource(block);
       short marked = Block.sweepOneBlock(block, markHistogram, markValue, resetMarks);
@@ -146,9 +146,9 @@ public class Chunk {
   }
 
   private static final int LOG_BYTES_IN_HIGHWATER_ENTRY = LOG_BYTES_IN_ADDRESS;
-  private static final int HIGHWATER_BYTES = 1<<LOG_BYTES_IN_HIGHWATER_ENTRY;
+  private static final int HIGHWATER_BYTES = 1 << LOG_BYTES_IN_HIGHWATER_ENTRY;
   private static final int LOG_BYTES_IN_MAP_ENTRY = LOG_BYTES_IN_INT;
-  private static final int MAP_BYTES = 1<<LOG_BYTES_IN_MAP_ENTRY;
+  private static final int MAP_BYTES = 1 << LOG_BYTES_IN_MAP_ENTRY;
 
   /* byte offsets for each type of metadata */
   static final int LINE_MARK_TABLE_OFFSET = 0;
@@ -159,8 +159,8 @@ public class Chunk {
   static final int METADATA_BYTES_PER_CHUNK = MAP_OFFSET + MAP_BYTES;
 
   /* FIXME we round the metadata up to block sizes just to ensure the underlying allocator gives us aligned requests */
-  private static final int BLOCK_MASK = (1<<LOG_BYTES_IN_BLOCK) - 1;
+  private static final int BLOCK_MASK = (1 << LOG_BYTES_IN_BLOCK) - 1;
   static final int ROUNDED_METADATA_BYTES_PER_CHUNK = (METADATA_BYTES_PER_CHUNK + BLOCK_MASK) & ~BLOCK_MASK;
-  static final int ROUNDED_METADATA_PAGES_PER_CHUNK = ROUNDED_METADATA_BYTES_PER_CHUNK>>LOG_BYTES_IN_PAGE;
-  public static final int FIRST_USABLE_BLOCK_INDEX = ROUNDED_METADATA_BYTES_PER_CHUNK>>LOG_BYTES_IN_BLOCK;
+  static final int ROUNDED_METADATA_PAGES_PER_CHUNK = ROUNDED_METADATA_BYTES_PER_CHUNK >> LOG_BYTES_IN_PAGE;
+  public static final int FIRST_USABLE_BLOCK_INDEX = ROUNDED_METADATA_BYTES_PER_CHUNK >> LOG_BYTES_IN_BLOCK;
 }

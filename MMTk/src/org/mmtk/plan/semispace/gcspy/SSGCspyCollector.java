@@ -129,7 +129,7 @@ import org.vmmagic.pragma.*;
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
-    if(DEBUG) {
+    if (DEBUG) {
       Log.writeln("SSGCspyCollector.gcspyGatherData, event=", event);
       Log.writeln("SSGCspyCollector.gcspyGatherData, port=", GCspy.getGCspyPort());
     }
@@ -234,7 +234,7 @@ import org.vmmagic.pragma.*;
    * @param addr The Address of the object to be checked
    */
   protected void checkAllDriversForRootAddress(Address addr) {
-    if(addr.isZero())
+    if (addr.isZero())
       return;
 
     SSGCspy.ss0Driver.handleRoot(addr);

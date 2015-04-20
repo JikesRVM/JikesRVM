@@ -97,7 +97,7 @@ public final class ObjectTable {
 
     synchronized void copy(ObjectReference src, ObjectReference dest) {
       if (!this.reference.equals(src)) {
-        throw new AssertionError("Attempt to copy "+src+" to "+dest+" twice!");
+        throw new AssertionError("Attempt to copy " + src + " to " + dest + " twice!");
       }
       addHistory(dest);
       this.setCopiedFrom(reference);
@@ -115,7 +115,7 @@ public final class ObjectTable {
 
     public void assertLive() {
       if (!isLive()) {
-        throw new AssertionError("Object, "+toString()+" (now "+currentEpoch+")");
+        throw new AssertionError("Object, " + toString() + " (now " + currentEpoch + ")");
 
       }
     }
@@ -229,13 +229,13 @@ public final class ObjectTable {
     if (entry == null) {
       entry = objects.get(dest);
       if (entry == null) {
-        throw new AssertionError("Attempted to copy a nonexistent object, "+src);
+        throw new AssertionError("Attempted to copy a nonexistent object, " + src);
       }
-      throw new AssertionError("Attempt to copy object "+ObjectModel.getString(src)+" twice");
+      throw new AssertionError("Attempt to copy object " + ObjectModel.getString(src) + " twice");
     }
 
     if (!entry.isLive()) {
-      throw new AssertionError("Attempted to copy a dead object, "+src+", which died in collection "+entry.deathEpoch+" (now "+currentEpoch+")");
+      throw new AssertionError("Attempted to copy a dead object, " + src + ", which died in collection " + entry.deathEpoch + " (now " + currentEpoch + ")");
     }
 
     // entry.copy will detect data races and abort the second and subsequent

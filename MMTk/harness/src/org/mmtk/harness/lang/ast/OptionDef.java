@@ -62,7 +62,7 @@ public class OptionDef extends AbstractAST {
     if (values.size() > 0) {
       buf.append("=");
       buf.append(values.get(0));
-      for (int i=1; i < values.size(); i++) {
+      for (int i = 1; i < values.size(); i++) {
         buf.append(",");
         buf.append(values.get(i));
       }

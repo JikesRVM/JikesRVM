@@ -26,8 +26,8 @@ class ExceptionTest4 {
 
   static int divide(int a, int b) {
      try {
-         return a/b;
-     } catch(ArithmeticException e) {
+         return a / b;
+     } catch (ArithmeticException e) {
          return a + 1;
      }
   }

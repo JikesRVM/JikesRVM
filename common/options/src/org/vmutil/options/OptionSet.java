@@ -136,7 +136,7 @@ public abstract class OptionSet {
     logString("<options>");
     logNewLine();
 
-    for(Option o = getFirst(); o != null; o = o.getNext()) {
+    for (Option o = getFirst(); o != null; o = o.getNext()) {
       logXml(o);
     }
 

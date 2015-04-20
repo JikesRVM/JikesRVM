@@ -54,7 +54,7 @@ class JNI12 {
     Object returnObj;
     // Reflected Methods
 
-    Class<?> myClass =JNI12.class;
+    Class<?> myClass = JNI12.class;
 
     Method dummyM = myClass.getMethod("dummyFunc", new Class[0]);
     returnObj = testReflectedMethods(myClass, dummyM);
@@ -109,7 +109,7 @@ class JNI12 {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

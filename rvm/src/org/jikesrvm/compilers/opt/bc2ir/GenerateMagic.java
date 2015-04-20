@@ -636,7 +636,7 @@ public class GenerateMagic {
       }
     } else if (methodName == MagicNames.getObjectType) {
       Operand val = bc2ir.popRef();
-      if(val.isObjectConstant()) {
+      if (val.isObjectConstant()) {
         bc2ir.push(new ObjectConstantOperand(val.getType().peekType(), Offset.zero()));
       } else {
         Operand guard = BC2IR.copyGuardFromOperand(val);

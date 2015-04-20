@@ -246,7 +246,7 @@ public final class Factory extends org.mmtk.vm.Factory {
       String blockInfo,
       int tileNum,
       String unused,
-      boolean mainSpace){
+      boolean mainSpace) {
     try {
       return new org.jikesrvm.mm.mmtk.gcspy.ServerSpace(
           serverInterpreter, serverName, driverName, title,

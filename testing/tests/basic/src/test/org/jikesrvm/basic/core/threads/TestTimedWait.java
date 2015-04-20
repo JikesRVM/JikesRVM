@@ -42,7 +42,7 @@ class TestTimedWait {
       //Have to wait for the messages to be sent
       //otherwises replies will be received in wrong
       //order if method is part-way through a compile
-      while(!task.sent) { Thread.yield(); }
+      while (!task.sent) { Thread.yield(); }
     }
 
     // wait for mailbox to fill up
@@ -55,7 +55,7 @@ class TestTimedWait {
 
     // pause to allow tasks to queue up on flag
     XThread.say("sleeping");
-    try { Thread.sleep(1000); } catch (InterruptedException e) {}
+    try { Thread.sleep(1000); } catch (InterruptedException e) { }
     XThread.say("running");
 
     // release tasks waiting on flag, letting them terminate

@@ -206,7 +206,7 @@ public final class JNIEnvironment {
   @Uninterruptible("May be called from uninterruptible code")
   @NoInline
   private void checkPush(Object ref, boolean canGrow) {
-    final boolean debug=true;
+    final boolean debug = true;
     if (VM.VerifyAssertions) {
       VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
     }
@@ -225,7 +225,7 @@ public final class JNIEnvironment {
       VM.sysFail("unchecked pushes exceeded fudge length!");
     }
     if (!canGrow) {
-      if ((JNIRefsTop+BYTES_IN_ADDRESS) >= JNIRefsMax) {
+      if ((JNIRefsTop + BYTES_IN_ADDRESS) >= JNIRefsMax) {
         if (debug) {
           VM.sysWriteln("JNIRefsTop=", JNIRefsTop);
           VM.sysWriteln("JNIRefsMax=", JNIRefsMax);
@@ -314,7 +314,7 @@ public final class JNIEnvironment {
     JNITopJavaFP = callersFP;
 
     if (VM.traceJNI) {
-      RVMMethod m=
+      RVMMethod m =
         CompiledMethods.getCompiledMethod(
           Magic.getCompiledMethodID(callersFP)).getMethod();
       VM.sysWrite("calling JNI from ");
@@ -333,7 +333,7 @@ public final class JNIEnvironment {
 
     // Convert arguments on stack from objects to JNI references
     Address fp = Magic.getFramePointer();
-    Offset argOffset = Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS);
+    Offset argOffset = Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS);
     fp.store(uninterruptiblePushJNIRef(fp.loadAddress(argOffset),true), argOffset);
     while (encodedReferenceOffsets != 0) {
       argOffset = argOffset.plus(BYTES_IN_ADDRESS);

@@ -21,7 +21,7 @@ class InvokeReflect {
   public static void main(String[] argv) throws Exception {
     if (argv.length == 0) { printUsage(); return; }
 
-    for (int iArg=0; iArg<argv.length; iArg++) {
+    for (int iArg = 0; iArg < argv.length; iArg++) {
       String arg = argv[iArg];
       if (arg.startsWith("-h")) { printUsage(); return; }
 

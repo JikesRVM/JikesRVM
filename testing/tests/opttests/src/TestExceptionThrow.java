@@ -98,7 +98,7 @@ class TestExceptionThrow {
        try {
          return run2a();
        } catch (IndexOutOfBoundsException e5) {
-         System.out.println(" IndexOutOfBoundsException: '" +e5+"', but caught in run()!!!");
+         System.out.println(" IndexOutOfBoundsException: '" + e5 + "', but caught in run()!!!");
        }
        System.out.println(" At End");
        return true;
@@ -152,8 +152,8 @@ class TestExceptionThrow {
 
    static int divide(int a, int b) {
      try {
-         return a/b;
-     } catch(ArithmeticException e) {
+         return a / b;
+     } catch (ArithmeticException e) {
          return a + 1;
      }
    }
@@ -193,7 +193,7 @@ class TestExceptionThrow {
    static int access(int i) {
      try {
          return testa[i];
-     } catch(ArrayIndexOutOfBoundsException e) {
+     } catch (ArrayIndexOutOfBoundsException e) {
          return i + 1;
      }
    }
@@ -304,7 +304,7 @@ class TestExceptionThrow {
 
      }
      try {
-        int x = b10/a10;
+        int x = b10 / a10;
      } catch (Exception e) {
      }
      return true;
@@ -315,18 +315,18 @@ class TestExceptionThrow {
      return true;
   }
 
-  static String run11s1= "";
+  static String run11s1 = "";
   static StringBuffer run11s2;
 
   public static void run11a(String a) { }
   public static String run11b() { return "test";};
 
   public static void run11aux(Object a) {
-     if(run11s1.equals(""))
+     if (run11s1.equals(""))
         run11a("Global");
-     try{
+     try {
         run11s2.append(run11b());
-     } catch (Exception e){
+     } catch (Exception e) {
      }
      run11s2.append(run11b());
      if (run11s2 != null)
@@ -337,14 +337,14 @@ class TestExceptionThrow {
    public static boolean run12() {
        try {
          System.out.println(divide1(1,0));
-       } catch(ArithmeticException e) {
+       } catch (ArithmeticException e) {
          System.out.println("caught run12");
        }
        return true;
    }
 
    static int divide1(int a, int b) {
-         return a/b;
+         return a / b;
    }
 
 

@@ -497,12 +497,12 @@ public class CommandLineArgs {
     // concatenate all bootclasspath entries
     StringBuilder result = new StringBuilder(vmClasses);
 
-    for(int c = 0; c < prependClasses.length; c++) {
+    for (int c = 0; c < prependClasses.length; c++) {
       result.insert(0, ":");
       result.insert(0, prependClasses[c]);
     }
 
-    for(int c = 0; c < appendClasses.length; c++) {
+    for (int c = 0; c < appendClasses.length; c++) {
       result.append(":");
       result.append(appendClasses[c]);
     }

@@ -66,10 +66,10 @@ public final class ScanStatics {
 
     // Start and end of statics region to be processed
     final int start = (threadOrdinal == 0) ? refSlotSize : threadOrdinal * chunkSize;
-    final int end = (threadOrdinal+1 == numberOfCollectors) ? numberOfReferences : (threadOrdinal+1) * chunkSize;
+    final int end = (threadOrdinal + 1 == numberOfCollectors) ? numberOfReferences : (threadOrdinal + 1) * chunkSize;
 
     // Process region
-    for (int slot=start; slot < end; slot+=refSlotSize) {
+    for (int slot = start; slot < end; slot += refSlotSize) {
       Offset slotOffset = Offset.fromIntSignExtend(slot << LOG_BYTES_IN_INT);
       if (ScanThread.VALIDATE_REFS) checkReference(slots.plus(slotOffset), slot);
       trace.processRootEdge(slots.plus(slotOffset), true);

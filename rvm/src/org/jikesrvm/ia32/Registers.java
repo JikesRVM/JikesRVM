@@ -65,46 +65,46 @@ public abstract class Registers implements RegisterConstants {
     fprs = fprsShadow = MemoryManager.newNonMovingDoubleArray(NUM_FPRS);
   }
   public final void copyFrom(Registers other) {
-    for (int i=0;i<NUM_GPRS;++i) {
+    for (int i = 0; i < NUM_GPRS;++i) {
       gprs.set(i,other.gprs.get(i));
     }
-    for (int i=0;i<NUM_FPRS;++i) {
-      fprs[i]=other.fprs[i];
+    for (int i = 0; i < NUM_FPRS;++i) {
+      fprs[i] = other.fprs[i];
     }
-    ip=other.ip;
-    fp=other.fp;
+    ip = other.ip;
+    fp = other.fp;
   }
   public final void clear() {
-    for (int i=0;i<NUM_GPRS;++i) {
+    for (int i = 0; i < NUM_GPRS;++i) {
       gprs.set(i,Word.zero());
     }
-    for (int i=0;i<NUM_FPRS;++i) {
-      fprs[i]=0.;
+    for (int i = 0; i < NUM_FPRS;++i) {
+      fprs[i] = 0.;
     }
-    ip=Address.zero();
-    fp=Address.zero();
+    ip = Address.zero();
+    fp = Address.zero();
   }
   public final void assertSame(Registers other) {
-    boolean fail=false;
-    for (int i=0;i<NUM_GPRS;++i) {
+    boolean fail = false;
+    for (int i = 0; i < NUM_GPRS;++i) {
       if (gprs.get(i).NE(other.gprs.get(i))) {
         VM.sysWriteln("Registers not equal: GPR #",i);
-        fail=true;
+        fail = true;
       }
     }
-    for (int i=0;i<NUM_FPRS;++i) {
-      if (fprs[i]!=other.fprs[i]) {
+    for (int i = 0; i < NUM_FPRS;++i) {
+      if (fprs[i] != other.fprs[i]) {
         VM.sysWriteln("Registers not equal: FPR #",i);
-        fail=true;
+        fail = true;
       }
     }
     if (ip.NE(other.ip)) {
       VM.sysWriteln("Registers not equal: IP");
-      fail=true;
+      fail = true;
     }
     if (fp.NE(other.fp)) {
       VM.sysWriteln("Registers not equal: FP");
-      fail=true;
+      fail = true;
     }
     if (fail) {
       RVMThread.dumpStack();
@@ -163,10 +163,10 @@ public abstract class Registers implements RegisterConstants {
     return Magic.objectAsAddress(this).plus(ipOffset);
   }
   public final void dump() {
-    for (int i=0;i<NUM_GPRS;++i) {
+    for (int i = 0; i < NUM_GPRS;++i) {
       VM.sysWriteln("gprs[",i,"] = ",gprs.get(i));
     }
-    for (int i=0;i<NUM_FPRS;++i) {
+    for (int i = 0; i < NUM_FPRS;++i) {
       VM.sysWriteln("fprs[",i,"] = ",fprs[i]);
     }
     VM.sysWriteln("ip = ",ip);

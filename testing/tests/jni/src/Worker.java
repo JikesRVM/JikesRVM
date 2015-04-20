@@ -48,7 +48,7 @@ class Worker extends Thread  {
     MonitorTest.printVerbose(".... " + name + " calling native monitor");
     rc = MonitorTest.accessMonitorFromNative(theLock);
 
-    if (rc!=0)
+    if (rc != 0)
       MonitorTest.setFailFlag();
 
     MonitorTest.printVerbose(".... " + name + " done.");

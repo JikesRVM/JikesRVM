@@ -45,7 +45,7 @@ public class TestFileAccess extends DefaultFileAccess implements FileAccess {
     return br;
   }
 
-  public void putContentForFile(String fileName, String content){
+  public void putContentForFile(String fileName, String content) {
     fileNameToContent.put(fileName, content);
   }
 

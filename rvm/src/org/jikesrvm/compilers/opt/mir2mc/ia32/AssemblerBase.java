@@ -660,7 +660,7 @@ abstract class AssemblerBase extends Assembler
    * @return {@code true} if inst operates upon byte data
    */
   boolean isByte(Instruction inst) {
-    for(Operator opr : byteSizeOperators){
+    for (Operator opr : byteSizeOperators) {
       if (opr == inst.operator()) {
         return true;
       }
@@ -689,7 +689,7 @@ abstract class AssemblerBase extends Assembler
    * @return true if inst operates upon word data
    */
   boolean isWord(Instruction inst) {
-    for(Operator opr : wordSizeOperators){
+    for (Operator opr : wordSizeOperators) {
       if (opr == inst.operator()) {
         return true;
       }
@@ -718,7 +718,7 @@ abstract class AssemblerBase extends Assembler
    * @return {@code true} if inst operates upon quad data
    */
   boolean isQuad(Instruction inst) {
-    for(Operator opr : quadSizeOperators){
+    for (Operator opr : quadSizeOperators) {
       if (opr == inst.operator()) {
         return true;
       }
@@ -901,7 +901,7 @@ abstract class AssemblerBase extends Assembler
         return size;
       }
       case MIR_LOWTABLESWITCH_opcode:
-        return MIR_LowTableSwitch.getNumberOfTargets(inst)*4 + 14;
+        return MIR_LowTableSwitch.getNumberOfTargets(inst) * 4 + 14;
       case IA32_OFFSET_opcode:
         return 4;
       case IA32_JCC_opcode:
@@ -1105,7 +1105,7 @@ abstract class AssemblerBase extends Assembler
     }
     // JMP T0
     emitJMP_Reg(idx);
-    emitNOP((4-getMachineCodeIndex()) & 3); // align table
+    emitNOP((4 - getMachineCodeIndex()) & 3); // align table
     // create table of offsets from start of method
     patchSwitchTableDisplacement(toPatchAddress);
     for (int i = 0; i < n; i++) {

@@ -15,7 +15,7 @@ class TestFinally {
    static int foo(int a, int b) {
       try {
          return a / b;
-     } catch(Exception e) {
+     } catch (Exception e) {
          return 1;
      } finally {
          return 2;
@@ -27,8 +27,8 @@ class TestFinally {
       int c = 0;
       if (a > 0) {
        try {
-         return a/b;
-       } catch(Exception e) {
+         return a / b;
+       } catch (Exception e) {
           c = 1;
        } finally {
           c = 2;
@@ -45,13 +45,13 @@ class TestFinally {
 
    static boolean
    foo2(int a) {
-     synchronized(lock) {
+     synchronized (lock) {
         return foo2a(a) == 1;
      }
    }
 
    static int foo2a(int a) {
-     return a+1;
+     return a + 1;
    }
 
    static boolean
@@ -59,13 +59,13 @@ class TestFinally {
       int c = 0;
       if (a > 0) {
        try {
-         return a/b == 0;
-       } catch(Exception e) {
+         return a / b == 0;
+       } catch (Exception e) {
           c = 1;
        } finally {
           int x = a >> 3;
           int y = b + 2;
-          c = foo2a(y&(x & 0x77))-1;
+          c = foo2a(y & (x & 0x77)) - 1;
        }
       } else {
          return false;
@@ -77,12 +77,12 @@ class TestFinally {
    static int foo4(int a, int b) {
       int x;
       try {
-         return a/b;
+         return a / b;
       } catch (Exception e) {
          x = 10;
       } finally {
          try {
-            x = b/a + 3000;
+            x = b / a + 3000;
          } catch (Exception e) {
             x = b;
          }

@@ -17,7 +17,7 @@ public class tak_fp{
   public static void main(String[] argv) {
         System.out.println("Tak is running\n");
           float result = tak(18,12,6);
-          System.out.println(result + "\n"+test2(18));
+          System.out.println(result + "\n" + test2(18));
 
   }
 
@@ -47,9 +47,9 @@ static float tak(float x, float y, float z) {
    if (y >= x) {
       return z;
    } else {
-      return tak(tak(x-1, y, z),
-                 tak(y-1, z, x),
-                 tak(z-1, x, y));
+      return tak(tak(x - 1, y, z),
+                 tak(y - 1, z, x),
+                 tak(z - 1, x, y));
    }
 }
 

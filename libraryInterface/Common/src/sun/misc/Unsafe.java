@@ -213,7 +213,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public int pageSize(){
+  public int pageSize() {
     return Memory.getPagesize();
   }
 
@@ -262,7 +262,7 @@ public final class Unsafe {
   public long allocateMemory(long bytes) {
     Address result = SysCall.sysCall.sysMalloc((int)bytes);
     if (result.isZero()) {
-      throw new OutOfMemoryError("Unable to satisfy malloc of "+bytes);
+      throw new OutOfMemoryError("Unable to satisfy malloc of " + bytes);
     }
     return result.toLong();
   }
@@ -356,8 +356,8 @@ public final class Unsafe {
 
   @Inline
   public void setMemory(long address, long bytes, byte value) {
-    for (long i=0;i<bytes;i++){
-      Address.fromLong(address+i).store(value);
+    for (long i = 0; i < bytes; i++) {
+      Address.fromLong(address + i).store(value);
     }
   }
 

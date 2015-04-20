@@ -293,7 +293,7 @@ import org.vmmagic.pragma.*;
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
-    if(DEBUG) {
+    if (DEBUG) {
       Log.writeln("SSGCspy.gcspyGatherData, event=", event);
       Log.writeln("SSGCspy.gcspyGatherData, port=", GCspy.getGCspyPort());
     }
@@ -305,7 +305,7 @@ import org.vmmagic.pragma.*;
     // This is a safepoint for the server, i.e. it is a point at which
     // the server can pause.
     // The Mutator is called after the Collector so the Mutator must set the safepoint
-    if(DEBUG) Log.writeln("SSGCspy safepoint");
+    if (DEBUG) Log.writeln("SSGCspy safepoint");
     GCspy.server.serverSafepoint(event);
   }
 

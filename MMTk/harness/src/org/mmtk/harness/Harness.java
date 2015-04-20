@@ -108,13 +108,13 @@ public class Harness {
   /** Set watch points on variables */
   public static final StringOption watchVar = new WatchVar();
 
-  protected static final double MB = 1024*1024;
+  protected static final double MB = 1024 * 1024;
 
   private static boolean initialized = false;
 
-  public static void initArchitecture(List<String> args){
+  public static void initArchitecture(List<String> args) {
     /* If the 'bits' arg is specified, parse and apply it first */
-    for(String arg: args) {
+    for (String arg: args) {
       if (arg.startsWith("bits=")) {
         options.process(arg);
       }
@@ -142,7 +142,7 @@ public class Harness {
     /* Options used for configuring the plan to use */
     final ArrayList<String> newArgs = new ArrayList<String>();
 
-    for(String arg: args) {
+    for (String arg: args) {
       if (!options.process(arg)) newArgs.add(arg);
     }
 
@@ -177,7 +177,7 @@ public class Harness {
           Options.variableSizeHeap.setValue(false);
 
           /* Process command line options */
-          for(String arg: newArgs) {
+          for (String arg: newArgs) {
             if (!options.process(arg)) {
               throw new RuntimeException("Invalid option '" + arg + "'");
             }
@@ -186,13 +186,13 @@ public class Harness {
           ActivePlan.plan.enableAllocation();
           if (org.mmtk.utility.options.Options.verbose.getValue() > 0) {
             System.err.printf("[Harness] Configuring heap size [%4.2fMB..%4.2fMB]%n",
-                initHeap.getBytes().toLong()/MB,
-                maxHeap.getBytes().toLong()/MB);
+                initHeap.getBytes().toLong() / MB,
+                maxHeap.getBytes().toLong() / MB);
           }
           HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
 
           /* Check options */
-          assert Options.noFinalizer.getValue(): "noFinalizer must be true";
+          assert Options.noFinalizer.getValue() : "noFinalizer must be true";
 
           /* Finish starting up MMTk */
           ActivePlan.plan.processOptions();
@@ -238,8 +238,8 @@ public class Harness {
     double heapFactor = PlanSpecificConfig.heapFactor(plan.getValue());
     int scaledHeap = (int)Math.ceil(baseHeap.getPages() * heapFactor);
     System.out.printf("heapFactor=%4.2f, baseHeap=%dK, initHeap=%dK%n",
-        heapFactor, baseHeap.getPages()*MemoryConstants.BYTES_IN_PAGE/1024,
-        scaledHeap*MemoryConstants.BYTES_IN_PAGE/1024);
+        heapFactor, baseHeap.getPages() * MemoryConstants.BYTES_IN_PAGE / 1024,
+        scaledHeap * MemoryConstants.BYTES_IN_PAGE / 1024);
     initHeap.setPages(scaledHeap);
     maxHeap.setPages(scaledHeap);
   }
@@ -304,8 +304,8 @@ public class Harness {
   private static final Object DUMP_STATE_LOCK = new Object();
 
   public static void dumpStateAndExit(String message) {
-    synchronized(DUMP_STATE_LOCK) {
-      System.err.print(Thread.currentThread().getName()+": ");
+    synchronized (DUMP_STATE_LOCK) {
+      System.err.print(Thread.currentThread().getName() + ": ");
       System.err.println(message);
       new Throwable().printStackTrace();
       throw new RuntimeException();

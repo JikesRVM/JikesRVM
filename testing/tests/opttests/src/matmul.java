@@ -25,7 +25,7 @@ class matmul {
   // timer
   static double timer() {
 
-    return System.currentTimeMillis()/1000.0;
+    return System.currentTimeMillis() / 1000.0;
   }
 
   // initialize
@@ -34,20 +34,20 @@ class matmul {
     int i;
     int j;
 
-    for (i=0;i<m;i++) {
-      for (j=0;j<n;j++) {
+    for (i = 0;i < m; i++) {
+      for (j = 0;j < n; j++) {
         A[i][j] = 1.0;
       }
     }
 
-    for (i=0;i<n;i++) {
-      for (j=0;j<p;j++) {
+    for (i = 0;i < n; i++) {
+      for (j = 0;j < p; j++) {
         B[i][j] = 1.0;
       }
     }
 
-    for (i=0;i<m;i++) {
-      for (j=0;j<p;j++) {
+    for (i = 0;i < m; i++) {
+      for (j = 0;j < p; j++) {
         C[i][j] = 0.0;
       }
     }
@@ -60,10 +60,10 @@ class matmul {
     int j;
     int k;
 
-    for (i=0;i<m;i++) {
-      for (j=0;j<p;j++) {
-        for (k=0;k<n;k++) {
-          C[i][j] += A[i][k]*B[k][j];
+    for (i = 0; i < m; i++) {
+      for (j = 0; j < p; j++) {
+        for (k = 0; k < n; k++) {
+          C[i][j] += A[i][k] * B[k][j];
         }
       }
     }
@@ -80,30 +80,26 @@ class matmul {
 
     // perform the multiplies.
     double etime = timer();
-    for (int step=0; step<NSTEP; step++) {
+    for (int step = 0; step < NSTEP; step++) {
       multipl();
     }
     etime = timer() - etime;
 
     // compute performance
-    double flops = 2*m*n*p*NSTEP;
+    double flops = 2 * m * n * p * NSTEP;
     double floprt = 0.0;
-    if (etime > 0.0) floprt = 1.0e-06*flops/etime;
+    if (etime > 0.0) floprt = 1.0e-06 * flops / etime;
     System.out.println("  elapsed time    = " + etime);
     System.out.println("  MFLOPS          = " + floprt);
 
     // compute the error
     double err = 0;
-    for (int i=0; i<m; i++) {
-      for (int j=0; j<p; j++) {
-        double delta = C[i][j] - (n*NSTEP);
-        err += delta*delta;
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < p; j++) {
+        double delta = C[i][j] - (n * NSTEP);
+        err += delta * delta;
       }
     }
     System.out.println("  error          = " + err);
   }
 }
-
-
-
-

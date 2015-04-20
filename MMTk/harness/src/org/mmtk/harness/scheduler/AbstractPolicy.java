@@ -89,7 +89,7 @@ public abstract class AbstractPolicy implements Policy {
   public String formatStats() {
     String policy = formatPolicy();
     if (!policy.equals("")) {
-      policy = " ("+policy+")";
+      policy = " (" + policy + ")";
     }
     return String.format("%s, %d yields%s%n",thread.getName(),yieldCount,policy);
   }

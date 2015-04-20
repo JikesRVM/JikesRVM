@@ -41,7 +41,7 @@ public class UnsyncStack<E> implements Iterable<E> {
    * @return The value at the top of the stack
    */
   public E pop() {
-    return elements.remove(elements.size()-1);
+    return elements.remove(elements.size() - 1);
   }
 
   /**
@@ -49,7 +49,7 @@ public class UnsyncStack<E> implements Iterable<E> {
    * @return The value at the top of the stack
    */
   public E peek() {
-    return elements.get(elements.size()-1);
+    return elements.get(elements.size() - 1);
   }
 
   /**

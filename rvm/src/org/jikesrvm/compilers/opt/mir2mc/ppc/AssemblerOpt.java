@@ -1237,7 +1237,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           setLink = true;
           // fall through!
         default:          // conditional branches
-          if (targetOffset <= MAX_COND_DISPL << 2) {// one word is enough
+          if (targetOffset <= MAX_COND_DISPL << 2) { // one word is enough
             machinecodes.set(bi, machinecodes.get(bi) | targetOffset & BD_MASK);
             if (DEBUG) {
               VM.sysWrite("**** Forward Short Cond. Branch ****\n");

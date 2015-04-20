@@ -132,7 +132,7 @@ public class Map {
         Log.write("Unable to allocate virtual address space for space \"");
         Log.write(space.getName()); Log.write("\" for ");
         Log.write(chunks); Log.write(" chunks (");
-        Log.write(chunks<<Space.LOG_BYTES_IN_CHUNK); Log.writeln(" bytes), requesting GC.");
+        Log.write(chunks << Space.LOG_BYTES_IN_CHUNK); Log.writeln(" bytes), requesting GC.");
         if (Options.verbose.getValue() > 7) {
           Space.printVMMap();
         }
@@ -142,7 +142,7 @@ public class Map {
     }
     totalAvailableDiscontiguousChunks -= chunks;
     Address rtn = addressForChunkIndex(chunk);
-    insert(rtn, Extent.fromIntZeroExtend(chunks<<Space.LOG_BYTES_IN_CHUNK), descriptor, space);
+    insert(rtn, Extent.fromIntZeroExtend(chunks << Space.LOG_BYTES_IN_CHUNK), descriptor, space);
     if (head.isZero()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[chunk] == 0);
     } else {

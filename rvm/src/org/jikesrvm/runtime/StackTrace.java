@@ -73,7 +73,7 @@ public class StackTrace {
     int traceIndex = 0;
     if (VM.VerifyAssertions && VM.VerboseStackTracePeriod > 0) {
       // Poor man's atomic integer, to get through bootstrap
-      synchronized(StackTrace.class) {
+      synchronized (StackTrace.class) {
          traceIndex = lastTraceIndex++;
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
@@ -325,13 +325,13 @@ public class StackTrace {
     Element[] elements = new Element[countFrames(first, last)];
     if (!VM.BuildForOptCompiler) {
       int element = 0;
-      for (int i=first; i <= last; i++) {
+      for (int i = first; i <= last; i++) {
         elements[element] = new Element(getCompiledMethod(i), instructionOffsets[i]);
         element++;
       }
     } else {
       int element = 0;
-      for (int i=first; i <= last; i++) {
+      for (int i = first; i <= last; i++) {
         CompiledMethod compiledMethod = getCompiledMethod(i);
         if ((compiledMethod == null) ||
             (compiledMethod.getCompilerType() != CompiledMethod.OPT)) {
@@ -373,11 +373,11 @@ public class StackTrace {
    * @return the number of stack frames
    */
   private int countFrames(int first, int last) {
-    int numElements=0;
+    int numElements = 0;
     if (!VM.BuildForOptCompiler) {
       numElements = last - first + 1;
     } else {
-      for (int i=first; i <= last; i++) {
+      for (int i = first; i <= last; i++) {
         CompiledMethod compiledMethod = getCompiledMethod(i);
         if ((compiledMethod == null) ||
             (compiledMethod.getCompilerType() != CompiledMethod.OPT)) {
@@ -451,14 +451,14 @@ public class StackTrace {
       // Deal with OutOfMemoryError
       if (cause instanceof OutOfMemoryError) {
         // (1) search until RuntimeEntrypoints
-        while((element < compiledMethods.length) &&
+        while ((element < compiledMethods.length) &&
             (compiledMethod != null) &&
              compiledMethod.getMethod().getDeclaringClass().getClassForType() != RuntimeEntrypoints.class) {
           element++;
           compiledMethod = getCompiledMethod(element);
         }
         // (2) continue until not RuntimeEntrypoints
-        while((element < compiledMethods.length) &&
+        while ((element < compiledMethods.length) &&
               (compiledMethod != null) &&
               compiledMethod.getMethod().getDeclaringClass().getClassForType() == RuntimeEntrypoints.class) {
           element++;
@@ -473,7 +473,7 @@ public class StackTrace {
 
       // (2) remove any VMThrowable frames
       if (VM.BuildForGnuClasspath) {
-        while((element < compiledMethods.length) &&
+        while ((element < compiledMethods.length) &&
               (compiledMethod != null) &&
               compiledMethod.getMethod().getDeclaringClass().getClassForType().getName().equals("java.lang.VMThrowable")) {
           element++;
@@ -481,14 +481,14 @@ public class StackTrace {
         }
       }
       // (3) remove any Throwable frames
-      while((element < compiledMethods.length) &&
+      while ((element < compiledMethods.length) &&
             (compiledMethod != null) &&
             compiledMethod.getMethod().getDeclaringClass().getClassForType() == java.lang.Throwable.class) {
         element++;
         compiledMethod = getCompiledMethod(element);
       }
       // (4) remove frames belonging to exception constructors upto the causes constructor
-      while((element < compiledMethods.length) &&
+      while ((element < compiledMethods.length) &&
             (compiledMethod != null) &&
             (compiledMethod.getMethod().getDeclaringClass().getClassForType() != cause.getClass()) &&
             compiledMethod.getMethod().isObjectInitializer() &&
@@ -500,7 +500,7 @@ public class StackTrace {
       // NB This can be made to incorrectly elide frames if the cause
       // exception is thrown from a constructor of the cause exception, however,
       // Sun's VM has the same problem
-      while((element < compiledMethods.length) &&
+      while ((element < compiledMethods.length) &&
             (compiledMethod != null) &&
             (compiledMethod.getMethod().getDeclaringClass().getClassForType() == cause.getClass()) &&
             compiledMethod.getMethod().isObjectInitializer()) {
@@ -509,10 +509,10 @@ public class StackTrace {
       }
       // (6) remove possible hardware exception deliverer frames
       if (element < compiledMethods.length - 2) {
-        compiledMethod = getCompiledMethod(element+1);
+        compiledMethod = getCompiledMethod(element + 1);
         if ((compiledMethod != null) &&
             compiledMethod.getCompilerType() == CompiledMethod.TRAP) {
-          element+=2;
+          element += 2;
         }
       }
       return element;
@@ -542,7 +542,7 @@ public class StackTrace {
    */
   private int removeStackTraceFrames(int element) {
     CompiledMethod compiledMethod = getCompiledMethod(element);
-    while((element < compiledMethods.length) &&
+    while ((element < compiledMethods.length) &&
           (compiledMethod != null) &&
           compiledMethod.getMethod().getDeclaringClass().getClassForType() == StackTrace.class) {
       element++;
@@ -569,16 +569,16 @@ public class StackTrace {
      * at org.jikesrvm.scheduler.RVMThread.run(RVMThread.java:534)
      * at org.jikesrvm.scheduler.RVMThread.startoff(RVMThread.java:1113)
      */
-    int max = compiledMethods.length-1;
+    int max = compiledMethods.length - 1;
     if (Options.stackTraceFull) {
       return max;
     } else {
       // Start at end of array and elide a frame unless we find a place to stop
-      for (int i=max; i >= first; i--) {
+      for (int i = max; i >= first; i--) {
         if (compiledMethods[i] == INVISIBLE_METHOD_ID) {
           // we found an invisible method, assume next method if this is sane
-          if (i-1 >= 0) {
-            return i-1;
+          if (i - 1 >= 0) {
+            return i - 1;
           } else {
             return max; // not sane => return max
           }
@@ -591,7 +591,7 @@ public class StackTrace {
         Class<?> frameClass = compiledMethod.getMethod().getDeclaringClass().getClassForType();
         if ((frameClass != org.jikesrvm.scheduler.MainThread.class) &&
             (frameClass != org.jikesrvm.scheduler.RVMThread.class) &&
-            (frameClass != org.jikesrvm.runtime.Reflection.class)){
+            (frameClass != org.jikesrvm.runtime.Reflection.class)) {
           // Found a non-VM method
           return i;
         }

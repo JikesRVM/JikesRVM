@@ -79,12 +79,12 @@ import org.vmmagic.pragma.*;
       Address rtn = malloc(size);
 
       // Write the string into it, one byte at a time (dodgy conversion)
-      for (int i=0; i < str_length; i++)  {
-        rtn.store((byte)str_backing[str_offset+i], Offset.fromIntSignExtend(i));
+      for (int i = 0; i < str_length; i++)  {
+        rtn.store((byte)str_backing[str_offset + i], Offset.fromIntSignExtend(i));
       }
       // Zero rest of byte[]
-      for (int i=str_length; i < size; i++)  {
-        rtn.store((byte)0, Offset.fromIntSignExtend(i-str_offset));
+      for (int i = str_length; i < size; i++)  {
+        rtn.store((byte)0, Offset.fromIntSignExtend(i - str_offset));
       }
       if (DEBUG_) {
         sysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");

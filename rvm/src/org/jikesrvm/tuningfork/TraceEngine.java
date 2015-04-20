@@ -71,7 +71,7 @@ public final class TraceEngine {
     unwrittenMetaChunks.enqueue(new EventTypeSpaceChunk(new EventTypeSpaceVersion("org.jikesrvm", 1)));
 
     /* Pre-allocate all EventChunks into the bootimage so we can access them later via Untraced fields */
-    for (int i=0; i<INITIAL_EVENT_CHUNKS; i++) {
+    for (int i = 0; i < INITIAL_EVENT_CHUNKS; i++) {
       availableEventChunks.enqueue(new EventChunk());
     }
   }
@@ -91,14 +91,14 @@ public final class TraceEngine {
     if (state != State.SHUT_DOWN) {
       String traceFile = Options.TuningForkTraceFile;
       if (!traceFile.endsWith(".trace")) {
-        traceFile = traceFile+".trace";
+        traceFile = traceFile + ".trace";
       }
 
       File f = new File(traceFile);
       try {
         outputStream = new FileOutputStream(f);
       } catch (FileNotFoundException e) {
-        VM.sysWriteln("Unable to open trace file "+f.getAbsolutePath());
+        VM.sysWriteln("Unable to open trace file " + f.getAbsolutePath());
         VM.sysWriteln("continuing, but TuningFork trace generation is disabled.");
         state = State.SHUT_DOWN;
         return;
@@ -172,7 +172,7 @@ public final class TraceEngine {
       activeEventTypeChunk = new EventTypeChunk();
       if (!activeEventTypeChunk.add(et)) {
         if (VM.VerifyAssertions) {
-          VM.sysFail("EventTypeChunk is too small to to add event type "+et);
+          VM.sysFail("EventTypeChunk is too small to to add event type " + et);
         }
       }
     }
@@ -195,7 +195,7 @@ public final class TraceEngine {
       activePropertyTableChunk = new PropertyTableChunk();
       if (!activePropertyTableChunk.add(key, value)) {
         if (VM.VerifyAssertions) {
-          VM.sysFail("PropertyTableChunk is too small to to add "+key+" = " +value);
+          VM.sysFail("PropertyTableChunk is too small to to add " + key + " = " + value);
         }
       }
     }
@@ -216,7 +216,7 @@ public final class TraceEngine {
       activeFeedletChunk = new FeedletChunk();
       if (!activeFeedletChunk.add(f.getFeedletIndex(), name, description)) {
         if (VM.VerifyAssertions) {
-          VM.sysFail("FeedletChunk is too small to to add feedlet "+name+" (" +description+")");
+          VM.sysFail("FeedletChunk is too small to to add feedlet " + name + " ("  + description + ")");
         }
       }
     }
@@ -296,7 +296,7 @@ public final class TraceEngine {
         // Do nothing.
       }
       boolean shouldShutDown = state == State.SHUTTING_DOWN;
-      synchronized(this) {
+      synchronized (this) {
         if (shouldShutDown) {
           shutdownAllFeedlets();
         }

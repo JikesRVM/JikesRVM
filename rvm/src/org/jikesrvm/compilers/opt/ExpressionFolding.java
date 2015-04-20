@@ -258,7 +258,7 @@ public class ExpressionFolding extends IRTools {
           }
           if (innerDef == null) {
             Enumeration<Operand> defs = inner.getDefs();
-            while(defs.hasMoreElements()) {
+            while (defs.hasMoreElements()) {
               Operand def = defs.nextElement();
               if (def.isRegister()) {
                 Register defReg = def.asRegister().getRegister();
@@ -274,7 +274,7 @@ public class ExpressionFolding extends IRTools {
           // 3. check for anti dependence (do we define something that outer uses?)
           if (innerDef != null) {
             Enumeration<Operand> uses = outer.getUses();
-            while(uses.hasMoreElements()) {
+            while (uses.hasMoreElements()) {
               Operand use = uses.nextElement();
               if (use.isRegister() && (use.asRegister().getRegister() == innerDef)) {
                 if (VERBOSE) {
@@ -285,11 +285,11 @@ public class ExpressionFolding extends IRTools {
             }
           } else {
             Enumeration<Operand> defs = inner.getDefs();
-            while(defs.hasMoreElements()) {
+            while (defs.hasMoreElements()) {
               Operand def = defs.nextElement();
               if (def.isRegister()) {
                 Enumeration<Operand> uses = outer.getUses();
-                while(uses.hasMoreElements()) {
+                while (uses.hasMoreElements()) {
                   Operand use = uses.nextElement();
                   if (use.similar(def)) {
                     if (VERBOSE) {
@@ -895,7 +895,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(INT_SHL, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == INT_OR)||(def.operator() == INT_XOR)) {
+          } else if ((def.operator() == INT_OR) || (def.operator() == INT_XOR)) {
             int c1 = getIntValue(Binary.getVal2(def));
             // x = a | c1; y = << c2
             if ((c1 << c2) == 0) {
@@ -929,7 +929,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(REF_SHL, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == REF_OR)||(def.operator() == REF_XOR)) {
+          } else if ((def.operator() == REF_OR) || (def.operator() == REF_XOR)) {
             Address c1 = getAddressValue(Binary.getVal2(def));
             // x = a | c1; y = x << c2
             if (c1.toWord().lsh(c2).EQ(Word.zero())) {
@@ -960,7 +960,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(LONG_SHL, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == LONG_OR)||(def.operator() == LONG_XOR)) {
+          } else if ((def.operator() == LONG_OR) || (def.operator() == LONG_XOR)) {
             long c1 = getLongValue(Binary.getVal2(def));
             // x = a | c1; y = << c2
             if ((c1 << c2) == 0L) {
@@ -996,7 +996,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(INT_SHR, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == INT_OR)||(def.operator() == INT_XOR)) {
+          } else if ((def.operator() == INT_OR) || (def.operator() == INT_XOR)) {
             int c1 = getIntValue(Binary.getVal2(def));
             // x = a | c1; y = >> c2
             if ((c1 >>> c2) == 0) {
@@ -1021,7 +1021,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(REF_SHR, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == REF_OR)||(def.operator() == REF_XOR)) {
+          } else if ((def.operator() == REF_OR) || (def.operator() == REF_XOR)) {
             Address c1 = getAddressValue(Binary.getVal2(def));
             // x = a | c1; y = x >> c2
             if (c1.toWord().rshl(c2).EQ(Word.zero())) {
@@ -1046,7 +1046,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(LONG_SHR, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == LONG_OR)||(def.operator() == LONG_XOR)) {
+          } else if ((def.operator() == LONG_OR) || (def.operator() == LONG_XOR)) {
             long c1 = getLongValue(Binary.getVal2(def));
             // x = a & c1; y = >> c2
             if ((c1 >>> c2) == 0L) {
@@ -1077,7 +1077,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(INT_USHR, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == INT_OR)||(def.operator() == INT_XOR)) {
+          } else if ((def.operator() == INT_OR) || (def.operator() == INT_XOR)) {
             int c1 = getIntValue(Binary.getVal2(def));
             // x = a | c1; y = >>> c2
             if ((c1 >>> c2) == 0) {
@@ -1111,7 +1111,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(REF_USHR, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if (false) { //(def.operator() == REF_OR)||(def.operator() == REF_XOR)) {
+          } else if (false) { //(def.operator() == REF_OR) || (def.operator() == REF_XOR)) {
             Address c1 = getAddressValue(Binary.getVal2(def));
             // x = a | c1; y = x >>> c2
             if (c1.toWord().rshl(c2).EQ(Word.zero())) {
@@ -1142,7 +1142,7 @@ public class ExpressionFolding extends IRTools {
               // the first mask is redundant
               return Binary.create(LONG_USHR, y.copyRO(), a.copyRO(), IC(c2));
             }
-          } else if ((def.operator() == LONG_OR)||(def.operator() == LONG_XOR)) {
+          } else if ((def.operator() == LONG_OR) || (def.operator() == LONG_XOR)) {
             long c1 = getLongValue(Binary.getVal2(def));
             // x = a & c1; y = >>> c2
             if ((c1 >>> c2) == 0L) {
@@ -1468,11 +1468,11 @@ public class ExpressionFolding extends IRTools {
               int c1 = getIntValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_INT, y.copyRO(), a.copyRO(), IC(c1), cond2, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_INT, y.copyRO(), a.copyRO(), IC(c1), cond2.flipCode(), prof);
@@ -1481,11 +1481,11 @@ public class ExpressionFolding extends IRTools {
               long c1 = getLongValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1), cond2, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1), cond2.flipCode(), prof);
@@ -1494,11 +1494,11 @@ public class ExpressionFolding extends IRTools {
               Address c1 = getAddressValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_ADDR, y.copyRO(), a.copyRO(), AC(c1), cond2, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_ADDR, y.copyRO(), a.copyRO(), AC(c1), cond2.flipCode(), prof);
@@ -1507,11 +1507,11 @@ public class ExpressionFolding extends IRTools {
               float c1 = getFloatValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_FLOAT, y.copyRO(), a.copyRO(), FC(c1), cond2, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_FLOAT, y.copyRO(), a.copyRO(), FC(c1), cond2.flipCode(), prof);
@@ -1520,11 +1520,11 @@ public class ExpressionFolding extends IRTools {
               double c1 = getDoubleValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2 ? true : false
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_DOUBLE, y.copyRO(), a.copyRO(), DC(c1), cond2, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundancy boolean_cmp
                 return BooleanCmp.create(BOOLEAN_CMP_DOUBLE, y.copyRO(), a.copyRO(), DC(c1), cond2.flipCode(), prof);
@@ -1538,13 +1538,13 @@ public class ExpressionFolding extends IRTools {
               } else if (cond.isNOT_EQUAL() && c2 == 0) {
                 return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.NOT_EQUAL(), prof);
-              } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
+              } else if ((cond.isEQUAL() && c2 == 1) || (cond.isGREATER() && c2 == 0)) {
                 return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.GREATER(), prof);
-              } else if (cond.isGREATER_EQUAL() && c2 == 0){
+              } else if (cond.isGREATER_EQUAL() && c2 == 0) {
                 return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.GREATER_EQUAL(), prof);
-              } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
+              } else if ((cond.isEQUAL() && c2 == -1) || (cond.isLESS() && c2 == 0)) {
                 return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.LESS(), prof);
               } else if (cond.isLESS_EQUAL() && c2 == 0) {
@@ -1637,12 +1637,12 @@ public class ExpressionFolding extends IRTools {
               int c1 = getIntValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp<cond2> c1 ? true : false; y = x cmp<cond> c2
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundant boolean_cmp
                 // x = a cmp<cond2> c1; y = x == 1  ==> y = a cmp<cond2> c1
                 return IfCmp.create(INT_IFCMP, y.copyRO(), a.copyRO(), IC(c1), cond2, target, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundant boolean_cmp
                 // x = a cmp<cond2> c1; y = x == 0  ==> y = a cmp<!cond2> c1
@@ -1652,11 +1652,11 @@ public class ExpressionFolding extends IRTools {
               long c1 = getLongValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1), cond2, target, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1), cond2.flipCode(), target, prof);
@@ -1665,11 +1665,11 @@ public class ExpressionFolding extends IRTools {
               Address c1 = getAddressValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), AC(c1), cond2, target, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                 (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), AC(c1), cond2.flipCode(), target, prof);
@@ -1678,11 +1678,11 @@ public class ExpressionFolding extends IRTools {
               float c1 = getFloatValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(FLOAT_IFCMP, y.copyRO(), a.copyRO(), FC(c1), cond2, target, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(FLOAT_IFCMP, y.copyRO(), a.copyRO(), FC(c1), cond2.flipCode(), target, prof);
@@ -1691,11 +1691,11 @@ public class ExpressionFolding extends IRTools {
               double c1 = getDoubleValue(BooleanCmp.getVal2(def));
               ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
               // x = a cmp c1 ? true : false; y = x cmp c2
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(DOUBLE_IFCMP, y.copyRO(), a.copyRO(), DC(c1), cond2, target, prof);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 // Fold away redundant boolean_cmp
                 return IfCmp.create(DOUBLE_IFCMP, y.copyRO(), a.copyRO(), DC(c1), cond2.flipCode(), target, prof);
@@ -1709,13 +1709,13 @@ public class ExpressionFolding extends IRTools {
               } else if (cond.isNOT_EQUAL() && c2 == 0) {
                 return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.NOT_EQUAL(), target, prof);
-              } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
+              } else if ((cond.isEQUAL() && c2 == 1) || (cond.isGREATER() && c2 == 0)) {
                 return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.GREATER(), target, prof);
-              } else if (cond.isGREATER_EQUAL() && c2 == 0){
+              } else if (cond.isGREATER_EQUAL() && c2 == 0) {
                 return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.GREATER_EQUAL(), target, prof);
-              } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
+              } else if ((cond.isEQUAL() && c2 == -1) || (cond.isLESS() && c2 == 0)) {
                 return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
                     ConditionOperand.LESS(), target, prof);
               } else if (cond.isLESS_EQUAL() && c2 == 0) {
@@ -1851,7 +1851,7 @@ public class ExpressionFolding extends IRTools {
           BranchOperand target2 = (BranchOperand) IfCmp2.getTarget2(s).copy();
           BranchProfileOperand prof1 = (BranchProfileOperand) IfCmp2.getBranchProfile1(s).copy();
           BranchProfileOperand prof2 = (BranchProfileOperand) IfCmp2.getBranchProfile2(s).copy();
-          if ((cond1.isEQUAL() || cond1.isNOT_EQUAL())&&(cond2.isEQUAL() || cond2.isNOT_EQUAL())) {
+          if ((cond1.isEQUAL() || cond1.isNOT_EQUAL()) && (cond2.isEQUAL() || cond2.isNOT_EQUAL())) {
             if (def.operator() == INT_ADD) {
               int c1 = getIntValue(Binary.getVal2(def));
               // x = a + c1; y = x cmp c2
@@ -2058,7 +2058,7 @@ public class ExpressionFolding extends IRTools {
               int c1 = getIntValue(BooleanCmp.getVal2(def));
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2067,7 +2067,7 @@ public class ExpressionFolding extends IRTools {
                     BooleanCmp.getCond(def).copy().asCondition(),
                     trueValue,
                     falseValue);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2083,7 +2083,7 @@ public class ExpressionFolding extends IRTools {
               Address c1 = getAddressValue(BooleanCmp.getVal2(def));
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2092,7 +2092,7 @@ public class ExpressionFolding extends IRTools {
                     BooleanCmp.getCond(def).copy().asCondition(),
                     trueValue,
                     falseValue);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2108,7 +2108,7 @@ public class ExpressionFolding extends IRTools {
               long c1 = getLongValue(BooleanCmp.getVal2(def));
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2117,7 +2117,7 @@ public class ExpressionFolding extends IRTools {
                     BooleanCmp.getCond(def).copy().asCondition(),
                     trueValue,
                     falseValue);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2134,7 +2134,7 @@ public class ExpressionFolding extends IRTools {
               double c1 = getDoubleValue(BooleanCmp.getVal2(def));
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2143,7 +2143,7 @@ public class ExpressionFolding extends IRTools {
                     BooleanCmp.getCond(def).copy().asCondition(),
                     trueValue,
                     falseValue);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2159,7 +2159,7 @@ public class ExpressionFolding extends IRTools {
               float c1 = getFloatValue(BooleanCmp.getVal2(def));
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a cmp c1 ? true : false; y = x cmp c2 ? trueValue : falseValue
-              if ((cond.isEQUAL() && c2 == 1)||
+              if ((cond.isEQUAL() && c2 == 1) ||
                   (cond.isNOT_EQUAL() && c2 == 0)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2168,7 +2168,7 @@ public class ExpressionFolding extends IRTools {
                     BooleanCmp.getCond(def).copy().asCondition(),
                     trueValue,
                     falseValue);
-              } else if ((cond.isEQUAL() && c2 == 0)||
+              } else if ((cond.isEQUAL() && c2 == 0) ||
                   (cond.isNOT_EQUAL() && c2 == 1)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
@@ -2200,7 +2200,7 @@ public class ExpressionFolding extends IRTools {
                     ConditionOperand.NOT_EQUAL(),
                     trueValue,
                     falseValue);
-              } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
+              } else if ((cond.isEQUAL() && c2 == 1) || (cond.isGREATER() && c2 == 0)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
@@ -2208,7 +2208,7 @@ public class ExpressionFolding extends IRTools {
                     ConditionOperand.GREATER(),
                     trueValue,
                     falseValue);
-              } else if (cond.isGREATER_EQUAL() && c2 == 0){
+              } else if (cond.isGREATER_EQUAL() && c2 == 0) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),
@@ -2216,7 +2216,7 @@ public class ExpressionFolding extends IRTools {
                     ConditionOperand.GREATER_EQUAL(),
                     trueValue,
                     falseValue);
-              } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
+              } else if ((cond.isEQUAL() && c2 == -1) || (cond.isLESS() && c2 == 0)) {
                 return CondMove.create(s.operator(),
                     y.copyRO(),
                     a.copyRO(),

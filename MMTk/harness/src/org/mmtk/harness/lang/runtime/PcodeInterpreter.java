@@ -65,7 +65,7 @@ public final class PcodeInterpreter {
     while (true) {
       PseudoOp op = code[pc++];
       Clock.stop();
-      Trace.trace(Item.EVAL,"depth=%-4d pc=%4d: %s",nesting,pc-1,op);
+      Trace.trace(Item.EVAL,"depth=%-4d pc=%4d: %s",nesting,pc - 1,op);
       Clock.start();
       try {
         if (op.mayTriggerGc() || op.affectsControlFlow()) {
@@ -169,7 +169,7 @@ public final class PcodeInterpreter {
    */
   private void setActualParams(Value[] actuals) {
     StackFrame calleeFrame = env.top();
-    for (int i=0; i < actuals.length; i++) {
+    for (int i = 0; i < actuals.length; i++) {
       calleeFrame.set(i,actuals[i]);
     }
   }
@@ -181,7 +181,7 @@ public final class PcodeInterpreter {
   private void stackTrace(PseudoOp op) {
     saveContext(op,env.top());
     for (StackFrame frame : env.iterator()) {
-      op = frame.getSavedMethod()[frame.getSavedPc()-1];
+      op = frame.getSavedMethod()[frame.getSavedPc() - 1];
       System.err.println(op.getSourceLocation("at "));
     }
   }

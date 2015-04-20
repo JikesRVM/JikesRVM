@@ -22,7 +22,7 @@ class tNativeThreads {
 
   public static        int javaFoo(int count) {
     NativeThreadsWorker.say("tNativeThreads.javaFoo"," - entered and about to return");
-    return count +1;
+    return count + 1;
   }
 
   public static void main(String[] args) {
@@ -68,7 +68,7 @@ class tNativeThreads {
           try {
             //say(name, "sleeping");
             Thread.currentThread().sleep(300);
-          } catch (InterruptedException e) {}
+          } catch (InterruptedException e) { }
           Thread.currentThread().yield();
         }
 

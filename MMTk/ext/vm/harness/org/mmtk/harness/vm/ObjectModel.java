@@ -258,7 +258,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of data words in the object.
    */
   private static void setDataCount(ObjectReference object, int count) {
-    assert count < MAX_DATA_FIELDS && count >= 0 : "Too many data fields, "+count;
+    assert count < MAX_DATA_FIELDS && count >= 0 : "Too many data fields, " + count;
     object.toAddress().store(count, DATACOUNT_OFFSET);
   }
 
@@ -267,7 +267,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of references in the object.
    */
   private static void setRefCount(ObjectReference object, int count) {
-    assert count < MAX_REF_FIELDS && count >= 0 : "Too many reference fields, "+count;
+    assert count < MAX_REF_FIELDS && count >= 0 : "Too many reference fields, " + count;
     object.toAddress().store(count, REFCOUNT_OFFSET);
   }
 
@@ -381,7 +381,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     Clock.start();
 
     Address fromRegion = from.toAddress();
-    for(int i=0; i < oldBytes; i += MemoryConstants.BYTES_IN_INT) {
+    for (int i = 0; i < oldBytes; i += MemoryConstants.BYTES_IN_INT) {
       toRegion.plus(i).store(fromRegion.plus(i).loadInt());
     }
 
@@ -424,7 +424,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     if (doCopy) {
       Address srcRegion = from.toAddress();
       Address dstRegion = to.toAddress();
-      for(int i=0; i < bytes; i += MemoryConstants.BYTES_IN_INT) {
+      for (int i = 0; i < bytes; i += MemoryConstants.BYTES_IN_INT) {
         int before = srcRegion.plus(i).loadInt();
         dstRegion.plus(i).store(before);
         int after = dstRegion.plus(i).loadInt();
@@ -682,7 +682,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     List<ObjectReference> pointers = new ArrayList<ObjectReference>(refCount);
     System.err.printf("  Object %s <%d %d %1s> [", ObjectModel.formatObject(width, object), refCount, dataCount, (hashed ? "H" : ""));
     if (refCount > 0) {
-      for(int i=0; i < refCount; i++) {
+      for (int i = 0; i < refCount; i++) {
         ObjectReference ref = ActivePlan.plan.loadObjectReference(getRefSlot(object, i));
         System.err.print(" ");
         System.err.print(ObjectModel.formatObject(width, ref));
@@ -705,7 +705,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     if (ref.isNull()) return "<null>";
     int refs = getRefs(ref);
     int data = getDataCount(ref);
-    return addressAndSpaceString(ref)+objectIdString(ref)+refs + "R" + data + "D";
+    return addressAndSpaceString(ref) + objectIdString(ref) + refs + "R" + data + "D";
   }
 
   /**

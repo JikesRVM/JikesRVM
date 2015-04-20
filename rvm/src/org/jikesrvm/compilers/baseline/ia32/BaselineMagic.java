@@ -198,8 +198,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Class<?> dc = cm.getDeclaringClass().getClassForType();
       if ((dc != JavaHeader.class) &&
-          (dc != ObjectModel.class)
-      ){
+          (dc != ObjectModel.class)) {
         if (checkMR.needsDynamicLink(cm)) {
           BaselineCompilerImpl.emitDynamicLinkingSequence(asm, S0, checkMR, true);
           if (offset.NE(NO_SLOT)) {
@@ -243,8 +242,7 @@ final class BaselineMagic {
       generator.generateMagic(asm, m, cm, sd);
       Class<?> dc = cm.getDeclaringClass().getClassForType();
       if ((dc != JavaHeader.class) &&
-          (dc != ObjectModel.class)
-      ){
+          (dc != ObjectModel.class)) {
         if (checkMR.needsDynamicLink(cm)) {
           BaselineCompilerImpl.emitDynamicLinkingSequence(asm, S0, checkMR, true);
           if (offset.NE(NO_SLOT)) {
@@ -1031,7 +1029,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S1);          // S1 = base
       asm.emitXOR_Reg_Reg(S0, S0);  // S0 = 0
       asm.emitLockNextInstruction();
-      if(!quad) {
+      if (!quad) {
         asm.emitCMPXCHG_RegInd_Reg(S1, T1);      // atomic compare-and-exchange
       } else {
         asm.emitCMPXCHG_RegInd_Reg_Quad(S1, T1); // atomic compare-and-exchange
@@ -1121,14 +1119,14 @@ final class BaselineMagic {
       asm.emitPOP_Reg(EAX);           // oldVal (EAX is implicit arg to LCMPXCNG
       asm.emitPOP_Reg(S1);            // S1 = offset
       asm.emitPOP_Reg(S0);            // S0 = base
-      if(VM.BuildFor32Addr) {
+      if (VM.BuildFor32Addr) {
         asm.emitADD_Reg_Reg(S1, S0);  // S1 = base+offset
       } else {
         asm.emitADD_Reg_Reg_Quad(S1, S0); // S1 = base+offset
       }
       asm.emitXOR_Reg_Reg(S0, S0);    // S0 = 0
       asm.emitLockNextInstruction();
-      if(!quad) {
+      if (!quad) {
         asm.emitCMPXCHG_RegInd_Reg(S1, T1);      // atomic compare-and-exchange
       } else {
         asm.emitCMPXCHG_RegInd_Reg_Quad(S1, T1); // atomic compare-and-exchange
@@ -1163,7 +1161,7 @@ final class BaselineMagic {
       // returns ([base+offset] == oldVal)
       // if ([base+offset] == oldVal) [base+offset] := newVal
       // (operation on memory is atomic)
-      if(VM.BuildFor32Addr) {
+      if (VM.BuildFor32Addr) {
         //t1:t0 with s0:ebx
         asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);
         asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // T1:T0 (EDX:EAX) -> oldVal
@@ -1183,7 +1181,7 @@ final class BaselineMagic {
         fr2.resolve(asm);
         asm.emitMOV_Reg_RegDisp(EBX, SP, THREE_SLOTS);  // Restore EBX
         asm.emitMOV_Reg_RegDisp(ESI, SP, TWO_SLOTS);    // Restore ESI
-        asm.emitADD_Reg_Imm(SP, WORDSIZE*5);            // adjust SP popping the 4 args (6 slots) and pushing the result
+        asm.emitADD_Reg_Imm(SP, WORDSIZE * 5);            // adjust SP popping the 4 args (6 slots) and pushing the result
       } else {
         asm.emitPOP_Reg(T1);            // newVal
         asm.emitPOP_Reg(EAX);           // junk
@@ -2212,7 +2210,7 @@ final class BaselineMagic {
     Class<?>[] resultTypes = new Class<?>[] { Address.class, Extent.class,
         CodeArray.class, CodeArray.class, ObjectReference.class, Offset.class,
         Object.class, Word.class };
-    for (int i=0; i < unboxedTypes.length; i++) {
+    for (int i = 0; i < unboxedTypes.length; i++) {
       Class<?> type = unboxedTypes[i];
       Class<?> result = resultTypes[i];
       generators.put(getMethodReference(type, MagicNames.addressArrayGet, int.class, result), g);
@@ -2248,7 +2246,7 @@ final class BaselineMagic {
   private static final class Store32_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      Barriers.compileModifyCheck(asm, 2*WORDSIZE);
+      Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
       if (VM.BuildFor64Addr) {
@@ -2266,7 +2264,7 @@ final class BaselineMagic {
   private static final class Store64_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      Barriers.compileModifyCheck(asm, 2*WORDSIZE);
+      Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
       if (VM.BuildFor64Addr) {
@@ -2286,7 +2284,7 @@ final class BaselineMagic {
     Class<?>[] operandTypes = new Class<?>[] { Address.class, Extent.class,
         CodeArray.class, CodeArray.class, ObjectReference.class, Offset.class,
         Object.class, Word.class };
-    for (int i=0; i < unboxedTypes.length; i++) {
+    for (int i = 0; i < unboxedTypes.length; i++) {
       Class<?> type = unboxedTypes[i];
       Class<?> operand = operandTypes[i];
       generators.put(getMethodReference(type, MagicNames.addressArraySet, int.class, operand, void.class), g);
@@ -2299,7 +2297,7 @@ final class BaselineMagic {
   private static final class Store8_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
-      Barriers.compileModifyCheck(asm, 2*WORDSIZE);
+      Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
       asm.emitPOP_Reg(T1); // T1 is the value
       asm.emitPOP_Reg(T0); // T0 is array index
       if (VM.BuildFor64Addr) {

@@ -694,11 +694,11 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @return true if the transformation succeeds, false otherwise
    */
   private boolean generateCondMove(IR ir, BasicBlock bb, Instruction cb) {
-    final boolean VERBOSE=false;
+    final boolean VERBOSE = false;
     if (!VM.BuildForIA32) return false;
     if (!IfCmp.conforms(cb)) return false;
 
-    if (VERBOSE) System.out.println("CondMove: Looking to optimize "+cb);
+    if (VERBOSE) System.out.println("CondMove: Looking to optimize " + cb);
     // Don't generate CMOVs for branches that can be folded.
     if (IfCmp.getVal1(cb).isConstant() && IfCmp.getVal2(cb).isConstant()) {
       if (VERBOSE) System.out.println("CondMove: fail - could be folded");
@@ -737,7 +737,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     if ((Math.abs(profile.takenProbability - 0.5) >= ir.options.CONTROL_WELL_PREDICTED_CUTOFF) &&
         !(cb.position != null && cb.position.method.getName() == ABS && cond.isFLOATINGPOINT())) {
       if (VERBOSE)
-        System.out.println("CondMove: fail - branch could be well predicted by branch predictor: "+
+        System.out.println("CondMove: fail - branch could be well predicted by branch predictor: " +
             profile.takenProbability);
       return false;
     }
@@ -752,7 +752,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
           // give up or for SSE2 check if this is a floating point compare
           // controlling just floating point moves
           if (!VM.BuildForSSE2Full || hasFloatingPointDef(taken, true) || hasFloatingPointDef(notTaken, true)) {
-            if (VERBOSE) System.out.println("CondMove: fail - fp condition not OK: "+cond);
+            if (VERBOSE) System.out.println("CondMove: fail - fp condition not OK: " + cond);
             return false;
           }
         } else {

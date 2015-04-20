@@ -88,7 +88,7 @@ public final class DynamicLibrary {
   private Address getJNI_OnLoad() {
     Address candidate = getSymbol("JNI_OnLoad");
     Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
-    while(libs.hasNext()) {
+    while (libs.hasNext()) {
       DynamicLibrary lib = libs.next();
       if (lib.jniOnLoad.EQ(candidate)) {
         return Address.zero();
@@ -104,7 +104,7 @@ public final class DynamicLibrary {
   private Address getJNI_OnUnload() {
     Address candidate = getSymbol("JNI_OnUnload");
     Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
-    while(libs.hasNext()) {
+    while (libs.hasNext()) {
       DynamicLibrary lib = libs.next();
       if (lib.jniOnUnload.EQ(candidate)) {
         return Address.zero();

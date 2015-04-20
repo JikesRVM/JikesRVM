@@ -140,7 +140,8 @@ class OptTestHarness {
               array[j] = args[++i];
             }
             methodArgs[argNum] = array;
-          } else {// TODO
+          } else {
+            // TODO implement it
             output.sysErrPrintln("Parsing args of array of " + element + " not implemented");
           }
         }
@@ -334,7 +335,7 @@ class OptTestHarness {
           i++;
           mainArgs = new String[args.length - i];
           for (int j = 0, z = mainArgs.length; j < z; j++) {
-            mainArgs[j] = args[i+j];
+            mainArgs[j] = args[i + j];
           }
           break;
         } else {

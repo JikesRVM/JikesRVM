@@ -35,7 +35,7 @@ class tBlockingThreads {
 
     if (NUMBER_OF_WORKERS == 0) {
       // have main thread make the native blocking call
-      for (int i=1; i < 5; i++) {
+      for (int i = 1; i < 5; i++) {
         time = 1 * i;
         RVMThread.trace("main","calling nativeBlocking for time = ",time);
         nativeBlocking(time);
@@ -45,7 +45,7 @@ class tBlockingThreads {
       // create worker threads which each make repeated native blocking calls
       BlockingThreadsWorker[] a = new BlockingThreadsWorker[NUMBER_OF_WORKERS];
       for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++) {
-          if (wrk%2 == 0)
+          if (wrk % 2 == 0)
             a[wrk] = new BlockingThreadsWorker(1);
           else
             a[wrk] = new BlockingThreadsWorker(2);
@@ -55,14 +55,14 @@ class tBlockingThreads {
 
       for (int i = 0; i < NUMBER_OF_WORKERS; i ++) {
         int cntr = 1;
-        while(!a[i].isFinished) {
+        while (!a[i].isFinished) {
 
           try {
             Thread.currentThread().sleep(100);
-          } catch (InterruptedException e) {}
+          } catch (InterruptedException e) { }
 
           cntr++;
-          if (cntr%1000 == 0)
+          if (cntr % 1000 == 0)
             RVMThread.trace("main","waiting for worker",i);
 
           if (FORCE_GC) {

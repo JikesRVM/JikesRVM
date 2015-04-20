@@ -733,7 +733,7 @@ public class LeaveSSA extends CompilerPhase {
     int aUnion = guardRegUnion.get(a);
     int bUnion = guardRegUnion.get(b);
     if (aUnion == bUnion) {
-      guardRegUnion.put(a, Integer.valueOf(aUnion+1));
+      guardRegUnion.put(a, Integer.valueOf(aUnion + 1));
       associatedRegisters.put(b, a);
       return a;
     }

@@ -56,7 +56,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
     if (default_property_file == null) {
       propFileName = System.getProperty(property_file_property);
       if (propFileName == null) {
-        System.err.println(property_file_property+" must specify a properties file");
+        System.err.println(property_file_property + " must specify a properties file");
         VM.sysExit(1);
       }
     } else {
@@ -70,7 +70,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
       propFileStream.close();
     } catch (FileNotFoundException e) {
       if (!propFileName.equals(default_property_file)) {
-        System.err.println(propFileName+" not found.");
+        System.err.println(propFileName + " not found.");
         VM.sysExit(1);
       }
     } catch (IOException e) {
@@ -95,7 +95,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
   public boolean getBooleanProperty(String name) {
     String value = props.getProperty(name);
     if (value == null)
-      throw new RuntimeException("Undefined property "+name);
+      throw new RuntimeException("Undefined property " + name);
     return Boolean.parseBoolean(value);
   }
 
@@ -109,7 +109,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
   public int getIntProperty(String name) {
     String value = props.getProperty(name);
     if (value == null)
-      throw new RuntimeException("Undefined property "+name);
+      throw new RuntimeException("Undefined property " + name);
     return Integer.parseInt(value);
   }
 
@@ -122,7 +122,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
   public String getStringProperty(String name) {
     String value = props.getProperty(name);
     if (value == null)
-      throw new RuntimeException("Undefined property "+name);
+      throw new RuntimeException("Undefined property " + name);
     return value;
   }
 

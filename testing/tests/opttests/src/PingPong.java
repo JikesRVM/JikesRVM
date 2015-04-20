@@ -21,7 +21,7 @@ class PingPong extends Thread {
 
     public void run() {
         try {
-            for (int i=0; i<20; i++) {
+            for (int i = 0; i < 20; i++) {
                 System.out.print(word + " ");
                 sleep(delaytime);
             }

@@ -448,7 +448,7 @@ public final class Lock {
   public static void init() {
     nextLockIndex = 1;
     locks = new Lock[LOCK_SPINE_SIZE][];
-    for (int i=0; i < INITIAL_CHUNKS; i++) {
+    for (int i = 0; i < INITIAL_CHUNKS; i++) {
       chunksAllocated++;
       locks[i] = new Lock[LOCK_CHUNK_SIZE];
     }
@@ -471,7 +471,7 @@ public final class Lock {
    */
   @UnpreemptibleNoWarn("The caller is prepared to lose control when it allocates a lock")
   static Lock allocate() {
-    RVMThread me=RVMThread.getCurrentThread();
+    RVMThread me = RVMThread.getCurrentThread();
     if (me.cachedFreeLock != null) {
       Lock l = me.cachedFreeLock;
       me.cachedFreeLock = null;
@@ -495,7 +495,7 @@ public final class Lock {
           globalFreeLocks--;
         }
         lockAllocationMutex.unlock();
-        if (trace && l!=null) {
+        if (trace && l != null) {
           VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
                         " from the global freelist for Thread #",me.getThreadSlot());
         }
@@ -525,7 +525,7 @@ public final class Lock {
            * Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen */
           Magic.sync();
         }
-        if (trace && l!=null) {
+        if (trace && l != null) {
           VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
                         ", a freshly allocated lock for Thread #",
                         me.getThreadSlot());
@@ -586,7 +586,7 @@ public final class Lock {
     if (spineId >= LOCK_SPINE_SIZE) {
       VM.sysFail("Cannot grow lock array greater than maximum possible index");
     }
-    for(int i=chunksAllocated; i <= spineId; i++) {
+    for (int i = chunksAllocated; i <= spineId; i++) {
       if (locks[i] != null) {
         /* We were beaten to it */
         continue;
@@ -662,7 +662,7 @@ public final class Lock {
    * @return number of locks held
    */
   public static int countLocksHeldByThread(int id) {
-    int count=0;
+    int count = 0;
     for (int i = 0; i < numLocks(); i++) {
       Lock l = getLock(i);
       if (l != null && l.active && l.ownerId == id && l.recursionCount > 0) {

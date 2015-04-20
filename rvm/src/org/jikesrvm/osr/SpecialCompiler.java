@@ -86,12 +86,16 @@ public class SpecialCompiler {
   public static CompiledMethod baselineCompile(ExecutionState state) {
     NormalMethod method = state.getMethod();
 
-    if (VM.TraceOnStackReplacement) {VM.sysWriteln("BASE : starts compiling " + method); }
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("BASE : starts compiling " + method);
+    }
 
     /* generate prologue bytes */
     byte[] prologue = state.generatePrologue();
 
-    if (VM.TraceOnStackReplacement) {VM.sysWriteln("prologue length " + prologue.length);}
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("prologue length " + prologue.length);
+    }
 
     // the compiler will call setForOsrSpecialization after generating the reference map
     /* set a flag for specialization, compiler will see it, and

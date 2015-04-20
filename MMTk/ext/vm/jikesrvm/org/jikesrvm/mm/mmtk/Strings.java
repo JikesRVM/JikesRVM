@@ -31,7 +31,6 @@ public final class Strings extends org.mmtk.vm.Strings {
     VM.tsysWrite(c, len);
   }
 
-
   @Override
   public int copyStringToChars(String str, char [] dst,
                                int dstBegin, int dstEnd) {
@@ -65,7 +64,7 @@ public final class Strings extends org.mmtk.vm.Strings {
     int str_offset = java.lang.JikesRVMSupport.getStringOffset(str);
     int n = (dstBegin + str_length <= dstEnd) ? str_length : (dstEnd - dstBegin);
     for (int i = 0; i < n; i++) {
-      Services.setArrayNoBarrier(dst, dstBegin + i, str_backing[str_offset+i]);
+      Services.setArrayNoBarrier(dst, dstBegin + i, str_backing[str_offset + i]);
     }
     RVMThread.getCurrentThread().enableYieldpoints();
     return n;

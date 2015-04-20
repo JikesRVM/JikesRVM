@@ -32,7 +32,7 @@ public class HeaderByte {
 
   public static final boolean NEEDS_UNLOGGED_BIT = VM.activePlan.constraints().needsLogBitInHeader();
   private static final int UNLOGGED_BIT_NUMBER = TOTAL_BITS - (NEEDS_UNLOGGED_BIT ? 1 : 0);
-  public static final byte UNLOGGED_BIT = (byte) (1<<UNLOGGED_BIT_NUMBER);
+  public static final byte UNLOGGED_BIT = (byte) (1 << UNLOGGED_BIT_NUMBER);
   public static final int USED_GLOBAL_BITS = TOTAL_BITS - UNLOGGED_BIT_NUMBER;
 
 

@@ -83,7 +83,7 @@ public abstract class RVMType extends AnnotatedElement {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /** All types */
   private static RVMType[][] types = new RVMType[1][1 << LOG_ROW_SIZE];
 
@@ -554,11 +554,11 @@ public abstract class RVMType extends AnnotatedElement {
     int ans = nextId++;
     int column = ans >> LOG_ROW_SIZE;
     if (column >= types.length) {
-      RVMType[][] newTypes = new RVMType[column+1][];
+      RVMType[][] newTypes = new RVMType[column + 1][];
       for (int i = 0; i < types.length; i++) {
         newTypes[i] = types[i];
       }
-      newTypes[column] = new RVMType[1<<LOG_ROW_SIZE];
+      newTypes[column] = new RVMType[1 << LOG_ROW_SIZE];
       types = newTypes;
     }
     types[ans >> LOG_ROW_SIZE][ans & ROW_MASK] = it;
@@ -596,21 +596,21 @@ public abstract class RVMType extends AnnotatedElement {
           String classNameString = className.toString();
           if (classNameString.equals("V")) {
             return void.class;
-          } else if(classNameString.equals("I")){
+          } else if (classNameString.equals("I")) {
             return int.class;
-          } else if(classNameString.equals("J")){
+          } else if (classNameString.equals("J")) {
             return long.class;
-          } else if(classNameString.equals("F")){
+          } else if (classNameString.equals("F")) {
             return float.class;
-          } else if(classNameString.equals("D")){
+          } else if (classNameString.equals("D")) {
             return double.class;
-          } else if(classNameString.equals("C")){
+          } else if (classNameString.equals("C")) {
             return char.class;
-          } else if(classNameString.equals("S")){
+          } else if (classNameString.equals("S")) {
             return short.class;
-          } else if(classNameString.equals("Z")){
+          } else if (classNameString.equals("Z")) {
             return boolean.class;
-          } else if(classNameString.equals("B")){
+          } else if (classNameString.equals("B")) {
             return byte.class;
           } else {
             return Class.forName(classNameString.replace('/', '.'), false, RVMType.class.getClassLoader());

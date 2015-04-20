@@ -761,7 +761,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       Operand index = AStore.getClearIndex(s);
       Operand offset;
       LocationOperand loc = AStore.getClearLocation(s);
-      if (index instanceof IntConstantOperand) {// constant propagation
+      if (index instanceof IntConstantOperand) { // constant propagation
         offset = AC(Address.fromIntZeroExtend(((IntConstantOperand) index).value << logwidth));
       } else {
         if (logwidth != 0) {

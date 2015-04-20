@@ -67,7 +67,7 @@ public final class Atom {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /**
    * Dictionary of all Atom instances.
    */
@@ -169,7 +169,7 @@ public final class Atom {
   private static Atom findOrCreate(byte[] utf8, int off, int len, String str) {
     if (str != null) {
       // string substring is cheap, so try to find using this if possible
-      Atom val = new Atom(null, -1, str.substring(off, off+len));
+      Atom val = new Atom(null, -1, str.substring(off, off + len));
       val = dictionary.get(val);
       if (val != null) return val;
     }
@@ -199,7 +199,7 @@ public final class Atom {
     val = dictionary.get(val);
     if (val != null || !create) return val;
 
-    synchronized(Atom.class) {
+    synchronized (Atom.class) {
       // Check if a matching Atom was created while
       // the current thread tried to acquire the lock
       val = new Atom(bytes, -1, str);
@@ -209,8 +209,8 @@ public final class Atom {
       val = new Atom(bytes, nextId++, str);
       int column = val.id >> LOG_ROW_SIZE;
       if (column == atoms.length) {
-        Atom[][] tmp = new Atom[column+1][];
-        for (int i=0; i < column; i++) {
+        Atom[][] tmp = new Atom[column + 1][];
+        for (int i = 0; i < column; i++) {
           tmp[i] = atoms[i];
         }
         atoms = tmp;
@@ -388,7 +388,7 @@ public final class Atom {
     if (unicodeStringOrJTOCoffset == null) {
       return StringUtilities.asciiBytesToString(val, 1, val.length - 2).replace('/', '.');
     } else {
-      return toUnicodeStringInternal().substring(1, val.length-1).replace('/','.');
+      return toUnicodeStringInternal().substring(1, val.length - 1).replace('/','.');
     }
   }
 
@@ -406,7 +406,7 @@ public final class Atom {
     if (unicodeStringOrJTOCoffset == null) {
       return StringUtilities.asciiBytesToString(val, 1, val.length - 2) + ".class";
     } else {
-      return toUnicodeStringInternal().substring(1, val.length-1) + ".class";
+      return toUnicodeStringInternal().substring(1, val.length - 1) + ".class";
     }
   }
 
@@ -612,7 +612,7 @@ public final class Atom {
   public Class<?>[] parseForParameterClasses(ClassLoader cl) {
     TypeReference[] typeRefs = this.parseForParameterTypes(cl);
     Class<?>[] classes = new Class<?>[typeRefs.length];
-    for (int i=0; i < typeRefs.length; i++) {
+    for (int i = 0; i < typeRefs.length; i++) {
       TypeReference t = typeRefs[i];
       classes[i] = t.resolve().getClassForType();
     }

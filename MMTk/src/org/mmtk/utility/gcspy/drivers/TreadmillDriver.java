@@ -129,7 +129,7 @@ import org.vmmagic.pragma.*;
                      this,
                      "Objects stream",
                      (short)0,
-                     (short)(blockSize/threshold),
+                     (short)(blockSize / threshold),
                      (short)0,
                      (short)0,
                      "No. of objects = ",
@@ -148,7 +148,7 @@ import org.vmmagic.pragma.*;
                      "Roots stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Roots: ",
@@ -167,7 +167,7 @@ import org.vmmagic.pragma.*;
                      "References from Immortal stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "References from immortal space: ",
@@ -287,7 +287,7 @@ import org.vmmagic.pragma.*;
    * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRoot(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       rootsStream.increment(index, (short)1);
@@ -317,7 +317,7 @@ import org.vmmagic.pragma.*;
    */
   @Override
   public boolean handleReferenceFromImmortalSpace(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       refFromImmortalStream.increment(index, (short)1);

@@ -19,7 +19,7 @@ public final class AddressArray {
   private AddressArray(int size) {
     data = new Address[size];
     Address zero = Address.zero();
-    for(int i=0; i<size;i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = zero;
     }
   }

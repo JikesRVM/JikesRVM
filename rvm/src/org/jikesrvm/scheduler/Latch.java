@@ -48,7 +48,7 @@ public class Latch {
    */
   public void openWithHandshake() {
     schedLock.lockWithHandshake();
-    open=true;
+    open = true;
     schedLock.broadcast();
     schedLock.unlock();
   }
@@ -60,7 +60,7 @@ public class Latch {
   @Uninterruptible
   public void openNoHandshake() {
     schedLock.lockNoHandshake();
-    open=true;
+    open = true;
     schedLock.broadcast();
     schedLock.unlock();
   }
@@ -70,7 +70,7 @@ public class Latch {
    */
   public void closeWithHandshake() {
     schedLock.lockWithHandshake();
-    open=false;
+    open = false;
     schedLock.unlock();
   }
   /**
@@ -94,7 +94,7 @@ public class Latch {
     while (!open) {
       schedLock.waitWithHandshake();
     }
-    open=false;
+    open = false;
     schedLock.unlock();
   }
 }

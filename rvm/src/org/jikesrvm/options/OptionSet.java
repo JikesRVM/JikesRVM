@@ -71,13 +71,13 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     // Split into 'name' and 'value' strings
     int split = arg.indexOf('=');
     if (split == -1) {
-      VM.sysWriteln("  Illegal option specification!\n  \""+arg+
+      VM.sysWriteln("  Illegal option specification!\n  \"" + arg +
                   "\" must be specified as a name-value pair in the form of option=value");
       return false;
     }
 
     String name = arg.substring(0,split);
-    String value = arg.substring(split+1);
+    String value = arg.substring(split + 1);
 
     Option o = getOption(name);
 
@@ -147,7 +147,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       if (o.getType() == Option.BOOLEAN_OPTION) {
         String key = o.getKey();
         VM.sysWrite(key);
-        for (int c = key.length(); c<39;c++) {
+        for (int c = key.length(); c < 39;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWriteln(o.getDescription());
@@ -164,7 +164,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
           o.getType() != Option.ENUM_OPTION) {
         String key = o.getKey();
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         switch (o.getType()) {
@@ -187,7 +187,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       if (o.getType() == Option.ENUM_OPTION) {
         String key = o.getKey();
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWriteln(o.getDescription());
@@ -218,7 +218,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         VM.sysWrite("\t");
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWrite(" = ");
@@ -235,7 +235,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         VM.sysWrite("\t");
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWrite(" = ");
@@ -251,7 +251,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         VM.sysWrite("\t");
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWrite(" = ");
@@ -313,7 +313,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     StringBuilder key = new StringBuilder(word.toLowerCase());
 
     do {
-      int old = space+1;
+      int old = space + 1;
       space = name.indexOf(' ', old);
       if (space < 0) {
         key.append(name.substring(old));
@@ -336,7 +336,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
   @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(Memory.getPagesize()-1).toWord().rshl(Memory.getPagesizeLog()).toInt();
+    return bytes.plus(Memory.getPagesize() - 1).toWord().rshl(Memory.getPagesizeLog()).toInt();
   }
 
   @Override

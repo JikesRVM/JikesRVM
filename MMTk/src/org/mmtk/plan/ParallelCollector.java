@@ -45,7 +45,7 @@ public abstract class ParallelCollector extends CollectorContext {
   @Override
   @Unpreemptible
   public void run() {
-    while(true) {
+    while (true) {
       park();
       collect();
     }

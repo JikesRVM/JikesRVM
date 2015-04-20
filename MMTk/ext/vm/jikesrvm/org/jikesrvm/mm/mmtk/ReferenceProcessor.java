@@ -203,7 +203,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     int newLength = STRESS ? references.length() + 1 : (int)(references.length() * GROWTH_FACTOR);
     if (TRACE) VM.sysWriteln("Expanding reference type table ",semanticsStr," to ",newLength);
     AddressArray newReferences = AddressArray.create(newLength);
-    for (int i=0; i < references.length(); i++)
+    for (int i = 0; i < references.length(); i++)
       newReferences.set(i,references.get(i));
     return newReferences;
   }
@@ -288,7 +288,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       VM.sysWriteln("unforwardedReferences is ",
           Magic.objectAsAddress(unforwardedReferences));
     }
-    for (int i=0; i < maxIndex; i++) {
+    for (int i = 0; i < maxIndex; i++) {
       if (TRACE_DETAIL) VM.sysWrite("slot ",i,": ");
       ObjectReference reference = unforwardedReferences.get(i).toObjectReference();
       if (TRACE_DETAIL) VM.sysWriteln("forwarding ",reference);
@@ -339,7 +339,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
         if (!newReference.isNull()) {
           setReference(toIndex++,newReference);
           if (TRACE_DETAIL) {
-            int index = toIndex-1;
+            int index = toIndex - 1;
             VM.sysWrite("SCANNED ",index);
             VM.sysWrite(" ",references.get(index));
             VM.sysWrite(" -> ");

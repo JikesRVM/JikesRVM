@@ -18,8 +18,8 @@ import org.junit.Test;
 
 public class BitVectorTest {
 
-  private static final int SMALL_VECTOR=31;
-  private static final int LARGE_VECTOR=63;
+  private static final int SMALL_VECTOR = 31;
+  private static final int LARGE_VECTOR = 63;
 
   @Test
   public void testSetAll() {

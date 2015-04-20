@@ -195,7 +195,7 @@ public final class JavaThreadModel extends ThreadModel {
         Trace.trace(Item.SCHEDULER, "%d current state is MUTATOR", Thread.currentThread().getId());
         try {
           trigger.wait();
-        } catch (InterruptedException ie) {}
+        } catch (InterruptedException ie) { }
       }
 
       /* Change state from BLOCKING to BLOCKED when the last thread arrives */
@@ -208,7 +208,7 @@ public final class JavaThreadModel extends ThreadModel {
       while (isState(BLOCKED) || isState(BLOCKING)) {
         try {
           trigger.wait();
-        } catch (InterruptedException ie) {}
+        } catch (InterruptedException ie) { }
       }
     }
     Trace.trace(Item.SCHEDULER, "%d waitForGC out", Thread.currentThread().getId());
@@ -264,11 +264,11 @@ public final class JavaThreadModel extends ThreadModel {
   }
 
   protected void waitForGCStart() {
-    synchronized(trigger) {
-      while(!isState(BLOCKED)) {
+    synchronized (trigger) {
+      while (!isState(BLOCKED)) {
         try {
           trigger.wait();
-        } catch (InterruptedException ie) {}
+        } catch (InterruptedException ie) { }
       }
       Trace.trace(Item.SCHEDULER, "GC has started - returning to caller");
     }
@@ -329,8 +329,8 @@ public final class JavaThreadModel extends ThreadModel {
           count.wait();
         } catch (InterruptedException e) {
         }
-        Trace.trace(Item.SCHEDULER,"Active mutators = "+activeMutators+
-            ", mutatorThreads = "+mutatorThreads.size());
+        Trace.trace(Item.SCHEDULER,"Active mutators = " + activeMutators +
+            ", mutatorThreads = " + mutatorThreads.size());
       }
     }
     /* Wait for the mutators to exit */
@@ -340,7 +340,7 @@ public final class JavaThreadModel extends ThreadModel {
           count.wait();
         } catch (InterruptedException e) {
         }
-        Trace.trace(Item.SCHEDULER,"Active mutators = "+activeMutators);
+        Trace.trace(Item.SCHEDULER,"Active mutators = " + activeMutators);
       }
     }
   }

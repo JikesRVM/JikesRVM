@@ -23,13 +23,17 @@ class TestInvoke {
   }
 
   static class TypeA {
-    TypeA() {System.out.println("TypeA.<init>()");}
+    TypeA() {
+      System.out.println("TypeA.<init>()");
+    }
 
     void f() { System.out.println("TypeA.f()"); }
   }
 
   static class TypeB extends TypeA {
-    TypeB() {System.out.println("TypeB.<init>()");}
+    TypeB() {
+      System.out.println("TypeB.<init>()");
+    }
 
     //invokevirtual
     void f() { System.out.println("TypeB.f()"); }
@@ -39,7 +43,9 @@ class TestInvoke {
   }
 
   static class TypeC extends TypeB implements MyInterface {
-    TypeC() {System.out.println("TypeC.<init>()");}
+    TypeC() {
+      System.out.println("TypeC.<init>()");
+    }
 
     void test() {
       System.out.println("TypeC.test()");

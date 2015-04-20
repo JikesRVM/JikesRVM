@@ -79,7 +79,7 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   @Override
   public MutatorContext getNextMutator() {
-    synchronized(ActivePlan.class) {
+    synchronized (ActivePlan.class) {
       if (mutators == null) {
         mutators = Mutators.getAll();
       }

@@ -68,7 +68,7 @@ final class MethodVector {
    *  and {@code v2} when this method is called.
    */
   public RVMMethod[] finish() {
-    synchronized(MethodVector.class) {
+    synchronized (MethodVector.class) {
       RVMMethod[] result = popularMVs.get(this);
       if (result != null) {
         array = result;
@@ -84,7 +84,7 @@ final class MethodVector {
   @Override
   public int hashCode() {
     int val = 0;
-    for (int i=cnt-1; i >= 0; i--) {
+    for (int i = cnt - 1; i >= 0; i--) {
       val ^= array[i].hashCode();
     }
     return val;
@@ -95,7 +95,7 @@ final class MethodVector {
     if (obj instanceof MethodVector) {
       MethodVector that = (MethodVector)obj;
       if (cnt != that.cnt) return false;
-      for(int i=cnt-1; i>=0; i--) {
+      for (int i = cnt - 1; i >= 0; i--) {
         if (array[i] != that.array[i]) return false;
       }
       return true;

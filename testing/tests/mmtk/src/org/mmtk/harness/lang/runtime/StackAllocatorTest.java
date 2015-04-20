@@ -29,8 +29,8 @@ public class StackAllocatorTest {
 
   private static final int STACK_COUNT = 10;
   private static final int BASE_ADDRESS = 0x10000000;
-  private static final int STACK_SIZE = 1024*1024;
-  private static final int SIZE = STACK_COUNT*(STACK_SIZE+BYTES_IN_PAGE) + 2 * BYTES_IN_PAGE;
+  private static final int STACK_SIZE = 1024 * 1024;
+  private static final int SIZE = STACK_COUNT * (STACK_SIZE + BYTES_IN_PAGE) + 2 * BYTES_IN_PAGE;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -61,16 +61,16 @@ public class StackAllocatorTest {
   @Test
   public void testAllocAll() {
     Address expected = Address.fromIntZeroExtend(BASE_ADDRESS).plus(BYTES_IN_PAGE);
-    for (int i=0; i < STACK_COUNT; i++) {
+    for (int i = 0; i < STACK_COUNT; i++) {
       Address addr = sa.alloc();
       assertEquals(expected,addr);
       expected = expected.plus(STACK_SIZE + BYTES_IN_PAGE);
     }
   }
 
-  @Test(expected=Error.class)
+  @Test(expected = Error.class)
   public void testAllocOverflow() {
-    for (int i=0; i <= STACK_COUNT; i++) {
+    for (int i = 0; i <= STACK_COUNT; i++) {
       sa.alloc();
     }
   }
@@ -88,10 +88,10 @@ public class StackAllocatorTest {
   @Test
   public void testAllocFree() {
     Address[] base = new Address[STACK_COUNT];
-    for (int i=0; i < STACK_COUNT; i++) {
+    for (int i = 0; i < STACK_COUNT; i++) {
       base[i] = sa.alloc();
     }
-    for (int i=0; i < STACK_COUNT; i++) {
+    for (int i = 0; i < STACK_COUNT; i++) {
       sa.free(base[i]);
       assertEquals(base[i],sa.alloc());
     }
@@ -107,7 +107,7 @@ public class StackAllocatorTest {
   }
 
 
-  @Test(expected=Error.class)
+  @Test(expected = Error.class)
   public void testLowGuard() {
     sa.alloc();
     Address addr = sa.alloc();
@@ -115,7 +115,7 @@ public class StackAllocatorTest {
     addr.minus(BYTES_IN_INT).store(0);
   }
 
-  @Test(expected=Error.class)
+  @Test(expected = Error.class)
   public void testHighGuard() {
     sa.alloc();
     Address addr = sa.alloc();

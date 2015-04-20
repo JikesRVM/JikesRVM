@@ -154,7 +154,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction float_2int(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 6 basic blocks (in code order)
@@ -226,7 +226,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction float_2long(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 6 basic blocks (in code order)
@@ -264,7 +264,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
         TypeReference.Float);
     int offset = -ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
-    StackLocationOperand slHi = new StackLocationOperand(true, offset+4, 4);
+    StackLocationOperand slHi = new StackLocationOperand(true, offset + 4, 4);
     StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
     MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
         Entrypoints.scratchStorageField.getOffset(), (byte)4,
@@ -333,7 +333,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction double_2int(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 6 basic blocks (in code order)
@@ -405,7 +405,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction double_2long(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 6 basic blocks (in code order)
@@ -443,7 +443,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
         TypeReference.Double);
     int offset = -ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
-    StackLocationOperand slHi = new StackLocationOperand(true, offset+4, 4);
+    StackLocationOperand slHi = new StackLocationOperand(true, offset + 4, 4);
     StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
     MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
         Entrypoints.scratchStorageField.getOffset(), (byte)4,
@@ -512,7 +512,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction long_shl(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 4 basic blocks
@@ -612,7 +612,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction long_shr(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 4 basic blocks
@@ -717,7 +717,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction long_ushr(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 4 basic blocks
@@ -817,7 +817,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
   private static Instruction long_mul(Instruction s, IR ir) {
     Instruction nextInstr = s.nextInstructionInCodeOrder();
-    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+    while (Label.conforms(nextInstr) || BBend.conforms(nextInstr))  {
       nextInstr = nextInstr.nextInstructionInCodeOrder();
     }
     // we need 4 basic blocks

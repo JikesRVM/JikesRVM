@@ -708,7 +708,7 @@ class SimpleEscape extends CompilerPhase {
           visited = new HashSet<Register>();
         }
         Register copy = ResultCarrier.getResult(inst).getRegister();
-        if(!copy.isSSA()) {
+        if (!copy.isSSA()) {
           return true;
         } else {
           visited.add(use.getRegister());
@@ -768,7 +768,7 @@ class SimpleEscape extends CompilerPhase {
         return Operators.helper.mayEscapeMethod(inst);
       }
     } catch (Exception e) {
-      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use ("+ use +") of: "+ inst);
+      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use (" + use + ") of: " + inst);
       oe.initCause(e);
       throw oe;
     }

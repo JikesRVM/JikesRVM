@@ -41,7 +41,7 @@ public class FinalizerThread extends SystemThread {
   private static Monitor schedLock;
 
   public static void boot() {
-    schedLock=new Monitor();
+    schedLock = new Monitor();
     FinalizerThread ft = new FinalizerThread();
     ft.start();
   }
@@ -49,7 +49,7 @@ public class FinalizerThread extends SystemThread {
   @Uninterruptible
   public static void schedule() {
     schedLock.lockNoHandshake();
-    shouldRun=true;
+    shouldRun = true;
     schedLock.broadcast();
     schedLock.unlock();
   }
@@ -72,12 +72,12 @@ public class FinalizerThread extends SystemThread {
         // places objects on the finalizer queue and notifies.
         schedLock.lockNoHandshake();
         if (!shouldRun) {
-          if (verbose>=1) {
+          if (verbose >= 1) {
             VM.sysWriteln("finalizer thread sleeping.");
           }
           schedLock.waitWithHandshake();
         }
-        shouldRun=false;
+        shouldRun = false;
         schedLock.unlock();
 
         if (verbose >= 1) {

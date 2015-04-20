@@ -105,7 +105,7 @@ public final class Compiler extends Visitor {
     for (CompiledMethod cm : table) {
       cm.resolveMethodReferences();
       if (Harness.dumpPcode.getValue()) {
-        System.out.println(cm.getName()+"\n"+cm.toString());
+        System.out.println(cm.getName() + "\n" + cm.toString());
       }
     }
     return table.get("main");
@@ -310,7 +310,7 @@ public final class Compiler extends Visitor {
       CompiledMethod compiledMethod = compiledMethodFor(method);
       emit(new CallNormalOp(call,returnVal,compiledMethod,actuals),instrGcMap);
     } else {
-      throw new Error("Unknown method class "+method.getClass().getCanonicalName());
+      throw new Error("Unknown method class " + method.getClass().getCanonicalName());
     }
     freeTemps(actuals);
     return returnVal;

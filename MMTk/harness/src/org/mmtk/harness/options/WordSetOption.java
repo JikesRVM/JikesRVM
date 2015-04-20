@@ -60,7 +60,7 @@ public class WordSetOption extends Option {
   public Address[] getAddresses() {
     Word[] words = getValue();
     Address[] result = new Address[words.length];
-    for (int i=0; i < words.length; i++) {
+    for (int i = 0; i < words.length; i++) {
       result[i] = words[i].toAddress();
     }
     return result;

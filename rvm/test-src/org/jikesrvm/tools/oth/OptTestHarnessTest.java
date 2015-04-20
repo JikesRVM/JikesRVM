@@ -74,7 +74,7 @@ public class OptTestHarnessTest {
   }
 
   @Test
-  public void doesNotCrashWhenNoOptCompilerIsAvailable() throws InvocationTargetException, IllegalAccessException{
+  public void doesNotCrashWhenNoOptCompilerIsAvailable() throws InvocationTargetException, IllegalAccessException {
     assumeThatVMIsNotBuildForOptCompiler();
     String[] emptyArgs = {};
     executeOptTestHarness(emptyArgs);
@@ -436,7 +436,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void complainsWhenClassForMethodIsNotFound() throws Exception {
-    String wrongClassName ="com.ibm.jikesrvm.TestClass";
+    String wrongClassName = "com.ibm.jikesrvm.TestClass";
     String wrongMethodName = "printWithWrongName";
     String useFirstMethod = "-";
     String[] compilePrintIntMethod = {"-method", wrongClassName, wrongMethodName,
@@ -586,7 +586,7 @@ public class OptTestHarnessTest {
   @Test
   public void executeAndRunPrintsErrorMessageWhenMethodWithDescriptorIsNotFound() throws Exception {
     String existingMethod = "print";
-    String descriptorThatDoesNotMatchAPrintMethod ="(IIII)V";
+    String descriptorThatDoesNotMatchAPrintMethod = "(IIII)V";
     String[] executeMethodThatDoesNotExist = {"-er", CLASS_OVERLOADED_METHODS,
         existingMethod, descriptorThatDoesNotMatchAPrintMethod};
     executeOptTestHarness(executeMethodThatDoesNotExist);

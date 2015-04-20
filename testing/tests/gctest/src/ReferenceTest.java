@@ -27,7 +27,7 @@ class ReferenceTest {
     // Verify that all references on rq belong to ra and that if so they are cleared
     for (Reference<?> r = rq.poll(); r != null; r = rq.poll()) {
       int i;
-      for (i=0; i<ra.length; i++)
+      for (i = 0; i < ra.length; i++)
           if (ra[i] == r)
             break;
       if (i == ra.length) return -2.0;
@@ -50,7 +50,7 @@ class ReferenceTest {
   public static Object[] allocateUnit() {
     int t = allocateUnitSize / microUnitSize;
     Object[] result = new Object[t];
-    for (int i=0; i<t; i++)
+    for (int i = 0; i < t; i++)
       result[i] = new byte[microUnitSize - 4];  // 4 bytes of header
     return result;
   }
@@ -58,7 +58,7 @@ class ReferenceTest {
   static Object dummy;
   public static void allocateDiscard(double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
-    for (int i=0; i<rounds; i++)
+    for (int i = 0; i < rounds; i++)
         dummy = allocateUnit();
   }
 
@@ -66,7 +66,7 @@ class ReferenceTest {
 
   public static void allocateUntilOOM() {
     try {
-      while(true) {
+      while (true) {
         Object[] myArray = new Object[10000];
         myArray[0] = outOfMemoryHandle;
         outOfMemoryHandle = myArray;
@@ -99,11 +99,11 @@ class ReferenceTest {
     int rounds = MBtoUnits(amt);
     @SuppressWarnings("unchecked")
     Reference<Object[]> [] ra = new Reference[rounds];
-    for (int i=0; i<rounds; i++) {
+    for (int i = 0; i < rounds; i++) {
       final Reference<Object[]> reference;
-      if(type == WEAK) {
+      if (type == WEAK) {
         reference = new WeakReference<Object[]>(allocateUnit(), rq);
-      } else if(type == SOFT) {
+      } else if (type == SOFT) {
         reference = new SoftReference<Object[]>(allocateUnit(), rq);
       } else {
         reference = null;

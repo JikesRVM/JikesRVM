@@ -199,7 +199,7 @@ public abstract class UTF8Convert {
       byte b = utf8[i++];
       if (STRICTLY_CHECK_FORMAT && !ALLOW_NORMAL_UTF8) {
         if (b == 0) {
-          throwDataFormatException("0 byte encountered", i-1);
+          throwDataFormatException("0 byte encountered", i - 1);
         }
       }
       if (b >= 0) {  // < 0x80 unsigned
@@ -215,14 +215,14 @@ public abstract class UTF8Convert {
           visitor.visit_char(c);
           if (STRICTLY_CHECK_FORMAT) {
             if (((b & 0xe0) != 0xc0) || ((nb & 0xc0) != 0x80)) {
-              throwDataFormatException("invalid marker bits for double byte char" , i-2);
+              throwDataFormatException("invalid marker bits for double byte char" , i - 2);
             }
             if (c < '\200') {
               if (!ALLOW_PSEUDO_UTF8 || (c != '\000')) {
-                throwDataFormatException("encountered double byte char that should have been single byte", i-2);
+                throwDataFormatException("encountered double byte char that should have been single byte", i - 2);
               }
             } else if (c > '\u07FF') {
-              throwDataFormatException("encountered double byte char that should have been single byte", i-2);
+              throwDataFormatException("encountered double byte char that should have been single byte", i - 2);
             }
           }
         } else {

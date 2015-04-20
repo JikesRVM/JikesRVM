@@ -69,9 +69,9 @@ public interface RegisterConstants {
       }
       if (VM.VerifyAssertions) {
         if (VM.buildFor32Addr()) {
-          VM._assert(result >=0 && result <= 7);
+          VM._assert(result >= 0 && result <= 7);
         } else {
-          VM._assert(result >=0 && result <= 15);
+          VM._assert(result >= 0 && result <= 15);
         }
       }
       return result;
@@ -89,7 +89,7 @@ public interface RegisterConstants {
         result &= 0x7;
       }
       if (VM.VerifyAssertions) {
-        VM._assert(result >=0 && result <= 7);
+        VM._assert(result >= 0 && result <= 7);
       }
       return result;
     }
@@ -130,7 +130,7 @@ public interface RegisterConstants {
      * @return represented GPR
      */
     public static GPR getForOpcode(int opcode) {
-      if (VM.VerifyAssertions) VM._assert(opcode >=0 && opcode <= 7);
+      if (VM.VerifyAssertions) VM._assert(opcode >= 0 && opcode <= 7);
       return lookup(opcode);
     }
   }

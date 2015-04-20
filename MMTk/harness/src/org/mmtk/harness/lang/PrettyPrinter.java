@@ -105,7 +105,7 @@ public class PrettyPrinter extends Visitor {
 
     private String margin() {
       String indentStr = "";
-      for (int i=0; i < indent; i++) {
+      for (int i = 0; i < indent; i++) {
         indentStr += " ";
       }
       return indentStr;
@@ -312,10 +312,10 @@ public class PrettyPrinter extends Visitor {
   public Object visit(Alloc alloc) {
     fmt.out("alloc(");
     final int nArgs = alloc.numArgs();
-    for (int i=0; i < nArgs; i++) {
+    for (int i = 0; i < nArgs; i++) {
       Expression arg = alloc.getArg(i);
       arg.accept(this);
-      if (i < nArgs-1) {
+      if (i < nArgs - 1) {
         fmt.out(",");
       } else {
         fmt.out(")");

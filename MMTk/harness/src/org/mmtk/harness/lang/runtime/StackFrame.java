@@ -240,7 +240,7 @@ public class StackFrame {
   public List<Address> getRootAddresses() {
     List<Address> roots = new ArrayList<Address>();
     Set<Integer> gcMap = getGcMap();
-    for (int i=0; i < values.length; i++) {
+    for (int i = 0; i < values.length; i++) {
       Value value = values[i];
       if (value != null && value instanceof ObjectValue) {
         Clock.stop();
@@ -285,7 +285,7 @@ public class StackFrame {
    */
   public Collection<ObjectReference> dumpRoots(int width) {
     List<ObjectReference> roots = new ArrayList<ObjectReference>();
-    for (int i=0; i < values.length; i++) {
+    for (int i = 0; i < values.length; i++) {
       Value value = get(i);
       String name = method.getSlotName(i);
       if (value != null && value instanceof ObjectValue) {
@@ -376,7 +376,7 @@ public class StackFrame {
   @SuppressWarnings("unused")
   private Map<String,Integer> objectShadowMap() {
     Map<String,Integer> result = new HashMap<String,Integer>();
-    for (int i=0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
       if (values[i] != null && values[i] instanceof ObjectValue) {
         ObjectReference obj = slotAddress(i).loadObjectReference();
         result.put(method.getSlotName(i),
@@ -392,7 +392,7 @@ public class StackFrame {
   @SuppressWarnings("unused")
   private Map<String,Integer> objectMap() {
     Map<String,Integer> result = new HashMap<String,Integer>();
-    for (int i=0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
       if (values[i] != null && values[i] instanceof ObjectValue) {
         ObjectReference obj = values[i].getObjectValue();
         result.put(method.getSlotName(i),
@@ -406,7 +406,7 @@ public class StackFrame {
    * get the currently executing pseudo-op
    */
   private PseudoOp getCurrentInstr() {
-    return savedCode[savedPc-1];
+    return savedCode[savedPc - 1];
   }
 
   private Set<Integer> getGcMap() {

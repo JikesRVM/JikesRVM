@@ -79,7 +79,7 @@ import org.vmmagic.pragma.*;
                      "Remembered set stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Remset references: ",
@@ -109,7 +109,7 @@ import org.vmmagic.pragma.*;
    * @return true if the given Address is in this subspace.
    */
   public boolean handleRemsetAddress(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       remsetStream.increment(index, (short)1);

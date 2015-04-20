@@ -196,9 +196,7 @@ public class JMXSupport {
         rvmThread.unblock(RVMThread.stackTraceBlockAdapter);
     }
 
-    StackTraceElement[] stackTrace =
-        JikesRVMStackTraceSupport.convertToJavaClassLibraryStackTrace(elements);
-    return stackTrace;
+    return JikesRVMStackTraceSupport.convertToJavaClassLibraryStackTrace(elements);
   }
 
 }

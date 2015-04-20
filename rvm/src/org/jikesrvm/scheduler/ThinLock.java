@@ -98,10 +98,10 @@ public final class ThinLock {
 
     Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
 
-    for (int cnt=0;;cnt++) {
+    for (int cnt = 0;;cnt++) {
       Word old = Magic.getWordAtOffset(o, lockOffset);
       Word stat = old.and(TL_STAT_MASK);
-      boolean tryToInflate=false;
+      boolean tryToInflate = false;
       if (stat.EQ(TL_STAT_BIASABLE)) {
         Word id = old.and(TL_THREAD_ID_MASK);
         if (id.isZero()) {
@@ -132,7 +132,7 @@ public final class ThinLock {
             setDedicatedU16(o, lockOffset, changed);
             return;
           } else {
-            tryToInflate=true;
+            tryToInflate = true;
           }
         } else {
           if (casFromBiased(o, lockOffset, old, biasBitsToThinBits(old), cnt)) {
@@ -150,14 +150,14 @@ public final class ThinLock {
         } else if (id.EQ(threadId)) {
           Word changed = old.plus(TL_LOCK_COUNT_UNIT);
           if (changed.and(TL_LOCK_COUNT_MASK).isZero()) {
-            tryToInflate=true;
+            tryToInflate = true;
           } else if (Synchronization.tryCompareAndSwap(
                        o, lockOffset, old, changed)) {
             Magic.isync();
             return;
           }
-        } else if (cnt>retryLimit) {
-          tryToInflate=true;
+        } else if (cnt > retryLimit) {
+          tryToInflate = true;
         }
       } else {
         if (VM.VerifyAssertions) VM._assert(stat.EQ(TL_STAT_FAT));
@@ -189,7 +189,7 @@ public final class ThinLock {
   @Unpreemptible
   public static void unlock(Object o, Offset lockOffset) {
     Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
-    for (int cnt=0;;cnt++) {
+    for (int cnt = 0;;cnt++) {
       Word old = Magic.getWordAtOffset(o, lockOffset);
       Word stat = old.and(TL_STAT_MASK);
       if (stat.EQ(TL_STAT_BIASABLE)) {
@@ -236,7 +236,7 @@ public final class ThinLock {
   @Uninterruptible
   @NoNullCheck
   public static boolean holdsLock(Object o, Offset lockOffset, RVMThread thread) {
-    for (int cnt=0;;++cnt) {
+    for (int cnt = 0;;++cnt) {
       int tid = thread.getLockingId();
       Word bits = Magic.getWordAtOffset(o, lockOffset);
       if (bits.and(TL_STAT_MASK).EQ(TL_STAT_BIASABLE)) {
@@ -245,14 +245,14 @@ public final class ThinLock {
           bits.and(TL_THREAD_ID_MASK).toInt() == tid &&
           !bits.and(TL_LOCK_COUNT_MASK).isZero();
       } else if (bits.and(TL_STAT_MASK).EQ(TL_STAT_THIN)) {
-        return bits.and(TL_THREAD_ID_MASK).toInt()==tid;
+        return bits.and(TL_THREAD_ID_MASK).toInt() == tid;
       } else {
         if (VM.VerifyAssertions) VM._assert(bits.and(TL_STAT_MASK).EQ(TL_STAT_FAT));
         // if locked, then it is locked with a fat lock
-        Lock l=Lock.getLock(getLockIndex(bits));
-        if (l!=null) {
+        Lock l = Lock.getLock(getLockIndex(bits));
+        if (l != null) {
           l.mutex.lock();
-          boolean result = (l.getOwnerId()==tid && l.getLockedObject()==o);
+          boolean result = (l.getOwnerId() == tid && l.getLockedObject() == o);
           l.mutex.unlock();
           return result;
         }
@@ -310,11 +310,11 @@ public final class ThinLock {
   @Inline
   @Uninterruptible
   public static int getRecCount(Word lockWord) {
-    if (VM.VerifyAssertions) VM._assert(getLockOwner(lockWord)!=0);
+    if (VM.VerifyAssertions) VM._assert(getLockOwner(lockWord) != 0);
     if (lockWord.and(TL_STAT_MASK).EQ(TL_STAT_BIASABLE)) {
       return lockWord.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt();
     } else {
-      return lockWord.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt()+1;
+      return lockWord.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() + 1;
     }
   }
 
@@ -338,19 +338,19 @@ public final class ThinLock {
   public static boolean casFromBiased(Object o, Offset lockOffset,
                                       Word oldLockWord, Word changed,
                                       int cnt) {
-    RVMThread me=RVMThread.getCurrentThread();
-    Word id=oldLockWord.and(TL_THREAD_ID_MASK);
+    RVMThread me = RVMThread.getCurrentThread();
+    Word id = oldLockWord.and(TL_THREAD_ID_MASK);
     if (id.isZero()) {
       if (false) VM.sysWriteln("id is zero - easy case.");
       return Synchronization.tryCompareAndSwap(o, lockOffset, oldLockWord, changed);
     } else {
       if (false) VM.sysWriteln("id = ",id);
-      int slot=id.toInt()>>TL_THREAD_ID_SHIFT;
+      int slot = id.toInt() >> TL_THREAD_ID_SHIFT;
       if (false) VM.sysWriteln("slot = ",slot);
-      RVMThread owner=RVMThread.threadBySlot[slot];
-      if (owner==me /* I own it, so I can unbias it trivially.  This occurs
+      RVMThread owner = RVMThread.threadBySlot[slot];
+      if (owner == me /* I own it, so I can unbias it trivially.  This occurs
                        when we are inflating due to, for example, wait() */ ||
-          owner==null /* the thread that owned it is dead, so it's safe to
+          owner == null /* the thread that owned it is dead, so it's safe to
                          unbias. */) {
         // note that we use a CAS here, but it's only needed in the case
         // that owner==null, since in that case some other thread may also
@@ -358,7 +358,7 @@ public final class ThinLock {
         return Synchronization.tryCompareAndSwap(
           o, lockOffset, oldLockWord, changed);
       } else {
-        boolean result=false;
+        boolean result = false;
 
         // NB. this may stop a thread other than the one that had the bias,
         // if that thread died and some other thread took its slot.  that's
@@ -376,8 +376,8 @@ public final class ThinLock {
         owner.beginPairHandshake();
         if (false) VM.sysWriteln("done with that");
 
-        Word newLockWord=Magic.getWordAtOffset(o, lockOffset);
-        result=Synchronization.tryCompareAndSwap(
+        Word newLockWord = Magic.getWordAtOffset(o, lockOffset);
+        result = Synchronization.tryCompareAndSwap(
           o, lockOffset, oldLockWord, changed);
         owner.endPairHandshake();
         if (false) VM.sysWriteln("that worked.");
@@ -401,14 +401,14 @@ public final class ThinLock {
     // 3) if the lock is biased in our favor, store the lock without CAS
     // 4) if the lock is biased but to someone else, enter the pair handshake
     //    to unbias it and install the inflated lock
-    Word changed=
+    Word changed =
       TL_STAT_FAT.or(Word.fromIntZeroExtend(lockId).lsh(TL_LOCK_ID_SHIFT))
       .or(oldLockWord.and(TL_UNLOCK_MASK));
     if (false && oldLockWord.and(TL_STAT_MASK).EQ(TL_STAT_THIN))
       VM.sysWriteln("obj = ",Magic.objectAsAddress(o),
                     ", old = ",oldLockWord,
                     ", owner = ",getLockOwner(oldLockWord),
-                    ", rec = ",getLockOwner(oldLockWord)==0?0:getRecCount(oldLockWord),
+                    ", rec = ",getLockOwner(oldLockWord) == 0 ? 0 : getRecCount(oldLockWord),
                     ", changed = ",changed,
                     ", lockId = ",lockId);
     if (false) VM.sysWriteln("changed = ",changed);
@@ -440,7 +440,7 @@ public final class ThinLock {
                                          Lock l) {
     if (false) VM.sysWriteln("l = ",Magic.objectAsAddress(l));
     l.mutex.lock();
-    for (int cnt=0;;++cnt) {
+    for (int cnt = 0;;++cnt) {
       Word bits = Magic.getWordAtOffset(o, lockOffset);
       // check to see if another thread has already created a fat lock
       if (isFat(bits)) {
@@ -450,8 +450,8 @@ public final class ThinLock {
                         " because we had a double-inflate");
         }
         Lock result = Lock.getLock(getLockIndex(bits));
-        if (result==null ||
-            result.lockedObject!=o) {
+        if (result == null ||
+            result.lockedObject != o) {
           continue; /* this is nasty.  this will happen when a lock
                        is deflated. */
         }
@@ -459,7 +459,7 @@ public final class ThinLock {
         l.mutex.unlock();
         return result;
       }
-      if (VM.VerifyAssertions) VM._assert(l!=null);
+      if (VM.VerifyAssertions) VM._assert(l != null);
       if (attemptToMarkInflated(
             o, lockOffset, bits, l.index, cnt)) {
         l.setLockedObject(o);
@@ -467,7 +467,7 @@ public final class ThinLock {
         if (l.getOwnerId() != 0) {
           l.setRecursionCount(getRecCount(bits));
         } else {
-          if (VM.VerifyAssertions) VM._assert(l.getRecursionCount()==0);
+          if (VM.VerifyAssertions) VM._assert(l.getRecursionCount() == 0);
         }
         return l;
       }
@@ -478,15 +478,15 @@ public final class ThinLock {
   @Inline
   @Uninterruptible
   private static Word biasBitsToThinBits(Word bits) {
-    int lockOwner=getLockOwner(bits);
+    int lockOwner = getLockOwner(bits);
 
-    Word changed=bits.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
+    Word changed = bits.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
 
-    if (lockOwner!=0) {
-      int recCount=getRecCount(bits);
-      changed=changed
+    if (lockOwner != 0) {
+      int recCount = getRecCount(bits);
+      changed = changed
         .or(Word.fromIntZeroExtend(lockOwner))
-        .or(Word.fromIntZeroExtend(recCount-1).lsh(TL_LOCK_COUNT_SHIFT));
+        .or(Word.fromIntZeroExtend(recCount - 1).lsh(TL_LOCK_COUNT_SHIFT));
     }
 
     return changed;
@@ -497,8 +497,8 @@ public final class ThinLock {
   public static boolean attemptToMarkDeflated(Object o, Offset lockOffset,
                                               Word oldLockWord) {
     // we allow concurrent modification of the lock word when it's thin or fat.
-    Word changed=oldLockWord.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
-    if (VM.VerifyAssertions) VM._assert(getLockOwner(changed)==0);
+    Word changed = oldLockWord.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
+    if (VM.VerifyAssertions) VM._assert(getLockOwner(changed) == 0);
     return Synchronization.tryCompareAndSwap(
       o, lockOffset, oldLockWord, changed);
   }
@@ -506,9 +506,9 @@ public final class ThinLock {
   @Uninterruptible
   public static void markDeflated(Object o, Offset lockOffset, int id) {
     for (;;) {
-      Word bits=Magic.getWordAtOffset(o, lockOffset);
+      Word bits = Magic.getWordAtOffset(o, lockOffset);
       if (VM.VerifyAssertions) VM._assert(isFat(bits));
-      if (VM.VerifyAssertions) VM._assert(getLockIndex(bits)==id);
+      if (VM.VerifyAssertions) VM._assert(getLockIndex(bits) == id);
       if (attemptToMarkDeflated(o, lockOffset, bits)) {
         return;
       }

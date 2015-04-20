@@ -65,7 +65,7 @@ public final class Traversal {
     if (VERBOSE) {
       Trace.trace(Item.SANITY, "scanning object %s", ObjectModel.getString(object));
     }
-    for (int i=0; i < ObjectModel.getRefs(object); i++) {
+    for (int i = 0; i < ObjectModel.getRefs(object); i++) {
       Address slot = ObjectModel.getRefSlot(object, i);
       ObjectReference ref = loadReferenceSlot(slot);
       if (!ref.isNull()) {
@@ -117,7 +117,7 @@ public final class Traversal {
    */
   private void doClosure() {
     while (markStack.size() > 0) {
-      ObjectReference object = markStack.remove(markStack.size()-1);
+      ObjectReference object = markStack.remove(markStack.size() - 1);
       scan(object);
     }
     blackSet.clear();

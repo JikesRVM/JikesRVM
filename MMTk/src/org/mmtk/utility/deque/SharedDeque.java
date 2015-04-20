@@ -235,7 +235,7 @@ public class SharedDeque extends Deque {
   private volatile int bufsenqueued;
   private final Lock lock;
 
-  private static final long WARN_PERIOD = (long)(2*1E9);
+  private static final long WARN_PERIOD = (long)(2 * 1E9);
   private static final long TIMEOUT_PERIOD = 10 * WARN_PERIOD;
 
   /**

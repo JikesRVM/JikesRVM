@@ -26,7 +26,7 @@ class TestFloatingRem {
       testFREM(3f,   -2f);
       testFREM(-3f,   -2f);
       // fringe cases
-      float Inff = 1f/0f, NaNf = 0f/0f;
+      float Inff = 1f / 0f, NaNf = 0f / 0f;
       testFREM(5.6f,    0f, NaNf);
       testFREM(7f,    0f, NaNf);
       testFREM(0f,  5.6f,   0f);
@@ -57,7 +57,7 @@ class TestFloatingRem {
       testDREM(3,   -2);
       testDREM(-3,   -2);
       // fringe cases
-      double Inf = 1.0/0.0, NaN = 0.0/0.0;
+      double Inf = 1.0 / 0.0, NaN = 0.0 / 0.0;
       testDREM(5.6,    0, NaN);
       testDREM(7,    0, NaN);
       testDREM(0,  5.6,   0);
@@ -82,27 +82,27 @@ class TestFloatingRem {
       float apb = a % b;
       float adb = a / b;
       int q = (int) adb;
-      float res = a - b*q;
-      System.out.println("   a: "+a+"; b: "+b+"; (a/b)="+q+"; Expected: "+res+"; Actual: "+apb);
+      float res = a - b * q;
+      System.out.println("   a: " + a + "; b: " + b + "; (a/b)=" + q + "; Expected: " + res + "; Actual: " + apb);
    }
 
    private static void testFREM(float a, float b, float res) {
       float apb = a % b;
       float adb = a / b;
-      System.out.println("   a: "+a+"; b: "+b+"; (a/b)="+adb+"; Expected: "+res+"; Actual: "+apb);
+      System.out.println("   a: " + a + "; b: " + b + "; (a/b)=" + adb + "; Expected: " + res + "; Actual: " + apb);
    }
 
    private static void testDREM(double a, double b) {
       double apb = a % b;
       double adb = a / b;
       int q = (int) adb;
-      double res = a - b*q;
-      System.out.println("   a: "+a+"; b: "+b+"; (a/b)="+q+"; Expected: "+res+"; Actual: "+apb);
+      double res = a - b * q;
+      System.out.println("   a: " + a + "; b: " + b + "; (a/b)=" + q + "; Expected: " + res + "; Actual: " + apb);
    }
 
    private static void testDREM(double a, double b, double res) {
       double apb = a % b;
       double adb = a / b;
-      System.out.println("   a: "+a+"; b: "+b+"; (a/b)="+adb+"; Expected: "+res+"; Actual: "+apb);
+      System.out.println("   a: " + a + "; b: " + b + "; (a/b)=" + adb + "; Expected: " + res + "; Actual: " + apb);
    }
 }

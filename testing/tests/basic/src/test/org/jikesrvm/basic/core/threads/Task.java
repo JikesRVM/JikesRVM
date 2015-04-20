@@ -28,7 +28,11 @@ class Task extends XThread {
   void performTask() {
     mailbox.send(String.valueOf(taskId));
     sent = true;
-    try { sleep(200); } catch (InterruptedException e) {}
+    try {
+      sleep(200);
+    } catch (InterruptedException e) {
+      // ignore
+    }
 
     XThread.say("waiting");
     flag.await();

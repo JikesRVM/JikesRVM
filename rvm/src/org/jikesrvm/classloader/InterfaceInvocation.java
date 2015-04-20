@@ -229,13 +229,13 @@ public class InterfaceInvocation {
       iTables = MemoryManager.newITableArray(2);
       tib.setITableArray(iTables);
     } else {
-      for(int i=0; i < iTables.length(); i++) {
+      for (int i = 0; i < iTables.length(); i++) {
         if (iTables.get(i).isFor(I)) {
           return; // some other thread just built the iTable
         }
       }
       ITableArray tmp = MemoryManager.newITableArray(iTables.length() + 1);
-      for(int i=0; i < iTables.length(); i++) {
+      for (int i = 0; i < iTables.length(); i++) {
         tmp.set(i, iTables.get(i));
       }
       iTables = tmp;
@@ -324,7 +324,7 @@ public class InterfaceInvocation {
         ITableArray iTables = tib.getITableArray();
         Atom name = m.getName();
         Atom desc = m.getDescriptor();
-        for (int i=0; i< iTables.length(); i++) {
+        for (int i = 0; i < iTables.length(); i++) {
           ITable iTable = iTables.get(i);
           if (iTable != null) {
             RVMClass I = iTable.getInterfaceClass();

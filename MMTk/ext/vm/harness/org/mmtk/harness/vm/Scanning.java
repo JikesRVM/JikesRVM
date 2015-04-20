@@ -43,7 +43,7 @@ public class Scanning extends org.mmtk.vm.Scanning {
     int refs = ObjectModel.getRefs(object);
 
     Address first = object.toAddress().plus(ObjectModel.REFS_OFFSET);
-    for (int i=0; i < refs; i++) {
+    for (int i = 0; i < refs; i++) {
       if (Trace.isEnabled(Item.SCAN)) {
         Clock.stop();
         Trace.trace(Item.SCAN, "  Edge %s", first.plus(i << LOG_BYTES_IN_ADDRESS).loadObjectReference());
@@ -107,12 +107,12 @@ public class Scanning extends org.mmtk.vm.Scanning {
   public void computeThreadRoots(TraceLocal trace) {
     Clock.stop();
     Trace.trace(Item.COLLECT,"Computing roots for mutators");
-    synchronized(this) {
+    synchronized (this) {
       if (mutatorsToScan == null) {
         mutatorsToScan = Mutators.getAll();
       }
     }
-    while(true) {
+    while (true) {
       Trace.trace(Item.COLLECT,"mutators to scan: %d",mutatorsToScan.size());
       Mutator m = mutatorsToScan.poll();
       if (m == null) {

@@ -242,7 +242,7 @@ public class RCHeader {
   @Inline
   public static void initializeHeader(ObjectReference object, boolean initialInc) {
     Word existingValue = VM.objectModel.readAvailableBitsWord(object);
-    Word initialValue = existingValue.and(WRITE_MASK).or((initialInc)? INCREMENT : Word.zero());
+    Word initialValue = existingValue.and(WRITE_MASK).or((initialInc) ? INCREMENT : Word.zero());
     VM.objectModel.writeAvailableBitsWord(object, initialValue);
   }
 

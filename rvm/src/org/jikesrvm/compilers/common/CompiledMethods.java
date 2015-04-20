@@ -43,7 +43,7 @@ public class CompiledMethods {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /**
    * Java methods that have been compiled into machine code.
    * Note that there may be more than one compiled versions of the same method
@@ -70,8 +70,8 @@ public class CompiledMethods {
   private static void ensureCapacity(int id) {
     int column = id >> LOG_ROW_SIZE;
     if (column >= compiledMethods.length) {
-      CompiledMethod[][] tmp = new CompiledMethod[column+1][];
-      for (int i=0; i < column; i++) {
+      CompiledMethod[][] tmp = new CompiledMethod[column + 1][];
+      for (int i = 0; i < column; i++) {
         tmp[i] = compiledMethods[i];
       }
       tmp[column] = new CompiledMethod[1 << LOG_ROW_SIZE];

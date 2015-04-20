@@ -254,7 +254,7 @@ public class FinalMIRExpansion extends IRTools {
             // Calculate what flags are defined in coming instructions before a use of a flag or BBend
             Instruction x = next;
             int futureDefs = 0;
-            while(!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator())) {
+            while (!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator())) {
               futureDefs |= x.operator().implicitDefs;
               x = x.nextInstructionInCodeOrder();
             }
@@ -280,9 +280,9 @@ public class FinalMIRExpansion extends IRTools {
             Operand result = MIR_Unary.getResult(next);
             boolean foundCmp = false;
             outer:
-            while(!Label.conforms(x)) {
+            while (!Label.conforms(x)) {
               Enumeration<Operand> e = x.getUses();
-              while(e.hasMoreElements()) {
+              while (e.hasMoreElements()) {
                 // We can't use an xor to clear the register if that register is
                 // used by the <cmp> or intervening instruction
                 if (e.nextElement().similar(result)) {
@@ -322,7 +322,7 @@ public class FinalMIRExpansion extends IRTools {
             // Calculate what flags are defined in coming instructions before a use of a flag or BBend
             Instruction x = next;
             int futureDefs = 0;
-            while(!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator())) {
+            while (!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator())) {
               futureDefs |= x.operator().implicitDefs;
               x = x.nextInstructionInCodeOrder();
             }

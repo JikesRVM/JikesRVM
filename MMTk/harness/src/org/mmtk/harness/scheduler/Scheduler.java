@@ -39,7 +39,7 @@ public class Scheduler {
     /** @return The values of this enum, converted to strings */
     public static String[] valueNames() {
       String[] result = new String[Scheduler.Model.values().length];
-      for (int i=0; i < Scheduler.Model.values().length; i++) {
+      for (int i = 0; i < Scheduler.Model.values().length; i++) {
         result[i] = Scheduler.Model.values()[i].toString();
       }
       return result;
@@ -60,7 +60,7 @@ public class Scheduler {
     /** @return The values of this enum, converted to strings */
     public static String[] valueNames() {
       String[] result = new String[Scheduler.SchedPolicy.values().length];
-      for (int i=0; i < Scheduler.SchedPolicy.values().length; i++) {
+      for (int i = 0; i < Scheduler.SchedPolicy.values().length; i++) {
         result[i] = Scheduler.SchedPolicy.values()[i].toString();
       }
       return result;

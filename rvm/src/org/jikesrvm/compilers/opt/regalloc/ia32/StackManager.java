@@ -222,7 +222,7 @@ public abstract class StackManager extends GenericStackManager {
       setFrameRequired();
 
       if (ArchConstants.SSE2_FULL) {
-        for(int i=0; i < 8; i++) {
+        for (int i = 0; i < 8; i++) {
           fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);
         }
       } else {
@@ -528,7 +528,7 @@ public abstract class StackManager extends GenericStackManager {
 
     if (ArchConstants.SSE2_FULL) {
       PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      for (int i=0; i < 8; i++) {
+      for (int i = 0; i < 8; i++) {
         inst.insertBefore(MIR_Move.create(IA32_MOVQ,
             new StackLocationOperand(true, -fsaveLocation + (i * BYTES_IN_DOUBLE), BYTES_IN_DOUBLE),
             new RegisterOperand(phys.getFPR(i), TypeReference.Double)));
@@ -547,7 +547,7 @@ public abstract class StackManager extends GenericStackManager {
   private void restoreFloatingPointState(Instruction inst) {
     if (ArchConstants.SSE2_FULL) {
       PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      for (int i=0; i < 8; i++) {
+      for (int i = 0; i < 8; i++) {
         inst.insertBefore(MIR_Move.create(IA32_MOVQ,
             new RegisterOperand(phys.getFPR(i), TypeReference.Double),
             new StackLocationOperand(true, -fsaveLocation + (i * BYTES_IN_DOUBLE), BYTES_IN_DOUBLE)));

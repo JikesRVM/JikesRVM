@@ -46,7 +46,7 @@ public class JNIGlobalRefTable {
 
   @Uninterruptible
   private static void copyAndReplaceGlobalRefs(AddressArray newGlobalRefs) {
-    for(int i=0; i < JNIGlobalRefs.length(); i++) {
+    for (int i = 0; i < JNIGlobalRefs.length(); i++) {
       newGlobalRefs.set(i, JNIGlobalRefs.get(i));
     }
     JNIGlobalRefs = newGlobalRefs;

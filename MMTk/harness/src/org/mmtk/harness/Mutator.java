@@ -196,12 +196,12 @@ public abstract class Mutator {
     int width = 80;
     Deque<ObjectReference> workStack = new ArrayDeque<ObjectReference>();
     Set<ObjectReference> dumped = new HashSet<ObjectReference>();
-    for(Mutator m: Mutators.getAll()) {
+    for (Mutator m: Mutators.getAll()) {
       System.err.println("Mutator " + m.context.getId());
       workStack.addAll(m.dumpThreadRoots(width));
     }
     System.err.println("Heap (Depth First)");
-    while(!workStack.isEmpty()) {
+    while (!workStack.isEmpty()) {
       ObjectReference object = workStack.pop();
       if (!dumped.contains(object)) {
         dumped.add(object);
@@ -284,13 +284,13 @@ public abstract class Mutator {
    * @param value The value to store.
    */
   public void storeDataField(ObjectReference object, int index, int value) {
-    if (object.isNull()) fail("Object can not be null in object "+ObjectModel.getString(object));
+    if (object.isNull()) fail("Object can not be null in object " + ObjectModel.getString(object));
     Clock.stop();
     Sanity.assertValid(object);
     Clock.start();
     int limit = ObjectModel.getDataCount(object);
-    if (index < 0) fail("Index must be non-negative in object "+ObjectModel.getString(object));
-    if (index >= limit) fail("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object));
+    if (index < 0) fail("Index must be non-negative in object " + ObjectModel.getString(object));
+    if (index >= limit) fail("Index " + index + " out of bounds " + limit + " in object " + ObjectModel.getString(object));
 
     Address ref = ObjectModel.getDataSlot(object, index);
     if (ActivePlan.constraints.needsIntWriteBarrier()) {
@@ -314,15 +314,15 @@ public abstract class Mutator {
    */
   public void storeReferenceField(ObjectReference object, int index, ObjectReference value) {
     Clock.stop();
-    if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
+    if (object.isNull()) fail(("Object can not be null in object " + ObjectModel.getString(object)));
     Sanity.assertValid(object);
     Sanity.assertValid(value);
     int limit = ObjectModel.getRefs(object);
     if (Trace.isEnabled(Item.STORE) || ObjectModel.isWatched(object)) {
       Trace.printf(Item.STORE,"[%s].object[%d/%d] = %s%n",ObjectModel.getString(object),index,limit,value.toString());
     }
-    if (!(index >= 0)) fail(("Index must be non-negative in object "+ObjectModel.getString(object)));
-    if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
+    if (!(index >= 0)) fail(("Index must be non-negative in object " + ObjectModel.getString(object)));
+    if (!(index < limit)) fail(("Index " + index + " out of bounds " + limit + " in object " + ObjectModel.getString(object)));
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     Clock.start();
@@ -346,11 +346,11 @@ public abstract class Mutator {
    */
   public int loadDataField(ObjectReference object, int index) {
     Clock.stop();
-    if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
+    if (object.isNull()) fail(("Object can not be null in object " + ObjectModel.getString(object)));
     Sanity.assertValid(object);
     int limit = ObjectModel.getDataCount(object);
-    if (!(index >= 0)) fail(("Index must be non-negative in object "+ObjectModel.getString(object)));
-    if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
+    if (!(index >= 0)) fail(("Index must be non-negative in object " + ObjectModel.getString(object)));
+    if (!(index < limit)) fail(("Index " + index + " out of bounds " + limit + " in object " + ObjectModel.getString(object)));
 
     Address dataSlot = ObjectModel.getDataSlot(object, index);
     Clock.start();
@@ -377,11 +377,11 @@ public abstract class Mutator {
    */
   public ObjectReference loadReferenceField(ObjectReference object, int index) {
     Clock.stop();
-    if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
+    if (object.isNull()) fail(("Object can not be null in object " + ObjectModel.getString(object)));
     Sanity.assertValid(object);
     int limit = ObjectModel.getRefs(object);
-    if (!(index >= 0)) fail(("Index must be non-negative in object "+ObjectModel.getString(object)));
-    if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
+    if (!(index >= 0)) fail(("Index must be non-negative in object " + ObjectModel.getString(object)));
+    if (!(index < limit)) fail(("Index " + index + " out of bounds " + limit + " in object " + ObjectModel.getString(object)));
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     ObjectReference result;
@@ -427,9 +427,9 @@ public abstract class Mutator {
    */
   public ObjectReference alloc(int refCount, int dataCount, boolean doubleAlign, int allocSite) {
     if (!(refCount >= 0)) fail("Non-negative reference field count required");
-    if (!(refCount <= ObjectModel.MAX_REF_FIELDS)) fail(("Maximum of "+ObjectModel.MAX_REF_FIELDS+" reference fields per object"));
+    if (!(refCount <= ObjectModel.MAX_REF_FIELDS)) fail(("Maximum of " + ObjectModel.MAX_REF_FIELDS + " reference fields per object"));
     if (!(dataCount >= 0)) fail("Non-negative data field count required");
-    if (!(dataCount <= ObjectModel.MAX_DATA_FIELDS)) fail(("Maximum of "+ObjectModel.MAX_DATA_FIELDS+" data fields per object"));
+    if (!(dataCount <= ObjectModel.MAX_DATA_FIELDS)) fail(("Maximum of " + ObjectModel.MAX_DATA_FIELDS + " data fields per object"));
     ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign, allocSite);
     if (Trace.isEnabled(Item.ALLOC) || ObjectModel.isWatched(result)) {
       Clock.stop();

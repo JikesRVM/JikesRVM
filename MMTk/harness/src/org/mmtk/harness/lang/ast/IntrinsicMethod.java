@@ -76,7 +76,7 @@ public class IntrinsicMethod extends Method {
     } else if (externalType.equals(PhantomReferenceValue.class)) {
       return Type.PHANTOMREF;
     }
-    throw new RuntimeException("Invalid return type for intrinsic method, "+externalType.getCanonicalName());
+    throw new RuntimeException("Invalid return type for intrinsic method, " + externalType.getCanonicalName());
   }
 
   /**
@@ -93,7 +93,7 @@ public class IntrinsicMethod extends Method {
       String methodName, Class<?>[] signature) {
     try {
       Class<?> klass = Class.forName(className);
-      Class<?>[] realSignature = new Class<?>[signature.length+1];
+      Class<?>[] realSignature = new Class<?>[signature.length + 1];
       realSignature[0] = Env.class;
       System.arraycopy(signature, 0, realSignature, 1, signature.length);
       return klass.getDeclaredMethod(methodName, realSignature);
@@ -127,7 +127,7 @@ public class IntrinsicMethod extends Method {
     } catch (ClassNotFoundException e) {
       // As a last chance, try looking for the class in java.lang
       try {
-        r = Class.forName("java.lang."+param);
+        r = Class.forName("java.lang." + param);
       } catch (ClassNotFoundException f) {
         throw new RuntimeException(e);
       }
@@ -142,7 +142,7 @@ public class IntrinsicMethod extends Method {
    */
   private static Class<?>[] classesForParams(List<String> params) {
     Class<?>[] result = new Class<?>[params.size()];
-    for (int i=0; i < params.size(); i++) {
+    for (int i = 0; i < params.size(); i++) {
       result[i] = classForParam(params.get(i));
     }
     return result;
@@ -220,10 +220,10 @@ public class IntrinsicMethod extends Method {
    */
   private Object[] marshall(Env env, Value[] values) {
     assert values.length == signature.length : "Signature doesn't match params";
-    Object[] marshalled = new Object[values.length+1];
+    Object[] marshalled = new Object[values.length + 1];
     marshalled[0] = env;
-    for (int i=0; i < values.length; i++) {
-      marshalled[i+1] = values[i].marshall(signature[i]);
+    for (int i = 0; i < values.length; i++) {
+      marshalled[i + 1] = values[i].marshall(signature[i]);
     }
     return marshalled;
   }
@@ -248,7 +248,7 @@ public class IntrinsicMethod extends Method {
     } else if (obj instanceof Value) {
       return (Value)obj;
     }
-    throw new RuntimeException("Can't unmarshall a "+obj.getClass().getCanonicalName());
+    throw new RuntimeException("Can't unmarshall a " + obj.getClass().getCanonicalName());
   }
 
   /**
@@ -260,7 +260,7 @@ public class IntrinsicMethod extends Method {
   Object invoke(Env env, Value[] values) {
     Clock.stop();
     try {
-      Trace.trace(Item.INTRINSIC,"Executing "+toString());
+      Trace.trace(Item.INTRINSIC,"Executing " + toString());
       try {
         Object result = method.invoke(null, marshall(env,values));
         return result;

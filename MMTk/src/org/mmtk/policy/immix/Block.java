@@ -92,11 +92,11 @@ public class Block  {
   static Address getBlockMarkStateAddress(Address address) {
     Address chunk = Chunk.align(address);
     int index = getChunkIndex(address);
-    Address rtn = chunk.plus(Chunk.BLOCK_STATE_TABLE_OFFSET).plus(index<<LOG_BYTES_IN_BLOCK_STATE_ENTRY);
+    Address rtn = chunk.plus(Chunk.BLOCK_STATE_TABLE_OFFSET).plus(index << LOG_BYTES_IN_BLOCK_STATE_ENTRY);
     if (VM.VERIFY_ASSERTIONS) {
-      Address block = chunk.plus(index<<LOG_BYTES_IN_BLOCK);
+      Address block = chunk.plus(index << LOG_BYTES_IN_BLOCK);
       VM.assertions._assert(isAligned(block));
-      boolean valid = rtn.GE(chunk.plus(Chunk.BLOCK_STATE_TABLE_OFFSET)) && rtn.LT(chunk.plus(Chunk.BLOCK_STATE_TABLE_OFFSET+BLOCK_STATE_TABLE_BYTES));
+      boolean valid = rtn.GE(chunk.plus(Chunk.BLOCK_STATE_TABLE_OFFSET)) && rtn.LT(chunk.plus(Chunk.BLOCK_STATE_TABLE_OFFSET + BLOCK_STATE_TABLE_BYTES));
       VM.assertions._assert(valid);
     }
     return rtn;
@@ -129,10 +129,10 @@ public class Block  {
     short markCount = 0;
     short conservativeSpillCount = 0;
     byte mark, lastMark = 0;
-    for (int offset = 0; offset < (LINES_IN_BLOCK<<Line.LOG_BYTES_IN_LINE_STATUS); offset += Line.BYTES_IN_LINE_STATUS) {
+    for (int offset = 0; offset < (LINES_IN_BLOCK << Line.LOG_BYTES_IN_LINE_STATUS); offset += Line.BYTES_IN_LINE_STATUS) {
        if (VM.VERIFY_ASSERTIONS) {
         VM.assertions._assert(markTable.plus(offset).GE(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET)));
-        VM.assertions._assert(markTable.plus(offset).LT(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES)));
+        VM.assertions._assert(markTable.plus(offset).LT(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET + Line.LINE_MARK_TABLE_BYTES)));
       }
       mark = markTable.loadByte(Offset.fromIntZeroExtend(offset));
       if (resetMarkState)
@@ -143,7 +143,7 @@ public class Block  {
       else if (lastMark == markState)
         conservativeSpillCount++;
       else if (SANITY_CHECK_LINE_MARKS && lastMark != markState) {
-        VM.memory.zero(false, block.plus(offset<<(LOG_BYTES_IN_LINE-Line.LOG_BYTES_IN_LINE_STATUS)),Extent.fromIntZeroExtend(BYTES_IN_LINE));
+        VM.memory.zero(false, block.plus(offset << (LOG_BYTES_IN_LINE - Line.LOG_BYTES_IN_LINE_STATUS)),Extent.fromIntZeroExtend(BYTES_IN_LINE));
       }
 
       lastMark = mark;
@@ -186,11 +186,11 @@ public class Block  {
   static Address getDefragStateAddress(Address address) {
     Address chunk = Chunk.align(address);
     int index = getChunkIndex(address);
-    Address rtn = chunk.plus(Chunk.BLOCK_DEFRAG_STATE_TABLE_OFFSET).plus(index<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY);
+    Address rtn = chunk.plus(Chunk.BLOCK_DEFRAG_STATE_TABLE_OFFSET).plus(index << LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY);
     if (VM.VERIFY_ASSERTIONS) {
-      Address block = chunk.plus(index<<LOG_BYTES_IN_BLOCK);
+      Address block = chunk.plus(index << LOG_BYTES_IN_BLOCK);
       VM.assertions._assert(isAligned(block));
-      boolean valid = rtn.GE(chunk.plus(Chunk.BLOCK_DEFRAG_STATE_TABLE_OFFSET)) && rtn.LT(chunk.plus(Chunk.BLOCK_DEFRAG_STATE_TABLE_OFFSET+BLOCK_DEFRAG_STATE_TABLE_BYTES));
+      boolean valid = rtn.GE(chunk.plus(Chunk.BLOCK_DEFRAG_STATE_TABLE_OFFSET)) && rtn.LT(chunk.plus(Chunk.BLOCK_DEFRAG_STATE_TABLE_OFFSET + BLOCK_DEFRAG_STATE_TABLE_BYTES));
       VM.assertions._assert(valid);
     }
     return rtn;
@@ -198,7 +198,7 @@ public class Block  {
 
   static void resetLineMarksAndDefragStateTable(short threshold, Address markStateBase, Address defragStateBase,
       Address lineMarkBase, int block) {
-    Offset csOffset = Offset.fromIntZeroExtend(block<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY);
+    Offset csOffset = Offset.fromIntZeroExtend(block << LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY);
     short state = defragStateBase.loadShort(csOffset);
     short defragState = BLOCK_IS_NOT_DEFRAG_SOURCE;
     if (state >= threshold) defragState = BLOCK_IS_DEFRAG_SOURCE;
@@ -214,12 +214,12 @@ public class Block  {
 
   /* block states */
   static final int LOG_BYTES_IN_BLOCK_STATE_ENTRY = LOG_BYTES_IN_SHORT; // use a short for now
-  static final int BYTES_IN_BLOCK_STATE_ENTRY = 1<<LOG_BYTES_IN_BLOCK_STATE_ENTRY;
-  static final int BLOCK_STATE_TABLE_BYTES = BLOCKS_IN_CHUNK<<LOG_BYTES_IN_BLOCK_STATE_ENTRY;
+  static final int BYTES_IN_BLOCK_STATE_ENTRY = 1 << LOG_BYTES_IN_BLOCK_STATE_ENTRY;
+  static final int BLOCK_STATE_TABLE_BYTES = BLOCKS_IN_CHUNK << LOG_BYTES_IN_BLOCK_STATE_ENTRY;
 
   /* per-block defrag state */
   static final int LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY = LOG_BYTES_IN_SHORT;
-  static final int BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY = 1<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY;
+  static final int BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY = 1 << LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY;
 
-  static final int BLOCK_DEFRAG_STATE_TABLE_BYTES = BLOCKS_IN_CHUNK<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY;
+  static final int BLOCK_DEFRAG_STATE_TABLE_BYTES = BLOCKS_IN_CHUNK << LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY;
 }

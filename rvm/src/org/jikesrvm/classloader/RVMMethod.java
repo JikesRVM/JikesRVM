@@ -94,17 +94,17 @@ public abstract class RVMMethod extends RVMMember {
                       RVMAnnotation[][] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     if (parameterAnnotations != null) {
-      synchronized(RVMMethod.parameterAnnotations) {
+      synchronized (RVMMethod.parameterAnnotations) {
         RVMMethod.parameterAnnotations.put(this, parameterAnnotations);
       }
     }
     if (exceptionTypes != null) {
-      synchronized(RVMMethod.exceptionTypes) {
+      synchronized (RVMMethod.exceptionTypes) {
         RVMMethod.exceptionTypes.put(this, exceptionTypes);
       }
     }
     if (annotationDefault != null) {
-      synchronized(annotationDefaults) {
+      synchronized (annotationDefaults) {
         annotationDefaults.put(this, annotationDefault);
       }
     }
@@ -115,7 +115,7 @@ public abstract class RVMMethod extends RVMMember {
    */
   @Pure
   private RVMAnnotation[][] getParameterAnnotations() {
-    synchronized(parameterAnnotations) {
+    synchronized (parameterAnnotations) {
       return parameterAnnotations.get(this);
     }
   }
@@ -125,7 +125,7 @@ public abstract class RVMMethod extends RVMMember {
    */
   @Pure
   public Object getAnnotationDefault() {
-    synchronized(annotationDefaults) {
+    synchronized (annotationDefaults) {
       Object value = annotationDefaults.get(this);
       if (value instanceof TypeReference || value instanceof Object[]) {
         value = RVMAnnotation.firstUse(value);
@@ -447,7 +447,7 @@ public abstract class RVMMethod extends RVMMember {
    */
   @Pure
   public final TypeReference[] getExceptionTypes() {
-    synchronized(exceptionTypes) {
+    synchronized (exceptionTypes) {
       return exceptionTypes.get(this);
     }
   }
@@ -742,7 +742,7 @@ public abstract class RVMMethod extends RVMMember {
     if (jtocOffset.EQ(Offset.zero())) {
       jtocOffset = Statics.allocateReferenceSlot(true);
       Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
-      synchronized(jtocOffsets) {
+      synchronized (jtocOffsets) {
         jtocOffsets.put(this, Integer.valueOf(jtocOffset.toInt()));
       }
     }
@@ -755,7 +755,7 @@ public abstract class RVMMethod extends RVMMember {
   @Pure
   public final Annotation[][] getDeclaredParameterAnnotations() {
     Annotation[][] result;
-    synchronized(declaredParameterAnnotations) {
+    synchronized (declaredParameterAnnotations) {
       result = declaredParameterAnnotations.get(this);
     }
     if (result == null) {
@@ -764,7 +764,7 @@ public abstract class RVMMethod extends RVMMember {
       for (int a = 0; a < result.length; ++a) {
         result[a] = toAnnotations(parameterAnnotations[a]);
       }
-      synchronized(declaredParameterAnnotations) {
+      synchronized (declaredParameterAnnotations) {
         declaredParameterAnnotations.put(this, result);
       }
     }
@@ -787,7 +787,7 @@ public abstract class RVMMethod extends RVMMember {
     }
     ReflectionBase invoker;
     if (invokeMethods != null) {
-      synchronized(RVMMethod.class) {
+      synchronized (RVMMethod.class) {
         invoker = invokeMethods.get(this);
       }
     } else {
@@ -805,7 +805,7 @@ public abstract class RVMMethod extends RVMMember {
         invoker = ReflectionBase.nullInvoker;
       }
       if (invokeMethods != null) {
-        synchronized(RVMMethod.class) {
+        synchronized (RVMMethod.class) {
           invokeMethods.put(this, invoker);
         }
       }
@@ -867,37 +867,37 @@ public abstract class RVMMethod extends RVMMember {
       // static call
       bytecodes = new byte[8 * numParams + 7];
     }
-    for (int i=0; i < numParams; i++) {
+    for (int i = 0; i < numParams; i++) {
       if (parameters[i].isVoidType()) {
         bytecodes[curBC] =
-          bytecodes[curBC+1] =
-          bytecodes[curBC+2] =
-          bytecodes[curBC+3] =
-          bytecodes[curBC+4] =
-          bytecodes[curBC+5] =
-          bytecodes[curBC+6] =
-          bytecodes[curBC+7] =
+          bytecodes[curBC + 1] =
+          bytecodes[curBC + 2] =
+          bytecodes[curBC + 3] =
+          bytecodes[curBC + 4] =
+          bytecodes[curBC + 5] =
+          bytecodes[curBC + 6] =
+          bytecodes[curBC + 7] =
             (byte)JBC_nop;
         continue;
       }
       bytecodes[curBC] = (byte)JBC_aload_2;
-      bytecodes[curBC+1] = (byte)JBC_sipush;
-      bytecodes[curBC+2] = (byte)(i >>> 8);
-      bytecodes[curBC+3] = (byte)i;
-      bytecodes[curBC+4] = (byte)JBC_aaload;
+      bytecodes[curBC + 1] = (byte)JBC_sipush;
+      bytecodes[curBC + 2] = (byte)(i >>> 8);
+      bytecodes[curBC + 3] = (byte)i;
+      bytecodes[curBC + 4] = (byte)JBC_aaload;
       if (!parameters[i].isPrimitiveType()) {
-        bytecodes[curBC+5] = (byte)JBC_checkcast;
+        bytecodes[curBC + 5] = (byte)JBC_checkcast;
         if (VM.VerifyAssertions) VM._assert(parameters[i].getId() != 0);
-        constantPool[i+1] = ClassFileReader.packCPEntry(CP_CLASS, parameters[i].getId());
-        bytecodes[curBC+6] = (byte)((i+1) >>> 8);
-        bytecodes[curBC+7] = (byte)(i+1);
+        constantPool[i + 1] = ClassFileReader.packCPEntry(CP_CLASS, parameters[i].getId());
+        bytecodes[curBC + 6] = (byte)((i + 1) >>> 8);
+        bytecodes[curBC + 7] = (byte)(i + 1);
       } else if (parameters[i].isWordLikeType()) {
-        bytecodes[curBC+5] =
-          bytecodes[curBC+6] =
-          bytecodes[curBC+7] =
+        bytecodes[curBC + 5] =
+          bytecodes[curBC + 6] =
+          bytecodes[curBC + 7] =
             (byte)JBC_nop;
       } else {
-        bytecodes[curBC+5] = (byte)JBC_invokestatic;
+        bytecodes[curBC + 5] = (byte)JBC_invokestatic;
         MemberReference unboxMethod;
         if (parameters[i].isBooleanType()) {
           unboxMethod = MethodReference.findOrCreate(baseReflectionClass,
@@ -933,11 +933,11 @@ public abstract class RVMMethod extends RVMMember {
                                                         Atom.findOrCreateUnicodeAtom("unboxAsDouble"),
                                                         Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;)D"));
         }
-        constantPool[i+1] = ClassFileReader.packCPEntry(CP_MEMBER, unboxMethod.getId());
-        bytecodes[curBC+6] = (byte)((i+1) >>> 8);
-        bytecodes[curBC+7] = (byte)(i+1);
+        constantPool[i + 1] = ClassFileReader.packCPEntry(CP_MEMBER, unboxMethod.getId());
+        bytecodes[curBC + 6] = (byte)((i + 1) >>> 8);
+        bytecodes[curBC + 7] = (byte)(i + 1);
       }
-      curBC+=8;
+      curBC += 8;
     }
     if (isStatic()) {
       bytecodes[curBC] = (byte)JBC_invokestatic;
@@ -948,22 +948,22 @@ public abstract class RVMMethod extends RVMMember {
     } else {
       bytecodes[curBC] = (byte)JBC_invokevirtual;
     }
-    constantPool[numParams+1] = ClassFileReader.packCPEntry(CP_MEMBER, getId());
-    bytecodes[curBC+1] = (byte)((numParams+1) >>> 8);
-    bytecodes[curBC+2] = (byte)(numParams+1);
+    constantPool[numParams + 1] = ClassFileReader.packCPEntry(CP_MEMBER, getId());
+    bytecodes[curBC + 1] = (byte)((numParams + 1) >>> 8);
+    bytecodes[curBC + 2] = (byte)(numParams + 1);
     if (interfaceCall) {
       // invokeinterface bytecodes are historically longer than others
-      curBC+=2;
+      curBC += 2;
     }
     TypeReference returnType = getReturnType();
     if (!returnType.isPrimitiveType() || returnType.isWordLikeType()) {
-      bytecodes[curBC+3] = (byte)JBC_nop;
-      bytecodes[curBC+4] = (byte)JBC_nop;
-      bytecodes[curBC+5] = (byte)JBC_nop;
+      bytecodes[curBC + 3] = (byte)JBC_nop;
+      bytecodes[curBC + 4] = (byte)JBC_nop;
+      bytecodes[curBC + 5] = (byte)JBC_nop;
     } else if (returnType.isVoidType()) {
-      bytecodes[curBC+3] = (byte)JBC_aconst_null;
-      bytecodes[curBC+4] = (byte)JBC_nop;
-      bytecodes[curBC+5] = (byte)JBC_nop;
+      bytecodes[curBC + 3] = (byte)JBC_aconst_null;
+      bytecodes[curBC + 4] = (byte)JBC_nop;
+      bytecodes[curBC + 5] = (byte)JBC_nop;
     } else {
       MemberReference boxMethod;
       if (returnType.isBooleanType()) {
@@ -1000,12 +1000,12 @@ public abstract class RVMMethod extends RVMMember {
                                                     Atom.findOrCreateUnicodeAtom("boxAsDouble"),
                                                     Atom.findOrCreateUnicodeAtom("(D)Ljava/lang/Object;"));
       }
-      constantPool[numParams+2] = ClassFileReader.packCPEntry(CP_MEMBER, boxMethod.getId());
-      bytecodes[curBC+3] = (byte)JBC_invokestatic;
-      bytecodes[curBC+4] = (byte)((numParams+2) >>> 8);
-      bytecodes[curBC+5] = (byte)(numParams+2);
+      constantPool[numParams + 2] = ClassFileReader.packCPEntry(CP_MEMBER, boxMethod.getId());
+      bytecodes[curBC + 3] = (byte)JBC_invokestatic;
+      bytecodes[curBC + 4] = (byte)((numParams + 2) >>> 8);
+      bytecodes[curBC + 5] = (byte)(numParams + 2);
     }
-    bytecodes[curBC+6] = (byte)JBC_areturn;
+    bytecodes[curBC + 6] = (byte)JBC_areturn;
     return new NormalMethod(reflectionClass,
                                memRef,
                                (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC),

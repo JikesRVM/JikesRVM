@@ -90,7 +90,7 @@ public final class SpecializedScanMethod extends SpecializedMethod {
     if (!VM.BuildWithBaseBootImageCompiler) {
       /* Compile our specialized methods when we are opt compiling */
       RVMClass myClass = specializedScanMethodType.peekType().asClass();
-      for(int i=0; i < PATTERNS; i++) {
+      for (int i = 0; i < PATTERNS; i++) {
         RVMMethod method = myClass.findStaticMethod(templateMethodName(i), specializedMethodDescriptor);
         specializedMethods[i] = compileSpecializedMethod(method, specializedSignature);
       }
@@ -126,7 +126,7 @@ public final class SpecializedScanMethod extends SpecializedMethod {
     int base = FIELD_ZERO_OFFSET.toInt();
     int pattern = 0;
 
-    for(int i=0; i < offsets.length; i++) {
+    for (int i = 0; i < offsets.length; i++) {
       int reference = (offsets[i] - base);
       if (reference > MAX_SPECIALIZED_OFFSET) {
         return FALLBACK_PATTERN;
@@ -197,12 +197,12 @@ public final class SpecializedScanMethod extends SpecializedMethod {
     int[] offsets = type.getReferenceOffsets();
     if (offsets != REFARRAY_OFFSET_ARRAY) {
       if (VM.VerifyAssertions) VM._assert(type.isClassType() || (type.isArrayType() && !type.asArray().getElementType().isReferenceType()));
-      for(int i=0; i < offsets.length; i++) {
+      for (int i = 0; i < offsets.length; i++) {
         trace.processEdge(objectRef, objectRef.toAddress().plus(offsets[i]));
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(type.isArrayType() && type.asArray().getElementType().isReferenceType());
-      for(int i=0; i < ObjectModel.getArrayLength(objectRef.toObject()); i++) {
+      for (int i = 0; i < ObjectModel.getArrayLength(objectRef.toObject()); i++) {
         trace.processEdge(objectRef, objectRef.toAddress().plus(i << LOG_BYTES_IN_ADDRESS));
       }
     }
@@ -221,7 +221,7 @@ public final class SpecializedScanMethod extends SpecializedMethod {
   public static void referenceArray(Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object);
     int length = ObjectModel.getArrayLength(object);
-    for (int i=0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       trace.processEdge(ObjectReference.fromObject(object), base.plus(i << LOG_BYTES_IN_ADDRESS));
     }
   }

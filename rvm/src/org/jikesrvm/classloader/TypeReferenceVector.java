@@ -78,8 +78,8 @@ final class TypeReferenceVector {
 
   @Override
   public int hashCode() {
-    int val=0;
-    for(int i=0; i<cnt; i++) {
+    int val = 0;
+    for (int i = 0; i < cnt; i++) {
       val ^= array[i].hashCode();
     }
     return val;
@@ -90,7 +90,7 @@ final class TypeReferenceVector {
     if (obj instanceof TypeReferenceVector) {
       TypeReferenceVector that = (TypeReferenceVector)obj;
       if (cnt != that.cnt) return false;
-      for(int i=0; i<cnt; i++) {
+      for (int i = 0; i < cnt; i++) {
         if (array[i] != that.array[i]) return false;
       }
       return true;

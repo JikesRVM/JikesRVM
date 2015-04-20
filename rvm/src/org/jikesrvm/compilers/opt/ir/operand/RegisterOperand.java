@@ -302,7 +302,7 @@ public final class RegisterOperand extends Operand {
       if (isPreciseType() && type != null &&
           type.isClassType() && type.isResolved()) {
         RVMClass preciseClass = type.resolve().asClass();
-        if(preciseClass.isInterface() || preciseClass.isAbstract()) {
+        if (preciseClass.isInterface() || preciseClass.isAbstract()) {
           VM.sysWriteln("Error processing instruction: ", this.instruction.toString());
           throw new OptimizingCompilerException("Unable to set type as it would make this interface/abstract class precise " + preciseClass);
         }

@@ -48,7 +48,7 @@ public class FileSystem {
   public static int readByte(int fd) {
     RVMThread.saveThreadState();
     RVMThread.enterNative();
-    int result=sysCall.sysReadByte(fd);
+    int result = sysCall.sysReadByte(fd);
     RVMThread.leaveNative();
     return result;
   }
@@ -67,7 +67,7 @@ public class FileSystem {
   public static int writeByte(int fd, int b) {
     RVMThread.saveThreadState();
     RVMThread.enterNative();
-    int result=sysCall.sysWriteByte(fd,b);
+    int result = sysCall.sysWriteByte(fd,b);
     RVMThread.leaveNative();
     return result;
   }
@@ -88,7 +88,7 @@ public class FileSystem {
   public static int readBytes(int fd, byte[] buf, int off, int cnt) {
     RVMThread.saveThreadState();
     RVMThread.enterNative();
-    int result=sysCall.sysReadBytes(fd,Magic.objectAsAddress(buf).plus(off),cnt);
+    int result = sysCall.sysReadBytes(fd,Magic.objectAsAddress(buf).plus(off),cnt);
     RVMThread.leaveNative();
     return result;
   }
@@ -109,7 +109,7 @@ public class FileSystem {
   public static int writeBytes(int fd, byte[] buf, int off, int cnt) {
     RVMThread.saveThreadState();
     RVMThread.enterNative();
-    int result=sysCall.sysWriteBytes(fd,Magic.objectAsAddress(buf).plus(off),cnt);
+    int result = sysCall.sysWriteBytes(fd,Magic.objectAsAddress(buf).plus(off),cnt);
     RVMThread.leaveNative();
     return result;
   }

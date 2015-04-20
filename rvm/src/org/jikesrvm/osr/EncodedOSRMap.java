@@ -105,7 +105,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
     ArrayList<Integer> tempOsrMaps = new ArrayList<Integer>();
     translateMap(tempOsrMaps, varMap.list, mcOffsets);
     this.osrMaps = new int[tempOsrMaps.size()];
-    for (int i=0; i < tempOsrMaps.size(); i++) {
+    for (int i = 0; i < tempOsrMaps.size(); i++) {
       this.osrMaps[i] = tempOsrMaps.get(i);
     }
 
@@ -228,7 +228,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
 
     int regmap = (!mVarList.isEmpty()) ? NEXT_BIT : 0;
     tempOsrMaps.add(regmap);
-    int mapIndex = tempOsrMaps.size()-1;
+    int mapIndex = tempOsrMaps.size() - 1;
 
     // from inner to outer
     for (int i = 0, m = mVarList.size(); i < m; i++) {
@@ -349,7 +349,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
         first |= (RET_ADDR << TCODE_SHIFT);
         break;
       case WordTypeCode:
-        if (VM.BuildFor64Addr && (tuple.valueType == ICONST)) {//KV:TODO
+        if (VM.BuildFor64Addr && (tuple.valueType == ICONST)) { //KV:TODO
           //split in two integer parts for OSR map
           // process the first half part,
           // it is not the last. */

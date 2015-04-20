@@ -120,7 +120,7 @@ public class OSRProfiler implements Callbacks.ExitMonitor {
         }
       }
       if (cmplplan != null) {
-        if (VM.VerifyAssertions) {VM._assert(cmplplan.getMethod() == state.meth);}
+        if (VM.VerifyAssertions) { VM._assert(cmplplan.getMethod() == state.meth); }
 
         // for invalidated method, we do not perform OSR guarded inlining anymore.
         // the Options object may be shared by several methods,
@@ -150,11 +150,15 @@ public class OSRProfiler implements Callbacks.ExitMonitor {
     if (!recmplsucc) {
       int newcmid = RuntimeCompiler.recompileWithOpt(state.meth);
       if (newcmid == -1) {
-        if (VM.TraceOnStackReplacement) {VM.sysWriteln("  opt recompilation failed!");}
+        if (VM.TraceOnStackReplacement) {
+          VM.sysWriteln("  opt recompilation failed!");
+        }
         state.meth.invalidateCompiledMethod(mostRecentlyCompiledMethod);
       }
     }
 
-    if (VM.TraceOnStackReplacement) {VM.sysWriteln("  opt recompilation done!");}
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("  opt recompilation done!");
+    }
   }
 }

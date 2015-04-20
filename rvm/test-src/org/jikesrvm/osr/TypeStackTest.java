@@ -83,13 +83,13 @@ public class TypeStackTest {
     assertEquals(EMPTY, t.depth());
   }
 
-  @Test(expected=RuntimeException.class)
+  @Test(expected = RuntimeException.class)
   public void testPopMoreElementsThanExisting() {
     TypeStack t = newTypeStack();
     t.pop(3);
   }
 
-  @Test(expected=RuntimeException.class)
+  @Test(expected = RuntimeException.class)
   public void testPopMoreElementsThanExistingUsingSinglePop() {
     TypeStack t = newTypeStack();
     t.pop();
@@ -106,7 +106,7 @@ public class TypeStackTest {
     assertEquals(B1, t.peek());
   }
 
-  @Test(expected=RuntimeException.class)
+  @Test(expected = RuntimeException.class)
   public void testPushMoreElementsThanAvailableSpace() {
     TypeStack t = newTypeStack();
     t.push(B0);
@@ -115,7 +115,7 @@ public class TypeStackTest {
     t.push(B1);
   }
 
-  @Test(expected=RuntimeException.class)
+  @Test(expected = RuntimeException.class)
   public void testPeekingAnEmptyStack() {
     TypeStack t = new TypeStack(TYPE_STACK_LENGTH, DEFAULT_VALUE);
     t.peek();

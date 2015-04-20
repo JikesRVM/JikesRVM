@@ -34,12 +34,12 @@ public class ExampleThatRequiresBootstrapVMTest {
 
   @Test
   @Category(RequiresBootstrapVM.class)
-  public void testThatRequiresBootstrapVM(){
+  public void testThatRequiresBootstrapVM() {
     assertFalse(isRunningOnJikesRVM());
   }
 
   @Test
-  public void testWithNoRequirements(){
+  public void testWithNoRequirements() {
     assertFalse(isRunningOnJikesRVM());
   }
 }

@@ -81,7 +81,7 @@ public class Intrinsics {
    * @return A random integer in the closed interval [low..high]
    */
   public static int random(Env env, int low, int high) {
-    return env.random().nextInt(high-low+1) + low;
+    return env.random().nextInt(high - low + 1) + low;
   }
 
   /**
@@ -171,7 +171,7 @@ public class Intrinsics {
    */
   public static void setOption(Env env, String option) {
     if (!Harness.options.process(option)) {
-      System.err.println("Error processing option "+option);
+      System.err.println("Error processing option " + option);
     }
   }
 

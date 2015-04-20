@@ -303,7 +303,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                          * and max allowable.
                          * Other alternatives would be to do a log interpolation or some other step function.
                          */
-                        int range = opts.INLINE_AI_MAX_TARGET_SIZE -  2*opts.INLINE_MAX_TARGET_SIZE;
+                        int range = opts.INLINE_AI_MAX_TARGET_SIZE - 2 * opts.INLINE_MAX_TARGET_SIZE;
                         double slope = (range) / Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD;
                         int scaledAdj = (int) (slope * adjustedWeight);
                         maxCost += opts.INLINE_MAX_TARGET_SIZE + scaledAdj;
@@ -413,7 +413,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               VM.sysWriteln("Error, inlining for " + methodsToInline.size() + " targets");
               VM.sysWriteln("Inlining into " + rootMethod + " at bytecode index " + bcIndex);
               VM.sysWriteln("Method: " + target + " doesn't need a guard");
-              for (int i=0; i < methodsToInline.size(); i++) {
+              for (int i = 0; i < methodsToInline.size(); i++) {
                 VM.sysWriteln("  Method " + i + ": " + methodsToInline.get(i));
                 VM.sysWriteln("  NeedsGuard: " + methodsNeedGuard.get(i));
               }

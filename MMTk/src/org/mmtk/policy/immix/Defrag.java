@@ -101,7 +101,7 @@ public class Defrag {
       chunkMap.consolidateMap();
       establishDefragSpillThreshold(chunkMap, space);
       defrags.inc();
-      defragCleanBytesAvailable.inc(availableCleanPagesForDefrag<<LOG_BYTES_IN_PAGE);
+      defragCleanBytesAvailable.inc(availableCleanPagesForDefrag << LOG_BYTES_IN_PAGE);
     }
     availableCleanPagesForDefrag += VM.activePlan.global().getCollectionReserve();
   }
@@ -151,7 +151,7 @@ public class Defrag {
 
   private void establishDefragSpillThreshold(ChunkList chunkMap, ImmixSpace space) {
     int cleanLines = space.getAvailableLines(spillAvailHistogram);
-    int availableLines = cleanLines + availableCleanPagesForDefrag<<(LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
+    int availableLines = cleanLines + availableCleanPagesForDefrag << (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
 
     int requiredLines = 0;
     short threshold = MAX_CONSV_SPILL_COUNT;

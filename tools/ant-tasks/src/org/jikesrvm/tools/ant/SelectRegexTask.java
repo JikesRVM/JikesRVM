@@ -62,13 +62,13 @@ public class SelectRegexTask
       input = new BufferedReader(new FileReader(file));
       String[] lines = new String[patternLines];
       String sep = System.getProperty("line.separator");
-      for(int i=0; i < lines.length; i++) {
+      for (int i = 0; i < lines.length; i++) {
         lines[i] = "";
       }
       int nextLine = 0;
-      while((lines[nextLine] = input.readLine()) != null) {
+      while ((lines[nextLine] = input.readLine()) != null) {
         StringBuilder sb = new StringBuilder();
-        for(int i=nextLine+1; i <= nextLine + lines.length ; i++) {
+        for (int i = nextLine + 1; i <= nextLine + lines.length ; i++) {
           String line = lines[i % lines.length];
           sb.append(line);
           sb.append(sep);

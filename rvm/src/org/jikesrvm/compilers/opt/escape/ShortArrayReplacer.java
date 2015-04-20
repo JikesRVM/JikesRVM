@@ -317,7 +317,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
             visited = new HashSet<Register>();
           }
           Register copy = TypeCheck.getResult(inst).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
             transform2(copy, inst, scalars);
             // NB will remove inst
@@ -355,7 +355,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
           visited = new HashSet<Register>();
         }
         Register copy = Move.getResult(inst).getRegister();
-        if(!visited.contains(copy)) {
+        if (!visited.contains(copy)) {
           visited.add(copy);
           transform2(copy, inst, scalars);
           // NB will remove inst
@@ -411,9 +411,9 @@ final class ShortArrayReplacer implements AggregateReplacer {
               visited = new HashSet<Register>();
             }
             Register copy = TypeCheck.getResult(use.instruction).getRegister();
-            if(!visited.contains(copy)) {
+            if (!visited.contains(copy)) {
               visited.add(copy);
-              if(containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
+              if (containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
                 return true;
               }
             }
@@ -464,9 +464,9 @@ final class ShortArrayReplacer implements AggregateReplacer {
             visited = new HashSet<Register>();
           }
           Register copy = Move.getResult(use.instruction).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
-            if(containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
+            if (containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
               return true;
             }
           }

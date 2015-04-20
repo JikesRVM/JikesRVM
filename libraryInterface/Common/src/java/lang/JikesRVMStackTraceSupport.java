@@ -27,7 +27,7 @@ public class JikesRVMStackTraceSupport {
   public static StackTraceElement[] convertToJavaClassLibraryStackTrace(
       StackTrace.Element[] vmElements) {
     StackTraceElement[] elements = new StackTraceElement[vmElements.length];
-    for (int i=0; i < vmElements.length; i++) {
+    for (int i = 0; i < vmElements.length; i++) {
       StackTrace.Element vmElement = vmElements[i];
       String fileName = vmElement.getFileName();
       int lineNumber = vmElement.getLineNumber();

@@ -99,7 +99,7 @@ public class JikesRVMSupport {
   public static RVMThread getThread(Thread thread) {
     if (thread == null) {
       return null;
-    } else if(thread.vmThread == null) {
+    } else if (thread.vmThread == null) {
       return null;
     } else {
       return thread.vmThread.vmdata;
@@ -126,5 +126,4 @@ public class JikesRVMSupport {
   public static String getEnumName(Enum<?> e) {
     return e.name;
   }
-
 }

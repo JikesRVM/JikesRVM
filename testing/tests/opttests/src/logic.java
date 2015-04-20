@@ -127,16 +127,16 @@ static int extract6(int a) {
 }
 
 static int extract7(int a) {
-    return (a >>>12) <<  4;
+    return (a >>> 12) <<  4;
 }
 
 
 static int extract8(int a) {
-    return (a >>12) >>  4;
+    return (a >> 12) >>  4;
 }
 
 static int extract9(int a) {
-    return (a <<12) <<  4;
+    return (a << 12) <<  4;
 }
 
 static int extract10(int a) {
@@ -164,7 +164,7 @@ static boolean booleanS;
 
 static void store(int a, boolean b) {
    charS = (char)a;
-   shortS= (short)a;
+   shortS = (short)a;
    byteS = (byte)a;
    booleanS = b;
 }

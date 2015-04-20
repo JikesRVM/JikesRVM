@@ -16,7 +16,7 @@ class inlineTest6 {
     int i = sum(100);
     int j = sum(200);
 
-    return i+j;
+    return i + j;
   }
 
   static int sum(int i) {
@@ -24,7 +24,7 @@ class inlineTest6 {
     if (i == 0)
         j = i;
     else
-        j = sum(i-1) + i;
+        j = sum(i - 1) + i;
     return j;
   }
 }

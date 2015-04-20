@@ -107,7 +107,7 @@ public abstract class MachineReflection implements RegisterConstants {
    *
    * @see #countParameters(RVMMethod) more machine-specific details
    */
-  @UnpreemptibleNoWarn("GC is disabled as Objects are turned into Words."+
+  @UnpreemptibleNoWarn("GC is disabled as Objects are turned into Words." +
     "avoid preemption but still allow calls to preemptible unboxing routines")
   public static void packageParameters(RVMMethod method, Object thisArg, Object[] otherArgs, WordArray GPRs,
                                        double[] FPRs, byte[] FPRmeta, WordArray Parameters) {

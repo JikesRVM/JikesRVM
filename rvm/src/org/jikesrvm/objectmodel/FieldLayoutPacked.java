@@ -88,7 +88,7 @@ public class FieldLayoutPacked extends FieldLayout {
       int result = 0;
 
       /* Find a free slot */
-      for(int i = logSize; i <= LOG_MAX_SLOT_SIZE; i++) {
+      for (int i = logSize; i <= LOG_MAX_SLOT_SIZE; i++) {
         int slot = get(i);
         if (slot != 0 || i == LOG_MAX_SLOT_SIZE) {
           result = slot;
@@ -108,7 +108,7 @@ public class FieldLayoutPacked extends FieldLayout {
       if (DEBUG) {
         VM.sysWrite("  field: & offset ", result, " New object size = ", getObjectSize());
         VM.sysWrite(" slots: ");
-        for(int i=0; i < LOG_MAX_SLOT_SIZE; i++) {
+        for (int i = 0; i < LOG_MAX_SLOT_SIZE; i++) {
           VM.sysWrite(get(i), i == LOG_MAX_SLOT_SIZE - 1 ? "" : ", ");
         }
         VM.sysWriteln();

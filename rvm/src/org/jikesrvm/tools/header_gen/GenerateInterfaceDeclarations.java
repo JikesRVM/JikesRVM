@@ -465,7 +465,7 @@ public class GenerateInterfaceDeclarations {
     offset = Entrypoints.execStatusField.getOffset();
     pln("RVMThread_execStatus_offset = ", offset);
     // constants in RVMThread
-    pln("static const int RVMThread_TERMINATED = "+RVMThread.TERMINATED+";");
+    pln("static const int RVMThread_TERMINATED = " + RVMThread.TERMINATED + ";");
     // fields in Registers
     //
     offset = ArchEntrypoints.registersGPRsField.getOffset();

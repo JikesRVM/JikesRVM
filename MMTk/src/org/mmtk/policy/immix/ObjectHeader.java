@@ -37,20 +37,20 @@ public class ObjectHeader {
   static final byte NEW_OBJECT_MARK = 0; // using zero means no need for explicit initialization on allocation
 
   public static final int PINNED_BIT_NUMBER = ForwardingWord.FORWARDING_BITS;
-  public static final byte PINNED_BIT = 1<<PINNED_BIT_NUMBER;
+  public static final byte PINNED_BIT = 1 << PINNED_BIT_NUMBER;
 
   private static final int STRADDLE_BIT_NUMBER = PINNED_BIT_NUMBER + 1;
-  public static final byte STRADDLE_BIT = 1<<STRADDLE_BIT_NUMBER;
+  public static final byte STRADDLE_BIT = 1 << STRADDLE_BIT_NUMBER;
 
   /* mark bits */
 
   /**
    *
    */
-  private static final int  MARK_BASE = STRADDLE_BIT_NUMBER+1;
-  static final int  MAX_MARKCOUNT_BITS = AVAILABLE_LOCAL_BITS-MARK_BASE;
-  private static final byte MARK_INCREMENT = 1<<MARK_BASE;
-  public static final byte MARK_MASK = (byte) (((1<<MAX_MARKCOUNT_BITS)-1)<<MARK_BASE);
+  private static final int  MARK_BASE = STRADDLE_BIT_NUMBER + 1;
+  static final int  MAX_MARKCOUNT_BITS = AVAILABLE_LOCAL_BITS - MARK_BASE;
+  private static final byte MARK_INCREMENT = 1 << MARK_BASE;
+  public static final byte MARK_MASK = (byte) (((1 << MAX_MARKCOUNT_BITS) - 1) << MARK_BASE);
   private static final byte MARK_AND_FORWARDING_MASK = (byte) (MARK_MASK | ForwardingWord.FORWARDING_MASK);
   public static final byte MARK_BASE_VALUE = MARK_INCREMENT;
 

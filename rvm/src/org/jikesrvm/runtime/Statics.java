@@ -195,7 +195,7 @@ public class Statics {
   public static int findOrCreateIntSizeLiteral(int literal) {
     final int bottom = getLowestInUseSlot();
     final int top = middleOfTable;
-    for (int i=top; i >= bottom; i--) {
+    for (int i = top; i >= bottom; i--) {
       if ((slots[i] == literal) && !numericFieldVector.get(i) && (i != numericSlotHole)) {
         return slotAsOffset(i).toInt();
       }
@@ -214,11 +214,11 @@ public class Statics {
   public static int findOrCreateLongSizeLiteral(long literal) {
     final int bottom = getLowestInUseSlot();
     final int top = middleOfTable & 0xFFFFFFFE;
-    for (int i=top; i >= bottom; i-=2) {
+    for (int i = top; i >= bottom; i -= 2) {
       Offset off = slotAsOffset(i);
       if ((getSlotContentsAsLong(off) == literal) &&
-          !numericFieldVector.get(i) && !(numericFieldVector.get(i+1)) &&
-          (i != numericSlotHole) && (i+1 != numericSlotHole)) {
+          !numericFieldVector.get(i) && !(numericFieldVector.get(i + 1)) &&
+          (i != numericSlotHole) && (i + 1 != numericSlotHole)) {
         return slotAsOffset(i).toInt();
       }
     }
@@ -237,14 +237,14 @@ public class Statics {
   public static int findOrCreate16ByteSizeLiteral(long literal_high, long literal_low) {
     final int bottom = getLowestInUseSlot();
     final int top = middleOfTable & 0xFFFFFFFC;
-    for (int i=top; i >= bottom; i-=4) {
+    for (int i = top; i >= bottom; i -= 4) {
       Offset off = slotAsOffset(i);
       if ((getSlotContentsAsLong(off) == literal_low) &&
           (getSlotContentsAsLong(off.plus(8)) == literal_high) &&
-          !numericFieldVector.get(i) && !(numericFieldVector.get(i+1)) &&
-          !numericFieldVector.get(i+2) && !(numericFieldVector.get(i+3)) &&
-          (i != numericSlotHole) && (i+1 != numericSlotHole) &&
-          (i+2 != numericSlotHole) && (i+3 != numericSlotHole)) {
+          !numericFieldVector.get(i) && !(numericFieldVector.get(i + 1)) &&
+          !numericFieldVector.get(i + 2) && !(numericFieldVector.get(i + 3)) &&
+          (i != numericSlotHole) && (i + 1 != numericSlotHole) &&
+          (i + 2 != numericSlotHole) && (i + 3 != numericSlotHole)) {
         return slotAsOffset(i).toInt();
       }
     }
@@ -267,7 +267,7 @@ public class Statics {
     } else {
       Offset newOff = allocateReferenceSlot(false);
       setSlotContents(newOff, literal);
-      synchronized(objectLiterals) {
+      synchronized (objectLiterals) {
         objectLiterals.put(literal, newOff.toInt());
       }
       return newOff.toInt();
@@ -297,7 +297,7 @@ public class Statics {
     int slot = offsetAsSlot(fieldOffset);
     if (size == BYTES_IN_LONG) {
       numericFieldVector.clear(slot);
-      numericFieldVector.clear(slot+1);
+      numericFieldVector.clear(slot + 1);
     } else {
       numericFieldVector.clear(slot);
     }
@@ -317,7 +317,7 @@ public class Statics {
       return;
     } else if (literal != null) {
       if (findObjectLiteral(literal) == 0) {
-        synchronized(objectLiterals) {
+        synchronized (objectLiterals) {
           objectLiterals.put(literal, fieldOffset.toInt());
         }
       }
@@ -338,7 +338,7 @@ public class Statics {
     // other slots for alignment.
     if (size == 16) {
       // widen for a wide
-      nextNumericSlot-=3;
+      nextNumericSlot -= 3;
       // check alignment
       if ((nextNumericSlot & 1) != 0) {
         // slot isn't 8byte aligned so increase by 1 and record hole
@@ -347,16 +347,16 @@ public class Statics {
       }
       if ((nextNumericSlot & 3) != 0) {
         // slot not 16byte aligned, ignore any holes
-        nextNumericSlot-=2;
+        nextNumericSlot -= 2;
       }
       // Remember the slot and adjust the next available slot
       slot = nextNumericSlot;
       nextNumericSlot--;
       if (field) {
         numericFieldVector.set(slot);
-        numericFieldVector.set(slot+1);
-        numericFieldVector.set(slot+2);
-        numericFieldVector.set(slot+3);
+        numericFieldVector.set(slot + 1);
+        numericFieldVector.set(slot + 2);
+        numericFieldVector.set(slot + 3);
       }
     } else if (size == BYTES_IN_LONG) {
       // widen for a wide
@@ -372,7 +372,7 @@ public class Statics {
       nextNumericSlot--;
       if (field) {
         numericFieldVector.set(slot);
-        numericFieldVector.set(slot+1);
+        numericFieldVector.set(slot + 1);
       }
     } else {
       // 4byte quantity, try to reuse hole if one is available
@@ -474,7 +474,7 @@ public class Statics {
     if (isReference(slot) || slot < getLowestInUseSlot() || ((slot & 1) != 0)) {
       return false;
     } else {
-      return !numericFieldVector.get(slot) && !numericFieldVector.get(slot+1);
+      return !numericFieldVector.get(slot) && !numericFieldVector.get(slot + 1);
     }
   }
 

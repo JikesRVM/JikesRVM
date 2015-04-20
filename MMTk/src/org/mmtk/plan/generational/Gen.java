@@ -176,7 +176,7 @@ public abstract class Gen extends StopTheWorld {
 
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      if (traceFullHeap()){
+      if (traceFullHeap()) {
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
@@ -227,7 +227,7 @@ public abstract class Gen extends StopTheWorld {
     int availableNurseryPages = Options.nurserySize.getMaxNursery() - nurserySpace.reservedPages();
 
     /* periodically recalculate nursery pretenure threshold */
-    Plan.pretenureThreshold = (int) ((availableNurseryPages<<LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+    Plan.pretenureThreshold = (int) ((availableNurseryPages << LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
 
     if (availableNurseryPages <= 0) {
       return true;

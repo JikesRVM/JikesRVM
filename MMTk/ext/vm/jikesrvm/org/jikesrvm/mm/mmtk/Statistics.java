@@ -42,12 +42,12 @@ public final class Statistics extends org.mmtk.vm.Statistics {
 
   @Override
   public double nanosToMillis(long c) {
-    return (c)/1e6;
+    return (c) / 1e6;
   }
 
   @Override
   public double nanosToSecs(long c) {
-    return (c)/1e9;
+    return (c) / 1e9;
   }
 
   @Override

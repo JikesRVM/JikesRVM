@@ -24,16 +24,16 @@ public class virtual {
 
  public static int iter(int n) {
         virtual lo = new virtual(5);
-        lo.f1 = lo.f2+1;
+        lo.f1 = lo.f2 + 1;
         cnt = 1000;
         lo.f1 = lo.abc(200);
          return lo.f1 + lo.f2;
   }
 
-  virtual(int i) { f1 = i; f2= i+4; }
+  virtual(int i) { f1 = i; f2 = i + 4; }
 
    int abc(int a) {
-         f1 = f1 + a; f2 = f2 + a*10;
+         f1 = f1 + a; f2 = f2 + a * 10;
          return virtual.cnt + f1 + f2;
    }
 }

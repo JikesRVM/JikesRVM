@@ -30,7 +30,10 @@ public class RVM_550 {
 
   private void test() {
     VM.sysWriteln(Magic.getCompiledMethodID(Magic.getFramePointer()) > 0);
-    if (addr.isZero()) {}
+    if (addr.isZero()) {
+      // nothing to do here. We just needed to call addr.isZero() to reproduce the
+      // bug.
+    }
     VM.sysWriteln(Magic.getCompiledMethodID(Magic.getFramePointer()) > 0);
   }
 }

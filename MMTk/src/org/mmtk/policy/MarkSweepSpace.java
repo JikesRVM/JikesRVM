@@ -55,8 +55,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace {
 
   public static final int DEFAULT_MARKCOUNT_BITS = 4;
   public static final int MAX_MARKCOUNT_BITS = AVAILABLE_LOCAL_BITS - COUNT_BASE;
-  private static final byte MARK_COUNT_INCREMENT = (byte) (1<<COUNT_BASE);
-  private static final byte MARK_COUNT_MASK = (byte) (((1<<MAX_MARKCOUNT_BITS)-1) << COUNT_BASE);
+  private static final byte MARK_COUNT_INCREMENT = (byte) (1 << COUNT_BASE);
+  private static final byte MARK_COUNT_MASK = (byte) (((1 << MAX_MARKCOUNT_BITS) - 1) << COUNT_BASE);
 
   private static final boolean EAGER_MARK_CLEAR = HeaderByte.NEEDS_UNLOGGED_BIT;
 
@@ -306,7 +306,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace {
    * @return the mark state incremented or decremented by one.
    */
   private byte deltaMarkState(boolean increment) {
-    byte mask = (byte) (((1 << Options.markSweepMarkBits.getValue()) - 1)<<COUNT_BASE);
+    byte mask = (byte) (((1 << Options.markSweepMarkBits.getValue()) - 1) << COUNT_BASE);
     byte rtn = (byte) (increment ? markState + MARK_COUNT_INCREMENT : markState - MARK_COUNT_INCREMENT);
     rtn &= mask;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((markState & ~MARK_COUNT_MASK) == 0);

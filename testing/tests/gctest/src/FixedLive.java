@@ -118,7 +118,7 @@ class FixedLive {
   //
   @NoInline
   public static void allocateLoop(int count) {
-    for (int i=0; i<count; i++)
+    for (int i = 0; i < count; i++)
       junk = new Node2I2A();
   }
 
@@ -132,7 +132,7 @@ class FixedLive {
     int checkFreqObj = checkFreq / Node2I2A.objectSize;
     long last = System.currentTimeMillis();
     double allocatedSize = 0;
-    for (int i=0; i< count / checkFreqObj && sampleCount < maxGC; i++) {
+    for (int i = 0; i < count / checkFreqObj && sampleCount < maxGC; i++) {
       long start = System.currentTimeMillis();
       allocateLoop(checkFreqObj);
       allocatedSize += checkFreq;

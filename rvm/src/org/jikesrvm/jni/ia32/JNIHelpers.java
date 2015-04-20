@@ -337,7 +337,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
         addr = addr.plus(WORDSIZE);
       } else if (argTypes[i].isLongType()) {
         argObjectArray[i] = addr.loadLong();
-        addr = addr.plus(2*WORDSIZE);
+        addr = addr.plus(2 * WORDSIZE);
       } else if (argTypes[i].isBooleanType()) {
         // the 0/1 bit is stored in the high byte
         argObjectArray[i] = addr.loadByte() != 0;
@@ -358,11 +358,11 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
         // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
         // so we have to extract it as a double and convert it back to a float
         argObjectArray[i] = (float) addr.loadDouble();
-        addr = addr.plus(2*WORDSIZE);
+        addr = addr.plus(2 * WORDSIZE);
       } else {
         if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
         argObjectArray[i] = addr.loadDouble();
-        addr = addr.plus(2*WORDSIZE);
+        addr = addr.plus(2 * WORDSIZE);
       }
     }
     return argObjectArray;
@@ -385,7 +385,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
     Address addr = argAddress;
-    for (int i = 0; i < argCount; i++, addr = addr.plus(2*WORDSIZE)) {
+    for (int i = 0; i < argCount; i++, addr = addr.plus(2 * WORDSIZE)) {
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object

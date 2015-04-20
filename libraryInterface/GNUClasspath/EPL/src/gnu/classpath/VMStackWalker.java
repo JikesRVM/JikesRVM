@@ -72,7 +72,7 @@ public final class VMStackWalker {
     b.up(); // skip VMStackWalker.getClassContext (this call)
 
     boolean reflected;  // Were we invoked by reflection?
-    if (b.getMethod() == Entrypoints.java_lang_reflect_Method_invokeMethod){
+    if (b.getMethod() == Entrypoints.java_lang_reflect_Method_invokeMethod) {
       reflected = true;
       b.up();         // Skip Method.invoke, (if we were called by reflection)
     } else {
@@ -80,7 +80,7 @@ public final class VMStackWalker {
     }
 
     /* Count # of frames. */
-    while(b.hasMoreFrames()) {
+    while (b.hasMoreFrames()) {
       frames++;
       b.up();
     }
@@ -99,14 +99,14 @@ public final class VMStackWalker {
     if (reflected)
       b.up();            // Skip Method.invoke if we were called by reflection
 
-    while(b.hasMoreFrames()) {
+    while (b.hasMoreFrames()) {
       iclasses[i++] = b.getCurrentClass();
       b.up();
     }
     VM.enableGC();
 
     Class<?>[] classes = new Class[ frames ];
-    for(int j = 0; j < iclasses.length; j++) {
+    for (int j = 0; j < iclasses.length; j++) {
       classes[j] = iclasses[j].getClassForType();
     }
 
@@ -129,7 +129,7 @@ public final class VMStackWalker {
       b.up();
 
     /* Skip Method.invoke, (if the caller was called by reflection) */
-    if (b.getMethod() == Entrypoints.java_lang_reflect_Method_invokeMethod){
+    if (b.getMethod() == Entrypoints.java_lang_reflect_Method_invokeMethod) {
       b.up();
     }
     /* skip past another frame, whatever getClassContext()[0] would be. */

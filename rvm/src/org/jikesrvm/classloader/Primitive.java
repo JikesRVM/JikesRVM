@@ -173,7 +173,7 @@ public final class Primitive extends RVMType {
         classForType = Double.TYPE;
         break;
       default:
-        throw new Error("Unknown primitive "+tr.getName().classFileNameFromDescriptor());
+        throw new Error("Unknown primitive " + tr.getName().classFileNameFromDescriptor());
     }
     return new Primitive(tr, classForType, name, stackWords, memoryBytes);
   }

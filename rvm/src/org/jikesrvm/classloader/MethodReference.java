@@ -295,7 +295,7 @@ public final class MethodReference extends MemberReference {
    * @return the RVMMethod that this method ref resolved to.
    */
   private RVMMethod resolveInternal(RVMClass declaringClass) {
-    final boolean DBG=false;
+    final boolean DBG = false;
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
