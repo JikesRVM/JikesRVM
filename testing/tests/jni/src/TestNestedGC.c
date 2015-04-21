@@ -25,7 +25,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_TestNestedGC_level0
-  (JNIEnv * env, jclass cls) {
+(JNIEnv * env, jclass cls) {
 
   jmethodID methodID = (*env) -> GetStaticMethodID(env, cls, "level1", "()V");
   if (methodID == NULL) {
@@ -43,7 +43,7 @@ JNIEXPORT void JNICALL Java_TestNestedGC_level0
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_TestNestedGC_level2
-  (JNIEnv * env, jclass cls) {
+(JNIEnv * env, jclass cls) {
 
   jmethodID methodID = (*env) -> GetStaticMethodID(env, cls, "level3", "()V");
   if (methodID == NULL) {

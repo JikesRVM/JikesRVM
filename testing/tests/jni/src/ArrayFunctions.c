@@ -29,7 +29,7 @@ static char *savedArrayPointer;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_ArrayFunctions_setVerboseOff
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -40,7 +40,7 @@ JNIEXPORT void JNICALL Java_ArrayFunctions_setVerboseOff
  * Signature: ([I)I
  */
 JNIEXPORT jint JNICALL Java_ArrayFunctions_testArrayLength
-  (JNIEnv *env, jclass cls, jintArray sourceArray) {
+(JNIEnv *env, jclass cls, jintArray sourceArray) {
 
   jint arrayLength = (*env) -> GetArrayLength(env, sourceArray);
   return arrayLength;
@@ -55,7 +55,7 @@ JNIEXPORT jint JNICALL Java_ArrayFunctions_testArrayLength
  * Signature: (I)[I
  */
 JNIEXPORT jintArray JNICALL Java_ArrayFunctions_accessNewIntArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jintArray newArray = (*env) -> NewIntArray(env, length);
   return newArray;
@@ -68,7 +68,7 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_accessNewIntArray
  * Signature: (I)[Z
  */
 JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_accessNewBooleanArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jbooleanArray newArray = (*env) -> NewBooleanArray(env, length);
   return newArray;
@@ -81,7 +81,7 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_accessNewBooleanArray
  * Signature: (I)[S
  */
 JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_accessNewShortArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jshortArray newArray = (*env) -> NewShortArray(env, length);
   return newArray;
@@ -94,7 +94,7 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_accessNewShortArray
  * Signature: (I)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_accessNewByteArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jbyteArray newArray = (*env) -> NewByteArray(env, length);
   return newArray;
@@ -107,7 +107,7 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_accessNewByteArray
  * Signature: (I)[C
  */
 JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_accessNewCharArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jcharArray newArray = (*env) -> NewCharArray(env, length);
   return newArray;
@@ -120,7 +120,7 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_accessNewCharArray
  * Signature: (I)[J
  */
 JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_accessNewLongArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jlongArray newArray = (*env) -> NewLongArray(env, length);
   return newArray;
@@ -133,7 +133,7 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_accessNewLongArray
  * Signature: (I)[D
  */
 JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_accessNewDoubleArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jdoubleArray newArray = (*env) -> NewDoubleArray(env, length);
   return newArray;
@@ -146,7 +146,7 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_accessNewDoubleArray
  * Signature: (I)[F
  */
 JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_accessNewFloatArray
-  (JNIEnv *env, jclass cls, jint length) {
+(JNIEnv *env, jclass cls, jint length) {
 
   jfloatArray newArray = (*env) -> NewFloatArray(env, length);
   return newArray;
@@ -159,7 +159,7 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_accessNewFloatArray
  * Signature: (ILjava/lang/Class;Ljava/lang/Object;)[Ljava/lang/Object;
  */
 JNIEXPORT jobjectArray JNICALL Java_ArrayFunctions_accessNewObjectArray
-  (JNIEnv *env, jclass cls, jint length, jclass elementClass, jobject initElement) {
+(JNIEnv *env, jclass cls, jint length, jclass elementClass, jobject initElement) {
 
   jobjectArray newArray = (*env) -> NewObjectArray(env, length, elementClass, initElement);
   return newArray;
@@ -172,7 +172,7 @@ JNIEXPORT jobjectArray JNICALL Java_ArrayFunctions_accessNewObjectArray
  * Signature: ([I)[I
  */
 JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayRegion
-  (JNIEnv *env, jclass cls, jintArray intArray) {
+(JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
   int size = 10;
@@ -197,7 +197,7 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayRegion
  * Signature: ([Z)[Z
  */
 JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayRegion
-  (JNIEnv *env, jclass cls, jbooleanArray sourceArray) {
+(JNIEnv *env, jclass cls, jbooleanArray sourceArray) {
 
   int i;
   int size = 10;
@@ -224,7 +224,7 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayRegion
  * Signature: ([S)[S
  */
 JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayRegion
-  (JNIEnv *env, jclass cls, jshortArray sourceArray) {
+(JNIEnv *env, jclass cls, jshortArray sourceArray) {
 
   int i;
   int size = 10;
@@ -247,7 +247,7 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayRegion
  * Signature: ([B)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayRegion
-  (JNIEnv *env, jclass cls, jbyteArray sourceArray) {
+(JNIEnv *env, jclass cls, jbyteArray sourceArray) {
 
   int i;
   int size = 10;
@@ -270,7 +270,7 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayRegion
  * Signature: ([C)[C
  */
 JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayRegion
-  (JNIEnv *env, jclass cls, jcharArray sourceArray) {
+(JNIEnv *env, jclass cls, jcharArray sourceArray) {
 
   int i;
   int size = 10;
@@ -300,7 +300,7 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayRegion
  * Signature: ([J)[J
  */
 JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayRegion
-  (JNIEnv *env, jclass cls, jlongArray sourceArray) {
+(JNIEnv *env, jclass cls, jlongArray sourceArray) {
 
   int i;
   int size = 10;
@@ -323,7 +323,7 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayRegion
  * Signature: ([D)[D
  */
 JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayRegion
-  (JNIEnv *env, jclass cls, jdoubleArray sourceArray) {
+(JNIEnv *env, jclass cls, jdoubleArray sourceArray) {
 
   int i;
   int size = 10;
@@ -346,7 +346,7 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayRegion
  * Signature: ([F)[F
  */
 JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayRegion
-  (JNIEnv *env, jclass cls, jfloatArray sourceArray) {
+(JNIEnv *env, jclass cls, jfloatArray sourceArray) {
 
   int i;
   int size = 10;
@@ -375,7 +375,7 @@ static jboolean lastGetArrayElementsWasCopy = JNI_FALSE;
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_ArrayFunctions_lastGetArrayElementsWasCopy
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   return lastGetArrayElementsWasCopy;
 }
 
@@ -385,7 +385,7 @@ JNIEXPORT jboolean JNICALL Java_ArrayFunctions_lastGetArrayElementsWasCopy
  * Signature: ([II)[I
  */
 JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayElements
-  (JNIEnv *env, jclass cls, jintArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jintArray sourceArray, jint testState) {
 
   int i;
   int size = 10;
@@ -441,7 +441,7 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayElements
  * Signature: ([ZI)[Z
  */
 JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
-  (JNIEnv *env, jclass cls, jbooleanArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jbooleanArray sourceArray, jint testState) {
 
   int i;
   int size = 10;
@@ -455,9 +455,16 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
     buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
-    buf[0] = JNI_TRUE; buf[1] = JNI_FALSE; buf[2] = JNI_TRUE; buf[3] = JNI_FALSE;
-    buf[4] = JNI_TRUE; buf[5] = JNI_FALSE; buf[6] = JNI_TRUE; buf[7] = JNI_FALSE;
-    buf[8] = JNI_TRUE; buf[9] = JNI_FALSE;
+    buf[0] = JNI_TRUE;
+    buf[1] = JNI_FALSE;
+    buf[2] = JNI_TRUE;
+    buf[3] = JNI_FALSE;
+    buf[4] = JNI_TRUE;
+    buf[5] = JNI_FALSE;
+    buf[6] = JNI_TRUE;
+    buf[7] = JNI_FALSE;
+    buf[8] = JNI_TRUE;
+    buf[9] = JNI_FALSE;
     /* copy back but don't free the buffer */
     (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
@@ -465,9 +472,16 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
   case 1:
     /* second time, reuse the array copy via the saved pointer */
     buf = (jboolean *) savedArrayPointer;
-    buf[0] = JNI_FALSE; buf[1] = JNI_TRUE; buf[2] = JNI_FALSE; buf[3] = JNI_TRUE;
-    buf[4] = JNI_FALSE; buf[5] = JNI_TRUE; buf[6] = JNI_FALSE; buf[7] = JNI_TRUE;
-    buf[8] = JNI_FALSE; buf[9] = JNI_TRUE;
+    buf[0] = JNI_FALSE;
+    buf[1] = JNI_TRUE;
+    buf[2] = JNI_FALSE;
+    buf[3] = JNI_TRUE;
+    buf[4] = JNI_FALSE;
+    buf[5] = JNI_TRUE;
+    buf[6] = JNI_FALSE;
+    buf[7] = JNI_TRUE;
+    buf[8] = JNI_FALSE;
+    buf[9] = JNI_TRUE;
     /* copy back and free the buffer */
     (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
@@ -478,9 +492,16 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
     /* third time, get the array copy again, modify but don't update */
     buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
-    buf[0] = JNI_FALSE; buf[1] = JNI_TRUE; buf[2] = JNI_FALSE; buf[3] = JNI_TRUE;
-    buf[4] = JNI_FALSE; buf[5] = JNI_TRUE; buf[6] = JNI_FALSE; buf[7] = JNI_TRUE;
-    buf[8] = JNI_FALSE; buf[9] = JNI_TRUE;
+    buf[0] = JNI_FALSE;
+    buf[1] = JNI_TRUE;
+    buf[2] = JNI_FALSE;
+    buf[3] = JNI_TRUE;
+    buf[4] = JNI_FALSE;
+    buf[5] = JNI_TRUE;
+    buf[6] = JNI_FALSE;
+    buf[7] = JNI_TRUE;
+    buf[8] = JNI_FALSE;
+    buf[9] = JNI_TRUE;
     /* free the buffer without copying back */
     (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
@@ -497,7 +518,7 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
  * Signature: ([BI)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayElements
-  (JNIEnv *env, jclass cls, jbyteArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jbyteArray sourceArray, jint testState) {
 
 
   int i;
@@ -554,7 +575,7 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayElements
  * Signature: ([SI)[S
  */
 JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayElements
-  (JNIEnv *env, jclass cls, jshortArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jshortArray sourceArray, jint testState) {
 
   int i;
   int size = 10;
@@ -610,7 +631,7 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayElements
  * Signature: ([CI)[C
  */
 JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayElements
-  (JNIEnv *env, jclass cls, jcharArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jcharArray sourceArray, jint testState) {
 
   int i;
   int size = 10;
@@ -624,9 +645,16 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayElements
     buf = (*env) -> GetCharArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
-    buf[0] = 'a'; buf[1] = 'b'; buf[2] = 'c'; buf[3] = 'd';
-    buf[4] = 'e'; buf[5] = 'f'; buf[6] = 'g'; buf[7] = 'h';
-    buf[8] = 'i'; buf[9] = 'j';
+    buf[0] = 'a';
+    buf[1] = 'b';
+    buf[2] = 'c';
+    buf[3] = 'd';
+    buf[4] = 'e';
+    buf[5] = 'f';
+    buf[6] = 'g';
+    buf[7] = 'h';
+    buf[8] = 'i';
+    buf[9] = 'j';
     /* copy back but don't free the buffer */
     (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
@@ -634,9 +662,16 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayElements
   case 1:
     /* second time, reuse the array copy via the saved pointer */
     buf = (jchar *) savedArrayPointer;
-    buf[0] = 'j'; buf[1] = 'a'; buf[2] = 'l'; buf[3] = 'e';
-    buf[4] = 'p'; buf[5] = 'e'; buf[6] = 'n'; buf[7] = 'o';
-    buf[8] = 'v'; buf[9] = 'm';
+    buf[0] = 'j';
+    buf[1] = 'a';
+    buf[2] = 'l';
+    buf[3] = 'e';
+    buf[4] = 'p';
+    buf[5] = 'e';
+    buf[6] = 'n';
+    buf[7] = 'o';
+    buf[8] = 'v';
+    buf[9] = 'm';
     /* copy back and free the buffer */
     (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
@@ -665,7 +700,7 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayElements
  * Signature: ([JI)[J
  */
 JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayElements
-  (JNIEnv *env, jclass cls, jlongArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jlongArray sourceArray, jint testState) {
 
   int i;
   int size = 10;
@@ -720,7 +755,7 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayElements
  * Signature: ([DI)[D
  */
 JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayElements
-  (JNIEnv *env, jclass cls, jdoubleArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jdoubleArray sourceArray, jint testState) {
 
   int i;
   int size = 10;
@@ -775,7 +810,7 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayElements
  * Signature: ([FI)[F
  */
 JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
-  (JNIEnv *env, jclass cls, jfloatArray sourceArray, jint testState) {
+(JNIEnv *env, jclass cls, jfloatArray sourceArray, jint testState) {
 
   int i;
   int size = 10;
@@ -831,8 +866,8 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
  * Signature: ([Ljava/lang/Object;Ljava/lang/Object;I)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_ArrayFunctions_testObjectArrayElement
-  (JNIEnv *env, jclass cls, jobjectArray sourceArray, jobject toAssign,
-   jint index_) {
+(JNIEnv *env, jclass cls, jobjectArray sourceArray, jobject toAssign,
+ jint index_) {
 
   /* get the current element */
   jobject previous = (*env) -> GetObjectArrayElement(env, sourceArray, index_);

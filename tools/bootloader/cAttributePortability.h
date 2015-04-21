@@ -15,13 +15,13 @@
 /* This hair gets around hassles in GNU C 2.96, where the unused attribute is
    not only ignored, it triggers a warning message! */
 #if defined __GNUC__ && (__GNUC__ >= 3) && ! defined UNUSED
-  #define UNUSED __attribute__((unused))
-  #define NONNULL(idx) __attribute__((nonnull(idx)))
-  #define NORETURN __attribute__((noreturn));
+#define UNUSED __attribute__((unused))
+#define NONNULL(idx) __attribute__((nonnull(idx)))
+#define NORETURN __attribute__((noreturn));
 #else
-  #define UNUSED
-  #define NONNULL(idx)
-  #define NORETURN
+#define UNUSED
+#define NONNULL(idx)
+#define NORETURN
 #endif
 
 #endif /* #ifndef C_ATTRIBUTE_PORTABILITY_H_INCLUDED */

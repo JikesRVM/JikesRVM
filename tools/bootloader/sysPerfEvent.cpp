@@ -26,86 +26,86 @@
 
 EXTERNAL {
 #ifndef RVM_WITH_PERFEVENT
-void sysPerfEventInit(int events) {}
-void sysPerfEventCreate(int id, const char *eventName) {}
-void sysPerfEventEnable() {}
-void sysPerfEventDisable() {}
-void sysPerfEventRead(int id, long long *values) {}
+  void sysPerfEventInit(int events) {}
+  void sysPerfEventCreate(int id, const char *eventName) {}
+  void sysPerfEventEnable() {}
+  void sysPerfEventDisable() {}
+  void sysPerfEventRead(int id, long long *values) {}
 #else
-static int enabled = 0;
-static int *perf_event_fds;
-static struct perf_event_attr *perf_event_attrs;
+  static int enabled = 0;
+  static int *perf_event_fds;
+  static struct perf_event_attr *perf_event_attrs;
 
-void sysPerfEventInit(int numEvents)
-{
-  TRACE_PRINTF("%s: sysPerfEventInit\n", Me);
-  int ret = pfm_initialize();
-  if (ret != PFM_SUCCESS) {
-    errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
+  void sysPerfEventInit(int numEvents)
+  {
+    TRACE_PRINTF("%s: sysPerfEventInit\n", Me);
+    int ret = pfm_initialize();
+    if (ret != PFM_SUCCESS) {
+      errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
+    }
+
+    perf_event_fds = (int*)checkCalloc(numEvents, sizeof(int));
+    if (!perf_event_fds) {
+      errx(1, "error allocating perf_event_fds");
+    }
+    perf_event_attrs = (struct perf_event_attr *)checkCalloc(numEvents, sizeof(struct perf_event_attr));
+    if (!perf_event_attrs) {
+      errx(1, "error allocating perf_event_attrs");
+    }
+    for(int i=0; i < numEvents; i++) {
+      perf_event_attrs[i].size = sizeof(struct perf_event_attr);
+    }
+    enabled = 1;
   }
 
-  perf_event_fds = (int*)checkCalloc(numEvents, sizeof(int));
-  if (!perf_event_fds) {
-    errx(1, "error allocating perf_event_fds");
-  }
-  perf_event_attrs = (struct perf_event_attr *)checkCalloc(numEvents, sizeof(struct perf_event_attr));
-  if (!perf_event_attrs) {
-    errx(1, "error allocating perf_event_attrs");
-  }
-  for(int i=0; i < numEvents; i++) {
-    perf_event_attrs[i].size = sizeof(struct perf_event_attr);
-  }
-  enabled = 1;
-}
-
-void sysPerfEventCreate(int id, const char *eventName)
-{
-  TRACE_PRINTF("%s: sysPerfEventCreate\n", Me);
-  struct perf_event_attr *pe = (perf_event_attrs + id);
-  int ret = pfm_get_perf_event_encoding(eventName, PFM_PLM3, pe, NULL, NULL);
-  if (ret != PFM_SUCCESS) {
-    errx(1, "error creating event %d '%s': %s\n", id, eventName, pfm_strerror(ret));
-  }
-  pe->read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
-  pe->disabled = 1;
-  pe->inherit = 1;
-  perf_event_fds[id] = perf_event_open(pe, 0, -1, -1, 0);
-  if (perf_event_fds[id] == -1) {
-    err(1, "error in perf_event_open for event %d '%s'", id, eventName);
-  }
-}
-
-void sysPerfEventEnable()
-{
-  TRACE_PRINTF("%s: sysPerfEventEnable\n", Me);
-  if (enabled) {
-    if (prctl(PR_TASK_PERF_EVENTS_ENABLE)) {
-      err(1, "error in prctl(PR_TASK_PERF_EVENTS_ENABLE)");
+  void sysPerfEventCreate(int id, const char *eventName)
+  {
+    TRACE_PRINTF("%s: sysPerfEventCreate\n", Me);
+    struct perf_event_attr *pe = (perf_event_attrs + id);
+    int ret = pfm_get_perf_event_encoding(eventName, PFM_PLM3, pe, NULL, NULL);
+    if (ret != PFM_SUCCESS) {
+      errx(1, "error creating event %d '%s': %s\n", id, eventName, pfm_strerror(ret));
+    }
+    pe->read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
+    pe->disabled = 1;
+    pe->inherit = 1;
+    perf_event_fds[id] = perf_event_open(pe, 0, -1, -1, 0);
+    if (perf_event_fds[id] == -1) {
+      err(1, "error in perf_event_open for event %d '%s'", id, eventName);
     }
   }
-}
 
-void sysPerfEventDisable()
-{
-  TRACE_PRINTF("%s: sysPerfEventDisable\n", Me);
-  if (enabled) {
-    if (prctl(PR_TASK_PERF_EVENTS_DISABLE)) {
-      err(1, "error in prctl(PR_TASK_PERF_EVENTS_DISABLE)");
+  void sysPerfEventEnable()
+  {
+    TRACE_PRINTF("%s: sysPerfEventEnable\n", Me);
+    if (enabled) {
+      if (prctl(PR_TASK_PERF_EVENTS_ENABLE)) {
+        err(1, "error in prctl(PR_TASK_PERF_EVENTS_ENABLE)");
+      }
     }
   }
-}
 
-void sysPerfEventRead(int id, long long *values)
-{
-  TRACE_PRINTF("%s: sysPerfEventRead\n", Me);
-  size_t expectedBytes = 3 * sizeof(long long);
-  int ret = read(perf_event_fds[id], values, expectedBytes);
-  if (ret < 0) {
-    err(1, "error reading event: %s", strerror(errno));
+  void sysPerfEventDisable()
+  {
+    TRACE_PRINTF("%s: sysPerfEventDisable\n", Me);
+    if (enabled) {
+      if (prctl(PR_TASK_PERF_EVENTS_DISABLE)) {
+        err(1, "error in prctl(PR_TASK_PERF_EVENTS_DISABLE)");
+      }
+    }
   }
-  if (ret != expectedBytes) {
-    errx(1, "read of perf event did not return 3 64-bit values");
+
+  void sysPerfEventRead(int id, long long *values)
+  {
+    TRACE_PRINTF("%s: sysPerfEventRead\n", Me);
+    size_t expectedBytes = 3 * sizeof(long long);
+    int ret = read(perf_event_fds[id], values, expectedBytes);
+    if (ret < 0) {
+      err(1, "error reading event: %s", strerror(errno));
+    }
+    if (ret != expectedBytes) {
+      errx(1, "read of perf event did not return 3 64-bit values");
+    }
   }
-}
 #endif
 }

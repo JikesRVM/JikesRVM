@@ -22,24 +22,24 @@
  */
 EXTERNAL void* sysDlopen(char *libname)
 {
-    TRACE_PRINTF("%s: sysDlopen %s\n", Me, libname);
-    void * libHandler;
-    do {
-        libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
-    }
-    while( (libHandler == 0 /*null*/) && (errno == EINTR) );
-    if (libHandler == 0) {
-        ERROR_PRINTF("%s: error loading library %s: %s\n", Me,
-                libname, dlerror());
+  TRACE_PRINTF("%s: sysDlopen %s\n", Me, libname);
+  void * libHandler;
+  do {
+    libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
+  }
+  while( (libHandler == 0 /*null*/) && (errno == EINTR) );
+  if (libHandler == 0) {
+    ERROR_PRINTF("%s: error loading library %s: %s\n", Me,
+                 libname, dlerror());
 //      return 0;
-    }
+  }
 
-    return libHandler;
+  return libHandler;
 }
 
 /** Look up symbol in dynamic library. */
 EXTERNAL void* sysDlsym(Address libHandler, char *symbolName)
 {
-    TRACE_PRINTF("%s: sysDlsym %s\n", Me, symbolName);
-    return dlsym((void *) libHandler, symbolName);
+  TRACE_PRINTF("%s: sysDlsym %s\n", Me, symbolName);
+  return dlsym((void *) libHandler, symbolName);
 }

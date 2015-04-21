@@ -93,21 +93,21 @@
 /*       Set the default state of the conditionally invalid opcodes        */
 /***************************************************************************/
 #ifndef OP82
-  #define OP82 0
+#define OP82 0
 #endif
 #ifndef OP0F24
-  #define OP0F24 1
+#define OP0F24 1
 #endif
 #ifndef OP0FA6
-  #define OP0FA6 0
+#define OP0FA6 0
 #endif
 
 /***************************************************************************/
 /*                tables used for strings are in this form                 */
 /***************************************************************************/
 typedef struct {
-    int length;
-    const char *string;
+  int length;
+  const char *string;
 } TABLE;
 // macro for TABLE initialization, to include trailing null
 #define Tinit(x) { sizeof(x), x }
@@ -118,15 +118,15 @@ typedef struct {
 /* memory operand size prefixes                                             */
 /****************************************************************************/
 static const TABLE PTRsize[] = {
-   TinitShort(""),              // dummy entry
-   TinitShort("byte ptr "),
-   TinitShort("word ptr "),
-   TinitShort("dword ptr "),
-   TinitShort("fword ptr "),
-   TinitShort("qword ptr "),
-   TinitShort("tbyte ptr "),
-   TinitShort(""),
-   { 0, NULL }
+  TinitShort(""),              // dummy entry
+  TinitShort("byte ptr "),
+  TinitShort("word ptr "),
+  TinitShort("dword ptr "),
+  TinitShort("fword ptr "),
+  TinitShort("qword ptr "),
+  TinitShort("tbyte ptr "),
+  TinitShort(""),
+  { 0, NULL }
 } ;
 #define PTRbyte  1
 #define PTRword  2
@@ -140,13 +140,13 @@ static const TABLE PTRsize[] = {
 /* segment register names                                                   */
 /****************************************************************************/
 static const TABLE segreg[] =  {
-    TinitShort("es"),
-    TinitShort("cs"),
-    TinitShort("ss"),
-    TinitShort("ds"),
-    TinitShort("fs"),
-    TinitShort("gs"),
-    { 0, NULL }
+  TinitShort("es"),
+  TinitShort("cs"),
+  TinitShort("ss"),
+  TinitShort("ds"),
+  TinitShort("fs"),
+  TinitShort("gs"),
+  { 0, NULL }
 } ;
 #define ES 0
 #define CS 1
@@ -159,15 +159,15 @@ static const TABLE segreg[] =  {
 /* 8-bit register names                                                     */
 /****************************************************************************/
 static const TABLE reg8[] =  {
-    TinitShort("al"),
-    TinitShort("cl"),
-    TinitShort("dl"),
-    TinitShort("bl"),
-    TinitShort("ah"),
-    TinitShort("ch"),
-    TinitShort("dh"),
-    TinitShort("bh"),
-    { 0, NULL }
+  TinitShort("al"),
+  TinitShort("cl"),
+  TinitShort("dl"),
+  TinitShort("bl"),
+  TinitShort("ah"),
+  TinitShort("ch"),
+  TinitShort("dh"),
+  TinitShort("bh"),
+  { 0, NULL }
 } ;
 #define AL 0
 #define CL 1
@@ -182,15 +182,15 @@ static const TABLE reg8[] =  {
 /* 16-bit register names                                                    */
 /****************************************************************************/
 static const TABLE reg16[] =  {
-    TinitShort("ax"),
-    TinitShort("cx"),
-    TinitShort("dx"),
-    TinitShort("bx"),
-    TinitShort("sp"),
-    TinitShort("bp"),
-    TinitShort("si"),
-    TinitShort("di"),
-    { 0, NULL }
+  TinitShort("ax"),
+  TinitShort("cx"),
+  TinitShort("dx"),
+  TinitShort("bx"),
+  TinitShort("sp"),
+  TinitShort("bp"),
+  TinitShort("si"),
+  TinitShort("di"),
+  { 0, NULL }
 } ;
 #define AX 0
 #define CX 1
@@ -205,15 +205,15 @@ static const TABLE reg16[] =  {
 /* 32-bit register names                                                    */
 /****************************************************************************/
 static const TABLE reg32[] =  {
-    TinitShort("eax"),
-    TinitShort("ecx"),
-    TinitShort("edx"),
-    TinitShort("ebx"),
-    TinitShort("esp"),
-    TinitShort("ebp"),
-    TinitShort("PR"),
-    TinitShort("JTOC"),
-    { 0, NULL }
+  TinitShort("eax"),
+  TinitShort("ecx"),
+  TinitShort("edx"),
+  TinitShort("ebx"),
+  TinitShort("esp"),
+  TinitShort("ebp"),
+  TinitShort("PR"),
+  TinitShort("JTOC"),
+  { 0, NULL }
 } ;
 #define EAX 0
 #define ECX 1
@@ -228,15 +228,15 @@ static const TABLE reg32[] =  {
 /* MMX register names                                                     */
 /****************************************************************************/
 static const TABLE regMMX[] = {
-    TinitShort("MM0"),
-    TinitShort("MM1"),
-    TinitShort("MM2"),
-    TinitShort("MM3"),
-    TinitShort("MM4"),
-    TinitShort("MM5"),
-    TinitShort("MM6"),
-    TinitShort("MM7"),
-    { 0, NULL }
+  TinitShort("MM0"),
+  TinitShort("MM1"),
+  TinitShort("MM2"),
+  TinitShort("MM3"),
+  TinitShort("MM4"),
+  TinitShort("MM5"),
+  TinitShort("MM6"),
+  TinitShort("MM7"),
+  { 0, NULL }
 } ;
 #define MM0 0
 #define MM1 1
@@ -257,355 +257,355 @@ static const TABLE regMMX[] = {
 /*  There is a corresponding #define for each index into the array       */
 /*************************************************************************/
 static const TABLE mnemstr[] =  {
-    Tinit("0x"),                      //   0 - Invalid opcode
-    Tinit("aaa"),                     //   1
-    Tinit("aad"),                     //   2
-    Tinit("aam"),                     //   3
-    Tinit("aas"),                     //   4
-    Tinit("adc"),                     //   5
-    Tinit("add"),                     //   6
-    Tinit("and"),                     //   7
-    Tinit("arpl"),                    //   8
-    Tinit("bound"),                   //   9
-    Tinit("bsf"),                     //  10
-    Tinit("bsr"),                     //  11
-    Tinit("bswap"),                   //  12
-    Tinit("bt"),                      //  13
-    Tinit("btc"),                     //  14
-    Tinit("btr"),                     //  15
-    Tinit("bts"),                     //  16
-    Tinit("call"),                    //  17
-    Tinit("cbw"),                     //  18
-    Tinit("cdq"),                     //  19
-    Tinit("clc"),                     //  20
-    Tinit("cld"),                     //  21
-    Tinit("cli"),                     //  22
-    Tinit("clts"),                    //  23
-    Tinit("cmc"),                     //  24
-    Tinit("cmova"),                   //  25
-    Tinit("cmovae"),                  //  26
-    Tinit("cmovb"),                   //  27
-    Tinit("cmovbe"),                  //  28
-    Tinit("cmove"),                   //  29
-    Tinit("cmovg"),                   //  30
-    Tinit("cmovge"),                  //  31
-    Tinit("cmovl"),                   //  32
-    Tinit("cmovle"),                  //  33
-    Tinit("cmovne"),                  //  34
-    Tinit("cmovno"),                  //  35
-    Tinit("cmovns"),                  //  36
-    Tinit("cmovo"),                   //  37
-    Tinit("cmovpe"),                  //  38
-    Tinit("cmovpo"),                  //  39
-    Tinit("cmovs"),                   //  40
-    Tinit("cmp"),                     //  41
-    Tinit("cmpsb"),                   //  42
-    Tinit("cmpsd"),                   //  43
-    Tinit("cmpsw"),                   //  44
-    Tinit("cmpxchg8b"),               //  45
-    Tinit("cmpxchg"),                 //  46
-    Tinit("cpuid"),                   //  47
-    Tinit("cwd"),                     //  48
-    Tinit("cwde"),                    //  49
-    Tinit("daa"),                     //  50
-    Tinit("das"),                     //  51
-    Tinit("dec"),                     //  52
-    Tinit("div"),                     //  53
-    Tinit("emms"),                    //  54
-    Tinit("enter"),                   //  55
-    Tinit("esc"),                     //  56
-    Tinit("f2xm1"),                   //  57
-    Tinit("fabs"),                    //  58
-    Tinit("fadd"),                    //  59
-    Tinit("faddp"),                   //  60
-    Tinit("fbld"),                    //  61
-    Tinit("fbstp"),                   //  62
-    Tinit("fchs"),                    //  63
-    Tinit("fclex"),                   //  64
-    Tinit("fcmovb"),                  //  65
-    Tinit("fcmovbe"),                 //  66
-    Tinit("fcmove"),                  //  67
-    Tinit("fcmovnb"),                 //  68
-    Tinit("fcmovnbe"),                //  69
-    Tinit("fcmovne"),                 //  70
-    Tinit("fcmovnu"),                 //  71
-    Tinit("fcmovu"),                  //  72
-    Tinit("fcom"),                    //  73
-    Tinit("fcomi"),                   //  74
-    Tinit("fcomip"),                  //  75
-    Tinit("fcomp"),                   //  76
-    Tinit("fcompp"),                  //  77
-    Tinit("fcos"),                    //  78
-    Tinit("fdecstp"),                 //  79
-    Tinit("fdisi"),                   //  80
-    Tinit("fdiv"),                    //  81
-    Tinit("fdivp"),                   //  82
-    Tinit("fdivr"),                   //  83
-    Tinit("fdivrp"),                  //  84
-    Tinit("feni"),                    //  85
-    Tinit("ffree"),                   //  86
-    Tinit("ffreep"),                  //  87
-    Tinit("fiadd"),                   //  88
-    Tinit("ficom"),                   //  89
-    Tinit("ficomp"),                  //  90
-    Tinit("fidiv"),                   //  91
-    Tinit("fidivr"),                  //  92
-    Tinit("fild"),                    //  93
-    Tinit("fimul"),                   //  94
-    Tinit("fincstp"),                 //  95
-    Tinit("finit"),                   //  96
-    Tinit("fist"),                    //  97
-    Tinit("fistp"),                   //  98
-    Tinit("fisub"),                   //  99
-    Tinit("fisubr"),                  // 100
-    Tinit("fld"),                     // 101
-    Tinit("fld1"),                    // 102
-    Tinit("fldcw"),                   // 103
-    Tinit("fldenv"),                  // 104
-    Tinit("fldl2e"),                  // 105
-    Tinit("fldl2t"),                  // 106
-    Tinit("fldlg2"),                  // 107
-    Tinit("fldln2"),                  // 108
-    Tinit("fldpi"),                   // 109
-    Tinit("fldz"),                    // 110
-    Tinit("fmul"),                    // 111
-    Tinit("fmulp"),                   // 112
-    Tinit("fnclex"),                  // 113
-    Tinit("fndisi"),                  // 114
-    Tinit("fneni"),                   // 115
-    Tinit("fninit"),                  // 116
-    Tinit("fnop"),                    // 117
-    Tinit("fnsave"),                  // 118
-    Tinit("fnstcw"),                  // 119
-    Tinit("fnstenv"),                 // 120
-    Tinit("fnstsw"),                  // 121
-    Tinit("fpatan"),                  // 122
-    Tinit("fprem"),                   // 123
-    Tinit("fprem1"),                  // 124
-    Tinit("fptan"),                   // 125
-    Tinit("frndint"),                 // 126
-    Tinit("frstor"),                  // 127
-    Tinit("fsave"),                   // 128
-    Tinit("fscale"),                  // 129
-    Tinit("fsetpm"),                  // 130
-    Tinit("fsin"),                    // 131
-    Tinit("fsincos"),                 // 132
-    Tinit("fsqrt"),                   // 133
-    Tinit("fst"),                     // 134
-    Tinit("fstcw"),                   // 135
-    Tinit("fstenv"),                  // 136
-    Tinit("fstp"),                    // 137
-    Tinit("fstsw"),                   // 138
-    Tinit("fsub"),                    // 139
-    Tinit("fsubp"),                   // 140
-    Tinit("fsubr"),                   // 141
-    Tinit("fsubrp"),                  // 142
-    Tinit("ftst"),                    // 143
-    Tinit("fucom"),                   // 144
-    Tinit("fucomi"),                  // 145
-    Tinit("fucomip"),                 // 146
-    Tinit("fucomp"),                  // 147
-    Tinit("fucompp"),                 // 148
-    Tinit("fxam"),                    // 149
-    Tinit("fxch"),                    // 150
-    Tinit("fxtract"),                 // 151
-    Tinit("fyl2x"),                   // 152
-    Tinit("fyl2xp1"),                 // 153
-    Tinit("hlt"),                     // 154
-    Tinit("idiv"),                    // 155
-    Tinit("imul"),                    // 156
-    Tinit("in"),                      // 157
-    Tinit("inc"),                     // 158
-    Tinit("insb"),                    // 159
-    Tinit("insd"),                    // 160
-    Tinit("insw"),                    // 161
-    Tinit("int"),                     // 162
-    Tinit("into"),                    // 163
-    Tinit("invd"),                    // 164
-    Tinit("invlpg"),                  // 165
-    Tinit("iret"),                    // 166
-    Tinit("iretd"),                   // 167
-    Tinit("ja"),                      // 168
-    Tinit("jb"),                      // 169
-    Tinit("jcxz"),                    // 170
-    Tinit("jecxz"),                   // 171
-    Tinit("jg"),                      // 172
-    Tinit("jl"),                      // 173
-    Tinit("jmp"),                     // 174
-    Tinit("jna"),                     // 175
-    Tinit("jnb"),                     // 176
-    Tinit("jng"),                     // 177
-    Tinit("jnl"),                     // 178
-    Tinit("jno"),                     // 179
-    Tinit("jns"),                     // 180
-    Tinit("jnz"),                     // 181
-    Tinit("jo"),                      // 182
-    Tinit("jpe"),                     // 183
-    Tinit("jpo"),                     // 184
-    Tinit("js"),                      // 185
-    Tinit("jz"),                      // 186
-    Tinit("lahf"),                    // 187
-    Tinit("lar"),                     // 188
-    Tinit("lds"),                     // 189
-    Tinit("lea"),                     // 190
-    Tinit("leave"),                   // 191
-    Tinit("les"),                     // 192
-    Tinit("lfs"),                     // 193
-    Tinit("lgdt"),                    // 194
-    Tinit("lgs"),                     // 195
-    Tinit("lidt"),                    // 196
-    Tinit("lldt"),                    // 197
-    Tinit("lmsw"),                    // 198
-    Tinit("lock"),                    // 199
-    Tinit("lodsb"),                   // 200
-    Tinit("lodsd"),                   // 201
-    Tinit("lodsw"),                   // 202
-    Tinit("loop"),                    // 203
-    Tinit("loopnz"),                  // 204
-    Tinit("loopz"),                   // 205
-    Tinit("lsl"),                     // 206
-    Tinit("lss"),                     // 207
-    Tinit("ltr"),                     // 208
-    Tinit("mov"),                     // 209
-    Tinit("movb"),                    // 210
-    Tinit("movd"),                    // 211
-    Tinit("movq"),                    // 212
-    Tinit("movsb"),                   // 213
-    Tinit("movsd"),                   // 214
-    Tinit("movsw"),                   // 215
-    Tinit("movsx"),                   // 216
-    Tinit("movzx"),                   // 217
-    Tinit("mul"),                     // 218
-    Tinit("neg"),                     // 219
-    Tinit("nop"),                     // 220
-    Tinit("not"),                     // 221
-    Tinit("or"),                      // 222
-    Tinit("out"),                     // 223
-    Tinit("outsb"),                   // 224
-    Tinit("outsd"),                   // 225
-    Tinit("outsw"),                   // 226
-    Tinit("packssdw"),                // 227
-    Tinit("packsswb"),                // 228
-    Tinit("packuswb"),                // 229
-    Tinit("paddb"),                   // 230
-    Tinit("paddd"),                   // 231
-    Tinit("paddsb"),                  // 232
-    Tinit("paddsw"),                  // 233
-    Tinit("paddusb"),                 // 234
-    Tinit("paddusw"),                 // 235
-    Tinit("paddw"),                   // 236
-    Tinit("pand"),                    // 237
-    Tinit("pandn"),                   // 238
-    Tinit("pcmpeqb"),                 // 239
-    Tinit("pcmpeqd"),                 // 240
-    Tinit("pcmpeqw"),                 // 241
-    Tinit("pcmpgtb"),                 // 242
-    Tinit("pcmpgtd"),                 // 243
-    Tinit("pcmpgtw"),                 // 244
-    Tinit("pmaddwd"),                 // 245
-    Tinit("pmulhw"),                  // 246
-    Tinit("pmullw"),                  // 247
-    Tinit("pop"),                     // 248
-    Tinit("popa"),                    // 249
-    Tinit("popad"),                   // 250
-    Tinit("popf"),                    // 251
-    Tinit("popfd"),                   // 252
-    Tinit("por"),                     // 253
-    Tinit("pslld"),                   // 254
-    Tinit("psllq"),                   // 255
-    Tinit("psllw"),                   // 256
-    Tinit("psrad"),                   // 257
-    Tinit("psraw"),                   // 258
-    Tinit("psrld"),                   // 259
-    Tinit("psrlq"),                   // 260
-    Tinit("psrlw"),                   // 261
-    Tinit("psubb"),                   // 262
-    Tinit("psubd"),                   // 263
-    Tinit("psubsb"),                  // 264
-    Tinit("psubsw"),                  // 265
-    Tinit("psubusb"),                 // 266
-    Tinit("psubusw"),                 // 267
-    Tinit("psubw"),                   // 268
-    Tinit("punpckhbw"),               // 269
-    Tinit("punpckhdq"),               // 270
-    Tinit("punpckhwd"),               // 271
-    Tinit("punpcklbw"),               // 272
-    Tinit("punpckldq"),               // 273
-    Tinit("punpcklwd"),               // 274
-    Tinit("push"),                    // 275
-    Tinit("pusha"),                   // 276
-    Tinit("pushad"),                  // 277
-    Tinit("pushf"),                   // 278
-    Tinit("pushfd"),                  // 279
-    Tinit("pushi"),                   // 280
-    Tinit("pxor"),                    // 281
-    Tinit("rcl"),                     // 282
-    Tinit("rcr"),                     // 283
-    Tinit("rdmsr"),                   // 284
-    Tinit("rdpmc"),                   // 285
-    Tinit("rdtsc"),                   // 286
-    Tinit("rep"),                     // 287
-    Tinit("repnz"),                   // 288
-    Tinit("repz"),                    // 289
-    Tinit("retf"),                    // 290
-    Tinit("retn"),                    // 291
-    Tinit("rol"),                     // 292
-    Tinit("ror"),                     // 293
-    Tinit("rsm"),                     // 294
-    Tinit("sahf"),                    // 295
-    Tinit("sal"),                     // 296
-    Tinit("sar"),                     // 297
-    Tinit("sbb"),                     // 298
-    Tinit("scasb"),                   // 299
-    Tinit("scasd"),                   // 300
-    Tinit("scasw"),                   // 301
-    Tinit("seg"),                     // 302
-    Tinit("seta"),                    // 303
-    Tinit("setae"),                   // 304
-    Tinit("setb"),                    // 305
-    Tinit("setbe"),                   // 306
-    Tinit("setg"),                    // 307
-    Tinit("setge"),                   // 308
-    Tinit("setl"),                    // 309
-    Tinit("setle"),                   // 310
-    Tinit("setno"),                   // 311
-    Tinit("setns"),                   // 312
-    Tinit("setnz"),                   // 313
-    Tinit("seto"),                    // 314
-    Tinit("setpe"),                   // 315
-    Tinit("setpo"),                   // 316
-    Tinit("sets"),                    // 317
-    Tinit("setz"),                    // 318
-    Tinit("sgdt"),                    // 319
-    Tinit("shl"),                     // 320
-    Tinit("shld"),                    // 321
-    Tinit("shr"),                     // 322
-    Tinit("shrd"),                    // 323
-    Tinit("sidt"),                    // 324
-    Tinit("sldt"),                    // 325
-    Tinit("smsw"),                    // 326
-    Tinit("stc"),                     // 327
-    Tinit("std"),                     // 328
-    Tinit("sti"),                     // 329
-    Tinit("stosb"),                   // 330
-    Tinit("stosd"),                   // 331
-    Tinit("stosw"),                   // 332
-    Tinit("str"),                     // 333
-    Tinit("sub"),                     // 334
-    Tinit("test"),                    // 335
-    Tinit("ud2"),                     // 336
-    Tinit("verr"),                    // 337
-    Tinit("verw"),                    // 338
-    Tinit("wait"),                    // 339
-    Tinit("wbinvd"),                  // 340
-    Tinit("wrmsr"),                   // 341
-    Tinit("xadd"),                    // 342
-    Tinit("xchg"),                    // 343
-    Tinit("xlatb"),                   // 344
-    Tinit("xor"),                     // 345
-    { 0, NULL }
-    // unused opcode
-    // { 6, "FWAIT" } ,
+  Tinit("0x"),                      //   0 - Invalid opcode
+  Tinit("aaa"),                     //   1
+  Tinit("aad"),                     //   2
+  Tinit("aam"),                     //   3
+  Tinit("aas"),                     //   4
+  Tinit("adc"),                     //   5
+  Tinit("add"),                     //   6
+  Tinit("and"),                     //   7
+  Tinit("arpl"),                    //   8
+  Tinit("bound"),                   //   9
+  Tinit("bsf"),                     //  10
+  Tinit("bsr"),                     //  11
+  Tinit("bswap"),                   //  12
+  Tinit("bt"),                      //  13
+  Tinit("btc"),                     //  14
+  Tinit("btr"),                     //  15
+  Tinit("bts"),                     //  16
+  Tinit("call"),                    //  17
+  Tinit("cbw"),                     //  18
+  Tinit("cdq"),                     //  19
+  Tinit("clc"),                     //  20
+  Tinit("cld"),                     //  21
+  Tinit("cli"),                     //  22
+  Tinit("clts"),                    //  23
+  Tinit("cmc"),                     //  24
+  Tinit("cmova"),                   //  25
+  Tinit("cmovae"),                  //  26
+  Tinit("cmovb"),                   //  27
+  Tinit("cmovbe"),                  //  28
+  Tinit("cmove"),                   //  29
+  Tinit("cmovg"),                   //  30
+  Tinit("cmovge"),                  //  31
+  Tinit("cmovl"),                   //  32
+  Tinit("cmovle"),                  //  33
+  Tinit("cmovne"),                  //  34
+  Tinit("cmovno"),                  //  35
+  Tinit("cmovns"),                  //  36
+  Tinit("cmovo"),                   //  37
+  Tinit("cmovpe"),                  //  38
+  Tinit("cmovpo"),                  //  39
+  Tinit("cmovs"),                   //  40
+  Tinit("cmp"),                     //  41
+  Tinit("cmpsb"),                   //  42
+  Tinit("cmpsd"),                   //  43
+  Tinit("cmpsw"),                   //  44
+  Tinit("cmpxchg8b"),               //  45
+  Tinit("cmpxchg"),                 //  46
+  Tinit("cpuid"),                   //  47
+  Tinit("cwd"),                     //  48
+  Tinit("cwde"),                    //  49
+  Tinit("daa"),                     //  50
+  Tinit("das"),                     //  51
+  Tinit("dec"),                     //  52
+  Tinit("div"),                     //  53
+  Tinit("emms"),                    //  54
+  Tinit("enter"),                   //  55
+  Tinit("esc"),                     //  56
+  Tinit("f2xm1"),                   //  57
+  Tinit("fabs"),                    //  58
+  Tinit("fadd"),                    //  59
+  Tinit("faddp"),                   //  60
+  Tinit("fbld"),                    //  61
+  Tinit("fbstp"),                   //  62
+  Tinit("fchs"),                    //  63
+  Tinit("fclex"),                   //  64
+  Tinit("fcmovb"),                  //  65
+  Tinit("fcmovbe"),                 //  66
+  Tinit("fcmove"),                  //  67
+  Tinit("fcmovnb"),                 //  68
+  Tinit("fcmovnbe"),                //  69
+  Tinit("fcmovne"),                 //  70
+  Tinit("fcmovnu"),                 //  71
+  Tinit("fcmovu"),                  //  72
+  Tinit("fcom"),                    //  73
+  Tinit("fcomi"),                   //  74
+  Tinit("fcomip"),                  //  75
+  Tinit("fcomp"),                   //  76
+  Tinit("fcompp"),                  //  77
+  Tinit("fcos"),                    //  78
+  Tinit("fdecstp"),                 //  79
+  Tinit("fdisi"),                   //  80
+  Tinit("fdiv"),                    //  81
+  Tinit("fdivp"),                   //  82
+  Tinit("fdivr"),                   //  83
+  Tinit("fdivrp"),                  //  84
+  Tinit("feni"),                    //  85
+  Tinit("ffree"),                   //  86
+  Tinit("ffreep"),                  //  87
+  Tinit("fiadd"),                   //  88
+  Tinit("ficom"),                   //  89
+  Tinit("ficomp"),                  //  90
+  Tinit("fidiv"),                   //  91
+  Tinit("fidivr"),                  //  92
+  Tinit("fild"),                    //  93
+  Tinit("fimul"),                   //  94
+  Tinit("fincstp"),                 //  95
+  Tinit("finit"),                   //  96
+  Tinit("fist"),                    //  97
+  Tinit("fistp"),                   //  98
+  Tinit("fisub"),                   //  99
+  Tinit("fisubr"),                  // 100
+  Tinit("fld"),                     // 101
+  Tinit("fld1"),                    // 102
+  Tinit("fldcw"),                   // 103
+  Tinit("fldenv"),                  // 104
+  Tinit("fldl2e"),                  // 105
+  Tinit("fldl2t"),                  // 106
+  Tinit("fldlg2"),                  // 107
+  Tinit("fldln2"),                  // 108
+  Tinit("fldpi"),                   // 109
+  Tinit("fldz"),                    // 110
+  Tinit("fmul"),                    // 111
+  Tinit("fmulp"),                   // 112
+  Tinit("fnclex"),                  // 113
+  Tinit("fndisi"),                  // 114
+  Tinit("fneni"),                   // 115
+  Tinit("fninit"),                  // 116
+  Tinit("fnop"),                    // 117
+  Tinit("fnsave"),                  // 118
+  Tinit("fnstcw"),                  // 119
+  Tinit("fnstenv"),                 // 120
+  Tinit("fnstsw"),                  // 121
+  Tinit("fpatan"),                  // 122
+  Tinit("fprem"),                   // 123
+  Tinit("fprem1"),                  // 124
+  Tinit("fptan"),                   // 125
+  Tinit("frndint"),                 // 126
+  Tinit("frstor"),                  // 127
+  Tinit("fsave"),                   // 128
+  Tinit("fscale"),                  // 129
+  Tinit("fsetpm"),                  // 130
+  Tinit("fsin"),                    // 131
+  Tinit("fsincos"),                 // 132
+  Tinit("fsqrt"),                   // 133
+  Tinit("fst"),                     // 134
+  Tinit("fstcw"),                   // 135
+  Tinit("fstenv"),                  // 136
+  Tinit("fstp"),                    // 137
+  Tinit("fstsw"),                   // 138
+  Tinit("fsub"),                    // 139
+  Tinit("fsubp"),                   // 140
+  Tinit("fsubr"),                   // 141
+  Tinit("fsubrp"),                  // 142
+  Tinit("ftst"),                    // 143
+  Tinit("fucom"),                   // 144
+  Tinit("fucomi"),                  // 145
+  Tinit("fucomip"),                 // 146
+  Tinit("fucomp"),                  // 147
+  Tinit("fucompp"),                 // 148
+  Tinit("fxam"),                    // 149
+  Tinit("fxch"),                    // 150
+  Tinit("fxtract"),                 // 151
+  Tinit("fyl2x"),                   // 152
+  Tinit("fyl2xp1"),                 // 153
+  Tinit("hlt"),                     // 154
+  Tinit("idiv"),                    // 155
+  Tinit("imul"),                    // 156
+  Tinit("in"),                      // 157
+  Tinit("inc"),                     // 158
+  Tinit("insb"),                    // 159
+  Tinit("insd"),                    // 160
+  Tinit("insw"),                    // 161
+  Tinit("int"),                     // 162
+  Tinit("into"),                    // 163
+  Tinit("invd"),                    // 164
+  Tinit("invlpg"),                  // 165
+  Tinit("iret"),                    // 166
+  Tinit("iretd"),                   // 167
+  Tinit("ja"),                      // 168
+  Tinit("jb"),                      // 169
+  Tinit("jcxz"),                    // 170
+  Tinit("jecxz"),                   // 171
+  Tinit("jg"),                      // 172
+  Tinit("jl"),                      // 173
+  Tinit("jmp"),                     // 174
+  Tinit("jna"),                     // 175
+  Tinit("jnb"),                     // 176
+  Tinit("jng"),                     // 177
+  Tinit("jnl"),                     // 178
+  Tinit("jno"),                     // 179
+  Tinit("jns"),                     // 180
+  Tinit("jnz"),                     // 181
+  Tinit("jo"),                      // 182
+  Tinit("jpe"),                     // 183
+  Tinit("jpo"),                     // 184
+  Tinit("js"),                      // 185
+  Tinit("jz"),                      // 186
+  Tinit("lahf"),                    // 187
+  Tinit("lar"),                     // 188
+  Tinit("lds"),                     // 189
+  Tinit("lea"),                     // 190
+  Tinit("leave"),                   // 191
+  Tinit("les"),                     // 192
+  Tinit("lfs"),                     // 193
+  Tinit("lgdt"),                    // 194
+  Tinit("lgs"),                     // 195
+  Tinit("lidt"),                    // 196
+  Tinit("lldt"),                    // 197
+  Tinit("lmsw"),                    // 198
+  Tinit("lock"),                    // 199
+  Tinit("lodsb"),                   // 200
+  Tinit("lodsd"),                   // 201
+  Tinit("lodsw"),                   // 202
+  Tinit("loop"),                    // 203
+  Tinit("loopnz"),                  // 204
+  Tinit("loopz"),                   // 205
+  Tinit("lsl"),                     // 206
+  Tinit("lss"),                     // 207
+  Tinit("ltr"),                     // 208
+  Tinit("mov"),                     // 209
+  Tinit("movb"),                    // 210
+  Tinit("movd"),                    // 211
+  Tinit("movq"),                    // 212
+  Tinit("movsb"),                   // 213
+  Tinit("movsd"),                   // 214
+  Tinit("movsw"),                   // 215
+  Tinit("movsx"),                   // 216
+  Tinit("movzx"),                   // 217
+  Tinit("mul"),                     // 218
+  Tinit("neg"),                     // 219
+  Tinit("nop"),                     // 220
+  Tinit("not"),                     // 221
+  Tinit("or"),                      // 222
+  Tinit("out"),                     // 223
+  Tinit("outsb"),                   // 224
+  Tinit("outsd"),                   // 225
+  Tinit("outsw"),                   // 226
+  Tinit("packssdw"),                // 227
+  Tinit("packsswb"),                // 228
+  Tinit("packuswb"),                // 229
+  Tinit("paddb"),                   // 230
+  Tinit("paddd"),                   // 231
+  Tinit("paddsb"),                  // 232
+  Tinit("paddsw"),                  // 233
+  Tinit("paddusb"),                 // 234
+  Tinit("paddusw"),                 // 235
+  Tinit("paddw"),                   // 236
+  Tinit("pand"),                    // 237
+  Tinit("pandn"),                   // 238
+  Tinit("pcmpeqb"),                 // 239
+  Tinit("pcmpeqd"),                 // 240
+  Tinit("pcmpeqw"),                 // 241
+  Tinit("pcmpgtb"),                 // 242
+  Tinit("pcmpgtd"),                 // 243
+  Tinit("pcmpgtw"),                 // 244
+  Tinit("pmaddwd"),                 // 245
+  Tinit("pmulhw"),                  // 246
+  Tinit("pmullw"),                  // 247
+  Tinit("pop"),                     // 248
+  Tinit("popa"),                    // 249
+  Tinit("popad"),                   // 250
+  Tinit("popf"),                    // 251
+  Tinit("popfd"),                   // 252
+  Tinit("por"),                     // 253
+  Tinit("pslld"),                   // 254
+  Tinit("psllq"),                   // 255
+  Tinit("psllw"),                   // 256
+  Tinit("psrad"),                   // 257
+  Tinit("psraw"),                   // 258
+  Tinit("psrld"),                   // 259
+  Tinit("psrlq"),                   // 260
+  Tinit("psrlw"),                   // 261
+  Tinit("psubb"),                   // 262
+  Tinit("psubd"),                   // 263
+  Tinit("psubsb"),                  // 264
+  Tinit("psubsw"),                  // 265
+  Tinit("psubusb"),                 // 266
+  Tinit("psubusw"),                 // 267
+  Tinit("psubw"),                   // 268
+  Tinit("punpckhbw"),               // 269
+  Tinit("punpckhdq"),               // 270
+  Tinit("punpckhwd"),               // 271
+  Tinit("punpcklbw"),               // 272
+  Tinit("punpckldq"),               // 273
+  Tinit("punpcklwd"),               // 274
+  Tinit("push"),                    // 275
+  Tinit("pusha"),                   // 276
+  Tinit("pushad"),                  // 277
+  Tinit("pushf"),                   // 278
+  Tinit("pushfd"),                  // 279
+  Tinit("pushi"),                   // 280
+  Tinit("pxor"),                    // 281
+  Tinit("rcl"),                     // 282
+  Tinit("rcr"),                     // 283
+  Tinit("rdmsr"),                   // 284
+  Tinit("rdpmc"),                   // 285
+  Tinit("rdtsc"),                   // 286
+  Tinit("rep"),                     // 287
+  Tinit("repnz"),                   // 288
+  Tinit("repz"),                    // 289
+  Tinit("retf"),                    // 290
+  Tinit("retn"),                    // 291
+  Tinit("rol"),                     // 292
+  Tinit("ror"),                     // 293
+  Tinit("rsm"),                     // 294
+  Tinit("sahf"),                    // 295
+  Tinit("sal"),                     // 296
+  Tinit("sar"),                     // 297
+  Tinit("sbb"),                     // 298
+  Tinit("scasb"),                   // 299
+  Tinit("scasd"),                   // 300
+  Tinit("scasw"),                   // 301
+  Tinit("seg"),                     // 302
+  Tinit("seta"),                    // 303
+  Tinit("setae"),                   // 304
+  Tinit("setb"),                    // 305
+  Tinit("setbe"),                   // 306
+  Tinit("setg"),                    // 307
+  Tinit("setge"),                   // 308
+  Tinit("setl"),                    // 309
+  Tinit("setle"),                   // 310
+  Tinit("setno"),                   // 311
+  Tinit("setns"),                   // 312
+  Tinit("setnz"),                   // 313
+  Tinit("seto"),                    // 314
+  Tinit("setpe"),                   // 315
+  Tinit("setpo"),                   // 316
+  Tinit("sets"),                    // 317
+  Tinit("setz"),                    // 318
+  Tinit("sgdt"),                    // 319
+  Tinit("shl"),                     // 320
+  Tinit("shld"),                    // 321
+  Tinit("shr"),                     // 322
+  Tinit("shrd"),                    // 323
+  Tinit("sidt"),                    // 324
+  Tinit("sldt"),                    // 325
+  Tinit("smsw"),                    // 326
+  Tinit("stc"),                     // 327
+  Tinit("std"),                     // 328
+  Tinit("sti"),                     // 329
+  Tinit("stosb"),                   // 330
+  Tinit("stosd"),                   // 331
+  Tinit("stosw"),                   // 332
+  Tinit("str"),                     // 333
+  Tinit("sub"),                     // 334
+  Tinit("test"),                    // 335
+  Tinit("ud2"),                     // 336
+  Tinit("verr"),                    // 337
+  Tinit("verw"),                    // 338
+  Tinit("wait"),                    // 339
+  Tinit("wbinvd"),                  // 340
+  Tinit("wrmsr"),                   // 341
+  Tinit("xadd"),                    // 342
+  Tinit("xchg"),                    // 343
+  Tinit("xlatb"),                   // 344
+  Tinit("xor"),                     // 345
+  { 0, NULL }
+  // unused opcode
+  // { 6, "FWAIT" } ,
 } ;
 // defines for the indexes to the mnemonic array
 #define ILLEGAL       0  // Any illegal opcode
@@ -964,41 +964,41 @@ static const TABLE mnemstr[] =  {
 /*                         Control flags structure                         */
 /***************************************************************************/
 typedef struct {
-   int Dbit:3;          // hold "d" bit from instruction.
-       #define DBit_RegToMem  0         // register is second operand
-       #define DBit_MemToReg  1         // register is first operand
-       #define DBit_Mem1op    2         // only 1 (memory) operand
-   int Wbit:1;          // holds "w" bit from instruction
-                            //    0 => 8 bit,
-                            //    1 => 16 or 32 bit
-   int disppres:1;      // a displacement is present in this instruction
-   int addrover:1;      // an address override prefix has been found
-   int addroverUsed:1;  // address override has been used
-   int addr32:1;        // address size is 32-bit
-   int opsizeover:1;    // an operand size override prefix has been found
-   int opsize32:1;      // operand size is 32-bit
-   int prefix:1;        // prefix instruction - rerun opcode decoding
-   int waitOp:1;        // a wait opcode that can be incorporated
-                        // into an NPX instruction was found
-   unsigned int replock:2;       // rep or lock prefix
-       #define replockNone  0  // no prefix
-       #define replockREPZ  1  // REPZ prefix
-       #define replockREPNZ 2  // REPNZ prefix
-       #define replockLOCK  3  // LOCK prefix
-   unsigned int sizePrefix:3;    // Size prefix when creating output of a memory operand
-       #define sizeWop   0     //  as defined by opsize and Wbit
-                               //  (word or dword0
-       #define sizeByte  PTRbyte       //  byte  (1 bytes)
-       #define sizeWord  PTRword       //  word  (2 bytes)
-       #define sizeDword PTRdword      //  dword (4 bytes)
-       #define sizeFword PTRfword      //  fword (6 bytes)
-       #define sizeQword PTRqword      //  qword (8 bytes)
-       #define sizeTbyte PTRtbyte      //  tbyte (10 bytes)
-       #define sizeNone  PTRnone       //  no opsize entry
-   unsigned int regf:3;          // reg field from instruction
-   unsigned int mod:2;           // mod field from instruction
-   unsigned int rm:3;            // rm field from instruction
-   int MMXop:1;         // MMX operation - use MMX registers
+  int Dbit:3;          // hold "d" bit from instruction.
+#define DBit_RegToMem  0         // register is second operand
+#define DBit_MemToReg  1         // register is first operand
+#define DBit_Mem1op    2         // only 1 (memory) operand
+  int Wbit:1;          // holds "w" bit from instruction
+  //    0 => 8 bit,
+  //    1 => 16 or 32 bit
+  int disppres:1;      // a displacement is present in this instruction
+  int addrover:1;      // an address override prefix has been found
+  int addroverUsed:1;  // address override has been used
+  int addr32:1;        // address size is 32-bit
+  int opsizeover:1;    // an operand size override prefix has been found
+  int opsize32:1;      // operand size is 32-bit
+  int prefix:1;        // prefix instruction - rerun opcode decoding
+  int waitOp:1;        // a wait opcode that can be incorporated
+  // into an NPX instruction was found
+  unsigned int replock:2;       // rep or lock prefix
+#define replockNone  0  // no prefix
+#define replockREPZ  1  // REPZ prefix
+#define replockREPNZ 2  // REPNZ prefix
+#define replockLOCK  3  // LOCK prefix
+  unsigned int sizePrefix:3;    // Size prefix when creating output of a memory operand
+#define sizeWop   0     //  as defined by opsize and Wbit
+  //  (word or dword0
+#define sizeByte  PTRbyte       //  byte  (1 bytes)
+#define sizeWord  PTRword       //  word  (2 bytes)
+#define sizeDword PTRdword      //  dword (4 bytes)
+#define sizeFword PTRfword      //  fword (6 bytes)
+#define sizeQword PTRqword      //  qword (8 bytes)
+#define sizeTbyte PTRtbyte      //  tbyte (10 bytes)
+#define sizeNone  PTRnone       //  no opsize entry
+  unsigned int regf:3;          // reg field from instruction
+  unsigned int mod:2;           // mod field from instruction
+  unsigned int rm:3;            // rm field from instruction
+  int MMXop:1;         // MMX operation - use MMX registers
 } FLAGS;
 
 /* debug flag */
@@ -1018,41 +1018,41 @@ static int ihnpdsm_debug = 0;
 /****************************************************************************/
 static const USHORT mnem_16[256] = {
 //0      1       2       3       4       5       6       7       8       9       A       B       C       D       E       F
- ADD   , ADD   , ADD   , ADD   , ADD   , ADD   , PUSH  , POP   , OR    , OR    , OR    , OR    , OR    , OR    , PUSH  , odd   , // 0
- ADC   , ADC   , ADC   , ADC   , ADC   , ADC   , PUSH  , POP   , SBB   , SBB   , SBB   , SBB   , SBB   , SBB   , PUSH  , POP   , // 1
- AND   , AND   , AND   , AND   , AND   , AND   , odd   , DAA   , SUB   , SUB   , SUB   , SUB   , SUB   , SUB   , odd   , DAS   , // 2
- XOR   , XOR   , XOR   , XOR   , XOR   , XOR   , odd   , AAA   , CMP   , CMP   , CMP   , CMP   , CMP   , CMP   , odd   , AAS   , // 3
- INC   , INC   , INC   , INC   , INC   , INC   , INC   , INC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , // 4
- PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , POP   , POP   , POP   , POP   , POP   , POP   , POP   , POP   , // 5
- PUSHA , POPA  , BOUND , ARPL  , odd   , odd   , odd   , odd   , PUSH  , IMUL  , PUSH  , IMUL  , INSB  , INSW  , OUTSB , OUTSW , // 6
- JO    , JNO   , JB    , JNB   , JZ    , JNZ   , JNA   , JA    , JS    , JNS   , JPE   , JPO   , JL    , JNL   , JNG   , JG    , // 7
- odd   , odd   , MOVB  , odd   , TEST  , TEST  , XCHG  , XCHG  , MOV   , MOV   , MOV   , MOV   , MOV   , LEA   , MOV   , POP   , // 8
- NOP   , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , CBW   , CWD   , CALL  , WAIT  , PUSHF , POPF  , SAHF  , LAHF  , // 9
- MOV   , MOV   , MOV   , MOV   , MOVSB , MOVSW , CMPSB , CMPSW , TEST  , TEST  , STOSB , STOSW , LODSB , LODSW , SCASB , SCASW , // A
- MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , // B
- odd   , odd   , RETN  , RETN  , LES   , LDS   , MOV   , MOV   , ENTER , LEAVE , RETF  , RETF  , INT   , INT   , INTO  , IRET  , // C
- odd   , odd   , odd   , odd   , AAM   , AAD   , odd   , XLATB , odd   , odd   , odd   , odd   , odd   , odd   , odd   , odd   , // D
- LOOPNZ, LOOPZ , LOOP  , JCXZ  , IN    , IN    , OUT   , OUT   , CALL  , JMP   , JMP   , JMP   , IN    , IN    , OUT   , OUT   , // E
- LOCK  , odd   , odd   , odd   , HLT   , CMC   , odd   , odd   , CLC   , STC   , CLI   , STI   , CLD   , STD   , odd   , odd     // F
+  ADD   , ADD   , ADD   , ADD   , ADD   , ADD   , PUSH  , POP   , OR    , OR    , OR    , OR    , OR    , OR    , PUSH  , odd   , // 0
+  ADC   , ADC   , ADC   , ADC   , ADC   , ADC   , PUSH  , POP   , SBB   , SBB   , SBB   , SBB   , SBB   , SBB   , PUSH  , POP   , // 1
+  AND   , AND   , AND   , AND   , AND   , AND   , odd   , DAA   , SUB   , SUB   , SUB   , SUB   , SUB   , SUB   , odd   , DAS   , // 2
+  XOR   , XOR   , XOR   , XOR   , XOR   , XOR   , odd   , AAA   , CMP   , CMP   , CMP   , CMP   , CMP   , CMP   , odd   , AAS   , // 3
+  INC   , INC   , INC   , INC   , INC   , INC   , INC   , INC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , // 4
+  PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , POP   , POP   , POP   , POP   , POP   , POP   , POP   , POP   , // 5
+  PUSHA , POPA  , BOUND , ARPL  , odd   , odd   , odd   , odd   , PUSH  , IMUL  , PUSH  , IMUL  , INSB  , INSW  , OUTSB , OUTSW , // 6
+  JO    , JNO   , JB    , JNB   , JZ    , JNZ   , JNA   , JA    , JS    , JNS   , JPE   , JPO   , JL    , JNL   , JNG   , JG    , // 7
+  odd   , odd   , MOVB  , odd   , TEST  , TEST  , XCHG  , XCHG  , MOV   , MOV   , MOV   , MOV   , MOV   , LEA   , MOV   , POP   , // 8
+  NOP   , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , CBW   , CWD   , CALL  , WAIT  , PUSHF , POPF  , SAHF  , LAHF  , // 9
+  MOV   , MOV   , MOV   , MOV   , MOVSB , MOVSW , CMPSB , CMPSW , TEST  , TEST  , STOSB , STOSW , LODSB , LODSW , SCASB , SCASW , // A
+  MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , // B
+  odd   , odd   , RETN  , RETN  , LES   , LDS   , MOV   , MOV   , ENTER , LEAVE , RETF  , RETF  , INT   , INT   , INTO  , IRET  , // C
+  odd   , odd   , odd   , odd   , AAM   , AAD   , odd   , XLATB , odd   , odd   , odd   , odd   , odd   , odd   , odd   , odd   , // D
+  LOOPNZ, LOOPZ , LOOP  , JCXZ  , IN    , IN    , OUT   , OUT   , CALL  , JMP   , JMP   , JMP   , IN    , IN    , OUT   , OUT   , // E
+  LOCK  , odd   , odd   , odd   , HLT   , CMC   , odd   , odd   , CLC   , STC   , CLI   , STI   , CLD   , STD   , odd   , odd     // F
 };
 static const USHORT mnem_32[256] =  {
 //0      1       2       3       4       5       6       7       8       9       A       B       C       D       E       F
- ADD   , ADD   , ADD   , ADD   , ADD   , ADD   , PUSH  , POP   , OR    , OR    , OR    , OR    , OR    , OR    , PUSH  , odd   , // 0
- ADC   , ADC   , ADC   , ADC   , ADC   , ADC   , PUSH  , POP   , SBB   , SBB   , SBB   , SBB   , SBB   , SBB   , PUSH  , POP   , // 1
- AND   , AND   , AND   , AND   , AND   , AND   , odd   , DAA   , SUB   , SUB   , SUB   , SUB   , SUB   , SUB   , odd   , DAS   , // 2
- XOR   , XOR   , XOR   , XOR   , XOR   , XOR   , odd   , AAA   , CMP   , CMP   , CMP   , CMP   , CMP   , CMP   , odd   , AAS   , // 3
- INC   , INC   , INC   , INC   , INC   , INC   , INC   , INC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , // 4
- PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , POP   , POP   , POP   , POP   , POP   , POP   , POP   , POP   , // 5
- PUSHAD, POPAD , BOUND , ARPL  , odd   , odd   , odd   , odd   , PUSH  , IMUL  , PUSH  , IMUL  , INSB  , INSD  , OUTSB , OUTSD , // 6
- JO    , JNO   , JB    , JNB   , JZ    , JNZ   , JNA   , JA    , JS    , JNS   , JPE   , JPO   , JL    , JNL   , JNG   , JG    , // 7
- odd   , odd   , MOVB  , odd   , TEST  , TEST  , XCHG  , XCHG  , MOV   , MOV   , MOV   , MOV   , MOV   , LEA   , MOV   , POP   , // 8
- NOP   , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , CWDE  , CDQ   , CALL  , WAIT  , PUSHFD, POPFD , SAHF  , LAHF  , // 9
- MOV   , MOV   , MOV   , MOV   , MOVSB , MOVSD , CMPSB , CMPSD , TEST  , TEST  , STOSB , STOSD , LODSB , LODSD , SCASB , SCASD , // A
- MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , // B
- odd   , odd   , RETN  , RETN  , LES   , LDS   , MOV   , MOV   , ENTER , LEAVE , RETF  , RETF  , INT   , INT   , INTO  , IRET  , // C
- odd   , odd   , odd   , odd   , AAM   , AAD   , odd   , XLATB , odd   , odd   , odd   , odd   , odd   , odd   , odd   , odd   , // D
- LOOPNZ, LOOPZ , LOOP  , JECXZ , IN    , IN    , OUT   , OUT   , CALL  , JMP   , JMP   , JMP   , IN    , IN    , OUT   , OUT   , // E
- LOCK  , odd   , odd   , odd   , HLT   , CMC   , odd   , odd   , CLC   , STC   , CLI   , STI   , CLD   , STD   , odd   , odd     // F
+  ADD   , ADD   , ADD   , ADD   , ADD   , ADD   , PUSH  , POP   , OR    , OR    , OR    , OR    , OR    , OR    , PUSH  , odd   , // 0
+  ADC   , ADC   , ADC   , ADC   , ADC   , ADC   , PUSH  , POP   , SBB   , SBB   , SBB   , SBB   , SBB   , SBB   , PUSH  , POP   , // 1
+  AND   , AND   , AND   , AND   , AND   , AND   , odd   , DAA   , SUB   , SUB   , SUB   , SUB   , SUB   , SUB   , odd   , DAS   , // 2
+  XOR   , XOR   , XOR   , XOR   , XOR   , XOR   , odd   , AAA   , CMP   , CMP   , CMP   , CMP   , CMP   , CMP   , odd   , AAS   , // 3
+  INC   , INC   , INC   , INC   , INC   , INC   , INC   , INC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , // 4
+  PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , POP   , POP   , POP   , POP   , POP   , POP   , POP   , POP   , // 5
+  PUSHAD, POPAD , BOUND , ARPL  , odd   , odd   , odd   , odd   , PUSH  , IMUL  , PUSH  , IMUL  , INSB  , INSD  , OUTSB , OUTSD , // 6
+  JO    , JNO   , JB    , JNB   , JZ    , JNZ   , JNA   , JA    , JS    , JNS   , JPE   , JPO   , JL    , JNL   , JNG   , JG    , // 7
+  odd   , odd   , MOVB  , odd   , TEST  , TEST  , XCHG  , XCHG  , MOV   , MOV   , MOV   , MOV   , MOV   , LEA   , MOV   , POP   , // 8
+  NOP   , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , CWDE  , CDQ   , CALL  , WAIT  , PUSHFD, POPFD , SAHF  , LAHF  , // 9
+  MOV   , MOV   , MOV   , MOV   , MOVSB , MOVSD , CMPSB , CMPSD , TEST  , TEST  , STOSB , STOSD , LODSB , LODSD , SCASB , SCASD , // A
+  MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , // B
+  odd   , odd   , RETN  , RETN  , LES   , LDS   , MOV   , MOV   , ENTER , LEAVE , RETF  , RETF  , INT   , INT   , INTO  , IRET  , // C
+  odd   , odd   , odd   , odd   , AAM   , AAD   , odd   , XLATB , odd   , odd   , odd   , odd   , odd   , odd   , odd   , odd   , // D
+  LOOPNZ, LOOPZ , LOOP  , JECXZ , IN    , IN    , OUT   , OUT   , CALL  , JMP   , JMP   , JMP   , IN    , IN    , OUT   , OUT   , // E
+  LOCK  , odd   , odd   , odd   , HLT   , CMC   , odd   , odd   , CLC   , STC   , CLI   , STI   , CLD   , STD   , odd   , odd     // F
 } ;
 
 
@@ -1061,38 +1061,38 @@ static const USHORT mnem_32[256] =  {
 /*  used by C0 and D0 opcodes                                               */
 /****************************************************************************/
 static const USHORT shiftmnem[8] =  {
-    ROL, ROR, RCL, RCR, SHL, SHR, ILLEGAL, SAR,
+  ROL, ROR, RCL, RCR, SHL, SHR, ILLEGAL, SAR,
 } ;
 
 
 typedef struct state {
-    const USHORT *mnemnum;      //mnemonic number table pointer (set to either
-                                //mnem_16 or mnem_32)
-    UCHAR *startiptr;           // instruction stream pointer
-    char *hbuff;                // hex output buffer pointer
-    ssize_t hbuff_sz;
+  const USHORT *mnemnum;      //mnemonic number table pointer (set to either
+  //mnem_16 or mnem_32)
+  UCHAR *startiptr;           // instruction stream pointer
+  char *hbuff;                // hex output buffer pointer
+  ssize_t hbuff_sz;
 
-    /** This hacking has changed the behavior; it used to be that mbuff was
-        overwritten each time it was worked on.  Now, instead, it gets
-        appended to.  This probably was an oversight in the original code. */
-    char *mbuff;            // mnemonic output buffer pointer
-    ssize_t mbuff_sz;
+  /** This hacking has changed the behavior; it used to be that mbuff was
+      overwritten each time it was worked on.  Now, instead, it gets
+      appended to.  This probably was an oversight in the original code. */
+  char *mbuff;            // mnemonic output buffer pointer
+  ssize_t mbuff_sz;
 
-    char *ibuff;            // operand output buffer pointer
-    ssize_t ibuff_sz;
+  char *ibuff;            // operand output buffer pointer
+  ssize_t ibuff_sz;
 
-    UCHAR instr;            // holds the current instruction
-    UCHAR ovseg;            // non-zero if there is a current segment
-                                // override instr pending
-    UCHAR defseg;           // default segment for operands (1-based)
-    UCHAR basereg;          // index into register names of the base
-                                // register, 0 if none
-    UCHAR indexreg;         // index into register names of the index
-                                // register, 0 if none
-    UCHAR scalefactor;      // scale factor, possible values are: 0 =>
-                                // none 1 => *2 2 => *4 3 => *8
-    long opdisp;            // operand displacement from instr
-    PARLIST *parm;          // pointer to the parameter block
+  UCHAR instr;            // holds the current instruction
+  UCHAR ovseg;            // non-zero if there is a current segment
+  // override instr pending
+  UCHAR defseg;           // default segment for operands (1-based)
+  UCHAR basereg;          // index into register names of the base
+  // register, 0 if none
+  UCHAR indexreg;         // index into register names of the index
+  // register, 0 if none
+  UCHAR scalefactor;      // scale factor, possible values are: 0 =>
+  // none 1 => *2 2 => *4 3 => *8
+  long opdisp;            // operand displacement from instr
+  PARLIST *parm;          // pointer to the parameter block
 } STATE;
 
 
@@ -1139,20 +1139,20 @@ static void operandMemop(STATE &s, FLAGS & flags);
 inline void
 operandChar(STATE &s, char c)
 {
-   // output a single character
-    ibuff_gets(s, c);
+  // output a single character
+  ibuff_gets(s, c);
 }
 inline void
 operandMMXreg(STATE &s, UCHAR regf, const char *suffix = NULL)
 {
-   // output an MMX register
-   operandTableItem(s, regf, regMMX, suffix);
+  // output an MMX register
+  operandTableItem(s, regf, regMMX, suffix);
 }
 inline void
 operandSegRegister(STATE &s, UCHAR regnum, const char *suffix = 0)
 {
-   // output a segment register
-   operandTableItem(s, regnum, segreg, suffix);
+  // output a segment register
+  operandTableItem(s, regnum, segreg, suffix);
 }
 static void operandRel(STATE &s, long disp);
 
@@ -1185,9 +1185,9 @@ static opcodeFunction op_6A;
 static opcodeFunction op_70;
 static opcodeFunction op_80;
 #if OP82
-   static opcodefunction op_82;
+static opcodefunction op_82;
 #else
-   #define op_82 op_IL
+#define op_82 op_IL
 #endif
 static opcodeFunction op_8C;
 static opcodeFunction op_8D;
@@ -1230,9 +1230,9 @@ static opcodeFunction op_0F01;
 static opcodeFunction op_0F02;
 static opcodeFunction op_0F20;
 #if OP0F24
-   #define op_0F24 op_0F20
+#define op_0F24 op_0F20
 #else
-   #define op_0F24 op_IL
+#define op_0F24 op_IL
 #endif
 static opcodeFunction op_0F40;
 static opcodeFunction op_0F60;
@@ -1245,9 +1245,9 @@ static opcodeFunction op_0F90;
 static opcodeFunction op_0FA0;
 static opcodeFunction op_0FA4;
 #if OP0FA6
-   #define op_0FA6 op_0FB0
+#define op_0FA6 op_0FB0
 #else
-   #define op_0FA6 op_IL
+#define op_0FA6 op_IL
 #endif
 static opcodeFunction op_0FA8;
 static opcodeFunction op_0FAF;
@@ -1278,8 +1278,10 @@ static const char hexConvVal[] = "0123456789ABCDEF";
 // class to be thrown if an opcode is determined to be illegal
 class IllegalOp {
 public:
-   IllegalOp(UNUSED STATE &s, int x=0) { type = x; }
-   int type;
+  IllegalOp(UNUSED STATE &s, int x=0) {
+    type = x;
+  }
+  int type;
 };
 
 /****************************************************************************/
@@ -1332,58 +1334,58 @@ p__DisAsm(PARLIST *parmptr,int print)
   initialize(s, flags,print);
 
   try {
-     /********************************************************************/
-     /* loop only if we find an opcode prefix:                           */
-     /*     operand size                                                 */
-     /*     address size                                                 */
-     /*     repeat                                                       */
-     /*     segment override                                             */
-     /********************************************************************/
-     do {
-       flags.prefix = 0;
-       flags.sizePrefix = sizeWop;
-       if (s.parm->flagbits & use32mask) {
-          flags.opsize32 = !flags.opsizeover;
-          flags.addr32 = !flags.addrover;
-       } else {
-          flags.opsize32 = flags.opsizeover;
-          flags.addr32 = flags.addrover;
-       }
+    /********************************************************************/
+    /* loop only if we find an opcode prefix:                           */
+    /*     operand size                                                 */
+    /*     address size                                                 */
+    /*     repeat                                                       */
+    /*     segment override                                             */
+    /********************************************************************/
+    do {
+      flags.prefix = 0;
+      flags.sizePrefix = sizeWop;
+      if (s.parm->flagbits & use32mask) {
+        flags.opsize32 = !flags.opsizeover;
+        flags.addr32 = !flags.addrover;
+      } else {
+        flags.opsize32 = flags.opsizeover;
+        flags.addr32 = flags.addrover;
+      }
 
-       #if RETPARMS
-         s.parm->retbits = 0;
-         if (flags.opsize32)
-           s.parm->retbits |= 1;
-         if (flags.addr32)
-           s.parm->retbits |= 2;
-       #endif
+#if RETPARMS
+      s.parm->retbits = 0;
+      if (flags.opsize32)
+        s.parm->retbits |= 1;
+      if (flags.addr32)
+        s.parm->retbits |= 2;
+#endif
 
-       // determine which opcode table is to be used
-       s.mnemnum = (flags.opsize32) ? mnem_32 : mnem_16;
+      // determine which opcode table is to be used
+      s.mnemnum = (flags.opsize32) ? mnem_32 : mnem_16;
 
-       s.instr = getNextByte(s);                     // get next byte of instruction
+      s.instr = getNextByte(s);                     // get next byte of instruction
 
-       // in many cases we can print the instruction mnemonic now
-       mnemonicStd(s, flags,s.mnemnum[s.instr]);
+      // in many cases we can print the instruction mnemonic now
+      mnemonicStd(s, flags,s.mnemnum[s.instr]);
 
-       // call according to the instruction opcode
-       opcodeTable[s.instr](s, flags);
-     }  while (flags.prefix);              // enddo
+      // call according to the instruction opcode
+      opcodeTable[s.instr](s, flags);
+    }  while (flags.prefix);              // enddo
 
-     // check if overrides were used if they were present
-     if (s.ovseg || (flags.addrover && !flags.addroverUsed)) {
-        /****************************************************/
-        /* we had an unused prefix.                         */
-        /* backtrack, and reply with an illegal instruction */
-        /****************************************************/
-        initialize(s, flags,print);
-        op_IL(s, flags);
-     }
+    // check if overrides were used if they were present
+    if (s.ovseg || (flags.addrover && !flags.addroverUsed)) {
+      /****************************************************/
+      /* we had an unused prefix.                         */
+      /* backtrack, and reply with an illegal instruction */
+      /****************************************************/
+      initialize(s, flags,print);
+      op_IL(s, flags);
+    }
   } /* end try */
   catch ( const IllegalOp x ) {
-     // there is something wrong with the instruction
-     initialize(s, flags,print);
-     op_IL(s, flags);
+    // there is something wrong with the instruction
+    initialize(s, flags,print);
+    op_IL(s, flags);
   } /* end catch */
 
   /**************************************************************************/
@@ -1391,9 +1393,9 @@ p__DisAsm(PARLIST *parmptr,int print)
   /**************************************************************************/
   s.parm->retleng = s.parm->iptr - s.startiptr;
   if (s.hbuff && s.hbuff_sz-- > 0)
-     *s.hbuff = 0;
+    *s.hbuff = 0;
   if (s.ibuff && s.ibuff_sz-- > 0)
-     *s.ibuff = 0;
+    *s.ibuff = 0;
   s.parm->retregop = flags.regf;
   s.parm->retmod = flags.mod;
   s.parm->retrm = flags.rm;
@@ -1418,15 +1420,15 @@ p__DisAsm(PARLIST *parmptr,int print)
 static void
 operandRel(STATE &s, long disp)
 {
-   disp += s.parm->iptr - s.startiptr;
-   if (s.parm->instr_EIP == 0xFFFFFFFF) {
-      // display a relative displacement
-      operandChar(s, '$');
-      operandSignedHex(s, disp);
-   } else {
-      // display an absolute displacement
-      operandHex(s, s.parm->instr_EIP + disp);
-   }
+  disp += s.parm->iptr - s.startiptr;
+  if (s.parm->instr_EIP == 0xFFFFFFFF) {
+    // display a relative displacement
+    operandChar(s, '$');
+    operandSignedHex(s, disp);
+  } else {
+    // display an absolute displacement
+    operandHex(s, s.parm->instr_EIP + disp);
+  }
 }
 
 /****************************************************************************/
@@ -1447,15 +1449,15 @@ operandRel(STATE &s, long disp)
 static void
 operandSignedHex(STATE &s, long val, const char *suffix)
 {
-   if (s.ibuff) {
-      if (val < 0) {
-         ibuff_gets(s, '-');
-         val = -val;
-      } else {
-         ibuff_gets(s,  '+');
-      } // endif
-      operandHex(s, val, suffix);
-   }
+  if (s.ibuff) {
+    if (val < 0) {
+      ibuff_gets(s, '-');
+      val = -val;
+    } else {
+      ibuff_gets(s,  '+');
+    } // endif
+    operandHex(s, val, suffix);
+  }
 }
 
 /****************************************************************************/
@@ -1478,11 +1480,11 @@ operandSignedHex(STATE &s, long val, const char *suffix)
 
 ULONG _lrotl4(ULONG val)
 {
-    if (ihnpdsm_debug)
-        printf("Calling _lrotl4: 0x%08lx\n", val);
+  if (ihnpdsm_debug)
+    printf("Calling _lrotl4: 0x%08lx\n", val);
 
-    ULONG tmp = (val >> 28) & 0x0f;
-    return ((val << 4) | tmp);
+  ULONG tmp = (val >> 28) & 0x0f;
+  return ((val << 4) | tmp);
 }
 
 
@@ -1490,40 +1492,40 @@ ULONG _lrotl4(ULONG val)
 static void
 operandHex(STATE &s, ULONG val, const char *suffix)
 {
-   if (ihnpdsm_debug)
-      printf("Calling operandHex: 0x%08lx\n", val);
+  if (ihnpdsm_debug)
+    printf("Calling operandHex: 0x%08lx\n", val);
 
-   if (s.ibuff) {
-      // there must always be at least one digit
-      if (!val) {
-         ibuff_gets(s,  '0');
-      } else {
-         int i;
-         for (i = 0; i < 8 ; i++ ) {
-             /* val = _lrotl(val,4); */
-            val = _lrotl4(val);   /* rotate left logical 4 bits */
-            if (val & 0x0f ) {
-               if ((val & 0x0f) >= 0x0a)
-                  ibuff_gets(s,  '0');      // leading zero required
-               ibuff_gets(s,  hexConvVal[val & 0x0f]);
-               for (; ++i < 8 ;  ) {
-                   /* val = _lrotl(val,4); */
-                  val = _lrotl4(val);
-                  ibuff_gets(s,  hexConvVal[val & 0x0f]);
-               } // endfor
-               if (val >= 10) {
-                  // hex number
-                  ibuff_gets(s,  'H');
-               } // endif
-            }
-         } // endfor
-      } // endif
+  if (s.ibuff) {
+    // there must always be at least one digit
+    if (!val) {
+      ibuff_gets(s,  '0');
+    } else {
+      int i;
+      for (i = 0; i < 8 ; i++ ) {
+        /* val = _lrotl(val,4); */
+        val = _lrotl4(val);   /* rotate left logical 4 bits */
+        if (val & 0x0f ) {
+          if ((val & 0x0f) >= 0x0a)
+            ibuff_gets(s,  '0');      // leading zero required
+          ibuff_gets(s,  hexConvVal[val & 0x0f]);
+          for (; ++i < 8 ;  ) {
+            /* val = _lrotl(val,4); */
+            val = _lrotl4(val);
+            ibuff_gets(s,  hexConvVal[val & 0x0f]);
+          } // endfor
+          if (val >= 10) {
+            // hex number
+            ibuff_gets(s,  'H');
+          } // endif
+        }
+      } // endfor
+    } // endif
 
-      if (suffix)
-         while (*suffix) {
-            ibuff_gets(s,  *suffix++);
-         } // endwhile
-   } // endif
+    if (suffix)
+      while (*suffix) {
+        ibuff_gets(s,  *suffix++);
+      } // endwhile
+  } // endif
 }
 
 
@@ -1545,9 +1547,9 @@ operandHex(STATE &s, ULONG val, const char *suffix)
 static void
 operandDecimal(STATE &s, long val, const char *suffix)
 {
-   if (s.ibuff) {
-      s.ibuff += snprintf(s.ibuff, s.ibuff_sz, "%ld%s",val, suffix ? suffix : "");
-   } // endif
+  if (s.ibuff) {
+    s.ibuff += snprintf(s.ibuff, s.ibuff_sz, "%ld%s",val, suffix ? suffix : "");
+  } // endif
 }
 
 /****************************************************************************/
@@ -1570,13 +1572,13 @@ operandDecimal(STATE &s, long val, const char *suffix)
 static void
 operandTableItem(STATE &s, ULONG item,const TABLE *ptr, const char *suffix)
 {
-   if (s.ibuff) {
-      ibuff_gets(s, ptr[item].string, ptr[item].length);
-      if (suffix)
-         while (*suffix) {
-            ibuff_gets(s,  *suffix++);
-         } // endwhile
-   } // endif
+  if (s.ibuff) {
+    ibuff_gets(s, ptr[item].string, ptr[item].length);
+    if (suffix)
+      while (*suffix) {
+        ibuff_gets(s,  *suffix++);
+      } // endwhile
+  } // endif
 }
 
 /****************************************************************************/
@@ -1597,108 +1599,108 @@ operandTableItem(STATE &s, ULONG item,const TABLE *ptr, const char *suffix)
 static void
 mnemonicStd(STATE &s, FLAGS & flags, USHORT mnem_num)
 {
-   if (s.mbuff && mnem_num != odd) {
-      // if this is the illegal opcode - ignore the REP/LOCK prefixes
-      if (mnem_num == ILLEGAL)
-         flags.replock = replockNone;
+  if (s.mbuff && mnem_num != odd) {
+    // if this is the illegal opcode - ignore the REP/LOCK prefixes
+    if (mnem_num == ILLEGAL)
+      flags.replock = replockNone;
 
-      switch (flags.replock) {
-      case replockREPZ:
-         /*********************************************************************/
-         /*  check for instructions for which REP or REPZ is a valid prefix   */
-         /*********************************************************************/
-         switch (mnem_num) {
-         case INSB:
-         case INSW:
-         case INSD:
-         case MOVSB:
-         case MOVSW:
-         case MOVSD:
-         case OUTSB:
-         case OUTSW:
-         case OUTSD:
-         case LODSB:
-         case LODSW:
-         case LODSD:
-         case STOSB:
-         case STOSW:
-         case STOSD:
-            mbuff_gets(s, mnemstr[REP].string, mnemstr[REP].length - 1);
-            mbuff_gets(s, ' ');
-            mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
-            break;
-         case CMPSB:
-         case CMPSW:
-         case CMPSD:
-         case SCASB:
-         case SCASW:
-         case SCASD:
-            mbuff_gets(s, mnemstr[REPZ].string, mnemstr[REPZ].length - 1);
-            mbuff_gets(s, ' ');
-            mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
-            break;
-         default:
-            // REP not valid on other instructions
-            throw IllegalOp(s);
-            break;
-         } /* endswitch */
-         break;
-      case replockREPNZ:
-         /*******************************************************************/
-         /*     check for instructions for which REPNZ is a valid prefix    */
-         /*******************************************************************/
-         switch (mnem_num) {
-         case CMPSB:
-         case CMPSW:
-         case CMPSD:
-         case SCASB:
-         case SCASW:
-         case SCASD:
-            mbuff_gets(s, mnemstr[REPNZ].string, mnemstr[REPNZ].length - 1);
-            mbuff_gets(s, ' ');
-            mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
-            break;
-         default:
-            throw IllegalOp(s);
-            break;
-         } /* endswitch */
-         break;
-      case replockLOCK:
-         /*********************************************************************/
-         /*      check for instructions for which LOCK is a valid prefix      */
-         /*********************************************************************/
-         switch (mnem_num) {
-         case ADD:
-         case ADC:
-         case AND:
-         case BTC:
-         case BTR:
-         case BTS:
-         case CMPXCHG:
-         case DEC:
-         case INC:
-         case NEG:
-         case NOT:
-         case OR:
-         case SBB:
-         case SUB:
-         case XOR:
-         case XADD:
-         case XCHG:
-            mbuff_gets(s, mnemstr[LOCK].string, mnemstr[LOCK].length - 1);
-            mbuff_gets(s, ' ');
-            mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
-            break;
-         default:
-            // LOCK not valid on other instructions
-            throw IllegalOp(s);
-            break;
-         } /* endswitch */
-         break;
+    switch (flags.replock) {
+    case replockREPZ:
+      /*********************************************************************/
+      /*  check for instructions for which REP or REPZ is a valid prefix   */
+      /*********************************************************************/
+      switch (mnem_num) {
+      case INSB:
+      case INSW:
+      case INSD:
+      case MOVSB:
+      case MOVSW:
+      case MOVSD:
+      case OUTSB:
+      case OUTSW:
+      case OUTSD:
+      case LODSB:
+      case LODSW:
+      case LODSD:
+      case STOSB:
+      case STOSW:
+      case STOSD:
+        mbuff_gets(s, mnemstr[REP].string, mnemstr[REP].length - 1);
+        mbuff_gets(s, ' ');
+        mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
+        break;
+      case CMPSB:
+      case CMPSW:
+      case CMPSD:
+      case SCASB:
+      case SCASW:
+      case SCASD:
+        mbuff_gets(s, mnemstr[REPZ].string, mnemstr[REPZ].length - 1);
+        mbuff_gets(s, ' ');
+        mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
+        break;
       default:
-         mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
+        // REP not valid on other instructions
+        throw IllegalOp(s);
+        break;
       } /* endswitch */
-   } // endif
+      break;
+    case replockREPNZ:
+      /*******************************************************************/
+      /*     check for instructions for which REPNZ is a valid prefix    */
+      /*******************************************************************/
+      switch (mnem_num) {
+      case CMPSB:
+      case CMPSW:
+      case CMPSD:
+      case SCASB:
+      case SCASW:
+      case SCASD:
+        mbuff_gets(s, mnemstr[REPNZ].string, mnemstr[REPNZ].length - 1);
+        mbuff_gets(s, ' ');
+        mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
+        break;
+      default:
+        throw IllegalOp(s);
+        break;
+      } /* endswitch */
+      break;
+    case replockLOCK:
+      /*********************************************************************/
+      /*      check for instructions for which LOCK is a valid prefix      */
+      /*********************************************************************/
+      switch (mnem_num) {
+      case ADD:
+      case ADC:
+      case AND:
+      case BTC:
+      case BTR:
+      case BTS:
+      case CMPXCHG:
+      case DEC:
+      case INC:
+      case NEG:
+      case NOT:
+      case OR:
+      case SBB:
+      case SUB:
+      case XOR:
+      case XADD:
+      case XCHG:
+        mbuff_gets(s, mnemstr[LOCK].string, mnemstr[LOCK].length - 1);
+        mbuff_gets(s, ' ');
+        mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
+        break;
+      default:
+        // LOCK not valid on other instructions
+        throw IllegalOp(s);
+        break;
+      } /* endswitch */
+      break;
+    default:
+      mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
+    } /* endswitch */
+  } // endif
 }
 
 
@@ -1749,8 +1751,8 @@ getNextByte(STATE &s)
   hbuff_gets(s, hexConvVal[ic&0x0F]);
 
   if (ihnpdsm_debug)            // XXX This code loks dubious to me.   Will
-                                // s.hbuff contain something? --Steve Augart
-      printf("getNextByte:  %s\n", s.hbuff);
+    // s.hbuff contain something? --Steve Augart
+    printf("getNextByte:  %s\n", s.hbuff);
   return ic;
 }
 
@@ -1776,13 +1778,13 @@ getNextWord(STATE &s)
   s.parm->iptr += sizeof(USHORT);
   if (s.hbuff) {
     for (unsigned i = 0; i < (8 * sizeof(USHORT)); i += 8) {
-       unsigned x = Dword1 >> i;
-       hbuff_gets(s, hexConvVal[( x >> 4)&0x0F]);
-       hbuff_gets(s, hexConvVal[x & 0x0F]);
+      unsigned x = Dword1 >> i;
+      hbuff_gets(s, hexConvVal[( x >> 4)&0x0F]);
+      hbuff_gets(s, hexConvVal[x & 0x0F]);
     } // endfor
   }
   if (ihnpdsm_debug)
-      printf("getNextWord:  %s\n", s.hbuff);
+    printf("getNextWord:  %s\n", s.hbuff);
   return Dword1;
 }
 
@@ -1805,18 +1807,18 @@ getNextWord(STATE &s)
 static ULONG
 getNextDword(STATE &s)
 {
-    ULONG Dword1 = *(ULONG *)(s.parm->iptr);
-    s.parm->iptr += sizeof(ULONG);
-    if (s.hbuff) {                         // Print the instruction word in hex
-        for (unsigned i = 0; i < (8 * sizeof(ULONG)); i += 8) {
-            unsigned x = Dword1 >> i;
-            hbuff_gets(s, hexConvVal[( x >> 4)&0x0F]);
-            hbuff_gets(s, hexConvVal[x & 0x0F]);
-        } // endfor
-    }
-    if (ihnpdsm_debug)
-        printf("getNextDword:  0x%08lx\n", Dword1);
-    return Dword1;
+  ULONG Dword1 = *(ULONG *)(s.parm->iptr);
+  s.parm->iptr += sizeof(ULONG);
+  if (s.hbuff) {                         // Print the instruction word in hex
+    for (unsigned i = 0; i < (8 * sizeof(ULONG)); i += 8) {
+      unsigned x = Dword1 >> i;
+      hbuff_gets(s, hexConvVal[( x >> 4)&0x0F]);
+      hbuff_gets(s, hexConvVal[x & 0x0F]);
+    } // endfor
+  }
+  if (ihnpdsm_debug)
+    printf("getNextDword:  0x%08lx\n", Dword1);
+  return Dword1;
 }
 
 
@@ -1839,13 +1841,13 @@ getNextDword(STATE &s)
 static ULONG
 getImmediate(STATE &s, FLAGS flags)
 {
-    if (flags.Wbit == 0) {
-        // a byte operand
-        return getNextByte(s);
-    } else {
-        // a 16 or 32 bit ooerand depending on instruction setting
-        return getNextOperand(s, flags);
-    }
+  if (flags.Wbit == 0) {
+    // a byte operand
+    return getNextByte(s);
+  } else {
+    // a 16 or 32 bit ooerand depending on instruction setting
+    return getNextOperand(s, flags);
+  }
 }
 
 /****************************************************************************/
@@ -1867,13 +1869,13 @@ getImmediate(STATE &s, FLAGS flags)
 static long
 getSignedImmediate(STATE &s, FLAGS flags)
 {
-    if (flags.Wbit == 0) {
-        return (signed char)getNextByte(s);  // sign extended byte operand
-    } else if (flags.opsize32) {
-        return getNextDword(s);
-    } else {
-        return (short)getNextWord(s);        // sign extended word operand
-    }
+  if (flags.Wbit == 0) {
+    return (signed char)getNextByte(s);  // sign extended byte operand
+  } else if (flags.opsize32) {
+    return getNextDword(s);
+  } else {
+    return (short)getNextWord(s);        // sign extended word operand
+  }
 }
 
 /****************************************************************************/
@@ -1894,11 +1896,11 @@ getSignedImmediate(STATE &s, FLAGS flags)
 static void
 operandString(STATE &s, const char *str)
 {
-    if (s.ibuff) {
-        for (;*str ; ) {
-            ibuff_gets(s,  *str++);
-        } // endfor
-    } // endif
+  if (s.ibuff) {
+    for (; *str ; ) {
+      ibuff_gets(s,  *str++);
+    } // endfor
+  } // endif
 }
 
 /****************************************************************************/
@@ -1919,74 +1921,74 @@ operandString(STATE &s, const char *str)
 static void
 initialize(STATE &s, FLAGS & flags, int print)
 {
-    if (!print) {
-        s.hbuff = 0;
-        s.ibuff = 0;
-        s.mbuff = 0;
-    } else {
-        s.hbuff = (char *)s.parm->hbuffer;
-        s.hbuff_sz = s.parm->hbuffer_sz;
-        s.hbuff[s.hbuff_sz - 1 ] = '\0'; // In case of overrun.
+  if (!print) {
+    s.hbuff = 0;
+    s.ibuff = 0;
+    s.mbuff = 0;
+  } else {
+    s.hbuff = (char *)s.parm->hbuffer;
+    s.hbuff_sz = s.parm->hbuffer_sz;
+    s.hbuff[s.hbuff_sz - 1 ] = '\0'; // In case of overrun.
 
-        s.ibuff = (char *)s.parm->ibuffer;
-        s.ibuff_sz = s.parm->ibuffer_sz;
-        s.ibuff[s.ibuff_sz - 1 ] = '\0'; // In case of overrun.
+    s.ibuff = (char *)s.parm->ibuffer;
+    s.ibuff_sz = s.parm->ibuffer_sz;
+    s.ibuff[s.ibuff_sz - 1 ] = '\0'; // In case of overrun.
 
-        s.mbuff = (char *)s.parm->mbuffer;
-        s.mbuff_sz =s.parm->mbuffer_sz;
-        s.mbuff[s.mbuff_sz - 1 ] = '\0'; // In case of overrun.
-    }
-    flags.Dbit = DBit_RegToMem;
-    s.parm->rettype = notype;
-    s.parm->retoffset = 0;
+    s.mbuff = (char *)s.parm->mbuffer;
+    s.mbuff_sz =s.parm->mbuffer_sz;
+    s.mbuff[s.mbuff_sz - 1 ] = '\0'; // In case of overrun.
+  }
+  flags.Dbit = DBit_RegToMem;
+  s.parm->rettype = notype;
+  s.parm->retoffset = 0;
 #if RETPARMS
-    s.parm->retbits = 0;
-    s.parm->retreg = 0;
-    s.parm->retseg = 0;
-    s.parm->retscale = 0;
-    s.parm->retbase = 255;
-    s.parm->retindex = 255;
+  s.parm->retbits = 0;
+  s.parm->retreg = 0;
+  s.parm->retseg = 0;
+  s.parm->retscale = 0;
+  s.parm->retbase = 255;
+  s.parm->retindex = 255;
 #endif
 }
 
 static void
 hbuff_gets(STATE &s, char c)
 {
-    if (s.hbuff && s.hbuff_sz-- > 0) {
-        *s.hbuff++ = c;
-    }
+  if (s.hbuff && s.hbuff_sz-- > 0) {
+    *s.hbuff++ = c;
+  }
 }
 
 static void
 ibuff_gets(STATE &s, char c)
 {
-    if (s.ibuff && s.ibuff_sz-- > 0) {
-        *s.ibuff++ = c;
-    }
+  if (s.ibuff && s.ibuff_sz-- > 0) {
+    *s.ibuff++ = c;
+  }
 }
 
 static void
 ibuff_gets(STATE &s, const char *memptr, size_t len)
 {
-    while (len-- > 0) {
-        ibuff_gets(s, *memptr++);
-    }
+  while (len-- > 0) {
+    ibuff_gets(s, *memptr++);
+  }
 }
 
 static void
 mbuff_gets(STATE &s, char c)
 {
-    if (s.mbuff && s.mbuff_sz-- > 0) {
-        *s.mbuff++ = c;
-    }
+  if (s.mbuff && s.mbuff_sz-- > 0) {
+    *s.mbuff++ = c;
+  }
 }
 
 static void
 mbuff_gets(STATE &s, const char *memptr, size_t len)
 {
-    while (len-- > 0) {
-        mbuff_gets(s, *memptr++);
-    }
+  while (len-- > 0) {
+    mbuff_gets(s, *memptr++);
+  }
 }
 
 
@@ -2008,11 +2010,11 @@ mbuff_gets(STATE &s, const char *memptr, size_t len)
 static void
 setdw(STATE &s, FLAGS & flags)
 {
-    // set 8/16/32 bit marker: 0 => 8 bit, 1 => 16 or 32 bit
-    setw(s, flags);
+  // set 8/16/32 bit marker: 0 => 8 bit, 1 => 16 or 32 bit
+  setw(s, flags);
 
-    // set direction bit: 2 => mem->reg 0 => reg->mem
-    flags.Dbit = (s.instr & 2) ? DBit_MemToReg : DBit_RegToMem;
+  // set direction bit: 2 => mem->reg 0 => reg->mem
+  flags.Dbit = (s.instr & 2) ? DBit_MemToReg : DBit_RegToMem;
 }
 
 /****************************************************************************/
@@ -2032,58 +2034,58 @@ setdw(STATE &s, FLAGS & flags)
 static void
 getMod_rm_dw(STATE &s, FLAGS & flags)
 {
-    setdw(s, flags);
-    UCHAR ic = getNextByte(s);
+  setdw(s, flags);
+  UCHAR ic = getNextByte(s);
 
-    // disassemble the mod/rm byte
-    flags.rm = ic & 0x07;
-    flags.regf = (ic >> 3) & 0x07;
-    flags.mod = (ic >> 6) & 0x03;
+  // disassemble the mod/rm byte
+  flags.rm = ic & 0x07;
+  flags.regf = (ic >> 3) & 0x07;
+  flags.mod = (ic >> 6) & 0x03;
 
-    if (flags.addr32) {                // interpret this as a 32-bit s.instr
-        s.indexreg = 0;
-        s.scalefactor = 0;
-        if (flags.mod != 3) {
-            flags.addroverUsed = 1;      // we made use of the address override
-            s.basereg = (UCHAR)(flags.rm+1);
-            if (flags.rm == 4) {         // we have a SIB byte
-                ic = getNextByte(s);   // get it
-                s.basereg = (ic & 0x07) + 1;
-                s.indexreg = ((ic >> 3) & 0x07 ) + 1;
-                s.scalefactor = (ic >> 6) & 0x03;
+  if (flags.addr32) {                // interpret this as a 32-bit s.instr
+    s.indexreg = 0;
+    s.scalefactor = 0;
+    if (flags.mod != 3) {
+      flags.addroverUsed = 1;      // we made use of the address override
+      s.basereg = (UCHAR)(flags.rm+1);
+      if (flags.rm == 4) {         // we have a SIB byte
+        ic = getNextByte(s);   // get it
+        s.basereg = (ic & 0x07) + 1;
+        s.indexreg = ((ic >> 3) & 0x07 ) + 1;
+        s.scalefactor = (ic >> 6) & 0x03;
 
-                if (s.indexreg == 5) {          // index=4 -> no index
-                    s.indexreg = 0;
-                    if (s.scalefactor != 0) {
-                        // scale factor must be zero
-                        throw IllegalOp(s);
-                    } // endif
-                }
-                if (flags.mod == 0 && s.basereg == 6) {  // a special case, no base
-                    s.basereg = 0;
-                    flags.disppres = 1;          // remember what we have done
-                }
-            } else if (flags.mod == 0 && flags.rm == 5)
-                s.basereg = 0;
+        if (s.indexreg == 5) {          // index=4 -> no index
+          s.indexreg = 0;
+          if (s.scalefactor != 0) {
+            // scale factor must be zero
+            throw IllegalOp(s);
+          } // endif
         }
-        if (s.basereg == (1 + EBP) || s.basereg == (1 + ESP))  // EBP or ESP
-            s.defseg = SS+1;                      // SS
+        if (flags.mod == 0 && s.basereg == 6) {  // a special case, no base
+          s.basereg = 0;
+          flags.disppres = 1;          // remember what we have done
+        }
+      } else if (flags.mod == 0 && flags.rm == 5)
+        s.basereg = 0;
     }
-    else {                               // interpret this as a 16-bit s.instr
-        // vectors to convert 16-bit format mod-r/m bytes to base and index register forms
-        static const UCHAR basereg16[8] =  { BX, BX, BP, BP, SI, DI, BP, BX };
-        static const UCHAR indexreg16[8] =  { SI + 1, DI + 1, SI + 1, DI + 1, 0, 0, 0, 0 } ;
+    if (s.basereg == (1 + EBP) || s.basereg == (1 + ESP))  // EBP or ESP
+      s.defseg = SS+1;                      // SS
+  }
+  else {                               // interpret this as a 16-bit s.instr
+    // vectors to convert 16-bit format mod-r/m bytes to base and index register forms
+    static const UCHAR basereg16[8] =  { BX, BX, BP, BP, SI, DI, BP, BX };
+    static const UCHAR indexreg16[8] =  { SI + 1, DI + 1, SI + 1, DI + 1, 0, 0, 0, 0 } ;
 
-        if (flags.mod != 3)
-            flags.addroverUsed = 1;      // we made use of the address override
-        s.basereg = 1 + basereg16[flags.rm];
-        s.indexreg = indexreg16[flags.rm];
-        if (flags.mod == 0 && flags.rm == 6)
-            s.basereg = 0;
-        else if (s.basereg == (1 + BP))      // BP
-            s.defseg = SS+1;                      // SS
-        s.scalefactor = 0;
-    }
+    if (flags.mod != 3)
+      flags.addroverUsed = 1;      // we made use of the address override
+    s.basereg = 1 + basereg16[flags.rm];
+    s.indexreg = indexreg16[flags.rm];
+    if (flags.mod == 0 && flags.rm == 6)
+      s.basereg = 0;
+    else if (s.basereg == (1 + BP))      // BP
+      s.defseg = SS+1;                      // SS
+    s.scalefactor = 0;
+  }
 }
 
 /****************************************************************************/
@@ -2103,14 +2105,14 @@ getMod_rm_dw(STATE &s, FLAGS & flags)
 static void
 op_IL(STATE &s, FLAGS UNUSED & flags )
 {
-    s.parm->iptr = s.startiptr + 1;
-    if (s.mbuff) {
-        /*********************************************************************/
-        /* put the hexcode of the first byte of the instruction into s.mbuff   */
-        /*********************************************************************/
-        snprintf(s.mbuff, s.mbuff_sz, "%s%2.2X", mnemstr[ILLEGAL].string, *s.startiptr);
-    }
-    s.parm->rettype = illegtype;
+  s.parm->iptr = s.startiptr + 1;
+  if (s.mbuff) {
+    /*********************************************************************/
+    /* put the hexcode of the first byte of the instruction into s.mbuff   */
+    /*********************************************************************/
+    snprintf(s.mbuff, s.mbuff_sz, "%s%2.2X", mnemstr[ILLEGAL].string, *s.startiptr);
+  }
+  s.parm->rettype = illegtype;
 }
 
 
@@ -2132,109 +2134,109 @@ op_IL(STATE &s, FLAGS UNUSED & flags )
 static void
 operandMemop(STATE &s, FLAGS & flags)
 {
-    if (flags.Dbit == DBit_MemToReg) {
-        if (flags.MMXop)
-            operandMMXreg(s, flags.regf, ",");
-        else
-            operandRegister(s, flags.regf,flags, ",");
+  if (flags.Dbit == DBit_MemToReg) {
+    if (flags.MMXop)
+      operandMMXreg(s, flags.regf, ",");
+    else
+      operandRegister(s, flags.regf,flags, ",");
+  }
+
+  memopSetParms(s, flags);
+
+  if (flags.mod == 3) {                    // operand is a register
+    // it is illegal for a LOCK prefix to be present if there is no memory op
+    if (flags.replock == replockLOCK)
+      throw IllegalOp(s);
+
+    if (s.ibuff) {
+      if (flags.MMXop)
+        operandMMXreg(s, flags.rm);
+      else
+        operandRegister(s, flags.rm,flags);
+    }
+  } else if (s.ibuff) {
+    // operand is a memory location
+    if (flags.sizePrefix != sizeWop) {
+      operandTableItem(s, flags.sizePrefix,PTRsize);
+    } else if (flags.Wbit) {
+      if (flags.opsize32)
+        operandTableItem(s, PTRdword,PTRsize);
+      else
+        operandTableItem(s, PTRword,PTRsize);
+    } else {
+      operandTableItem(s, PTRbyte,PTRsize);
     }
 
-    memopSetParms(s, flags);
+    // must show displacement if base and index are not present,
+    // even if the displacement is 0
+    int mustShowDisp = !s.basereg && !s.indexreg;
 
-    if (flags.mod == 3) {                    // operand is a register
-        // it is illegal for a LOCK prefix to be present if there is no memory op
-        if (flags.replock == replockLOCK)
-            throw IllegalOp(s);
+    char paren = '[';
 
-        if (s.ibuff) {
-            if (flags.MMXop)
-                operandMMXreg(s, flags.rm);
-            else
-                operandRegister(s, flags.rm,flags);
-        }
-    } else if (s.ibuff) {
-        // operand is a memory location
-        if (flags.sizePrefix != sizeWop) {
-            operandTableItem(s, flags.sizePrefix,PTRsize);
-        } else if (flags.Wbit) {
-            if (flags.opsize32)
-                operandTableItem(s, PTRdword,PTRsize);
-            else
-                operandTableItem(s, PTRword,PTRsize);
-        } else {
-            operandTableItem(s, PTRbyte,PTRsize);
-        }
+    if (s.ovseg) {                      // override segment present
+      operandSegRegister(s, s.ovseg-1, ":");
+      s.ovseg = 0;                      // delete it - used
+    } else if (mustShowDisp) {      // there is no base or index
+      // need to explicitly show the segment register if displacement only
+      operandSegRegister(s, s.defseg-1, ":");
+    }
 
-        // must show displacement if base and index are not present,
-        // even if the displacement is 0
-        int mustShowDisp = !s.basereg && !s.indexreg;
+    if (s.basereg) {
+      // there is a base register
+      ibuff_gets(s, paren);
+      paren = '+';
+      if (flags.addr32)
+        operandTableItem(s, s.basereg-1, reg32);
+      else
+        operandTableItem(s, s.basereg-1, reg16);
+    }
 
-        char paren = '[';
+    if (s.indexreg) {
+      // there is an index register
+      ibuff_gets(s, paren);
+      paren = '+';
+      if (flags.addr32)
+        operandTableItem(s, s.indexreg-1, reg32);
+      else
+        operandTableItem(s, s.indexreg-1, reg16);
 
-        if (s.ovseg) {                      // override segment present
-            operandSegRegister(s, s.ovseg-1, ":");
-            s.ovseg = 0;                      // delete it - used
-        } else if (mustShowDisp) {      // there is no base or index
-            // need to explicitly show the segment register if displacement only
-            operandSegRegister(s, s.defseg-1, ":");
-        }
+      switch (s.scalefactor) {
+      case 1 :
+        operandString(s, "*2");
+        break;
+      case 2 :
+        operandString(s, "*4");
+        break;
+      case 3 :
+        operandString(s, "*8");
+        break;
+      } // endswitch
+    }
 
-        if (s.basereg) {
-            // there is a base register
-            ibuff_gets(s, paren);
-            paren = '+';
-            if (flags.addr32)
-                operandTableItem(s, s.basereg-1, reg32);
-            else
-                operandTableItem(s, s.basereg-1, reg16);
-        }
+    if (s.opdisp || mustShowDisp) {
+      // put out a paren if we have not done so yet
+      if (paren == '[') {
+        ibuff_gets(s, '[');
+      } // endif
 
-        if (s.indexreg) {
-            // there is an index register
-            ibuff_gets(s, paren);
-            paren = '+';
-            if (flags.addr32)
-                operandTableItem(s, s.indexreg-1, reg32);
-            else
-                operandTableItem(s, s.indexreg-1, reg16);
-
-            switch (s.scalefactor) {
-            case 1 :
-                operandString(s, "*2");
-                break;
-            case 2 :
-                operandString(s, "*4");
-                break;
-            case 3 :
-                operandString(s, "*8");
-                break;
-            } // endswitch
-        }
-
-        if (s.opdisp || mustShowDisp) {
-            // put out a paren if we have not done so yet
-            if (paren == '[') {
-                ibuff_gets(s, '[');
-            } // endif
-
-            operandSignedHex(s, s.opdisp);
-        } // endif
-
-        // we have output a left parenthesis - output a right parenthesis to match
-        ibuff_gets(s, ']');
-
+      operandSignedHex(s, s.opdisp);
     } // endif
 
-    if (flags.Dbit == DBit_RegToMem) {
-        /************************************************************************/
-        /* register is second operand - print register name                     */
-        /************************************************************************/
-        operandChar(s, ',');
-        if (flags.MMXop)
-            operandMMXreg(s, flags.regf);
-        else
-            operandRegister(s, flags.regf,flags);
-    } // endif
+    // we have output a left parenthesis - output a right parenthesis to match
+    ibuff_gets(s, ']');
+
+  } // endif
+
+  if (flags.Dbit == DBit_RegToMem) {
+    /************************************************************************/
+    /* register is second operand - print register name                     */
+    /************************************************************************/
+    operandChar(s, ',');
+    if (flags.MMXop)
+      operandMMXreg(s, flags.regf);
+    else
+      operandRegister(s, flags.regf,flags);
+  } // endif
 }
 
 
@@ -2256,8 +2258,8 @@ operandMemop(STATE &s, FLAGS & flags)
 static void
 getNormalMemop(STATE &s, FLAGS & flags)
 {
-    flags = getMemop(s, flags);
-    operandMemop(s, flags);
+  flags = getMemop(s, flags);
+  operandMemop(s, flags);
 }
 
 /****************************************************************************/
@@ -2277,36 +2279,36 @@ getNormalMemop(STATE &s, FLAGS & flags)
 static FLAGS
 getMemop(STATE &s, FLAGS flags)
 {
-    UCHAR ic;
-    s.opdisp = 0;
+  UCHAR ic;
+  s.opdisp = 0;
 
-    switch (flags.mod) {
-    case 0:
-        // there is a diplacement only for certain combinations
-        if ((flags.rm == 6 && !flags.addr32)
-            || (flags.rm == 5 && flags.addr32)
-            || (flags.addr32 && flags.disppres)) {
+  switch (flags.mod) {
+  case 0:
+    // there is a diplacement only for certain combinations
+    if ((flags.rm == 6 && !flags.addr32)
+        || (flags.rm == 5 && flags.addr32)
+        || (flags.addr32 && flags.disppres)) {
 
-            // we have a displacement
-            s.opdisp = getDisplacement(s, flags);
-            flags.disppres = 1;
-        }
-        break;
-    case 1:
-        // there is an 8 bit signed displacement
-        ic = getNextByte(s);
-        s.opdisp = (signed long)((signed char)ic); // sign extend operand
-        flags.disppres = 1;
-        break;
-    case 2:
-        // we have a 16/32 bit displacement
-        s.opdisp = getDisplacement(s, flags);
-        flags.disppres = 1;
-        break;
-        // case 3 is a register
-    } // endswitch
+      // we have a displacement
+      s.opdisp = getDisplacement(s, flags);
+      flags.disppres = 1;
+    }
+    break;
+  case 1:
+    // there is an 8 bit signed displacement
+    ic = getNextByte(s);
+    s.opdisp = (signed long)((signed char)ic); // sign extend operand
+    flags.disppres = 1;
+    break;
+  case 2:
+    // we have a 16/32 bit displacement
+    s.opdisp = getDisplacement(s, flags);
+    flags.disppres = 1;
+    break;
+    // case 3 is a register
+  } // endswitch
 
-    return flags;
+  return flags;
 }
 
 
@@ -2327,34 +2329,34 @@ getMemop(STATE &s, FLAGS flags)
 static void
 memopSetParms(STATE &s, FLAGS flags)
 {
-    if (flags.mod != 3) {
-        if (flags.disppres)
-            s.parm->retoffset = s.opdisp;
-        if (s.parm->rettype == 0) {
-            if (flags.Wbit == 0)
-                s.parm->rettype = membtype;
-            else
-                s.parm->rettype = memwtype;
-        }
-#if RETPARMS
-        if (s.basereg != 0) {
-            s.parm->retbase = (UCHAR)(s.basereg-1);
-            if (flags.addr32)
-                s.parm->retbase = (UCHAR)(s.parm->retbase+8);
-        }
-        if (s.indexreg != 0) {
-            s.parm->retindex = (UCHAR)(s.indexreg-1);
-            if (flags.addr32)
-                s.parm->retindex = (UCHAR)(s.parm->retindex+8);
-            s.parm->retscale = s.scalefactor;
-        }
-        if (s.ovseg == 0) {
-            s.parm->retreg = s.defseg;
-        } else {
-            s.parm->retreg = s.ovseg;
-        }
-#endif
+  if (flags.mod != 3) {
+    if (flags.disppres)
+      s.parm->retoffset = s.opdisp;
+    if (s.parm->rettype == 0) {
+      if (flags.Wbit == 0)
+        s.parm->rettype = membtype;
+      else
+        s.parm->rettype = memwtype;
     }
+#if RETPARMS
+    if (s.basereg != 0) {
+      s.parm->retbase = (UCHAR)(s.basereg-1);
+      if (flags.addr32)
+        s.parm->retbase = (UCHAR)(s.parm->retbase+8);
+    }
+    if (s.indexreg != 0) {
+      s.parm->retindex = (UCHAR)(s.indexreg-1);
+      if (flags.addr32)
+        s.parm->retindex = (UCHAR)(s.parm->retindex+8);
+      s.parm->retscale = s.scalefactor;
+    }
+    if (s.ovseg == 0) {
+      s.parm->retreg = s.defseg;
+    } else {
+      s.parm->retreg = s.ovseg;
+    }
+#endif
+  }
 }
 
 /***************************************************************************/
@@ -2441,8 +2443,8 @@ op_NL(STATE UNUSED &s, FLAGS UNUSED & flags)
 static void
 op_00(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    getNormalMemop(s, flags);
+  getMod_rm_dw(s, flags);
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -2467,25 +2469,25 @@ op_00(STATE &s, FLAGS & flags)
 static void
 op_04(STATE &s, FLAGS & flags)
 {
-    setw(s, flags);
+  setw(s, flags);
 
-    if (flags.replock == replockLOCK)
-        throw IllegalOp(s);
+  if (flags.replock == replockLOCK)
+    throw IllegalOp(s);
 
-    flags.regf = 0;                            // the register is EAX/AX/AL
-    operandRegister(s, flags.regf,flags, ",");
-    s.parm->rettype = regimmedtype;
+  flags.regf = 0;                            // the register is EAX/AX/AL
+  operandRegister(s, flags.regf,flags, ",");
+  s.parm->rettype = regimmedtype;
 
-    long Dword1 = getSignedImmediate(s, flags);
-    operandSignedHex(s, Dword1);
+  long Dword1 = getSignedImmediate(s, flags);
+  operandSignedHex(s, Dword1);
 
 #if RETPARMS
-    s.parm->retreg = flags.regf;
-    if (!flags.Wbit)
-        s.parm->retreg += 16;
-    else if (flags.opsize32)
-        s.parm->retreg += 8;
-    s.parm->retimmed = Dword1;
+  s.parm->retreg = flags.regf;
+  if (!flags.Wbit)
+    s.parm->retreg += 16;
+  else if (flags.opsize32)
+    s.parm->retreg += 8;
+  s.parm->retimmed = Dword1;
 #endif
 }
 
@@ -2510,24 +2512,24 @@ op_04(STATE &s, FLAGS & flags)
 static void
 op_0C(STATE &s, FLAGS & flags)
 {
-    setw(s, flags);
+  setw(s, flags);
 
-    if (flags.replock == replockLOCK)
-        throw IllegalOp(s);
+  if (flags.replock == replockLOCK)
+    throw IllegalOp(s);
 
-    flags.regf = 0;                            // the register is EAX/AX/AL
-    operandRegister(s, flags.regf,flags, ",");
-    s.parm->rettype = regimmedtype;
+  flags.regf = 0;                            // the register is EAX/AX/AL
+  operandRegister(s, flags.regf,flags, ",");
+  s.parm->rettype = regimmedtype;
 
-    ULONG Dword1 = getImmediate(s, flags);
-    operandHex(s, Dword1);
+  ULONG Dword1 = getImmediate(s, flags);
+  operandHex(s, Dword1);
 #if RETPARMS
-    s.parm->retreg = flags.regf;
-    if (!flags.Wbit)
-        s.parm->retreg += 16;
-    else if (flags.opsize32)
-        s.parm->retreg += 8;
-    s.parm->retimmed = Dword1;
+  s.parm->retreg = flags.regf;
+  if (!flags.Wbit)
+    s.parm->retreg += 16;
+  else if (flags.opsize32)
+    s.parm->retreg += 8;
+  s.parm->retimmed = Dword1;
 #endif
 }
 
@@ -2554,8 +2556,8 @@ op_0C(STATE &s, FLAGS & flags)
 static void
 op_06(STATE &s, FLAGS UNUSED & flags)
 {
-    int Dword1 = (s.instr & 0x18) >> 3;   // get register number
-    operandSegRegister(s, Dword1);
+  int Dword1 = (s.instr & 0x18) >> 3;   // get register number
+  operandSegRegister(s, Dword1);
 }
 
 /***************************************************************************/
@@ -2576,52 +2578,52 @@ op_06(STATE &s, FLAGS UNUSED & flags)
 static void
 op_0F(STATE &s, FLAGS & flags)
 {
-    static opcodeFunction *const opcode0FTable[] =  {
-        //  0        1        2        3        4        5        6        7        8        9        A        B        C        D        E        F    */
-        op_0F00, op_0F01, op_0F02, op_0F02, op_IL  , op_IL  , op_NL  , op_IL  , op_NL  , op_NL  , op_IL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 0
-        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 1
-        op_0F20, op_0F20, op_0F20, op_0F20, op_0F24, op_IL  , op_0F24, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 2
-        op_NL  , op_NL  , op_NL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 3
-        op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40,  // 4
-        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 5
-        op_0F60, op_0F60, op_0F60, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_IL  , op_IL  , op_0F6E, op_0F6F,  // 6
-        op_IL  , op_0F71, op_0F71, op_0F71, op_0F64, op_0F64, op_0F64, op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0F6E, op_0F6F,  // 7
-        op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80,  // 8
-        op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90,  // 9
-        op_0FA0, op_0FA0, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_0FA6, op_0FA6, op_0FA8, op_0FA8, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_IL  , op_0FAF,  // A
-        op_0FB0, op_0FB0, op_0FB2, op_0FBB, op_0FB2, op_0FB2, op_0FB6, op_0FB7, op_IL  , op_IL  , op_0FBA, op_0FBB, op_0FAF, op_0FAF, op_0FB6, op_0FB7,  // B
-        op_0FC0, op_0FC0, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0FC7, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8,  // C
-        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // D
-        op_IL  , op_0F64, op_0F64, op_IL  , op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // E
-        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL     // F
-    } ;
+  static opcodeFunction *const opcode0FTable[] =  {
+    //  0        1        2        3        4        5        6        7        8        9        A        B        C        D        E        F    */
+    op_0F00, op_0F01, op_0F02, op_0F02, op_IL  , op_IL  , op_NL  , op_IL  , op_NL  , op_NL  , op_IL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 0
+    op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 1
+    op_0F20, op_0F20, op_0F20, op_0F20, op_0F24, op_IL  , op_0F24, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 2
+    op_NL  , op_NL  , op_NL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 3
+    op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40,  // 4
+    op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 5
+    op_0F60, op_0F60, op_0F60, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_IL  , op_IL  , op_0F6E, op_0F6F,  // 6
+    op_IL  , op_0F71, op_0F71, op_0F71, op_0F64, op_0F64, op_0F64, op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0F6E, op_0F6F,  // 7
+    op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80,  // 8
+    op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90,  // 9
+    op_0FA0, op_0FA0, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_0FA6, op_0FA6, op_0FA8, op_0FA8, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_IL  , op_0FAF,  // A
+    op_0FB0, op_0FB0, op_0FB2, op_0FBB, op_0FB2, op_0FB2, op_0FB6, op_0FB7, op_IL  , op_IL  , op_0FBA, op_0FBB, op_0FAF, op_0FAF, op_0FB6, op_0FB7,  // B
+    op_0FC0, op_0FC0, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0FC7, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8,  // C
+    op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // D
+    op_IL  , op_0F64, op_0F64, op_IL  , op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // E
+    op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL     // F
+  } ;
 
-    /**************************************************************************/
-    /* mnemonic numbers for 0F orders                                         */
-    /**************************************************************************/
-    static const USHORT mnem0F[256] =  {
-        //0         1          2          3         4        5        6        7         8          9          A          B         C        D        E       F
-        odd      , odd      , LAR      , LSL     , ILLEGAL, ILLEGAL, CLTS   , ILLEGAL , INVD     , WBINVD   , ILLEGAL  , UD2     , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 0
-        ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 1
-        MOV      , MOV      , MOV      , MOV     , MOV    , ILLEGAL, MOV    , ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 2
-        WRMSR    , RDTSC    , RDMSR    , RDPMC   , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 3
-        CMOVO    , CMOVNO   , CMOVB    , CMOVAE  , CMOVE  , CMOVNE , CMOVBE , CMOVA   , CMOVS    , CMOVNS   , CMOVPE   , CMOVPO  , CMOVL  , CMOVGE , CMOVLE , CMOVG  , // 4
-        ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 5
-        PUNPCKLBW, PUNPCKLWD, PUNPCKLDQ, PACKSSWB, PCMPGTB, PCMPGTW, PCMPGTD, PACKUSWB, PUNPCKHBW, PUNPCKHWD, PUNPCKHDQ, PACKSSDW, ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 6
-        ILLEGAL  , odd      , odd      , odd     , PCMPEQB, PCMPEQW, PCMPEQD, EMMS    , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 7
-        JO       , JNO      , JB       , JNB     , JZ     , JNZ    , JNA    , JA      , JS       , JNS      , JPE      , JPO     , JL     , JNL    , JNG    , JG     , // 8
-        SETO     , SETNO    , SETB     , SETAE   , SETZ   , SETNZ  , SETBE  , SETA    , SETS     , SETNS    , SETPE    , SETPO   , SETL   , SETGE  , SETLE  , SETG   , // 9
-        PUSH     , POP      , CPUID    , BT      , SHLD   , SHLD   , CMPXCHG, CMPXCHG , PUSH     , POP      , RSM      , BTS     , SHRD   , SHRD   , ILLEGAL, IMUL   , // A
-        CMPXCHG  , CMPXCHG  , LSS      , BTR     , LFS    , LGS    , MOVZX  , MOVZX   , ILLEGAL  , ILLEGAL  , odd      , BTC     , BSF    , BSR    , MOVSX  , MOVSX  , // B
-        XADD     , XADD     , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, odd     , BSWAP    , BSWAP    , BSWAP    , BSWAP   , BSWAP  , BSWAP  , BSWAP  , BSWAP  , // C
-        ILLEGAL  , PSRLW    , PSRLD    , PSRLQ   , ILLEGAL, PMULLW , ILLEGAL, ILLEGAL , PSUBUSB  , PSUBUSW  , ILLEGAL  , PAND    , PADDUSB, PADDUSW, ILLEGAL, PANDN  , // D
-        ILLEGAL  , PSRAW    , PSRAD    , ILLEGAL , ILLEGAL, PMULHW , ILLEGAL, ILLEGAL , PSUBSB   , PSUBSW   , ILLEGAL  , POR     , PADDSB , PADDSW , ILLEGAL, PXOR   , // E
-        ILLEGAL  , PSLLW    , PSLLD    , PSLLQ   , ILLEGAL, PMADDWD, ILLEGAL, ILLEGAL , PSUBB    , PSUBW    , PSUBD    , ILLEGAL , PADDB  , PADDW  , PADDD  , ILLEGAL  // F
-    } ;
+  /**************************************************************************/
+  /* mnemonic numbers for 0F orders                                         */
+  /**************************************************************************/
+  static const USHORT mnem0F[256] =  {
+    //0         1          2          3         4        5        6        7         8          9          A          B         C        D        E       F
+    odd      , odd      , LAR      , LSL     , ILLEGAL, ILLEGAL, CLTS   , ILLEGAL , INVD     , WBINVD   , ILLEGAL  , UD2     , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 0
+    ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 1
+    MOV      , MOV      , MOV      , MOV     , MOV    , ILLEGAL, MOV    , ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 2
+    WRMSR    , RDTSC    , RDMSR    , RDPMC   , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 3
+    CMOVO    , CMOVNO   , CMOVB    , CMOVAE  , CMOVE  , CMOVNE , CMOVBE , CMOVA   , CMOVS    , CMOVNS   , CMOVPE   , CMOVPO  , CMOVL  , CMOVGE , CMOVLE , CMOVG  , // 4
+    ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 5
+    PUNPCKLBW, PUNPCKLWD, PUNPCKLDQ, PACKSSWB, PCMPGTB, PCMPGTW, PCMPGTD, PACKUSWB, PUNPCKHBW, PUNPCKHWD, PUNPCKHDQ, PACKSSDW, ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 6
+    ILLEGAL  , odd      , odd      , odd     , PCMPEQB, PCMPEQW, PCMPEQD, EMMS    , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 7
+    JO       , JNO      , JB       , JNB     , JZ     , JNZ    , JNA    , JA      , JS       , JNS      , JPE      , JPO     , JL     , JNL    , JNG    , JG     , // 8
+    SETO     , SETNO    , SETB     , SETAE   , SETZ   , SETNZ  , SETBE  , SETA    , SETS     , SETNS    , SETPE    , SETPO   , SETL   , SETGE  , SETLE  , SETG   , // 9
+    PUSH     , POP      , CPUID    , BT      , SHLD   , SHLD   , CMPXCHG, CMPXCHG , PUSH     , POP      , RSM      , BTS     , SHRD   , SHRD   , ILLEGAL, IMUL   , // A
+    CMPXCHG  , CMPXCHG  , LSS      , BTR     , LFS    , LGS    , MOVZX  , MOVZX   , ILLEGAL  , ILLEGAL  , odd      , BTC     , BSF    , BSR    , MOVSX  , MOVSX  , // B
+    XADD     , XADD     , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, odd     , BSWAP    , BSWAP    , BSWAP    , BSWAP   , BSWAP  , BSWAP  , BSWAP  , BSWAP  , // C
+    ILLEGAL  , PSRLW    , PSRLD    , PSRLQ   , ILLEGAL, PMULLW , ILLEGAL, ILLEGAL , PSUBUSB  , PSUBUSW  , ILLEGAL  , PAND    , PADDUSB, PADDUSW, ILLEGAL, PANDN  , // D
+    ILLEGAL  , PSRAW    , PSRAD    , ILLEGAL , ILLEGAL, PMULHW , ILLEGAL, ILLEGAL , PSUBSB   , PSUBSW   , ILLEGAL  , POR     , PADDSB , PADDSW , ILLEGAL, PXOR   , // E
+    ILLEGAL  , PSLLW    , PSLLD    , PSLLQ   , ILLEGAL, PMADDWD, ILLEGAL, ILLEGAL , PSUBB    , PSUBW    , PSUBD    , ILLEGAL , PADDB  , PADDW  , PADDD  , ILLEGAL  // F
+  } ;
 
-    s.instr = getNextByte(s);                   // get the second byte of the s.instr
-    mnemonicStd(s, flags,mnem0F[s.instr]);              // dump the mnemonic, if known
-    opcode0FTable[s.instr](s, flags);             // and process it
+  s.instr = getNextByte(s);                   // get the second byte of the s.instr
+  mnemonicStd(s, flags,mnem0F[s.instr]);              // dump the mnemonic, if known
+  opcode0FTable[s.instr](s, flags);             // and process it
 }
 
 
@@ -2647,30 +2649,30 @@ op_0F(STATE &s, FLAGS & flags)
 static void
 op_26(STATE &s, FLAGS & flags)
 {
-    if (s.ovseg)
-        throw IllegalOp(s);             // two segment overrides indicates a problem
+  if (s.ovseg)
+    throw IllegalOp(s);             // two segment overrides indicates a problem
 
-    switch (s.instr) {
-    case 0x26:
-        s.ovseg = ES + 1;
-        break;
-    case 0x2E:
-        s.ovseg = CS + 1;
-        break;
-    case 0x36:
-        s.ovseg = SS + 1;
-        break;
-    case 0x3E:
-        s.ovseg = DS + 1;
-        break;
-    case 0x64:
-        s.ovseg = FS + 1;
-        break;
-    case 0x65:
-        s.ovseg = GS + 1;
-        break;
-    } /* endswitch */
-    flags.prefix = 1;
+  switch (s.instr) {
+  case 0x26:
+    s.ovseg = ES + 1;
+    break;
+  case 0x2E:
+    s.ovseg = CS + 1;
+    break;
+  case 0x36:
+    s.ovseg = SS + 1;
+    break;
+  case 0x3E:
+    s.ovseg = DS + 1;
+    break;
+  case 0x64:
+    s.ovseg = FS + 1;
+    break;
+  case 0x65:
+    s.ovseg = GS + 1;
+    break;
+  } /* endswitch */
+  flags.prefix = 1;
 }
 
 /***************************************************************************/
@@ -2693,13 +2695,13 @@ op_26(STATE &s, FLAGS & flags)
 static void
 op_40(STATE &s, FLAGS & flags)
 {
-    if (flags.replock == replockLOCK)
-        throw IllegalOp(s);
+  if (flags.replock == replockLOCK)
+    throw IllegalOp(s);
 
-    flags.regf = s.instr & 0x07;                 // get register number
-    flags.Wbit = 1;                      // force 16 or 32 bit register
+  flags.regf = s.instr & 0x07;                 // get register number
+  flags.Wbit = 1;                      // force 16 or 32 bit register
 
-    operandRegister(s, flags.regf,flags);
+  operandRegister(s, flags.regf,flags);
 }
 
 /***************************************************************************/
@@ -2717,15 +2719,15 @@ op_40(STATE &s, FLAGS & flags)
 static void
 op_62(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    if (flags.mod == 3)
-        throw IllegalOp(s);   // illegal if second operand would be a register
+  getMod_rm_dw(s, flags);
+  if (flags.mod == 3)
+    throw IllegalOp(s);   // illegal if second operand would be a register
 
-    flags.Dbit = DBit_MemToReg;       // register is first operand
-    flags.Wbit = 1;                   // word operation
-    flags.sizePrefix = (flags.opsize32) ? sizeQword : sizeDword;
-    s.parm->rettype = BOUNDtype;
-    getNormalMemop(s, flags);
+  flags.Dbit = DBit_MemToReg;       // register is first operand
+  flags.Wbit = 1;                   // word operation
+  flags.sizePrefix = (flags.opsize32) ? sizeQword : sizeDword;
+  s.parm->rettype = BOUNDtype;
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -2743,19 +2745,19 @@ op_62(STATE &s, FLAGS & flags)
 static void
 op_63(STATE &s, FLAGS & flags)
 {
-    if (flags.opsizeover)
-        throw IllegalOp(s);
+  if (flags.opsizeover)
+    throw IllegalOp(s);
 
-    getMod_rm_dw(s, flags);
-    flags.Dbit = DBit_RegToMem;      // register is second operand
-    flags.Wbit = 1;                  // word operand
-    flags.opsize32 = 0;              // this is always a 16-bit operation
+  getMod_rm_dw(s, flags);
+  flags.Dbit = DBit_RegToMem;      // register is second operand
+  flags.Wbit = 1;                  // word operand
+  flags.opsize32 = 0;              // this is always a 16-bit operation
 
 #if RETPARMS
-    s.parm->retbits &= 0xFFFE;         // clear addr32 marker
+  s.parm->retbits &= 0xFFFE;         // clear addr32 marker
 #endif
 
-    getNormalMemop(s, flags);
+  getNormalMemop(s, flags);
 }
 
 
@@ -2848,13 +2850,13 @@ op_69(STATE &s, FLAGS & flags)
   getMod_rm_dw(s, flags);
   flags.Wbit = 1;                  // word operation
   if (flags.mod == 3 && flags.regf == flags.rm) {
-     operandRegister(s, flags.rm,flags);  // do not repeat the register number
+    operandRegister(s, flags.rm,flags);  // do not repeat the register number
   } else {
-     flags.Dbit = DBit_MemToReg;   // register is first operand
-     getNormalMemop(s, flags);
+    flags.Dbit = DBit_MemToReg;   // register is first operand
+    getNormalMemop(s, flags);
   } // endif
   if (s.instr == 0x6B)
-     flags.Wbit = 0;    // force a byte operation
+    flags.Wbit = 0;    // force a byte operation
 
   long Dword1 = getSignedImmediate(s, flags);  // 8, 16 or 32 bit
   operandChar(s, ',');
@@ -2956,7 +2958,7 @@ op_80(STATE &s, FLAGS UNUSED & flags)
   getNormalMemop(s, flags);
 
   if (s.instr == 0x83)
-     flags.Wbit = 0;  // force immediate data to be a byte
+    flags.Wbit = 0;  // force immediate data to be a byte
 
   Dword2 = getSignedImmediate(s, flags);
   operandChar(s, ',');
@@ -2967,38 +2969,38 @@ op_80(STATE &s, FLAGS UNUSED & flags)
   case 3:
   case 5:
   case 7:
-     // arithmetic
-     operandSignedHex(s, Dword2);
-     break;
+    // arithmetic
+    operandSignedHex(s, Dword2);
+    break;
   default:
-     // logical
-     operandHex(s, Dword2 & immmask);
+    // logical
+    operandHex(s, Dword2 & immmask);
   } // endswitch
 }
 
 #if OP82
-   /***************************************************************************/
-   /*  Opcodes handled by this function:                                      */
-   /*     82 MOVB AL, imm8                                                    */
-   /***************************************************************************/
-   /*  This opcode is nominally reserved                                      */
-   /***************************************************************************/
-   /*                                                                         */
-   /*  PARAMETERS:                                                            */
-   /*              flags            Input/Output:  the flags structure        */
-   /*                                                                         */
-   /*  RETURNS:                                                               */
-   /*              none                                                       */
-   /*                                                                         */
-   /***************************************************************************/
-   static void op_82(FLAGS & flags) {
-     flags.Wbit = 0;  // force immediate data to be a byte
+/***************************************************************************/
+/*  Opcodes handled by this function:                                      */
+/*     82 MOVB AL, imm8                                                    */
+/***************************************************************************/
+/*  This opcode is nominally reserved                                      */
+/***************************************************************************/
+/*                                                                         */
+/*  PARAMETERS:                                                            */
+/*              flags            Input/Output:  the flags structure        */
+/*                                                                         */
+/*  RETURNS:                                                               */
+/*              none                                                       */
+/*                                                                         */
+/***************************************************************************/
+static void op_82(FLAGS & flags) {
+  flags.Wbit = 0;  // force immediate data to be a byte
 
-     long Dword2 = getSignedImmediate(s, flags);
-     operandRegister(s, AL,flags, ",");
-     long Dword2 = getSignedImmediate(s, flags);
-     operandSignedHex(s, Dword2);
-   }
+  long Dword2 = getSignedImmediate(s, flags);
+  operandRegister(s, AL,flags, ",");
+  long Dword2 = getSignedImmediate(s, flags);
+  operandSignedHex(s, Dword2);
+}
 #endif
 
 /***************************************************************************/
@@ -3022,21 +3024,21 @@ op_8C(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
   if (flags.regf > 5 )             // register number must be from 0 to 5
-     throw IllegalOp(s);
+    throw IllegalOp(s);
 
   flags.Wbit = 1;                  // force to a word operand
   flags.Dbit = DBit_Mem1op;
-  #if RETPARMS
-    s.parm->retbits &= 0xFE;           // clear 32-bit address marker
-  #endif
+#if RETPARMS
+  s.parm->retbits &= 0xFE;           // clear 32-bit address marker
+#endif
 
   if (s.instr & 2) {
-     operandSegRegister(s, flags.regf, ",");
-     getNormalMemop(s, flags);
+    operandSegRegister(s, flags.regf, ",");
+    getNormalMemop(s, flags);
   } else {
-     getNormalMemop(s, flags);
-     operandChar(s, ',');
-     operandSegRegister(s, flags.regf);
+    getNormalMemop(s, flags);
+    operandChar(s, ',');
+    operandSegRegister(s, flags.regf);
   } // endif
 }
 
@@ -3108,7 +3110,7 @@ static void
 op_91(STATE &s, FLAGS & flags)
 {
   if (flags.replock == replockLOCK)
-     throw IllegalOp(s);
+    throw IllegalOp(s);
   if (flags.opsize32) {
     operandTableItem(s, EAX, reg32, ",");
   } else {
@@ -3144,9 +3146,9 @@ op_9A(STATE &s, FLAGS & flags)
   operandHex(s, Dword1, ":");
   operandHex(s, Dword2);
   s.parm->retoffset = Dword2;
-  #if RETPARMS
-    s.parm->retseg = (USHORT)Dword1;
-  #endif
+#if RETPARMS
+  s.parm->retseg = (USHORT)Dword1;
+#endif
 }
 
 
@@ -3167,14 +3169,14 @@ op_9A(STATE &s, FLAGS & flags)
 static void
 op_9B(STATE &s, FLAGS & flags)
 {
-   // check to see if the next instruction is an NPX instruction
-   UCHAR ic1 = *(s.parm->iptr);
-   if (ic1 < 0xD8 || ic1 > 0xDF )
-      return;   // just a WAIT
+  // check to see if the next instruction is an NPX instruction
+  UCHAR ic1 = *(s.parm->iptr);
+  if (ic1 < 0xD8 || ic1 > 0xDF )
+    return;   // just a WAIT
 
-   // we have a WAIT-modified NPX instruction
-   flags.waitOp = 1;
-   flags.prefix = 1;
+  // we have a WAIT-modified NPX instruction
+  flags.waitOp = 1;
+  flags.prefix = 1;
 }
 
 /***************************************************************************/
@@ -3230,17 +3232,17 @@ op_A0(STATE &s, FLAGS & flags)
 static void
 op_A4(STATE &s, FLAGS & flags)
 {
-  #if RETPARMS
-    if (s.ovseg == 0) {
-      s.parm->retreg = s.defseg;
-    } else {
-      s.parm->retreg = s.ovseg;
-    }
-    if (flags.addr32)
-      s.parm->retbase = ESI+8;              // ESI
-    else
-      s.parm->retbase = SI;                 // SI
-  #endif
+#if RETPARMS
+  if (s.ovseg == 0) {
+    s.parm->retreg = s.defseg;
+  } else {
+    s.parm->retreg = s.ovseg;
+  }
+  if (flags.addr32)
+    s.parm->retbase = ESI+8;              // ESI
+  else
+    s.parm->retbase = SI;                 // SI
+#endif
   setdw(s, flags);
   if (flags.Wbit == 0)
     s.parm->rettype = strbtype;
@@ -3269,17 +3271,17 @@ op_A4(STATE &s, FLAGS & flags)
 static void
 op_AA(STATE &s, FLAGS & flags)
 {
-  #if RETPARMS
-    if (s.ovseg == 0) {
-      s.parm->retreg = ES;                  // ES
-    } else {
-      s.parm->retreg = s.ovseg;
-    }
-    if (flags.addr32)
-      s.parm->retbase = EDI+8;                // EDI
-    else
-      s.parm->retbase = DI;                 // DI
-  #endif
+#if RETPARMS
+  if (s.ovseg == 0) {
+    s.parm->retreg = ES;                  // ES
+  } else {
+    s.parm->retreg = s.ovseg;
+  }
+  if (flags.addr32)
+    s.parm->retbase = EDI+8;                // EDI
+  else
+    s.parm->retbase = DI;                 // DI
+#endif
 
   setdw(s, flags);
   if (flags.Wbit == 0)
@@ -3312,10 +3314,10 @@ op_B0(STATE &s, FLAGS & flags)
   s.parm->rettype = regimmedtype;
   UCHAR ic = getNextByte(s);           // get next byte of instruction
   operandHex(s, ic);
-  #if RETPARMS
-    s.parm->retreg = flags.regf + 16;
-    s.parm->retimmed = ic;
-  #endif
+#if RETPARMS
+  s.parm->retreg = flags.regf + 16;
+  s.parm->retimmed = ic;
+#endif
 }
 
 /***************************************************************************/
@@ -3341,12 +3343,12 @@ op_B8(STATE &s, FLAGS & flags)
   s.parm->rettype = regimmedtype;
   ULONG Dword1 = getNextOperand(s, flags);
   operandHex(s, Dword1);
-  #if RETPARMS
-    s.parm->retreg = flags.regf;
-    if (flags.opsize32)
-        s.parm->retreg += 8;
-    s.parm->retimmed = Dword1;
-  #endif
+#if RETPARMS
+  s.parm->retreg = flags.regf;
+  if (flags.opsize32)
+    s.parm->retreg += 8;
+  s.parm->retimmed = Dword1;
+#endif
 }
 
 /***************************************************************************/
@@ -3504,7 +3506,7 @@ static void
 op_C8(STATE &s, FLAGS & flags)
 {
   if (flags.opsizeover)
-     throw IllegalOp(s);
+    throw IllegalOp(s);
 
   flags.Wbit = 1;                     // a word immediate operand
   flags.opsize32 = 0;                 // this is always a 16-bit operation
@@ -3652,10 +3654,10 @@ op_D0(STATE &s, FLAGS & flags)
   mnemonicStd(s, flags,shiftmnem[Dword2]);
   getNormalMemop(s, flags);
   if (shift1) {
-     operandString(s, ",1");
+    operandString(s, ",1");
   } else {
-     operandChar(s, ',');
-     operandTableItem(s, CL, reg8);
+    operandChar(s, ',');
+    operandTableItem(s, CL, reg8);
   } // endif
 }
 
@@ -3695,17 +3697,17 @@ op_D4(STATE &s, FLAGS UNUSED & flags)
 static void
 op_D7(STATE &s, FLAGS & flags)
 {
-  #if RETPARMS
-    if (s.ovseg == 0) {
-      s.parm->retreg = s.defseg;
-    } else {
-      s.parm->retreg = s.ovseg;
-    }
-    if (flags.addr32)
-      s.parm->retbase = EBX+8;              // EBX
-    else
-      s.parm->retbase = BX;                 // BX
-  #endif
+#if RETPARMS
+  if (s.ovseg == 0) {
+    s.parm->retreg = s.defseg;
+  } else {
+    s.parm->retreg = s.ovseg;
+  }
+  if (flags.addr32)
+    s.parm->retbase = EBX+8;              // EBX
+  else
+    s.parm->retbase = BX;                 // BX
+#endif
   s.parm->rettype = xlattype;
 }
 
@@ -3808,21 +3810,21 @@ op_D8(STATE &s, FLAGS & flags)
   UCHAR ESCinstr;
 
   if (flags.opsizeover)
-     throw IllegalOp(s);
+    throw IllegalOp(s);
 
   getMod_rm_dw(s, flags);
   flags.Wbit = 1;                     // force a word operation
   if (flags.mod == 3) {
     s.parm->rettype = escapetype;
-    #if RETPARMS
-      s.parm->retescape = (USHORT)(((((s.instr & 0x07) << 3) + flags.regf) << 3)+flags.rm);
-    #endif
+#if RETPARMS
+    s.parm->retescape = (USHORT)(((((s.instr & 0x07) << 3) + flags.regf) << 3)+flags.rm);
+#endif
   }
   else {
     s.parm->rettype = escmemtype;
-    #if RETPARMS
-      s.parm->retescape = (USHORT)(((s.instr&0x07) << 3)+flags.regf);
-    #endif
+#if RETPARMS
+    s.parm->retescape = (USHORT)(((s.instr&0x07) << 3)+flags.regf);
+#endif
   }
   if ((s.parm->flagbits & N387mask) == 0) {// do not perform 287/387 decode
     mnemonicStd(s, flags,ESC);    // ESCAPE/ESC
@@ -3851,15 +3853,16 @@ op_D8(STATE &s, FLAGS & flags)
       /* operand size table                                                */
       /*********************************************************************/
       static const char sizecode[64] = {
-      //     0          1          2          3          4          5          6          7
-         sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // D8
-         sizeDword, sizeNone,  sizeDword, sizeDword, sizeNone,  sizeWord,  sizeNone,  sizeWord,   // D9
-         sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // DA
-         sizeDword, sizeNone,  sizeDword, sizeDword, sizeNone,  sizeTbyte, sizeNone,  sizeTbyte,  // DB
-         sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword,  // DC
-         sizeQword, sizeNone,  sizeQword, sizeQword, sizeNone,  sizeNone,  sizeNone,  sizeWord,   // DD
-         sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,   // DE
-         sizeWord,  sizeNone,  sizeWord,  sizeWord,  sizeTbyte, sizeQword, sizeTbyte, sizeQword}; // DF
+        //     0          1          2          3          4          5          6          7
+        sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // D8
+        sizeDword, sizeNone,  sizeDword, sizeDword, sizeNone,  sizeWord,  sizeNone,  sizeWord,   // D9
+        sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // DA
+        sizeDword, sizeNone,  sizeDword, sizeDword, sizeNone,  sizeTbyte, sizeNone,  sizeTbyte,  // DB
+        sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword,  // DC
+        sizeQword, sizeNone,  sizeQword, sizeQword, sizeNone,  sizeNone,  sizeNone,  sizeWord,   // DD
+        sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,   // DE
+        sizeWord,  sizeNone,  sizeWord,  sizeWord,  sizeTbyte, sizeQword, sizeTbyte, sizeQword
+      }; // DF
 
       flags.sizePrefix = sizecode[ESCinstr];  // set operand size
       flags.Dbit = DBit_Mem1op;               // only 1 memory operand
@@ -3907,10 +3910,10 @@ op_D8(STATE &s, FLAGS & flags)
         case 1:                      // FABS D9 E1
         case 4:                      // FTST D9 E4
         case 5:                      // FXAM D9 E5
-           mnemonicStd(s, flags,mnemD94[flags.rm]);
-           break;
+          mnemonicStd(s, flags,mnemD94[flags.rm]);
+          break;
         default:
-           throw IllegalOp(s);
+          throw IllegalOp(s);
         } // endswitch
         break;
 
@@ -3923,32 +3926,32 @@ op_D8(STATE &s, FLAGS & flags)
         case 4:                      // FLDLG2 D9 EC
         case 5:                      // FLDLN2 D9 ED
         case 6:                      // FLDZ   D9 EE
-           mnemonicStd(s, flags,mnemD94[8 + flags.rm]);
-           break;
+          mnemonicStd(s, flags,mnemD94[8 + flags.rm]);
+          break;
         default:
-           throw IllegalOp(s);
+          throw IllegalOp(s);
         } // endswitch
         break;
 
       case 14 :                      // F2XM1   D9 F0
-                                     // FYL2X   D9 F1
-                                     // FPTAN   D9 F2
-                                     // FPATAN  D9 F3
-                                     // FXTRACT D9 F4
-                                     // FPREM1  D9 F5
-                                     // FDECSTP D9 F6
-                                     // FINCSTP D9 F7
+        // FYL2X   D9 F1
+        // FPTAN   D9 F2
+        // FPATAN  D9 F3
+        // FXTRACT D9 F4
+        // FPREM1  D9 F5
+        // FDECSTP D9 F6
+        // FINCSTP D9 F7
         mnemonicStd(s, flags,mnemD94[16 + flags.rm]);
         break;
 
       case 15 :                      // FPREM    D9 F8
-                                     // FYL2XP1  D9 F9
-                                     // FSQRT    D9 FA
-                                     // FSINCOS  D9 FB
-                                     // FRNDINT  D9 FC
-                                     // FSCALE   D9 FD
-                                     // FSIN     D9 FE
-                                     // FCOS     D9 FF
+        // FYL2XP1  D9 F9
+        // FSQRT    D9 FA
+        // FSINCOS  D9 FB
+        // FRNDINT  D9 FC
+        // FSCALE   D9 FD
+        // FSIN     D9 FE
+        // FCOS     D9 FF
         mnemonicStd(s, flags,mnemD94[24 + flags.rm]);
         break;
 
@@ -3962,8 +3965,8 @@ op_D8(STATE &s, FLAGS & flags)
         switch (flags.rm) {
         case 2:                      // FCLEX / FNCLEX  DB E2
         case 3:                      // FINIT / FNINIT  DB E3
-           mnemonicStd(s, flags,mnemDB4[flags.rm + (flags.waitOp ? 8 : 0)]);
-           break;
+          mnemonicStd(s, flags,mnemDB4[flags.rm + (flags.waitOp ? 8 : 0)]);
+          break;
         case 0:                      // FENI / FNENI    DB E0 - 8087 instruction only
         case 1:                      // FDISI / FNDISI  DB E1 - 8087 instruction only
         case 4:                      // FSETPM          DB E4 - 80287 instruction only
@@ -4065,12 +4068,12 @@ op_D8(STATE &s, FLAGS & flags)
 static void
 op_E0(STATE &s, FLAGS & flags)
 {
-   flags.addroverUsed = 1;  // the address override, if present, was used.
-                            // It controls if CX or ECX is used - see Intel Docs.
-   signed char ic = getNextByte(s);
-   operandRel(s, ic);
-   s.parm->rettype = jreltype;
-   s.parm->retoffset = ic;
+  flags.addroverUsed = 1;  // the address override, if present, was used.
+  // It controls if CX or ECX is used - see Intel Docs.
+  signed char ic = getNextByte(s);
+  operandRel(s, ic);
+  s.parm->rettype = jreltype;
+  s.parm->retoffset = ic;
 }
 
 /***************************************************************************/
@@ -4090,17 +4093,17 @@ op_E0(STATE &s, FLAGS & flags)
 static void
 op_E3(STATE &s, FLAGS & flags)
 {
-   // The following looks decidedly odd, but the Intel processors actually
-   // test CX/ECX based on the ADDRESS size, not the OPERAND size!
-   // This behaviour is NOT in the Intel docs...
-   if (flags.addr32) {
-      mnemonicStd(s, flags,JECXZ);
-   } else {
-      mnemonicStd(s, flags,JCXZ);
-   } /* endif */
+  // The following looks decidedly odd, but the Intel processors actually
+  // test CX/ECX based on the ADDRESS size, not the OPERAND size!
+  // This behaviour is NOT in the Intel docs...
+  if (flags.addr32) {
+    mnemonicStd(s, flags,JECXZ);
+  } else {
+    mnemonicStd(s, flags,JCXZ);
+  } /* endif */
 
-   // otherwise this behaves like a LOOP instruction
-   op_E0(s, flags);
+  // otherwise this behaves like a LOOP instruction
+  op_E0(s, flags);
 }
 
 /***************************************************************************/
@@ -4207,8 +4210,8 @@ static void
 op_F0(STATE &s, FLAGS & flags)
 {
   if (flags.replock != replockNone)
-     // two REP prefixes - this is an error
-     throw IllegalOp(s);
+    // two REP prefixes - this is an error
+    throw IllegalOp(s);
 
   flags.replock = replockLOCK;
   flags.prefix = 1;
@@ -4233,8 +4236,8 @@ static void
 op_F2(STATE &s, FLAGS & flags)
 {
   if (flags.replock != replockNone)
-     // two REP prefixes - this is an error
-     throw IllegalOp(s);
+    // two REP prefixes - this is an error
+    throw IllegalOp(s);
 
 
   flags.replock = replockREPNZ;
@@ -4260,8 +4263,8 @@ static void
 op_F3(STATE &s, FLAGS & flags)
 {
   if (flags.replock != replockNone)
-     // two REP prefixes - this is an error
-     throw IllegalOp(s);
+    // two REP prefixes - this is an error
+    throw IllegalOp(s);
 
   flags.replock = replockREPZ;
   flags.prefix = 1;
@@ -4299,7 +4302,8 @@ op_F6(STATE &s, FLAGS & flags)
   /*  mnemonic numbers for F6, F7 orders                                   */
   /*************************************************************************/
   static const USHORT mnemF6F7[8] = {
-     TEST, ILLEGAL, NOT, NEG, MUL, IMUL, DIV, IDIV } ;
+    TEST, ILLEGAL, NOT, NEG, MUL, IMUL, DIV, IDIV
+  } ;
 
   ULONG Dword1;
 
@@ -4309,17 +4313,17 @@ op_F6(STATE &s, FLAGS & flags)
 
   switch (flags.regf) {
   case 0:
-     // the TEST op needs immediate data
-     getNormalMemop(s, flags);
-     Dword1 = getImmediate(s, flags);
-     operandChar(s, ',');
-     operandHex(s, Dword1);
-     break;
+    // the TEST op needs immediate data
+    getNormalMemop(s, flags);
+    Dword1 = getImmediate(s, flags);
+    operandChar(s, ',');
+    operandHex(s, Dword1);
+    break;
   case 1:
-     throw IllegalOp(s);
+    throw IllegalOp(s);
   default:
-     getNormalMemop(s, flags);
-     break;
+    getNormalMemop(s, flags);
+    break;
   } // endswitch
 }
 
@@ -4362,7 +4366,7 @@ op_FE(STATE &s, FLAGS & flags)
 
   getMod_rm_dw(s, flags);
   if (flags.regf > 1 && s.instr == 0xFE)
-     throw IllegalOp(s);
+    throw IllegalOp(s);
 
   flags.Dbit = DBit_Mem1op;     // single operand
   mnemonicStd(s, flags,mnemFF[flags.regf]);
@@ -4370,35 +4374,35 @@ op_FE(STATE &s, FLAGS & flags)
   switch (flags.regf) {
   case 0:  // INC
   case 1:  // DEC
-     // May be a byte or word operation as set by W-bit
-     break;
+    // May be a byte or word operation as set by W-bit
+    break;
   case 2: // CALL near indirect
-     flags.Wbit = 1;            // force a word operation
-     s.parm->rettype = flags.mod ? cnearregtype : cnearmemtype;
-     break;
+    flags.Wbit = 1;            // force a word operation
+    s.parm->rettype = flags.mod ? cnearregtype : cnearmemtype;
+    break;
   case 3: // CALL far indirect
-     if (flags.mod == 3)
-        throw IllegalOp(s);
-     flags.Wbit = 1;            // force a word operation
-     flags.sizePrefix = flags.opsize32 ? sizeFword : sizeDword;
-     s.parm->rettype = cfartype;
-     break;
+    if (flags.mod == 3)
+      throw IllegalOp(s);
+    flags.Wbit = 1;            // force a word operation
+    flags.sizePrefix = flags.opsize32 ? sizeFword : sizeDword;
+    s.parm->rettype = cfartype;
+    break;
   case 4: // JMP near indirect
-     flags.Wbit = 1;            // force a word operation
-     s.parm->rettype = flags.mod ? jnearregtype : jnearmemtype;
-     break;
+    flags.Wbit = 1;            // force a word operation
+    s.parm->rettype = flags.mod ? jnearregtype : jnearmemtype;
+    break;
   case 5: // JMP far indirect
-     if (flags.mod == 3)
-        throw IllegalOp(s);
-     flags.Wbit = 1;            // force a word operation
-     flags.sizePrefix = flags.opsize32 ? sizeFword : sizeDword;
-     s.parm->rettype = jfartype;
-     break;
+    if (flags.mod == 3)
+      throw IllegalOp(s);
+    flags.Wbit = 1;            // force a word operation
+    flags.sizePrefix = flags.opsize32 ? sizeFword : sizeDword;
+    s.parm->rettype = jfartype;
+    break;
   case 6: // PUSH
-     flags.Wbit = 1;            // force a word operation
-     break;
+    flags.Wbit = 1;            // force a word operation
+    break;
   default:
-     throw IllegalOp(s);
+    throw IllegalOp(s);
   } // endswitch
 
   getNormalMemop(s, flags);
@@ -4436,7 +4440,7 @@ op_0F00(STATE &s, FLAGS & flags)
   static const USHORT mnem0F00[6] =  { SLDT, STR, LLDT, LTR, VERR, VERW } ;
 
   if (flags.opsizeover)
-     throw IllegalOp(s);
+    throw IllegalOp(s);
 
   getMod_rm_dw(s, flags);
   if (flags.regf > 5)
@@ -4445,9 +4449,9 @@ op_0F00(STATE &s, FLAGS & flags)
   flags.Dbit = DBit_Mem1op;           // no register operand
   flags.Wbit = 1;                     // word operation
   flags.opsize32 = 0;                 // 16 bit opcodes
-  #if RETPARMS
-    s.parm->retbits &= 0xFE;              // clear 32 bit address marker
-  #endif
+#if RETPARMS
+  s.parm->retbits &= 0xFE;              // clear 32 bit address marker
+#endif
   mnemonicStd(s, flags,mnem0F00[flags.regf]);
   getNormalMemop(s, flags);
 }
@@ -4481,7 +4485,7 @@ op_0F01(STATE &s, FLAGS & flags)
   /* mnemonic numbers for 0F 01 orders                                     */
   /*************************************************************************/
   static const USHORT mnem0F01[8] =  {
-      SGDT, SIDT, LGDT, LIDT, SMSW, ILLEGAL, LMSW, INVLPG
+    SGDT, SIDT, LGDT, LIDT, SMSW, ILLEGAL, LMSW, INVLPG
   } ;
 
   getMod_rm_dw(s, flags);
@@ -4490,30 +4494,30 @@ op_0F01(STATE &s, FLAGS & flags)
   case 1:         // SIDT
   case 2:         // LGDT
   case 3:         // LIDT
-     s.parm->rettype = LGDTtype;
-     flags.sizePrefix = sizeFword;  // These are FWORD (48 bit) operations
-     if (flags.mod == 3)            // memory operation only
-        throw IllegalOp(s);
-     break;
+    s.parm->rettype = LGDTtype;
+    flags.sizePrefix = sizeFword;  // These are FWORD (48 bit) operations
+    if (flags.mod == 3)            // memory operation only
+      throw IllegalOp(s);
+    break;
   case 7:         // INVLPG
-     flags.sizePrefix = sizeDword;
-     if (flags.mod == 3)            // memory operation only
-        throw IllegalOp(s);
-     break;
+    flags.sizePrefix = sizeDword;
+    if (flags.mod == 3)            // memory operation only
+      throw IllegalOp(s);
+    break;
   default:
-     if (flags.mod == 3)            // memory operation only
-        throw IllegalOp(s);
-     break;
+    if (flags.mod == 3)            // memory operation only
+      throw IllegalOp(s);
+    break;
   case 5:
-     throw IllegalOp(s);
+    throw IllegalOp(s);
   case 4:          // SMSW
   case 6:          // LMSW
-     // this is always a 16-bit operation
-     flags.opsize32 = 0;
-     #if RETPARMS
-       s.parm->retbits &= 0xFE;       // clear 32 bit address marker
-     #endif
-     break;
+    // this is always a 16-bit operation
+    flags.opsize32 = 0;
+#if RETPARMS
+    s.parm->retbits &= 0xFE;       // clear 32 bit address marker
+#endif
+    break;
   } // endswitch
 
   flags.Dbit = DBit_Mem1op;                  // no register operand
@@ -4568,84 +4572,84 @@ op_0F20(STATE &s, FLAGS & flags)
 {
   // CRn register names
   static const TABLE controlreg[] =  {
-      { 3, "CR0" } , { 3, "CR1" } , { 3, "CR2" } , { 3, "CR3" } ,
-      { 3, "CR4" } , { 3, "CR5" } , { 3, "CR6" } , { 3, "CR7" },
-      { 0, NULL }
+    { 3, "CR0" } , { 3, "CR1" } , { 3, "CR2" } , { 3, "CR3" } ,
+    { 3, "CR4" } , { 3, "CR5" } , { 3, "CR6" } , { 3, "CR7" },
+    { 0, NULL }
   } ;
   // DRn register names
   static const TABLE debugreg[] =  {
-      { 3, "DR0" } , { 3, "DR1" } , { 3, "DR2" } , { 3, "DR3" } ,
-      { 3, "DR4" } , { 3, "DR5" } , { 3, "DR6" } , { 3, "DR7" } ,
-      { 0, NULL }
+    { 3, "DR0" } , { 3, "DR1" } , { 3, "DR2" } , { 3, "DR3" } ,
+    { 3, "DR4" } , { 3, "DR5" } , { 3, "DR6" } , { 3, "DR7" } ,
+    { 0, NULL }
   } ;
 
-  #if OP0F24
-     // TRn register names
-     static const TABLE testreg[] =  {
-         { 3, "TR0" } , { 3, "TR1" } , { 3, "TR2" } , { 3, "TR3" } ,
-         { 3, "TR4" } , { 3, "TR5" } , { 3, "TR6" } , { 3, "TR7" } ,
-         { 0, NULL }
-     } ;
-  #endif
+#if OP0F24
+  // TRn register names
+  static const TABLE testreg[] =  {
+    { 3, "TR0" } , { 3, "TR1" } , { 3, "TR2" } , { 3, "TR3" } ,
+    { 3, "TR4" } , { 3, "TR5" } , { 3, "TR6" } , { 3, "TR7" } ,
+    { 0, NULL }
+  } ;
+#endif
 
   if (flags.opsizeover)
-     throw IllegalOp(s);
+    throw IllegalOp(s);
 
   getMod_rm_dw(s, flags);
   if (flags.mod != 3)
-     throw IllegalOp(s);
+    throw IllegalOp(s);
 
   flags.Wbit = 1;         // always a wide operation
   switch (s.instr) {
   case 0x20:
-     // control register is second operand
-     if (flags.regf != 1 && flags.regf < 5) {
-       // Control registers 0,2,3,4 permitted
-       operandTableItem(s, flags.rm, reg32, ",");
-       operandTableItem(s, flags.regf, controlreg);
-       return;
-     }
-     break;
+    // control register is second operand
+    if (flags.regf != 1 && flags.regf < 5) {
+      // Control registers 0,2,3,4 permitted
+      operandTableItem(s, flags.rm, reg32, ",");
+      operandTableItem(s, flags.regf, controlreg);
+      return;
+    }
+    break;
   case 0x21:
-     // debug register is second operand
-     operandTableItem(s, flags.rm, reg32, ",");
-     operandTableItem(s, flags.regf, debugreg);
-     return;
+    // debug register is second operand
+    operandTableItem(s, flags.rm, reg32, ",");
+    operandTableItem(s, flags.regf, debugreg);
+    return;
   case 0x22:
-     // control register is first operand
-     if (flags.regf != 1 && flags.regf < 5) {
-       // Control registers 0,2,3,4 permitted
-       operandTableItem(s, flags.regf, controlreg, ",");
-       operandTableItem(s, flags.rm, reg32);
-       return;
-     }
-     break;
+    // control register is first operand
+    if (flags.regf != 1 && flags.regf < 5) {
+      // Control registers 0,2,3,4 permitted
+      operandTableItem(s, flags.regf, controlreg, ",");
+      operandTableItem(s, flags.rm, reg32);
+      return;
+    }
+    break;
   case 0x23:
-     // debug register is first operand
-     operandTableItem(s, flags.regf, debugreg, ",");
-     operandTableItem(s, flags.rm, reg32);
-     return;
+    // debug register is first operand
+    operandTableItem(s, flags.regf, debugreg, ",");
+    operandTableItem(s, flags.rm, reg32);
+    return;
 
-  #if OP0F24
-     case 0x24:
-        // test register is second operand
-        if (flags.regf < 6) {
-          // Test regs 6 & 7 don't exist
-          operandTableItem(s, flags.rm, reg32, ",");
-          operandTableItem(s, flags.regf, testreg);
-          return;
-        }
-        break;
-     case 0x26:
-        // test register is first operand
-        if (flags.regf <= 6) {
-          // Test regs 6 & 7 don't exist
-          operandTableItem(s, flags.regf, testreg, ", ");
-          operandTableItem(s, flags.rm, reg32);
-          return;
-        }
-        break;
-  #endif
+#if OP0F24
+  case 0x24:
+    // test register is second operand
+    if (flags.regf < 6) {
+      // Test regs 6 & 7 don't exist
+      operandTableItem(s, flags.rm, reg32, ",");
+      operandTableItem(s, flags.regf, testreg);
+      return;
+    }
+    break;
+  case 0x26:
+    // test register is first operand
+    if (flags.regf <= 6) {
+      // Test regs 6 & 7 don't exist
+      operandTableItem(s, flags.regf, testreg, ", ");
+      operandTableItem(s, flags.rm, reg32);
+      return;
+    }
+    break;
+#endif
 
   } // endswitch
 }
@@ -4788,13 +4792,13 @@ op_0F6E(STATE &s, FLAGS & flags)
   flags.opsize32 = 1;          // force the use of 32 bit operands
 
   if (s.instr == 0x6E)
-     operandMMXreg(s, flags.regf, ",");
+    operandMMXreg(s, flags.regf, ",");
 
   getNormalMemop(s, flags);
 
   if (s.instr == 0x7E) {
-     operandChar(s, ',');
-     operandMMXreg(s, flags.regf);
+    operandChar(s, ',');
+    operandMMXreg(s, flags.regf);
   } /* endif */
 }
 
@@ -4846,26 +4850,26 @@ op_0F6F(STATE &s, FLAGS & flags)
 static void
 op_0F71(STATE &s, FLAGS & flags)
 {
-   static const USHORT mnem[3][8] =  {
-      // 0F71
-      { ILLEGAL, ILLEGAL, PSRLW, ILLEGAL, PSRAW,   ILLEGAL, PSLLW, ILLEGAL },
-      // 0F72
-      { ILLEGAL, ILLEGAL, PSRLD, ILLEGAL, PSRAD,   ILLEGAL, PSLLD, ILLEGAL },
-      // 0F73
-      { ILLEGAL, ILLEGAL, PSRLQ, ILLEGAL, ILLEGAL, ILLEGAL, PSLLQ, ILLEGAL }
-   } ;
+  static const USHORT mnem[3][8] =  {
+    // 0F71
+    { ILLEGAL, ILLEGAL, PSRLW, ILLEGAL, PSRAW,   ILLEGAL, PSLLW, ILLEGAL },
+    // 0F72
+    { ILLEGAL, ILLEGAL, PSRLD, ILLEGAL, PSRAD,   ILLEGAL, PSLLD, ILLEGAL },
+    // 0F73
+    { ILLEGAL, ILLEGAL, PSRLQ, ILLEGAL, ILLEGAL, ILLEGAL, PSLLQ, ILLEGAL }
+  } ;
 
 //   const USHORT * optbl;
-   getMod_rm_dw(s, flags);
-   int m = mnem[s.instr-0x71][flags.regf];
+  getMod_rm_dw(s, flags);
+  int m = mnem[s.instr-0x71][flags.regf];
 
-   if (ILLEGAL == m)
-      throw IllegalOp(s);
+  if (ILLEGAL == m)
+    throw IllegalOp(s);
 
-   mnemonicStd(s, flags,m);
-   operandMMXreg(s, flags.rm, ",");
-   int ic = getNextByte(s);
-   operandDecimal(s, ic);
+  mnemonicStd(s, flags,m);
+  operandMMXreg(s, flags.rm, ",");
+  int ic = getNextByte(s);
+  operandDecimal(s, ic);
 }
 
 /***************************************************************************/
@@ -4993,13 +4997,13 @@ op_0FA4(STATE &s, FLAGS & flags)
   getNormalMemop(s, flags);
   operandChar(s, ',');
   if (!post) {
-     // shift n instruction
-     flags.Wbit = 0;                  // force to 8-bit operand
-     ULONG Dword1 = getImmediate(s, flags);
-     operandDecimal(s, Dword1);
+    // shift n instruction
+    flags.Wbit = 0;                  // force to 8-bit operand
+    ULONG Dword1 = getImmediate(s, flags);
+    operandDecimal(s, Dword1);
   } else {
-     // second (or third) operand is "CL" (for shifts)
-     operandTableItem(s, CL, reg8);
+    // second (or third) operand is "CL" (for shifts)
+    operandTableItem(s, CL, reg8);
   } // endif
 }
 
@@ -5019,7 +5023,7 @@ op_0FA4(STATE &s, FLAGS & flags)
 static void
 op_0FA8(STATE &s, FLAGS UNUSED & flags)
 {
-    operandSegRegister(s, GS);
+  operandSegRegister(s, GS);
 }
 
 /***************************************************************************/
@@ -5039,10 +5043,10 @@ op_0FA8(STATE &s, FLAGS UNUSED & flags)
 static void
 op_0FAF(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    flags.Dbit = DBit_MemToReg; // register is first operand
-    flags.Wbit = 1;             // word operation
-    getNormalMemop(s, flags);
+  getMod_rm_dw(s, flags);
+  flags.Dbit = DBit_MemToReg; // register is first operand
+  flags.Wbit = 1;             // word operation
+  getNormalMemop(s, flags);
 }
 
 
@@ -5064,9 +5068,9 @@ op_0FAF(STATE &s, FLAGS & flags)
 static void
 op_0FB0(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    flags.Dbit = DBit_RegToMem;
-    getNormalMemop(s, flags);
+  getMod_rm_dw(s, flags);
+  flags.Dbit = DBit_RegToMem;
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -5086,14 +5090,14 @@ op_0FB0(STATE &s, FLAGS & flags)
 static void
 op_0FB2(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    if (flags.mod == 3)              // memory operand required
-        throw IllegalOp(s);
+  getMod_rm_dw(s, flags);
+  if (flags.mod == 3)              // memory operand required
+    throw IllegalOp(s);
 
-    flags.Dbit = DBit_MemToReg;      // register is first operand
-    flags.Wbit = 1;                  // force a word operation
-    s.parm->rettype = LEAtype;
-    getNormalMemop(s, flags);
+  flags.Dbit = DBit_MemToReg;      // register is first operand
+  flags.Wbit = 1;                  // force a word operation
+  s.parm->rettype = LEAtype;
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -5112,17 +5116,17 @@ op_0FB2(STATE &s, FLAGS & flags)
 static void
 op_0FB6(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    flags.Wbit = 1;                  //  always has a wide first operand
-    operandRegister(s, flags.regf,flags, ",");
-    if (flags.mod != 3)
-        s.parm->rettype = membtype;
+  getMod_rm_dw(s, flags);
+  flags.Wbit = 1;                  //  always has a wide first operand
+  operandRegister(s, flags.regf,flags, ",");
+  if (flags.mod != 3)
+    s.parm->rettype = membtype;
 #if RETPARMS
-    s.parm->retbits &= 0xFE;          // clear 32 bit address marker
+  s.parm->retbits &= 0xFE;          // clear 32 bit address marker
 #endif
-    flags.Wbit = 0;                   // always has an 8 bit second operand
-    flags.Dbit = DBit_Mem1op;
-    getNormalMemop(s, flags);
+  flags.Wbit = 0;                   // always has an 8 bit second operand
+  flags.Dbit = DBit_Mem1op;
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -5141,18 +5145,18 @@ op_0FB6(STATE &s, FLAGS & flags)
 static void
 op_0FB7(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    flags.opsize32 = 1;                 // always a 32-bit register
-    flags.Wbit = 1;                     // always wide operands
-    operandRegister(s, flags.regf,flags, ",");
-    if (flags.mod != 3)
-        s.parm->rettype = memwtype;
+  getMod_rm_dw(s, flags);
+  flags.opsize32 = 1;                 // always a 32-bit register
+  flags.Wbit = 1;                     // always wide operands
+  operandRegister(s, flags.regf,flags, ",");
+  if (flags.mod != 3)
+    s.parm->rettype = memwtype;
 #if RETPARMS
-    s.parm->retbits &= 0xFE;         // clear 32 bit address marker
+  s.parm->retbits &= 0xFE;         // clear 32 bit address marker
 #endif
-    flags.opsize32 = 0;              // always has 16-bit size second operand
-    flags.Dbit = DBit_Mem1op;
-    getNormalMemop(s, flags);
+  flags.opsize32 = 0;              // always has 16-bit size second operand
+  flags.Dbit = DBit_Mem1op;
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -5171,24 +5175,25 @@ static void
 op_0FBA(STATE &s, FLAGS & flags)
 {
 
-    /*************************************************************************/
-    /* mnemonic numbers for 0F BA orders                                     */
-    /*************************************************************************/
-    static const USHORT mnem0FBA[8] =  {
-        ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, BT, BTS, BTR, BTC } ;
+  /*************************************************************************/
+  /* mnemonic numbers for 0F BA orders                                     */
+  /*************************************************************************/
+  static const USHORT mnem0FBA[8] =  {
+    ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, BT, BTS, BTR, BTC
+  } ;
 
-    getMod_rm_dw(s, flags);
-    flags.Dbit = DBit_Mem1op;           // always an 8-bit immediate operand
-    flags.Wbit = 1;                     // always a word/dword operation
-    if (flags.regf < 4)
-        throw IllegalOp(s);
+  getMod_rm_dw(s, flags);
+  flags.Dbit = DBit_Mem1op;           // always an 8-bit immediate operand
+  flags.Wbit = 1;                     // always a word/dword operation
+  if (flags.regf < 4)
+    throw IllegalOp(s);
 
-    mnemonicStd(s, flags,mnem0FBA[flags.regf]);
-    getNormalMemop(s, flags);
-    flags.Wbit = 0;                   // force to 8-bit operand
-    operandChar(s, ',');
-    ULONG Dword1 = getImmediate(s, flags);
-    operandDecimal(s, Dword1);
+  mnemonicStd(s, flags,mnem0FBA[flags.regf]);
+  getNormalMemop(s, flags);
+  flags.Wbit = 0;                   // force to 8-bit operand
+  operandChar(s, ',');
+  ULONG Dword1 = getImmediate(s, flags);
+  operandDecimal(s, Dword1);
 }
 
 /***************************************************************************/
@@ -5209,10 +5214,10 @@ op_0FBA(STATE &s, FLAGS & flags)
 static void
 op_0FBB(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    flags.Dbit = DBit_RegToMem;
-    flags.Wbit = 1;
-    getNormalMemop(s, flags);
+  getMod_rm_dw(s, flags);
+  flags.Dbit = DBit_RegToMem;
+  flags.Wbit = 1;
+  getNormalMemop(s, flags);
 }
 
 
@@ -5232,9 +5237,9 @@ op_0FBB(STATE &s, FLAGS & flags)
 static void
 op_0FC0(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    flags.Dbit = DBit_RegToMem;
-    getNormalMemop(s, flags);
+  getMod_rm_dw(s, flags);
+  flags.Dbit = DBit_RegToMem;
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -5262,20 +5267,20 @@ op_0FC0(STATE &s, FLAGS & flags)
 static void
 op_0FC7(STATE &s, FLAGS & flags)
 {
-    getMod_rm_dw(s, flags);
-    flags.Dbit = DBit_Mem1op;          // no register operand
-    flags.Wbit = 1;                    // word operation
-    if (flags.regf != 1 || flags.mod == 3)
-        // Group 9 can only have CMPXCHG8B
-        // This can only access memory
-        throw IllegalOp(s);
+  getMod_rm_dw(s, flags);
+  flags.Dbit = DBit_Mem1op;          // no register operand
+  flags.Wbit = 1;                    // word operation
+  if (flags.regf != 1 || flags.mod == 3)
+    // Group 9 can only have CMPXCHG8B
+    // This can only access memory
+    throw IllegalOp(s);
 
 #if RETPARMS
-    s.parm->retbits &= 0xFE;   // clear 32 bit address marker
+  s.parm->retbits &= 0xFE;   // clear 32 bit address marker
 #endif
-    mnemonicStd(s, flags,CMPXCHG8B);
-    flags.sizePrefix=sizeQword;   // takes a QWORD
-    getNormalMemop(s, flags);
+  mnemonicStd(s, flags,CMPXCHG8B);
+  flags.sizePrefix=sizeQword;   // takes a QWORD
+  getNormalMemop(s, flags);
 }
 
 /***************************************************************************/
@@ -5300,11 +5305,11 @@ op_0FC7(STATE &s, FLAGS & flags)
 static void
 op_0FC8(STATE &s, FLAGS & flags)
 {
-    if (flags.opsizeover)
-        throw IllegalOp(s);
+  if (flags.opsizeover)
+    throw IllegalOp(s);
 
-    flags.regf = s.instr & 0x07;         // get register number
-    flags.Wbit = 1;                    // force 32 bit register
-    flags.opsize32 = 1;
-    operandRegister(s, flags.regf, flags);
+  flags.regf = s.instr & 0x07;         // get register number
+  flags.Wbit = 1;                    // force 32 bit register
+  flags.opsize32 = 1;
+  operandRegister(s, flags.regf, flags);
 }

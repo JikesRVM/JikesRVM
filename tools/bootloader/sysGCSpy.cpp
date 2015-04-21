@@ -43,7 +43,7 @@ static int stream_len;
 
 EXTERNAL gcspy_gc_stream_t * gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
   GCSPY_TRACE_PRINTF("gcspyDriverAddStream: driver=%x(%s), id=%d...",
-          driver, driver->name, id);
+                     driver, driver->name, id);
   gcspy_gc_stream_t *stream = gcspy_driverAddStream(driver, id);
   GCSPY_TRACE_PRINTF("stream=%x\n", stream);
   return stream;
@@ -52,23 +52,23 @@ EXTERNAL gcspy_gc_stream_t * gcspyDriverAddStream (gcspy_gc_driver_t *driver, in
 EXTERNAL void gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
   int len;
   GCSPY_TRACE_PRINTF("gcspyDriverEndOutput: driver=%x(%s), len=%d, written=%d\n",
-                        driver, driver->name, stream_len, stream_count);
+                     driver, driver->name, stream_len, stream_count);
   stream_count = 0;
   /*??*/
   gcspy_buffered_output_t *output =
-      gcspy_command_stream_get_output(driver->interpreter);
+    gcspy_command_stream_get_output(driver->interpreter);
   len = gcspy_bufferedOutputGetLen(output);
   GCSPY_TRACE_PRINTF("gcspyDriverEndOutput: interpreter has len=%d\n", len);
   gcspy_driverEndOutput(driver);
 }
 
 EXTERNAL void gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driverName,
-                 char *title, char *blockInfo, int tileNum,
-                 char *unused, int mainSpace) {
+                               char *title, char *blockInfo, int tileNum,
+                               char *unused, int mainSpace) {
   GCSPY_TRACE_PRINTF("gcspyDriverInit: driver=%x, id=%d, serverName=%s, driverName=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n",
-                   driver, id, serverName, driverName,
-                   title, blockInfo, tileNum,
-                   unused, mainSpace);
+                     driver, id, serverName, driverName,
+                     title, blockInfo, tileNum,
+                     unused, mainSpace);
   gcspy_driverInit(driver, id, serverName, driverName,
                    title, blockInfo, tileNum,
                    unused, mainSpace);
@@ -76,13 +76,13 @@ EXTERNAL void gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverNa
 
 EXTERNAL void gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
   GCSPY_TRACE_PRINTF("gcspyDriverInitOutput: driver=%x(s)\n",
-          driver, driver->name);
+                     driver, driver->name);
   gcspy_driverInitOutput(driver);
 }
 
 EXTERNAL void gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
   GCSPY_TRACE_PRINTF("gcspyDriverResize: driver=%x(%s), size %d\n",
-          driver, driver->name, size);
+                     driver, driver->name, size);
   gcspy_driverResize(driver, size);
 }
 
@@ -111,7 +111,7 @@ EXTERNAL void gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
 
 EXTERNAL void gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
   GCSPY_TRACE_PRINTF("gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n",
-          driver, driver->name, id, driver->streams[id].name, len);
+                     driver, driver->name, id, driver->streams[id].name, len);
   stream_count = 0;
   stream_len = len;
   gcspy_driverStream(driver, id, len);
@@ -137,7 +137,7 @@ EXTERNAL void gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
 
 EXTERNAL void gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
   GCSPY_TRACE_PRINTF("gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n",
-          driver, driver->name, id, driver->streams[id].name, len);
+                     driver, driver->name, id, driver->streams[id].name, len);
   stream_count = 0;
   stream_len = len;
   gcspy_driverSummary(driver, id, len);
@@ -220,10 +220,10 @@ EXTERNAL void gcspyStartserver (gcspy_main_server_t *server, int wait, void *loo
   GCSPY_TRACE_PRINTF("gcspyStartserver: starting thread, wait=%d\n", wait);
   pthread_t tid;
   int res = pthread_create(&tid, NULL,
-                          (pthread_start_routine_t) loop,  server);
+                           (pthread_start_routine_t) loop,  server);
   if (res != 0) {
-      ERROR_PRINTF("Couldn't create thread.\n");
-      exit(EXIT_STATUS_MISC_TROUBLE);
+    ERROR_PRINTF("Couldn't create thread.\n");
+    exit(EXIT_STATUS_MISC_TROUBLE);
   }
 
   if(wait) {
@@ -233,22 +233,22 @@ EXTERNAL void gcspyStartserver (gcspy_main_server_t *server, int wait, void *loo
 }
 
 EXTERNAL void gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamName,
-                 int minValue, int maxValue, int zeroValue, int defaultValue,
-                 char *stringPre, char *stringPost, int presentation, int paintStyle,
-                 int indexMaxStream, int red, int green, int blue) {
+                               int minValue, int maxValue, int zeroValue, int defaultValue,
+                               char *stringPre, char *stringPost, int presentation, int paintStyle,
+                               int indexMaxStream, int red, int green, int blue) {
   gcspy_color_t colour;
   colour.red = (unsigned char) red;
   colour.green = (unsigned char) green;
   colour.blue = (unsigned char) blue;
   GCSPY_TRACE_PRINTF("gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n",
-                   stream, id, dataType, streamName,
-                   minValue, maxValue, zeroValue, defaultValue,
-       stringPre, stringPost, presentation, paintStyle,
-       indexMaxStream, &colour, colour.red, colour.green, colour.blue);
+                     stream, id, dataType, streamName,
+                     minValue, maxValue, zeroValue, defaultValue,
+                     stringPre, stringPost, presentation, paintStyle,
+                     indexMaxStream, &colour, colour.red, colour.green, colour.blue);
   gcspy_streamInit(stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue,defaultValue,
-       stringPre, stringPost, presentation, paintStyle,
-       indexMaxStream, &colour);
+                   stringPre, stringPost, presentation, paintStyle,
+                   indexMaxStream, &colour);
 }
 
 EXTERNAL void gcspyFormatSize (char *buffer, int size) {

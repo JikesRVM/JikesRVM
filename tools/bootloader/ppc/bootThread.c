@@ -28,43 +28,43 @@
 #define NEED_ASSEMBLER_DECLARATIONS
 #include <InterfaceDeclarations.h>
 
-       .file    "bootThread.s"
+.file    "bootThread.s"
 #if (defined __linux__)
 #ifdef RVM_FOR_32_ADDR
-       .text    0   // function name
-       .globl   bootThread   /* external visibility */
-       bootThread:
+.text    0   // function name
+.globl   bootThread   /* external visibility */
+bootThread:
 #else
-       .text
-       .globl  bootThread
-       bootThread:
+.text
+.globl  bootThread
+bootThread:
 #endif
 #elif (defined __MACH__)
-       .text
-       .globl   _bootThread   /* external visibility */
-       _bootThread:
+.text
+.globl   _bootThread   /* external visibility */
+_bootThread:
 #else
 #ifdef __GNUC__
-        .globl  .bootThread
-       .bootThread:
+.globl  .bootThread
+.bootThread:
 #else
-       .csect   .bootThread[ro]   /* function name */
-       .globl   .bootThread[ro]   /* external visibility */
-       bootThread:
+.csect   .bootThread[ro]   /* function name */
+.globl   .bootThread[ro]   /* external visibility */
+bootThread:
 #endif
 #endif
-        mr      JTOC,T0
-        mr      THREAD_REGISTER,T1
-        mr      FP,T3
+mr      JTOC,T0
+mr      THREAD_REGISTER,T1
+mr      FP,T3
 
-        /*
-         * At this point we've abandoned the C stack and are running on a RVMThread's stack.
-         */
+/*
+ * At this point we've abandoned the C stack and are running on a RVMThread's stack.
+ */
 
 #ifdef RVM_FOR_32_ADDR
-        lwz     S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
+lwz     S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
 #else
-        ld      S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
+ld      S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
 #endif
-        mtlr    S0
-        blr                       /* branch to it */
+mtlr    S0
+blr                       /* branch to it */

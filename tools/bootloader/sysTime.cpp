@@ -21,49 +21,49 @@ mach_timebase_info_data_t timebaseInfo;
 
 EXTERNAL long long sysCurrentTimeMillis()
 {
-    TRACE_PRINTF("%s: sysCurrentTimeMillis\n", Me);
-    int rc;
-    long long returnValue;
-    struct timeval tv;
-    struct timezone tz;
+  TRACE_PRINTF("%s: sysCurrentTimeMillis\n", Me);
+  int rc;
+  long long returnValue;
+  struct timeval tv;
+  struct timezone tz;
 
-    returnValue = 0;
+  returnValue = 0;
 
-    rc = gettimeofday(&tv, &tz);
-    if (rc != 0) {
-        returnValue = rc;
-    } else {
-        returnValue = ((long long) tv.tv_sec * 1000) + tv.tv_usec/1000;
-    }
+  rc = gettimeofday(&tv, &tz);
+  if (rc != 0) {
+    returnValue = rc;
+  } else {
+    returnValue = ((long long) tv.tv_sec * 1000) + tv.tv_usec/1000;
+  }
 
-    return returnValue;
+  return returnValue;
 }
 
 EXTERNAL long long sysNanoTime()
 {
-    TRACE_PRINTF("%s: sysNanoTime\n", Me);
-    long long retVal;
+  TRACE_PRINTF("%s: sysNanoTime\n", Me);
+  long long retVal;
 #ifndef __MACH__
-    struct timespec tp;
-    int rc = clock_gettime(CLOCK_REALTIME, &tp);
-    if (rc != 0) {
-        retVal = rc;
-        if (lib_verbose) {
-              ERROR_PRINTF("sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
-        }
-    } else {
-        retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
+  struct timespec tp;
+  int rc = clock_gettime(CLOCK_REALTIME, &tp);
+  if (rc != 0) {
+    retVal = rc;
+    if (lib_verbose) {
+      ERROR_PRINTF("sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
     }
+  } else {
+    retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
+  }
 #else
-    struct timeval tv;
+  struct timeval tv;
 
-    gettimeofday(&tv,NULL);
+  gettimeofday(&tv,NULL);
 
-    retVal=tv.tv_sec;
-    retVal*=1000;
-    retVal*=1000;
-    retVal+=tv.tv_usec;
-    retVal*=1000;
+  retVal=tv.tv_sec;
+  retVal*=1000;
+  retVal*=1000;
+  retVal+=tv.tv_usec;
+  retVal*=1000;
 #endif
-    return retVal;
+  return retVal;
 }

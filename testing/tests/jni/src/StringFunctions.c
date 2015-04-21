@@ -26,7 +26,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_StringFunctions_setVerboseOff
-  (JNIEnv *env, jclass cls){
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -37,7 +37,7 @@ JNIEXPORT void JNICALL Java_StringFunctions_setVerboseOff
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_StringFunctions_accessNewString
-  (JNIEnv *env, jclass cls, jstring s) {
+(JNIEnv *env, jclass cls, jstring s) {
   int i;
 
   /* unicode chars for "hiTon" */
@@ -62,7 +62,7 @@ JNIEXPORT jstring JNICALL Java_StringFunctions_accessNewString
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_StringFunctions_accessGetStringLength
-  (JNIEnv *env, jclass cls, jstring s) {
+(JNIEnv *env, jclass cls, jstring s) {
 
   jsize returnValue;
 
@@ -80,7 +80,7 @@ JNIEXPORT jint JNICALL Java_StringFunctions_accessGetStringLength
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_StringFunctions_accessNewStringUTF
-  (JNIEnv *env, jclass cls, jstring s) {
+(JNIEnv *env, jclass cls, jstring s) {
 
   const char * ascii_chars = "hiSteve";
   jstring returnString;
@@ -100,7 +100,7 @@ JNIEXPORT jstring JNICALL Java_StringFunctions_accessNewStringUTF
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_StringFunctions_accessGetStringUTFLength
-  (JNIEnv *env, jclass cls, jstring s) {
+(JNIEnv *env, jclass cls, jstring s) {
 
   jsize returnValue;
 
@@ -117,27 +117,27 @@ JNIEXPORT jint JNICALL Java_StringFunctions_accessGetStringUTFLength
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_StringFunctions_testGetReleaseStringChars
-  (JNIEnv *env, jclass cls, jstring s) {
+(JNIEnv *env, jclass cls, jstring s) {
 
-    jboolean  isCopy;
-    jint stringLen;
-    const jchar * stringChars;
-    jstring returnString;
+  jboolean  isCopy;
+  jint stringLen;
+  const jchar * stringChars;
+  jstring returnString;
 
-    stringLen = (*env) -> GetStringLength(env, s);
-    stringChars = (*env) -> GetStringChars(env, s, &isCopy);
+  stringLen = (*env) -> GetStringLength(env, s);
+  stringChars = (*env) -> GetStringChars(env, s, &isCopy);
 
-    returnString = (*env) -> NewString(env, stringChars, stringLen);
+  returnString = (*env) -> NewString(env, stringChars, stringLen);
 
-    (*env) -> ReleaseStringChars(env, s, stringChars);
+  (*env) -> ReleaseStringChars(env, s, stringChars);
 
-    if (verbose) {
-        printf("> testGetReleaseStringChars: isCopy = %d\n", (int)isCopy);
-        printf("> testGetReleaseStringChars: stringLen = %d\n", stringLen);
-        printf("> testGetReleaseStringChars: returnString = 0x%p\n", returnString);
-    }
+  if (verbose) {
+    printf("> testGetReleaseStringChars: isCopy = %d\n", (int)isCopy);
+    printf("> testGetReleaseStringChars: stringLen = %d\n", stringLen);
+    printf("> testGetReleaseStringChars: returnString = 0x%p\n", returnString);
+  }
 
-    return returnString;
+  return returnString;
 }
 
 /*
@@ -146,26 +146,26 @@ JNIEXPORT jstring JNICALL Java_StringFunctions_testGetReleaseStringChars
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_StringFunctions_testGetReleaseStringUTFChars
-  (JNIEnv *env, jclass cls, jstring s) {
+(JNIEnv *env, jclass cls, jstring s) {
 
-    jboolean  isCopy;
-    jint stringLenUTF;
-    const char * stringBytesUTF;
-    jstring returnString;
+  jboolean  isCopy;
+  jint stringLenUTF;
+  const char * stringBytesUTF;
+  jstring returnString;
 
-    stringLenUTF = (*env) -> GetStringUTFLength(env, s);
-    stringBytesUTF = (*env) -> GetStringUTFChars(env, s, &isCopy);
+  stringLenUTF = (*env) -> GetStringUTFLength(env, s);
+  stringBytesUTF = (*env) -> GetStringUTFChars(env, s, &isCopy);
 
-    returnString = (*env) -> NewStringUTF(env, stringBytesUTF);
+  returnString = (*env) -> NewStringUTF(env, stringBytesUTF);
 
-    (*env) -> ReleaseStringUTFChars(env, s, stringBytesUTF);
+  (*env) -> ReleaseStringUTFChars(env, s, stringBytesUTF);
 
-    if (verbose) {
-        printf("> testGetReleaseStringUTFChars: isCopy = %d\n", (int)isCopy);
-        printf("> testGetReleaseStringUTFChars: stringLenUTF = %d\n", stringLenUTF);
-        printf("> testGetReleaseStringUTFChars: returnString = 0x%p\n", returnString);
-    }
+  if (verbose) {
+    printf("> testGetReleaseStringUTFChars: isCopy = %d\n", (int)isCopy);
+    printf("> testGetReleaseStringUTFChars: stringLenUTF = %d\n", stringLenUTF);
+    printf("> testGetReleaseStringUTFChars: returnString = 0x%p\n", returnString);
+  }
 
-    return returnString;
+  return returnString;
 }
 

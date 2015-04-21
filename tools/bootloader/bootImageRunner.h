@@ -11,9 +11,9 @@
  *  regarding copyright ownership.
  */
 
- /* Handles "extern" declarations shared among files in
- * tools/bootImageRunner/.
- */
+/* Handles "extern" declarations shared among files in
+* tools/bootImageRunner/.
+*/
 #include <stdio.h>
 #include <inttypes.h>
 
@@ -71,9 +71,9 @@ extern jmp_buf primordial_jb;
 /* Defined in RunBootImage.cpp */
 #ifdef __cplusplus
 unsigned int parse_memory_size(
-    const char *sizeName, const char *sizeFlag,
-    const char *defaultFactor, unsigned roundTo,
-    const char *token, const char *subtoken, bool *fastExit);
+  const char *sizeName, const char *sizeFlag,
+  const char *defaultFactor, unsigned roundTo,
+  const char *token, const char *subtoken, bool *fastExit);
 #endif
 
 extern int verboseBoot;

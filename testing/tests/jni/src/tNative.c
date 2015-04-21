@@ -19,7 +19,7 @@
 
 
 JNIEXPORT jint JNICALL Java_tNative_nativeFoo
-  (JNIEnv *env, jclass cls, jint value) {
+(JNIEnv *env, jclass cls, jint value) {
   int localval = value + 15;
   jintArray myArray;
 

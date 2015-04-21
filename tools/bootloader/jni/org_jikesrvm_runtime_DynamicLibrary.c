@@ -31,7 +31,7 @@ typedef jint (*JNI_OnLoad)(Java *vm, void *reserved);
  * Signature: (Lorg/vmmagic/unboxed/Address;)I
  */
 extern "C" JNIEXPORT jint JNICALL Java_org_jikesrvm_runtime_DynamicLibrary_runJNI_1OnLoad (JNIEnv *env,
-                                                                                           jclass clazz,
-                                                                                           jobject JNI_OnLoadAddress) {
+    jclass clazz,
+    jobject JNI_OnLoadAddress) {
   return ((JNI_OnLoad)JNI_OnLoadAddress)(&sysJavaVM, NULL);
 }

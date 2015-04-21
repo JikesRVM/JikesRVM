@@ -39,10 +39,10 @@ typedef struct {
 
 void
 gcspy_mainServerInit (gcspy_main_server_t *server,
-		      int port,
-		      unsigned maxLen,
-		      const char *name,
-		      int verbose);
+                      int port,
+                      unsigned maxLen,
+                      const char *name,
+                      int verbose);
 
 void
 gcspy_mainServerMainLoop (gcspy_main_server_t *server);

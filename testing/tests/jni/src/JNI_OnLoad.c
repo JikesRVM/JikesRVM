@@ -23,7 +23,7 @@ static jboolean onloadIsCalled = JNI_FALSE;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_JNI_1OnLoad_setVerboseOff
-(JNIEnv *env, jclass cls){
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 

@@ -17,20 +17,26 @@ JNIEXPORT jint JNICALL Java_TestJNIGetFieldID_getInstanceFieldA(JNIEnv *env, jcl
 {
   jclass o_clazz = (*env)->GetObjectClass(env, o);
   jfieldID fid = (*env)->GetFieldID(env, o_clazz, "a", "I");
-  if (fid == NULL) {return 0;}
+  if (fid == NULL) {
+    return 0;
+  }
   return (*env)->GetIntField(env, o, fid);
 }
 
 JNIEXPORT jint JNICALL Java_TestJNIGetFieldID_getStaticFieldS(JNIEnv *env, jclass clazz, jclass b_clazz)
 {
   jfieldID fid = (*env)->GetStaticFieldID(env, b_clazz, "s", "I");
-  if (fid == NULL) {return 0;}
+  if (fid == NULL) {
+    return 0;
+  }
   return (*env)->GetStaticIntField(env, b_clazz, fid);
 }
 
 JNIEXPORT jint JNICALL Java_TestJNIGetFieldID_getStaticFinalF(JNIEnv *env, jclass clazz, jclass b_clazz)
 {
   jfieldID fid = (*env)->GetStaticFieldID(env, b_clazz, "f", "I");
-  if (fid == NULL) {return 0;}
+  if (fid == NULL) {
+    return 0;
+  }
   return (*env)->GetStaticIntField(env, b_clazz, fid);
 }

@@ -24,7 +24,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_CriticalCopy_setVerboseOff
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -34,7 +34,7 @@ JNIEXPORT void JNICALL Java_CriticalCopy_setVerboseOff
  * Signature: ([I)I
  */
 JNIEXPORT jint JNICALL Java_CriticalCopy_primitiveIntegerArray
-  (JNIEnv *env, jclass cls, jintArray sourceArray) {
+(JNIEnv *env, jclass cls, jintArray sourceArray) {
 
   int i;
   jint length;
@@ -77,7 +77,7 @@ JNIEXPORT jint JNICALL Java_CriticalCopy_primitiveIntegerArray
  * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_CriticalCopy_primitiveByteArray
-  (JNIEnv *env, jclass cls, jbyteArray sourceArray) {
+(JNIEnv *env, jclass cls, jbyteArray sourceArray) {
 
 
 

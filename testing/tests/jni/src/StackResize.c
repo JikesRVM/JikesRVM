@@ -27,7 +27,7 @@ int verbose=0;
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL Java_StackResize_expectResize
-  (JNIEnv *env, jclass cls, jint previousStackSize){
+(JNIEnv *env, jclass cls, jint previousStackSize) {
   jboolean returnBooleanValue;
   jmethodID methodID;
 
@@ -43,7 +43,7 @@ JNIEXPORT jboolean JNICALL Java_StackResize_expectResize
   }
 
   returnBooleanValue = (*env) -> CallStaticBooleanMethod(env, cls, methodID,
-                                                         previousStackSize);
+                       previousStackSize);
   if (returnBooleanValue == JNI_FALSE) {
     if (verbose)
       printf("> FAIL to resize stack on first native method\n");
@@ -77,7 +77,7 @@ JNIEXPORT jboolean JNICALL Java_StackResize_expectResize
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL Java_StackResize_expectNoResize
-  (JNIEnv *env, jclass cls, jint previousStackSize){
+(JNIEnv *env, jclass cls, jint previousStackSize) {
   jboolean returnBooleanValue;
   jmethodID methodID;
 
@@ -92,7 +92,7 @@ JNIEXPORT jboolean JNICALL Java_StackResize_expectNoResize
   }
 
   returnBooleanValue = (*env) -> CallStaticBooleanMethod(env, cls, methodID,
-                                                         previousStackSize);
+                       previousStackSize);
   if (returnBooleanValue == JNI_TRUE) {
     if (verbose)
       printf("> Unexpected stack resize on second native method\n");

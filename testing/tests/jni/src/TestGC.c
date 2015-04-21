@@ -25,7 +25,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_TestGC_setVerboseOff
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -35,7 +35,7 @@ JNIEXPORT void JNICALL Java_TestGC_setVerboseOff
  * Signature: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_TestGC_testgc
-  (JNIEnv * env, jclass cls, jobject obj1, jobject obj2) {
+(JNIEnv * env, jclass cls, jobject obj1, jobject obj2) {
 
   jmethodID methodID;
   jclass expectCls;

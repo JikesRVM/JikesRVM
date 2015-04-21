@@ -21,8 +21,8 @@
 
 void
 gcspy_mainServerInit (gcspy_main_server_t *server, int port, unsigned maxLen,
-		      const char *name, int verbose) {
-    printf("GCspy server on port %d\n", port);
+                      const char *name, int verbose) {
+  printf("GCspy server on port %d\n", port);
 }
 
 void
@@ -30,6 +30,6 @@ gcspy_mainServerMainLoop (gcspy_main_server_t *server) { }
 
 void
 gcspy_mainServerSafepoint (gcspy_main_server_t *server, unsigned event) {
-    printf("GCspy safepoint for event %d\n", event);
+  printf("GCspy safepoint for event %d\n", event);
 }
 

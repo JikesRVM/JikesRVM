@@ -26,7 +26,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_ClassQuery_setVerboseOff
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_ClassQuery_setVerboseOff
  * Signature: (Ljava/lang/Class;)Ljava/lang/Class;
  */
 JNIEXPORT jclass JNICALL Java_ClassQuery_testSuperClass
-  (JNIEnv *env, jclass cls, jclass subcls) {
+(JNIEnv *env, jclass cls, jclass subcls) {
 
   jclass supercls = (*env) -> GetSuperclass(env, subcls);
   return supercls;
@@ -49,7 +49,7 @@ JNIEXPORT jclass JNICALL Java_ClassQuery_testSuperClass
  * Signature: (Ljava/lang/Class;Ljava/lang/Class;)Z
  */
 JNIEXPORT jboolean JNICALL Java_ClassQuery_testAssignable
-  (JNIEnv *env, jclass cls, jclass subcls, jclass supercls) {
+(JNIEnv *env, jclass cls, jclass subcls, jclass supercls) {
 
   return (*env) -> IsAssignableFrom(env, subcls, supercls);
 
@@ -61,7 +61,7 @@ JNIEXPORT jboolean JNICALL Java_ClassQuery_testAssignable
  * Signature: (Ljava/lang/Object;Ljava/lang/Object;)Z
  */
 JNIEXPORT jboolean JNICALL Java_ClassQuery_testSameObject
-  (JNIEnv *env, jclass cls, jobject obj1, jobject obj2) {
+(JNIEnv *env, jclass cls, jobject obj1, jobject obj2) {
 
   return (*env) -> IsSameObject(env, obj1, obj2);
 
@@ -75,7 +75,7 @@ JNIEXPORT jboolean JNICALL Java_ClassQuery_testSameObject
  * Signature: (Ljava/lang/Class;)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_ClassQuery_testAllocObject
-  (JNIEnv *env, jclass cls, jclass classToCreate) {
+(JNIEnv *env, jclass cls, jclass classToCreate) {
 
   return (*env) -> AllocObject(env, classToCreate);
 
@@ -88,7 +88,7 @@ JNIEXPORT jobject JNICALL Java_ClassQuery_testAllocObject
  * Signature: (Ljava/lang/Object;)Ljava/lang/Class;
  */
 JNIEXPORT jclass JNICALL Java_ClassQuery_testGetObjectClass
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   return (*env) -> GetObjectClass(env, obj);
 

@@ -26,7 +26,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_FieldAccess_setVerboseOff
-  (JNIEnv *env, jclass cls){
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -41,7 +41,7 @@ JNIEXPORT void JNICALL Java_FieldAccess_setVerboseOff
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticIntField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jint si;
@@ -72,7 +72,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticIntField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticBooleanField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jboolean val;
@@ -103,7 +103,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticBooleanField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticByteField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jbyte val;
@@ -133,7 +133,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticByteField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticCharField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jchar val;
@@ -163,7 +163,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticCharField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticShortField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jshort val;
@@ -193,7 +193,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticShortField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticLongField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jlong val;
@@ -223,7 +223,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticLongField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticFloatField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jfloat val;
@@ -254,7 +254,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticFloatField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticDoubleField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jdouble val;
@@ -284,7 +284,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticDoubleField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticObjectField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
   jobject obj;
@@ -330,7 +330,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticObjectField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessIntField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jint fval;
 
@@ -359,7 +359,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessIntField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessBooleanField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jboolean fval;
 
@@ -389,7 +389,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessBooleanField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessByteField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jbyte fval;
 
@@ -420,7 +420,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessByteField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessCharField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jchar fval;
 
@@ -451,7 +451,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessCharField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessShortField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jshort fval;
 
@@ -482,7 +482,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessShortField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessLongField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jlong fval;
 
@@ -513,7 +513,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessLongField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessFloatField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jfloat fval;
 
@@ -544,7 +544,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessFloatField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessDoubleField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
   jfieldID fid;
   jdouble fval;
 
@@ -575,7 +575,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessDoubleField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_accessObjectField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
   jobject fieldObj;
@@ -615,7 +615,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessObjectField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticIntField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -642,7 +642,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticIntField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticBooleanField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -660,7 +660,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticBooleanField
 
   return 0;
 
-  }
+}
 
 
 /*
@@ -669,7 +669,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticBooleanField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticByteField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -696,7 +696,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticByteField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticCharField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -723,7 +723,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticCharField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticShortField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -750,7 +750,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticShortField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticLongField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -777,7 +777,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticLongField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticFloatField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -805,7 +805,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticFloatField
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticDoubleField
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
 
   jfieldID fid;
 
@@ -832,7 +832,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticDoubleField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setStaticObjectField
-  (JNIEnv *env, jclass cls, jobject extraObj) {
+(JNIEnv *env, jclass cls, jobject extraObj) {
 
   jfieldID fid;
 
@@ -859,7 +859,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticObjectField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setIntField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
   jint fval;
@@ -887,7 +887,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setIntField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setBooleanField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
 
@@ -914,7 +914,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setBooleanField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setByteField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
 
@@ -941,7 +941,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setByteField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setCharField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
 
@@ -968,7 +968,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setCharField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setShortField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
 
@@ -995,7 +995,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setShortField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setLongField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
 
@@ -1022,7 +1022,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setLongField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setFloatField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
 
@@ -1049,7 +1049,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setFloatField
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setDoubleField
-  (JNIEnv *env, jclass cls, jobject obj) {
+(JNIEnv *env, jclass cls, jobject obj) {
 
   jfieldID fid;
 
@@ -1076,7 +1076,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setDoubleField
  * Signature: (Ljava/lang/Object;Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_FieldAccess_setObjectField
-  (JNIEnv *env, jclass cls, jobject targetObj, jobject extraObject) {
+(JNIEnv *env, jclass cls, jobject targetObj, jobject extraObject) {
 
   jfieldID fid;
 

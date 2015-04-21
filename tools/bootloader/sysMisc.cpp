@@ -27,26 +27,26 @@
  */
 EXTERNAL int sysArg(int argno, char *buf, int buflen)
 {
-    TRACE_PRINTF("%s: sysArg %d\n", Me, argno);
-    if (argno == -1) { // return arg count
-        return JavaArgc;
-        /***********
-      for (int i = 0;;++i)
-         if (JavaArgs[i] == 0)
-            return i;
-        **************/
-    } else { // return i-th arg
-        const char *src = JavaArgs[argno];
-        for (int i = 0;; ++i)
-        {
-            if (*src == 0)
-                return i;
-            if (i == buflen)
-                return -1;
-            *buf++ = *src++;
-        }
+  TRACE_PRINTF("%s: sysArg %d\n", Me, argno);
+  if (argno == -1) { // return arg count
+    return JavaArgc;
+    /***********
+    for (int i = 0;;++i)
+     if (JavaArgs[i] == 0)
+        return i;
+    **************/
+  } else { // return i-th arg
+    const char *src = JavaArgs[argno];
+    for (int i = 0;; ++i)
+    {
+      if (*src == 0)
+        return i;
+      if (i == buflen)
+        return -1;
+      *buf++ = *src++;
     }
-    /* NOTREACHED */
+  }
+  /* NOTREACHED */
 }
 
 /**
@@ -77,15 +77,15 @@ EXTERNAL int sysArg(int argno, char *buf, int buflen)
  */
 static int loadResultBuf(char * dest, int limit, const char *src)
 {
-    if ( ! src )         // Is it set?
-   return -2;      // Tell caller it was unset.
+  if ( ! src )         // Is it set?
+    return -2;      // Tell caller it was unset.
 
-    for (int i = 0;; ++i) {
-   if ( i < limit ) // If there's room for the next char of the value ...
-       dest[i] = src[i];   // ... write it into the destination buffer.
-   if (src[i] == '\0')
-       return i;      // done, return # of chars needed for SRC
-    }
+  for (int i = 0;; ++i) {
+    if ( i < limit ) // If there's room for the next char of the value ...
+      dest[i] = src[i];   // ... write it into the destination buffer.
+    if (src[i] == '\0')
+      return i;      // done, return # of chars needed for SRC
+  }
 }
 
 /**
@@ -103,8 +103,8 @@ static int loadResultBuf(char * dest, int limit, const char *src)
  */
 EXTERNAL int sysGetenv(const char *varName, char *buf, int limit)
 {
-    TRACE_PRINTF("%s: sysGetenv %s\n", Me, varName);
-    return loadResultBuf(buf, limit, getenv(varName));
+  TRACE_PRINTF("%s: sysGetenv %s\n", Me, varName);
+  return loadResultBuf(buf, limit, getenv(varName));
 }
 
 /**
@@ -119,17 +119,17 @@ EXTERNAL int sysGetenv(const char *varName, char *buf, int limit)
  * Returned   negative value for errors
  */
 EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
-                   const char *defaultFactor, int roundTo,
-                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
-                   const char *subtoken /* e.g., "200M" or "200" */)
+                                  const char *defaultFactor, int roundTo,
+                                  const char *token /* e.g., "-Xms200M" or "-Xms200" */,
+                                  const char *subtoken /* e.g., "200M" or "200" */)
 {
-    TRACE_PRINTF("%s: sysParseMemorySize %s\n", Me, token);
-    bool fastExit = false;
-    unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
-                                         (unsigned) roundTo, token, subtoken,
-                                         &fastExit);
-    if (fastExit)
-        return -1;
-    else
-        return (jlong) ret_uns;
+  TRACE_PRINTF("%s: sysParseMemorySize %s\n", Me, token);
+  bool fastExit = false;
+  unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
+                                       (unsigned) roundTo, token, subtoken,
+                                       &fastExit);
+  if (fastExit)
+    return -1;
+  else
+    return (jlong) ret_uns;
 }
