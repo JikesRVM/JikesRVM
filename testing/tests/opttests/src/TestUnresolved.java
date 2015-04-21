@@ -110,9 +110,13 @@ class temp4 {
   }
 }
 class temp5 {
-  int foo() { return 1; }
+  int foo() {
+    return 1;
+  }
 }
 
 class temp6 extends temp5 {
-  int foo() { return 2; }
+  int foo() {
+    return 2;
+  }
 }

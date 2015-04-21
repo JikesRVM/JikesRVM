@@ -174,8 +174,12 @@ public final class GenericFreeList extends BaseGenericFreeList {
   }
 
   /* Getter */
-  int[] getTable() { return table; }
-  int getHeads() { return heads; }
+  int[] getTable() {
+    return table;
+  }
+  int getHeads() {
+    return heads;
+  }
 
   /**
    * Initialize a unit as a sentinel

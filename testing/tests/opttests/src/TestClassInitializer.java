@@ -11,15 +11,27 @@
  *  regarding copyright ownership.
  */
 class TestClassInitializerA {
-   static         { System.out.println("clinit called for TestClassInitializerA"); }
-   static int f() { System.out.println("TestClassInitializerA.f called"); return 123; }
+   static {
+     System.out.println("clinit called for TestClassInitializerA");
+   }
+   static int f() {
+     System.out.println("TestClassInitializerA.f called");
+     return 123;
+   }
    static int i = f();
 }
 
 class TestClassInitializerB {
-   TestClassInitializerB()        { }
-   static     { System.out.println("clinit called for TestClassInitializerB"); }
-   int    f() { System.out.println("TestClassInitializerB.f called"); return 456; }
+   TestClassInitializerB() {
+     // nothing to do
+   }
+   static {
+     System.out.println("clinit called for TestClassInitializerB");
+   }
+   int f() {
+     System.out.println("TestClassInitializerB.f called");
+     return 456;
+   }
 }
 
 class TestClassInitializerC {

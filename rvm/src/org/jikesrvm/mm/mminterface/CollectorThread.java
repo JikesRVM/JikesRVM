@@ -43,7 +43,9 @@ public final class CollectorThread extends SystemThread {
 
   /** @return the thread scanner instance associated with this instance */
   @Uninterruptible
-  public ScanThread getThreadScanner() { return threadScanner; }
+  public ScanThread getThreadScanner() {
+    return threadScanner;
+  }
 
   /***********************************************************************
    *

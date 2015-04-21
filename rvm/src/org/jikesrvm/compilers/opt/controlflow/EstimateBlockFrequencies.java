@@ -78,7 +78,9 @@ public class EstimateBlockFrequencies extends CompilerPhase {
   private BasicBlock[] topOrder;
 
   @Override
-  public String getName() { return "Estimate Block Frequencies"; }
+  public String getName() {
+    return "Estimate Block Frequencies";
+  }
 
   @Override
   public void reportAdditionalStats() {

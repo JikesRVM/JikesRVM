@@ -35,8 +35,12 @@ public abstract class BranchProfile {
     freq = _freq;
   }
 
-  public final int getBytecodeIndex() { return bci; }
+  public final int getBytecodeIndex() {
+    return bci;
+  }
 
-  public final float getFrequency() { return freq; }
+  public final float getFrequency() {
+    return freq;
+  }
 
 }

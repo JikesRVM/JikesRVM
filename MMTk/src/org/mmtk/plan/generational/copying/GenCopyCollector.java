@@ -157,5 +157,7 @@ public class GenCopyCollector extends GenCollector {
   }
 
   @Override
-  public final TraceLocal getFullHeapTrace() { return matureTrace; }
+  public final TraceLocal getFullHeapTrace() {
+    return matureTrace;
+  }
 }

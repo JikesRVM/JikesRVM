@@ -179,6 +179,8 @@ public abstract class ReflectionBase {
    */
   public static final ReflectionBase nullInvoker = new ReflectionBase() {
     @Override
-    public Object invokeInternal(Object obj, Object[] args) { return null; }
+    public Object invokeInternal(Object obj, Object[] args) {
+      return null;
+    }
   };
 }

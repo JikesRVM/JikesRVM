@@ -55,7 +55,9 @@ public abstract class IREnumeration {
       private final Instruction last = end;
 
       @Override
-      public boolean hasMoreElements() { return current != null; }
+      public boolean hasMoreElements() {
+        return current != null;
+      }
 
       @Override
       public Instruction nextElement() {
@@ -94,7 +96,9 @@ public abstract class IREnumeration {
       private final Instruction last = end;
 
       @Override
-      public boolean hasMoreElements() { return current != null; }
+      public boolean hasMoreElements() {
+        return current != null;
+      }
 
       @Override
       public Instruction nextElement() {
@@ -124,7 +128,9 @@ public abstract class IREnumeration {
       private Instruction current = ir.firstInstructionInCodeOrder();
 
       @Override
-      public boolean hasMoreElements() { return current != null; }
+      public boolean hasMoreElements() {
+        return current != null;
+      }
 
       @Override
       public Instruction nextElement() {
@@ -151,7 +157,9 @@ public abstract class IREnumeration {
       private Instruction current = ir.lastInstructionInCodeOrder();
 
       @Override
-      public boolean hasMoreElements() { return current != null; }
+      public boolean hasMoreElements() {
+        return current != null;
+      }
 
       @Override
       public Instruction nextElement() {
@@ -178,7 +186,9 @@ public abstract class IREnumeration {
       private BasicBlock current = ir.firstBasicBlockInCodeOrder();
 
       @Override
-      public boolean hasMoreElements() { return current != null; }
+      public boolean hasMoreElements() {
+        return current != null;
+      }
 
       @Override
       public BasicBlock nextElement() {
@@ -205,7 +215,9 @@ public abstract class IREnumeration {
       private BasicBlock current = ir.lastBasicBlockInCodeOrder();
 
       @Override
-      public boolean hasMoreElements() { return current != null; }
+      public boolean hasMoreElements() {
+        return current != null;
+      }
 
       @Override
       public BasicBlock nextElement() {

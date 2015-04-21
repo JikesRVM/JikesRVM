@@ -92,14 +92,18 @@ public final class ExceptionHandlerBasicBlockBag {
       // Initialize enumeration to point to first ehbb (if any)
       {
         ExceptionHandlerBasicBlockBag c = ExceptionHandlerBasicBlockBag.this;
-        while (c != null && (c.local == null || c.local.length == 0)) { c = c.caller; }
+        while (c != null && (c.local == null || c.local.length == 0)) {
+          c = c.caller;
+        }
         if (c != null) {
           cur_bag = c;
         }
       }
 
       @Override
-      public boolean hasMoreElements() { return cur_bag != null; }
+      public boolean hasMoreElements() {
+        return cur_bag != null;
+      }
 
       @Override
       public BasicBlock nextElement() {

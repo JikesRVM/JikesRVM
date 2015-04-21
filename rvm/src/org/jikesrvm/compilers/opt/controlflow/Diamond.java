@@ -49,22 +49,30 @@ final class Diamond {
   /**
    * @return the top of the diamond
    */
-  BasicBlock getTop() { return top; }
+  BasicBlock getTop() {
+    return top;
+  }
 
   /**
    * @return the bottom of the diamond
    */
-  BasicBlock getBottom() { return bottom; }
+  BasicBlock getBottom() {
+    return bottom;
+  }
 
   /**
    * @return the "taken" branch of the diamond (might be {@code null})
    */
-  BasicBlock getTaken() { return taken;}
+  BasicBlock getTaken() {
+    return taken;
+  }
 
   /**
    * @return the "not-taken" branch of the diamond (might be {@code null})
    */
-  BasicBlock getNotTaken() { return notTaken; }
+  BasicBlock getNotTaken() {
+    return notTaken;
+  }
 
   Diamond(BasicBlock top, BasicBlock taken, BasicBlock notTaken, BasicBlock bottom) {
     this.top = top;

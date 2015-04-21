@@ -114,7 +114,10 @@ import org.vmmagic.unboxed.*;
   @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
-    if (DEBUG) { Log.write("--Phase Mutator."); Log.writeln(Phase.getName(phaseId)); }
+    if (DEBUG) {
+      Log.write("--Phase Mutator.");
+      Log.writeln(Phase.getName(phaseId));
+    }
 
     // TODO do we need to worry any longer about primary??
     if (phaseId == SSGCspy.PREPARE) {

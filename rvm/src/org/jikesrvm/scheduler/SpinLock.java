@@ -103,7 +103,9 @@ public final class SpinLock {
   @Entrypoint
   @Untraced
   RVMThread latestContender;
-  public boolean lockHeld() { return latestContender != null; }
+  public boolean lockHeld() {
+    return latestContender != null;
+  }
   // FIXME: save the string somewhere.
   public void lock(String s) {
     lock();

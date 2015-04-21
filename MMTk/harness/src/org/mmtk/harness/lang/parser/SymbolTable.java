@@ -64,8 +64,13 @@ public class SymbolTable {
   /** The current syntactic scope level */
   private int currentScope = 0;
 
-  int getCurrentScope() { return currentScope; }
-  int getFreeLocation() { return nextLocation++; }
+  int getCurrentScope() {
+    return currentScope;
+  }
+
+  int getFreeLocation() {
+    return nextLocation++;
+  }
 
   /**
    * Declare a new variable

@@ -45,9 +45,18 @@ public class LoadNamedField extends AbstractAST implements Expression {
   public Object accept(Visitor v) {
     return v.visit(this);
   }
-  public Symbol getObjectSymbol() {    return symbol;  }
-  public String getFieldName() { return fieldName; }
-  public int getSlot() { return slot; }
+
+  public Symbol getObjectSymbol() {
+    return symbol;
+  }
+
+  public String getFieldName() {
+    return fieldName;
+  }
+
+  public int getSlot() {
+    return slot;
+  }
 
   public Type getType() {
     return type;

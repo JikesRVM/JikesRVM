@@ -28,20 +28,32 @@ import org.vmmagic.pragma.*;
 public class StickyImmixConstraints extends ImmixConstraints {
   /** @return The number of specialized scans.  We need nursery &amp; full heap. */
   @Override
-  public int numSpecializedScans() { return 3; }
+  public int numSpecializedScans() {
+    return 3;
+  }
 
   @Override
-  public boolean needsObjectReferenceWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean needsLogBitInHeader() { return true; }
+  public boolean needsLogBitInHeader() {
+    return true;
+  }
 
   @Override
-  public int maxNonLOSDefaultAllocBytes() { return MAX_IMMIX_OBJECT_BYTES; }
+  public int maxNonLOSDefaultAllocBytes() {
+    return MAX_IMMIX_OBJECT_BYTES;
+  }
 
   @Override
-  public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES; }
+  public int maxNonLOSCopyBytes() {
+    return MAX_IMMIX_OBJECT_BYTES;
+  }
 
   @Override
-  public boolean objectReferenceBulkCopySupported() { return true; }
+  public boolean objectReferenceBulkCopySupported() {
+    return true;
+  }
 }

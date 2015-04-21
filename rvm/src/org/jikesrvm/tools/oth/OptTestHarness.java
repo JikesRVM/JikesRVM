@@ -527,9 +527,14 @@ class OptTestHarness {
       this.output = output;
     }
 
-    void reset() { start = Time.nanoTime(); }
+    void reset() {
+      start = Time.nanoTime();
+    }
 
-    void stop() { if (end == 0) end = Time.nanoTime(); }
+    void stop() {
+      if (end == 0)
+        end = Time.nanoTime();
+    }
 
     void show() {
       stop();  // In case we got here due to a System.exit
@@ -542,7 +547,9 @@ class OptTestHarness {
     }
 
     @Override
-    public void notifyExit(int discard) { show(); }
+    public void notifyExit(int discard) {
+      show();
+    }
   }
 
 }

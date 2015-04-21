@@ -50,7 +50,9 @@ public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
   }
 
   @Override
-  public final IR getIR() { return burs.ir; }
+  public final IR getIR() {
+    return burs.ir;
+  }
 
   protected final void EMIT(Instruction s) {
     burs.append(s);

@@ -83,8 +83,13 @@ public final class ChunkList {
     if (VM.VERIFY_ASSERTIONS) checkMap();
   }
 
-  private int getChunkIndex(int entry) { return entry & (ENTRIES_IN_CHUNK_MAP_BLOCK - 1);}
-  private int getChunkMap(int entry) { return entry & ~(ENTRIES_IN_CHUNK_MAP_BLOCK - 1);}
+  private int getChunkIndex(int entry) {
+    return entry & (ENTRIES_IN_CHUNK_MAP_BLOCK - 1);
+  }
+
+  private int getChunkMap(int entry) {
+    return entry & ~(ENTRIES_IN_CHUNK_MAP_BLOCK - 1);
+  }
 
   private Address getMapAddress(int entry) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(entry >= 0);
@@ -145,7 +150,9 @@ public final class ChunkList {
     Address chunk;
     do {
       entry += stride;
-      if (entry > chunkMapLimit) { entry = entry % stride; }
+      if (entry > chunkMapLimit) {
+        entry = entry % stride;
+      }
       chunk = getMapAddress(entry).loadAddress();
     } while (chunk.isZero() && entry != start);
     return entry == start ? Address.zero() : chunk;

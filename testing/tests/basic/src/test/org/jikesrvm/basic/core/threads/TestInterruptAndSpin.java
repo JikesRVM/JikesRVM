@@ -37,7 +37,9 @@ public class TestInterruptAndSpin {
 
       // Long running loop, should yield at some point
       int count = 0;
-      for (int i = 0; i < 10000000; ++i) { count += i; }
+      for (int i = 0; i < 10000000; ++i) {
+        count += i;
+      }
       System.out.println("count is " + count);
 
       if (count == 17)

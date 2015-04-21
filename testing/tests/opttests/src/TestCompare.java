@@ -96,8 +96,12 @@ class TestCompare {
   }
 
    static String str = "";
-   static void zero() { str += "0"; }
-   static void one()  { str += "1"; }
+   static void zero() {
+     str += "0";
+   }
+   static void one() {
+     str += "1";
+   }
 
    static void zero_cmp() {
       int i = -1;

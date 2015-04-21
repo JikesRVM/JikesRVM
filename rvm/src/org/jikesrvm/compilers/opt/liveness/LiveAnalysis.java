@@ -861,7 +861,9 @@ public final class LiveAnalysis extends CompilerPhase {
           // NOTE: this translation does some screening, see GCIRMap.java
           List<RegSpillListElement> regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
-          if (VERBOSE) { System.out.println("SAVING GC Map"); }
+          if (VERBOSE) {
+            System.out.println("SAVING GC Map");
+          }
         }       // is GC instruction, and map not already made
 
         // now process the uses

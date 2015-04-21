@@ -100,7 +100,9 @@ public class LSTNode extends SpaceEffGraphNode {
       private SpaceEffGraphEdge _edge = _outEdgeStart;
 
       @Override
-      public boolean hasMoreElements() { return _edge != null; }
+      public boolean hasMoreElements() {
+        return _edge != null;
+      }
 
       @Override
       public LSTNode nextElement() {

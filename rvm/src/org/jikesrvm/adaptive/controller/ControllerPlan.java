@@ -225,63 +225,89 @@ public final class ControllerPlan {
   /**
    * @return the compilation plan
    */
-  public CompilationPlan getCompPlan() { return compPlan; }
+  public CompilationPlan getCompPlan() {
+    return compPlan;
+  }
 
   /**
    * @return the expected speedup <em>for this method </em> due to this recompilation
    */
-  public double getExpectedSpeedup() { return expectedSpeedup; }
+  public double getExpectedSpeedup() {
+    return expectedSpeedup;
+  }
 
   /**
    * @return the expected compilation time for this method
    */
-  public double getExpectedCompilationTime() { return expectedCompilationTime; }
+  public double getExpectedCompilationTime() {
+    return expectedCompilationTime;
+  }
 
   /**
    * @return the priority (how important is it that this plan be executed)
    */
-  public double getPriority() { return priority; }
+  public double getPriority() {
+    return priority;
+  }
 
   /**
    * @return the time this plan was created
    */
-  public int getTimeCreated() { return timeCreated; }
+  public int getTimeCreated() {
+    return timeCreated;
+  }
 
   /**
    * @return the time (according to the controller clock) compilation of this plan
    * began.
    */
-  public int getTimeInitiated() { return timeInitiated; }
+  public int getTimeInitiated() {
+    return timeInitiated;
+  }
 
-  public void setTimeInitiated(int t) { timeInitiated = t; }
+  public void setTimeInitiated(int t) {
+    timeInitiated = t;
+  }
 
   /**
    * @return the time (according to the controller clock) compilation of this plan
    * completed.
    */
-  public int getTimeCompleted() { return timeCompleted; }
+  public int getTimeCompleted() {
+    return timeCompleted;
+  }
 
-  public void setTimeCompleted(int t) { timeCompleted = t; }
+  public void setTimeCompleted(int t) {
+    timeCompleted = t;
+  }
 
   /**
    * @return CMID (compiled method id) associated with the code produced
    * by executing this plan
    */
-  public int getCMID() { return CMID; }
+  public int getCMID() {
+    return CMID;
+  }
 
-  public void setCMID(int x) { CMID = x; }
+  public void setCMID(int x) {
+    CMID = x;
+  }
 
   /**
    * @return CMID (compiled method id) associated with the *PREVIOUS* compiled
    * version of this method
    */
-  public int getPrevCMID() { return prevCMID; }
+  public int getPrevCMID() {
+    return prevCMID;
+  }
 
   /**
    * @return status of this compilation plan, chosen from the values defined
    *  in this class
    */
-  public byte getStatus() { return status; }
+  public byte getStatus() {
+    return status;
+  }
 
   public void setStatus(byte newStatus) {
     status = newStatus;
@@ -303,7 +329,9 @@ public final class ControllerPlan {
     }
   }
 
-  public void setPlanList(LinkedList<ControllerPlan> list) { planList = list; }
+  public void setPlanList(LinkedList<ControllerPlan> list) {
+    planList = list;
+  }
 
   public String getStatusString() {
     switch (status) {

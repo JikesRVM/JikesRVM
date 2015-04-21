@@ -90,7 +90,9 @@ public final class RecompilationManager {
 
     if (VM.BuildForAdaptiveSystem) {
       // clear profiling counter
-      if (DEBUG || report) { VM.sysWrite("Reseting profiling information\n"); }
+      if (DEBUG || report) {
+        VM.sysWrite("Reseting profiling information\n");
+      }
       RuntimeMeasurements.resetReportableObjects();
     }
   }

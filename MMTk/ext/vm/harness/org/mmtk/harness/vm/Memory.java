@@ -142,27 +142,49 @@ public class Memory extends org.mmtk.vm.Memory {
    * called by MMTk users.
    */
   @Override
-  protected Address getHeapStartConstant() { return getHeapstartaddress(); }
+  protected Address getHeapStartConstant() {
+    return getHeapstartaddress();
+  }
   @Override
-  protected Address getHeapEndConstant() { return getHeapendaddress(); }
+  protected Address getHeapEndConstant() {
+    return getHeapendaddress();
+  }
   @Override
-  protected Address getAvailableStartConstant() { return getHeapstartaddress().plus(getVmspacesize()); }
+  protected Address getAvailableStartConstant() {
+    return getHeapstartaddress().plus(getVmspacesize());
+  }
   @Override
-  protected Address getAvailableEndConstant()  { return getHeapendaddress(); }
+  protected Address getAvailableEndConstant()  {
+    return getHeapendaddress();
+  }
   @Override
-  protected byte getLogBytesInAddressConstant() { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
+  protected byte getLogBytesInAddressConstant() {
+    return (byte) MemoryConstants.LOG_BYTES_IN_WORD;
+  }
   @Override
-  protected byte getLogBytesInWordConstant() { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
+  protected byte getLogBytesInWordConstant() {
+    return (byte) MemoryConstants.LOG_BYTES_IN_WORD;
+  }
   @Override
-  protected byte getLogBytesInPageConstant() { return MemoryConstants.LOG_BYTES_IN_PAGE; }
+  protected byte getLogBytesInPageConstant() {
+    return MemoryConstants.LOG_BYTES_IN_PAGE;
+  }
   @Override
-  protected byte getLogMinAlignmentConstant()  { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
+  protected byte getLogMinAlignmentConstant()  {
+    return (byte) MemoryConstants.LOG_BYTES_IN_WORD;
+  }
   @Override
-  protected byte getMaxAlignmentShiftConstant() { return 1; }
+  protected byte getMaxAlignmentShiftConstant() {
+    return 1;
+  }
   @Override
-  protected int getMaxBytesPaddingConstant() { return MemoryConstants.BYTES_IN_WORD; }
+  protected int getMaxBytesPaddingConstant() {
+    return MemoryConstants.BYTES_IN_WORD;
+  }
   @Override
-  protected int getAlignmentValueConstant() { return ObjectModel.ALIGNMENT_VALUE; }
+  protected int getAlignmentValueConstant() {
+    return ObjectModel.ALIGNMENT_VALUE;
+  }
 
   /**
    * @return the vmspacesize

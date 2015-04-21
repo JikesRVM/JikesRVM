@@ -616,7 +616,11 @@ public abstract class RVMType extends AnnotatedElement {
             return Class.forName(classNameString.replace('/', '.'), false, RVMType.class.getClassLoader());
           }
         }
-      } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
+      } catch (ClassNotFoundException e) {
+        x = e;
+      } catch (SecurityException e) {
+        x = e;
+      }
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
         // fix up class for code array
         return CodeArray.class;

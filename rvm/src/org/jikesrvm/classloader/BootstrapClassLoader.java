@@ -222,7 +222,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   public static final String myName = "BootstrapCL";
 
   @Override
-  public String toString() { return myName; }
+  public String toString() {
+    return myName;
+  }
 
   private static HashMap<String, ZipFile> zipFileCache;
 
@@ -240,7 +242,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       InputStream stream;
 
       @Override
-      public InputStream getResult() { return stream; }
+      public InputStream getResult() {
+        return stream;
+      }
 
       @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
@@ -262,7 +266,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       URL url;
 
       @Override
-      public URL getResult() { return url; }
+      public URL getResult() {
+        return url;
+      }
 
       @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {

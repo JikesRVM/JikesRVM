@@ -46,11 +46,21 @@ public class AddressTestBasic {
   final Address veryLarge = Address.fromIntSignExtend(Integer.MIN_VALUE / 2);
   final Address largest = Address.max();
 
-  final Address zero() { return Address.fromIntSignExtend(0); }
-  final Address one() { return Address.fromIntSignExtend(1); }
-  final Address large() { return  Address.fromIntSignExtend(Integer.MAX_VALUE); }
-  final Address veryLarge() { return Address.fromIntSignExtend(Integer.MIN_VALUE / 2); }
-  final Address largest() { return Address.max(); }
+  final Address zero() {
+    return Address.fromIntSignExtend(0);
+  }
+  final Address one() {
+    return Address.fromIntSignExtend(1);
+  }
+  final Address large() {
+    return  Address.fromIntSignExtend(Integer.MAX_VALUE);
+  }
+  final Address veryLarge() {
+    return Address.fromIntSignExtend(Integer.MIN_VALUE / 2);
+  }
+  final Address largest() {
+    return Address.max();
+  }
 
   @Test
   public void testZero() {

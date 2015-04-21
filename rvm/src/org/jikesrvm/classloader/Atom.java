@@ -97,7 +97,9 @@ public final class Atom {
   /**
    *@return the id of this atom.
    */
-  int getId() { return id; }
+  int getId() {
+    return id;
+  }
 
   /**
    * Find or create an atom.

@@ -36,7 +36,9 @@ class Flag {
           } catch (InterruptedException e) {
             // ignore
           }
-          if (!flag) { XThread.say("flag: timed out"); }
+          if (!flag) {
+            XThread.say("flag: timed out");
+          }
         }
       } else {
         try {

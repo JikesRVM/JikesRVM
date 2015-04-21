@@ -78,10 +78,14 @@ public final class TailRecursionElimination extends CompilerPhase {
   }
 
   @Override
-  public String getName() { return "Tail Recursion Elimination"; }
+  public String getName() {
+    return "Tail Recursion Elimination";
+  }
 
   @Override
-  public CompilerPhase newExecution(IR ir) { return this; }
+  public CompilerPhase newExecution(IR ir) {
+    return this;
+  }
 
   /**
    * Perform tail recursion elimination.

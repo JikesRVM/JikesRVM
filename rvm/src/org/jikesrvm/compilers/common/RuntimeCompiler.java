@@ -492,7 +492,9 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
   /* recompile the specialized method with Compiler. */
   public static CompiledMethod recompileWithOptOnStackSpecialization(CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
-      if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
+      if (VM.VerifyAssertions) {
+        VM._assert(plan.method.isForOsrSpecialization());
+      }
       if (compilationInProgress) {
         return null;
       }

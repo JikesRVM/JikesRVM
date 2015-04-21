@@ -18,7 +18,11 @@ class TestStop {
     final Worker w = new Worker();
     w.start();
     while (!w.running) {
-      try { Thread.sleep(1000); } catch (InterruptedException e) { }
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        // ignore
+      }
     }
 
     XThread.say("sending interrupt");
@@ -26,7 +30,11 @@ class TestStop {
 
     XThread.say("waiting for TestStopWorker to die");
     while (w.isAlive()) {
-      try { Thread.sleep(1000); } catch (InterruptedException e) { }
+      try {
+       Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        // ignore
+      }
     }
 
     XThread.say("bye");
@@ -34,11 +42,15 @@ class TestStop {
   }
 
   static class Worker extends XThread {
-    Worker() { super("Worker"); }
+    Worker() {
+      super("Worker");
+    }
 
     void performTask() {
       try {
-        while (true) { Thread.yield(); }
+        while (true) {
+          Thread.yield();
+        }
       } catch (final Exception e) {
         tsay("received interrupt " + e);
       }

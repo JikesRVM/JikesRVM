@@ -160,7 +160,11 @@ class TestRuntimeExec extends Thread {
                 // or the process.
                 new Thread() {
                     public void run() {
-                        try { Thread.sleep(2000); } catch (Exception e) { }
+                        try {
+                          Thread.sleep(2000);
+                        } catch (Exception e) {
+                          // ignore
+                        }
                         waiter.interrupt();
                     }
                 }.start();
@@ -179,7 +183,11 @@ class TestRuntimeExec extends Thread {
                             exited = true;
                         } catch (IllegalThreadStateException e) {
                             System.out.println("still alive!");
-                            try { Thread.sleep(1000); } catch (Exception ee) { }
+                            try {
+                              Thread.sleep(1000);
+                            } catch (Exception ee) {
+                              // ignore
+                            }
                         }
                     }
                     while (!exited);

@@ -22,63 +22,103 @@ import org.vmmagic.pragma.*;
 public class UsePrimitiveWriteBarriersConstraints extends SSConstraints {
 
   @Override
-  public boolean needsBooleanWriteBarrier() { return true; }
+  public boolean needsBooleanWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean booleanBulkCopySupported() { return true; }
+  public boolean booleanBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsByteWriteBarrier() { return true; }
+  public boolean needsByteWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean byteBulkCopySupported() { return true; }
+  public boolean byteBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsCharWriteBarrier() { return true; }
+  public boolean needsCharWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean charBulkCopySupported() { return true; }
+  public boolean charBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsShortWriteBarrier() { return true; }
+  public boolean needsShortWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean shortBulkCopySupported() { return true; }
+  public boolean shortBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsIntWriteBarrier() { return true; }
+  public boolean needsIntWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean intBulkCopySupported() { return true; }
+  public boolean intBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsLongWriteBarrier() { return true; }
+  public boolean needsLongWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean longBulkCopySupported() { return true; }
+  public boolean longBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsFloatWriteBarrier() { return true; }
+  public boolean needsFloatWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean floatBulkCopySupported() { return true; }
+  public boolean floatBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsDoubleWriteBarrier() { return true; }
+  public boolean needsDoubleWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean doubleBulkCopySupported() { return true; }
+  public boolean doubleBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public boolean needsWordWriteBarrier() { return true; }
+  public boolean needsWordWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean needsAddressWriteBarrier() { return true; }
+  public boolean needsAddressWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean needsExtentWriteBarrier() { return true; }
+  public boolean needsExtentWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean needsOffsetWriteBarrier() { return true; }
+  public boolean needsOffsetWriteBarrier() {
+    return true;
+  }
 
 }

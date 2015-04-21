@@ -373,7 +373,9 @@ public final class ControlFlowGraph extends SpaceEffGraph {
     }
 
     @Override
-    public boolean hasMoreElements() { return _node != null; }
+    public boolean hasMoreElements() {
+      return _node != null;
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -388,5 +390,7 @@ public final class ControlFlowGraph extends SpaceEffGraph {
     }
   }
 
-  public Enumeration<BasicBlock> basicBlocks() { return new NodeEnumeration<BasicBlock>(this); }
+  public Enumeration<BasicBlock> basicBlocks() {
+    return new NodeEnumeration<BasicBlock>(this);
+  }
 }

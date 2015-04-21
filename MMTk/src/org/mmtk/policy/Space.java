@@ -205,40 +205,64 @@ public abstract class Space {
    */
 
   /** @return The start of the discontiguous space */
-  public static Address getDiscontigStart() { return heapCursor; }
+  public static Address getDiscontigStart() {
+    return heapCursor;
+  }
 
   /** @return The end of the discontiguous space */
-  public static Address getDiscontigEnd() { return heapLimit.minus(1); }
+  public static Address getDiscontigEnd() {
+    return heapLimit.minus(1);
+  }
 
   /** @return The name of this space */
-  public final String getName() { return name; }
+  public final String getName() {
+    return name;
+  }
 
   /** @return The start address of this space */
-  public final Address getStart() { return start; }
+  public final Address getStart() {
+    return start;
+  }
 
   /** @return The size (extent) of this space */
-  public final Extent getExtent() { return extent; }
+  public final Extent getExtent() {
+    return extent;
+  }
 
   /** @return The integer descriptor for this space */
-  public final int getDescriptor() { return descriptor; }
+  public final int getDescriptor() {
+    return descriptor;
+  }
 
   /** @return The index (ordinal number) of this space */
-  public final int getIndex() { return index; }
+  public final int getIndex() {
+    return index;
+  }
 
   /** @return {@code true} if this space is never collected */
-  public final boolean isImmortal() { return immortal; }
+  public final boolean isImmortal() {
+    return immortal;
+  }
 
   /** @return {@code true} if objects in this space may move */
-  public boolean isMovable() { return movable; }
+  public boolean isMovable() {
+    return movable;
+  }
 
   /** @return The number of reserved pages */
-  public final int reservedPages() { return pr.reservedPages(); }
+  public final int reservedPages() {
+    return pr.reservedPages();
+  }
 
   /** @return The number of committed pages */
-  public final int committedPages() { return pr.committedPages(); }
+  public final int committedPages() {
+    return pr.committedPages();
+  }
 
   /** @return The number of pages available for allocation */
-  public final int availablePhysicalPages() { return pr.getAvailablePhysicalPages(); }
+  public final int availablePhysicalPages() {
+    return pr.getAvailablePhysicalPages();
+  }
 
   /** @return Cumulative committed pages. */
   public static long cumulativeCommittedPages() {
@@ -539,12 +563,16 @@ public abstract class Space {
   /**
    * Print out the memory used by all spaces, in megabytes
    */
-  public static void printUsageMB() { printUsage(MB); }
+  public static void printUsageMB() {
+    printUsage(MB);
+  }
 
   /**
    * Print out the memory used by all spaces, in megabytes
    */
-  public static void printUsagePages() { printUsage(PAGES); }
+  public static void printUsagePages() {
+    printUsage(PAGES);
+  }
 
   /**
    * Print out a map of virtual memory useage by all spaces

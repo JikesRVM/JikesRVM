@@ -56,45 +56,85 @@ public final class ControllerMemory {
   private static int numOpt3 = 0;
   private static int numOpt4 = 0;
 
-  public static int getNumAwoken() { return awoken; }
+  public static int getNumAwoken() {
+    return awoken;
+  }
 
-  public static int getNumDidNothing() { return didNothing; }
+  public static int getNumDidNothing() {
+    return didNothing;
+  }
 
-  public static int getNumMethodsConsidered() { return numMethodsConsidered; }
+  public static int getNumMethodsConsidered() {
+    return numMethodsConsidered;
+  }
 
-  public static int getNumMethodsScheduledForRecomp() { return numMethodsScheduledForRecomp; }
+  public static int getNumMethodsScheduledForRecomp() {
+    return numMethodsScheduledForRecomp;
+  }
 
-  public static int getNumBase() { return numBase; }
+  public static int getNumBase() {
+    return numBase;
+  }
 
-  public static int getNumOpt0() { return numOpt0; }
+  public static int getNumOpt0() {
+    return numOpt0;
+  }
 
-  public static int getNumOpt1() { return numOpt1; }
+  public static int getNumOpt1() {
+    return numOpt1;
+  }
 
-  public static int getNumOpt2() { return numOpt2; }
+  public static int getNumOpt2() {
+    return numOpt2;
+  }
 
-  public static int getNumOpt3() { return numOpt3; }
+  public static int getNumOpt3() {
+    return numOpt3;
+  }
 
-  static int getNumOpt4() { return numOpt4; }
+  static int getNumOpt4() {
+    return numOpt4;
+  }
 
-  static void incrementNumAwoken() { awoken++; }
+  static void incrementNumAwoken() {
+    awoken++;
+  }
 
-  static void incrementNumDidNothing() { didNothing++; }
+  static void incrementNumDidNothing() {
+    didNothing++;
+  }
 
-  static void incrementNumMethodsConsidered() { numMethodsConsidered++; }
+  static void incrementNumMethodsConsidered() {
+    numMethodsConsidered++;
+  }
 
-  static void incrementNumMethodsScheduledForRecomp() { numMethodsScheduledForRecomp++; }
+  static void incrementNumMethodsScheduledForRecomp() {
+    numMethodsScheduledForRecomp++;
+  }
 
-  public static void incrementNumBase() { numBase++; }
+  public static void incrementNumBase() {
+    numBase++;
+  }
 
-  static void incrementNumOpt0() { numOpt0++; }
+  static void incrementNumOpt0() {
+    numOpt0++;
+  }
 
-  static void incrementNumOpt1() { numOpt1++; }
+  static void incrementNumOpt1() {
+    numOpt1++;
+  }
 
-  static void incrementNumOpt2() { numOpt2++; }
+  static void incrementNumOpt2() {
+    numOpt2++;
+  }
 
-  static void incrementNumOpt3() { numOpt3++; }
+  static void incrementNumOpt3() {
+    numOpt3++;
+  }
 
-  static void incrementNumOpt4() { numOpt4++; }
+  static void incrementNumOpt4() {
+    numOpt4++;
+  }
 
   /**
    *  Inserts a controller plan keyed on the underlying method

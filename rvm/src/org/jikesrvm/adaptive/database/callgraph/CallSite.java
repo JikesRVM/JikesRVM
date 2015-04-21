@@ -42,12 +42,16 @@ public final class CallSite {
   /**
    * @return method containing the callsite
    */
-  public RVMMethod getMethod() { return method; }
+  public RVMMethod getMethod() {
+    return method;
+  }
 
   /**
    * @return call site's bytecode index in its method
    */
-  public int getBytecodeIndex() { return bcIndex; }
+  public int getBytecodeIndex() {
+    return bcIndex;
+  }
 
   /**
    * @return string representation of call site

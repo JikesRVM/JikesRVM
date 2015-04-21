@@ -23,24 +23,40 @@ public final class ExceptionHandlerMap {
   // Interface //
   //-----------//
 
-  public int[] getStartPC() { return startPCs; }
+  public int[] getStartPC() {
+    return startPCs;
+  }
 
-  public int[] getEndPC() { return endPCs; }
+  public int[] getEndPC() {
+    return endPCs;
+  }
 
-  public int[] getHandlerPC() { return handlerPCs; }
+  public int[] getHandlerPC() {
+    return handlerPCs;
+  }
 
-  public TypeReference[] getExceptionTypes() { return exceptionTypes; }
+  public TypeReference[] getExceptionTypes() {
+    return exceptionTypes;
+  }
 
-  public TypeReference getExceptionType(int i) { return exceptionTypes[i]; }
+  public TypeReference getExceptionType(int i) {
+    return exceptionTypes[i];
+  }
 
   /* we need to adjust the exception handler map for pseudo bytecode
   * TODO: OSR redesign; make a subclass of ExceptionHandlerMap with this functionality
   */
-  public void setStartPC(int[] newPCs) { startPCs = newPCs; }
+  public void setStartPC(int[] newPCs) {
+    startPCs = newPCs;
+  }
 
-  public void setEndPC(int[] newPCs) { endPCs = newPCs; }
+  public void setEndPC(int[] newPCs) {
+    endPCs = newPCs;
+  }
 
-  public void setHandlerPC(int[] newPCs) { handlerPCs = newPCs; }
+  public void setHandlerPC(int[] newPCs) {
+    handlerPCs = newPCs;
+  }
 
   //----------------//
   // Implementation //

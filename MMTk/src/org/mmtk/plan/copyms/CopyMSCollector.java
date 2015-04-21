@@ -144,6 +144,8 @@ public class CopyMSCollector extends StopTheWorldCollector {
 
   /** @return The current trace instance. */
   @Override
-  public final TraceLocal getCurrentTrace() { return trace; }
+  public final TraceLocal getCurrentTrace() {
+    return trace;
+  }
 
 }

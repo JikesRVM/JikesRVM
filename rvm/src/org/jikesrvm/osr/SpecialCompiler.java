@@ -143,7 +143,9 @@ public class SpecialCompiler {
   public static CompiledMethod optCompile(ExecutionState state) {
 
     NormalMethod method = state.getMethod();
-    if (VM.TraceOnStackReplacement) { VM.sysWriteln("OPT : starts compiling " + method); }
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("OPT : starts compiling " + method);
+    }
 
     ControllerPlan latestPlan = ControllerMemory.findLatestPlan(method);
 

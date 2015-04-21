@@ -157,7 +157,9 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
 
   @Override
   @Inline
-  protected int cellHeaderSize() { return 0; }
+  protected int cellHeaderSize() {
+    return 0;
+  }
 
   /**
    * Sweep through all the objects in this space.

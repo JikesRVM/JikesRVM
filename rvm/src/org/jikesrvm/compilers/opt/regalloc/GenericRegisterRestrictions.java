@@ -344,9 +344,13 @@ public abstract class GenericRegisterRestrictions {
      */
     private boolean noVolatiles = false;
 
-    boolean getNoVolatiles() { return noVolatiles; }
+    boolean getNoVolatiles() {
+      return noVolatiles;
+    }
 
-    void setNoVolatiles() { noVolatiles = true; }
+    void setNoVolatiles() {
+      noVolatiles = true;
+    }
 
     RestrictedRegisterSet(PhysicalRegisterSet phys) {
       bitset = new BitSet(phys);

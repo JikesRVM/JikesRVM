@@ -30,7 +30,9 @@ public class virtual {
          return lo.f1 + lo.f2;
   }
 
-  virtual(int i) { f1 = i; f2 = i + 4; }
+  virtual(int i) {
+    f1 = i; f2 = i + 4;
+  }
 
    int abc(int a) {
          f1 = f1 + a; f2 = f2 + a * 10;

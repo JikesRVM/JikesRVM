@@ -347,7 +347,9 @@ public final class TypeReference {
   private static void canonicalizeCL(ClassLoader cl) {
     clDict.add(cl);
   }
-  public static ImmutableEntryHashSetRVM<ClassLoader> getCLDict() { return clDict; }
+  public static ImmutableEntryHashSetRVM<ClassLoader> getCLDict() {
+    return clDict;
+  }
 
   /**
    * @param cl the classloader

@@ -27,7 +27,9 @@ public final class SpecializedMethodManager {
   private static final SpecializedMethod[] methods = new SpecializedMethod[numSpecializedMethods];
 
   /** @return the number of specialized methods */
-  public static int numSpecializedMethods() { return numSpecializedMethods; }
+  public static int numSpecializedMethods() {
+    return numSpecializedMethods;
+  }
 
   /**
    * Sets up the specialized methods for the given type.

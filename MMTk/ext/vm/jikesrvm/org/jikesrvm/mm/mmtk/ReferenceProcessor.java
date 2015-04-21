@@ -476,7 +476,9 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
      */
     if (!trace.isLive(reference)) {
       clearReferent(reference);                   // Too much paranoia ...
-      if (TRACE_UNREACHABLE) { VM.sysWriteln(" UNREACHABLE reference:  ",reference); }
+      if (TRACE_UNREACHABLE) {
+        VM.sysWriteln(" UNREACHABLE reference:  ",reference);
+      }
       if (TRACE_DETAIL) {
         VM.sysWriteln(" (unreachable)");
       }

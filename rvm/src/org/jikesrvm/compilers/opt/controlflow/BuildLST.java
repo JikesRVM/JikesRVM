@@ -25,7 +25,9 @@ import org.jikesrvm.compilers.opt.ir.IR;
  */
 public class BuildLST extends CompilerPhase {
   @Override
-  public String getName() { return "Build LST"; }
+  public String getName() {
+    return "Build LST";
+  }
 
   /**
    * This phase contains no per-compilation instance fields.

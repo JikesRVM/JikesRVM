@@ -29,20 +29,32 @@ import org.vmmagic.pragma.*;
 public class ImmixConstraints extends StopTheWorldConstraints {
 
   @Override
-  public int gcHeaderBits() { return ObjectHeader.LOCAL_GC_BITS_REQUIRED; }
+  public int gcHeaderBits() {
+    return ObjectHeader.LOCAL_GC_BITS_REQUIRED;
+  }
 
   @Override
-  public int gcHeaderWords() { return ObjectHeader.GC_HEADER_WORDS_REQUIRED; }
+  public int gcHeaderWords() {
+    return ObjectHeader.GC_HEADER_WORDS_REQUIRED;
+  }
 
   @Override
-  public boolean movesObjects() { return true;}
+  public boolean movesObjects() {
+    return true;
+  }
 
   @Override
-  public int numSpecializedScans() { return 2; }
+  public int numSpecializedScans() {
+    return 2;
+  }
 
   @Override
-  public int maxNonLOSDefaultAllocBytes() { return MAX_IMMIX_OBJECT_BYTES; }
+  public int maxNonLOSDefaultAllocBytes() {
+    return MAX_IMMIX_OBJECT_BYTES;
+  }
 
   @Override
-  public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES; }
+  public int maxNonLOSCopyBytes() {
+    return MAX_IMMIX_OBJECT_BYTES;
+  }
 }

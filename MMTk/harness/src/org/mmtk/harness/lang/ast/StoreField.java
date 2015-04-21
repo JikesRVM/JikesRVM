@@ -46,9 +46,19 @@ public class StoreField extends AbstractAST implements Statement {
     return v.visit(this);
   }
 
-  public Symbol getObjectSymbol() { return symbol; }
-  public Expression getIndex() { return index; }
-  public Type getFieldType() { return type; }
-  public Expression getRhs() { return value; }
-  public int getSlot() { return symbol.getLocation(); }
+  public Symbol getObjectSymbol() {
+    return symbol;
+  }
+  public Expression getIndex() {
+    return index;
+  }
+  public Type getFieldType() {
+    return type;
+  }
+  public Expression getRhs() {
+    return value;
+  }
+  public int getSlot() {
+    return symbol.getLocation();
+  }
 }

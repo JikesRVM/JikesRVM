@@ -258,7 +258,10 @@ import org.vmmagic.pragma.*;
   @Override
   @Inline
   public void collectionPhase(short phaseId) {
-    if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
+    if (DEBUG) {
+      Log.write("--Phase Plan.");
+      Log.writeln(Phase.getName(phaseId));
+    }
 
     if (phaseId == SSGCspy.PREPARE) {
       super.collectionPhase(phaseId);

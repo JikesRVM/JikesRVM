@@ -34,8 +34,12 @@ public class WhileStatement extends AbstractAST implements Statement {
     this.body = body;
   }
 
-  public Expression getCond() { return cond; }
-  public Statement getBody() { return body; }
+  public Expression getCond() {
+    return cond;
+  }
+  public Statement getBody() {
+    return body;
+  }
   @Override
   public Object accept(Visitor v) {
     return v.visit(this);

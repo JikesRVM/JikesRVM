@@ -475,7 +475,9 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
       set.add(u);
     }
 
-    int size() { return set.size(); }
+    int size() {
+      return set.size();
+    }
   }
 
   /**

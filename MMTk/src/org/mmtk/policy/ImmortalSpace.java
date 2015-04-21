@@ -92,7 +92,9 @@ import org.vmmagic.pragma.*;
 
   /** @return the current mark state */
   @Inline
-  public Word getMarkState() { return Word.fromIntZeroExtend(markState); }
+  public Word getMarkState() {
+    return Word.fromIntZeroExtend(markState);
+  }
 
   /****************************************************************************
    *

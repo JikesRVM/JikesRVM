@@ -291,16 +291,22 @@ public class Services {
   public static void breakStub() {
   }
 
-  static void println() { VM.sysWrite("\n"); }
+  static void println() {
+    VM.sysWrite("\n");
+  }
 
-  static void print(String s) { VM.sysWrite(s); }
+  static void print(String s) {
+    VM.sysWrite(s);
+  }
 
   static void println(String s) {
     print(s);
     println();
   }
 
-  static void print(int i) { VM.sysWrite(i); }
+  static void print(int i) {
+    VM.sysWrite(i);
+  }
 
   static void println(int i) {
     print(i);

@@ -67,13 +67,21 @@ public class OnStackReplacementPlan {
     this.status = ControllerPlan.UNINITIALIZED;
   }
 
-  public int getTimeInitiated() { return timeInitiated; }
+  public int getTimeInitiated() {
+    return timeInitiated;
+  }
 
-  public void setTimeInitiated(int t) { timeInitiated = t; }
+  public void setTimeInitiated(int t) {
+    timeInitiated = t;
+  }
 
-  public int getTimeCompleted() { return timeCompleted; }
+  public int getTimeCompleted() {
+    return timeCompleted;
+  }
 
-  public void setTimeCompleted(int t) { timeCompleted = t; }
+  public void setTimeCompleted(int t) {
+    timeCompleted = t;
+  }
 
   public void setStatus(byte newStatus) {
     status = newStatus;

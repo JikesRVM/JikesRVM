@@ -82,14 +82,18 @@ public class BootImageMap extends BootImageWriterMessages {
      * Constructor.
      * @param jdkObject the object to associate with the key
      */
-    public Key(Object jdkObject) { this.jdkObject = jdkObject; }
+    public Key(Object jdkObject) {
+      this.jdkObject = jdkObject;
+    }
 
     /**
      * Returns a hash code value for the key.
      * @return a hash code value for this key
      */
     @Override
-    public int hashCode() { return jdkObject.hashCode(); }
+    public int hashCode() {
+      return jdkObject.hashCode();
+    }
 
     /**
      * Indicates whether some other key is "equal to" this one.

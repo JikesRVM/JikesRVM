@@ -42,7 +42,9 @@ class vTest4 implements abc {
 
   int tval = 1000;
 
-  public int getVal() { return tval; }
+  public int getVal() {
+    return tval;
+  }
 
   public void putVal(int val) {
     tval += val;

@@ -159,7 +159,9 @@ public class LTDominators extends Stack<BasicBlock> {
     int size = cfg.numberOfNodes() + 1;
     vertex = new BasicBlock[size];
     DFSCounter = 0;
-    if (DEBUG) { System.out.println("Initializing blocks:"); }
+    if (DEBUG) {
+      System.out.println("Initializing blocks:");
+    }
 
     int noRehashCapacity = (int) (size * 1.4f);
     ltDominators = new HashMap<BasicBlock, LTDominatorInfo>(noRehashCapacity);
@@ -185,7 +187,9 @@ public class LTDominators extends Stack<BasicBlock> {
     }
   }
 
-  private void DFS() { DFS(getFirstNode()); }
+  private void DFS() {
+    DFS(getFirstNode());
+  }
 
   /**
    * Get the first node, either entry or exit
@@ -263,10 +267,14 @@ public class LTDominators extends Stack<BasicBlock> {
     while (!empty()) {
 
       block = peek();
-      if (DEBUG) { System.out.println(" Processing (peek)" + block); }
+      if (DEBUG) {
+        System.out.println(" Processing (peek)" + block);
+      }
 
       if (block == null) {
-        if (DEBUG) { System.out.println(" Popping"); }
+        if (DEBUG) {
+          System.out.println(" Popping");
+        }
         pop();   // return
         continue;
       }
@@ -277,7 +285,9 @@ public class LTDominators extends Stack<BasicBlock> {
       //
       // However, it really shouldn't be in the CFG, if it isn't a node!
       if (forward && block == cfg.exit()) {
-        if (DEBUG) { System.out.println(" Popping"); }
+        if (DEBUG) {
+          System.out.println(" Popping");
+        }
         pop();   // return
         continue;
       }
@@ -286,20 +296,26 @@ public class LTDominators extends Stack<BasicBlock> {
       e = LTDominatorInfo.getInfo(block, ir).getEnum();
 
       if (e == null) {
-        if (DEBUG) { System.out.println(" Initial processing of " + block); }
+        if (DEBUG) {
+          System.out.println(" Initial processing of " + block);
+        }
 
         DFSCounter++;
         LTDominatorInfo.getInfo(block, ir).setSemiDominator(DFSCounter);
         vertex[DFSCounter] = block;
         e = getNextNodes(block);
       } else {
-        if (DEBUG) { System.out.println(" Resuming processing of " + block); }
+        if (DEBUG) {
+          System.out.println(" Resuming processing of " + block);
+        }
       }
 
       while (e.hasMoreElements()) {
         BasicBlock next = e.nextElement();
 
-        if (DEBUG) { System.out.println("    Inspecting next node: " + next); }
+        if (DEBUG) {
+          System.out.println("    Inspecting next node: " + next);
+        }
 
         // We treat the exit node as not being in the CFG for forward direction
         if (forward && next.isExit()) {
@@ -312,13 +328,17 @@ public class LTDominators extends Stack<BasicBlock> {
           // save the enumeration state for resumption later
           LTDominatorInfo.getInfo(block, ir).setEnum(e);
 
-          if (DEBUG) { System.out.println(" Pushing" + next); }
+          if (DEBUG) {
+            System.out.println(" Pushing" + next);
+          }
           push(next);
           continue recurse;
         }
       }           // while more nexts
       // "Pop" from the emulated activiation stack
-      if (DEBUG) { System.out.println(" Popping"); }
+      if (DEBUG) {
+        System.out.println(" Popping");
+      }
       pop();
     }  // while stack not empty loop
   }
@@ -327,7 +347,9 @@ public class LTDominators extends Stack<BasicBlock> {
    *  This is the heart of the algorithm.  See sources for details.
    */
   private void step2() {
-    if (DEBUG) { System.out.println(" ******* Beginning STEP 2 *******\n"); }
+    if (DEBUG) {
+      System.out.println(" ******* Beginning STEP 2 *******\n");
+    }
 
     // Visit each node in reverse DFS order, except for the root, which
     // has number 1
@@ -337,13 +359,17 @@ public class LTDominators extends Stack<BasicBlock> {
       BasicBlock block = vertex[i];
       LTDominatorInfo blockInfo = LTDominatorInfo.getInfo(block, ir);
 
-      if (DEBUG) { System.out.println(" Processing: " + block + "\n"); }
+      if (DEBUG) {
+        System.out.println(" Processing: " + block + "\n");
+      }
 
       // visit each predecessor
       Enumeration<BasicBlock> e = getPrevNodes(block);
       while (e.hasMoreElements()) {
         BasicBlock prev = e.nextElement();
-        if (DEBUG) { System.out.println("    Inspecting prev: " + prev); }
+        if (DEBUG) {
+          System.out.println("    Inspecting prev: " + prev);
+        }
         BasicBlock u = EVAL(prev);
         // if semi(u) < semi(block) then semi(block) = semi(u)
         // u may be part of infinite loop and thus, is unreachable from the exit node.

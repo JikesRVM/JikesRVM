@@ -108,10 +108,20 @@ public class UserTypeImpl extends AbstractType implements UserType {
    * Delegate AST-nature to the 'ast' object
    */
 
-  @Override public Object accept(Visitor v) { return v.visit(this); }
-  @Override public int getColumn() { return ast.getColumn(); }
-  @Override public int getLine() { return ast.getLine(); }
-  @Override public String sourceLocation(String prefix) { return ast.sourceLocation(prefix); }
+  @Override public Object accept(Visitor v) {
+    return v.visit(this);
+  }
+  @Override public int getColumn() {
+    return ast.getColumn();
+  }
+  @Override public int getLine() {
+    return ast.getLine();
+  }
+  @Override public String sourceLocation(String prefix) {
+    return ast.sourceLocation(prefix);
+  }
 
-  @Override public Token getToken() { return ast.getToken();  }
+  @Override public Token getToken() {
+    return ast.getToken();
+  }
 }

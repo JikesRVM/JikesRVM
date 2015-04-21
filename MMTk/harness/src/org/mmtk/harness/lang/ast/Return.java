@@ -34,6 +34,11 @@ public class Return extends AbstractAST implements Statement {
     return v.visit(this);
   }
 
-  public Expression getRhs() { return expr; }
-  public boolean hasReturnValue() { return expr != null; }
+  public Expression getRhs() {
+    return expr;
+  }
+
+  public boolean hasReturnValue() {
+    return expr != null;
+  }
 }

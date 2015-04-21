@@ -59,7 +59,9 @@ public class threadTest1 {
 // prototype of the user thread
 class TestThread1 extends Thread {
 
-    TestThread1(int id) { _tid = id;}
+    TestThread1(int id) {
+      _tid = id;
+    }
 
     public void run() {
 

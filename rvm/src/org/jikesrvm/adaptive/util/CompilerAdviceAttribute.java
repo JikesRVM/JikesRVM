@@ -72,35 +72,45 @@ public class CompilerAdviceAttribute {
    *
    * @return the class name for this attribute
    */
-  public Atom getClassName() { return className; }
+  public Atom getClassName() {
+    return className;
+  }
 
   /**
    * Getter method for method name
    *
    * @return the method name for this attribute
    */
-  public Atom getMethodName() { return methodName; }
+  public Atom getMethodName() {
+    return methodName;
+  }
 
   /**
    * Getter method for method signature
    *
    * @return the method signature for this attribute
    */
-  public Atom getMethodSig() { return methodSig; }
+  public Atom getMethodSig() {
+    return methodSig;
+  }
 
   /**
    * Getter method for compiler ID
    *
    * @return the compiler ID for this attribute
    */
-  public int getCompiler() { return compiler; }
+  public int getCompiler() {
+    return compiler;
+  }
 
   /**
    * Getter method for optimization level
    *
    * @return the optimization level for this attribute
    */
-  public int getOptLevel() { return optLevel; }
+  public int getOptLevel() {
+    return optLevel;
+  }
 
   /**
    * Constructor

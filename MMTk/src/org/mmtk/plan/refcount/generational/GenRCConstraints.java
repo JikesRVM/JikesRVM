@@ -26,9 +26,15 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class GenRCConstraints extends RCBaseConstraints {
   @Override
-  public boolean movesObjects() { return true; }
+  public boolean movesObjects() {
+    return true;
+  }
   @Override
-  public int maxNonLOSCopyBytes() { return MAX_FREELIST_OBJECT_BYTES;}
+  public int maxNonLOSCopyBytes() {
+    return MAX_FREELIST_OBJECT_BYTES;
+  }
   @Override
-  public boolean buildForGenRC() { return true; }
+  public boolean buildForGenRC() {
+    return true;
+  }
 }

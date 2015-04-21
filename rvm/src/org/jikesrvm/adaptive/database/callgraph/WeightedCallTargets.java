@@ -123,7 +123,9 @@ public abstract class WeightedCallTargets {
     }
 
     @Override
-    public double totalWeight() { return weight; }
+    public double totalWeight() {
+      return weight;
+    }
 
     @Override
     public WeightedCallTargets filter(RVMMethod goal, boolean isPrecise) {
@@ -185,7 +187,9 @@ public abstract class WeightedCallTargets {
             return this;
           }
         } else {
-          if (empty == -1) { empty = i; }
+          if (empty == -1) {
+            empty = i;
+          }
         }
       }
 

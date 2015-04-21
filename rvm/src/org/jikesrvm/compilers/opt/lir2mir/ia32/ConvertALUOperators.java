@@ -30,7 +30,9 @@ import org.jikesrvm.ia32.ArchConstants;
 public class ConvertALUOperators extends CompilerPhase implements ArchConstants {
 
   @Override
-  public final String getName() { return "ConvertALUOps"; }
+  public final String getName() {
+    return "ConvertALUOps";
+  }
 
   /**
    * Return this instance of this phase. This phase contains no

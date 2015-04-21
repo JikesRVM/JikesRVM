@@ -16,46 +16,68 @@ import test.org.jikesrvm.basic.core.bytecode.data.SubClassInDifferentPackage;
 
 public class TestClassHierarchy {
 
-  public interface Magic { void magic(); }
+  public interface Magic {
+    void magic();
+  }
 
   protected static class A implements Magic {
-    public void magic() { System.out.print("A"); }
+    public void magic() {
+      System.out.print("A");
+    }
   }
 
   protected static class B extends A {
-    public void magic() { System.out.print("B"); }
+    public void magic() {
+      System.out.print("B");
+    }
   }
 
   protected static class C extends B {
-    public void magic() { System.out.print("C"); }
+    public void magic() {
+      System.out.print("C");
+    }
   }
 
   protected static class D extends A {
-    public void magic() { System.out.print("D"); }
+    public void magic() {
+      System.out.print("D");
+    }
   }
 
   protected class E extends D {
-    public void magic() { System.out.print("E"); }
+    public void magic() {
+      System.out.print("E");
+    }
   }
 
   protected class F extends A {
-    public void magic() { System.out.print("F"); }
+    public void magic() {
+      System.out.print("F");
+    }
   }
 
   protected class G extends F {
-    public void magic() { System.out.print("G"); }
+    public void magic() {
+      System.out.print("G");
+    }
   }
 
   protected class H implements Magic {
-    public void magic() { System.out.print("H"); }
+    public void magic() {
+      System.out.print("H");
+    }
   }
 
   protected class I extends H {
-    public void magic() { System.out.print("I"); }
+    public void magic() {
+      System.out.print("I");
+    }
   }
 
   protected class J extends I {
-    public void magic() { System.out.print("J"); }
+    public void magic() {
+      System.out.print("J");
+    }
   }
 
 /*
@@ -104,35 +126,51 @@ In class SubSubClass extends SubClassInDifferentPackage:
   static class SubSubClass extends test.org.jikesrvm.basic.core.bytecode.data.SubClassInDifferentPackage {
 
     static class O_C1 extends P_B {
-      public void magic() { System.out.print("O_C1"); }
+      public void magic() {
+        System.out.print("O_C1");
+      }
     }
 
     class O_C2 extends P_B {
-      public void magic() { System.out.print("O_C2"); }
+      public void magic() {
+        System.out.print("O_C2");
+      }
     }
 
     class O_E extends P_D {
-      public void magic() { System.out.print("O_E"); }
+      public void magic() {
+        System.out.print("O_E");
+      }
     }
 
     class O_G extends SubClassInDifferentPackage.P_F {
-      public void magic() { System.out.print("O_G"); }
+      public void magic() {
+        System.out.print("O_G");
+      }
     }
 
     class O_I1 extends H {
-      public void magic() { System.out.print("O_I1"); }
+      public void magic() {
+        System.out.print("O_I1");
+      }
     }
 
     class O_I2 extends P_H {
-      public void magic() { System.out.print("O_I2"); }
+      public void magic() {
+        System.out.print("O_I2");
+      }
     }
 
     class O_J1 extends P_I1 {
-      public void magic() { System.out.print("O_J1"); }
+      public void magic() {
+        System.out.print("O_J1");
+      }
     }
 
     class O_J2 extends P_I2 {
-      public void magic() { System.out.print("O_J2"); }
+      public void magic() {
+        System.out.print("O_J2");
+      }
     }
 
     private void runTests() {
@@ -185,39 +223,204 @@ In class SubSubClass extends SubClassInDifferentPackage:
 
   @SuppressWarnings({"UnusedDeclaration"})
   private static void testCasts(final Object x) {
-    try { final A o = (A) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final B o = (B) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final C o = (C) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final D o = (D) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final E o = (E) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final F o = (F) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final G o = (G) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final H o = (H) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final I o = (I) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final J o = (J) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final P_B o = (P_B) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final P_C1 o = (P_C1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final P_C2 o = (P_C2) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final P_D o = (P_D) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_E1 o = (SubClassInDifferentPackage.P_E1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_E2 o = (SubClassInDifferentPackage.P_E2) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_F o = (SubClassInDifferentPackage.P_F) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_G1 o = (SubClassInDifferentPackage.P_G1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_G2 o = (SubClassInDifferentPackage.P_G2) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_H o = (SubClassInDifferentPackage.P_H) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_I1 o = (SubClassInDifferentPackage.P_I1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_I2 o = (SubClassInDifferentPackage.P_I2) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_J1 o = (SubClassInDifferentPackage.P_J1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_J2 o = (SubClassInDifferentPackage.P_J2) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final SubClassInDifferentPackage.P_J3 o = (SubClassInDifferentPackage.P_J3) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_C1 o = (O_C1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_C2 o = (O_C2) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_E o = (O_E) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_G o = (O_G) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_I1 o = (O_I1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_I2 o = (O_I2) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_J1 o = (O_J1) x; success(); } catch (final ClassCastException cce) { failure(); }
-    try { final O_J2 o = (O_J2) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try {
+      final A o = (A) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final B o = (B) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final C o = (C) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final D o = (D) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final E o = (E) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final F o = (F) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final G o = (G) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final H o = (H) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final I o = (I) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final J o = (J) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final P_B o = (P_B) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final P_C1 o = (P_C1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final P_C2 o = (P_C2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final P_D o = (P_D) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_E1 o = (SubClassInDifferentPackage.P_E1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_E2 o = (SubClassInDifferentPackage.P_E2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_F o = (SubClassInDifferentPackage.P_F) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_G1 o = (SubClassInDifferentPackage.P_G1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_G2 o = (SubClassInDifferentPackage.P_G2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_H o = (SubClassInDifferentPackage.P_H) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_I1 o = (SubClassInDifferentPackage.P_I1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_I2 o = (SubClassInDifferentPackage.P_I2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_J1 o = (SubClassInDifferentPackage.P_J1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_J2 o = (SubClassInDifferentPackage.P_J2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final SubClassInDifferentPackage.P_J3 o = (SubClassInDifferentPackage.P_J3) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_C1 o = (O_C1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_C2 o = (O_C2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_E o = (O_E) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_G o = (O_G) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_I1 o = (O_I1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_I2 o = (O_I2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_J1 o = (O_J1) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
+    try {
+      final O_J2 o = (O_J2) x;
+      success();
+    } catch (final ClassCastException cce) {
+      failure();
+    }
   }
 
   private static void failure() {

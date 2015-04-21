@@ -27,10 +27,14 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 public final class SplitBasicBlock extends CompilerPhase {
 
   @Override
-  public String getName() { return "SplitBasicBlock"; }
+  public String getName() {
+    return "SplitBasicBlock";
+  }
 
   @Override
-  public CompilerPhase newExecution(IR ir) { return this; }
+  public CompilerPhase newExecution(IR ir) {
+    return this;
+  }
 
   @Override
   public void perform(IR ir) {

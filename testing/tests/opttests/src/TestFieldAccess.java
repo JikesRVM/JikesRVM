@@ -31,7 +31,9 @@ class TestFieldAccess {
   double  x7 = -7;
   Object  x8 = this;
 
-  public String toString() { return "Instance of " + getClass().getName(); }
+  public String toString() {
+    return "Instance of " + getClass().getName();
+  }
 
   public static void main(String[] args) {
     run();

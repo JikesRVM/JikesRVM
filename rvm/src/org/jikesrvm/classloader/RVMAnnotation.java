@@ -377,7 +377,9 @@ public final class RVMAnnotation {
    * @return TypeReferernce of interface annotation object implements
    */
   @Uninterruptible
-  TypeReference annotationType() { return type; }
+  TypeReference annotationType() {
+    return type;
+  }
 
   /*
    * Hash map support

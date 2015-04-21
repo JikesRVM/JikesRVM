@@ -33,10 +33,14 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
   }
 
   @Override
-  public boolean shouldPerform(OptOptions options) { return true; }
+  public boolean shouldPerform(OptOptions options) {
+    return true;
+  }
 
   @Override
-  public String getName() { return "RegAlloc"; }
+  public String getName() {
+    return "RegAlloc";
+  }
 
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {

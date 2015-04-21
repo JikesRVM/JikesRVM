@@ -177,9 +177,13 @@ public final class InlineDecision {
     return targets.length;
   }
 
-  public void setOSRTestFailed() { testFailedOSR = true; }
+  public void setOSRTestFailed() {
+    testFailedOSR = true;
+  }
 
-  public boolean OSRTestFailed() { return testFailedOSR; }
+  public boolean OSRTestFailed() {
+    return testFailedOSR;
+  }
 
   @Override
   public String toString() {

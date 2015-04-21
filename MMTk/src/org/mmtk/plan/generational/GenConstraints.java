@@ -29,31 +29,49 @@ import org.vmmagic.pragma.*;
 public class GenConstraints extends StopTheWorldConstraints {
 
   @Override
-  public boolean generational() { return true; }
+  public boolean generational() {
+    return true;
+  }
 
   @Override
-  public boolean movesObjects() { return true; }
+  public boolean movesObjects() {
+    return true;
+  }
 
   @Override
-  public int gcHeaderBits() { return CopySpace.LOCAL_GC_BITS_REQUIRED; }
+  public int gcHeaderBits() {
+    return CopySpace.LOCAL_GC_BITS_REQUIRED;
+  }
 
   @Override
-  public int gcHeaderWords() { return CopySpace.GC_HEADER_WORDS_REQUIRED; }
+  public int gcHeaderWords() {
+    return CopySpace.GC_HEADER_WORDS_REQUIRED;
+  }
 
   @Override
-  public boolean needsObjectReferenceWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean needsObjectReferenceNonHeapWriteBarrier() { return Gen.USE_NON_HEAP_OBJECT_REFERENCE_WRITE_BARRIER; }
+  public boolean needsObjectReferenceNonHeapWriteBarrier() {
+    return Gen.USE_NON_HEAP_OBJECT_REFERENCE_WRITE_BARRIER;
+  }
 
   @Override
-  public boolean objectReferenceBulkCopySupported() { return true; }
+  public boolean objectReferenceBulkCopySupported() {
+    return true;
+  }
 
   @Override
-  public int numSpecializedScans() { return 2; }
+  public int numSpecializedScans() {
+    return 2;
+  }
 
   @Override
-  public boolean needsLogBitInHeader() { return Gen.USE_OBJECT_BARRIER; }
+  public boolean needsLogBitInHeader() {
+    return Gen.USE_OBJECT_BARRIER;
+  }
 
   /**
    * @return The maximum size of an object that may be allocated directly into the nursery

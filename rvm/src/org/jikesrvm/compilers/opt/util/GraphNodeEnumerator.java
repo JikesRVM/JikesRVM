@@ -41,10 +41,14 @@ public abstract class GraphNodeEnumerator implements Enumeration<GraphNode> {
     }
 
     @Override
-    public boolean hasMoreElements() { return e.hasMoreElements(); }
+    public boolean hasMoreElements() {
+      return e.hasMoreElements();
+    }
 
     @Override
-    public GraphNode nextElement() { return e.nextElement(); }
+    public GraphNode nextElement() {
+      return e.nextElement();
+    }
   }
 
   private static final class Iter extends GraphNodeEnumerator {
@@ -55,9 +59,13 @@ public abstract class GraphNodeEnumerator implements Enumeration<GraphNode> {
     }
 
     @Override
-    public boolean hasMoreElements() { return i.hasNext(); }
+    public boolean hasMoreElements() {
+      return i.hasNext();
+    }
 
     @Override
-    public GraphNode nextElement() { return i.next(); }
+    public GraphNode nextElement() {
+      return i.next();
+    }
   }
 }

@@ -119,7 +119,9 @@ public abstract class UnResolvedWeightedCallTargets {
     }
 
     @Override
-    public double totalWeight() { return weight; }
+    public double totalWeight() {
+      return weight;
+    }
 
     @Override
     public UnResolvedWeightedCallTargets filter(MethodReference goal) {
@@ -170,7 +172,9 @@ public abstract class UnResolvedWeightedCallTargets {
             return this;
           }
         } else {
-          if (empty == -1) { empty = i; }
+          if (empty == -1) {
+            empty = i;
+          }
         }
       }
 

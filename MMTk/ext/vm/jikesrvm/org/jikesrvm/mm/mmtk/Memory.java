@@ -38,29 +38,51 @@ import org.vmmagic.pragma.*;
   private static final int LOG_BYTES_IN_PAGE_LIE = 12;
 
   @Override
-  protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }
+  protected final Address getHeapStartConstant() {
+    return BOOT_IMAGE_DATA_START;
+  }
   @Override
-  protected final Address getHeapEndConstant() { return MAXIMUM_MAPPABLE; }
+  protected final Address getHeapEndConstant() {
+    return MAXIMUM_MAPPABLE;
+  }
   @Override
-  protected final Address getAvailableStartConstant() { return BOOT_IMAGE_END; }
+  protected final Address getAvailableStartConstant() {
+    return BOOT_IMAGE_END;
+  }
   @Override
-  protected final Address getAvailableEndConstant() { return MAXIMUM_MAPPABLE; }
+  protected final Address getAvailableEndConstant() {
+    return MAXIMUM_MAPPABLE;
+  }
   @Override
-  protected final byte getLogBytesInAddressConstant() { return SizeConstants.LOG_BYTES_IN_ADDRESS; }
+  protected final byte getLogBytesInAddressConstant() {
+    return SizeConstants.LOG_BYTES_IN_ADDRESS;
+  }
   @Override
-  protected final byte getLogBytesInWordConstant() { return SizeConstants.LOG_BYTES_IN_WORD; }
+  protected final byte getLogBytesInWordConstant() {
+    return SizeConstants.LOG_BYTES_IN_WORD;
+  }
   @Override
-  protected final byte getLogBytesInPageConstant() { return LOG_BYTES_IN_PAGE_LIE; }
+  protected final byte getLogBytesInPageConstant() {
+    return LOG_BYTES_IN_PAGE_LIE;
+  }
   @Override
-  protected final byte getLogMinAlignmentConstant() { return JavaHeader.LOG_MIN_ALIGNMENT;}
+  protected final byte getLogMinAlignmentConstant() {
+    return JavaHeader.LOG_MIN_ALIGNMENT;
+  }
   @Override
-  protected final int getMaxBytesPaddingConstant() { return SizeConstants.BYTES_IN_DOUBLE; }
+  protected final int getMaxBytesPaddingConstant() {
+    return SizeConstants.BYTES_IN_DOUBLE;
+  }
   @Override
-  protected final int getAlignmentValueConstant() { return JavaHeader.ALIGNMENT_VALUE;}
+  protected final int getAlignmentValueConstant() {
+    return JavaHeader.ALIGNMENT_VALUE;
+  }
 
   /** On Intel we align code to 16 bytes as recommended in the optimization manual. */
   @Override
-  protected final byte getMaxAlignmentShiftConstant() { return (VM.BuildForIA32 ? 1 : 0) + SizeConstants.LOG_BYTES_IN_LONG - SizeConstants.LOG_BYTES_IN_INT; }
+  protected final byte getMaxAlignmentShiftConstant() {
+    return (VM.BuildForIA32 ? 1 : 0) + SizeConstants.LOG_BYTES_IN_LONG - SizeConstants.LOG_BYTES_IN_INT;
+  }
 
   private static ImmortalSpace bootSpace;
 
@@ -98,7 +120,9 @@ import org.vmmagic.pragma.*;
   }
 
   @Override
-  public final void globalPrepareVMSpace() { bootSpace.prepare(); }
+  public final void globalPrepareVMSpace() {
+    bootSpace.prepare();
+  }
 
   @Override
   public final void collectorPrepareVMSpace() {}
@@ -107,7 +131,9 @@ import org.vmmagic.pragma.*;
   public final void collectorReleaseVMSpace() {}
 
   @Override
-  public final void globalReleaseVMSpace() { bootSpace.release(); }
+  public final void globalReleaseVMSpace() {
+    bootSpace.release();
+  }
 
   @Override
   public final void setHeapRange(int id, Address start, Address end) {

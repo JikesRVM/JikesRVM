@@ -74,10 +74,14 @@ public class HeapEntry implements Comparable<HeapEntry> {
   }
 
   /** Increment the object reference count */
-  public void incRefCount() { refCount++; }
+  public void incRefCount() {
+    refCount++;
+  }
 
   /** Set the object to be root reachable */
-  public void setRootReachable() { this.rootReachable = true; }
+  public void setRootReachable() {
+    this.rootReachable = true;
+  }
 
   /**
    * Register an incoming pointer

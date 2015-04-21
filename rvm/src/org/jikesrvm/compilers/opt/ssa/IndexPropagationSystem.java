@@ -479,7 +479,9 @@ class IndexPropagationSystem extends DF_System {
      * @return "MEET"
      */
     @Override
-    public String toString() { return "MEET"; }
+    public String toString() {
+      return "MEET";
+    }
 
     /**
      * Evaluate a dataflow equation with the MEET operator
@@ -655,7 +657,9 @@ class IndexPropagationSystem extends DF_System {
      * @return a String representation
      */
     @Override
-    public String toString() { return "UPDATE-DEF<" + valueNumber + ">"; }
+    public String toString() {
+      return "UPDATE-DEF<" + valueNumber + ">";
+    }
 
     UpdateDefObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
@@ -718,7 +722,9 @@ class IndexPropagationSystem extends DF_System {
      * @return "UPDATE-USE"
      */
     @Override
-    public String toString() { return "UPDATE-USE<" + valueNumber + ">"; }
+    public String toString() {
+      return "UPDATE-USE<" + valueNumber + ">";
+    }
 
     UpdateUseObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
@@ -778,7 +784,9 @@ class IndexPropagationSystem extends DF_System {
      * @return "UPDATE-DEF"
      */
     @Override
-    public String toString() { return "UPDATE-DEF<" + v + ">"; }
+    public String toString() {
+      return "UPDATE-DEF<" + v + ">";
+    }
 
     /**
      * Create an operator with a given value number pair
@@ -849,7 +857,9 @@ class IndexPropagationSystem extends DF_System {
      * @return "UPDATE-USE"
      */
     @Override
-    public String toString() { return "UPDATE-USE<" + v + ">"; }
+    public String toString() {
+      return "UPDATE-USE<" + v + ">";
+    }
 
     /**
      * Create an operator with a given value number pair

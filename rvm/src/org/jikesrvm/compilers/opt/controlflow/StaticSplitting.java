@@ -66,7 +66,9 @@ public class StaticSplitting extends CompilerPhase {
   }
 
   @Override
-  public String getName() { return "Static Splitting"; }
+  public String getName() {
+    return "Static Splitting";
+  }
 
   @Override
   public boolean shouldPerform(OptOptions options) {

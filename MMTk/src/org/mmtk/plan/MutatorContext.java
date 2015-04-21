@@ -1256,6 +1256,8 @@ public abstract class MutatorContext {
 
   /** @return the unique identifier for this mutator context. */
   @Inline
-  public int getId() { return id; }
+  public int getId() {
+    return id;
+  }
 
 }

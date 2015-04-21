@@ -271,21 +271,27 @@ public abstract class PageResource {
    *
    * @return The number of reserved pages.
    */
-  public final int reservedPages() { return reserved; }
+  public final int reservedPages() {
+    return reserved;
+  }
 
   /**
    * Return the number of committed pages
    *
    * @return The number of committed pages.
    */
-  public final int committedPages() { return committed; }
+  public final int committedPages() {
+    return committed;
+  }
 
   /**
    * Return the cumulative number of committed pages
    *
    * @return The cumulative number of committed pages.
    */
-  public static long cumulativeCommittedPages() { return cumulativeCommitted; }
+  public static long cumulativeCommittedPages() {
+    return cumulativeCommitted;
+  }
 
   /**
    * Add to the total cumulative committed page count.

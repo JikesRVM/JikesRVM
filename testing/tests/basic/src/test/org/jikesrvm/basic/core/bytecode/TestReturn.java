@@ -27,25 +27,47 @@ class TestReturn {
     System.out.println(object_array_f());
   }
 
-  private static boolean boolean_f() { return true; }
+  private static boolean boolean_f() {
+    return true;
+  }
 
-  private static byte byte_f() { return 2; }
+  private static byte byte_f() {
+    return 2;
+  }
 
-  private static char char_f() { return 'a'; }
+  private static char char_f() {
+    return 'a';
+  }
 
-  private static short short_f() { return 4; }
+  private static short short_f() {
+    return 4;
+  }
 
-  private static int int_f() { return 5; }
+  private static int int_f() {
+    return 5;
+  }
 
-  private static long long_f() { return 6L; }
+  private static long long_f() {
+    return 6L;
+  }
 
-  private static float float_f() { return 7.0F; }
+  private static float float_f() {
+    return 7.0F;
+  }
 
-  private static double double_f() { return 8.0; }
+  private static double double_f() {
+    return 8.0;
+  }
 
-  private static Object object_f() { return null; }
+  private static Object object_f() {
+    return null;
+  }
 
-  private static int[] primitive_array_f() { return null; }
+  private static int[] primitive_array_f() {
+    return null;
+  }
 
-  private static Object[] object_array_f() { return null; }
+  private static Object[] object_array_f() {
+    return null;
+  }
 }

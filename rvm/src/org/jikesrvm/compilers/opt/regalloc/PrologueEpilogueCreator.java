@@ -32,7 +32,9 @@ public final class PrologueEpilogueCreator extends CompilerPhase {
   }
 
   @Override
-  public String getName() { return "Insert Prologue/Epilogue"; }
+  public String getName() {
+    return "Insert Prologue/Epilogue";
+  }
 
   /**
    *  Insert the prologue and epilogue

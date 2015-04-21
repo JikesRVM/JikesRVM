@@ -139,13 +139,17 @@ import org.vmmagic.unboxed.Address;
    * Return the minimum value expected for this stream.
    * @return the minimum value
    */
-  public int getMinValue() { return min; }
+  public int getMinValue() {
+    return min;
+  }
 
   /**
    * Return the maximum value expected for this stream.
    * @return the maximum value
    */
-  public int getMaxValue() { return max; }
+  public int getMaxValue() {
+    return max;
+  }
 
   /**
    * Setup the summary array.

@@ -78,19 +78,25 @@ import org.vmmagic.pragma.*;
    *
    * @return the red component
    */
-  public short getRed() { return r; }
+  public short getRed() {
+    return r;
+  }
 
   /**
    * Green component
    *
    * @return the green component
    */
-  public short getGreen() { return g; }
+  public short getGreen() {
+    return g;
+  }
 
   /**
    * Blue component
    *
    * @return the blue component
    */
-  public short getBlue() { return b; }
+  public short getBlue() {
+    return b;
+  }
 }

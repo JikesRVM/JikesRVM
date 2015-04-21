@@ -34,7 +34,9 @@ public class TestFileChannel {
 
       final ByteChannel input = new FileInputStream(file).getChannel();
       buffer.clear();
-      while (buffer.hasRemaining()) { input.read(buffer); }
+      while (buffer.hasRemaining()) {
+        input.read(buffer);
+      }
       input.close();
       buffer.flip();
       final int file_int = buffer.getInt();

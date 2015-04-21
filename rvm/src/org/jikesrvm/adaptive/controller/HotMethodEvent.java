@@ -30,11 +30,17 @@ public abstract class HotMethodEvent {
    */
   private final CompiledMethod cm;
 
-  public final int getCMID() { return cm.getId(); }
+  public final int getCMID() {
+    return cm.getId();
+  }
 
-  public final CompiledMethod getCompiledMethod() { return cm; }
+  public final CompiledMethod getCompiledMethod() {
+    return cm;
+  }
 
-  public final RVMMethod getMethod() { return cm.getMethod(); }
+  public final RVMMethod getMethod() {
+    return cm.getMethod();
+  }
 
   public final boolean isOptCompiled() {
     return cm.getCompilerType() == CompiledMethod.OPT;
@@ -58,7 +64,9 @@ public abstract class HotMethodEvent {
    */
   private final double numSamples;
 
-  public final double getNumSamples() { return numSamples; }
+  public final double getNumSamples() {
+    return numSamples;
+  }
 
   /**
    * @param _cm the compiled method

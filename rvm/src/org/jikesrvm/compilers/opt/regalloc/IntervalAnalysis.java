@@ -68,13 +68,17 @@ public final class IntervalAnalysis extends CompilerPhase {
    * should we perform this phase? yes.
    */
   @Override
-  public boolean shouldPerform(OptOptions options) { return true; }
+  public boolean shouldPerform(OptOptions options) {
+    return true;
+  }
 
   /**
    * a name for this phase.
    */
   @Override
-  public String getName() { return "Interval Analysis"; }
+  public String getName() {
+    return "Interval Analysis";
+  }
 
   /**
    * should we print the ir?
@@ -200,7 +204,9 @@ public final class IntervalAnalysis extends CompilerPhase {
       }
     }
 
-    if (LinearScan.DEBUG) { regAllocState.printDfns(ir); }
+    if (LinearScan.DEBUG) {
+      regAllocState.printDfns(ir);
+    }
   }
 
   /**

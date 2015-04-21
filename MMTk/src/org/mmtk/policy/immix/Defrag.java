@@ -80,7 +80,9 @@ public class Defrag {
     spillMarkHistograms = new int[collectorCount][SPILL_HISTOGRAM_BUCKETS];
   }
 
-  boolean inDefrag() { return inDefragCollection; }
+  boolean inDefrag() {
+    return inDefragCollection;
+  }
 
   void prepare(ChunkList chunkMap, ImmixSpace space) {
     availableCleanPagesForDefrag = VM.activePlan.global().getTotalPages() - VM.activePlan.global().getPagesReserved() + getDefragHeadroomPages();
@@ -138,7 +140,9 @@ public class Defrag {
     debugCollectionTypeDetermined = true;
   }
 
-  boolean determined(boolean inDefrag) { return debugCollectionTypeDetermined && !(inDefrag ^ inDefragCollection); }
+  boolean determined(boolean inDefrag) {
+    return debugCollectionTypeDetermined && !(inDefrag ^ inDefragCollection);
+  }
 
   void getBlock() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!inDefragCollection || !defragSpaceExhausted);
@@ -182,7 +186,9 @@ public class Defrag {
   }
 
 
-  boolean spaceExhausted() { return defragSpaceExhausted; }
+  boolean spaceExhausted() {
+    return defragSpaceExhausted;
+  }
 
   int[] getAndZeroSpillMarkHistogram(int ordinal) {
     int[] rtn = spillMarkHistograms[ordinal];

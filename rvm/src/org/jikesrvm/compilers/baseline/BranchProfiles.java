@@ -61,7 +61,9 @@ public final class BranchProfiles {
       }
       if (low >= high) {
         // search failed
-        if (VM.VerifyAssertions) { VM._assert(VM.NOT_REACHED); }
+        if (VM.VerifyAssertions) {
+          VM._assert(VM.NOT_REACHED);
+        }
         return null;
       }
       if (bci > bcIndex) {

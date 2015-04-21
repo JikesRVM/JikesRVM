@@ -177,7 +177,9 @@ public class LSTGraph extends SpaceEffGraph {
             loop = new BitVector(cfg.numberOfNodes());
             loop.set(node.getNumber());
             header.loop = loop;
-            if (DEBUG) { System.out.println("header" + header); }
+            if (DEBUG) {
+              System.out.println("header" + header);
+            }
           } else {
             loop = header.loop;
           }
@@ -254,11 +256,15 @@ public class LSTGraph extends SpaceEffGraph {
       // saved the state of the enumeration in the loop below
       SpaceEffGraphNode.OutEdgeEnumeration e = BBenum[bb.getNumber()];
       if (e == null) {
-        if (DEBUG) { System.out.println(" Initial processing of " + bb); }
+        if (DEBUG) {
+          System.out.println(" Initial processing of " + bb);
+        }
         bb.setDfsVisited();
         e = bb.outEdges();
       } else {
-        if (DEBUG) { System.out.println(" Resuming processing of " + bb); }
+        if (DEBUG) {
+          System.out.println(" Resuming processing of " + bb);
+        }
       }
 
       while (e.hasMoreElements()) {
@@ -288,7 +294,9 @@ public class LSTGraph extends SpaceEffGraph {
         }
       } // enum
       // "Pop" from the emulated activiation stack
-      if (DEBUG) { System.out.println(" Popping"); }
+      if (DEBUG) {
+        System.out.println(" Popping");
+      }
       stack.pop();
     } // while !empty
   }

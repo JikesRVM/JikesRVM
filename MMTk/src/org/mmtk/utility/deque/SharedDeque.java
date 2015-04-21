@@ -62,7 +62,9 @@ public class SharedDeque extends Deque {
 
   /** @return the arity (words per entry) of this queue */
   @Inline
-  final int getArity() { return arity; }
+  final int getArity() {
+    return arity;
+  }
 
   /**
    * Enqueue a block on the head or tail of the shared queue

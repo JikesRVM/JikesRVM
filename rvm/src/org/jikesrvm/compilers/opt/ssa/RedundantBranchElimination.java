@@ -109,7 +109,9 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
     private static final boolean DEBUG = false;
 
     @Override
-    public String getName() { return "RBE Transform"; }
+    public String getName() {
+      return "RBE Transform";
+    }
 
     @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
