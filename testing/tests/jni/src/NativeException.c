@@ -25,7 +25,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_NativeException_setVerboseOff
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_NativeException_setVerboseOff
  * Signature: ([I)Z
  */
 JNIEXPORT jboolean JNICALL Java_NativeException_testPassThrough
-  (JNIEnv *env, jclass cls, jintArray intArray) {
+(JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
   int size = 10;
@@ -59,7 +59,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testPassThrough
  * Signature: ([I)Z
  */
 JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionOccured
-  (JNIEnv *env, jclass cls, jintArray intArray) {
+(JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
   int size = 10;
@@ -84,7 +84,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionOccured
  * Signature: ([I)Z
  */
 JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionClear
-  (JNIEnv *env, jclass cls, jintArray intArray) {
+(JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
   int size = 10;
@@ -110,7 +110,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionClear
  * Signature: ([I)Z
  */
 JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionDescribe
-  (JNIEnv *env, jclass cls, jintArray intArray) {
+(JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
   int size = 10;
@@ -134,7 +134,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionDescribe
  * Signature: (Ljava/lang/Throwable;)Z
  */
 JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionThrow
-  (JNIEnv *env, jclass cls, jthrowable e) {
+(JNIEnv *env, jclass cls, jthrowable e) {
 
   (*env) -> Throw(env, e);
   return JNI_FALSE;
@@ -147,7 +147,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionThrow
  * Signature: (Ljava/lang/Class;)Z
  */
 JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionThrowNew
-  (JNIEnv *env, jclass cls, jclass eclass) {
+(JNIEnv *env, jclass cls, jclass eclass) {
 
   (*env) -> ThrowNew(env, eclass, "Test ThrowNew in native");
   return JNI_FALSE;
@@ -160,7 +160,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionThrowNew
  * Signature: ([I)Z
  */
 JNIEXPORT jboolean JNICALL Java_NativeException_testFatalError
-  (JNIEnv *env, jclass cls, jboolean allTestPass, jintArray intArray) {
+(JNIEnv *env, jclass cls, jboolean allTestPass, jintArray intArray) {
 
   if (allTestPass)
     (*env) -> FatalError(env, "PASS: FatalError\nPASS: NativeException.\n");

@@ -25,7 +25,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_Mangled_1Name_1s_1_setVerboseOff
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -35,7 +35,7 @@ JNIEXPORT void JNICALL Java_Mangled_1Name_1s_1_setVerboseOff
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1__1underscore
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   return 0;
 }
 
@@ -45,7 +45,7 @@ JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1__1underscore
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_with_1underscore
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   return 0;
 }
 
@@ -55,7 +55,7 @@ JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_with_1underscore
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   return 0;
 }
 
@@ -65,7 +65,7 @@ JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__I
-  (JNIEnv *env, jclass cls, jint myInt) {
+(JNIEnv *env, jclass cls, jint myInt) {
   return 0;
 }
 
@@ -75,7 +75,7 @@ JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__I
  * Signature: (ZI[Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__ZI_3Ljava_lang_String_2
-  (JNIEnv *env, jclass cls, jboolean myBoolean, jint myInt, jobjectArray myArray) {
+(JNIEnv *env, jclass cls, jboolean myBoolean, jint myInt, jobjectArray myArray) {
   return 0;
 }
 

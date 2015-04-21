@@ -29,6 +29,6 @@ extern "C" PARLIST *Disassemble(
   char *pDataBuffer,            /* input:  buffer of bytes to disassemble */
   int  *fInvalid,               /* output: disassembly successful: 1 or 0 */
   PARLIST *disassemblyp    /* output: Where the other data will be returned */
-    );
+);
 
 #endif

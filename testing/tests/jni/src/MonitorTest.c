@@ -26,7 +26,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_MonitorTest_setVerboseOff
-  (JNIEnv *env, jclass cls){
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -39,7 +39,7 @@ JNIEXPORT void JNICALL Java_MonitorTest_setVerboseOff
  * Return 0 on success, non-zero on failure.
  */
 JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
-  (JNIEnv *env, jclass cls, jobject lockObj) {
+(JNIEnv *env, jclass cls, jobject lockObj) {
 
   jmethodID methodID;
   jint rc;

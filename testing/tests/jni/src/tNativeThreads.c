@@ -21,12 +21,15 @@
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_tNativeThreads_nativeFoo
-  (JNIEnv * env, jclass cls, jint cnt) {
+(JNIEnv * env, jclass cls, jint cnt) {
 
   int i,j, sum1,sum2;
   jintArray myArray;
 
-  i = 0; j = 0; sum1=0; sum2=0;
+  i = 0;
+  j = 0;
+  sum1=0;
+  sum2=0;
 
   /*
   myArray = (*env) -> NewIntArray(env, 11);
@@ -49,9 +52,9 @@ JNIEXPORT jint JNICALL Java_tNativeThreads_nativeFoo
 
 
 #if _AIX43
-   sched_yield();
+  sched_yield();
 #else
-   pthread_yield();
+  pthread_yield();
 #endif
 
 

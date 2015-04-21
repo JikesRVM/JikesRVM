@@ -35,7 +35,7 @@ int invokeNonVirtualMethodV_part2(JNIEnv *env, jclass cls, jobject objTarget, jo
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_MethodInvocation_setVerboseOff
-  (JNIEnv *env, jclass cls){
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -46,7 +46,7 @@ JNIEXPORT void JNICALL Java_MethodInvocation_setVerboseOff
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethodA
-  (JNIEnv *env, jclass cls, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objArg) {
   jmethodID methodID;
   jvalue *argA;
   jboolean matched;
@@ -311,7 +311,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethodA
  * Signature: (Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethodV
-  (JNIEnv *env, jclass cls, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objArg) {
 
   int result;
 
@@ -329,7 +329,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethodV
   jboolean varBoolean = 1;              /* boolean */
 
   result = invokeStaticMethodV_part2(env, cls, objArg, varByte, varChar, varShort, varInt,
-                            varLong, varFloat, varDouble, varObject, varBoolean);
+                                     varLong, varFloat, varDouble, varObject, varBoolean);
 
   return result;
 }
@@ -597,7 +597,7 @@ int invokeStaticMethodV_part2(JNIEnv *env, jclass cls, jobject objArg, ...) {
 /* returnValue = (*env) -> CallStaticIntMethod(env, cls, methodID, 2, 3); */
 
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
-  (JNIEnv *env, jclass cls, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objArg) {
 
   jboolean returnBooleanValue;
   jchar returnCharValue;
@@ -641,9 +641,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnBooleanValue = (*env) -> CallStaticBooleanMethod(env, cls, methodID,
-                                                         varByte, varChar, varShort, varInt,
-                                                         varLong, varFloat, varDouble, varObject,
-                                                         varBoolean);
+                       varByte, varChar, varShort, varInt,
+                       varLong, varFloat, varDouble, varObject,
+                       varBoolean);
 
   if (returnBooleanValue != 0) {
     if (verbose)
@@ -664,9 +664,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnByteValue = (*env) -> CallStaticByteMethod(env, cls, methodID,
-                                                    varByte, varChar, varShort, varInt,
-                                                    varLong, varFloat, varDouble, varObject,
-                                                    varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
   expectByteValue = 15;
 
   if (returnByteValue != expectByteValue) {
@@ -687,9 +687,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnCharValue = (*env) -> CallStaticCharMethod(env, cls, methodID,
-                                                    varByte, varChar, varShort, varInt,
-                                                    varLong, varFloat, varDouble, varObject,
-                                                    varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
 
   if (returnCharValue != 'b') {
     if (verbose)
@@ -709,9 +709,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnShortValue = (*env) -> CallStaticShortMethod(env, cls, methodID,
-                                                     varByte, varChar, varShort, varInt,
-                                                     varLong, varFloat, varDouble, varObject,
-                                                     varBoolean);
+                     varByte, varChar, varShort, varInt,
+                     varLong, varFloat, varDouble, varObject,
+                     varBoolean);
   expectShortValue = 71;
 
   if (returnShortValue != expectShortValue) {
@@ -733,9 +733,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnIntValue = (*env) -> CallStaticIntMethod(env, cls, methodID,
-                                                 varByte, varChar, varShort, varInt,
-                                                 varLong, varFloat, varDouble, varObject,
-                                                 varBoolean);
+                   varByte, varChar, varShort, varInt,
+                   varLong, varFloat, varDouble, varObject,
+                   varBoolean);
   expectIntValue = 7946;
 
 
@@ -757,9 +757,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnLongValue = (*env) -> CallStaticLongMethod(env, cls, methodID,
-                                                 varByte, varChar, varShort, varInt,
-                                                 varLong, varFloat, varDouble, varObject,
-                                                 varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
   expectLongValue = 0x01234567l;
   expectLongValue = (expectLongValue << 16)  + 7890;
 
@@ -784,9 +784,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnFloatValue = (*env) -> CallStaticFloatMethod(env, cls, methodID,
-                                                     varByte, varChar, varShort, varInt,
-                                                     varLong, varFloat, varDouble, varObject,
-                                                     varBoolean);
+                     varByte, varChar, varShort, varInt,
+                     varLong, varFloat, varDouble, varObject,
+                     varBoolean);
   expectFloatValue = (float) 103.14;
 
   if (returnFloatValue != expectFloatValue) {
@@ -807,9 +807,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnDoubleValue = (*env) -> CallStaticDoubleMethod(env, cls, methodID,
-                                                       varByte, varChar, varShort, varInt,
-                                                       varLong, varFloat, varDouble, varObject,
-                                                       varBoolean);
+                      varByte, varChar, varShort, varInt,
+                      varLong, varFloat, varDouble, varObject,
+                      varBoolean);
   expectDoubleValue = 102.18;
 
   if (returnDoubleValue != expectDoubleValue) {
@@ -832,9 +832,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
   }
 
   returnObjectValue = (*env) -> CallStaticObjectMethod(env, cls, methodID,
-                                                       varByte, varChar, varShort, varInt,
-                                                       varLong, varFloat, varDouble, varObject,
-                                                       varBoolean);
+                      varByte, varChar, varShort, varInt,
+                      varLong, varFloat, varDouble, varObject,
+                      varBoolean);
 
   /* check to see if we got a String object */
   checkClass = (*env) -> FindClass(env, "java/lang/String");
@@ -888,7 +888,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
  * Signature: (LMethodInvocation;Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethodA
-  (JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
 
   jmethodID methodID;
   jvalue *argA;
@@ -1152,7 +1152,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethodA
  * Signature: (LMethodInvocation;Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethodV
-  (JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
   int result;
 
   jlong longval = 0x01234567l;         /* some dummy long value */
@@ -1169,7 +1169,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethodV
   jboolean varBoolean = 0;              /* boolean */
 
   result = invokeVirtualMethodV_part2(env, cls, objTarget, objArg, varByte, varChar, varShort,
-                                     varInt, varLong, varFloat, varDouble, varObject, varBoolean);
+                                      varInt, varLong, varFloat, varDouble, varObject, varBoolean);
 
   return result;
 }
@@ -1374,7 +1374,7 @@ int invokeVirtualMethodV_part2(JNIEnv *env, jclass cls, jobject objTarget, jobje
    * Test 9:  pass every type, return object    *
    **********************************************/
   methodID = (*env) -> GetMethodID(env, cls, "virtualReturnObject",
-                                         "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
+                                   "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
   if (methodID == NULL) {
     if (verbose)
       printf("> GetMethodID: fail to get method ID for virtual method virtualReturnObject\n");
@@ -1436,7 +1436,7 @@ int invokeVirtualMethodV_part2(JNIEnv *env, jclass cls, jobject objTarget, jobje
  * Signature: (LMethodInvocation;Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
-  (JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
 
   jboolean returnBooleanValue;
   jchar returnCharValue;
@@ -1480,9 +1480,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnBooleanValue = (*env) -> CallBooleanMethod(env, objTarget, methodID,
-                                                   varByte, varChar, varShort, varInt,
-                                                   varLong, varFloat, varDouble, varObject,
-                                                   varBoolean);
+                       varByte, varChar, varShort, varInt,
+                       varLong, varFloat, varDouble, varObject,
+                       varBoolean);
 
   if (returnBooleanValue == 0) {
     if (verbose)
@@ -1503,9 +1503,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnByteValue = (*env) -> CallByteMethod(env, objTarget, methodID,
-                                             varByte, varChar, varShort, varInt,
-                                             varLong, varFloat, varDouble, varObject,
-                                             varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
   expectByteValue = varByte + 7;
 
   if (returnByteValue != expectByteValue) {
@@ -1526,9 +1526,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnCharValue = (*env) -> CallCharMethod(env, objTarget, methodID,
-                                             varByte, varChar, varShort, varInt,
-                                             varLong, varFloat, varDouble, varObject,
-                                             varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
 
   if (returnCharValue != 'y') {
     if (verbose)
@@ -1548,9 +1548,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnShortValue = (*env) -> CallShortMethod(env, objTarget, methodID,
-                                               varByte, varChar, varShort, varInt,
-                                               varLong, varFloat, varDouble, varObject,
-                                               varBoolean);
+                     varByte, varChar, varShort, varInt,
+                     varLong, varFloat, varDouble, varObject,
+                     varBoolean);
   expectShortValue = varShort + 23;
 
   if (returnShortValue != expectShortValue) {
@@ -1572,9 +1572,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnIntValue = (*env) -> CallIntMethod(env, objTarget, methodID,
-                                           varByte, varChar, varShort, varInt,
-                                           varLong, varFloat, varDouble, varObject,
-                                           varBoolean);
+                   varByte, varChar, varShort, varInt,
+                   varLong, varFloat, varDouble, varObject,
+                   varBoolean);
   expectIntValue = varInt + varByte;
 
 
@@ -1596,9 +1596,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnLongValue = (*env) -> CallLongMethod(env, objTarget, methodID,
-                                             varByte, varChar, varShort, varInt,
-                                             varLong, varFloat, varDouble, varObject,
-                                             varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
   expectLongValue = 0x01234567l;
   expectLongValue = (expectLongValue << 16)  + varShort;
 
@@ -1623,9 +1623,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnFloatValue = (*env) -> CallFloatMethod(env, objTarget, methodID,
-                                               varByte, varChar, varShort, varInt,
-                                               varLong, varFloat, varDouble, varObject,
-                                               varBoolean);
+                     varByte, varChar, varShort, varInt,
+                     varLong, varFloat, varDouble, varObject,
+                     varBoolean);
   expectFloatValue = (float) 35.14;
 
   if (returnFloatValue != expectFloatValue) {
@@ -1646,9 +1646,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnDoubleValue = (*env) -> CallDoubleMethod(env, objTarget, methodID,
-                                                 varByte, varChar, varShort, varInt,
-                                                 varLong, varFloat, varDouble, varObject,
-                                                 varBoolean);
+                      varByte, varChar, varShort, varInt,
+                      varLong, varFloat, varDouble, varObject,
+                      varBoolean);
   expectDoubleValue = 1002.18;
 
   if (returnDoubleValue != expectDoubleValue) {
@@ -1663,7 +1663,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
    * Test 9:  pass every type, return object    *
    **********************************************/
   methodID = (*env) -> GetMethodID(env, cls, "virtualReturnObject",
-                                         "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
+                                   "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
   if (methodID == NULL) {
     if (verbose)
       printf("> GetMethodID: fail to get method ID for virtual method virtualReturnObject\n");
@@ -1671,9 +1671,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
   }
 
   returnObjectValue = (*env) -> CallObjectMethod(env, objTarget, methodID,
-                                                 varByte, varChar, varShort, varInt,
-                                                 varLong, varFloat, varDouble, varObject,
-                                                 varBoolean);
+                      varByte, varChar, varShort, varInt,
+                      varLong, varFloat, varDouble, varObject,
+                      varBoolean);
 
   /* check to see if we got a String object */
   checkClass = (*env) -> FindClass(env, "java/lang/String");
@@ -1728,7 +1728,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
  * Signature: (LMethodInvocation;Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethodA
-  (JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
 
   jclass targetClass;
 
@@ -2001,7 +2001,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethodA
  * Signature: (LMethodInvocation;Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethodV
-  (JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
   int result;
 
   jlong longval = 0x01234567l;         /* some dummy long value */
@@ -2018,7 +2018,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethodV
   jboolean varBoolean = 0;              /* boolean */
 
   result = invokeNonVirtualMethodV_part2(env, cls, objTarget, objArg, varByte, varChar, varShort,
-                                     varInt, varLong, varFloat, varDouble, varObject, varBoolean);
+                                         varInt, varLong, varFloat, varDouble, varObject, varBoolean);
 
   return result;
 }
@@ -2231,7 +2231,7 @@ int invokeNonVirtualMethodV_part2(JNIEnv *env, jclass cls, jobject objTarget, jo
    * Test 9:  pass every type, return object    *
    **********************************************/
   methodID = (*env) -> GetMethodID(env, targetClass, "virtualReturnObject",
-                                         "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
+                                   "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
   if (methodID == NULL) {
     if (verbose)
       printf("> GetMethodID: fail to get method ID for virtual method virtualReturnObject\n");
@@ -2293,7 +2293,7 @@ int invokeNonVirtualMethodV_part2(JNIEnv *env, jclass cls, jobject objTarget, jo
  * Signature: (LMethodInvocation;Ljava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
-  (JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
+(JNIEnv *env, jclass cls, jobject objTarget, jobject objArg) {
 
   jclass targetClass;
 
@@ -2345,9 +2345,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnBooleanValue = (*env) -> CallNonvirtualBooleanMethod(env, objTarget, targetClass, methodID,
-                                                   varByte, varChar, varShort, varInt,
-                                                   varLong, varFloat, varDouble, varObject,
-                                                   varBoolean);
+                       varByte, varChar, varShort, varInt,
+                       varLong, varFloat, varDouble, varObject,
+                       varBoolean);
 
   if (returnBooleanValue == 0) {
     if (verbose)
@@ -2368,9 +2368,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnByteValue = (*env) -> CallNonvirtualByteMethod(env, objTarget, targetClass, methodID,
-                                             varByte, varChar, varShort, varInt,
-                                             varLong, varFloat, varDouble, varObject,
-                                             varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
   expectByteValue = varByte + 7;
 
   if (returnByteValue != expectByteValue) {
@@ -2391,9 +2391,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnCharValue = (*env) -> CallNonvirtualCharMethod(env, objTarget, targetClass, methodID,
-                                             varByte, varChar, varShort, varInt,
-                                             varLong, varFloat, varDouble, varObject,
-                                             varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
 
   if (returnCharValue != 'y') {
     if (verbose)
@@ -2413,9 +2413,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnShortValue = (*env) -> CallNonvirtualShortMethod(env, objTarget, targetClass, methodID,
-                                               varByte, varChar, varShort, varInt,
-                                               varLong, varFloat, varDouble, varObject,
-                                               varBoolean);
+                     varByte, varChar, varShort, varInt,
+                     varLong, varFloat, varDouble, varObject,
+                     varBoolean);
   expectShortValue = varShort + 23;
 
   if (returnShortValue != expectShortValue) {
@@ -2437,9 +2437,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnIntValue = (*env) -> CallNonvirtualIntMethod(env, objTarget, targetClass, methodID,
-                                           varByte, varChar, varShort, varInt,
-                                           varLong, varFloat, varDouble, varObject,
-                                           varBoolean);
+                   varByte, varChar, varShort, varInt,
+                   varLong, varFloat, varDouble, varObject,
+                   varBoolean);
   expectIntValue = varInt + varByte;
 
 
@@ -2461,9 +2461,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnLongValue = (*env) -> CallNonvirtualLongMethod(env, objTarget, targetClass, methodID,
-                                             varByte, varChar, varShort, varInt,
-                                             varLong, varFloat, varDouble, varObject,
-                                             varBoolean);
+                    varByte, varChar, varShort, varInt,
+                    varLong, varFloat, varDouble, varObject,
+                    varBoolean);
   expectLongValue = 0x01234567l;
   expectLongValue = (expectLongValue << 16)  + varShort;
 
@@ -2488,9 +2488,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnFloatValue = (*env) -> CallNonvirtualFloatMethod(env, objTarget, targetClass, methodID,
-                                               varByte, varChar, varShort, varInt,
-                                               varLong, varFloat, varDouble, varObject,
-                                               varBoolean);
+                     varByte, varChar, varShort, varInt,
+                     varLong, varFloat, varDouble, varObject,
+                     varBoolean);
   expectFloatValue = (float) 35.14;
 
   if (returnFloatValue != expectFloatValue) {
@@ -2511,9 +2511,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnDoubleValue = (*env) -> CallNonvirtualDoubleMethod(env, objTarget, targetClass, methodID,
-                                                 varByte, varChar, varShort, varInt,
-                                                 varLong, varFloat, varDouble, varObject,
-                                                 varBoolean);
+                      varByte, varChar, varShort, varInt,
+                      varLong, varFloat, varDouble, varObject,
+                      varBoolean);
   expectDoubleValue = 1002.18;
 
   if (returnDoubleValue != expectDoubleValue) {
@@ -2528,7 +2528,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
    * Test 9:  pass every type, return object    *
    **********************************************/
   methodID = (*env) -> GetMethodID(env, targetClass, "virtualReturnObject",
-                                         "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
+                                   "(BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;");
   if (methodID == NULL) {
     if (verbose)
       printf("> GetMethodID: fail to get method ID for virtual method virtualReturnObject\n");
@@ -2536,9 +2536,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   returnObjectValue = (*env) -> CallNonvirtualObjectMethod(env, objTarget, targetClass, methodID,
-                                                 varByte, varChar, varShort, varInt,
-                                                 varLong, varFloat, varDouble, varObject,
-                                                 varBoolean);
+                      varByte, varChar, varShort, varInt,
+                      varLong, varFloat, varDouble, varObject,
+                      varBoolean);
 
   /* check to see if we got a String object */
   checkClass = (*env) -> FindClass(env, "java/lang/String");
@@ -2566,9 +2566,9 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
   }
 
   (*env) -> CallNonvirtualVoidMethod(env, objTarget, targetClass, methodID,
-                           varByte, varChar, varShort, varInt,
-                           varLong, varFloat, varDouble, varObject,
-                           varBoolean);
+                                     varByte, varChar, varShort, varInt,
+                                     varLong, varFloat, varDouble, varObject,
+                                     varBoolean);
 
   /* check the flag in the static field testFlagForVoid */
   fid = (*env) -> GetStaticFieldID(env, cls, "testFlagForVoid", "I");

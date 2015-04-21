@@ -175,7 +175,7 @@ void *thread_fun(void *arg)
   /****************************************************
    * Test DetachCurrentThread
    */
- detach:
+detach:
   rc = (*jvm)->DetachCurrentThread(jvm);
 
   if (rc!=0) {
@@ -378,7 +378,7 @@ main(int argc, char **argv) {
   /***************************************************
    *  Test DestroyJavaVM
    */
- destroy:
+destroy:
   rc = (*jvm)->DestroyJavaVM(jvm);
 
   if (rc!=0) {

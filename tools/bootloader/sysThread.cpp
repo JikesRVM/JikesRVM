@@ -28,8 +28,8 @@
 
 #ifndef RVM_FOR_HARMONY
 typedef struct {
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
 } vmmonitor_t;
 #endif
 
@@ -40,7 +40,7 @@ typedef struct {
 #ifdef __GLIBC__
 /* use glibc internal longjmp to bypass fortify checks */
 EXTERNAL void __libc_longjmp (jmp_buf buf, int val) \
-                    __attribute__ ((__noreturn__));
+__attribute__ ((__noreturn__));
 #define rvm_longjmp(buf, ret) \
         __libc_longjmp(buf, ret)
 #else
@@ -80,92 +80,92 @@ extern TLS_KEY_TYPE VmThreadKey;
 TLS_KEY_TYPE TerminateJmpBufKey;
 
 TLS_KEY_TYPE createThreadLocal() {
-    TLS_KEY_TYPE key;
-    int rc;
+  TLS_KEY_TYPE key;
+  int rc;
 #ifdef RVM_FOR_HARMONY
-    rc = hythread_tls_alloc(&key);
+  rc = hythread_tls_alloc(&key);
 #else
-    rc = pthread_key_create(&key, 0);
+  rc = pthread_key_create(&key, 0);
 #endif
-    if (rc != 0) {
-        ERROR_PRINTF("%s: alloc tls key failed (err=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
-    return key;
+  if (rc != 0) {
+    ERROR_PRINTF("%s: alloc tls key failed (err=%d)\n", Me, rc);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
+  return key;
 }
 
 /** Create keys for thread-specific data. */
 EXTERNAL void sysCreateThreadSpecificDataKeys(void)
 {
-    TRACE_PRINTF("%s: sysCreateThreadSpecificDataKeys\n", Me);
-    int rc;
+  TRACE_PRINTF("%s: sysCreateThreadSpecificDataKeys\n", Me);
+  int rc;
 
-    // Create a key for thread-specific data so we can associate
-    // the id of the Processor object with the pthread it is running on.
-    VmThreadKey = createThreadLocal();
-    TerminateJmpBufKey = createThreadLocal();
-    TRACE_PRINTF("%s: vm processor key=%lu\n", Me, VmThreadKey);
+  // Create a key for thread-specific data so we can associate
+  // the id of the Processor object with the pthread it is running on.
+  VmThreadKey = createThreadLocal();
+  TerminateJmpBufKey = createThreadLocal();
+  TRACE_PRINTF("%s: vm processor key=%lu\n", Me, VmThreadKey);
 }
 
 void setThreadLocal(TLS_KEY_TYPE key, void * value) {
 #ifdef RVM_FOR_HARMONY
-    int rc = hythread_tls_set(hythread_self(), key, value);
+  int rc = hythread_tls_set(hythread_self(), key, value);
 #else
-    int rc = pthread_setspecific(key, value);
+  int rc = pthread_setspecific(key, value);
 #endif
-    if (rc != 0) {
-        ERROR_PRINTF("%s: set tls failed (err=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
+  if (rc != 0) {
+    ERROR_PRINTF("%s: set tls failed (err=%d)\n", Me, rc);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
 }
 
 EXTERNAL void sysStashVMThread(Address vmThread)
 {
-    TRACE_PRINTF("%s: sysStashVmProcessorInPthread %p\n", Me, vmThread);
-    setThreadLocal(VmThreadKey, (void*)vmThread);
+  TRACE_PRINTF("%s: sysStashVmProcessorInPthread %p\n", Me, vmThread);
+  setThreadLocal(VmThreadKey, (void*)vmThread);
 }
 
 EXTERNAL void * getVmThread()
 {
-    return GET_THREAD_LOCAL(VmThreadKey);
+  return GET_THREAD_LOCAL(VmThreadKey);
 }
 
 EXTERNAL void sysInitialize()
 {
-    TRACE_PRINTF("%s: sysInitialize\n", Me);
+  TRACE_PRINTF("%s: sysInitialize\n", Me);
 #ifdef RVM_FOR_HARMONY
-    VMI_Initialize();
+  VMI_Initialize();
 #endif
-    DeathLock = sysMonitorCreate();
+  DeathLock = sysMonitorCreate();
 }
 
 /** Exit with a return code. */
 EXTERNAL void sysExit(int value)
 {
-    TRACE_PRINTF("%s: sysExit %d\n", Me, value);
-    // alignment checking: report info before exiting, then turn off checking
-    #ifdef RVM_WITH_ALIGNMENT_CHECKING
-    if (numEnableAlignCheckingCalls > 0) {
-      sysReportAlignmentChecking();
-      sysDisableAlignmentChecking();
-    }
-    #endif // RVM_WITH_ALIGNMENT_CHECKING
+  TRACE_PRINTF("%s: sysExit %d\n", Me, value);
+  // alignment checking: report info before exiting, then turn off checking
+#ifdef RVM_WITH_ALIGNMENT_CHECKING
+  if (numEnableAlignCheckingCalls > 0) {
+    sysReportAlignmentChecking();
+    sysDisableAlignmentChecking();
+  }
+#endif // RVM_WITH_ALIGNMENT_CHECKING
 
-    if (lib_verbose & value != 0) {
-        TRACE_PRINTF("%s: exit %d\n", Me, value);
-    }
+  if (lib_verbose & value != 0) {
+    TRACE_PRINTF("%s: exit %d\n", Me, value);
+  }
 
-    fflush(SysErrorFile);
-    fflush(SysTraceFile);
-    fflush(stdout);
+  fflush(SysErrorFile);
+  fflush(SysTraceFile);
+  fflush(stdout);
 
-    systemExiting = true;
+  systemExiting = true;
 
-    if (DeathLock) sysMonitorEnter(DeathLock);
-    if (debugging && value!=0) {
-        abort();
-    }
-    exit(value);
+  if (DeathLock) sysMonitorEnter(DeathLock);
+  if (debugging && value!=0) {
+    abort();
+  }
+  exit(value);
 }
 
 
@@ -182,24 +182,24 @@ EXTERNAL void sysExit(int value)
  */
 EXTERNAL void sysNanoSleep(long long howLongNanos)
 {
-    struct timespec req;
-    const long long nanosPerSec = 1000LL * 1000 * 1000;
-    TRACE_PRINTF("%s: sysNanosleep %lld\n", Me, howLongNanos);
-    req.tv_sec = howLongNanos / nanosPerSec;
-    req.tv_nsec = howLongNanos % nanosPerSec;
-    int ret = nanosleep(&req, (struct timespec *) NULL);
-    if (ret < 0) {
-        if (errno == EINTR)
-            /* EINTR is expected, since we do use signals internally. */
-            return;
+  struct timespec req;
+  const long long nanosPerSec = 1000LL * 1000 * 1000;
+  TRACE_PRINTF("%s: sysNanosleep %lld\n", Me, howLongNanos);
+  req.tv_sec = howLongNanos / nanosPerSec;
+  req.tv_nsec = howLongNanos % nanosPerSec;
+  int ret = nanosleep(&req, (struct timespec *) NULL);
+  if (ret < 0) {
+    if (errno == EINTR)
+      /* EINTR is expected, since we do use signals internally. */
+      return;
 
-        ERROR_PRINTF("%s: nanosleep(<tv_sec=%ld,tv_nsec=%ld>) failed:"
-                " %s (errno=%d)\n"
-                "  That should never happen; please report it as a bug.\n",
-                Me, req.tv_sec, req.tv_nsec,
-                strerror( errno ), errno);
-    }
-    // Done.
+    ERROR_PRINTF("%s: nanosleep(<tv_sec=%ld,tv_nsec=%ld>) failed:"
+                 " %s (errno=%d)\n"
+                 "  That should never happen; please report it as a bug.\n",
+                 Me, req.tv_sec, req.tv_nsec,
+                 strerror( errno ), errno);
+  }
+  // Done.
 }
 
 /**
@@ -214,77 +214,77 @@ EXTERNAL void sysNanoSleep(long long howLongNanos)
  */
 EXTERNAL int sysNumProcessors()
 {
-    static int firstRun = 1;
-    int numCpus = -1;  /* -1 means failure. */
-    TRACE_PRINTF("%s: sysNumProcessors\n", Me);
+  static int firstRun = 1;
+  int numCpus = -1;  /* -1 means failure. */
+  TRACE_PRINTF("%s: sysNumProcessors\n", Me);
 
 #ifdef __GNU_LIBRARY__      // get_nprocs is part of the GNU C library.
-    /* get_nprocs_conf will give us a how many processors the operating
-       system configured.  The number of processors actually online is what
-       we want.  */
-    // numCpus = get_nprocs_conf();
-    errno = 0;
-    numCpus = get_nprocs();
-    // It is not clear if get_nprocs can ever return failure; assume it might.
-    if (numCpus < 1) {
-       if (firstRun) CONSOLE_PRINTF("%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
-       /* Continue on.  Try to get a better answer by some other method, not
-          that it's likely, but this should not be a fatal error. */
-    }
+  /* get_nprocs_conf will give us a how many processors the operating
+     system configured.  The number of processors actually online is what
+     we want.  */
+  // numCpus = get_nprocs_conf();
+  errno = 0;
+  numCpus = get_nprocs();
+  // It is not clear if get_nprocs can ever return failure; assume it might.
+  if (numCpus < 1) {
+    if (firstRun) CONSOLE_PRINTF("%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
+    /* Continue on.  Try to get a better answer by some other method, not
+       that it's likely, but this should not be a fatal error. */
+  }
 #endif
 
 #if defined(CTL_HW) && defined(HW_NCPU)
-    if (numCpus < 1) {
-        int mib[2];
-        size_t len;
-        mib[0] = CTL_HW;
-        mib[1] = HW_NCPU;
-        len = sizeof(numCpus);
-        errno = 0;
-        if (sysctl(mib, 2, &numCpus, &len, NULL, 0) < 0) {
-            if (firstRun) CONSOLE_PRINTF("%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
-                    " errno = %d\n", Me, errno);
-            numCpus = -1;       // failed so far...
-        };
-    }
+  if (numCpus < 1) {
+    int mib[2];
+    size_t len;
+    mib[0] = CTL_HW;
+    mib[1] = HW_NCPU;
+    len = sizeof(numCpus);
+    errno = 0;
+    if (sysctl(mib, 2, &numCpus, &len, NULL, 0) < 0) {
+      if (firstRun) CONSOLE_PRINTF("%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
+                                     " errno = %d\n", Me, errno);
+      numCpus = -1;       // failed so far...
+    };
+  }
 #endif
 
 #if defined(_SC_NPROCESSORS_ONLN)
+  if (numCpus < 0) {
+    /* This alternative is probably the same as
+     *  _system_configuration.ncpus.  This one says how many CPUs are
+     *  actually on line.  It seems to be supported on AIX, at least; I
+     *  yanked this out of sysVirtualProcessorBind.
+     */
+    numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
     if (numCpus < 0) {
-        /* This alternative is probably the same as
-         *  _system_configuration.ncpus.  This one says how many CPUs are
-         *  actually on line.  It seems to be supported on AIX, at least; I
-         *  yanked this out of sysVirtualProcessorBind.
-         */
-        numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
-        if (numCpus < 0) {
-            if (firstRun) CONSOLE_PRINTF(SysTraceCONSOLE_PRINTF(, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
-                    " failed\n", Me);
-        }
-    }
+      if (firstRun) CONSOLE_PRINTF(SysTraceCONSOLE_PRINTF(, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
+                                     " failed\n", Me);
+      }
+  }
 #endif
 
 #ifdef _AIX
+  if (numCpus < 0) {
+    numCpus = _system_configuration.ncpus;
     if (numCpus < 0) {
-        numCpus = _system_configuration.ncpus;
-        if (numCpus < 0) {
-            if (firstRun) CONSOLE_PRINTF("%s: WARNING: _system_configuration.ncpus"
-                    " has the insane value %d\n" , Me, numCpus);
-        }
+      if (firstRun) CONSOLE_PRINTF("%s: WARNING: _system_configuration.ncpus"
+                                     " has the insane value %d\n" , Me, numCpus);
     }
+  }
 #endif
 
-    if (numCpus < 0) {
-        if (firstRun) TRACE_PRINTF("%s: WARNING: Can not figure out how many CPUs"
-                              " are online; assuming 1\n", Me);
-        numCpus = 1;            // Default
-    }
+  if (numCpus < 0) {
+    if (firstRun) TRACE_PRINTF("%s: WARNING: Can not figure out how many CPUs"
+                                 " are online; assuming 1\n", Me);
+    numCpus = 1;            // Default
+  }
 
 #ifdef DEBUG_SYS
-    CONSOLE_PRINTF("%s: sysNumProcessors: returning %d\n", Me, numCpus );
+  CONSOLE_PRINTF("%s: sysNumProcessors: returning %d\n", Me, numCpus );
 #endif
-    firstRun = 0;
-    return numCpus;
+  firstRun = 0;
+  return numCpus;
 }
 
 /**
@@ -294,61 +294,61 @@ EXTERNAL int sysNumProcessors()
  */
 EXTERNAL Word sysThreadCreate(Address tr, Address ip, Address fp)
 {
-    Address    *sysThreadArguments;
-    int            rc;
+  Address    *sysThreadArguments;
+  int            rc;
 
-    TRACE_PRINTF("%s: sysThreadCreate %p %p %p\n", Me, tr, ip, fp);
+  TRACE_PRINTF("%s: sysThreadCreate %p %p %p\n", Me, tr, ip, fp);
 
-    // create arguments
-    //
-    sysThreadArguments = (Address*) checkMalloc(sizeof(Address) * 3);
-    sysThreadArguments[0] = tr;
-    sysThreadArguments[1] = ip;
-    sysThreadArguments[2] = fp;
+  // create arguments
+  //
+  sysThreadArguments = (Address*) checkMalloc(sizeof(Address) * 3);
+  sysThreadArguments[0] = tr;
+  sysThreadArguments[1] = ip;
+  sysThreadArguments[2] = fp;
 
 #ifdef RVM_FOR_HARMONY
-    hythread_t      sysThreadHandle;
+  hythread_t      sysThreadHandle;
 
-    if ((rc = hythread_create(&sysThreadHandle, 0, HYTHREAD_PRIORITY_NORMAL, 0, sysThreadStartup, sysThreadArguments)))
-    {
-        ERROR_PRINTF("%s: hythread_create failed (rc=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
+  if ((rc = hythread_create(&sysThreadHandle, 0, HYTHREAD_PRIORITY_NORMAL, 0, sysThreadStartup, sysThreadArguments)))
+  {
+    ERROR_PRINTF("%s: hythread_create failed (rc=%d)\n", Me, rc);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
 #else
-    pthread_attr_t sysThreadAttributes;
-    pthread_t      sysThreadHandle;
+  pthread_attr_t sysThreadAttributes;
+  pthread_t      sysThreadHandle;
 
-    // create attributes
-    //
-    if ((rc = pthread_attr_init(&sysThreadAttributes))) {
-        ERROR_PRINTF("%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
+  // create attributes
+  //
+  if ((rc = pthread_attr_init(&sysThreadAttributes))) {
+    ERROR_PRINTF("%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
 
-    // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
-    //
-    pthread_attr_setscope(&sysThreadAttributes, PTHREAD_SCOPE_SYSTEM);
+  // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
+  //
+  pthread_attr_setscope(&sysThreadAttributes, PTHREAD_SCOPE_SYSTEM);
 
-    // create native thread
-    //
-    if ((rc = pthread_create(&sysThreadHandle,
-                             &sysThreadAttributes,
-                             sysThreadStartup,
-                             sysThreadArguments)))
-    {
-        ERROR_PRINTF("%s: pthread_create failed (rc=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
+  // create native thread
+  //
+  if ((rc = pthread_create(&sysThreadHandle,
+                           &sysThreadAttributes,
+                           sysThreadStartup,
+                           sysThreadArguments)))
+  {
+    ERROR_PRINTF("%s: pthread_create failed (rc=%d)\n", Me, rc);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
 
-    if ((rc = pthread_detach(sysThreadHandle)))
-    {
-        ERROR_PRINTF("%s: pthread_detach failed (rc=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
-    TRACE_PRINTF("%s: pthread_create 0x%08x\n", Me, (Address) sysThreadHandle);
+  if ((rc = pthread_detach(sysThreadHandle)))
+  {
+    ERROR_PRINTF("%s: pthread_detach failed (rc=%d)\n", Me, rc);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
+  TRACE_PRINTF("%s: pthread_create 0x%08x\n", Me, (Address) sysThreadHandle);
 #endif
 
-    return (Word)sysThreadHandle;
+  return (Word)sysThreadHandle;
 }
 
 EXTERNAL int sysThreadBindSupported()
@@ -366,26 +366,26 @@ EXTERNAL int sysThreadBindSupported()
 
 EXTERNAL void sysThreadBind(int cpuId)
 {
-    TRACE_PRINTF("%s: sysThreadBind\n", Me);
-    // bindprocessor() seems to be only on AIX
+  TRACE_PRINTF("%s: sysThreadBind\n", Me);
+  // bindprocessor() seems to be only on AIX
 #ifdef RVM_FOR_AIX
-    int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
-    CONSOLE_PRINTF("%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
+  int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
+  CONSOLE_PRINTF("%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
 
-    if (rc) {
-        ERROR_PRINTF("%s: bindprocessor failed (errno=%d): ", Me, errno);
-        perror(NULL);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
+  if (rc) {
+    ERROR_PRINTF("%s: bindprocessor failed (errno=%d): ", Me, errno);
+    perror(NULL);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
 #endif
 
 #ifndef RVM_FOR_HARMONY
 #ifdef RVM_FOR_LINUX
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(cpuId, &cpuset);
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(cpuId, &cpuset);
 
-    pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+  pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
 #endif
 #endif
 }
@@ -396,73 +396,73 @@ EXTERNAL int sysThreadStartup(void *args)
 EXTERNAL void * sysThreadStartup(void *args)
 #endif
 {
-    /* install a stack for hardwareTrapHandler() to run on */
-    stack_t stack;
-    char *stackBuf;
+  /* install a stack for hardwareTrapHandler() to run on */
+  stack_t stack;
+  char *stackBuf;
 
-    memset (&stack, 0, sizeof stack);
-    stack.ss_sp = stackBuf = (char*) checkMalloc(sizeof(char) * SIGSTKSZ);
-    stack.ss_flags = 0;
-    stack.ss_size = SIGSTKSZ;
-    if (sigaltstack (&stack, 0)) {
-        ERROR_PRINTF("sigaltstack failed (errno=%d)\n",errno);
-        exit(1);
+  memset (&stack, 0, sizeof stack);
+  stack.ss_sp = stackBuf = (char*) checkMalloc(sizeof(char) * SIGSTKSZ);
+  stack.ss_flags = 0;
+  stack.ss_size = SIGSTKSZ;
+  if (sigaltstack (&stack, 0)) {
+    ERROR_PRINTF("sigaltstack failed (errno=%d)\n",errno);
+    exit(1);
+  }
+
+  Address tr       = ((Address *)args)[0];
+
+  jmp_buf *jb = (jmp_buf*)checkMalloc(sizeof(jmp_buf));
+  if (setjmp(*jb)) {
+    // this is where we come to terminate the thread
+#ifdef RVM_FOR_HARMONY
+    hythread_detach(NULL);
+#endif
+    checkFree(jb);
+    *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+
+    // disable the signal stack (first retreiving the current one)
+    sigaltstack(0, &stack);
+    stack.ss_flags = SS_DISABLE;
+    sigaltstack(&stack, 0);
+
+    // check if the signal stack is the one in stackBuf
+    if (stack.ss_sp != stackBuf) {
+      // no; release it as well
+      checkFree(stack.ss_sp);
     }
 
-    Address tr       = ((Address *)args)[0];
+    // release signal stack allocated here
+    checkFree(stackBuf);
+    // release arguments
+    checkFree(args);
+  } else {
+    setThreadLocal(TerminateJmpBufKey, (void*)jb);
 
-    jmp_buf *jb = (jmp_buf*)checkMalloc(sizeof(jmp_buf));
-    if (setjmp(*jb)) {
-        // this is where we come to terminate the thread
-#ifdef RVM_FOR_HARMONY
-        hythread_detach(NULL);
-#endif
-        checkFree(jb);
-        *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+    Address ip       = ((Address *)args)[1];
+    Address fp       = ((Address *)args)[2];
 
-        // disable the signal stack (first retreiving the current one)
-        sigaltstack(0, &stack);
-        stack.ss_flags = SS_DISABLE;
-        sigaltstack(&stack, 0);
+    TRACE_PRINTF("%s: sysThreadStartup: pr=%p ip=%p fp=%p\n", Me, tr, ip, fp);
 
-        // check if the signal stack is the one in stackBuf
-        if (stack.ss_sp != stackBuf) {
-            // no; release it as well
-            checkFree(stack.ss_sp);
-        }
-
-        // release signal stack allocated here
-        checkFree(stackBuf);
-        // release arguments
-        checkFree(args);
-    } else {
-        setThreadLocal(TerminateJmpBufKey, (void*)jb);
-
-        Address ip       = ((Address *)args)[1];
-        Address fp       = ((Address *)args)[2];
-
-        TRACE_PRINTF("%s: sysThreadStartup: pr=%p ip=%p fp=%p\n", Me, tr, ip, fp);
-
-        // branch to vm code
-        //
+    // branch to vm code
+    //
 #ifndef RVM_FOR_POWERPC
-        {
-            *(Address *) (tr + Thread_framePointer_offset) = fp;
-            Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
-            bootThread((void*)ip, (void*)tr, (void*)sp);
-        }
+    {
+      *(Address *) (tr + Thread_framePointer_offset) = fp;
+      Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
+      bootThread((void*)ip, (void*)tr, (void*)sp);
+    }
 #else
-        bootThread((int)(Word)getJTOC(), tr, ip, fp);
+    bootThread((int)(Word)getJTOC(), tr, ip, fp);
 #endif
 
-        // not reached
-        //
-        CONSOLE_PRINTF("%s: sysThreadStartup: failed\n", Me);
-    }
+    // not reached
+    //
+    CONSOLE_PRINTF("%s: sysThreadStartup: failed\n", Me);
+  }
 #ifdef RVM_FOR_HARMONY
-    return 0;
+  return 0;
 #else
-    return NULL;
+  return NULL;
 #endif
 }
 
@@ -477,21 +477,21 @@ EXTERNAL void * sysThreadStartup(void *args)
  */
 EXTERNAL Word sysGetThreadId()
 {
-    TRACE_PRINTF("%s: sysGetThreadId\n", Me);
-    return (Word)getThreadId();
+  TRACE_PRINTF("%s: sysGetThreadId\n", Me);
+  return (Word)getThreadId();
 }
 
 EXTERNAL void* getThreadId()
 {
 
 #ifdef RVM_FOR_HARMONY
-    void* thread = (void*)hythread_self();
+  void* thread = (void*)hythread_self();
 #else
-    void* thread = (void*)pthread_self();
+  void* thread = (void*)pthread_self();
 #endif
 
-    TRACE_PRINTF("%s: getThreadId: thread %x\n", Me, thread);
-    return thread;
+  TRACE_PRINTF("%s: getThreadId: thread %x\n", Me, thread);
+  return thread;
 }
 
 /**
@@ -503,52 +503,52 @@ EXTERNAL void* getThreadId()
  */
 EXTERNAL void sysSetupHardwareTrapHandler()
 {
-    int rc;                     // retval from subfunction.
+  int rc;                     // retval from subfunction.
 
 #ifndef RVM_FOR_AIX
-    /*
-     *  Provide space for this pthread to process exceptions.  This is
-     * needed on Linux because multiple pthreads can handle signals
-     * concurrently, since the masking of signals during handling applies
-     * on a per-pthread basis.
-     */
-    stack_t stack;
+  /*
+   *  Provide space for this pthread to process exceptions.  This is
+   * needed on Linux because multiple pthreads can handle signals
+   * concurrently, since the masking of signals during handling applies
+   * on a per-pthread basis.
+   */
+  stack_t stack;
 
-    memset (&stack, 0, sizeof stack);
-    stack.ss_sp = (char*) checkMalloc(sizeof(char) * SIGSTKSZ);
+  memset (&stack, 0, sizeof stack);
+  stack.ss_sp = (char*) checkMalloc(sizeof(char) * SIGSTKSZ);
 
-    stack.ss_size = SIGSTKSZ;
-    if (sigaltstack (&stack, 0)) {
-        /* Only fails with EINVAL, ENOMEM, EPERM */
-        ERROR_PRINTF("sigaltstack failed (errno=%d): ", errno);
-        perror(NULL);
-        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
-    }
+  stack.ss_size = SIGSTKSZ;
+  if (sigaltstack (&stack, 0)) {
+    /* Only fails with EINVAL, ENOMEM, EPERM */
+    ERROR_PRINTF("sigaltstack failed (errno=%d): ", errno);
+    perror(NULL);
+    sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+  }
 #endif
 
-    /*
-     * Block the CONT signal.  This makes SIGCONT reach this
-     * pthread only when this pthread performs a sigwait().
-     */
-    sigset_t input_set, output_set;
-    sigemptyset(&input_set);
-    sigaddset(&input_set, SIGCONT);
+  /*
+   * Block the CONT signal.  This makes SIGCONT reach this
+   * pthread only when this pthread performs a sigwait().
+   */
+  sigset_t input_set, output_set;
+  sigemptyset(&input_set);
+  sigaddset(&input_set, SIGCONT);
 
 #ifdef RVM_FOR_AIX
-    rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
-    /* like pthread_sigmask, sigthreadmask can only return EINVAL, EFAULT, and
-     * EPERM.  Again, these are all good reasons to complain and croak. */
+  rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
+  /* like pthread_sigmask, sigthreadmask can only return EINVAL, EFAULT, and
+   * EPERM.  Again, these are all good reasons to complain and croak. */
 #else
-    rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
-    /* pthread_sigmask can only return the following errors.  Either of them
-     * indicates serious trouble and is grounds for aborting the process:
-     * EINVAL EFAULT.  */
+  rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
+  /* pthread_sigmask can only return the following errors.  Either of them
+   * indicates serious trouble and is grounds for aborting the process:
+   * EINVAL EFAULT.  */
 #endif
-    if (rc) {
-        ERROR_PRINTF("pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
-        perror(NULL);
-        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
-    }
+  if (rc) {
+    ERROR_PRINTF("pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
+    perror(NULL);
+    sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+  }
 
 }
 
@@ -557,20 +557,20 @@ EXTERNAL void sysSetupHardwareTrapHandler()
  */
 EXTERNAL void sysThreadYield()
 {
-    TRACE_PRINTF("%s: sysThreadYield\n", Me);
+  TRACE_PRINTF("%s: sysThreadYield\n", Me);
 
-    /** According to the Linux manpage, sched_yield()'s presence can be
-     *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
-     *  that is not present to use the sysconf feature, searching against
-     *  _SC_PRIORITY_SCHEDULING.  However, this may not be reliable, since
-     *  the AIX 5.1 include files include this definition:
-     *      ./unistd.h:#undef _POSIX_PRIORITY_SCHEDULING
-     *  so it is likely that this is not implemented properly.
-     */
+  /** According to the Linux manpage, sched_yield()'s presence can be
+   *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
+   *  that is not present to use the sysconf feature, searching against
+   *  _SC_PRIORITY_SCHEDULING.  However, this may not be reliable, since
+   *  the AIX 5.1 include files include this definition:
+   *      ./unistd.h:#undef _POSIX_PRIORITY_SCHEDULING
+   *  so it is likely that this is not implemented properly.
+   */
 #ifdef RVM_FOR_HARMONY
-    hythread_yield();
+  hythread_yield();
 #else
-    sched_yield();
+  sched_yield();
 #endif
 }
 
@@ -584,16 +584,16 @@ EXTERNAL void sysThreadYield()
  */
 static int hasPthreadPriority(Word thread_id)
 {
-    struct sched_param param;
-    int policy;
-    if (!pthread_getschedparam((pthread_t)thread_id, &policy, &param)) {
-        int min = sched_get_priority_min(policy);
-        int max = sched_get_priority_max(policy);
-        if (min || max) {
-            return 1;
-        }
+  struct sched_param param;
+  int policy;
+  if (!pthread_getschedparam((pthread_t)thread_id, &policy, &param)) {
+    int min = sched_get_priority_min(policy);
+    int max = sched_get_priority_max(policy);
+    if (min || max) {
+      return 1;
     }
-    return 0;
+  }
+  return 0;
 }
 
 /**
@@ -603,14 +603,14 @@ static int hasPthreadPriority(Word thread_id)
  */
 EXTERNAL Word sysGetThreadPriorityHandle()
 {
-    TRACE_PRINTF("%s: sysGetThreadPriorityHandle\n", Me);
-    // gettid() syscall is Linux specific, detect its syscall number macro
-    #ifdef SYS_gettid
-    pid_t tid = (pid_t) syscall(SYS_gettid);
-    if (tid != -1)
-        return (Word) tid;
-    #endif /* SYS_gettid */
-    return (Word) getThreadId();
+  TRACE_PRINTF("%s: sysGetThreadPriorityHandle\n", Me);
+  // gettid() syscall is Linux specific, detect its syscall number macro
+#ifdef SYS_gettid
+  pid_t tid = (pid_t) syscall(SYS_gettid);
+  if (tid != -1)
+    return (Word) tid;
+#endif /* SYS_gettid */
+  return (Word) getThreadId();
 }
 
 /**
@@ -618,9 +618,9 @@ EXTERNAL Word sysGetThreadPriorityHandle()
  */
 static int defaultPriority(int policy)
 {
-    int min = sched_get_priority_min(policy);
-    int max = sched_get_priority_max(policy);
-    return min + ((max - min) / 2);
+  int min = sched_get_priority_min(policy);
+  int max = sched_get_priority_max(policy);
+  return min + ((max - min) / 2);
 }
 
 /**
@@ -628,27 +628,27 @@ static int defaultPriority(int policy)
  */
 EXTERNAL int sysGetThreadPriority(Word thread, Word handle)
 {
-    TRACE_PRINTF("%s: sysGetThreadPriority\n", Me);
-    // use pthread priority mechanisms where possible
-    if (hasPthreadPriority(thread)) {
-        struct sched_param param;
-        int policy;
-        if (!pthread_getschedparam((pthread_t)thread, &policy, &param)) {
-            return param.sched_priority - defaultPriority(policy);
-        }
-    } else if (thread != handle) {
-        // fallback to setpriority if handle is valid
-        // i.e. handle is tid from gettid()
-        int result;
-        errno = 0; // as result can be legally be -1
-        result = getpriority(PRIO_PROCESS, (int) handle);
-        if (errno == 0) {
-            // default priority is 0, low number -> high priority
-            return -result;
-        }
-
+  TRACE_PRINTF("%s: sysGetThreadPriority\n", Me);
+  // use pthread priority mechanisms where possible
+  if (hasPthreadPriority(thread)) {
+    struct sched_param param;
+    int policy;
+    if (!pthread_getschedparam((pthread_t)thread, &policy, &param)) {
+      return param.sched_priority - defaultPriority(policy);
     }
-    return 0;
+  } else if (thread != handle) {
+    // fallback to setpriority if handle is valid
+    // i.e. handle is tid from gettid()
+    int result;
+    errno = 0; // as result can be legally be -1
+    result = getpriority(PRIO_PROCESS, (int) handle);
+    if (errno == 0) {
+      // default priority is 0, low number -> high priority
+      return -result;
+    }
+
+  }
+  return 0;
 }
 
 /**
@@ -656,140 +656,140 @@ EXTERNAL int sysGetThreadPriority(Word thread, Word handle)
  */
 EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority)
 {
-    TRACE_PRINTF("%s: sysSetThreadPriority\n", Me);
-    // fast path
-    if (sysGetThreadPriority(thread, handle) == priority)
-        return 0;
+  TRACE_PRINTF("%s: sysSetThreadPriority\n", Me);
+  // fast path
+  if (sysGetThreadPriority(thread, handle) == priority)
+    return 0;
 
-    // use pthread priority mechanisms where possible
-    if (hasPthreadPriority(thread)) {
-        struct sched_param param;
-        int policy;
-        int result = pthread_getschedparam((pthread_t)thread, &policy, &param);
-        if (!result) {
-            param.sched_priority = defaultPriority(policy) + priority;
-            return pthread_setschedparam((pthread_t)thread, policy, &param);
-        } else {
-            return result;
-        }
-    } else if (thread != handle) {
-        // fallback to setpriority if handle is valid
-        // i.e. handle is tid from gettid()
-        // default priority is 0, low number -> high priority
-        return setpriority(PRIO_PROCESS, (int) handle, -priority);
+  // use pthread priority mechanisms where possible
+  if (hasPthreadPriority(thread)) {
+    struct sched_param param;
+    int policy;
+    int result = pthread_getschedparam((pthread_t)thread, &policy, &param);
+    if (!result) {
+      param.sched_priority = defaultPriority(policy) + priority;
+      return pthread_setschedparam((pthread_t)thread, policy, &param);
+    } else {
+      return result;
     }
-    return -1;
+  } else if (thread != handle) {
+    // fallback to setpriority if handle is valid
+    // i.e. handle is tid from gettid()
+    // default priority is 0, low number -> high priority
+    return setpriority(PRIO_PROCESS, (int) handle, -priority);
+  }
+  return -1;
 }
 
 ////////////// Pthread mutex and condition functions /////////////
 
 EXTERNAL Word sysMonitorCreate()
 {
-    TRACE_PRINTF("%s: sysMonitorCreate\n", Me);
+  TRACE_PRINTF("%s: sysMonitorCreate\n", Me);
 #ifdef RVM_FOR_HARMONY
-    hythread_monitor_t monitor;
-    hythread_monitor_init_with_name(&monitor, 0, NULL);
+  hythread_monitor_t monitor;
+  hythread_monitor_init_with_name(&monitor, 0, NULL);
 #else
-    vmmonitor_t *monitor = (vmmonitor_t*) checkMalloc(sizeof(vmmonitor_t));
-    pthread_mutex_init(&monitor->mutex, NULL);
-    pthread_cond_init(&monitor->cond, NULL);
+  vmmonitor_t *monitor = (vmmonitor_t*) checkMalloc(sizeof(vmmonitor_t));
+  pthread_mutex_init(&monitor->mutex, NULL);
+  pthread_cond_init(&monitor->cond, NULL);
 #endif
-    return (Word)monitor;
+  return (Word)monitor;
 }
 
 EXTERNAL void sysMonitorDestroy(Word _monitor)
 {
-    TRACE_PRINTF("%s: sysMonitorDestroy\n", Me);
+  TRACE_PRINTF("%s: sysMonitorDestroy\n", Me);
 #ifdef RVM_FOR_HARMONY
-    hythread_monitor_destroy((hythread_monitor_t)_monitor);
+  hythread_monitor_destroy((hythread_monitor_t)_monitor);
 #else
-    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-    pthread_mutex_destroy(&monitor->mutex);
-    pthread_cond_destroy(&monitor->cond);
-    checkFree(monitor);
+  vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+  pthread_mutex_destroy(&monitor->mutex);
+  pthread_cond_destroy(&monitor->cond);
+  checkFree(monitor);
 #endif
 }
 
 EXTERNAL void sysMonitorEnter(Word _monitor)
 {
-    TRACE_PRINTF("%s: sysMonitorEnter\n", Me);
+  TRACE_PRINTF("%s: sysMonitorEnter\n", Me);
 #ifdef RVM_FOR_HARMONY
-    hythread_monitor_enter((hythread_monitor_t)_monitor);
+  hythread_monitor_enter((hythread_monitor_t)_monitor);
 #else
-    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-    pthread_mutex_lock(&monitor->mutex);
+  vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+  pthread_mutex_lock(&monitor->mutex);
 #endif
 }
 
 EXTERNAL void sysMonitorExit(Word _monitor)
 {
-    TRACE_PRINTF("%s: sysMonitorExit\n", Me);
+  TRACE_PRINTF("%s: sysMonitorExit\n", Me);
 #ifdef RVM_FOR_HARMONY
-    hythread_monitor_exit((hythread_monitor_t)_monitor);
+  hythread_monitor_exit((hythread_monitor_t)_monitor);
 #else
-    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-    pthread_mutex_unlock(&monitor->mutex);
+  vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+  pthread_mutex_unlock(&monitor->mutex);
 #endif
 }
 
 EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 {
-    TRACE_PRINTF("%s: sysMonitorTimedWaitAbsolute\n", Me);
+  TRACE_PRINTF("%s: sysMonitorTimedWaitAbsolute\n", Me);
 #ifdef RVM_FOR_HARMONY
-    // syscall wait is absolute, but harmony monitor wait is relative.
-    whenWakeupNanos -= sysNanoTime();
-    if (whenWakeupNanos <= 0) return;
-    hythread_monitor_wait_timed((hythread_monitor_t)_monitor, (I_64)(whenWakeupNanos / 1000000LL), (IDATA)(whenWakeupNanos % 1000000LL));
+  // syscall wait is absolute, but harmony monitor wait is relative.
+  whenWakeupNanos -= sysNanoTime();
+  if (whenWakeupNanos <= 0) return;
+  hythread_monitor_wait_timed((hythread_monitor_t)_monitor, (I_64)(whenWakeupNanos / 1000000LL), (IDATA)(whenWakeupNanos % 1000000LL));
 #else
-    timespec ts;
-    ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
-    ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
+  timespec ts;
+  ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
+  ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
 #ifdef DEBUG_THREAD
-      TRACE_PRINTF("starting wait at %lld until %lld (%ld, %ld)\n",
-             sysNanoTime(),whenWakeupNanos,ts.tv_sec,ts.tv_nsec);
-      fflush(NULL);
+  TRACE_PRINTF("starting wait at %lld until %lld (%ld, %ld)\n",
+               sysNanoTime(),whenWakeupNanos,ts.tv_sec,ts.tv_nsec);
+  fflush(NULL);
 #endif
-    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-    int rc = pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
+  vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+  int rc = pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
 #ifdef DEBUG_THREAD
-      TRACE_PRINTF("returned from wait at %lld instead of %lld with res = %d\n",
-             sysNanoTime(),whenWakeupNanos,rc);
-      fflush(NULL);
+  TRACE_PRINTF("returned from wait at %lld instead of %lld with res = %d\n",
+               sysNanoTime(),whenWakeupNanos,rc);
+  fflush(NULL);
 #endif
 #endif
 }
 
 EXTERNAL void sysMonitorWait(Word _monitor)
 {
-    TRACE_PRINTF("%s: sysMonitorWait\n", Me);
+  TRACE_PRINTF("%s: sysMonitorWait\n", Me);
 #ifdef RVM_FOR_HARMONY
-    hythread_monitor_wait((hythread_monitor_t)_monitor);
+  hythread_monitor_wait((hythread_monitor_t)_monitor);
 #else
-    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-    pthread_cond_wait(&monitor->cond, &monitor->mutex);
+  vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+  pthread_cond_wait(&monitor->cond, &monitor->mutex);
 #endif
 }
 
 EXTERNAL void sysMonitorBroadcast(Word _monitor)
 {
-    TRACE_PRINTF("%s: sysMonitorBroadcast\n", Me);
+  TRACE_PRINTF("%s: sysMonitorBroadcast\n", Me);
 #ifdef RVM_FOR_HARMONY
-    hythread_monitor_notify_all((hythread_monitor_t)_monitor);
+  hythread_monitor_notify_all((hythread_monitor_t)_monitor);
 #else
-    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-    pthread_cond_broadcast(&monitor->cond);
+  vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+  pthread_cond_broadcast(&monitor->cond);
 #endif
 }
 
 EXTERNAL void sysThreadTerminate()
 {
-    TRACE_PRINTF("%s: sysThreadTerminate\n", Me);
+  TRACE_PRINTF("%s: sysThreadTerminate\n", Me);
 #ifdef RVM_FOR_POWERPC
-    asm("sync");
+  asm("sync");
 #endif
-    jmp_buf *jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
-    if (jb==NULL) {
-        jb=&primordial_jb;
-    }
-    rvm_longjmp(*jb,1);
+  jmp_buf *jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
+  if (jb==NULL) {
+    jb=&primordial_jb;
+  }
+  rvm_longjmp(*jb,1);
 }

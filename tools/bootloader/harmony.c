@@ -21,20 +21,20 @@
 #include "zipsup.h"
 
 struct VMInterfaceFunctions_ vmi_impl = {
-   &CheckVersion,
-   &GetJavaVM,
-   &GetPortLibrary,
-   &GetVMLSFunctions,
-   #ifndef HY_ZIP_API
-   &GetZipCachePool,
-   #else /* HY_ZIP_API */
-   &GetZipFunctions,
-   #endif /* HY_ZIP_API */
-   &GetInitArgs,
-   &GetSystemProperty,
-   &SetSystemProperty,
-   &CountSystemProperties,
-   &IterateSystemProperties
+  &CheckVersion,
+  &GetJavaVM,
+  &GetPortLibrary,
+  &GetVMLSFunctions,
+#ifndef HY_ZIP_API
+  &GetZipCachePool,
+#else /* HY_ZIP_API */
+  &GetZipFunctions,
+#endif /* HY_ZIP_API */
+  &GetInitArgs,
+  &GetSystemProperty,
+  &SetSystemProperty,
+  &CountSystemProperties,
+  &IterateSystemProperties
 };
 
 VMInterface vmi = &vmi_impl;
@@ -50,22 +50,22 @@ extern void * JNICALL HyVMLSGet (JNIEnv * env, void *key);
 extern void * JNICALL HyVMLSSet (JNIEnv * env, void **pKey, void *value);
 
 HyVMLSFunctionTable vmls_impl = {
-    &HyVMLSAllocKeys,
-    &HyVMLSFreeKeys,
-    &HyVMLSGet,
-    &HyVMLSSet
+  &HyVMLSAllocKeys,
+  &HyVMLSFreeKeys,
+  &HyVMLSGet,
+  &HyVMLSSet
 };
 
 HyZipCachePool* zipCachePool = NULL;
 
 vmiError JNICALL CheckVersion (VMInterface * vmi, vmiVersion * version)
 {
-    return VMI_ERROR_UNIMPLEMENTED;
+  return VMI_ERROR_UNIMPLEMENTED;
 }
 
 JavaVM * JNICALL GetJavaVM (VMInterface * vmi)
 {
-    return &sysJavaVM;
+  return &sysJavaVM;
 }
 
 HyPortLibrary portLib;
@@ -73,57 +73,57 @@ HyPortLibrary portLib;
 extern HyPortLibrary hyPortLibrary;
 HyPortLibrary * JNICALL GetPortLibrary (VMInterface * vmi)
 {
-    return &hyPortLibrary;
+  return &hyPortLibrary;
 }
 
 HyVMLSFunctionTable * JNICALL GetVMLSFunctions (VMInterface * vmi)
 {
-    if (TRACE) fprintf(stderr, "VMI call GetVMLSFunctions\n");
-    return &vmls_impl;
+  if (TRACE) fprintf(stderr, "VMI call GetVMLSFunctions\n");
+  return &vmls_impl;
 }
 
 #ifndef HY_ZIP_API
 extern HyZipCachePool *hyZipCachePool;
 HyZipCachePool * JNICALL GetZipCachePool (VMInterface * vmi)
 {
-    return hyZipCachePool;
+  return hyZipCachePool;
 
 }
 #else /* HY_ZIP_API */
 struct VMIZipFunctionTable * JNICALL GetZipFunctions (VMInterface * vmi)
 {
-    fprintf(stderr, "UNIMPLEMENTED VMI call GetZipFunctions\n");
-    return NULL;
+  fprintf(stderr, "UNIMPLEMENTED VMI call GetZipFunctions\n");
+  return NULL;
 }
 #endif /* HY_ZIP_API */
 
 JavaVMInitArgs * JNICALL GetInitArgs (VMInterface * vmi)
 {
-    return JavaArgs;
+  return JavaArgs;
 }
 
 vmiError JNICALL GetSystemProperty (VMInterface * vmi, char *key, char **valuePtr)
 {
-    if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call GetSystemProperty\n");
-    return VMI_ERROR_UNIMPLEMENTED;
+  if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call GetSystemProperty\n");
+  return VMI_ERROR_UNIMPLEMENTED;
 }
 
 vmiError JNICALL SetSystemProperty (VMInterface * vmi, char *key, char *value)
 {
-    if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call SetSystemProperty\n");
-    return VMI_ERROR_UNIMPLEMENTED;
+  if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call SetSystemProperty\n");
+  return VMI_ERROR_UNIMPLEMENTED;
 }
 
 vmiError JNICALL CountSystemProperties (VMInterface * vmi, int *countPtr)
 {
-    if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call CountSystemProperties\n");
-    return VMI_ERROR_UNIMPLEMENTED;
+  if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call CountSystemProperties\n");
+  return VMI_ERROR_UNIMPLEMENTED;
 }
 
 vmiError JNICALL IterateSystemProperties (VMInterface * vmi, vmiSystemPropertyIterator iterator, void *userData)
 {
-    if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call IterateSystemProperties\n");
-    return VMI_ERROR_UNIMPLEMENTED;
+  if (TRACE) fprintf(stderr, "UNIMPLEMENTED VMI call IterateSystemProperties\n");
+  return VMI_ERROR_UNIMPLEMENTED;
 }
 
 /**
@@ -136,7 +136,7 @@ vmiError JNICALL IterateSystemProperties (VMInterface * vmi, vmiSystemPropertyIt
 VMInterface* JNICALL
 VMI_GetVMIFromJavaVM(JavaVM* vm)
 {
-    return &vmi;
+  return &vmi;
 }
 
 /**
@@ -149,7 +149,7 @@ VMI_GetVMIFromJavaVM(JavaVM* vm)
 VMInterface* JNICALL
 VMI_GetVMIFromJNIEnv(JNIEnv* env)
 {
-    return &vmi;
+  return &vmi;
 }
 
 extern void initializeVMLocalStorage(JavaVM * vm);
@@ -157,19 +157,19 @@ extern void initializeVMLocalStorage(JavaVM * vm);
 void JNICALL
 VMI_Initialize()
 {
-    HYPORT_SET_VERSION (&hyPortLibraryVersion, HYPORT_CAPABILITY_MASK);
-    if (0 != hyport_init_library (&hyPortLibrary, &hyPortLibraryVersion, sizeof (HyPortLibrary))) {
-        fprintf(stderr, "Harmony port library init failed\n");
-        abort();
-    }
+  HYPORT_SET_VERSION (&hyPortLibraryVersion, HYPORT_CAPABILITY_MASK);
+  if (0 != hyport_init_library (&hyPortLibrary, &hyPortLibraryVersion, sizeof (HyPortLibrary))) {
+    fprintf(stderr, "Harmony port library init failed\n");
+    abort();
+  }
 #ifndef HY_ZIP_API
-    hyZipCachePool = zipCachePool_new(&hyPortLibrary);
-    if (hyZipCachePool == NULL)
-    {
-	fprintf(stderr, "Error accessing zip functions");
-        abort();
-    }
+  hyZipCachePool = zipCachePool_new(&hyPortLibrary);
+  if (hyZipCachePool == NULL)
+  {
+    fprintf(stderr, "Error accessing zip functions");
+    abort();
+  }
 #endif
-    initializeVMLocalStorage(&sysJavaVM);
+  initializeVMLocalStorage(&sysJavaVM);
 }
 

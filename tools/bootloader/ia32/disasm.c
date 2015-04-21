@@ -56,13 +56,13 @@ extern "C" PARLIST *Disassemble(char *pHexBuffer,
   pHexBuffer[2* disassemblyp->retleng] = '\0';
 
   if (disassemblyp->rettype == illegtype)
-    {
+  {
     *fInvalid = 1;
-    }
-  else
-    {
-    *fInvalid = 0;
-    }
-  return disassemblyp;
   }
+  else
+  {
+    *fInvalid = 0;
+  }
+  return disassemblyp;
+}
 
