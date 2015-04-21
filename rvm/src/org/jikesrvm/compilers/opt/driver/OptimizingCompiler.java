@@ -100,9 +100,13 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
    */
   private static boolean appStarted = false;
 
-  public static synchronized boolean getAppStarted() { return appStarted; }
+  public static synchronized boolean getAppStarted() {
+    return appStarted;
+  }
 
-  public static synchronized void setAppStarted() { appStarted = true; }
+  public static synchronized void setAppStarted() {
+    appStarted = true;
+  }
 
   /**
    * Set up option used while compiling the boot image

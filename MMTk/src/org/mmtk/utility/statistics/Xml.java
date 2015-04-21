@@ -62,7 +62,9 @@ public class Xml {
    *
    * @param name Name of the entity
    */
-  static void openTag(String name) { openTag(name,true); }
+  static void openTag(String name) {
+    openTag(name,true);
+  }
 
   /**
    * Output a "stat" entity, with a given name, <code>double</code>value and optionally, units.

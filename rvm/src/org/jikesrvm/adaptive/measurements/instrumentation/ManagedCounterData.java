@@ -121,7 +121,7 @@ public class ManagedCounterData {
           resizeCounters(getNumCounters() * 2);
         }
       } else {
-        if (VM.VerifyAssertions) { VM._assert(VM.NOT_REACHED); }
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     }
 

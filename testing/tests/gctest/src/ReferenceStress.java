@@ -31,8 +31,13 @@ public class ReferenceStress {
    */
   private static class Element {
     Element next;
-    Element(Element next) { this.next = next; }
-    void deleteNext() { if (next != null) next = next.next; }
+    Element(Element next) {
+      this.next = next;
+    }
+    void deleteNext() {
+      if (next != null)
+       next = next.next;
+    }
     int length() {
       int result = 1;
       Element cursor = next;

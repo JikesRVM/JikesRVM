@@ -126,7 +126,9 @@ import org.vmmagic.pragma.*;
    * @param index the index
    * @param value the increment
    */
-  public void increment(int index, byte value) { data[index] += value; }
+  public void increment(int index, byte value) {
+    data[index] += value;
+  }
 
   @Override
   public void send(int event, int numTiles) {

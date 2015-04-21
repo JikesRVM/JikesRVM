@@ -289,9 +289,13 @@ public final class IR {
    */
   private boolean hasSysCall = false;
 
-  public boolean hasSysCall() { return hasSysCall; }
+  public boolean hasSysCall() {
+    return hasSysCall;
+  }
 
-  public void setHasSysCall(boolean b) { hasSysCall = b; }
+  public void setHasSysCall(boolean b) {
+    hasSysCall = b;
+  }
 
   /**
    * @param m    The method to compile
@@ -557,10 +561,14 @@ public final class IR {
     }
 
     @Override
-    public boolean hasMoreElements() { return !stack.empty(); }
+    public boolean hasMoreElements() {
+      return !stack.empty();
+    }
 
     @Override
-    public BasicBlock nextElement() { return stack.pop(); }
+    public BasicBlock nextElement() {
+      return stack.pop();
+    }
   }
 
   /**

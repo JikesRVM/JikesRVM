@@ -348,5 +348,7 @@ public final class MethodOperand extends Operand {
    */
   public SpecializedMethod spMethod;
 
-  public boolean hasSpecialVersion() { return spMethod != null; }
+  public boolean hasSpecialVersion() {
+    return spMethod != null;
+  }
 }

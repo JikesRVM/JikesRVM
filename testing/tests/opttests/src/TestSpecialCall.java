@@ -11,12 +11,18 @@
  *  regarding copyright ownership.
  */
 class A {
-   A() { System.out.print("A.init "); }
+   A() {
+     System.out.print("A.init ");
+   }
 }
 
 class B extends A {
-   B()        { System.out.print("B.init "); }
-   void foo() { System.out.print("B.foo "); }
+   B() {
+     System.out.print("B.init ");
+   }
+   void foo() {
+     System.out.print("B.foo ");
+   }
 }
 
 class C extends B {
@@ -27,9 +33,15 @@ class C extends B {
       foo();       // invokevirtual            --> C.foo
    }
 
-   C()                { System.out.print("C.init "); }
-           void foo() { System.out.print("C.foo "); }
-   private void bar() { System.out.print("C.bar "); }
+   C() {
+     System.out.print("C.init ");
+   }
+   void foo() {
+     System.out.print("C.foo ");
+   }
+   private void bar() {
+     System.out.print("C.bar ");
+   }
 }
 
 class TestSpecialCall {

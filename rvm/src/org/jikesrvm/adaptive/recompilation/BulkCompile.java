@@ -143,19 +143,30 @@ public class BulkCompile implements Callbacks.StartupMonitor {
               // for invocation counter, we only use one optimization level
               compPlan = InvocationCounts.createCompilationPlan((NormalMethod) method);
               AOSLogging.logger.recompilationStarted(compPlan);
-              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) { VM.sysWrite("Bulk compiling for counters "); VM.sysWriteln(value.toString()); }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
+                VM.sysWrite("Bulk compiling for counters ");
+                VM.sysWriteln(value.toString());
+              }
               RuntimeCompiler.recompileWithOpt(compPlan);
               AOSLogging.logger.recompilationCompleted(compPlan);
             } else if (Controller.options.sampling()) {
               // Create our set of standard optimization plans.
               compPlan = Controller.recompilationStrategy.createCompilationPlan((NormalMethod) method, value.getOptLevel(), null);
-              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) { VM.sysWrite("Bulk compiling for sampling "); VM.sysWriteln(value.toString()); }
-              if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) { VM.sysWrite(value.getOptLevel()); }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
+                VM.sysWrite("Bulk compiling for sampling ");
+                VM.sysWriteln(value.toString());
+              }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) {
+                VM.sysWrite(value.getOptLevel());
+              }
               AOSLogging.logger.recompilationStarted(compPlan);
               RuntimeCompiler.recompileWithOpt(compPlan);
               AOSLogging.logger.recompilationCompleted(compPlan);
             } else {
-              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) { VM.sysWrite("Compiler advice file overridden "); VM.sysWriteln(value.toString()); }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
+                VM.sysWrite("Compiler advice file overridden ");
+                VM.sysWriteln(value.toString());
+              }
               method.compile();
             }
           }

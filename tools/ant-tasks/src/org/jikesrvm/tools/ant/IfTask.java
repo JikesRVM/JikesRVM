@@ -28,7 +28,9 @@ public class IfTask
   private MacroDef macroDef;
   private ConditionSet conditions = new ConditionSet();
 
-  public ConditionSet createConditions() { return conditions; }
+  public ConditionSet createConditions() {
+    return conditions;
+  }
 
   public MacroDef.NestedSequential createSequential() {
     macroDef = new MacroDef();
@@ -54,7 +56,11 @@ public class IfTask
   }
 
   public static class ConditionSet extends ConditionBase {
-    public boolean containsSingleCondition() { return 1 == super.countConditions(); }
-    public Condition getCondition() { return (Condition) getConditions().nextElement(); }
+    public boolean containsSingleCondition() {
+      return 1 == super.countConditions();
+    }
+    public Condition getCondition() {
+      return (Condition) getConditions().nextElement();
+    }
   }
 }

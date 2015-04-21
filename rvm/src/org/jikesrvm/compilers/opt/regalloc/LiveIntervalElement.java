@@ -90,21 +90,39 @@ public final class LiveIntervalElement {
   /*
    * Getters and setters for instance fields
    */
-  public Instruction getBegin() { return begin; }
+  public Instruction getBegin() {
+    return begin;
+  }
 
-  public void setBegin(Instruction begin) { this.begin = begin; }
+  public void setBegin(Instruction begin) {
+    this.begin = begin;
+  }
 
-  public Instruction getEnd() { return end; }
+  public Instruction getEnd() {
+    return end;
+  }
 
-  public Register getRegister() { return register; }
+  public Register getRegister() {
+    return register;
+  }
 
-  public void setRegister(Register r) { register = r; }
+  public void setRegister(Register r) {
+    register = r;
+  }
 
-  public LiveIntervalElement getNext() { return next; }
+  public LiveIntervalElement getNext() {
+    return next;
+  }
 
-  public void setNext(LiveIntervalElement Next) { next = Next; }
+  public void setNext(LiveIntervalElement Next) {
+    next = Next;
+  }
 
-  public BasicBlock getBasicBlock() { return bb; }
+  public BasicBlock getBasicBlock() {
+    return bb;
+  }
 
-  public void setBasicBlock(BasicBlock bb) { this.bb = bb; }
+  public void setBasicBlock(BasicBlock bb) {
+    this.bb = bb;
+  }
 }

@@ -151,7 +151,9 @@ public final class DynamicLibrary {
   /**
    * @return the true name of the dynamic library
    */
-  public String getLibName() { return libName; }
+  public String getLibName() {
+    return libName;
+  }
 
   /**
    * look up this dynamic library for a symbol

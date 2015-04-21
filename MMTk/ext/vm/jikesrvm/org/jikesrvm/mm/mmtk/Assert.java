@@ -21,7 +21,9 @@ import org.vmmagic.pragma.*;
 
 @Uninterruptible public class Assert extends org.mmtk.vm.Assert {
   @Override
-  protected final boolean getVerifyAssertionsConstant() { return VM.VerifyAssertions;}
+  protected final boolean getVerifyAssertionsConstant() {
+    return VM.VerifyAssertions;
+  }
 
   /**
    * This method should be called whenever an error is encountered.

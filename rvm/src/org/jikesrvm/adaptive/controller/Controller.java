@@ -73,7 +73,9 @@ public class Controller implements Callbacks.ExitMonitor,
   /**
    * @return the deferred command line arguments
    */
-  public static String[] getOptCompilerOptions() { return optCompilerOptions;}
+  public static String[] getOptCompilerOptions() {
+    return optCompilerOptions;
+  }
 
   /**
    * The controller thread, it makes all the decisions
@@ -152,9 +154,13 @@ public class Controller implements Callbacks.ExitMonitor,
     // Initialize the controller input queue
     controllerInputQueue = new BlockingPriorityQueue(new BlockingPriorityQueue.CallBack() {
       @Override
-      public void aboutToWait() { controllerThread.aboutToWait(); }
+      public void aboutToWait() {
+        controllerThread.aboutToWait();
+      }
       @Override
-      public void doneWaiting() { controllerThread.doneWaiting(); }
+      public void doneWaiting() {
+        controllerThread.doneWaiting();
+      }
     });
 
     compilationQueue = new BlockingPriorityQueue();

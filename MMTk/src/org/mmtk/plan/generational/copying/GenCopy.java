@@ -115,7 +115,9 @@ import org.vmmagic.pragma.*;
   /**
    * @return Space descriptor for to-space.
    */
-  static int toSpaceDesc() { return hi ? MS1 : MS0; }
+  static int toSpaceDesc() {
+    return hi ? MS1 : MS0;
+  }
 
   /**
    * @return The semispace we are currently copying from
@@ -128,7 +130,9 @@ import org.vmmagic.pragma.*;
   /**
    * @return Space descriptor for from-space
    */
-  static int fromSpaceDesc() { return hi ? MS0 : MS1; }
+  static int fromSpaceDesc() {
+    return hi ? MS0 : MS1;
+  }
 
   /****************************************************************************
    *

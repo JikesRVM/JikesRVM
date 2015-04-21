@@ -111,9 +111,13 @@ public class PrettyPrinter extends Visitor {
       return indentStr;
     }
 
-    void increaseIndent() { indent += INDENT; }
+    void increaseIndent() {
+      indent += INDENT;
+    }
 
-    void decreaseIndent() { indent -= INDENT; }
+    void decreaseIndent() {
+      indent -= INDENT;
+    }
 
     String read() {
       return buffer.toString();

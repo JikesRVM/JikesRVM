@@ -57,11 +57,17 @@ public final class VMSystem {
     VMCommonLibrarySupport.setSystemStreamField("err", err);
   }
 
-  static InputStream makeStandardInputStream() { return null; }
+  static InputStream makeStandardInputStream() {
+    return null;
+  }
 
-  static PrintStream makeStandardOutputStream() { return null; }
+  static PrintStream makeStandardOutputStream() {
+    return null;
+  }
 
-  static PrintStream makeStandardErrorStream() { return null; }
+  static PrintStream makeStandardErrorStream() {
+    return null;
+  }
 
   /**
    * Get the value of an environment variable.

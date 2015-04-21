@@ -479,5 +479,7 @@ class TestConstants {
   public final String x255 = "X255";
   public final String x256 = "X256";
 
-  String s() { return x98; } // ldc_w
+  String s() {
+    return x98;
+  } // ldc_w
 }

@@ -56,7 +56,9 @@ public class InsertYieldpointCounters extends CompilerPhase {
   }
 
   @Override
-  public final String getName() { return "InsertYieldpointCounters"; }
+  public final String getName() {
+    return "InsertYieldpointCounters";
+  }
 
   /**
    * counters after all yieldpoint instructions

@@ -189,7 +189,8 @@ public class BasicBlock extends SortedGraphNode {
     setNumber(1);
   }
 
-  final void initInOutSets() { }
+  final void initInOutSets() {
+      }
 
   static BasicBlock makeExit() {
     return new BasicBlock();
@@ -1851,7 +1852,9 @@ public class BasicBlock extends SortedGraphNode {
     protected BasicBlock current;
 
     @Override
-    public final boolean hasMoreElements() { return current != null; }
+    public final boolean hasMoreElements() {
+      return current != null;
+    }
 
     @Override
     public final BasicBlock nextElement() {
@@ -1890,10 +1893,14 @@ public class BasicBlock extends SortedGraphNode {
       addElement(b);
     }
 
-    public int totalCount() { return numBlocks; }
+    public int totalCount() {
+      return numBlocks;
+    }
 
     @Override
-    public boolean hasMoreElements() { return current < numBlocks; }
+    public boolean hasMoreElements() {
+      return current < numBlocks;
+    }
 
     @Override
     public BasicBlock nextElement() {
@@ -1911,10 +1918,14 @@ public class BasicBlock extends SortedGraphNode {
   static final class InEdgeEnum implements Enumeration<BasicBlock> {
     private SpaceEffGraphEdge _edge;
 
-    public InEdgeEnum(SpaceEffGraphNode n) { _edge = n.firstInEdge(); }
+    public InEdgeEnum(SpaceEffGraphNode n) {
+      _edge = n.firstInEdge();
+    }
 
     @Override
-    public boolean hasMoreElements() { return _edge != null; }
+    public boolean hasMoreElements() {
+      return _edge != null;
+    }
 
     @Override
     public BasicBlock nextElement() {
@@ -1928,10 +1939,14 @@ public class BasicBlock extends SortedGraphNode {
   static final class OutEdgeEnum implements Enumeration<BasicBlock> {
     private SpaceEffGraphEdge _edge;
 
-    public OutEdgeEnum(SpaceEffGraphNode n) { _edge = n.firstOutEdge(); }
+    public OutEdgeEnum(SpaceEffGraphNode n) {
+      _edge = n.firstOutEdge();
+    }
 
     @Override
-    public boolean hasMoreElements() { return _edge != null; }
+    public boolean hasMoreElements() {
+      return _edge != null;
+    }
 
     @Override
     public BasicBlock nextElement() {

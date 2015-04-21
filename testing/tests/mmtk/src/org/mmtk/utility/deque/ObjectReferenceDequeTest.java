@@ -308,12 +308,16 @@ public class ObjectReferenceDequeTest {
         add(o(1 + i * n + ordinal));
       }
       deque.flushLocal();
-      synchronized (shared) { counter += ins; }
+      synchronized (shared) {
+        counter += ins;
+      }
       int d = 0;
       while (!deque.isEmpty()) {
         d++;
         Assert.assertFalse(deque.pop().isNull());
-        synchronized (shared) { counter--; }
+        synchronized (shared) {
+          counter--;
+        }
       }
       //System.out.printf("Thread %d pushed %d items, popped %d%n",ordinal,ins,d);
     }

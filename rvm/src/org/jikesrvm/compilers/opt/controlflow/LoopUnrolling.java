@@ -759,10 +759,14 @@ public class LoopUnrolling extends CompilerPhase {
       if (!(use instanceof RegisterOperand)) return use;
       RegisterOperand rop = (RegisterOperand) use;
       Enumeration<RegisterOperand> defs = DefUse.defs(rop.getRegister());
-      if (!defs.hasMoreElements()) { return use; }
+      if (!defs.hasMoreElements()) {
+        return use;
+      }
       Instruction def = defs.nextElement().instruction;
       if (!Move.conforms(def)) return use;
-      if (defs.hasMoreElements()) { return use; }
+      if (defs.hasMoreElements()) {
+        return use;
+      }
 
       Integer defInt = visitInts.get(def);
       if (defInt.intValue() == theVisit) {
@@ -777,9 +781,13 @@ public class LoopUnrolling extends CompilerPhase {
   private static Instruction definingInstruction(Operand op) {
     if (!(op instanceof RegisterOperand)) return op.instruction;
     Enumeration<RegisterOperand> defs = DefUse.defs(((RegisterOperand) op).getRegister());
-    if (!defs.hasMoreElements()) { return op.instruction; }
+    if (!defs.hasMoreElements()) {
+      return op.instruction;
+    }
     Instruction def = defs.nextElement().instruction;
-    if (defs.hasMoreElements()) { return op.instruction; }
+    if (defs.hasMoreElements()) {
+      return op.instruction;
+    }
     return def;
   }
 

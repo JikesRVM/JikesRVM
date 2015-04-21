@@ -39,8 +39,12 @@ public class UnaryExpression extends AbstractAST implements Expression {
     this.expr = expr;
   }
 
-  public Operator getOperator() { return op; }
-  public Expression getOperand() { return expr; }
+  public Operator getOperator() {
+    return op;
+  }
+  public Expression getOperand() {
+    return expr;
+  }
 
   @Override
   public Object accept(Visitor v) {

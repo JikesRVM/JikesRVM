@@ -26,5 +26,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class GenMSConstraints extends GenConstraints {
   @Override
-  public int maxNonLOSCopyBytes() { return MAX_FREELIST_OBJECT_BYTES;}
+  public int maxNonLOSCopyBytes() {
+    return MAX_FREELIST_OBJECT_BYTES;
+  }
 }

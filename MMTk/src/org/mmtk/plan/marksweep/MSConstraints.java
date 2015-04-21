@@ -28,11 +28,19 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class MSConstraints extends StopTheWorldConstraints {
   @Override
-  public int gcHeaderBits() { return MarkSweepSpace.LOCAL_GC_BITS_REQUIRED; }
+  public int gcHeaderBits() {
+    return MarkSweepSpace.LOCAL_GC_BITS_REQUIRED;
+  }
   @Override
-  public int gcHeaderWords() { return MarkSweepSpace.GC_HEADER_WORDS_REQUIRED; }
+  public int gcHeaderWords() {
+    return MarkSweepSpace.GC_HEADER_WORDS_REQUIRED;
+  }
   @Override
-  public int maxNonLOSDefaultAllocBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES; }
+  public int maxNonLOSDefaultAllocBytes() {
+    return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;
+  }
   @Override
-  public int numSpecializedScans() { return 1; }
+  public int numSpecializedScans() {
+    return 1;
+  }
 }

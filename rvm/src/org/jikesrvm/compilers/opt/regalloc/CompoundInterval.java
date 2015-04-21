@@ -37,9 +37,13 @@ class CompoundInterval extends IncreasingStartIntervalSet {
    */
   private boolean _infrequent = true;
 
-  final void setFrequent() { _infrequent = false; }
+  final void setFrequent() {
+    _infrequent = false;
+  }
 
-  final boolean isInfrequent() { return _infrequent; }
+  final boolean isInfrequent() {
+    return _infrequent;
+  }
 
   /**
    * The register this compound interval represents or {@code null}
@@ -53,7 +57,9 @@ class CompoundInterval extends IncreasingStartIntervalSet {
    */
   private SpillLocationInterval spillInterval;
 
-  SpillLocationInterval getSpillInterval() { return spillInterval; }
+  SpillLocationInterval getSpillInterval() {
+    return spillInterval;
+  }
 
   /**
    * @return the register this interval represents

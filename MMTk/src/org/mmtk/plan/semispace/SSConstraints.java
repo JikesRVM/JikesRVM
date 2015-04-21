@@ -22,11 +22,19 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class SSConstraints extends StopTheWorldConstraints {
   @Override
-  public boolean movesObjects() { return true; }
+  public boolean movesObjects() {
+    return true;
+  }
   @Override
-  public int gcHeaderBits() { return CopySpace.LOCAL_GC_BITS_REQUIRED; }
+  public int gcHeaderBits() {
+    return CopySpace.LOCAL_GC_BITS_REQUIRED;
+  }
   @Override
-  public int gcHeaderWords() { return CopySpace.GC_HEADER_WORDS_REQUIRED; }
+  public int gcHeaderWords() {
+    return CopySpace.GC_HEADER_WORDS_REQUIRED;
+  }
   @Override
-  public int numSpecializedScans() { return 1; }
+  public int numSpecializedScans() {
+    return 1;
+  }
 }

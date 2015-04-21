@@ -119,7 +119,9 @@ import org.vmmagic.pragma.*;
    *
    * @param fromSpace Set the fromSpace field to this value
    */
-  public void prepare(boolean fromSpace) { this.fromSpace = fromSpace; }
+  public void prepare(boolean fromSpace) {
+    this.fromSpace = fromSpace;
+  }
 
   /**
    * Release this copy space after a collection.  This means releasing

@@ -29,8 +29,13 @@ public class ToAsciiTask
   private File src;
   private File dest;
 
-  public void setSrc(final File src) { this.src = src; }
-  public void setDest(final File dest) { this.dest = dest; }
+  public void setSrc(final File src) {
+    this.src = src;
+  }
+
+  public void setDest(final File dest) {
+    this.dest = dest;
+  }
 
   public void execute() {
     validate();

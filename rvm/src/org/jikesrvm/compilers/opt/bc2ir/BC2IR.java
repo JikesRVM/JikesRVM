@@ -5039,12 +5039,18 @@ public final class BC2IR {
    */
   private static final class DummyStackSlot extends Operand {
     @Override
-    public Operand copy() { return this; }
+    public Operand copy() {
+      return this;
+    }
 
     @Override
-    public boolean similar(Operand op) { return (op instanceof DummyStackSlot); }
+    public boolean similar(Operand op) {
+      return (op instanceof DummyStackSlot);
+    }
 
     @Override
-    public String toString() { return "<DUMMY>"; }
+    public String toString() {
+      return "<DUMMY>";
+    }
   }
 }

@@ -36,7 +36,9 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
   @Override
-  protected Offset getArrayBaseOffset() { return JavaHeaderConstants.ARRAY_BASE_OFFSET; }
+  protected Offset getArrayBaseOffset() {
+    return JavaHeaderConstants.ARRAY_BASE_OFFSET;
+  }
 
   @Override
   @Inline

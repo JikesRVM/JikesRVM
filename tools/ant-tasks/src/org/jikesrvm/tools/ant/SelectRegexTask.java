@@ -33,9 +33,17 @@ public class SelectRegexTask
   private String property;
   private File file;
 
-  public void setProperty(final String property) { this.property = property; }
-  public void setSelect(final String select) { this.select = select; }
-  public void setFile(final File file) { this.file = file; }
+  public void setProperty(final String property) {
+    this.property = property;
+  }
+
+  public void setSelect(final String select) {
+    this.select = select;
+  }
+
+  public void setFile(final File file) {
+    this.file = file;
+  }
 
   public void setPattern(final String pattern) {
     this.pattern = new RegularExpression();

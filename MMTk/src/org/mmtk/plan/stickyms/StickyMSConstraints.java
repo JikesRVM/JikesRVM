@@ -28,17 +28,27 @@ import org.vmmagic.pragma.*;
 public class StickyMSConstraints extends MSConstraints {
   /** @return The number of specialized scans.  We need nursery &amp; full heap. */
   @Override
-  public int numSpecializedScans() { return 2; }
+  public int numSpecializedScans() {
+    return 2;
+  }
 
   @Override
-  public boolean needsObjectReferenceWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean needsLogBitInHeader() { return true; }
+  public boolean needsLogBitInHeader() {
+    return true;
+  }
 
   @Override
-  public int maxNonLOSDefaultAllocBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES; }
+  public int maxNonLOSDefaultAllocBytes() {
+    return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;
+  }
 
   @Override
-  public boolean objectReferenceBulkCopySupported() { return true; }
+  public boolean objectReferenceBulkCopySupported() {
+    return true;
+  }
 }

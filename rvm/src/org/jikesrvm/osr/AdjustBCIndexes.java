@@ -45,7 +45,9 @@ public class AdjustBCIndexes extends CompilerPhase {
   }
 
   @Override
-  public final String getName() { return "AdjustBytecodeIndexes"; }
+  public final String getName() {
+    return "AdjustBytecodeIndexes";
+  }
 
   @Override
   public final void perform(IR ir) {

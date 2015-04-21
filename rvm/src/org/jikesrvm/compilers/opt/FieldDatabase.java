@@ -130,13 +130,21 @@ final class FieldDatabase {
     int status;
     TypeReference concreteType;
 
-    void setBottom() { status |= BOTTOM; }
+    void setBottom() {
+      status |= BOTTOM;
+    }
 
-    void setAnalyzed() { status |= ANALYZED; }
+    void setAnalyzed() {
+      status |= ANALYZED;
+    }
 
-    boolean isBottom() { return (status & BOTTOM) != 0; }
+    boolean isBottom() {
+      return (status & BOTTOM) != 0;
+    }
 
-    boolean isAnalyzed() { return (status & ANALYZED) != 0; }
+    boolean isAnalyzed() {
+      return (status & ANALYZED) != 0;
+    }
   }
 
   // print a debug message

@@ -169,7 +169,9 @@ public abstract class AbstractDriver {
    * The GCspy space managed by this driver.
    * @return the GCspy server space.
    */
-  public ServerSpace getServerSpace() { return serverSpace; }
+  public ServerSpace getServerSpace() {
+    return serverSpace;
+  }
 
   /**
    * Add a stream to the driver. This also sets the stream's id
@@ -183,7 +185,10 @@ public abstract class AbstractDriver {
     while (id < MAX_STREAMS) {
       if (streams[id] == null) {
         streams[id] = stream;
-        if (DEBUG) { Log.write("Adding stream with id="); Log.writeln(id); }
+        if (DEBUG) {
+          Log.write("Adding stream with id=");
+          Log.writeln(id);
+        }
         Address stream_ = serverSpace.addStream(id);
         stream.setStream(id, stream_);
         return;
@@ -286,7 +291,9 @@ public abstract class AbstractDriver {
    * Reset the statistics for a space.
    * In this base driver, we simply note that the data has changed.
    */
-  protected void resetData() { changed = true; }
+  protected void resetData() {
+    changed = true;
+  }
 
   /**
    * Scan an object found at a location.
@@ -304,7 +311,9 @@ public abstract class AbstractDriver {
    * The driver will accumulate values found.
    * @param obj the reference to the object found
    */
-  public void scan(ObjectReference obj) { scan(obj, true); }
+  public void scan(ObjectReference obj) {
+    scan(obj, true);
+  }
 
   /**
    * Scan an object found at a location.

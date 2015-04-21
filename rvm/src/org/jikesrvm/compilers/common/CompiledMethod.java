@@ -362,9 +362,13 @@ public abstract class CompiledMethod {
     return (flags & ACTIVE_ON_STACK) != 0;
   }
 
-  public final double getCompilationTime() { return compilationTime; }
+  public final double getCompilationTime() {
+    return compilationTime;
+  }
 
-  public final void setCompilationTime(double ct) { compilationTime = (float) ct; }
+  public final void setCompilationTime(double ct) {
+    compilationTime = (float) ct;
+  }
 
   /**
    * Identify the compiler that produced this compiled method.
@@ -524,13 +528,17 @@ public abstract class CompiledMethod {
    * @param browser the browser to advance
    * @return whether the browser advanced a frame
    */
-  public boolean up(StackBrowser browser) { return false; }
+  public boolean up(StackBrowser browser) {
+    return false;
+  }
 
   /**
    * @return the number of bytes used to encode the compiler-specific mapping
    * information for this compiled method.
    * Used to gather statistics on the space costs of mapping schemes.
    */
-  public int size() { return 0; }
+  public int size() {
+    return 0;
+  }
 
 }

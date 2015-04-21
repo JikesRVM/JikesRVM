@@ -104,14 +104,18 @@ final class BBSet {
     entry.copyIntoLocalState(localState);
   }
 
-  BasicBlockLE getEntry() { return entry; }
+  BasicBlockLE getEntry() {
+    return entry;
+  }
 
   /**
    * Notify the BBSet that BC2IR has encountered a JSR bytecode.
    * This enables more complex logic in getOrCreateBlock to drive
    * the basic block specialization that is the key to JSR inlining.
    */
-  void seenJSR() { noJSR = false; }
+  void seenJSR() {
+    noJSR = false;
+  }
 
   /**
    * @return a enumeration of the BasicBlockLE's currently in the BBSet

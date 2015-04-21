@@ -27,9 +27,13 @@ public class ForEachTask
   private String property;
   private MacroDef macroDef;
 
-  public void setProperty(final String property) { this.property = property; }
+  public void setProperty(final String property) {
+    this.property = property;
+  }
 
-  public void setList(final String list) { this.list = list; }
+  public void setList(final String list) {
+    this.list = list;
+  }
 
   public MacroDef.NestedSequential createSequential() {
     macroDef = new MacroDef();

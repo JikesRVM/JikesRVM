@@ -185,7 +185,9 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
    */
   @Override
   public final Address getNextReferenceAddress() {
-    if (DEBUG) { VM.sysWrite("  next => "); }
+    if (DEBUG) {
+      VM.sysWrite("  next => ");
+    }
 
     // make sure we have a map entry to look at
     if (mapIndex == OptGCMap.NO_MAP_ENTRY) {

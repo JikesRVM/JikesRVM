@@ -178,7 +178,9 @@ public class Log {
    *
    * @param d the double to be logged
    */
-  public static void write(double d) { write(d, 2); }
+  public static void write(double d) {
+    write(d, 2);
+  }
 
   /**
    * writes a <code>double</code>.  The number of digits after the
@@ -371,7 +373,9 @@ public class Log {
    *
    * @param b boolean value to be logged.
    */
-  public static void writeln(boolean b) { writeln(b, true); }
+  public static void writeln(boolean b) {
+    writeln(b, true);
+  }
 
   /**
    * writes a character and a new-line, then flushes the buffer.
@@ -379,7 +383,9 @@ public class Log {
    *
    * @param c character to be logged
    */
-  public static void writeln(char c)    { writeln(c, true); }
+  public static void writeln(char c) {
+    writeln(c, true);
+  }
 
   /**
    * writes a long, in decimal, and a new-line, then flushes the buffer.
@@ -387,7 +393,9 @@ public class Log {
    *
    * @param l long value to be logged
    */
-  public static void writeln(long l)    { writeln(l, true); }
+  public static void writeln(long l) {
+    writeln(l, true);
+  }
 
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
@@ -395,7 +403,9 @@ public class Log {
    *
    * @param d the double to be logged
    */
-  public static void writeln(double d)  { writeln(d, true); }
+  public static void writeln(double d) {
+    writeln(d, true);
+  }
 
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
@@ -407,7 +417,8 @@ public class Log {
    * logged, but the decimal point is.
    */
   public static void writeln(double d, int postDecimalDigits) {
-    writeln(d, postDecimalDigits, true); }
+    writeln(d, postDecimalDigits, true);
+  }
 
   /**
    * writes an array of characters and a new-line, then flushes the buffer.
@@ -415,7 +426,9 @@ public class Log {
    *
    * @param ca the array of characters to be logged
    */
-  public static void writeln(char [] ca) { writeln(ca, true); }
+  public static void writeln(char [] ca) {
+    writeln(ca, true);
+  }
 
   /**
    * writes the start of an array of characters and a new-line, then
@@ -426,7 +439,9 @@ public class Log {
    * @param len the number of characters to be logged, starting with
    * the first character
    */
-  public static void writeln(char [] ca, int len) { writeln(ca, len, true); }
+  public static void writeln(char [] ca, int len) {
+    writeln(ca, len, true);
+  }
 
   /**
    * writes an array of bytes and a new-line, then
@@ -435,14 +450,18 @@ public class Log {
    *
    * @param b the array of bytes to be logged
    */
-  public static void writeln(byte [] b) { writeln(b, true); }
+  public static void writeln(byte [] b) {
+    writeln(b, true);
+  }
 
   /**
    * writes a string and a new-line, then flushes the buffer.
    *
    * @param s the string to be logged
    */
-  public static void writeln(String s)  { writeln(s, true); }
+  public static void writeln(String s) {
+    writeln(s, true);
+  }
 
   /**
    * writes a word, in hexadecimal, and a new-line, then flushes the buffer.
@@ -450,7 +469,9 @@ public class Log {
    *
    * @param w the word to be logged
    */
-  public static void writeln(Word w) { writeln(w, true); }
+  public static void writeln(Word w) {
+    writeln(w, true);
+  }
 
   /**
    * writes an address, in hexadecimal, and a new-line, then flushes
@@ -459,7 +480,9 @@ public class Log {
    *
    * @param a the address to be logged
    */
-  public static void writeln(Address a) { writeln(a, true); }
+  public static void writeln(Address a) {
+    writeln(a, true);
+  }
 
   /**
    * writes an object reference, in hexadecimal, and a new-line, then
@@ -468,7 +491,9 @@ public class Log {
    *
    * @param o the object reference to be logged
    */
-  public static void writeln(ObjectReference o) { writeln(o, true); }
+  public static void writeln(ObjectReference o) {
+    writeln(o, true);
+  }
 
   /**
    * writes an offset, in hexadecimal, and a new-line, then flushes the buffer.
@@ -476,7 +501,9 @@ public class Log {
    *
    * @param o the offset to be logged
    */
-  public static void writeln(Offset o) { writeln(o, true); }
+  public static void writeln(Offset o) {
+    writeln(o, true);
+  }
 
   /**
    * writes an extent, in hexadecimal, and a new-line, then flushes the buffer.
@@ -484,7 +511,9 @@ public class Log {
    *
    * @param e the extent to be logged
    */
-  public static void writeln(Extent e) { writeln(e, true); }
+  public static void writeln(Extent e) {
+    writeln(e, true);
+  }
 
   /**
    * writes a new-line without flushing the buffer

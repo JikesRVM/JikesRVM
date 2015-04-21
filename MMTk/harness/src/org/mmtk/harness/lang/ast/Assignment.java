@@ -40,8 +40,19 @@ public class Assignment extends AbstractAST implements Statement {
     return v.visit(this);
   }
 
-  public int getSlot() { return symbol.getLocation(); }
-  public Expression getRhs() { return expr; }
-  public Symbol getSymbol() { return symbol; }
-  public Type getType() { return symbol.getType(); }
+  public int getSlot() {
+    return symbol.getLocation();
+  }
+
+  public Expression getRhs() {
+    return expr;
+  }
+
+  public Symbol getSymbol() {
+    return symbol;
+  }
+
+  public Type getType() {
+    return symbol.getType();
+  }
 }

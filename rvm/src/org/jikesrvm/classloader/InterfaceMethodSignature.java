@@ -89,7 +89,9 @@ public final class InterfaceMethodSignature {
   /**
    * @return the id of thie interface method signature.
    */
-  public int getId() { return id; }
+  public int getId() {
+    return id;
+  }
 
   @Override
   public String toString() {

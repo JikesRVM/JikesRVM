@@ -31,15 +31,25 @@ public final class WeightedBranchTargets {
   private int cur;
   private int max;
 
-  public void reset() { cur = 0; }
+  public void reset() {
+    cur = 0;
+  }
 
-  public boolean hasMoreElements() { return cur < max; }
+  public boolean hasMoreElements() {
+    return cur < max;
+  }
 
-  public void advance() { cur++; }
+  public void advance() {
+    cur++;
+  }
 
-  public BasicBlock curBlock() { return targets[cur]; }
+  public BasicBlock curBlock() {
+    return targets[cur];
+  }
 
-  public float curWeight() { return weights[cur]; }
+  public float curWeight() {
+    return weights[cur];
+  }
 
   public WeightedBranchTargets(BasicBlock bb) {
     targets = new BasicBlock[3];

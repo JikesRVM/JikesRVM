@@ -67,7 +67,9 @@ class CompilerAdviceInfoReader {
 
       try {
         for (String s = fileIn.readLine(); s != null; s = fileIn.readLine()) {
-          if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("."); }
+          if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) {
+            VM.sysWrite(".");
+          }
           StringTokenizer parser = new StringTokenizer(s, " \n,");
           compilerAdviceInfo.add(readOneAttribute(parser));
 

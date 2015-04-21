@@ -257,17 +257,29 @@ public final class RegisterOperand extends Operand {
     return type == TypeReference.NULL_TYPE;
   }
 
-  public boolean isParameter() { return (flags & PARAMETER) != 0; }
+  public boolean isParameter() {
+    return (flags & PARAMETER) != 0;
+  }
 
-  public void setParameter() { flags |= PARAMETER; }
+  public void setParameter() {
+    flags |= PARAMETER;
+  }
 
-  public void clearParameter() { flags &= ~PARAMETER; }
+  public void clearParameter() {
+    flags &= ~PARAMETER;
+  }
 
-  public boolean isNonVolatile() { return (flags & NON_VOLATILE) != 0; }
+  public boolean isNonVolatile() {
+    return (flags & NON_VOLATILE) != 0;
+  }
 
-  public void setNonVolatile() { flags |= NON_VOLATILE; }
+  public void setNonVolatile() {
+    flags |= NON_VOLATILE;
+  }
 
-  public void clearNonVolatile() { flags &= ~NON_VOLATILE; }
+  public void clearNonVolatile() {
+    flags &= ~NON_VOLATILE;
+  }
 
   /**
    * Is this register known to contain either NULL or an object whose class was fully loaded
@@ -277,7 +289,9 @@ public final class RegisterOperand extends Operand {
    *
    * @return {@code true} if this register is extant (see above)
    */
-  public boolean isExtant() { return (flags & EXTANT) != 0; }
+  public boolean isExtant() {
+    return (flags & EXTANT) != 0;
+  }
 
   /**
    * Sets this register as holding an extant object (or NULL)
@@ -285,15 +299,25 @@ public final class RegisterOperand extends Operand {
    * This fact is used to determine whether we can optimize away inline guards based on pre-existence
    * based inlining.
    */
-  public void setExtant() { flags |= EXTANT; }
+  public void setExtant() {
+    flags |= EXTANT;
+  }
 
-  public void clearExtant() { flags &= ~EXTANT; }
+  public void clearExtant() {
+    flags &= ~EXTANT;
+  }
 
-  public boolean isDeclaredType() { return (flags & DECLARED_TYPE) != 0; }
+  public boolean isDeclaredType() {
+    return (flags & DECLARED_TYPE) != 0;
+  }
 
-  public void setDeclaredType() { flags |= DECLARED_TYPE; }
+  public void setDeclaredType() {
+    flags |= DECLARED_TYPE;
+  }
 
-  public void clearDeclaredType() { flags &= ~DECLARED_TYPE; }
+  public void clearDeclaredType() {
+    flags &= ~DECLARED_TYPE;
+  }
 
   private void verifyPreciseType() {
     if (!VM.VerifyAssertions) {
@@ -310,20 +334,30 @@ public final class RegisterOperand extends Operand {
     }
   }
 
-  public boolean isPreciseType() { return (flags & PRECISE_TYPE) != 0; }
+  public boolean isPreciseType() {
+    return (flags & PRECISE_TYPE) != 0;
+  }
 
   public void setPreciseType() {
     flags |= PRECISE_TYPE;
     if (VM.VerifyAssertions) verifyPreciseType();
   }
 
-  public void clearPreciseType() { flags &= ~PRECISE_TYPE; }
+  public void clearPreciseType() {
+    flags &= ~PRECISE_TYPE;
+  }
 
-  public boolean isDeclaredOrPreciseType() { return (flags & (DECLARED_TYPE | PRECISE_TYPE)) != 0; }
+  public boolean isDeclaredOrPreciseType() {
+    return (flags & (DECLARED_TYPE | PRECISE_TYPE)) != 0;
+  }
 
-  public boolean isPositiveInt() { return (flags & POSITIVE) != 0; }
+  public boolean isPositiveInt() {
+    return (flags & POSITIVE) != 0;
+  }
 
-  public void setPositiveInt() { flags |= POSITIVE; }
+  public void setPositiveInt() {
+    flags |= POSITIVE;
+  }
 
   /** @return a byte encoding register flags */
   public byte getFlags() {
@@ -371,34 +405,58 @@ public final class RegisterOperand extends Operand {
   }
 
   /** @return {@code true} if this is a guard operand from a taken branch */
-  public boolean isTaken() { return (flags2 & TAKEN) != 0; }
+  public boolean isTaken() {
+    return (flags2 & TAKEN) != 0;
+  }
 
   /** Set this a guard operand from a taken branch */
-  public void setTaken() { flags2 |= TAKEN; }
+  public void setTaken() {
+    flags2 |= TAKEN;
+  }
 
   /** Clear this from being a guard operand from a taken branch */
-  public void clearTaken() { flags2 &= ~TAKEN; }
+  public void clearTaken() {
+    flags2 &= ~TAKEN;
+  }
 
   /** @return {@code true} if this is a guard operand from a not taken branch */
-  public boolean isNotTaken() { return (flags2 & NOT_TAKEN) != 0; }
+  public boolean isNotTaken() {
+    return (flags2 & NOT_TAKEN) != 0;
+  }
 
   /** Set this a guard operand from a not taken branch */
-  public void setNotTaken() { flags2 |= NOT_TAKEN; }
+  public void setNotTaken() {
+    flags2 |= NOT_TAKEN;
+  }
 
   /** Clear this from being a guard operand from a not taken branch */
-  public void clearNotTaken() { flags2 &= ~NOT_TAKEN; }
+  public void clearNotTaken() {
+    flags2 &= ~NOT_TAKEN;
+  }
 
-  public boolean isBoundsCheck() { return (flags2 & BOUNDS_CHECK) != 0; }
+  public boolean isBoundsCheck() {
+    return (flags2 & BOUNDS_CHECK) != 0;
+  }
 
-  public void setBoundsCheck() { flags2 |= BOUNDS_CHECK; }
+  public void setBoundsCheck() {
+    flags2 |= BOUNDS_CHECK;
+  }
 
-  public void clearBoundsCheck() { flags2 &= ~BOUNDS_CHECK; }
+  public void clearBoundsCheck() {
+    flags2 &= ~BOUNDS_CHECK;
+  }
 
-  public boolean isNullCheck() { return (flags2 & NULL_CHECK) != 0; }
+  public boolean isNullCheck() {
+    return (flags2 & NULL_CHECK) != 0;
+  }
 
-  public void setNullCheck() { flags2 |= NULL_CHECK; }
+  public void setNullCheck() {
+    flags2 |= NULL_CHECK;
+  }
 
-  public void clearNullCheck() { flags2 &= ~NULL_CHECK; }
+  public void clearNullCheck() {
+    flags2 &= ~NULL_CHECK;
+  }
 
   /**
    * Sets the next register operand in the def/use list.

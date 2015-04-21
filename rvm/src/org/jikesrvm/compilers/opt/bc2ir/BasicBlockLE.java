@@ -66,43 +66,81 @@ class BasicBlockLE {
   private static final byte COLOR = 0x10;           //(Red = 0, Black = 1)
   private static final byte IN_CODE_ORDER = 0x20;
 
-  final void setStackKnown() { flags |= STACK_KNOWN; }
+  final void setStackKnown() {
+    flags |= STACK_KNOWN;
+  }
 
-  final void clearStackKnown() { flags &= ~STACK_KNOWN; }
+  final void clearStackKnown() {
+    flags &= ~STACK_KNOWN;
+  }
 
-  final boolean isStackKnown() { return (flags & STACK_KNOWN) != 0; }
+  final boolean isStackKnown() {
+    return (flags & STACK_KNOWN) != 0;
+  }
 
-  final void setLocalKnown() { flags |= LOCAL_KNOWN; }
+  final void setLocalKnown() {
+    flags |= LOCAL_KNOWN;
+  }
 
-  final void clearLocalKnown() { flags &= ~LOCAL_KNOWN; }
+  final void clearLocalKnown() {
+    flags &= ~LOCAL_KNOWN;
+  }
 
-  final boolean isLocalKnown() { return (flags & LOCAL_KNOWN) != 0; }
+  final boolean isLocalKnown() {
+    return (flags & LOCAL_KNOWN) != 0;
+  }
 
-  final void setSelfRegen() { flags |= SELF_REGEN; }
+  final void setSelfRegen() {
+    flags |= SELF_REGEN;
+  }
 
-  final void clearSelfRegen() { flags &= ~SELF_REGEN; }
+  final void clearSelfRegen() {
+    flags &= ~SELF_REGEN;
+  }
 
-  final boolean isSelfRegen() { return (flags & SELF_REGEN) != 0; }
+  final boolean isSelfRegen() {
+    return (flags & SELF_REGEN) != 0;
+  }
 
-  final void setGenerated() { flags |= GENERATED; }
+  final void setGenerated() {
+    flags |= GENERATED;
+  }
 
-  final void clearGenerated() { flags &= ~GENERATED; }
+  final void clearGenerated() {
+    flags &= ~GENERATED;
+  }
 
-  final boolean isGenerated() { return (flags & GENERATED) != 0; }
+  final boolean isGenerated() {
+    return (flags & GENERATED) != 0;
+  }
 
-  final void setBlack() { flags |= COLOR; }
+  final void setBlack() {
+    flags |= COLOR;
+  }
 
-  final boolean isBlack() { return (flags & COLOR) != 0; }
+  final boolean isBlack() {
+    return (flags & COLOR) != 0;
+  }
 
-  final void setRed() { flags &= ~COLOR; }
+  final void setRed() {
+    flags &= ~COLOR;
+  }
 
-  final boolean isRed() { return (flags & COLOR) == 0; }
+  final boolean isRed() {
+    return (flags & COLOR) == 0;
+  }
 
-  final void setInCodeOrder() { flags |= IN_CODE_ORDER; }
+  final void setInCodeOrder() {
+    flags |= IN_CODE_ORDER;
+  }
 
-  final void clearInCodeOrder() { flags &= ~IN_CODE_ORDER; }
+  final void clearInCodeOrder() {
+    flags &= ~IN_CODE_ORDER;
+  }
 
-  final boolean isInCodeOrder() { return (flags & IN_CODE_ORDER) != 0; }
+  final boolean isInCodeOrder() {
+    return (flags & IN_CODE_ORDER) != 0;
+  }
 
   final boolean isReadyToGenerate() {
     // (isStackKnown() && isLocalKnown && !isGenerated)
@@ -175,7 +213,9 @@ class BasicBlockLE {
   }
 
   // Only for use by subclasses to avoid above constructor.
-  protected BasicBlockLE(int loc) { low = loc;  }
+  protected BasicBlockLE(int loc) {
+    low = loc;
+  }
 
   /**
    * Returns a string representation of this BBLE.

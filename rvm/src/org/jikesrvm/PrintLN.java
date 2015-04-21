@@ -25,9 +25,13 @@ import org.jikesrvm.classloader.RVMMember;
 public abstract class PrintLN {
   //  PrintLN(PrintWriter out);
   //  PrintLN(PrintStream out);
-  public boolean isSysWrite() { return false; }
+  public boolean isSysWrite() {
+    return false;
+  }
 
-  public boolean isSystemErr() { return false; }
+  public boolean isSystemErr() {
+    return false;
+  }
 
   public abstract void flush();
 

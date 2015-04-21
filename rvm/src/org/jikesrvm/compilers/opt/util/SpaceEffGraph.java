@@ -47,19 +47,25 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   protected int numberOfNodes;
 
   @Override
-  public final int numberOfNodes() { return numberOfNodes; }
+  public final int numberOfNodes() {
+    return numberOfNodes;
+  }
 
   /**
    * Set number of nodes
    * @param n new number of nodes
    */
-  public final void setNumberOfNodes(int n) { numberOfNodes = n; }
+  public final void setNumberOfNodes(int n) {
+    numberOfNodes = n;
+  }
 
   /**
    * Get the next node number
    * @return the node number
    */
-  public final int allocateNodeNumber() { return numberOfNodes++; }
+  public final int allocateNodeNumber() {
+    return numberOfNodes++;
+  }
 
   /**
    * Renumber the nodes densely from 0...numberOfNodes-1.
@@ -401,10 +407,14 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   private static final class NodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphNode _node;
 
-    public NodeEnumeration(SpaceEffGraphNode n) { _node = n; }
+    public NodeEnumeration(SpaceEffGraphNode n) {
+      _node = n;
+    }
 
     @Override
-    public boolean hasMoreElements() { return _node != null; }
+    public boolean hasMoreElements() {
+      return _node != null;
+    }
 
     @Override
     public GraphNode nextElement() {

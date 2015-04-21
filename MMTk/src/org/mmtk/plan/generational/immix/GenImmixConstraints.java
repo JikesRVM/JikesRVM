@@ -28,7 +28,11 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class GenImmixConstraints extends GenConstraints {
   @Override
-  public int numSpecializedScans() { return 2; }
+  public int numSpecializedScans() {
+    return 2;
+  }
   @Override
-  public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES;}
+  public int maxNonLOSCopyBytes() {
+    return MAX_IMMIX_OBJECT_BYTES;
+  }
 }

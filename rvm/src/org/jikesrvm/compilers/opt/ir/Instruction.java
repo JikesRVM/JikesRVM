@@ -1540,14 +1540,18 @@ public final class Instruction {
     }
 
     @Override
-    public final boolean hasMoreElements() { return nextElem != null; }
+    public final boolean hasMoreElements() {
+      return nextElem != null;
+    }
 
     @Override
     public final Operand nextElement() {
       Operand temp = nextElem;
       if (temp == null) fail();
       advance();
-      if (DEBUG) { System.out.println(" next() returning: " + temp); }
+      if (DEBUG) {
+        System.out.println(" next() returning: " + temp);
+      }
       return temp;
     }
 

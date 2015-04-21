@@ -39,35 +39,65 @@ public class SpaceEffGraphNode implements GraphNode {
 
   static final int INFO_MASK = 0x00ffffff;
 
-  public final boolean dfsVisited() { return (info & DFS_VISITED) != 0; }
+  public final boolean dfsVisited() {
+    return (info & DFS_VISITED) != 0;
+  }
 
-  public final boolean topVisited() { return (info & TOP_VISITED) != 0; }
+  public final boolean topVisited() {
+    return (info & TOP_VISITED) != 0;
+  }
 
-  public final boolean onStack() { return (info & ON_STACK) != 0; }
+  public final boolean onStack() {
+    return (info & ON_STACK) != 0;
+  }
 
-  public final boolean flagsOn() { return (info & (DFS_VISITED | TOP_VISITED | ON_STACK)) != 0; }
+  public final boolean flagsOn() {
+    return (info & (DFS_VISITED | TOP_VISITED | ON_STACK)) != 0;
+  }
 
-  public final boolean isLoopHeader() { return (info & LOOP_HEADER) != 0; }
+  public final boolean isLoopHeader() {
+    return (info & LOOP_HEADER) != 0;
+  }
 
-  public final void setDfsVisited() { info |= DFS_VISITED; }
+  public final void setDfsVisited() {
+    info |= DFS_VISITED;
+  }
 
-  public final void setTopVisited() { info |= TOP_VISITED; }
+  public final void setTopVisited() {
+    info |= TOP_VISITED;
+  }
 
-  public final void setOnStack() { info |= ON_STACK; }
+  public final void setOnStack() {
+    info |= ON_STACK;
+  }
 
-  public final void setDfsVisitedOnStack() { info |= (DFS_VISITED | ON_STACK); }
+  public final void setDfsVisitedOnStack() {
+    info |= (DFS_VISITED | ON_STACK);
+  }
 
-  public final void setLoopHeader() { info |= LOOP_HEADER; }
+  public final void setLoopHeader() {
+    info |= LOOP_HEADER;
+  }
 
-  public final void clearDfsVisited() { info &= ~DFS_VISITED; }
+  public final void clearDfsVisited() {
+    info &= ~DFS_VISITED;
+  }
 
-  public final void clearTopVisited() { info &= ~TOP_VISITED; }
+  public final void clearTopVisited() {
+    info &= ~TOP_VISITED;
+  }
 
-  public final void clearOnStack() { info &= ~ON_STACK; }
+  public final void clearOnStack() {
+    info &= ~ON_STACK;
+  }
 
-  public final void clearFlags() { info &= ~(DFS_VISITED | TOP_VISITED | ON_STACK); }
+  public final void clearFlags() {
+    info &= ~(DFS_VISITED | TOP_VISITED | ON_STACK);
+  }
 
-  public final void clearLoopHeader() { info &= ~LOOP_HEADER; }
+  public final void clearLoopHeader() {
+    info &= ~LOOP_HEADER;
+  }
 
   public final void setNumber(int value) {
     info = (info & ~INFO_MASK) | (value & INFO_MASK);
@@ -603,10 +633,14 @@ public class SpaceEffGraphNode implements GraphNode {
     }
 
     @Override
-    public boolean hasMoreElements() { return _edge != null; }
+    public boolean hasMoreElements() {
+      return _edge != null;
+    }
 
     @Override
-    public SpaceEffGraphEdge nextElement() { return next(); }
+    public SpaceEffGraphEdge nextElement() {
+      return next();
+    }
 
     @Override
     public SpaceEffGraphEdge next() {
@@ -624,7 +658,9 @@ public class SpaceEffGraphNode implements GraphNode {
     }
 
     @Override
-    public boolean hasMoreElements() { return _edge != null; }
+    public boolean hasMoreElements() {
+      return _edge != null;
+    }
 
     @Override
     public GraphNode nextElement() {
@@ -642,10 +678,14 @@ public class SpaceEffGraphNode implements GraphNode {
     }
 
     @Override
-    public boolean hasMoreElements() { return _edge != null; }
+    public boolean hasMoreElements() {
+      return _edge != null;
+    }
 
     @Override
-    public GraphEdge nextElement() { return next(); }
+    public GraphEdge nextElement() {
+      return next();
+    }
 
     @Override
     public GraphEdge next() {
@@ -663,7 +703,9 @@ public class SpaceEffGraphNode implements GraphNode {
     }
 
     @Override
-    public boolean hasMoreElements() { return _edge != null; }
+    public boolean hasMoreElements() {
+      return _edge != null;
+    }
 
     @Override
     public GraphNode nextElement() {

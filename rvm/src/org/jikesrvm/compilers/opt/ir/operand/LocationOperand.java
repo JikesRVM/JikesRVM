@@ -167,38 +167,69 @@ public final class LocationOperand extends Operand {
     throw new OptimizingCompilerException("Getting the type for this operand has no defined meaning");
   }
 
-  public LocationOperand asFieldAccess() { return this; }
+  public LocationOperand asFieldAccess() {
+    return this;
+  }
 
-  public LocationOperand asArrayAccess() { return this; }
+  public LocationOperand asArrayAccess() {
+    return this;
+  }
 
-  public LocationOperand asJTOCAccess() { return this; }
+  public LocationOperand asJTOCAccess() {
+    return this;
+  }
 
-  public LocationOperand asSpillAccess() { return this; }
+  public LocationOperand asSpillAccess() {
+    return this;
+  }
 
-  public LocationOperand asALengthAccess() { return this; }
+  public LocationOperand asALengthAccess() {
+    return this;
+  }
 
-  public LocationOperand asMethodAccess() { return this; }
+  public LocationOperand asMethodAccess() {
+    return this;
+  }
 
-  public FieldReference getFieldRef() { return fieldRef; }
+  public FieldReference getFieldRef() {
+    return fieldRef;
+  }
 
-  public TypeReference getElementType() { return arrayElementType; }
+  public TypeReference getElementType() {
+    return arrayElementType;
+  }
 
-  //public final int getIndex() { return JTOCoffset; }
-  public Offset getJTOCoffset() { return JTOCoffset; }
+  public Offset getJTOCoffset() {
+    return JTOCoffset;
+  }
 
-  public int getOffset() { return spillOffset; }
+  public int getOffset() {
+    return spillOffset;
+  }
 
-  public boolean isFieldAccess() { return type == FIELD_ACCESS; }
+  public boolean isFieldAccess() {
+    return type == FIELD_ACCESS;
+  }
 
-  public boolean isArrayAccess() { return type == ARRAY_ACCESS; }
+  public boolean isArrayAccess() {
+    return type == ARRAY_ACCESS;
+  }
 
-  public boolean isJTOCAccess() { return type == JTOC_ACCESS; }
+  public boolean isJTOCAccess() {
+    return type == JTOC_ACCESS;
+  }
 
-  public boolean isSpillAccess() { return type == SPILL_ACCESS; }
+  public boolean isSpillAccess() {
+    return type == SPILL_ACCESS;
+  }
 
-  public boolean isALengthAccess() { return type == ALENGTH_ACCESS; }
+  public boolean isALengthAccess() {
+    return type == ALENGTH_ACCESS;
+  }
 
-  public boolean isMethodAccess() { return type == METHOD_ACCESS; }
+  public boolean isMethodAccess() {
+    return type == METHOD_ACCESS;
+  }
 
   /**
    * Is the accessed location possibly volatile?

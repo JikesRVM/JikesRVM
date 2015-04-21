@@ -624,13 +624,20 @@ import org.vmmagic.unboxed.Word;
    * load balancing or increments based on region size.
    * @return the maximum region size
    */
-  protected Extent maximumRegionSize() { return Extent.max(); }
+  protected Extent maximumRegionSize() {
+    return Extent.max();
+  }
 
   /** @return the current cursor value */
-  public final Address getCursor() { return cursor; }
+  public final Address getCursor() {
+    return cursor;
+  }
+
   /** @return the space associated with this bump pointer */
   @Override
-  public final Space getSpace() { return space; }
+  public final Space getSpace() {
+    return space;
+  }
 
   /**
    * Print out the status of the allocator (for debugging)

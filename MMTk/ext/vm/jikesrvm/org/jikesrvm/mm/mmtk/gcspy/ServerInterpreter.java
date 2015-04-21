@@ -87,7 +87,10 @@ import org.vmmagic.unboxed.Address;
   @Override
   public void startServer(boolean wait) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
-      if (DEBUG) { Log.write("Starting GCSpy server, wait="); Log.writeln(wait); }
+      if (DEBUG) {
+        Log.write("Starting GCSpy server, wait=");
+        Log.writeln(wait);
+      }
 
       Address serverOuterLoop = sysCall.gcspyMainServerOuterLoop();
       sysCall.gcspyStartserver(server, wait ? 1 : 0, serverOuterLoop);

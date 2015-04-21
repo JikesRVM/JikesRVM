@@ -795,6 +795,10 @@ public final class ImmixSpace extends Space {
     return ptr.toWord().and(RECYCLE_ALLOC_CHUNK_MASK).EQ(Word.zero());
   }
 
-  ChunkList getChunkMap() { return chunkMap; }
-  Defrag getDefrag() { return defrag; }
+  ChunkList getChunkMap() {
+    return chunkMap;
+  }
+  Defrag getDefrag() {
+    return defrag;
+  }
 }

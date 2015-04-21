@@ -42,12 +42,16 @@ public final class UnResolvedCallSite {
   /**
    * @return method containing the callsite
    */
-  public MethodReference getMethodRef() { return methodRef; }
+  public MethodReference getMethodRef() {
+    return methodRef;
+  }
 
   /**
    * @return call site's bytecode index in its method
    */
-  public int getBytecodeIndex() { return bcIndex; }
+  public int getBytecodeIndex() {
+    return bcIndex;
+  }
 
   /**
    * @return string representation of call site

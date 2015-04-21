@@ -34,10 +34,18 @@ class TestDeadVPQueue {
       System.out.println(Thread.currentThread().getName() + ": starting worker 1");
       w1.start();
       while (w1.state != TestDeadVPQueueWorker.ending) {
-         try { Thread.currentThread().sleep(100); } catch (InterruptedException e) { }
+         try {
+           Thread.currentThread().sleep(100);
+         } catch (InterruptedException e) {
+           // ignore
+         }
       }
       System.out.println(Thread.currentThread().getName() + ": ending worker 1");
-         try { Thread.currentThread().sleep(100); } catch (InterruptedException e) { }
+         try {
+           Thread.currentThread().sleep(100);
+         } catch (InterruptedException e) {
+           // ignore
+         }
 
       // create a second thread and wait for it to terminate
     System.out.println(Thread.currentThread().getName() + ": creating worker 2");
@@ -46,10 +54,18 @@ class TestDeadVPQueue {
       System.out.println(Thread.currentThread().getName() + ": starting worker 2");
       w2.start();
       while (w2.state != TestDeadVPQueueWorker.ending) {
-         try { Thread.currentThread().sleep(100); } catch (InterruptedException e) { }
+         try {
+           Thread.currentThread().sleep(100);
+         } catch (InterruptedException e) {
+           // ignore
+         }
       }
       System.out.println(Thread.currentThread().getName() + ": ending worker 2");
-         try { Thread.currentThread().sleep(100); } catch (InterruptedException e) { }
+         try {
+           Thread.currentThread().sleep(100);
+         } catch (InterruptedException e) {
+           // ignore
+         }
 
     System.out.println("end synchronous test- dump VM state");
      RVMThread.dumpVirtualMachine();
@@ -67,10 +83,18 @@ class TestDeadVPQueue {
        System.out.println(Thread.currentThread().getName() + ":starting" + s);
        w.start();
        // wait a bit before we start the next
-       try { Thread.currentThread().sleep(10); } catch (InterruptedException e) { }
+       try {
+         Thread.currentThread().sleep(10);
+        } catch (InterruptedException e) {
+          // ignore
+        }
       }
       while (w.state != TestDeadVPQueueWorker.ending) {
-        try { Thread.currentThread().sleep(500); } catch (InterruptedException e) { }
+        try {
+          Thread.currentThread().sleep(500);
+        } catch (InterruptedException e) {
+          // ignore
+        }
       }
 
 

@@ -319,7 +319,9 @@ class TestExceptionThrow {
   static StringBuffer run11s2;
 
   public static void run11a(String a) { }
-  public static String run11b() { return "test";};
+  public static String run11b() {
+    return "test";
+  };
 
   public static void run11aux(Object a) {
      if (run11s1.equals(""))

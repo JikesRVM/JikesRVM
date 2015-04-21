@@ -230,14 +230,18 @@ public class BootImageWriter extends BootImageWriterMessages {
      * Constructor.
      * @param jdkType the type to associate with the key
      */
-    public Key(Class<?> jdkType) { this.jdkType = jdkType; }
+    public Key(Class<?> jdkType) {
+      this.jdkType = jdkType;
+    }
 
     /**
      * Returns a hash code value for the key.
      * @return a hash code value for this key
      */
     @Override
-    public int hashCode() { return jdkType.hashCode(); }
+    public int hashCode() {
+      return jdkType.hashCode();
+    }
 
     /**
      * Indicates whether some other key is "equal to" this one.
@@ -3016,7 +3020,9 @@ public class BootImageWriter extends BootImageWriterMessages {
       final Object wrapper = jdkObject;
       Object key = new Object() {
         @Override
-        public int hashCode() { return System.identityHashCode(wrapper); }
+        public int hashCode() {
+          return System.identityHashCode(wrapper);
+        }
         @Override
         public boolean equals(Object o) {
           return o != null && getClass() == o.getClass() && hashCode() == o.hashCode();

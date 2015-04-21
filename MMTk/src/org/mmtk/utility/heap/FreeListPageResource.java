@@ -343,7 +343,9 @@ public final class FreeListPageResource extends PageResource {
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
   @Override
-  public int adjustForMetaData(int pages) { return pages; }
+  public int adjustForMetaData(int pages) {
+    return pages;
+  }
 
   public Address getHighWater() {
     return start.plus(Extent.fromIntSignExtend(highWaterMark << LOG_BYTES_IN_PAGE));

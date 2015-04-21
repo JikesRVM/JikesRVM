@@ -26,10 +26,14 @@ public class RVM_957_Tuple {
   // don't inline because this would create an inline guard patch point
   // which isn't supported by the escape transformations
   @NoInline
-  public Object _1() { return a; }
+  public Object _1() {
+    return a;
+  }
 
   // don't inline because this would create an inline guard patch point
   // which isn't supported by the escape transformations
   @NoInline
-  public Object _2() { return b; }
+  public Object _2() {
+    return b;
+  }
 }

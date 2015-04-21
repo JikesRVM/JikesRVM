@@ -86,7 +86,9 @@ class TestBackEdgeGC {
   static class Looper extends XThread {
     static boolean gccomplete;
 
-    Looper() { super("Looper"); }
+    Looper() {
+      super("Looper");
+    }
 
     void performTask() {
       CallGC gc = new CallGC(2);

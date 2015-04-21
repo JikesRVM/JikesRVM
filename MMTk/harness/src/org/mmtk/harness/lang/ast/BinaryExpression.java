@@ -40,9 +40,17 @@ public class BinaryExpression extends AbstractAST implements Expression {
     this.rhs = rhs;
   }
 
-  public Expression getLhs() { return lhs; }
-  public Expression getRhs() { return rhs; }
-  public Operator getOperator() { return op; }
+  public Expression getLhs() {
+    return lhs;
+  }
+
+  public Expression getRhs() {
+    return rhs;
+  }
+
+  public Operator getOperator() {
+    return op;
+  }
 
   @Override
   public Object accept(Visitor v) {

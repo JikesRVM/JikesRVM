@@ -245,7 +245,10 @@ public class ImmixAllocator extends Allocator {
               Log.write("     hw: "); Log.write(Chunk.getHighWater(Chunk.align(cursor)));
               Log.writeln(" values: ");
               Address tmp2 = cursor;
-              while (tmp2.LT(limit)) { Log.write(tmp2.loadByte()); Log.write(" ");}
+              while (tmp2.LT(limit)) {
+                Log.write(tmp2.loadByte());
+                Log.write(" ");
+              }
               Log.writeln();
             }
             VM.assertions._assert(tmp.loadByte() == (byte) 0);
@@ -325,7 +328,9 @@ public class ImmixAllocator extends Allocator {
 
   /** @return the space associated with this squish allocator */
   @Override
-  public final Space getSpace() { return space; }
+  public final Space getSpace() {
+    return space;
+  }
 
   /**
    * Print out the status of the allocator (for debugging)

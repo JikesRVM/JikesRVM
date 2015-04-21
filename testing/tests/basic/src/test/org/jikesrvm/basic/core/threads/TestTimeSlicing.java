@@ -26,7 +26,9 @@ class TestTimeSlicing {
     }
 
     //start up tasks
-    for (Task task : tasks) { task.start(); }
+    for (Task task : tasks) {
+      task.start();
+    }
 
     // spin and wait for values to fill
     while (countArray[tasks.length - 1] != LAST_COUNT) {

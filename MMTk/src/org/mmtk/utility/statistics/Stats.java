@@ -290,7 +290,9 @@ public class Stats {
       this.name = name;
     }
     @Override
-    public String toString() { return name; }
+    public String toString() {
+      return name;
+    }
   }
 
   /**
@@ -392,8 +394,12 @@ public class Stats {
    *
    * @return The GC count (inclusive of any in-progress GC)
    */
-  public static int gcCount() { return gcCount; }
+  public static int gcCount() {
+    return gcCount;
+  }
 
   /** @return {@code true} if currently gathering stats */
-  public static boolean gatheringStats() { return gatheringStats; }
+  public static boolean gatheringStats() {
+    return gatheringStats;
+  }
 }

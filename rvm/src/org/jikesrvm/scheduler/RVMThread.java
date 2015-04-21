@@ -328,7 +328,9 @@ public final class RVMThread extends ThreadContext {
   private Address hijackedReturnCallerFp = ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 
   /** @return the callee frame pointer for the stack frame hijacked by the return barrier */
-  public Address getHijackedReturnCalleeFp() { return hijackedReturnCalleeFp; }
+  public Address getHijackedReturnCalleeFp() {
+    return hijackedReturnCalleeFp;
+  }
 
   /** debugging flag for return barrier trampoline */
   public static final boolean DEBUG_STACK_TRAMPOLINE = false;
@@ -380,7 +382,9 @@ public final class RVMThread extends ThreadContext {
   // corresponds to this. that would make a lot more sense.
   private boolean isAboutToTerminate;
 
-  public boolean getIsAboutToTerminate() { return isAboutToTerminate; }
+  public boolean getIsAboutToTerminate() {
+    return isAboutToTerminate;
+  }
 
   /** Is this thread in the process of blocking? */
   boolean isBlocking;
@@ -3168,11 +3172,15 @@ public final class RVMThread extends ThreadContext {
 
   /** @return the address of the stack trampoline bridge code */
   @Inline
-  private Address getStackTrampolineBridgeIP() { return Magic.objectAsAddress(stackTrampolineBridgeInstructions); }
+  private Address getStackTrampolineBridgeIP() {
+    return Magic.objectAsAddress(stackTrampolineBridgeInstructions);
+  }
 
   /** @return the hijacked return address */
   @Inline
-  public Address getTrampolineHijackedReturnAddress() { return hijackedReturnAddress; }
+  public Address getTrampolineHijackedReturnAddress() {
+    return hijackedReturnAddress;
+  }
 
   /**
    * Determine whether a given method is the stack trampoline
@@ -3181,7 +3189,9 @@ public final class RVMThread extends ThreadContext {
    * @return <code>true</code> if the code is the stack trampoline.
    */
   @Inline
-  public static boolean isTrampolineIP(Address ip) { return getCurrentThread().getStackTrampolineBridgeIP().EQ(ip); }
+  public static boolean isTrampolineIP(Address ip) {
+    return getCurrentThread().getStackTrampolineBridgeIP().EQ(ip);
+  }
 
   /**
    * Given a frame that has been hijacked by the stack trampoline,

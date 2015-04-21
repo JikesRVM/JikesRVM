@@ -107,7 +107,9 @@ import org.vmmagic.pragma.*;
   }
 
   @Override
-  protected String getDriverName() { return "MMTk LinearSpaceDriver"; }
+  protected String getDriverName() {
+    return "MMTk LinearSpaceDriver";
+  }
 
   /*
    * Private creator methods to create the Streams.
@@ -273,7 +275,9 @@ import org.vmmagic.pragma.*;
    * BumpPointer.linearScan needs a LinearScan object, which we provide here.
    * @return the scanner for this driver
    */
-   public LinearScan getScanner() { return scanner; }
+   public LinearScan getScanner() {
+     return scanner;
+   }
 
    /**
     * Set the current address range of a contiguous space
@@ -301,7 +305,10 @@ import org.vmmagic.pragma.*;
     // spaces. If pages were to be released, change the test here to
     //     if (allTileNum != required) {
     if (allTileNum < required) {
-      if (DEBUG) { Log.write(", resize from ", allTileNum); Log.write(" to ", required); }
+      if (DEBUG) {
+        Log.write(", resize from ", allTileNum);
+        Log.write(" to ", required);
+      }
       allTileNum = required;
       serverSpace.resize(allTileNum);
       setTilenames(subspace, allTileNum);

@@ -45,11 +45,21 @@ public class StoreNamedField extends AbstractAST implements Statement {
     return v.visit(this);
   }
 
-  public Symbol getObjectSymbol() { return symbol; }
-  public String getFieldName() { return field; }
-  public Expression getRhs() { return value; }
-  public int getSlot() { return symbol.getLocation(); }
+  public Symbol getObjectSymbol() {
+    return symbol;
+  }
+  public String getFieldName() {
+    return field;
+  }
+  public Expression getRhs() {
+    return value;
+  }
+  public int getSlot() {
+    return symbol.getLocation();
+  }
 
   /** Not safe unless the checker has checked this AST node */
-  public Field getField() { return ((UserType)(symbol.getType())).getField(field); }
+  public Field getField() {
+    return ((UserType)(symbol.getType())).getField(field);
+  }
 }

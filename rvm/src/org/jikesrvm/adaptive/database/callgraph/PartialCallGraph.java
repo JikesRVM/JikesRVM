@@ -76,7 +76,9 @@ public final class PartialCallGraph implements Decayable, Reportable {
   /**
    * @return sum of all edge weights in the partial call graph
    */
-  public double getTotalEdgeWeights() { return totalEdgeWeights; }
+  public double getTotalEdgeWeights() {
+    return totalEdgeWeights;
+  }
 
   /**
    * Visit the WeightedCallTargets for every call site send them the
@@ -293,8 +295,12 @@ public final class PartialCallGraph implements Decayable, Reportable {
       if (o1.equals(o2)) return 0;
       double w1 = callGraph.get(o1).totalWeight();
       double w2 = callGraph.get(o2).totalWeight();
-      if (w1 < w2) { return 1; }
-      if (w1 > w2) { return -1; }
+      if (w1 < w2) {
+        return 1;
+      }
+      if (w1 > w2) {
+        return -1;
+      }
       // equal weights; sort lexicographically
       return o1.toString().compareTo(o2.toString());
     }

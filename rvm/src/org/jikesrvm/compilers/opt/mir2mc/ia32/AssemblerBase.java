@@ -211,7 +211,9 @@ abstract class AssemblerBase extends Assembler
    * (otherwise why are we opt compiling it?).
    */
   @Override
-  protected boolean isHotCode() { return true; }
+  protected boolean isHotCode() {
+    return true;
+  }
 
   /**
    *  Is the given operand an immediate?  In the IA32 assembly, one

@@ -114,7 +114,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   }
 
   @Override
-  public String getName() { return "InstrumentationSamplingFramework"; }
+  public String getName() {
+    return "InstrumentationSamplingFramework";
+  }
 
   @Override
   public void perform(IR ir) {

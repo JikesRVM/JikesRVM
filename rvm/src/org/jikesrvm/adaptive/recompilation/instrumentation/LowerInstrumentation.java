@@ -61,7 +61,9 @@ public class LowerInstrumentation extends CompilerPhase {
   }
 
   @Override
-  public final String getName() { return "LowerInstrumentation"; }
+  public final String getName() {
+    return "LowerInstrumentation";
+  }
 
   /**
    * Finds all instrumented instructions and calls the appropriate code to

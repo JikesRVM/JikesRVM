@@ -40,7 +40,9 @@ public final class AINewHotEdgeEvent extends HotMethodEvent implements Controlle
    */
   private final double boostFactor;
 
-  public double getBoostFactor() { return boostFactor; }
+  public double getBoostFactor() {
+    return boostFactor;
+  }
 
   /**
    * @param _cm the compiled method

@@ -43,6 +43,10 @@ public class Spawn extends AbstractAST implements Statement {
   public Object accept(Visitor v) {
     return v.visit(this);
   }
-  public List<Expression> getArgs() { return params; }
-  public Method getMethod() { return methods.get(methodName); }
+  public List<Expression> getArgs() {
+    return params;
+  }
+  public Method getMethod() {
+    return methods.get(methodName);
+  }
 }

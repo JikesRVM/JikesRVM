@@ -1059,7 +1059,9 @@ public class VM extends Properties {
   }
 
   @NoInline
-  public static void sysWrite(char c) { write(c); }
+  public static void sysWrite(char c) {
+    write(c);
+  }
 
   @NoInline
   public static void sysWriteField(int w, int v) {
@@ -2508,8 +2510,13 @@ public class VM extends Properties {
     RVMThread.init();
   }
 
-  public static void disableYieldpoints() { RVMThread.getCurrentThread().disableYieldpoints(); }
-  public static void enableYieldpoints() { RVMThread.getCurrentThread().enableYieldpoints(); }
+  public static void disableYieldpoints() {
+    RVMThread.getCurrentThread().disableYieldpoints();
+  }
+
+  public static void enableYieldpoints() {
+    RVMThread.getCurrentThread().enableYieldpoints();
+  }
 
   /**
    * The disableGC() and enableGC() methods are for use as guards to protect

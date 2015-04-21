@@ -256,28 +256,44 @@ public class Reflection {
   // Method parameter wrappers.
   //
   @NoInline
-  public static Object wrapBoolean(int b) { return b == 1; }
+  public static Object wrapBoolean(int b) {
+    return b == 1;
+  }
 
   @NoInline
-  public static Object wrapByte(byte b) { return b; }
+  public static Object wrapByte(byte b) {
+    return b;
+  }
 
   @NoInline
-  public static Object wrapChar(char c) { return c; }
+  public static Object wrapChar(char c) {
+    return c;
+  }
 
   @NoInline
-  public static Object wrapShort(short s) { return s; }
+  public static Object wrapShort(short s) {
+    return s;
+  }
 
   @NoInline
-  public static Object wrapInt(int i) { return i; }
+  public static Object wrapInt(int i) {
+    return i;
+  }
 
   @NoInline
-  public static Object wrapLong(long l) { return l; }
+  public static Object wrapLong(long l) {
+    return l;
+  }
 
   @NoInline
-  public static Object wrapFloat(float f) { return f; }
+  public static Object wrapFloat(float f) {
+    return f;
+  }
 
   @NoInline
-  public static Object wrapDouble(double d) { return d; }
+  public static Object wrapDouble(double d) {
+    return d;
+  }
 
   // Method parameter unwrappers.
   //
@@ -291,31 +307,49 @@ public class Reflection {
   }
 
   @NoInline
-  public static boolean unwrapBoolean(Object o) { return (Boolean) o; }
+  public static boolean unwrapBoolean(Object o) {
+    return (Boolean) o;
+  }
 
   @NoInline
-  public static byte unwrapByte(Object o) { return (Byte) o; }
+  public static byte unwrapByte(Object o) {
+    return (Byte) o;
+  }
 
   @NoInline
-  public static char unwrapChar(Object o) { return (Character) o; }
+  public static char unwrapChar(Object o) {
+    return (Character) o;
+  }
 
   @NoInline
-  public static short unwrapShort(Object o) { return (Short) o; }
+  public static short unwrapShort(Object o) {
+    return (Short) o;
+  }
 
   @NoInline
-  public static int unwrapInt(Object o) { return (Integer) o; }
+  public static int unwrapInt(Object o) {
+    return (Integer) o;
+  }
 
   @NoInline
-  public static long unwrapLong(Object o) { return (Long) o; }
+  public static long unwrapLong(Object o) {
+    return (Long) o;
+  }
 
   @NoInline
-  public static float unwrapFloat(Object o) { return (Float) o; }
+  public static float unwrapFloat(Object o) {
+    return (Float) o;
+  }
 
   @NoInline
-  public static double unwrapDouble(Object o) { return (Double) o; }
+  public static double unwrapDouble(Object o) {
+    return (Double) o;
+  }
 
   @NoInline
-  public static Address unwrapObject(Object o) { return Magic.objectAsAddress(o); }
+  public static Address unwrapObject(Object o) {
+    return Magic.objectAsAddress(o);
+  }
 
   private static boolean firstUse = true;
 }

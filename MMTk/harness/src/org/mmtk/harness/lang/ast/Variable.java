@@ -43,5 +43,7 @@ public class Variable extends AbstractAST implements Expression {
     return v.visit(this);
   }
 
-  public Symbol getSymbol() { return symbol; }
+  public Symbol getSymbol() {
+    return symbol;
+  }
 }

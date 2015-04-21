@@ -71,14 +71,18 @@ public abstract class GenericStackManager extends IRTools {
    */
   protected final RegisterPreferences pref = new RegisterPreferences();
 
-  RegisterPreferences getPreferences() { return pref; }
+  RegisterPreferences getPreferences() {
+    return pref;
+  }
 
   /**
    * Object holding register restrictions
    */
   protected RegisterRestrictions restrict;
 
-  RegisterRestrictions getRestrictions() { return restrict; }
+  RegisterRestrictions getRestrictions() {
+    return restrict;
+  }
 
   /**
    * Spill pointer (in bytes) relative to the beginning of the
@@ -142,7 +146,9 @@ public abstract class GenericStackManager extends IRTools {
    */
   protected ScratchMap scratchMap;
 
-  ScratchMap getScratchMap() { return scratchMap; }
+  ScratchMap getScratchMap() {
+    return scratchMap;
+  }
 
   /**
    * Perform some architecture-specific initialization.
@@ -1221,8 +1227,10 @@ public abstract class GenericStackManager extends IRTools {
   /**
    * @return {@code true} if and only if a stack frame
    *  must be allocated for this method
-   */
-  protected boolean frameIsRequired() { return frameRequired; }
+l   */
+  protected boolean frameIsRequired() {
+    return frameRequired;
+  }
 
   /**
    * Records that we need a stack frame for this method.
@@ -1234,7 +1242,9 @@ public abstract class GenericStackManager extends IRTools {
   /**
    * @return {@code true} if and only if this IR has a prologue yieldpoint
    */
-  protected boolean hasPrologueYieldpoint() { return prologueYieldpoint; }
+  protected boolean hasPrologueYieldpoint() {
+    return prologueYieldpoint;
+  }
 
   /**
    * Ensure that there's enough space for passing parameters. We need
@@ -1267,7 +1277,9 @@ public abstract class GenericStackManager extends IRTools {
    * We encountered a magic (get/set framepointer) that is going to force
    * us to actually create the stack frame.
    */
-  public void forceFrameAllocation() { frameRequired = true; }
+  public void forceFrameAllocation() {
+    frameRequired = true;
+  }
 
   /**
    * We encountered a float/int conversion that uses
@@ -1504,18 +1516,26 @@ public abstract class GenericStackManager extends IRTools {
      */
     private boolean dirty = false;
 
-    public boolean isDirty() { return dirty; }
+    public boolean isDirty() {
+      return dirty;
+    }
 
-    public void setDirty(boolean b) { dirty = b; }
+    public void setDirty(boolean b) {
+      dirty = b;
+    }
 
     /**
      * Did we spill a value in order to free up this scratch register?
      */
     private boolean spilledIt = false;
 
-    public boolean hadToSpill() { return spilledIt; }
+    public boolean hadToSpill() {
+      return spilledIt;
+    }
 
-    public void setHadToSpill(boolean b) { spilledIt = b; }
+    public void setHadToSpill(boolean b) {
+      spilledIt = b;
+    }
 
     public ScratchRegister(Register scratch, Register currentContents) {
       this.scratch = scratch;

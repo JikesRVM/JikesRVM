@@ -33,7 +33,9 @@ public abstract class ConvertALUOperators extends CompilerPhase {
   }
 
   @Override
-  public final String getName() { return "ConvertALUOps"; }
+  public final String getName() {
+    return "ConvertALUOps";
+  }
 
   @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {

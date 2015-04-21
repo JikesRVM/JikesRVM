@@ -3283,7 +3283,9 @@ public abstract class Simplifier extends IRTools {
             m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
             result = m.invoke(thisArg, otherArgs);
           }
-        } catch (Throwable e) { t = e;}
+        } catch (Throwable e) {
+          t = e;
+        }
         if (t != null) {
           // Call threw exception so leave in to generate at execution time
           return DefUseEffect.UNCHANGED;
