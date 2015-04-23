@@ -230,7 +230,11 @@
          value of OBJECT_MODE environment variable, so we can set it to 32 by default
          and non-AIX platforms won't care. -->
     <condition property="cp.objectmode" value="32_64" else="32">
-        <equals arg1="${target.name}" arg2="ppc64-aix"/>
+      <and>
+        <equals arg1="${target.arch}" arg2="ppc"/>
+        <equals arg1="${target.os}" arg2="AIX"/>
+        <equals arg1="${target.address.size}" arg2="64"/>
+      </and>      
     </condition>
 
     <if>
