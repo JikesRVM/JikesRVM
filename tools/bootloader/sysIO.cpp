@@ -28,23 +28,25 @@ EXTERNAL int sysReadByte(int fd)
   unsigned char ch;
   int rc;
 
-again:
-  switch ( rc = read(fd, &ch, 1))
-  {
-  case  1:
-    /*CONSOLE_PRINTF("%s: read (byte) ch is %d\n", Me, (int) ch);*/
-    return (int) ch;
-  case  0:
-    /*CONSOLE_PRINTF("%s: read (byte) rc is 0\n", Me);*/
-    return -1;
-  default:
-    /*CONSOLE_PRINTF("%s: read (byte) rc is %d\n", Me, rc);*/
-    if (errno == EAGAIN)
-      return -2;  // Read would have blocked
-    else if (errno == EINTR)
-      goto again; // Read was interrupted; try again
-    else
-      return -3;  // Some other error
+  while (true) {
+    rc = read(fd, &ch, 1);
+    switch (rc) {
+      case  1:
+        /*CONSOLE_PRINTF("%s: read (byte) ch is %d\n", Me, (int) ch);*/
+        return (int) ch;
+      case  0:
+        /*CONSOLE_PRINTF("%s: read (byte) rc is 0\n", Me);*/
+        return -1;
+      default:
+        /*CONSOLE_PRINTF("%s: read (byte) rc is %d\n", Me, rc);*/
+        if (errno == EAGAIN) {
+          return -2;  // Read would have blocked
+        } else if (errno == EINTR) {
+          // Read was interrupted; try again
+        } else {
+          return -3;  // Some other error
+        }
+    }
   }
 }
 
@@ -58,18 +60,19 @@ EXTERNAL int sysWriteByte(int fd, int data)
 {
   char ch = data;
   TRACE_PRINTF("%s: writeByte %d %c\n", Me, fd, ch);
-again:
-  int rc = write(fd, &ch, 1);
-  if (rc == 1)
-    return 0; // success
-  else if (errno == EAGAIN)
-    return -2; // operation would block
-  else if (errno == EINTR)
-    goto again; // interrupted by signal; try again
-  else {
-    ERROR_PRINTF("%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
-                 fd, errno, strerror(errno));
-    return -1; // some kind of error
+  while (true) {
+    int rc = write(fd, &ch, 1);
+    if (rc == 1) {
+      return 0; // success
+    } else if (errno == EAGAIN) {
+      return -2; // operation would block
+    } else if (errno == EINTR) {
+      // interrupted by signal; try again
+    } else {
+      ERROR_PRINTF("%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
+                   fd, errno, strerror(errno));
+      return -1; // some kind of error
+    }
   }
 }
 
@@ -83,21 +86,22 @@ again:
 EXTERNAL int sysReadBytes(int fd, char *buf, int cnt)
 {
   TRACE_PRINTF("%s: read %d %p %d\n", Me, fd, buf, cnt);
-again:
-  int rc = read(fd, buf, cnt);
-  if (rc >= 0)
-    return rc;
-  int err = errno;
-  if (err == EAGAIN)
-  {
-    TRACE_PRINTF("%s: read on %d would have blocked: needs retry\n", Me, fd);
-    return -1;
+  while (true) {
+    int rc = read(fd, buf, cnt);
+    if (rc >= 0)
+      return rc;
+    int err = errno;
+    if (err == EAGAIN) {
+      TRACE_PRINTF("%s: read on %d would have blocked: needs retry\n", Me, fd);
+      return -1;
+    } else if (err != EINTR) {
+      ERROR_PRINTF("%s: read error %d (%s) on %d\n", Me,
+                   err, strerror(err), fd);
+      return -2;
+    } else {
+      // interrupted by signal; try again
+    }
   }
-  else if (err == EINTR)
-    goto again; // interrupted by signal; try again
-  ERROR_PRINTF("%s: read error %d (%s) on %d\n", Me,
-               err, strerror(err), fd);
-  return -2;
 }
 
 /**
@@ -111,24 +115,23 @@ again:
 EXTERNAL int sysWriteBytes(int fd, char *buf, int cnt)
 {
   TRACE_PRINTF("%s: write %d %p %d\n", Me, fd, buf, cnt);
-again:
-  int rc = write(fd, buf, cnt);
-  if (rc >= 0)
-    return rc;
-  int err = errno;
-  if (err == EAGAIN)
-  {
-    TRACE_PRINTF("%s: write on %d would have blocked: needs retry\n", Me, fd);
-    return -1;
+  while (true) {
+    int rc = write(fd, buf, cnt);
+    if (rc >= 0)
+      return rc;
+    int err = errno;
+    if (err == EAGAIN) {
+      TRACE_PRINTF("%s: write on %d would have blocked: needs retry\n", Me, fd);
+      return -1;
+    } else if (err == EINTR) {
+      // interrupted by signal; try again
+    } else if (err == EPIPE) {
+      TRACE_PRINTF("%s: write on %d with nobody to read it\n", Me, fd);
+      return -3;
+    } else {
+      ERROR_PRINTF("%s: write error %d (%s) on %d\n", Me,
+                   err, strerror( err ), fd);
+      return -2;
+    }
   }
-  if (err == EINTR)
-    goto again; // interrupted by signal; try again
-  if (err == EPIPE)
-  {
-    TRACE_PRINTF("%s: write on %d with nobody to read it\n", Me, fd);
-    return -3;
-  }
-  ERROR_PRINTF("%s: write error %d (%s) on %d\n", Me,
-               err, strerror( err ), fd);
-  return -2;
 }
