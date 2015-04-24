@@ -75,7 +75,7 @@ typedef unsigned int u_int32_t;
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_MEMORY_MANAGER_DECLARATIONS
-#include <InterfaceDeclarations.h>
+#include <sys.h>
 
 extern "C" void setLinkage(BootRecord*);
 
@@ -88,11 +88,9 @@ jmp_buf primordial_jb;
 
 /* Sink for messages relating to serious errors detected by C runtime. */
 FILE *SysErrorFile = stderr;
-static int SysErrorFd = 2;              // not used outside this file.
 
 /* Sink for trace messages produced by VM.sysWrite(). */
 FILE *SysTraceFile = stderr;
-int SysTraceFd = 2;
 
 /* Command line arguments to be passed to virtual machine. */
 const char **JavaArgs;
@@ -123,14 +121,6 @@ static Offset DebugRequestedOffset;
 char *Me;
 
 static BootRecord *bootRecord;
-
-static void vwriteFmt(int fd, const char fmt[], va_list ap)
-NONNULL(2) __attribute__((format (printf, 2, 0)));
-static void vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
-NONNULL(3) __attribute__((format (printf, 3, 0)));
-static void writeErr(const char fmt[], ...)
-NONNULL(1) __attribute__((format (printf, 1, 2)));
-
 
 static int
 pageRoundUp(int size)
@@ -248,66 +238,6 @@ static int
 isVmSignal(Address ip, Address vpAddress)
 {
   return inRVMAddressSpace(ip) && inRVMAddressSpace(vpAddress);
-}
-
-static void
-writeErr(const char fmt[], ...)
-{
-  va_list ap;
-  va_start(ap, fmt);
-  vwriteFmt(SysErrorFd, fmt, ap);
-  va_end(ap);
-}
-
-static void
-vwriteFmt(int fd, const char fmt[], va_list ap)
-{
-  vwriteFmt(fd, 100, fmt, ap);
-}
-
-
-/* Does the real work. */
-static void
-vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
-{
-  char buf[bufsz];
-  int nchars
-    = vsnprintf(buf, bufsz, fmt, ap);
-  size_t count;
-  if (nchars < 0) {
-    const char badmsg[] = "vsnprintf() returned a negative number;  impossible (or very old C library version)\n";
-    write(fd, badmsg, sizeof badmsg - 1);
-    nchars = sizeof buf - 1;
-  }
-  if ((unsigned) nchars >= bufsz) {
-    vwriteFmt(fd, bufsz + 100, fmt, ap);
-    return;
-  }
-  count = nchars;
-  char *bp = buf;
-  ssize_t nwrote = 0;
-  bool num_rerun = 0;
-
-  while (nchars > 0) {
-    nwrote = write(fd, buf, nchars);
-    if (nwrote < 0) {
-      /* XXX We should handle this in some intelligent fashion.   But
-       * how?  Do we have any means of complaining left? */
-      if (errno == EINTR)
-        continue;
-      // Any other way to handle the rest?
-      break;
-    }
-    if (nwrote == 0) {
-      if (++num_rerun > 20) {
-        break;          // too many reruns.  Any other error indicator?
-      }
-      continue;
-    }
-    num_rerun = 0;          // we made progress.
-    bp += nwrote;
-    nchars -= nwrote;
-  }
 }
 
 // variables and helper methods for alignment checking
@@ -493,9 +423,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
     else
-      writeErr("%s: WHOOPS.  Got a signal (%s; #%d) that the hardware signal handler wasn't prepared for.\n", Me,  strsignal(signo), signo);
+      ERROR_PRINTF("%s: WHOOPS.  Got a signal (%s; #%d) that the hardware signal handler wasn't prepared for.\n", Me,  strsignal(signo), signo);
   } else {
-    writeErr("%s: TROUBLE.  Got a signal (%s; #%d) from outside the VM's address space in thread %p.\n", Me,  strsignal(signo), signo, getThreadId());
+    ERROR_PRINTF("%s: TROUBLE.  Got a signal (%s; #%d) from outside the VM's address space in thread %p.\n", Me,  strsignal(signo), signo, getThreadId());
   }
 
 
@@ -503,48 +433,48 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
   if (lib_verbose || !isRecoverable)
   {
-    writeErr("%s:%s trapped signal %d (%s)\n", Me,
+    ERROR_PRINTF("%s:%s trapped signal %d (%s)\n", Me,
              isRecoverable? "" : " UNRECOVERABLE",
              signo, strsignal(signo));
 
-    writeErr("handler stack %x\n", localInstructionAddress);
+    ERROR_PRINTF("handler stack %x\n", localInstructionAddress);
     if (signo == SIGSEGV)
-      writeErr("si->si_addr   %p\n", si->si_addr);
+      ERROR_PRINTF("si->si_addr   %p\n", si->si_addr);
 #ifndef __x86_64__
-    writeErr("cs            0x%08x\n", IA32_CS(context));
-    writeErr("ds            0x%08x\n", IA32_DS(context));
-    writeErr("es            0x%08x\n", IA32_ES(context));
-    writeErr("fs            0x%08x\n", IA32_FS(context));
-    writeErr("gs            0x%08x\n", IA32_GS(context));
-    writeErr("ss            0x%08x\n", IA32_SS(context));
+    ERROR_PRINTF("cs            0x%08x\n", IA32_CS(context));
+    ERROR_PRINTF("ds            0x%08x\n", IA32_DS(context));
+    ERROR_PRINTF("es            0x%08x\n", IA32_ES(context));
+    ERROR_PRINTF("fs            0x%08x\n", IA32_FS(context));
+    ERROR_PRINTF("gs            0x%08x\n", IA32_GS(context));
+    ERROR_PRINTF("ss            0x%08x\n", IA32_SS(context));
 #else
-    writeErr("r8           0x%08x\n", IA32_R8(context));
-    writeErr("r9           0x%08x\n", IA32_R9(context));
-    writeErr("r10           0x%08x\n", IA32_R10(context));
-    writeErr("r11           0x%08x\n", IA32_R11(context));
-    writeErr("r12           0x%08x\n", IA32_R12(context));
-    writeErr("r13           0x%08x\n", IA32_R13(context));
-    writeErr("r14           0x%08x\n", IA32_R14(context));
-    writeErr("r15           0x%08x\n", IA32_R15(context));
+    ERROR_PRINTF("r8           0x%08x\n", IA32_R8(context));
+    ERROR_PRINTF("r9           0x%08x\n", IA32_R9(context));
+    ERROR_PRINTF("r10           0x%08x\n", IA32_R10(context));
+    ERROR_PRINTF("r11           0x%08x\n", IA32_R11(context));
+    ERROR_PRINTF("r12           0x%08x\n", IA32_R12(context));
+    ERROR_PRINTF("r13           0x%08x\n", IA32_R13(context));
+    ERROR_PRINTF("r14           0x%08x\n", IA32_R14(context));
+    ERROR_PRINTF("r15           0x%08x\n", IA32_R15(context));
 #endif
-    writeErr("edi           0x%08x\n", IA32_EDI(context));
-    writeErr("esi -- PR/VP  0x%08x\n", IA32_ESI(context));
-    writeErr("ebp           0x%08x\n", IA32_EBP(context));
-    writeErr("esp -- SP     0x%08x\n", IA32_ESP(context));
-    writeErr("ebx           0x%08x\n", IA32_EBX(context));
-    writeErr("edx           0x%08x\n", IA32_EDX(context));
-    writeErr("ecx           0x%08x\n", IA32_ECX(context));
-    writeErr("eax           0x%08x\n", IA32_EAX(context));
-    writeErr("eip           0x%08x\n", IA32_EIP(context));
-    writeErr("trapno        0x%08x\n", IA32_TRAPNO(context));
-    writeErr("err           0x%08x\n", IA32_ERR(context));
-    writeErr("eflags        0x%08x\n", IA32_EFLAGS(context));
-    // writeErr("esp_at_signal 0x%08x\n", IA32_UESP(context));
+    ERROR_PRINTF("edi           0x%08x\n", IA32_EDI(context));
+    ERROR_PRINTF("esi -- PR/VP  0x%08x\n", IA32_ESI(context));
+    ERROR_PRINTF("ebp           0x%08x\n", IA32_EBP(context));
+    ERROR_PRINTF("esp -- SP     0x%08x\n", IA32_ESP(context));
+    ERROR_PRINTF("ebx           0x%08x\n", IA32_EBX(context));
+    ERROR_PRINTF("edx           0x%08x\n", IA32_EDX(context));
+    ERROR_PRINTF("ecx           0x%08x\n", IA32_ECX(context));
+    ERROR_PRINTF("eax           0x%08x\n", IA32_EAX(context));
+    ERROR_PRINTF("eip           0x%08x\n", IA32_EIP(context));
+    ERROR_PRINTF("trapno        0x%08x\n", IA32_TRAPNO(context));
+    ERROR_PRINTF("err           0x%08x\n", IA32_ERR(context));
+    ERROR_PRINTF("eflags        0x%08x\n", IA32_EFLAGS(context));
+    // ERROR_PRINTF("esp_at_signal 0x%08x\n", IA32_UESP(context));
     /* null if fp registers haven't been used yet */
-    writeErr("fpregs        %x\n", IA32_FPREGS(context));
+    ERROR_PRINTF("fpregs        %x\n", IA32_FPREGS(context));
 #ifndef __x86_64__
-    writeErr("oldmask       0x%08lx\n", (unsigned long) IA32_OLDMASK(context));
-    writeErr("cr2           0x%08lx\n",
+    ERROR_PRINTF("oldmask       0x%08lx\n", (unsigned long) IA32_OLDMASK(context));
+    ERROR_PRINTF("cr2           0x%08lx\n",
              /* seems to contain mem address that
               * faulting instruction was trying to
               * access */
@@ -558,49 +488,49 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 //Solaris doesn't seem to support these
 #if !(defined (__SVR4) && defined (__sun))
     if (IA32_FPREGS(context)) {
-      writeErr("fp0 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp0 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 0, 0) & 0xffff,
                IA32_STMM(context, 0, 1) & 0xffff,
                IA32_STMM(context, 0, 2) & 0xffff,
                IA32_STMM(context, 0, 3) & 0xffff,
                IA32_STMMEXP(context, 0) & 0xffff);
-      writeErr("fp1 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp1 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 1, 0) & 0xffff,
                IA32_STMM(context, 1, 1) & 0xffff,
                IA32_STMM(context, 1, 2) & 0xffff,
                IA32_STMM(context, 1, 3) & 0xffff,
                IA32_STMMEXP(context, 1) & 0xffff);
-      writeErr("fp2 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp2 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 2, 0) & 0xffff,
                IA32_STMM(context, 2, 1) & 0xffff,
                IA32_STMM(context, 2, 2) & 0xffff,
                IA32_STMM(context, 2, 3) & 0xffff,
                IA32_STMMEXP(context, 2) & 0xffff);
-      writeErr("fp3 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp3 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 3, 0) & 0xffff,
                IA32_STMM(context, 3, 1) & 0xffff,
                IA32_STMM(context, 3, 2) & 0xffff,
                IA32_STMM(context, 3, 3) & 0xffff,
                IA32_STMMEXP(context, 3) & 0xffff);
-      writeErr("fp4 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp4 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 4, 0) & 0xffff,
                IA32_STMM(context, 4, 1) & 0xffff,
                IA32_STMM(context, 4, 2) & 0xffff,
                IA32_STMM(context, 4, 3) & 0xffff,
                IA32_STMMEXP(context, 4) & 0xffff);
-      writeErr("fp5 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp5 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 5, 0) & 0xffff,
                IA32_STMM(context, 5, 1) & 0xffff,
                IA32_STMM(context, 5, 2) & 0xffff,
                IA32_STMM(context, 5, 3) & 0xffff,
                IA32_STMMEXP(context, 5) & 0xffff);
-      writeErr("fp6 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp6 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 6, 0) & 0xffff,
                IA32_STMM(context, 6, 1) & 0xffff,
                IA32_STMM(context, 6, 2) & 0xffff,
                IA32_STMM(context, 6, 3) & 0xffff,
                IA32_STMMEXP(context, 6) & 0xffff);
-      writeErr("fp7 0x%04x%04x%04x%04x%04x\n",
+      ERROR_PRINTF("fp7 0x%04x%04x%04x%04x%04x\n",
                IA32_STMM(context, 7, 0) & 0xffff,
                IA32_STMM(context, 7, 1) & 0xffff,
                IA32_STMM(context, 7, 2) & 0xffff,
@@ -618,7 +548,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   /* test validity of native thread address */
   if (!inRVMAddressSpace(localNativeThreadAddress))
   {
-    writeErr("invalid native thread address (not an address %x)\n",
+    ERROR_PRINTF("invalid native thread address (not an address %x)\n",
              localNativeThreadAddress);
     abort();
     signal(signo, SIG_DFL);
@@ -634,7 +564,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   /* test validity of frame address */
   if (!inRVMAddressSpace(localFrameAddress))
   {
-    writeErr("invalid frame address (not an address %x)\n",
+    ERROR_PRINTF("invalid frame address (not an address %x)\n",
              localFrameAddress);
     abort();
     signal(signo, SIG_DFL);
@@ -745,7 +675,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   Address stackLimit
     = *(Address *)(threadObjectAddress + RVMThread_stackLimit_offset);
   if (sp <= stackLimit - 384) {
-    writeErr("sp (%x)too far below stackLimit (%x)to recover\n", sp, stackLimit);
+    ERROR_PRINTF("sp (%x)too far below stackLimit (%x)to recover\n", sp, stackLimit);
     signal(signo, SIG_DFL);
     raise(signo);
     // We should never get here.
@@ -841,13 +771,10 @@ softwareSignalHandler(int signo,
     // For now, we assume table is fixed in boot image and never moves.
     //
     unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
-    write(SysTraceFd, Me, strlen(Me));
     if (*flag) {
-      static const char *message = ": debug request already in progress, please wait\n";
-      write(SysTraceFd, message, strlen(message));
+      TRACE_PRINTF("%s: debug request already in progress, please wait\n", Me);
     } else {
-      static const char *message = ": debug requested, waiting for a thread switch\n";
-      write(SysTraceFd, message, strlen(message));
+      TRACE_PRINTF("%s: debug requested, waiting for a thread switch\n", Me);
       *flag = 1;
     }
     return;
