@@ -163,59 +163,6 @@ bootThread (void *ip, void *tr, void *sp)
   );
 }
 
-#include <disasm.h>
-
-Address
-getInstructionFollowing(unsigned int faultingInstructionAddress)
-{
-  int Illegal = 0;
-  char HexBuffer[256], MnemonicBuffer[256], OperandBuffer[256];
-  //, AddrBuffer[256];
-  PARLIST p_st;
-  PARLIST *p;
-
-  p = Disassemble(HexBuffer,
-                  sizeof HexBuffer,
-                  MnemonicBuffer,
-                  sizeof MnemonicBuffer,
-                  OperandBuffer,
-                  sizeof OperandBuffer,
-                  (char *) faultingInstructionAddress,
-                  &Illegal, &p_st);
-  if (Illegal)
-    return faultingInstructionAddress;
-  else
-  {
-    if ( lib_verbose)
-      fprintf(SysTraceFile, "failing instruction : %s %s\n",
-              MnemonicBuffer, OperandBuffer);
-    return faultingInstructionAddress + p->retleng;
-  }
-}
-
-// alignment checking: helps with making decision when an alignment trap occurs
-#ifdef RVM_WITH_ALIGNMENT_CHECKING
-void
-getInstOpcode(Address faultingInstructionAddress, char MnemonicBuffer[256])
-{
-  int Illegal = 0;
-  char HexBuffer[256], OperandBuffer[256];
-  PARLIST p_st;
-  PARLIST *p;
-
-  p = Disassemble(HexBuffer,
-                  sizeof HexBuffer,
-                  MnemonicBuffer,
-                  sizeof MnemonicBuffer,
-                  OperandBuffer,
-                  sizeof OperandBuffer,
-                  (char *) faultingInstructionAddress,
-                  &Illegal, &p_st);
-  if (Illegal) {
-    strcpy(MnemonicBuffer, "illegal");
-  }
-}
-#endif // RVM_WITH_ALIGNMENT_CHECKING
 
 int
 inRVMAddressSpace(Address addr)
@@ -232,6 +179,315 @@ inRVMAddressSpace(Address addr)
     }
   }
   return false;
+}
+
+/**
+ * Compute the number of bytes used to encode the given modrm part of
+ * an Intel instruction
+ *
+ * @param modrm [in] value to decode
+ * @return number of bytes used to encode modrm and optionally an SIB
+ * byte and displacement
+ */
+static int decodeModRMLength(Address modrmAddress)
+{
+  unsigned char sib;
+  unsigned char tmp;
+  unsigned char modrm =  ((unsigned char*)modrmAddress)[0];
+  unsigned char mod = (modrm >> 6) & 3;
+  unsigned char r_m = (modrm & 7);
+  switch (mod) {
+    case 0: // reg, [reg]
+      switch (r_m) {
+        case 4: // SIB byte
+          // Need to decode SIB byte because mod 0 can have displacement
+          sib = ((unsigned char*)modrmAddress)[1];
+          tmp = sib & 7;
+          if (tmp == 5) {
+            return 6; // mod + sib + 4 byte displacement
+          } else {
+            return 2; // mod + sib
+          }
+        case 5: // disp32
+          return 5;
+        default:
+          return 1;
+      }
+    case 1: // reg, [reg+disp8]
+      switch (r_m) {
+        case 4: // SIB byte
+          return 3;
+        default:
+          return 2;
+      }
+    case 2: // reg, [reg+disp32]
+      switch (r_m) {
+        case 4: // SIB byte
+          return 6;
+        default:
+          return 5;
+      }
+    default: // case 3 - reg, reg
+      return 1;
+  }
+}
+
+static unsigned char decodeOpcodeFromModrm(Address modrmAddr) {
+  unsigned char modrm = ((unsigned char*)modrmAddr)[0];
+  return (modrm >> 3) & 7;
+}
+
+/**
+ * So stack maps can treat faults as call-return we must be able to
+ * determine the address of the next instruction. This isn't easy on
+ * Intel with variable length instructions.
+ *
+ * This function also handles instructions that cannot cause faults. The advantage
+ * of this approach is that it is possible to test this function by applying it
+ * to compiled methods (e.g. from the bootimage or compiled at runtime). This can
+ * help with sanity checking on the instruction sizes, e.g. by comparing the
+ * results with those of a disassembler.
+ *
+ * TODO this function is known to be incomplete. However, it's
+ * still better than the old disassembler which considered some valid instructions
+ * to be illegal.
+ */
+static Address getInstructionFollowing(Address faultingInstructionAddress) {
+  unsigned char opcode;
+  Address modrmAddr;
+  int size = 0;
+  int two_byte_opcode = 0;
+  int prefixes_done;
+  int has_variable_immediate = 0; // either 16 or 32 bits in non-x64 mode, 32 bits is default
+  int operand_size_override = 0;
+  if (!inRVMAddressSpace(faultingInstructionAddress)) {
+    ERROR_PRINTF("%s: Failing instruction starting at %x wasn't in RVM address space\n",
+        Me, faultingInstructionAddress);
+    return (Address) -1;
+  }
+  opcode = ((unsigned char*)faultingInstructionAddress)[0];
+  size++;
+  /* Process prefix bytes */
+  prefixes_done = 0;
+  while (!prefixes_done) {
+    switch (opcode) {
+      case 0x66:            // operand size override or compulsory SSE prefix
+        operand_size_override = 1;
+        // fallthrough
+      case 0x2E: case 0x3E: // CS or DS segment override, or branch likely hints
+      case 0x26: case 0x36: // ES or SS segment override
+      case 0x64: case 0x65: // FS or GS segment override
+      case 0x67:            // address size prefix
+      case 0xF0:            // lock prefix
+      case 0xF2: case 0xF3: // rep prefixes or compulsory SSE prefix
+        opcode = ((unsigned char*)faultingInstructionAddress)[size];
+        size++;
+        break;
+      default:
+        prefixes_done = 1;
+        break;
+    }
+  }
+#ifdef __x86_64__
+  /* handle any REX prefix */
+  if (opcode >= 0x40 && opcode <= 0x4F) {
+    opcode = ((unsigned char*)faultingInstructionAddress)[size];
+    size++;
+  }
+#endif __x86_64__
+
+  /* One-byte opcodes */
+  switch (opcode) {
+    case 0x40: case 0x41: case 0x42: case 0x43: // inc using alternate encoding
+    case 0x44: case 0x45: case 0x46: case 0x47:
+    case 0x48: case 0x49: case 0x4A: case 0x4B: // dec using alternate encoding
+    case 0x4C: case 0x4D: case 0x4E: case 0x4F:
+    case 0x50: case 0x51: case 0x52: case 0x53: // push using alternate encoding
+    case 0x54: case 0x55: case 0x56: case 0x57:
+    case 0x58: case 0x59: case 0x5A: case 0x5B: // pop using alternate encoding
+    case 0x5C: case 0x5D: case 0x5E: case 0x5F:
+    case 0x90: // nop
+    case 0x9E: // sahf
+    case 0x98: // cbw, cwde
+    case 0x99: // cdq
+    case 0xC3: case 0xCB: // return from procedure (no argument)
+    case 0xCC: // single-step interrupt 3
+      // size was already increased for reading opcodes, so it's correct
+      break;
+
+    case 0x6A: // push imm8
+    case 0x70: case 0x71: case 0x72: case 0x73: // conditional jumps
+    case 0x74: case 0x75: case 0x76: case 0x77:
+    case 0x78: case 0x79: case 0x7A: case 0x7B:
+    case 0x7C: case 0x7D: case 0x7E: case 0x7F:
+    case 0xA8: // test imm8
+    case 0xB0: case 0xB1: case 0xB2: case 0xB3: // mov
+    case 0xB4: case 0xB5: case 0xB6: case 0xB7:
+    case 0xCD: // int imm8
+    case 0xEB: // unconditional jump
+      size++; // 1 byte immediate
+      break;
+
+    case 0xC2: case 0xCA: // return from procedure, 2 bytes immediate
+      size += 2; // 2 bytes immediate
+      break;
+
+    case 0x05: // add imm16/32
+    case 0x0D: // or imm16/32
+    case 0x15: // adc imm16/32
+    case 0x25: // and imm16/32
+    case 0x35: // xor imm16/32
+    case 0x3D: // cmp imm32
+    case 0x68: // push imm16/32
+    case 0xA9: // test imm16/32
+    case 0xB8: case 0xB9: case 0xBA: case 0xBB: // mov imm16/32
+    case 0xBC: case 0xBD: case 0xBE: case 0xBF:
+    case 0xE8: // call imm16/32
+    case 0xE9: // jmp imm16/32
+      has_variable_immediate = 1;
+      break;
+
+    case 0x6B: // imul r r/m imm8
+    case 0x80: // extended opcodes using r/m8 imm8
+    case 0x82: // extended opcodes using r/m8 imm8
+    case 0x83: // extended opcodes using r/m16/32, imm8
+    case 0xC0: case 0xC1: // rotates and shifts with r/m16/32, imm8
+    case 0xC6: // mov
+      modrmAddr = faultingInstructionAddress + size;
+      size++; // 1 byte immediate
+      size += decodeModRMLength(modrmAddr); // account for the size of the modrm
+      break;
+    case 0x69: // imul r r/m imm32
+    case 0x81: // extended opcodes using  r/m16/32, imm32
+    case 0xC7:
+      modrmAddr = faultingInstructionAddress + size;
+      has_variable_immediate = 1;
+      size += decodeModRMLength(modrmAddr); // account for the size of the modrm
+      break;
+    case 0xF6:
+      modrmAddr = faultingInstructionAddress + size;
+      opcode = decodeOpcodeFromModrm(modrmAddr);
+      switch (opcode) {
+        case 0x00: case 0x01:
+          size++;
+          break;
+        default:
+          break;
+      }
+      size += decodeModRMLength(modrmAddr); // account for the size of the modrm
+      break;
+    case 0xF7:
+      modrmAddr = faultingInstructionAddress + size;
+      opcode = decodeOpcodeFromModrm(modrmAddr);
+      switch (opcode) {
+        case 0x00: case 0x01:
+          has_variable_immediate = 1;
+          break;
+        default:
+          break;
+      }
+      size += decodeModRMLength(modrmAddr); // account for the size of the modrm
+      break;
+    case 0x0B: case 0x13: case 0x1B: case 0x23: // op r, r/m
+    case 0x2B: case 0x33: case 0x3A: case 0x3B: case 0x8A:
+    case 0x8B:
+
+    case 0x00: case 0x01: case 0x02: case 0x03: // op r/m, r
+    case 0x09: case 0x11: case 0x19: case 0x21:
+    case 0x29: case 0x31: case 0x38: case 0x39:
+
+    case 0x84: case 0x85: // test
+    case 0x88: // mov
+    case 0x89: // mov r/m, r
+    case 0x8D: // lea
+    case 0x8F: // pop r/m
+    case 0xD1: // rotate r/m or shift r/m
+    case 0xD3: // rotate r/m or shift r/m
+    case 0xDD: case 0xDF:  // floating point
+    case 0xD9: // floating point
+    case 0xDB:
+    case 0xFF: // push, jmp, jmpf, call, callf, inc, dec - with mod r/m
+      modrmAddr = faultingInstructionAddress + size;
+      size += decodeModRMLength(modrmAddr); // account for the size of the modrm
+      break;
+    case 0x0F: // two byte opcode
+      two_byte_opcode = 1;
+      opcode = ((unsigned char*)faultingInstructionAddress)[size];
+      size++;
+      break;
+    default:
+      ERROR_PRINTF("%s: Unhandled opcode 0x%x during decoding of instruction at %x, stopped decoding\n",
+          Me, opcode, faultingInstructionAddress);
+      return (Address) 0;
+  }
+
+  /* two byte opcodes */
+  if (two_byte_opcode == 1) {
+    switch (opcode) {
+      case 0x31: // rdtsc - read time stamp counter
+        break;
+
+      case 0x80: case 0x81: case 0x82: case 0x83: // conditional jumps
+      case 0x84: case 0x85: case 0x86: case 0x87:
+      case 0x88: case 0x89: case 0x8A: case 0x8B:
+      case 0x8C: case 0x8D: case 0x8E: case 0x8F:
+        has_variable_immediate = 1;
+        break;
+      case 0x10: // movss
+      case 0x11: // movsd
+      case 0x12: // movlpd
+      case 0x13: // movlpd
+      case 0x18: // prefetch & hint nop
+      case 0x19: case 0x1A: case 0x1B: case 0x1C: // hint nop
+      case 0x1D: case 0x1E: case 0x1F:
+      case 0x2A: // ctpi2ps, cvtsi2ss, cvtpi2pd, cvtsi2sd
+      case 0x2C: // cvttps2pi, cvttss2si, cvttpd2pi, cvttsd2si
+      case 0x2E: // ucomisd, ucomiss
+      case 0x45: // cmovnz, cmovne
+      case 0x51: // sqrtps, sqrtss, sqrtpd, sqrtsd
+      case 0x54: // andps, andpd, andnps, andnpd
+      case 0x57: // xorps, xorpd
+      case 0x58: // addps, addss, addpd, addsd
+      case 0x59: // mulps, mulss, mulpd, mulsd
+      case 0x5A: // cvtss2sd, cvtsd2ss
+      case 0x5C: // subps, subss, subpd, subsd
+      case 0x5E: // divsd
+      case 0x6E: // movd
+      case 0x7E: // movd
+      case 0x90: case 0x91: case 0x92: case 0x93: // set
+      case 0x94: case 0x95: case 0x96: case 0x97:
+      case 0x98: case 0x99: case 0x9A: case 0x9B:
+      case 0x9C: case 0x9D: case 0x9E: case 0x9F:
+      case 0xA3: // bt
+      case 0xA5: // shld
+      case 0xAD: // shrd
+      case 0xAF: // imul
+      case 0xB1: // cmpxchg
+      case 0xB6: case 0xB7: // movzx
+      case 0xBE: case 0xBF: // movsx
+      case 0xC7: // cmpxchg8b
+      case 0xD3: // psrlq
+      case 0xD6: //movdq2q
+      case 0xF3: // psllq
+        modrmAddr = faultingInstructionAddress + size;
+        size += decodeModRMLength(modrmAddr);
+        break;
+      default:
+        ERROR_PRINTF("%s: Unhandled opcode 0x%x during decoding of second opcode byte of two-byte opcode from instruction at %x, stopped decoding\n",
+            Me, opcode, faultingInstructionAddress);
+        return (Address) 0;
+      }
+  }
+
+  if (has_variable_immediate == 1) {
+    if (operand_size_override == 1) {
+      size += 2;
+    } else {
+      size += 4;
+    }
+  }
+
+  return faultingInstructionAddress + size;
 }
 
 static int
@@ -283,33 +539,16 @@ int handleAlignmentTrap(int signo, void* context) {
       ignore = 1;
       numNativeAlignTraps++;
     } else {
-      char buffer[256];
-      getInstOpcode(localInstructionAddress, buffer);
-      if (strncmp(buffer, "fld",  3) == 0 ||
-          strncmp(buffer, "fst",  3) == 0 ||
-          strncmp(buffer, "fild", 4) == 0 ||
-          strncmp(buffer, "fist", 4) == 0 ||
-          strncmp(buffer, "fstp", 4) == 0 ||
-          strncmp(buffer, "fmul", 4) == 0 ||
-          strncmp(buffer, "fdiv", 4) == 0 ||
-          strncmp(buffer, "fadd", 4) == 0 ||
-          strncmp(buffer, "fsub", 4) == 0) {
-        // an 8-byte access -- ignore it
-        if (alignCheckVerbose) {
-          fprintf(SysTraceFile, "8"); // definitely an 8-byte acccess
-        }
-        ignore = 1;
-        numEightByteAlignTraps++;
-      } else {
-        // any other unaligned access -- these are probably bad
+        // any unaligned access -- these are probably bad
+        // FIXME there was previously code here to disassemble instructions and filter
+        // 8-byte acceses. With the removal of the IA32 disassembler, the alignment checking
+        // code needs an update. The alignment checking code also needs an update to
+        // work with native threads.
         if (alignCheckVerbose) {
           fprintf(SysTraceFile, "*"); // other
         }
-        fprintf(SysTraceFile, "\nFaulting opcode: %s\n", buffer);
-        fflush(SysTraceFile);
         ignore = 0;
         numBadAlignTraps++;
-      }
     }
 
     if (ignore) {
@@ -660,7 +899,12 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
   /* set the next instruction for the failing frame */
   instructionFollowing = getInstructionFollowing(localInstructionAddress);
-
+  if (instructionFollowing == 0 || instructionFollowing == -1) {
+    signal(signo, SIG_DFL);
+    raise(signo);
+    // We should never get here.
+    _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+  }
 
   /*
    * Advance ESP to the guard region of the stack.
