@@ -534,7 +534,7 @@ int handleAlignmentTrap(int signo, void* context) {
     if (!inRVMAddressSpace(localInstructionAddress)) {
       // the IP is outside the VM, so ignore it
       if (alignCheckVerbose) {
-        fprintf(SysTraceFile, "N"); // native code, apparently
+        CONSOLE_PRINTF("N"); // native code, apparently
       }
       ignore = 1;
       numNativeAlignTraps++;
@@ -545,7 +545,7 @@ int handleAlignmentTrap(int signo, void* context) {
         // code needs an update. The alignment checking code also needs an update to
         // work with native threads.
         if (alignCheckVerbose) {
-          fprintf(SysTraceFile, "*"); // other
+          CONSOLE_PRINTF("*"); // other
         }
         ignore = 0;
         numBadAlignTraps++;
@@ -561,7 +561,7 @@ int handleAlignmentTrap(int signo, void* context) {
       alignCheckHandlerJumpLocation = getInstructionFollowing(localInstructionAddress);
       int length = alignCheckHandlerJumpLocation - localInstructionAddress;
       if (!length) {
-        fprintf(SysTraceFile, "\nUnexpected zero length\n");
+        CONSOLE_PRINTF("\nUnexpected zero length\n");
         exit(1);
       }
       for (int i = 0; i < length; i++) {
@@ -612,7 +612,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   Address localInstructionAddress;
 
   if (lib_verbose)
-    fprintf(SysTraceFile,"hardwareTrapHandler: thread = %p\n", getThreadId());
+    CONSOLE_PRINTF("hardwareTrapHandler: thread = %p\n", getThreadId());
 
   Address localNativeThreadAddress;
   Address localFrameAddress;
@@ -644,7 +644,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
   if (isVmSignal(localInstructionAddress, localNativeThreadAddress))
   {
-    if (lib_verbose) fprintf(SysTraceFile,"it's a VM signal.\n");
+    if (lib_verbose) CONSOLE_PRINTF("it's a VM signal.\n");
 
     if (signo == SIGSEGV /*&& check the adddress TODO */)
       isRecoverable = 1;
@@ -778,9 +778,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     }
 #endif
     if (isRecoverable) {
-      fprintf(SysTraceFile, "%s: normal trap\n", Me);
+      CONSOLE_PRINTF("%s: normal trap\n", Me);
     } else {
-      fprintf(SysTraceFile, "%s: internal error\n", Me);
+      CONSOLE_PRINTF("%s: internal error\n", Me);
     }
   }
 
@@ -840,9 +840,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
    */
   if (*vmr_inuse || !isRecoverable) {
     if (*vmr_inuse)
-      fprintf(SysTraceFile,
-              "%s: internal error: recursive use of"
-              " hardware exception registers (exiting)\n", Me);
+      ERROR_PRINTF("%s: internal error: recursive use of hardware exception registers (exiting)\n", Me);
     /*
      * Things went badly wrong, so attempt to generate a useful error dump
      * before exiting by returning to Scheduler.dumpStackAndDie passing
@@ -961,8 +959,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   else if (signo == SIGTRAP) {
     *(int *) sp = Runtime_TRAP_UNKNOWN;
 
-    //fprintf(SysTraceFile, "op code is 0x%x",*(unsigned char *)(localInstructionAddress));
-    //fprintf(SysTraceFile, "next code is 0x%x",*(unsigned char *)(localInstructionAddress+1));
+    //CONSOLE_PRINTF("op code is 0x%x",*(unsigned char *)(localInstructionAddress));
+    //CONSOLE_PRINTF("next code is 0x%x",*(unsigned char *)(localInstructionAddress+1));
     if (*(unsigned char *)(localInstructionAddress - 1) == 0xCC) {
       // is INT 3 instruction
     }
@@ -972,7 +970,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   }
   IA32_EAX(context) = *(Address *)sp; // also pass first param in EAX.
   if (lib_verbose)
-    fprintf(SysTraceFile, "Trap code is 0x%x\n", IA32_EAX(context));
+    CONSOLE_PRINTF("Trap code is 0x%x\n", IA32_EAX(context));
   sp = sp - __SIZEOF_POINTER__; /* next parameter is info for array bounds trap */
   *(int *) sp = (Address)*(unsigned *) (localNativeThreadAddress + Thread_arrayIndexTrapParam_offset);
   IA32_EDX(context) = *(int *)sp; // also pass second param in EDX.
@@ -984,7 +982,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   *(Address*)vmr_fp = localFrameAddress;
 
   if (lib_verbose)
-    fprintf(SysTraceFile, "Set vmr_fp to 0x%x\n", localFrameAddress);
+    CONSOLE_PRINTF("Set vmr_fp to 0x%x\n", localFrameAddress);
 
   /* set up context block to look like the artificial stack frame is
    * returning  */
@@ -996,8 +994,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   IA32_EIP(context) = javaExceptionHandlerAddress;
 
   if (lib_verbose)
-    fprintf(SysTraceFile,
-            "exiting normally; the context will take care of the rest (or so we hope)\n");
+    CONSOLE_PRINTF("exiting normally; the context will take care of the rest (or so we hope)\n");
 }
 
 
@@ -1074,11 +1071,11 @@ softwareSignalHandler(int signo,
   }
 
   /* Default case. */
-  fprintf(SysTraceFile, "%s: got an unexpected software signal (# %d)", Me, signo);
+  CONSOLE_PRINTF("%s: got an unexpected software signal (# %d)", Me, signo);
 #if defined __GLIBC__ && defined _GNU_SOURCE
-  fprintf(SysTraceFile, " %s", strsignal(signo));
+  CONSOLE_PRINTF(" %s", strsignal(signo));
 #endif
-  fprintf(SysTraceFile, "; ignoring it.\n");
+  CONSOLE_PRINTF("; ignoring it.\n");
 }
 
 static void*
@@ -1090,13 +1087,13 @@ mapImageFile(const char *fileName, const void *targetAddress, int prot,
    */
   FILE *fin = fopen (fileName, "r");
   if (!fin) {
-    fprintf(SysTraceFile, "%s: can't find bootimage file\"%s\"\n", Me, fileName);
+    ERROR_PRINTF("%s: can't find bootimage file\"%s\"\n", Me, fileName);
     return 0;
   }
 
   /* measure image size */
   if (lib_verbose)
-    fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, fileName);
+    CONSOLE_PRINTF("%s: loading from \"%s\"\n", Me, fileName);
   fseek (fin, 0L, SEEK_END);
   unsigned actualImageSize = ftell(fin);
   *roundedImageSize = pageRoundUp(actualImageSize);
@@ -1108,12 +1105,12 @@ mapImageFile(const char *fileName, const void *targetAddress, int prot,
                     MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE,
                     fileno(fin), 0);
   if (bootRegion == (void *) MAP_FAILED) {
-    fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %s\n",
+    ERROR_PRINTF("%s: mmap failed (errno=%d): %s\n",
             Me, errno, strerror(errno));
     return 0;
   }
   if (bootRegion != targetAddress) {
-    fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
+    ERROR_PRINTF("%s: Attempted to mmap in the address %p; "
             " got %p instead.  This should never happen.",
             Me, bootRegion, targetAddress);
     /* Don't check the return value.  This is insane already.
@@ -1127,7 +1124,7 @@ mapImageFile(const char *fileName, const void *targetAddress, int prot,
      "closing the file descriptor does not unmap the region."
   */
   if (fclose (fin) != 0) {
-    fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: close failed (errno=%d)\n", Me, errno);
     return 0;
   }
   return bootRegion;
@@ -1170,38 +1167,37 @@ createVM(void)
   bootRecord = (BootRecord *) bootDataRegion;
 
   if (bootRecord->bootImageDataStart != (Address) bootDataRegion) {
-    fprintf(SysErrorFile, "%s: image load error: built for %x but loaded at %p\n",
+    ERROR_PRINTF("%s: image load error: built for %x but loaded at %p\n",
             Me, bootRecord->bootImageDataStart, bootDataRegion);
     return 1;
   }
 
   if (bootRecord->bootImageCodeStart != (Address) bootCodeRegion) {
-    fprintf(SysErrorFile, "%s: image load error: built for %x but loaded at %p\n",
+    ERROR_PRINTF("%s: image load error: built for %x but loaded at %p\n",
             Me, bootRecord->bootImageCodeStart, bootCodeRegion);
     return 1;
   }
 
   if (bootRecord->bootImageRMapStart != (Address) bootRMapRegion) {
-    fprintf(SysErrorFile, "%s: image load error: built for %x but loaded at %p\n",
+    ERROR_PRINTF("%s: image load error: built for %x but loaded at %p\n",
             Me, bootRecord->bootImageRMapStart, bootRMapRegion);
     return 1;
   }
 
   if ((bootRecord->spRegister % __SIZEOF_POINTER__) != 0) {
-    fprintf(SysErrorFile, "%s: image format error: sp (%x) is not word aligned\n",
+    ERROR_PRINTF("%s: image format error: sp (%x) is not word aligned\n",
             Me, bootRecord->spRegister);
     return 1;
   }
 
   if ((bootRecord->ipRegister % __SIZEOF_POINTER__) != 0) {
-    fprintf(SysErrorFile, "%s: image format error: ip (%x) is not word aligned\n",
+    ERROR_PRINTF("%s: image format error: ip (%x) is not word aligned\n",
             Me, bootRecord->ipRegister);
     return 1;
   }
 
   if (((u_int32_t *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
-    fprintf(SysErrorFile,
-            "%s: image format error: missing stack sanity check marker (0x%08x)\n",
+    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (0x%08x)\n",
             Me, ((int *) bootRecord->spRegister)[-1]);
     return 1;
   }
@@ -1229,34 +1225,34 @@ createVM(void)
 
   setLinkage(bootRecord);
   if (lib_verbose) {
-    fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
-    fprintf(SysTraceFile, "   bootImageDataStart:   0x%08x\n",
+    CONSOLE_PRINTF("%s: boot record contents:\n", Me);
+    CONSOLE_PRINTF("   bootImageDataStart:   0x%08x\n",
             bootRecord->bootImageDataStart);
-    fprintf(SysTraceFile, "   bootImageDataEnd:     0x%08x\n",
+    CONSOLE_PRINTF("   bootImageDataEnd:     0x%08x\n",
             bootRecord->bootImageDataEnd);
-    fprintf(SysTraceFile, "   bootImageCodeStart:   0x%08x\n",
+    CONSOLE_PRINTF("   bootImageCodeStart:   0x%08x\n",
             bootRecord->bootImageCodeStart);
-    fprintf(SysTraceFile, "   bootImageCodeEnd:     0x%08x\n",
+    CONSOLE_PRINTF("   bootImageCodeEnd:     0x%08x\n",
             bootRecord->bootImageCodeEnd);
-    fprintf(SysTraceFile, "   bootImageRMapStart:   0x%08x\n",
+    CONSOLE_PRINTF("   bootImageRMapStart:   0x%08x\n",
             bootRecord->bootImageRMapStart);
-    fprintf(SysTraceFile, "   bootImageRMapEnd:     0x%08x\n",
+    CONSOLE_PRINTF("   bootImageRMapEnd:     0x%08x\n",
             bootRecord->bootImageRMapEnd);
-    fprintf(SysTraceFile, "   initialHeapSize:      0x%08x\n",
+    CONSOLE_PRINTF("   initialHeapSize:      0x%08x\n",
             bootRecord->initialHeapSize);
-    fprintf(SysTraceFile, "   maximumHeapSize:      0x%08x\n",
+    CONSOLE_PRINTF("   maximumHeapSize:      0x%08x\n",
             bootRecord->maximumHeapSize);
-    fprintf(SysTraceFile, "   tiRegister:           0x%08x\n",
+    CONSOLE_PRINTF("   tiRegister:           0x%08x\n",
             bootRecord->tiRegister);
-    fprintf(SysTraceFile, "   spRegister:           0x%08x\n",
+    CONSOLE_PRINTF("   spRegister:           0x%08x\n",
             bootRecord->spRegister);
-    fprintf(SysTraceFile, "   ipRegister:           0x%08x\n",
+    CONSOLE_PRINTF("   ipRegister:           0x%08x\n",
             bootRecord->ipRegister);
-    fprintf(SysTraceFile, "   tocRegister:          0x%08x\n",
+    CONSOLE_PRINTF("   tocRegister:          0x%08x\n",
             bootRecord->tocRegister);
-    fprintf(SysTraceFile, "   sysConsoleWriteCharIP:0x%08x\n",
+    CONSOLE_PRINTF("   sysConsoleWriteCharIP:0x%08x\n",
             bootRecord->sysConsoleWriteCharIP);
-    fprintf(SysTraceFile, "   ...etc...                   \n");
+    CONSOLE_PRINTF("   ...etc...                   \n");
   }
 
   /* install a stack for hardwareTrapHandler() to run on */
@@ -1267,7 +1263,7 @@ createVM(void)
 
   stack.ss_size = SIGSTKSZ;
   if (sigaltstack (&stack, 0)) {
-    fprintf(SysErrorFile, "%s: sigaltstack failed (errno=%d)\n",
+    ERROR_PRINTF("%s: sigaltstack failed (errno=%d)\n",
             Me, errno);
     return 1;
   }
@@ -1282,51 +1278,51 @@ createVM(void)
    * handler is running
    */
   if (sigfillset(&(action.sa_mask))) {
-    fprintf(SysErrorFile, "%s: sigfillset failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigfillset failed (errno=%d)\n", Me, errno);
     return 1;
   }
   /*
    * exclude the signal used to wake up the daemons
    */
   if (sigdelset(&(action.sa_mask), SIGCONT)) {
-    fprintf(SysErrorFile, "%s: sigdelset failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigdelset failed (errno=%d)\n", Me, errno);
     return 1;
   }
 
   action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
   if (sigaction (SIGSEGV, &action, 0)) {
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
   if (sigaction (SIGFPE, &action, 0)) {
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
   if (sigaction (SIGTRAP, &action, 0)) {
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
 
   // alignment checking: we want the handler to handle alignment exceptions
   if (sigaction (SIGBUS, &action, 0)) {
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
 
   /* install software signal handler */
   action.sa_sigaction = &softwareSignalHandler;
   if (sigaction (SIGALRM, &action, 0)) {      /* catch timer ticks (so we can timeslice user level threads) */
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
   if (sigaction (SIGQUIT, &action, 0)) {
     /* catch QUIT to invoke debugger
                                             * thread */
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
   if (sigaction (SIGTERM, &action, 0)) { /* catch TERM to dump and die */
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
 
@@ -1336,7 +1332,7 @@ createVM(void)
   memset (&action, 0, sizeof action);
   action.sa_handler = SIG_IGN;
   if (sigaction(SIGPIPE, &action, 0)) {
-    fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
     return 1;
   }
 
@@ -1380,10 +1376,10 @@ createVM(void)
     sp -= __SIZEOF_POINTER__;
     ((Address *)sp)[0] = Constants_INVISIBLE_METHOD_ID;    /* STACKFRAME_METHOD_ID_OFFSET */
 
-    // fprintf(SysTraceFile, "%s: here goes...\n", Me);
+    // CONSOLE_PRINTF("%s: here goes...\n", Me);
     int rc = bootThread ((void*)ip, (void*)tr, (void*)sp);
 
-    fprintf(SysErrorFile, "%s: createVM(): boot() returned; failed to create a virtual machine.  rc=%d.  Bye.\n", Me, rc);
+    ERROR_PRINTF("%s: createVM(): boot() returned; failed to create a virtual machine.  rc=%d.  Bye.\n", Me, rc);
     return 1;
   }
 }

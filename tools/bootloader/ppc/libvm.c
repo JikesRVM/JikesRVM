@@ -38,6 +38,8 @@
 #include <sys/mman.h>
 #define SIGNAL_STACKSIZE (16 * 1024)    // in bytes
 
+
+
 #ifdef RVM_FOR_LINUX
 #define HAVE_SA_SIGACTION       /* Set this if a "struct sigaction" contains
                                  * a member named "sa_sigaction". */
@@ -128,7 +130,7 @@ extern "C" char *sys_siglist[];
 #define rvmPTR32_ARG(p) rvmPTR_ARG((p))
 
 #elif defined PTRS_VIA_PERCENT_P                \
- 
+
 #define FMTrvmPTR32 "%08p"
 
 #ifdef RVM_FOR_32_ADDR
@@ -185,7 +187,7 @@ extern "C" char *sys_siglist[];
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_EXIT_STATUS_CODES
 #define NEED_MEMORY_MANAGER_DECLARATIONS
-#include <InterfaceDeclarations.h>
+#include "sys.h"
 extern "C" void setLinkage(BootRecord *);
 
 #ifdef RVM_FOR_OSX
@@ -408,11 +410,11 @@ getLinuxSavedRegisters(int signum, void* arg3)
   mcontext_t* context = (mcontext_t *) (((void **) arg3) + SIGCONTEXT_MAGIC);
   if (context->signal != signum) {
     // We're in trouble.  Try to produce some useful debugging info
-    fprintf(stderr, "%s:%d Failed to grab context from signal stack frame!\n", __FILE__, __LINE__);
+    ERROR_PRINTF("%s:%d Failed to grab context from signal stack frame!\n", __FILE__, __LINE__);
     for (int i = -16; i < 32; i++) {
-      fprintf(stderr, "%12p %p arg3[%d]\n", (void *) ((void**) arg3)[i], ((void**) arg3) + i, i);
+      ERROR_PRINTF("%12p %p arg3[%d]\n", (void *) ((void**) arg3)[i], ((void**) arg3) + i, i);
     }
-    fprintf(stderr, "trap: %d link: %p nip: %p\n", context->regs->trap, context->regs->link, context->regs->nip);
+    ERROR_PRINTF("trap: %d link: %p nip: %p\n", context->regs->trap, context->regs->link, context->regs->nip);
     exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
   }
 
@@ -467,7 +469,7 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     /* asynchronous signal used to awaken external
                                debugger  */
     if (lib_verbose)
-      fprintf(SysTraceFile, "%s: signal SIGHUP at ip=" FMTrvmPTR " ignored\n",
+      CONSOLE_PRINTF("%s: signal SIGHUP at ip=" FMTrvmPTR " ignored\n",
               Me, rvmPTR_ARG(iar));
 #ifdef RVM_FOR_OSX
     sigreturn((struct sigcontext*)context);
@@ -486,10 +488,10 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     */
     unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
     if (*flag) {
-      fprintf(SysTraceFile, "%s: debug request already in progress,"
+      CONSOLE_PRINTF("%s: debug request already in progress,"
               " please wait\n", Me);
     } else {
-      fprintf(SysTraceFile, "%s: debug requested, waiting for"
+      CONSOLE_PRINTF("%s: debug requested, waiting for"
               " a thread switch\n", Me);
       *flag = 1;
     }
@@ -516,7 +518,7 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
       return;
     }
 
-    fprintf(SysTraceFile, "%s: kill requested: invoking dumpStackAndDie\n", Me);
+    CONSOLE_PRINTF("%s: kill requested: invoking dumpStackAndDie\n", Me);
     /* Dump the stack by returning to Scheduler.dumpStackAndDie(),
        passing it the FP of the current thread.
 
@@ -571,10 +573,10 @@ getFaultingAddress(context64 *save)
 {
   if (lib_verbose) {
 #if (_AIX51)
-    fprintf(SysTraceFile, "save->except[0]=" FMTrvmPTR "\n",
+    CONSOLE_PRINTF("save->except[0]=" FMTrvmPTR "\n",
             rvmPTR_ARG(save->except[0]));
 #else
-    fprintf(SysTraceFile, "save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
+    CONSOLE_PRINTF("save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
 #endif
   }
 
@@ -583,7 +585,7 @@ getFaultingAddress(context64 *save)
     if (save->except[0] == testFaultingAddress)
       faultingAddressLocation = 0;
     else {
-      fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
+      ERROR_PRINTF("Could not figure out where faulting address is stored - exiting\n");
       exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
     }
   }
@@ -593,7 +595,7 @@ getFaultingAddress(context64 *save)
     if (save->o_vaddr == testFaultingAddress) {
       faultingAddressLocation = 0;
     } else {
-      fprintf(SysTraceFile, "Could not figure out where"
+      ERROR_PRINTF("Could not figure out where"
               " faulting address is stored - exiting\n");
       exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
     }
@@ -665,7 +667,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     Address jtoc =  save->gpr[Constants_JTOC_POINTER];
 #endif // RVM_FOR_AIX
 
-    if (noise) fprintf(stderr,"just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
 
     jtoc=(Address)getJTOC();
 
@@ -678,7 +680,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     const int P0  = Constants_FIRST_VOLATILE_GPR;
     const int P1  = Constants_FIRST_VOLATILE_GPR+1;
 
-    if (noise) fprintf(stderr,"just got into cTrapHandler (1)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (1)\n");
 
     // We are prepared to handle these kinds of "recoverable" traps.
     // (Anything else indicates some sort of unrecoverable vm error)
@@ -703,7 +705,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 #endif
       if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & faultMask) == 0))) {
         if (lib_verbose) {
-          fprintf(SysTraceFile, "assuming that this is not a null pointer exception because the faulting address does not lie in the first or last page.\n");
+          CONSOLE_PRINTF("assuming that this is not a null pointer exception because the faulting address does not lie in the first or last page.\n");
         }
         isNullPtrExn = 0;
       }
@@ -714,32 +716,32 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 
     unsigned instruction   = *((unsigned *)ip);
 
-    if (noise) fprintf(stderr,"just got into cTrapHandler (2)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (2)\n");
 
     if (lib_verbose || !isRecoverable) {
-      fprintf(SysTraceFile,"            mem=" FMTrvmPTR "\n",
+      CONSOLE_PRINTF("            mem=" FMTrvmPTR "\n",
               rvmPTR_ARG(faultingAddress));
-      fprintf(SysTraceFile,"             fp=" FMTrvmPTR "\n",
+      CONSOLE_PRINTF("             fp=" FMTrvmPTR "\n",
               rvmPTR_ARG(GET_GPR(save,FP)));
-      fprintf(SysTraceFile,"             tr=" FMTrvmPTR "\n",
+      CONSOLE_PRINTF("             tr=" FMTrvmPTR "\n",
               rvmPTR_ARG(GET_GPR(save,Constants_THREAD_REGISTER)));
-      fprintf(SysTraceFile,"trap/exception: type=%s\n", strsignal(signum));
-      fprintf(SysTraceFile,"             ip=" FMTrvmPTR "\n", rvmPTR_ARG(ip));
-      fprintf(SysTraceFile,"          instr=0x%08x\n", instruction);
+      CONSOLE_PRINTF("trap/exception: type=%s\n", strsignal(signum));
+      CONSOLE_PRINTF("             ip=" FMTrvmPTR "\n", rvmPTR_ARG(ip));
+      CONSOLE_PRINTF("          instr=0x%08x\n", instruction);
 
-      fprintf(SysTraceFile,"    exn_handler=" FMTrvmPTR "\n", rvmPTR_ARG(javaExceptionHandler));
-      fprintf(SysTraceFile,"             lr=" FMTrvmPTR "\n",  rvmPTR_ARG(lr));
+      CONSOLE_PRINTF("    exn_handler=" FMTrvmPTR "\n", rvmPTR_ARG(javaExceptionHandler));
+      CONSOLE_PRINTF("             lr=" FMTrvmPTR "\n",  rvmPTR_ARG(lr));
 
 #ifdef RVM_FOR_OSX
-      fprintf(SysTraceFile,"            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
+      CONSOLE_PRINTF("            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
 #else  // ! RVM_FOR_OSX:
-      fprintf(SysTraceFile,"   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
+      CONSOLE_PRINTF("   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
 #endif // ! RVM_FOR_OSX
 
       if (isRecoverable) {
-        fprintf(SysTraceFile,"%s: normal trap\n", Me);
+        TRACE_PRINTF("%s: normal trap\n", Me);
       } else {
-        fprintf(SysErrorFile, "%s: internal error trap\n", Me);
+        ERROR_PRINTF("%s: internal error trap\n", Me);
         if (--remainingFatalErrors <= 0)
           exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       }
@@ -756,7 +758,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     double   *fprs
       = *(double   **)((char *)registers + Registers_fprs_offset);
 
-    if (noise) fprintf(stderr,"just got into cTrapHandler (3)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (3)\n");
 
     Word *ipLoc
       =  (Word  *)((char *)registers + Registers_ip_offset);
@@ -766,7 +768,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       =  (unsigned  char*)((char *)registers + Registers_inuse_offset);
 
     if (*inuse) {
-      fprintf(SysTraceFile, "%s: internal error: recursive use of hardware exception registers in thread %p (exiting)\n", Me, thread);
+      CONSOLE_PRINTF("%s: internal error: recursive use of hardware exception registers in thread %p (exiting)\n", Me, thread);
       /* Things went badly wrong, so attempt to generate a useful error
          dump before exiting by returning to Scheduler.dumpStackAndDie,
          passing it the fp of the offending thread.
@@ -794,7 +796,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     }
 
 #ifdef RVM_FOR_LINUX
-    if (noise) fprintf(stderr,"just got into cTrapHandler (4)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (4)\n");
 
     for (int i = 0; i < NGPRS; ++i)
       gprs[i] = save->gpr[i];
@@ -818,7 +820,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 #ifdef RVM_FOR_AIX
     for (int i = 0; i < NGPRS; ++i)
       gprs[i] = save->gpr[i];
-    if (noise) fprintf(stderr,"just got into cTrapHandler (5)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (5)\n");
     for (int i = 0; i < NFPRS; ++i)
       fprs[i] = save->fpr[i];
     *ipLoc = save->iar+ 4; // +4 so it looks like return address
@@ -842,7 +844,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 #ifdef RVM_FOR_AIX
     *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->iar + 4; // +4 so it looks like return address
 #endif
-    if (noise) fprintf(stderr,"just got into cTrapHandler (6)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (6)\n");
     *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
       = HardwareTrapMethodId;
     *(Address *)(newFp + Constants_STACKFRAME_FRAME_POINTER_OFFSET)
@@ -864,56 +866,56 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       siginfo->si_addr = (void *) context->uc_mcontext->es.dar;
     }
 #endif
-    if (noise) fprintf(stderr,"just got into cTrapHandler (7)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (7)\n");
     switch (signum) {
     case SIGSEGV:
       if (isNullPtrExn) {  // touched top segment of memory, presumably by wrapping negatively off 0
-        if (lib_verbose) fprintf(SysTraceFile, "%s: null pointer trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: null pointer trap\n", Me);
         trapCode = Runtime_TRAP_NULL_POINTER;
         break;
       }
-      if (lib_verbose) fprintf(SysTraceFile, "%s: unknown seg fault\n", Me);
+      if (lib_verbose) CONSOLE_PRINTF("%s: unknown seg fault\n", Me);
       trapCode = Runtime_TRAP_UNKNOWN;
       break;
 
     case SIGTRAP:
       if ((instruction & Constants_ARRAY_INDEX_MASK) == Constants_ARRAY_INDEX_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: array bounds trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: array bounds trap\n", Me);
         trapCode = Runtime_TRAP_ARRAY_BOUNDS;
         trapInfo = gprs[(instruction & Constants_ARRAY_INDEX_REG_MASK)
                         >> Constants_ARRAY_INDEX_REG_SHIFT];
         break;
       } else if ((instruction & Constants_CONSTANT_ARRAY_INDEX_MASK) == Constants_CONSTANT_ARRAY_INDEX_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: array bounds trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: array bounds trap\n", Me);
         trapCode = Runtime_TRAP_ARRAY_BOUNDS;
         trapInfo = ((int)((instruction & Constants_CONSTANT_ARRAY_INDEX_INFO)<<16))>>16;
         break;
       } else if ((instruction & Constants_DIVIDE_BY_ZERO_MASK) == Constants_DIVIDE_BY_ZERO_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: divide by zero trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: divide by zero trap\n", Me);
         trapCode = Runtime_TRAP_DIVIDE_BY_ZERO;
         break;
       } else if ((instruction & Constants_MUST_IMPLEMENT_MASK) == Constants_MUST_IMPLEMENT_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: must implement trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: must implement trap\n", Me);
         trapCode = Runtime_TRAP_MUST_IMPLEMENT;
         break;
       } else if ((instruction & Constants_STORE_CHECK_MASK) == Constants_STORE_CHECK_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: objarray store check trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: objarray store check trap\n", Me);
         trapCode = Runtime_TRAP_STORE_CHECK;
         break;
       } else if ((instruction & Constants_CHECKCAST_MASK ) == Constants_CHECKCAST_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: checkcast trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: checkcast trap\n", Me);
         trapCode = Runtime_TRAP_CHECKCAST;
         break;
       } else if ((instruction & Constants_REGENERATE_MASK) == Constants_REGENERATE_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: regenerate trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: regenerate trap\n", Me);
         trapCode = Runtime_TRAP_REGENERATE;
         break;
       } else if ((instruction & Constants_NULLCHECK_MASK) == Constants_NULLCHECK_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: null pointer trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: null pointer trap\n", Me);
         trapCode = Runtime_TRAP_NULL_POINTER;
         break;
       } else if ((instruction & Constants_JNI_STACK_TRAP_MASK) == Constants_JNI_STACK_TRAP) {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: resize stack for JNI call\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: resize stack for JNI call\n", Me);
         trapCode = Runtime_TRAP_JNI_STACK;
         /* We haven't actually bought the stackframe yet, so pretend that
            we are actually trapping directly from the call instruction
@@ -923,15 +925,15 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
         break;
       } else if ((instruction & Constants_WRITE_BUFFER_OVERFLOW_MASK) == Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
         //!!TODO: someday use logic similar to stack guard page to force a gc
-        if (lib_verbose) fprintf(SysTraceFile, "%s: write buffer overflow trap\n", Me);
-        fprintf(SysErrorFile,"%s: write buffer overflow trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: write buffer overflow trap\n", Me);
+        ERROR_PRINTF("%s: write buffer overflow trap\n", Me);
         exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       } else if (((instruction & Constants_STACK_OVERFLOW_MASK)
                   == Constants_STACK_OVERFLOW_TRAP)
                  || ((instruction & Constants_STACK_OVERFLOW_MASK)
                      == Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP))
       {
-        if (lib_verbose) fprintf(SysTraceFile, "%s: stack overflow trap\n", Me);
+        if (lib_verbose) CONSOLE_PRINTF("%s: stack overflow trap\n", Me);
         trapCode = Runtime_TRAP_STACK_OVERFLOW;
         haveFrame = ((instruction & Constants_STACK_OVERFLOW_MASK)
                      == Constants_STACK_OVERFLOW_TRAP);
@@ -945,7 +947,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
         if (stackLimit < stackStart) {
           /* double fault - stack overflow exception handler used too
              much stack space */
-          fprintf(SysErrorFile,
+          ERROR_PRINTF(
                   "%s: stack overflow exception (double fault)\n", Me);
 
           /* Go ahead and get all the stack space we need to generate
@@ -977,17 +979,17 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 
         break;
       }
-      if (lib_verbose) fprintf(SysTraceFile, "%s: unknown trap\n", Me);
+      if (lib_verbose) CONSOLE_PRINTF("%s: unknown trap\n", Me);
       trapCode = Runtime_TRAP_UNKNOWN;
       break;
 
     default:
-      if (lib_verbose) fprintf(SysTraceFile, "%s: unknown trap\n", Me);
+      if (lib_verbose) CONSOLE_PRINTF("%s: unknown trap\n", Me);
       trapCode = Runtime_TRAP_UNKNOWN;
       break;
     }
 
-    if (noise) fprintf(stderr,"just got into cTrapHandler (8)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (8)\n");
     /* Pass arguments to the Java exception handler.
      */
     SET_GPR(save, P0, trapCode);
@@ -1036,7 +1038,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 #endif
     }
 
-    if (noise) fprintf(stderr,"just got into cTrapHandler (9)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (9)\n");
     /* Resume execution at the Java exception handler.
      */
 #ifdef RVM_FOR_LINUX
@@ -1047,7 +1049,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     save->iar = javaExceptionHandler;
 #endif
 
-    if (noise) fprintf(stderr,"just got into cTrapHandler (10)\n");
+    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (10)\n");
 
 #ifdef RVM_FOR_OSX
     sigreturn((struct sigcontext*)context);
@@ -1081,14 +1083,14 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     //
     FILE *fin = fopen(fileName, "r");
     if (!fin) {
-      fprintf(SysTraceFile, "%s: can't find boot image \"%s\"\n", Me, fileName);
+      ERROR_PRINTF("%s: can't find boot image \"%s\"\n", Me, fileName);
       return (void*)1;
     }
 
     // measure image size
     //
     if (lib_verbose)
-      fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, fileName);
+      CONSOLE_PRINTF("%s: loading from \"%s\"\n", Me, fileName);
     fseek(fin, 0L, SEEK_END);
     size_t actualImageSize = ftell(fin);
     *roundedImageSize = pageRoundUp(actualImageSize);
@@ -1103,12 +1105,12 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
                       MAP_FIXED | MAP_PRIVATE,
                       fileno(fin), 0);
     if (bootRegion == (void *) MAP_FAILED) {
-      fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %e\n",
+      ERROR_PRINTF("%s: mmap failed (errno=%d): %e\n",
               Me, errno, errno);
       return (void*)1;
     }
     if (bootRegion != (void *) targetAddress) {
-      fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
+      ERROR_PRINTF("%s: Attempted to mmap in the address %p; "
               " got %p instead.  This should never happen.",
               bootRegion, targetAddress);
       /* Don't check the return value.  This is insane already.
@@ -1166,39 +1168,39 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     if ((bootRecord.spRegister % 4) != 0) {
       /* In the RISC6000 asm manual we read that sp had to be quad word
          aligned, but we don't align our stacks...yet. */
-      fprintf(SysErrorFile, "%s: image format error: sp (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.spRegister));
+      ERROR_PRINTF("%s: image format error: sp (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.spRegister));
       return 1;
     }
 
     if ((bootRecord.ipRegister % 4) != 0) {
-      fprintf(SysErrorFile, "%s: image format error: ip (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.ipRegister));
+      ERROR_PRINTF("%s: image format error: ip (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.ipRegister));
       return 1;
     }
 
     if ((bootRecord.tocRegister % 4) != 0) {
-      fprintf(SysErrorFile, "%s: image format error: toc (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.tocRegister));
+      ERROR_PRINTF("%s: image format error: toc (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.tocRegister));
       return 1;
     }
 
     if (((int *)bootRecord.spRegister)[-1] != (int) 0xdeadbabe) {
-      fprintf(SysErrorFile, "%s: image format error: missing stack sanity check marker (0x%08x)\n", Me, (unsigned) ((int *)bootRecord.spRegister)[-1]);
+      ERROR_PRINTF("%s: image format error: missing stack sanity check marker (0x%08x)\n", Me, (unsigned) ((int *)bootRecord.spRegister)[-1]);
       return 1;
     }
 
     if (bootRecord.bootImageDataStart != (Address)bootDataRegion) {
-      fprintf(SysErrorFile, "%s: image load error: built for " FMTrvmPTR " but loaded at " FMTrvmPTR "\n",
+      ERROR_PRINTF("%s: image load error: built for " FMTrvmPTR " but loaded at " FMTrvmPTR "\n",
               Me, bootRecord.bootImageDataStart, bootDataRegion);
       return 1;
     }
 
     if (bootRecord.bootImageCodeStart != (Address)bootCodeRegion) {
-      fprintf(SysErrorFile, "%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
+      ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
               Me, bootRecord.bootImageCodeStart, bootCodeRegion);
       return 1;
     }
 
     if (bootRecord.bootImageRMapStart != (Address)bootRMapRegion) {
-      fprintf(SysErrorFile, "%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
+      ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
               Me, bootRecord.bootImageRMapStart, bootRMapRegion);
       return 1;
     }
@@ -1222,7 +1224,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 
     // set host o/s linkage information into boot record
     //
-    if (lib_verbose) fprintf(SysTraceFile, "%s: setting linkage\n", Me);
+    if (lib_verbose) CONSOLE_PRINTF("%s: setting linkage\n", Me);
     setLinkage(&bootRecord);
 
     // remember location of java exception handler
@@ -1237,20 +1239,20 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     DebugRequestedOffset = bootRecord.debugRequestedOffset;
 
     if (lib_verbose) {
-      fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
-      fprintf(SysTraceFile, "   bootImageDataStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataStart));
-      fprintf(SysTraceFile, "   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
-      fprintf(SysTraceFile, "   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
-      fprintf(SysTraceFile, "   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
-      fprintf(SysTraceFile, "   bootImageRMapStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapStart));
-      fprintf(SysTraceFile, "   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapEnd));
-      fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
-      fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
-      fprintf(SysTraceFile, "   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
-      fprintf(SysTraceFile, "   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
-      fprintf(SysTraceFile, "   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));
-      fprintf(SysTraceFile, "   tocRegister:          " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tocRegister));
-      fprintf(SysTraceFile, "   sysConsoleWriteCharIP:" FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.sysConsoleWriteCharIP));
+      CONSOLE_PRINTF("%s: boot record contents:\n", Me);
+      CONSOLE_PRINTF("   bootImageDataStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataStart));
+      CONSOLE_PRINTF("   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
+      CONSOLE_PRINTF("   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
+      CONSOLE_PRINTF("   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
+      CONSOLE_PRINTF("   bootImageRMapStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapStart));
+      CONSOLE_PRINTF("   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapEnd));
+      CONSOLE_PRINTF("   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
+      CONSOLE_PRINTF("   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
+      CONSOLE_PRINTF("   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
+      CONSOLE_PRINTF("   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
+      CONSOLE_PRINTF("   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));
+      CONSOLE_PRINTF("   tocRegister:          " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tocRegister));
+      CONSOLE_PRINTF("   sysConsoleWriteCharIP:" FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.sysConsoleWriteCharIP));
     }
 
     // install a stack for cSignalHandler() and cTrapHandler() to run on
@@ -1268,7 +1270,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     altstack.ss_flags = 0;
     altstack.ss_size = SIGNAL_STACKSIZE;
     if (sigaltstack(&altstack, 0) < 0) {
-      fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigstack failed (errno=%d)\n", Me, errno);
       return 1;
     }
     struct sigaction action;
@@ -1276,19 +1278,19 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     action.sa_flags     = SA_ONSTACK | SA_SIGINFO | SA_RESTART;
     if (sigfillset(&(action.sa_mask)) ||
         sigdelset(&(action.sa_mask), SIGCONT)) {
-      fprintf(SysErrorFile, "%s: sigfillset or sigdelset failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigfillset or sigdelset failed (errno=%d)\n", Me, errno);
       return 1;
     }
 #elif (defined RVM_FOR_OSX)
     struct sigaltstack stackInfo;
     if ((stackInfo.ss_sp = (char*)malloc(SIGSTKSZ)) == NULL) {
-      fprintf(SysErrorFile, "%s: malloc failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: malloc failed (errno=%d)\n", Me, errno);
       return 1;
     }     /* error return */
     stackInfo.ss_size = SIGSTKSZ;
     stackInfo.ss_flags = 0;
     if (sigaltstack(&stackInfo, 0) < 0) {
-      fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigstack failed (errno=%d)\n", Me, errno);
       return 1;
     }
     struct sigaction action;
@@ -1296,17 +1298,17 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     action.sa_flags   = SA_ONSTACK | SA_RESTART;
     action.sa_flags   |= SA_SIGINFO;
     if (sigfillset(&(action.sa_mask))) {
-      fprintf(SysErrorFile, "%s: sigfillset failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigfillset failed (errno=%d)\n", Me, errno);
       return 1;
     }
     /* exclude the signal used to poke pthreads */
     if (sigdelset(&(action.sa_mask), SIGCONT)) {
-      fprintf(SysErrorFile, "%s: sigdelset failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigdelset failed (errno=%d)\n", Me, errno);
       return 1;
     }
     if (sigaction(SIGBUS, &action, 0)) {
       // catch null pointer references
-      fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
       return 1;
     }
 #elif defined RVM_FOR_AIX
@@ -1314,7 +1316,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     stackInfo.ss_sp = topOfSignalStack;
     stackInfo.ss_onstack = 0;
     if (sigstack(&stackInfo, 0)) {
-      fprintf(SysErrorFile, "%s: sigstack failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigstack failed (errno=%d)\n", Me, errno);
       return 1;
     }
     // install hardware trap handler
@@ -1330,7 +1332,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
         || sigaction(SIGILL, &action, 0)) /* catch vm errors (so we can try to
                                           give a traceback) */
     {
-      fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
       return 1;
     }
 
@@ -1350,7 +1352,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
         || sigaction(SIGTERM, &action, 0)) /* catch signal to dump stack and
                                               die */
     {
-      fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
       return 1;
     }
 
@@ -1359,7 +1361,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     //
     action.sa_handler = (SIGNAL_HANDLER) SIG_IGN;
     if (sigaction(SIGPIPE, &action, 0)) {
-      fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
       return 1;
     }
 
@@ -1387,10 +1389,10 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 
 #ifdef RVM_FOR_AIX
     if (lib_verbose)
-      fprintf(SysTraceFile, "Testing faulting-address location\n");
+      CONSOLE_PRINTF("Testing faulting-address location\n");
     *((uintptr_t *) testFaultingAddress) = 42;
     if (lib_verbose)
-      fprintf(SysTraceFile, "Done testing faulting-address location\n");
+      CONSOLE_PRINTF("Done testing faulting-address location\n");
 #endif
 
     if (setjmp(primordial_jb)) {
@@ -1402,12 +1404,12 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       for (;;) pause();
     } else {
       if (lib_verbose) {
-        fprintf(SysTraceFile, "%s: calling boot thread: jtoc = " FMTrvmPTR
+        CONSOLE_PRINTF("%s: calling boot thread: jtoc = " FMTrvmPTR
                 "   tr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
                 Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), tid, rvmPTR_ARG(fp));
       }
       bootThread(jtoc, tr, tid, fp);
-      fprintf(SysErrorFile, "Unexpected return from bootThread\n");
+      ERROR_PRINTF("Unexpected return from bootThread\n");
       return 1;
     }
 
@@ -1425,11 +1427,11 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     uintptr_t tid  = startupRegs[2];
     uintptr_t fp   = startupRegs[3];
 
-    fprintf(SysErrorFile, "about to boot vm:\n");
+    TRACE_PRINTF("about to boot vm:\n");
 
     bootThread(jtoc, pr, tid, fp);
 
-    fprintf(SysErrorFile, "%s: Unexpected return from vm startup thread\n",
+    ERROR_PRINTF("%s: Unexpected return from vm startup thread\n",
             Me);
     return NULL;
 
@@ -1448,6 +1450,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
   extern Address
   createJavaVM()
   {
-    fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");
+    ERROR_PRINTF("Cannot CreateJavaVM on PowerPC yet");
     return 1;
   }
