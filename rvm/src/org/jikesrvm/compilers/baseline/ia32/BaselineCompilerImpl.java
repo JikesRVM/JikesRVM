@@ -202,16 +202,16 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           }
           return;
         case 1:
-          asm.emitPOP_Reg(S0);
+          asm.emitPOP_Reg(S1);
           if (debug) {
-            asm.emitMOV_Reg_Imm(S0, 0xFA4FACE);
+            asm.emitMOV_Reg_Imm(S1, 0xFA4FACE);
           }
           return;
         case 2:
-          asm.emitPOP_Reg(S0);
-          asm.emitPOP_Reg(S0);
+          asm.emitPOP_Reg(S1);
+          asm.emitPOP_Reg(S1);
           if (debug) {
-            asm.emitMOV_Reg_Imm(S0, 0xFA5FACE);
+            asm.emitMOV_Reg_Imm(S1, 0xFA5FACE);
           }
           return;
         }
@@ -1725,7 +1725,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       fr4.resolve(asm);
     } else {
       // Set up max int in XMM0
-      asm.emitMOVLPD_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxlongFloatField.getOffset()));
+      asm.emitMOVLPD_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxlongField.getOffset()));
       // Set up value in XMM1
       asm.emitMOVLPD_Reg_RegInd(XMM1, SP);
       adjustStack(WORDSIZE, true);
@@ -3473,7 +3473,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPOP_Reg(EBX);  // restore non-volatile EBX register
       if (VM.VerifyAssertions) VM._assert(EDI_SAVE_OFFSET.toInt() == -(2 * WORDSIZE));
       asm.emitPOP_Reg(EDI);  // restore non-volatile EDI register
-      adjustStack(WORDSIZE, true); // throw away CMID
+      asm.emitPOP_Reg(ECX); // throw away CMID
       // SP == frame pointer
       asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset()); // discard frame
       // return to caller, pop parameters from stack
@@ -4211,10 +4211,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
       if (VM.BuildFor32Addr) {
         asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
+        asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       } else {
         asm.emitMOV_Reg_Abs_Quad(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
+        asm.emitMOVSXDQ_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       }
-      asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       if (NEEDS_DYNAMIC_LINK == 0) {
         asm.emitTEST_Reg_Reg(reg, reg);                      // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
       } else {
