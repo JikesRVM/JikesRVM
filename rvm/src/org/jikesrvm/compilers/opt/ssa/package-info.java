@@ -12,6 +12,6 @@
  */
 
 /**
- * SSA implementation (disabled because of bugs, see <a href="http://jira.codehaus.org/browse/RVM-656">entry in issue tracker</a>).
+ * SSA implementation (disabled because of bugs, see <a href="http://xtenlang.atlassian.net/browse/RVM-656">entry in issue tracker</a>).
  */
 package org.jikesrvm.compilers.opt.ssa;
