@@ -52,6 +52,7 @@ public class CodePatchSyncRequestVisitorTest {
     t.interrupt();
   }
 
+  @Ignore("currently fails spuriously, see bug RVM-1096")
   @SuppressWarnings("deprecation")
   @Test(timeout = 100)
   public void codePatchingWorksWhenAThreadIsSuspended() throws Exception {
