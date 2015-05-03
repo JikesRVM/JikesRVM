@@ -2689,7 +2689,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       Offset.fromIntZeroExtend(methodRefparameterWords << LG_WORDSIZE).minus(WORDSIZE); // object offset into stack
     stackMoveHelper(T1, objectOffset);                               // T1 has "this" parameter
     baselineEmitLoadTIB(asm, S0, T1);                                // S0 has TIB
-    asm.emitMOV_Reg_RegIdx(S0, S0, T0, BYTE, NO_SLOT);     // S0 has address of virtual method
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegIdx(S0, S0, T0, BYTE, NO_SLOT); // S0 has address of virtual method
+    } else {
+      asm.emitMOV_Reg_RegIdx_Quad(S0, S0, T0, BYTE, NO_SLOT); // S0 has address of virtual method
+    }
     genParameterRegisterLoad(methodRef, true);
     asm.emitCALL_Reg(S0);                                            // call virtual method
     genResultRegisterUnload(methodRef);                              // push return value, if any
