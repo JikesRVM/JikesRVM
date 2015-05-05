@@ -1494,6 +1494,14 @@ move
 (31<<26 | 424<<11 | 371<<1)
 
 ####################
+PPC_HWSYNC
+MIR_Empty
+memAsLoad | memAsStore
+
+
+(31<<26 | 598<<1)
+
+####################
 PPC_SYNC
 MIR_Empty
 memAsLoad | memAsStore

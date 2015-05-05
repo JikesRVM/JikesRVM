@@ -4558,9 +4558,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       // NO-OP
     } else if (methodName == MagicNames.combinedLoadBarrier) {
       asm.emitISYNC();
-    } else if (methodName == MagicNames.storeStoreBarrier ||
-               methodName == MagicNames.fence) {
+    } else if (methodName == MagicNames.storeStoreBarrier) {
       asm.emitSYNC();
+    } else if (methodName == MagicNames.fence) {
+      asm.emitHWSYNC();
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);

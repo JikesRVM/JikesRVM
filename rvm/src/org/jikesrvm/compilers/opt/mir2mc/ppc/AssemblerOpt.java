@@ -1127,6 +1127,7 @@ public abstract class AssemblerOpt implements ArchConstants {
         }
         break;
 
+        case PPC_HWSYNC_opcode:
         case PPC_SYNC_opcode:
         case PPC_ISYNC_opcode: {
           machinecodes.set(mi++, inst);
