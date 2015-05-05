@@ -32,7 +32,7 @@ public interface RegisterConstants {
   int LAST_OS_PARAMETER_GPR = 10;
   int FIRST_OS_VOLATILE_GPR = 3;
   int LAST_OS_VOLATILE_GPR = 12;
-  int FIRST_OS_NONVOLATILE_GPR = (VM.BuildForAix && VM.BuildFor64Addr) ? 14 : 13;
+  int FIRST_OS_NONVOLATILE_GPR = (VM.BuildForPowerOpenABI) ? 14 : 13;
   int LAST_OS_NONVOLATILE_GPR = 31;
   int FIRST_OS_PARAMETER_FPR = 1;
   int LAST_OS_PARAMETER_FPR = VM.BuildForLinux ? 8 : 13;
@@ -53,7 +53,7 @@ public interface RegisterConstants {
   int LAST_VOLATILE_GPR = LAST_OS_PARAMETER_GPR;
   int FIRST_SCRATCH_GPR = LAST_VOLATILE_GPR + 1;
   int LAST_SCRATCH_GPR = LAST_OS_VOLATILE_GPR;
-  // AIX 64 bit ABI reserves R13 for use by libpthread; therefore Jikes RVM doesn't touch it.
+  // PowerPC 64 ELF ABI reserves R13 for use by libpthread; therefore Jikes RVM doesn't touch it.
   int FIRST_RVM_RESERVED_NV_GPR = VM.BuildFor64Addr ? 14 : 13;
   int THREAD_REGISTER = FIRST_RVM_RESERVED_NV_GPR;
 
