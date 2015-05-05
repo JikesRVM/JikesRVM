@@ -1672,6 +1672,11 @@ public final class RVMClass extends RVMType {
       updateJTOCEntry(m);
     } else {
       updateVirtualMethod(m);
+      // If this is a java.lang.Object method, also update all the TIBs
+      // for array types (since arrays can call this method)
+      if (m.getDeclaringClass().isJavaLangObjectType()) {
+        RVMType.updateArrayMethods(m);
+      }
     }
   }
 

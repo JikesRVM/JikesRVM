@@ -201,15 +201,6 @@ public class CompiledMethods {
   // executed. Here, we keep track of them until we know they are no longer
   // in use.
   public static void setCompiledMethodObsolete(CompiledMethod compiledMethod) {
-    // Currently, we avoid setting methods of java.lang.Object obsolete.
-    // This is because the TIBs for arrays point to the original version
-    // and are not updated on recompilation.
-    // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
-    //  and update TIB to use newly recompiled method.
-    if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType()) {
-      return;
-    }
-
     compiledMethod.setObsolete();
     Magic.sync();
     scanForObsoleteMethods = true;
