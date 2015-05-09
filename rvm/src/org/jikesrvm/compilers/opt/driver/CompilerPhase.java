@@ -228,6 +228,18 @@ public abstract class CompilerPhase {
    * @param tag a String to use in the start/end message of the IR dump
    */
   public static void dumpIR(IR ir, String tag) {
+    if (ir.options.PRINT_VISUALIZATION) {
+      try {
+        CFGVisualization visualization = new CFGVisualization(ir, tag);
+        visualization.visualizeCFG();
+        return;
+      } catch (Exception e) {
+        System.out.println("Error generating IR visualization: ");
+        e.printStackTrace(System.out);
+        System.out.println("Generating text dump instead ...");
+      }
+    }
+
     dumpIR(ir, tag, false);
   }
 
