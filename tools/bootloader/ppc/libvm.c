@@ -19,7 +19,7 @@
  * exception handling.   The file "sys.cpp" contains the o/s support services
  * required by the java class libraries.
  *
- * PowerPC version for AIX, Linux, and Mac OS X
+ * PowerPC version for Linux and Mac OS X
  *
  *
  *             everything except the command line parsing in main().
@@ -53,7 +53,6 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #define NEED_STRSIGNAL
 #endif
 
-#ifndef RVM_FOR_AIX
 #include <ucontext.h>
 #include <signal.h>
 #include <errno.h>
@@ -70,27 +69,13 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 typedef unsigned long elf_greg_t;
 typedef elf_greg_t elf_gregset_t[ELF_NGREG];
 struct linux_sigregs {
-  elf_gregset_t	gp_regs;
-  double		fp_regs[ELF_NFPREG];
-  unsigned long	tramp[2];
+  elf_gregset_t  gp_regs;
+  double   fp_regs[ELF_NFPREG];
+  unsigned long  tramp[2];
   /* Programs using the rs6000/xcoff abi can save up to 19 gp regs
      and 18 fp regs below sp before decrementing it. */
-  int		abigap[56];
+  int    abigap[56];
 };
-
-#else
-#include <sys/cache.h>
-#include <sys/context.h>
-extern "C" char *sys_siglist[];
-#define NEED_STRSIGNAL
-
-#endif  // RVM_FOR_AIX
-
-#ifdef NEED_STRSIGNAL
-#define strsignal(signum) ((signum) < NSIG ? sys_siglist[(signum)] : "?")
-#endif //  NEED_STRSIGNAL
-
-
 
 // #define PTRS_X_WITHOUT_PUNCTUATION
 #define PTRS_VIA_PERCENT_P
@@ -440,21 +425,6 @@ cSignalHandler(int signum, siginfo_t* siginfo, void* arg3)
 #if 0
 } // so emacs knows to match up { and } nicely :)
 #endif
-#ifdef RVM_FOR_AIX
-void
-cSignalHandler(int signum, int UNUSED zero, sigcontext *context)
-{
-#ifdef RVM_FOR_32_ADDR
-  mstsave *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/mstsave.h"
-#endif
-#ifdef RVM_FOR_64_ADDR
-  context64 *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/context.h"
-#endif
-  Word iar  =  save->iar;
-#endif
-#if 0
-} // so emacs knows to match up { and } nicely :)
-#endif
 #ifdef RVM_FOR_OSX
 void
 cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
@@ -534,9 +504,6 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
 #elif defined RVM_FOR_OSX
     save->lr = save->srr0 + 4; // +4 so it looks like a return address
     save->srr0 = dumpStack;
-#elif defined RVM_FOR_AIX
-    save->lr = save->iar + 4; // +4 so it looks like a return address
-    save->iar = dumpStack;
 #endif
     SET_GPR(save, Constants_FIRST_VOLATILE_GPR,
             GET_GPR(save, Constants_FRAME_POINTER));
@@ -558,55 +525,6 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
    small.  If mysterious crashes seem to occur, consider the possibility that
    the signal stack might  need to be made larger. [--DL].
 */
-
-/* First an aux. routine: */
-#ifdef RVM_FOR_AIX
-uintptr_t testFaultingAddress = 0xdead1234;
-
-int faultingAddressLocation = -1; // uninitialized
-uintptr_t
-#ifdef RVM_FOR_32_ADDR
-getFaultingAddress(mstsave *save)
-#else
-getFaultingAddress(context64 *save)
-#endif
-{
-  if (lib_verbose) {
-#if (_AIX51)
-    CONSOLE_PRINTF("save->except[0]=" FMTrvmPTR "\n",
-            rvmPTR_ARG(save->except[0]));
-#else
-    CONSOLE_PRINTF("save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
-#endif
-  }
-
-#if (_AIX51)
-  if (faultingAddressLocation == -1) {
-    if (save->except[0] == testFaultingAddress)
-      faultingAddressLocation = 0;
-    else {
-      ERROR_PRINTF("Could not figure out where faulting address is stored - exiting\n");
-      exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-    }
-  }
-  return save->except[0];
-#else
-  if (faultingAddressLocation == -1) {
-    if (save->o_vaddr == testFaultingAddress) {
-      faultingAddressLocation = 0;
-    } else {
-      ERROR_PRINTF("Could not figure out where"
-              " faulting address is stored - exiting\n");
-      exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-    }
-  }
-  return save->o_vaddr;
-#endif
-}
-#endif // RVM_FOR_AIX
-
-
-
 
 static const int noise = 0;
 
@@ -645,27 +563,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
   }
   uintptr_t faultingAddress = (uintptr_t)siginfo->si_addr;
 #endif // RVM_FOR_OSX
-
-#ifdef RVM_FOR_AIX
-  void
-  cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
-  {
-    // See "/usr/include/sys/mstsave.h"
-#if defined RVM_FOR_32_ADDR
-    mstsave *save = &context->sc_jmpbuf.jmp_context;
-#else
-    context64 *save = &context->sc_jmpbuf.jmp_context;
-#endif
-    int firstFault = (faultingAddressLocation == -1);
-    uintptr_t faultingAddress = getFaultingAddress(save);
-    if (firstFault) {
-      save->iar += 4;  // skip faulting instruction used for auto-detect
-      return;
-    }
-    uintptr_t ip = save->iar;
-    uintptr_t lr = save->lr;
-    Address jtoc =  save->gpr[Constants_JTOC_POINTER];
-#endif // RVM_FOR_AIX
 
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
 
@@ -788,10 +685,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       save->lr = save->srr0 + 4; // +4 so it looks like a return address
       save->srr0 = dumpStack;
 #endif
-#ifdef RVM_FOR_AIX
-      save->lr = save->iar + 4; // +4 so it looks like a return address
-      save->iar = dumpStack;
-#endif
       return;
     }
 
@@ -817,15 +710,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     *lrLoc = save->lr;
 #endif
 
-#ifdef RVM_FOR_AIX
-    for (int i = 0; i < NGPRS; ++i)
-      gprs[i] = save->gpr[i];
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (5)\n");
-    for (int i = 0; i < NFPRS; ++i)
-      fprs[i] = save->fpr[i];
-    *ipLoc = save->iar+ 4; // +4 so it looks like return address
-    *lrLoc = save->lr;
-#endif
     *inuse = 1;
 
     // Insert artificial stackframe at site of trap.
@@ -841,9 +725,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     *(int *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->srr0 + 4; // +4 so it looks like return address
 #endif
 
-#ifdef RVM_FOR_AIX
-    *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->iar + 4; // +4 so it looks like return address
-#endif
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler (6)\n");
     *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
       = HardwareTrapMethodId;
@@ -968,9 +849,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 #elif (defined RVM_FOR_OSX)
           save->lr = save->srr0 + 4; // +4 so it looks like a return address
           save->srr0 = dumpStack;
-#elif defined RVM_FOR_AIX
-          save->lr = save->iar + 4; // +4 so it looks like a return address
-          save->iar = dumpStack;
 #endif
           return;
         }
@@ -1016,15 +894,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       } else {
         save->lr = save->srr0 + 4; // +4 so it looks like a return address
       }
-#elif defined RVM_FOR_AIX
-      if (save->iar == 0) {
-        do {
-          /* A bad branch -- use the contents of the link register as
-                 our best guess of the call site. */
-        } while(0);
-      } else {
-        save->lr = save->iar + 4; // +4 so it looks like a return address
-      }
 #endif
     } else {
       /* We haven't actually bought the stackframe yet, so pretend that
@@ -1033,7 +902,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       */
 #ifdef RVM_FOR_LINUX
       *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->link;
-#elif defined RVM_FOR_AIX || defined RVM_FOR_OSX
+#elif defined RVM_FOR_OSX
       *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->lr;
 #endif
     }
@@ -1045,10 +914,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     save->nip = javaExceptionHandler;
 #elif (defined RVM_FOR_OSX)
     save->srr0 = javaExceptionHandler;
-#elif defined RVM_FOR_AIX
-    save->iar = javaExceptionHandler;
 #endif
-
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler (10)\n");
 
 #ifdef RVM_FOR_OSX
@@ -1311,21 +1177,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
       return 1;
     }
-#elif defined RVM_FOR_AIX
-    struct sigstack stackInfo;
-    stackInfo.ss_sp = topOfSignalStack;
-    stackInfo.ss_onstack = 0;
-    if (sigstack(&stackInfo, 0)) {
-      ERROR_PRINTF("%s: sigstack failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-    // install hardware trap handler
-    //
-    struct sigaction action;
-    action.sa_handler = (SIGNAL_HANDLER) cTrapHandler;
-    action.sa_flags   = SA_ONSTACK | SA_RESTART;
-    SIGFILLSET(action.sa_mask);
-    SIGDELSET(action.sa_mask, SIGCONT);
 #endif
     if (sigaction(SIGSEGV, &action, 0) // catch null pointer references
         || sigaction(SIGTRAP, &action, 0) // catch array bounds violations
@@ -1386,14 +1237,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     // instructions are fetched back
     //
     sysSyncCache(bootCodeRegion, roundedCodeRegionSize);
-
-#ifdef RVM_FOR_AIX
-    if (lib_verbose)
-      CONSOLE_PRINTF("Testing faulting-address location\n");
-    *((uintptr_t *) testFaultingAddress) = 42;
-    if (lib_verbose)
-      CONSOLE_PRINTF("Done testing faulting-address location\n");
-#endif
 
     if (setjmp(primordial_jb)) {
       *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;

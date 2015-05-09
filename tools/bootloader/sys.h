@@ -79,19 +79,6 @@ EXTERNAL void findMappable();
  * needed to the respective sys*.cpp files.
  */
 
-// Work around AIX headerfile differences: AIX 4.3 vs earlier releases
-#ifdef _AIX43
-#include </usr/include/unistd.h>
-EXTERNAL void profil(void *, uint, ulong, uint);
-EXTERNAL int sched_yield(void);
-#endif
-
-#ifdef _AIX
-EXTERNAL timer_t gettimerid(int timer_type, int notify_type);
-EXTERNAL int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
-#include <sys/events.h>
-#endif
-
 #if (defined RVM_FOR_SOLARIS)
 #include <netinet/in.h>
 #endif

@@ -72,7 +72,6 @@ public abstract class JNICompiler
    *  <li>Push a new JREF frame on the JNIRefs stack
    *  <li>Supply the first JNI argument:  the JNI environment pointer
    *  <li>Supply the second JNI argument:  class object if static, "this" if virtual
-   *  <li>Setup the TOC (AIX only) and IP to the corresponding native code
    * </ol>
    * <p>
    * The stub performs the following tasks in the epilogue:
@@ -424,7 +423,7 @@ public abstract class JNICompiler
 
   public static int getFrameSize(NativeMethod m) {
     // space for:
-    //   -NATIVE header (AIX 6 words, LINUX 2 words)
+    //   -NATIVE header (LINUX 2 words)
     //   -parameters and 2 extra JNI parameters (jnienv + obj), minimum 8 words
     //   -JNI_SAVE_AREA_OFFSET; see JNIStackframeLayoutConstants
     int argSpace = BYTES_IN_STACKSLOT * (m.getParameterWords() + 2);
@@ -1308,7 +1307,7 @@ public abstract class JNICompiler
       }
     }
 
-    // Save AIX non-volatile GPRs that will not be saved and restored by RVM.
+    // Save non-volatile GPRs that will not be saved and restored by RVM.
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
     for (int i = FIRST_RVM_RESERVED_NV_GPR; i <= LAST_RVM_RESERVED_NV_GPR; i++) {
@@ -1330,6 +1329,7 @@ public abstract class JNICompiler
     // We first adjust this in place to be a pointer to a JNIEnvironment and then use
     // it to acquire THREAD_REGISTER (and JTOC on OSX/Linux).
     //
+    // TODO update for AIX removal
     // AIX non volatile gprs 13-16 have been saved & are available (also gprs 11-13 can be used).
     // S0=13, S1=14, TI=15, THREAD_REGISTER=16 are available (&have labels) for changing state.
     // we leave the passed arguments untouched, unless we are blocked and have to call sysVirtualProcessorYield
@@ -1342,8 +1342,9 @@ public abstract class JNICompiler
     // acquire Jikes RVM THREAD_REGISTER (and JTOC OSX/Linux only).
     asm.emitLAddrOffset(THREAD_REGISTER, T0, Entrypoints.JNIEnvSavedTRField.getOffset());
     if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
-      // Thus, we only need this load on non-AIX platforms
+      // When using the 64-bit PowerPC ELF ABI (e.g. on PPC64 Linux), the JTOC is part of
+      // the Linkage triplet and this already set by our caller.
+      // Thus, we only need this load when not on PPC64 Linux.
       asm.emitLAddrOffset(JTOC, T0, Entrypoints.JNIEnvSavedJTOCField.getOffset());
     }
 
@@ -1410,7 +1411,7 @@ public abstract class JNICompiler
                         T0,
                         Entrypoints.JNITopJavaFPField.getOffset());       // get addr of top java frame from JNIEnv
     asm.emitSUBFC(S0, FP, S0);                                                 // S0 <- offset from current FP
-    // AIX -4, LINUX - 8
+    // LINUX - 8
     asm.emitSTW(S0, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP);  // store offset at end of glue frame
 
     // BRANCH TO THE PROLOG FOR THE JNI FUNCTION
@@ -1437,7 +1438,7 @@ public abstract class JNICompiler
     // frame pointer if it is necessary to do GC with a processors active thread
     // stuck (and blocked) in native C, ie. GC starts scanning the threads stack at that frame.
 
-    // AIX -4, LINUX -8
+    // LINUX -8
     asm.emitLInt(T3, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP); // load offset from FP to top java frame
     asm.emitADD(T3, FP, T3);                                    // T3 <- address of top java frame
     asm.emitSTAddrOffset(T3, T2, Entrypoints.JNITopJavaFPField.getOffset());     // store TopJavaFP back into JNIEnv
@@ -1484,7 +1485,7 @@ public abstract class JNICompiler
 
     enteredJNIRef.resolve(asm);
 
-    // Restore those AIX nonvolatile registers saved in the prolog above
+    // Restore the nonvolatile registers saved in the prolog above
     // Here we only save & restore ONLY those registers not restored by RVM
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area

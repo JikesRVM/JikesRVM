@@ -117,7 +117,10 @@ public abstract class CallingConvention extends IRTools {
 
   /**
    * Calling convention to implement calls to
-   * native (C) routines using the AIX linkage conventions
+   * native (C) routines using the AIX linkage conventions.
+   *
+   * TODO AIX support has been dropped. Update the documentation.
+   * TODO is this actually the 64-bit PowerPC ELF convention?
    */
   public static void expandSysCall(Instruction s, IR ir) {
     RegisterOperand ip = (RegisterOperand) Call.getClearAddress(s);

@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * This class implements the 232 JNI functions.
  * All methods here will be specially compiled with the necessary prolog to
- * perform the transition from native code (Linux/AIX/OSX convention) to RVM.
+ * perform the transition from native code (Linux/OSX convention) to RVM.
  * For this reason, no Java methods (including the JNI methods here) can call
  * any methods in this class from within Java.  These JNI methods are to
  * be invoked from native C or C++.   They're all declared private to enforce

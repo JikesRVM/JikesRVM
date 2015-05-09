@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Emit the architecture-specific part of a header file containing declarations
  * required to access VM data structures from C++.
- * Posix version: AIX PPC, Linux PPC, Linux IA32
  */
 final class GenArch_ppc extends GenArch {
   @Override
@@ -99,9 +98,7 @@ final class GenArch_ppc extends GenArch {
       pln(".set T2," + BaselineConstants.T2);
       pln(".set T3," + BaselineConstants.T3);
       pln(".set STACKFRAME_RETURN_ADDRESS_OFFSET," + StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-      if (!VM.BuildForAix) {
-        pln(".set T4," + (BaselineConstants.T3 + 1));
-      }
+      pln(".set T4," + (BaselineConstants.T3 + 1));
     }
   }
 }

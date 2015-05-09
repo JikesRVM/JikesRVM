@@ -48,7 +48,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Emit a header file containing declarations required to access VM
  * data structures from C++.
- * Posix version: AIX PPC, Linux PPC, Linux IA32
  */
 public class GenerateInterfaceDeclarations {
 

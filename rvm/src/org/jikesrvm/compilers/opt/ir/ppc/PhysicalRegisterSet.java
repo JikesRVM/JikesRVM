@@ -73,7 +73,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * The condition registers that we allocate
    * To avoid expensive save/restores when
    * making a JNI transition Jikes RVM only uses the
-   * CR that AIX defines to be volatile
+   * CR that the PowerOpenABI defines to be volatile.
    *
    * We reserve one of the volatiles, CR7 for use only in yieldpoints.
    * This ensures that a yieldpoint won't bash an allocated CR.

@@ -120,7 +120,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
 
     if (VM.BuildForPowerOpenABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, false);
-      return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, AIX_VARARG);
+      return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, PPC64_ELF_VARARG);
     } else if (VM.BuildForSVR4ABI) {
       Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
       return packageAndInvoke(null, methodID, glueFP, expectReturnType, false, SVR4_DOTARG);
@@ -147,7 +147,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
 
     if (VM.BuildForPowerOpenABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);
-      return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, AIX_VARARG);
+      return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
     } else if (VM.BuildForSVR4ABI) {
       Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
       return packageAndInvoke(obj, methodID, glueFP, expectReturnType, skip4Args, SVR4_DOTARG);
@@ -160,6 +160,8 @@ public abstract class JNIHelpers extends JNIGenericHelpers
 
   /**
    * This method supports var args passed from C.<p>
+   *
+   * TODO update for AIX removal
    *
    * In the AIX C convention, the caller keeps the first 8 words in registers and
    * the rest in the spill area in the caller frame.  The callee will push the values
@@ -408,7 +410,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   public static Object invokeWithVarArg(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
     if (VM.BuildForPowerOpenABI) {
-      return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, AIX_VARARG);
+      return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, PPC64_ELF_VARARG);
     } else {
       return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, SVR4_VARARG);
     }
@@ -426,7 +428,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
     if (VM.BuildForPowerOpenABI) {
-      return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, AIX_VARARG);
+      return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
     } else {
       return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, SVR4_VARARG);
     }
@@ -458,10 +460,10 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   }
 
   public static final int SVR4_DOTARG = 0;         // Linux/PPC SVR4 normal
-  public static final int AIX_DOTARG = 1;         // AIX normal
+  public static final int PPC64_ELF_DOTARG = 1;         // 64-bit PowerPC ELF normal
   public static final int JVALUE_ARG = 2;         // javlue
   public static final int SVR4_VARARG = 3;         // Linux/PPC SVR4 vararg
-  public static final int AIX_VARARG = 4;         // AIX vararg
+  public static final int PPC64_ELF_VARARG = 4;         // 64-bit PowerPC ELF vararg
   public static final int OSX_DOTARG = 5;         // Darwin normal
 
   /**
@@ -513,7 +515,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       //       of argtypes tested on each platform.
       //       But, this can't actually be the way this code should be written...
       if (VM.BuildForPowerOpenABI) {
-        if (VM.VerifyAssertions) VM._assert(argtype == AIX_VARARG);
+        if (VM.VerifyAssertions) VM._assert(argtype == PPC64_ELF_VARARG);
         argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
       } else if (VM.BuildForSVR4ABI) {
         switch (argtype) {
@@ -524,7 +526,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
           case SVR4_VARARG:
             argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
             break;
-          case AIX_VARARG:
+          case PPC64_ELF_VARARG:
             // TODO: Is this branch actually reachable code???
             argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
             break;
@@ -537,7 +539,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
           case SVR4_DOTARG:
           case SVR4_VARARG:
           case OSX_DOTARG:
-          case AIX_VARARG:
+          case PPC64_ELF_VARARG:
             argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
             break;
           default:

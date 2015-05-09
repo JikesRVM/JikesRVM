@@ -310,7 +310,8 @@ import org.vmmagic.unboxed.Offset;
     }
 
     /* If a thread started via createVM or attachVM, base may need scaning */
-    checkJNIBase();
+    // TODO implement this if necessary. It was previously only implemented for
+    // AIX which is no longer supported.
 
     if (verbosity >= 2) Log.writeln("--- End Of Stack Scan ---\n");
   }
@@ -581,35 +582,6 @@ import org.vmmagic.unboxed.Offset;
          retaddrLoc = iterator.getNextReturnAddressAddress())
       processCodeLocation(code, retaddrLoc);
   }
-
-
-  /**
-   * AIX-specific code.<p>
-   *
-   * If we are scanning the stack of a thread that entered the VM via
-   * a createVM or attachVM then the "bottom" of the stack had native
-   * C frames instead of the usual java frames.  The JNIEnv for the
-   * thread may still contain jniRefs that have been returned to the
-   * native C code, but have not been reported for GC.  calling
-   * getNextReferenceAddress without first calling setup... will
-   * report the remaining jniRefs in the current "frame" of the
-   * jniRefs stack.  (this should be the bottom frame)<p>
-   *
-   * FIXME: SB: Why is this AIX specific?  Why depend on the
-   * preprocessor?
-   *
-   */
-  private void checkJNIBase() {
-    if (VM.BuildForAix) {
-      GCMapIterator iterator = iteratorGroup.getJniIterator();
-      Address refaddr =  iterator.getNextReferenceAddress();
-      while (!refaddr.isZero()) {
-        reportDelayedRootEdge(trace, refaddr);
-        refaddr = iterator.getNextReferenceAddress();
-      }
-    }
-  }
-
 
   /***********************************************************************
    *

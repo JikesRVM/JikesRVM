@@ -27,7 +27,7 @@ public interface RegisterConstants {
   int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
   // OS register convention (for mapping parameters in JNI calls)
-  // These constants encode conventions for AIX, OSX, and Linux.
+  // These constants encode conventions for OSX and Linux.
   int FIRST_OS_PARAMETER_GPR = 3;
   int LAST_OS_PARAMETER_GPR = 10;
   int FIRST_OS_VOLATILE_GPR = 3;
@@ -40,13 +40,13 @@ public interface RegisterConstants {
   int LAST_OS_VOLATILE_FPR = 13;
   int FIRST_OS_NONVOLATILE_FPR = 14;
   int LAST_OS_NONVOLATILE_FPR = 31;
-  int LAST_OS_VARARG_PARAMETER_FPR = VM.BuildForAix ? 6 : 8;
+  int LAST_OS_VARARG_PARAMETER_FPR = 8;
 
   // Jikes RVM's general purpose register usage (32 or 64 bits wide based on VM.BuildFor64Addr).
   //
   /** special instruction semantics on this register */
   int REGISTER_ZERO = 0;
-  /** same as AIX/OSX/Linux */
+  /** same as OSX/Linux */
   int FRAME_POINTER = 1;
   int FIRST_VOLATILE_GPR = FIRST_OS_PARAMETER_GPR;
   //                                            ...
@@ -57,7 +57,7 @@ public interface RegisterConstants {
   int FIRST_RVM_RESERVED_NV_GPR = VM.BuildFor64Addr ? 14 : 13;
   int THREAD_REGISTER = FIRST_RVM_RESERVED_NV_GPR;
 
-  // 2 is used by Linux for thread context, on AIX it's the toc and on OS X it's a scratch.
+  // 2 is used by Linux for thread context and on OS X it's a scratch.
   int JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ? THREAD_REGISTER + 1 : 2;
   int KLUDGE_TI_REG = THREAD_REGISTER + ((VM.BuildForLinux && VM.BuildFor32Addr) ? 2 : 1);
 
@@ -69,9 +69,9 @@ public interface RegisterConstants {
 
   // Floating point register usage. (FPR's are 64 bits wide).
 
-  /** AIX/OSX/Linux is 0 */
+  /** OSX/Linux is 0 */
   int FIRST_SCRATCH_FPR = 0;
-  /** AIX/OSX/Linux is 0 */
+  /** OSX/Linux is 0 */
   int LAST_SCRATCH_FPR = 0;
   int FIRST_VOLATILE_FPR = FIRST_OS_VOLATILE_FPR;
   //

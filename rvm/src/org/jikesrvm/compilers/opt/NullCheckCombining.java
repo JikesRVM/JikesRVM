@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.GuardCarrier;
@@ -23,14 +22,12 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COMBINE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * This module performs two tasks:
@@ -183,19 +180,14 @@ public class NullCheckCombining extends CompilerPhase {
 
   private boolean canFold(Instruction s, Operand activeGuard, boolean isStore) {
     if (GuardCarrier.conforms(s) && GuardCarrier.hasGuard(s) && activeGuard.similar(GuardCarrier.getGuard(s))) {
-      if (!VM.ExplicitlyGuardLowMemory) return true;
-      // TODO: In theory, lowMemory is protected even on AIX.
-      // However, enabling this causes a large number of failures.
-      // Figure out why that is the case and enable some variant of this.
-      // if (isStore) return true; // Even on AIX low memory is write protected
-      return VM.BuildForPowerPC && Operators.helper.canFoldNullCheckAndLoad(s);
+      return true;
     }
     for (int i = 0, n = s.getNumberOfOperands(); i < n; i++) {
       Operand op = s.getOperand(i);
       if (op instanceof MemoryOperand) {
         MemoryOperand memOp = (MemoryOperand) op;
         if (activeGuard.similar(memOp.guard)) {
-          return !VM.ExplicitlyGuardLowMemory || isStore || ((memOp.index == null) && (memOp.disp.sLT(Offset.zero())));
+          return true;
         }
       }
     }

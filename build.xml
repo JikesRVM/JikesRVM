@@ -375,9 +375,6 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
-    <condition property="os.filter" value="-DRVM_FOR_AIX=1">
-      <equals arg1="${target.os}" arg2="AIX"/>
-    </condition>
     <condition property="os.filter" value="-DRVM_FOR_LINUX=1 -DLINUX=1">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
@@ -982,9 +979,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_FOR_32_ADDR" value="true" else="false">
       <equals arg1="${target.address.size}" arg2="32"/>
     </condition>
-    <condition property="pp_RVM_FOR_AIX" value="true" else="false">
-      <equals arg1="${target.os}" arg2="AIX"/>
-    </condition>
     <condition property="pp_RVM_FOR_LINUX" value="true" else="false">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
@@ -1032,7 +1026,6 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
         <filter token="_RVM_FOR_LITTLE_ENDIAN_" value="${pp_RVM_FOR_LITTLE_ENDIAN}"/>
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
-        <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
         <filter token="_RVM_FOR_SOLARIS_" value="${pp_RVM_FOR_SOLARIS}" />
         <filter token="_RVM_FOR_SSE2_" value="${pp_RVM_FOR_SSE2}"/>
@@ -1775,7 +1768,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="c++.rdynamic" value="" else="-rdynamic">
       <or>
       	<equals arg1="${target.os}" arg2="OSX"/>
-      	<equals arg1="${target.os}" arg2="AIX" />
       </or>
     </condition>
 

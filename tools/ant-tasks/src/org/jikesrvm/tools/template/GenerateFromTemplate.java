@@ -227,9 +227,10 @@ public class GenerateFromTemplate {
     }
 
     // When driven from ant (on AIX), there's a problem keeping tokens that
-    // are separated by blanks from being split into separate tokens when
+    // are separated by blanks from being split into separate tokens
     // when the java command is forked. Each token should contain an "=".
     // Verify this and reassemble them if they don't.
+    // TODO AIX support has been dropped. Is this code still necessary?
     int limit = argc;
     argc = 2;
     for (int i = 2; i < limit; i++) {

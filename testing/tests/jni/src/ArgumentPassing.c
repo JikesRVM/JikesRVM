@@ -12,6 +12,9 @@
  */
 /**
  * Native code for ArgumentPassing.java
+ *
+ * Note: Support for AIX has been dropped but test cases for AIX
+ * have been kept.
  */
 
 #include <stdio.h>

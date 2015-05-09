@@ -101,9 +101,6 @@ import org.vmmagic.unboxed.Word;
  * process, loads/stores through such a pointer will cause a trap that
  * we can catch with a unix signal handler.<p>
  *
- * Note that on AIX we are forced to perform explicit null checks on
- * scalar field accesses as we are unable to protect low memory.<p>
- *
  * Note the key invariant that all elements of the header are
  * available at the same offset from an objref for both arrays and
  * scalar objects.<p>

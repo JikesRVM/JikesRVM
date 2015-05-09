@@ -32,10 +32,9 @@ public abstract class Configuration {
   public static final boolean BuildFor32Addr = @_RVM_FOR_32_ADDR_@;
   public static final boolean BuildFor64Addr = !BuildFor32Addr;
 
-  public static final boolean BuildForAix = @_RVM_FOR_AIX_@;
   public static final boolean BuildForLinux = @_RVM_FOR_LINUX_@;
   public static final boolean BuildForSolaris = @_RVM_FOR_SOLARIS_@; 
-  public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux && !BuildForSolaris;
+  public static final boolean BuildForOsx = !BuildForLinux && !BuildForSolaris;
 
   public static final boolean BuildForGnuClasspath = @_RVM_WITH_GNU_CLASSPATH_@;
   public static final boolean BuildForHarmony = @_RVM_WITH_HARMONY_@;
@@ -44,18 +43,11 @@ public abstract class Configuration {
 
   /* ABI selection.  Exactly one of these variables will be true in each build. */
   public static final boolean BuildForMachOABI = BuildForOsx;
-  public static final boolean BuildForPowerOpenABI = BuildForAix || (BuildForLinux && BuildForPowerPC && BuildFor64Addr);
+  public static final boolean BuildForPowerOpenABI = BuildForLinux && BuildForPowerPC && BuildFor64Addr;
   public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
 
   /** Are we using Classpath's portable native sync feature? */
   public static final boolean PortableNativeSync = @_PORTABLE_NATIVE_SYNC_@;
-
-  /**
-   * Can a dereference of a null pointer result in an access
-   * to 'low' memory addresses that must be explicitly guarded because the
-   * target OS doesn't allow us to read protect low memory?
-   */
-  public static final boolean ExplicitlyGuardLowMemory = BuildForAix;
 
  /** Assertion checking.
       <dl>
