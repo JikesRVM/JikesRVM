@@ -33,7 +33,7 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
   /////////////////////////////////////////////////////////////
 
   int NATIVE_FRAME_HEADER_SIZE =
-      VM.BuildForPowerOpenABI ? 6 * BYTES_IN_ADDRESS /* fp + cr + lr + res + res + toc */ : (VM.BuildForSVR4ABI ? 2 *
+      VM.BuildForPower64ELF_ABI ? 6 * BYTES_IN_ADDRESS /* fp + cr + lr + res + res + toc */ : (VM.BuildForSVR4ABI ? 2 *
                                                                                                                   BYTES_IN_ADDRESS /* fp + lr */ : /* BuildForMachOABI */
                                                                                                                                    6 *
                                                                                                                                    BYTES_IN_ADDRESS /* fp + cp + lr + ??? */);

@@ -179,7 +179,7 @@ public abstract class CallingConvention extends IRTools {
                      AC(Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS)),
                      null);         // TODO: valid location?
     s.insertBefore(s2);
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       s2 =
           Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir, s), ip, AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
       s.insertBefore(s2);

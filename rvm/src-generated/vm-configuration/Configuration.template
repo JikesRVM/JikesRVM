@@ -43,8 +43,8 @@ public abstract class Configuration {
 
   /* ABI selection.  Exactly one of these variables will be true in each build. */
   public static final boolean BuildForMachOABI = BuildForOsx;
-  public static final boolean BuildForPowerOpenABI = BuildForLinux && BuildForPowerPC && BuildFor64Addr;
-  public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
+  public static final boolean BuildForPower64ELF_ABI = BuildForLinux && BuildForPowerPC && BuildFor64Addr;
+  public static final boolean BuildForSVR4ABI = !(BuildForPower64ELF_ABI || BuildForMachOABI);
 
   /** Are we using Classpath's portable native sync feature? */
   public static final boolean PortableNativeSync = @_PORTABLE_NATIVE_SYNC_@;

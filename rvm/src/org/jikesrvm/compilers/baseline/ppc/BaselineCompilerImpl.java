@@ -4860,8 +4860,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   /**
-   * Generate a sys call where the address of the function or (when POWEROPEN_ABI is defined)
-   * function descriptor have been loaded into S0 already
+   * Generate a sys call where the address of the function or (when build for 64-bit
+   * PowerPC ELF ABI) function descriptor have been loaded into S0 already
    */
   private void generateSysCall(int parametersSize) {
     int linkageAreaSize = parametersSize + BYTES_IN_STACKSLOT + (6 * BYTES_IN_STACKSLOT);
@@ -4872,7 +4872,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitSTDU(FP, -linkageAreaSize, FP);        // create linkage area
     }
     asm.emitSTAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);      // save JTOC
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       /* GPR0 is pointing to the function descriptor, so we need to load the TOC and IP from that */
       // Load TOC (Offset one word)
       asm.emitLAddrOffset(JTOC, S0, Offset.fromIntSignExtend(BYTES_IN_STACKSLOT));

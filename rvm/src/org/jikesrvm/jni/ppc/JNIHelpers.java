@@ -76,7 +76,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       argObjs = packageParameterFromJValue(mth, argAddress);
     } else {
       if (isDotDotStyle) {
-        if (VM.BuildForPowerOpenABI || VM.BuildForMachOABI) {
+        if (VM.BuildForPower64ELF_ABI || VM.BuildForMachOABI) {
           Address varargAddress = pushVarArgToSpillArea(methodID, false);
           argObjs = packageParameterFromVarArg(mth, varargAddress);
         } else {
@@ -95,7 +95,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
         }
       } else {
         // var arg
-        if (VM.BuildForPowerOpenABI || VM.BuildForMachOABI) {
+        if (VM.BuildForPower64ELF_ABI || VM.BuildForMachOABI) {
           argObjs = packageParameterFromVarArg(mth, argAddress);
         } else {
           if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
@@ -118,7 +118,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   @NoInline
   public static Object invokeWithDotDotVarArg(int methodID, TypeReference expectReturnType) throws Exception {
 
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, false);
       return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, PPC64_ELF_VARARG);
     } else if (VM.BuildForSVR4ABI) {
@@ -145,7 +145,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, TypeReference expectReturnType,
                                               boolean skip4Args) throws Exception {
 
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);
       return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
     } else if (VM.BuildForSVR4ABI) {
@@ -255,7 +255,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   @NoInline
   private static Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception {
-    if (VM.BuildForPowerOpenABI || VM.BuildForSVR4ABI) {
+    if (VM.BuildForPower64ELF_ABI || VM.BuildForSVR4ABI) {
       int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
       // get the FP for this stack frame and traverse 2 frames to get to the glue frame
@@ -409,7 +409,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   public static Object invokeWithVarArg(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, PPC64_ELF_VARARG);
     } else {
       return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, SVR4_VARARG);
@@ -427,7 +427,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
     } else {
       return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, SVR4_VARARG);
@@ -514,7 +514,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       //       So, for now, I simply cleaned up preprocessor directives without changing the set
       //       of argtypes tested on each platform.
       //       But, this can't actually be the way this code should be written...
-      if (VM.BuildForPowerOpenABI) {
+      if (VM.BuildForPower64ELF_ABI) {
         if (VM.VerifyAssertions) VM._assert(argtype == PPC64_ELF_VARARG);
         argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
       } else if (VM.BuildForSVR4ABI) {

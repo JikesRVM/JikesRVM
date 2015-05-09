@@ -85,9 +85,9 @@ public abstract class JNICompiler
    * <p>
    * Within the stackframe, we have two frames.
    * The "main" frame exactly follows the OS native ABI and is therefore
-   * different for PowerOpenABI, SVR4ABI, and MachOABI.
+   * different for each ABI.
    * The "mini-frame" is identical on all platforms and is stores RVM-specific fields.
-   * The picture below shows the frames for PowerOpenABI.
+   * The picture below shows the frames for 64-bit PowerPC ELF ABI.
    * <pre>
    *
    *   | fp       | <- native frame
@@ -455,7 +455,7 @@ public abstract class JNICompiler
 
     // offset to the spill area in the callee (OS frame):
     int spillOffsetOS;
-    if (VM.BuildForPowerOpenABI || VM.BuildForMachOABI) {
+    if (VM.BuildForPower64ELF_ABI || VM.BuildForMachOABI) {
       // 1st spill = JNIEnv, 2nd spill = class
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE + 2 * BYTES_IN_STACKSLOT;
     } else {
@@ -595,8 +595,8 @@ public abstract class JNICompiler
                                          nextOSArgFloatReg,
                                          spillOffsetOS);
     } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
-      genPowerOpenParameterPassingCode(asm,
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPower64ELF_ABI);
+      gen64BitPowerPC_ELF_ParameterPassingCode(asm,
                                        types,
                                        nextVMArgReg,
                                        nextVMArgFloatReg,
@@ -956,10 +956,10 @@ public abstract class JNICompiler
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
    * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */
-  private static void genPowerOpenParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
+  private static void gen64BitPowerPC_ELF_ParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
                                                        int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
                                                        int nextOSArgFloatReg, int spillOffsetOS) {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       // create one Assembler object for each argument
       // This is needed for the following reason:
       //   -2 new arguments are added in front for native methods, so the normal arguments
@@ -1266,7 +1266,7 @@ public abstract class JNICompiler
     // GPR 4-10 and FPR 1-6 into the volatile save area.
 
     if (usesVarargs) {
-      if (VM.BuildForPowerOpenABI) {
+      if (VM.BuildForPower64ELF_ABI) {
         offset = STACKFRAME_HEADER_SIZE + 3 * BYTES_IN_STACKSLOT;   // skip over slots for GPR 3-5
         for (int i = 6; i <= 10; i++) {
           asm.emitSTAddr(i, offset, FP);
