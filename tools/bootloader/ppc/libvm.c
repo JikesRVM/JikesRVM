@@ -19,7 +19,7 @@
  * exception handling.   The file "sys.cpp" contains the o/s support services
  * required by the java class libraries.
  *
- * PowerPC version for Linux and Mac OS X
+ * PowerPC version for Linux
  *
  *
  *             everything except the command line parsing in main().
@@ -37,21 +37,6 @@
 #include <assert.h>
 #include <sys/mman.h>
 #define SIGNAL_STACKSIZE (16 * 1024)    // in bytes
-
-
-
-#ifdef RVM_FOR_LINUX
-#define HAVE_SA_SIGACTION       /* Set this if a "struct sigaction" contains
-                                 * a member named "sa_sigaction". */
-#endif
-
-#ifdef RVM_FOR_OSX
-#include <sys/stat.h>
-#include <mach/ppc/thread_status.h>
-extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
-#define MAP_ANONYMOUS MAP_ANON
-#define NEED_STRSIGNAL
-#endif
 
 #include <ucontext.h>
 #include <signal.h>
@@ -175,123 +160,11 @@ struct linux_sigregs {
 #include "sys.h"
 extern "C" void setLinkage(BootRecord *);
 
-#ifdef RVM_FOR_OSX
-#define GET_GPR(info, r) (*getRegAddress((info), (r)))
-#define SET_GPR(info, r, value) (*getRegAddress((info), (r))=(value))
-
-Word *
-getRegAddress(ppc_thread_state_t *state, int r)
-{
-  Word *result = 0;
-  switch (r) {
-  case  0:
-    result = &state->r0;
-    break;
-  case 1  :
-    result = &state->r1;
-    break;
-  case 2  :
-    result = &state->r2;
-    break;
-  case 3  :
-    result = &state->r3;
-    break;
-  case 4  :
-    result = &state->r4;
-    break;
-  case 5  :
-    result = &state->r5;
-    break;
-  case 6  :
-    result = &state->r6;
-    break;
-  case 7  :
-    result = &state->r7;
-    break;
-  case 8  :
-    result = &state->r8;
-    break;
-  case 9  :
-    result = &state->r9;
-    break;
-  case 10  :
-    result = &state->r10;
-    break;
-  case 11  :
-    result = &state->r11;
-    break;
-  case 12  :
-    result = &state->r12;
-    break;
-  case 13  :
-    result = &state->r13;
-    break;
-  case 14  :
-    result = &state->r14;
-    break;
-  case 15  :
-    result = &state->r15;
-    break;
-  case 16  :
-    result = &state->r16;
-    break;
-  case 17  :
-    result = &state->r17;
-    break;
-  case 18  :
-    result = &state->r18;
-    break;
-  case 19  :
-    result = &state->r19;
-    break;
-  case 20  :
-    result = &state->r20;
-    break;
-  case 21  :
-    result = &state->r21;
-    break;
-  case 22  :
-    result = &state->r22;
-    break;
-  case 23  :
-    result = &state->r23;
-    break;
-  case 24  :
-    result = &state->r24;
-    break;
-  case 25  :
-    result = &state->r25;
-    break;
-  case 26  :
-    result = &state->r26;
-    break;
-  case 27  :
-    result = &state->r27;
-    break;
-  case 28  :
-    result = &state->r28;
-    break;
-  case 29  :
-    result = &state->r29;
-    break;
-  case 30  :
-    result = &state->r30;
-    break;
-  case 31  :
-    result = &state->r31;
-    break;
-  }
-
-  return result;
-}
-
-#else
 #define GET_GPR(info, r)             ((info)->gpr[(r)])
 #define SET_GPR(info, r, value)     (((info)->gpr[(r)]) = (value))
 //  int* getRegAddress(mstsave *save, int r) {
 //    return &save->gpr[r];
 //  }
-#endif
 
 BootRecord *theBootRecord;
 #define NULL 0
@@ -368,7 +241,6 @@ static int isVmSignal(Address iar, Address jtoc)
   return inRVMAddressSpace(iar) && inRVMAddressSpace(jtoc);
 }
 
-#ifdef RVM_FOR_LINUX
 /* The following code is factored out while getcontext() remains
    unimplemented for PPC Linux.
 */
@@ -406,7 +278,6 @@ getLinuxSavedRegisters(int signum, void* arg3)
   return context->regs;
 #endif
 }
-#endif
 
 /* Handle software signals.
 
@@ -415,24 +286,11 @@ getLinuxSavedRegisters(int signum, void* arg3)
    small.  If mysterious crashes seem to occur, consider the possibility that
    the signal stack might need to be made larger. [--DL].
 */
-#ifdef RVM_FOR_LINUX
 void
 cSignalHandler(int signum, siginfo_t* siginfo, void* arg3)
 {
   pt_regs *save = getLinuxSavedRegisters(signum, arg3);
   Word iar  =  save->nip;
-#endif
-#if 0
-} // so emacs knows to match up { and } nicely :)
-#endif
-#ifdef RVM_FOR_OSX
-void
-cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
-{
-  struct mcontext* info = context->uc_mcontext;
-  ppc_thread_state_t *save = &info->ss;
-  Word iar  =  save->srr0;
-#endif
   // UNUSED: // Address jtoc =  GET_GPR(save, Constants_JTOC_POINTER);
 
   if (signum == SIGHUP) {
@@ -441,9 +299,6 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     if (lib_verbose)
       CONSOLE_PRINTF("%s: signal SIGHUP at ip=" FMTrvmPTR " ignored\n",
               Me, rvmPTR_ARG(iar));
-#ifdef RVM_FOR_OSX
-    sigreturn((struct sigcontext*)context);
-#endif
     return;
   }
 
@@ -465,9 +320,6 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
               " a thread switch\n", Me);
       *flag = 1;
     }
-#ifdef RVM_FOR_OSX
-    sigreturn((struct sigcontext*)context);
-#endif
     return;
   }
 
@@ -498,23 +350,12 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     */
     Address dumpStack
       = *(Address *)((char *)VmToc + DumpStackAndDieOffset);
-#ifdef RVM_FOR_LINUX
     save->link = save->nip + 4; // +4 so it looks like a return address
     save->nip = dumpStack;
-#elif defined RVM_FOR_OSX
-    save->lr = save->srr0 + 4; // +4 so it looks like a return address
-    save->srr0 = dumpStack;
-#endif
     SET_GPR(save, Constants_FIRST_VOLATILE_GPR,
             GET_GPR(save, Constants_FRAME_POINTER));
-#if defined RVM_FOR_OSX
-    sigreturn((struct sigcontext*)context);
-#endif
     return;
   }
-#if defined RVM_FOR_OSX
-  sigreturn((struct sigcontext*)context);
-#endif
 }
 
 
@@ -531,7 +372,6 @@ static const int noise = 0;
 /** Now we define the start of the hardware trap handler.  It needs
  * a different prologue for each operating system. */
 
-#ifdef RVM_FOR_LINUX
 void
 cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
 {
@@ -540,29 +380,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
   uintptr_t ip = save->nip;
   uintptr_t lr = save->link;
   Address jtoc =  save->gpr[Constants_JTOC_POINTER];
-#endif // RVM_FOR_LINUX
-#if 0
-} // for balancing braces { } in the text editor; ignore.
-#endif
-
-#ifdef RVM_FOR_OSX
-void
-cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
-{
-  struct mcontext* info = context->uc_mcontext;
-  ppc_thread_state_t *save = &info->ss;
-  ppc_float_state_t       *fs = &info->fs;
-  unsigned ip  =  save->srr0;
-  uintptr_t lr = save->lr;
-  Address jtoc =  GET_GPR(save, Constants_JTOC_POINTER);
-  if (isVmSignal(ip, jtoc)) {
-    if ((signum == SIGSEGV || signum == SIGBUS) &&
-        siginfo->si_addr == (void*)save->srr0) {
-      siginfo->si_addr = (void*)context->uc_mcontext->es.dar;
-    }
-  }
-  uintptr_t faultingAddress = (uintptr_t)siginfo->si_addr;
-#endif // RVM_FOR_OSX
 
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
 
@@ -629,11 +446,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       CONSOLE_PRINTF("    exn_handler=" FMTrvmPTR "\n", rvmPTR_ARG(javaExceptionHandler));
       CONSOLE_PRINTF("             lr=" FMTrvmPTR "\n",  rvmPTR_ARG(lr));
 
-#ifdef RVM_FOR_OSX
-      CONSOLE_PRINTF("            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
-#else  // ! RVM_FOR_OSX:
       CONSOLE_PRINTF("   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
-#endif // ! RVM_FOR_OSX
 
       if (isRecoverable) {
         TRACE_PRINTF("%s: normal trap\n", Me);
@@ -677,18 +490,11 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       Address dumpStack
         = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
       SET_GPR(save, P0, GET_GPR(save, FP));
-#ifdef RVM_FOR_LINUX
       save->link = save->nip + 4; // +4 so it looks like a return address
       save->nip = dumpStack;
-#endif
-#ifdef RVM_FOR_OSX
-      save->lr = save->srr0 + 4; // +4 so it looks like a return address
-      save->srr0 = dumpStack;
-#endif
       return;
     }
 
-#ifdef RVM_FOR_LINUX
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler (4)\n");
 
     for (int i = 0; i < NGPRS; ++i)
@@ -697,18 +503,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       fprs[i] = ((struct linux_sigregs*)save)->fp_regs[i];
     *ipLoc = save->nip + 4; // +4 so it looks like return address
     *lrLoc = save->link;
-#endif
-
-#ifdef RVM_FOR_OSX
-    {
-      for (int i = 0; i < NGPRS; ++i)
-        gprs[i] = GET_GPR(save, i);
-      for (int i=0; i < NFPRS; i++)
-        fprs[i] = fs->fpregs[i];
-    }
-    *ipLoc = save->srr0 + 4; // +4 so it looks like return address
-    *lrLoc = save->lr;
-#endif
 
     *inuse = 1;
 
@@ -717,13 +511,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     //
     Address   oldFp = GET_GPR(save, FP);
     Address   newFp = oldFp - Constants_STACKFRAME_HEADER_SIZE;
-#ifdef RVM_FOR_LINUX
     *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->nip + 4; // +4 so it looks like return address
-#endif
-
-#ifdef RVM_FOR_OSX
-    *(int *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->srr0 + 4; // +4 so it looks like return address
-#endif
 
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler (6)\n");
     *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
@@ -740,13 +528,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     int      trapInfo    = 0;
     int      haveFrame   = 1;
 
-#ifdef RVM_FOR_OSX
-    if ((signum == SIGSEGV || signum == SIGBUS) &&
-        siginfo->si_addr == (void *) save->srr0)
-    {
-      siginfo->si_addr = (void *) context->uc_mcontext->es.dar;
-    }
-#endif
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler (7)\n");
     switch (signum) {
     case SIGSEGV:
@@ -843,13 +624,8 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
           Address dumpStack
             = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
           SET_GPR(save, P0, GET_GPR(save, FP));
-#ifdef RVM_FOR_LINUX
           save->link = save->nip + 4; // +4 so it looks like a return address
           save->nip = dumpStack;
-#elif (defined RVM_FOR_OSX)
-          save->lr = save->srr0 + 4; // +4 so it looks like a return address
-          save->srr0 = dumpStack;
-#endif
           return;
         }
         *(Address *)((char *)thread + RVMThread_stackLimit_offset)
@@ -877,7 +653,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       /* Set the link register to make it look as if the Java exception
          handler had been called directly from the exception site.
       */
-#ifdef RVM_FOR_LINUX
       if (save->nip == 0)
         do {
           /* A bad branch -- use the contents of the link register as
@@ -885,41 +660,20 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
         } while(0);
       else
         save->link = save->nip + 4; // +4 so it looks like a return address
-#elif defined RVM_FOR_OSX
-      if (save->srr0 == 0) {
-        do {
-          /* A bad branch -- use the contents of the link register as
-                 our best guess of the call site. */
-        } while(0);
-      } else {
-        save->lr = save->srr0 + 4; // +4 so it looks like a return address
-      }
-#endif
     } else {
       /* We haven't actually bought the stackframe yet, so pretend that
          we are actually trapping directly from the call instruction that
          invoked the method whose prologue caused the stackoverflow.
       */
-#ifdef RVM_FOR_LINUX
       *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->link;
-#elif defined RVM_FOR_OSX
-      *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->lr;
-#endif
     }
 
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler (9)\n");
     /* Resume execution at the Java exception handler.
      */
-#ifdef RVM_FOR_LINUX
     save->nip = javaExceptionHandler;
-#elif (defined RVM_FOR_OSX)
-    save->srr0 = javaExceptionHandler;
-#endif
     if (noise) CONSOLE_PRINTF("just got into cTrapHandler (10)\n");
 
-#ifdef RVM_FOR_OSX
-    sigreturn((struct sigcontext*)context);
-#endif
   }
 
 
@@ -1126,7 +880,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
     char *bottomOfSignalStack = new char[SIGNAL_STACKSIZE];
     char *topOfSignalStack = bottomOfSignalStack + SIGNAL_STACKSIZE;
 
-#ifdef RVM_FOR_LINUX
     // Install hardware trap handler and signal stack
     //   mask all signals during signal handling
     //   exclude the signal used to poke pthreads
@@ -1147,37 +900,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
       ERROR_PRINTF("%s: sigfillset or sigdelset failed (errno=%d)\n", Me, errno);
       return 1;
     }
-#elif (defined RVM_FOR_OSX)
-    struct sigaltstack stackInfo;
-    if ((stackInfo.ss_sp = (char*)malloc(SIGSTKSZ)) == NULL) {
-      ERROR_PRINTF("%s: malloc failed (errno=%d)\n", Me, errno);
-      return 1;
-    }     /* error return */
-    stackInfo.ss_size = SIGSTKSZ;
-    stackInfo.ss_flags = 0;
-    if (sigaltstack(&stackInfo, 0) < 0) {
-      ERROR_PRINTF("%s: sigstack failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-    struct sigaction action;
-    action.sa_handler = (SIGNAL_HANDLER)cTrapHandler;
-    action.sa_flags   = SA_ONSTACK | SA_RESTART;
-    action.sa_flags   |= SA_SIGINFO;
-    if (sigfillset(&(action.sa_mask))) {
-      ERROR_PRINTF("%s: sigfillset failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-    /* exclude the signal used to poke pthreads */
-    if (sigdelset(&(action.sa_mask), SIGCONT)) {
-      ERROR_PRINTF("%s: sigdelset failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-    if (sigaction(SIGBUS, &action, 0)) {
-      // catch null pointer references
-      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-#endif
     if (sigaction(SIGSEGV, &action, 0) // catch null pointer references
         || sigaction(SIGTRAP, &action, 0) // catch array bounds violations
         || sigaction(SIGILL, &action, 0)) /* catch vm errors (so we can try to
@@ -1189,11 +911,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 
     // install software signal handler
     //
-#ifdef HAVE_SA_SIGACTION
     action.sa_sigaction = cSignalHandler;
-#else
-    action.sa_handler = (SIGNAL_HANDLER) cSignalHandler;
-#endif
     if (sigaction(SIGALRM, &action, 0) /* catch timer ticks (so we can
                                           timeslice user level threads) */
         || sigaction(SIGHUP, &action, 0) /* catch signal to awaken external

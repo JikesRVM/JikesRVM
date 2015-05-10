@@ -33,10 +33,8 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
   /////////////////////////////////////////////////////////////
 
   int NATIVE_FRAME_HEADER_SIZE =
-      VM.BuildForPower64ELF_ABI ? 6 * BYTES_IN_ADDRESS /* fp + cr + lr + res + res + toc */ : (VM.BuildForSVR4ABI ? 2 *
-                                                                                                                  BYTES_IN_ADDRESS /* fp + lr */ : /* BuildForMachOABI */
-                                                                                                                                   6 *
-                                                                                                                                   BYTES_IN_ADDRESS /* fp + cp + lr + ??? */);
+      VM.BuildForPower64ELF_ABI ? 6 * BYTES_IN_ADDRESS /* fp + cr + lr + res + res + toc */ :
+      2 * BYTES_IN_ADDRESS /* fp + lr */;
 
   // number of volatile registers that may carry parameters to the
   // native code

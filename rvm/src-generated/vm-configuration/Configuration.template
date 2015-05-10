@@ -41,10 +41,9 @@ public abstract class Configuration {
 
   public static final boolean LittleEndian = @_RVM_FOR_LITTLE_ENDIAN_@;
 
-  /* ABI selection.  Exactly one of these variables will be true in each build. */
-  public static final boolean BuildForMachOABI = BuildForOsx;
+  /* ABI selection for PowerPC.  Exactly one of these variables will be true in each build. */
   public static final boolean BuildForPower64ELF_ABI = BuildForLinux && BuildForPowerPC && BuildFor64Addr;
-  public static final boolean BuildForSVR4ABI = !(BuildForPower64ELF_ABI || BuildForMachOABI);
+  public static final boolean BuildForSVR4ABI = !BuildForPower64ELF_ABI;
 
   /** Are we using Classpath's portable native sync feature? */
   public static final boolean PortableNativeSync = @_PORTABLE_NATIVE_SYNC_@;

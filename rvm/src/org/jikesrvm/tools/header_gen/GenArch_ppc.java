@@ -14,7 +14,6 @@ package org.jikesrvm.tools.header_gen;
 
 import static org.jikesrvm.ppc.TrapConstants.*;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.ppc.RegisterConstants;
 import org.jikesrvm.ppc.StackframeLayoutConstants;
@@ -77,28 +76,15 @@ final class GenArch_ppc extends GenArch {
 
   @Override
   public void emitArchAssemblerDeclarations() {
-    if (VM.BuildForOsx) {
-      pln("#define FP r" + BaselineConstants.FP);
-      pln("#define JTOC r" + BaselineConstants.JTOC);
-      pln("#define THREAD_REGISTER r" + BaselineConstants.THREAD_REGISTER);
-      pln("#define S0 r" + BaselineConstants.S0);
-      pln("#define T0 r" + BaselineConstants.T0);
-      pln("#define T1 r" + BaselineConstants.T1);
-      pln("#define T2 r" + BaselineConstants.T2);
-      pln("#define T3 r" + BaselineConstants.T3);
-      pln("#define STACKFRAME_RETURN_ADDRESS_OFFSET " +
-          StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-    } else {
-      pln(".set FP," + BaselineConstants.FP);
-      pln(".set JTOC," + BaselineConstants.JTOC);
-      pln(".set THREAD_REGISTER," + BaselineConstants.THREAD_REGISTER);
-      pln(".set S0," + BaselineConstants.S0);
-      pln(".set T0," + BaselineConstants.T0);
-      pln(".set T1," + BaselineConstants.T1);
-      pln(".set T2," + BaselineConstants.T2);
-      pln(".set T3," + BaselineConstants.T3);
-      pln(".set STACKFRAME_RETURN_ADDRESS_OFFSET," + StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-      pln(".set T4," + (BaselineConstants.T3 + 1));
-    }
+    pln(".set FP," + BaselineConstants.FP);
+    pln(".set JTOC," + BaselineConstants.JTOC);
+    pln(".set THREAD_REGISTER," + BaselineConstants.THREAD_REGISTER);
+    pln(".set S0," + BaselineConstants.S0);
+    pln(".set T0," + BaselineConstants.T0);
+    pln(".set T1," + BaselineConstants.T1);
+    pln(".set T2," + BaselineConstants.T2);
+    pln(".set T3," + BaselineConstants.T3);
+    pln(".set STACKFRAME_RETURN_ADDRESS_OFFSET," + StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
+    pln(".set T4," + (BaselineConstants.T3 + 1));
   }
 }

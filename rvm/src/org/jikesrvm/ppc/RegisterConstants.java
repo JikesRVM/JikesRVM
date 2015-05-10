@@ -27,7 +27,7 @@ public interface RegisterConstants {
   int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
   // OS register convention (for mapping parameters in JNI calls)
-  // These constants encode conventions for OSX and Linux.
+  // These constants encode conventions for Linux.
   int FIRST_OS_PARAMETER_GPR = 3;
   int LAST_OS_PARAMETER_GPR = 10;
   int FIRST_OS_VOLATILE_GPR = 3;
@@ -46,7 +46,7 @@ public interface RegisterConstants {
   //
   /** special instruction semantics on this register */
   int REGISTER_ZERO = 0;
-  /** same as OSX/Linux */
+  /** same as Linux */
   int FRAME_POINTER = 1;
   int FIRST_VOLATILE_GPR = FIRST_OS_PARAMETER_GPR;
   //                                            ...
@@ -69,9 +69,9 @@ public interface RegisterConstants {
 
   // Floating point register usage. (FPR's are 64 bits wide).
 
-  /** OSX/Linux is 0 */
+  /** Linux is 0 */
   int FIRST_SCRATCH_FPR = 0;
-  /** OSX/Linux is 0 */
+  /** Linux is 0 */
   int LAST_SCRATCH_FPR = 0;
   int FIRST_VOLATILE_FPR = FIRST_OS_VOLATILE_FPR;
   //

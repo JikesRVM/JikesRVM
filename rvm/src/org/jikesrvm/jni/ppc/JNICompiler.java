@@ -50,8 +50,9 @@ import org.vmmagic.unboxed.Offset;
  *
  * TODO: This class is a disaster.
  *       Refactor into an abstract parent with subclasses for target ABIs.
- *       Problem: can't risk doing that until we get OSX working again,
- *                so we can actually test that the refactors are correct.
+ *       Problem: can't risk doing that until we get access to 32-Bit PPC
+ *       for testing again, so we can actually test that the refactors
+ *       are correct.
  */
 public abstract class JNICompiler
     implements BaselineConstants, JNIStackframeLayoutConstants {
@@ -455,7 +456,7 @@ public abstract class JNICompiler
 
     // offset to the spill area in the callee (OS frame):
     int spillOffsetOS;
-    if (VM.BuildForPower64ELF_ABI || VM.BuildForMachOABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       // 1st spill = JNIEnv, 2nd spill = class
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE + 2 * BYTES_IN_STACKSLOT;
     } else {
@@ -585,8 +586,8 @@ public abstract class JNICompiler
                                                    int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
                                                    int nextOSArgFloatReg, int spillOffsetOS) {
     // TODO: The callee methods are prime candidates for being moved to ABI-specific subclasses.
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      genSVR4orMachOParameterPassingCode(asm,
+    if (VM.BuildForSVR4ABI) {
+      genSVR4ParameterPassingCode(asm,
                                          types,
                                          nextVMArgReg,
                                          nextVMArgFloatReg,
@@ -622,10 +623,10 @@ public abstract class JNICompiler
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
    * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */
-  private static void genSVR4orMachOParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
+  private static void genSVR4ParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
                                                          int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
                                                          int nextOSArgFloatReg, int spillOffsetOS) {
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+    if (VM.BuildForSVR4ABI) {
       // create one Assembler object for each argument
       // This is needed for the following reason:
       //   -2 new arguments are added in front for native methods, so the normal arguments
@@ -641,9 +642,6 @@ public abstract class JNICompiler
       Assembler[] asmForArgs = new Assembler[numArguments];
 
       for (int arg = 0; arg < numArguments; arg++) {
-        int spillSizeOSX = 0;          /* TODO: ONLY USED ON OS X */
-        int nextOsxGprIncrement = 1;   /* TODO: ONLY USED ON OS X */
-
         asmForArgs[arg] = new ArchitectureSpecific.Assembler(0);
         Assembler asmArg = asmForArgs[arg];
 
@@ -652,15 +650,6 @@ public abstract class JNICompiler
         //
         if (types[arg].isFloatType() || types[arg].isDoubleType()) {
           boolean is32bits = types[arg].isFloatType();
-
-          if (VM.BuildForMachOABI) {
-            if (is32bits) {
-              spillSizeOSX = 4;
-            } else {
-              spillSizeOSX = 8;
-              nextOsxGprIncrement = 2;
-            }
-          }
 
           // 1. check the source, the value will be in srcVMArg
           int srcVMArg; // scratch fpr
@@ -695,22 +684,10 @@ public abstract class JNICompiler
                 asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
                 spillOffsetOS += BYTES_IN_DOUBLE;
               }
-            } else {
-              if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-              if (is32bits) {
-                asmArg.emitSTFS(srcVMArg, spillOffsetOS, FP);
-              } else {
-                asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
-              }
             }
           }
           // for 64-bit long arguments
         } else if (types[arg].isLongType() && VM.BuildFor32Addr) {
-          if (VM.BuildForMachOABI) {
-            spillSizeOSX = 8;
-            nextOsxGprIncrement = 2;
-          }
-
           // handle OS first
           boolean dstSpilling;
           int regOrSpilling = -1;  // it is register number or spilling offset
@@ -730,9 +707,6 @@ public abstract class JNICompiler
               spillOffsetOS = (spillOffsetOS + 7) & -8;
               regOrSpilling = spillOffsetOS;
               spillOffsetOS += BYTES_IN_LONG;
-            } else {
-              if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-              regOrSpilling = spillOffsetOS;
             }
           } else {
             // use registers
@@ -743,9 +717,6 @@ public abstract class JNICompiler
               nextOSArgReg += (nextOSArgReg + 1) & 0x01; // if gpr is even, gpr += 1
               regOrSpilling = nextOSArgReg;
               nextOSArgReg += 2;
-            } else {
-              if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-              regOrSpilling = nextOSArgReg;
             }
           }
 
@@ -757,13 +728,6 @@ public abstract class JNICompiler
 
               if (VM.BuildForSVR4ABI) {
                 asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
-              } else {
-                if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-                if (nextOSArgReg == LAST_OS_PARAMETER_GPR) {
-                  asmArg.emitMR(nextOSArgReg, nextVMArgReg);
-                } else {
-                  asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
-                }
               }
             } else {
               asmArg.emitMR(regOrSpilling + 1, nextVMArgReg + 1);
@@ -848,10 +812,6 @@ public abstract class JNICompiler
             spillOffsetVM += BYTES_IN_LONG;
           }
         } else if (types[arg].isReferenceType()) {
-          if (VM.BuildForMachOABI) {
-            spillSizeOSX = 4;
-          }
-
           // For reference type, replace with handles before passing to native
           int srcreg;
           if (nextVMArgReg <= LAST_VOLATILE_GPR) {
@@ -896,10 +856,6 @@ public abstract class JNICompiler
           }
 
         } else {
-          if (VM.BuildForMachOABI) {
-            spillSizeOSX = 4;
-          }
-
           // For all other types: int, short, char, byte, boolean
           // (1a) fit in OS register, move the register
           if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
@@ -926,10 +882,6 @@ public abstract class JNICompiler
           }
         }
 
-        if (VM.BuildForMachOABI) {
-          spillOffsetOS += spillSizeOSX;
-          nextOSArgReg += nextOsxGprIncrement;
-        }
       }
 
       // Append the code sequences for parameter mapping
@@ -1203,17 +1155,6 @@ public abstract class JNICompiler
     }
   }
 
-  static void generateReturnCodeForJNIMethod(Assembler asm, RVMMethod mth) {
-    if (VM.BuildForMachOABI) {
-      TypeReference t = mth.getReturnType();
-      if (VM.BuildFor32Addr && t.isLongType()) {
-        asm.emitMR(S0, T0);
-        asm.emitMR(T0, T1);
-        asm.emitMR(T1, S0);
-      }
-    }
-  }
-
   /**
    * Emit code to do the C to Java transition:  JNI methods in JNIFunctions.java
    */
@@ -1224,27 +1165,6 @@ public abstract class JNICompiler
     String mthName = mth.getName().toString();
     final boolean usesVarargs =
         (mthName.startsWith("Call") && mthName.endsWith("Method")) || mthName.equals("NewObject");
-
-    if (VM.BuildForMachOABI) {
-      // Find extra amount of space that needs to be added to the frame
-      //to hold copies of the vararg values. This calculation is
-      //overkill since some of these values will be in registers and
-      //already stored. But then either 3 or 4 of the parameters don't
-      //show up in the signature anyway (JNIEnvironment, class, method
-      //id, instance object).
-      if (usesVarargs) {
-        TypeReference[] argTypes = mth.getParameterTypes();
-        int argCount = argTypes.length;
-
-        for (int i = 0; i < argCount; i++) {
-          if (argTypes[i].isLongType() || argTypes[i].isDoubleType()) {
-            varargAmount += 2 * BYTES_IN_ADDRESS;
-          } else {
-            varargAmount += BYTES_IN_ADDRESS;
-          }
-        }
-      }
-    }
 
     int glueFrameSize = JNI_GLUE_FRAME_SIZE + varargAmount;
 
@@ -1288,17 +1208,9 @@ public abstract class JNICompiler
           asm.emitSTFD(i, offset, FP);
           offset += BYTES_IN_DOUBLE;
         }
-      } else {
-        if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-        // save all gpr parameter registers
-        offset = STACKFRAME_HEADER_SIZE + 0;
-        for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
-          asm.emitSTAddr(i, offset, FP);
-          offset += BYTES_IN_ADDRESS;
-        }
       }
     } else {
-      if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+      if (VM.BuildForSVR4ABI) {
         // adjust register contents (following SVR4 ABI) for normal JNI functions
         // especially dealing with long, spills
         // number of parameters of normal JNI functions should fix in
@@ -1327,7 +1239,7 @@ public abstract class JNICompiler
     //
     // on entry T0 = JNIEnv* which is an interior pointer to this thread's JNIEnvironment.
     // We first adjust this in place to be a pointer to a JNIEnvironment and then use
-    // it to acquire THREAD_REGISTER (and JTOC on OSX/Linux).
+    // it to acquire THREAD_REGISTER (and JTOC on Linux).
     //
     // TODO update for AIX removal
     // AIX non volatile gprs 13-16 have been saved & are available (also gprs 11-13 can be used).
@@ -1339,9 +1251,9 @@ public abstract class JNICompiler
     asm.emitADDI(T0, Offset.zero().minus(Entrypoints.JNIExternalFunctionsField.getOffset()), T0);
 
     int retryLoop = asm.getMachineCodeIndex();
-    // acquire Jikes RVM THREAD_REGISTER (and JTOC OSX/Linux only).
+    // acquire Jikes RVM THREAD_REGISTER (and JTOC Linux only).
     asm.emitLAddrOffset(THREAD_REGISTER, T0, Entrypoints.JNIEnvSavedTRField.getOffset());
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+    if (VM.BuildForSVR4ABI) {
       // When using the 64-bit PowerPC ELF ABI (e.g. on PPC64 Linux), the JTOC is part of
       // the Linkage triplet and this already set by our caller.
       // Thus, we only need this load when not on PPC64 Linux.
@@ -1512,7 +1424,7 @@ public abstract class JNICompiler
   // we only process JNI functions that uses parameters directly
   // so only handle parameters in gprs now
   static void convertParametersFromSVR4ToJava(Assembler asm, RVMMethod meth) {
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+    if (VM.BuildForSVR4ABI) {
       TypeReference[] argTypes = meth.getParameterTypes();
       int argCount = argTypes.length;
       int nextVMReg = FIRST_VOLATILE_GPR;
@@ -1522,9 +1434,7 @@ public abstract class JNICompiler
         if (argTypes[i].isFloatType()) {
           // skip over
         } else if (argTypes[i].isDoubleType()) {
-          if (VM.BuildForMachOABI) {
-            nextOSReg++;
-          }
+          // skip over
         } else {
           if (argTypes[i].isLongType() && VM.BuildFor32Addr) {
             if (VM.BuildForSVR4ABI) {
