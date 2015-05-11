@@ -100,7 +100,7 @@ struct linux_sigregs {
 #define rvmPTR32_ARG(p) rvmPTR_ARG((p))
 
 #elif defined PTRS_VIA_PERCENT_P                \
- 
+
 #define FMTrvmPTR32 "%08p"
 
 #ifdef RVM_FOR_32_ADDR
@@ -964,10 +964,10 @@ createVM(void)
   } else {
     if (lib_verbose) {
       CONSOLE_PRINTF("%s: calling boot thread: jtoc = " FMTrvmPTR
-                     "   tr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
-                     Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), tid, rvmPTR_ARG(fp));
+                     "   tr = " FMTrvmPTR "   ip = " FMTrvmPTR "   fp = " FMTrvmPTR "\n",
+                     Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), rvmPTR_ARG(ip), rvmPTR_ARG(fp));
     }
-    bootThread(jtoc, tr, tid, fp);
+    bootThread(jtoc, tr, ip, fp);
     ERROR_PRINTF("Unexpected return from bootThread\n");
     return 1;
   }

@@ -19,7 +19,7 @@
  * Taken:
  *    arg0 == value to put into vm table-of-contents register
  *    arg1 == value to put into vm processor register
- *    arg2 == ignored (is ip) TODO: use it instead of getting from stackframe
+ *    arg2 == calue to put into the link register (i.e. the new program counter)
  *    arg3 == value to put into vm frame-pointer register
  *
  * Returned:
@@ -60,11 +60,5 @@ mr      FP,T3
 /*
  * At this point we've abandoned the C stack and are running on a RVMThread's stack.
  */
-
-#ifdef RVM_FOR_32_ADDR
-lwz     S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
-#else
-ld      S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
-#endif
-mtlr    S0
+mtlr    T2
 blr                       /* branch to it */
