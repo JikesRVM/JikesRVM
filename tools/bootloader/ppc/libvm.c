@@ -677,8 +677,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
   }
 
 
-  static void *bootThreadCaller(void *);
-
 // A startup configuration option with default values.
 // Declared in bootImageRunner.h
   const char *bootDataFilename     = 0;
@@ -975,29 +973,6 @@ cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
     }
 
   }
-
-
-  /*
-   * Wrapper for bootThread for a new pthread to start up the VM
-   */
-  static void *
-  bootThreadCaller(void UNUSED *dummy)
-  {
-    uintptr_t jtoc = startupRegs[0];
-    uintptr_t pr   = startupRegs[1];
-    uintptr_t tid  = startupRegs[2];
-    uintptr_t fp   = startupRegs[3];
-
-    TRACE_PRINTF("about to boot vm:\n");
-
-    bootThread(jtoc, pr, tid, fp);
-
-    ERROR_PRINTF("%s: Unexpected return from vm startup thread\n",
-            Me);
-    return NULL;
-
-  }
-
 
 // Get address of JTOC.
   extern "C" void *
