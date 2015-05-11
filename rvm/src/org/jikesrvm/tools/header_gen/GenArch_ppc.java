@@ -44,7 +44,7 @@ final class GenArch_ppc extends GenArch {
     p("static const int Constants_ARRAY_INDEX_MASK           = " + ARRAY_INDEX_MASK + ";\n");
     p("static const int Constants_ARRAY_INDEX_TRAP           = " + ARRAY_INDEX_TRAP + ";\n");
     p("static const int Constants_ARRAY_INDEX_REG_MASK       = " + ARRAY_INDEX_REG_MASK + ";\n");
-    p("static const int Constants_ARRAY_INDEX_REG_SHIFT      = " + ARRAY_INDEX_REG_MASK + ";\n");
+    p("static const int Constants_ARRAY_INDEX_REG_SHIFT      = " + ARRAY_INDEX_REG_SHIFT + ";\n");
     p("static const int Constants_CONSTANT_ARRAY_INDEX_MASK  = " +
       CONSTANT_ARRAY_INDEX_MASK + ";\n");
     p("static const int Constants_CONSTANT_ARRAY_INDEX_TRAP  = " +
