@@ -100,7 +100,7 @@ struct linux_sigregs {
 #define rvmPTR32_ARG(p) rvmPTR_ARG((p))
 
 #elif defined PTRS_VIA_PERCENT_P                \
-
+ 
 #define FMTrvmPTR32 "%08p"
 
 #ifdef RVM_FOR_32_ADDR
@@ -298,7 +298,7 @@ cSignalHandler(int signum, siginfo_t* siginfo, void* arg3)
                                debugger  */
     if (lib_verbose)
       CONSOLE_PRINTF("%s: signal SIGHUP at ip=" FMTrvmPTR " ignored\n",
-              Me, rvmPTR_ARG(iar));
+                     Me, rvmPTR_ARG(iar));
     return;
   }
 
@@ -314,10 +314,10 @@ cSignalHandler(int signum, siginfo_t* siginfo, void* arg3)
     unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
     if (*flag) {
       CONSOLE_PRINTF("%s: debug request already in progress,"
-              " please wait\n", Me);
+                     " please wait\n", Me);
     } else {
       CONSOLE_PRINTF("%s: debug requested, waiting for"
-              " a thread switch\n", Me);
+                     " a thread switch\n", Me);
       *flag = 1;
     }
     return;
@@ -381,611 +381,611 @@ cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
   uintptr_t lr = save->link;
   Address jtoc =  save->gpr[Constants_JTOC_POINTER];
 
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
 
-    jtoc=(Address)getJTOC();
+  jtoc=(Address)getJTOC();
 
-    // fetch address of java exception handler
-    //
-    Address javaExceptionHandler
-      = *(Address *)((char *)jtoc + DeliverHardwareExceptionOffset);
+  // fetch address of java exception handler
+  //
+  Address javaExceptionHandler
+    = *(Address *)((char *)jtoc + DeliverHardwareExceptionOffset);
 
-    const int FP  = Constants_FRAME_POINTER;
-    const int P0  = Constants_FIRST_VOLATILE_GPR;
-    const int P1  = Constants_FIRST_VOLATILE_GPR+1;
+  const int FP  = Constants_FRAME_POINTER;
+  const int P0  = Constants_FIRST_VOLATILE_GPR;
+  const int P1  = Constants_FIRST_VOLATILE_GPR+1;
 
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (1)\n");
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (1)\n");
 
-    // We are prepared to handle these kinds of "recoverable" traps.
-    // (Anything else indicates some sort of unrecoverable vm error)
-    //
-    //  1. SIGSEGV - a null object dereference of the form "obj[+-fieldOffset]"
-    //
-    //  2. SIGTRAP - an array bounds trap
-    //               or integer divide by zero trap
-    //               or stack overflow trap
-    //               or explicit nullCheck
-    //
-    int isNullPtrExn = (signum == SIGSEGV) && (isVmSignal(ip, jtoc));
-    if (isNullPtrExn) {
-      // Address range filtering.  Must be in very top or very bottom of address range for
-      // us to treat this as a null pointer exception.
-      // NOTE: assumes that first access off a null pointer occurs at offset of +/- 64k.
-      //       Could be false for very large scalars; should generate an explicit null check for those.
+  // We are prepared to handle these kinds of "recoverable" traps.
+  // (Anything else indicates some sort of unrecoverable vm error)
+  //
+  //  1. SIGSEGV - a null object dereference of the form "obj[+-fieldOffset]"
+  //
+  //  2. SIGTRAP - an array bounds trap
+  //               or integer divide by zero trap
+  //               or stack overflow trap
+  //               or explicit nullCheck
+  //
+  int isNullPtrExn = (signum == SIGSEGV) && (isVmSignal(ip, jtoc));
+  if (isNullPtrExn) {
+    // Address range filtering.  Must be in very top or very bottom of address range for
+    // us to treat this as a null pointer exception.
+    // NOTE: assumes that first access off a null pointer occurs at offset of +/- 64k.
+    //       Could be false for very large scalars; should generate an explicit null check for those.
 #ifdef RVM_FOR_32_ADDR
-      uintptr_t faultMask = 0xffff0000;
+    uintptr_t faultMask = 0xffff0000;
 #else
-      uintptr_t faultMask = 0xffffffffffff0000;
+    uintptr_t faultMask = 0xffffffffffff0000;
 #endif
-      if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & faultMask) == 0))) {
-        if (lib_verbose) {
-          CONSOLE_PRINTF("assuming that this is not a null pointer exception because the faulting address does not lie in the first or last page.\n");
-        }
-        isNullPtrExn = 0;
+    if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & faultMask) == 0))) {
+      if (lib_verbose) {
+        CONSOLE_PRINTF("assuming that this is not a null pointer exception because the faulting address does not lie in the first or last page.\n");
       }
+      isNullPtrExn = 0;
     }
-
-    int isTrap = signum == SIGTRAP;
-    int isRecoverable = isNullPtrExn | isTrap;
-
-    unsigned instruction   = *((unsigned *)ip);
-
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (2)\n");
-
-    if (lib_verbose || !isRecoverable) {
-      CONSOLE_PRINTF("            mem=" FMTrvmPTR "\n",
-              rvmPTR_ARG(faultingAddress));
-      CONSOLE_PRINTF("             fp=" FMTrvmPTR "\n",
-              rvmPTR_ARG(GET_GPR(save,FP)));
-      CONSOLE_PRINTF("             tr=" FMTrvmPTR "\n",
-              rvmPTR_ARG(GET_GPR(save,Constants_THREAD_REGISTER)));
-      CONSOLE_PRINTF("trap/exception: type=%s\n", strsignal(signum));
-      CONSOLE_PRINTF("             ip=" FMTrvmPTR "\n", rvmPTR_ARG(ip));
-      CONSOLE_PRINTF("          instr=0x%08x\n", instruction);
-
-      CONSOLE_PRINTF("    exn_handler=" FMTrvmPTR "\n", rvmPTR_ARG(javaExceptionHandler));
-      CONSOLE_PRINTF("             lr=" FMTrvmPTR "\n",  rvmPTR_ARG(lr));
-
-      CONSOLE_PRINTF("   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
-
-      if (isRecoverable) {
-        TRACE_PRINTF("%s: normal trap\n", Me);
-      } else {
-        ERROR_PRINTF("%s: internal error trap\n", Me);
-        if (--remainingFatalErrors <= 0)
-          exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-      }
-    }
-
-    /* Copy the trapped register set into the current thread's "hardware
-       exception registers" save area. */
-    Address thread = GET_GPR(save,Constants_THREAD_REGISTER);
-    Address *registers = *(Address **)
-                         ((char *)thread + RVMThread_exceptionRegisters_offset);
-
-    Word *gprs
-      = *(Word **)((char *)registers + Registers_gprs_offset);
-    double   *fprs
-      = *(double   **)((char *)registers + Registers_fprs_offset);
-
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (3)\n");
-
-    Word *ipLoc
-      =  (Word  *)((char *)registers + Registers_ip_offset);
-    Word *lrLoc
-      =  (Word  *)((char *)registers + Registers_lr_offset);
-    unsigned char *inuse
-      =  (unsigned  char*)((char *)registers + Registers_inuse_offset);
-
-    if (*inuse) {
-      CONSOLE_PRINTF("%s: internal error: recursive use of hardware exception registers in thread %p (exiting)\n", Me, thread);
-      /* Things went badly wrong, so attempt to generate a useful error
-         dump before exiting by returning to Scheduler.dumpStackAndDie,
-         passing it the fp of the offending thread.
-
-         We could try to continue, but sometimes doing so results in
-         cascading failures and it's hard to tell what the real problem
-         was.
-      */
-      Address dumpStack
-        = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
-      SET_GPR(save, P0, GET_GPR(save, FP));
-      save->link = save->nip + 4; // +4 so it looks like a return address
-      save->nip = dumpStack;
-      return;
-    }
-
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (4)\n");
-
-    for (int i = 0; i < NGPRS; ++i)
-      gprs[i] = save->gpr[i];
-    for (int i = 0; i < NFPRS; ++i)
-      fprs[i] = ((struct linux_sigregs*)save)->fp_regs[i];
-    *ipLoc = save->nip + 4; // +4 so it looks like return address
-    *lrLoc = save->link;
-
-    *inuse = 1;
-
-    // Insert artificial stackframe at site of trap.
-    // This frame marks the place where "hardware exception registers" were saved.
-    //
-    Address   oldFp = GET_GPR(save, FP);
-    Address   newFp = oldFp - Constants_STACKFRAME_HEADER_SIZE;
-    *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->nip + 4; // +4 so it looks like return address
-
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (6)\n");
-    *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
-      = HardwareTrapMethodId;
-    *(Address *)(newFp + Constants_STACKFRAME_FRAME_POINTER_OFFSET)
-      = oldFp;
-    SET_GPR(save, FP, newFp);
-
-    /* Set execution to resume in java exception handler rather than
-       re-executing the instruction that caused the trap.
-    */
-
-    int      trapCode    = Runtime_TRAP_UNKNOWN;
-    int      trapInfo    = 0;
-    int      haveFrame   = 1;
-
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (7)\n");
-    switch (signum) {
-    case SIGSEGV:
-      if (isNullPtrExn) {  // touched top segment of memory, presumably by wrapping negatively off 0
-        if (lib_verbose) CONSOLE_PRINTF("%s: null pointer trap\n", Me);
-        trapCode = Runtime_TRAP_NULL_POINTER;
-        break;
-      }
-      if (lib_verbose) CONSOLE_PRINTF("%s: unknown seg fault\n", Me);
-      trapCode = Runtime_TRAP_UNKNOWN;
-      break;
-
-    case SIGTRAP:
-      if ((instruction & Constants_ARRAY_INDEX_MASK) == Constants_ARRAY_INDEX_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: array bounds trap\n", Me);
-        trapCode = Runtime_TRAP_ARRAY_BOUNDS;
-        trapInfo = gprs[(instruction & Constants_ARRAY_INDEX_REG_MASK)
-                        >> Constants_ARRAY_INDEX_REG_SHIFT];
-        break;
-      } else if ((instruction & Constants_CONSTANT_ARRAY_INDEX_MASK) == Constants_CONSTANT_ARRAY_INDEX_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: array bounds trap\n", Me);
-        trapCode = Runtime_TRAP_ARRAY_BOUNDS;
-        trapInfo = ((int)((instruction & Constants_CONSTANT_ARRAY_INDEX_INFO)<<16))>>16;
-        break;
-      } else if ((instruction & Constants_DIVIDE_BY_ZERO_MASK) == Constants_DIVIDE_BY_ZERO_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: divide by zero trap\n", Me);
-        trapCode = Runtime_TRAP_DIVIDE_BY_ZERO;
-        break;
-      } else if ((instruction & Constants_MUST_IMPLEMENT_MASK) == Constants_MUST_IMPLEMENT_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: must implement trap\n", Me);
-        trapCode = Runtime_TRAP_MUST_IMPLEMENT;
-        break;
-      } else if ((instruction & Constants_STORE_CHECK_MASK) == Constants_STORE_CHECK_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: objarray store check trap\n", Me);
-        trapCode = Runtime_TRAP_STORE_CHECK;
-        break;
-      } else if ((instruction & Constants_CHECKCAST_MASK ) == Constants_CHECKCAST_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: checkcast trap\n", Me);
-        trapCode = Runtime_TRAP_CHECKCAST;
-        break;
-      } else if ((instruction & Constants_REGENERATE_MASK) == Constants_REGENERATE_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: regenerate trap\n", Me);
-        trapCode = Runtime_TRAP_REGENERATE;
-        break;
-      } else if ((instruction & Constants_NULLCHECK_MASK) == Constants_NULLCHECK_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: null pointer trap\n", Me);
-        trapCode = Runtime_TRAP_NULL_POINTER;
-        break;
-      } else if ((instruction & Constants_JNI_STACK_TRAP_MASK) == Constants_JNI_STACK_TRAP) {
-        if (lib_verbose) CONSOLE_PRINTF("%s: resize stack for JNI call\n", Me);
-        trapCode = Runtime_TRAP_JNI_STACK;
-        /* We haven't actually bought the stackframe yet, so pretend that
-           we are actually trapping directly from the call instruction
-           that invoked the native method that caused the stackoverflow
-           trap. */
-        haveFrame = 0;
-        break;
-      } else if ((instruction & Constants_WRITE_BUFFER_OVERFLOW_MASK) == Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
-        //!!TODO: someday use logic similar to stack guard page to force a gc
-        if (lib_verbose) CONSOLE_PRINTF("%s: write buffer overflow trap\n", Me);
-        ERROR_PRINTF("%s: write buffer overflow trap\n", Me);
-        exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-      } else if (((instruction & Constants_STACK_OVERFLOW_MASK)
-                  == Constants_STACK_OVERFLOW_TRAP)
-                 || ((instruction & Constants_STACK_OVERFLOW_MASK)
-                     == Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP))
-      {
-        if (lib_verbose) CONSOLE_PRINTF("%s: stack overflow trap\n", Me);
-        trapCode = Runtime_TRAP_STACK_OVERFLOW;
-        haveFrame = ((instruction & Constants_STACK_OVERFLOW_MASK)
-                     == Constants_STACK_OVERFLOW_TRAP);
-
-        /* Adjust the stack limit downward to give the exception handler
-            some space in which to run.
-        */
-        Address stackLimit = *(Address *)((char *)thread + RVMThread_stackLimit_offset);
-        Address stackStart = *(Address *)((char *)thread + RVMThread_stack_offset);
-        stackLimit -= Constants_STACK_SIZE_GUARD;
-        if (stackLimit < stackStart) {
-          /* double fault - stack overflow exception handler used too
-             much stack space */
-          ERROR_PRINTF(
-                  "%s: stack overflow exception (double fault)\n", Me);
-
-          /* Go ahead and get all the stack space we need to generate
-           * the error dump (since we're crashing anyways)
-           */
-          *(Address *)((char *)thread + RVMThread_stackLimit_offset) = 0;
-
-          /* Things are very badly wrong anyways, so attempt to generate
-             a useful error dump before exiting by returning to
-             Scheduler.dumpStackAndDie, passing it the fp of the
-             offending thread. */
-          Address dumpStack
-            = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
-          SET_GPR(save, P0, GET_GPR(save, FP));
-          save->link = save->nip + 4; // +4 so it looks like a return address
-          save->nip = dumpStack;
-          return;
-        }
-        *(Address *)((char *)thread + RVMThread_stackLimit_offset)
-          = stackLimit;
-
-        break;
-      }
-      if (lib_verbose) CONSOLE_PRINTF("%s: unknown trap\n", Me);
-      trapCode = Runtime_TRAP_UNKNOWN;
-      break;
-
-    default:
-      if (lib_verbose) CONSOLE_PRINTF("%s: unknown trap\n", Me);
-      trapCode = Runtime_TRAP_UNKNOWN;
-      break;
-    }
-
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (8)\n");
-    /* Pass arguments to the Java exception handler.
-     */
-    SET_GPR(save, P0, trapCode);
-    SET_GPR(save, P1, trapInfo);
-
-    if (haveFrame) {
-      /* Set the link register to make it look as if the Java exception
-         handler had been called directly from the exception site.
-      */
-      if (save->nip == 0)
-        do {
-          /* A bad branch -- use the contents of the link register as
-                 our best guess of the call site. */
-        } while(0);
-      else
-        save->link = save->nip + 4; // +4 so it looks like a return address
-    } else {
-      /* We haven't actually bought the stackframe yet, so pretend that
-         we are actually trapping directly from the call instruction that
-         invoked the method whose prologue caused the stackoverflow.
-      */
-      *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->link;
-    }
-
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (9)\n");
-    /* Resume execution at the Java exception handler.
-     */
-    save->nip = javaExceptionHandler;
-    if (noise) CONSOLE_PRINTF("just got into cTrapHandler (10)\n");
-
   }
+
+  int isTrap = signum == SIGTRAP;
+  int isRecoverable = isNullPtrExn | isTrap;
+
+  unsigned instruction   = *((unsigned *)ip);
+
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (2)\n");
+
+  if (lib_verbose || !isRecoverable) {
+    CONSOLE_PRINTF("            mem=" FMTrvmPTR "\n",
+                   rvmPTR_ARG(faultingAddress));
+    CONSOLE_PRINTF("             fp=" FMTrvmPTR "\n",
+                   rvmPTR_ARG(GET_GPR(save,FP)));
+    CONSOLE_PRINTF("             tr=" FMTrvmPTR "\n",
+                   rvmPTR_ARG(GET_GPR(save,Constants_THREAD_REGISTER)));
+    CONSOLE_PRINTF("trap/exception: type=%s\n", strsignal(signum));
+    CONSOLE_PRINTF("             ip=" FMTrvmPTR "\n", rvmPTR_ARG(ip));
+    CONSOLE_PRINTF("          instr=0x%08x\n", instruction);
+
+    CONSOLE_PRINTF("    exn_handler=" FMTrvmPTR "\n", rvmPTR_ARG(javaExceptionHandler));
+    CONSOLE_PRINTF("             lr=" FMTrvmPTR "\n",  rvmPTR_ARG(lr));
+
+    CONSOLE_PRINTF("   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
+
+    if (isRecoverable) {
+      TRACE_PRINTF("%s: normal trap\n", Me);
+    } else {
+      ERROR_PRINTF("%s: internal error trap\n", Me);
+      if (--remainingFatalErrors <= 0)
+        exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+    }
+  }
+
+  /* Copy the trapped register set into the current thread's "hardware
+     exception registers" save area. */
+  Address thread = GET_GPR(save,Constants_THREAD_REGISTER);
+  Address *registers = *(Address **)
+                       ((char *)thread + RVMThread_exceptionRegisters_offset);
+
+  Word *gprs
+    = *(Word **)((char *)registers + Registers_gprs_offset);
+  double   *fprs
+    = *(double   **)((char *)registers + Registers_fprs_offset);
+
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (3)\n");
+
+  Word *ipLoc
+    =  (Word  *)((char *)registers + Registers_ip_offset);
+  Word *lrLoc
+    =  (Word  *)((char *)registers + Registers_lr_offset);
+  unsigned char *inuse
+    =  (unsigned  char*)((char *)registers + Registers_inuse_offset);
+
+  if (*inuse) {
+    CONSOLE_PRINTF("%s: internal error: recursive use of hardware exception registers in thread %p (exiting)\n", Me, thread);
+    /* Things went badly wrong, so attempt to generate a useful error
+       dump before exiting by returning to Scheduler.dumpStackAndDie,
+       passing it the fp of the offending thread.
+
+       We could try to continue, but sometimes doing so results in
+       cascading failures and it's hard to tell what the real problem
+       was.
+    */
+    Address dumpStack
+      = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
+    SET_GPR(save, P0, GET_GPR(save, FP));
+    save->link = save->nip + 4; // +4 so it looks like a return address
+    save->nip = dumpStack;
+    return;
+  }
+
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (4)\n");
+
+  for (int i = 0; i < NGPRS; ++i)
+    gprs[i] = save->gpr[i];
+  for (int i = 0; i < NFPRS; ++i)
+    fprs[i] = ((struct linux_sigregs*)save)->fp_regs[i];
+  *ipLoc = save->nip + 4; // +4 so it looks like return address
+  *lrLoc = save->link;
+
+  *inuse = 1;
+
+  // Insert artificial stackframe at site of trap.
+  // This frame marks the place where "hardware exception registers" were saved.
+  //
+  Address   oldFp = GET_GPR(save, FP);
+  Address   newFp = oldFp - Constants_STACKFRAME_HEADER_SIZE;
+  *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->nip + 4; // +4 so it looks like return address
+
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (6)\n");
+  *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
+    = HardwareTrapMethodId;
+  *(Address *)(newFp + Constants_STACKFRAME_FRAME_POINTER_OFFSET)
+    = oldFp;
+  SET_GPR(save, FP, newFp);
+
+  /* Set execution to resume in java exception handler rather than
+     re-executing the instruction that caused the trap.
+  */
+
+  int      trapCode    = Runtime_TRAP_UNKNOWN;
+  int      trapInfo    = 0;
+  int      haveFrame   = 1;
+
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (7)\n");
+  switch (signum) {
+  case SIGSEGV:
+    if (isNullPtrExn) {  // touched top segment of memory, presumably by wrapping negatively off 0
+      if (lib_verbose) CONSOLE_PRINTF("%s: null pointer trap\n", Me);
+      trapCode = Runtime_TRAP_NULL_POINTER;
+      break;
+    }
+    if (lib_verbose) CONSOLE_PRINTF("%s: unknown seg fault\n", Me);
+    trapCode = Runtime_TRAP_UNKNOWN;
+    break;
+
+  case SIGTRAP:
+    if ((instruction & Constants_ARRAY_INDEX_MASK) == Constants_ARRAY_INDEX_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: array bounds trap\n", Me);
+      trapCode = Runtime_TRAP_ARRAY_BOUNDS;
+      trapInfo = gprs[(instruction & Constants_ARRAY_INDEX_REG_MASK)
+                      >> Constants_ARRAY_INDEX_REG_SHIFT];
+      break;
+    } else if ((instruction & Constants_CONSTANT_ARRAY_INDEX_MASK) == Constants_CONSTANT_ARRAY_INDEX_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: array bounds trap\n", Me);
+      trapCode = Runtime_TRAP_ARRAY_BOUNDS;
+      trapInfo = ((int)((instruction & Constants_CONSTANT_ARRAY_INDEX_INFO)<<16))>>16;
+      break;
+    } else if ((instruction & Constants_DIVIDE_BY_ZERO_MASK) == Constants_DIVIDE_BY_ZERO_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: divide by zero trap\n", Me);
+      trapCode = Runtime_TRAP_DIVIDE_BY_ZERO;
+      break;
+    } else if ((instruction & Constants_MUST_IMPLEMENT_MASK) == Constants_MUST_IMPLEMENT_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: must implement trap\n", Me);
+      trapCode = Runtime_TRAP_MUST_IMPLEMENT;
+      break;
+    } else if ((instruction & Constants_STORE_CHECK_MASK) == Constants_STORE_CHECK_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: objarray store check trap\n", Me);
+      trapCode = Runtime_TRAP_STORE_CHECK;
+      break;
+    } else if ((instruction & Constants_CHECKCAST_MASK ) == Constants_CHECKCAST_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: checkcast trap\n", Me);
+      trapCode = Runtime_TRAP_CHECKCAST;
+      break;
+    } else if ((instruction & Constants_REGENERATE_MASK) == Constants_REGENERATE_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: regenerate trap\n", Me);
+      trapCode = Runtime_TRAP_REGENERATE;
+      break;
+    } else if ((instruction & Constants_NULLCHECK_MASK) == Constants_NULLCHECK_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: null pointer trap\n", Me);
+      trapCode = Runtime_TRAP_NULL_POINTER;
+      break;
+    } else if ((instruction & Constants_JNI_STACK_TRAP_MASK) == Constants_JNI_STACK_TRAP) {
+      if (lib_verbose) CONSOLE_PRINTF("%s: resize stack for JNI call\n", Me);
+      trapCode = Runtime_TRAP_JNI_STACK;
+      /* We haven't actually bought the stackframe yet, so pretend that
+         we are actually trapping directly from the call instruction
+         that invoked the native method that caused the stackoverflow
+         trap. */
+      haveFrame = 0;
+      break;
+    } else if ((instruction & Constants_WRITE_BUFFER_OVERFLOW_MASK) == Constants_WRITE_BUFFER_OVERFLOW_TRAP) {
+      //!!TODO: someday use logic similar to stack guard page to force a gc
+      if (lib_verbose) CONSOLE_PRINTF("%s: write buffer overflow trap\n", Me);
+      ERROR_PRINTF("%s: write buffer overflow trap\n", Me);
+      exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+    } else if (((instruction & Constants_STACK_OVERFLOW_MASK)
+                == Constants_STACK_OVERFLOW_TRAP)
+               || ((instruction & Constants_STACK_OVERFLOW_MASK)
+                   == Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP))
+    {
+      if (lib_verbose) CONSOLE_PRINTF("%s: stack overflow trap\n", Me);
+      trapCode = Runtime_TRAP_STACK_OVERFLOW;
+      haveFrame = ((instruction & Constants_STACK_OVERFLOW_MASK)
+                   == Constants_STACK_OVERFLOW_TRAP);
+
+      /* Adjust the stack limit downward to give the exception handler
+          some space in which to run.
+      */
+      Address stackLimit = *(Address *)((char *)thread + RVMThread_stackLimit_offset);
+      Address stackStart = *(Address *)((char *)thread + RVMThread_stack_offset);
+      stackLimit -= Constants_STACK_SIZE_GUARD;
+      if (stackLimit < stackStart) {
+        /* double fault - stack overflow exception handler used too
+           much stack space */
+        ERROR_PRINTF(
+          "%s: stack overflow exception (double fault)\n", Me);
+
+        /* Go ahead and get all the stack space we need to generate
+         * the error dump (since we're crashing anyways)
+         */
+        *(Address *)((char *)thread + RVMThread_stackLimit_offset) = 0;
+
+        /* Things are very badly wrong anyways, so attempt to generate
+           a useful error dump before exiting by returning to
+           Scheduler.dumpStackAndDie, passing it the fp of the
+           offending thread. */
+        Address dumpStack
+          = *(Address *)((char *)jtoc + DumpStackAndDieOffset);
+        SET_GPR(save, P0, GET_GPR(save, FP));
+        save->link = save->nip + 4; // +4 so it looks like a return address
+        save->nip = dumpStack;
+        return;
+      }
+      *(Address *)((char *)thread + RVMThread_stackLimit_offset)
+        = stackLimit;
+
+      break;
+    }
+    if (lib_verbose) CONSOLE_PRINTF("%s: unknown trap\n", Me);
+    trapCode = Runtime_TRAP_UNKNOWN;
+    break;
+
+  default:
+    if (lib_verbose) CONSOLE_PRINTF("%s: unknown trap\n", Me);
+    trapCode = Runtime_TRAP_UNKNOWN;
+    break;
+  }
+
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (8)\n");
+  /* Pass arguments to the Java exception handler.
+   */
+  SET_GPR(save, P0, trapCode);
+  SET_GPR(save, P1, trapInfo);
+
+  if (haveFrame) {
+    /* Set the link register to make it look as if the Java exception
+       handler had been called directly from the exception site.
+    */
+    if (save->nip == 0)
+      do {
+        /* A bad branch -- use the contents of the link register as
+               our best guess of the call site. */
+      } while(0);
+    else
+      save->link = save->nip + 4; // +4 so it looks like a return address
+  } else {
+    /* We haven't actually bought the stackframe yet, so pretend that
+       we are actually trapping directly from the call instruction that
+       invoked the method whose prologue caused the stackoverflow.
+    */
+    *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->link;
+  }
+
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (9)\n");
+  /* Resume execution at the Java exception handler.
+   */
+  save->nip = javaExceptionHandler;
+  if (noise) CONSOLE_PRINTF("just got into cTrapHandler (10)\n");
+
+}
 
 
 // A startup configuration option with default values.
 // Declared in bootImageRunner.h
-  const char *bootDataFilename     = 0;
-  const char *bootCodeFilename     = 0;
-  const char *bootRMapFilename     = 0;
+const char *bootDataFilename     = 0;
+const char *bootCodeFilename     = 0;
+const char *bootRMapFilename     = 0;
 
 // The name of the program that will load and run the RVM.
 // Declared in bootImageRunner.h
-  char *Me;
+char *Me;
 
-  static size_t
-  pageRoundUp(size_t size)
-  {
-    size_t pageSize = 4096;
-    return (size + pageSize - 1) / pageSize * pageSize;
+static size_t
+pageRoundUp(size_t size)
+{
+  size_t pageSize = 4096;
+  return (size + pageSize - 1) / pageSize * pageSize;
+}
+
+static void*
+mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
+             size_t *roundedImageSize) {
+  // open image file
+  //
+  FILE *fin = fopen(fileName, "r");
+  if (!fin) {
+    ERROR_PRINTF("%s: can't find boot image \"%s\"\n", Me, fileName);
+    return (void*)1;
   }
 
-  static void*
-  mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
-               size_t *roundedImageSize) {
-    // open image file
-    //
-    FILE *fin = fopen(fileName, "r");
-    if (!fin) {
-      ERROR_PRINTF("%s: can't find boot image \"%s\"\n", Me, fileName);
-      return (void*)1;
-    }
-
-    // measure image size
-    //
-    if (lib_verbose)
-      CONSOLE_PRINTF("%s: loading from \"%s\"\n", Me, fileName);
-    fseek(fin, 0L, SEEK_END);
-    size_t actualImageSize = ftell(fin);
-    *roundedImageSize = pageRoundUp(actualImageSize);
-    fseek(fin, 0L, SEEK_SET);
+  // measure image size
+  //
+  if (lib_verbose)
+    CONSOLE_PRINTF("%s: loading from \"%s\"\n", Me, fileName);
+  fseek(fin, 0L, SEEK_END);
+  size_t actualImageSize = ftell(fin);
+  *roundedImageSize = pageRoundUp(actualImageSize);
+  fseek(fin, 0L, SEEK_SET);
 
 
-    // allocate memory regions in units of system page size
-    //
-    void    *bootRegion = 0;
-    bootRegion = mmap((void *) targetAddress, *roundedImageSize,
-                      PROT_READ | PROT_WRITE | PROT_EXEC,
-                      MAP_FIXED | MAP_PRIVATE,
-                      fileno(fin), 0);
-    if (bootRegion == (void *) MAP_FAILED) {
-      ERROR_PRINTF("%s: mmap failed (errno=%d): %e\n",
-              Me, errno, errno);
-      return (void*)1;
-    }
-    if (bootRegion != (void *) targetAddress) {
-      ERROR_PRINTF("%s: Attempted to mmap in the address %p; "
-              " got %p instead.  This should never happen.",
-              bootRegion, targetAddress);
-      /* Don't check the return value.  This is insane already.
-       * If we weren't part of a larger runtime system, I'd abort at this
-       * point.  */
-      (void) munmap(bootRegion, *roundedImageSize);
-      return (void*)1;
-    }
-
-    return bootRegion;
+  // allocate memory regions in units of system page size
+  //
+  void    *bootRegion = 0;
+  bootRegion = mmap((void *) targetAddress, *roundedImageSize,
+                    PROT_READ | PROT_WRITE | PROT_EXEC,
+                    MAP_FIXED | MAP_PRIVATE,
+                    fileno(fin), 0);
+  if (bootRegion == (void *) MAP_FAILED) {
+    ERROR_PRINTF("%s: mmap failed (errno=%d): %e\n",
+                 Me, errno, errno);
+    return (void*)1;
+  }
+  if (bootRegion != (void *) targetAddress) {
+    ERROR_PRINTF("%s: Attempted to mmap in the address %p; "
+                 " got %p instead.  This should never happen.",
+                 bootRegion, targetAddress);
+    /* Don't check the return value.  This is insane already.
+     * If we weren't part of a larger runtime system, I'd abort at this
+     * point.  */
+    (void) munmap(bootRegion, *roundedImageSize);
+    return (void*)1;
   }
 
+  return bootRegion;
+}
 
 
-  int
-  createVM(void)
-  {
-    // don't buffer trace or error message output
-    //
-    setbuf(SysErrorFile, NULL);
-    setbuf(SysTraceFile, NULL);
 
-    size_t roundedDataRegionSize;
+int
+createVM(void)
+{
+  // don't buffer trace or error message output
+  //
+  setbuf(SysErrorFile, NULL);
+  setbuf(SysTraceFile, NULL);
 
-    void *bootDataRegion = mapImageFile(bootDataFilename,
-                                        bootImageDataAddress,
-                                        false,
-                                        &roundedDataRegionSize);
-    if (bootDataRegion != bootImageDataAddress)
-      return 1;
+  size_t roundedDataRegionSize;
 
-    size_t roundedCodeRegionSize;
-    void *bootCodeRegion = mapImageFile(bootCodeFilename,
-                                        bootImageCodeAddress,
-                                        true,
-                                        &roundedCodeRegionSize);
-    if (bootCodeRegion != bootImageCodeAddress)
-      return 1;
+  void *bootDataRegion = mapImageFile(bootDataFilename,
+                                      bootImageDataAddress,
+                                      false,
+                                      &roundedDataRegionSize);
+  if (bootDataRegion != bootImageDataAddress)
+    return 1;
 
-    size_t roundedRMapRegionSize;
-    void *bootRMapRegion = mapImageFile(bootRMapFilename,
-                                        bootImageRMapAddress,
-                                        true,
-                                        &roundedRMapRegionSize);
-    if (bootRMapRegion != bootImageRMapAddress)
-      return 1;
+  size_t roundedCodeRegionSize;
+  void *bootCodeRegion = mapImageFile(bootCodeFilename,
+                                      bootImageCodeAddress,
+                                      true,
+                                      &roundedCodeRegionSize);
+  if (bootCodeRegion != bootImageCodeAddress)
+    return 1;
 
-
-    // fetch contents of boot record which is at beginning of data portion of boot image
-    //
-    theBootRecord               = (BootRecord *) bootDataRegion;
-    BootRecord& bootRecord   = *theBootRecord;
+  size_t roundedRMapRegionSize;
+  void *bootRMapRegion = mapImageFile(bootRMapFilename,
+                                      bootImageRMapAddress,
+                                      true,
+                                      &roundedRMapRegionSize);
+  if (bootRMapRegion != bootImageRMapAddress)
+    return 1;
 
 
-    if ((bootRecord.spRegister % 4) != 0) {
-      /* In the RISC6000 asm manual we read that sp had to be quad word
-         aligned, but we don't align our stacks...yet. */
-      ERROR_PRINTF("%s: image format error: sp (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.spRegister));
-      return 1;
-    }
+  // fetch contents of boot record which is at beginning of data portion of boot image
+  //
+  theBootRecord               = (BootRecord *) bootDataRegion;
+  BootRecord& bootRecord   = *theBootRecord;
 
-    if ((bootRecord.ipRegister % 4) != 0) {
-      ERROR_PRINTF("%s: image format error: ip (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.ipRegister));
-      return 1;
-    }
 
-    if ((bootRecord.tocRegister % 4) != 0) {
-      ERROR_PRINTF("%s: image format error: toc (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.tocRegister));
-      return 1;
-    }
+  if ((bootRecord.spRegister % 4) != 0) {
+    /* In the RISC6000 asm manual we read that sp had to be quad word
+       aligned, but we don't align our stacks...yet. */
+    ERROR_PRINTF("%s: image format error: sp (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.spRegister));
+    return 1;
+  }
 
-    if (((int *)bootRecord.spRegister)[-1] != (int) 0xdeadbabe) {
-      ERROR_PRINTF("%s: image format error: missing stack sanity check marker (0x%08x)\n", Me, (unsigned) ((int *)bootRecord.spRegister)[-1]);
-      return 1;
-    }
+  if ((bootRecord.ipRegister % 4) != 0) {
+    ERROR_PRINTF("%s: image format error: ip (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.ipRegister));
+    return 1;
+  }
 
-    if (bootRecord.bootImageDataStart != (Address)bootDataRegion) {
-      ERROR_PRINTF("%s: image load error: built for " FMTrvmPTR " but loaded at " FMTrvmPTR "\n",
-              Me, bootRecord.bootImageDataStart, bootDataRegion);
-      return 1;
-    }
+  if ((bootRecord.tocRegister % 4) != 0) {
+    ERROR_PRINTF("%s: image format error: toc (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.tocRegister));
+    return 1;
+  }
 
-    if (bootRecord.bootImageCodeStart != (Address)bootCodeRegion) {
-      ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
-              Me, bootRecord.bootImageCodeStart, bootCodeRegion);
-      return 1;
-    }
+  if (((int *)bootRecord.spRegister)[-1] != (int) 0xdeadbabe) {
+    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (0x%08x)\n", Me, (unsigned) ((int *)bootRecord.spRegister)[-1]);
+    return 1;
+  }
 
-    if (bootRecord.bootImageRMapStart != (Address)bootRMapRegion) {
-      ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
-              Me, bootRecord.bootImageRMapStart, bootRMapRegion);
-      return 1;
-    }
+  if (bootRecord.bootImageDataStart != (Address)bootDataRegion) {
+    ERROR_PRINTF("%s: image load error: built for " FMTrvmPTR " but loaded at " FMTrvmPTR "\n",
+                 Me, bootRecord.bootImageDataStart, bootDataRegion);
+    return 1;
+  }
 
-    // remember jtoc location for later use by trap handler - but jtoc might change
-    //
-    VmToc = bootRecord.tocRegister;
+  if (bootRecord.bootImageCodeStart != (Address)bootCodeRegion) {
+    ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
+                 Me, bootRecord.bootImageCodeStart, bootCodeRegion);
+    return 1;
+  }
 
-    // set freespace information into boot record
-    //
-    bootRecord.initialHeapSize  = initialHeapSize;
-    bootRecord.maximumHeapSize  = maximumHeapSize;
-    bootRecord.bytesInPage = pageSize;
-    bootRecord.bootImageDataStart   = (Address) bootDataRegion;
-    bootRecord.bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
-    bootRecord.bootImageCodeStart   = (Address) bootCodeRegion;
-    bootRecord.bootImageCodeEnd     = (Address) bootCodeRegion + roundedCodeRegionSize;
-    bootRecord.bootImageRMapStart   = (Address) bootRMapRegion;
-    bootRecord.bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
-    bootRecord.verboseBoot      = verboseBoot;
+  if (bootRecord.bootImageRMapStart != (Address)bootRMapRegion) {
+    ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
+                 Me, bootRecord.bootImageRMapStart, bootRMapRegion);
+    return 1;
+  }
 
-    // set host o/s linkage information into boot record
-    //
-    if (lib_verbose) CONSOLE_PRINTF("%s: setting linkage\n", Me);
-    setLinkage(&bootRecord);
+  // remember jtoc location for later use by trap handler - but jtoc might change
+  //
+  VmToc = bootRecord.tocRegister;
 
-    // remember location of java exception handler
-    //
-    DeliverHardwareExceptionOffset = bootRecord.deliverHardwareExceptionOffset;
-    HardwareTrapMethodId           = bootRecord.hardwareTrapMethodId;
+  // set freespace information into boot record
+  //
+  bootRecord.initialHeapSize  = initialHeapSize;
+  bootRecord.maximumHeapSize  = maximumHeapSize;
+  bootRecord.bytesInPage = pageSize;
+  bootRecord.bootImageDataStart   = (Address) bootDataRegion;
+  bootRecord.bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
+  bootRecord.bootImageCodeStart   = (Address) bootCodeRegion;
+  bootRecord.bootImageCodeEnd     = (Address) bootCodeRegion + roundedCodeRegionSize;
+  bootRecord.bootImageRMapStart   = (Address) bootRMapRegion;
+  bootRecord.bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
+  bootRecord.verboseBoot      = verboseBoot;
 
-    // remember JTOC offset of Scheduler.dumpStackAndDie, Scheduler.processors[],
-    //    Scheduler.threads[], Scheduler.DebugRequested
-    //
-    DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
-    DebugRequestedOffset = bootRecord.debugRequestedOffset;
+  // set host o/s linkage information into boot record
+  //
+  if (lib_verbose) CONSOLE_PRINTF("%s: setting linkage\n", Me);
+  setLinkage(&bootRecord);
 
-    if (lib_verbose) {
-      CONSOLE_PRINTF("%s: boot record contents:\n", Me);
-      CONSOLE_PRINTF("   bootImageDataStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataStart));
-      CONSOLE_PRINTF("   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
-      CONSOLE_PRINTF("   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
-      CONSOLE_PRINTF("   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
-      CONSOLE_PRINTF("   bootImageRMapStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapStart));
-      CONSOLE_PRINTF("   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapEnd));
-      CONSOLE_PRINTF("   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
-      CONSOLE_PRINTF("   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
-      CONSOLE_PRINTF("   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
-      CONSOLE_PRINTF("   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
-      CONSOLE_PRINTF("   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));
-      CONSOLE_PRINTF("   tocRegister:          " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tocRegister));
-      CONSOLE_PRINTF("   sysConsoleWriteCharIP:" FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.sysConsoleWriteCharIP));
-    }
+  // remember location of java exception handler
+  //
+  DeliverHardwareExceptionOffset = bootRecord.deliverHardwareExceptionOffset;
+  HardwareTrapMethodId           = bootRecord.hardwareTrapMethodId;
 
-    // install a stack for cSignalHandler() and cTrapHandler() to run on
-    //
-    char *bottomOfSignalStack = new char[SIGNAL_STACKSIZE];
-    char *topOfSignalStack = bottomOfSignalStack + SIGNAL_STACKSIZE;
+  // remember JTOC offset of Scheduler.dumpStackAndDie, Scheduler.processors[],
+  //    Scheduler.threads[], Scheduler.DebugRequested
+  //
+  DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
+  DebugRequestedOffset = bootRecord.debugRequestedOffset;
 
-    // Install hardware trap handler and signal stack
-    //   mask all signals during signal handling
-    //   exclude the signal used to poke pthreads
-    //
-    stack_t altstack;
-    altstack.ss_sp = bottomOfSignalStack;
-    altstack.ss_flags = 0;
-    altstack.ss_size = SIGNAL_STACKSIZE;
-    if (sigaltstack(&altstack, 0) < 0) {
-      ERROR_PRINTF("%s: sigstack failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-    struct sigaction action;
-    action.sa_sigaction = cTrapHandler;
-    action.sa_flags     = SA_ONSTACK | SA_SIGINFO | SA_RESTART;
-    if (sigfillset(&(action.sa_mask)) ||
-        sigdelset(&(action.sa_mask), SIGCONT)) {
-      ERROR_PRINTF("%s: sigfillset or sigdelset failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-    if (sigaction(SIGSEGV, &action, 0) // catch null pointer references
-        || sigaction(SIGTRAP, &action, 0) // catch array bounds violations
-        || sigaction(SIGILL, &action, 0)) /* catch vm errors (so we can try to
+  if (lib_verbose) {
+    CONSOLE_PRINTF("%s: boot record contents:\n", Me);
+    CONSOLE_PRINTF("   bootImageDataStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataStart));
+    CONSOLE_PRINTF("   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
+    CONSOLE_PRINTF("   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
+    CONSOLE_PRINTF("   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
+    CONSOLE_PRINTF("   bootImageRMapStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapStart));
+    CONSOLE_PRINTF("   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapEnd));
+    CONSOLE_PRINTF("   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
+    CONSOLE_PRINTF("   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
+    CONSOLE_PRINTF("   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
+    CONSOLE_PRINTF("   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
+    CONSOLE_PRINTF("   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));
+    CONSOLE_PRINTF("   tocRegister:          " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tocRegister));
+    CONSOLE_PRINTF("   sysConsoleWriteCharIP:" FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.sysConsoleWriteCharIP));
+  }
+
+  // install a stack for cSignalHandler() and cTrapHandler() to run on
+  //
+  char *bottomOfSignalStack = new char[SIGNAL_STACKSIZE];
+  char *topOfSignalStack = bottomOfSignalStack + SIGNAL_STACKSIZE;
+
+  // Install hardware trap handler and signal stack
+  //   mask all signals during signal handling
+  //   exclude the signal used to poke pthreads
+  //
+  stack_t altstack;
+  altstack.ss_sp = bottomOfSignalStack;
+  altstack.ss_flags = 0;
+  altstack.ss_size = SIGNAL_STACKSIZE;
+  if (sigaltstack(&altstack, 0) < 0) {
+    ERROR_PRINTF("%s: sigstack failed (errno=%d)\n", Me, errno);
+    return 1;
+  }
+  struct sigaction action;
+  action.sa_sigaction = cTrapHandler;
+  action.sa_flags     = SA_ONSTACK | SA_SIGINFO | SA_RESTART;
+  if (sigfillset(&(action.sa_mask)) ||
+      sigdelset(&(action.sa_mask), SIGCONT)) {
+    ERROR_PRINTF("%s: sigfillset or sigdelset failed (errno=%d)\n", Me, errno);
+    return 1;
+  }
+  if (sigaction(SIGSEGV, &action, 0) // catch null pointer references
+      || sigaction(SIGTRAP, &action, 0) // catch array bounds violations
+      || sigaction(SIGILL, &action, 0)) /* catch vm errors (so we can try to
                                           give a traceback) */
-    {
-      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-
-    // install software signal handler
-    //
-    action.sa_sigaction = cSignalHandler;
-    if (sigaction(SIGALRM, &action, 0) /* catch timer ticks (so we can
-                                          timeslice user level threads) */
-        || sigaction(SIGHUP, &action, 0) /* catch signal to awaken external
-                                            debugger */
-        || sigaction(SIGQUIT, &action, 0) /* catch signal to awaken internal
-                                             debugger */
-        || sigaction(SIGTERM, &action, 0)) /* catch signal to dump stack and
-                                              die */
-    {
-      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-
-    // Ignore "write (on a socket) with nobody to read it" signals so
-    // that sysWriteBytes() will get an EPIPE return code instead of trapping.
-    //
-    action.sa_handler = (SIGNAL_HANDLER) SIG_IGN;
-    if (sigaction(SIGPIPE, &action, 0)) {
-      ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
-      return 1;
-    }
-
-    // set up initial stack frame
-    //
-    Address  jtoc = bootRecord.tocRegister;
-    Address  tr = *(Address *) (bootRecord.tocRegister + bootRecord.bootThreadOffset);
-    Address tid = bootRecord.tiRegister;
-    Address  ip = bootRecord.ipRegister;
-    Address  sp = bootRecord.spRegister;
-
-    // Set up thread stack
-    Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
-    fp = fp & ~(Constants_STACKFRAME_ALIGNMENT -1);     // align fp
-
-    *(Address *)(fp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = ip;
-    *(int *)(fp + Constants_STACKFRAME_METHOD_ID_OFFSET) = Constants_INVISIBLE_METHOD_ID;
-    *(Address *)(fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET) = Constants_STACKFRAME_SENTINEL_FP;
-
-    // force any machine code within image that's still in dcache to be
-    // written out to main memory so that it will be seen by icache when
-    // instructions are fetched back
-    //
-    sysSyncCache(bootCodeRegion, roundedCodeRegionSize);
-
-    if (setjmp(primordial_jb)) {
-      *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
-      // cannot return or else the process will exit.  this is how pthreads
-      // work on the platforms I've tried (OS X and Linux).  So, when the
-      // primordial thread is done, we just have it idle.  When the process
-      // is supposed to exit, it'll call exit().
-      for (;;) pause();
-    } else {
-      if (lib_verbose) {
-        CONSOLE_PRINTF("%s: calling boot thread: jtoc = " FMTrvmPTR
-                "   tr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
-                Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), tid, rvmPTR_ARG(fp));
-      }
-      bootThread(jtoc, tr, tid, fp);
-      ERROR_PRINTF("Unexpected return from bootThread\n");
-      return 1;
-    }
-
+  {
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
+    return 1;
   }
+
+  // install software signal handler
+  //
+  action.sa_sigaction = cSignalHandler;
+  if (sigaction(SIGALRM, &action, 0) /* catch timer ticks (so we can
+                                          timeslice user level threads) */
+      || sigaction(SIGHUP, &action, 0) /* catch signal to awaken external
+                                            debugger */
+      || sigaction(SIGQUIT, &action, 0) /* catch signal to awaken internal
+                                             debugger */
+      || sigaction(SIGTERM, &action, 0)) /* catch signal to dump stack and
+                                              die */
+  {
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
+    return 1;
+  }
+
+  // Ignore "write (on a socket) with nobody to read it" signals so
+  // that sysWriteBytes() will get an EPIPE return code instead of trapping.
+  //
+  action.sa_handler = (SIGNAL_HANDLER) SIG_IGN;
+  if (sigaction(SIGPIPE, &action, 0)) {
+    ERROR_PRINTF("%s: sigaction failed (errno=%d)\n", Me, errno);
+    return 1;
+  }
+
+  // set up initial stack frame
+  //
+  Address  jtoc = bootRecord.tocRegister;
+  Address  tr = *(Address *) (bootRecord.tocRegister + bootRecord.bootThreadOffset);
+  Address tid = bootRecord.tiRegister;
+  Address  ip = bootRecord.ipRegister;
+  Address  sp = bootRecord.spRegister;
+
+  // Set up thread stack
+  Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
+  fp = fp & ~(Constants_STACKFRAME_ALIGNMENT -1);     // align fp
+
+  *(Address *)(fp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = ip;
+  *(int *)(fp + Constants_STACKFRAME_METHOD_ID_OFFSET) = Constants_INVISIBLE_METHOD_ID;
+  *(Address *)(fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET) = Constants_STACKFRAME_SENTINEL_FP;
+
+  // force any machine code within image that's still in dcache to be
+  // written out to main memory so that it will be seen by icache when
+  // instructions are fetched back
+  //
+  sysSyncCache(bootCodeRegion, roundedCodeRegionSize);
+
+  if (setjmp(primordial_jb)) {
+    *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+    // cannot return or else the process will exit.  this is how pthreads
+    // work on the platforms I've tried (OS X and Linux).  So, when the
+    // primordial thread is done, we just have it idle.  When the process
+    // is supposed to exit, it'll call exit().
+    for (;;) pause();
+  } else {
+    if (lib_verbose) {
+      CONSOLE_PRINTF("%s: calling boot thread: jtoc = " FMTrvmPTR
+                     "   tr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
+                     Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), tid, rvmPTR_ARG(fp));
+    }
+    bootThread(jtoc, tr, tid, fp);
+    ERROR_PRINTF("Unexpected return from bootThread\n");
+    return 1;
+  }
+
+}
 
 // Get address of JTOC.
-  extern "C" void *
-  getJTOC()
-  {
-    return (void*) VmToc;
-  }
+extern "C" void *
+getJTOC()
+{
+  return (void*) VmToc;
+}
 
 
 // We do not have this yet on the PowerPC
-  extern Address
-  createJavaVM()
-  {
-    ERROR_PRINTF("Cannot CreateJavaVM on PowerPC yet");
-    return 1;
-  }
+extern Address
+createJavaVM()
+{
+  ERROR_PRINTF("Cannot CreateJavaVM on PowerPC yet");
+  return 1;
+}
