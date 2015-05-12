@@ -30,6 +30,8 @@
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "cAttributePortability.h"
 
+/** Page size determined at runtime */
+extern uint64_t pageSize;
 /** Sink for messages relating to serious errors detected by C runtime. */
 extern FILE *SysErrorFile;
 /* Sink for trace messages produced by VM.sysWrite(). */
@@ -64,6 +66,7 @@ EXTERNAL void sysReportAlignmentChecking();
 extern void* checkMalloc(int length);
 extern void* checkCalloc(int numElements, int sizeOfOneElement);
 extern void checkFree(void* mem);
+EXTERNAL int pageRoundUp(uint64_t size, uint64_t pageSize);
 
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;

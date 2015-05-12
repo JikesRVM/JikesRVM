@@ -333,3 +333,8 @@ void findMappable()
     }
   }
 }
+
+EXTERNAL int pageRoundUp(uint64_t size, uint64_t pageSize)
+{
+  return (size + pageSize - 1) / pageSize * pageSize;
+}

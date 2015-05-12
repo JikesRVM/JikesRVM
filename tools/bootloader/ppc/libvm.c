@@ -687,13 +687,6 @@ const char *bootRMapFilename     = 0;
 // Declared in bootImageRunner.h
 char *Me;
 
-static size_t
-pageRoundUp(size_t size)
-{
-  size_t pageSize = 4096;
-  return (size + pageSize - 1) / pageSize * pageSize;
-}
-
 static void*
 mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
              size_t *roundedImageSize) {
@@ -711,7 +704,7 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
     CONSOLE_PRINTF("%s: loading from \"%s\"\n", Me, fileName);
   fseek(fin, 0L, SEEK_END);
   size_t actualImageSize = ftell(fin);
-  *roundedImageSize = pageRoundUp(actualImageSize);
+  *roundedImageSize = pageRoundUp((uint64_t) actualImageSize, pageSize);
   fseek(fin, 0L, SEEK_SET);
 
 

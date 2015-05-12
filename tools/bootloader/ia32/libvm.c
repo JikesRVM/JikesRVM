@@ -122,13 +122,6 @@ char *Me;
 
 static BootRecord *bootRecord;
 
-static int
-pageRoundUp(int size)
-{
-  int pageSize = 4096;
-  return (size + pageSize - 1) / pageSize * pageSize;
-}
-
 /*
  * Bootimage is loaded and ready for execution:
  * you can set a breakpoint here with gdb.
@@ -1096,7 +1089,7 @@ mapImageFile(const char *fileName, const void *targetAddress, int prot,
     CONSOLE_PRINTF("%s: loading from \"%s\"\n", Me, fileName);
   fseek (fin, 0L, SEEK_END);
   unsigned actualImageSize = ftell(fin);
-  *roundedImageSize = pageRoundUp(actualImageSize);
+  *roundedImageSize = pageRoundUp((uint64_t) actualImageSize, pageSize);
   fseek (fin, 0L, SEEK_SET);
 
   void *bootRegion = 0;
