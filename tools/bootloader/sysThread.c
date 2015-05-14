@@ -33,10 +33,6 @@ typedef struct {
 } vmmonitor_t;
 #endif
 
-#ifdef _AIX
-#include <sys/systemcfg.h>
-#endif
-
 #ifdef __GLIBC__
 /* use glibc internal longjmp to bypass fortify checks */
 EXTERNAL void __libc_longjmp (jmp_buf buf, int val) \
@@ -264,16 +260,6 @@ EXTERNAL int sysNumProcessors()
   }
 #endif
 
-#ifdef _AIX
-  if (numCpus < 0) {
-    numCpus = _system_configuration.ncpus;
-    if (numCpus < 0) {
-      if (firstRun) CONSOLE_PRINTF("%s: WARNING: _system_configuration.ncpus"
-                                     " has the insane value %d\n" , Me, numCpus);
-    }
-  }
-#endif
-
   if (numCpus < 0) {
     if (firstRun) TRACE_PRINTF("%s: WARNING: Can not figure out how many CPUs"
                                  " are online; assuming 1\n", Me);
@@ -355,9 +341,6 @@ EXTERNAL int sysThreadBindSupported()
 {
   int result=0;
   TRACE_PRINTF("%s: sysThreadBindSupported\n", Me);
-#ifdef RVM_FOR_AIX
-  result=1;
-#endif
 #ifdef RVM_FOR_LINUX
   result=1;
 #endif
@@ -367,18 +350,6 @@ EXTERNAL int sysThreadBindSupported()
 EXTERNAL void sysThreadBind(int cpuId)
 {
   TRACE_PRINTF("%s: sysThreadBind\n", Me);
-  // bindprocessor() seems to be only on AIX
-#ifdef RVM_FOR_AIX
-  int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
-  CONSOLE_PRINTF("%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
-
-  if (rc) {
-    ERROR_PRINTF("%s: bindprocessor failed (errno=%d): ", Me, errno);
-    perror(NULL);
-    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-  }
-#endif
-
 #ifndef RVM_FOR_HARMONY
 #ifdef RVM_FOR_LINUX
   cpu_set_t cpuset;
@@ -505,7 +476,6 @@ EXTERNAL void sysSetupHardwareTrapHandler()
 {
   int rc;                     // retval from subfunction.
 
-#ifndef RVM_FOR_AIX
   /*
    *  Provide space for this pthread to process exceptions.  This is
    * needed on Linux because multiple pthreads can handle signals
@@ -524,7 +494,6 @@ EXTERNAL void sysSetupHardwareTrapHandler()
     perror(NULL);
     sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
   }
-#endif
 
   /*
    * Block the CONT signal.  This makes SIGCONT reach this
@@ -534,16 +503,10 @@ EXTERNAL void sysSetupHardwareTrapHandler()
   sigemptyset(&input_set);
   sigaddset(&input_set, SIGCONT);
 
-#ifdef RVM_FOR_AIX
-  rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
-  /* like pthread_sigmask, sigthreadmask can only return EINVAL, EFAULT, and
-   * EPERM.  Again, these are all good reasons to complain and croak. */
-#else
   rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
   /* pthread_sigmask can only return the following errors.  Either of them
    * indicates serious trouble and is grounds for aborting the process:
    * EINVAL EFAULT.  */
-#endif
   if (rc) {
     ERROR_PRINTF("pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
     perror(NULL);

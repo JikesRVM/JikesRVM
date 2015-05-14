@@ -18,11 +18,6 @@
 #include <string.h> // memcpy & memmove
 #include <sys/mman.h> // mmap
 
-
-#ifdef RVM_FOR_AIX
-#include <sys/cache.h>
-#endif
-
 int inRVMAddressSpace(Address a);
 
 void* checkMalloc(int length)
@@ -280,9 +275,6 @@ EXTERNAL void sysSyncCache(void *address, size_t size)
   TRACE_PRINTF("%s: sync %p %zd\n", Me, address, size);
 
 #ifdef RVM_FOR_POWERPC
-#ifdef RVM_FOR_AIX
-  _sync_cache_range((caddr_t) address, size);
-#else
   if (size < 0) {
     ERROR_PRINTF("%s: tried to sync a region of negative size!\n", Me);
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
@@ -308,7 +300,6 @@ EXTERNAL void sysSyncCache(void *address, size_t size)
 
   /* context synchronization */
   asm("isync");
-#endif
 #endif
 }
 
