@@ -28,6 +28,8 @@ public interface RegisterConstants {
 
   // OS register convention (for mapping parameters in JNI calls)
   // These constants encode conventions for Linux.
+
+  // 0 is for function prologs, 1 is stack frame pointer, 2 is TOC pointer
   int FIRST_OS_PARAMETER_GPR = 3;
   int LAST_OS_PARAMETER_GPR = 10;
   int FIRST_OS_VOLATILE_GPR = 3;
@@ -53,15 +55,23 @@ public interface RegisterConstants {
   int LAST_VOLATILE_GPR = LAST_OS_PARAMETER_GPR;
   int FIRST_SCRATCH_GPR = LAST_VOLATILE_GPR + 1;
   int LAST_SCRATCH_GPR = LAST_OS_VOLATILE_GPR;
+
+  // NOTE: the PPC-specific part of the bootloader that deals with starting of threads
+  // makes assumptions about the register usage. You will need to update the code
+  // there if you change the assignments for the JTOC pointer or the thread register.
+
   // PowerPC 64 ELF ABI reserves R13 for use by libpthread; therefore Jikes RVM doesn't touch it.
   int FIRST_RVM_RESERVED_NV_GPR = VM.BuildFor64Addr ? 14 : 13;
   int THREAD_REGISTER = FIRST_RVM_RESERVED_NV_GPR;
 
   // 2 is used by Linux for thread context and on OS X it's a scratch.
-  int JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ? THREAD_REGISTER + 1 : 2;
+  int JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ?
+      THREAD_REGISTER + 1 :
+      2; // use TOC register on PowerPC 64-bit ELF ABI
+  // Use THREAD_REGISTER + 2 for 32-bit Linux and THREAD_REGISTER + 1 for 64-bit Linux
   int KLUDGE_TI_REG = THREAD_REGISTER + ((VM.BuildForLinux && VM.BuildFor32Addr) ? 2 : 1);
 
-  int LAST_RVM_RESERVED_NV_GPR = KLUDGE_TI_REG; // will become PR when KLUDGE_TI dies.
+  int LAST_RVM_RESERVED_NV_GPR = KLUDGE_TI_REG;
   int FIRST_NONVOLATILE_GPR = LAST_RVM_RESERVED_NV_GPR + 1;
   //                                            ...
   int LAST_NONVOLATILE_GPR = LAST_OS_NONVOLATILE_GPR;

@@ -28,7 +28,7 @@ EXTERNAL int sysReadByte(int fd)
   unsigned char ch;
   int rc;
 
-  while (true) {
+  while (1) {
     rc = read(fd, &ch, 1);
     switch (rc) {
       case  1:
@@ -60,7 +60,7 @@ EXTERNAL int sysWriteByte(int fd, int data)
 {
   char ch = data;
   TRACE_PRINTF("%s: writeByte %d %c\n", Me, fd, ch);
-  while (true) {
+  while (1) {
     int rc = write(fd, &ch, 1);
     if (rc == 1) {
       return 0; // success
@@ -86,7 +86,7 @@ EXTERNAL int sysWriteByte(int fd, int data)
 EXTERNAL int sysReadBytes(int fd, char *buf, int cnt)
 {
   TRACE_PRINTF("%s: read %d %p %d\n", Me, fd, buf, cnt);
-  while (true) {
+  while (1) {
     int rc = read(fd, buf, cnt);
     if (rc >= 0)
       return rc;
@@ -115,7 +115,7 @@ EXTERNAL int sysReadBytes(int fd, char *buf, int cnt)
 EXTERNAL int sysWriteBytes(int fd, char *buf, int cnt)
 {
   TRACE_PRINTF("%s: write %d %p %d\n", Me, fd, buf, cnt);
-  while (true) {
+  while (1) {
     int rc = write(fd, buf, cnt);
     if (rc >= 0)
       return rc;

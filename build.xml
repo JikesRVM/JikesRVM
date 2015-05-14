@@ -160,11 +160,9 @@
       directory without the .properties suffix.
     </fail>
     <test-file name="bison.exe" location="${host.file}"/>
-    <test-file name="c++.exe" location="${host.file}"/>
     <test-file name="c.exe" location="${host.file}"/>
     <test-file name="perl.exe" location="${host.file}"/>
     <test-file name="bash.exe" location="${host.file}"/>
-    <test-property name="c++.args" location="${host.file}"/>
     <test-property name="c.args" location="${host.file}"/>
     <test-property name="shld.args" location="${host.file}"/>
   </target>
@@ -1728,7 +1726,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${target.arch.sse2}" arg2="none"/>
     </condition>
     <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines} ${rvm.sse.args}"/>
-    <property name="rvm.c++.args" value="${shld.args} ${rvm.common.args}"/>
+    <property name="rvm.c.args" value="${shld.args} ${rvm.common.args}"/>
 
     <condition property="rvm.arch.src"
       value="${bl.dir}/ia32/initBootRecord.c ${bl.dir}/ia32/libvm.c">
@@ -1736,23 +1734,14 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="rvm.arch.src"
-               value="${bl.dir}/ppc/initBootRecord.c ${build.native}/bootThread.s ${bl.dir}/ppc/libvm.c">
+               value="${bl.dir}/ppc/initBootRecord.c ${bl.dir}/ppc/bootThread.c ${bl.dir}/ppc/libvm.c">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
-    <property name="rvm.syscall.src" value="${bl.dir}/sysAlignmentCheck.cpp ${bl.dir}/sysConsole.cpp ${bl.dir}/sysGCSpy.cpp ${bl.dir}/sysIO.cpp ${bl.dir}/sysLibrary.cpp ${bl.dir}/sysMath.cpp ${bl.dir}/sysMemory.cpp ${bl.dir}/sysMisc.cpp ${bl.dir}/sysPerfEvent.cpp ${bl.dir}/sysThread.cpp ${bl.dir}/sysTime.cpp"/>
-    <property name="rvm.src" value="${bl.dir}/RunBootImage.cpp ${rvm.syscall.src} ${rvm.arch.src}"/>
+    <property name="rvm.syscall.src" value="${bl.dir}/sysAlignmentCheck.c ${bl.dir}/sysConsole.c ${bl.dir}/sysGCSpy.c ${bl.dir}/sysIO.c ${bl.dir}/sysLibrary.c ${bl.dir}/sysMath.c ${bl.dir}/sysMemory.c ${bl.dir}/sysMisc.c ${bl.dir}/sysPerfEvent.c ${bl.dir}/sysThread.c ${bl.dir}/sysTime.c"/>
+    <property name="rvm.src" value="${bl.dir}/main.c ${rvm.syscall.src} ${rvm.arch.src}"/>
   </target>
-
-  <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
-    <test-file name="cpp.exe" location="${host.file}"/>
-    <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
-      <arg line="${rvm.common.args} ${cpp.args}"/>
-      <arg value="-P"/>
-      <arg path="${bl.dir}/ppc/bootThread.c"/>
-    </exec>
-  </target>
-
+  
   <target name="build-gcspy-stub" depends="check-bootloader-properties" if="include.gcspy-stub">
     <exec executable="${c.exe}" failonerror="true">
       <arg line="${shld.args}"/>
@@ -1762,17 +1751,17 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
   </target>
 
-  <target name="build-bootloader" depends="build-gcspy-stub,build-ppc-bootThread">
+  <target name="build-bootloader" depends="build-gcspy-stub">
 
     <!-- rdynamic flag used to control the exporting of symbols into an ELF -->
-    <condition property="c++.rdynamic" value="" else="-rdynamic">
+    <condition property="c.rdynamic" value="" else="-rdynamic">
       <or>
       	<equals arg1="${target.os}" arg2="OSX"/>
       </or>
     </condition>
 
     <!-- is the real-time library necessary? -->
-    <condition property="c++.librt" value="" else="-lrt">
+    <condition property="c.librt" value="" else="-lrt">
       <equals arg1="${target.os}" arg2="OSX"/>
     </condition>
 
@@ -1781,11 +1770,11 @@ Check to make sure all required properties are specified. This includes properti
     <path id="rvm.dll">
       <pathelement path="${build.base}/${target.dll-prefix}rvm${target.dll-ext}"/>
     </path>
-    <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args} -lpthread ${c++.librt}"/>
+    <exec executable="${c.exe}" failonerror="true">
+      <arg line="${rvm.c.args} -lpthread ${c.librt}"/>
       <arg value="-o"/>
       <arg path="${toString:rvm.dll}"/>
-      <arg path="${bl.dir}/jvm.cpp"/>
+      <arg path="${bl.dir}/jvm.c"/>
     </exec>
 
     <!-- create vmi shared library (if building for Harmony)-->
@@ -1799,7 +1788,7 @@ Check to make sure all required properties are specified. This includes properti
           <pathelement path="${build.base}/${target.dll-prefix}vmi${target.dll-ext}"/>
         </path>
         <exec executable="${c.exe}" failonerror="true">
-          <arg line="${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
+          <arg line="${rvm.c.args} -lpthread ${c.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
           <arg value="-o"/>
           <arg path="${toString:vmi.dll}"/>
           <arg path="${bl.dir}/harmony.c"/>
@@ -1812,8 +1801,8 @@ Check to make sure all required properties are specified. This includes properti
     <!-- create rvmdynlib shared library -->
     <echo message="Creating rvmdynlib.dll"/>
     <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.jni-suffix}"/>
-    <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args}"/>
+    <exec executable="${c.exe}" failonerror="true">
+      <arg line="${rvm.c.args}"/>
       <arg value="-o"/>
       <arg path="${build.base}/${rvmdynlib.dll}"/>
       <arg value="-L${build.base}"/>
@@ -1831,13 +1820,13 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <echo message="Creating JikesRVM"/>
-        <exec executable="${c++.exe}" failonerror="true">
-          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c++.librt} -lpthread ${c++.rdynamic} -g"/>
+        <exec executable="${c.exe}" failonerror="true">
+          <arg line="${c.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c.librt} ${c.rdynamic} -g"/>
           <arg value="-o"/>
           <arg path="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
           <arg value="-ldl"/>
-          <arg line="-lrvm"/>
+          <arg line="-lrvm -lm -lpthread"/>
 	</exec>
       </sequential>
     </if>
@@ -1847,8 +1836,8 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <echo message="Creating JikesRVM"/>
-        <exec executable="${c++.exe}" failonerror="true">
-          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c++.librt} -lpthread ${c++.rdynamic} -g"/>
+        <exec executable="${c.exe}" failonerror="true">
+          <arg line="${c.args} ${rvm.common.args} ${gcspy.lib.dir} ${rvm.src} ${perfevent.lib} ${c.librt} -lpthread ${c.rdynamic} -g"/>
           <arg value="-o"/>
           <arg path="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
@@ -1874,7 +1863,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg path="${build.base}/JikesRVM-symbols.s"/>
     </exec>
 
-    <exec executable="${c++.exe}" failonerror="true">
+    <exec executable="${c.exe}" failonerror="true">
       <arg value="-c"/>
       <arg value="-o"/>
       <arg path="${build.base}/JikesRVM-symbols.o"/>

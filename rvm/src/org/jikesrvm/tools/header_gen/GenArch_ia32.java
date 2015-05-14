@@ -31,38 +31,36 @@ final class GenArch_ia32 extends GenArch {
     Offset offset;
 
     offset = ArchEntrypoints.registersFPField.getOffset();
-    pln("Registers_fp_offset = ", offset);
+    pln("Registers_fp_offset", offset);
 
-    p("static const int Constants_EAX                    = " + RegisterConstants.EAX.value() + ";\n");
-    p("static const int Constants_ECX                    = " + RegisterConstants.ECX.value() + ";\n");
-    p("static const int Constants_EDX                    = " + RegisterConstants.EDX.value() + ";\n");
-    p("static const int Constants_EBX                    = " + RegisterConstants.EBX.value() + ";\n");
-    p("static const int Constants_ESP                    = " + RegisterConstants.ESP.value() + ";\n");
-    p("static const int Constants_EBP                    = " + RegisterConstants.EBP.value() + ";\n");
-    p("static const int Constants_ESI                    = " + RegisterConstants.ESI.value() + ";\n");
-    p("static const int Constants_EDI                    = " + RegisterConstants.EDI.value() + ";\n");
+    pln("Constants_EAX", RegisterConstants.EAX.value());
+    pln("Constants_ECX", RegisterConstants.ECX.value());
+    pln("Constants_EDX", RegisterConstants.EDX.value());
+    pln("Constants_EBX", RegisterConstants.EBX.value());
+    pln("Constants_ESP", RegisterConstants.ESP.value());
+    pln("Constants_EBP", RegisterConstants.EBP.value());
+    pln("Constants_ESI", RegisterConstants.ESI.value());
+    pln("Constants_EDI", RegisterConstants.EDI.value());
     if (VM.BuildFor64Addr) {
-      p("static const int Constants_R8                    = " + RegisterConstants.R8.value() + ";\n");
-      p("static const int Constants_R9                    = " + RegisterConstants.R9.value() + ";\n");
-      p("static const int Constants_R10                    = " + RegisterConstants.R10.value() + ";\n");
-      p("static const int Constants_R11                    = " + RegisterConstants.R11.value() + ";\n");
-      p("static const int Constants_R12                    = " + RegisterConstants.R12.value() + ";\n");
-      p("static const int Constants_R13                    = " + RegisterConstants.R13.value() + ";\n");
-      p("static const int Constants_R14                    = " + RegisterConstants.R14.value() + ";\n");
-      p("static const int Constants_R15                    = " + RegisterConstants.R15.value() + ";\n");
+      pln("Constants_R8", RegisterConstants.R8.value());
+      pln("Constants_R9", RegisterConstants.R9.value());
+      pln("Constants_R10", RegisterConstants.R10.value());
+      pln("Constants_R11", RegisterConstants.R11.value());
+      pln("Constants_R12", RegisterConstants.R12.value());
+      pln("Constants_R13", RegisterConstants.R13.value());
+      pln("Constants_R14", RegisterConstants.R14.value());
+      pln("Constants_R15", RegisterConstants.R15.value());
     }
-    p("static const int Constants_STACKFRAME_BODY_OFFSET             = " +
-      StackframeLayoutConstants.STACKFRAME_BODY_OFFSET + ";\n");
-    p("static const int Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = " +
-      StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET + ";\n");
-    p("static const int Constants_RVM_TRAP_BASE  = " + TrapConstants.RVM_TRAP_BASE + ";\n");
+    pln("Constants_STACKFRAME_BODY_OFFSET", StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
+    pln("Constants_STACKFRAME_RETURN_ADDRESS_OFFSET", StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
+    pln("Constants_RVM_TRAP_BASE", TrapConstants.RVM_TRAP_BASE);
 
     offset = ArchEntrypoints.framePointerField.getOffset();
-    pln("Thread_framePointer_offset = ", offset);
+    pln("Thread_framePointer_offset", offset);
     offset = ArchEntrypoints.arrayIndexTrapParamField.getOffset();
-    pln("Thread_arrayIndexTrapParam_offset = ", offset);
+    pln("Thread_arrayIndexTrapParam_offset", offset);
 
-    p("static const int ArchConstants_SSE2 = " + (ArchConstants.SSE2_BASE ? "1;\n" : "0;\n"));
+    pln("ArchConstants_SSE2", (ArchConstants.SSE2_BASE ? 1 : 0));
   }
 
   @Override
@@ -70,6 +68,6 @@ final class GenArch_ia32 extends GenArch {
     if (BaselineConstants.TR != BaselineConstants.ESI) {
       throw new Error("Unexpected TR value");
     }
-    p("#define TR %ESI;\n");
+    p("#define TR %ESI\n");
   }
 }

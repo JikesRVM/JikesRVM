@@ -61,9 +61,9 @@ EXTERNAL void VMI_Initialize();
 
 Word DeathLock = NULL;
 
-static bool systemExiting = false;
+static int systemExiting = 0;
 
-static const bool debugging = false;
+static const int debugging = 0;
 
 // #define DEBUG_SYS
 // #define DEBUG_THREAD
@@ -159,7 +159,7 @@ EXTERNAL void sysExit(int value)
   fflush(SysTraceFile);
   fflush(stdout);
 
-  systemExiting = true;
+  systemExiting = 1;
 
   if (DeathLock) sysMonitorEnter(DeathLock);
   if (debugging && value!=0) {
@@ -741,7 +741,7 @@ EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNan
   if (whenWakeupNanos <= 0) return;
   hythread_monitor_wait_timed((hythread_monitor_t)_monitor, (I_64)(whenWakeupNanos / 1000000LL), (IDATA)(whenWakeupNanos % 1000000LL));
 #else
-  timespec ts;
+  struct timespec ts;
   ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
   ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
 #ifdef DEBUG_THREAD

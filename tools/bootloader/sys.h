@@ -74,6 +74,18 @@ EXTERNAL void sysExit(int) NORETURN;
 /* Routines used elsewhere within bootloader */
 EXTERNAL void findMappable();
 
+EXTERNAL unsigned int parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
+                 "initial stack" or "maximum stack"
+                   */
+         const char *sizeFlag, // "-Xms" or "-Xmx" or
+         // "-Xss" or "-Xsg" or "-Xsx"
+         const char *defaultFactor, // We now always default to bytes ("")
+         unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+         const char *token /* e.g., "-Xms200M" or "-Xms200" */,
+         const char *subtoken /* e.g., "200M" or "200" */,
+         int *fastExit);
+
+
 
 /**
  * FIXME The rest of the file consists of includes for non-linux systems

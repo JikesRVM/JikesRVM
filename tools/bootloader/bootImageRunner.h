@@ -95,7 +95,8 @@ extern void findMappable(void);
 
 #ifdef RVM_FOR_POWERPC
 /* Used in libvm.C, sys.cpp.  Defined in assembly code: */
-extern void bootThread(int jtoc,int pr, int ti_or_ip, int fp); // assembler routine
+extern void bootThread(void *jtoc, void *tr, void *pc, void *fp); // assembler routine
+
 #else
 extern int bootThread(void *ip, void *pr, void *sp); // assembler routine
 #endif

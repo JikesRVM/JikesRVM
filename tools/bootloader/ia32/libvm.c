@@ -77,7 +77,7 @@ typedef unsigned int u_int32_t;
 #define NEED_MEMORY_MANAGER_DECLARATIONS
 #include <sys.h>
 
-extern "C" void setLinkage(BootRecord*);
+extern void setLinkage(struct BootRecord* br);
 
 #include "../bootImageRunner.h" // In tools/bootImageRunner
 
@@ -85,12 +85,6 @@ extern "C" void setLinkage(BootRecord*);
 
 /* jump buffer for primordial thread */
 jmp_buf primordial_jb;
-
-/* Sink for messages relating to serious errors detected by C runtime. */
-FILE *SysErrorFile = stderr;
-
-/* Sink for trace messages produced by VM.sysWrite(). */
-FILE *SysTraceFile = stderr;
 
 /* Command line arguments to be passed to virtual machine. */
 const char **JavaArgs;
@@ -120,7 +114,7 @@ static Offset DebugRequestedOffset;
 /* name of program that will load and run RVM */
 char *Me;
 
-static BootRecord *bootRecord;
+static struct BootRecord *bootRecord;
 
 /*
  * Bootimage is loaded and ready for execution:
@@ -160,18 +154,19 @@ bootThread (void *ip, void *tr, void *sp)
 int
 inRVMAddressSpace(Address addr)
 {
+  int which;
   /* get the boot record */
   Address *heapRanges = bootRecord->heapRanges;
-  for (int which = 0; which < MAXHEAPS; which++) {
+  for (which = 0; which < MAXHEAPS; which++) {
     Address start = heapRanges[2 * which];
     Address end = heapRanges[2 * which + 1];
     // Test against sentinel.
     if (start == ~(Address) 0 && end == ~ (Address) 0) break;
     if (start <= addr  && addr < end) {
-      return true;
+      return 1;
     }
   }
-  return false;
+  return 0;
 }
 
 /**
@@ -501,9 +496,9 @@ static unsigned char alignCheckHandlerInstBuf[100]; // ought to be enough to hol
 static int alignCheckVerbose = 0;
 
 // statistics defined in sys.cpp
-extern volatile int numNativeAlignTraps;
-extern volatile int numEightByteAlignTraps;
-extern volatile int numBadAlignTraps;
+EXTERNAL volatile int numNativeAlignTraps;
+EXTERNAL volatile int numEightByteAlignTraps;
+EXTERNAL volatile int numBadAlignTraps;
 
 // called by the hardware trap handler if we're dealing with an alignment error;
 // returns true iff the trap handler should return immediately
@@ -589,7 +584,7 @@ int handleAlignmentTrap(int signo, void* context) {
 
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
-extern "C" void
+static void
 hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 {
   // alignment checking: handle hardware alignment exceptions
@@ -861,7 +856,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     /* set up to goto dumpStackAndDie routine ( in Scheduler) as if called */
     IA32_EIP(context) = dumpStack;
-    *vmr_inuse = false;
+    *vmr_inuse = 0;
 
     return;
   }
@@ -1127,10 +1122,6 @@ mapImageFile(const char *fileName, const void *targetAddress, int prot,
 int
 createVM(void)
 {
-  /* don't buffer trace or error message output */
-  setbuf (SysErrorFile, 0);
-  setbuf (SysTraceFile, 0);
-
   unsigned roundedDataRegionSize;
   void *bootDataRegion = mapImageFile(bootDataFilename,
                                       bootImageDataAddress,
@@ -1157,7 +1148,7 @@ createVM(void)
 
 
   /* validate contents of boot record */
-  bootRecord = (BootRecord *) bootDataRegion;
+  bootRecord = (struct BootRecord *) bootDataRegion;
 
   if (bootRecord->bootImageDataStart != (Address) bootDataRegion) {
     ERROR_PRINTF("%s: image load error: built for %x but loaded at %p\n",
@@ -1252,7 +1243,7 @@ createVM(void)
   stack_t stack;
 
   memset (&stack, 0, sizeof stack);
-  stack.ss_sp = new char[SIGSTKSZ];
+  stack.ss_sp = checkMalloc(SIGSTKSZ);
 
   stack.ss_size = SIGSTKSZ;
   if (sigaltstack (&stack, 0)) {
@@ -1379,7 +1370,7 @@ createVM(void)
 
 
 // Get address of JTOC.
-extern "C" void *
+EXTERNAL void *
 getJTOC(void)
 {
   return (void*) VmToc;

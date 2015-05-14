@@ -317,9 +317,10 @@ EXTERNAL void sysSyncCache(void *address, size_t size)
 // This is invoked from a command-line argument.
 void findMappable()
 {
+  int i;
   int granularity = 1 << 22; // every 4 megabytes
   int max = (1 << 30) / (granularity >> 2);
-  for (int i=0; i<max; i++) {
+  for (i = 0; i < max; i++) {
     char *start = (char *) (i * granularity);
     int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
     int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;

@@ -151,37 +151,26 @@ struct linux_sigregs {
     arguments, via the printf() "%*" feature.   This would let us
     group the digits nicely. */
 
-
-/* Interface to virtual machine data structures. */
-#define NEED_BOOT_RECORD_DECLARATIONS
-#define NEED_VIRTUAL_MACHINE_DECLARATIONS
-#define NEED_EXIT_STATUS_CODES
-#define NEED_MEMORY_MANAGER_DECLARATIONS
-#include "sys.h"
-extern "C" void setLinkage(BootRecord *);
-
 #define GET_GPR(info, r)             ((info)->gpr[(r)])
 #define SET_GPR(info, r, value)     (((info)->gpr[(r)]) = (value))
-//  int* getRegAddress(mstsave *save, int r) {
-//    return &save->gpr[r];
-//  }
 
-BootRecord *theBootRecord;
-#define NULL 0
+struct BootRecord *bootRecord;
 
 #include "../bootImageRunner.h" // In tools/bootImageRunner
+
+/* Interface to virtual machine data structures. */
+#define NEED_EXIT_STATUS_CODES
+#define NEED_BOOT_RECORD_DECLARATIONS
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_MEMORY_MANAGER_DECLARATIONS
+#include "sys.h"
+
+extern void setLinkage(struct BootRecord* br);
 
 /**** These are definitions of items declared in bootImageRunner.h ****/
 
 /* jump buffer for primordial thread */
 jmp_buf primordial_jb;
-
-/* Sink for messages relating to serious errors detected by C runtime. */
-FILE *SysErrorFile = stderr;
-
-/* Sink for trace messages produced by VM.sysWrite(). */
-FILE *SysTraceFile = stderr;
-int SysTraceFd = 2;
 
 /* Command line arguments to be passed to the VM. */
 const char **JavaArgs;
@@ -216,18 +205,19 @@ pthread_t vm_pthreadid;         // pthread id of the main RVM pthread
 int
 inRVMAddressSpace(Address addr)
 {
+  int which;
   /* get the boot record */
-  Address *heapRanges = theBootRecord->heapRanges;
-  for (int which = 0; which < MAXHEAPS; which++) {
+  Address *heapRanges = bootRecord->heapRanges;
+  for (which = 0; which < MAXHEAPS; which++) {
     Address start = heapRanges[2 * which];
     Address end = heapRanges[2 * which + 1];
     // Test against sentinel.
     if (start == ~(Address) 0 && end == ~ (Address) 0) break;
     if (start <= addr  && addr < end) {
-      return true;
+      return 1;
     }
   }
-  return false;
+  return 0;
 }
 
 /*! Was a Unix signal raised while VM code was running?
@@ -246,7 +236,7 @@ static int isVmSignal(Address iar, Address jtoc)
 */
 
 
-pt_regs*
+struct pt_regs*
 getLinuxSavedRegisters(int signum, void* arg3)
 {
 #if defined(GETCONTEXT_IMPLEMENTED)
@@ -289,7 +279,7 @@ getLinuxSavedRegisters(int signum, void* arg3)
 void
 cSignalHandler(int signum, siginfo_t* siginfo, void* arg3)
 {
-  pt_regs *save = getLinuxSavedRegisters(signum, arg3);
+  struct pt_regs *save = getLinuxSavedRegisters(signum, arg3);
   Word iar  =  save->nip;
   // UNUSED: // Address jtoc =  GET_GPR(save, Constants_JTOC_POINTER);
 
@@ -375,8 +365,9 @@ static const int noise = 0;
 void
 cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
 {
+  int i;
   uintptr_t faultingAddress = (uintptr_t) siginfo->si_addr;
-  pt_regs *save = getLinuxSavedRegisters(signum, arg3);
+  struct pt_regs *save = getLinuxSavedRegisters(signum, arg3);
   uintptr_t ip = save->nip;
   uintptr_t lr = save->link;
   Address jtoc =  save->gpr[Constants_JTOC_POINTER];
@@ -497,9 +488,9 @@ cTrapHandler(int signum, siginfo_t *siginfo, void* arg3)
 
   if (noise) CONSOLE_PRINTF("just got into cTrapHandler (4)\n");
 
-  for (int i = 0; i < NGPRS; ++i)
+  for (i = 0; i < NGPRS; ++i)
     gprs[i] = save->gpr[i];
-  for (int i = 0; i < NFPRS; ++i)
+  for (i = 0; i < NFPRS; ++i)
     fprs[i] = ((struct linux_sigregs*)save)->fp_regs[i];
   *ipLoc = save->nip + 4; // +4 so it looks like return address
   *lrLoc = save->link;
@@ -688,7 +679,7 @@ const char *bootRMapFilename     = 0;
 char *Me;
 
 static void*
-mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
+mapImageFile(const char *fileName, const void *targetAddress, int isCode,
              size_t *roundedImageSize) {
   // open image file
   //
@@ -739,16 +730,11 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
 int
 createVM(void)
 {
-  // don't buffer trace or error message output
-  //
-  setbuf(SysErrorFile, NULL);
-  setbuf(SysTraceFile, NULL);
-
   size_t roundedDataRegionSize;
 
   void *bootDataRegion = mapImageFile(bootDataFilename,
                                       bootImageDataAddress,
-                                      false,
+                                      0,
                                       &roundedDataRegionSize);
   if (bootDataRegion != bootImageDataAddress)
     return 1;
@@ -756,7 +742,7 @@ createVM(void)
   size_t roundedCodeRegionSize;
   void *bootCodeRegion = mapImageFile(bootCodeFilename,
                                       bootImageCodeAddress,
-                                      true,
+                                      1,
                                       &roundedCodeRegionSize);
   if (bootCodeRegion != bootImageCodeAddress)
     return 1;
@@ -764,7 +750,7 @@ createVM(void)
   size_t roundedRMapRegionSize;
   void *bootRMapRegion = mapImageFile(bootRMapFilename,
                                       bootImageRMapAddress,
-                                      true,
+                                      1,
                                       &roundedRMapRegionSize);
   if (bootRMapRegion != bootImageRMapAddress)
     return 1;
@@ -772,103 +758,102 @@ createVM(void)
 
   // fetch contents of boot record which is at beginning of data portion of boot image
   //
-  theBootRecord               = (BootRecord *) bootDataRegion;
-  BootRecord& bootRecord   = *theBootRecord;
+  bootRecord = (struct BootRecord *) bootDataRegion;
 
 
-  if ((bootRecord.spRegister % 4) != 0) {
+  if ((bootRecord->spRegister % 4) != 0) {
     /* In the RISC6000 asm manual we read that sp had to be quad word
        aligned, but we don't align our stacks...yet. */
-    ERROR_PRINTF("%s: image format error: sp (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.spRegister));
+    ERROR_PRINTF("%s: image format error: sp (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord->spRegister));
     return 1;
   }
 
-  if ((bootRecord.ipRegister % 4) != 0) {
-    ERROR_PRINTF("%s: image format error: ip (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.ipRegister));
+  if ((bootRecord->ipRegister % 4) != 0) {
+    ERROR_PRINTF("%s: image format error: ip (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord->ipRegister));
     return 1;
   }
 
-  if ((bootRecord.tocRegister % 4) != 0) {
-    ERROR_PRINTF("%s: image format error: toc (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord.tocRegister));
+  if ((bootRecord->tocRegister % 4) != 0) {
+    ERROR_PRINTF("%s: image format error: toc (" FMTrvmPTR ") is not word aligned\n", Me, rvmPTR_ARG(bootRecord->tocRegister));
     return 1;
   }
 
-  if (((int *)bootRecord.spRegister)[-1] != (int) 0xdeadbabe) {
-    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (0x%08x)\n", Me, (unsigned) ((int *)bootRecord.spRegister)[-1]);
+  if (((int *)bootRecord->spRegister)[-1] != (int) 0xdeadbabe) {
+    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (0x%08x)\n", Me, (unsigned) ((int *)bootRecord->spRegister)[-1]);
     return 1;
   }
 
-  if (bootRecord.bootImageDataStart != (Address)bootDataRegion) {
+  if (bootRecord->bootImageDataStart != (Address)bootDataRegion) {
     ERROR_PRINTF("%s: image load error: built for " FMTrvmPTR " but loaded at " FMTrvmPTR "\n",
-                 Me, bootRecord.bootImageDataStart, bootDataRegion);
+                 Me, bootRecord->bootImageDataStart, bootDataRegion);
     return 1;
   }
 
-  if (bootRecord.bootImageCodeStart != (Address)bootCodeRegion) {
+  if (bootRecord->bootImageCodeStart != (Address)bootCodeRegion) {
     ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
-                 Me, bootRecord.bootImageCodeStart, bootCodeRegion);
+                 Me, bootRecord->bootImageCodeStart, bootCodeRegion);
     return 1;
   }
 
-  if (bootRecord.bootImageRMapStart != (Address)bootRMapRegion) {
+  if (bootRecord->bootImageRMapStart != (Address)bootRMapRegion) {
     ERROR_PRINTF("%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
-                 Me, bootRecord.bootImageRMapStart, bootRMapRegion);
+                 Me, bootRecord->bootImageRMapStart, bootRMapRegion);
     return 1;
   }
 
   // remember jtoc location for later use by trap handler - but jtoc might change
   //
-  VmToc = bootRecord.tocRegister;
+  VmToc = bootRecord->tocRegister;
 
   // set freespace information into boot record
   //
-  bootRecord.initialHeapSize  = initialHeapSize;
-  bootRecord.maximumHeapSize  = maximumHeapSize;
-  bootRecord.bytesInPage = pageSize;
-  bootRecord.bootImageDataStart   = (Address) bootDataRegion;
-  bootRecord.bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
-  bootRecord.bootImageCodeStart   = (Address) bootCodeRegion;
-  bootRecord.bootImageCodeEnd     = (Address) bootCodeRegion + roundedCodeRegionSize;
-  bootRecord.bootImageRMapStart   = (Address) bootRMapRegion;
-  bootRecord.bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
-  bootRecord.verboseBoot      = verboseBoot;
+  bootRecord->initialHeapSize  = initialHeapSize;
+  bootRecord->maximumHeapSize  = maximumHeapSize;
+  bootRecord->bytesInPage = pageSize;
+  bootRecord->bootImageDataStart   = (Address) bootDataRegion;
+  bootRecord->bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
+  bootRecord->bootImageCodeStart   = (Address) bootCodeRegion;
+  bootRecord->bootImageCodeEnd     = (Address) bootCodeRegion + roundedCodeRegionSize;
+  bootRecord->bootImageRMapStart   = (Address) bootRMapRegion;
+  bootRecord->bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
+  bootRecord->verboseBoot      = verboseBoot;
 
   // set host o/s linkage information into boot record
   //
   if (lib_verbose) CONSOLE_PRINTF("%s: setting linkage\n", Me);
-  setLinkage(&bootRecord);
+  setLinkage(bootRecord);
 
   // remember location of java exception handler
   //
-  DeliverHardwareExceptionOffset = bootRecord.deliverHardwareExceptionOffset;
-  HardwareTrapMethodId           = bootRecord.hardwareTrapMethodId;
+  DeliverHardwareExceptionOffset = bootRecord->deliverHardwareExceptionOffset;
+  HardwareTrapMethodId           = bootRecord->hardwareTrapMethodId;
 
   // remember JTOC offset of Scheduler.dumpStackAndDie, Scheduler.processors[],
   //    Scheduler.threads[], Scheduler.DebugRequested
   //
-  DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
-  DebugRequestedOffset = bootRecord.debugRequestedOffset;
+  DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
+  DebugRequestedOffset = bootRecord->debugRequestedOffset;
 
   if (lib_verbose) {
     CONSOLE_PRINTF("%s: boot record contents:\n", Me);
-    CONSOLE_PRINTF("   bootImageDataStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataStart));
-    CONSOLE_PRINTF("   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
-    CONSOLE_PRINTF("   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
-    CONSOLE_PRINTF("   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
-    CONSOLE_PRINTF("   bootImageRMapStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapStart));
-    CONSOLE_PRINTF("   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapEnd));
-    CONSOLE_PRINTF("   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
-    CONSOLE_PRINTF("   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
-    CONSOLE_PRINTF("   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
-    CONSOLE_PRINTF("   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
-    CONSOLE_PRINTF("   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));
-    CONSOLE_PRINTF("   tocRegister:          " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tocRegister));
-    CONSOLE_PRINTF("   sysConsoleWriteCharIP:" FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.sysConsoleWriteCharIP));
+    CONSOLE_PRINTF("   bootImageDataStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->bootImageDataStart));
+    CONSOLE_PRINTF("   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->bootImageDataEnd));
+    CONSOLE_PRINTF("   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->bootImageCodeStart));
+    CONSOLE_PRINTF("   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->bootImageCodeEnd));
+    CONSOLE_PRINTF("   bootImageRMapStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->bootImageRMapStart));
+    CONSOLE_PRINTF("   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->bootImageRMapEnd));
+    CONSOLE_PRINTF("   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->initialHeapSize));
+    CONSOLE_PRINTF("   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->maximumHeapSize));
+    CONSOLE_PRINTF("   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->tiRegister));
+    CONSOLE_PRINTF("   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->spRegister));
+    CONSOLE_PRINTF("   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->ipRegister));
+    CONSOLE_PRINTF("   tocRegister:          " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->tocRegister));
+    CONSOLE_PRINTF("   sysConsoleWriteCharIP:" FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord->sysConsoleWriteCharIP));
   }
 
   // install a stack for cSignalHandler() and cTrapHandler() to run on
   //
-  char *bottomOfSignalStack = new char[SIGNAL_STACKSIZE];
+  char *bottomOfSignalStack = checkMalloc(SIGNAL_STACKSIZE);
   char *topOfSignalStack = bottomOfSignalStack + SIGNAL_STACKSIZE;
 
   // Install hardware trap handler and signal stack
@@ -927,11 +912,11 @@ createVM(void)
 
   // set up initial stack frame
   //
-  Address  jtoc = bootRecord.tocRegister;
-  Address  tr = *(Address *) (bootRecord.tocRegister + bootRecord.bootThreadOffset);
-  Address tid = bootRecord.tiRegister;
-  Address  ip = bootRecord.ipRegister;
-  Address  sp = bootRecord.spRegister;
+  Address  jtoc = bootRecord->tocRegister;
+  Address  tr = *(Address *) (bootRecord->tocRegister + bootRecord->bootThreadOffset);
+  Address tid = bootRecord->tiRegister;
+  Address  ip = bootRecord->ipRegister;
+  Address  sp = bootRecord->spRegister;
 
   // Set up thread stack
   Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
@@ -968,7 +953,7 @@ createVM(void)
 }
 
 // Get address of JTOC.
-extern "C" void *
+EXTERNAL void *
 getJTOC()
 {
   return (void*) VmToc;
