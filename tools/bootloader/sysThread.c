@@ -648,7 +648,6 @@ EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority)
 
 EXTERNAL Word sysMonitorCreate()
 {
-  TRACE_PRINTF("%s: sysMonitorCreate\n", Me);
 #ifdef RVM_FOR_HARMONY
   hythread_monitor_t monitor;
   hythread_monitor_init_with_name(&monitor, 0, NULL);
@@ -657,12 +656,12 @@ EXTERNAL Word sysMonitorCreate()
   pthread_mutex_init(&monitor->mutex, NULL);
   pthread_cond_init(&monitor->cond, NULL);
 #endif
+  TRACE_PRINTF("%s: sysMonitorCreate %p\n", Me, monitor);
   return (Word)monitor;
 }
 
 EXTERNAL void sysMonitorDestroy(Word _monitor)
 {
-  TRACE_PRINTF("%s: sysMonitorDestroy\n", Me);
 #ifdef RVM_FOR_HARMONY
   hythread_monitor_destroy((hythread_monitor_t)_monitor);
 #else
@@ -671,11 +670,12 @@ EXTERNAL void sysMonitorDestroy(Word _monitor)
   pthread_cond_destroy(&monitor->cond);
   checkFree(monitor);
 #endif
+  TRACE_PRINTF("%s: sysMonitorDestroy %p\n", Me, _monitor);
 }
 
 EXTERNAL void sysMonitorEnter(Word _monitor)
 {
-  TRACE_PRINTF("%s: sysMonitorEnter\n", Me);
+  TRACE_PRINTF("%s: sysMonitorEnter %p\n", Me, _monitor);
 #ifdef RVM_FOR_HARMONY
   hythread_monitor_enter((hythread_monitor_t)_monitor);
 #else
@@ -686,7 +686,7 @@ EXTERNAL void sysMonitorEnter(Word _monitor)
 
 EXTERNAL void sysMonitorExit(Word _monitor)
 {
-  TRACE_PRINTF("%s: sysMonitorExit\n", Me);
+  TRACE_PRINTF("%s: sysMonitorExit %p\n", Me, _monitor);
 #ifdef RVM_FOR_HARMONY
   hythread_monitor_exit((hythread_monitor_t)_monitor);
 #else

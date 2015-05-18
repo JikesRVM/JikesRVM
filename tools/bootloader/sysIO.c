@@ -24,7 +24,7 @@
  */
 EXTERNAL int sysReadByte(int fd)
 {
-  TRACE_PRINTF("%s: readByte %d\n", Me, fd);
+  TRACE_PRINTF("%s: sysReadByte %d\n", Me, fd);
   unsigned char ch;
   int rc;
 
@@ -59,7 +59,7 @@ EXTERNAL int sysReadByte(int fd)
 EXTERNAL int sysWriteByte(int fd, int data)
 {
   char ch = data;
-  TRACE_PRINTF("%s: writeByte %d %c\n", Me, fd, ch);
+  TRACE_PRINTF("%s: sysWriteByte %d %c\n", Me, fd, ch);
   while (1) {
     int rc = write(fd, &ch, 1);
     if (rc == 1) {
@@ -85,7 +85,7 @@ EXTERNAL int sysWriteByte(int fd, int data)
  */
 EXTERNAL int sysReadBytes(int fd, char *buf, int cnt)
 {
-  TRACE_PRINTF("%s: read %d %p %d\n", Me, fd, buf, cnt);
+  TRACE_PRINTF("%s: sysReadBytes %d %p %d\n", Me, fd, buf, cnt);
   while (1) {
     int rc = read(fd, buf, cnt);
     if (rc >= 0)
@@ -114,7 +114,7 @@ EXTERNAL int sysReadBytes(int fd, char *buf, int cnt)
  */
 EXTERNAL int sysWriteBytes(int fd, char *buf, int cnt)
 {
-  TRACE_PRINTF("%s: write %d %p %d\n", Me, fd, buf, cnt);
+  TRACE_PRINTF("%s: sysWriteBytes %d %p %d\n", Me, fd, buf, cnt);
   while (1) {
     int rc = write(fd, buf, cnt);
     if (rc >= 0)
