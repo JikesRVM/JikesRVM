@@ -725,7 +725,8 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
   }
   long double tot_d = userNum * factor;
   if (tot_d > (UINT_MAX - roundTo) || tot_d < 1) {
-    ERROR_PRINTF("Unexpected memory size %f", tot_d);
+    ERROR_PRINTF("Unexpected memory size %f\n", tot_d);
+    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
   unsigned tot = (unsigned) tot_d;
