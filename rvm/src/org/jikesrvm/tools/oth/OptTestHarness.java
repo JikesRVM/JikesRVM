@@ -247,7 +247,6 @@ class OptTestHarness {
           OptimizingCompiler.setBootOptions(options);
         } else if ("-longcommandline".equals(arg)) {
           // the -longcommandline option reads options from a file.
-          // use for cases when the command line is too long for AIX
           String fileName = args[++i];
           String[] optionString = fileAccess.readOptionStringFromFile(fileName);
           processOptionString(optionString);

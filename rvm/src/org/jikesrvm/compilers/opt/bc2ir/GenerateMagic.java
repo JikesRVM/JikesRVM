@@ -507,7 +507,7 @@ public class GenerateMagic {
     } else if (meth.isSysCall()) {
       // All methods of SysCall have the following signature:
       // callNAME(Address functionAddress, <var args to pass via native calling convention>)
-      // With POWEROPEN_ABI, functionAddress points to the function descriptor
+      // With 64 bit PowerPC ELF ABI, functionAddress points to the function descriptor
       TypeReference[] args = meth.getParameterTypes();
       Instruction call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
       for (int i = args.length - 1; i >= 1; i--) {

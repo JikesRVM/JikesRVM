@@ -14,7 +14,6 @@ package org.jikesrvm.tools.header_gen;
 
 import static org.jikesrvm.ppc.TrapConstants.*;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.ppc.RegisterConstants;
 import org.jikesrvm.ppc.StackframeLayoutConstants;
@@ -24,7 +23,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Emit the architecture-specific part of a header file containing declarations
  * required to access VM data structures from C++.
- * Posix version: AIX PPC, Linux PPC, Linux IA32
  */
 final class GenArch_ppc extends GenArch {
   @Override
@@ -46,7 +44,7 @@ final class GenArch_ppc extends GenArch {
     p("static const int Constants_ARRAY_INDEX_MASK           = " + ARRAY_INDEX_MASK + ";\n");
     p("static const int Constants_ARRAY_INDEX_TRAP           = " + ARRAY_INDEX_TRAP + ";\n");
     p("static const int Constants_ARRAY_INDEX_REG_MASK       = " + ARRAY_INDEX_REG_MASK + ";\n");
-    p("static const int Constants_ARRAY_INDEX_REG_SHIFT      = " + ARRAY_INDEX_REG_MASK + ";\n");
+    p("static const int Constants_ARRAY_INDEX_REG_SHIFT      = " + ARRAY_INDEX_REG_SHIFT + ";\n");
     p("static const int Constants_CONSTANT_ARRAY_INDEX_MASK  = " +
       CONSTANT_ARRAY_INDEX_MASK + ";\n");
     p("static const int Constants_CONSTANT_ARRAY_INDEX_TRAP  = " +
@@ -78,30 +76,15 @@ final class GenArch_ppc extends GenArch {
 
   @Override
   public void emitArchAssemblerDeclarations() {
-    if (VM.BuildForOsx) {
-      pln("#define FP r" + BaselineConstants.FP);
-      pln("#define JTOC r" + BaselineConstants.JTOC);
-      pln("#define THREAD_REGISTER r" + BaselineConstants.THREAD_REGISTER);
-      pln("#define S0 r" + BaselineConstants.S0);
-      pln("#define T0 r" + BaselineConstants.T0);
-      pln("#define T1 r" + BaselineConstants.T1);
-      pln("#define T2 r" + BaselineConstants.T2);
-      pln("#define T3 r" + BaselineConstants.T3);
-      pln("#define STACKFRAME_RETURN_ADDRESS_OFFSET " +
-          StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-    } else {
-      pln(".set FP," + BaselineConstants.FP);
-      pln(".set JTOC," + BaselineConstants.JTOC);
-      pln(".set THREAD_REGISTER," + BaselineConstants.THREAD_REGISTER);
-      pln(".set S0," + BaselineConstants.S0);
-      pln(".set T0," + BaselineConstants.T0);
-      pln(".set T1," + BaselineConstants.T1);
-      pln(".set T2," + BaselineConstants.T2);
-      pln(".set T3," + BaselineConstants.T3);
-      pln(".set STACKFRAME_RETURN_ADDRESS_OFFSET," + StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-      if (!VM.BuildForAix) {
-        pln(".set T4," + (BaselineConstants.T3 + 1));
-      }
-    }
+    pln(".set FP," + BaselineConstants.FP);
+    pln(".set JTOC," + BaselineConstants.JTOC);
+    pln(".set THREAD_REGISTER," + BaselineConstants.THREAD_REGISTER);
+    pln(".set S0," + BaselineConstants.S0);
+    pln(".set T0," + BaselineConstants.T0);
+    pln(".set T1," + BaselineConstants.T1);
+    pln(".set T2," + BaselineConstants.T2);
+    pln(".set T3," + BaselineConstants.T3);
+    pln(".set STACKFRAME_RETURN_ADDRESS_OFFSET," + StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
+    pln(".set T4," + (BaselineConstants.T3 + 1));
   }
 }

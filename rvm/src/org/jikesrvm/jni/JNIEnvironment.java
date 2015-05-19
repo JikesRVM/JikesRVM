@@ -62,7 +62,7 @@ public final class JNIEnvironment {
   public static FunctionTable JNIFunctions;
 
   /**
-   * For the PowerOpenABI we need a linkage triple instead of just
+   * For the 64-bit PowerPC ELF ABI we need a linkage triple instead of just
    * a function pointer.
    * This is an array of such triples that matches JNIFunctions.
    */
@@ -80,7 +80,7 @@ public final class JNIEnvironment {
   // used by native code
   @Entrypoint
   private final Address externalJNIFunctions =
-      VM.BuildForPowerOpenABI ? Magic.objectAsAddress(linkageTriplets) : Magic.objectAsAddress(JNIFunctions);
+      VM.BuildForPower64ELF_ABI ? Magic.objectAsAddress(linkageTriplets) : Magic.objectAsAddress(JNIFunctions);
 
   /**
    * For saving processor register on entry to native,
@@ -492,7 +492,7 @@ public final class JNIEnvironment {
    */
   public static void initFunctionTable(FunctionTable functions) {
     JNIFunctions = functions;
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
       linkageTriplets = LinkageTripletTable.allocate(functions.length());
       for (int i = 0; i < functions.length(); i++) {
@@ -506,7 +506,7 @@ public final class JNIEnvironment {
    * we are on a platform that needs linkage triplets.
    */
   public static void boot() {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       // fill in the TOC and IP entries for each linkage triplet
       for (int i = 0; i < JNIFunctions.length(); i++) {
         AddressArray triplet = linkageTriplets.get(i);

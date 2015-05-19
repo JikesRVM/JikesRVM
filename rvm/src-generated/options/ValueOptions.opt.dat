@@ -26,6 +26,10 @@ V PRINT_IR_LEVEL int 0
 Only print IR compiled above this level
 
 
+V VISUALIZE_IR_DIRECTORY String \"\"
+If visualization is enabled, the directory to write visualization files to
+
+
 V PROFILE_EDGE_COUNT_INPUT_FILE String null
 Input file of edge counter profile data
 

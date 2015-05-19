@@ -36,8 +36,8 @@ public final class NativeMethod extends RVMMethod {
 
   /**
    * the TOC of the native procedure.
-   * Only used if VM.BuildForPowerOpenABI.
-   * TODO: Consider making a PowerOpen subclass of NativeMethod
+   * Only used if the VM is built for the PowerPC 64 Bit ELF ABI.
+   * TODO: Consider making a subclass of NativeMethod for this ABI
    *       and pushing this field down to it.  For now, just bloat up
    *       all native methods by 1 slot.
    */
@@ -95,7 +95,7 @@ public final class NativeMethod extends RVMMethod {
   }
 
   public Address getNativeTOC() {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       return nativeTOC;
     } else {
       return Address.zero();
@@ -180,7 +180,7 @@ public final class NativeMethod extends RVMMethod {
       // native procedure not found in library
       return false;
     } else {
-      if (VM.BuildForPowerOpenABI) {
+      if (VM.BuildForPower64ELF_ABI) {
         nativeIP = symbolAddress.loadAddress();
         nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
       } else {
@@ -195,7 +195,7 @@ public final class NativeMethod extends RVMMethod {
    * @param symbolAddress address of native function that implements the method
    */
   public synchronized void registerNativeSymbol(Address symbolAddress) {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       nativeIP = symbolAddress.loadAddress();
       nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
     } else {
@@ -205,7 +205,7 @@ public final class NativeMethod extends RVMMethod {
   }
 
   public synchronized void unregisterNativeSymbol() {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       nativeIP = Address.zero();
       nativeTOC = Address.zero();
     } else {

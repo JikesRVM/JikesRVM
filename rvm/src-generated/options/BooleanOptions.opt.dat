@@ -253,6 +253,9 @@ Print SSA form
 PRINT_DG_BURS -1 false
 Print dependence graph before burs
 
+PRINT_VISUALIZATION -1 false
+When dumping the IR, generate a visualization in a file instead
+
 ## Options for IR printing at various points in compilation
 PRINT_HIGH -1 false
 Print IR after initial generation

@@ -30,6 +30,8 @@
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include "cAttributePortability.h"
 
+/** Page size determined at runtime */
+extern uint64_t pageSize;
 /** Sink for messages relating to serious errors detected by C runtime. */
 extern FILE *SysErrorFile;
 /* Sink for trace messages produced by VM.sysWrite(). */
@@ -68,6 +70,7 @@ EXTERNAL void sysMonitorExit(Word);
 extern void* checkMalloc(int length);
 extern void* checkCalloc(int numElements, int sizeOfOneElement);
 extern void checkFree(void* mem);
+EXTERNAL int pageRoundUp(uint64_t size, uint64_t pageSize);
 
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;
@@ -82,19 +85,6 @@ EXTERNAL void findMappable();
  * out by deleting unnecessary definitions from here and moving what is
  * needed to the respective sys*.cpp files.
  */
-
-// Work around AIX headerfile differences: AIX 4.3 vs earlier releases
-#ifdef _AIX43
-#include </usr/include/unistd.h>
-EXTERNAL void profil(void *, uint, ulong, uint);
-EXTERNAL int sched_yield(void);
-#endif
-
-#ifdef _AIX
-EXTERNAL timer_t gettimerid(int timer_type, int notify_type);
-EXTERNAL int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
-#include <sys/events.h>
-#endif
 
 #if (defined RVM_FOR_SOLARIS)
 #include <netinet/in.h>

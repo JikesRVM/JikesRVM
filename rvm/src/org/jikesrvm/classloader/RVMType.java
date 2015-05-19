@@ -567,7 +567,8 @@ public abstract class RVMType extends AnnotatedElement {
 
   /**
    * How many types have been created?
-   * Only intended to be used by the bootimage writer!
+   * Only intended to be used by the bootimage writer
+   * or members of this class!
    *
    * @return number of types that have been created
    */
@@ -853,6 +854,28 @@ public abstract class RVMType extends AnnotatedElement {
   }
 
   /**
+   * Updates the TIB for all array types with the newly (re)compiled method.
+   *
+   * @param m the method that was recompiled. Must be a virtual method
+   *  declared by {@code java.lang.Object}.
+   */
+  static synchronized void updateArrayMethods(RVMMethod m) {
+    if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass().isJavaLangObjectType());
+    if (VM.VerifyAssertions) VM._assert(!m.isStatic());
+    // Start at slot 1 since nextId is initialized to 1
+    for (int i = 1; i <= numTypes(); i++) {
+      RVMType type = RVMType.getType(i);
+      if (type.isArrayType() && type.isResolved()) {
+        TIB arrayTIB = type.getTypeInformationBlock();
+        TIB objectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
+        Offset virtualMethodOffset = m.getOffset();
+        CodeArray virtualMethod = objectTIB.getVirtualMethod(virtualMethodOffset);
+        arrayTIB.setVirtualMethod(virtualMethodOffset, virtualMethod);
+      }
+    }
+  }
+
+  /**
    * The memory manager's allocator id for this type.
    */
   private int mmAllocator;
@@ -908,4 +931,5 @@ public abstract class RVMType extends AnnotatedElement {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return referenceOffsets;
   }
+
 }

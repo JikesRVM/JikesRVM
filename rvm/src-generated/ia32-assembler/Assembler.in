@@ -2101,6 +2101,120 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   /**
+   * Generate a move sign extended from register. That is,
+   * <PRE>
+   * dstReg := (int) srcReg (sign extended)
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcReg the source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emitMOVSXDQ_Reg_Reg(GPR dstReg, GPR srcReg) {
+    int miStart = mi;
+    generateREXprefix(true, dstReg, null, srcReg);
+    setMachineCodes(mi++, (byte) 0x63);
+    emitRegRegOperands(srcReg, dstReg);
+    if (lister != null) lister.RR(miStart, "MOVSXDQ", dstReg, srcReg);
+  }
+
+  /**
+   * Generate a move sign extended from register displacement. That is,
+   * <PRE>
+   * dstReg := (int) [srcBase + srcDisp] (sign extended)
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcBase the source base register
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emitMOVSXDQ_Reg_RegDisp(GPR dstReg, GPR srcBase, Offset srcDisp) {
+    int miStart = mi;
+    generateREXprefix(true, dstReg, null, srcBase);
+    setMachineCodes(mi++, (byte) 0x63);
+    emitRegDispRegOperands(srcBase, srcDisp, dstReg);
+    if (lister != null) lister.RRD(miStart, "MOVSXDQ", dstReg, srcBase, srcDisp);
+  }
+
+  /**
+   * Generate a move sign extended from register indirect. That is,
+   * <PRE>
+   * dstReg := (int) [srcBase] (sign extended)
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcBase the source base register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emitMOVSXDQ_Reg_RegInd(GPR dstReg, GPR srcBase) {
+    int miStart = mi;
+    generateREXprefix(true, dstReg, null, srcBase);
+    setMachineCodes(mi++, (byte) 0x63);
+    emitRegIndirectRegOperands(srcBase, dstReg);
+    if (lister != null) lister.RRN(miStart, "MOVSXDQ", dstReg, srcBase);
+  }
+
+  /**
+   * Generate a move sign extended from register offset. That is,
+   * <PRE>
+   * dstReg := (int) [srcIndex&lt;&lt;srcScale + srcDisp] (sign extended)
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcIndex the source index register
+   * @param srcScale the source scale of the index
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emitMOVSXDQ_Reg_RegOff(GPR dstReg, GPR srcIndex, short srcScale, Offset srcDisp) {
+    int miStart = mi;
+    generateREXprefix(true, dstReg, srcIndex, null);
+    setMachineCodes(mi++, (byte) 0x63);
+    emitRegOffRegOperands(srcIndex, srcScale, srcDisp, dstReg);
+    if (lister != null) lister.RRFD(miStart, "MOVSXDQ", dstReg, srcIndex, srcScale, srcDisp);
+  }
+
+  /**
+   * Generate a move sign extended from an absolute address. That is,
+   * <PRE>
+   * dstReg := (int) [srcDisp] (sign extended)
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  public final void emitMOVSXDQ_Reg_Abs(GPR dstReg, Address srcDisp) {
+    int miStart = mi;
+    generateREXprefix(true, dstReg, null, null);
+    setMachineCodes(mi++, (byte) 0x63);
+    emitAbsRegOperands(srcDisp, dstReg);
+    if (lister != null) lister.RRA(miStart, "MOVSXDQ", dstReg, srcDisp);
+  }
+
+  /**
+   * Generate a move sign extended by register indexed. That is,
+   * <PRE>
+   * dstReg := (int) [srcBase + srcIndex&lt;&lt;srcScale + srcDisp] (sign extended)
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcBase the source base register
+   * @param srcIndex the source index register
+   * @param srcScale the source scale of the index
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,3})
+  public final void emitMOVSXDQ_Reg_RegIdx(GPR dstReg, GPR srcBase, GPR srcIndex, short srcScale, Offset srcDisp) {
+    int miStart = mi;
+    generateREXprefix(true, dstReg, srcIndex, srcBase);
+    setMachineCodes(mi++, (byte) 0x63);
+    emitSIBRegOperands(srcBase, srcIndex, srcScale, srcDisp, dstReg);
+    if (lister != null) lister.RRXD(miStart, "MOVSXDQ", dstReg, srcBase, srcIndex, srcScale, srcDisp);
+  }
+
+  /**
    * Emit NOP instruction
    *
    * @param length size of NOP instruction required

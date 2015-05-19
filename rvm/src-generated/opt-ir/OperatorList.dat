@@ -472,7 +472,7 @@ none
 # memory fence
 FENCE
 Empty
-memAsLoad | memAsStore | release
+memAsLoad | memAsStore | release | acquire
 
 
 

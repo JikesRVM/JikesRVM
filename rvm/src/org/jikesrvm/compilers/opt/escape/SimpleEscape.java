@@ -157,17 +157,23 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- * Simple flow-insensitive intra-procedural escape analysis.
+ * Simple flow-insensitive intra-procedural escape analysis. Information
+ * about other procedures is only used when examining call instructions.
  * <p>
- * Information about other procedures is only used when examining call instructions.
+ * NOTE: The analysis is tailored to the optimizations that currently make
+ * use of it and <em>NOT</em> suited for general tasks that rely on escape
+ * analysis. In particular, the analysis may incorrectly classify uses as
+ * thread-local or method-local. This does not cause problems for the implemented
+ * optimizations because those will only be performed when the definition of
+ * the object in question is contained in the method that's being compiled.
  * <p>
  * TODO list:
  * <ul>
  *   <li>This would be more effective if formulated as a data-flow problem,
  *    and solved with iteration.</li>
- *   <li>Needs reference information if based on existing algorithm</li>
- *   <li>Needs a testsuite that demonstrates the capabilities of the analysis</li>
- *   <li>Consider implementing a more powerful analysis</li>
+ *   <li>Implement a more powerful analysis that it suitable for general use and
+ *    add suitable references</li>
+ *   <li>Write a testsuite that demonstrates the capabilities of the analysis</li>
  * </ul>
  *
  */

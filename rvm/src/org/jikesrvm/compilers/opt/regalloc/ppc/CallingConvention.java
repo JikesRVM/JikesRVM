@@ -117,7 +117,10 @@ public abstract class CallingConvention extends IRTools {
 
   /**
    * Calling convention to implement calls to
-   * native (C) routines using the AIX linkage conventions
+   * native (C) routines using the AIX linkage conventions.
+   *
+   * TODO AIX support has been dropped. Update the documentation.
+   * TODO is this actually the 64-bit PowerPC ELF convention?
    */
   public static void expandSysCall(Instruction s, IR ir) {
     RegisterOperand ip = (RegisterOperand) Call.getClearAddress(s);
@@ -176,7 +179,7 @@ public abstract class CallingConvention extends IRTools {
                      AC(Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS)),
                      null);         // TODO: valid location?
     s.insertBefore(s2);
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       s2 =
           Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir, s), ip, AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
       s.insertBefore(s2);

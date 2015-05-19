@@ -10,6 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+
+/**
+ * Note: Support for AIX has been dropped but test cases for AIX
+ * have been kept.
+ */
 class ArgumentPassing {
 
   static boolean verbose = true;         // set to true to get messages for each test

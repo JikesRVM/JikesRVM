@@ -52,6 +52,7 @@ public class CodePatchSyncRequestVisitorTest {
     t.interrupt();
   }
 
+  @Ignore("currently fails spuriously, see bug RVM-1096")
   @SuppressWarnings("deprecation")
   @Test(timeout = 100)
   public void codePatchingWorksWhenAThreadIsSuspended() throws Exception {
@@ -68,11 +69,13 @@ public class CodePatchSyncRequestVisitorTest {
     triggerCodePatching(new WaitingThread());
   }
 
+  @Ignore("currently fails spuriously, see bug RVM-1096")
   @Test(timeout = 100)
   public void codePatchingWorksWhenAThreadIsSleeping() throws Exception {
     triggerCodePatching(new SleepingThread());
   }
 
+  @Ignore("currently fails spuriously, see bug RVM-1096")
   @Test(timeout = 100)
   public void codePatchingWorksWhenAThreadIsParked() throws Exception {
     triggerCodePatching(new ParkedThread());

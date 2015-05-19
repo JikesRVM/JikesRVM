@@ -53,7 +53,7 @@
 #include <sys/context.h>
 // extern "C" char *sys_siglist[];
 #endif
-#include "RunBootImage.h"       // Automatically generated for us by
+#include "bootloader.h"       // Automatically generated for us by
 // jbuild.linkBooter
 #include "bootImageRunner.h"    // In tools/bootImageRunner
 

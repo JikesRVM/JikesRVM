@@ -19,5 +19,4 @@
 
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_BOOT_RECORD_INITIALIZATION
-#include <AixLinkageLayout.h>
 #include <InterfaceDeclarations.h>

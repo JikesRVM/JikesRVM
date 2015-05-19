@@ -50,14 +50,7 @@ JNIEXPORT jint JNICALL Java_tNativeThreads_nativeFoo
   }
   **********/
 
-
-#if _AIX43
-  sched_yield();
-#else
   pthread_yield();
-#endif
-
-
 
   /*  printf("tNativeThreads.c: after loops: sum1 = %d , sum2 = %d \n", sum1,sum2); */
 

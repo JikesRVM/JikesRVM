@@ -2276,7 +2276,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else {
       // T2 = object reference
       popAddr(T2);
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
       if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
         // 32/64bit reference/word load
         asm.emitLAddrX(T0, T1, T2);
@@ -2325,7 +2324,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       pushAddr(T0);
     } else {
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
         // 32/64bit reference/word load
         asm.emitLAddrOffset(T0, T1, fieldOffset);
@@ -2382,7 +2380,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       } else {
         popAddr(T0);                // T0 = address value
         popAddr(T1);                // T1 = object reference
-        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
         asm.emitSTAddrX(T0, T1, T2);
       }
     } else if (NEEDS_BOOLEAN_PUTFIELD_BARRIER && fieldType.isBooleanType()) {
@@ -2413,32 +2410,27 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       // 32/64bit word store
       popAddr(T0);                // T0 = value
       popAddr(T1);                // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTAddrX(T0, T1, T2);
     } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
       // 8bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTBX(T0, T1, T2);
     } else if (fieldType.isShortType() || fieldType.isCharType()) {
       // 16bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTHX(T0, T1, T2);
     } else if (fieldType.isIntType() || fieldType.isFloatType()) {
       // 32bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTWX(T0, T1, T2);
     } else {
       // 64bit store
       if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
       popDouble(F0);     // F0 = doubleword value
       popAddr(T1);       // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTFDX(F0, T1, T2);
     }
 
@@ -2465,7 +2457,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       } else {
         popAddr(T0); // T0 = address value
         popAddr(T1); // T1 = object reference
-        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
         asm.emitSTAddrOffset(T0, T1, fieldOffset);
       }
     } else if (NEEDS_BOOLEAN_PUTFIELD_BARRIER && fieldType.isBooleanType()) {
@@ -2496,32 +2487,27 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       // 32/64bit word store
       popAddr(T0);                // T0 = value
       popAddr(T1);                // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTAddrOffset(T0, T1, fieldOffset);
     } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
       // 8bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTBoffset(T0, T1, fieldOffset);
     } else if (fieldType.isShortType() || fieldType.isCharType()) {
       // 16bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTHoffset(T0, T1, fieldOffset);
     } else if (fieldType.isIntType() || fieldType.isFloatType()) {
       // 32bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTWoffset(T0, T1, fieldOffset);
     } else {
       // 64bit store
       if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
       popDouble(F0);     // F0 = doubleword value
       popAddr(T1);       // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTFDoffset(F0, T1, fieldOffset);
     }
     if (field.isVolatile()) {
@@ -3551,7 +3537,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   // store parameters from registers into local variables of current method.
 
   private void genMoveParametersToLocals() {
-    // AIX computation will differ
     int spillOff = frameSize + STACKFRAME_HEADER_SIZE;
     short gp = FIRST_VOLATILE_GPR;
     short fp = FIRST_VOLATILE_FPR;
@@ -3642,7 +3627,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
   // load parameters into registers before calling method "m".
   private void genMoveParametersToRegisters(boolean hasImplicitThisArg, MethodReference m) {
-    // AIX computation will differ
     spillOffset = STACKFRAME_HEADER_SIZE;
     int gp = FIRST_VOLATILE_GPR;
     int fp = FIRST_VOLATILE_FPR;
@@ -4558,9 +4542,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       // NO-OP
     } else if (methodName == MagicNames.combinedLoadBarrier) {
       asm.emitISYNC();
-    } else if (methodName == MagicNames.storeStoreBarrier ||
-               methodName == MagicNames.fence) {
+    } else if (methodName == MagicNames.storeStoreBarrier) {
       asm.emitSYNC();
+    } else if (methodName == MagicNames.fence) {
+      asm.emitHWSYNC();
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);
@@ -4875,8 +4860,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   /**
-   * Generate a sys call where the address of the function or (when POWEROPEN_ABI is defined)
-   * function descriptor have been loaded into S0 already
+   * Generate a sys call where the address of the function or (when build for 64-bit
+   * PowerPC ELF ABI) function descriptor have been loaded into S0 already
    */
   private void generateSysCall(int parametersSize) {
     int linkageAreaSize = parametersSize + BYTES_IN_STACKSLOT + (6 * BYTES_IN_STACKSLOT);
@@ -4887,7 +4872,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitSTDU(FP, -linkageAreaSize, FP);        // create linkage area
     }
     asm.emitSTAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);      // save JTOC
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       /* GPR0 is pointing to the function descriptor, so we need to load the TOC and IP from that */
       // Load TOC (Offset one word)
       asm.emitLAddrOffset(JTOC, S0, Offset.fromIntSignExtend(BYTES_IN_STACKSLOT));

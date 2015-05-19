@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport;
 
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 
 import org.jikesrvm.ArchitectureSpecific;
@@ -142,6 +143,23 @@ public final class OptCompiledMethod extends CompiledMethod {
   @Interruptible
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+
+    // Use an explicit null check here because this method is called from
+    // code for delivery of hardware exceptions. That code is unpreemptible, so
+    // a NullPointerException in this method would lead to a crash due to recursive
+    // use of hardware exception registers. It is better to crash with a reasonable
+    // error message when no method is found.
+    if (realMethod == null) {
+      VM.sysWrite("Failing instruction offset: ");
+      VM.sysWriteln(instructionOffset);
+      String msg = "Couldn't find a method for given instruction offset";
+      if (VM.VerifyAssertions) {
+        VM._assert(NOT_REACHED, msg);
+      } else {
+        VM.sysFail(msg);
+      }
+    }
+
     return realMethod.isUninterruptible();
   }
 

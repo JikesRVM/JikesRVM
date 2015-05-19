@@ -212,7 +212,7 @@ SET_EXCEPTION_OBJECT(P(p));
 stm:	FENCE
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Empty.mutate(P(p), PPC_SYNC));
+EMIT(MIR_Empty.mutate(P(p), PPC_HWSYNC));
 
 #####
 # WRITE_FLOOR

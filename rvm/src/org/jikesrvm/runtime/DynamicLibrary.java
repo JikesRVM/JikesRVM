@@ -159,7 +159,7 @@ public final class DynamicLibrary {
    * look up this dynamic library for a symbol
    * @param symbolName symbol name
    * @return The <code>Address</code> of the symbol system handler
-   * (actually an address to an AixLinkage triplet).
+   * (or an address of a PowerPC Linkage triplet).
    *           (-1: not found or couldn't be created)
    */
   public Address getSymbol(String symbolName) {
