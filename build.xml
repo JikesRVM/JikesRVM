@@ -1729,12 +1729,12 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.c.args" value="${shld.args} ${rvm.common.args}"/>
 
     <condition property="rvm.arch.src"
-      value="${bl.dir}/ia32/initBootRecord.c ${bl.dir}/ia32/libvm.c">
+      value="${bl.dir}/ia32/libvm.c">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
 
     <condition property="rvm.arch.src"
-               value="${bl.dir}/ppc/initBootRecord.c ${bl.dir}/ppc/bootThread.c ${bl.dir}/ppc/libvm.c">
+               value="${bl.dir}/ppc/bootThread.c ${bl.dir}/ppc/libvm.c">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 

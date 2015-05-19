@@ -161,6 +161,7 @@ struct BootRecord *bootRecord;
 /* Interface to virtual machine data structures. */
 #define NEED_EXIT_STATUS_CODES
 #define NEED_BOOT_RECORD_DECLARATIONS
+#define NEED_BOOT_RECORD_INITIALIZATION
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_MEMORY_MANAGER_DECLARATIONS
 #include "sys.h"
