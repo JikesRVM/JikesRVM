@@ -116,8 +116,6 @@ extern void *getJTOC(void);
 /* These are defined in sys.cpp; used in syswrap.C */
 extern jint GetEnv(JavaVM *, void **, jint);
 
-// Defined in sys.cpp.; used in libvm.C
-extern void sysSyncCache(void *, size_t size);
 // Defined in sys.cpp.  Used in libvm.C.
 extern void processTimerTick(void);
 // Defined in sys.cpp.  Used in libvm.C.

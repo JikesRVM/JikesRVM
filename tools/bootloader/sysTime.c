@@ -48,9 +48,7 @@ EXTERNAL long long sysNanoTime()
   int rc = clock_gettime(CLOCK_REALTIME, &tp);
   if (rc != 0) {
     retVal = rc;
-    if (lib_verbose) {
-      ERROR_PRINTF("sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
-    }
+    ERROR_PRINTF("sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
   } else {
     retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
   }
