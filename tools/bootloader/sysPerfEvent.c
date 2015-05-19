@@ -24,20 +24,20 @@
 #include <errno.h>
 #endif
 
-EXTERNAL {
 #ifndef RVM_WITH_PERFEVENT
-  void sysPerfEventInit(int events) {}
-  void sysPerfEventCreate(int id, const char *eventName) {}
-  void sysPerfEventEnable() {}
-  void sysPerfEventDisable() {}
-  void sysPerfEventRead(int id, long long *values) {}
+  EXTERNAL void sysPerfEventInit(int events) {}
+  EXTERNAL void sysPerfEventCreate(int id, const char *eventName) {}
+  EXTERNAL void sysPerfEventEnable() {}
+  EXTERNAL void sysPerfEventDisable() {}
+  EXTERNAL void sysPerfEventRead(int id, long long *values) {}
 #else
   static int enabled = 0;
   static int *perf_event_fds;
   static struct perf_event_attr *perf_event_attrs;
 
-  void sysPerfEventInit(int numEvents)
+  EXTERNAL void sysPerfEventInit(int numEvents)
   {
+    int i;
     TRACE_PRINTF("%s: sysPerfEventInit\n", Me);
     int ret = pfm_initialize();
     if (ret != PFM_SUCCESS) {
@@ -52,13 +52,13 @@ EXTERNAL {
     if (!perf_event_attrs) {
       errx(1, "error allocating perf_event_attrs");
     }
-    for(int i=0; i < numEvents; i++) {
+    for(i = 0; i < numEvents; i++) {
       perf_event_attrs[i].size = sizeof(struct perf_event_attr);
     }
     enabled = 1;
   }
 
-  void sysPerfEventCreate(int id, const char *eventName)
+  EXTERNAL void sysPerfEventCreate(int id, const char *eventName)
   {
     TRACE_PRINTF("%s: sysPerfEventCreate\n", Me);
     struct perf_event_attr *pe = (perf_event_attrs + id);
@@ -75,7 +75,7 @@ EXTERNAL {
     }
   }
 
-  void sysPerfEventEnable()
+  EXTERNAL void sysPerfEventEnable()
   {
     TRACE_PRINTF("%s: sysPerfEventEnable\n", Me);
     if (enabled) {
@@ -85,7 +85,7 @@ EXTERNAL {
     }
   }
 
-  void sysPerfEventDisable()
+  EXTERNAL void sysPerfEventDisable()
   {
     TRACE_PRINTF("%s: sysPerfEventDisable\n", Me);
     if (enabled) {
@@ -95,7 +95,7 @@ EXTERNAL {
     }
   }
 
-  void sysPerfEventRead(int id, long long *values)
+  EXTERNAL void sysPerfEventRead(int id, long long *values)
   {
     TRACE_PRINTF("%s: sysPerfEventRead\n", Me);
     size_t expectedBytes = 3 * sizeof(long long);
@@ -108,4 +108,3 @@ EXTERNAL {
     }
   }
 #endif
-}

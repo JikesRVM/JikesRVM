@@ -82,12 +82,16 @@ public class GenerateInterfaceDeclarations {
     out.println(s);
   }
 
+  static void pln(String s, int i) {
+    out.print("#define " + s + " 0x" + Integer.toHexString(i) + "\n");
+  }
+
   static void pln(String s, Address addr) {
-    out.print("const Address " + s + Services.addressAsHexString(addr) + ";\n");
+    out.print("#define " + s + " ((Address)" + Services.addressAsHexString(addr) + ")\n");
   }
 
   static void pln(String s, Offset off) {
-    out.print("const Offset " + s + Services.addressAsHexString(off.toWord().toAddress()) + ";\n");
+    out.print("#define " + s + " ((Offset)" + Services.addressAsHexString(off.toWord().toAddress()) + ")\n");
   }
 
   static void pln() {
@@ -206,13 +210,11 @@ public class GenerateInterfaceDeclarations {
       pln("#define Offset int32_t");
       pln("#define Extent uint32_t");
       pln("#define Word uint32_t");
-      pln("#define JavaObject_t uint32_t");
     } else {
       pln("#define Address uint64_t");
       pln("#define Offset int64_t");
       pln("#define Extent uint64_t");
       pln("#define Word uint64_t");
-      pln("#define JavaObject_t uint64_t");
     }
     pln("#endif /* NEED_BOOT_RECORD_DECLARATIONS || NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     pln();
@@ -322,7 +324,7 @@ public class GenerateInterfaceDeclarations {
         p("   unsigned int * " + name + ";\n");
         current = current.plus(addrSize);
       } else if (t.isReferenceType()) {
-        p("   JavaObject_t " + name + ";\n");
+        p("   Address " + name + ";\n");
         current = current.plus(addrSize);
       } else {
         System.err.println("Unexpected field " + name + " with type " + t);
@@ -357,8 +359,8 @@ public class GenerateInterfaceDeclarations {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
         // e. g.,
-        // extern "C" void sysFOOf();
-        p("extern \"C\" int " + functionName + "();\n");
+        // extern void sysFOOf();
+        p("extern int " + functionName + "();\n");
       } else if (fieldName.equals("sysJavaVM")) {
         p("extern struct Java " + fieldName + ";\n");
       }
@@ -366,7 +368,7 @@ public class GenerateInterfaceDeclarations {
 
     // emit field initializers
     //
-    p("extern \"C\" void setLinkage(BootRecord* br){\n");
+    p("extern void setLinkage(struct BootRecord* br){\n");
     for (int i = fields.length; --i >= 0;) {
       RVMField field = fields[i];
       if (field.isStatic()) {
@@ -383,7 +385,7 @@ public class GenerateInterfaceDeclarations {
         String functionName = fieldName.substring(0, suffixIndex);
         // e. g.,
         //sysFOOIP = (int) sysFOO;
-        p("  br->" + fieldName + " = (intptr_t)" + functionName + ";\n");
+        p("  br->" + fieldName + " = (intptr_t)&" + functionName + ";\n");
       } else if (fieldName.equals("sysJavaVM")) {
         p("  br->" + fieldName + " = (intptr_t)&" + fieldName + ";\n");
       }
@@ -399,87 +401,63 @@ public class GenerateInterfaceDeclarations {
 
     // load address for the boot image
     //
-    p("static const void *bootImageDataAddress                     = (void*)0x" +
-      Integer.toHexString(bootImageDataAddress) +
-      ";\n");
-    p("static const void *bootImageCodeAddress                     = (void *)0x" +
-      Integer.toHexString(bootImageCodeAddress) +
-      ";\n");
-    p("static const void *bootImageRMapAddress                     = (void *)0x" +
-      Integer.toHexString(bootImageRMapAddress) +
-      ";\n");
+    pln("bootImageDataAddress", Address.fromIntZeroExtend(bootImageDataAddress));
+    pln("bootImageCodeAddress", Address.fromIntZeroExtend(bootImageCodeAddress));
+    pln("bootImageRMapAddress", Address.fromIntZeroExtend(bootImageRMapAddress));
 
     // values in Constants, from Configuration
     //
-    p("static const int Constants_STACK_SIZE_GUARD          = " +
-      ArchitectureSpecific.StackframeLayoutConstants
-          .STACK_SIZE_GUARD +
-                            ";\n");
-
-    p("static const int Constants_INVISIBLE_METHOD_ID       = " +
-      ArchitectureSpecific.StackframeLayoutConstants
-          .INVISIBLE_METHOD_ID +
-                               ";\n");
-    p("static const int ThinLockConstants_TL_THREAD_ID_SHIFT= " + ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
-    p("static const int Constants_STACKFRAME_HEADER_SIZE    = " +
-      ArchitectureSpecific.StackframeLayoutConstants
-          .STACKFRAME_HEADER_SIZE +
-                                  ";\n");
-    p("static const int Constants_STACKFRAME_METHOD_ID_OFFSET = " +
-      ArchitectureSpecific.StackframeLayoutConstants
-          .STACKFRAME_METHOD_ID_OFFSET +
-                                       ";\n");
-    p("static const int Constants_STACKFRAME_FRAME_POINTER_OFFSET    = " +
-      ArchitectureSpecific.StackframeLayoutConstants
-          .STACKFRAME_FRAME_POINTER_OFFSET +
-                                           ";\n");
-    pln("Constants_STACKFRAME_SENTINEL_FP             = ",
-        ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
-    p("\n");
+    pln("Constants_STACK_SIZE_GUARD", ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD);
+    pln("Constants_INVISIBLE_METHOD_ID", ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID);
+    pln("ThinLockConstants_TL_THREAD_ID_SHIFT", ThinLockConstants.TL_THREAD_ID_SHIFT);
+    pln("Constants_STACKFRAME_HEADER_SIZE", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
+    pln("Constants_STACKFRAME_METHOD_ID_OFFSET", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET);
+    pln("Constants_STACKFRAME_FRAME_POINTER_OFFSET", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET);
+    pln("Constants_STACKFRAME_SENTINEL_FP", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
 
     // values in RuntimeEntrypoints
     //
-    p("static const int Runtime_TRAP_UNKNOWN        = " + RuntimeEntrypoints.TRAP_UNKNOWN + ";\n");
-    p("static const int Runtime_TRAP_NULL_POINTER   = " + RuntimeEntrypoints.TRAP_NULL_POINTER + ";\n");
-    p("static const int Runtime_TRAP_ARRAY_BOUNDS   = " + RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + ";\n");
-    p("static const int Runtime_TRAP_DIVIDE_BY_ZERO = " + RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + ";\n");
-    p("static const int Runtime_TRAP_STACK_OVERFLOW = " + RuntimeEntrypoints.TRAP_STACK_OVERFLOW + ";\n");
-    p("static const int Runtime_TRAP_CHECKCAST      = " + RuntimeEntrypoints.TRAP_CHECKCAST + ";\n");
-    p("static const int Runtime_TRAP_REGENERATE     = " + RuntimeEntrypoints.TRAP_REGENERATE + ";\n");
-    p("static const int Runtime_TRAP_JNI_STACK     = " + RuntimeEntrypoints.TRAP_JNI_STACK + ";\n");
-    p("static const int Runtime_TRAP_MUST_IMPLEMENT = " + RuntimeEntrypoints.TRAP_MUST_IMPLEMENT + ";\n");
-    p("static const int Runtime_TRAP_STORE_CHECK = " + RuntimeEntrypoints.TRAP_STORE_CHECK + ";\n");
+    pln("Runtime_TRAP_UNKNOWN", RuntimeEntrypoints.TRAP_UNKNOWN);
+    pln("Runtime_TRAP_NULL_POINTER", RuntimeEntrypoints.TRAP_NULL_POINTER);
+    pln("Runtime_TRAP_ARRAY_BOUNDS", RuntimeEntrypoints.TRAP_ARRAY_BOUNDS);
+    pln("Runtime_TRAP_DIVIDE_BY_ZERO", RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO);
+    pln("Runtime_TRAP_STACK_OVERFLOW", RuntimeEntrypoints.TRAP_STACK_OVERFLOW);
+    pln("Runtime_TRAP_CHECKCAST", RuntimeEntrypoints.TRAP_CHECKCAST);
+    pln("Runtime_TRAP_REGENERATE", RuntimeEntrypoints.TRAP_REGENERATE);
+    pln("Runtime_TRAP_JNI_STACK", RuntimeEntrypoints.TRAP_JNI_STACK);
+    pln("Runtime_TRAP_MUST_IMPLEMENT", RuntimeEntrypoints.TRAP_MUST_IMPLEMENT);
+    pln("Runtime_TRAP_STORE_CHECK", RuntimeEntrypoints.TRAP_STORE_CHECK);
     pln();
 
     // fields in RVMThread
     //
     Offset offset = Entrypoints.threadStackField.getOffset();
-    pln("RVMThread_stack_offset = ", offset);
+    pln("RVMThread_stack_offset", offset);
     offset = Entrypoints.stackLimitField.getOffset();
-    pln("RVMThread_stackLimit_offset = ", offset);
+    pln("RVMThread_stackLimit_offset", offset);
     offset = Entrypoints.threadExceptionRegistersField.getOffset();
-    pln("RVMThread_exceptionRegisters_offset = ", offset);
+    pln("RVMThread_exceptionRegisters_offset", offset);
     offset = Entrypoints.jniEnvField.getOffset();
-    pln("RVMThread_jniEnv_offset = ", offset);
+    pln("RVMThread_jniEnv_offset", offset);
     offset = Entrypoints.execStatusField.getOffset();
-    pln("RVMThread_execStatus_offset = ", offset);
+    pln("RVMThread_execStatus_offset", offset);
     // constants in RVMThread
-    pln("static const int RVMThread_TERMINATED = " + RVMThread.TERMINATED + ";");
+    pln("RVMThread_TERMINATED",  RVMThread.TERMINATED);
     // fields in Registers
     //
     offset = ArchEntrypoints.registersGPRsField.getOffset();
-    pln("Registers_gprs_offset = ", offset);
+    pln("Registers_gprs_offset", offset);
     offset = ArchEntrypoints.registersFPRsField.getOffset();
-    pln("Registers_fprs_offset = ", offset);
+    pln("Registers_fprs_offset", offset);
     offset = ArchEntrypoints.registersIPField.getOffset();
-    pln("Registers_ip_offset = ", offset);
+    pln("Registers_ip_offset", offset);
 
     offset = ArchEntrypoints.registersInUseField.getOffset();
-    pln("Registers_inuse_offset = ", offset);
+    pln("Registers_inuse_offset", offset);
 
     // fields in JNIEnvironment
     offset = Entrypoints.JNIExternalFunctionsField.getOffset();
-    pln("JNIEnvironment_JNIExternalFunctions_offset = ", offset);
+    pln("JNIEnvironment_JNIExternalFunctions_offset", offset);
 
     arch.emitArchVirtualMachineDeclarations();
   }
@@ -487,20 +465,18 @@ public class GenerateInterfaceDeclarations {
   // Codes for exit(3).
   static void emitExitStatusCodes() {
     pln("/* Automatically generated from the exitStatus declarations in ExitStatus.java */");
-    pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = " + EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
-    pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = " + EXIT_STATUS_COULD_NOT_EXECUTE + ";");
-    pln("const int EXIT_STATUS_MISC_TROUBLE                         = " + EXIT_STATUS_MISC_TROUBLE + ";");
-    pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = " +
-        EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
-    pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = " + EXIT_STATUS_SYSCALL_TROUBLE + ";");
-    pln("const int EXIT_STATUS_TIMER_TROUBLE                        = " + EXIT_STATUS_TIMER_TROUBLE + ";");
-    pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = " + EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
-    pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = " + EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
-    pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = " +
-        EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
-    pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = " + EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
-    pln("const int EXIT_STATUS_JNI_TROUBLE                          = " + EXIT_STATUS_JNI_TROUBLE + ";");
-    pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = " + EXIT_STATUS_BAD_WORKING_DIR + ";");
+    pln("EXIT_STATUS_EXECUTABLE_NOT_FOUND", EXIT_STATUS_EXECUTABLE_NOT_FOUND);
+    pln("EXIT_STATUS_COULD_NOT_EXECUTE", EXIT_STATUS_COULD_NOT_EXECUTE);
+    pln("EXIT_STATUS_MISC_TROUBLE", EXIT_STATUS_MISC_TROUBLE);
+    pln("EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR", EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+    pln("EXIT_STATUS_SYSCALL_TROUBLE", EXIT_STATUS_SYSCALL_TROUBLE);
+    pln("EXIT_STATUS_TIMER_TROUBLE", EXIT_STATUS_TIMER_TROUBLE);
+    pln("EXIT_STATUS_UNSUPPORTED_INTERNAL_OP", EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    pln("EXIT_STATUS_UNEXPECTED_CALL_TO_SYS", EXIT_STATUS_UNEXPECTED_CALL_TO_SYS);
+    pln("EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION", EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+    pln("EXIT_STATUS_BOGUS_COMMAND_LINE_ARG", EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    pln("EXIT_STATUS_JNI_TROUBLE", EXIT_STATUS_JNI_TROUBLE);
+    pln("EXIT_STATUS_BAD_WORKING_DIR", EXIT_STATUS_BAD_WORKING_DIR);
   }
 
   // Emit assembler constants.

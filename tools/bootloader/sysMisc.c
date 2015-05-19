@@ -27,6 +27,7 @@
  */
 EXTERNAL int sysArg(int argno, char *buf, int buflen)
 {
+  int i;
   TRACE_PRINTF("%s: sysArg %d\n", Me, argno);
   if (argno == -1) { // return arg count
     return JavaArgc;
@@ -37,7 +38,7 @@ EXTERNAL int sysArg(int argno, char *buf, int buflen)
     **************/
   } else { // return i-th arg
     const char *src = JavaArgs[argno];
-    for (int i = 0;; ++i)
+    for (i = 0;; ++i)
     {
       if (*src == 0)
         return i;
@@ -77,10 +78,11 @@ EXTERNAL int sysArg(int argno, char *buf, int buflen)
  */
 static int loadResultBuf(char * dest, int limit, const char *src)
 {
+  int i;
   if ( ! src )         // Is it set?
     return -2;      // Tell caller it was unset.
 
-  for (int i = 0;; ++i) {
+  for (i = 0;; ++i) {
     if ( i < limit ) // If there's room for the next char of the value ...
       dest[i] = src[i];   // ... write it into the destination buffer.
     if (src[i] == '\0')
@@ -124,7 +126,7 @@ EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
                                   const char *subtoken /* e.g., "200M" or "200" */)
 {
   TRACE_PRINTF("%s: sysParseMemorySize %s\n", Me, token);
-  bool fastExit = false;
+  int fastExit = 0;
   unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
                                        (unsigned) roundTo, token, subtoken,
                                        &fastExit);

@@ -53,9 +53,8 @@
 #include <sys/context.h>
 // extern "C" char *sys_siglist[];
 #endif
-#include "bootloader.h"       // Automatically generated for us by
-// jbuild.linkBooter
-#include "bootImageRunner.h"    // In tools/bootImageRunner
+#include "bootloader.h"       /* Automatically generated for us by the build */
+#include "bootImageRunner.h"    /* In tools/bootloader */
 
 // Interface to VM data structures.
 //
@@ -72,10 +71,15 @@ uint64_t pageSize;              /* Declared in bootImageRunner.h */
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
 
+/** Sink for messages relating to serious errors detected by C runtime. */
+FILE *SysErrorFile;
+/* Sink for trace messages produced by VM.sysWrite(). */
+FILE *SysTraceFile;
+
 static int DEBUG = 0;                   // have to set this from a debugger
 
-static bool strequal(const char *s1, const char *s2);
-static bool strnequal(const char *s1, const char *s2, size_t n);
+static int strequal(const char *s1, const char *s2);
+static int strnequal(const char *s1, const char *s2, size_t n);
 
 void findMappable();
 int determinePageSize();
@@ -84,28 +88,28 @@ int determinePageSize();
 
 /* These definitions must remain in sync with nonStandardArgs, the array
  * immediately below. */
-static const int HELP_INDEX                    = 0;
-static const int VERBOSE_INDEX                 = HELP_INDEX+1;
-static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
-static const int MS_INDEX                      = VERBOSE_BOOT_INDEX+1;
-static const int MX_INDEX                      = MS_INDEX+1;
-static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
-static const int BOOTIMAGE_CODE_FILE_INDEX     = SYSLOGFILE_INDEX+1;
-static const int BOOTIMAGE_DATA_FILE_INDEX     = BOOTIMAGE_CODE_FILE_INDEX+1;
-static const int BOOTIMAGE_RMAP_FILE_INDEX     = BOOTIMAGE_DATA_FILE_INDEX+1;
-static const int INDEX                      = BOOTIMAGE_RMAP_FILE_INDEX+1;
-static const int GC_INDEX                      = INDEX+1;
-static const int AOS_INDEX                     = GC_INDEX+1;
-static const int IRC_INDEX                     = AOS_INDEX+1;
-static const int RECOMP_INDEX                  = IRC_INDEX+1;
-static const int BASE_INDEX                    = RECOMP_INDEX+1;
-static const int OPT_INDEX                     = BASE_INDEX+1;
-static const int VMCLASSES_INDEX               = OPT_INDEX+1;
-static const int BOOTCLASSPATH_P_INDEX         = VMCLASSES_INDEX+1;
-static const int BOOTCLASSPATH_A_INDEX         = BOOTCLASSPATH_P_INDEX+1;
-static const int PROCESSORS_INDEX              = BOOTCLASSPATH_A_INDEX+1;
+#define HELP_INDEX                    0
+#define VERBOSE_INDEX                 HELP_INDEX + 1
+#define VERBOSE_BOOT_INDEX            VERBOSE_INDEX + 1
+#define MS_INDEX                      VERBOSE_BOOT_INDEX + 1
+#define MX_INDEX                      MS_INDEX + 1
+#define SYSLOGFILE_INDEX              MX_INDEX + 1
+#define BOOTIMAGE_CODE_FILE_INDEX     SYSLOGFILE_INDEX + 1
+#define BOOTIMAGE_DATA_FILE_INDEX     BOOTIMAGE_CODE_FILE_INDEX + 1
+#define BOOTIMAGE_RMAP_FILE_INDEX     BOOTIMAGE_DATA_FILE_INDEX + 1
+#define INDEX                      BOOTIMAGE_RMAP_FILE_INDEX + 1
+#define GC_INDEX                      INDEX + 1
+#define AOS_INDEX                     GC_INDEX + 1
+#define IRC_INDEX                     AOS_INDEX + 1
+#define RECOMP_INDEX                  IRC_INDEX + 1
+#define BASE_INDEX                    RECOMP_INDEX + 1
+#define OPT_INDEX                     BASE_INDEX + 1
+#define VMCLASSES_INDEX               OPT_INDEX + 1
+#define BOOTCLASSPATH_P_INDEX         VMCLASSES_INDEX + 1
+#define BOOTCLASSPATH_A_INDEX         BOOTCLASSPATH_P_INDEX + 1
+#define PROCESSORS_INDEX              BOOTCLASSPATH_A_INDEX + 1
 
-static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
+#define numNonstandardArgs      PROCESSORS_INDEX + 1
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
   "-X",
@@ -203,10 +207,11 @@ usage(void)
 static void
 nonstandard_usage()
 {
+  const char * const *msgp = nonStandardUsage;
   CONSOLE_PRINTF("Usage: %s [options] class [args...]\n",Me);
   CONSOLE_PRINTF("          (to execute a class)\n");
   CONSOLE_PRINTF("where options include\n");
-  for (const char * const *msgp = nonStandardUsage; *msgp; ++msgp) {
+  for (; *msgp; ++msgp) {
     CONSOLE_PRINTF( "%s\n", *msgp);
   }
 }
@@ -254,13 +259,14 @@ fullVersion()
  * still want to exit.
  */
 static const char **
-processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
+processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
 {
   int n_JCLAs = 0;
-  bool startApplicationOptions = false;
+  int startApplicationOptions = 0;
+  int i;
   const char *subtoken;
 
-  for (int i = 0; i < n_CLAs; i++) {
+  for (i = 0; i < n_CLAs; i++) {
     const char *token = CLAs[i];
     subtoken = NULL;        // strictly, not needed.
 
@@ -279,12 +285,12 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
     //   while (*argv && **argv == '-')    {
     if (strequal(token, "-help") || strequal(token, "-?") ) {
       usage();
-      *fastExit = true;
+      *fastExit = 1;
       break;
     }
     if (strequal(token, nonStandardArgs[HELP_INDEX])) {
       nonstandard_usage();
-      *fastExit = true;
+      *fastExit = 1;
       break;
     }
     if (strequal(token, nonStandardArgs[VERBOSE_INDEX])) {
@@ -301,16 +307,16 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 
       if (vb < 0) {
         CONSOLE_PRINTF("%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
-        *fastExit = true;
+        *fastExit = 1;
         break;
       } else if (errno == ERANGE
                  || vb > INT_MAX ) {
         CONSOLE_PRINTF("%s: \"%s\": too big a number to represent internally\n", Me, token);
-        *fastExit = true;
+        *fastExit = 1;
         break;
       } else if (*endp) {
         CONSOLE_PRINTF("%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
-        *fastExit = true;
+        *fastExit = 1;
         break;
       }
 
@@ -324,12 +330,10 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
       continue;
     if (strequal(token, "-version")) {
       shortVersion();
-      // *fastExit = true; break;
       exit(0);
     }
     if (strequal(token, "-fullversion")) {
       fullVersion();
-      // *fastExit = true; break;
       exit(0);
     }
     if (strequal(token, "-showversion")) {
@@ -342,7 +346,6 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
     }
     if (strequal(token, "-findMappable")) {
       findMappable();
-      // *fastExit = true; break;
       exit(0);            // success, no?
     }
     if (strnequal(token, "-verbose:gc", 11)) {
@@ -360,13 +363,13 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 
         if (level < 0) {
           CONSOLE_PRINTF( "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
-          *fastExit = true;
+          *fastExit = 1;
         } else if (errno == ERANGE || level > INT_MAX ) {
           CONSOLE_PRINTF( "%s: \"%s\": too big a number to represent internally\n", Me, token);
-          *fastExit = true;
+          *fastExit = 1;
         } else if (*endp) {
           CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
-          *fastExit = true;
+          *fastExit = 1;
         }
         if (*fastExit) {
           CONSOLE_PRINTF( "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
@@ -386,7 +389,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
       if ((unsigned) ret >= bufsiz) {
         ERROR_PRINTF( "%s: \"%s\": %ld is too big a number"
                       " to process internally\n", Me, token, level);
-        *fastExit = true;
+        *fastExit = 1;
         break;
       }
 
@@ -419,7 +422,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
       FILE* ftmp = fopen(subtoken, "a");
       if (!ftmp) {
         CONSOLE_PRINTF( "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
-        *fastExit = true;
+        *fastExit = 1;
         break;
         continue;
       }
@@ -495,6 +498,13 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 int
 main(int argc, const char **argv)
 {
+  int j;
+
+  SysErrorFile = stderr;
+  SysTraceFile = stdout;
+  setbuf(SysErrorFile, 0);
+  setbuf(SysTraceFile, 0);
+
   Me            = strrchr((char *)*argv, '/') + 1;
   ++argv, --argc;
   initialHeapSize = heap_default_initial_size;
@@ -515,13 +525,13 @@ main(int argc, const char **argv)
    */
   if (DEBUG) {
     printf("RunBootImage.main(): process %d command line arguments\n",argc);
-    for (int j=0; j<argc; j++) {
+    for (j = 0; j < argc; j++) {
       printf("\targv[%d] is \"%s\"\n",j, argv[j]);
     }
   }
 
   // call processCommandLineArguments().
-  bool fastBreak = false;
+  int fastBreak = 0;
   // Sets JavaArgc
   JavaArgs = processCommandLineArguments(argv, argc, &fastBreak);
   if (fastBreak) {
@@ -530,7 +540,7 @@ main(int argc, const char **argv)
 
   if (DEBUG) {
     printf("RunBootImage.main(): after processCommandLineArguments: %d command line arguments\n", JavaArgc);
-    for (int j = 0; j < JavaArgc; j++) {
+    for (j = 0; j < JavaArgc; j++) {
       printf("\tJavaArgs[%d] is \"%s\"\n", j, JavaArgs[j]);
     }
   }
@@ -597,14 +607,14 @@ main(int argc, const char **argv)
 }
 
 
-static bool
+static int
 strequal(const char *s1, const char *s2)
 {
   return strcmp(s1, s2) == 0;
 }
 
 
-static bool
+static int
 strnequal(const char *s1, const char *s2, size_t n)
 {
   return strncmp(s1, s2, n) == 0;
@@ -618,7 +628,7 @@ strnequal(const char *s1, const char *s2, size_t n)
  * historic meaning of "MiB" (2^20), rather than its 1994 ISO
  * meaning, which would be a factor of 10^7.
  */
-extern "C"
+extern
 unsigned int
 parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                                             "initial stack" or "maximum stack"
@@ -629,7 +639,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                   unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
                   const char *subtoken /* e.g., "200M" or "200" */,
-                  bool *fastExit)
+                  int *fastExit)
 {
   errno = 0;
   long double userNum;
@@ -641,7 +651,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
   userNum = strtold(subtoken, &endp);
   if (endp == subtoken) {
     CONSOLE_PRINTF( "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
-    *fastExit = true;
+    *fastExit = 1;
   }
 
   // First, set the factor appropriately, and make sure there aren't extra
@@ -661,7 +671,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
   } else {
     CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
                     " unit of memory size\n", Me, token, endp);
-    *fastExit = true;
+    *fastExit = 1;
   }
 
   if (! *fastExit && factor == 0.0) {
@@ -673,7 +683,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     else {
       CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
                       " unit of memory size\n", Me, token, factorStr);
-      *fastExit = true;
+      *fastExit = 1;
     }
   }
 
@@ -684,7 +694,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         "%s: You may not specify a %s %s;\n",
         Me, userNum < 0.0 ? "negative" : "zero", sizeName);
       CONSOLE_PRINTF( "\tit just doesn't make any sense.\n");
-      *fastExit = true;
+      *fastExit = 1;
     }
   }
 
@@ -692,7 +702,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) )
     {
       CONSOLE_PRINTF( "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
-      *fastExit = true;
+      *fastExit = 1;
     }
   }
 

@@ -11,54 +11,36 @@
  *  regarding copyright ownership.
  */
 /*
- * Begin execution of a RVMThread "startoff" method.
- *
- * Signature:
- *    void bootThread(int jtoc, int pr, int ti, int fp);
- *
- * Taken:
- *    arg0 == value to put into vm table-of-contents register
- *    arg1 == value to put into vm processor register
- *    arg2 == calue to put into the link register (i.e. the new program counter)
- *    arg3 == value to put into vm frame-pointer register
- *
- * Returned:
- *    does not return
+ * Architecture specific thread code for PowerPC
  */
-#define NEED_ASSEMBLER_DECLARATIONS
-#include <InterfaceDeclarations.h>
 
-.file    "bootThread.s"
-#if (defined __linux__)
+#include "sys.h"
+
+/**
+ * Transfer execution from C to Java for thread startup
+ */
+void bootThread (void *jtoc, void *tr, void *pc, void *fp)
+{
+  // Fixed register usage
+  // OS:        |   Linux   |
+  // Word size: | 64  | 32  |
+  // Thread:    | R14 | R13 |
+  // JTOC:      | R15 | R14 |
+  asm volatile ("mr 1,  %3\n" // frame
 #ifdef RVM_FOR_32_ADDR
-.text    0   // function name
-.globl   bootThread   /* external visibility */
-bootThread:
+                "mr 13, %1\n" // thread
+                "mr 14, %0\n" // jtoc
 #else
-.text
-.globl  bootThread
-bootThread:
-#endif
-#elif (defined __MACH__)
-.text
-.globl   _bootThread   /* external visibility */
-_bootThread:
-#else
-#ifdef __GNUC__
-.globl  .bootThread
-.bootThread:
-#else
-.csect   .bootThread[ro]   /* function name */
-.globl   .bootThread[ro]   /* external visibility */
-bootThread:
-#endif
-#endif
-mr      JTOC,T0
-mr      THREAD_REGISTER,T1
-mr      FP,T3
-
-/*
- * At this point we've abandoned the C stack and are running on a RVMThread's stack.
- */
-mtlr    T2
-blr                       /* branch to it */
+                "mr 14, %1\n" // thread
+                "mr 2, %0\n" // jtoc
+#endif // RVM_FOR_32_ADDR
+                "mtlr %2\n"
+                "blr    \n"
+                : /* outs */
+                : /* ins */
+                  "r"(jtoc),
+                  "r"(tr),
+                  "r"(pc),
+                  "r"(fp)
+                );
+}
