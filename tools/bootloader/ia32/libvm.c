@@ -62,14 +62,6 @@ typedef unsigned int u_int32_t;
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
 
-#ifndef __SIZEOF_POINTER__
-#  ifdef __x86_64__
-#    define __SIZEOF_POINTER__ 8
-#  else
-#    define __SIZEOF_POINTER__ 4
-#  endif
-#endif
-
 /* Interface to virtual machine data structures. */
 #define NEED_EXIT_STATUS_CODES
 #define NEED_BOOT_RECORD_DECLARATIONS

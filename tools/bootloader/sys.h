@@ -28,6 +28,15 @@
 #include "cAttributePortability.h"
 
 #include <stdint.h>
+
+#ifndef __SIZEOF_POINTER__
+#  ifdef RVM_FOR_32_ADDR
+#    define __SIZEOF_POINTER__ 4
+#  else
+#    define __SIZEOF_POINTER__ 8
+#  endif
+#endif
+
 #ifdef RVM_FOR_32_ADDR
   #define Address uint32_t
   #define Offset int32_t
