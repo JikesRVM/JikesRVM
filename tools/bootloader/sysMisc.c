@@ -14,6 +14,8 @@
 #include "sys.h"
 
 #include <stdlib.h> // getenv
+#include <errno.h> // errno
+#include <limits.h> // UINT_MAX
 
 /**
  * Access host o/s command line arguments.
@@ -134,4 +136,125 @@ EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
     return -1;
   else
     return (jlong) ret_uns;
+}
+
+/** Return a # of bytes, rounded up to the next page size.  Setting fastExit
+ *  means trouble or failure.  If we set fastExit we'll also return the value
+ *  0U.
+ *
+ * NOTE: Given the context, we treat "MB" as having its
+ * historic meaning of "MiB" (2^20), rather than its 1994 ISO
+ * meaning, which would be a factor of 10^7.
+ */
+EXTERNAL unsigned int parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
+                                            "initial stack" or "maximum stack"
+                                        */
+                  const char *sizeFlag, // "-Xms" or "-Xmx" or
+                  // "-Xss" or "-Xsg" or "-Xsx"
+                  const char *defaultFactor, // We now always default to bytes ("")
+                  unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+                  const char *token /* e.g., "-Xms200M" or "-Xms200" */,
+                  const char *subtoken /* e.g., "200M" or "200" */,
+                  int *fastExit)
+{
+  errno = 0;
+  double userNum;
+  char *endp;                 /* Should be const char *, but if we do that,
+                                   then the C++ compiler complains about the
+                                   prototype for strtold() or strtod().   This
+                                   is probably a bug in the specification
+                                   of the prototype. */
+  userNum = strtod(subtoken, &endp);
+  if (endp == subtoken) {
+    CONSOLE_PRINTF( "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
+    *fastExit = 1;
+  }
+
+  // First, set the factor appropriately, and make sure there aren't extra
+  // characters at the end of the line.
+  const char *factorStr = defaultFactor;
+  long double factor = 0.0;   // 0.0 is a sentinel meaning Unset
+
+  if (*endp == '\0') {
+    /* no suffix.  Along with the Sun JVM, we now assume Bytes by
+       default. (This is a change from  previous Jikes RVM behaviour.)  */
+    factor = 1.0;
+  } else if (STREQUAL(endp, "pages") ) {
+    factor = pageSize;
+    /* Handle constructs like "M" and "K" */
+  } else if ( endp[1] == '\0' ) {
+    factorStr = endp;
+  } else {
+    CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
+                    " unit of memory size\n", Me, token, endp);
+    *fastExit = 1;
+  }
+
+  if (! *fastExit && factor == 0.0) {
+    char e = *factorStr;
+    if (e == 'g' || e == 'G') factor = 1024.0 * 1024.0 * 1024.0;
+    else if (e == 'm' || e == 'M') factor = 1024.0 * 1024.0;
+    else if (e == 'k' || e == 'K') factor = 1024.0;
+    else if (e == '\0') factor = 1.0;
+    else {
+      CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
+                      " unit of memory size\n", Me, token, factorStr);
+      *fastExit = 1;
+    }
+  }
+
+  // Note: on underflow, strtod() returns 0.
+  if (!*fastExit) {
+    if (userNum <= 0.0) {
+      CONSOLE_PRINTF(
+        "%s: You may not specify a %s %s (%f - %s);\n",
+        Me, userNum < 0.0 ? "negative" : "zero", sizeName, userNum, subtoken);
+      CONSOLE_PRINTF( "\tit just doesn't make any sense.\n");
+      *fastExit = 1;
+    }
+  }
+
+  if (!*fastExit) {
+    if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) )
+    {
+      CONSOLE_PRINTF( "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
+      *fastExit = 1;
+    }
+  }
+
+  if (*fastExit) {
+    CONSOLE_PRINTF( "\tPlease specify %s as follows:\n", sizeName);
+    CONSOLE_PRINTF( "\t    in bytes, using \"-X%s<positive number>\",\n", sizeFlag);
+    CONSOLE_PRINTF( "\tor, in kilobytes, using \"-X%s<positive number>K\",\n", sizeFlag);
+    CONSOLE_PRINTF( "\tor, in virtual memory pages of %u bytes, using\n"
+                    "\t\t\"-X%s<positive number>pages\",\n", pageSize,
+                    sizeFlag);
+    CONSOLE_PRINTF( "\tor, in megabytes, using \"-X%s<positive number>M\",\n", sizeFlag);
+    CONSOLE_PRINTF( "\tor, in gigabytes, using \"-X%s<positive number>G\"\n", sizeFlag);
+    CONSOLE_PRINTF( "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
+    if (roundTo != 1) {
+      CONSOLE_PRINTF( "  The # of bytes will be rounded up to a multiple of");
+      if (roundTo == pageSize) CONSOLE_PRINTF( "\n  the virtual memory page size: ");
+      CONSOLE_PRINTF( "%u\n", roundTo);
+    }
+    return 0U;              // Distinguished value meaning trouble.
+  }
+  long double tot_d = userNum * factor;
+  if (tot_d > (UINT_MAX - roundTo) || tot_d < 1) {
+    ERROR_PRINTF("Unexpected memory size %f\n", tot_d);
+    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+  }
+
+  unsigned tot = (unsigned) tot_d;
+  if (tot % roundTo) {
+    unsigned newTot = tot + roundTo - (tot % roundTo);
+    CONSOLE_PRINTF(
+      "%s: Rounding up %s size from %u bytes to %u,\n"
+      "\tthe next multiple of %u bytes%s\n",
+      Me, sizeName, tot, newTot, roundTo,
+      roundTo == pageSize ?
+      ", the virtual memory page size" : "");
+    tot = newTot;
+  }
+  return tot;
 }

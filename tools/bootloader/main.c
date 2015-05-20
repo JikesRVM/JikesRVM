@@ -78,9 +78,6 @@ FILE *SysTraceFile;
 
 static int DEBUG = 0;                   // have to set this from a debugger
 
-static int strequal(const char *s1, const char *s2);
-static int strnequal(const char *s1, const char *s2, size_t n);
-
 void findMappable();
 int determinePageSize();
 
@@ -283,21 +280,21 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
     }
 
     //   while (*argv && **argv == '-')    {
-    if (strequal(token, "-help") || strequal(token, "-?") ) {
+    if (STREQUAL(token, "-help") || STREQUAL(token, "-?") ) {
       usage();
       *fastExit = 1;
       break;
     }
-    if (strequal(token, nonStandardArgs[HELP_INDEX])) {
+    if (STREQUAL(token, nonStandardArgs[HELP_INDEX])) {
       nonstandard_usage();
       *fastExit = 1;
       break;
     }
-    if (strequal(token, nonStandardArgs[VERBOSE_INDEX])) {
+    if (STREQUAL(token, nonStandardArgs[VERBOSE_INDEX])) {
       ++lib_verbose;
       continue;
     }
-    if (strnequal(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
+    if (STRNEQUAL(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
       subtoken = token + 15;
       errno = 0;
       char *endp;
@@ -324,31 +321,31 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       continue;
     }
     /*  Args that don't apply to us (from the Sun JVM); skip 'em. */
-    if (strequal(token, "-server"))
+    if (STREQUAL(token, "-server"))
       continue;
-    if (strequal(token, "-client"))
+    if (STREQUAL(token, "-client"))
       continue;
-    if (strequal(token, "-version")) {
+    if (STREQUAL(token, "-version")) {
       shortVersion();
       exit(0);
     }
-    if (strequal(token, "-fullversion")) {
+    if (STREQUAL(token, "-fullversion")) {
       fullVersion();
       exit(0);
     }
-    if (strequal(token, "-showversion")) {
+    if (STREQUAL(token, "-showversion")) {
       shortVersion();
       continue;
     }
-    if (strequal(token, "-showfullversion")) {
+    if (STREQUAL(token, "-showfullversion")) {
       fullVersion();
       continue;
     }
-    if (strequal(token, "-findMappable")) {
+    if (STREQUAL(token, "-findMappable")) {
       findMappable();
       exit(0);            // success, no?
     }
-    if (strnequal(token, "-verbose:gc", 11)) {
+    if (STRNEQUAL(token, "-verbose:gc", 11)) {
       long level;         // a long, since we need to use strtol()
       if (token[11] == '\0') {
         level = 1;
@@ -397,7 +394,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       continue;
     }
 
-    if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
+    if (STRNEQUAL(token, nonStandardArgs[MS_INDEX], 4)) {
       subtoken = token + 4;
       initialHeapSize
         = parse_memory_size("initial heap size", "ms", "", pageSize,
@@ -407,7 +404,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       continue;
     }
 
-    if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
+    if (STRNEQUAL(token, nonStandardArgs[MX_INDEX], 4)) {
       subtoken = token + 4;
       maximumHeapSize
         = parse_memory_size("maximum heap size", "mx", "", pageSize,
@@ -417,7 +414,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       continue;
     }
 
-    if (strnequal(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
+    if (STRNEQUAL(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
       subtoken = token + 14;
       FILE* ftmp = fopen(subtoken, "a");
       if (!ftmp) {
@@ -430,15 +427,15 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       SysTraceFile = ftmp;
       continue;
     }
-    if (strnequal(token, nonStandardArgs[BOOTIMAGE_CODE_FILE_INDEX], 6)) {
+    if (STRNEQUAL(token, nonStandardArgs[BOOTIMAGE_CODE_FILE_INDEX], 6)) {
       bootCodeFilename = token + 6;
       continue;
     }
-    if (strnequal(token, nonStandardArgs[BOOTIMAGE_DATA_FILE_INDEX], 6)) {
+    if (STRNEQUAL(token, nonStandardArgs[BOOTIMAGE_DATA_FILE_INDEX], 6)) {
       bootDataFilename = token + 6;
       continue;
     }
-    if (strnequal(token, nonStandardArgs[BOOTIMAGE_RMAP_FILE_INDEX], 6)) {
+    if (STRNEQUAL(token, nonStandardArgs[BOOTIMAGE_RMAP_FILE_INDEX], 6)) {
       bootRMapFilename = token + 6;
       continue;
     }
@@ -449,29 +446,29 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
     //
 
     // All VM directives that take one token
-    if (strnequal(token, "-D", 2)
-        || strnequal(token, nonStandardArgs[INDEX], 5)
-        || strnequal(token, nonStandardArgs[GC_INDEX], 5)
-        || strnequal(token, nonStandardArgs[AOS_INDEX],6)
-        || strnequal(token, nonStandardArgs[IRC_INDEX], 6)
-        || strnequal(token, nonStandardArgs[RECOMP_INDEX], 9)
-        || strnequal(token, nonStandardArgs[BASE_INDEX],7)
-        || strnequal(token, nonStandardArgs[OPT_INDEX], 6)
-        || strequal(token, "-verbose")
-        || strequal(token, "-verbose:class")
-        || strequal(token, "-verbose:gc")
-        || strequal(token, "-verbose:jni")
-        || strnequal(token, "-javaagent:", 11)
-        || strnequal(token, nonStandardArgs[VMCLASSES_INDEX], 13)
-        || strnequal(token, nonStandardArgs[BOOTCLASSPATH_P_INDEX], 18)
-        || strnequal(token, nonStandardArgs[BOOTCLASSPATH_A_INDEX], 18)
-        || strnequal(token, nonStandardArgs[PROCESSORS_INDEX], 14))
+    if (STRNEQUAL(token, "-D", 2)
+        || STRNEQUAL(token, nonStandardArgs[INDEX], 5)
+        || STRNEQUAL(token, nonStandardArgs[GC_INDEX], 5)
+        || STRNEQUAL(token, nonStandardArgs[AOS_INDEX],6)
+        || STRNEQUAL(token, nonStandardArgs[IRC_INDEX], 6)
+        || STRNEQUAL(token, nonStandardArgs[RECOMP_INDEX], 9)
+        || STRNEQUAL(token, nonStandardArgs[BASE_INDEX],7)
+        || STRNEQUAL(token, nonStandardArgs[OPT_INDEX], 6)
+        || STREQUAL(token, "-verbose")
+        || STREQUAL(token, "-verbose:class")
+        || STREQUAL(token, "-verbose:gc")
+        || STREQUAL(token, "-verbose:jni")
+        || STRNEQUAL(token, "-javaagent:", 11)
+        || STRNEQUAL(token, nonStandardArgs[VMCLASSES_INDEX], 13)
+        || STRNEQUAL(token, nonStandardArgs[BOOTCLASSPATH_P_INDEX], 18)
+        || STRNEQUAL(token, nonStandardArgs[BOOTCLASSPATH_A_INDEX], 18)
+        || STRNEQUAL(token, nonStandardArgs[PROCESSORS_INDEX], 14))
     {
       CLAs[n_JCLAs++]=token;
       continue;
     }
     // All VM directives that take two tokens
-    if (strequal(token, "-cp") || strequal(token, "-classpath")) {
+    if (STREQUAL(token, "-cp") || STREQUAL(token, "-classpath")) {
       CLAs[n_JCLAs++]=token;
       token=CLAs[++i];
       CLAs[n_JCLAs++]=token;
@@ -604,143 +601,6 @@ main(int argc, const char **argv)
     exit(EXIT_STATUS_MISC_TROUBLE);
   }
   return 0; // this thread dies, but VM keeps running
-}
-
-
-static int
-strequal(const char *s1, const char *s2)
-{
-  return strcmp(s1, s2) == 0;
-}
-
-
-static int
-strnequal(const char *s1, const char *s2, size_t n)
-{
-  return strncmp(s1, s2, n) == 0;
-}
-
-/** Return a # of bytes, rounded up to the next page size.  Setting fastExit
- *  means trouble or failure.  If we set fastExit we'll also return the value
- *  0U.
- *
- * NOTE: Given the context, we treat "MB" as having its
- * historic meaning of "MiB" (2^20), rather than its 1994 ISO
- * meaning, which would be a factor of 10^7.
- */
-extern
-unsigned int
-parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
-                                            "initial stack" or "maximum stack"
-                                        */
-                  const char *sizeFlag, // "-Xms" or "-Xmx" or
-                  // "-Xss" or "-Xsg" or "-Xsx"
-                  const char *defaultFactor, // We now always default to bytes ("")
-                  unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
-                  const char *token /* e.g., "-Xms200M" or "-Xms200" */,
-                  const char *subtoken /* e.g., "200M" or "200" */,
-                  int *fastExit)
-{
-  errno = 0;
-  double userNum;
-  char *endp;                 /* Should be const char *, but if we do that,
-                                   then the C++ compiler complains about the
-                                   prototype for strtold() or strtod().   This
-                                   is probably a bug in the specification
-                                   of the prototype. */
-  userNum = strtod(subtoken, &endp);
-  if (endp == subtoken) {
-    CONSOLE_PRINTF( "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
-    *fastExit = 1;
-  }
-
-  // First, set the factor appropriately, and make sure there aren't extra
-  // characters at the end of the line.
-  const char *factorStr = defaultFactor;
-  long double factor = 0.0;   // 0.0 is a sentinel meaning Unset
-
-  if (*endp == '\0') {
-    /* no suffix.  Along with the Sun JVM, we now assume Bytes by
-       default. (This is a change from  previous Jikes RVM behaviour.)  */
-    factor = 1.0;
-  } else if (strequal(endp, "pages") ) {
-    factor = pageSize;
-    /* Handle constructs like "M" and "K" */
-  } else if ( endp[1] == '\0' ) {
-    factorStr = endp;
-  } else {
-    CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
-                    " unit of memory size\n", Me, token, endp);
-    *fastExit = 1;
-  }
-
-  if (! *fastExit && factor == 0.0) {
-    char e = *factorStr;
-    if (e == 'g' || e == 'G') factor = 1024.0 * 1024.0 * 1024.0;
-    else if (e == 'm' || e == 'M') factor = 1024.0 * 1024.0;
-    else if (e == 'k' || e == 'K') factor = 1024.0;
-    else if (e == '\0') factor = 1.0;
-    else {
-      CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a"
-                      " unit of memory size\n", Me, token, factorStr);
-      *fastExit = 1;
-    }
-  }
-
-  // Note: on underflow, strtod() returns 0.
-  if (!*fastExit) {
-    if (userNum <= 0.0) {
-      CONSOLE_PRINTF(
-        "%s: You may not specify a %s %s (%f - %s);\n",
-        Me, userNum < 0.0 ? "negative" : "zero", sizeName, userNum, subtoken);
-      CONSOLE_PRINTF( "\tit just doesn't make any sense.\n");
-      *fastExit = 1;
-    }
-  }
-
-  if (!*fastExit) {
-    if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) )
-    {
-      CONSOLE_PRINTF( "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
-      *fastExit = 1;
-    }
-  }
-
-  if (*fastExit) {
-    CONSOLE_PRINTF( "\tPlease specify %s as follows:\n", sizeName);
-    CONSOLE_PRINTF( "\t    in bytes, using \"-X%s<positive number>\",\n", sizeFlag);
-    CONSOLE_PRINTF( "\tor, in kilobytes, using \"-X%s<positive number>K\",\n", sizeFlag);
-    CONSOLE_PRINTF( "\tor, in virtual memory pages of %u bytes, using\n"
-                    "\t\t\"-X%s<positive number>pages\",\n", pageSize,
-                    sizeFlag);
-    CONSOLE_PRINTF( "\tor, in megabytes, using \"-X%s<positive number>M\",\n", sizeFlag);
-    CONSOLE_PRINTF( "\tor, in gigabytes, using \"-X%s<positive number>G\"\n", sizeFlag);
-    CONSOLE_PRINTF( "  <positive number> can be a floating point value or a hex value like 0x10cafe0.\n");
-    if (roundTo != 1) {
-      CONSOLE_PRINTF( "  The # of bytes will be rounded up to a multiple of");
-      if (roundTo == pageSize) CONSOLE_PRINTF( "\n  the virtual memory page size: ");
-      CONSOLE_PRINTF( "%u\n", roundTo);
-    }
-    return 0U;              // Distinguished value meaning trouble.
-  }
-  long double tot_d = userNum * factor;
-  if (tot_d > (UINT_MAX - roundTo) || tot_d < 1) {
-    ERROR_PRINTF("Unexpected memory size %f\n", tot_d);
-    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-  }
-
-  unsigned tot = (unsigned) tot_d;
-  if (tot % roundTo) {
-    unsigned newTot = tot + roundTo - (tot % roundTo);
-    CONSOLE_PRINTF(
-      "%s: Rounding up %s size from %u bytes to %u,\n"
-      "\tthe next multiple of %u bytes%s\n",
-      Me, sizeName, tot, newTot, roundTo,
-      roundTo == pageSize ?
-      ", the virtual memory page size" : "");
-    tot = newTot;
-  }
-  return tot;
 }
 
 /**
