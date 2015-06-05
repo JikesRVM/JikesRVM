@@ -18,6 +18,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
@@ -29,6 +30,7 @@ import org.vmmagic.unboxed.Word;
  * The machine state comprising a thread's execution context.
  */
 @Uninterruptible
+@NonMoving
 public abstract class Registers implements ArchConstants {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.
