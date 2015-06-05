@@ -590,11 +590,6 @@ main(int argc, const char **argv)
     return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
   }
 
-#ifdef __MACH__
-  // Initialize timer information on OS/X
-  (void) mach_timebase_info(&timebaseInfo);
-#endif
-
   int ret = createVM();
   if (ret == 1) {
     ERROR_PRINTF("%s: Could not create the virtual machine; goodbye\n", Me);

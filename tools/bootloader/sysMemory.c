@@ -165,7 +165,12 @@ EXTERNAL void sysZeroPages(void *dst, int cnt)
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
   }
 
+#ifdef MAP_ANONYMOUS
   void *addr = mmap(dst, cnt, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+#else
+  void *addr = mmap(dst, cnt, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_FIXED, -1, 0);
+#endif
+
   if (addr == (void *)-1)
   {
     ERROR_PRINTF("%s: mmap failed (errno=%d): ", Me, errno);
@@ -226,8 +231,8 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
                Me, start, length, protection, flags, fd, offset);
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1) {
-    ERROR_PRINTF("%s: sysMMapErrno %p %d %d %d %d %d failed with %d.\n",
-                 Me, start, length, protection, flags, fd, offset, errno);
+    ERROR_PRINTF("%s: sysMMapErrno %p %zd %d %d %d %ld failed with %d.\n",
+                 Me, start, length, protection, flags, fd, (long) offset, errno);
     return (void *) errno;
   } else {
     TRACE_PRINTF("mmap succeeded- region = [%p ... %p]    size = %zd\n",

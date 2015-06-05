@@ -15,6 +15,10 @@
 
 #include <sys/time.h> // gettimeofday
 
+#ifndef __MACH__
+#include <time.h> // CLOCK_REALTIME
+#endif
+
 #ifdef __MACH__
 mach_timebase_info_data_t timebaseInfo;
 #endif

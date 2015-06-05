@@ -44,15 +44,6 @@ __attribute__ ((__noreturn__));
         longjmp(buf, ret)
 #endif /* !__GLIBC__ */
 
-
-EXTERNAL Word sysMonitorCreate();
-EXTERNAL void sysMonitorDestroy(Word);
-EXTERNAL void sysMonitorEnter(Word);
-EXTERNAL void sysMonitorExit(Word);
-EXTERNAL void sysMonitorTimedWait(Word, long long);
-EXTERNAL void sysMonitorWait(Word);
-EXTERNAL void sysMonitorBroadcast(Word);
-
 EXTERNAL void VMI_Initialize();
 
 Word DeathLock = NULL;
@@ -117,7 +108,7 @@ void setThreadLocal(TLS_KEY_TYPE key, void * value) {
 
 EXTERNAL void sysStashVMThread(Address vmThread)
 {
-  TRACE_PRINTF("%s: sysStashVmProcessorInPthread %p\n", Me, vmThread);
+  TRACE_PRINTF("%s: sysStashVmProcessorInPthread %p\n", Me, (void*)vmThread);
   setThreadLocal(VmThreadKey, (void*)vmThread);
 }
 
@@ -133,6 +124,10 @@ EXTERNAL void sysInitialize()
   VMI_Initialize();
 #endif
   DeathLock = sysMonitorCreate();
+#ifdef __MACH__
+    // Initialize timer information on OS/X
+    (void) mach_timebase_info(&timebaseInfo);
+#endif
 }
 
 /** Exit with a return code. */
@@ -223,7 +218,7 @@ EXTERNAL int sysNumProcessors()
   numCpus = get_nprocs();
   // It is not clear if get_nprocs can ever return failure; assume it might.
   if (numCpus < 1) {
-    if (firstRun) CONSOLE_PRINTF("%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
+    if (firstRun) ERROR_PRINTF("%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
     /* Continue on.  Try to get a better answer by some other method, not
        that it's likely, but this should not be a fatal error. */
   }
@@ -238,7 +233,7 @@ EXTERNAL int sysNumProcessors()
     len = sizeof(numCpus);
     errno = 0;
     if (sysctl(mib, 2, &numCpus, &len, NULL, 0) < 0) {
-      if (firstRun) CONSOLE_PRINTF("%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
+      if (firstRun) ERROR_PRINTF("%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
                                      " errno = %d\n", Me, errno);
       numCpus = -1;       // failed so far...
     };
@@ -254,7 +249,7 @@ EXTERNAL int sysNumProcessors()
      */
     numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
     if (numCpus < 0) {
-      if (firstRun) CONSOLE_PRINTF(SysTraceCONSOLE_PRINTF(, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
+      if (firstRun) CONSOLE_PRINTF("%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
                                      " failed\n", Me);
       }
   }
@@ -331,7 +326,7 @@ EXTERNAL Word sysThreadCreate(Address tr, Address ip, Address fp)
     ERROR_PRINTF("%s: pthread_detach failed (rc=%d)\n", Me, rc);
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
   }
-  TRACE_PRINTF("%s: pthread_create 0x%08x\n", Me, (Address) sysThreadHandle);
+  TRACE_PRINTF("%s: pthread_create %p\n", Me, (void*)sysThreadHandle);
 #endif
 
   return (Word)sysThreadHandle;
@@ -656,7 +651,7 @@ EXTERNAL Word sysMonitorCreate()
   pthread_mutex_init(&monitor->mutex, NULL);
   pthread_cond_init(&monitor->cond, NULL);
 #endif
-  TRACE_PRINTF("%s: sysMonitorCreate %p\n", Me, monitor);
+  TRACE_PRINTF("%s: sysMonitorCreate %p\n", Me, (void*)monitor);
   return (Word)monitor;
 }
 
@@ -670,12 +665,12 @@ EXTERNAL void sysMonitorDestroy(Word _monitor)
   pthread_cond_destroy(&monitor->cond);
   checkFree(monitor);
 #endif
-  TRACE_PRINTF("%s: sysMonitorDestroy %p\n", Me, _monitor);
+  TRACE_PRINTF("%s: sysMonitorDestroy %p\n", Me, (void*)_monitor);
 }
 
 EXTERNAL void sysMonitorEnter(Word _monitor)
 {
-  TRACE_PRINTF("%s: sysMonitorEnter %p\n", Me, _monitor);
+  TRACE_PRINTF("%s: sysMonitorEnter %p\n", Me, (void*)_monitor);
 #ifdef RVM_FOR_HARMONY
   hythread_monitor_enter((hythread_monitor_t)_monitor);
 #else
@@ -686,7 +681,7 @@ EXTERNAL void sysMonitorEnter(Word _monitor)
 
 EXTERNAL void sysMonitorExit(Word _monitor)
 {
-  TRACE_PRINTF("%s: sysMonitorExit %p\n", Me, _monitor);
+  TRACE_PRINTF("%s: sysMonitorExit %p\n", Me, (void*)_monitor);
 #ifdef RVM_FOR_HARMONY
   hythread_monitor_exit((hythread_monitor_t)_monitor);
 #else
