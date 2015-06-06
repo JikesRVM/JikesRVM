@@ -18,9 +18,6 @@
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_EXIT_STATUS_CODES
 #include "sys.h"
-#include <stdlib.h>
-#include "InterfaceDeclarations.h"
-#include "bootImageRunner.h"    // In tools/bootImageRunner.
 
 #ifdef RVM_FOR_HARMONY
 #ifdef RVM_FOR_LINUX
@@ -30,6 +27,27 @@
 #endif
 
 TLS_KEY_TYPE VmThreadKey;
+
+/** String used for name of RVM */
+char *Me;
+
+/** C access to shared C/Java boot record data structure */
+struct BootRecord *bootRecord;
+
+/** Number of Java args */
+int JavaArgc;
+
+/** Java args */
+char **JavaArgs;
+
+/** Sink for messages relating to serious errors detected by C runtime. */
+FILE *SysErrorFile;
+
+/** Sink for trace messages produced by VM.sysWrite(). */
+FILE *SysTraceFile;
+
+/** Verbose command line option */
+int verbose = 0;
 
 // Fish out an address stored in an instance field of an object.
 static void *

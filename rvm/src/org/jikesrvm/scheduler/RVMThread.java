@@ -1464,7 +1464,6 @@ public final class RVMThread extends ThreadContext {
     doProfileReport = new Latch(false);
     monitorBySlot[getCurrentThread().threadSlot] = new NoYieldpointsMonitor();
     communicationLockBySlot[getCurrentThread().threadSlot] = new Monitor();
-    sysCall.sysCreateThreadSpecificDataKeys();
     sysCall.sysStashVMThread(getCurrentThread());
 
     if (traceAcct) {
@@ -2757,8 +2756,6 @@ public final class RVMThread extends ThreadContext {
   private static void startoff() {
     bindIfRequested();
 
-    sysCall.sysSetupHardwareTrapHandler();
-
     RVMThread currentThread = getCurrentThread();
 
     /*
@@ -2820,8 +2817,9 @@ public final class RVMThread extends ThreadContext {
     acctLock.unlock();
     if (traceAcct)
       VM.sysWriteln("Thread #", threadSlot, " starting!");
-    sysCall.sysThreadCreate(Magic.objectAsAddress(this),
-        contextRegisters.ip, contextRegisters.getInnermostFramePointer());
+    sysCall.sysThreadCreate(contextRegisters.getInnermostInstructionAddress(),
+        contextRegisters.getInnermostFramePointer(), Magic.objectAsAddress(this),
+        Magic.getJTOC());
     if (!isSystemThread()) {
       JMXSupport.increaseStartedThreadCount();
     }

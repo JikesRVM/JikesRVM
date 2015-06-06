@@ -1058,7 +1058,6 @@ public class BootImageWriter extends BootImageWriterMessages {
     byte[] startupStack = startupThread.getStack();
     CodeArray startupCode  = Entrypoints.bootMethod.getCurrentEntryCodeArray();
 
-    bootRecord.tiRegister  = startupThread.getLockingId();
     bootRecord.spRegister  = BootImageMap.getImageAddress(startupStack, true).plus(startupStack.length);
     bootRecord.ipRegister  = BootImageMap.getImageAddress(startupCode.getBacking(), true);
 

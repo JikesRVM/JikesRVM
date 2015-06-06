@@ -129,8 +129,8 @@ EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
 {
   TRACE_PRINTF("%s: sysParseMemorySize %s\n", Me, token);
   int fastExit = 0;
-  unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
-                                       (unsigned) roundTo, token, subtoken,
+  unsigned ret_uns = parse_memory_size(sizeName, sizeFlag, defaultFactor,
+                                       (Extent) roundTo, token, subtoken,
                                        &fastExit);
   if (fastExit)
     return -1;
@@ -146,13 +146,13 @@ EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
  * historic meaning of "MiB" (2^20), rather than its 1994 ISO
  * meaning, which would be a factor of 10^7.
  */
-EXTERNAL unsigned int parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
+EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                                             "initial stack" or "maximum stack"
                                         */
                   const char *sizeFlag, // "-Xms" or "-Xmx" or
                   // "-Xss" or "-Xsg" or "-Xsx"
                   const char *defaultFactor, // We now always default to bytes ("")
-                  unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+                  Extent roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
                   const char *subtoken /* e.g., "200M" or "200" */,
                   int *fastExit)
@@ -245,7 +245,7 @@ EXTERNAL unsigned int parse_memory_size(const char *sizeName, /*  "initial heap"
     exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
-  unsigned tot = (unsigned) tot_d;
+  Extent tot = (Extent) tot_d;
   if (tot % roundTo) {
     unsigned newTot = tot + roundTo - (tot % roundTo);
     CONSOLE_PRINTF(

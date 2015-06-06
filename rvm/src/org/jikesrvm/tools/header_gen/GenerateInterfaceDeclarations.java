@@ -332,7 +332,7 @@ public class GenerateInterfaceDeclarations {
 
     // emit field initializers
     //
-    p("extern void setLinkage(struct BootRecord* br){\n");
+    p("static void setLinkage(struct BootRecord* br){\n");
     for (int i = fields.length; --i >= 0;) {
       RVMField field = fields[i];
       if (field.isStatic()) {
@@ -349,9 +349,9 @@ public class GenerateInterfaceDeclarations {
         String functionName = fieldName.substring(0, suffixIndex);
         // e. g.,
         //sysFOOIP = (int) sysFOO;
-        p("  br->" + fieldName + " = (intptr_t)&" + functionName + ";\n");
+        p("  br->" + fieldName + " = (Address)" + functionName + ";\n");
       } else if (fieldName.equals("sysJavaVM")) {
-        p("  br->" + fieldName + " = (intptr_t)&" + fieldName + ";\n");
+        p("  br->" + fieldName + " = (Address)&" + fieldName + ";\n");
       }
     }
 

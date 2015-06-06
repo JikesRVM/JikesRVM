@@ -61,7 +61,7 @@ if [[ -e $RVM_HOME/JikesRVM-symbols.o ]]; then
   echo "add-symbol-file $RVM_HOME/JikesRVM-symbols.o 0x0" >> $TMP_GDB_COMMANDS
 fi
 
-echo "break sysCreateThreadSpecificDataKeys" >> $TMP_GDB_COMMANDS
+echo "break createThreadSpecificDataKeys" >> $TMP_GDB_COMMANDS
 echo "set pagination no" >> $TMP_GDB_COMMANDS
 
 gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS"

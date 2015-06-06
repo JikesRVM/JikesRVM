@@ -19,28 +19,28 @@
 /**
  * Transfer execution from C to Java for thread startup
  */
-void bootThread (void *jtoc, void *tr, void *pc, void *fp)
+void bootThread (void *pc, void *tr, void *fp, void *jtoc)
 {
   // Fixed register usage
   // OS:        |   Linux   |
   // Word size: | 64  | 32  |
   // Thread:    | R14 | R13 |
-  // JTOC:      | R15 | R14 |
-  asm volatile ("mr 1,  %3\n" // frame
+  // JTOC:      | R02 | R14 |
+  asm volatile ("mr 1,  %2\n" // frame
 #ifdef RVM_FOR_32_ADDR
                 "mr 13, %1\n" // thread
-                "mr 14, %0\n" // jtoc
+                "mr 14, %3\n" // jtoc
 #else
                 "mr 14, %1\n" // thread
-                "mr 2, %0\n" // jtoc
+                "mr 2, %3\n" // jtoc
 #endif // RVM_FOR_32_ADDR
-                "mtlr %2\n"
+                "mtlr %0\n"
                 "blr    \n"
                 : /* outs */
                 : /* ins */
-                  "r"(jtoc),
-                  "r"(tr),
                   "r"(pc),
-                  "r"(fp)
+                  "r"(tr),
+                  "r"(fp),
+                  "r"(jtoc)
                 );
 }

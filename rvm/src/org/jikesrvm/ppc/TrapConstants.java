@@ -39,6 +39,8 @@ public final class TrapConstants {
   public static final int WRITE_BUFFER_OVERFLOW_MASK = 0xFFE0077E; // opcode and condition mask
   public static final int WRITE_BUFFER_OVERFLOW_TRAP = 0x7E800008; // tle modifiedOldObjectMax, modifiedOldObjectAddr
 
+  public static final int STACK_OVERFLOW_TRAP_INFO_SET_HAVE_FRAME = 0x1;
+
   /* JNI stack size checking */
   public static final int JNI_STACK_TRAP_MASK = 0x0BECFFFF; // tALWAYSi, 12, 0x0001
   public static final int JNI_STACK_TRAP = 0x0BEC0001;

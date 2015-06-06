@@ -169,7 +169,6 @@ public class VM extends Properties {
 
     // get pthread_id from OS and store into vm_processor field
     //
-    sysCall.sysSetupHardwareTrapHandler();
     RVMThread.getCurrentThread().pthread_id = sysCall.sysGetThreadId();
     RVMThread.getCurrentThread().priority_handle = sysCall.sysGetThreadPriorityHandle();
     RVMThread.availableProcessors = SysCall.sysCall.sysNumProcessors();

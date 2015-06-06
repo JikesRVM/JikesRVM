@@ -1689,9 +1689,6 @@ Check to make sure all required properties are specified. This includes properti
   <!-- Setup any properties required during native compile of bootloader -->
   <target name="check-bootloader-properties" depends="setup-filter-properties">
     <check-host-and-target-match message="can not build the bootloader."/>
-    <condition property="gen-ppc-bootThread" value="true">
-      <equals arg1="${target.arch}" arg2="ppc"/>
-    </condition>
 
     <condition property="gcspy.includes.dir" value="-I${jikesrvm.dir}/tools/gcspy-stub/src">
       <isset property="include.gcspy-stub"/>
@@ -1728,17 +1725,8 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines} ${rvm.sse.args}"/>
     <property name="rvm.c.args" value="${shld.args} ${rvm.common.args}"/>
 
-    <condition property="rvm.arch.src"
-      value="${bl.dir}/ia32/libvm.c">
-      <equals arg1="${target.arch}" arg2="ia32"/>
-    </condition>
-
-    <condition property="rvm.arch.src"
-               value="${bl.dir}/ppc/bootThread.c ${bl.dir}/ppc/libvm.c">
-      <equals arg1="${target.arch}" arg2="ppc"/>
-    </condition>
-
-    <property name="rvm.syscall.src" value="${bl.dir}/sysAlignmentCheck.c ${bl.dir}/sysConsole.c ${bl.dir}/sysGCSpy.c ${bl.dir}/sysIO.c ${bl.dir}/sysLibrary.c ${bl.dir}/sysMath.c ${bl.dir}/sysMemory.c ${bl.dir}/sysMisc.c ${bl.dir}/sysPerfEvent.c ${bl.dir}/sysThread.c ${bl.dir}/sysTime.c"/>
+    <property name="rvm.arch.src" value="${bl.dir}/sysThread_${target.arch}.c ${bl.dir}/sysSignal_${target.arch}.c"/> 
+    <property name="rvm.syscall.src" value="${bl.dir}/sysAlignmentCheck.c ${bl.dir}/sysConsole.c ${bl.dir}/sysGCSpy.c ${bl.dir}/sysIO.c ${bl.dir}/sysLibrary.c ${bl.dir}/sysMath.c ${bl.dir}/sysMemory.c ${bl.dir}/sysMisc.c ${bl.dir}/sysPerfEvent.c ${bl.dir}/sysSignal.c ${bl.dir}/sysThread.c ${bl.dir}/sysTime.c"/>
     <property name="rvm.src" value="${bl.dir}/main.c ${rvm.syscall.src} ${rvm.arch.src}"/>
   </target>
   
@@ -1774,7 +1762,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg line="${rvm.c.args} -lpthread ${c.librt}"/>
       <arg value="-o"/>
       <arg path="${toString:rvm.dll}"/>
-      <arg path="${bl.dir}/jvm.c"/>
+      <arg line="${bl.dir}/jvm.c ${rvm.syscall.src}"/>
     </exec>
 
     <!-- create vmi shared library (if building for Harmony)-->

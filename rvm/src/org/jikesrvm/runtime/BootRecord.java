@@ -166,7 +166,6 @@ public class BootRecord {
 
   // RVM startoff
   //
-  public int tiRegister;          // value to place into TI register
   public Address spRegister;   // value to place into SP register
   public Address ipRegister;   // value to place into IP register
   public Address tocRegister;  // value to place into JTOC register
@@ -256,7 +255,6 @@ public class BootRecord {
   public Address sysThreadCreateIP;
   public Address sysThreadYieldIP;
   public Address sysGetThreadIdIP;
-  public Address sysSetupHardwareTrapHandlerIP;
   public Address sysStashVMThreadIP;
   public Address sysThreadTerminateIP;
   public Address sysGetThreadPriorityHandleIP;
@@ -303,9 +301,6 @@ public class BootRecord {
   // shared libraries
   Address sysDlopenIP;
   Address sysDlsymIP;
-
-  // system startup pthread sync. primitives
-  public Address sysCreateThreadSpecificDataKeysIP;
 
   // VMMath
   public Address sysVMMathSinIP;
