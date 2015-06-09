@@ -50,16 +50,14 @@ FILE *SysTraceFile;
 int verbose = 0;
 
 // Fish out an address stored in an instance field of an object.
-static void *
-getFieldAsAddress(void *objPtr, int fieldOffset)
+static void * getFieldAsAddress(void *objPtr, int fieldOffset)
 {
   char *fieldAddress = ((char*) objPtr) + fieldOffset;
   return *((void**) fieldAddress);
 }
 
 // Get the JNI environment object from the Processor.
-static JNIEnv *
-getJniEnvFromVmThread(void *vmThreadPtr)
+static JNIEnv * getJniEnvFromVmThread(void *vmThreadPtr)
 {
   if (vmThreadPtr == 0)
     return 0; // oops
@@ -80,9 +78,10 @@ getJniEnvFromVmThread(void *vmThreadPtr)
 // JNI Invocation API functions
 //////////////////////////////////////////////////////////////
 
-/** Destroying the Java VM only makes sense if programs can create a VM
- * on-the-fly.   Further, as of Sun's Java 1.2, it sitll didn't support
- * unloading virtual machine instances.  It is supposed to block until all
+/**
+ * Destroying the Java VM only makes sense if programs can create a VM
+ * on-the-fly. Further, as of Sun's Java 1.2, it still didn't support
+ * unloading virtual machine instances. It is supposed to block until all
  * other user threads are gone, and then return an error code.
  *
  * TODO: Implement.
@@ -95,16 +94,15 @@ DestroyJavaVM(JavaVM UNUSED * vm)
   return JNI_ERR;
 }
 
-/* "Trying to attach a thread that is already attached is a no-op".  We
+/**
+ * "Trying to attach a thread that is already attached is a no-op".  We
  * implement that common case.  (In other words, it works like GetEnv()).
  * However, we do not implement the more difficult case of actually attempting
  * to attach a native thread that is not currently attached to the VM.
  *
  * TODO: Implement for actually attaching unattached threads.
  */
-static
-jint
-AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
+static jint AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
 {
   JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
   jint version;
@@ -136,16 +134,13 @@ AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs 
 }
 
 /* TODO: Implement */
-static
-jint
-DetachCurrentThread(JavaVM UNUSED *vm)
+static jint DetachCurrentThread(JavaVM UNUSED *vm)
 {
   fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
   return JNI_ERR;
 }
 
-jint
-GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
+jint GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 {
   if (version > JNI_VERSION_1_4)
     return JNI_EVERSION;
@@ -167,9 +162,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 
 /** JNI 1.4 */
 /* TODO: Implement */
-static
-jint
-AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args)
+static jint AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args)
 {
   fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
   return JNI_ERR;
