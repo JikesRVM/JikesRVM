@@ -213,9 +213,10 @@ EXTERNAL void * sysMMap(char *start , size_t length ,
                         int protection , int flags ,
                         int fd , Offset offset)
 {
+  void *result;
   TRACE_PRINTF("%s: sysMMap %p %zd %d %d %d %d\n",
                Me, start, length, protection, flags, fd, offset);
-  void *result=mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
+  result = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   return result;
 }
 
@@ -227,9 +228,10 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
                              int protection , int flags ,
                              int fd , Offset offset)
 {
+  void* res;
   TRACE_PRINTF("%s: sysMMapErrno %p %d %d %d %d %d\n",
                Me, start, length, protection, flags, fd, offset);
-  void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
+  res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1) {
     ERROR_PRINTF("%s: sysMMapErrno %p %zd %d %d %d %ld failed with %d.\n",
                  Me, start, length, protection, flags, fd, (long) offset, errno);
@@ -324,12 +326,13 @@ void findMappable()
   int i;
   int granularity = 1 << 22; // every 4 megabytes
   int max = (1 << 30) / (granularity >> 2);
+  CONSOLE_PRINTF("Attempting to find mappable blocks of size %d\n", pageSize);
   for (i = 0; i < max; i++) {
     char *start = (char *) (i * granularity);
     int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
     int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
     void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
-    int fail = (result == (void *) -1);
+    int fail = (result == (void *) -1) || (result != ((void *)start));
     if (fail) {
       CONSOLE_PRINTF( "%p FAILED with errno %d: %s\n", start, errno, strerror(errno));
     } else {

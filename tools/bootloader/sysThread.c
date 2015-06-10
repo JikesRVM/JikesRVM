@@ -806,10 +806,11 @@ EXTERNAL void sysMonitorBroadcast(Word _monitor)
 
 EXTERNAL void sysThreadTerminate()
 {
+  jmp_buf *jb;
   TRACE_PRINTF("%s: sysThreadTerminate\n", Me);
 #ifdef RVM_FOR_POWERPC
   asm("sync");
 #endif
-  jmp_buf *jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
+  jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
   rvm_longjmp(*jb,1);
 }

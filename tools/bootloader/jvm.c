@@ -49,26 +49,31 @@ FILE *SysTraceFile;
 /** Verbose command line option */
 int verbose = 0;
 
-// Fish out an address stored in an instance field of an object.
+/**
+ * Fish out an address stored in an instance field of an object.
+ */
 static void * getFieldAsAddress(void *objPtr, int fieldOffset)
 {
   char *fieldAddress = ((char*) objPtr) + fieldOffset;
   return *((void**) fieldAddress);
 }
 
-// Get the JNI environment object from the Processor.
+/**
+ * Get the JNI environment object from the VM thread.
+ */
 static JNIEnv * getJniEnvFromVmThread(void *vmThreadPtr)
 {
+  void *jniEnvironment;
+  void *jniEnv;
   if (vmThreadPtr == 0)
     return 0; // oops
 
   // Follow chain of pointers:
   // RVMThread -> JNIEnvironment -> thread's native JNIEnv
-  void *jniEnvironment =
-    getFieldAsAddress(vmThreadPtr, RVMThread_jniEnv_offset);
+  jniEnvironment = getFieldAsAddress(vmThreadPtr, RVMThread_jniEnv_offset);
   // Convert JNIEnvironment to JNIEnv* expected by native code
   // by creating the appropriate interior pointer.
-  void *jniEnv = ((char*)jniEnvironment + JNIEnvironment_JNIExternalFunctions_offset);
+  jniEnv = ((char*)jniEnvironment + JNIEnvironment_JNIExternalFunctions_offset);
 
   return (JNIEnv*) jniEnv;
 }
@@ -86,11 +91,9 @@ static JNIEnv * getJniEnvFromVmThread(void *vmThreadPtr)
  *
  * TODO: Implement.
  */
-static
-jint
-DestroyJavaVM(JavaVM UNUSED * vm)
+static jint DestroyJavaVM(JavaVM UNUSED * vm)
 {
-  fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
+  ERROR_PRINTF(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
   return JNI_ERR;
 }
 
@@ -106,6 +109,7 @@ static jint AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaV
 {
   JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
   jint version;
+  jint retval;
   if (args == NULL) {
     version = JNI_VERSION_1_1;
   } else {
@@ -119,13 +123,13 @@ static jint AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaV
     return JNI_EVERSION;
 
   /* If we're already attached, we're gold. */
-  register jint retval = GetEnv(vm, penv, version);
+  retval = GetEnv(vm, penv, version);
   if (retval == JNI_OK)
     return retval;
   else if (retval == JNI_EDETACHED) {
-    fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
+    ERROR_PRINTF(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
   } else {
-    fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
+    ERROR_PRINTF(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
   }
 
   // Upon failure:
@@ -136,26 +140,28 @@ static jint AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaV
 /* TODO: Implement */
 static jint DetachCurrentThread(JavaVM UNUSED *vm)
 {
-  fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
+  ERROR_PRINTF(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
   return JNI_ERR;
 }
 
 jint GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 {
+  void *vmThread;
+  JNIEnv *env;
   if (version > JNI_VERSION_1_4)
     return JNI_EVERSION;
 
   // Return NULL if we are not on a VM thread
-  void *vmThread = GET_THREAD_LOCAL(VmThreadKey);
+  vmThread = GET_THREAD_LOCAL(VmThreadKey);
   if (vmThread == NULL) {
     *penv = NULL;
     return JNI_EDETACHED;
   }
 
   // Get the JNIEnv from the RVMThread object
-  JNIEnv *env = getJniEnvFromVmThread(vmThread);
+  env = getJniEnvFromVmThread(vmThread);
 
-  *penv = env;
+  *((JNIEnv**)penv) = env;
 
   return JNI_OK;
 }
@@ -164,11 +170,11 @@ jint GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 /* TODO: Implement */
 static jint AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args)
 {
-  fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
+  ERROR_PRINTF("Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
   return JNI_ERR;
 }
 
-const struct JNIInvokeInterface_ externalJNIFunctions = {
+static const struct JNIInvokeInterface_ externalJNIFunctions = {
   NULL, // reserved0
   NULL, // reserved1
   NULL, // reserved2
@@ -179,7 +185,7 @@ const struct JNIInvokeInterface_ externalJNIFunctions = {
   AttachCurrentThreadAsDaemon   // JNI 1.4
 };
 
-struct JavaVM_ sysJavaVM = {
+const struct JavaVM_ sysJavaVM = {
   &externalJNIFunctions, // functions
   NULL, // reserved0
   NULL, // reserved1
@@ -187,4 +193,3 @@ struct JavaVM_ sysJavaVM = {
   NULL, // threadIDTable
   NULL, // jniEnvTable
 };
-

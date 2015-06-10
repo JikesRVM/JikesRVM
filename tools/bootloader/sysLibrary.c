@@ -22,8 +22,8 @@
  */
 EXTERNAL void* sysDlopen(char *libname)
 {
-  TRACE_PRINTF("%s: sysDlopen %s\n", Me, libname);
   void * libHandler;
+  TRACE_PRINTF("%s: sysDlopen %s\n", Me, libname);
   do {
     libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
   }
