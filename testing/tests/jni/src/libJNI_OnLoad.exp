@@ -1,0 +1,7 @@
+JNI_OnLoad_0.1 {
+  global :
+	 Java_JNI_1OnLoad_setVerboseOff;
+	 JNI_OnLoad;
+	 Java_JNI_1OnLoad_testJNIOnLoad;
+  local : *;
+};

@@ -1,0 +1,8 @@
+Allocation_0.1 {
+  global :
+    Java_Allocation_setVerboseOff;
+    Java_Allocation_testNewObjectA;
+    Java_Allocation_testNewObjectV;
+    Java_Allocation_testNewObject;
+  local : *;
+};

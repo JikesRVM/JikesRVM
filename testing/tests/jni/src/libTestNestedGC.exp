@@ -1,0 +1,6 @@
+TestGC_0.1 {
+  global :
+    Java_TestNestedGC_level0;
+    Java_TestNestedGC_level2;
+  local : *;
+};

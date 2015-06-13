@@ -1,0 +1,11 @@
+StringFunctions_0.1 {
+  global :
+	 Java_StringFunctions_setVerboseOff;
+	 Java_StringFunctions_accessNewString;
+	 Java_StringFunctions_accessGetStringLength;
+	 Java_StringFunctions_accessNewStringUTF;
+	 Java_StringFunctions_accessGetStringUTFLength;
+	 Java_StringFunctions_testGetReleaseStringChars;
+	 Java_StringFunctions_testGetReleaseStringUTFChars;
+  local : *;
+};

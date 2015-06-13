@@ -1,0 +1,14 @@
+MethodInvocation_0.1 {
+  global :
+	 Java_MethodInvocation_setVerboseOff;
+	 Java_MethodInvocation_invokeStaticMethodA;
+	 Java_MethodInvocation_invokeStaticMethodV;
+	 Java_MethodInvocation_invokeStaticMethod;
+	 Java_MethodInvocation_invokeVirtualMethodA;
+	 Java_MethodInvocation_invokeVirtualMethodV;
+	 Java_MethodInvocation_invokeVirtualMethod;
+	 Java_MethodInvocation_invokeNonVirtualMethodA;
+	 Java_MethodInvocation_invokeNonVirtualMethodV;
+	 Java_MethodInvocation_invokeNonVirtualMethod;
+  local : *;
+};

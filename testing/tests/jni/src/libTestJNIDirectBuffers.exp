@@ -1,0 +1,11 @@
+JNI_OnLoad_0.1 {
+  global :
+	 Java_TestJNIDirectBuffers_setVerboseOff;
+	 Java_TestJNIDirectBuffers_putByte;
+	 Java_TestJNIDirectBuffers_getByte;
+	 Java_TestJNIDirectBuffers_getStaticNativeCapacity;
+	 Java_TestJNIDirectBuffers_getStaticNativeAddress;
+	 Java_TestJNIDirectBuffers_getAddress;
+	 Java_TestJNIDirectBuffers_newByteBuffer;
+  local : *;
+};

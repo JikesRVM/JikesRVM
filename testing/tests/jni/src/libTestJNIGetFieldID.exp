@@ -1,0 +1,7 @@
+JNI_OnLoad_0.1 {
+  global :
+	 Java_TestJNIGetFieldID_getInstanceFieldA;
+	 Java_TestJNIGetFieldID_getStaticFieldS;
+	 Java_TestJNIGetFieldID_getStaticFinalF;
+  local : *;
+};

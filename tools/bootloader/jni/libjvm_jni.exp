@@ -1,0 +1,5 @@
+JVM_JNI_0.1 {
+  global :
+    Java_org_jikesrvm_runtime_DynamicLibrary_runJNI_1OnLoad;
+  local : *;
+};

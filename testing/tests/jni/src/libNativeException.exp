@@ -1,0 +1,12 @@
+NativeException_0.1 {
+  global :
+	 Java_NativeException_setVerboseOff;
+	 Java_NativeException_testPassThrough;
+	 Java_NativeException_testExceptionOccured;
+	 Java_NativeException_testExceptionClear;
+	 Java_NativeException_testExceptionDescribe;
+	 Java_NativeException_testExceptionThrow;
+	 Java_NativeException_testExceptionThrowNew;
+	 Java_NativeException_testFatalError;
+  local : *;
+};
