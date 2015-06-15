@@ -5383,23 +5383,23 @@ public final class RVMThread extends ThreadContext {
    * @param message the message to write before the actual traceback
    */
   public static void traceback(String message) {
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.lockNoHandshake();
     }
     VM.sysWriteln(message);
     tracebackWithoutLock();
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.unlock();
     }
   }
 
   public static void traceback(String message, int number) {
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.lockNoHandshake();
     }
     VM.sysWriteln(message, number);
     tracebackWithoutLock();
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.unlock();
     }
   }
