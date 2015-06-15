@@ -18,6 +18,7 @@
 #include <stdarg.h> /* For va_list */
 
 #define JNIEXPORT
+#define JNIIMPORT
 #define JNICALL
 
 #ifdef __cplusplus
