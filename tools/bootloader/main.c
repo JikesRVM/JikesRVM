@@ -249,16 +249,14 @@ fullVersion()
  * still want to exit.
  */
 static const char **
-processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
+processCommandLineArguments(const char *CLAs[], int n_CLAs)
 {
   int n_JCLAs = 0;
   int startApplicationOptions = 0;
   int i;
-  const char *subtoken;
 
   for (i = 0; i < n_CLAs; i++) {
     const char *token = CLAs[i];
-    subtoken = NULL;        // strictly, not needed.
 
     // examining application options?
     if (startApplicationOptions) {
@@ -275,20 +273,18 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
     //   while (*argv && **argv == '-')    {
     if (STREQUAL(token, "-help") || STREQUAL(token, "-?") ) {
       usage();
-      *fastExit = 1;
-      break;
+      sysExit(0);
     }
     if (STREQUAL(token, nonStandardArgs[HELP_INDEX])) {
       nonstandard_usage();
-      *fastExit = 1;
-      break;
+      sysExit(0);
     }
     if (STREQUAL(token, nonStandardArgs[VERBOSE_INDEX])) {
       ++verbose;
       continue;
     }
     if (STRNEQUAL(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
-      subtoken = token + 15;
+      const char *subtoken = token + 15;
       errno = 0;
       char *endp;
       long vb = strtol(subtoken, &endp, 0);
@@ -296,18 +292,15 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
         ++endp;
 
       if (vb < 0) {
-        CONSOLE_PRINTF("%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
-        *fastExit = 1;
-        break;
+        ERROR_PRINTF("%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
+        sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       } else if (errno == ERANGE
                  || vb > INT_MAX ) {
-        CONSOLE_PRINTF("%s: \"%s\": too big a number to represent internally\n", Me, token);
-        *fastExit = 1;
-        break;
+        ERROR_PRINTF("%s: \"%s\": too big a number to represent internally\n", Me, token);
+        sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       } else if (*endp) {
-        CONSOLE_PRINTF("%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
-        *fastExit = 1;
-        break;
+        ERROR_PRINTF("%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
+        sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
 
       verboseBoot = vb;
@@ -324,7 +317,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
     }
     if (STREQUAL(token, "-fullversion")) {
       fullVersion();
-      exit(0);
+      sysExit(0);
     }
     if (STREQUAL(token, "-showversion")) {
       shortVersion();
@@ -336,7 +329,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
     }
     if (STREQUAL(token, "-findMappable")) {
       findMappable();
-      exit(0);            // success, no?
+      sysExit(0);            // success, no?
     }
     if (STRNEQUAL(token, "-verbose:gc", 11)) {
       long level;         // a long, since we need to use strtol()
@@ -344,7 +337,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
         level = 1;
       } else {
         /* skip to after the "=" in "-verbose:gc=<num>" */
-        subtoken = token + 12;
+        const char *subtoken = token + 12;
         errno = 0;
         char *endp;
         level = strtol(subtoken, &endp, 0);
@@ -352,18 +345,17 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
           ++endp;
 
         if (level < 0) {
-          CONSOLE_PRINTF( "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
-          *fastExit = 1;
+          ERROR_PRINTF( "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
+          ERROR_PRINTF( "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
+          sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         } else if (errno == ERANGE || level > INT_MAX ) {
-          CONSOLE_PRINTF( "%s: \"%s\": too big a number to represent internally\n", Me, token);
-          *fastExit = 1;
+          ERROR_PRINTF( "%s: \"%s\": Too big a number to represent internally\n", Me, token);
+          ERROR_PRINTF( "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
+          sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         } else if (*endp) {
-          CONSOLE_PRINTF( "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
-          *fastExit = 1;
-        }
-        if (*fastExit) {
-          CONSOLE_PRINTF( "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
-          break;
+          ERROR_PRINTF( "%s: \"%s\": Didn't recognize \"%s\" as a number\n", Me, token, subtoken);
+          ERROR_PRINTF( "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
+          sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
       }
       /* Canonicalize the argument, and pass it on to the heavy-weight
@@ -379,8 +371,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       if ((unsigned) ret >= bufsiz) {
         ERROR_PRINTF( "%s: \"%s\": %ld is too big a number"
                       " to process internally\n", Me, token, level);
-        *fastExit = 1;
-        break;
+        sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
 
       CLAs[n_JCLAs++] = buf; // Leave buf allocated!
@@ -388,33 +379,33 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
     }
 
     if (STRNEQUAL(token, nonStandardArgs[MS_INDEX], 4)) {
-      subtoken = token + 4;
+      int fastExit = 0;
+      const char *subtoken = token + 4;
       initialHeapSize
         = parse_memory_size("initial heap size", "ms", "", pageSize,
-                            token, subtoken, fastExit);
-      if (*fastExit)
-        break;
+                            token, subtoken, &fastExit);
+      if (fastExit)
+        sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       continue;
     }
 
     if (STRNEQUAL(token, nonStandardArgs[MX_INDEX], 4)) {
-      subtoken = token + 4;
+      int fastExit = 0;
+      const char *subtoken = token + 4;
       maximumHeapSize
         = parse_memory_size("maximum heap size", "mx", "", pageSize,
-                            token, subtoken, fastExit);
-      if (*fastExit)
-        break;
+                            token, subtoken, &fastExit);
+      if (fastExit)
+        sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       continue;
     }
 
     if (STRNEQUAL(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
-      subtoken = token + 14;
+      const char *subtoken = token + 14;
       FILE* ftmp = fopen(subtoken, "a");
       if (!ftmp) {
-        CONSOLE_PRINTF( "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
-        *fastExit = 1;
-        break;
-        continue;
+        ERROR_PRINTF( "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
+        sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
       CONSOLE_PRINTF( "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
       SysTraceFile = ftmp;
@@ -717,10 +708,7 @@ int main(int argc, const char **argv)
   // call processCommandLineArguments().
   int fastBreak = 0;
   // Sets JavaArgc
-  JavaArgs = processCommandLineArguments(argv, argc, &fastBreak);
-  if (fastBreak) {
-    sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-  }
+  JavaArgs = processCommandLineArguments(argv, argc);
 
   if (TRACE) {
     TRACE_PRINTF("RunBootImage.main(): after processCommandLineArguments: %d command line arguments\n", JavaArgc);
