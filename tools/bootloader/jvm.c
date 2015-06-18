@@ -17,7 +17,11 @@
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_EXIT_STATUS_CODES
+#define NEED_BOOT_RECORD_INITIALIZATION 1
 #include "sys.h"
+
+#include <errno.h> // errno
+#include <sys/mman.h>  // PROT_*
 
 #ifdef RVM_FOR_HARMONY
 #ifdef RVM_FOR_LINUX
@@ -48,6 +52,54 @@ FILE *SysTraceFile;
 
 /** Verbose command line option */
 int verbose = 0;
+
+/** Verbose boot up set */
+int verboseBoot = 0;
+
+/** File name for part of boot image containing code */
+char *bootCodeFilename;
+
+/** File name for part of boot image containing data */
+char *bootDataFilename;
+
+/** File name for part of boot image containing the root map */
+char *bootRMapFilename;
+
+Extent initialHeapSize;
+Extent maximumHeapSize;
+Extent pageSize;
+
+/* Prototypes */
+static jint JNICALL DestroyJavaVM(JavaVM UNUSED * vm);
+static jint JNICALL AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args);
+static jint JNICALL DetachCurrentThread(JavaVM UNUSED *vm);
+static jint JNICALL GetEnv(JavaVM UNUSED *vm, void **penv, jint version);
+static jint JNICALL AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args);
+
+/** JNI invoke interface implementation */
+static const struct JNIInvokeInterface_ externalJNIFunctions = {
+  NULL, // reserved0
+  NULL, // reserved1
+  NULL, // reserved2
+  DestroyJavaVM,
+  AttachCurrentThread,
+  DetachCurrentThread,
+  GetEnv,         // JNI 1.2
+  AttachCurrentThreadAsDaemon   // JNI 1.4
+};
+
+/** JavaVM interface implementation */
+const struct JavaVM_ sysJavaVM = {
+  &externalJNIFunctions, // functions
+  NULL, // reserved0
+  NULL, // reserved1
+  NULL, // reserved2
+  NULL, // threadIDTable
+  NULL, // jniEnvTable
+};
+
+/** JNI standard JVM initialization arguments */
+JavaVMInitArgs *sysInitArgs;
 
 /**
  * Fish out an address stored in an instance field of an object.
@@ -91,7 +143,7 @@ static JNIEnv * getJniEnvFromVmThread(void *vmThreadPtr)
  *
  * TODO: Implement.
  */
-static jint DestroyJavaVM(JavaVM UNUSED * vm)
+static jint JNICALL DestroyJavaVM(JavaVM UNUSED * vm)
 {
   ERROR_PRINTF(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
   return JNI_ERR;
@@ -105,7 +157,7 @@ static jint DestroyJavaVM(JavaVM UNUSED * vm)
  *
  * TODO: Implement for actually attaching unattached threads.
  */
-static jint AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
+static jint JNICALL AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
 {
   JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
   jint version;
@@ -138,13 +190,13 @@ static jint AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, /* JavaV
 }
 
 /* TODO: Implement */
-static jint DetachCurrentThread(JavaVM UNUSED *vm)
+static jint JNICALL DetachCurrentThread(JavaVM UNUSED *vm)
 {
   ERROR_PRINTF(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
   return JNI_ERR;
 }
 
-jint GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
+jint JNICALL GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 {
   void *vmThread;
   JNIEnv *env;
@@ -168,28 +220,237 @@ jint GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 
 /** JNI 1.4 */
 /* TODO: Implement */
-static jint AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args)
+static jint JNICALL AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args)
 {
   ERROR_PRINTF("Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
   return JNI_ERR;
 }
 
-static const struct JNIInvokeInterface_ externalJNIFunctions = {
-  NULL, // reserved0
-  NULL, // reserved1
-  NULL, // reserved2
-  DestroyJavaVM,
-  AttachCurrentThread,
-  DetachCurrentThread,
-  GetEnv,         // JNI 1.2
-  AttachCurrentThreadAsDaemon   // JNI 1.4
-};
+/**
+ * Determines the page size.
+ * Taken:     (no arguments)
+ * Returned:  page size in bytes (Java int)
+ */
+Extent determinePageSize()
+{
+  TRACE_PRINTF("%s: determinePageSize\n", Me);
+  Extent pageSize = -1;
+#ifdef _SC_PAGESIZE
+  pageSize = (Extent) sysconf(_SC_PAGESIZE);
+#elif _SC_PAGE_SIZE
+  pageSize = (Extent) sysconf(_SC_PAGE_SIZE);
+#else
+  pageSize = (Extent) getpagesize();
+#endif
+  return pageSize;
+}
 
-const struct JavaVM_ sysJavaVM = {
-  &externalJNIFunctions, // functions
-  NULL, // reserved0
-  NULL, // reserved1
-  NULL, // reserved2
-  NULL, // threadIDTable
-  NULL, // jniEnvTable
-};
+/**
+ * Map the given file to memory
+ *
+ * Taken:     fileName         [in] name of file
+ *            targetAddress    [in] address to load file to
+ *            executable       [in] are we mapping code into memory
+ *            writable         [in] do we need to write to this memory?
+ *            roundedImageSize [out] size of mapped memory rounded up to a whole
+ * Returned:  address of mapped region
+ */
+static void* mapImageFile(const char *fileName, const void *targetAddress,
+                          jboolean executable, jboolean writable, Extent *roundedImageSize) {
+  Extent actualImageSize;
+  void *bootRegion = 0;
+  TRACE_PRINTF("%s: mapImageFile \"%s\" to %p\n", Me, fileName, targetAddress);
+  FILE *fin = fopen (fileName, "r");
+  if (!fin) {
+    ERROR_PRINTF("%s: can't find bootimage file\"%s\"\n", Me, fileName);
+    return 0;
+  }
+  /* measure image size */
+  fseek (fin, 0L, SEEK_END);
+  actualImageSize = (uint64_t) ftell(fin);
+  *roundedImageSize = pageRoundUp(actualImageSize, pageSize);
+  fseek (fin, 0L, SEEK_SET);
+  int prot = PROT_READ;
+  if (writable)
+    prot |= PROT_WRITE;
+  if (executable)
+    prot |= PROT_EXEC;
+  bootRegion = mmap((void*)targetAddress, *roundedImageSize,
+       prot,
+       MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE,
+       fileno(fin), 0);
+  if (bootRegion == (void *) MAP_FAILED) {
+    ERROR_PRINTF("%s: mmap failed (errno=%d): %s\n", Me, errno, strerror(errno));
+    return 0;
+  }
+  /* Quoting from the Linux mmap(2) manual page:
+     "closing the file descriptor does not unmap the region."
+  */
+  if (fclose (fin) != 0) {
+    ERROR_PRINTF("%s: close failed (errno=%d)\n", Me, errno);
+    return 0;
+  }
+  if (bootRegion != targetAddress) {
+    ERROR_PRINTF("%s: Attempted to mapImageFile to the address %p; "
+    " got %p instead.  This should never happen.",
+    Me, targetAddress, bootRegion);
+    (void) munmap(bootRegion, *roundedImageSize);
+    return 0;
+  }
+  return bootRegion;
+}
+
+/**
+ * Start the VM
+ *
+ * Taken:     vmInSeparateThread [in] create a thread for the VM to
+ * execute in rather than this thread
+ * Returned:  1 upon any errors.  Never returns except to report an
+ * error.
+ */
+int createVM(int vmInSeparateThread)
+{
+  Extent roundedDataRegionSize;
+  // Note that the data segment must be mapped as executable
+  // because code for lazy compilation trampolines is placed
+  // in the TIBs and TIBs are placed in the data segment.
+  // See RVM-678.
+  void *bootDataRegion = mapImageFile(bootDataFilename,
+             bootImageDataAddress,
+             JNI_TRUE,
+                                      JNI_TRUE,
+             &roundedDataRegionSize);
+  if (bootDataRegion != bootImageDataAddress)
+    return 1;
+
+  Extent roundedCodeRegionSize;
+  // Note that the code segment must be mapped as writable because the
+  // optimizing compiler may try to patch methods in the boot image. If the
+  // code from the boot image were write-protected, this would cause a
+  // segmentation fault, which would manifest as a NullPointerException
+  // with the current implementation (May 2015). If we wanted to have
+  // read-only code for the boot image, we would need to make sure that
+  // it is never necessary to patch code from the boot image.
+  void *bootCodeRegion = mapImageFile(bootCodeFilename,
+             bootImageCodeAddress,
+             JNI_TRUE,
+                                      JNI_TRUE,
+             &roundedCodeRegionSize);
+  if (bootCodeRegion != bootImageCodeAddress)
+    return 1;
+
+  Extent roundedRMapRegionSize;
+  void *bootRMapRegion = mapImageFile(bootRMapFilename,
+             bootImageRMapAddress,
+             JNI_FALSE,
+                                      JNI_FALSE,
+             &roundedRMapRegionSize);
+  if (bootRMapRegion != bootImageRMapAddress)
+    return 1;
+
+
+  /* validate contents of boot record */
+  bootRecord = (struct BootRecord *) bootDataRegion;
+
+  if (bootRecord->bootImageDataStart != (Address) bootDataRegion) {
+    ERROR_PRINTF("%s: image load error: built for %p but loaded at %p\n",
+     Me, bootRecord->bootImageDataStart, bootDataRegion);
+    return 1;
+  }
+
+  if (bootRecord->bootImageCodeStart != (Address) bootCodeRegion) {
+    ERROR_PRINTF("%s: image load error: built for %p but loaded at %p\n",
+     Me, bootRecord->bootImageCodeStart, bootCodeRegion);
+    return 1;
+  }
+
+  if (bootRecord->bootImageRMapStart != (Address) bootRMapRegion) {
+    ERROR_PRINTF("%s: image load error: built for %p but loaded at %p\n",
+     Me, bootRecord->bootImageRMapStart, bootRMapRegion);
+    return 1;
+  }
+
+  if ((bootRecord->spRegister % __SIZEOF_POINTER__) != 0) {
+    ERROR_PRINTF("%s: image format error: sp (%p) is not word aligned\n",
+     Me, bootRecord->spRegister);
+    return 1;
+  }
+
+  if ((bootRecord->ipRegister % __SIZEOF_POINTER__) != 0) {
+    ERROR_PRINTF("%s: image format error: ip (%p) is not word aligned\n",
+     Me, bootRecord->ipRegister);
+    return 1;
+  }
+
+  if (((Address *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
+    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (%p)\n",
+    Me, ((int *) bootRecord->spRegister)[-1]);
+    return 1;
+  }
+
+  /* write freespace information into boot record */
+  bootRecord->initialHeapSize  = initialHeapSize;
+  bootRecord->maximumHeapSize  = maximumHeapSize;
+  bootRecord->bootImageDataStart   = (Address) bootDataRegion;
+  bootRecord->bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
+  bootRecord->bootImageCodeStart   = (Address) bootCodeRegion;
+  bootRecord->bootImageCodeEnd     = (Address) bootCodeRegion + roundedCodeRegionSize;
+  bootRecord->bootImageRMapStart   = (Address) bootRMapRegion;
+  bootRecord->bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
+  bootRecord->verboseBoot      = verboseBoot;
+  bootRecord->bytesInPage = pageSize;
+
+  /* write sys.C linkage information into boot record */
+  setLinkage(bootRecord);
+
+  /* Initialize system call routines and side data structures */
+  sysInitialize();
+
+  if (verbose) {
+    TRACE_PRINTF("%s: boot record contents:\n", Me);
+    TRACE_PRINTF("   bootImageDataStart:   %p\n", bootRecord->bootImageDataStart);
+    TRACE_PRINTF("   bootImageDataEnd:     %p\n", bootRecord->bootImageDataEnd);
+    TRACE_PRINTF("   bootImageCodeStart:   %p\n", bootRecord->bootImageCodeStart);
+    TRACE_PRINTF("   bootImageCodeEnd:     %p\n", bootRecord->bootImageCodeEnd);
+    TRACE_PRINTF("   bootImageRMapStart:   %p\n", bootRecord->bootImageRMapStart);
+    TRACE_PRINTF("   bootImageRMapEnd:     %p\n", bootRecord->bootImageRMapEnd);
+    TRACE_PRINTF("   initialHeapSize:      %p\n", bootRecord->initialHeapSize);
+    TRACE_PRINTF("   maximumHeapSize:      %p\n", bootRecord->maximumHeapSize);
+    TRACE_PRINTF("   spRegister:           %p\n", bootRecord->spRegister);
+    TRACE_PRINTF("   ipRegister:           %p\n", bootRecord->ipRegister);
+    TRACE_PRINTF("   tocRegister:          %p\n", bootRecord->tocRegister);
+    TRACE_PRINTF("   sysConsoleWriteCharIP:%p\n", bootRecord->sysConsoleWriteCharIP);
+    TRACE_PRINTF("   ...etc...                   \n");
+  }
+
+  /* force any machine code within image that's still in dcache to be
+   * written out to main memory so that it will be seen by icache when
+   * instructions are fetched back
+   */
+  sysSyncCache(bootCodeRegion, roundedCodeRegionSize);
+
+  sysStartMainThread(vmInSeparateThread, bootRecord->ipRegister, bootRecord->spRegister,
+                     *(Address *) (bootRecord->tocRegister + bootRecord->bootThreadOffset),
+                     bootRecord->tocRegister, &bootRecord->bootCompleted);
+}
+
+JNIEXPORT jint JNICALL JNI_CreateJavaVM(JavaVM **mainJavaVM, JNIEnv **mainJNIEnv, void *initArgs)
+{
+  TRACE_PRINTF("%s: JNI call CreateJavaVM\n", Me);
+  *mainJavaVM = (JavaVM*)&sysJavaVM;
+  *mainJNIEnv = NULL;
+  sysInitArgs = initArgs;
+  return createVM(0);
+}
+
+JNIEXPORT jint JNICALL JNI_GetDefaultJavaVMInitArgs(void *initArgs)
+{
+  ERROR_PRINTF("UNIMPLEMENTED JNI call JNI_GetDefaultJavaVMInitArgs\n");
+  return JNI_ERR;
+}
+
+JNIEXPORT jint JNICALL JNI_GetCreatedJavaVMs(JavaVM **vmBuf, jsize buflen, jsize *nVMs)
+{
+  ERROR_PRINTF("UNIMPLEMENTED JNI call JNI_GetCreatedJavaVMs\n");
+  return JNI_ERR;
+}

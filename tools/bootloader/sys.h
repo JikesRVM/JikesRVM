@@ -80,6 +80,18 @@ extern struct BootRecord *bootRecord;
 extern const struct JavaVM_ sysJavaVM;
 /** Verbose command line option */
 extern int verbose;
+/** Verbose boot up set */
+extern int verboseBoot;
+/** File name for part of boot image containing code */
+extern char *bootCodeFilename;
+/** File name for part of boot image containing data */
+extern char *bootDataFilename;
+/** File name for part of boot image containing the root map */
+extern char *bootRMapFilename;
+
+extern Extent initialHeapSize;
+extern Extent maximumHeapSize;
+extern Extent pageSize;
 
 #if !defined(RVM_FOR_HARMONY) && defined(__MACH__)
 extern mach_timebase_info_data_t timebaseInfo;
