@@ -20,10 +20,10 @@ package org.jikesrvm.ppc;
 
 final class OpcodeXX {
 
-  int key;
-  int form;
-  int format;
-  String mnemonic;
+  final int key;
+  final int form;
+  final int format;
+  final String mnemonic;
 
   OpcodeXX(int key, int form, int format, String mnemonic) {
     this.key = key;
