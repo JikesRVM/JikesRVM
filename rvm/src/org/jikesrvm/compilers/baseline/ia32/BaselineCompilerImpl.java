@@ -3017,15 +3017,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int interfaceMask = type.getDoesImplementBitMask();
 
     if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_RegInd(S0, SP);      // load object from stack into S0
-      asm.emitTEST_Reg_Reg(S0, S0);        // test for null
+      asm.emitMOV_Reg_RegInd(ECX, SP);      // load object from stack into ECX
     } else {
-      asm.emitMOV_Reg_RegInd_Quad(S0, SP); // load object from stack into S0
-      asm.emitTEST_Reg_Reg_Quad(S0, S0);   // test for null
+      asm.emitMOV_Reg_RegInd_Quad(ECX, SP); // load object from stack into ECX
     }
-    ForwardReference isNull = asm.forwardJcc(EQ);
+    ForwardReference isNull = asm.forwardJECXZ(); // forward branch if ECX == 0
 
-    baselineEmitLoadTIB(asm, S0, S0);      // S0 = TIB of object
+    baselineEmitLoadTIB(asm, S0, ECX);      // S0 = TIB of object
     // S0 = implements bit vector
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));
@@ -3061,15 +3059,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int LHSId = type.getId();
 
     if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_RegInd(S0, SP);      // load object from stack
-      asm.emitTEST_Reg_Reg(S0, S0);        // test for null
+      asm.emitMOV_Reg_RegInd(ECX, SP);      // load object from stack
     } else {
-      asm.emitMOV_Reg_RegInd_Quad(S0, SP); // load object from stack
-      asm.emitTEST_Reg_Reg_Quad(S0, S0);   // test for null
+      asm.emitMOV_Reg_RegInd_Quad(ECX, SP); // load object from stack
     }
-    ForwardReference isNull = asm.forwardJcc(EQ);
+    ForwardReference isNull = asm.forwardJECXZ(); // jump forward if ECX == 0
 
-    baselineEmitLoadTIB(asm, S0, S0);      // S0 = TIB of object
+    baselineEmitLoadTIB(asm, S0, ECX);      // S0 = TIB of object
     // S0 = superclass IDs
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << LG_WORDSIZE));
@@ -3102,15 +3098,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_checkcast_final(RVMType type) {
     if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_RegInd(S0, SP);      // load object from stack
-      asm.emitTEST_Reg_Reg(S0, S0);        // test for null
+      asm.emitMOV_Reg_RegInd(ECX, SP);      // load object from stack
     } else {
-      asm.emitMOV_Reg_RegInd_Quad(S0, SP); // load object from stack
-      asm.emitTEST_Reg_Reg_Quad(S0, S0);   // test for null
+      asm.emitMOV_Reg_RegInd_Quad(ECX, SP); // load object from stack
     }
-    ForwardReference isNull = asm.forwardJcc(EQ);
+    ForwardReference isNull = asm.forwardJECXZ(); // jump forward if ECX == 0
 
-    baselineEmitLoadTIB(asm, S0, S0);                           // TIB of object
+    baselineEmitLoadTIB(asm, S0, ECX);      // TIB of object
     if (VM.BuildFor32Addr) {
       asm.emitCMP_Reg_Abs(S0, Magic.getTocPointer().plus(type.getTibOffset()));
     } else {
@@ -3136,15 +3130,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int interfaceIndex = type.getDoesImplementIndex();
     int interfaceMask = type.getDoesImplementBitMask();
 
-    asm.emitPOP_Reg(S0);                 // load object from stack
-    if (VM.BuildFor32Addr) {
-      asm.emitTEST_Reg_Reg(S0, S0);      // test for null
-    } else {
-      asm.emitTEST_Reg_Reg_Quad(S0, S0); // test for null
-    }
-    ForwardReference isNull = asm.forwardJcc(EQ);
+    asm.emitPOP_Reg(ECX);                 // load object from stack
+    ForwardReference isNull = asm.forwardJECXZ(); // test for null
 
-    baselineEmitLoadTIB(asm, S0, S0);    // S0 = TIB of object
+    baselineEmitLoadTIB(asm, S0, ECX);    // S0 = TIB of object
     // S0 = implements bit vector
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));
@@ -3182,16 +3171,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int LHSDepth = type.getTypeDepth();
     int LHSId = type.getId();
 
-    asm.emitPOP_Reg(S0);                 // load object from stack
-    if (VM.BuildFor32Addr) {
-      asm.emitTEST_Reg_Reg(S0, S0);      // test for null
-    } else {
-      asm.emitTEST_Reg_Reg_Quad(S0, S0); // test for null
-    }
-    ForwardReference isNull = asm.forwardJcc(EQ);
+    asm.emitPOP_Reg(ECX);                 // load object from stack
+    ForwardReference isNull = asm.forwardJECXZ(); // test for null
 
     // get superclass display from object's TIB
-    baselineEmitLoadTIB(asm, S0, S0);
+    baselineEmitLoadTIB(asm, S0, ECX);
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_SUPERCLASS_IDS_INDEX << LG_WORDSIZE));
     } else {
@@ -3226,16 +3210,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_instanceof_final(RVMType type) {
-    asm.emitPOP_Reg(S0);                 // load object from stack
-    if (VM.BuildFor32Addr) {
-      asm.emitTEST_Reg_Reg(S0, S0);      // test for null
-    } else {
-      asm.emitTEST_Reg_Reg_Quad(S0, S0); // test for null
-    }
-    ForwardReference isNull = asm.forwardJcc(EQ);
+    asm.emitPOP_Reg(ECX);                 // load object from stack
+    ForwardReference isNull = asm.forwardJECXZ(); // test for null
 
     // compare TIB of object to desired TIB and push true if equal
-    baselineEmitLoadTIB(asm, S0, S0);
+    baselineEmitLoadTIB(asm, S0, ECX);
     if (VM.BuildFor32Addr) {
       asm.emitCMP_Reg_Abs(S0, Magic.getTocPointer().plus(type.getTibOffset()));
     } else {

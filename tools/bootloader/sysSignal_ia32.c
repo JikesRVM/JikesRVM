@@ -277,6 +277,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
     case 0xB0: case 0xB1: case 0xB2: case 0xB3: // mov
     case 0xB4: case 0xB5: case 0xB6: case 0xB7:
     case 0xCD: // int imm8
+    case 0xE3: // jump if ecx is zero
     case 0xEB: // unconditional jump
       size++; // 1 byte immediate
       break;

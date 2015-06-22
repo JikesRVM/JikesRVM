@@ -1040,6 +1040,27 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     return r;
   }
 
+   /**
+   * Generate a forward JECXZ instruction into the generated code.
+   * This form is used when the compiler wants to hang onto the
+   * forward reference object and call resolve on it directly.  These
+   * forward references are not handled by the mechanism in the
+   * assembler; the client is responsible for calling resolve on the
+   * reference when generating the target instruction.  The baseline
+   * compiler uses this form for jumps within the machine code for a
+   * single bytecode.
+   *
+   * @return the forward reference for the compiler implementation
+   */
+  public final ForwardReference forwardJECXZ () {
+    int miStart = mi;
+    ForwardReference r =  new ForwardReference.ShortBranch(mi);
+    setMachineCodes(mi++, (byte)0xE3);
+    mi += 1; // leave space for displacement
+    if (lister != null) lister.I(miStart, "JECXZ", 0);
+    return r;
+  }
+
   /**
    * <p> The set of outstanding forward references.  This list is used by
    * the assembler to keep track of all outstanding forward
