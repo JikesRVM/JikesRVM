@@ -1789,43 +1789,31 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_lcmp() {
     if (VM.BuildFor32Addr) {
-      asm.emitPOP_Reg(T0);                // (S0:T0) = (high half value2: low half value2)
-      asm.emitPOP_Reg(S0);
+      asm.emitPOP_Reg(T0);                // (S1:T0) = (high half value2: low half value2)
+      asm.emitPOP_Reg(S1);
       asm.emitPOP_Reg(T1);                // (..:T1) = (.. : low half of value1)
       asm.emitSUB_Reg_Reg(T1, T0);        // T1 = T1 - T0
       asm.emitPOP_Reg(T0);                // (T0:..) = (high half of value1 : ..)
       // NB pop does not alter the carry register
-      asm.emitSBB_Reg_Reg(T0, S0);        // T0 = T0 - S0 - CF
-      ForwardReference fr1 = asm.forwardJcc(LT);
-      asm.emitOR_Reg_Reg(T0, T1);         // T0 = T0 | T1
-      ForwardReference fr2 = asm.forwardJcc(NE);
-      asm.emitPUSH_Imm(0);                // push result on stack
-      ForwardReference fr3 = asm.forwardJMP();
-      fr2.resolve(asm);
-      asm.emitPUSH_Imm(1);                // push result on stack
-      ForwardReference fr4 = asm.forwardJMP();
-      fr1.resolve(asm);
-      asm.emitPUSH_Imm(-1);                // push result on stack
-      fr3.resolve(asm);
-      fr4.resolve(asm);
+      asm.emitSBB_Reg_Reg(T0, S1);        // T0 = T0 - S1 - CF
+      asm.emitOR_Reg_Reg(T1, T0);         // T1 = T1 | T0 updating ZF
+      asm.emitSET_Cond_Reg_Byte(NE, T1);
+      asm.emitMOVZX_Reg_Reg_Byte(T1, T1); // T1 = (value1 != value2) ? 1 : 0
+      asm.emitSAR_Reg_Imm(T0, 31);        // T0 = (value1 < value2) ? -1 : 0
+      asm.emitOR_Reg_Reg(T1, T0);         // T1 = T1 | T0
+      asm.emitPUSH_Reg(T1);               // push result on stack          // push result on stack
     } else {
-      // TODO: consider optimizing to z = ((x - y) >> 63) - ((y - x) >> 63)
-      asm.emitPOP_Reg(T0);                // T0 is long value
+      // using a shift in 64bits costs an extra byte in the opcode
+      asm.emitPOP_Reg(T0);                // T0 is long value2
       adjustStack(WORDSIZE, true);        // throw away slot
-      asm.emitPOP_Reg(T1);                // T1 is long value
+      asm.emitPOP_Reg(T1);                // T1 is long value1
       adjustStack(WORDSIZE, true);        // throw away slot
-      asm.emitCMP_Reg_Reg_Quad(T1, T0);        // T1 = T1 - T0
-      ForwardReference fr1 = asm.forwardJcc(LT);
-      ForwardReference fr2 = asm.forwardJcc(NE);
-      asm.emitPUSH_Imm(0);                // push result on stack
-      ForwardReference fr3 = asm.forwardJMP();
-      fr2.resolve(asm);
-      asm.emitPUSH_Imm(1);                // push result on stack
-      ForwardReference fr4 = asm.forwardJMP();
-      fr1.resolve(asm);
-      asm.emitPUSH_Imm(-1);                // push result on stack
-      fr3.resolve(asm);
-      fr4.resolve(asm);
+      asm.emitCMP_Reg_Reg_Quad(T1, T0);   // 64bit compare
+      asm.emitSET_Cond_Reg_Byte(LT, T0); // T0 = value1 < value2 ? 1 : 0
+      asm.emitSET_Cond_Reg_Byte(GT, T1); // T1 = value1 > value2 ? 1 : 0
+      asm.emitSUB_Reg_Reg_Byte(T1, T0);   // T1 = (value1 > value2 ? 1 : 0) - (value1 < value2 ? 1 : 0)
+      asm.emitMOVSX_Reg_Reg_Byte(T1, T1); // Fix sign extension
+      asm.emitPUSH_Reg(T1);               // push result on stack
     }
   }
 
