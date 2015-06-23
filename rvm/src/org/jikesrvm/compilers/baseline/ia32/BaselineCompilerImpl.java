@@ -362,14 +362,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_ldc2(Offset offset, byte type) {
     if (VM.BuildFor32Addr) {
-      if (SSE2_BASE) {
-        adjustStack(-2 * WORDSIZE, true);     // adjust stack
-        asm.emitMOVQ_Reg_Abs(XMM0, Magic.getTocPointer().plus(offset)); // XMM0 is constant value
-        asm.emitMOVQ_RegInd_Reg(SP, XMM0);  // place value on stack
-      } else {
-        asm.emitPUSH_Abs(Magic.getTocPointer().plus(offset).plus(WORDSIZE)); // high 32 bits
-        asm.emitPUSH_Abs(Magic.getTocPointer().plus(offset));   // low 32 bits
-      }
+      asm.emitPUSH_Abs(Magic.getTocPointer().plus(offset).plus(WORDSIZE)); // high 32 bits
+      asm.emitPUSH_Abs(Magic.getTocPointer().plus(offset));   // low 32 bits
     } else {
       adjustStack(-WORDSIZE, true);
       asm.emitPUSH_Abs(Magic.getTocPointer().plus(offset));
@@ -406,14 +400,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_lload(int index) {
     Offset offset = localOffset(index);
     if (VM.BuildFor32Addr) {
-      if (SSE2_BASE) {
-        asm.emitMOVQ_Reg_RegDisp(XMM0, SP, offset.minus(WORDSIZE)); // XMM0 is local value
-        adjustStack(-2 * WORDSIZE, true);     // adjust stack
-        asm.emitMOVQ_RegInd_Reg(SP, XMM0);  // place value on stack
-      } else {
-        asm.emitPUSH_RegDisp(ESP, offset); // high part
-        asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
-      }
+      asm.emitPUSH_RegDisp(ESP, offset); // high part
+      asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
     } else {
       adjustStack(-WORDSIZE, true);
       asm.emitPUSH_RegDisp(ESP, offset);
@@ -455,17 +443,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_lstore(int index) {
     if (VM.BuildFor32Addr) {
-      if (SSE2_BASE) {
-        Offset offset = localOffset(index).minus(WORDSIZE);
-        asm.emitMOVQ_Reg_RegInd(XMM0, SP);  // XMM0 is stack value
-        asm.emitMOVQ_RegDisp_Reg(SP, offset, XMM0);  // place value in local
-        adjustStack(2 * WORDSIZE, true);
-      } else {
-        // pop computes EA after ESP has moved by 4!
-        Offset offset = localOffset(index + 1).minus(WORDSIZE);
-        asm.emitPOP_RegDisp(ESP, offset); // high part
-        asm.emitPOP_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
-      }
+      // pop computes EA after ESP has moved by 4!
+      Offset offset = localOffset(index + 1).minus(WORDSIZE);
+      asm.emitPOP_RegDisp(ESP, offset); // high part
+      asm.emitPOP_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
     } else {
       Offset offset = localOffset(index + 1).minus(WORDSIZE);
       asm.emitPOP_RegDisp(ESP, offset);
@@ -577,18 +558,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     if (VM.BuildFor64Addr) {
       asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
     }
-    if (VM.BuildFor32Addr && SSE2_BASE) {
-      adjustStack(WORDSIZE * -2, true); // create space for result
-    }
     genBoundsCheck(asm, T0, T1); // T0 is index, T1 is address of array
     if (VM.BuildFor32Addr) {
-      if (SSE2_BASE) {
-        asm.emitMOVQ_Reg_RegIdx(XMM0, T1, T0, LONG, NO_SLOT);
-        asm.emitMOVQ_RegInd_Reg(SP, XMM0);
-      } else {
-        asm.emitPUSH_RegIdx(T1, T0, LONG, ONE_SLOT); // load high part of desired long array element
-        asm.emitPUSH_RegIdx(T1, T0, LONG, NO_SLOT);  // load low part of desired long array element
-      }
+      asm.emitPUSH_RegIdx(T1, T0, LONG, ONE_SLOT); // load high part of desired long array element
+      asm.emitPUSH_RegIdx(T1, T0, LONG, NO_SLOT);  // load low part of desired long array element
     } else {
       adjustStack(-WORDSIZE, true);
       asm.emitPUSH_RegIdx(T1, T0, LONG, NO_SLOT);  // load desired long array element
@@ -2405,6 +2378,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
                    (VM.BuildFor64Addr && fieldType.isWordLikeType()));
       }
       asm.emitPOP_Reg(T1);           // T1 is object reference
+      // NB it's unknown whether the field is volatile, so it is necessary to
+      // emit instruction sequences that provide atomic access.
       if (VM.BuildFor32Addr) {
         // NB this is a 64bit copy from memory to the stack so implement
         // as a slightly optimized Intel memory copy using the FPU
@@ -2461,9 +2436,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     } else if (fieldType.isIntType() || fieldType.isFloatType() ||
                (VM.BuildFor32Addr && fieldType.isWordLikeType())) {
       // 32bit load
-      asm.emitPOP_Reg(S0);                          // S0 is object reference
-      asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
-      asm.emitPUSH_Reg(T0);                         // place value on stack
+      asm.emitPOP_Reg(S0);                   // S0 is object reference
+      asm.emitPUSH_RegDisp(S0, fieldOffset); // T0 is field value
     } else {
       // 64bit load
       if (VM.VerifyAssertions) {
@@ -2471,7 +2445,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
                    (VM.BuildFor64Addr && fieldType.isWordLikeType()));
       }
       asm.emitPOP_Reg(T0); // T0 is object reference
-      if (VM.BuildFor32Addr) {
+      if (VM.BuildFor32Addr && field.isVolatile()) {
         // NB this is a 64bit copy from memory to the stack so implement
         // as a slightly optimized Intel memory copy using the FPU
         adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
@@ -2482,6 +2456,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           asm.emitFLD_Reg_RegDisp_Quad(FP0, T0, fieldOffset); // FP0 is field value
           asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
         }
+      } else if (VM.BuildFor32Addr && !field.isVolatile()) {
+        asm.emitPUSH_RegDisp(T0, fieldOffset.plus(ONE_SLOT)); // place high half on stack
+        asm.emitPUSH_RegDisp(T0, fieldOffset);                // place low half on stack
       } else {
         if (!fieldType.isWordLikeType()) {
           adjustStack(-WORDSIZE, true); // add empty slot
@@ -3533,7 +3510,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
       asm.emitCMP_RegDisp_Reg(arrayRefReg, ObjectModel.getArrayLengthOffset(), indexReg);
     } else {
-      asm.emitMOV_Reg_Reg(indexReg, indexReg); // clear MSBs
       asm.emitCMP_RegDisp_Reg_Quad(arrayRefReg, ObjectModel.getArrayLengthOffset(), indexReg);
     }
     // Jmp around trap if index is OK
