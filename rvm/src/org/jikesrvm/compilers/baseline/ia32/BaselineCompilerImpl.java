@@ -375,7 +375,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
 
   @Override
-  protected final void emit_iload(int index) {
+  protected final void emit_regular_iload(int index) {
     Offset offset = localOffset(index);
     if (offset.EQ(Offset.zero())) {
       asm.emitPUSH_RegInd(ESP);
@@ -387,13 +387,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_fload(int index) {
     // identical to iload
-    emit_iload(index);
+    emit_regular_iload(index);
   }
 
   @Override
-  protected final void emit_aload(int index) {
+  protected final void emit_regular_aload(int index) {
     // identical to iload
-    emit_iload(index);
+    emit_regular_iload(index);
   }
 
   @Override
@@ -507,6 +507,30 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     if (VM.BuildFor64Addr) {
       asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
     }
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    // T1 = (int)[S0+T0<<1]
+    if (VM.BuildFor32Addr) {
+      asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, SHORT, NO_SLOT);
+    } else {
+      asm.emitMOVZXQ_Reg_RegIdx_Word(T1, S0, T0, SHORT, NO_SLOT);
+    }
+    asm.emitPUSH_Reg(T1);        // push short onto stack
+  }
+
+  /**
+   * Emits code to load an int local variable and then load from a character array
+   * @param index the local index to load
+   */
+  @Override
+  protected final void emit_iload_caload(int index) {
+    Offset offset = localOffset(index);
+    if (offset.EQ(Offset.zero())) {
+      asm.emitMOV_Reg_RegInd(T0, SP); // T0 is array index
+    } else {
+      asm.emitMOV_Reg_RegDisp(T0, SP, offset); // T0 is array index
+    }
+    // NB MSBs of T0 are already clear in 64bit
+    asm.emitPOP_Reg(S0); // S0 is array ref
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     // T1 = (int)[S0+T0<<1]
     if (VM.BuildFor32Addr) {
@@ -2464,6 +2488,81 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           adjustStack(-WORDSIZE, true); // add empty slot
         }
         asm.emitPUSH_RegDisp(T0, fieldOffset); // place value on stack
+      }
+    }
+  }
+
+  /**
+   * Emits code to load a reference local variable and then perform a field load
+   * @param index the local index to load
+   * @param fieldRef the referenced field
+   */
+  @Override
+  protected void emit_aload_resolved_getfield(int index, FieldReference fieldRef) {
+    Offset offset = localOffset(index);
+    TypeReference fieldType = fieldRef.getFieldContentsType();
+    RVMField field = fieldRef.peekResolvedField();
+    Offset fieldOffset = field.getOffset();
+    if (field.isReferenceType()) {
+      // 32/64bit reference load
+      if (NEEDS_OBJECT_GETFIELD_BARRIER && !field.isUntraced()) {
+        emit_regular_aload(index);
+        Barriers.compileGetfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
+      } else {
+        stackMoveHelper(S0, offset);  // S0 is object reference
+        asm.emitPUSH_RegDisp(S0, fieldOffset); // place field value on stack
+      }
+    } else if (fieldType.isBooleanType()) {
+      // 8bit unsigned load
+      stackMoveHelper(S0, offset);                         // S0 is object reference
+      asm.emitMOVZX_Reg_RegDisp_Byte(T0, S0, fieldOffset); // T0 is field value
+      asm.emitPUSH_Reg(T0);                                // place value on stack
+    } else if (fieldType.isByteType()) {
+      // 8bit signed load
+      stackMoveHelper(S0, offset);                         // S0 is object reference
+      asm.emitMOVSX_Reg_RegDisp_Byte(T0, S0, fieldOffset); // T0 is field value
+      asm.emitPUSH_Reg(T0);                                // place value on stack
+    } else if (fieldType.isShortType()) {
+      // 16bit signed load
+      stackMoveHelper(S0, offset);                         // S0 is object reference
+      asm.emitMOVSX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
+      asm.emitPUSH_Reg(T0);                                // place value on stack
+    } else if (fieldType.isCharType()) {
+      // 16bit unsigned load
+      stackMoveHelper(S0, offset);                         // S0 is object reference
+      asm.emitMOVZX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
+      asm.emitPUSH_Reg(T0);                                // place value on stack
+    } else if (fieldType.isIntType() || fieldType.isFloatType() ||
+               (VM.BuildFor32Addr && fieldType.isWordType())) {
+      // 32bit load
+      stackMoveHelper(S0, offset);                         // S0 is object reference
+      asm.emitPUSH_RegDisp(S0, fieldOffset);               // place value on stack
+    } else {
+      // 64bit load
+      if (VM.VerifyAssertions) {
+        VM._assert(fieldType.isLongType() || fieldType.isDoubleType() ||
+                   (VM.BuildFor64Addr && fieldType.isWordType()));
+      }
+      stackMoveHelper(S0, offset);                  // S0 is object reference
+      if (VM.BuildFor32Addr && field.isVolatile()) {
+        // NB this is a 64bit copy from memory to the stack so implement
+        // as a slightly optimized Intel memory copy using the FPU
+        adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
+        if (SSE2_BASE) {
+          asm.emitMOVQ_Reg_RegDisp(XMM0, S0, fieldOffset); // XMM0 is field value
+          asm.emitMOVQ_RegInd_Reg(SP, XMM0); // replace reference with value on stack
+        } else {
+          asm.emitFLD_Reg_RegDisp_Quad(FP0, S0, fieldOffset); // FP0 is field value
+          asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
+        }
+      } else if (VM.BuildFor32Addr && !field.isVolatile()) {
+        asm.emitPUSH_RegDisp(S0, fieldOffset.plus(ONE_SLOT)); // place high half on stack
+        asm.emitPUSH_RegDisp(S0, fieldOffset);                // place low half on stack
+      } else {
+        if (!fieldType.isWordType()) {
+          adjustStack(-WORDSIZE, true); // add empty slot
+        }
+        asm.emitPUSH_RegDisp(S0, fieldOffset); // place value on stack
       }
     }
   }

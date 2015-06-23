@@ -803,7 +803,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   */
 
   @Override
-  protected final void emit_iload(int index) {
+  protected final void emit_regular_iload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(INT_TYPE, getGeneralLocalLocation(index), INT_TYPE, dstLoc);
     if (VM.VerifyAssertions) validateStackPush(BYTES_IN_INT);
@@ -835,7 +835,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   @Override
-  protected final void emit_aload(int index) {
+  protected final void emit_regular_aload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
     copyByLocation(ADDRESS_TYPE, getGeneralLocalLocation(index), ADDRESS_TYPE, dstLoc);
     if (VM.VerifyAssertions) validateStackPush(BYTES_IN_ADDRESS);

@@ -46,23 +46,23 @@ final class BuildBB {
   /**
    * basic blocks of the byte code
    */
-  public BasicBlockFactory bbf;
-  public BasicBlock[] basicBlocks;
+  final BasicBlockFactory bbf;
+  BasicBlock[] basicBlocks;
 
   /**
    * identify which block a byte is part of
    */
-  public short[] byteToBlockMap;
+  short[] byteToBlockMap;
 
   /**
    * Number of unique jsr targets processed
    */
-  public int numJsrs;
+  int numJsrs;
 
   /**
    * Number of GC points found
    */
-  public int gcPointCount;
+  int gcPointCount;
 
   // This variable is used in multiple methods of this class, make it accessible
   int bytelength;
@@ -73,7 +73,7 @@ final class BuildBB {
    *
    * @param method the method whose bytecodes will be analyzed
    */
-  public void determineTheBasicBlocks(NormalMethod method) {
+  BuildBB(NormalMethod method) {
     ExceptionHandlerMap exceptions;   // Used to get a hold of the try Start, End and Handler lists
     int[] retList;    // List of basic block numbers that end with a "ret" instruction.
     BytecodeStream bcodes;        // The bytecodes being analyzed.

@@ -52,6 +52,8 @@ public final class ReferenceMaps implements BaselineConstants {
   /** Number of maps */
   private int mapCount;
   private JSRInfo jsrInfo;
+  /** identify which block a byte is part of */
+  final short[] byteToBlockMap;
 
   /**
    * @return size of individual maps
@@ -80,8 +82,8 @@ public final class ReferenceMaps implements BaselineConstants {
     }
 
     // define the basic blocks
-    BuildBB buildBB = new BuildBB();
-    buildBB.determineTheBasicBlocks(method);
+    BuildBB buildBB = new BuildBB(method);
+    byteToBlockMap = buildBB.byteToBlockMap;
 
     BuildReferenceMaps buildRefMaps = new BuildReferenceMaps();
     buildRefMaps.buildReferenceMaps(method, stackHeights, localTypes, this, buildBB);
