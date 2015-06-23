@@ -78,7 +78,7 @@ EXTERNAL Address readContextFramePointer(void *context, Address UNUSED threadPtr
  *            trapInfo  [out] extra information about trap
  * Returned:  trap code
  */
-EXTERNAL int readContextTrapCode(void *context, Address threadPtr, int signo, Address instructionPtr, int *trapInfo)
+EXTERNAL int readContextTrapCode(void *context, Address threadPtr, int signo, Address instructionPtr, Word *trapInfo)
 {
   int instruction;
 

@@ -486,7 +486,7 @@ EXTERNAL Address readContextFramePointer(void UNUSED *context, Address threadPtr
  *            trapInfo  [out] extra information about trap
  * Returned:  trap code
  */
-EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int signo, Address instructionPtr, int *trapInfo)
+EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int signo, Address instructionPtr, Word *trapInfo)
 {
   switch(signo) {
     case SIGSEGV:

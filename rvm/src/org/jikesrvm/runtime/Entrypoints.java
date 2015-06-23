@@ -92,7 +92,7 @@ public class Entrypoints {
   public static final NormalMethod raiseIllegalAccessError =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
   public static final NormalMethod deliverHardwareExceptionMethod =
-      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "deliverHardwareException", "(II)V");
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "deliverHardwareException", "(ILorg/vmmagic/unboxed/Word;)V");
   public static final NormalMethod unlockAndThrowMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
 

@@ -47,6 +47,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Entrypoints into the runtime of the virtual machine.
@@ -687,11 +688,12 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    *
    * @param trapCode code indicating kind of exception that was trapped
    * (see TRAP_xxx, above)
-   * @param trapInfo array subscript (for array bounds trap, only)
+   * @param trapInfo array subscript (for array bounds trap, only), marker
+   * (for stack overflow traps on PPC) or
    */
   @Entrypoint
   @UnpreemptibleNoWarn
-  static void deliverHardwareException(int trapCode, int trapInfo) {
+  static void deliverHardwareException(int trapCode, Word trapInfo) {
     if (false) VM.sysWriteln("delivering hardware exception");
     RVMThread myThread = RVMThread.getCurrentThread();
     if (false) VM.sysWriteln("we have a thread = ",Magic.objectAsAddress(myThread));
@@ -738,7 +740,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
             VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
             break;
           case TRAP_ARRAY_BOUNDS:
-            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo, ").");
+            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo.toInt(), ").");
             break;
           case TRAP_DIVIDE_BY_ZERO:
             VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
@@ -760,6 +762,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
             VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
           break;
           }
+          VM.sysWrite("trapCode = ", trapCode);
+        VM.sysWriteln("trapInfo = ", trapInfo.toAddress());
           VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
         }
       }
@@ -771,7 +775,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
         exceptionObject = new java.lang.NullPointerException();
         break;
       case TRAP_ARRAY_BOUNDS:
-        exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo);
+        exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo.toInt());
         break;
       case TRAP_DIVIDE_BY_ZERO:
         exceptionObject = new java.lang.ArithmeticException();
