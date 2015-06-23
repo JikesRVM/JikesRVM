@@ -1829,102 +1829,81 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     }
   }
 
+  /**
+   * Emits code to handle all [df]cmp[gl] cases
+   *
+   * @param single {@code true} for float [f], {@code false} for double [d]
+   * @param unorderedGT {@code true} for [g], {@code false} for [l]
+   */
+  private void emit_DFcmpGL(boolean single, boolean unorderedGT) {
+    if (SSE2_BASE) {
+      if (single) {
+        asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+        asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
+        adjustStack(WORDSIZE * 2, true);                  // throw away slots
+      } else {
+        asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
+        asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
+        adjustStack(WORDSIZE * 4, true);                  // throw away slots
+      }
+    } else {
+      if (single) {
+        asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
+        asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
+        adjustStack(WORDSIZE * 2, true);                  // throw away slots
+      } else {
+        asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
+        asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
+        adjustStack(WORDSIZE * 4, true);                  // throw away slots
+      }
+    }
+    if (unorderedGT) {
+      asm.emitMOV_Reg_Imm(T0, 1);                         // result/T0 = 1 (high bits are 0)
+    } else {
+      asm.emitXOR_Reg_Reg(T0, T0);                        // clear high bits of result
+    }
+    if (SSE2_BASE) {
+      if (single) {
+        asm.emitUCOMISS_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
+      } else {
+        asm.emitUCOMISD_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
+      }
+    } else {
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                  // compare and pop FPU *1
+    }
+    ForwardReference fr1 = null;
+    if (unorderedGT) {
+     fr1 = asm.forwardJcc(PE);                  // if unordered goto push result (1)
+    }
+    asm.emitSET_Cond_Reg_Byte(LGT, T0);         // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                           // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
+    if (unorderedGT) {
+      fr1.resolve(asm);
+    }
+    asm.emitPUSH_Reg(T0);                                 // push result on stack
+    if (!SSE2_BASE) {
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                     // pop FPU*1
+    }
+  }
+
   @Override
   protected final void emit_fcmpl() {
-    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
-    if (SSE2_BASE) {
-      asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
-      adjustStack(WORDSIZE * 2, true);                    // throw away slots
-      asm.emitUCOMISS_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
-    } else {
-      asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
-      asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
-      adjustStack(WORDSIZE * 2, true);                    // throw away slots
-      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-    }
-    asm.emitSET_Cond_Reg_Byte(LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
-    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
-    asm.emitPUSH_Reg(T0);                               // push result on stack
-    if (!SSE2_BASE) {
-      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
-    }
+    emit_DFcmpGL(true, false);
   }
 
   @Override
   protected final void emit_fcmpg() {
-    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
-    if (SSE2_BASE) {
-      asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
-      adjustStack(WORDSIZE * 2, true);                    // throw away slots
-      asm.emitUCOMISS_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
-    } else {
-      asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
-      asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
-      adjustStack(WORDSIZE * 2, true);                    // throw away slots
-      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-    }
-    ForwardReference fr1 = asm.forwardJcc(PE);// if unordered goto push 1
-    asm.emitSET_Cond_Reg_Byte(LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
-    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
-    asm.emitPUSH_Reg(T0);                               // push result on stack
-    ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push 1 on stack
-    fr2.resolve(asm);
-    if (!SSE2_BASE) {
-      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
-    }
+    emit_DFcmpGL(true, true);
   }
 
   @Override
   protected final void emit_dcmpl() {
-    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
-    if (SSE2_BASE) {
-      asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
-      asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
-      adjustStack(WORDSIZE * 4, true);                    // throw away slots
-      asm.emitUCOMISD_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
-    } else {
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
-      asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
-      adjustStack(WORDSIZE * 4, true);                    // throw away slots
-      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-    }
-    asm.emitSET_Cond_Reg_Byte(LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
-    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
-    asm.emitPUSH_Reg(T0);                               // push result on stack
-    if (!SSE2_BASE) {
-      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
-    }
+    emit_DFcmpGL(false, false);
   }
 
   @Override
   protected final void emit_dcmpg() {
-    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
-    if (SSE2_BASE) {
-      asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
-      asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
-      adjustStack(WORDSIZE * 4, true);                    // throw away slots
-      asm.emitUCOMISD_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
-    } else {
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
-      asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
-      adjustStack(WORDSIZE * 4, true);                    // throw away slots
-      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-    }
-    ForwardReference fr1 = asm.forwardJcc(PE);// if unordered goto push 1
-    asm.emitSET_Cond_Reg_Byte(LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
-    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
-    asm.emitPUSH_Reg(T0);                               // push result on stack
-    ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push 1 on stack
-    fr2.resolve(asm);
-    if (!SSE2_BASE) {
-      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
-    }
+    emit_DFcmpGL(false, true);
   }
 
   /*
