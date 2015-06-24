@@ -39,10 +39,15 @@ import org.jikesrvm.classloader.NormalMethod;
 /**
  * Profile data for all conditional branches (including switches)
  * of a single RVMMethod.
+ *
+ * @see EdgeCounts
  */
 public final class BranchProfiles {
+  /** Method containing counters */
   private final NormalMethod method;
+  /** Number of counters */
   private final int numCounters;
+  /** Branch profile for each profiled bytecode */
   private final BranchProfile[] data;
 
   /**

@@ -707,8 +707,7 @@ public final class GenerationContext {
 
   SwitchBranchProfile getSwitchProfile(int bcIndex) {
     if (branchProfiles != null) {
-      BranchProfile bp = branchProfiles.getEntry(bcIndex);
-      return (SwitchBranchProfile) bp;
+      return (SwitchBranchProfile) branchProfiles.getEntry(bcIndex);
     } else {
       return null;
     }

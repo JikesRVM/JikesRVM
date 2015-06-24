@@ -24,16 +24,16 @@ public final class SwitchBranchProfile extends BranchProfile {
   final float[] counts;
 
   /**
-   * @param _bci the bytecode index of the source branch instruction
+   * @param bci the bytecode index of the source branch instruction
    * @param cs counts
    * @param start idx of first entry in cs
    * @param numEntries number of entries in cs for this switch
    */
-  SwitchBranchProfile(int _bci, int[] cs, int start, int numEntries) {
-    super(_bci, sumCounts(cs, start, numEntries));
+  SwitchBranchProfile(int bci, int[] cs, int start, int numEntries) {
+    super(bci, sumCounts(cs, start, numEntries));
     counts = new float[numEntries];
     for (int i = 0; i < numEntries; i++) {
-      counts[i] = cs[start + i];
+      counts[i] = countToFloat(cs[start + i]);
     }
   }
 
@@ -70,7 +70,7 @@ public final class SwitchBranchProfile extends BranchProfile {
   private static float sumCounts(int[] counts, int start, int numEntries) {
     float sum = 0.0f;
     for (int i = start; i < start + numEntries; i++) {
-      sum += counts[i];
+      sum += countToFloat(counts[i]);
     }
     return sum;
   }

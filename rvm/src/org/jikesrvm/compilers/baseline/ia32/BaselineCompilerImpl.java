@@ -3632,15 +3632,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, WORD, Offset.fromIntZeroExtend(counterIdx << LOG_BYTES_IN_INT));
     }
     asm.emitADD_Reg_Imm(scratch, 1);
-    // Don't write back result if it would make the counter negative (ie
-    // saturate at 0x7FFFFFFF)
-    ForwardReference fr1 = asm.forwardJcc(S);
+    // Add 1 to scratch, if the add overflows subtract 1 (the carry flag).
+    // Add saturates at 0xFFFFFFFF
+    asm.emitSBB_Reg_Imm(scratch, 0);
     if (idx == null) {
       asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx << LOG_BYTES_IN_INT), scratch);
     } else {
       asm.emitMOV_RegIdx_Reg(EBX, idx, WORD, Offset.fromIntSignExtend(counterIdx << LOG_BYTES_IN_INT), scratch);
     }
-    fr1.resolve(asm);
   }
 
   /**
