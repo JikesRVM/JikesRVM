@@ -93,10 +93,6 @@ extern Extent initialHeapSize;
 extern Extent maximumHeapSize;
 extern Extent pageSize;
 
-#if !defined(RVM_FOR_HARMONY) && defined(__MACH__)
-extern mach_timebase_info_data_t timebaseInfo;
-#endif
-
 #define CONSOLE_PRINTF(...) fprintf(SysTraceFile, __VA_ARGS__)
 
 #ifdef __cplusplus

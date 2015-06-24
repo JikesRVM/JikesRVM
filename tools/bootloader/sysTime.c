@@ -19,10 +19,6 @@
 #include <time.h> // CLOCK_REALTIME
 #endif
 
-#ifdef __MACH__
-mach_timebase_info_data_t timebaseInfo;
-#endif
-
 EXTERNAL long long sysCurrentTimeMillis()
 {
   TRACE_PRINTF("%s: sysCurrentTimeMillis\n", Me);

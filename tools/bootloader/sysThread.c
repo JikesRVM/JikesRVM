@@ -146,10 +146,6 @@ EXTERNAL void sysInitialize()
   VMI_Initialize();
 #endif
   DeathLock = sysMonitorCreate();
-#ifdef __MACH__
-    // Initialize timer information on OS/X
-    (void) mach_timebase_info(&timebaseInfo);
-#endif
 }
 
 /** Exit with a return code. */
