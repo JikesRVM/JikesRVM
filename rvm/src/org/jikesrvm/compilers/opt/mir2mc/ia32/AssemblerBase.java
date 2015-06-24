@@ -60,6 +60,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVQ_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVAPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVAPS_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MULSD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MULSS_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_OFFSET_opcode;
@@ -861,6 +863,8 @@ abstract class AssemblerBase extends Assembler
         return size;
       }
       case IA32_MOVD_opcode:
+      case IA32_MOVAPD_opcode:
+      case IA32_MOVAPS_opcode:
       case IA32_MOVLPD_opcode:
       case IA32_MOVQ_opcode:
       case IA32_MOVSS_opcode:

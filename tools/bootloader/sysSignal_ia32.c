@@ -394,6 +394,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
       case 0x18: // prefetch & hint nop
       case 0x19: case 0x1A: case 0x1B: case 0x1C: // hint nop
       case 0x1D: case 0x1E: case 0x1F:
+      case 0x28: case 0x29: // movaps / movapd
       case 0x2A: // ctpi2ps, cvtsi2ss, cvtpi2pd, cvtsi2sd
       case 0x2C: // cvttps2pi, cvttss2si, cvttpd2pi, cvttsd2si
       case 0x2E: // ucomisd, ucomiss
