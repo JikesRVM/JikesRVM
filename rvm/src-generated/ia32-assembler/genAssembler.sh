@@ -3628,11 +3628,32 @@ emitFSTATE() {
   opcode=$3
   opExt=$4
   pre=$5
+  axOpcode1=$6
+  axOpcode2=$7  
   local prefix="// no prefix byte"
-  if [ x$pre != x ]; then
+  if [[ x$pre != x ]] && [[ x$pre != xnone ]]; then
      prefix="setMachineCodes(mi++, (byte) ${pre});"
   fi
 
+  if [ x$axOpcode1 != x ]; then
+cat >> $FILENAME <<EOF
+  /**
+   * ${comment} - register
+   *
+   * @param dstReg destination register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  public final void emit${acronym}_Reg (GPR dstReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg == EAX);
+    $prefix
+    setMachineCodes(mi++, (byte) ${axOpcode1});
+    setMachineCodes(mi++, (byte) ${axOpcode2});
+    if (lister != null) lister.R(miStart, "${acronym}", dstReg);
+  }
+
+EOF
+   fi
 cat >> $FILENAME <<EOF
   /**
    * ${comment} - register displacement
@@ -3718,7 +3739,8 @@ emitFSTATE FRSTOR "restore FPU state" 0xDD 4
 emitFSTATE FLDCW "load FPU control word" 0xD9 5
 emitFSTATE FSTCW "store FPU control word, checking for exceptions" 0xD9 7 0x9B
 emitFSTATE FNSTCW "store FPU control word, ignoring exceptions" 0xD9 7
-
+emitFSTATE FSTSW "store FPU status word, checking for exceptions" 0xDD 7 0x9B 0xDF 0xE0
+emitFSTATE FNSTSW "store FPU status word, ignoring exceptions" 0xDD 7 none 0xDF 0xE0
 
 emitFCONST() {
 opcode=$1

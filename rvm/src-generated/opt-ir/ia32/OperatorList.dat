@@ -578,6 +578,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FFREEP
+MIR_Nullary
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FIADD
 MIR_BinaryAcc
 none
@@ -732,6 +739,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FNSTSW
+MIR_Unary
+none
+C0_C1_C2_C3
+C0_C1_C2_C3
+
+####################
 IA32_FNINIT
 MIR_Empty
 none
@@ -772,6 +786,13 @@ MIR_UnaryNoRes
 none
 C0_C1_C2_C3
 
+
+####################
+IA32_FSTSW
+MIR_Unary
+none
+C0_C1_C2_C3
+C0_C1_C2_C3
 
 ####################
 IA32_FSTP

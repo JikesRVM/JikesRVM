@@ -1341,13 +1341,16 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_frem() {
-    // TODO: Something else when SSE2?
     asm.emitFLD_Reg_RegInd(FP0, SP);                 // FPU reg. stack <- value2, or a
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);      // FPU reg. stack <- value1, or b
-    asm.emitFPREM();                                 // FPU reg. stack <- a%b
-    asm.emitFSTP_RegDisp_Reg(SP, ONE_SLOT, FP0);     // POP FPU reg. stack (results) onto java stack
-    asm.emitFSTP_RegInd_Reg(SP, FP0);                // POP FPU reg. stack onto java stack
     adjustStack(WORDSIZE, true);                     // throw away slot
+    asm.emitFLD_Reg_RegInd(FP0, SP);                 // FPU reg. stack <- value1, or b
+    int retryLabel = asm.getMachineCodeIndex();      // come here if partial remainder not complete
+    asm.emitFPREM();                                 // FPU reg. stack <- a%b
+    asm.emitFSTSW_Reg(EAX);                          // AX = fpsw
+    asm.emitAND_Reg_Imm(EAX, 0x400);                 // is C2 set?
+    asm.emitJCC_Cond_Imm(NE, retryLabel);            // if yes then goto retryLabel and continue to compute remainder
+    asm.emitFSTP_RegInd_Reg(SP, FP0);                // POP FPU reg. stack (results) onto java stack
+    asm.emitFFREEP_Reg(FP0);
   }
 
   @Override
@@ -1422,13 +1425,16 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_drem() {
-    // TODO: Something else when SSE2?
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // FPU reg. stack <- value2, or a
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // FPU reg. stack <- value1, or b
-    asm.emitFPREM();                                     // FPU reg. stack <- a%b
-    asm.emitFSTP_RegDisp_Reg_Quad(SP, TWO_SLOTS, FP0);   // POP FPU reg. stack (result) onto java stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);               // POP FPU reg. stack onto java stack
-    adjustStack(WORDSIZE * 2, true);                       // throw away long slot
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);            // FPU reg. stack <- value2, or a
+    adjustStack(WORDSIZE * 2, true);                 // throw away slot
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);            // FPU reg. stack <- value1, or b
+    int retryLabel = asm.getMachineCodeIndex();      // come here if partial remainder not complete
+    asm.emitFPREM();                                 // FPU reg. stack <- a%b
+    asm.emitFSTSW_Reg(EAX);                          // AX = fpsw
+    asm.emitAND_Reg_Imm(EAX, 0x400);                 // is C2 set?
+    asm.emitJCC_Cond_Imm(NE, retryLabel);            // if yes then goto retryLabel and continue to compute remainder
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);           // POP FPU reg. stack (results) onto java stack
+    asm.emitFFREEP_Reg(FP0);
   }
 
   @Override

@@ -260,6 +260,10 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
     case 0x58: case 0x59: case 0x5A: case 0x5B: // pop using alternate encoding
     case 0x5C: case 0x5D: case 0x5E: case 0x5F:
     case 0x90: // nop
+    case 0x9B: // fwait / wait
+      // Note: it might also be possible to decode 0x9B as a prefix for certain floating
+      // point instructions. However, that would be more complicated and this function
+      // only cares about the instruction length (and not the actual instructions).
     case 0x9E: // sahf
     case 0x98: // cbw, cwde
     case 0x99: // cdq
