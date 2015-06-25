@@ -1280,13 +1280,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_fadd() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);            // XMM0 = value2
-      asm.emitADDSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 += value1
       adjustStack(WORDSIZE, true);                   // throw away slot
+      asm.emitADDSS_Reg_RegInd(XMM0, SP);            // XMM0 += value1
       asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);               // FPU reg. stack <- value2
-      asm.emitFADD_Reg_RegDisp(FP0, SP, ONE_SLOT);   // FPU reg. stack += value1
       adjustStack(WORDSIZE, true);                   // throw away slot
+      asm.emitFADD_Reg_RegInd(FP0, SP);              // FPU reg. stack += value1
       asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
     }
   }
@@ -1300,7 +1300,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
     } else {
       asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);    // FPU reg. stack <- value1
-      asm.emitFSUB_Reg_RegDisp(FP0, SP, NO_SLOT);    // FPU reg. stack -= value2
+      asm.emitFSUB_Reg_RegInd(FP0, SP);              // FPU reg. stack -= value2
       adjustStack(WORDSIZE, true);                   // throw away slot
       asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
     }
@@ -1310,13 +1310,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_fmul() {
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);            // XMM0 = value2
-      asm.emitMULSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 *= value1
       adjustStack(WORDSIZE, true);                   // throw away slot
+      asm.emitMULSS_Reg_RegInd(XMM0, SP);            // XMM0 *= value1
       asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);               // FPU reg. stack <- value2
-      asm.emitFMUL_Reg_RegDisp(FP0, SP, ONE_SLOT);   // FPU reg. stack *= value1
       adjustStack(WORDSIZE, true);                   // throw away slot
+      asm.emitFMUL_Reg_RegInd(FP0, SP);              // FPU reg. stack *= value1
       asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
     }
   }
@@ -1333,7 +1333,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
     } else {
       asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);    // FPU reg. stack <- value1
-      asm.emitFDIV_Reg_RegDisp(FP0, SP, NO_SLOT);    // FPU reg. stack /= value2
+      asm.emitFDIV_Reg_RegInd(FP0, SP);              // FPU reg. stack /= value2
       adjustStack(WORDSIZE, true);                   // throw away slot
       asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
     }
@@ -1364,14 +1364,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_dadd() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitADDSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 += value1
-      adjustStack(WORDSIZE * 2, true);                     // throw away long slot
+      adjustStack(WORDSIZE * 2, true);                  // throw away long slot
+      asm.emitADDSD_Reg_RegInd(XMM0, SP);               // XMM0 += value1
       asm.emitMOVSD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value2
-      asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // FPU reg. stack += value1
-      adjustStack(WORDSIZE * 2, true);                     // throw away long slot
-      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // FPU reg. stack <- value2
+      adjustStack(WORDSIZE * 2, true);                  // throw away long slot
+      asm.emitFADD_Reg_RegInd_Quad(FP0, SP);            // FPU reg. stack += value1
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);            // POP FPU reg. stack onto stack
     }
   }
 
@@ -1384,7 +1384,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOVSD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
       asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);  // FPU reg. stack <- value1
-      asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, NO_SLOT);   // FPU reg. stack -= value2
+      asm.emitFSUB_Reg_RegInd_Quad(FP0, SP);             // FPU reg. stack -= value2
       adjustStack(WORDSIZE * 2, true);                     // throw away long slot
       asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
     }
@@ -1394,14 +1394,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final void emit_dmul() {
     if (SSE2_BASE) {
       asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitMULSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 *= value1
-      adjustStack(WORDSIZE * 2, true);                     // throw away long slot
+      adjustStack(WORDSIZE * 2, true);                  // throw away long slot
+      asm.emitMULSD_Reg_RegInd(XMM0, SP);               // XMM0 *= value1
       asm.emitMOVSD_RegInd_Reg(SP, XMM0);               // set result on stack
     } else {
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value2
-      asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // FPU reg. stack *= value1
-      adjustStack(WORDSIZE * 2, true);                     // throw away long slot
-      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // FPU reg. stack <- value2
+      adjustStack(WORDSIZE * 2, true);                  // throw away long slot
+      asm.emitFMUL_Reg_RegInd_Quad(FP0, SP);            // FPU reg. stack *= value1
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);            // POP FPU reg. stack onto stack
     }
   }
 
@@ -1434,7 +1434,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_dneg() {
     // flip sign bit
-    asm.emitXOR_RegDisp_Imm(SP, Offset.fromIntZeroExtend(4), 0x80000000);
+    asm.emitXOR_RegDisp_Imm_Byte(SP, Offset.fromIntZeroExtend(7), 0x80);
   }
 
   /*
