@@ -950,9 +950,9 @@ public class GenerateAssembler {
               if (currentOpcode.indexOf("MOVZX") == -1 &&
                     currentOpcode.indexOf("MOVSX") == -1) {
                 emitTab(level);
-                emit("if (VM.VerifyAssertions && !(");
+                emit("if (VM.VerifyAssertions) VM._assert(");
                 emitArgs(i, ArgumentType.GPRegister);
-                emit(".value() < 4)) VM._assert(VM.NOT_REACHED, inst.toString());\n");
+                emit(".isValidAs8bitRegister());\n");
               }
       }
 
