@@ -929,7 +929,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * @return array object
    */
   public static Object buildMultiDimensionalArray(int methodId, int[] numElements, RVMArray arrayType) {
-    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMethodRef(methodId).peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
     return buildMDAHelper(method, numElements, 0, arrayType);
   }
@@ -943,7 +943,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * @return array object
    */
   public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, RVMArray arrayType) {
-    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMethodRef(methodId).peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
 
     if (!arrayType.isInstantiated()) {

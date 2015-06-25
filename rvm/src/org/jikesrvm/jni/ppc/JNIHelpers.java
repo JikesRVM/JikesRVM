@@ -280,7 +280,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       // VM.sysWrite("pushVarArgToSpillArea:  var arg at " +
       //             Services.intAsHexString(varargAddress) + "\n");
 
-      RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+      RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
       TypeReference[] argTypes = targetMethod.getParameterTypes();
       int argCount = argTypes.length;
 
@@ -417,7 +417,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " +
     //             Services.intAsHexString(argAddress) + "\n");
 
-    RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
     TypeReference returnType = targetMethod.getReturnType();
 
     // VM.sysWrite("JNI CallXXXMethod:  " + targetMethod.getDeclaringClass().toString() +

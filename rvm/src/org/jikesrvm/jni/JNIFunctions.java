@@ -2350,7 +2350,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       Object objVal = field.getObjectUnchecked(obj);
       return env.pushJNIRef(objVal);
     } catch (Throwable unexpected) {
@@ -2373,7 +2373,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getBooleanValueUnchecked(obj) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2395,7 +2395,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getByteValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2417,7 +2417,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getCharValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2439,7 +2439,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getShortValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2461,7 +2461,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getIntValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2483,7 +2483,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getLongValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2505,7 +2505,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getFloatValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2527,7 +2527,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getDoubleValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2550,7 +2550,7 @@ public class JNIFunctions {
     try {
       Object obj = env.getJNIRef(objJREF);
       Object value = env.getJNIRef(valueJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setObjectValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2571,7 +2571,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setBooleanValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2592,7 +2592,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setByteValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2613,7 +2613,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setCharValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2634,7 +2634,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setShortValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2655,7 +2655,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setIntValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2676,7 +2676,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setLongValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2697,7 +2697,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setFloatValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2718,7 +2718,7 @@ public class JNIFunctions {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setDoubleValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3586,7 +3586,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       Object value = field.getObjectUnchecked(null);
       return env.pushJNIRef(value);
     } catch (Throwable unexpected) {
@@ -3608,7 +3608,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getBooleanValueUnchecked(null) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3629,7 +3629,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getByteValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3650,7 +3650,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getCharValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3671,7 +3671,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getShortValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3692,7 +3692,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getIntValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3713,7 +3713,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getLongValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3734,7 +3734,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getFloatValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3755,7 +3755,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getDoubleValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3777,7 +3777,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       Object ref = env.getJNIRef(objectJREF);
       field.setObjectValueUnchecked(null, ref);
     } catch (Throwable unexpected) {
@@ -3798,7 +3798,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setBooleanValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3818,7 +3818,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setByteValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3838,7 +3838,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setCharValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3858,7 +3858,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setShortValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3878,7 +3878,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setIntValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3898,7 +3898,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setLongValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3918,7 +3918,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setFloatValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3938,7 +3938,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setDoubleValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -5806,7 +5806,7 @@ public class JNIFunctions {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
-    RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
     Object ret;
     if (targetMethod.isObjectInitializer()) {
       ret = java.lang.reflect.JikesRVMSupport.createConstructor(targetMethod);
@@ -5835,7 +5835,7 @@ public class JNIFunctions {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
-    RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+    RVMField field = MemberReference.getFieldRef(fieldID).resolve();
     return env.pushJNIRef(java.lang.reflect.JikesRVMSupport.createField(field));
   }
 

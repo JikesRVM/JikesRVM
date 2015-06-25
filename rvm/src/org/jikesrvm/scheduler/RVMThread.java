@@ -5525,7 +5525,7 @@ public final class RVMThread extends ThreadContext {
                       int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
                       for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
                         int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-                        method = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                        method = MemberReference.getMethodRef(mid).getResolvedMember();
                         lineNumber = ((NormalMethod) method).getLineNumberForBCIndex(bci);
                         showMethod(method, lineNumber, fp);
                         if (iei > 0) {

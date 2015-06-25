@@ -193,7 +193,7 @@ public final class OptCompiledMethod extends CompiledMethod {
       browser.setInlineEncodingIndex(iei);
       browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
       browser.setCompiledMethod(this);
-      browser.setMethod(MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
+      browser.setMethod(MemberReference.getMethodRef(mid).peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
         VM.sysWrite("setting stack to frame (opt): ");
@@ -219,7 +219,7 @@ public final class OptCompiledMethod extends CompiledMethod {
 
       browser.setInlineEncodingIndex(next);
       browser.setBytecodeIndex(bci);
-      browser.setMethod(MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
+      browser.setMethod(MemberReference.getMethodRef(mid).peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
         VM.sysWrite("up within frame stack (opt): ");
@@ -245,7 +245,7 @@ public final class OptCompiledMethod extends CompiledMethod {
       for (int j = iei; j >= 0; j = OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         NormalMethod m =
-            (NormalMethod) MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+            (NormalMethod) MemberReference.getMethodRef(mid).peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci); // might be 0 if unavailable.
         out.print("\tat ");
         out.print(m.getDeclaringClass());
