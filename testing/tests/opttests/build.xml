@@ -62,6 +62,8 @@
     <runCompareTest tag="RVM_957_Testcase" class="test.org.jikesrvm.opttests.bugs.RVM_957_Testcase"/>
     <runCompareTest tag="RVM_1016_Testcase" class="test.org.jikesrvm.opttests.bugs.RVM_1016_Testcase"/>
 
+    <successMessageTest tag="FloatingPoint_NaN" class="test.org.jikesrvm.opttests.optimizations.FloatingPoint_NaN"/>
+
     <finishResults/>
   </target>
 

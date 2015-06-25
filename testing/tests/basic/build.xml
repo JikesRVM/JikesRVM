@@ -62,37 +62,10 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <!-- Similar to runCompareTest but uses a success message rather than checksum -->
-  <macrodef name="unboxedTest">
-    <attribute name="tag"/>
-    <attribute name="class"/>
-    <attribute name="classpath" default=""/>
-    <attribute name="bootclasspath" default=""/>
-    <attribute name="args" default=""/>
-    <attribute name="execution" default="default"/>
-    <attribute name="initialHeapSize" default=""/>
-    <attribute name="maxHeapSize" default=""/>
-    <attribute name="rvmArgs" default=""/>
-    <attribute name="timeLimit" default=""/>
-    <sequential>
-      <rvm tag="@{tag}"
-           class="@{class}"
-           args="@{args}"
-           classpath="@{classpath}"
-           bootclasspath="@{bootclasspath}"
-           initialHeapSize="@{initialHeapSize}"
-           maxHeapSize="@{maxHeapSize}"
-           rvmArgs="@{rvmArgs}"
-           timeLimit="@{timeLimit}"/>
-      <findStatistic tag="@{tag}" pattern="SUCCESS" key="success"/>
-      <outputResults tag="@{tag}"/>
-    </sequential>
-  </macrodef>
-
   <target name="test" depends="compile">
     <startResults/>
 
-    <unboxedTest tag="TestOffset" class="test.org.jikesrvm.basic.core.intrinsics.TestOffset"/>
+    <successMessageTest tag="TestOffset" class="test.org.jikesrvm.basic.core.intrinsics.TestOffset"/>
 
     <runCompareTest tag="TestClassHierarchy" class="test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy"/>
     <runCompareTest tag="TestArithmetic" class="test.org.jikesrvm.basic.core.bytecode.TestArithmetic"/>
