@@ -1170,7 +1170,7 @@ public final class RVMThread extends ThreadContext {
 
   /**
    * Flag set by external signal to request debugger activation at next thread
-   * switch. See also: RunBootImage.C
+   * switch. See also: sysSignal.c
    */
   public static volatile boolean debugRequested;
 
@@ -5658,7 +5658,7 @@ public final class RVMThread extends ThreadContext {
    *
    * @param fp
    *          address of starting frame Returned: doesn't return. This method is
-   *          called from RunBootImage.C when something goes horrifically wrong
+   *          called from sysSignal*.c when something goes horrifically wrong
    *          with exception handling and we want to die with useful
    *          diagnostics.
    */

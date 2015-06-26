@@ -907,15 +907,15 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
   //----------------//
 
   public static void init() {
-    // tell "RunBootImage.C" to pass control to
+    // tell the bootloader (sysSignal*.c) to pass control to
     // "RuntimeEntrypoints.deliverHardwareException()"
-    // whenever the host operating system detects a hardware trap
+    // whenever the host operating system detects a hardware trap.
     //
     BootRecord.the_boot_record.hardwareTrapMethodId = CompiledMethods.createHardwareTrapCompiledMethod().getId();
     BootRecord.the_boot_record.deliverHardwareExceptionOffset =
         Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
-    // tell "RunBootImage.C" to set "RVMThread.debugRequested" flag
+    // tell the bootloader (sysSignal.c) to set "RVMThread.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     BootRecord.the_boot_record.debugRequestedOffset = Entrypoints.debugRequestedField.getOffset();

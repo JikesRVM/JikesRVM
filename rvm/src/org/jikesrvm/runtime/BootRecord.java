@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * loader, by the virtual machine's initializer methods, and by the virtual
  * machine's operating system call interface methods.
  *
- * <p> See also: BootImageWriter.main(), RunBootImage.C
+ * <p> See also: BootImageWriter.main(), jvm.c
  *
  * <p>The boot record looks like this
  * (note that fields are layed out "backwards"):
@@ -126,11 +126,11 @@ public class BootRecord {
   }
 
   // The following fields are written when the virtual machine image
-  // is generated (see BootImage.java), loaded (see RunBootImage.C),
+  // is generated (see BootImage.java), loaded (see jvm.C),
   // or executed (see VM.java).
   //
   // If you add/remove/change fields here, be sure to change the
-  // corresponding code in RunBootImage.
+  // corresponding code in jvm.c
 
   /**
    * address at which image is to be loaded into memory
