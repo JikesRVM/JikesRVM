@@ -30,8 +30,7 @@ static int verbose = 1;
  * Method:    setVerboseOff
  * Signature: ()V
  */
-void JNICALL
-Java_StringRegion_setVerboseOff(JNIEnv * env, jclass cls)
+JNIEXPORT void JNICALL Java_StringRegion_setVerboseOff(JNIEnv * env, jclass cls)
 {
   verbose = 0;
 }
@@ -46,8 +45,7 @@ static const size_t nchars = sizeof sample - 1;
  * Method:    testStringRegion
  * Signature: (Ljava/lang/String;)I
  */
-jint JNICALL
-Java_StringRegion_testStringRegion(JNIEnv *env, jclass cls, jstring str)
+JNIEXPORT jint JNICALL Java_StringRegion_testStringRegion(JNIEnv *env, jclass cls, jstring str)
 {
   int trouble = 0;
 
@@ -106,8 +104,7 @@ Java_StringRegion_testStringRegion(JNIEnv *env, jclass cls, jstring str)
  *
  * It's supposed to get the string critically and then mutate the string.
  */
-jint JNICALL
-Java_StringRegion_testStringCritical(JNIEnv * env, jclass cls, jstring str)
+JNIEXPORT jint JNICALL Java_StringRegion_testStringCritical(JNIEnv * env, jclass cls, jstring str)
 {
   int trouble = 0;
   jboolean isCopy;
