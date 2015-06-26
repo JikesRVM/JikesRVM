@@ -382,8 +382,8 @@ int createVM(int vmInSeparateThread)
     return 1;
   }
 
-  if (((Address *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
-    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (%p)\n",
+  if (((uint32_t *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
+    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (0x%x)\n",
     Me, ((int *) bootRecord->spRegister)[-1]);
     return 1;
   }
