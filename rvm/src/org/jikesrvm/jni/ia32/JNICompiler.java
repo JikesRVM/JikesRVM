@@ -215,7 +215,11 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitPUSH_Reg(EBP); // save nonvolatile EBP register
 
     // Establish EBP as the framepointer for use in the rest of the glue frame
-    asm.emitLEA_Reg_RegDisp(EBP, SP, Offset.fromIntSignExtend(4 * WORDSIZE));
+    if (VM.BuildFor32Addr) {
+      asm.emitLEA_Reg_RegDisp(EBP, SP, Offset.fromIntSignExtend(4 * WORDSIZE));
+    } else {
+      asm.emitLEA_Reg_RegDisp_Quad(EBP, SP, Offset.fromIntSignExtend(4 * WORDSIZE));
+    }
 
     // (2) Set up jniEnv - set up a register to hold JNIEnv and store
     // the Processor in the JNIEnv for easy access
@@ -242,7 +246,7 @@ public abstract class JNICompiler implements BaselineConstants {
 
     // (3.1) Count how many arguments could be passed in either FPRs or GPRs
     int numFprArgs = 0;
-    int numGprArgs = method.isStatic() ? 0 : 1;
+    int numGprArgs = 0;
     for (TypeReference arg : args) {
       if (arg.isFloatType() || arg.isDoubleType()) {
         numFprArgs++;
@@ -252,7 +256,29 @@ public abstract class JNICompiler implements BaselineConstants {
         numGprArgs++;
       }
     }
-    // (3.2) Walk over arguments backwards pushing either from memory or registers
+
+    // (3.2) add stack aligning padding
+    if (VM.BuildFor64Addr) {
+      int argsInRegisters = Math.min(numFprArgs, NATIVE_PARAMETER_FPRS.length) +
+                            Math.min(numGprArgs + 2, NATIVE_PARAMETER_GPRS.length);
+      int argsOnStack = numGprArgs + numFprArgs + 2 - argsInRegisters;
+      if (VM.VerifyAssertions) VM._assert(argsOnStack >= 0);
+      if ((argsOnStack & 1) != 0) {
+        // need odd alignment prior to pushes
+        asm.emitAND_Reg_Imm_Quad(SP, -16);
+        asm.emitPUSH_Reg(T0);
+      } else {
+        // need even alignment prior to pushes
+        asm.emitAND_Reg_Imm_Quad(SP, -16);
+      }
+    }
+    // include this ptr now padding calculation is complete
+    // (we always pass a this or a class but we only pop this)
+    if (!method.isStatic()) {
+      numGprArgs++;
+    }
+
+    // (3.3) Walk over arguments backwards pushing either from memory or registers
     Offset currentArg = lastParameterOffset;
     int argFpr = numFprArgs - 1;
     int argGpr = numGprArgs - 1;
@@ -324,7 +350,7 @@ public abstract class JNICompiler implements BaselineConstants {
       }
       currentArg = currentArg.plus(WORDSIZE);
     }
-    // (3.3) push class or object argument
+    // (3.4) push class or object argument
     if (method.isStatic()) {
       // push java.lang.Class object for klass
       Offset klassOffset = Offset.fromIntSignExtend(
@@ -334,7 +360,7 @@ public abstract class JNICompiler implements BaselineConstants {
       if (VM.VerifyAssertions) VM._assert(argGpr == 0);
       asm.emitPUSH_Reg(PARAMETER_GPRS[0]);
     }
-    // (3.4) push a pointer to the JNI functions that will be
+    // (3.5) push a pointer to the JNI functions that will be
     // dereferenced in native code
     asm.emitPUSH_Reg(S0);
     if (jniExternalFunctionsFieldOffset != 0) {
@@ -356,7 +382,7 @@ public abstract class JNICompiler implements BaselineConstants {
       if (arg.isReferenceType()) {
         if (VM.VerifyAssertions) VM._assert(pos < 32);
         encodedReferenceOffsets |= 1 << pos;
-      } else if (arg.isLongType() || arg.isDoubleType()) {
+      } else if (VM.BuildFor32Addr && (arg.isLongType() || arg.isDoubleType())) {
         pos++;
       }
     }
@@ -400,9 +426,9 @@ public abstract class JNICompiler implements BaselineConstants {
             if (dataOnStack) throw new Error("Unsupported native method parameter list");
             asm.emitMOVSD_Reg_RegInd((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP);
             asm.emitPOP_Reg(T0);
-            asm.emitPOP_Reg(T0);
+            if (VM.BuildFor32Addr) asm.emitPOP_Reg(T0);
             fpRegistersInUse++;
-            argsPassedInRegister += 2;
+            argsPassedInRegister += VM.BuildFor32Addr ? 2 : 1;
           } else {
             // no register available so we have data on the stack
             dataOnStack = true;
@@ -433,19 +459,15 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitCALL_Reg(T0);
 
     // (7) Discard parameters on stack
-    // TODO: optimize stack adjustment
     if (VM.BuildFor32Addr) {
       // throw away args, class/this ptr and env
       int argsToThrowAway = method.getParameterWords() + 2 - argsPassedInRegister;
       if (argsToThrowAway != 0) {
-        asm.emitADD_Reg_Imm(SP, argsToThrowAway << LG_WORDSIZE);
+        asm.emitLEA_Reg_RegDisp(SP, EBP, BP_ON_ENTRY_OFFSET);
       }
     } else {
-      // throw away args, class/this ptr and env
-      int argsToThrowAway = args.length + 2 - argsPassedInRegister;
-      if (argsToThrowAway != 0) {
-        asm.emitADD_Reg_Imm_Quad(SP, argsToThrowAway << LG_WORDSIZE);
-      }
+      // throw away args, class/this ptr and env (and padding)
+      asm.emitLEA_Reg_RegDisp_Quad(SP, EBP, BP_ON_ENTRY_OFFSET);
     }
 
     // (8) Save result to stack
@@ -499,7 +521,12 @@ public abstract class JNICompiler implements BaselineConstants {
 
     // (10) Transition back from "in native" to "in Java", convert a reference
     // result (currently a JNI ref) into a true reference, release JNI refs
-    asm.emitMOV_Reg_Reg(PARAMETER_GPRS[0], S0); // 1st arg is JNI Env
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_Reg(PARAMETER_GPRS[0], S0); // 1st arg is JNI Env
+    } else {
+      asm.emitMOV_Reg_Reg_Quad(PARAMETER_GPRS[0], S0); // 1st arg is JNI Env
+    }
+
     if (returnType.isReferenceType()) {
       asm.emitPOP_Reg(PARAMETER_GPRS[1]);       // 2nd arg is ref result
     } else {
@@ -543,7 +570,11 @@ public abstract class JNICompiler implements BaselineConstants {
     }
 
     asm.emitPOP_Reg(EBX); // saved previous native BP
-    asm.emitMOV_RegDisp_Reg(S0, Entrypoints.JNIEnvBasePointerOnEntryToNative.getOffset(), EBX);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(S0, Entrypoints.JNIEnvBasePointerOnEntryToNative.getOffset(), EBX);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(S0, Entrypoints.JNIEnvBasePointerOnEntryToNative.getOffset(), EBX);
+    }
     asm.emitPOP_Reg(EBX); // throw away JNI env
     asm.emitPOP_Reg(EBP); // restore non-volatile EBP
     asm.emitPOP_Reg(EBX); // restore non-volatile EBX
