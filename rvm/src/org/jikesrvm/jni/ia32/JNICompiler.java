@@ -731,7 +731,7 @@ public abstract class JNICompiler implements BaselineConstants {
           asm.emitPUSH_Reg(T0); // adjust stack
           asm.emitPUSH_Reg(T0);
           if (VM.BuildForSSE2) {
-            asm.emitMOVSD_RegInd_Reg(SP, (XMM)NATIVE_PARAMETER_FPRS[argGPR]);
+            asm.emitMOVSD_RegInd_Reg(SP, (XMM)NATIVE_PARAMETER_FPRS[argFPR]);
           } else {
             asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
           }
