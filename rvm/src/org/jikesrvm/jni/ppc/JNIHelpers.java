@@ -74,33 +74,32 @@ public abstract class JNIHelpers extends JNIGenericHelpers
 
     if (isJvalue) {
       argObjs = packageParameterFromJValue(mth, argAddress);
-    } else {
-      if (isDotDotStyle) {
-        if (VM.BuildForPower64ELF_ABI) {
-          Address varargAddress = pushVarArgToSpillArea(methodID, false);
-          argObjs = packageParameterFromVarArg(mth, varargAddress);
-        } else {
-          if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
-          // pass in the frame pointer of glue stack frames
-          // stack frame looks as following:
-          //      this method ->
-          //
-          //      native to java method ->
-          //
-          //      glue frame ->
-          //
-          //      native C method ->
-          Address gluefp = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
-          argObjs = packageParameterFromDotArgSVR4(mth, gluefp, false);
-        }
+    } else if (isDotDotStyle) {
+      // dot dot var arg
+      if (VM.BuildForPower64ELF_ABI) {
+        Address varargAddress = pushVarArgToSpillArea(methodID, false);
+        argObjs = packageParameterFromVarArg(mth, varargAddress);
       } else {
-        // var arg
-        if (VM.BuildForPower64ELF_ABI) {
-          argObjs = packageParameterFromVarArg(mth, argAddress);
-        } else {
-          if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
-          argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
-        }
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
+        // pass in the frame pointer of glue stack frames
+        // stack frame looks as following:
+        //      this method ->
+        //
+        //      native to java method ->
+        //
+        //      glue frame ->
+        //
+        //      native C method ->
+        Address gluefp = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
+        argObjs = packageParameterFromDotArgSVR4(mth, gluefp, false);
+      }
+    } else {
+      // mormal var arg
+      if (VM.BuildForPower64ELF_ABI) {
+        argObjs = packageParameterFromVarArg(mth, argAddress);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
+        argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
       }
     }
 
@@ -140,7 +139,6 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   @NoInline
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, TypeReference expectReturnType,
                                               boolean skip4Args) throws Exception {
-
     if (VM.BuildForPower64ELF_ABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);
       return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
@@ -248,88 +246,88 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   @NoInline
   private static Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception {
-    if (VM.BuildForPower64ELF_ABI || VM.BuildForSVR4ABI) {
-      int glueFrameSize = JNI_GLUE_FRAME_SIZE;
-
-      // get the FP for this stack frame and traverse 2 frames to get to the glue frame
-      Address gluefp =
-          Magic.getFramePointer().plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      gluefp = gluefp.plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      gluefp = gluefp.plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-
-      // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
-      // skipping the args which are not part of the arguments for the target method
-      // For Call<type>Method functions and NewObject, skip 3 args
-      // For CallNonvirtual<type>Method functions, skip 4 args
-      Offset varargGPROffset = Offset.fromIntSignExtend(VARARG_AREA_OFFSET + (skip4Args ? BYTES_IN_ADDRESS : 0));
-      Offset varargFPROffset = varargGPROffset.plus(5 * BYTES_IN_ADDRESS);
-
-      // compute the offset into the spill area of the native caller frame,
-      // skipping the args which are not part of the arguments for the target method
-      // For Call<type>Method functions, skip 3 args
-      // For CallNonvirtual<type>Method functions, skip 4 args
-      Offset spillAreaLimit = Offset.fromIntSignExtend(glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 8 * BYTES_IN_ADDRESS);
-      Offset spillAreaOffset =
-          Offset.fromIntSignExtend(glueFrameSize +
-                                   NATIVE_FRAME_HEADER_SIZE +
-                                   (skip4Args ? 4 * BYTES_IN_ADDRESS : 3 * BYTES_IN_ADDRESS));
-
-      // address to return pointing to the var arg list
-      Address varargAddress = gluefp.plus(spillAreaOffset);
-
-      // VM.sysWrite("pushVarArgToSpillArea:  var arg at " +
-      //             Services.intAsHexString(varargAddress) + "\n");
-
-      RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
-      TypeReference[] argTypes = targetMethod.getParameterTypes();
-      int argCount = argTypes.length;
-
-      for (int i = 0; i < argCount && spillAreaOffset.sLT(spillAreaLimit); i++) {
-        Word hiword, loword;
-
-        if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
-          // move 2 words from the vararg FPR save area into the spill area of the caller
-          hiword = gluefp.loadWord(varargFPROffset);
-          varargFPROffset = varargFPROffset.plus(BYTES_IN_ADDRESS);
-          if (VM.BuildFor32Addr) {
-            loword = gluefp.loadWord(varargFPROffset);
-            varargFPROffset = varargFPROffset.plus(BYTES_IN_ADDRESS);
-          }
-          gluefp.store(hiword, spillAreaOffset);
-          spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
-          if (VM.BuildFor32Addr) {
-            gluefp.store(loword, spillAreaOffset);
-            spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
-          }
-        } else if (argTypes[i].isLongType()) {
-          // move 2 words from the vararg GPR save area into the spill area of the caller
-          hiword = gluefp.loadWord(varargGPROffset);
-          varargGPROffset = varargGPROffset.plus(BYTES_IN_ADDRESS);
-          gluefp.store(hiword, spillAreaOffset);
-          spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
-          // this covers the case when the long value straddles the spill boundary
-          if (VM.BuildFor32Addr && spillAreaOffset.sLT(spillAreaLimit)) {
-            loword = gluefp.loadWord(varargGPROffset);
-            varargGPROffset = varargGPROffset.plus(BYTES_IN_ADDRESS);
-            gluefp.store(loword, spillAreaOffset);
-            spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
-          }
-        } else {
-          hiword = gluefp.loadWord(varargGPROffset);
-          varargGPROffset = varargGPROffset.plus(BYTES_IN_ADDRESS);
-          gluefp.store(hiword, spillAreaOffset);
-          spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
-        }
-
-      }
-
-      // At this point, all the vararg values should be in the spill area in the caller frame
-      // return the address of the beginning of the vararg to use in invoking the target method
-      return varargAddress;
-    } else {
+    if (!(VM.BuildForPower64ELF_ABI || VM.BuildForSVR4ABI)) {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return Address.zero();
     }
+
+    int glueFrameSize = JNI_GLUE_FRAME_SIZE;
+
+    // get the FP for this stack frame and traverse 2 frames to get to the glue frame
+    Address gluefp =
+        Magic.getFramePointer().plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+    gluefp = gluefp.plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+    gluefp = gluefp.plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+
+    // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
+    // skipping the args which are not part of the arguments for the target method
+    // For Call<type>Method functions and NewObject, skip 3 args
+    // For CallNonvirtual<type>Method functions, skip 4 args
+    Offset varargGPROffset = Offset.fromIntSignExtend(VARARG_AREA_OFFSET + (skip4Args ? BYTES_IN_ADDRESS : 0));
+    Offset varargFPROffset = varargGPROffset.plus(5 * BYTES_IN_ADDRESS);
+
+    // compute the offset into the spill area of the native caller frame,
+    // skipping the args which are not part of the arguments for the target method
+    // For Call<type>Method functions, skip 3 args
+    // For CallNonvirtual<type>Method functions, skip 4 args
+    Offset spillAreaLimit = Offset.fromIntSignExtend(glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 8 * BYTES_IN_ADDRESS);
+    Offset spillAreaOffset =
+        Offset.fromIntSignExtend(glueFrameSize +
+                                 NATIVE_FRAME_HEADER_SIZE +
+                                 (skip4Args ? 4 * BYTES_IN_ADDRESS : 3 * BYTES_IN_ADDRESS));
+
+    // address to return pointing to the var arg list
+    Address varargAddress = gluefp.plus(spillAreaOffset);
+
+    // VM.sysWrite("pushVarArgToSpillArea:  var arg at " +
+    //             Services.intAsHexString(varargAddress) + "\n");
+
+    RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
+    TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+
+    for (int i = 0; i < argCount && spillAreaOffset.sLT(spillAreaLimit); i++) {
+      Word hiword, loword;
+
+      if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
+        // move 2 words from the vararg FPR save area into the spill area of the caller
+        hiword = gluefp.loadWord(varargFPROffset);
+        varargFPROffset = varargFPROffset.plus(BYTES_IN_ADDRESS);
+        if (VM.BuildFor32Addr) {
+          loword = gluefp.loadWord(varargFPROffset);
+          varargFPROffset = varargFPROffset.plus(BYTES_IN_ADDRESS);
+        }
+        gluefp.store(hiword, spillAreaOffset);
+        spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
+        if (VM.BuildFor32Addr) {
+          gluefp.store(loword, spillAreaOffset);
+          spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
+        }
+      } else if (argTypes[i].isLongType()) {
+        // move 2 words from the vararg GPR save area into the spill area of the caller
+        hiword = gluefp.loadWord(varargGPROffset);
+        varargGPROffset = varargGPROffset.plus(BYTES_IN_ADDRESS);
+        gluefp.store(hiword, spillAreaOffset);
+        spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
+        // this covers the case when the long value straddles the spill boundary
+        if (VM.BuildFor32Addr && spillAreaOffset.sLT(spillAreaLimit)) {
+          loword = gluefp.loadWord(varargGPROffset);
+          varargGPROffset = varargGPROffset.plus(BYTES_IN_ADDRESS);
+          gluefp.store(loword, spillAreaOffset);
+          spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
+        }
+      } else {
+        hiword = gluefp.loadWord(varargGPROffset);
+        varargGPROffset = varargGPROffset.plus(BYTES_IN_ADDRESS);
+        gluefp.store(hiword, spillAreaOffset);
+        spillAreaOffset = spillAreaOffset.plus(BYTES_IN_ADDRESS);
+      }
+
+    }
+
+    // At this point, all the vararg values should be in the spill area in the caller frame
+    // return the address of the beginning of the vararg to use in invoking the target method
+    return varargAddress;
   }
 
   /**
@@ -439,31 +437,29 @@ public abstract class JNIHelpers extends JNIGenericHelpers
 
     if (argtype == JVALUE_ARG) {
       argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
-    } else {
+    } else if (VM.BuildForPower64ELF_ABI) {
+      if (VM.VerifyAssertions) VM._assert(argtype == PPC64_ELF_VARARG);
+      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
+    } else if (VM.BuildForSVR4ABI) {
       // TODO: The SVR4 arms of this if/then/else seems overly complicated
       //       but I'm hesitant to simplify/restructure without being able to fully test them.
       //       So, for now, I simply cleaned up preprocessor directives without changing the set
       //       of argtypes tested on each platform.
       //       But, this can't actually be the way this code should be written...
-      if (VM.BuildForPower64ELF_ABI) {
-        if (VM.VerifyAssertions) VM._assert(argtype == PPC64_ELF_VARARG);
-        argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
-      } else if (VM.BuildForSVR4ABI) {
-        switch (argtype) {
-          case SVR4_DOTARG:
-            // argAddress is the glue frame pointer
-            argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
-            break;
-          case SVR4_VARARG:
-            argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
-            break;
-          default:
-            argObjectArray = null;
-            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-        }
-      } else {
-        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      switch (argtype) {
+        case SVR4_DOTARG:
+          // argAddress is the glue frame pointer
+          argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
+          break;
+        case SVR4_VARARG:
+          argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
+          break;
+        default:
+          argObjectArray = null;
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 
     // now invoke the method
@@ -480,43 +476,43 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   * @param glueFP, the glue stack frame pointer
   */
   static Object[] packageParameterFromDotArgSVR4(RVMMethod targetMethod, Address glueFP, boolean skip4Args) {
-    if (VM.BuildForSVR4ABI) {
-      // native method's stack frame
-      Address nativeFP = Magic.getCallerFramePointer(glueFP);
-      TypeReference[] argTypes = targetMethod.getParameterTypes();
-      int argCount = argTypes.length;
-      Object[] argObjectArray = new Object[argCount];
-
-      JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
-
-      // GPR r3 - r10 and FPR f1 - f8 are saved in glue stack frame
-      Address regsavearea = glueFP.plus(StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
-
-      // spill area offset
-      Address overflowarea = nativeFP.plus(NATIVE_FRAME_HEADER_SIZE);
-
-      //overflowarea is aligned to 8 bytes
-      if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
-
-      //adjust gpr and fpr to normal numbering, make life easier
-      int gpr = (skip4Args) ? 7 : 6;       // r3 - env, r4 - cls, r5 - method id
-      int fpr = 1;
-
-      // not set the starting gprs array address
-      // and fpr starting array address, so we can use gpr and fpr to
-      // calculate the right position to get values
-      // GPR starts with r3;
-      Address gprarray = regsavearea.plus(-3 * BYTES_IN_ADDRESS);
-      Address fprarray = regsavearea.plus(8 * BYTES_IN_ADDRESS - 2 * BYTES_IN_ADDRESS);
-
-      // call the common function for SVR4
-      packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env);
-
-      return argObjectArray;
-    } else {
+    if (!VM.BuildForSVR4ABI) {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
+
+    // native method's stack frame
+    Address nativeFP = Magic.getCallerFramePointer(glueFP);
+    TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+    Object[] argObjectArray = new Object[argCount];
+
+    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
+
+    // GPR r3 - r10 and FPR f1 - f8 are saved in glue stack frame
+    Address regsavearea = glueFP.plus(StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
+
+    // spill area offset
+    Address overflowarea = nativeFP.plus(NATIVE_FRAME_HEADER_SIZE);
+
+    //overflowarea is aligned to 8 bytes
+    if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
+
+    //adjust gpr and fpr to normal numbering, make life easier
+    int gpr = (skip4Args) ? 7 : 6;       // r3 - env, r4 - cls, r5 - method id
+    int fpr = 1;
+
+    // not set the starting gprs array address
+    // and fpr starting array address, so we can use gpr and fpr to
+    // calculate the right position to get values
+    // GPR starts with r3;
+    Address gprarray = regsavearea.plus(-3 * BYTES_IN_ADDRESS);
+    Address fprarray = regsavearea.plus(8 * BYTES_IN_ADDRESS - 2 * BYTES_IN_ADDRESS);
+
+    // call the common function for SVR4
+    packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env);
+
+    return argObjectArray;
   }
 
   // linux has totally different layout of va_list
@@ -543,140 +539,141 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   // -- Feng
   //
   static Object[] packageParameterFromVarArgSVR4(RVMMethod targetMethod, Address argAddress) {
-    if (VM.BuildForSVR4ABI) {
-      TypeReference[] argTypes = targetMethod.getParameterTypes();
-      int argCount = argTypes.length;
-      Object[] argObjectArray = new Object[argCount];
-
-      JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
-
-      // the va_list has following layout on PPC/Linux
-      // GPR FPR 0 0   (4 bytes)
-      // overflowarea  (pointer)
-      // reg_save_area (pointer)
-      Address va_list_addr = argAddress;
-      int word1 = va_list_addr.loadWord().toInt();
-      int gpr = word1 >> 24;
-      int fpr = (word1 >> 16) & 0x0FF;
-      Address overflowarea = va_list_addr.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
-      Address regsavearea = va_list_addr.loadAddress(Offset.fromIntSignExtend(2 * BYTES_IN_ADDRESS));
-
-      if (VM.BuildForSVR4ABI) {
-        //overflowarea is aligned to 8 bytes
-        if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
-      }
-
-      //adjust gpr and fpr to normal numbering, make life easier
-      gpr += 3;
-      fpr += 1;
-
-      // not set the starting gprs array address
-      // and fpr starting array address, so we can use gpr and fpr to
-      // calculate the right position to get values
-      // GPR starts with r3;
-      Address gprarray = regsavearea.plus(-3 * BYTES_IN_ADDRESS);
-      Address fprarray = regsavearea.plus(8 * BYTES_IN_ADDRESS - 2 * BYTES_IN_ADDRESS);
-
-      // call the common function for SVR4
-      packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env);
-
-      return argObjectArray;
-    } else {
+    if (!VM.BuildForSVR4ABI) {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
+
+    TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+    Object[] argObjectArray = new Object[argCount];
+
+    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
+
+    // the va_list has following layout on PPC/Linux
+    // GPR FPR 0 0   (4 bytes)
+    // overflowarea  (pointer)
+    // reg_save_area (pointer)
+    Address va_list_addr = argAddress;
+    int word1 = va_list_addr.loadWord().toInt();
+    int gpr = word1 >> 24;
+    int fpr = (word1 >> 16) & 0x0FF;
+    Address overflowarea = va_list_addr.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
+    Address regsavearea = va_list_addr.loadAddress(Offset.fromIntSignExtend(2 * BYTES_IN_ADDRESS));
+
+    if (VM.BuildForSVR4ABI) {
+      //overflowarea is aligned to 8 bytes
+      if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
+    }
+
+    //adjust gpr and fpr to normal numbering, make life easier
+    gpr += 3;
+    fpr += 1;
+
+    // not set the starting gprs array address
+    // and fpr starting array address, so we can use gpr and fpr to
+    // calculate the right position to get values
+    // GPR starts with r3;
+    Address gprarray = regsavearea.plus(-3 * BYTES_IN_ADDRESS);
+    Address fprarray = regsavearea.plus(8 * BYTES_IN_ADDRESS - 2 * BYTES_IN_ADDRESS);
+
+    // call the common function for SVR4
+    packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env);
+
+    return argObjectArray;
   }
 
   static void packageArgumentForSVR4(TypeReference[] argTypes, Object[] argObjectArray, Address gprarray,
                                      Address fprarray, Address overflowarea, int gpr, int fpr, JNIEnvironment env) {
-    if (VM.BuildForSVR4ABI) {
-      // also make overflow offset, we may need to round it
-      Offset overflowoffset = Offset.zero();
-      int argCount = argTypes.length;
+    if (!VM.BuildForSVR4ABI) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return;
+    }
 
-      // now interpret values by types, see PPC ABI
-      for (int i = 0; i < argCount; i++) {
-        if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
-          int loword, hiword;
-          if (fpr > LAST_OS_PARAMETER_FPR) {
-            // overflow, OTHER
-            // round it, bytes are saved from lowest to highest one, regardless endian
-            overflowoffset = overflowoffset.plus(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
-            hiword = overflowarea.loadInt(overflowoffset);
-            overflowoffset = overflowoffset.plus(BYTES_IN_INT);
-            loword = overflowarea.loadInt(overflowoffset);
-            overflowoffset = overflowoffset.plus(BYTES_IN_INT);
-          } else {
-            // get value from fpr, increase fpr by 1
-            hiword = fprarray.plus(fpr * BYTES_IN_DOUBLE).loadInt();
-            loword = fprarray.plus(fpr * BYTES_IN_DOUBLE + BYTES_IN_INT).loadInt();
-            fpr += 1;
-          }
-          long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
-          if (argTypes[i].isFloatType()) {
-            argObjectArray[i] = Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
-          } else { // double type
-            argObjectArray[i] = Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-          }
+    // also make overflow offset, we may need to round it
+    Offset overflowoffset = Offset.zero();
+    int argCount = argTypes.length;
 
-          //              VM.sysWriteln("double "+Double.longBitsToDouble(doubleBits));
-
-        } else if (argTypes[i].isLongType()) {
-          int loword, hiword;
-          if (gpr > LAST_OS_PARAMETER_GPR - 1) {
-            // overflow, OTHER
-            // round overflowoffset, assuming overflowarea is aligned to 8 bytes
-            overflowoffset = overflowoffset.plus(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
-            hiword = overflowarea.loadInt(overflowoffset);
-            overflowoffset = overflowoffset.plus(BYTES_IN_INT);
-            loword = overflowarea.loadInt(overflowoffset);
-            overflowoffset = overflowoffset.plus(BYTES_IN_INT);
-
-            // va-ppc.h makes last gpr useless
-            gpr = 11;
-          } else {
-            gpr += (gpr + 1) & 0x01;  // if gpr is even, gpr += 1
-            hiword = gprarray.plus(gpr * 4).loadInt();
-            loword = gprarray.plus((gpr + 1) * 4).loadInt();
-            gpr += 2;
-          }
-          long longBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
-          argObjectArray[i] = Reflection.wrapLong(longBits);
-
-          //              VM.sysWriteln("long 0x"+Long.toHexString(longBits));
+    // now interpret values by types, see PPC ABI
+    for (int i = 0; i < argCount; i++) {
+      if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
+        int loword, hiword;
+        if (fpr > LAST_OS_PARAMETER_FPR) {
+          // overflow, OTHER
+          // round it, bytes are saved from lowest to highest one, regardless endian
+          overflowoffset = overflowoffset.plus(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
+          hiword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.plus(BYTES_IN_INT);
+          loword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.plus(BYTES_IN_INT);
         } else {
-          // int type left now
-          int ivalue;
-          if (gpr > LAST_OS_PARAMETER_GPR) {
-            // overflow, OTHER
-            ivalue = overflowarea.loadInt(overflowoffset);
-            overflowoffset = overflowoffset.plus(4);
-          } else {
-            ivalue = gprarray.plus(gpr * 4).loadInt();
-            gpr += 1;
-          }
+          // get value from fpr, increase fpr by 1
+          hiword = fprarray.plus(fpr * BYTES_IN_DOUBLE).loadInt();
+          loword = fprarray.plus(fpr * BYTES_IN_DOUBLE + BYTES_IN_INT).loadInt();
+          fpr += 1;
+        }
+        long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+        if (argTypes[i].isFloatType()) {
+          argObjectArray[i] = Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
+        } else { // double type
+          argObjectArray[i] = Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
+        }
 
-          //              VM.sysWriteln("int "+ivalue);
+        //              VM.sysWriteln("double "+Double.longBitsToDouble(doubleBits));
 
-          if (argTypes[i].isBooleanType()) {
-            argObjectArray[i] = Reflection.wrapBoolean(ivalue);
-          } else if (argTypes[i].isByteType()) {
-            argObjectArray[i] = Reflection.wrapByte((byte) ivalue);
-          } else if (argTypes[i].isShortType()) {
-            argObjectArray[i] = Reflection.wrapShort((short) ivalue);
-          } else if (argTypes[i].isCharType()) {
-            argObjectArray[i] = Reflection.wrapChar((char) ivalue);
-          } else if (argTypes[i].isIntType()) {
-            argObjectArray[i] = Reflection.wrapInt(ivalue);
-          } else if (argTypes[i].isReferenceType()) {
-            argObjectArray[i] = env.getJNIRef(ivalue);
-          } else {
-            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-          }
+      } else if (argTypes[i].isLongType()) {
+        int loword, hiword;
+        if (gpr > LAST_OS_PARAMETER_GPR - 1) {
+          // overflow, OTHER
+          // round overflowoffset, assuming overflowarea is aligned to 8 bytes
+          overflowoffset = overflowoffset.plus(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
+          hiword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.plus(BYTES_IN_INT);
+          loword = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.plus(BYTES_IN_INT);
+
+          // va-ppc.h makes last gpr useless
+          gpr = 11;
+        } else {
+          gpr += (gpr + 1) & 0x01;  // if gpr is even, gpr += 1
+          hiword = gprarray.plus(gpr * 4).loadInt();
+          loword = gprarray.plus((gpr + 1) * 4).loadInt();
+          gpr += 2;
+        }
+        long longBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
+        argObjectArray[i] = Reflection.wrapLong(longBits);
+
+        //              VM.sysWriteln("long 0x"+Long.toHexString(longBits));
+      } else {
+        // int type left now
+        int ivalue;
+        if (gpr > LAST_OS_PARAMETER_GPR) {
+          // overflow, OTHER
+          ivalue = overflowarea.loadInt(overflowoffset);
+          overflowoffset = overflowoffset.plus(4);
+        } else {
+          ivalue = gprarray.plus(gpr * 4).loadInt();
+          gpr += 1;
+        }
+
+        //              VM.sysWriteln("int "+ivalue);
+
+        if (argTypes[i].isBooleanType()) {
+          argObjectArray[i] = Reflection.wrapBoolean(ivalue);
+        } else if (argTypes[i].isByteType()) {
+          argObjectArray[i] = Reflection.wrapByte((byte) ivalue);
+        } else if (argTypes[i].isShortType()) {
+          argObjectArray[i] = Reflection.wrapShort((short) ivalue);
+        } else if (argTypes[i].isCharType()) {
+          argObjectArray[i] = Reflection.wrapChar((char) ivalue);
+        } else if (argTypes[i].isIntType()) {
+          argObjectArray[i] = Reflection.wrapInt(ivalue);
+        } else if (argTypes[i].isReferenceType()) {
+          argObjectArray[i] = env.getJNIRef(ivalue);
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         }
       }
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
