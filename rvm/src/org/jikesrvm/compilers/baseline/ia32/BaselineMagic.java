@@ -1878,8 +1878,13 @@ final class BaselineMagic {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
       asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
-      asm.emitPUSH_Reg(T0); // high half
-      asm.emitPUSH_Reg(T1); // low half
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_Reg(T0); // high half
+        asm.emitPUSH_Reg(T1); // low half
+      } else {
+        asm.emitPUSH_Reg(T0); // fill slot that will be thrown away or ignored
+        asm.emitPUSH_Reg(T0); // push long value
+      }
     }
   }
   static {
