@@ -343,6 +343,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     if (VM.BuildForPower64ELF_ABI) {
       return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, PPC64_ELF_VARARG);
     } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
       return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, SVR4_VARARG);
     }
   }
@@ -361,6 +362,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     if (VM.BuildForPower64ELF_ABI) {
       return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
     } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
       return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, SVR4_VARARG);
     }
   }
@@ -391,10 +393,9 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   }
 
   public static final int SVR4_DOTARG = 0;         // Linux/PPC SVR4 normal
-  public static final int PPC64_ELF_DOTARG = 1;         // 64-bit PowerPC ELF normal
-  public static final int JVALUE_ARG = 2;         // javlue
-  public static final int SVR4_VARARG = 3;         // Linux/PPC SVR4 vararg
-  public static final int PPC64_ELF_VARARG = 4;         // 64-bit PowerPC ELF vararg
+  public static final int JVALUE_ARG = 1;         // jvalue
+  public static final int SVR4_VARARG = 2;         // Linux/PPC SVR4 vararg
+  public static final int PPC64_ELF_VARARG = 3;         // 64-bit PowerPC ELF vararg
 
   /**
    * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
@@ -456,14 +457,12 @@ public abstract class JNIHelpers extends JNIGenericHelpers
           case SVR4_VARARG:
             argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
             break;
-          case PPC64_ELF_VARARG:
-            // TODO: Is this branch actually reachable code???
-            argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
-            break;
           default:
             argObjectArray = null;
             if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         }
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     }
 
@@ -496,10 +495,8 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       // spill area offset
       Address overflowarea = nativeFP.plus(NATIVE_FRAME_HEADER_SIZE);
 
-      if (VM.BuildForSVR4ABI) {
-        //overflowarea is aligned to 8 bytes
-        if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
-      }
+      //overflowarea is aligned to 8 bytes
+      if (VM.VerifyAssertions) VM._assert(overflowarea.toWord().and(Word.fromIntZeroExtend(0x07)).isZero());
 
       //adjust gpr and fpr to normal numbering, make life easier
       int gpr = (skip4Args) ? 7 : 6;       // r3 - env, r4 - cls, r5 - method id
