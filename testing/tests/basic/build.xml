@@ -86,6 +86,7 @@
 
     <runCompareTest tag="TestAnnotations" class="test.org.jikesrvm.basic.core.annotation.TestAnnotations"/>
     <runCompareTest tag="TestAnnotationInheritance" class="test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance"/>
+    <runCompareTest tag="TestNullChecks" class="test.org.jikesrvm.basic.core.bytecode.TestNullChecks"/>
 
     <runCompareTest tag="TestResolveOnInvokeInterface"
                     class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInvokeInterface"

@@ -1,0 +1,10 @@
+Successfully invoked hashCode() on object
+Caugt NPE while trying to invoke hashCode()
+Successfully invoked hashCode() on object
+Successfully invoked hashCode() on object
+Caught NPE when reading byte field
+Read value 1 from field
+Caught NPE when writing byte field
+Wrote value 7 to field
+Caugt NPE when trying to synchronize on object
+Successfully synchronized on object
