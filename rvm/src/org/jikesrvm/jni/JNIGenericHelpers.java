@@ -15,7 +15,7 @@ package org.jikesrvm.jni;
 import org.jikesrvm.VM;
 
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
@@ -23,6 +23,7 @@ import org.jikesrvm.classloader.UTF8Convert;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.StringUtilities;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -265,4 +266,53 @@ public abstract class JNIGenericHelpers {
     return Reflection.invoke(targetMethod, null, obj, args, nonVirtual);
   }
 
+  /**
+   * Repackage the arguments passed as an array of jvalue into an array of Object,
+   * used by the JNI functions CallStatic&lt;type&gt;MethodA
+   * @param targetMethod the target {@link MethodReference}
+   * @param argAddress an address into the C space for the array of jvalue unions
+   * @return an Object array holding the arguments wrapped at Objects
+   */
+  protected static Object[] packageParametersFromJValuePtr(MethodReference targetMethod, Address argAddress) {
+    TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+    Object[] argObjectArray = new Object[argCount];
+
+    // get the JNIEnvironment for this thread in case we need to dereference any object arg
+    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
+
+    Address addr = argAddress;
+    for (int i = 0; i < argCount; i++, addr = addr.plus(BYTES_IN_LONG)) {
+      // convert and wrap the argument according to the expected type
+      if (argTypes[i].isReferenceType()) {
+        // Avoid endianness issues by loading the whole slot
+        Word wholeSlot = addr.loadWord();
+        // for object, the arg is a JREF index, dereference to get the real object
+        int JREFindex = wholeSlot.toInt();
+        argObjectArray[i] = env.getJNIRef(JREFindex);
+      } else if (argTypes[i].isIntType()) {
+        argObjectArray[i] = addr.loadInt();
+      } else if (argTypes[i].isLongType()) {
+        argObjectArray[i] = addr.loadLong();
+      } else if (argTypes[i].isBooleanType()) {
+        // the 0/1 bit is stored in the high byte
+        argObjectArray[i] = addr.loadByte() != 0;
+      } else if (argTypes[i].isByteType()) {
+        // the target byte is stored in the high byte
+        argObjectArray[i] = addr.loadByte();
+      } else if (argTypes[i].isCharType()) {
+        // char is stored in the high 2 bytes
+        argObjectArray[i] = addr.loadChar();
+      } else if (argTypes[i].isShortType()) {
+        // short is stored in the high 2 bytes
+        argObjectArray[i] = addr.loadShort();
+      } else if (argTypes[i].isFloatType()) {
+        argObjectArray[i] = addr.loadFloat();
+      } else {
+        if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
+        argObjectArray[i] = addr.loadDouble();
+      }
+    }
+    return argObjectArray;
+  }
 }

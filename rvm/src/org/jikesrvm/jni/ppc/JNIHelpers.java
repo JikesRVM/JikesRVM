@@ -12,13 +12,7 @@
  */
 package org.jikesrvm.jni.ppc;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
-import static org.jikesrvm.SizeConstants.BITS_IN_BOOLEAN;
-import static org.jikesrvm.SizeConstants.BITS_IN_CHAR;
-import static org.jikesrvm.SizeConstants.BITS_IN_FLOAT;
 import static org.jikesrvm.SizeConstants.BITS_IN_INT;
-import static org.jikesrvm.SizeConstants.BITS_IN_SHORT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
@@ -75,7 +69,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     Object[] argObjs;
 
     if (isJvalue) {
-      argObjs = packageParameterFromJValue(methodRef, argAddress);
+      argObjs = packageParametersFromJValuePtr(methodRef, argAddress);
     } else if (isDotDotStyle) {
       // dot dot var arg
       if (VM.BuildForPower64ELF_ABI) {
@@ -388,7 +382,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   public static Object invokeWithJValue(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
     MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParameterFromJValue(mr, argAddress);
+    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
     return callMethod(null, mr, argObjectArray, expectReturnType, true);
   }
 
@@ -404,7 +398,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
     MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParameterFromJValue(mr, argAddress);
+    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
     return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
   }
 
@@ -701,73 +695,4 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     return argObjectArray;
   }
 
-  /**
-   * Repackage the arguments passed as an array of jvalue into an array of Object,
-   * used by the JNI functions CallStatic<type>MethodA
-   * @param targetMethod the target {@link RVMMethod}
-   * @param argAddress an address into the C space for the array of jvalue unions;
-   *                   each element is 2-word and holds the argument of the appropriate type
-   * @return an Object array holding the arguments wrapped at Objects
-   */
-  static Object[] packageParameterFromJValue(MethodReference targetMethod, Address argAddress) {
-    TypeReference[] argTypes = targetMethod.getParameterTypes();
-    int argCount = argTypes.length;
-    Object[] argObjectArray = new Object[argCount];
-
-    // get the JNIEnvironment for this thread in case we need to dereference any object arg
-    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
-
-    // VM.sysWrite("JNI packageParameterFromJValue: packaging " + argCount + " arguments\n");
-
-    for (int i = 0; i < argCount; i++) {
-      Address addr = argAddress.plus(BYTES_IN_DOUBLE * i);
-      long hiword = VM.BuildFor64Addr ? addr.loadLong() : (long) addr.loadInt();
-
-      // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword +
-      //          " or " + Services.intAsHexString(hiword) + "\n");
-
-      // convert and wrap the argument according to the expected type
-
-      if (argTypes[i].isFloatType()) {
-        argObjectArray[i] =
-            Reflection.wrapFloat(Float.intBitsToFloat((int) (hiword >>> (BITS_IN_ADDRESS - BITS_IN_FLOAT))));
-      } else if (argTypes[i].isDoubleType()) {
-        if (VM.BuildFor32Addr) {
-          int loword = addr.plus(BYTES_IN_ADDRESS).loadInt();
-          long doubleBits = (hiword << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
-          argObjectArray[i] = Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-        } else {
-          argObjectArray[i] = Reflection.wrapDouble(Double.longBitsToDouble(hiword));
-        }
-      } else if (argTypes[i].isLongType()) {
-        if (VM.BuildFor32Addr) {
-          int loword = addr.plus(BYTES_IN_ADDRESS).loadInt();
-          long longValue = (hiword << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
-          argObjectArray[i] = Reflection.wrapLong(longValue);
-        } else {
-          argObjectArray[i] = Reflection.wrapLong(hiword);
-        }
-      } else if (argTypes[i].isBooleanType()) {
-        // the 0/1 bit is stored in the high byte
-        argObjectArray[i] = Reflection.wrapBoolean((int) (hiword >>> (BITS_IN_ADDRESS - BITS_IN_BOOLEAN)));
-      } else if (argTypes[i].isByteType()) {
-        // the target byte is stored in the high byte
-        argObjectArray[i] = Reflection.wrapByte((byte) (hiword >>> (BITS_IN_ADDRESS - BITS_IN_BYTE)));
-      } else if (argTypes[i].isCharType()) {
-        // char is stored in the high 2 bytes
-        argObjectArray[i] = Reflection.wrapChar((char) (hiword >>> (BITS_IN_ADDRESS - BITS_IN_CHAR)));
-      } else if (argTypes[i].isShortType()) {
-        // short is stored in the high 2 bytes
-        argObjectArray[i] = Reflection.wrapShort((short) (hiword >>> (BITS_IN_ADDRESS - BITS_IN_SHORT)));
-      } else if (argTypes[i].isReferenceType()) {
-        // for object, the arg is a JREF index, dereference to get the real object
-        argObjectArray[i] = env.getJNIRef((int) hiword);
-      } else if (argTypes[i].isIntType()) {
-        argObjectArray[i] = Reflection.wrapInt((int) (hiword >>> (BITS_IN_ADDRESS - BITS_IN_INT)));
-      } else {
-        return null;
-      }
-    }
-    return argObjectArray;
-  }
 }

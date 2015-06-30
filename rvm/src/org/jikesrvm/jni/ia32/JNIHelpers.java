@@ -74,7 +74,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
 
     Object[] argObjs;
     if (isJvalue) {
-      argObjs = packageParameterFromJValue(methodRef, argAddress);
+      argObjs = packageParametersFromJValuePtr(methodRef, argAddress);
     } else {
       argObjs = packageParameterFromVarArg(methodRef, varargAddress);
     }
@@ -245,7 +245,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   public static Object invokeWithJValue(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
     MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParameterFromJValue(mr, argAddress);
+    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
     return callMethod(null, mr, argObjectArray, expectReturnType, true);
   }
 
@@ -262,7 +262,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
     MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParameterFromJValue(mr, argAddress);
+    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
     return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
   }
 
@@ -318,54 +318,6 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
         if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
         argObjectArray[i] = addr.loadDouble();
         addr = addr.plus(2 * WORDSIZE);
-      }
-    }
-    return argObjectArray;
-  }
-
-  /**
-   * Repackage the arguments passed as an array of jvalue into an array of Object,
-   * used by the JNI functions CallStatic&lt;type&gt;MethodA
-   * @param targetMethod   The target {@link RVMMethod}
-   * @param argAddress an address into the C space for the array of jvalue unions;
-   *                   each element is 2-word and holds the argument of the appropriate type
-   * @return an Object array holding the arguments wrapped at Objects
-   */
-  static Object[] packageParameterFromJValue(MethodReference targetMethod, Address argAddress) {
-    TypeReference[] argTypes = targetMethod.getParameterTypes();
-    int argCount = argTypes.length;
-    Object[] argObjectArray = new Object[argCount];
-
-    // get the JNIEnvironment for this thread in case we need to dereference any object arg
-    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
-
-    Address addr = argAddress;
-    for (int i = 0; i < argCount; i++, addr = addr.plus(2 * WORDSIZE)) {
-      // convert and wrap the argument according to the expected type
-      if (argTypes[i].isReferenceType()) {
-        // for object, the arg is a JREF index, dereference to get the real object
-        argObjectArray[i] = env.getJNIRef(addr.loadInt());
-      } else if (argTypes[i].isIntType()) {
-        argObjectArray[i] = addr.loadInt();
-      } else if (argTypes[i].isLongType()) {
-        argObjectArray[i] = addr.loadLong();
-      } else if (argTypes[i].isBooleanType()) {
-        // the 0/1 bit is stored in the high byte
-        argObjectArray[i] = addr.loadByte() != 0;
-      } else if (argTypes[i].isByteType()) {
-        // the target byte is stored in the high byte
-        argObjectArray[i] = addr.loadByte();
-      } else if (argTypes[i].isCharType()) {
-        // char is stored in the high 2 bytes
-        argObjectArray[i] = addr.loadChar();
-      } else if (argTypes[i].isShortType()) {
-        // short is stored in the high 2 bytes
-        argObjectArray[i] = addr.loadShort();
-      } else if (argTypes[i].isFloatType()) {
-        argObjectArray[i] = addr.loadFloat();
-      } else {
-        if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
-        argObjectArray[i] = addr.loadDouble();
       }
     }
     return argObjectArray;
