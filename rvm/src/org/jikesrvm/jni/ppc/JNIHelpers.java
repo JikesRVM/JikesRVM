@@ -24,9 +24,11 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 
 import java.lang.reflect.Constructor;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.jni.JNIEnvironment;
@@ -59,11 +61,11 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue,
                                          boolean isDotDotStyle) throws Exception {
-
     // get the parameter list as Java class
     MemberReference mr = MemberReference.getMemberRef(methodID);
     TypeReference tr = java.lang.JikesRVMSupport.getTypeForClass(cls).getTypeRef();
-    RVMMethod mth = MemberReference.findOrCreate(tr, mr.getName(), mr.getDescriptor()).asMethodReference().resolve();
+    MethodReference methodRef = MemberReference.findOrCreate(tr, mr.getName(), mr.getDescriptor()).asMethodReference();
+    RVMMethod mth = methodRef.resolve();
 
     Constructor<?> constMethod = java.lang.reflect.JikesRVMSupport.createConstructor(mth);
     if (!mth.isPublic()) {
@@ -73,12 +75,12 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     Object[] argObjs;
 
     if (isJvalue) {
-      argObjs = packageParameterFromJValue(mth, argAddress);
+      argObjs = packageParameterFromJValue(methodRef, argAddress);
     } else if (isDotDotStyle) {
       // dot dot var arg
       if (VM.BuildForPower64ELF_ABI) {
         Address varargAddress = pushVarArgToSpillArea(methodID, false);
-        argObjs = packageParameterFromVarArg(mth, varargAddress);
+        argObjs = packageParameterFromVarArg(methodRef, varargAddress);
       } else {
         if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
         // pass in the frame pointer of glue stack frames
@@ -91,15 +93,15 @@ public abstract class JNIHelpers extends JNIGenericHelpers
         //
         //      native C method ->
         Address gluefp = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
-        argObjs = packageParameterFromDotArgSVR4(mth, gluefp, false);
+        argObjs = packageParameterFromDotArgSVR4(methodRef, gluefp, false);
       }
     } else {
       // mormal var arg
       if (VM.BuildForPower64ELF_ABI) {
-        argObjs = packageParameterFromVarArg(mth, argAddress);
+        argObjs = packageParameterFromVarArg(methodRef, argAddress);
       } else {
         if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
-        argObjs = packageParameterFromVarArgSVR4(mth, argAddress);
+        argObjs = packageParameterFromVarArgSVR4(methodRef, argAddress);
       }
     }
 
@@ -116,13 +118,16 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   @NoInline
   public static Object invokeWithDotDotVarArg(int methodID, TypeReference expectReturnType) throws Exception {
+    MethodReference mr = MemberReference.getMethodRef(methodID);
     if (VM.BuildForPower64ELF_ABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, false);
-      return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, PPC64_ELF_VARARG);
+      Objecz[] argObjectArray = packageParameterFromVarArg(mr, varargAddress);
+      return callMethod(null, mr, argObjectArray, expectReturnType, true);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
       Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
-      return packageAndInvoke(null, methodID, glueFP, expectReturnType, false, SVR4_DOTARG);
+      Object[] argObjectArray = packageParameterFromDotArgSVR4(mr, glueFP, false);
+      return callMethod(null, mr, argObjectArray, expectReturnType, true);
     }
   }
 
@@ -139,13 +144,16 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   @NoInline
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, TypeReference expectReturnType,
                                               boolean skip4Args) throws Exception {
+    MethodReference mr = MemberReference.getMethodRef(methodID);
     if (VM.BuildForPower64ELF_ABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);
-      return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
+      Object[] argObjectArray = packageParameterFromVarArg(mr, varargAddress);
+      return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
       Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
-      return packageAndInvoke(obj, methodID, glueFP, expectReturnType, skip4Args, SVR4_DOTARG);
+      Object[] argObjectArray = packageParameterFromDotArgSVR4(mr, glueFP, skip4Args);
+      return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
     }
   }
 
@@ -338,11 +346,14 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   public static Object invokeWithVarArg(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
+    MethodReference mr = MemberReference.getMethodRef(methodID);
     if (VM.BuildForPower64ELF_ABI) {
-      return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, PPC64_ELF_VARARG);
+      Object[] argObjectArray = packageParameterFromVarArg(mr, argAddress);
+      return callMethod(null, mr, argObjectArray, expectReturnType, true);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
-      return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, SVR4_VARARG);
+      Object[] argObjectArray = packageParameterFromVarArgSVR4(mr, argAddress);
+      return callMethod(null, mr, argObjectArray, expectReturnType, true);
     }
   }
 
@@ -357,11 +368,14 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
+    MethodReference mr = MemberReference.getMethodRef(methodID);
     if (VM.BuildForPower64ELF_ABI) {
-      return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, PPC64_ELF_VARARG);
+      Object[] argObjectArray = packageParameterFromVarArg(mr, argAddress);
+      return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
-      return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, SVR4_VARARG);
+      Object[] argObjectArray = packageParameterFromVarArgSVR4(mr, argAddress);
+      return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
     }
   }
 
@@ -373,7 +387,9 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   public static Object invokeWithJValue(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
-    return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, JVALUE_ARG);
+    MethodReference mr = MemberReference.getMethodRef(methodID);
+    Object[] argObjectArray = packageParameterFromJValue(mr, argAddress);
+    return callMethod(null, mr, argObjectArray, expectReturnType, true);
   }
 
   /**
@@ -387,83 +403,9 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    */
   public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
-    return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, JVALUE_ARG);
-  }
-
-  public static final int SVR4_DOTARG = 0;         // Linux/PPC SVR4 normal
-  public static final int JVALUE_ARG = 1;         // jvalue
-  public static final int SVR4_VARARG = 2;         // Linux/PPC SVR4 vararg
-  public static final int PPC64_ELF_VARARG = 3;         // 64-bit PowerPC ELF vararg
-
-  /**
-   * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
-   * @param obj the object instance
-   * @param methodID a MemberReference id
-   * @param argAddress a raw address for the argument array
-   * @param expectReturnType the return type for checking purpose
-   * @param skip4Args This flag is received from the JNI function and passed directly to
-   *                     Reflection.invoke().
-   *                     It is true if the actual method is to be invoked, which could be
-   *                     from the superclass.
-   *                     It is false if the method from the real class of the object
-   *                     is to be invoked, which may not be the actual method specified by methodID
-   * @param argtype  Type of argument to be packaged.
-   * @return an object that may be the return object or a wrapper for the primitive return value
-   */
-  public static Object packageAndInvoke(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
-                                        boolean skip4Args, int argtype) throws Exception {
-
-    // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " +
-    //             Services.intAsHexString(argAddress) + "\n");
-
-    RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
-    TypeReference returnType = targetMethod.getReturnType();
-
-    // VM.sysWrite("JNI CallXXXMethod:  " + targetMethod.getDeclaringClass().toString() +
-    //          "." + targetMethod.getName().toString() + "\n");
-
-    if (expectReturnType == null) {   // for reference return type
-      if (!returnType.isReferenceType()) {
-        throw new Exception("Wrong return type for method: expect reference type instead of " + returnType);
-      }
-    } else {    // for primitive return type
-      if (returnType != expectReturnType) {
-        throw new Exception("Wrong return type for method: expect " + expectReturnType + " instead of " + returnType);
-      }
-    }
-
-    // Repackage the arguments into an array of objects based on the signature of this method
-    Object[] argObjectArray;
-
-    if (argtype == JVALUE_ARG) {
-      argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
-    } else if (VM.BuildForPower64ELF_ABI) {
-      if (VM.VerifyAssertions) VM._assert(argtype == PPC64_ELF_VARARG);
-      argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
-    } else if (VM.BuildForSVR4ABI) {
-      // TODO: The SVR4 arms of this if/then/else seems overly complicated
-      //       but I'm hesitant to simplify/restructure without being able to fully test them.
-      //       So, for now, I simply cleaned up preprocessor directives without changing the set
-      //       of argtypes tested on each platform.
-      //       But, this can't actually be the way this code should be written...
-      switch (argtype) {
-        case SVR4_DOTARG:
-          // argAddress is the glue frame pointer
-          argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
-          break;
-        case SVR4_VARARG:
-          argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
-          break;
-        default:
-          argObjectArray = null;
-          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-      }
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    }
-
-    // now invoke the method
-    return Reflection.invoke(targetMethod, null, obj, argObjectArray, skip4Args);
+    MethodReference mr = MemberReference.getMethodRef(methodID);
+    Object[] argObjectArray = packageParameterFromJValue(mr, argAddress);
+    return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
   }
 
   /* The method reads out parameters from registers saved in native->java glue stack frame (glueFP)
@@ -475,7 +417,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   * @param targetMethod, the call target
   * @param glueFP, the glue stack frame pointer
   */
-  static Object[] packageParameterFromDotArgSVR4(RVMMethod targetMethod, Address glueFP, boolean skip4Args) {
+  static Object[] packageParameterFromDotArgSVR4(MethodReference targetMethod, Address glueFP, boolean skip4Args) {
     if (!VM.BuildForSVR4ABI) {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
@@ -538,7 +480,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   //
   // -- Feng
   //
-  static Object[] packageParameterFromVarArgSVR4(RVMMethod targetMethod, Address argAddress) {
+  static Object[] packageParameterFromVarArgSVR4(MethodReference targetMethod, Address argAddress) {
     if (!VM.BuildForSVR4ABI) {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
@@ -685,7 +627,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromVarArg(RVMMethod targetMethod, Address argAddress) {
+  static Object[] packageParameterFromVarArg(MethodReference targetMethod, Address argAddress) {
     TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -767,7 +709,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromJValue(RVMMethod targetMethod, Address argAddress) {
+  static Object[] packageParameterFromJValue(MethodReference targetMethod, Address argAddress) {
     TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];

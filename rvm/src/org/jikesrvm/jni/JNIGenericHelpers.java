@@ -13,15 +13,22 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
+
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
+import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
+import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.util.StringUtilities;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -226,4 +233,36 @@ public abstract class JNIGenericHelpers {
       boolPtr.store((byte)0);
     }
   }
+
+  /**
+   * Dispatch method call
+   * @param obj this pointer for method to be invoked, or null if method is static
+   * @param mr reference to method to be invoked
+   * @param args argument array
+   * @param expectedReturnType a type reference for the expected return type
+   * @param nonVirtual should invocation be of the given method or should we use virtual dispatch on the object?
+   * @return return value of the method (boxed if primitive)
+   * @throws InvocationTargetException when the reflective method call fails
+   */
+  protected static Object callMethod(Object obj, MethodReference mr, Object[] args, TypeReference expectedReturnType, boolean nonVirtual) throws InvocationTargetException {
+    RVMMethod targetMethod = mr.resolve();
+    TypeReference returnType = targetMethod.getReturnType();
+
+    if (JNIFunctions.traceJNI) {
+      VM.sysWriteln("JNI CallXXXMethod: " + mr);
+    }
+
+    if (expectedReturnType == null) {   // for reference return type
+      if (!returnType.isReferenceType()) {
+        throw new IllegalArgumentException("Wrong return type for method (" + targetMethod + "): expected reference type instead of " + returnType);
+      }
+    } else { // for primitive return type
+      if (!returnType.definitelySame(expectedReturnType)) {
+        throw new IllegalArgumentException("Wrong return type for method (" + targetMethod + "): expected " + expectedReturnType + " instead of " + returnType);
+      }
+    }
+    // invoke the method
+    return Reflection.invoke(targetMethod, null, obj, args, nonVirtual);
+  }
+
 }
