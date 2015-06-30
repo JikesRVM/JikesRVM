@@ -121,7 +121,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     MethodReference mr = MemberReference.getMethodRef(methodID);
     if (VM.BuildForPower64ELF_ABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, false);
-      Objecz[] argObjectArray = packageParameterFromVarArg(mr, varargAddress);
+      Object[] argObjectArray = packageParameterFromVarArg(mr, varargAddress);
       return callMethod(null, mr, argObjectArray, expectReturnType, true);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
