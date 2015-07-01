@@ -68,6 +68,9 @@ import org.vmmagic.unboxed.Offset;
  * be invoked from native C or C++.   They're all declared private to enforce
  * this discipline.  <br>
  *
+ * NOTE: Some of the JNIFunctions here are overwritten by C implementations
+ * for IA32. See the bootloader for the implementations of these functions. <br>
+ *
  * The first argument for all the functions is the JNIEnvironment object
  * of the thread. <br>
  *
@@ -117,6 +120,11 @@ import org.vmmagic.unboxed.Offset;
 // methods are called from native code
 @NativeBridge
 public class JNIFunctions {
+
+  private static final String ERROR_MSG_WRONG_IMPLEMENTATION =
+      "Architectures other than PowerPC should use C var args processing " +
+      "and the C implementation for this function!";
+
   // one message for each JNI function called from native
   public static final boolean traceJNI = Properties.verboseJNI;
 
@@ -503,6 +511,9 @@ public class JNIFunctions {
    * NewObject: create a new object instance
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -511,6 +522,9 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int NewObject(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -710,6 +724,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -717,6 +734,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -778,6 +798,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -785,6 +808,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -846,6 +872,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -853,6 +882,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -914,6 +946,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -921,6 +956,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -982,6 +1020,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -989,6 +1030,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1050,6 +1094,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -1057,6 +1104,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1118,6 +1168,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -1125,6 +1178,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1186,6 +1242,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -1193,6 +1252,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1254,6 +1316,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
@@ -1261,6 +1326,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1322,12 +1390,18 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1382,6 +1456,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1391,6 +1468,9 @@ public class JNIFunctions {
    */
   private static int CallNonvirtualObjectMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1454,6 +1534,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1463,6 +1546,9 @@ public class JNIFunctions {
    */
   private static boolean CallNonvirtualBooleanMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1526,6 +1612,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1535,6 +1624,9 @@ public class JNIFunctions {
    */
   private static byte CallNonvirtualByteMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1598,6 +1690,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1607,6 +1702,9 @@ public class JNIFunctions {
    */
   private static char CallNonvirtualCharMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1670,6 +1768,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1679,6 +1780,9 @@ public class JNIFunctions {
    */
   private static short CallNonvirtualShortMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1742,6 +1846,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1751,6 +1858,9 @@ public class JNIFunctions {
    */
   private static int CallNonvirtualIntMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1814,6 +1924,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1823,6 +1936,9 @@ public class JNIFunctions {
    */
   private static long CallNonvirtualLongMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1886,6 +2002,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1895,6 +2014,9 @@ public class JNIFunctions {
    */
   private static float CallNonvirtualFloatMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1958,6 +2080,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1967,6 +2092,9 @@ public class JNIFunctions {
    */
   private static double CallNonvirtualDoubleMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2030,6 +2158,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -2038,6 +2169,9 @@ public class JNIFunctions {
    */
   private static void CallNonvirtualVoidMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2585,6 +2719,9 @@ public class JNIFunctions {
    *                          arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -2592,6 +2729,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2651,6 +2791,9 @@ public class JNIFunctions {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -2658,6 +2801,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2717,6 +2863,9 @@ public class JNIFunctions {
    *                        arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -2724,6 +2873,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2783,6 +2935,9 @@ public class JNIFunctions {
    *                        arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -2790,6 +2945,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2849,6 +3007,9 @@ public class JNIFunctions {
    *                         arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -2856,6 +3017,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2915,6 +3079,9 @@ public class JNIFunctions {
    *                       arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -2922,6 +3089,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticIntMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2982,6 +3152,9 @@ public class JNIFunctions {
    *                        arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -2989,6 +3162,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3048,6 +3224,9 @@ public class JNIFunctions {
    *                         arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
@@ -3055,6 +3234,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3114,6 +3296,9 @@ public class JNIFunctions {
    *                          arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID an id of a MethodReference
@@ -3121,6 +3306,9 @@ public class JNIFunctions {
    * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3180,12 +3368,18 @@ public class JNIFunctions {
    *                       arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 

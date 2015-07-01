@@ -333,6 +333,30 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract Address sysDlsym(Address libHandler, byte[] symbolName);
 
+  // var args
+  @SysCallTemplate
+  public abstract Address sysVaCopy(Address va_list);
+  @SysCallTemplate
+  public abstract void sysVaEnd(Address va_list);
+  @SysCallTemplate
+  public abstract boolean sysVaArgJboolean(Address va_list);
+  @SysCallTemplate
+  public abstract byte sysVaArgJbyte(Address va_list);
+  @SysCallTemplate
+  public abstract char sysVaArgJchar(Address va_list);
+  @SysCallTemplate
+  public abstract short sysVaArgJshort(Address va_list);
+  @SysCallTemplate
+  public abstract int sysVaArgJint(Address va_list);
+  @SysCallTemplate
+  public abstract long sysVaArgJlong(Address va_list);
+  @SysCallTemplate
+  public abstract float sysVaArgJfloat(Address va_list);
+  @SysCallTemplate
+  public abstract double sysVaArgJdouble(Address va_list);
+  @SysCallTemplate
+  public abstract int sysVaArgJobject(Address va_list);
+
   // system calls for alignment checking
   @SysCallTemplate
   public abstract void sysEnableAlignmentChecking();

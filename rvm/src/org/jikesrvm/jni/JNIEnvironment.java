@@ -19,6 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -498,6 +499,7 @@ public final class JNIEnvironment {
    */
   public static void initFunctionTable(FunctionTable functions) {
     JNIFunctions = functions;
+    BootRecord.the_boot_record.JNIFunctions = functions;
     if (VM.BuildForPower64ELF_ABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
       linkageTriplets = LinkageTripletTable.allocate(functions.length());
