@@ -762,25 +762,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the JREF index for the object returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, null, false);
-      return env.pushJNIRef(returnObj);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, null /* return type */, false);
+    return env.pushJNIRef(returnObj);
   }
 
   /**
@@ -840,25 +830,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the boolean value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Boolean, false);
-      return Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return false;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Boolean, false);
+    return Reflection.unwrapBoolean(returnObj);
   }
 
   /**
@@ -918,25 +898,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the byte value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Byte, false);
-      return Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Byte, false);
+    return Reflection.unwrapByte(returnObj);
   }
 
   /**
@@ -996,25 +966,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the char value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Char, false);
-      return Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Char, false);
+    return Reflection.unwrapChar(returnObj);
   }
 
   /**
@@ -1074,25 +1034,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the short value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Short, false);
-      return Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Short, false);
+    return Reflection.unwrapShort(returnObj);
   }
 
   /**
@@ -1152,25 +1102,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the integer value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Int, false);
-      return Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Int, false);
+    return Reflection.unwrapInt(returnObj);
   }
 
   /**
@@ -1230,25 +1170,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the long value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Long, false);
-      return Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Long, false);
+    return Reflection.unwrapLong(returnObj);
   }
 
   /**
@@ -1308,25 +1238,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the float value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Float, false);
-      return Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Float, false);
+    return Reflection.unwrapFloat(returnObj);
   }
 
   /**
@@ -1386,25 +1306,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the double value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Double, false);
-      return Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Double, false);
+    return Reflection.unwrapDouble(returnObj);
   }
 
   /**
@@ -1458,22 +1368,13 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Void, false);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-    }
+    JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Void, false);
   }
 
   /**
@@ -1537,25 +1438,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the JREF index for the object returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualObjectMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, null, true);
-      return env.pushJNIRef(returnObj);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, null /* return type */, true);
+    return env.pushJNIRef(returnObj);
   }
 
   /**
@@ -1619,25 +1510,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the boolean value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallNonvirtualBooleanMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Boolean, true);
-      return Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return false;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Boolean, true);
+    return Reflection.unwrapBoolean(returnObj);
   }
 
   /**
@@ -1701,25 +1582,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @param classJREF a JREF index for the class object that declares this method
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the byte value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static byte CallNonvirtualByteMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Byte, true);
-      return Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Byte, true);
+    return Reflection.unwrapByte(returnObj);
   }
 
   /**
@@ -1783,25 +1654,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the char value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static char CallNonvirtualCharMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Char, true);
-      return Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Char, true);
+    return Reflection.unwrapChar(returnObj);
   }
 
   /**
@@ -1865,25 +1726,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the short value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static short CallNonvirtualShortMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Short, true);
-      return Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Short, true);
+    return Reflection.unwrapShort(returnObj);
   }
 
   /**
@@ -1947,25 +1798,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the integer value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualIntMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Int, true);
-      return Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Int, true);
+    return Reflection.unwrapInt(returnObj);
   }
 
   /**
@@ -2029,25 +1870,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the long value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static long CallNonvirtualLongMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Long, true);
-      return Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Long, true);
+    return Reflection.unwrapLong(returnObj);
   }
 
   /**
@@ -2111,25 +1942,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the float value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static float CallNonvirtualFloatMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Float, true);
-      return Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Float, true);
+    return Reflection.unwrapFloat(returnObj);
   }
 
   /**
@@ -2193,25 +2014,15 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the double value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static double CallNonvirtualDoubleMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Double, true);
-      return Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Double, true);
+    return Reflection.unwrapDouble(returnObj);
   }
 
   /**
@@ -2269,22 +2080,13 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @throws Exception exceptions thrown by the called method
    */
   private static void CallNonvirtualVoidMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Void, true);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-    }
+    JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Void, true);
   }
 
   /**
@@ -2833,24 +2635,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the JREF index for the object returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, null);
-      return env.pushJNIRef(returnObj);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, null /* return type */, true);
+    return env.pushJNIRef(returnObj);
   }
 
   /**
@@ -2908,24 +2701,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the boolean value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethodA(JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Boolean);
-      return Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return false;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Boolean, true);
+    return Reflection.unwrapBoolean(returnObj);
   }
 
   /**
@@ -2983,24 +2767,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the byte value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Byte);
-      return Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Byte, true);
+    return Reflection.unwrapByte(returnObj);
   }
 
   /**
@@ -3058,24 +2833,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the char value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Char);
-      return Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Char, true);
+    return Reflection.unwrapChar(returnObj);
   }
 
   /**
@@ -3133,24 +2899,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the short value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Short);
-      return Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Short, true);
+    return Reflection.unwrapShort(returnObj);
   }
 
   /**
@@ -3216,16 +2973,8 @@ public class JNIFunctions {
   private static int CallStaticIntMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Int);
-      return Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Int, true);
+    return Reflection.unwrapInt(returnObj);
   }
 
   /**
@@ -3283,24 +3032,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the long value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Long);
-      return Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0L;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Long, true);
+    return Reflection.unwrapLong(returnObj);
   }
 
   /**
@@ -3358,24 +3098,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the float value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Float);
-      return Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0f;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Float, true);
+    return Reflection.unwrapFloat(returnObj);
   }
 
   /**
@@ -3433,24 +3164,15 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the double value returned from the method invocation
    * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Double);
-      return Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Double, true);
+    return Reflection.unwrapDouble(returnObj);
   }
 
   /**
@@ -3502,21 +3224,13 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Void);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-    }
+    JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Void, true);
   }
 
   /**

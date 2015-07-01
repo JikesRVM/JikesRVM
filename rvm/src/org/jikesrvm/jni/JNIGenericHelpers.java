@@ -16,6 +16,8 @@ import org.jikesrvm.VM;
 
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
@@ -23,6 +25,7 @@ import org.jikesrvm.classloader.UTF8Convert;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.StringUtilities;
 import org.vmmagic.unboxed.Address;
@@ -264,6 +267,29 @@ public abstract class JNIGenericHelpers {
     }
     // invoke the method
     return Reflection.invoke(targetMethod, null, obj, args, nonVirtual);
+  }
+
+
+  /**
+   * Dispatch method call, arguments in jvalue*
+   * @param obj this pointer for method to be invoked, or null if method is static
+   * @param mr reference to method to be invoked
+   * @param args argument array
+   * @param expectedReturnType a type reference for the expected return type
+   * @param nonVirtual should invocation be of the given method or should we use virtual dispatch on the object?
+   */
+  protected static Object callMethodJValuePtr(JNIEnvironment env, int objJREF, int methodID, Address argAddress, TypeReference expectedReturnType, boolean nonVirtual) throws InvocationTargetException {
+    RuntimeEntrypoints.checkJNICountDownToGC();
+    try {
+      Object obj = env.getJNIRef(objJREF);
+      MethodReference mr = MemberReference.getMethodRef(methodID);
+      Object[] args = packageParametersFromJValuePtr(mr, argAddress);
+      return callMethod(obj, mr, args, expectedReturnType, nonVirtual);
+    } catch (Throwable unexpected) {
+      if (JNIFunctions.traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return 0;
+    }
   }
 
   /**

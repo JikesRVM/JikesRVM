@@ -235,38 +235,6 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * Common code shared by the JNI functions CallStatic&lt;type&gt;MethodA
-   * @param methodID id of MemberReference
-   * @param argAddress a raw address for the argument array
-   * @param expectReturnType the return type of the method to be invoked
-   * @return an object that may be the return object or a wrapper for the primitive return value
-   * @throws Exception if the return type doesn't match the expected return type
-   */
-  public static Object invokeWithJValue(int methodID, Address argAddress, TypeReference expectReturnType)
-      throws Exception {
-    MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
-    return callMethod(null, mr, argObjectArray, expectReturnType, true);
-  }
-
-  /**
-   * Common code shared by the JNI functions Call&lt;type&gt;MethodA
-   * @param obj the object instance
-   * @param methodID id of MemberReference
-   * @param argAddress a raw address for the argument array
-   * @param expectReturnType the return type for checking purpose
-   * @param skip4Args received from the JNI function, passed on to Reflection.invoke()
-   * @return an object that may be the return object or a wrapper for the primitive return value
-   * @throws Exception if the return type doesn't match the expected return type
-   */
-  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
-                                        boolean skip4Args) throws Exception {
-    MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
-    return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
-  }
-
-  /**
    * Repackage the arguments passed as a variable argument list into an array of Object,
    * used by the JNI functions CallStatic&lt;type&gt;MethodV
    * @param targetMethod   The target {@link RVMMethod}

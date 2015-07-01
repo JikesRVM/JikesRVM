@@ -373,35 +373,6 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     }
   }
 
-  /**
-   * Common code shared by the JNI functions CallStatic<type>MethodA
-   * @param methodID a MemberReference id
-   * @param argAddress a raw address for the argument array
-   * @return an object that may be the return object or a wrapper for the primitive return value
-   */
-  public static Object invokeWithJValue(int methodID, Address argAddress, TypeReference expectReturnType)
-      throws Exception {
-    MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
-    return callMethod(null, mr, argObjectArray, expectReturnType, true);
-  }
-
-  /**
-   * Common code shared by the JNI functions Call<type>MethodA
-   * @param obj the object instance
-   * @param methodID a MemberReference id
-   * @param argAddress a raw address for the argument array
-   * @param expectReturnType the return type for checking purpose
-   * @param skip4Args received from the JNI function, passed on to Reflection.invoke()
-   * @return an object that may be the return object or a wrapper for the primitive return value
-   */
-  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
-                                        boolean skip4Args) throws Exception {
-    MethodReference mr = MemberReference.getMethodRef(methodID);
-    Object[] argObjectArray = packageParametersFromJValuePtr(mr, argAddress);
-    return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
-  }
-
   /* The method reads out parameters from registers saved in native->java glue stack frame (glueFP)
   * and the spill area of native stack frame (caller of glueFP).
   *
