@@ -272,11 +272,14 @@ public abstract class JNIGenericHelpers {
 
   /**
    * Dispatch method call, arguments in jvalue*
-   * @param obj this pointer for method to be invoked, or null if method is static
-   * @param mr reference to method to be invoked
-   * @param args argument array
+   * @param env the JNI environemnt for the thread
+   * @param objJREF a JREF index for the object
+   * @param methodID id of a MethodReference
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @param expectedReturnType a type reference for the expected return type
    * @param nonVirtual should invocation be of the given method or should we use virtual dispatch on the object?
+   * @return return value of the method (boxed if primitive)
+   * @throws InvocationTargetException when reflective invocation fails
    */
   protected static Object callMethodJValuePtr(JNIEnvironment env, int objJREF, int methodID, Address argAddress, TypeReference expectedReturnType, boolean nonVirtual) throws InvocationTargetException {
     RuntimeEntrypoints.checkJNICountDownToGC();
