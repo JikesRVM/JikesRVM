@@ -20,10 +20,10 @@ import org.mmtk.plan.TransitiveClosure;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
+import org.jikesrvm.jni.JNIGenericHelpers;
 import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
-import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.SpecializedScanMethod;
@@ -132,7 +132,7 @@ public final class Scanning extends org.mmtk.vm.Scanning {
 
     for (int i = start; i < end; i++) {
       Address functionAddressSlot = jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS);
-      if (implementedInJava(functionAddressSlot)) {
+      if (JNIGenericHelpers.implementedInJava(i)) {
         trace.processRootEdge(functionAddressSlot, true);
       } else {
         // Function implemented as a C function, must not be
@@ -157,18 +157,6 @@ public final class Scanning extends org.mmtk.vm.Scanning {
     for (int i = start; i < end; i++) {
       trace.processRootEdge(jniGlobalRefs.plus(i << LOG_BYTES_IN_ADDRESS), true);
     }
-  }
-
-  /**
-   * @param functionAddressSlot address of the slot in the JNI function table
-   * @return {@code true} if the function is implemented in Java (i.e.
-   *  its code is in org.jikesrvm.jni.JNIFunctions) and {@code false}
-   *  if the function is implemented in C (i.e. its code is in the
-   *  bootloader)
-   */
-  private static boolean implementedInJava(Address functionAddressSlot) {
-    Address functionAddress = functionAddressSlot.loadAddress();
-    return MemoryManager.addressInVM(functionAddress);
   }
 
   /**

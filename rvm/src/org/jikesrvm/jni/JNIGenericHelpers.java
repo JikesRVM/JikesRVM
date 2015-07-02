@@ -28,6 +28,7 @@ import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.StringUtilities;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -343,6 +344,37 @@ public abstract class JNIGenericHelpers {
       }
     }
     return argObjectArray;
+  }
+
+  /**
+   * @param functionTableIndex slot in the JNI function table
+   * @return {@code true} if the function is implemented in Java (i.e.
+   *  its code is in org.jikesrvm.jni.JNIFunctions) and {@code false}
+   *  if the function is implemented in C (i.e. its code is in the
+   *  bootloader)
+   */
+  @Uninterruptible
+  public static boolean implementedInJava(int functionTableIndex) {
+    if (VM.BuildForPowerPC) {
+      return true;
+    }
+    // Indexes for the JNI functions are fixed according to the JNI
+    // specification and there is no need for links from functions
+    // to their indexes for anything else, so they're hardcoded here.
+    switch (functionTableIndex) {
+      case 28:
+      case 34: case 37: case 40: case 43:
+      case 46: case 49: case 52: case 55:
+      case 58: case 61: case 64: case 67:
+      case 70: case 73: case 76: case 79:
+      case 82: case 85: case 88: case 91:
+      case 114: case 117: case 120: case 123:
+      case 126: case 129: case 132: case 135:
+      case 138: case 141:
+        return false;
+      default:
+        return true;
+    }
   }
 
 }
