@@ -213,6 +213,10 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
   int prefixes_done;
   int has_variable_immediate = 0; // either 16 or 32 bits in non-x64 mode, 32 bits is default
   int operand_size_override = 0;
+  int has_rex_prefix = 0;
+  // w field in rex byte. If 1, operand size is 64-bit and operand size overrides are ignored
+  int rex_w_byte = 0;
+
   if (!inRVMAddressSpace(faultingInstructionAddress)) {
     ERROR_PRINTF("%s: Failing instruction starting at %x wasn't in RVM address space\n",
         Me, faultingInstructionAddress);
@@ -244,8 +248,11 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
 #ifdef __x86_64__
   /* handle any REX prefix */
   if (opcode >= 0x40 && opcode <= 0x4F) {
+    has_rex_prefix = 1;
     opcode = ((unsigned char*)faultingInstructionAddress)[size];
     size++;
+    // extract w byte which is necessary to determine operand sizes
+    rex_w_byte = (opcode >> 3) & 1;
   }
 #endif __x86_64__
 
@@ -347,13 +354,15 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
       size += decodeModRMLength(modrmAddr); // account for the size of the modrm
       break;
     case 0x0B: case 0x13: case 0x1B: case 0x23: // op r, r/m
-    case 0x2B: case 0x33: case 0x3A: case 0x3B: case 0x8A:
-    case 0x8B:
+    case 0x28: case 0x2B:
+    case 0x33: case 0x3A: case 0x3B:
+    case 0x8A: case 0x8B:
 
     case 0x00: case 0x01: case 0x02: case 0x03: // op r/m, r
     case 0x09: case 0x11: case 0x19: case 0x21:
     case 0x29: case 0x31: case 0x38: case 0x39:
 
+    case 0x63: // movsxd (op code not used by our compiler for 32 bit)
     case 0x84: case 0x85: // test
     case 0x88: // mov
     case 0x89: // mov r/m, r
@@ -439,10 +448,20 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
   }
 
   if (has_variable_immediate == 1) {
-    if (operand_size_override == 1) {
-      size += 2;
-    } else {
-      size += 4;
+    if (has_rex_prefix == 1) { // 64 bit instruction
+      if (rex_w_byte == 1) {
+        size += 8; // all operand overrides are ignored, width is 64 bit
+      } else if (operand_size_override == 1) {
+        size += 2; // no w byte and operand size overrides means 16 bit operands
+      } else {
+        size += 4; // default operand size is always 32 bit
+      }
+    } else { // normal instruction
+      if (operand_size_override == 1) {
+        size += 2; // operand size override for non-64 bit instructions means 16 bit
+      } else {
+        size += 4; // default operand size is always 32 bit
+      }
     }
   }
 
