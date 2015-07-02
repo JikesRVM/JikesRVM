@@ -661,6 +661,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   private void boundsCheckHelper(Offset index, Offset arrayRef) {
     stackMoveHelper(T0, index); // T0 is array index
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     stackMoveHelper(S0, arrayRef); // S0 is array ref
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
   }
