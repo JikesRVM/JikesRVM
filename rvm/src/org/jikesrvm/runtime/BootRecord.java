@@ -156,7 +156,7 @@ public class BootRecord {
   /** size of a virtual memory page in bytes */
   public Extent bytesInPage;
 
-  @Untraced
+  @Untraced // because bootloader code must be able to access it
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
   // C-style termination with sentinel values
   /**
@@ -186,6 +186,7 @@ public class BootRecord {
   /**
    * Reference to JNI function table
    */
+  @Untraced // because bootloader code must be able to access it
   public FunctionTable JNIFunctions;
 
   // Additional RVM entrypoints

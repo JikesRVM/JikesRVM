@@ -60,6 +60,7 @@ public final class JNIEnvironment {
    * This is the shared JNI function table used by native code
    * to invoke methods in @link{JNIFunctions}.
    */
+  @Untraced // because bootloader code must be able to access it
   public static FunctionTable JNIFunctions;
 
   /**
