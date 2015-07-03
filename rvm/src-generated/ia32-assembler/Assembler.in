@@ -1648,7 +1648,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitIMUL2_Reg_Imm(GPR dstReg, int imm) {
     int miStart = mi;
-    generateREXprefix(false, dstReg, null, null);
+    generateREXprefix(false, dstReg, null, dstReg);
     if (fits(imm,8)) {
       setMachineCodes(mi++, (byte) 0x6B);
       emitRegRegOperands(dstReg, dstReg);
@@ -1724,7 +1724,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitIMUL2_Reg_Imm_Quad(GPR dstReg, int imm) {
     int miStart = mi;
-    generateREXprefix(true, dstReg, null, null);
+    generateREXprefix(true, dstReg, null, dstReg);
     if (fits(imm,8)) {
       setMachineCodes(mi++, (byte) 0x6B);
       emitRegRegOperands(dstReg, dstReg);
