@@ -467,6 +467,16 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * emitted.
    */
   private static final byte SIBforESP = (byte) ((0<<6) + (4<<3) + ESP.value()); // (scale factor 1) no index, ESP is base
+  
+  /**
+   * In the representation of addressing modes in the ModRM and SIB
+   * bytes, the code for register-displacement for on R12 has a
+   * special meaning.  Thus, when register-displacement mode using R12
+   * is desired, this special SIB (scale-index-base) byte must be
+   * emitted.
+   */
+  private static final byte SIBforR12 = VM.buildFor32Addr() ? 0 :
+    (byte) ((0<<6) + (4<<3) + (R12.value() & 0x7)); // (scale factor 1) no index, R12 is base
 
   /**
    * Generate a REX prefix if necessary
@@ -587,6 +597,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   private void emitRegDisp32RegOperands(MachineRegister reg1, int disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+    if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
     emitImm32(disp);
   }
 
@@ -607,6 +618,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   private void emitRegDisp8RegOperands(MachineRegister reg1, byte disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+    if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
     emitImm8(disp);
   }
 
@@ -655,9 +667,12 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   private void emitRegIndirectRegOperands(MachineRegister reg1, MachineRegister reg2) {
     if (reg1 == EBP) {
       emitRegDispRegOperands(reg1, Offset.zero(), reg2);
+    } else if (reg1 == R13) {
+      emitRegDispRegOperands(reg1, Offset.zero(), reg2);
     } else {
       setMachineCodes(mi++, regIndirectRegModRM(reg1, reg2));
       if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+      if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
     }
   }
 
@@ -714,7 +729,8 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,5})
   private void emitSIBRegOperands(MachineRegister base, MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     if (VM.VerifyAssertions) VM._assert(index != ESP);
-    if (disp.EQ(Offset.zero()) && base != EBP) {
+    if (VM.VerifyAssertions) VM._assert(index != R12);
+    if (disp.EQ(Offset.zero()) && base != EBP && base != R13) {
       setMachineCodes(mi++, regIndirectRegModRM(ESP, reg2));
       setMachineCodes(mi++, sib(scale, base, index));
     } else if (fits(disp,8)) {
