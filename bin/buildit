@@ -99,6 +99,9 @@ Building Options:
      --timestamp-file Print contents of the timestamp file at the beginning and end of the build 
                         Note: Cross-building (i.e. different host and target is not supported by this option)
      --host-name      Use the argument for host.name instead of reading it from the config file
+                        Use in conjunction with --target-name.
+     --target-name    Use the argument for target.name instead of reading it from the config file
+                        Use in conjunction with --host-name.
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -148,6 +151,7 @@ GetOptions(
   "s|suffix=s" => \$suffix,
   "m|mmtk-config=s" => \$mmtk_config,
   "host-name=s" => \$custom_host_name,
+  "target-name=s" => \$custom_target_name,
   "nuke" => \$nuke,
   "answer-yes" => \$answeryes,
   "c|cross-to=s" => \$target,
@@ -363,7 +367,9 @@ if ($custom_host_name ne "") {
   $hostConfig = $config{"global.arch.".$host_info[1]}."-".$config{"global.os.".$host_info[0]};
 }
 
-if ($config{"$target.host-type"} ne "") {
+if ($custom_target_name ne "") {
+  $targetConfig = $custom_target_name;
+} elsif ($config{"$target.host-type"} ne "") {
   $targetConfig = $config{"$target.host-type"};
 } else {
   @target_info = split(" ", `$sshTargetCmd 'uname -ms'`);
