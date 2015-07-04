@@ -161,7 +161,7 @@ EXTERNAL void setupDumpStackAndDie(void *context)
  *          vmRegisters [out]
  */
 EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
-             int trapCode, int trapInfo,
+             int trapCode, Word trapInfo,
              Address instructionPtr,
              Address instructionFollowingPtr,
              Address threadPtr, Address jtocPtr,

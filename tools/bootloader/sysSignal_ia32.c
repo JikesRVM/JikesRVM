@@ -560,7 +560,7 @@ EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int si
  *          vmRegisters [out]
  */
 EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
-             int trapCode, int trapInfo,
+             int trapCode, Word trapInfo,
              Address instructionPtr,
              Address instructionFollowingPtr,
              Address threadPtr, Address jtocPtr,
@@ -629,7 +629,7 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
   TRACE_PRINTF("%s: trap code is %d\n", Me, trapCode);
 
   sp = sp - __SIZEOF_POINTER__; /* next parameter is trap info */
-  ((int *)sp)[0] = trapInfo;
+  ((Word *)sp)[0] = trapInfo;
   IA32_EDX(context) = trapInfo;
   TRACE_PRINTF("%s: trap info is %d\n", Me, trapInfo);
 
