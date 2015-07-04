@@ -98,6 +98,7 @@ Building Options:
      --answer-yes     Answer yes for all messages from the script that require confirmation. This option may be useful for headless builds.
      --timestamp-file Print contents of the timestamp file at the beginning and end of the build 
                         Note: Cross-building (i.e. different host and target is not supported by this option)
+     --host-name      Use the argument for host.name instead of reading it from the config file
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -146,6 +147,7 @@ use Getopt::Long qw(:config no_auto_abbrev bundling);
 GetOptions(
   "s|suffix=s" => \$suffix,
   "m|mmtk-config=s" => \$mmtk_config,
+  "host-name=s" => \$custom_host_name,
   "nuke" => \$nuke,
   "answer-yes" => \$answeryes,
   "c|cross-to=s" => \$target,
@@ -351,7 +353,9 @@ if (! -e $localRoot . "/rvm") {
   bad_usage("rvm root does not point to a valid source tree");
 }
 
-if ($config{"$host.host-type"} ne "") {
+if ($custom_host_name ne "") {
+  $hostConfig = $custom_host_name;
+} elsif ($config{"$host.host-type"} ne "") {
   $hostConfig = $config{"$host.host-type"};
 } else {
   @host_info = split(" ", `$sshHostCmd 'uname -ms'`);
