@@ -391,6 +391,7 @@ public class GenerateInterfaceDeclarations {
     pln("Runtime_TRAP_JNI_STACK", RuntimeEntrypoints.TRAP_JNI_STACK);
     pln("Runtime_TRAP_MUST_IMPLEMENT", RuntimeEntrypoints.TRAP_MUST_IMPLEMENT);
     pln("Runtime_TRAP_STORE_CHECK", RuntimeEntrypoints.TRAP_STORE_CHECK);
+    pln("Runtime_TRAP_UNREACHABLE_BYTECODE", RuntimeEntrypoints.TRAP_UNREACHABLE_BYTECODE);
     pln();
 
     // fields in RVMThread

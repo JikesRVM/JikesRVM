@@ -537,6 +537,8 @@ EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int si
             return Runtime_TRAP_MUST_IMPLEMENT;
           case Constants_RVM_TRAP_BASE + Runtime_TRAP_STORE_CHECK:
             return Runtime_TRAP_STORE_CHECK;
+          case Constants_RVM_TRAP_BASE + Runtime_TRAP_UNREACHABLE_BYTECODE:
+            return Runtime_TRAP_UNREACHABLE_BYTECODE;
           default:
             ERROR_PRINTF("%s: Unexpected trap code in int imm instruction 0x%x\n", Me, (unsigned int) code);
             return Runtime_TRAP_UNKNOWN;

@@ -157,6 +157,17 @@ public abstract class TemplateCompilerFramework
     }
   }
 
+  /**
+   * @param method the method that contains the bytecode that produces an
+   *  empty basic block
+   * @return the stack height for a basic block with an empty stack. In a
+   *  basic with an empty stack, space for local variables still needs to
+   *  be reserved.
+   */
+  public static final int stackHeightForEmptyBasicBlock(NormalMethod method) {
+    return method.getLocalWords() - 1;   // -1 to locate the last "local" index
+  }
+
   final int[] getBytecodeMap() {
     return bytecodeMap;
   }

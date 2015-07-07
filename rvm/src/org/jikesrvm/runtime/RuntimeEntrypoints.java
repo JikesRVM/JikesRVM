@@ -99,6 +99,10 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
   public static final int TRAP_MUST_IMPLEMENT = 7;
   public static final int TRAP_STORE_CHECK = 8; // opt-compiler
   public static final int TRAP_STACK_OVERFLOW_FATAL = 9; // assertion checking
+  public static final int TRAP_UNREACHABLE_BYTECODE = 10; // IA32 baseline compiler assertion
+
+  private static final String UNREACHABLE_BC_MESSAGE = "Attempted to execute " +
+  "a bytecode that was determined to be unreachable!";
 
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
@@ -758,6 +762,9 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
           case TRAP_STORE_CHECK:
             VM.sysWriteln("\nFatal error: ArrayStoreException within uninterruptible region.");
             break;
+          case TRAP_UNREACHABLE_BYTECODE:
+            VM.sysWriteln("\nFatal error: Reached a bytecode that was determined to be unreachable within uninterruptible region.");
+            break;
           default:
             VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
           break;
@@ -793,6 +800,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
       case TRAP_STORE_CHECK:
         exceptionObject = new java.lang.ArrayStoreException();
         break;
+      case TRAP_UNREACHABLE_BYTECODE:
+        exceptionObject = new java.lang.InternalError(UNREACHABLE_BC_MESSAGE);
       default:
         exceptionObject = new java.lang.UnknownError();
         RVMThread.traceback("UNKNOWN ERROR");

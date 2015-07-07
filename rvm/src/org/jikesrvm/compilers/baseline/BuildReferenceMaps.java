@@ -167,7 +167,7 @@ final class BuildReferenceMaps {
     paramCount = method.getParameterWords();
     if (!method.isStatic()) paramCount++;
 
-    currBBStkEmpty = method.getLocalWords() - 1;   // -1 to locate the last "local" index
+    currBBStkEmpty = TemplateCompilerFramework.stackHeightForEmptyBasicBlock(method);
 
     if (debug) VM.sysWrite("getLocalWords() : " + method.getLocalWords() + "\n");
 
