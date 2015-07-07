@@ -770,7 +770,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
           break;
           }
           VM.sysWrite("trapCode = ", trapCode);
-        VM.sysWriteln("trapInfo = ", trapInfo.toAddress());
+          VM.sysWriteln("trapInfo = ", trapInfo.toAddress());
           VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
         }
       }
