@@ -110,7 +110,7 @@ final class BuildReferenceMaps {
     byte[] currBBMap;           // The current map, used during processing thru a block
     int currBBStkTop;          // Stack top for the current map
 
-    int currBBStkEmpty;        // Level when stack is empty - value depends on number of locals
+    final int currBBStkEmpty;  // Level when stack is empty - value depends on number of locals
     int paramCount;            // Number of parameters to the method being processed
 
     // Variables for processing JSR instructions, RET instructions and JSR subroutines
@@ -397,6 +397,14 @@ final class BuildReferenceMaps {
         int biStart = bcodes.index();
         int opcode = bcodes.nextInstruction();
         if (stackHeights != null) {
+          if (VM.VerifyAssertions) {
+            if (currBBStkTop < currBBStkEmpty) {
+              String msg = "Stack height for current basic block is " +
+                  currBBStkTop + " which is less than the stack height for " +
+                  "an empty block (" + currBBStkEmpty + ").";
+              VM._assert(VM.NOT_REACHED, msg);
+            }
+          }
           stackHeights[biStart] = currBBStkTop;
         }
 
