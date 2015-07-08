@@ -1571,24 +1571,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_f2i() {
     if (SSE2_BASE) {
-      // Set up max int in XMM0
-      asm.emitMOVSS_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxintFloatField.getOffset()));
-      // Set up value in XMM1
-      asm.emitMOVSS_Reg_RegInd(XMM1, SP);
-      // if value > maxint or NaN goto fr1; FP0 = value
-      asm.emitUCOMISS_Reg_Reg(XMM0, XMM1);
-      ForwardReference fr1 = asm.forwardJcc(LLE);
-      asm.emitCVTTSS2SI_Reg_Reg(T0, XMM1);
-      asm.emitMOV_RegInd_Reg(SP, T0);
-      ForwardReference fr2 = asm.forwardJMP();
+      // Set up value in XMM0
+      asm.emitMOVSS_Reg_RegInd(XMM0, SP);
+      asm.emitXOR_Reg_Reg(T1, T1);         // adjust = 0
+      asm.emitXOR_Reg_Reg(T0, T0);         // result = 0
+      // value cmp maxint
+      asm.emitUCOMISS_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxintFloatField.getOffset()));
+      ForwardReference fr1 = asm.forwardJcc(PE); // if NaN goto fr1
+      asm.emitSET_Cond_Reg_Byte(LGE, T1); // T1 = (value >= maxint) ? 1 : 0;
+      asm.emitCVTTSS2SI_Reg_Reg(T0, XMM0); // T0 = (int)value, or 0x80000000 if value > maxint
+      asm.emitSUB_Reg_Reg(T0, T1);         // T0 = T0 - T1, ie fix max int case
       fr1.resolve(asm);
-      ForwardReference fr3 = asm.forwardJcc(PE); // if value == NaN goto fr3
-      asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
-      ForwardReference fr4 = asm.forwardJMP();
-      fr3.resolve(asm);
-      asm.emitMOV_RegInd_Imm(SP, 0);
-      fr2.resolve(asm);
-      fr4.resolve(asm);
+      asm.emitMOV_RegInd_Reg(SP,T0);       // push result
     } else {
       // TODO: use x87 operations to do this conversion inline taking care of
       // the boundary cases that differ between x87 and Java
@@ -1652,49 +1646,37 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       fr2.resolve(asm);
       fr4.resolve(asm);
     } else {
-      // Set up max int in XMM0
-      asm.emitMOVSS_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxlongFloatField.getOffset()));
-      // Set up value in XMM1
-      asm.emitMOVSS_Reg_RegInd(XMM1, SP);
-      // if value > maxint or NaN goto fr1; FP0 = value
-      asm.emitUCOMISS_Reg_Reg(XMM0, XMM1);
-      ForwardReference fr1 = asm.forwardJcc(LLE);
-      asm.emitCVTTSS2SI_Reg_Reg_Quad(T0, XMM1);
-      ForwardReference fr2 = asm.forwardJMP();
+      // Set up value in XMM0
+      asm.emitMOVSS_Reg_RegInd(XMM0, SP);
+      asm.emitXOR_Reg_Reg(T1, T1);         // adjust = 0
+      asm.emitXOR_Reg_Reg(T0, T0);         // result = 0
+      // value cmp maxlong
+      asm.emitUCOMISS_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxlongFloatField.getOffset()));
+      ForwardReference fr1 = asm.forwardJcc(PE); // if NaN goto fr1
+      asm.emitSET_Cond_Reg_Byte(LGE, T1); // T1 = (value >= maxint) ? 1 : 0;
+      asm.emitCVTTSS2SI_Reg_Reg_Quad(T0, XMM0); // T0 = (int)value, or 0x80000000 if value > maxint
+      asm.emitSUB_Reg_Reg_Quad(T0, T1);         // T0 = T0 - T1, ie fix max long case
       fr1.resolve(asm);
-      ForwardReference fr3 = asm.forwardJcc(PE); // if value == NaN goto fr3
-      asm.emitMOV_Reg_Imm_Quad(T0, 0x7FFFFFFFFFFFFFFFL);
-      ForwardReference fr4 = asm.forwardJMP();
-      fr3.resolve(asm);
-      asm.emitXOR_Reg_Reg(T0, T0);
-      fr2.resolve(asm);
-      fr4.resolve(asm);
-      asm.emitPUSH_Reg(T0);
+      asm.emitPUSH_Reg(T0);               // push result
     }
   }
 
   @Override
   protected final void emit_d2i() {
     if (SSE2_BASE) {
-      // Set up max int in XMM0
-      asm.emitMOVSD_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxintField.getOffset()));
-      // Set up value in XMM1
-      asm.emitMOVSD_Reg_RegInd(XMM1, SP);
-      adjustStack(WORDSIZE, true); // throw away slot
-      // if value > maxint or NaN goto fr1; FP0 = value
-      asm.emitUCOMISD_Reg_Reg(XMM0, XMM1);
-      ForwardReference fr1 = asm.forwardJcc(LLE);
-      asm.emitCVTTSD2SI_Reg_Reg(T0, XMM1);
-      asm.emitMOV_RegInd_Reg(SP, T0);
-      ForwardReference fr2 = asm.forwardJMP();
+      // Set up value in XMM0
+      asm.emitMOVSD_Reg_RegInd(XMM0, SP);
+      adjustStack(2 * WORDSIZE, true);       // throw away slots
+      asm.emitXOR_Reg_Reg(T1, T1);         // adjust = 0
+      asm.emitXOR_Reg_Reg(T0, T0);         // result = 0
+      // value cmp maxint
+      asm.emitUCOMISD_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxintField.getOffset()));
+      ForwardReference fr1 = asm.forwardJcc(PE); // if NaN goto fr1
+      asm.emitSET_Cond_Reg_Byte(LGE, T1); // T1 = (value >= maxint) ? 1 : 0;
+      asm.emitCVTTSD2SI_Reg_Reg(T0, XMM0); // T0 = (int)value, or 0x80000000 if value > maxint
+      asm.emitSUB_Reg_Reg(T0, T1);         // T0 = T0 - T1, ie fix max int case
       fr1.resolve(asm);
-      ForwardReference fr3 = asm.forwardJcc(PE); // if value == NaN goto fr3
-      asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
-      ForwardReference fr4 = asm.forwardJMP();
-      fr3.resolve(asm);
-      asm.emitMOV_RegInd_Imm(SP, 0);
-      fr2.resolve(asm);
-      fr4.resolve(asm);
+      asm.emitPUSH_Reg(T0);                // push result
     } else {
       // TODO: use x87 operations to do this conversion inline taking care of
       // the boundary cases that differ between x87 and Java
@@ -1759,25 +1741,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       fr2.resolve(asm);
       fr4.resolve(asm);
     } else {
-      // Set up max int in XMM0
-      asm.emitMOVSD_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxlongField.getOffset()));
-      // Set up value in XMM1
-      asm.emitMOVSD_Reg_RegInd(XMM1, SP);
-      adjustStack(WORDSIZE, true);
-      // if value > maxint or NaN goto fr1; FP0 = value
-      asm.emitUCOMISD_Reg_Reg(XMM0, XMM1);
-      ForwardReference fr1 = asm.forwardJcc(LLE);
-      asm.emitCVTTSD2SIQ_Reg_Reg_Quad(T0, XMM1);
-      ForwardReference fr2 = asm.forwardJMP();
+      // Set up value in XMM0
+      asm.emitMOVSD_Reg_RegInd(XMM0, SP);
+      asm.emitXOR_Reg_Reg(T1, T1);         // adjust = 0
+      asm.emitXOR_Reg_Reg(T0, T0);         // result = 0
+      // value cmp maxlong
+      asm.emitUCOMISD_Reg_Abs(XMM0, Magic.getTocPointer().plus(Entrypoints.maxlongField.getOffset()));
+      ForwardReference fr1 = asm.forwardJcc(PE); // if NaN goto fr1
+      asm.emitSET_Cond_Reg_Byte(LGE, T1); // T1 = (value >= maxlong) ? 1 : 0;
+      asm.emitCVTTSD2SIQ_Reg_Reg_Quad(T0, XMM0); // T0 = (int)value, or 0x80...00 if value > maxlong
+      asm.emitSUB_Reg_Reg_Quad(T0, T1);          // T0 = T0 - T1, ie fix max long case
       fr1.resolve(asm);
-      ForwardReference fr3 = asm.forwardJcc(PE); // if value == NaN goto fr3
-      asm.emitMOV_Reg_Imm_Quad(T0, 0x7FFFFFFFFFFFFFFFL);
-      ForwardReference fr4 = asm.forwardJMP();
-      fr3.resolve(asm);
-      asm.emitXOR_Reg_Reg(T0, T0);
-      fr2.resolve(asm);
-      fr4.resolve(asm);
-      asm.emitPUSH_Reg(T0);
+      asm.emitMOV_RegInd_Reg_Quad(SP, T0); // push result
     }
   }
 
