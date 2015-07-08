@@ -308,6 +308,9 @@ Lgnu/java/util/WeakIdentityHashMap$WeakBucket;
 Lgnu/java/util/WeakIdentityHashMap$WeakBucket$WeakEntry;
 [Lgnu/java/util/WeakIdentityHashMap$WeakBucket;
 
+Ljava/util/ArrayDeque;
+Ljava/util/Deque;
+
 # class loaders
 Ljava/lang/ClassLoader;
 Ljava/lang/ClassLoader$1;
@@ -576,3 +579,37 @@ Lgnu/java/util/regex/RETokenAny;
 Lgnu/java/util/regex/RETokenRepeated;
 Lgnu/java/util/regex/RETokenWordBoundary;
 Ljava/security/MessageDigest;
+
+# More needed primordials
+[Ljava/security/MessageDigest;
+Lgnu/java/util/regex/BacktrackStack$Backtrack;
+[Lgnu/java/util/regex/BacktrackStack$Backtrack;
+Lgnu/java/util/regex/RE$CharExpression;
+Lgnu/java/util/regex/RE$NamedProperty;
+Lgnu/java/util/regex/RE$ParseCharClassResult;
+Lgnu/java/util/regex/REException;
+Lgnu/java/util/regex/REFilterInputStream;
+Lgnu/java/util/regex/REMatchEnumeration;
+Lgnu/java/util/regex/RETokenBackRef;
+Lgnu/java/util/regex/RETokenEndOfPreviousMatch; 
+Lgnu/java/util/regex/RETokenIndependent;
+Lgnu/java/util/regex/RETokenLookAhead;
+Lgnu/java/util/regex/RETokenLookBehind$RETokenMatchHereOnly;
+Lgnu/java/util/regex/RETokenLookBehind;
+Lgnu/java/util/regex/RETokenNamedProperty$1;
+Lgnu/java/util/regex/RETokenNamedProperty$Handler;
+Lgnu/java/util/regex/RETokenNamedProperty$JavaCategoryHandler;
+Lgnu/java/util/regex/RETokenNamedProperty$POSIXHandler;
+Lgnu/java/util/regex/RETokenNamedProperty$UnicodeBlockHandler;
+Lgnu/java/util/regex/RETokenNamedProperty$UnicodeCategoriesHandler;
+Lgnu/java/util/regex/RETokenNamedProperty$UnicodeCategoryHandler;
+Lgnu/java/util/regex/RETokenNamedProperty;
+Lgnu/java/util/regex/RETokenOneOf;
+Lgnu/java/util/regex/RETokenPOSIX;
+Lgnu/java/util/regex/RETokenRange;
+Lgnu/java/util/regex/RETokenRepeated$DoablesFinder;
+Lgnu/java/util/regex/RETokenRepeated$FindMatchControl;
+Lgnu/java/util/regex/RETokenRepeated$StackedInfo;
+Lgnu/java/util/regex/RETokenRepeated$TryAnotherResult;
+Lgnu/java/util/regex/RETokenStart;
+Lgnu/java/util/regex/UncheckedRE;
