@@ -72,7 +72,9 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.jni.ppc.JNICompiler;
 import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
+
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.BaselineConstants;
@@ -84,6 +86,7 @@ import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -1765,78 +1768,24 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   @Override
-  protected final void emit_fcmpl() {
-    popFloat(F1);
-    popFloat(F0);
+  protected void emit_DFcmpGL(boolean single, boolean unorderedGT) {
+    if (single) {
+      popFloat(F1);
+      popFloat(F0);
+    } else {
+      popDouble(F1);
+      popDouble(F0);
+    }
+    asm.emitLVAL(T0, unorderedGT ? -1 : 1); // pre-load T0
     asm.emitFCMPU(F0, F1);
-    ForwardReference fr1 = asm.emitForwardBC(LE);
-    asm.emitLVAL(T0, 1); // the GT bit of CR0
-    ForwardReference fr2 = asm.emitForwardB();
-    fr1.resolve(asm);
-    ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLVAL(T0, -1); // the LT or UO bits of CR0
-    ForwardReference fr4 = asm.emitForwardB();
-    fr3.resolve(asm);
+    ForwardReference golden = asm.emitForwardBC(unorderedGT ? LT : GT); // value in T0 is good
+    ForwardReference equals = asm.emitForwardBC(EQ); // branch and zero T0
+    asm.emitLVAL(T0, unorderedGT ? 1 : -1); // value is either unordered or GT/LT
+    ForwardReference unordered = asm.emitForwardB();
+    equals.resolve(asm);
     asm.emitLVAL(T0, 0);
-    fr2.resolve(asm);
-    fr4.resolve(asm);
-    pushInt(T0);
-  }
-
-  @Override
-  protected final void emit_fcmpg() {
-    popFloat(F1);
-    popFloat(F0);
-    asm.emitFCMPU(F0, F1);
-    ForwardReference fr1 = asm.emitForwardBC(GE);
-    asm.emitLVAL(T0, -1);     // the LT bit of CR0
-    ForwardReference fr2 = asm.emitForwardB();
-    fr1.resolve(asm);
-    ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLVAL(T0, 1);     // the GT or UO bits of CR0
-    ForwardReference fr4 = asm.emitForwardB();
-    fr3.resolve(asm);
-    asm.emitLVAL(T0, 0);     // the EQ bit of CR0
-    fr2.resolve(asm);
-    fr4.resolve(asm);
-    pushInt(T0);
-  }
-
-  @Override
-  protected final void emit_dcmpl() {
-    popDouble(F1);
-    popDouble(F0);
-    asm.emitFCMPU(F0, F1);
-    ForwardReference fr1 = asm.emitForwardBC(LE);
-    asm.emitLVAL(T0, 1); // the GT bit of CR0
-    ForwardReference fr2 = asm.emitForwardB();
-    fr1.resolve(asm);
-    ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLVAL(T0, -1); // the LT or UO bits of CR0
-    ForwardReference fr4 = asm.emitForwardB();
-    fr3.resolve(asm);
-    asm.emitLVAL(T0, 0);
-    fr2.resolve(asm);
-    fr4.resolve(asm);
-    pushInt(T0);
-  }
-
-  @Override
-  protected final void emit_dcmpg() {
-    popDouble(F1);
-    popDouble(F0);
-    asm.emitFCMPU(F0, F1);
-    ForwardReference fr1 = asm.emitForwardBC(GE);
-    asm.emitLVAL(T0, -1); // the LT bit of CR0
-    ForwardReference fr2 = asm.emitForwardB();
-    fr1.resolve(asm);
-    ForwardReference fr3 = asm.emitForwardBC(EQ);
-    asm.emitLVAL(T0, 1); // the GT or UO bits of CR0
-    ForwardReference fr4 = asm.emitForwardB();
-    fr3.resolve(asm);
-    asm.emitLVAL(T0, 0); // the EQ bit of CR0
-    fr2.resolve(asm);
-    fr4.resolve(asm);
+    golden.resolve(asm);
+    unordered.resolve(asm);
     pushInt(T0);
   }
 
@@ -1844,94 +1793,38 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * branching
   */
 
+  /**
+   * @param bc the branch condition
+   * @return assembler constant equivalent for the branch condition
+   */
+  @Pure
+  private int mapCondition(BranchCondition bc) {
+    switch (bc) {
+      case EQ: return EQ;
+      case NE: return NE;
+      case LT: return LT;
+      case GE: return GE;
+      case GT: return GT;
+      case LE: return LE;
+      default: if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1;
+    }
+  }
+
   @Override
-  protected final void emit_ifeq(int bTarget) {
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
+  protected final void emit_if(int bTarget, BranchCondition bc) {
     popInt(T0);
     asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
-    genCondBranch(EQ, bTarget);
+    genCondBranch(mapCondition(bc), bTarget);
   }
 
   @Override
-  protected final void emit_ifne(int bTarget) {
-    popInt(T0);
-    asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
-    genCondBranch(NE, bTarget);
-  }
-
-  @Override
-  protected final void emit_iflt(int bTarget) {
-    popInt(T0);
-    asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
-    genCondBranch(LT, bTarget);
-  }
-
-  @Override
-  protected final void emit_ifge(int bTarget) {
-    popInt(T0);
-    asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
-    genCondBranch(GE, bTarget);
-  }
-
-  @Override
-  protected final void emit_ifgt(int bTarget) {
-    popInt(T0);
-    asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
-    genCondBranch(GT, bTarget);
-  }
-
-  @Override
-  protected final void emit_ifle(int bTarget) {
-    popInt(T0);
-    asm.emitADDICr(0, T0, 0); // T0 to 0 and sets CR0
-    genCondBranch(LE, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpeq(int bTarget) {
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
+  protected final void emit_if_icmp(int bTarget, BranchCondition bc) {
     popInt(T1);
     popInt(T0);
     asm.emitCMP(T0, T1);    // sets CR0
-    genCondBranch(EQ, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpne(int bTarget) {
-    popInt(T1);
-    popInt(T0);
-    asm.emitCMP(T0, T1);    // sets CR0
-    genCondBranch(NE, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmplt(int bTarget) {
-    popInt(T1);
-    popInt(T0);
-    asm.emitCMP(T0, T1);    // sets CR0
-    genCondBranch(LT, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpge(int bTarget) {
-    popInt(T1);
-    popInt(T0);
-    asm.emitCMP(T0, T1);    // sets CR0
-    genCondBranch(GE, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpgt(int bTarget) {
-    popInt(T1);
-    popInt(T0);
-    asm.emitCMP(T0, T1);    // sets CR0
-    genCondBranch(GT, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmple(int bTarget) {
-    popInt(T1);
-    popInt(T0);
-    asm.emitCMP(T0, T1);    // sets CR0
-    genCondBranch(LE, bTarget);
+    genCondBranch(mapCondition(bc), bTarget);
   }
 
   @Override

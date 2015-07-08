@@ -68,6 +68,7 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -1830,13 +1831,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     }
   }
 
-  /**
-   * Emits code to handle all [df]cmp[gl] cases
-   *
-   * @param single {@code true} for float [f], {@code false} for double [d]
-   * @param unorderedGT {@code true} for [g], {@code false} for [l]
-   */
-  private void emit_DFcmpGL(boolean single, boolean unorderedGT) {
+  @Override
+  protected void emit_DFcmpGL(boolean single, boolean unorderedGT) {
     if (SSE2_BASE) {
       if (single) {
         asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
@@ -1887,118 +1883,42 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     }
   }
 
-  @Override
-  protected final void emit_fcmpl() {
-    emit_DFcmpGL(true, false);
-  }
-
-  @Override
-  protected final void emit_fcmpg() {
-    emit_DFcmpGL(true, true);
-  }
-
-  @Override
-  protected final void emit_dcmpl() {
-    emit_DFcmpGL(false, false);
-  }
-
-  @Override
-  protected final void emit_dcmpg() {
-    emit_DFcmpGL(false, true);
-  }
-
   /*
    * branching
    */
 
+  /**
+   * @param bc the branch condition
+   * @return assembler constant equivalent for the branch condition
+   */
+  @Pure
+  private byte mapCondition(BranchCondition bc) {
+    switch (bc) {
+      case EQ: return EQ;
+      case NE: return NE;
+      case LT: return LT;
+      case GE: return GE;
+      case GT: return GT;
+      case LE: return LE;
+      default: if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1;
+    }
+  }
+
   @Override
-  protected final void emit_ifeq(int bTarget) {
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
+  protected final void emit_if(int bTarget, BranchCondition bc) {
     asm.emitPOP_Reg(T0);
     asm.emitTEST_Reg_Reg(T0, T0);
-    genCondBranch(EQ, bTarget);
+    genCondBranch(mapCondition(bc), bTarget);
   }
 
   @Override
-  protected final void emit_ifne(int bTarget) {
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
+  protected final void emit_if_icmp(int bTarget, BranchCondition bc) {
+    asm.emitPOP_Reg(T1);
     asm.emitPOP_Reg(T0);
-    asm.emitTEST_Reg_Reg(T0, T0);
-    genCondBranch(NE, bTarget);
-  }
-
-  @Override
-  protected final void emit_iflt(int bTarget) {
-    asm.emitPOP_Reg(T0);
-    asm.emitTEST_Reg_Reg(T0, T0);
-    genCondBranch(LT, bTarget);
-  }
-
-  @Override
-  protected final void emit_ifge(int bTarget) {
-    asm.emitPOP_Reg(T0);
-    asm.emitTEST_Reg_Reg(T0, T0);
-    genCondBranch(GE, bTarget);
-  }
-
-  @Override
-  protected final void emit_ifgt(int bTarget) {
-    asm.emitPOP_Reg(T0);
-    asm.emitTEST_Reg_Reg(T0, T0);
-    genCondBranch(GT, bTarget);
-  }
-
-  @Override
-  protected final void emit_ifle(int bTarget) {
-    asm.emitPOP_Reg(T0);
-    asm.emitTEST_Reg_Reg(T0, T0);
-    genCondBranch(LE, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpeq(int bTarget) {
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Reg(T0, S0);
-    genCondBranch(EQ, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpne(int bTarget) {
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Reg(T0, S0);
-    genCondBranch(NE, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmplt(int bTarget) {
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Reg(T0, S0);
-    genCondBranch(LT, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpge(int bTarget) {
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Reg(T0, S0);
-    genCondBranch(GE, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmpgt(int bTarget) {
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Reg(T0, S0);
-    genCondBranch(GT, bTarget);
-  }
-
-  @Override
-  protected final void emit_if_icmple(int bTarget) {
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Reg(T0, S0);
-    genCondBranch(LE, bTarget);
+    asm.emitCMP_Reg_Reg(T0, T1);
+    genCondBranch(mapCondition(bc), bTarget);
   }
 
   @Override

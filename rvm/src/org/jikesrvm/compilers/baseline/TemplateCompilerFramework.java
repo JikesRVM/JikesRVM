@@ -38,6 +38,7 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
 
@@ -120,6 +121,10 @@ public abstract class TemplateCompilerFramework
    * Is the method currently being compiled unpreemptible?
    */
   protected final boolean isUnpreemptible;
+
+  public static enum BranchCondition {
+    EQ, NE, LT, GE, GT, LE
+  }
 
   protected TemplateCompilerFramework(CompiledMethod cm) {
     compiledMethod = cm;
@@ -1159,133 +1164,85 @@ public abstract class TemplateCompilerFramework
 
         case JBC_fcmpl: {
           if (shouldPrint) asm.noteBytecode(biStart, "fcmpl");
-          emit_fcmpl();
+          emit_DFcmpGL(true, false);
           break;
         }
 
         case JBC_fcmpg: {
           if (shouldPrint) asm.noteBytecode(biStart, "fcmpg");
-          emit_fcmpg();
+          emit_DFcmpGL(true, true);
           break;
         }
 
         case JBC_dcmpl: {
           if (shouldPrint) asm.noteBytecode(biStart, "dcmpl");
-          emit_dcmpl();
+          emit_DFcmpGL(false, false);
           break;
         }
 
         case JBC_dcmpg: {
           if (shouldPrint) asm.noteBytecode(biStart, "dcmpg");
-          emit_dcmpg();
+          emit_DFcmpGL(false, true);
           break;
         }
 
         case JBC_ifeq: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifeq", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifeq(bTarget);
+          do_if(biStart, BranchCondition.EQ);
           break;
         }
 
         case JBC_ifne: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifne", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifne(bTarget);
+          do_if(biStart, BranchCondition.NE);
           break;
         }
 
         case JBC_iflt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "iflt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_iflt(bTarget);
+          do_if(biStart, BranchCondition.LT);
           break;
         }
 
         case JBC_ifge: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifge", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifge(bTarget);
+          do_if(biStart, BranchCondition.GE);
           break;
         }
 
         case JBC_ifgt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifgt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifgt(bTarget);
+          do_if(biStart, BranchCondition.GT);
           break;
         }
 
         case JBC_ifle: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifle", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifle(bTarget);
+          do_if(biStart, BranchCondition.LE);
           break;
         }
 
         case JBC_if_icmpeq: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpeq", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpeq(bTarget);
+          do_if_icmp(biStart, BranchCondition.EQ);
           break;
         }
 
         case JBC_if_icmpne: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpne", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpne(bTarget);
+          do_if_icmp(biStart, BranchCondition.NE);
           break;
         }
 
         case JBC_if_icmplt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmplt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmplt(bTarget);
+          do_if_icmp(biStart, BranchCondition.LT);
           break;
         }
 
         case JBC_if_icmpge: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpge", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpge(bTarget);
+          do_if_icmp(biStart, BranchCondition.GE);
           break;
         }
 
         case JBC_if_icmpgt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpgt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpgt(bTarget);
+          do_if_icmp(biStart, BranchCondition.GT);
           break;
         }
 
         case JBC_if_icmple: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmple", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmple(bTarget);
+          do_if_icmp(biStart, BranchCondition.LE);
           break;
         }
 
@@ -2028,6 +1985,37 @@ public abstract class TemplateCompilerFramework
     return asm.finalizeMachineCode(bytecodeMap);
   }
 
+  /**
+   * Handle if.. bytecodes
+   * @param biStart offset of bytecode
+   * @param bc branch condition
+   */
+  @Inline
+  private void do_if(int biStart, BranchCondition bc) {
+    final boolean shouldPrint = this.shouldPrint;
+    int offset = bcodes.getBranchOffset();
+    int bTarget = biStart + offset;
+    if (shouldPrint) asm.noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
+    emit_if(bTarget, bc);
+  }
+
+  /**
+   * Handle if_icmp.. bytecodes
+   * @param biStart offset of bytecode
+   * @param bc branch condition
+   */
+  @Inline
+  private void do_if_icmp(int biStart, BranchCondition bc) {
+    final boolean shouldPrint = this.shouldPrint;
+    int offset = bcodes.getBranchOffset();
+    int bTarget = biStart + offset;
+    if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmp" + bc, offset, bTarget);
+    if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
+    emit_if_icmp(bTarget, bc);
+  }
+
+
   /* for invoke compiled method, we have to fool GC map,
   * InvokeCompiledMethod has two parameters compiledMethodID
   * and originalBytecodeIndex of that call site
@@ -2710,100 +2698,30 @@ public abstract class TemplateCompilerFramework
   protected abstract void emit_lcmp();
 
   /**
-   * Emit code to implement the fcmpl bytecode
+   * Emits code to handle all [df]cmp[gl] cases
+   *
+   * @param single {@code true} for float [f], {@code false} for double [d]
+   * @param unorderedGT {@code true} for [g], {@code false} for [l]
    */
-  protected abstract void emit_fcmpl();
-
-  /**
-   * Emit code to implement the fcmpg bytecode
-   */
-  protected abstract void emit_fcmpg();
-
-  /**
-   * Emit code to implement the dcmpl bytecode
-   */
-  protected abstract void emit_dcmpl();
-
-  /**
-   * Emit code to implement the dcmpg bytecode
-   */
-  protected abstract void emit_dcmpg();
+  protected abstract void emit_DFcmpGL(boolean single, boolean unorderedGT);
 
   /*
   * branching
   */
 
   /**
-   * Emit code to implement the ifeg bytecode
+   * Emits code to implement the if.. bytecode
    * @param bTarget target bytecode of the branch
+   * @param bc branch condition
    */
-  protected abstract void emit_ifeq(int bTarget);
+  protected abstract void emit_if(int bTarget, BranchCondition bc);
 
   /**
-   * Emit code to implement the ifne bytecode
+   * Emits code to implement the if_icmp.. bytecode
    * @param bTarget target bytecode of the branch
+   * @param bc branch condition
    */
-  protected abstract void emit_ifne(int bTarget);
-
-  /**
-   * Emit code to implement the iflt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_iflt(int bTarget);
-
-  /**
-   * Emit code to implement the ifge bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_ifge(int bTarget);
-
-  /**
-   * Emit code to implement the ifgt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_ifgt(int bTarget);
-
-  /**
-   * Emit code to implement the ifle bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_ifle(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpeq bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpeq(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpne bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpne(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmplt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmplt(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpge bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpge(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpgt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpgt(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmple bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmple(int bTarget);
+  protected abstract void emit_if_icmp(int bTarget, BranchCondition bc);
 
   /**
    * Emit code to implement the if_acmpeq bytecode
