@@ -210,7 +210,7 @@ public abstract class SysCall {
   /**
    * Allocate the space for a pthread_mutex (using malloc) and initialize
    * it using pthread_mutex_init with the recursive mutex options.  Note:
-   * it is perfectly OK for the C/C++ code that implements this syscall to
+   * it is perfectly OK for the C code that implements this syscall to
    * use some other locking mechanism (for example, on systems that don't
    * have recursive mutexes you could imagine the recursive feature to be
    * emulated).

@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Emit a header file containing declarations required to access VM
- * data structures from C++.
+ * data structures from C.
  */
 public class GenerateInterfaceDeclarations {
 
