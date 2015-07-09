@@ -150,6 +150,10 @@ public final class Address extends ArchitecturalWord {
   @UninterruptibleNoWarn
   public static Address fromLong(long address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    if ((address <= Integer.MAX_VALUE) && (address >= Integer.MIN_VALUE)) {
+      int addressAsInt = (int) address;
+      return new Address(addressAsInt);
+    }
     return new Address(address);
  }
 

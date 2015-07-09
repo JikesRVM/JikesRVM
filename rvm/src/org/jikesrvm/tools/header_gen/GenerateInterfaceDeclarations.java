@@ -101,10 +101,17 @@ public class GenerateInterfaceDeclarations {
   GenerateInterfaceDeclarations() {
   }
 
-  static int bootImageDataAddress = 0;
-  static int bootImageCodeAddress = 0;
-  static int bootImageRMapAddress = 0;
+  static long bootImageDataAddress = 0;
+  static long bootImageCodeAddress = 0;
+  static long bootImageRMapAddress = 0;
   static String outFileName;
+
+  private static long decodeLong(String s) {
+    if (s.endsWith("L")) {
+      s = s.substring(0, s.length() - 1);
+    }
+    return Long.decode(s);
+  }
 
   public static void main(String[] args) throws Exception {
 
@@ -116,7 +123,7 @@ public class GenerateInterfaceDeclarations {
           System.err.println("Error: The -da flag requires an argument");
           System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        bootImageDataAddress = Integer.decode(args[i]);
+        bootImageDataAddress = decodeLong(args[i]);
         continue;
       }
       if (args[i].equals("-ca")) {              // image address
@@ -124,7 +131,7 @@ public class GenerateInterfaceDeclarations {
           System.err.println("Error: The -ca flag requires an argument");
           System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        bootImageCodeAddress = Integer.decode(args[i]);
+        bootImageCodeAddress = decodeLong(args[i]);
         continue;
       }
       if (args[i].equals("-ra")) {              // image address
@@ -132,7 +139,7 @@ public class GenerateInterfaceDeclarations {
           System.err.println("Error: The -ra flag requires an argument");
           System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        bootImageRMapAddress = Integer.decode(args[i]);
+        bootImageRMapAddress = decodeLong(args[i]);
         continue;
       }
       if (args[i].equals("-out")) {              // output file
@@ -360,14 +367,14 @@ public class GenerateInterfaceDeclarations {
 
   // Emit virtual machine class interface information.
   //
-  static void emitVirtualMachineDeclarations(int bootImageDataAddress, int bootImageCodeAddress,
-                                             int bootImageRMapAddress) {
+  static void emitVirtualMachineDeclarations(long bootImageDataAddress, long bootImageCodeAddress,
+                                             long bootImageRMapAddress) {
 
     // load address for the boot image
     //
-    pln("bootImageDataAddress", Address.fromIntZeroExtend(bootImageDataAddress));
-    pln("bootImageCodeAddress", Address.fromIntZeroExtend(bootImageCodeAddress));
-    pln("bootImageRMapAddress", Address.fromIntZeroExtend(bootImageRMapAddress));
+    pln("bootImageDataAddress", Address.fromLong(bootImageDataAddress));
+    pln("bootImageCodeAddress", Address.fromLong(bootImageCodeAddress));
+    pln("bootImageRMapAddress", Address.fromLong(bootImageRMapAddress));
 
     // values in Constants, from Configuration
     //

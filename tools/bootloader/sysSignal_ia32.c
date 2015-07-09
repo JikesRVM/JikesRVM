@@ -85,20 +85,42 @@
 #define __MCES(context) ((ucontext_t*)context)->uc_mcontext->DARWIN_PREFIX(es)
 #define __MCFS(context) ((ucontext_t*)context)->uc_mcontext->DARWIN_PREFIX(fs)
 
-#define IA32_EAX(context) (__MCSS(context).DARWIN_PREFIX(eax))
-#define IA32_EBX(context) (__MCSS(context).DARWIN_PREFIX(ebx))
-#define IA32_ECX(context) (__MCSS(context).DARWIN_PREFIX(ecx))
-#define IA32_EDX(context) (__MCSS(context).DARWIN_PREFIX(edx))
-#define IA32_EDI(context)  (__MCSS(context).DARWIN_PREFIX(edi))
-#define IA32_ESI(context)  (__MCSS(context).DARWIN_PREFIX(esi))
-#define IA32_EBP(context)  (__MCSS(context).DARWIN_PREFIX(ebp))
-#define IA32_ESP(context) (__MCSS(context).DARWIN_PREFIX(esp))
-#define IA32_SS(context)  (__MCSS(context).DARWIN_PREFIX(ss))
-#define IA32_EFLAGS(context)  (__MCSS(context).DARWIN_PREFIX(eflags))
-#define IA32_EIP(context)  (__MCSS(context).DARWIN_PREFIX(eip))
+#ifndef __x86_64__
+#  define IA32_EAX(context)    (__MCSS(context).DARWIN_PREFIX(eax))
+#  define IA32_EBX(context)    (__MCSS(context).DARWIN_PREFIX(ebx))
+#  define IA32_ECX(context)    (__MCSS(context).DARWIN_PREFIX(ecx))
+#  define IA32_EDX(context)    (__MCSS(context).DARWIN_PREFIX(edx))
+#  define IA32_EDI(context)    (__MCSS(context).DARWIN_PREFIX(edi))
+#  define IA32_ESI(context)    (__MCSS(context).DARWIN_PREFIX(esi))
+#  define IA32_EBP(context)    (__MCSS(context).DARWIN_PREFIX(ebp))
+#  define IA32_ESP(context)    (__MCSS(context).DARWIN_PREFIX(esp))
+#  define IA32_EFLAGS(context) (__MCSS(context).DARWIN_PREFIX(eflags))
+#  define IA32_EIP(context)    (__MCSS(context).DARWIN_PREFIX(eip))
+#  define IA32_DS(context)     (__MCSS(context).DARWIN_PREFIX(ds))
+#  define IA32_ES(context)     (__MCSS(context).DARWIN_PREFIX(es))
+#  define IA32_SS(context)     (__MCSS(context).DARWIN_PREFIX(ss))
+#else
+#  define IA32_EAX(context)    (__MCSS(context).DARWIN_PREFIX(rax))
+#  define IA32_EBX(context)    (__MCSS(context).DARWIN_PREFIX(rbx))
+#  define IA32_ECX(context)    (__MCSS(context).DARWIN_PREFIX(rcx))
+#  define IA32_EDX(context)    (__MCSS(context).DARWIN_PREFIX(rdx))
+#  define IA32_EDI(context)    (__MCSS(context).DARWIN_PREFIX(rdi))
+#  define IA32_ESI(context)    (__MCSS(context).DARWIN_PREFIX(rsi))
+#  define IA32_EBP(context)    (__MCSS(context).DARWIN_PREFIX(rbp))
+#  define IA32_ESP(context)    (__MCSS(context).DARWIN_PREFIX(rsp))
+#  define IA32_EFLAGS(context) (__MCSS(context).DARWIN_PREFIX(rflags))
+#  define IA32_EIP(context)    (__MCSS(context).DARWIN_PREFIX(rip))
+#  define IA32_R8(context)     (__MCSS(context).DARWIN_PREFIX(r8))
+#  define IA32_R9(context)     (__MCSS(context).DARWIN_PREFIX(r9))
+#  define IA32_R10(context)    (__MCSS(context).DARWIN_PREFIX(r10))
+#  define IA32_R11(context)    (__MCSS(context).DARWIN_PREFIX(r11))
+#  define IA32_R12(context)    (__MCSS(context).DARWIN_PREFIX(r12))
+#  define IA32_R13(context)    (__MCSS(context).DARWIN_PREFIX(r13))
+#  define IA32_R14(context)    (__MCSS(context).DARWIN_PREFIX(r14))
+#  define IA32_R15(context)    (__MCSS(context).DARWIN_PREFIX(r15))
+#endif // __x86_64__
+
 #define IA32_CS(context)  (__MCSS(context).DARWIN_PREFIX(cs))
-#define IA32_DS(context)  (__MCSS(context).DARWIN_PREFIX(ds))
-#define IA32_ES(context)  (__MCSS(context).DARWIN_PREFIX(es))
 #define IA32_FS(context)  (__MCSS(context).DARWIN_PREFIX(fs))
 #define IA32_GS(context)  (__MCSS(context).DARWIN_PREFIX(gs))
 
@@ -725,7 +747,7 @@ EXTERNAL void dumpContext(void *context)
 #endif
   ERROR_PRINTF("trapno        0x%08x\n", IA32_TRAPNO(context));
   ERROR_PRINTF("err           0x%08x\n", IA32_ERR(context));
-  ERROR_PRINTF("eflags        0x%08x\n", IA32_EFLAGS(context));
+  ERROR_PRINTF("eflags        0x%08x\n", (int)IA32_EFLAGS(context));
   /* null if fp registers haven't been used yet */
 #ifndef RVM_FOR_OSX
   ERROR_PRINTF("fpregs        %p\n", (void*)IA32_FPREGS(context));

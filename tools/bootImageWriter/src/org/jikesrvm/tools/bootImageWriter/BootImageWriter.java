@@ -655,6 +655,13 @@ public class BootImageWriter extends BootImageWriterMessages {
    */
   private static Object staticsJunk;
 
+  private static Address decodeAddress(String s) {
+    if (s.endsWith("L")) {
+      s = s.substring(0, s.length() - 1);
+    }
+    return Address.fromLong(Long.decode(s));
+  }
+
   /**
    * Main.
    * @param args command line arguments
@@ -722,21 +729,21 @@ public class BootImageWriter extends BootImageWriterMessages {
       if (args[i].equals("-ca")) {
         if (++i >= args.length)
           fail("argument syntax error: Got a -ca flag without a following image address");
-        bootImageCodeAddress = Address.fromIntZeroExtend(Integer.decode(args[i]));
+        bootImageCodeAddress = decodeAddress(args[i]);
         continue;
       }
       // image data start address
       if (args[i].equals("-da")) {
         if (++i >= args.length)
           fail("argument syntax error: Got a -da flag without a following image address");
-        bootImageDataAddress = Address.fromIntZeroExtend(Integer.decode(args[i]));
+        bootImageDataAddress = decodeAddress(args[i]);
         continue;
       }
       // image ref map start address
       if (args[i].equals("-ra")) {
         if (++i >= args.length)
           fail("argument syntax error: Got a -ra flag without a following image address");
-        bootImageRMapAddress = Address.fromIntZeroExtend(Integer.decode(args[i]));
+        bootImageRMapAddress = decodeAddress(args[i]);
         continue;
       }
       // file containing names of types to be placed into bootimage
