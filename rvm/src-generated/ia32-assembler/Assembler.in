@@ -1009,6 +1009,12 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
       case GT: return LE;
       case LE: return GT;
       case GE: return LT;
+      case LLT: return LGE;
+      case LGT: return LLE;
+      case LLE: return LGT;
+      case LGE: return LLT;
+      case PE: return PO;
+      case PO: return PE;      
       default: throw new InternalError("Unexpected condition code");
     }
   }

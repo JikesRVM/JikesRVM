@@ -1801,15 +1801,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
 
   @Override
-  protected final void emit_lcmp() {
+  protected final void emit_regular_lcmp() {
     if (VM.BuildFor32Addr) {
-      asm.emitPOP_Reg(T0);                // (S1:T0) = (high half value2: low half value2)
-      asm.emitPOP_Reg(S1);
+      asm.emitPOP_Reg(T0);                // (S0:T0) = (high half value2: low half value2)
+      asm.emitPOP_Reg(S0);
       asm.emitPOP_Reg(T1);                // (..:T1) = (.. : low half of value1)
       asm.emitSUB_Reg_Reg(T1, T0);        // T1 = T1 - T0
       asm.emitPOP_Reg(T0);                // (T0:..) = (high half of value1 : ..)
       // NB pop does not alter the carry register
-      asm.emitSBB_Reg_Reg(T0, S1);        // T0 = T0 - S1 - CF
+      asm.emitSBB_Reg_Reg(T0, S0);        // T0 = T0 - S0 - CF
       asm.emitOR_Reg_Reg(T1, T0);         // T1 = T1 | T0 updating ZF
       asm.emitSET_Cond_Reg_Byte(NE, T1);
       asm.emitMOVZX_Reg_Reg_Byte(T1, T1); // T1 = (value1 != value2) ? 1 : 0
@@ -1832,7 +1832,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   @Override
-  protected void emit_DFcmpGL(boolean single, boolean unorderedGT) {
+  protected void emit_regular_DFcmpGL(boolean single, boolean unorderedGT) {
     if (SSE2_BASE) {
       if (single) {
         asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
@@ -1901,6 +1901,149 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       case GT: return GT;
       case LE: return LE;
       default: if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1;
+    }
+  }
+
+  @Override
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
+  protected final void emit_lcmp_if(int bTarget, BranchCondition bc) {
+    if (VM.BuildFor32Addr) {
+      if (bc == BranchCondition.LE || bc == BranchCondition.GT) {
+        // flip operands in these cases
+        if (bc == BranchCondition.LE) {
+          bc = BranchCondition.GE;
+        } else {
+          bc = BranchCondition.LT;
+        }
+        asm.emitPOP_Reg(T1);                // (T0:T1) = (high half value2: low half value2)
+        asm.emitPOP_Reg(T0);
+        asm.emitPOP_Reg(S0);                // (..:S0) = (.. : low half of value1)
+        asm.emitSUB_Reg_Reg(T1, S0);        // T1 = T1 - S0
+        asm.emitPOP_Reg(S0);                // (S0:..) = (high half of value1 : ..)
+        // NB pop does not alter the carry register
+        asm.emitSBB_Reg_Reg(T0, S0);        // T0 = T0 - S0 - CF
+      } else {
+        asm.emitPOP_Reg(T0);                // (S0:T0) = (high half value2: low half value2)
+        asm.emitPOP_Reg(S0);
+        asm.emitPOP_Reg(T1);                // (..:T1) = (.. : low half of value1)
+        asm.emitSUB_Reg_Reg(T1, T0);        // T1 = T1 - T0
+        asm.emitPOP_Reg(T0);                // (T0:..) = (high half of value1 : ..)
+        // NB pop does not alter the carry register
+        asm.emitSBB_Reg_Reg(T0, S0);        // T0 = T0 - S0 - CF
+        if (bc == BranchCondition.EQ || bc == BranchCondition.NE) {
+          asm.emitOR_Reg_Reg(T1, T0);       // T1 = T1 | T0 updating ZF
+        }
+      }
+    } else {
+      asm.emitPOP_Reg(T0);                // T0 is long value2
+      adjustStack(WORDSIZE, true);        // throw away slot
+      asm.emitPOP_Reg(T1);                // T1 is long value1
+      adjustStack(WORDSIZE, true);        // throw away slot
+      asm.emitCMP_Reg_Reg_Quad(T1, T0);   // 64bit compare
+    }
+    genCondBranch(mapCondition(bc), bTarget);
+  }
+
+  @Override
+  protected void emit_DFcmpGL_if(boolean single, boolean unorderedGT, int bTarget, BranchCondition bc) {
+    if (SSE2_BASE) {
+      if (single) {
+        asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+        asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
+        adjustStack(WORDSIZE * 2, true);                    // throw away slots
+      } else {
+        asm.emitMOVSD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
+        asm.emitMOVSD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
+        adjustStack(WORDSIZE * 4, true);                    // throw away slots
+      }
+    } else {
+      if (single) {
+        asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
+        asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
+        adjustStack(WORDSIZE * 2, true);                    // throw away slots
+      } else {
+        asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
+        asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
+        adjustStack(WORDSIZE * 4, true);                    // throw away slots
+      }
+    }
+    if (SSE2_BASE) {
+      if (single) {
+        asm.emitUCOMISS_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
+      } else {
+        asm.emitUCOMISD_Reg_Reg(XMM1, XMM0);              // compare value1 and value2
+      }
+    } else {
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                  // compare and pop FPU *1
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                     // pop FPU*1
+    }
+    byte asm_bc = -1;
+    boolean unordered_taken = false;
+    switch (bc) {
+      case EQ:
+        asm_bc = EQ;
+        unordered_taken = false;
+        break;
+      case NE:
+        asm_bc = NE;
+        unordered_taken = true;
+        break;
+      case LT:
+        asm_bc = LLT;
+        unordered_taken = !unorderedGT;
+        break;
+      case GE:
+        asm_bc = LGE;
+        unordered_taken = unorderedGT;
+        break;
+      case GT:
+        asm_bc = LGT;
+        unordered_taken = unorderedGT;
+        break;
+      case LE:
+        asm_bc = LLE;
+        unordered_taken = !unorderedGT;
+        break;
+      default:
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+    int mTarget = bytecodeMap[bTarget];
+    if (!VM.runningTool && ((BaselineCompiledMethod) compiledMethod).hasCounterArray()) {
+      // Allocate two counters: taken and not taken
+      int entry = edgeCounterIdx;
+      edgeCounterIdx += 2;
+      if (!unordered_taken) {
+        ForwardReference notTaken1 = asm.forwardJcc(PE);
+        ForwardReference notTaken2 = asm.forwardJcc(asm.flipCode(asm_bc));
+        // Increment taken counter & jump to target
+        incEdgeCounter(T1, null, entry + EdgeCounts.TAKEN);
+        asm.emitJMP_ImmOrLabel(mTarget, bTarget);
+        // Increment not taken counter
+        notTaken1.resolve(asm);
+        notTaken2.resolve(asm);
+        incEdgeCounter(T1, null, entry + EdgeCounts.NOT_TAKEN);
+      } else {
+        ForwardReference taken1 = asm.forwardJcc(PE);
+        ForwardReference taken2 = asm.forwardJcc(asm_bc);
+        // Increment taken counter & jump to target
+        incEdgeCounter(T1, null, entry + EdgeCounts.NOT_TAKEN);
+        ForwardReference notTaken = asm.forwardJMP();
+        // Increment taken counter
+        taken1.resolve(asm);
+        taken2.resolve(asm);
+        incEdgeCounter(T1, null, entry + EdgeCounts.TAKEN);
+        asm.emitJMP_ImmOrLabel(mTarget, bTarget);
+        notTaken.resolve(asm);
+      }
+    } else {
+      if (unordered_taken) {
+        asm.emitJCC_Cond_ImmOrLabel(PE, mTarget, bTarget);
+        asm.emitJCC_Cond_ImmOrLabel(asm_bc, mTarget, bTarget);
+      } else {
+        ForwardReference notTaken = asm.forwardJcc(PE);
+        asm.emitJCC_Cond_ImmOrLabel(asm_bc, mTarget, bTarget);
+        notTaken.resolve(asm);
+      }
     }
   }
 

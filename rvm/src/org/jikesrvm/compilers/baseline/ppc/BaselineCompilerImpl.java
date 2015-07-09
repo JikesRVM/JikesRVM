@@ -1729,7 +1729,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   */
 
   @Override
-  protected final void emit_lcmp() {
+  protected final void emit_regular_lcmp() {
     popLong(T3, T2);
     popLong(T1, T0);
 
@@ -1768,7 +1768,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   }
 
   @Override
-  protected void emit_DFcmpGL(boolean single, boolean unorderedGT) {
+  protected void emit_regular_DFcmpGL(boolean single, boolean unorderedGT) {
     if (single) {
       popFloat(F1);
       popFloat(F0);
