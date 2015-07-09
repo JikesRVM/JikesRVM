@@ -47,7 +47,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    * @param barrier the designated barrier
    */
-  private static void arayStoreBarrierHelper(Assembler asm, BaselineCompilerImpl compiler, NormalMethod barrier) {
+  private static void arrayStoreBarrierHelper(Assembler asm, BaselineCompilerImpl compiler, NormalMethod barrier) {
     // on entry java stack contains ...|target_array_ref|array_index|value_to_store|
     // Use the correct calling convention to pass parameters by register and the stack
     //  (size of value_to_store varies by type of array store)
@@ -65,7 +65,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierByte(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.byteArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.byteArrayWriteBarrierMethod);
   }
 
   /**
@@ -76,7 +76,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierChar(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.charArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.charArrayWriteBarrierMethod);
   }
 
   /**
@@ -87,7 +87,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierDouble(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.doubleArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.doubleArrayWriteBarrierMethod);
   }
 
   /**
@@ -98,7 +98,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierFloat(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.floatArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.floatArrayWriteBarrierMethod);
   }
 
   /**
@@ -109,7 +109,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierInt(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.intArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.intArrayWriteBarrierMethod);
   }
 
   /**
@@ -120,7 +120,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierLong(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.longArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.longArrayWriteBarrierMethod);
   }
 
   /**
@@ -131,7 +131,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierShort(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.shortArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.shortArrayWriteBarrierMethod);
   }
 
   /**
