@@ -32,17 +32,17 @@ function escapeStringForJavaDoc() {
 
 # Function to emit _Reg assembler routines
 function emitBinaryReg() {
-  acronym=$1
+  local acronym=$1
   escapeStringForJavaDoc $2
-  opStr=$escapedString
-  rmrCode=$3
-  rrmCode=$4
-  sizeOrPrefix=$5
-  ext=
-  code=
-  prefix="// no group 1 to 4 prefix byte"
-  twobyteop="// single byte opcode"
-  rex_w=false
+  local opStr=$escapedString
+  local rmrCode=$3
+  local rrmCode=$4
+  local sizeOrPrefix=$5
+  local ext=
+  local code=
+  local prefix="// no group 1 to 4 prefix byte"
+  local twobyteop="// single byte opcode"
+  local rex_w=false
   if [ x$sizeOrPrefix = xbyte ]; then
     ext=_Byte
     code=" (byte) "
@@ -620,6 +620,11 @@ function emitBinaryImmWordOrDouble() {
     rex_w=true
   elif [ x$sizeOrPrefix = x0x0F ]; then
     twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
+  elif [ x$sizeOrPrefix = x0x0Fquad ]; then
+    ext=_Quad
+    code=" (quad) "
+    rex_w=true
+    twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
   elif [ x$sizeOrPrefix != x ]; then
     prefix="setMachineCodes(mi++, (byte) $sizeOrPrefix);"
   fi
@@ -1115,14 +1120,17 @@ emitBinaryAcc TEST \& 0xA9 none 0xF7 0x0 0x85 none 0xA8 0xF6 0x84 none
 emitBinaryAcc XOR \~  0x35 0x83 0x81 0x6 0x31 0x33 0x34 0x80 0x30 0x32
 
 function emitBT() {
-  acronym=$1
-  opStr=$2
-  rmrCode=$3
-  immExtOp=$4
-  prefix=0x0F
-  immCode=0xBA
+  local acronym=$1
+  local opStr=$2
+  local rmrCode=$3
+  local immExtOp=$4
+  local prefix=0x0F
+  local prefixQuad=0x0Fquad
+  local immCode=0xBA
   emitBinaryReg $acronym $opStr $rmrCode none $prefix
-  emitBinaryImmWordOrDouble $acronym $opStr none $immCode none $immExtOp 0x0F
+  emitBinaryReg $acronym $opStr $rmrCode none $prefixQuad
+  emitBinaryImmWordOrDouble $acronym $opStr none $immCode none $immExtOp $prefix
+  emitBinaryImmWordOrDouble $acronym $opStr none $immCode none $immExtOp $prefixQuad
 }
 
 emitBT BT BT 0xA3 0x4
