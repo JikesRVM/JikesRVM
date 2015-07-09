@@ -64,6 +64,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE_opcode;
+import static org.jikesrvm.util.Bits.*;
 
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
@@ -74,7 +75,6 @@ import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
 
-import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
@@ -152,7 +152,7 @@ public abstract class FinalMIRExpansion extends IRTools {
                 InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
                 int signatureId = sig.getId();
                 Instruction s;
-                if (Bits.fits(signatureId, 16)) {
+                if (fits(signatureId, 16)) {
                   s = MIR_Unary.create(PPC_LDI, I(phys.getGPR(LAST_SCRATCH_GPR)), IC(signatureId));
                   p.insertBefore(s);
                   instructionCount++;
@@ -160,13 +160,13 @@ public abstract class FinalMIRExpansion extends IRTools {
                   s =
                       MIR_Unary.create(PPC_LDIS,
                                        I(phys.getGPR(LAST_SCRATCH_GPR)),
-                                       IC(Bits.PPCMaskUpper16(signatureId)));
+                                       IC(PPCMaskUpper16(signatureId)));
                   p.insertBefore(s);
                   s =
                       MIR_Binary.create(PPC_ADDI,
                                         I(phys.getGPR(LAST_SCRATCH_GPR)),
                                         I(phys.getGPR(LAST_SCRATCH_GPR)),
-                                        IC(Bits.PPCMaskLower16(signatureId)));
+                                        IC(PPCMaskLower16(signatureId)));
                   p.insertBefore(s);
                   instructionCount += 2;
                 }
@@ -190,12 +190,12 @@ public abstract class FinalMIRExpansion extends IRTools {
             VM._assert(p.bcIndex >= 0 && p.position != null);
           }
           Offset offset = Entrypoints.optResolveMethod.getOffset();
-          if (Bits.fits(offset, 16)) {
-            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(Bits.PPCMaskLower16(offset))));
+          if (fits(offset, 16)) {
+            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(PPCMaskLower16(offset))));
           } else {
-            if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 32)); //not implemented
-            p.insertBefore(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(Bits.PPCMaskUpper16(offset))));
-            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(Bits.PPCMaskLower16(offset))));
+            if (VM.VerifyAssertions) VM._assert(fits(offset, 32)); //not implemented
+            p.insertBefore(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(PPCMaskUpper16(offset))));
+            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(PPCMaskLower16(offset))));
             instructionCount += 1;
           }
           p.insertBefore(MIR_Move.create(PPC_MTSPR, A(CTR), A(zero)));
@@ -229,8 +229,8 @@ public abstract class FinalMIRExpansion extends IRTools {
           Register TSR = phys.getTSR();
           Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
-          if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
+          if (VM.VerifyAssertions) VM._assert(fits(offset, 16));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
@@ -253,8 +253,8 @@ public abstract class FinalMIRExpansion extends IRTools {
           Register TSR = phys.getTSR();
           Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
-          if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
+          if (VM.VerifyAssertions) VM._assert(fits(offset, 16));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
@@ -355,12 +355,12 @@ public abstract class FinalMIRExpansion extends IRTools {
     Register JTOC = phys.getJTOC();
     Register CTR = phys.getCTR();
     Offset offset = meth.getOffset();
-    if (Bits.fits(offset, 16)) {
-      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(Bits.PPCMaskLower16(offset))));
+    if (fits(offset, 16)) {
+      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(PPCMaskLower16(offset))));
     } else {
-      if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 32)); //not implemented
-      result.appendInstruction(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(Bits.PPCMaskUpper16(offset))));
-      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(Bits.PPCMaskLower16(offset))));
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32)); //not implemented
+      result.appendInstruction(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(PPCMaskUpper16(offset))));
+      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(PPCMaskLower16(offset))));
     }
     result.appendInstruction(MIR_Move.create(PPC_MTSPR, A(CTR), A(zero)));
     result.appendInstruction(MIR_Branch.create(PPC_BCTR));

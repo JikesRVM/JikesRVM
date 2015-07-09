@@ -10,11 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.util;
+package org.jikesrvm.util;
 
-import org.jikesrvm.VM;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Utilities for manipulating values at the bit-level.
@@ -107,44 +108,70 @@ public class Bits {
   }
 
   /**
-   * @param val the value to check
-   * @param bits the number of bits
-   * @return whether the long literal fits in
-   *  the given number of bits
+   * Finds out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return {@code true} if val can be encoded in bits.
    */
+  @Inline
   public static boolean fits(long val, int bits) {
     val = val >> bits - 1;
     return (val == 0L || val == -1L);
   }
 
   /**
-   * @param val the value to check
-   * @param bits the number of bits
-   * @return whether the Offset literal fits in
-   *  the given number of bits
+   * Finds out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return {@code true} if val can be encoded in bits.
    */
+  @Inline
   public static boolean fits(Offset val, int bits) {
-    return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
+    return fits(val.toWord(), bits);
   }
 
   /**
-   * @param val the value to check
-   * @param bits the number of bits
-   * @return whether the Address literal fits in
-   *  the given number of bits
+   * Find out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return {@code true} if val can be encoded in bits.
    */
+  @Inline
   public static boolean fits(Address val, int bits) {
-    return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
+    return fits(val.toWord(), bits);
   }
 
   /**
-   * @param val the value to check
-   * @param bits the number of bits
-   * @return whether the int literal fits in
-   *  the given number of bits
+   * Finds out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return {@code true} if val can be encoded in bits.
    */
   public static boolean fits(int val, int bits) {
     val = val >> bits - 1;
     return (val == 0 || val == -1);
   }
+
+  /**
+   * Finds out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return {@code true} if val can be encoded in bits.
+   */
+  @Inline
+  public static boolean fits(Word val, int bits) {
+    Word o = val.rsha(bits - 1);
+    return (o.isZero() || o.isMax());
+ }
+
 }

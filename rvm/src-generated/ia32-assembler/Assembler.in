@@ -13,15 +13,16 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
+import static org.jikesrvm.ia32.RegisterConstants.GPR;
+import static org.jikesrvm.util.Bits.*;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
-import org.jikesrvm.ia32.OutOfLineMachineCode;
-import org.jikesrvm.ia32.RegisterConstants;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
-import static org.jikesrvm.ia32.RegisterConstants.GPR;
+import org.jikesrvm.ia32.OutOfLineMachineCode;
+import org.jikesrvm.ia32.RegisterConstants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -403,60 +404,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
         VM.sysWrite(Lister.hex((byte)0x0));
       }
     }
-  }
-
-  /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (Offset val, int bits) {
-    return fits(val.toWord(), bits);
-  }
-
-  /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (Address val, int bits) {
-    return fits(val.toWord(), bits);
-  }
-
-  /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (Word val, int bits) {
-    Word o = val.rsha(bits-1);
-    return (o.isZero() || o.isMax());
-  }
-
-  /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (int val, int bits) {
-    val = val >> bits-1;
-    return (val == 0 || val == -1);
   }
 
   /**

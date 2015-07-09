@@ -18,6 +18,7 @@ import static org.jikesrvm.SizeConstants.LOG_BITS_IN_INT;
 import static org.jikesrvm.SizeConstants.LOG_BITS_IN_ADDRESS;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.util.Bits.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
@@ -70,7 +71,6 @@ import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.lir2mir.BURS_Common_Helpers;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
-import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.ppc.TrapConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -180,28 +180,28 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
    * Calculate Lower 16 Bits
    */
   protected final IntConstantOperand CAL16(Address a) {
-    return IC(Bits.PPCMaskLower16(a.toWord().toOffset()));
+    return IC(PPCMaskLower16(a.toWord().toOffset()));
   }
 
   /**
    * Calculate Lower 16 Bits
    */
   protected final IntConstantOperand CAL16(int i) {
-    return IC(Bits.PPCMaskLower16(i));
+    return IC(PPCMaskLower16(i));
   }
 
   /**
    * Calculate Upper 16 Bits
    */
   protected final IntConstantOperand CAU16(Address a) {
-    return IC(Bits.PPCMaskUpper16(a.toWord().toOffset()));
+    return IC(PPCMaskUpper16(a.toWord().toOffset()));
   }
 
   /**
    * Calculate Upper 16 Bits
    */
   protected final IntConstantOperand CAU16(int i) {
-    return IC(Bits.PPCMaskUpper16(i));
+    return IC(PPCMaskUpper16(i));
   }
 
   /**
@@ -261,14 +261,14 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
   private void emitLFtoc(Operator operator, Register RT, RVMField field) {
     Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     Offset offset = field.getOffset();
-    int valueLow = Bits.PPCMaskLower16(offset);
+    int valueLow = PPCMaskLower16(offset);
     Instruction s;
-    if (Bits.fits(offset, 16)) {
+    if (fits(offset, 16)) {
       s = MIR_Load.create(operator, D(RT), A(JTOC), IC(valueLow));
       EMIT(s);
     } else {
-      int valueHigh = Bits.PPCMaskUpper16(offset);
-      if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 32));
+      int valueHigh = PPCMaskUpper16(offset);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
       Register reg = regpool.getAddress();
       EMIT(MIR_Binary.create(PPC_ADDIS, A(reg), A(JTOC), IC(valueHigh)));
       s = MIR_Load.create(operator, D(RT), A(reg), IC(valueLow));
@@ -281,8 +281,8 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
    * reg must be != 0
    */
   protected final void IntConstant(Register reg, int value) {
-    int lo = Bits.PPCMaskLower16(value);
-    int hi = Bits.PPCMaskUpper16(value);
+    int lo = PPCMaskLower16(value);
+    int hi = PPCMaskUpper16(value);
     if (hi != 0) {
       EMIT(MIR_Unary.create(PPC_LDIS, I(reg), IC(hi)));
       if (lo != 0) {
@@ -1414,12 +1414,12 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
       int bytes67 = (int) ((value & 0xffff000000000000L) >>> 48);
       Register register = def.getRegister();
       Register temp1 = regpool.getLong();
-      if (Bits.fits(value, 16)) {
+      if (fits(value, 16)) {
         EMIT(MIR_Unary.create(PPC_LDI, L(register), IC(bytes01)));
-      } else if (Bits.fits(value, 32)) {
+      } else if (fits(value, 32)) {
         EMIT(MIR_Unary.create(PPC_LDIS, L(register), IC(bytes23)));
         if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, L(register), L(register), IC(bytes01)));
-      } else if (Bits.fits(value, 48)) {
+      } else if (fits(value, 48)) {
         EMIT(MIR_Unary.create(PPC_LDI, L(register), IC(bytes45)));
         if (bytes45 != 0) EMIT(MIR_Binary.create(PPC64_SLDI, L(register), L(register), IC(32)));
         if (bytes23 != 0) EMIT(MIR_Binary.create(PPC_ORIS, L(register), L(register), IC(bytes23)));
@@ -1724,15 +1724,15 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     Register defHigh = def.getRegister();
     Register defLow = regpool.getSecondReg(defHigh);
     Offset value = AV(Value).toWord().toOffset();
-    EMIT(MIR_Binary.create(PPC_ADDIS, right, left, IC(Bits.PPCMaskUpper16(value))));
+    EMIT(MIR_Binary.create(PPC_ADDIS, right, left, IC(PPCMaskUpper16(value))));
     Instruction inst =
-        MIR_Load.create(PPC_LWZ, I(defHigh), right.copyD2U(), IC(Bits.PPCMaskLower16(value)), loc, guard);
+        MIR_Load.create(PPC_LWZ, I(defHigh), right.copyD2U(), IC(PPCMaskLower16(value)), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null) {
       loc = (LocationOperand) loc.copy();
     }
-    inst = MIR_Load.create(PPC_LWZ, I(defLow), right.copyD2U(), IC(Bits.PPCMaskLower16(value) + 4), loc);
+    inst = MIR_Load.create(PPC_LWZ, I(defLow), right.copyD2U(), IC(PPCMaskLower16(value) + 4), loc);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1788,9 +1788,9 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     Register defHigh = def.getRegister();
     Register defLow = regpool.getSecondReg(defHigh);
     Offset value = AV(Value).toWord().toOffset();
-    EMIT(MIR_Binary.create(PPC_ADDIS, right, left, IC(Bits.PPCMaskUpper16(value))));
+    EMIT(MIR_Binary.create(PPC_ADDIS, right, left, IC(PPCMaskUpper16(value))));
     Instruction inst =
-        MIR_Store.create(PPC_STW, I(defHigh), right.copyD2U(), IC(Bits.PPCMaskLower16(value)), loc, guard);
+        MIR_Store.create(PPC_STW, I(defHigh), right.copyD2U(), IC(PPCMaskLower16(value)), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null) {
@@ -1799,7 +1799,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     if (guard != null) {
       guard = guard.copy();
     }
-    inst = MIR_Store.create(PPC_STW, I(defLow), right.copyD2U(), IC(Bits.PPCMaskLower16(value) + 4), loc, guard);
+    inst = MIR_Store.create(PPC_STW, I(defLow), right.copyD2U(), IC(PPCMaskLower16(value) + 4), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -2044,12 +2044,12 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     MethodOperand meth = MethodOperand.STATIC(target);
     meth.setIsNonReturningCall(true);
-    int valueLow = Bits.PPCMaskLower16(offset);
-    if (Bits.fits(offset, 16)) {
+    int valueLow = PPCMaskLower16(offset);
+    if (fits(offset, 16)) {
       EMIT(MIR_Load.create(PPC_LAddr, tmp, A(JTOC), IC(valueLow)));
     } else {
-      int valueHigh = Bits.PPCMaskUpper16(offset);
-      if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 32));
+      int valueHigh = PPCMaskUpper16(offset);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
       Register reg = regpool.getAddress();
       EMIT(MIR_Binary.create(PPC_ADDIS, A(reg), A(JTOC), IC(valueHigh)));
       EMIT(MIR_Load.create(PPC_LAddr, tmp, A(reg), IC(valueLow)));
