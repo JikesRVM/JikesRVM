@@ -2098,10 +2098,21 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitMOV_Reg_Imm_Quad(GPR dstReg, long imm) {
-    int miStart = mi;
-    generateREXprefix(true, null, null, dstReg);
-    setMachineCodes(mi++, (byte) (0xB8 | dstReg.value()));
-    emitImm64(imm);
+    int miStart = mi;  
+    if (imm > 0 && (imm >> 32 == 0)) {
+      // Do shorter unsigned 32bit move immediate
+      emitMOV_Reg_Imm(dstReg, (int)imm);
+    } else {
+      generateREXprefix(true, null, null, dstReg);
+      if (fits(imm, 32)) {
+        setMachineCodes(mi++, (byte) 0xC7);
+        emitRegRegOperands(dstReg, GPR.getForOpcode(0));
+        emitImm32((int)imm);
+      } else {
+        setMachineCodes(mi++, (byte) (0xB8 | dstReg.value()));
+        emitImm64(imm);
+      }
+    }
     if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
   }
 
