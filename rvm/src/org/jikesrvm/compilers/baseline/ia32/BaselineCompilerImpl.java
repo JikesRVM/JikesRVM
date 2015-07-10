@@ -1199,7 +1199,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         asm.emitXOR_Reg_Reg(T0, T0);  // low half = 0
         fr1.resolve(asm);
         asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);  // shift high half, filling from low
-        asm.emitSHL_Reg_Reg(T0, ECX);
+        asm.emitSHL_Reg_Reg(T0, ECX);           // shift low half
         asm.emitPUSH_Reg(T1);                   // push high half
         asm.emitPUSH_Reg(T0);                   // push low half
       }
@@ -1225,7 +1225,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitSAR_Reg_Imm(T1, 31);  // high half = sign extension of low half
       fr1.resolve(asm);
       asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift low half, filling from high
-      asm.emitSAR_Reg_Reg(T1, ECX);
+      asm.emitSAR_Reg_Reg(T1, ECX);           // shift high half
       asm.emitPUSH_Reg(T1);                   // push high half
       asm.emitPUSH_Reg(T0);                   // push low half
     } else {
@@ -1252,11 +1252,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         asm.emitPOP_Reg(T1);                   // pop high half
         asm.emitAND_Reg_Imm(ECX, 0x3F);
         asm.emitCMP_Reg_Imm(ECX, 32);
-        ForwardReference fr1 = asm.forwardJcc(LT);        asm.emitMOV_Reg_Reg(T0, T1);  // low half = high half
+        ForwardReference fr1 = asm.forwardJcc(LT);
+        asm.emitMOV_Reg_Reg(T0, T1);  // low half = high half
         asm.emitXOR_Reg_Reg(T1, T1);  // high half = 0
         fr1.resolve(asm);
         asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift low half, filling from high
-        asm.emitSHR_Reg_Reg(T1, ECX);
+        asm.emitSHR_Reg_Reg(T1, ECX);           // shift high half
         asm.emitPUSH_Reg(T1);                   // push high half
         asm.emitPUSH_Reg(T0);                   // push low half
       }
@@ -1473,7 +1474,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitAND_Reg_Imm(EAX, 0x400);                 // is C2 set?
     asm.emitJCC_Cond_Imm(NE, retryLabel);            // if yes then goto retryLabel and continue to compute remainder
     asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);           // POP FPU reg. stack (results) onto java stack
-    asm.emitFFREEP_Reg(FP0);
+    asm.emitFFREEP_Reg(FP0);                         // throw away top of stack
   }
 
   @Override
@@ -1815,7 +1816,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOVZX_Reg_Reg_Byte(T1, T1); // T1 = (value1 != value2) ? 1 : 0
       asm.emitSAR_Reg_Imm(T0, 31);        // T0 = (value1 < value2) ? -1 : 0
       asm.emitOR_Reg_Reg(T1, T0);         // T1 = T1 | T0
-      asm.emitPUSH_Reg(T1);               // push result on stack          // push result on stack
+      asm.emitPUSH_Reg(T1);               // push result on stack
     } else {
       // using a shift in 64bits costs an extra byte in the opcode
       asm.emitPOP_Reg(T0);                // T0 is long value2
