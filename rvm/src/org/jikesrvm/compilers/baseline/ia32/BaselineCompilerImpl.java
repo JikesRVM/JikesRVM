@@ -702,7 +702,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_iastore() {
-    Barriers.compileModifyCheck(asm, 8);
+    Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
     if (NEEDS_INT_ASTORE_BARRIER) {
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierInt(asm, this);
@@ -713,7 +713,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_fastore() {
-    Barriers.compileModifyCheck(asm, 8);
+    Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
     if (NEEDS_FLOAT_ASTORE_BARRIER) {
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierFloat(asm, this);
@@ -725,7 +725,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_aastore() {
-    Barriers.compileModifyCheck(asm, 8);
+    Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
     if (doesCheckStore) {
       genParameterRegisterLoad(asm, 3);
       asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.aastoreMethod.getOffset()));
@@ -737,7 +737,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_castore() {
-    Barriers.compileModifyCheck(asm, 8);
+    Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
     if (NEEDS_CHAR_ASTORE_BARRIER) {
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierChar(asm, this);
@@ -748,7 +748,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_sastore() {
-    Barriers.compileModifyCheck(asm, 8);
+    Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
     if (NEEDS_SHORT_ASTORE_BARRIER) {
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierShort(asm, this);
@@ -759,7 +759,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_bastore() {
-    Barriers.compileModifyCheck(asm, 8);
+    Barriers.compileModifyCheck(asm, 2 * WORDSIZE);
     if (NEEDS_BYTE_ASTORE_BARRIER) {
       boundsCheckHelper(ONE_SLOT, TWO_SLOTS);
       Barriers.compileArrayStoreBarrierByte(asm, this);
@@ -770,7 +770,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_lastore() {
-    Barriers.compileModifyCheck(asm, 12);
+    Barriers.compileModifyCheck(asm, 3 * WORDSIZE);
     if (NEEDS_LONG_ASTORE_BARRIER) {
       boundsCheckHelper(TWO_SLOTS, THREE_SLOTS);
       Barriers.compileArrayStoreBarrierLong(asm, this);
@@ -781,7 +781,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected final void emit_dastore() {
-    Barriers.compileModifyCheck(asm, 12);
+    Barriers.compileModifyCheck(asm, 3 * WORDSIZE);
     if (NEEDS_DOUBLE_ASTORE_BARRIER) {
       boundsCheckHelper(TWO_SLOTS, THREE_SLOTS);
       Barriers.compileArrayStoreBarrierDouble(asm, this);
