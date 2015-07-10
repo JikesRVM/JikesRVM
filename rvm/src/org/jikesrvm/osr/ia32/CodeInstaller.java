@@ -68,6 +68,7 @@ public abstract class CodeInstaller implements BaselineConstants {
       // unwind stack pointer, SP is FP now
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
 
+      // TODO is this ok for 64-bit with JTOC in register?
       asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
 
       // restore saved EDI

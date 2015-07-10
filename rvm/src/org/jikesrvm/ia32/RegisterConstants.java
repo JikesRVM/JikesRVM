@@ -12,9 +12,12 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.util.Bits.*;
+
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.Magic;
 
 public interface RegisterConstants {
   //---------------------------------------------------------------------------------------//
@@ -332,6 +335,9 @@ public interface RegisterConstants {
   GPR STACK_POINTER = ESP;
   /** Register holding a reference to thread local information */
   GPR THREAD_REGISTER = ESI;
+  /** Register holding the value of the JTOC, only necessary when we can't directly address the JTOC */
+  GPR JTOC_REGISTER = (VM.buildFor32Addr() || VM.runningTool ||
+      fits(Magic.getTocPointer(), 32)) ? null : R15;
 
   /*
    * Register sets

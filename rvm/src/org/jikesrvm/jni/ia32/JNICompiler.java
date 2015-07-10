@@ -30,8 +30,8 @@ import org.jikesrvm.ia32.ThreadLocalState;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -355,7 +355,7 @@ public abstract class JNICompiler implements BaselineConstants {
       // push java.lang.Class object for klass
       Offset klassOffset = Offset.fromIntSignExtend(
           Statics.findOrCreateObjectLiteral(method.getDeclaringClass().getClassForType()));
-      asm.emitPUSH_Abs(Magic.getTocPointer().plus(klassOffset));
+      asm.generateJTOCpush(klassOffset);
     } else {
       if (VM.VerifyAssertions) VM._assert(argGpr == 0);
       asm.emitPUSH_Reg(PARAMETER_GPRS[0]);
@@ -793,6 +793,11 @@ public abstract class JNICompiler implements BaselineConstants {
       }
     }
 
+    // Restore JTOC register
+    if (JTOC_REGISTER != null) {
+      asm.emitMOV_Reg_Imm_Quad(JTOC_REGISTER, BootRecord.the_boot_record.tocRegister.toLong());
+    }
+
     // START of code sequence to atomically change thread status from
     // IN_JNI to IN_JAVA, looping in a call to
     // RVMThread.leaveJNIBlockedFromJNIFunctionCallMethod if
@@ -825,9 +830,7 @@ public abstract class JNICompiler implements BaselineConstants {
     ForwardReference doneLeaveJNIRef = asm.forwardJcc(EQ);
 
     // make the slow call
-    asm.emitCALL_Abs(
-      Magic.getTocPointer().plus(
-        Entrypoints.leaveJNIBlockedFromJNIFunctionCallMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.leaveJNIBlockedFromJNIFunctionCallMethod.getOffset());
 
     // arrive here when we've switched to IN_JAVA
     doneLeaveJNIRef.resolve(asm);
@@ -963,9 +966,7 @@ public abstract class JNICompiler implements BaselineConstants {
     ForwardReference doneEnterJNIRef = asm.forwardJcc(EQ);
 
     // fast path failed, make the call
-    asm.emitCALL_Abs(
-      Magic.getTocPointer().plus(
-        Entrypoints.enterJNIBlockedFromJNIFunctionCallMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.enterJNIBlockedFromJNIFunctionCallMethod.getOffset());
 
     // OK - we reach here when we have set the state to IN_JNI
     doneEnterJNIRef.resolve(asm);

@@ -54,6 +54,7 @@ import static org.jikesrvm.ia32.RegisterConstants.EDI;
 import static org.jikesrvm.ia32.RegisterConstants.EDX;
 import static org.jikesrvm.ia32.RegisterConstants.ESI;
 import static org.jikesrvm.ia32.RegisterConstants.FP0;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.ia32.RegisterConstants.XMM0;
 import static org.jikesrvm.ia32.RegisterConstants.XMM1;
 import static org.jikesrvm.ia32.RegisterConstants.XMM2;
@@ -215,7 +216,7 @@ final class BaselineMagic {
             asm.emitMOV_Reg_RegInd(T0, SP);
           }
           asm.emitPUSH_Reg(T0);
-          asm.emitCALL_Abs(Magic.getTocPointer().plus(checkMR.peekResolvedMethod().getOffset()));
+          asm.generateJTOCcall(checkMR.peekResolvedMethod().getOffset());
         }
       }
       generator.generateMagic(asm, m, cm, sd);
@@ -259,7 +260,7 @@ final class BaselineMagic {
             asm.emitMOV_Reg_RegInd(T0, SP);
           }
           asm.emitPUSH_Reg(T0);
-          asm.emitCALL_Abs(Magic.getTocPointer().plus(checkMR.peekResolvedMethod().getOffset()));
+          asm.generateJTOCcall(checkMR.peekResolvedMethod().getOffset());
         }
       }
     }
@@ -1412,9 +1413,11 @@ final class BaselineMagic {
       generators.put(getMethodReference(type, MagicNames.wordMax, type), max);
     }
     generators.put(getMethodReference(ObjectReference.class, MagicNames.wordNull, ObjectReference.class), zero);
-    MagicGenerator g = new AddressConstant(Magic.getTocPointer().toInt());
-    generators.put(getMethodReference(Magic.class, MagicNames.getJTOC, Address.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.getTocPointer, Address.class), g);
+    if (JTOC_REGISTER == null) {
+      MagicGenerator g = new AddressConstant(Magic.getTocPointer().toInt());
+      generators.put(getMethodReference(Magic.class, MagicNames.getJTOC, Address.class), g);
+      generators.put(getMethodReference(Magic.class, MagicNames.getTocPointer, Address.class), g);
+    }
   }
 
   /**
@@ -1814,6 +1817,11 @@ final class BaselineMagic {
         new GetRegister(ESI));
     generators.put(getMethodReference(Magic.class, MagicNames.getThreadRegister, RVMThread.class),
         new GetRegister(TR));
+    if (JTOC_REGISTER != null) {
+      MagicGenerator g = new GetRegister(JTOC_REGISTER);
+      generators.put(getMethodReference(Magic.class, MagicNames.getJTOC, Address.class), g);
+      generators.put(getMethodReference(Magic.class, MagicNames.getTocPointer, Address.class), g);
+    }
   }
 
   /**
@@ -1824,7 +1832,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
+      asm.generateJTOCcall(offset);
       asm.emitPUSH_Reg(T0);
     }
   }
@@ -1844,7 +1852,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
+      asm.generateJTOCcall(offset);
     }
   }
   static {
@@ -1860,7 +1868,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
+      asm.generateJTOCcall(offset);
       asm.emitPUSH_Reg(T0);
     }
   }
@@ -1877,7 +1885,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
+      asm.generateJTOCcall(offset);
       if (VM.BuildFor32Addr) {
         asm.emitPUSH_Reg(T0); // high half
         asm.emitPUSH_Reg(T1); // low half
@@ -1900,7 +1908,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
+      asm.generateJTOCcall(offset);
       asm.emitPUSH_Reg(T0); // create space
       if (SSE2_FULL) {
         asm.emitMOVSS_RegInd_Reg(SP, XMM0);
@@ -1922,7 +1930,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Offset offset = ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset();
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 5); // pass 5 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
+      asm.generateJTOCcall(offset);
       asm.emitPUSH_Reg(T0); // create space
       asm.emitPUSH_Reg(T0);
       if (SSE2_FULL) {
@@ -1950,7 +1958,7 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       BaselineCompilerImpl.genParameterRegisterLoad(asm, args);
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(offset));
+      asm.generateJTOCcall(offset);
     }
   }
   static {
@@ -2152,13 +2160,13 @@ final class BaselineMagic {
       // count is already on stack- nothing required
       asm.emitPUSH_Imm(width);                 // logElementSize
       asm.emitPUSH_Imm(headerSize);            // headerSize
-      asm.emitPUSH_Abs(Magic.getTocPointer().plus(tibOffset));   // tib
+      asm.generateJTOCpush(tibOffset);         // tib
       asm.emitPUSH_Imm(whichAllocator);        // allocator
       asm.emitPUSH_Imm(align);
       asm.emitPUSH_Imm(offset);
       asm.emitPUSH_Imm(site);
       BaselineCompilerImpl.genParameterRegisterLoad(asm, 8);             // pass 8 parameter words
-      asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.resolvedNewArrayMethod.getOffset()));
+      asm.generateJTOCcall(Entrypoints.resolvedNewArrayMethod.getOffset());
       asm.emitPUSH_Reg(T0);
     }
   }

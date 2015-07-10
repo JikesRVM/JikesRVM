@@ -1200,6 +1200,211 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   /////////////////////////////////////
+  // JTOC utilities ///////////////////
+  /////////////////////////////////////
+
+  /**
+   * Utility to push a value from the JTOC
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCpush(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitPUSH_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitPUSH_RegDisp(JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Utility to push a value from the JTOC
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCpush(GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitPUSH_RegDisp(off, Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitPUSH_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    }
+  }
+
+  /**
+   * Utility to pop a value to the JTOC
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCpop(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitPOP_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitPOP_RegDisp(JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Utility to pop a value to the JTOC
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCpop(GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitPOP_RegDisp(off,Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitPOP_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    }
+  }
+
+  /**
+   * Utility to call through a JTOC address
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcall(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitCALL_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitCALL_RegDisp(JTOC_REGISTER, off);
+    }    
+  }
+
+  /**
+   * Utility to call through a JTOC address with a displacement in a register
+   * @param off the register containing the displacement
+   */
+  public final void generateJTOCcall(GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitCALL_RegDisp(off, Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitCALL_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    } 
+  }
+
+  /**
+   * Utility to call through a JTOC address
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCjmp(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitJMP_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitJMP_RegDisp(JTOC_REGISTER, off);
+    }    
+  }
+
+  /**
+   * Loads an int from the JTOC
+   * @param dst the destination register for the loaded value
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCloadInt(GPR dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitMOV_Reg_RegDisp(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Loads an int from the JTOC
+   * @param dst the destination register for the loaded value
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCloadInt(GPR dst, GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Reg_RegDisp(dst, off, Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitMOV_Reg_RegIdx(dst, JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    }
+  }
+
+  /**
+   * Loads a long from the JTOC
+   * @param dst the destination register for the loaded value
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCloadLong(GPR dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Reg_Abs_Quad(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitMOV_Reg_RegDisp_Quad(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Stores an int to the JTOC
+   * @param off the offset from the JTOC
+   * @param src the source register of the value
+   */
+  public final void generateJTOCstoreInt(Offset off, GPR src) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Abs_Reg(Magic.getTocPointer().plus(off), src);
+    } else {
+      emitMOV_RegDisp_Reg(JTOC_REGISTER, off, src);
+    }
+  }
+
+  /**
+   * Stores an int to the JTOC
+   * @param src the source register of the value
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCstoreInt(GPR off, GPR src) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_RegDisp_Reg(off, Magic.getTocPointer().toWord().toOffset(), src);
+    } else {
+      emitMOV_RegIdx_Reg(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero(), src);
+    }
+  }
+
+  /**
+   * Stores a long to the JTOC
+   * @param src the source register of the value
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCstoreLong(Offset off, GPR src) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Abs_Reg_Quad(Magic.getTocPointer().plus(off), src);
+    } else {
+      emitMOV_RegDisp_Reg_Quad(JTOC_REGISTER, off, src);
+    }
+  }
+
+  /**
+   * Compares a word in the JTOC with the given register
+   * @param dst the register to compare with
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcmpWord(GPR dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitCMP_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitCMP_Reg_RegDisp_Quad(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Compares a float in the JTOC with the given register
+   * @param dst the register to compare with
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcmpFloat(XMM dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitUCOMISS_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitUCOMISS_Reg_RegDisp(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Compares a double in the JTOC with the given register
+   * @param dst the register to compare with
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcmpDouble(XMM dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitUCOMISD_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitUCOMISD_Reg_RegDisp(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /////////////////////////////////////
   // table switch support /////////////
   /////////////////////////////////////
 
