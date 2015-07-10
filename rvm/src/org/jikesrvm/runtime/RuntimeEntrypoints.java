@@ -769,7 +769,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
             VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
           break;
           }
-          VM.sysWrite("trapCode = ", trapCode);
+          VM.sysWriteln("trapCode = ", trapCode);
           VM.sysWriteln("trapInfo = ", trapInfo.toAddress());
           VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
         }
