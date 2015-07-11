@@ -22,6 +22,7 @@ class TestArithmetic {
   private static long long_3 = -3;
   private static long long_1 = -1;
   private static long long0 = 0;
+  private static long long1 = 1;
   private static long long2 = 2;
   private static long long10000000000 = 10000000000L;
   private static long long0x0110000000000011 = 0x0110000000000011L;
@@ -237,6 +238,21 @@ class TestArithmetic {
     System.out.print("Expected: -2 Actual: ");
     System.out.println(-b);  // lneg
     System.out.print("Expected: -10000000000 Actual: ");
+    System.out.println(-a);  // lneg
+    a = long0;
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println(-a);  // lneg
+    a = Long.MAX_VALUE; // negation will return (Long.MIN_VALUE + 1)
+    System.out.print("Expected: -9223372036854775807 Actual: ");
+    System.out.println(-a);  // lneg
+    a = Long.MIN_VALUE; // negation will return Long.MIN_VALUE (see JVM spec)
+    System.out.print("Expected: -9223372036854775808 Actual: ");
+    System.out.println(-a);  // lneg
+    a = long_1;
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println(-a);  // lneg
+    a = long1;
+    System.out.print("Expected: -1 Actual: ");
     System.out.println(-a);  // lneg
 
     a = long_3;
