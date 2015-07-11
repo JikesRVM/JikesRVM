@@ -61,6 +61,10 @@ ArgumentPassing_0.1 {
 	 Java_ArgumentPassing_floatLongSpillVirtual;
 	 Java_ArgumentPassing_doubleLongFitVirtual;
 	 Java_ArgumentPassing_doubleLongSpillVirtual;
+   Java_ArgumentPassing_exhaustX64FPRsWithDoubleThenUseInt;
+   Java_ArgumentPassing_exhaustX64FPRsWithFloatThenUseInt;
+   Java_ArgumentPassing_exhaustX64GPRsWithIntThenUseFloat;
+   Java_ArgumentPassing_exhaustX64GPRsWithIntThenUseDouble;
 	 Java_ArgumentPassing_returnLong;
 	 Java_ArgumentPassing_returnFloat;
 	 Java_ArgumentPassing_returnDouble;

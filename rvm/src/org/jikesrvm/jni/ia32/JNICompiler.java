@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_WORD;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
 
 import org.jikesrvm.ArchitectureSpecific;
@@ -399,6 +400,8 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitCALL_RegDisp(S0, Entrypoints.jniEntry.getOffset());
 
     // (5) Set up stack frame and registers for transition to C
+    int stackholes = 0;
+    int position = 0;
     int argsPassedInRegister = 0;
     if (VM.BuildFor64Addr) {
       int gpRegistersInUse = 2;
@@ -410,10 +413,13 @@ public abstract class JNICompiler implements BaselineConstants {
       for (TypeReference arg : method.getParameterTypes()) {
         if (arg.isFloatType()) {
           if (fpRegistersInUse < NATIVE_PARAMETER_FPRS.length) {
-            // TODO: we can't have holes in the data that is on the stack, we need to shuffle it up
-            if (dataOnStack) throw new Error("Unsupported native method parameter list");
-            asm.emitMOVSS_Reg_RegInd((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP);
-            asm.emitPOP_Reg(T0);
+            asm.emitMOVSS_Reg_RegDisp((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP,
+                Offset.fromIntZeroExtend(position << LG_WORDSIZE));
+            if (dataOnStack) {
+              stackholes |= 1 << position;
+            } else {
+              asm.emitPOP_Reg(T0);
+            }
             fpRegistersInUse++;
             argsPassedInRegister++;
           } else {
@@ -422,10 +428,13 @@ public abstract class JNICompiler implements BaselineConstants {
           }
         } else if (arg.isDoubleType()) {
           if (fpRegistersInUse < NATIVE_PARAMETER_FPRS.length) {
-            // TODO: we can't have holes in the data that is on the stack, we need to shuffle it up
-            if (dataOnStack) throw new Error("Unsupported native method parameter list");
-            asm.emitMOVSD_Reg_RegInd((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP);
-            asm.emitPOP_Reg(T0);
+            asm.emitMOVSD_Reg_RegDisp((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP,
+                Offset.fromIntZeroExtend(position << LG_WORDSIZE));
+            if (dataOnStack) {
+              stackholes |= 1 << position;
+            } else {
+              asm.emitPOP_Reg(T0);
+            }
             if (VM.BuildFor32Addr) asm.emitPOP_Reg(T0);
             fpRegistersInUse++;
             argsPassedInRegister += VM.BuildFor32Addr ? 2 : 1;
@@ -436,8 +445,13 @@ public abstract class JNICompiler implements BaselineConstants {
         } else {
           if (gpRegistersInUse < NATIVE_PARAMETER_GPRS.length) {
             // TODO: we can't have holes in the data that is on the stack, we need to shuffle it up
-            if (dataOnStack) throw new Error("Unsupported native method parameter list");
-            asm.emitPOP_Reg(NATIVE_PARAMETER_GPRS[gpRegistersInUse]);
+            asm.emitMOV_Reg_RegDisp_Quad(NATIVE_PARAMETER_GPRS[gpRegistersInUse],
+                SP, Offset.fromIntZeroExtend(position << LG_WORDSIZE));
+            if (dataOnStack) {
+              stackholes |= 1 << position;
+            } else {
+              asm.emitPOP_Reg(T0);
+            }
             gpRegistersInUse++;
             argsPassedInRegister++;
           } else {
@@ -445,6 +459,27 @@ public abstract class JNICompiler implements BaselineConstants {
             dataOnStack = true;
           }
         }
+        if (dataOnStack) {
+          position++;
+        }
+      }
+      position--;
+      int onStackOffset = position;
+      int mask = 0;
+      for (int i = position; i >= 0; i--) {
+        mask = 1 << i;
+        if ((stackholes & mask) != 0) {
+          continue;
+        }
+        if (i < onStackOffset) {
+          asm.emitMOV_Reg_RegDisp_Quad(T0, SP, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_WORD));
+          asm.emitMOV_RegDisp_Reg_Quad(SP, Offset.fromIntZeroExtend(onStackOffset << LOG_BYTES_IN_WORD), T0);
+        }
+        onStackOffset--;
+      }
+      while (onStackOffset >= 0) {
+        asm.emitPOP_Reg(T0);
+        onStackOffset--;
       }
     }
 

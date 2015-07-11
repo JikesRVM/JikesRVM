@@ -1545,6 +1545,113 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillVirtual
 
 /*
  * Class:     ArgumentPassing
+ * Method:    exhaustX64FPRsWithDoubleThenUseInt
+ * Signature: (DDDDDDDDDIIII)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64FPRsWithDoubleThenUseInt
+(JNIEnv *env, jobject obj,
+    jdouble fval1, jdouble fval2, jdouble fval3, jdouble fval4,
+    jdouble fval5, jdouble fval6, jdouble fval7, jdouble fval8,
+    jdouble fval9,
+    jint val1, jint val2, jint val3, jint val4) {
+
+  if (fval1==1.1 && fval2==3.3 && fval3==5.5 && fval4==7.7d && fval5==9.9 && fval6==11.11
+      && fval7==13.13 && fval8==15.15 && fval9==17.17 && val1==1 && val2==3 && val3==5 && val4==7)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64FPRsWithDoubleThenUseInt in native: \n");
+      printf(">   expect 1.1, 3.3, 5.5, 7.7, 9.9, 11.11, 13.13, 15.15, 17.17, 1, 3, 5, 7 \n");
+      printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %d, %d, %d, %d\n",
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8, fval9, val1, val2, val3, val4);
+    }
+    return -1;
+  }
+}
+
+/*
+ * Class:     ArgumentPassing
+ * Method:    exhaustX64FPRsWithFloatThenUseInt
+ * Signature: (FFFFFFFFFIIII)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64FPRsWithFloatThenUseInt
+(JNIEnv *env, jobject obj,
+    jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+    jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
+    jfloat fval9,
+    jint val1, jint val2, jint val3, jint val4) {
+  // Note: must use f suffix to force C floating point constants to float (instead of double)
+  if (fval1==1.1f && fval2==3.3f && fval3==5.5f && fval4==7.7f && fval5==9.9f && fval6==11.11f
+      && fval7==13.13f && fval8==15.15f && fval9==13.13f && val1==1 && val2==3 && val3==5 && val4==7)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64FPRsWithFloatThenUseInt in native: \n");
+      printf(">   expect 1.1, 3.3, 5.5, 7.7, 9.9, 11.11, 13.13, 15.15, 13.13, 1, 3, 5, 7");
+      printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %d, %d, %d, %d",
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8, fval9, val1, val2, val3, val4);
+    }
+    return -1;
+  }
+}
+
+
+/*
+ * Class:     ArgumentPassing
+ * Method:    exhaustX64GPRsWithIntThenUseFloat
+ * Signature: (IIIIIIIIIFFFF)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64GPRsWithIntThenUseFloat
+(JNIEnv *env, jobject obj,
+    jint val1, jint val2, jint val3, jint val4,
+    jint val5, jint val6, jint val7, jint val8,
+    jint val9,
+    jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4) {
+  // Note: must use f suffix to force C floating point constants to float (instead of double)
+  if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9 && val6==11
+      && val7==13 && val8==15 && val9==17 && fval1==1.1f && fval2==3.3f
+      && fval3==5.5f && fval4==7.7f)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64GPRsWithIntThenUseFloat in native: \n");
+      printf(">   expect 1, 3, 5, 7, 9, 11, 13, 15, 17, 1.1, 3.3, 5.5, 7.7");
+      printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d, %3.2f, %3.2f, %3.2f, %3.2f",
+             val1, val2, val3, val4, val5, val6, val7, val8, val9, fval1, fval2, fval3, fval4);
+    }
+    return -1;
+  }
+}
+
+/*
+ * Class:     ArgumentPassing
+ * Method:    exhaustX64GPRsWithIntThenUseDouble;
+ * Signature: (IIIIIIIIIDDDD)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64GPRsWithIntThenUseDouble
+(JNIEnv *env, jobject obj,
+    jint val1, jint val2, jint val3, jint val4,
+    jint val5, jint val6, jint val7, jint val8,
+    jint val9,
+    jdouble fval1, jdouble fval2, jdouble fval3, jdouble fval4) {
+  if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9 && val6==11
+      && val7==13 && val8==15 && val9==17 && fval1==1.1 && fval2==3.3
+      && fval3==5.5 && fval4==7.7)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64GPRsWithIntThenUseDouble in native: \n");
+      printf(">   expect 1, 3, 5, 7, 9, 11, 13, 15, 17, 1.1, 3.3, 5.5, 7.7");
+      printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d, %3.2f, %3.2f, %3.2f, %3.2f",
+             val1, val2, val3, val4, val5, val6, val7, val8, val9, fval1, fval2, fval3, fval4);
+    }
+    return -1;
+  }
+}
+
+
+/*
+ * Class:     ArgumentPassing
  * Method:    returnLong
  * Signature: (J)J
  */
