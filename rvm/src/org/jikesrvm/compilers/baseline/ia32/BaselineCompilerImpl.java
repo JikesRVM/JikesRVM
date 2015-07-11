@@ -1167,8 +1167,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPOP_Reg(T0); // T0 = low
       asm.emitNEG_Reg(T0); // T0 = -low
       asm.emitPOP_Reg(T1); // T1 = high
-      asm.emitADC_Reg_Imm(T1, 0); // T1 = high + 0 + CF
-      asm.emitNEG_Reg(T1); // T1 = -T1
+      asm.emitNOT_Reg(T1); // T1 = ~T1 (doesn't effect flags)
+      asm.emitSBB_Reg_Imm(T1, -1); // T1 = high + 1 - CF
       asm.emitPUSH_Reg(T1);
       asm.emitPUSH_Reg(T0);
     } else {
