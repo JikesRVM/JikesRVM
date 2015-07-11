@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package test.org.jikesrvm.basic.core.bytecode;
+package test.org.jikesrvm.basic.core.nullchecks;
 
 /**
  * This class provides a few simple tests for null checks.
