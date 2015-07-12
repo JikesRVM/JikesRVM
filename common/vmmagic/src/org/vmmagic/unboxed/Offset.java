@@ -31,6 +31,10 @@ public final class Offset {
     return null;
   }
 
+  public static Offset fromLong(long address) {
+    return null;
+  }
+
   public static Offset zero() {
     return null;
   }

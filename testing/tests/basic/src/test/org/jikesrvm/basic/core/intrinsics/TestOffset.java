@@ -19,11 +19,18 @@ public class TestOffset {
 
   private static boolean success = true;
 
+  private static final long TWO_TO_THE_POWER_OF_32_MINUS_ONE = 4294967295L;
+  private static final long INTEGER_MAX_AS_LONG = Integer.MAX_VALUE;
+
+  /** Note: can't use SUCCESS because that's for overall success */
+  private static final String TEST_SUCCESSFUL = " (OK)";
+
   public static void main(String[] args) {
     testIsZero();
     testOffsetZero();
     testOffsetMax();
     testOffsetFromInt();
+    testOffsetFromLong();
     testPlusAndMinus();
     testSimplestCasesForComparisons();
     if (success) {
@@ -36,27 +43,36 @@ public class TestOffset {
   private static void booleanTest(String msg, boolean value, boolean expected) {
     System.out.print(msg);
     System.out.print(": ");
-    System.out.println(value);
+    System.out.print(value);
     if (value != expected) {
       success = false;
+      System.out.println(" (FAILED) Expected was: " + expected);
+    } else {
+      System.out.println(TEST_SUCCESSFUL);
     }
   }
 
   private static void intTest(String msg, int value, int expected) {
     System.out.print(msg);
     System.out.print(": ");
-    System.out.println(value);
+    System.out.print(value);
     if (value != expected) {
       success = false;
+      System.out.println(" (FAILED) Expected was: " + expected);
+    } else {
+      System.out.println(TEST_SUCCESSFUL);
     }
   }
 
   private static void longTest(String msg, long value, long expected) {
     System.out.print(msg);
     System.out.print(": ");
-    System.out.println(value);
+    System.out.print(value);
     if (value != expected) {
       success = false;
+      System.out.println(" (FAILED) Expected was: " + expected);
+    } else {
+      System.out.println(TEST_SUCCESSFUL);
     }
   }
 
@@ -93,9 +109,12 @@ public class TestOffset {
 
   private static void testOffsetFromInt() {
     System.out.println("--- Tests for fromIntSignExtend(int) and fromIntZeroExtend(int) ---");
-    long integerMax = Integer.MAX_VALUE;
-    long integerMaxPlusOne = integerMax + 1;
-    long twoToThePowerOf32MinusOne = 4294967295L;
+    final long integerMaxPlusOne = INTEGER_MAX_AS_LONG + 1;
+
+    intTest("Offset.fromIntZeroExtend(0).toInt()", Offset.fromIntZeroExtend(0).toInt(), 0);
+    intTest("Offset.fromIntSignExtend(0).toInt()", Offset.fromIntSignExtend(0).toInt(), 0);
+    longTest("Offset.fromIntZeroExtend(0).toLong()", Offset.fromIntZeroExtend(0).toLong(), 0);
+    longTest("Offset.fromIntSignExtend(0).toLong()", Offset.fromIntSignExtend(0).toLong(), 0L);
 
     intTest("Offset.fromIntSignExtend(Integer.MAX_VALUE).toInt()", Offset.fromIntSignExtend(Integer.MAX_VALUE).toInt(), Integer.MAX_VALUE);
     intTest("Offset.fromIntSignExtend(Integer.MIN_VALUE).toInt()", Offset.fromIntSignExtend(Integer.MIN_VALUE).toInt(), Integer.MIN_VALUE);
@@ -104,22 +123,51 @@ public class TestOffset {
     intTest("Offset.fromIntSignExtend(-1).toInt()", Offset.fromIntSignExtend(-1).toInt(), -1);
     intTest("Offset.fromIntZeroExtend(-1).toInt()", Offset.fromIntZeroExtend(-1).toInt(), -1);
 
-    longTest("Offset.fromIntSignExtend(Integer.MAX_VALUE).toLong()", Offset.fromIntSignExtend(Integer.MAX_VALUE).toLong(), integerMax);
+    longTest("Offset.fromIntSignExtend(Integer.MAX_VALUE).toLong()", Offset.fromIntSignExtend(Integer.MAX_VALUE).toLong(), INTEGER_MAX_AS_LONG);
     if (VM.BuildFor32Addr) {
       longTest("Offset.fromIntSignExtend(Integer.MIN_VALUE).toLong()", Offset.fromIntSignExtend(Integer.MIN_VALUE).toLong(), integerMaxPlusOne);
     } else {
       long minusIntegerMaxPlusOne = -1 * integerMaxPlusOne;
       longTest("Offset.fromIntSignExtend(Integer.MIN_VALUE).toLong()", Offset.fromIntSignExtend(Integer.MIN_VALUE).toLong(), minusIntegerMaxPlusOne);
     }
-    longTest("Offset.fromIntZeroExtend(Integer.MAX_VALUE).toLong()", Offset.fromIntZeroExtend(Integer.MAX_VALUE).toLong(), integerMax);
+    longTest("Offset.fromIntZeroExtend(Integer.MAX_VALUE).toLong()", Offset.fromIntZeroExtend(Integer.MAX_VALUE).toLong(), INTEGER_MAX_AS_LONG);
     longTest("Offset.fromIntZeroExtend(Integer.MIN_VALUE).toLong()", Offset.fromIntZeroExtend(Integer.MIN_VALUE).toLong(), integerMaxPlusOne);
     if (VM.BuildFor32Addr) {
-      longTest("Offset.fromIntSignExtend(-1).toLong()", Offset.fromIntSignExtend(-1).toLong(), twoToThePowerOf32MinusOne);
+      longTest("Offset.fromIntSignExtend(-1).toLong()", Offset.fromIntSignExtend(-1).toLong(), TWO_TO_THE_POWER_OF_32_MINUS_ONE);
     } else {
-      long minusIntegerMaxPlusOne = -1 * integerMaxPlusOne;
       longTest("Offset.fromIntSignExtend(-1).toLong()", Offset.fromIntSignExtend(-1).toLong(), -1L);
     }
-    longTest("Offset.fromIntZeroExtend(-1).toLong()", Offset.fromIntZeroExtend(-1).toLong(), twoToThePowerOf32MinusOne);
+    longTest("Offset.fromIntZeroExtend(-1).toLong()", Offset.fromIntZeroExtend(-1).toLong(), TWO_TO_THE_POWER_OF_32_MINUS_ONE);
+  }
+
+  private static void testOffsetFromLong() {
+    System.out.println("--- Tests for fromLong(long) ---");
+
+    intTest("Offset.fromLong(0L).toInt()", Offset.fromLong(0L).toInt(), 0);
+    longTest("Offset.fromLong(0L).toLong()", Offset.fromLong(0L).toLong(), 0L);
+
+    intTest("Offset.fromLong(Integer.MAX_VALUE.toInt()", Offset.fromLong(Integer.MAX_VALUE).toInt(), Integer.MAX_VALUE);
+    intTest("Offset.fromLong(Integer.MIN_VALUE.toInt()", Offset.fromLong(Integer.MIN_VALUE).toInt(), Integer.MIN_VALUE);
+    if (VM.BuildFor32Addr) {
+      longTest("Offset.fromLong(Long.MAX_VALUE).toLong()", Offset.fromLong(Long.MAX_VALUE).toLong(), TWO_TO_THE_POWER_OF_32_MINUS_ONE);
+      longTest("Offset.fromLong(Long.MIN_VALUE).toLong()", Offset.fromLong(Long.MIN_VALUE).toLong(), 0);
+    } else {
+      longTest("Offset.fromLong(Long.MAX_VALUE).toLong()", Offset.fromLong(Long.MAX_VALUE).toLong(), Long.MAX_VALUE);
+      longTest("Offset.fromLong(Long.MIN_VALUE).toLong()", Offset.fromLong(Long.MIN_VALUE).toLong(), Long.MIN_VALUE);
+    }
+    longTest("Offset.fromLong(Integer.MAX_VALUE).toLong()", Offset.fromLong(Integer.MAX_VALUE).toLong(), INTEGER_MAX_AS_LONG);
+    if (VM.BuildFor32Addr) {
+      longTest("Offset.fromLong(Integer.MIN_VALUE).toLong()", Offset.fromLong(Integer.MIN_VALUE).toLong(), Integer.MAX_VALUE + 1L);
+    } else {
+      longTest("Offset.fromLong(Integer.MIN_VALUE).toLong()", Offset.fromLong(Integer.MIN_VALUE).toLong(), Integer.MIN_VALUE + 0L);
+    }
+
+    intTest("Offset.fromLong(-1L).toInt()", Offset.fromLong(-1L).toInt(), -1);
+    if (VM.BuildFor32Addr) {
+      longTest("Offset.fromLong(-1L).toLong()", Offset.fromLong(-1L).toLong(), TWO_TO_THE_POWER_OF_32_MINUS_ONE);
+    } else {
+      longTest("Offset.fromLong(-1L).toLong()", Offset.fromLong(-1L).toLong(), -1);
+    }
   }
 
   private static void testPlusAndMinus() {
