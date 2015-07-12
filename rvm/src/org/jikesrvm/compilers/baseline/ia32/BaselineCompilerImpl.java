@@ -1216,7 +1216,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
       asm.emitPOP_Reg(T0);                   // pop low half
       asm.emitPOP_Reg(T1);                   // pop high half
-      asm.emitTEST_Reg_Imm(ECX, 32);
       asm.emitAND_Reg_Imm(ECX, 0x3F);
       asm.emitCMP_Reg_Imm(ECX, 32);
       ForwardReference fr1 = asm.forwardJcc(LT);
