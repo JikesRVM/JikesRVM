@@ -1,0 +1,54 @@
+Successfully invoked hashCode() on object
+Caught NPE while trying to invoke hashCode()
+Successfully invoked hashCode() on object
+Successfully invoked hashCode() on object
+Caught NPE when reading byte field
+Read value 1 from field
+Caught NPE when writing byte field
+Wrote value 7 to field
+Caught NPE when reading boolean field
+Read value false from field
+Caught NPE when writing boolean field
+Wrote value true to field
+Caught NPE when reading char field
+Read value h from field
+Caught NPE when writing char field
+Wrote value B to field
+Caught NPE when reading short field
+Read value 30000 from field
+Caught NPE when writing short field
+Wrote value 101 to field
+Caught NPE when reading int field
+Read value 123456789 from field
+Caught NPE when writing int field
+Wrote value 2500001 to field
+Caught NPE when reading long field
+Read value 123456789101112 from field
+Caught NPE when writing long field
+Wrote value 120010007600001 to field
+Caught NPE when reading double field
+Read value 1.23456789E100 from field
+Caught NPE when writing double field
+Wrote value 7.0078E100 to field
+Caught NPE when reading float field
+Read value 1.2345679E10 from field
+Caught NPE when writing float field
+Wrote value 8.0005E10 to field
+Caught NPE when reading Word field
+Read value 21 from field
+Caught NPE when writing Word field
+Wrote value 10 to field
+Caught NPE when reading Address field
+Read value 12345 from field
+Caught NPE when writing Address field
+Wrote value 1240 to field
+Caught NPE when reading Offset field
+Read value 3 from field
+Caught NPE when writing Offset field
+Wrote value 12 to field
+Caught NPE when reading Extent field
+Read value 7 from field
+Caught NPE when writing Extent field
+Wrote value 32 to field
+Caugt NPE when trying to synchronize on object
+Successfully synchronized on object

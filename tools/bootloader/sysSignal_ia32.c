@@ -85,20 +85,42 @@
 #define __MCES(context) ((ucontext_t*)context)->uc_mcontext->DARWIN_PREFIX(es)
 #define __MCFS(context) ((ucontext_t*)context)->uc_mcontext->DARWIN_PREFIX(fs)
 
-#define IA32_EAX(context) (__MCSS(context).DARWIN_PREFIX(eax))
-#define IA32_EBX(context) (__MCSS(context).DARWIN_PREFIX(ebx))
-#define IA32_ECX(context) (__MCSS(context).DARWIN_PREFIX(ecx))
-#define IA32_EDX(context) (__MCSS(context).DARWIN_PREFIX(edx))
-#define IA32_EDI(context)  (__MCSS(context).DARWIN_PREFIX(edi))
-#define IA32_ESI(context)  (__MCSS(context).DARWIN_PREFIX(esi))
-#define IA32_EBP(context)  (__MCSS(context).DARWIN_PREFIX(ebp))
-#define IA32_ESP(context) (__MCSS(context).DARWIN_PREFIX(esp))
-#define IA32_SS(context)  (__MCSS(context).DARWIN_PREFIX(ss))
-#define IA32_EFLAGS(context)  (__MCSS(context).DARWIN_PREFIX(eflags))
-#define IA32_EIP(context)  (__MCSS(context).DARWIN_PREFIX(eip))
+#ifndef __x86_64__
+#  define IA32_EAX(context)    (__MCSS(context).DARWIN_PREFIX(eax))
+#  define IA32_EBX(context)    (__MCSS(context).DARWIN_PREFIX(ebx))
+#  define IA32_ECX(context)    (__MCSS(context).DARWIN_PREFIX(ecx))
+#  define IA32_EDX(context)    (__MCSS(context).DARWIN_PREFIX(edx))
+#  define IA32_EDI(context)    (__MCSS(context).DARWIN_PREFIX(edi))
+#  define IA32_ESI(context)    (__MCSS(context).DARWIN_PREFIX(esi))
+#  define IA32_EBP(context)    (__MCSS(context).DARWIN_PREFIX(ebp))
+#  define IA32_ESP(context)    (__MCSS(context).DARWIN_PREFIX(esp))
+#  define IA32_EFLAGS(context) (__MCSS(context).DARWIN_PREFIX(eflags))
+#  define IA32_EIP(context)    (__MCSS(context).DARWIN_PREFIX(eip))
+#  define IA32_DS(context)     (__MCSS(context).DARWIN_PREFIX(ds))
+#  define IA32_ES(context)     (__MCSS(context).DARWIN_PREFIX(es))
+#  define IA32_SS(context)     (__MCSS(context).DARWIN_PREFIX(ss))
+#else
+#  define IA32_EAX(context)    (__MCSS(context).DARWIN_PREFIX(rax))
+#  define IA32_EBX(context)    (__MCSS(context).DARWIN_PREFIX(rbx))
+#  define IA32_ECX(context)    (__MCSS(context).DARWIN_PREFIX(rcx))
+#  define IA32_EDX(context)    (__MCSS(context).DARWIN_PREFIX(rdx))
+#  define IA32_EDI(context)    (__MCSS(context).DARWIN_PREFIX(rdi))
+#  define IA32_ESI(context)    (__MCSS(context).DARWIN_PREFIX(rsi))
+#  define IA32_EBP(context)    (__MCSS(context).DARWIN_PREFIX(rbp))
+#  define IA32_ESP(context)    (__MCSS(context).DARWIN_PREFIX(rsp))
+#  define IA32_EFLAGS(context) (__MCSS(context).DARWIN_PREFIX(rflags))
+#  define IA32_EIP(context)    (__MCSS(context).DARWIN_PREFIX(rip))
+#  define IA32_R8(context)     (__MCSS(context).DARWIN_PREFIX(r8))
+#  define IA32_R9(context)     (__MCSS(context).DARWIN_PREFIX(r9))
+#  define IA32_R10(context)    (__MCSS(context).DARWIN_PREFIX(r10))
+#  define IA32_R11(context)    (__MCSS(context).DARWIN_PREFIX(r11))
+#  define IA32_R12(context)    (__MCSS(context).DARWIN_PREFIX(r12))
+#  define IA32_R13(context)    (__MCSS(context).DARWIN_PREFIX(r13))
+#  define IA32_R14(context)    (__MCSS(context).DARWIN_PREFIX(r14))
+#  define IA32_R15(context)    (__MCSS(context).DARWIN_PREFIX(r15))
+#endif // __x86_64__
+
 #define IA32_CS(context)  (__MCSS(context).DARWIN_PREFIX(cs))
-#define IA32_DS(context)  (__MCSS(context).DARWIN_PREFIX(ds))
-#define IA32_ES(context)  (__MCSS(context).DARWIN_PREFIX(es))
 #define IA32_FS(context)  (__MCSS(context).DARWIN_PREFIX(fs))
 #define IA32_GS(context)  (__MCSS(context).DARWIN_PREFIX(gs))
 
@@ -213,6 +235,10 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
   int prefixes_done;
   int has_variable_immediate = 0; // either 16 or 32 bits in non-x64 mode, 32 bits is default
   int operand_size_override = 0;
+  int has_rex_prefix = 0;
+  // w field in rex byte. If 1, operand size is 64-bit and operand size overrides are ignored
+  int rex_w_byte = 0;
+
   if (!inRVMAddressSpace(faultingInstructionAddress)) {
     ERROR_PRINTF("%s: Failing instruction starting at %x wasn't in RVM address space\n",
         Me, faultingInstructionAddress);
@@ -244,8 +270,11 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
 #ifdef __x86_64__
   /* handle any REX prefix */
   if (opcode >= 0x40 && opcode <= 0x4F) {
+    has_rex_prefix = 1;
     opcode = ((unsigned char*)faultingInstructionAddress)[size];
     size++;
+    // extract w byte which is necessary to determine operand sizes
+    rex_w_byte = (opcode >> 3) & 1;
   }
 #endif __x86_64__
 
@@ -347,13 +376,15 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
       size += decodeModRMLength(modrmAddr); // account for the size of the modrm
       break;
     case 0x0B: case 0x13: case 0x1B: case 0x23: // op r, r/m
-    case 0x2B: case 0x33: case 0x3A: case 0x3B: case 0x8A:
-    case 0x8B:
+    case 0x28: case 0x2B:
+    case 0x33: case 0x3A: case 0x3B:
+    case 0x8A: case 0x8B:
 
     case 0x00: case 0x01: case 0x02: case 0x03: // op r/m, r
     case 0x09: case 0x11: case 0x19: case 0x21:
     case 0x29: case 0x31: case 0x38: case 0x39:
 
+    case 0x63: // movsxd (op code not used by our compiler for 32 bit)
     case 0x84: case 0x85: // test
     case 0x88: // mov
     case 0x89: // mov r/m, r
@@ -439,10 +470,20 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
   }
 
   if (has_variable_immediate == 1) {
-    if (operand_size_override == 1) {
-      size += 2;
-    } else {
-      size += 4;
+    if (has_rex_prefix == 1) { // 64 bit instruction
+      if (rex_w_byte == 1) {
+        size += 8; // all operand overrides are ignored, width is 64 bit
+      } else if (operand_size_override == 1) {
+        size += 2; // no w byte and operand size overrides means 16 bit operands
+      } else {
+        size += 4; // default operand size is always 32 bit
+      }
+    } else { // normal instruction
+      if (operand_size_override == 1) {
+        size += 2; // operand size override for non-64 bit instructions means 16 bit
+      } else {
+        size += 4; // default operand size is always 32 bit
+      }
     }
   }
 
@@ -518,6 +559,8 @@ EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int si
             return Runtime_TRAP_MUST_IMPLEMENT;
           case Constants_RVM_TRAP_BASE + Runtime_TRAP_STORE_CHECK:
             return Runtime_TRAP_STORE_CHECK;
+          case Constants_RVM_TRAP_BASE + Runtime_TRAP_UNREACHABLE_BYTECODE:
+            return Runtime_TRAP_UNREACHABLE_BYTECODE;
           default:
             ERROR_PRINTF("%s: Unexpected trap code in int imm instruction 0x%x\n", Me, (unsigned int) code);
             return Runtime_TRAP_UNKNOWN;
@@ -541,7 +584,7 @@ EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int si
  *          vmRegisters [out]
  */
 EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
-             int trapCode, int trapInfo,
+             int trapCode, Word trapInfo,
              Address instructionPtr,
              Address instructionFollowingPtr,
              Address threadPtr, Address jtocPtr,
@@ -610,7 +653,7 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
   TRACE_PRINTF("%s: trap code is %d\n", Me, trapCode);
 
   sp = sp - __SIZEOF_POINTER__; /* next parameter is trap info */
-  ((int *)sp)[0] = trapInfo;
+  ((Word *)sp)[0] = trapInfo;
   IA32_EDX(context) = trapInfo;
   TRACE_PRINTF("%s: trap info is %d\n", Me, trapInfo);
 
@@ -704,7 +747,7 @@ EXTERNAL void dumpContext(void *context)
 #endif
   ERROR_PRINTF("trapno        0x%08x\n", IA32_TRAPNO(context));
   ERROR_PRINTF("err           0x%08x\n", IA32_ERR(context));
-  ERROR_PRINTF("eflags        0x%08x\n", IA32_EFLAGS(context));
+  ERROR_PRINTF("eflags        0x%08x\n", (int)IA32_EFLAGS(context));
   /* null if fp registers haven't been used yet */
 #ifndef RVM_FOR_OSX
   ERROR_PRINTF("fpregs        %p\n", (void*)IA32_FPREGS(context));

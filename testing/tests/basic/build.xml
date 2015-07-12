@@ -97,6 +97,8 @@
                     class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInstanceof"
                     rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
 
+    <runCompareTest tag="TestNullChecks" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks"/>
+
     <runCompareTest tag="tClass" class="test.org.jikesrvm.basic.core.reflect.tClass"/>
     <runCompareTest tag="tArray" class="test.org.jikesrvm.basic.core.reflect.tArray"/>
     <runCompareTest tag="TestFieldReflection" class="test.org.jikesrvm.basic.core.reflect.TestFieldReflection"/>

@@ -94,16 +94,14 @@ public class FloatingPoint_NaN {
 
     System.out.println();
     if (success) {
-      System.out.println("Overall: SUCCESS");
+      System.out.println("ALL TESTS PASSED");
     } else {
-      System.out.println("Overall: FAILURE");
+      System.out.println("SOME TESTS FAILED");
     }
   }
 
   private void determineTestStatusForFloat(float res) {
     if (Float.isNaN(res)) {
-      // Note: cannot use "SUCCESS" here because that's used to determine
-      // overall test success
       System.out.print(" [OK]");
     } else {
       success = false;
@@ -114,8 +112,6 @@ public class FloatingPoint_NaN {
 
   private void determineTestStatusForDouble(double res) {
     if (Double.isNaN(res)) {
-      // Note: cannot use "SUCCESS" here because that's used to determine
-      // overall test success
       System.out.print(" [OK]");
     } else {
       success = false;
@@ -126,8 +122,6 @@ public class FloatingPoint_NaN {
 
   private void determineTestStatusForBoolean(boolean res) {
     if (res == false) {
-      // Note: cannot use "SUCCESS" here because that's used to determine
-      // overall test success
       System.out.print(" [OK]");
     } else {
       success = false;

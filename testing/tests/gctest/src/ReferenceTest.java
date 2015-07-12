@@ -182,7 +182,7 @@ class ReferenceTest {
       System.out.println();
       getHeapSize();
       System.out.print("\nOverall: ");
-      System.out.println((failCount == 0) ? "SUCCESS" : (failCount + " FAILURES"));
+      System.out.println((failCount == 0) ? "ALL TESTS PASSED" : (failCount + " FAILURES"));
   }
 
 }

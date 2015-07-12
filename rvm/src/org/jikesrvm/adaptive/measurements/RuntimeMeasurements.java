@@ -283,7 +283,7 @@ public abstract class RuntimeMeasurements {
   /**
    * The currently registered decayable objects
    */
-  static Vector<Decayable> decayObjects = new Vector<Decayable>();
+  static final Vector<Decayable> decayObjects = new Vector<Decayable>();
 
   /**
    * Counts the number of decay events

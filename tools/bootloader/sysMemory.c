@@ -323,9 +323,9 @@ EXTERNAL void sysSyncCache(void *address, size_t size)
 // This is invoked from a command-line argument.
 void findMappable()
 {
-  int i;
-  int granularity = 1 << 22; // every 4 megabytes
-  int max = (1 << 30) / (granularity >> 2);
+  Address i;
+  Address granularity = 1 << 22; // every 4 megabytes
+  Address max = (1L << ((sizeof(Address)*8)-2)) / (granularity >> 2);
   CONSOLE_PRINTF("Attempting to find mappable blocks of size %d\n", pageSize);
   for (i = 0; i < max; i++) {
     char *start = (char *) (i * granularity);

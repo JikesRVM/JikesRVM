@@ -19,7 +19,7 @@ package org.jikesrvm.compilers.opt.ir;
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.opt.util.Bits;
+import org.jikesrvm.util.Bits;
 
 /**
  * An Operator represents the operator of an {@link Instruction}.

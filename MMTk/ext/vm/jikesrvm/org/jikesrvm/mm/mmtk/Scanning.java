@@ -17,10 +17,10 @@ import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
+import org.jikesrvm.jni.JNIGenericHelpers;
 import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
@@ -29,7 +29,6 @@ import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.SpecializedScanMethod;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
-
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -122,7 +121,7 @@ public final class Scanning extends org.mmtk.vm.Scanning {
    */
   @Override
   public void computeGlobalRoots(TraceLocal trace) {
-    /* scan jni functions */
+    /* scan JNI functions */
     CollectorContext cc = RVMThread.getCurrentThread().getCollectorContext();
     Address jniFunctions = Magic.objectAsAddress(JNIEnvironment.JNIFunctions);
     int threads = cc.parallelWorkerCount();
@@ -132,7 +131,13 @@ public final class Scanning extends org.mmtk.vm.Scanning {
     int end = (cc.parallelWorkerOrdinal() + 1 == threads) ? size : threads * chunkSize;
 
     for (int i = start; i < end; i++) {
-      trace.processRootEdge(jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS), true);
+      Address functionAddressSlot = jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS);
+      if (JNIGenericHelpers.implementedInJava(i)) {
+        trace.processRootEdge(functionAddressSlot, true);
+      } else {
+        // Function implemented as a C function, must not be
+        // scanned.
+      }
     }
 
     Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.linkageTriplets);

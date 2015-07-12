@@ -148,7 +148,7 @@ class InlineAllocation {
     }
 
     if (!fail) {
-      System.out.println("Overall: SUCCESS");
+      System.out.println("ALL TESTS PASSED");
     }
   }
 

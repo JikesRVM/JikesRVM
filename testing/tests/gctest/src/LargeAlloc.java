@@ -68,6 +68,6 @@ class LargeAlloc {
     long endUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     System.out.print("\nAfter allocation, usedMemory has increased by ");
     System.out.println(((endUsed - startUsed) / (1024.0 * 1024.0)) + " Mb");
-    System.out.println("Overall: SUCCESS");
+    System.out.println("ALL TESTS PASSED");
   }
 }

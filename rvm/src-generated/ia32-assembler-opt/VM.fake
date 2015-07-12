@@ -22,6 +22,8 @@ public class VM {
     
     public static boolean runningVM;
 
+    public static boolean runningTool;
+
     public static void _assert(boolean c) { }
 
     public static void _assert(boolean c, String s) { }

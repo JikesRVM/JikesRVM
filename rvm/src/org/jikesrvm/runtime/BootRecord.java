@@ -13,6 +13,7 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.jni.FunctionTable;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
@@ -155,7 +156,7 @@ public class BootRecord {
   /** size of a virtual memory page in bytes */
   public Extent bytesInPage;
 
-  @Untraced
+  @Untraced // because bootloader code must be able to access it
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
   // C-style termination with sentinel values
   /**
@@ -178,9 +179,15 @@ public class BootRecord {
 
   /**
    * address of JavaVM, used by JNI_OnLoad and JNIEnv.GetJavaVM,
-   * defined in Sys.C
+   * defined in jvm.c
    */
   public Address sysJavaVM;
+
+  /**
+   * Reference to JNI function table
+   */
+  @Untraced // because bootloader code must be able to access it
+  public FunctionTable JNIFunctions;
 
   // Additional RVM entrypoints
   //
@@ -301,6 +308,19 @@ public class BootRecord {
   // shared libraries
   Address sysDlopenIP;
   Address sysDlsymIP;
+
+  // var args
+  public Address sysVaCopyIP;
+  public Address sysVaEndIP;
+  public Address sysVaArgJbooleanIP;
+  public Address sysVaArgJbyteIP;
+  public Address sysVaArgJcharIP;
+  public Address sysVaArgJshortIP;
+  public Address sysVaArgJintIP;
+  public Address sysVaArgJlongIP;
+  public Address sysVaArgJfloatIP;
+  public Address sysVaArgJdoubleIP;
+  public Address sysVaArgJobjectIP;
 
   // VMMath
   public Address sysVMMathSinIP;

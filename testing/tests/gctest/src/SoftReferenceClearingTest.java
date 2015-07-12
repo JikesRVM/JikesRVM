@@ -62,9 +62,9 @@ public class SoftReferenceClearingTest {
     r = rr.get();
     boolean success = determineTestSuccess(o, r);
     if (success) {
-      System.out.println("Overall: SUCCESS");
+      System.out.println("ALL TESTS PASSED");
     } else {
-      System.out.println("Overall: FAILURE");
+      System.out.println("SOME TESTS FAILED");
     }
   }
 

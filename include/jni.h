@@ -148,8 +148,8 @@ struct JavaVM_;
 typedef  JNIEnv_ JNIEnv;
 typedef JavaVM_ JavaVM;
 #else
-typedef const struct JNINativeInterface_ JNIEnv;
-typedef const struct JNIInvokeInterface_ JavaVM;
+typedef const struct JNINativeInterface_ *JNIEnv;
+typedef const struct JNIInvokeInterface_ *JavaVM;
 #endif
 
 struct JNINativeInterface_ {

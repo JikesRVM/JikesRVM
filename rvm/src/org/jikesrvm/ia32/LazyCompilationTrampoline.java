@@ -15,7 +15,8 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.Magic;
+
+import static org.jikesrvm.ia32.RegisterConstants.*;
 
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
@@ -33,7 +34,7 @@ public abstract class LazyCompilationTrampoline implements BaselineConstants {
 
   static {
     Assembler asm = new ArchitectureSpecific.Assembler(0);
-    asm.emitJMP_Abs(Magic.getTocPointer().plus(Entrypoints.lazyMethodInvokerMethod.getOffset()));
+    asm.generateJTOCjmp(Entrypoints.lazyMethodInvokerMethod.getOffset());
     instructions = asm.getMachineCodes();
   }
 }

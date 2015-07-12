@@ -758,7 +758,7 @@ static int openjdkVerbose = 0;
   {
     jobject result;
     printf("##Trap to RVM:JVM_DoPrivileged(JNIEnv *env, jclass cls, jobject action, jobject context, jboolean wrapException)");
-    result = env->RVM_DoPrivileged(env,cls,action,context,&wrapException);
+    result = (*env)->RVM_DoPrivileged(env,cls,action,context,&wrapException);
     printf("##Retrn from JVM_DoPrivileged, result is %p\n",result);
 
   }

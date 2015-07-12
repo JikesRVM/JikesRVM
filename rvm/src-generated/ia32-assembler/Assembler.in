@@ -13,15 +13,16 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
+import static org.jikesrvm.ia32.RegisterConstants.GPR;
+import static org.jikesrvm.util.Bits.*;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
-import org.jikesrvm.ia32.OutOfLineMachineCode;
-import org.jikesrvm.ia32.RegisterConstants;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
-import static org.jikesrvm.ia32.RegisterConstants.GPR;
+import org.jikesrvm.ia32.OutOfLineMachineCode;
+import org.jikesrvm.ia32.RegisterConstants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -406,60 +407,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (Offset val, int bits) {
-    return fits(val.toWord(), bits);
-  }
-
-  /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (Address val, int bits) {
-    return fits(val.toWord(), bits);
-  }
-
-  /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (Word val, int bits) {
-    Word o = val.rsha(bits-1);
-    return (o.isZero() || o.isMax());
-  }
-
-  /**
-   * Find out whether a given signed value can be represented in a
-   * given number of bits.
-   *
-   * @param val the value to be represented
-   * @param bits the number of bits to use.
-   * @return true if val can be encoded in bits.
-   */
-  @Inline
-  protected static boolean fits (int val, int bits) {
-    val = val >> bits-1;
-    return (val == 0 || val == -1);
-  }
-
-  /**
    * In the representation of addressing modes in the ModRM and SIB
    * bytes, the code for register-displacement for on ESP has a
    * special meaning.  Thus, when register-displacement mode using ESP
@@ -467,6 +414,16 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * emitted.
    */
   private static final byte SIBforESP = (byte) ((0<<6) + (4<<3) + ESP.value()); // (scale factor 1) no index, ESP is base
+  
+  /**
+   * In the representation of addressing modes in the ModRM and SIB
+   * bytes, the code for register-displacement for on R12 has a
+   * special meaning.  Thus, when register-displacement mode using R12
+   * is desired, this special SIB (scale-index-base) byte must be
+   * emitted.
+   */
+  private static final byte SIBforR12 = VM.buildFor32Addr() ? 0 :
+    (byte) ((0<<6) + (4<<3) + (R12.value() & 0x7)); // (scale factor 1) no index, R12 is base
 
   /**
    * Generate a REX prefix if necessary
@@ -587,6 +544,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   private void emitRegDisp32RegOperands(MachineRegister reg1, int disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+    if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
     emitImm32(disp);
   }
 
@@ -607,6 +565,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   private void emitRegDisp8RegOperands(MachineRegister reg1, byte disp, MachineRegister reg2) {
     setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+    if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
     emitImm8(disp);
   }
 
@@ -655,9 +614,12 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   private void emitRegIndirectRegOperands(MachineRegister reg1, MachineRegister reg2) {
     if (reg1 == EBP) {
       emitRegDispRegOperands(reg1, Offset.zero(), reg2);
+    } else if (reg1 == R13) {
+      emitRegDispRegOperands(reg1, Offset.zero(), reg2);
     } else {
       setMachineCodes(mi++, regIndirectRegModRM(reg1, reg2));
       if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
+      if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
     }
   }
 
@@ -714,7 +676,8 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,5})
   private void emitSIBRegOperands(MachineRegister base, MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
     if (VM.VerifyAssertions) VM._assert(index != ESP);
-    if (disp.EQ(Offset.zero()) && base != EBP) {
+    if (VM.VerifyAssertions) VM._assert(index != R12);
+    if (disp.EQ(Offset.zero()) && base != EBP && base != R13) {
       setMachineCodes(mi++, regIndirectRegModRM(ESP, reg2));
       setMachineCodes(mi++, sib(scale, base, index));
     } else if (fits(disp,8)) {
@@ -993,6 +956,12 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
       case GT: return LE;
       case LE: return GT;
       case GE: return LT;
+      case LLT: return LGE;
+      case LGT: return LLE;
+      case LLE: return LGT;
+      case LGE: return LLT;
+      case PE: return PO;
+      case PO: return PE;      
       default: throw new InternalError("Unexpected condition code");
     }
   }
@@ -1228,6 +1197,211 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (VM.VerifyAssertions) VM._assert(fits(relOffset, 8), "offset too large: "+relOffset);
     sourceIndex++; // skip the op code
     emitImm8((byte)relOffset, sourceIndex);
+  }
+
+  /////////////////////////////////////
+  // JTOC utilities ///////////////////
+  /////////////////////////////////////
+
+  /**
+   * Utility to push a value from the JTOC
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCpush(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitPUSH_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitPUSH_RegDisp(JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Utility to push a value from the JTOC
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCpush(GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitPUSH_RegDisp(off, Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitPUSH_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    }
+  }
+
+  /**
+   * Utility to pop a value to the JTOC
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCpop(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitPOP_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitPOP_RegDisp(JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Utility to pop a value to the JTOC
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCpop(GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitPOP_RegDisp(off,Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitPOP_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    }
+  }
+
+  /**
+   * Utility to call through a JTOC address
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcall(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitCALL_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitCALL_RegDisp(JTOC_REGISTER, off);
+    }    
+  }
+
+  /**
+   * Utility to call through a JTOC address with a displacement in a register
+   * @param off the register containing the displacement
+   */
+  public final void generateJTOCcall(GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitCALL_RegDisp(off, Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitCALL_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    } 
+  }
+
+  /**
+   * Utility to call through a JTOC address
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCjmp(Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitJMP_Abs(Magic.getTocPointer().plus(off));
+    } else {
+      emitJMP_RegDisp(JTOC_REGISTER, off);
+    }    
+  }
+
+  /**
+   * Loads an int from the JTOC
+   * @param dst the destination register for the loaded value
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCloadInt(GPR dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitMOV_Reg_RegDisp(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Loads an int from the JTOC
+   * @param dst the destination register for the loaded value
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCloadInt(GPR dst, GPR off) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Reg_RegDisp(dst, off, Magic.getTocPointer().toWord().toOffset());
+    } else {
+      emitMOV_Reg_RegIdx(dst, JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
+    }
+  }
+
+  /**
+   * Loads a long from the JTOC
+   * @param dst the destination register for the loaded value
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCloadLong(GPR dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Reg_Abs_Quad(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitMOV_Reg_RegDisp_Quad(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Stores an int to the JTOC
+   * @param off the offset from the JTOC
+   * @param src the source register of the value
+   */
+  public final void generateJTOCstoreInt(Offset off, GPR src) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Abs_Reg(Magic.getTocPointer().plus(off), src);
+    } else {
+      emitMOV_RegDisp_Reg(JTOC_REGISTER, off, src);
+    }
+  }
+
+  /**
+   * Stores an int to the JTOC
+   * @param src the source register of the value
+   * @param off the register containing the offset from the JTOC
+   */
+  public final void generateJTOCstoreInt(GPR off, GPR src) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_RegDisp_Reg(off, Magic.getTocPointer().toWord().toOffset(), src);
+    } else {
+      emitMOV_RegIdx_Reg(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero(), src);
+    }
+  }
+
+  /**
+   * Stores a long to the JTOC
+   * @param src the source register of the value
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCstoreLong(Offset off, GPR src) {
+    if(JTOC_REGISTER == null) {
+      emitMOV_Abs_Reg_Quad(Magic.getTocPointer().plus(off), src);
+    } else {
+      emitMOV_RegDisp_Reg_Quad(JTOC_REGISTER, off, src);
+    }
+  }
+
+  /**
+   * Compares a word in the JTOC with the given register
+   * @param dst the register to compare with
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcmpWord(GPR dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitCMP_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitCMP_Reg_RegDisp_Quad(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Compares a float in the JTOC with the given register
+   * @param dst the register to compare with
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcmpFloat(XMM dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitUCOMISS_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitUCOMISS_Reg_RegDisp(dst, JTOC_REGISTER, off);
+    }
+  }
+
+  /**
+   * Compares a double in the JTOC with the given register
+   * @param dst the register to compare with
+   * @param off the offset from the JTOC
+   */
+  public final void generateJTOCcmpDouble(XMM dst, Offset off) {
+    if(JTOC_REGISTER == null) {
+      emitUCOMISD_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+    } else {
+      emitUCOMISD_Reg_RegDisp(dst, JTOC_REGISTER, off);
+    }
   }
 
   /////////////////////////////////////
@@ -1632,7 +1806,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitIMUL2_Reg_Imm(GPR dstReg, int imm) {
     int miStart = mi;
-    generateREXprefix(false, dstReg, null, null);
+    generateREXprefix(false, dstReg, null, dstReg);
     if (fits(imm,8)) {
       setMachineCodes(mi++, (byte) 0x6B);
       emitRegRegOperands(dstReg, dstReg);
@@ -1708,7 +1882,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitIMUL2_Reg_Imm_Quad(GPR dstReg, int imm) {
     int miStart = mi;
-    generateREXprefix(true, dstReg, null, null);
+    generateREXprefix(true, dstReg, null, dstReg);
     if (fits(imm,8)) {
       setMachineCodes(mi++, (byte) 0x6B);
       emitRegRegOperands(dstReg, dstReg);
@@ -1924,10 +2098,21 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitMOV_Reg_Imm_Quad(GPR dstReg, long imm) {
-    int miStart = mi;
-    generateREXprefix(true, null, null, dstReg);
-    setMachineCodes(mi++, (byte) (0xB8 | dstReg.value()));
-    emitImm64(imm);
+    int miStart = mi;  
+    if (imm > 0 && (imm >> 32 == 0)) {
+      // Do shorter unsigned 32bit move immediate
+      emitMOV_Reg_Imm(dstReg, (int)imm);
+    } else {
+      generateREXprefix(true, null, null, dstReg);
+      if (fits(imm, 32)) {
+        setMachineCodes(mi++, (byte) 0xC7);
+        emitRegRegOperands(dstReg, GPR.getForOpcode(0));
+        emitImm32((int)imm);
+      } else {
+        setMachineCodes(mi++, (byte) (0xB8 | dstReg.value()));
+        emitImm64(imm);
+      }
+    }
     if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
   }
 

@@ -28,7 +28,6 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.EntrypointHelper;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
@@ -552,7 +551,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     asm.emitPUSH_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
 
     /* call the handler */
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.returnBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.returnBarrierMethod.getOffset());
 
     /* pop the fp and GPRs */
     asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
@@ -708,11 +707,12 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     // Push registers.ip to stack (now that SP has been restored)
     asm.emitPUSH_RegDisp(T0, ArchEntrypoints.registersIPField.getOffset());
 
-    // Restore the GPRs except for S0, TR, and SP
+    // Restore the GPRs except for S0, TR, SP and JTOC
     // (restored above and then modified by pushing registers.ip!)
     Offset off = Offset.zero();
     for (byte i = 0; i < NUM_GPRS; i++, off = off.plus(WORDSIZE)) {
-      if (i != S0.value() && i != ESI.value() && i != SP.value()) {
+      if (i != S0.value() && i != ESI.value() && i != SP.value() &&
+          (JTOC_REGISTER == null || i != JTOC_REGISTER.value())) {
         if (VM.BuildFor32Addr) {
           asm.emitMOV_Reg_RegDisp(GPR.lookup(i), S0, off);
         } else {

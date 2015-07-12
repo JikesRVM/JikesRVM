@@ -27,7 +27,7 @@ public class TestOffset {
     testPlusAndMinus();
     testSimplestCasesForComparisons();
     if (success) {
-      System.out.println("SUCCESS");
+      System.out.println("ALL TESTS PASSED");
     } else {
       System.out.println("FAILURE");
     }

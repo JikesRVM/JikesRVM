@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Emit the architecture-specific part of a header file containing declarations
- * required to access VM data structures from C++.
+ * required to access VM data structures from C.
  */
 final class GenArch_ppc extends GenArch {
   @Override

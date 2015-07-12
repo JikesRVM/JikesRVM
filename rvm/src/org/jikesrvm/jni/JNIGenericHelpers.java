@@ -13,15 +13,27 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
+
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
+import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.StringUtilities;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -226,4 +238,143 @@ public abstract class JNIGenericHelpers {
       boolPtr.store((byte)0);
     }
   }
+
+  /**
+   * Dispatch method call
+   * @param obj this pointer for method to be invoked, or null if method is static
+   * @param mr reference to method to be invoked
+   * @param args argument array
+   * @param expectedReturnType a type reference for the expected return type
+   * @param nonVirtual should invocation be of the given method or should we use virtual dispatch on the object?
+   * @return return value of the method (boxed if primitive)
+   * @throws InvocationTargetException when the reflective method call fails
+   */
+  protected static Object callMethod(Object obj, MethodReference mr, Object[] args, TypeReference expectedReturnType, boolean nonVirtual) throws InvocationTargetException {
+    RVMMethod targetMethod = mr.resolve();
+    TypeReference returnType = targetMethod.getReturnType();
+
+    if (JNIFunctions.traceJNI) {
+      VM.sysWriteln("JNI CallXXXMethod: " + mr);
+    }
+
+    if (expectedReturnType == null) {   // for reference return type
+      if (!returnType.isReferenceType()) {
+        throw new IllegalArgumentException("Wrong return type for method (" + targetMethod + "): expected reference type instead of " + returnType);
+      }
+    } else { // for primitive return type
+      if (!returnType.definitelySame(expectedReturnType)) {
+        throw new IllegalArgumentException("Wrong return type for method (" + targetMethod + "): expected " + expectedReturnType + " instead of " + returnType);
+      }
+    }
+    // invoke the method
+    return Reflection.invoke(targetMethod, null, obj, args, nonVirtual);
+  }
+
+
+  /**
+   * Dispatch method call, arguments in jvalue*
+   * @param env the JNI environemnt for the thread
+   * @param objJREF a JREF index for the object
+   * @param methodID id of a MethodReference
+   * @param argAddress address of an array of jvalues (jvalue*)
+   * @param expectedReturnType a type reference for the expected return type
+   * @param nonVirtual should invocation be of the given method or should we use virtual dispatch on the object?
+   * @return return value of the method (boxed if primitive)
+   * @throws InvocationTargetException when reflective invocation fails
+   */
+  protected static Object callMethodJValuePtr(JNIEnvironment env, int objJREF, int methodID, Address argAddress, TypeReference expectedReturnType, boolean nonVirtual) throws InvocationTargetException {
+    RuntimeEntrypoints.checkJNICountDownToGC();
+    try {
+      Object obj = env.getJNIRef(objJREF);
+      MethodReference mr = MemberReference.getMethodRef(methodID);
+      Object[] args = packageParametersFromJValuePtr(mr, argAddress);
+      return callMethod(obj, mr, args, expectedReturnType, nonVirtual);
+    } catch (Throwable unexpected) {
+      if (JNIFunctions.traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return 0;
+    }
+  }
+
+  /**
+   * Repackage the arguments passed as an array of jvalue into an array of Object,
+   * used by the JNI functions CallStatic&lt;type&gt;MethodA
+   * @param targetMethod the target {@link MethodReference}
+   * @param argAddress an address into the C space for the array of jvalue unions
+   * @return an Object array holding the arguments wrapped at Objects
+   */
+  protected static Object[] packageParametersFromJValuePtr(MethodReference targetMethod, Address argAddress) {
+    TypeReference[] argTypes = targetMethod.getParameterTypes();
+    int argCount = argTypes.length;
+    Object[] argObjectArray = new Object[argCount];
+
+    // get the JNIEnvironment for this thread in case we need to dereference any object arg
+    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
+
+    Address addr = argAddress;
+    for (int i = 0; i < argCount; i++, addr = addr.plus(BYTES_IN_LONG)) {
+      // convert and wrap the argument according to the expected type
+      if (argTypes[i].isReferenceType()) {
+        // Avoid endianness issues by loading the whole slot
+        Word wholeSlot = addr.loadWord();
+        // for object, the arg is a JREF index, dereference to get the real object
+        int JREFindex = wholeSlot.toInt();
+        argObjectArray[i] = env.getJNIRef(JREFindex);
+      } else if (argTypes[i].isIntType()) {
+        argObjectArray[i] = addr.loadInt();
+      } else if (argTypes[i].isLongType()) {
+        argObjectArray[i] = addr.loadLong();
+      } else if (argTypes[i].isBooleanType()) {
+        // the 0/1 bit is stored in the high byte
+        argObjectArray[i] = addr.loadByte() != 0;
+      } else if (argTypes[i].isByteType()) {
+        // the target byte is stored in the high byte
+        argObjectArray[i] = addr.loadByte();
+      } else if (argTypes[i].isCharType()) {
+        // char is stored in the high 2 bytes
+        argObjectArray[i] = addr.loadChar();
+      } else if (argTypes[i].isShortType()) {
+        // short is stored in the high 2 bytes
+        argObjectArray[i] = addr.loadShort();
+      } else if (argTypes[i].isFloatType()) {
+        argObjectArray[i] = addr.loadFloat();
+      } else {
+        if (VM.VerifyAssertions) VM._assert(argTypes[i].isDoubleType());
+        argObjectArray[i] = addr.loadDouble();
+      }
+    }
+    return argObjectArray;
+  }
+
+  /**
+   * @param functionTableIndex slot in the JNI function table
+   * @return {@code true} if the function is implemented in Java (i.e.
+   *  its code is in org.jikesrvm.jni.JNIFunctions) and {@code false}
+   *  if the function is implemented in C (i.e. its code is in the
+   *  bootloader)
+   */
+  @Uninterruptible
+  public static boolean implementedInJava(int functionTableIndex) {
+    if (VM.BuildForPowerPC) {
+      return true;
+    }
+    // Indexes for the JNI functions are fixed according to the JNI
+    // specification and there is no need for links from functions
+    // to their indexes for anything else, so they're hardcoded here.
+    switch (functionTableIndex) {
+      case 28:
+      case 34: case 37: case 40: case 43:
+      case 46: case 49: case 52: case 55:
+      case 58: case 61: case 64: case 67:
+      case 70: case 73: case 76: case 79:
+      case 82: case 85: case 88: case 91:
+      case 114: case 117: case 120: case 123:
+      case 126: case 129: case 132: case 135:
+      case 138: case 141:
+        return false;
+      default:
+        return true;
+    }
+  }
+
 }

@@ -86,7 +86,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
-
+import static org.jikesrvm.util.Bits.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 

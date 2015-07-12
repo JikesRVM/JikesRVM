@@ -20,7 +20,7 @@
 /**
  * Transfer execution from C to Java for thread startup
  */
-void bootThread (void *ip, void *tr, void *sp, void UNUSED *jtoc)
+void bootThread (void *ip, void *tr, void *sp, void *jtoc)
 {
   void *saved_ebp;
   asm volatile (
@@ -33,6 +33,7 @@ void bootThread (void *ip, void *tr, void *sp, void UNUSED *jtoc)
        "pop   %%esp         \n"
        "mov   %0, %%ebp     \n"
 #else
+       "mov   %4, %%r15     \n"
        "mov   %%rbp, %0     \n"
        "mov   %%rsp, %%rbp  \n"
        "mov   %3, %%rsp     \n"
@@ -43,7 +44,11 @@ void bootThread (void *ip, void *tr, void *sp, void UNUSED *jtoc)
 #endif
        : "=m"(saved_ebp)
        : "a"(ip), // EAX = Instruction Pointer
-  "S"(tr), // ESI = Thread Register
-  "r"(sp)
+         "S"(tr), // ESI = Thread Register
+         "r"(sp)
+#ifdef __x86_64__
+        ,"r"(jtoc)
+       : "r15"
+#endif
        );
 }

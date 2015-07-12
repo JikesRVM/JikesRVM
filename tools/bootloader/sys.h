@@ -274,10 +274,19 @@ EXTERNAL int sysGetThreadPriority(Word thread, Word handle);
 EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority);
 // sysTime
 EXTERNAL long long sysCurrentTimeMillis();
-
 EXTERNAL long long sysNanoTime();
-
-
+// sysVarArgs
+EXTERNAL va_list* sysVaCopy(va_list ap);
+EXTERNAL void sysVaEnd(va_list *ap);
+EXTERNAL jboolean sysVaArgJboolean(va_list *ap);
+EXTERNAL jbyte sysVaArgJbyte(va_list *ap);
+EXTERNAL jchar sysVaArgJchar(va_list *ap);
+EXTERNAL jshort sysVaArgJshort(va_list *ap);
+EXTERNAL jint sysVaArgJint(va_list *ap);
+EXTERNAL jlong sysVaArgJlong(va_list *ap);
+EXTERNAL jfloat sysVaArgJfloat(va_list *ap);
+EXTERNAL jdouble sysVaArgJdouble(va_list *ap);
+EXTERNAL jobject sysVaArgJobject(va_list *ap);
 
 /** Only called externally from Java programs. */
 EXTERNAL void sysExit(int) NORETURN;
