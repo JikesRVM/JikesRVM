@@ -84,7 +84,7 @@ EXTERNAL long long sysDoubleToLong(double a)
  */
 EXTERNAL double sysDoubleRemainder(double a, double b)
 {
-  TRACE_PRINTF("%s: sysDoubleRemainder %f %% %f\n", Me, a);
+  TRACE_PRINTF("%s: sysDoubleRemainder %f %% %f\n", Me, a, b);
   double tmp = remainder(a, b);
   if (a > 0.0) {
     if (b > 0.0) {

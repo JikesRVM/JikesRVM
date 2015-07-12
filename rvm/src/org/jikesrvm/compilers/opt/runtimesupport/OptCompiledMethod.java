@@ -151,7 +151,12 @@ public final class OptCompiledMethod extends CompiledMethod {
     // error message when no method is found.
     if (realMethod == null) {
       VM.sysWrite("Failing instruction offset: ");
-      VM.sysWriteln(instructionOffset);
+      VM.sysWrite(instructionOffset);
+      VM.sysWrite(" in method ");
+      RVMMethod thisMethod = this.getMethod();
+      VM.sysWrite(thisMethod.getName());
+      VM.sysWrite(" with descriptor ");
+      VM.sysWriteln(thisMethod.getDescriptor());
       String msg = "Couldn't find a method for given instruction offset";
       if (VM.VerifyAssertions) {
         VM._assert(NOT_REACHED, msg);

@@ -28,6 +28,15 @@
 #include "cAttributePortability.h"
 
 #include <stdint.h>
+
+#ifndef __SIZEOF_POINTER__
+#  ifdef RVM_FOR_32_ADDR
+#    define __SIZEOF_POINTER__ 4
+#  else
+#    define __SIZEOF_POINTER__ 8
+#  endif
+#endif
+
 #ifdef RVM_FOR_32_ADDR
   #define Address uint32_t
   #define Offset int32_t
@@ -64,6 +73,10 @@ extern FILE *SysTraceFile;
 /** Trace execution of syscalls */
 #define TRACE 0
 #define TRACE_PRINTF(...) if(TRACE) fprintf(SysTraceFile, __VA_ARGS__)
+
+/* String utilities */
+#define STREQUAL(s1, s2) (strcmp(s1, s2) == 0)
+#define STRNEQUAL(s1, s2, n) (strncmp(s1, s2, n) == 0)
 
 extern void* checkMalloc(int length);
 extern void* checkCalloc(int numElements, int sizeOfOneElement);
@@ -182,6 +195,16 @@ EXTERNAL int sysGetenv(const char *varName, char *buf, int limit);
 EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
                                   const char *defaultFactor, int roundTo,
                                   const char *token, const char *subtoken);
+EXTERNAL unsigned int parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
+                 "initial stack" or "maximum stack"
+                   */
+         const char *sizeFlag, // "-Xms" or "-Xmx" or
+         // "-Xss" or "-Xsg" or "-Xsx"
+         const char *defaultFactor, // We now always default to bytes ("")
+         unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+         const char *token /* e.g., "-Xms200M" or "-Xms200" */,
+         const char *subtoken /* e.g., "200M" or "200" */,
+         int *fastExit);
 // sysPerfEvent
 EXTERNAL void sysPerfEventInit(int events);
 EXTERNAL void sysPerfEventCreate(int id, const char *eventName);
@@ -225,17 +248,6 @@ EXTERNAL void sysExit(int) NORETURN;
 /* Routines used elsewhere within bootloader */
 EXTERNAL void findMappable();
 EXTERNAL int pageRoundUp(uint64_t size, uint64_t pageSize);
-
-EXTERNAL unsigned int parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
-                 "initial stack" or "maximum stack"
-                   */
-         const char *sizeFlag, // "-Xms" or "-Xmx" or
-         // "-Xss" or "-Xsg" or "-Xsx"
-         const char *defaultFactor, // We now always default to bytes ("")
-         unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
-         const char *token /* e.g., "-Xms200M" or "-Xms200" */,
-         const char *subtoken /* e.g., "200M" or "200" */,
-         int *fastExit);
 
 /** JVM datastructure used for JNI declared in jvm.c */
 extern struct JavaVM_ sysJavaVM;
