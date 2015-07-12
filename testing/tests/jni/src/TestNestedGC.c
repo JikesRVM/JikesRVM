@@ -54,4 +54,3 @@ JNIEXPORT void JNICALL Java_TestNestedGC_level2
 
   (*env) -> CallStaticVoidMethodA(env, cls, methodID, NULL);
 }
-

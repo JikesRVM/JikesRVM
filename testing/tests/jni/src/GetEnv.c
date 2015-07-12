@@ -39,5 +39,3 @@ void JNICALL Java_GetEnv_nativeCall(JNIEnv *env, jclass cls) {
   if (env != nenv)
     fprintf(stderr, "GetEnv return bad environment\n");
 }
-
-

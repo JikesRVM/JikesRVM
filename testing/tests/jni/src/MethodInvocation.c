@@ -2585,5 +2585,3 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
 
 
 }
-
-

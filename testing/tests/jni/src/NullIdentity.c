@@ -80,4 +80,3 @@ JNIEXPORT jint JNICALL Java_NullIdentity_nullForceSpill(JNIEnv *env,
   }
   return 0;
 }
-

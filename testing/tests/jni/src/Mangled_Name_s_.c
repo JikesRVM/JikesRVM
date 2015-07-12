@@ -78,4 +78,3 @@ JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__ZI_3Ljava_lang_String_2
 (JNIEnv *env, jclass cls, jboolean myBoolean, jint myInt, jobjectArray myArray) {
   return 0;
 }
-

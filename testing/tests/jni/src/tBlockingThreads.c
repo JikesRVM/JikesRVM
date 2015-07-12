@@ -28,6 +28,3 @@ JNIEXPORT jint JNICALL Java_tBlockingThreads_nativeBlocking
 
   printf("nativeBlocking: returning\n");
 }
-
-
-

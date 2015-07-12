@@ -146,4 +146,3 @@ JNIEXPORT jint JNICALL Java_StringRegion_testStringCritical(JNIEnv * env, jclass
 
   return trouble;
 }
-

@@ -81,7 +81,3 @@ JNIEXPORT jobject JNICALL Java_TestGC_testgc
 
   return obj1;
 }
-
-
-
-

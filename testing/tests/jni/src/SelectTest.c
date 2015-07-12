@@ -39,4 +39,3 @@ JNIEXPORT void JNICALL Java_SelectTest_doit(JNIEnv *env, jclass cls) {
   else
     printf("No data within five seconds.\n");
 }
-
