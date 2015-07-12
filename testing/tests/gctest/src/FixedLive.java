@@ -111,7 +111,7 @@ class FixedLive {
     System.out.println("Total Allocation Time: " + sumAllocTime + " s");
     System.out.println("   Total Tracing Time: " + sumTraceTime + " s");
     System.out.println();
-    System.out.println("Overall: SUCCESS");
+    System.out.println("ALL TESTS PASSED");
   }
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated

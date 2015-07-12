@@ -667,6 +667,7 @@
     <attribute name="maxHeapSize" default=""/>
     <attribute name="rvmArgs" default=""/>
     <attribute name="timeLimit" default=""/>
+    <attribute name="message" default="ALL TESTS PASSED"/>
     <sequential>
       <rvm tag="@{tag}"
            class="@{class}"
@@ -677,7 +678,7 @@
            maxHeapSize="@{maxHeapSize}"
            rvmArgs="@{rvmArgs}"
            timeLimit="@{timeLimit}"/>
-      <findStatistic tag="@{tag}" pattern="SUCCESS" key="success"/>
+      <findStatistic tag="@{tag}" pattern="@{message}" key="success"/>
       <outputResults tag="@{tag}"/>
     </sequential>
   </macrodef>

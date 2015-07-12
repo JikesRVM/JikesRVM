@@ -77,7 +77,7 @@ class Exhaust {
 
       size *= growthFactor;
     }
-    System.out.println("Overall: SUCCESS");
+    System.out.println("ALL TESTS PASSED");
   }
 }
 
