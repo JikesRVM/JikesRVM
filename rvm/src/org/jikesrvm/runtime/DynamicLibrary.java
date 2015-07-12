@@ -36,6 +36,11 @@ public final class DynamicLibrary {
    * Add symbol for the bootloader to find symbols within it.
    */
   public static void boot() {
+    // FIXME Hat to rename jvm* to jikesrvm* to work with the current
+    // OpenJDK build setup. This should really be jvm_jni as on the default branch.
+    // We should clean up the OpenJDK build / components file and
+    // then check how to make it possible to use jvm and jvm_jni libraries
+    // with OpenJDK.
     System.loadLibrary("jikesrvm_jni");
   }
 
