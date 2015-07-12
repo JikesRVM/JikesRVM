@@ -12,22 +12,15 @@
  */
 
 /*
- * C runtime support for virtual machine.
+ * The initial loader of the VM.
  *
- * This file deals with loading of the vm boot image into a memory segment,
+ * It deals with loading of the vm boot image into a memory segment,
  * basic processing of command line arguments, and branching to VM.boot.
  *
- * The file "sys.cpp" contains the o/s support services to match
- * the entrypoints declared by SysCall.java
+ * It also provides C runtime support for the virtual machine. The files
+ * sys*.c contain the support services to match the entrypoints
+ * declared by org.jikesrvm.runtime.Syscall .
  *
- * 17 Oct 2000 The system code (everything except command line parsing in main)
- *             are moved into libvm.C to accomodate the JNI call CreateJVM
- *             (Ton Ngo)
- *             Add support to recognize quotes in command line arguments,
- *             standardize command line arguments with JDK 1.3.
- *             Eliminate order dependence on command line arguments
- *      Cleaned up memory management.  Made the handling of numeric args
- *      robust.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,33 +46,33 @@
 #include <sys/context.h>
 // extern "C" char *sys_siglist[];
 #endif
-#include "bootloader.h"       /* Automatically generated for us by the build */
-#include "bootImageRunner.h"    /* In tools/bootloader */
 
 // Interface to VM data structures.
 //
-#define NEED_BOOT_RECORD_DECLARATIONS
-#define NEED_VIRTUAL_MACHINE_DECLARATIONS
-#define NEED_GNU_CLASSPATH_VERSION
-#define NEED_EXIT_STATUS_CODES  // Get EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
+#define NEED_BOOT_RECORD_INITIALIZATION 1
+
+#include "bootloader.h"       /* Automatically generated for us by the build */
 
 #include "sys.h"
 
-uint64_t initialHeapSize;       /* Declared in bootImageRunner.h */
-uint64_t maximumHeapSize;       /* Declared in bootImageRunner.h */
-uint64_t pageSize;              /* Declared in bootImageRunner.h */
+Extent initialHeapSize;
+Extent maximumHeapSize;
+Extent pageSize;
 
-int verboseBoot;                /* Declared in bootImageRunner.h */
+/** Verbose boot up set */
+int verboseBoot = 0;
 
-/** Sink for messages relating to serious errors detected by C runtime. */
-FILE *SysErrorFile;
-/* Sink for trace messages produced by VM.sysWrite(). */
-FILE *SysTraceFile;
+/** File name for part of boot image containing code */
+static char *bootCodeFilename;
 
-static int DEBUG = 0;                   // have to set this from a debugger
+/** File name for part of boot image containing data */
+static char *bootDataFilename;
+
+/** File name for part of boot image containing the root map */
+static char *bootRMapFilename;
 
 void findMappable();
-int determinePageSize();
+Extent determinePageSize();
 
 // Definitions of constants for handling C command-line arguments
 
@@ -291,7 +284,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       break;
     }
     if (STREQUAL(token, nonStandardArgs[VERBOSE_INDEX])) {
-      ++lib_verbose;
+      ++verbose;
       continue;
     }
     if (STRNEQUAL(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
@@ -376,7 +369,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
       /* Canonicalize the argument, and pass it on to the heavy-weight
        * Java code that parses -X:gc:verbose */
       const size_t bufsiz = 20;
-      char *buf = (char *) malloc(bufsiz);
+      char *buf = (char *) checkMalloc(bufsiz);
       int ret = snprintf(buf, bufsiz, "-X:gc:verbose=%ld", level);
       if (ret < 0) {
         ERROR_PRINTF("%s: Internal error processing the argument"
@@ -390,7 +383,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
         break;
       }
 
-      CLAs[n_JCLAs++]=buf; // Leave buf allocated!
+      CLAs[n_JCLAs++] = buf; // Leave buf allocated!
       continue;
     }
 
@@ -485,46 +478,234 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, int *fastExit)
   return CLAs;
 }
 
-/*
+
+/**
+ * Map the given file to memory
+ *
+ * Taken:     fileName         [in] name of file
+ *            targetAddress    [in] address to load file to
+ *            executable       [in] are we mapping code into memory
+ *            writable         [in] do we need to write to this memory?
+ *            roundedImageSize [out] size of mapped memory rounded up to a whole
+ * Returned:  address of mapped region
+ */
+static void* mapImageFile(const char *fileName, const void *targetAddress,
+                          jboolean executable, jboolean writable, Extent *roundedImageSize) {
+  Extent actualImageSize;
+  void *bootRegion = 0;
+  TRACE_PRINTF("%s: mapImageFile \"%s\" to %p\n", Me, fileName, targetAddress);
+  FILE *fin = fopen (fileName, "r");
+  if (!fin) {
+    ERROR_PRINTF("%s: can't find bootimage file\"%s\"\n", Me, fileName);
+    return 0;
+  }
+  /* measure image size */
+  fseek (fin, 0L, SEEK_END);
+  actualImageSize = (uint64_t) ftell(fin);
+  *roundedImageSize = pageRoundUp(actualImageSize, pageSize);
+  fseek (fin, 0L, SEEK_SET);
+  int prot = PROT_READ;
+  if (writable)
+    prot |= PROT_WRITE;
+  if (executable)
+    prot |= PROT_EXEC;
+  bootRegion = mmap((void*)targetAddress, *roundedImageSize,
+       prot,
+       MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE,
+       fileno(fin), 0);
+  if (bootRegion == (void *) MAP_FAILED) {
+    ERROR_PRINTF("%s: mmap failed (errno=%d): %s\n", Me, errno, strerror(errno));
+    return 0;
+  }
+  /* Quoting from the Linux mmap(2) manual page:
+     "closing the file descriptor does not unmap the region."
+  */
+  if (fclose (fin) != 0) {
+    ERROR_PRINTF("%s: close failed (errno=%d)\n", Me, errno);
+    return 0;
+  }
+  if (bootRegion != targetAddress) {
+    ERROR_PRINTF("%s: Attempted to mapImageFile to the address %p; "
+    " got %p instead.  This should never happen.",
+    Me, targetAddress, bootRegion);
+    (void) munmap(bootRegion, *roundedImageSize);
+    return 0;
+  }
+  return bootRegion;
+}
+
+
+/**
+ * Start the VM
+ *
+ * Taken:     vmInSeparateThread [in] create a thread for the VM to
+ * execute in rather than this thread
+ * Returned:  1 upon any errors.  Never returns except to report an
+ * error.
+ */
+static int createVM(int vmInSeparateThread)
+{
+  Extent roundedDataRegionSize;
+  // Note that the data segment must be mapped as executable
+  // because code for lazy compilation trampolines is placed
+  // in the TIBs and TIBs are placed in the data segment.
+  // See RVM-678.
+  void *bootDataRegion = mapImageFile(bootDataFilename,
+             bootImageDataAddress,
+             JNI_TRUE,
+                                      JNI_TRUE,
+             &roundedDataRegionSize);
+  if (bootDataRegion != bootImageDataAddress)
+    return 1;
+
+  Extent roundedCodeRegionSize;
+  // Note that the code segment must be mapped as writable because the
+  // optimizing compiler may try to patch methods in the boot image. If the
+  // code from the boot image were write-protected, this would cause a
+  // segmentation fault, which would manifest as a NullPointerException
+  // with the current implementation (May 2015). If we wanted to have
+  // read-only code for the boot image, we would need to make sure that
+  // it is never necessary to patch code from the boot image.
+  void *bootCodeRegion = mapImageFile(bootCodeFilename,
+             bootImageCodeAddress,
+             JNI_TRUE,
+                                      JNI_TRUE,
+             &roundedCodeRegionSize);
+  if (bootCodeRegion != bootImageCodeAddress)
+    return 1;
+
+  Extent roundedRMapRegionSize;
+  void *bootRMapRegion = mapImageFile(bootRMapFilename,
+             bootImageRMapAddress,
+             JNI_FALSE,
+                                      JNI_FALSE,
+             &roundedRMapRegionSize);
+  if (bootRMapRegion != bootImageRMapAddress)
+    return 1;
+
+
+  /* validate contents of boot record */
+  bootRecord = (struct BootRecord *) bootDataRegion;
+
+  if (bootRecord->bootImageDataStart != (Address) bootDataRegion) {
+    ERROR_PRINTF("%s: image load error: built for %p but loaded at %p\n",
+     Me, bootRecord->bootImageDataStart, bootDataRegion);
+    return 1;
+  }
+
+  if (bootRecord->bootImageCodeStart != (Address) bootCodeRegion) {
+    ERROR_PRINTF("%s: image load error: built for %p but loaded at %p\n",
+     Me, bootRecord->bootImageCodeStart, bootCodeRegion);
+    return 1;
+  }
+
+  if (bootRecord->bootImageRMapStart != (Address) bootRMapRegion) {
+    ERROR_PRINTF("%s: image load error: built for %p but loaded at %p\n",
+     Me, bootRecord->bootImageRMapStart, bootRMapRegion);
+    return 1;
+  }
+
+  if ((bootRecord->spRegister % __SIZEOF_POINTER__) != 0) {
+    ERROR_PRINTF("%s: image format error: sp (%p) is not word aligned\n",
+     Me, bootRecord->spRegister);
+    return 1;
+  }
+
+  if ((bootRecord->ipRegister % __SIZEOF_POINTER__) != 0) {
+    ERROR_PRINTF("%s: image format error: ip (%p) is not word aligned\n",
+     Me, bootRecord->ipRegister);
+    return 1;
+  }
+
+  if (((u_int32_t *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
+    ERROR_PRINTF("%s: image format error: missing stack sanity check marker (%p)\n",
+    Me, ((int *) bootRecord->spRegister)[-1]);
+    return 1;
+  }
+
+  /* write freespace information into boot record */
+  bootRecord->initialHeapSize  = initialHeapSize;
+  bootRecord->maximumHeapSize  = maximumHeapSize;
+  bootRecord->bootImageDataStart   = (Address) bootDataRegion;
+  bootRecord->bootImageDataEnd     = (Address) bootDataRegion + roundedDataRegionSize;
+  bootRecord->bootImageCodeStart   = (Address) bootCodeRegion;
+  bootRecord->bootImageCodeEnd     = (Address) bootCodeRegion + roundedCodeRegionSize;
+  bootRecord->bootImageRMapStart   = (Address) bootRMapRegion;
+  bootRecord->bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
+  bootRecord->verboseBoot      = verboseBoot;
+  bootRecord->bytesInPage = pageSize;
+
+  /* write sys.C linkage information into boot record */
+  setLinkage(bootRecord);
+
+  /* Initialize system call routines and side data structures */
+  sysInitialize();
+
+  if (verbose) {
+    TRACE_PRINTF("%s: boot record contents:\n", Me);
+    TRACE_PRINTF("   bootImageDataStart:   %p\n", bootRecord->bootImageDataStart);
+    TRACE_PRINTF("   bootImageDataEnd:     %p\n", bootRecord->bootImageDataEnd);
+    TRACE_PRINTF("   bootImageCodeStart:   %p\n", bootRecord->bootImageCodeStart);
+    TRACE_PRINTF("   bootImageCodeEnd:     %p\n", bootRecord->bootImageCodeEnd);
+    TRACE_PRINTF("   bootImageRMapStart:   %p\n", bootRecord->bootImageRMapStart);
+    TRACE_PRINTF("   bootImageRMapEnd:     %p\n", bootRecord->bootImageRMapEnd);
+    TRACE_PRINTF("   initialHeapSize:      %p\n", bootRecord->initialHeapSize);
+    TRACE_PRINTF("   maximumHeapSize:      %p\n", bootRecord->maximumHeapSize);
+    TRACE_PRINTF("   spRegister:           %p\n", bootRecord->spRegister);
+    TRACE_PRINTF("   ipRegister:           %p\n", bootRecord->ipRegister);
+    TRACE_PRINTF("   tocRegister:          %p\n", bootRecord->tocRegister);
+    TRACE_PRINTF("   sysConsoleWriteCharIP:%p\n", bootRecord->sysConsoleWriteCharIP);
+    TRACE_PRINTF("   ...etc...                   \n");
+  }
+
+  /* force any machine code within image that's still in dcache to be
+   * written out to main memory so that it will be seen by icache when
+   * instructions are fetched back
+   */
+  sysSyncCache(bootCodeRegion, roundedCodeRegionSize);
+
+  sysStartMainThread(vmInSeparateThread, bootRecord->ipRegister, bootRecord->spRegister,
+                     *(Address *) (bootRecord->tocRegister + bootRecord->bootThreadOffset),
+                     bootRecord->tocRegister, &bootRecord->bootCompleted);
+}
+
+/**
  * Parse command line arguments to find those arguments that
  *   1) affect the starting of the VM,
  *   2) can be handled without starting the VM, or
  *   3) contain quotes
  * then call createVM().
  */
-int
-main(int argc, const char **argv)
+int main(int argc, const char **argv)
 {
   int j;
-
   SysErrorFile = stderr;
   SysTraceFile = stdout;
-  setbuf(SysErrorFile, 0);
-  setbuf(SysTraceFile, 0);
-
-  Me            = strrchr((char *)*argv, '/') + 1;
+  setbuf (SysErrorFile, NULL);
+  setbuf (SysTraceFile, NULL);
+  setvbuf(stdout,NULL,_IONBF,0);
+  setvbuf(stderr,NULL,_IONBF,0);
+  Me            = strrchr(*argv, '/') + 1;
   ++argv, --argc;
   initialHeapSize = heap_default_initial_size;
   maximumHeapSize = heap_default_maximum_size;
 
-  // Determine page size information
-  pageSize = (uint64_t) determinePageSize();
+  // Determine page size information early because
+  // it's needed to parse command line options
+  pageSize = (Extent) determinePageSize();
   if (pageSize <= 0) {
-    printf("RunBootImage.main(): invalid page size %u", pageSize);
+    ERROR_PRINTF("RunBootImage.main(): invalid page size %u", pageSize);
     exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
   }
-
-  setvbuf(stdout,NULL,_IONBF,0);
-  setvbuf(stderr,NULL,_IONBF,0);
 
   /*
    * Debugging: print out command line arguments.
    */
-  if (DEBUG) {
-    printf("RunBootImage.main(): process %d command line arguments\n",argc);
+  if (TRACE) {
+    TRACE_PRINTF("RunBootImage.main(): process %d command line arguments\n",argc);
     for (j = 0; j < argc; j++) {
-      printf("\targv[%d] is \"%s\"\n",j, argv[j]);
-    }
+      TRACE_PRINTF("\targv[%d] is \"%s\"\n",j, argv[j]);
+     }
   }
 
   // call processCommandLineArguments().
@@ -532,16 +713,15 @@ main(int argc, const char **argv)
   // Sets JavaArgc
   JavaArgs = processCommandLineArguments(argv, argc, &fastBreak);
   if (fastBreak) {
-    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
-  if (DEBUG) {
-    printf("RunBootImage.main(): after processCommandLineArguments: %d command line arguments\n", JavaArgc);
+  if (TRACE) {
+    TRACE_PRINTF("RunBootImage.main(): after processCommandLineArguments: %d command line arguments\n", JavaArgc);
     for (j = 0; j < JavaArgc; j++) {
-      printf("\tJavaArgs[%d] is \"%s\"\n", j, JavaArgs[j]);
+      TRACE_PRINTF("\tJavaArgs[%d] is \"%s\"\n", j, JavaArgs[j]);
     }
   }
-
 
   /* Verify heap sizes for sanity. */
   if (initialHeapSize == heap_default_initial_size &&
@@ -563,17 +743,15 @@ main(int argc, const char **argv)
     return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
   }
 
-  if (DEBUG) {
-    printf("\nRunBootImage.main(): VM variable settings\n");
-    printf("initialHeapSize %lu\nmaxHeapSize %lu\n"
-           "bootCodeFileName |%s|\nbootDataFileName |%s|\n"
-           "bootRmapFileName |%s|\n"
-           "lib_verbose %d\n",
+  TRACE_PRINTF("\nRunBootImage.main(): VM variable settings\n");
+  TRACE_PRINTF("initialHeapSize %lu\nmaxHeapSize %lu\n"
+           "bootCodeFileName \"%s\"\nbootDataFileName \"%s\"\n"
+           "bootRmapFileName \"%s\"\n"
+           "verbose %d\n",
            (unsigned long) initialHeapSize,
            (unsigned long) maximumHeapSize,
            bootCodeFilename, bootDataFilename, bootRMapFilename,
-           lib_verbose);
-  }
+           verbose);
 
   if (!bootCodeFilename) {
     CONSOLE_PRINTF( "%s: please specify name of boot image code file using \"-X:ic=<filename>\"\n", Me);
@@ -590,12 +768,12 @@ main(int argc, const char **argv)
     return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
   }
 
-  int ret = createVM();
+  int ret = createVM(0);
   if (ret == 1) {
     ERROR_PRINTF("%s: Could not create the virtual machine; goodbye\n", Me);
     exit(EXIT_STATUS_MISC_TROUBLE);
   }
-  return 0; // this thread dies, but VM keeps running
+  return 0;
 }
 
 /**
@@ -603,16 +781,16 @@ main(int argc, const char **argv)
  * Taken:     (no arguments)
  * Returned:  page size in bytes (Java int)
  */
-int determinePageSize()
+Extent determinePageSize()
 {
   TRACE_PRINTF("%s: determinePageSize\n", Me);
-  int pageSize = -1;
+  Extent pageSize = -1;
 #ifdef _SC_PAGESIZE
-  pageSize = (int) sysconf(_SC_PAGESIZE);
+  pageSize = (Extent) sysconf(_SC_PAGESIZE);
 #elif _SC_PAGE_SIZE
-  pageSize = (int) sysconf(_SC_PAGE_SIZE);
+  pageSize = (Extent) sysconf(_SC_PAGE_SIZE);
 #else
-  pageSize = (int) getpagesize();
+  pageSize = (Extent) getpagesize();
 #endif
   return pageSize;
 }

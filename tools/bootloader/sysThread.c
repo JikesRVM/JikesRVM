@@ -18,7 +18,29 @@
 #include <stdlib.h>  // exit, abort
 #include <string.h> // memset
 #include <sys/resource.h> // getpriority, setpriority and PRIO_PROCESS
-#include <sys/sysinfo.h> // get_nprocs
+#include <setjmp.h> // jmp_buf, longjmp, ...
+
+#ifdef RVM_FOR_LINUX
+#  include <sys/sysinfo.h> // get_nprocs
+#  include <sys/ucontext.h>
+#endif // def RVM_FOR_LINUX
+
+/** Constant to show that the newly created thread is a child */
+static const Address CHILD_THREAD = 0;
+/**
+ * Constant to show that the newly created thread is the main thread
+ * and can terminate after execution (ie. the VM is running as a child
+ * thread of a larger process).
+ */
+static const Address MAIN_THREAD_ALLOW_TERMINATE = 1;
+/**
+ * Constant to show that the newly created thread is the main thread
+ * and shouldn't terminate. This is used when the VM isn't running as
+ * part of a larger system and terminating the main thread will stop
+ * the process.
+ */
+static const Address MAIN_THREAD_DONT_TERMINATE = 2;
+
 
 #ifdef RVM_FOR_HARMONY
 #include "hythread.h"
@@ -82,9 +104,9 @@ TLS_KEY_TYPE createThreadLocal() {
 }
 
 /** Create keys for thread-specific data. */
-EXTERNAL void sysCreateThreadSpecificDataKeys(void)
+static void createThreadSpecificDataKeys()
 {
-  TRACE_PRINTF("%s: sysCreateThreadSpecificDataKeys\n", Me);
+  TRACE_PRINTF("%s: createThreadSpecificDataKeys\n", Me);
   int rc;
 
   // Create a key for thread-specific data so we can associate
@@ -142,7 +164,7 @@ EXTERNAL void sysExit(int value)
   }
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
-  if (lib_verbose & value != 0) {
+  if (verbose & value != 0) {
     TRACE_PRINTF("%s: exit %d\n", Me, value);
   }
 
@@ -268,24 +290,128 @@ EXTERNAL int sysNumProcessors()
   return numCpus;
 }
 
+
+/**
+ * Create main thread
+ *
+ * Taken:     vmInSeperateThread [in] should the VM be placed in a
+ *              separate thread
+ *            ip [in] address of VM.boot method
+ *            sp [in,out] address of stack
+ *            tr [in,out] address of thread data structure
+ *            jtoc [in,out] address of jtoc
+ */
+EXTERNAL void sysStartMainThread(jboolean vmInSeparateThread, Address ip, Address sp, Address tr, Address jtoc, uint32_t *bootCompleted)
+{
+  Address        *sysThreadArguments;
+#ifndef RVM_FOR_HARMONY
+  pthread_attr_t sysThreadAttributes;
+  pthread_t      sysThreadHandle;
+#else
+  hythread_t     sysThreadHandle;
+#endif
+  int            rc;
+  TRACE_PRINTF("%s: sysStartMainThread %d\n", Me, vmInSeparateThread);
+
+  createThreadSpecificDataKeys();
+
+  /* Set up thread stack - TODO: move to bootimagewriter */
+#ifdef RVM_FOR_IA32
+  *(Address *) (tr + Thread_framePointer_offset) = (Address)sp - (2*__SIZEOF_POINTER__);
+  sp-=__SIZEOF_POINTER__;
+  *(uint32_t*)sp = 0xdeadbabe;         /* STACKFRAME_RETURN_ADDRESS_OFFSET */
+  sp -= __SIZEOF_POINTER__;
+  *(Address*)sp = Constants_STACKFRAME_SENTINEL_FP; /* STACKFRAME_FRAME_POINTER_OFFSET */
+  sp -= __SIZEOF_POINTER__;
+  ((Address *)sp)[0] = Constants_INVISIBLE_METHOD_ID;    /* STACKFRAME_METHOD_ID_OFFSET */
+#else
+  Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
+  fp = fp & ~(Constants_STACKFRAME_ALIGNMENT -1);     // align fp
+  *(Address *)(fp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = ip;
+  *(int *)(fp + Constants_STACKFRAME_METHOD_ID_OFFSET) = Constants_INVISIBLE_METHOD_ID;
+  *(Address *)(fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET) = Constants_STACKFRAME_SENTINEL_FP;
+  sp = fp;
+#endif
+
+  /* create arguments - memory reclaimed in sysThreadStartup */
+  sysThreadArguments = (Address *)checkMalloc(sizeof(Address) * 5);
+  sysThreadArguments[0] = ip;
+  sysThreadArguments[1] = sp;
+  sysThreadArguments[2] = tr;
+  sysThreadArguments[3] = jtoc;
+  if (!vmInSeparateThread) {
+    sysThreadArguments[4] = MAIN_THREAD_DONT_TERMINATE;
+    sysThreadStartup(sysThreadArguments);
+  } else {
+    *bootCompleted = 0;
+    sysThreadArguments[4] = MAIN_THREAD_ALLOW_TERMINATE;
+#ifndef RVM_FOR_HARMONY
+    // create attributes
+    rc = pthread_attr_init(&sysThreadAttributes);
+    if (rc) {
+      ERROR_PRINTF("%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    }
+    // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
+    pthread_attr_setscope(&sysThreadAttributes, PTHREAD_SCOPE_SYSTEM);
+#endif
+    // create native thread
+#ifdef RVM_FOR_HARMONY
+    rc = hythread_create(&sysThreadHandle, 0, HYTHREAD_PRIORITY_NORMAL, 0,
+                         (hythread_entrypoint_t)sysThreadStartup,
+                         sysThreadArguments);
+#else
+    rc = pthread_create(&sysThreadHandle,
+                        &sysThreadAttributes,
+                        sysThreadStartup,
+                        sysThreadArguments);
+#endif
+    if (rc)
+    {
+      ERROR_PRINTF("%s: thread_create failed (rc=%d)\n", Me, rc);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    }
+#ifndef RVM_FOR_HARMONY
+    rc = pthread_detach(sysThreadHandle);
+    if (rc)
+    {
+      ERROR_PRINTF("%s: pthread_detach failed (rc=%d)\n", Me, rc);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    }
+#endif
+    /* exit start up when VM has booted */
+    while (*bootCompleted == 0) {
+      sysThreadYield();
+    }
+  }
+}
+
+
 /**
  * Creates a native thread.
- * Taken:     register values to use for pthread startup
- * Returned:  virtual processor's OS handle
+ * Taken:     ip [in] address of first instruction
+ *            fp [in] address of stack
+ *            tr [in] address for thread register
+ *            jtoc [in] address for the jtoc register
+ * Returned:  OS handle
  */
-EXTERNAL Word sysThreadCreate(Address tr, Address ip, Address fp)
+EXTERNAL Address sysThreadCreate(Address ip, Address fp, Address tr, Address jtoc)
 {
   Address    *sysThreadArguments;
   int            rc;
 
-  TRACE_PRINTF("%s: sysThreadCreate %p %p %p\n", Me, tr, ip, fp);
+  TRACE_PRINTF("%s: sysThreadCreate %p %p %p %p\n", Me,
+      (void*)ip, (void*)fp, (void*)tr, (void*)jtoc);
 
   // create arguments
   //
-  sysThreadArguments = (Address*) checkMalloc(sizeof(Address) * 3);
-  sysThreadArguments[0] = tr;
-  sysThreadArguments[1] = ip;
-  sysThreadArguments[2] = fp;
+  sysThreadArguments = (Address*) checkMalloc(sizeof(Address) * 5);
+  sysThreadArguments[0] = ip;
+  sysThreadArguments[1] = fp;
+  sysThreadArguments[2] = tr;
+  sysThreadArguments[3] = jtoc;
+  sysThreadArguments[4] = CHILD_THREAD;
+
 
 #ifdef RVM_FOR_HARMONY
   hythread_t      sysThreadHandle;
@@ -356,74 +482,63 @@ EXTERNAL void sysThreadBind(int cpuId)
 #endif
 }
 
+/**
+ * Function called by pthread startup
+ *
+ * Taken:     args [in] encoded of initial register values and main thread
+ *              controls
+ * Returned:  ignored
+ */
 #ifdef RVM_FOR_HARMONY
 EXTERNAL int sysThreadStartup(void *args)
 #else
 EXTERNAL void * sysThreadStartup(void *args)
 #endif
 {
-  /* install a stack for hardwareTrapHandler() to run on */
-  stack_t stack;
-  char *stackBuf;
+  Address jtoc, tr, ip, fp, threadData;
+  jmp_buf *jb;
+  void* sigStack;
 
-  memset (&stack, 0, sizeof stack);
-  stack.ss_sp = stackBuf = (char*) checkMalloc(sizeof(char) * SIGSTKSZ);
-  stack.ss_flags = 0;
-  stack.ss_size = SIGSTKSZ;
-  if (sigaltstack (&stack, 0)) {
-    ERROR_PRINTF("sigaltstack failed (errno=%d)\n",errno);
-    exit(1);
+  ip = ((Address *)args)[0];
+  fp = ((Address *)args)[1];
+  tr = ((Address *)args)[2];
+  jtoc = ((Address *)args)[3];
+  threadData = ((Address *)args)[4];
+  TRACE_PRINTF("%s: sysThreadStartup: ip=%p fp=%p tr=%p jtoc=%p data=%d\n",
+        Me, (void*)ip, (void*)fp, (void*)tr, (void*)jtoc, (int)threadData);
+  checkFree(args);
+
+  if (threadData == CHILD_THREAD) {
+    sigStack = sysStartChildThreadSignals();
+#ifdef RVM_FOR_IA32 /* TODO: refactor */
+    *(Address *)(tr + Thread_framePointer_offset) = fp;
+    fp = fp + Constants_STACKFRAME_BODY_OFFSET;
+#endif
+  } else {
+    sigStack = sysStartMainThreadSignals();
   }
 
-  Address tr       = ((Address *)args)[0];
-
-  jmp_buf *jb = (jmp_buf*)checkMalloc(sizeof(jmp_buf));
+  jb = (jmp_buf*)checkMalloc(sizeof(jmp_buf));
   if (setjmp(*jb)) {
     // this is where we come to terminate the thread
+    TRACE_PRINTF("%s: sysThreadStartup: terminating\n", Me);
 #ifdef RVM_FOR_HARMONY
     hythread_detach(NULL);
 #endif
     checkFree(jb);
     *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
-
-    // disable the signal stack (first retreiving the current one)
-    sigaltstack(0, &stack);
-    stack.ss_flags = SS_DISABLE;
-    sigaltstack(&stack, 0);
-
-    // check if the signal stack is the one in stackBuf
-    if (stack.ss_sp != stackBuf) {
-      // no; release it as well
-      checkFree(stack.ss_sp);
+    sysEndThreadSignals(sigStack);
+    if (threadData == MAIN_THREAD_DONT_TERMINATE) {
+      while(1) pause();
     }
-
-    // release signal stack allocated here
-    checkFree(stackBuf);
-    // release arguments
-    checkFree(args);
   } else {
+    TRACE_PRINTF("%s: sysThreadStartup: booting\n", Me);
     setThreadLocal(TerminateJmpBufKey, (void*)jb);
 
-    Address ip       = ((Address *)args)[1];
-    Address fp       = ((Address *)args)[2];
-
-    TRACE_PRINTF("%s: sysThreadStartup: pr=%p ip=%p fp=%p\n", Me, tr, ip, fp);
-
     // branch to vm code
-    //
-#ifndef RVM_FOR_POWERPC
-    {
-      *(Address *) (tr + Thread_framePointer_offset) = fp;
-      Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
-      bootThread((void*)ip, (void*)tr, (void*)sp);
-    }
-#else
-    bootThread((int)(Word)getJTOC(), tr, ip, fp);
-#endif
-
+    bootThread((void*)ip, (void*)tr, (void*)fp, (void*)jtoc);
     // not reached
-    //
-    CONSOLE_PRINTF("%s: sysThreadStartup: failed\n", Me);
+    ERROR_PRINTF("%s: sysThreadStartup: failed\n", Me);
   }
 #ifdef RVM_FOR_HARMONY
   return 0;
@@ -433,19 +548,6 @@ EXTERNAL void * sysThreadStartup(void *args)
 }
 
 // Routines to support sleep/wakeup of idle threads
-
-/**
- * sysGetThreadId() just returns the thread ID of the current thread.
- *
- * This happens to be only called once, at thread startup time, but please
- * don't rely on that fact.
- *
- */
-EXTERNAL Word sysGetThreadId()
-{
-  TRACE_PRINTF("%s: sysGetThreadId\n", Me);
-  return (Word)getThreadId();
-}
 
 EXTERNAL void* getThreadId()
 {
@@ -461,53 +563,16 @@ EXTERNAL void* getThreadId()
 }
 
 /**
- * Perform some initialization related to
- * per-thread signal handling for that thread. (Block SIGCONT, set up a special
- * signal handling stack for the thread.)
+ * sysGetThreadId() just returns the thread ID of the current thread.
  *
- * This is only called once, at thread startup time.
+ * This happens to be only called once, at thread startup time, but please
+ * don't rely on that fact.
+ *
  */
-EXTERNAL void sysSetupHardwareTrapHandler()
+EXTERNAL Word sysGetThreadId()
 {
-  int rc;                     // retval from subfunction.
-
-  /*
-   *  Provide space for this pthread to process exceptions.  This is
-   * needed on Linux because multiple pthreads can handle signals
-   * concurrently, since the masking of signals during handling applies
-   * on a per-pthread basis.
-   */
-  stack_t stack;
-
-  memset (&stack, 0, sizeof stack);
-  stack.ss_sp = (char*) checkMalloc(sizeof(char) * SIGSTKSZ);
-
-  stack.ss_size = SIGSTKSZ;
-  if (sigaltstack (&stack, 0)) {
-    /* Only fails with EINVAL, ENOMEM, EPERM */
-    ERROR_PRINTF("sigaltstack failed (errno=%d): ", errno);
-    perror(NULL);
-    sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
-  }
-
-  /*
-   * Block the CONT signal.  This makes SIGCONT reach this
-   * pthread only when this pthread performs a sigwait().
-   */
-  sigset_t input_set, output_set;
-  sigemptyset(&input_set);
-  sigaddset(&input_set, SIGCONT);
-
-  rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
-  /* pthread_sigmask can only return the following errors.  Either of them
-   * indicates serious trouble and is grounds for aborting the process:
-   * EINVAL EFAULT.  */
-  if (rc) {
-    ERROR_PRINTF("pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
-    perror(NULL);
-    sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
-  }
-
+  TRACE_PRINTF("%s: sysGetThreadId\n", Me);
+  return (Word) getThreadId();
 }
 
 /**
@@ -746,8 +811,5 @@ EXTERNAL void sysThreadTerminate()
   asm("sync");
 #endif
   jmp_buf *jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
-  if (jb==NULL) {
-    jb=&primordial_jb;
-  }
   rvm_longjmp(*jb,1);
 }

@@ -167,13 +167,14 @@ public abstract class SysCall {
 
   /**
    * Creates a native thread (aka "unix kernel thread", "pthread").
-   * @param tr the address of the RVMThread object for the thread
    * @param ip the current instruction pointer
    * @param fp the frame pointer
+   * @param tr the address of the RVMThread object for the thread
+   * @param jtoc value for the thread jtoc
    * @return native thread's o/s handle
    */
   @SysCallTemplate
-  public abstract Word sysThreadCreate(Address tr, Address ip, Address fp);
+  public abstract Word sysThreadCreate(Address ip, Address fp, Address tr, Address jtoc);
 
   /**
    * Tells you if the current system supportes sysNativeThreadBind().
@@ -199,9 +200,6 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract int sysSetThreadPriority(Word thread, Word handle, int priority);
-
-  @SysCallTemplate
-  public abstract void sysSetupHardwareTrapHandler();
 
   // This implies that the RVMThread is somehow pinned, or else the
   // pthread key value gets moved.  (hence RVMThread is @NonMoving)
@@ -334,10 +332,6 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract Address sysDlsym(Address libHandler, byte[] symbolName);
-
-  // system startup pthread sync. primitives
-  @SysCallTemplate
-  public abstract void sysCreateThreadSpecificDataKeys();
 
   // system calls for alignment checking
   @SysCallTemplate
