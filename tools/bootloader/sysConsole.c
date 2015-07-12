@@ -51,11 +51,11 @@ EXTERNAL void sysConsoleWriteLong(long long value, int hexToo)
 /** Console write (java double). */
 EXTERNAL void sysConsoleWriteDouble(double value,  int postDecimalDigits)
 {
+  char tmp[5] = {'%', '.', '0'+postDecimalDigits, 'f', 0};
   if (value != value) {
     CONSOLE_PRINTF("NaN");
   } else {
     if (postDecimalDigits > 9) postDecimalDigits = 9;
-    char tmp[5] = {'%', '.', '0'+postDecimalDigits, 'f', 0};
     CONSOLE_PRINTF(tmp, value);
   }
 }

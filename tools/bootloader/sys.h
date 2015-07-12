@@ -77,7 +77,7 @@ extern char **JavaArgs;
 /** C access to shared C/Java boot record data structure */
 extern struct BootRecord *bootRecord;
 /** JVM datastructure used for JNI declared in jvm.c */
-extern struct JavaVM_ sysJavaVM;
+extern const struct JavaVM_ sysJavaVM;
 /** Verbose command line option */
 extern int verbose;
 
@@ -250,6 +250,7 @@ EXTERNAL void sysMonitorWait(Word);
 EXTERNAL void sysMonitorBroadcast(Word);
 EXTERNAL int sysNumProcessors();
 EXTERNAL Address sysThreadCreate(Address ip, Address fp, Address tr, Address jtoc);
+EXTERNAL void sysStartMainThread(jboolean vmInSeparateThread, Address ip, Address sp, Address tr, Address jtoc, uint32_t *bootCompleted);
 EXTERNAL void sysCreateThreadSpecificDataKeys(void);
 EXTERNAL void sysStashVMThread(Address vmThread);
 EXTERNAL int sysThreadBindSupported();
@@ -276,9 +277,6 @@ EXTERNAL void sysExit(int) NORETURN;
 /* Routines used elsewhere within bootloader */
 EXTERNAL void findMappable();
 EXTERNAL Extent pageRoundUp(Extent size, Extent pageSize);
-
-/** JVM datastructure used for JNI declared in jvm.c */
-extern struct JavaVM_ sysJavaVM;
 
 /**
  * FIXME The rest of the file consists of includes for non-linux systems

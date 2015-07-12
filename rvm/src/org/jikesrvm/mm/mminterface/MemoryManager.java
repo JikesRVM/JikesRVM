@@ -24,6 +24,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.Callbacks;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
@@ -124,7 +125,14 @@ public final class MemoryManager {
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
-    Monitor.boot();
+
+    Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
+      @Override
+      public void notifyExit(int value) {
+        Selected.Plan.get().notifyExit(value);
+      }
+    });
+
     booted = true;
   }
 

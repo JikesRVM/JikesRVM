@@ -127,9 +127,10 @@ EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
                                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
                                   const char *subtoken /* e.g., "200M" or "200" */)
 {
-  TRACE_PRINTF("%s: sysParseMemorySize %s\n", Me, token);
   int fastExit = 0;
-  unsigned ret_uns = parse_memory_size(sizeName, sizeFlag, defaultFactor,
+  unsigned ret_uns;
+  TRACE_PRINTF("%s: sysParseMemorySize %s\n", Me, token);
+  ret_uns = parse_memory_size(sizeName, sizeFlag, defaultFactor,
                                        (Extent) roundTo, token, subtoken,
                                        &fastExit);
   if (fastExit)
@@ -157,6 +158,13 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
                   const char *subtoken /* e.g., "200M" or "200" */,
                   int *fastExit)
 {
+  // First, set the factor appropriately, and make sure there aren't extra
+  // characters at the end of the line.
+  const char *factorStr = defaultFactor;
+  long double factor = 0.0;   // 0.0 is a sentinel meaning Unset
+  long double tot_d;
+  Extent tot;
+
   errno = 0;
   double userNum;
   char *endp;                 /* Should be const char *, but if we do that,
@@ -170,10 +178,7 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
     *fastExit = 1;
   }
 
-  // First, set the factor appropriately, and make sure there aren't extra
-  // characters at the end of the line.
-  const char *factorStr = defaultFactor;
-  long double factor = 0.0;   // 0.0 is a sentinel meaning Unset
+
 
   if (*endp == '\0') {
     /* no suffix.  Along with the Sun JVM, we now assume Bytes by
@@ -239,15 +244,15 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
     }
     return 0U;              // Distinguished value meaning trouble.
   }
-  long double tot_d = userNum * factor;
+  tot_d = userNum * factor;
   if (tot_d > (UINT_MAX - roundTo) || tot_d < 1) {
     ERROR_PRINTF("Unexpected memory size %f\n", tot_d);
     exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
-  Extent tot = (Extent) tot_d;
+  tot = (Extent) tot_d;
   if (tot % roundTo) {
-    unsigned newTot = tot + roundTo - (tot % roundTo);
+    Extent newTot = tot + roundTo - (tot % roundTo);
     CONSOLE_PRINTF(
       "%s: Rounding up %s size from %u bytes to %u,\n"
       "\tthe next multiple of %u bytes%s\n",
