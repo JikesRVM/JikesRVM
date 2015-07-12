@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.ia32.MachineCode;
-import org.jikesrvm.ia32.ThreadLocalState;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
@@ -199,9 +198,12 @@ public abstract class JNICompiler implements BaselineConstants {
 
     // set 2nd word of header = return address already pushed by CALL
     asm.emitPUSH_RegDisp(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset());
-
     // establish new frame
-    ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), SP);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset(), SP);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset(), SP);
+    }
 
     // set first word of header: method ID
     if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET.toInt() == -WORDSIZE);
@@ -549,10 +551,17 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitMOV_Reg_RegDisp_Quad(S0, EBP, JNICompiler.JNI_ENV_OFFSET);
     }
     // (9.2) Reload thread register from JNIEnvironment
-    ThreadLocalState.emitLoadThread(asm, S0, Entrypoints.JNIEnvSavedTRField.getOffset());
-
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(THREAD_REGISTER, S0, Entrypoints.JNIEnvSavedTRField.getOffset());
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(THREAD_REGISTER, S0, Entrypoints.JNIEnvSavedTRField.getOffset());
+    }
     // (9.3) Establish frame pointer to this glue method
-    ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    }
 
     // (10) Transition back from "in native" to "in Java", convert a reference
     // result (currently a JNI ref) into a true reference, release JNI refs
@@ -842,10 +851,11 @@ public abstract class JNICompiler implements BaselineConstants {
     // Restore THREAD_REGISTER from JNIEnvironment
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(EBX, EBP, Offset.fromIntSignExtend((startOfStackedArgs - 1) * WORDSIZE));   // pick up arg 0 (from our frame)
+      asm.emitMOV_Reg_RegDisp(THREAD_REGISTER, EBX, Entrypoints.JNIEnvSavedTRField.getOffset());
     } else {
       asm.emitMOV_Reg_RegDisp_Quad(EBX, EBP, Offset.fromIntSignExtend((startOfStackedArgs - 1) * WORDSIZE));   // pick up arg 0 (from our frame)
+      asm.emitMOV_Reg_RegDisp_Quad(THREAD_REGISTER, EBX, Entrypoints.JNIEnvSavedTRField.getOffset());
     }
-    ThreadLocalState.emitLoadThread(asm, EBX, Entrypoints.JNIEnvSavedTRField.getOffset());
 
     // what we need to keep in mind at this point:
     // - EBX has JNI env (but it's nonvolatile)
@@ -856,10 +866,8 @@ public abstract class JNICompiler implements BaselineConstants {
     // attempt to change the thread state to IN_JAVA
     asm.emitMOV_Reg_Imm(T0, RVMThread.IN_JNI);
     asm.emitMOV_Reg_Imm(T1, RVMThread.IN_JAVA);
-    ThreadLocalState.emitCompareAndExchangeField(
-      asm,
-      Entrypoints.execStatusField.getOffset(),
-      T1);
+    asm.emitLockNextInstruction();
+    asm.emitCMPXCHG_RegDisp_Reg(THREAD_REGISTER, Entrypoints.execStatusField.getOffset(), T1);
 
     // if we succeeded, move on, else go into slow path
     ForwardReference doneLeaveJNIRef = asm.forwardJcc(EQ);
@@ -909,9 +917,12 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitMOV_Reg_RegDisp_Quad(S0, EBX, Entrypoints.JNIEnvBasePointerOnEntryToNative.getOffset());
       asm.emitMOV_RegInd_Reg_Quad(EBP, S0);
     }
-
     // put framePointer in Thread following Jikes RVM conventions.
-    ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    }
 
     // at this point: TR has been restored &
     // processor status = IN_JAVA,
@@ -992,10 +1003,8 @@ public abstract class JNICompiler implements BaselineConstants {
     // attempt to change the thread state to IN_JNI
     asm.emitMOV_Reg_Imm(T0, RVMThread.IN_JAVA);
     asm.emitMOV_Reg_Imm(T1, RVMThread.IN_JNI);
-    ThreadLocalState.emitCompareAndExchangeField(
-      asm,
-      Entrypoints.execStatusField.getOffset(),
-      T1);
+    asm.emitLockNextInstruction();
+    asm.emitCMPXCHG_RegDisp_Reg(THREAD_REGISTER, Entrypoints.execStatusField.getOffset(), T1);
 
     // if success, skip the slow path call
     ForwardReference doneEnterJNIRef = asm.forwardJcc(EQ);
