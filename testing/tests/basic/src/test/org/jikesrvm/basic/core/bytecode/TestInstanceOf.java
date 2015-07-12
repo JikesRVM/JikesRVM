@@ -18,9 +18,13 @@ class TestInstanceOf {
 
   static class Science {}
   static class Magic extends Science {}
+  static final class BlackMagic extends Magic {}
 
   public static void main(String[] args) {
+    runTest("null", null);
     runTest("Magic()", new Magic());
+    runTest("Science()", new Science());
+    runTest("BlackMagic()", new BlackMagic());
     runTest("Magic[2]", new Magic[2]);
     runTest("Object[][]{new Magic[4],new Magic[4]}", new Object[][]{new Magic[4], new Magic[4]});
     runTest("Magic[][]{new Magic[4],new Magic[4]}", new Magic[][]{new Magic[4], new Magic[4]});
@@ -30,7 +34,8 @@ class TestInstanceOf {
   private static void runTest(final String name, final Object x3) {
     System.out.println("Testing " + name + " - instanceof: ");
     testInstanceOf(x3);
-    System.out.println(" casts: ");
+    System.out.println();
+    System.out.print("casts: ");
     testCasts(x3);
     System.out.println();
   }
@@ -112,12 +117,15 @@ class TestInstanceOf {
     io(Object.class, (x instanceof Object));
     io(Science.class, (x instanceof Science));
     io(Magic.class, (x instanceof Magic));
+    io(BlackMagic.class, (x instanceof BlackMagic));
     io(Object[].class, (x instanceof Object[]));
     io(Science[].class, (x instanceof Science[]));
     io(Magic[].class, (x instanceof Magic[]));
+    io(BlackMagic[].class, (x instanceof BlackMagic[]));
     io(Object[][].class, (x instanceof Object[][]));
     io(Science[][].class, (x instanceof Science[][]));
     io(Magic[][].class, (x instanceof Magic[][]));
+    io(BlackMagic[][].class, (x instanceof BlackMagic[][]));
     io(int[].class, (x instanceof int[]));
     io(Serializable.class, (x instanceof Serializable));
     io(Cloneable.class, (x instanceof Cloneable));

@@ -158,7 +158,7 @@ import org.vmmagic.unboxed.Word;
               for (int j = iei; j >= 0 && allocCall;
                    j = OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
                 int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-                m = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                m = MemberReference.getMethodRef(mid).getResolvedMember();
                 if (!isAllocCall(m.getName().getBytes()))
                   allocCall = false;
                 if (j > 0)

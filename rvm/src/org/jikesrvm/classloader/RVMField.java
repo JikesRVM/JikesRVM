@@ -83,7 +83,9 @@ public final class RVMField extends RVMMember {
     this.reference = typeRef.isReferenceType();
     this.madeTraced = false;
     if (VM.runningVM && isUntraced()) {
-      VM.sysFail("Untraced field " + toString() + " created at runtime!");
+      VM.sysFail("Untraced field " + toString() + " created at runtime!" +
+          " Untraced fields must be resolved at build time to ensure that" +
+          " the Untraced annotation is visible to the compilers!");
     }
   }
 

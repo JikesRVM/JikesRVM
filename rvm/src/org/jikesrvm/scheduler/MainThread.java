@@ -158,7 +158,7 @@ public final class MainThread extends Thread {
     // load class specified by args[0]
     RVMClass cls = null;
     try {
-      Atom mainAtom = Atom.findOrCreateUnicodeAtom(args[0].replace('.', '/'));
+      Atom mainAtom = Atom.findOrCreateUnicodeAtom(args[0]);
       TypeReference mainClass = TypeReference.findOrCreate(cl, mainAtom.descriptorFromClassName());
       cls = mainClass.resolve().asClass();
       cls.resolve();

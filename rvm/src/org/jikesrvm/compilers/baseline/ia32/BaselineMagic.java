@@ -1921,7 +1921,7 @@ final class BaselineMagic {
       asm.emitPUSH_Reg(T0); // create space
       asm.emitPUSH_Reg(T0);
       if (SSE2_FULL) {
-        asm.emitMOVLPD_RegInd_Reg(SP, XMM0);
+        asm.emitMOVSD_RegInd_Reg(SP, XMM0);
       } else {
         asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
       }
@@ -2388,7 +2388,7 @@ final class BaselineMagic {
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       if (SSE2_BASE) {
         asm.emitSQRTSD_Reg_RegInd(XMM0, SP);            // XMM0 = sqrt(value)
-        asm.emitMOVLPD_RegInd_Reg(SP, XMM0);            // set result on stack
+        asm.emitMOVSD_RegInd_Reg(SP, XMM0);            // set result on stack
       } else {
         VM.sysFail("Hardware sqrt only available for SSE");
       }

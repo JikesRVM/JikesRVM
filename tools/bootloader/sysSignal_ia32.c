@@ -260,6 +260,10 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
     case 0x58: case 0x59: case 0x5A: case 0x5B: // pop using alternate encoding
     case 0x5C: case 0x5D: case 0x5E: case 0x5F:
     case 0x90: // nop
+    case 0x9B: // fwait / wait
+      // Note: it might also be possible to decode 0x9B as a prefix for certain floating
+      // point instructions. However, that would be more complicated and this function
+      // only cares about the instruction length (and not the actual instructions).
     case 0x9E: // sahf
     case 0x98: // cbw, cwde
     case 0x99: // cdq
@@ -277,6 +281,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
     case 0xB0: case 0xB1: case 0xB2: case 0xB3: // mov
     case 0xB4: case 0xB5: case 0xB6: case 0xB7:
     case 0xCD: // int imm8
+    case 0xE3: // jump if ecx is zero
     case 0xEB: // unconditional jump
       size++; // 1 byte immediate
       break;
@@ -393,6 +398,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
       case 0x18: // prefetch & hint nop
       case 0x19: case 0x1A: case 0x1B: case 0x1C: // hint nop
       case 0x1D: case 0x1E: case 0x1F:
+      case 0x28: case 0x29: // movaps / movapd
       case 0x2A: // ctpi2ps, cvtsi2ss, cvtpi2pd, cvtsi2sd
       case 0x2C: // cvttps2pi, cvttss2si, cvttpd2pi, cvttsd2si
       case 0x2E: // ucomisd, ucomiss
@@ -485,7 +491,7 @@ EXTERNAL Address readContextFramePointer(void UNUSED *context, Address threadPtr
  *            trapInfo  [out] extra information about trap
  * Returned:  trap code
  */
-EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int signo, Address instructionPtr, int *trapInfo)
+EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int signo, Address instructionPtr, Word *trapInfo)
 {
   switch(signo) {
     case SIGSEGV:

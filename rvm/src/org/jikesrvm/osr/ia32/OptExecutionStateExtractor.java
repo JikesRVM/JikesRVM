@@ -268,7 +268,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     if (VM.VerifyAssertions) VM._assert(iterator != null);
 
     ExecutionState state = new ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
-    MethodReference mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+    MethodReference mref = MemberReference.getMethodRef(iterator.getMethodId());
     state.setMethod((NormalMethod) mref.peekResolvedMethod());
     // this is not caller, but the callee, reverse it when outside
     // of this function.
@@ -282,7 +282,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
 
       if (iterator.getMethodId() != state.meth.getId()) {
         ExecutionState newstate = new ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
-        mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+        mref = MemberReference.getMethodRef(iterator.getMethodId());
         newstate.setMethod((NormalMethod) mref.peekResolvedMethod());
         // this is not caller, but the callee, reverse it when outside
         // of this function.

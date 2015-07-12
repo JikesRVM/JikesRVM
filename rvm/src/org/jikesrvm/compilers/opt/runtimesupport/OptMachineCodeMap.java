@@ -152,7 +152,7 @@ public final class OptMachineCodeMap {
       return null;
     }
     int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-    return (NormalMethod) MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+    return (NormalMethod) MemberReference.getMethodRef(mid).getResolvedMember();
   }
 
   /**
@@ -668,7 +668,7 @@ public final class OptMachineCodeMap {
       boolean first = true;
       while (iei >= 0) {
         int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-        RVMMethod meth = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+        RVMMethod meth = MemberReference.getMethodRef(mid).getResolvedMember();
         if (first) {
           first = false;
           VM.sysWrite("\n\tIn method    " + meth + " at bytecode " + bci);

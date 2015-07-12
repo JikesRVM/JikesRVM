@@ -13,6 +13,9 @@
 package org.jikesrvm.compilers.baseline;
 
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_caload;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_getfield;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_nop;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
@@ -20,6 +23,7 @@ import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineCode;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -29,11 +33,22 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Baseline compiler - platform independent code.
+ * <p>
  * Platform dependent versions extend this class and define
  * the host of abstract methods defined by TemplateCompilerFramework to complete
- * the implementation of a baseline compiler for a particular target,
+ * the implementation of a baseline compiler for a particular target.
+ * <p>
+ * In addition to the framework provided by TemplateCompilerFramework, this compiler
+ * also provides hooks for bytecode merging for some common bytecode combinations.
+ * By default, bytecode merging is active but has no effect. Subclasses that want to
+ * implement the merging need to override the hook methods.
  */
 public abstract class BaselineCompiler extends TemplateCompilerFramework {
+
+  /**
+   * Merge commonly adjacent bytecodes?
+   */
+  private static final boolean mergeBytecodes = true;
 
   private static long gcMapNanos;
   private static long osrSetupNanos;
@@ -49,6 +64,11 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
    * Next edge counter entry to allocate
    */
   protected int edgeCounterIdx;
+
+  /**
+   * Reference maps for method being compiled
+   */
+  ReferenceMaps refMaps;
 
   protected final Offset getEdgeCounterOffset() {
     return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);
@@ -187,7 +207,6 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
 
     // Phase 1: GC map computation
     long start = 0;
-    ReferenceMaps refMaps;
     try {
       if (VM.MeasureCompilationPhases) {
         start = Time.nanoTime();
@@ -315,4 +334,121 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
   protected String getCompilerName() {
     return "baseline";
   }
+
+  /**
+   * @return whether the current bytecode is on the boundary of a basic block
+   */
+  private boolean basicBlockBoundary() {
+    int index = biStart;
+    short currentBlock = refMaps.byteToBlockMap[index];
+    index--;
+    while (index >= 0) {
+      short prevBlock = refMaps.byteToBlockMap[index];
+      if (prevBlock == currentBlock) {
+        return false;
+      } else if (prevBlock != BasicBlock.NOTBLOCK) {
+        return true;
+      }
+      index--;
+    }
+    return true;
+  }
+
+  /**
+   * Emits code to load an int local variable
+   * @param index the local index to load
+   */
+  @Override
+  protected final void emit_iload(int index) {
+    if (!mergeBytecodes || basicBlockBoundary()) {
+      emit_regular_iload(index);
+    } else {
+      int nextBC = bcodes.peekNextOpcode();
+      switch (nextBC) {
+      case JBC_caload:
+        if (shouldPrint) asm.noteBytecode(biStart, "caload");
+        bytecodeMap[bcodes.index()] = asm.getMachineCodeIndex();
+        bcodes.nextInstruction(); // skip opcode
+        emit_iload_caload(index);
+        break;
+      default:
+        emit_regular_iload(index);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Emits code to load an int local variable
+   * @param index the local index to load
+   */
+  protected abstract void emit_regular_iload(int index);
+
+  /**
+   * Emits code to load an int local variable and then load from a character array.
+   * <p>
+   * By default, this method emits code for iload and then for caload.
+   * Subclasses that want to implement bytecode merging for this pattern
+   * must override this method.
+   *
+   * @param index the local index to load
+   */
+  protected void emit_iload_caload(int index) {
+    emit_regular_iload(index);
+    emit_caload();
+  }
+
+  /**
+   * Emits code to load a reference local variable
+   * @param index the local index to load
+   */
+  @Override
+  protected final void emit_aload(int index) {
+    if (!mergeBytecodes || basicBlockBoundary()) {
+      emit_regular_aload(index);
+    } else {
+      int nextBC = JBC_nop; // bcodes.peekNextOpcode();
+      switch (nextBC) {
+      case JBC_getfield: {
+        int gfIndex = bcodes.index();
+        bcodes.nextInstruction(); // skip opcode
+        FieldReference fieldRef = bcodes.getFieldReference();
+        if (fieldRef.needsDynamicLink(method)) {
+          bcodes.reset(gfIndex);
+          emit_regular_aload(index);
+        } else {
+          bytecodeMap[gfIndex] = asm.getMachineCodeIndex();
+          if (shouldPrint) asm.noteBytecode(biStart, "getfield", fieldRef);
+          emit_aload_resolved_getfield(index, fieldRef);
+        }
+        break;
+      }
+      default:
+        emit_regular_aload(index);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Emits code to load a reference local variable
+   * @param index the local index to load
+   */
+  protected abstract void emit_regular_aload(int index);
+
+  /**
+   * Emits code to load a reference local variable and then perform a field load
+   * <p>
+   * By default, this method emits code for aload and then for resolved_getfield.
+   * Subclasses that want to implement bytecode merging for this pattern
+   * must override this method.
+   *
+   * @param index the local index to load
+   * @param fieldRef the referenced field
+   */
+  protected void emit_aload_resolved_getfield(int index, FieldReference fieldRef) {
+    emit_regular_aload(index);
+    emit_resolved_getfield(fieldRef);
+  }
+
 }

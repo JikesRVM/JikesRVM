@@ -1170,7 +1170,7 @@ public final class RVMThread extends ThreadContext {
 
   /**
    * Flag set by external signal to request debugger activation at next thread
-   * switch. See also: RunBootImage.C
+   * switch. See also: sysSignal.c
    */
   public static volatile boolean debugRequested;
 
@@ -5386,23 +5386,23 @@ public final class RVMThread extends ThreadContext {
    * @param message the message to write before the actual traceback
    */
   public static void traceback(String message) {
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.lockNoHandshake();
     }
     VM.sysWriteln(message);
     tracebackWithoutLock();
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.unlock();
     }
   }
 
   public static void traceback(String message, int number) {
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.lockNoHandshake();
     }
     VM.sysWriteln(message, number);
     tracebackWithoutLock();
-    if (VM.runningVM) {
+    if (VM.runningVM && threadingInitialized) {
       outputLock.unlock();
     }
   }
@@ -5528,7 +5528,7 @@ public final class RVMThread extends ThreadContext {
                       int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
                       for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
                         int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-                        method = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                        method = MemberReference.getMethodRef(mid).getResolvedMember();
                         lineNumber = ((NormalMethod) method).getLineNumberForBCIndex(bci);
                         showMethod(method, lineNumber, fp);
                         if (iei > 0) {
@@ -5661,7 +5661,7 @@ public final class RVMThread extends ThreadContext {
    *
    * @param fp
    *          address of starting frame Returned: doesn't return. This method is
-   *          called from RunBootImage.C when something goes horrifically wrong
+   *          called from sysSignal*.c when something goes horrifically wrong
    *          with exception handling and we want to die with useful
    *          diagnostics.
    */

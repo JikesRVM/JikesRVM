@@ -276,7 +276,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   static Object packageAndInvoke(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                  boolean skip4Args, boolean isVarArg) throws Exception {
 
-    RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
     TypeReference returnType = targetMethod.getReturnType();
 
     if (JNIFunctions.traceJNI) {

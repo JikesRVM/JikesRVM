@@ -288,7 +288,7 @@ public final class JNIEnvironment {
       // we count all slots so that releasing them is straight forward
       JNIRefsTop += BYTES_IN_ADDRESS;
       // ensure null is always seen as slot zero
-      JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
+      JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, ref);
       return JNIRefsTop;
     }
   }
@@ -391,18 +391,24 @@ public final class JNIEnvironment {
    * @return reference at that offset
    */
   public Object getJNIRef(int offset) {
-    if (offset > JNIRefsTop) {
-      VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
-      VM.sysWrite(offset);
-      VM.sysWrite("(top is ");
-      VM.sysWrite(JNIRefsTop);
-      VM.sysWrite(")\n");
-      RVMThread.dumpStack();
+    if (offset == 0) {
       return null;
-    }
-    if (offset < 0) {
+    } else if (offset < 0) {
       return JNIGlobalRefTable.ref(offset);
     } else {
+      if (offset > JNIRefsTop) {
+        VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
+        VM.sysWrite(offset);
+        VM.sysWrite("(top is ");
+        VM.sysWrite(JNIRefsTop);
+        VM.sysWrite(")\n");
+        if (VM.VerifyAssertions) {
+          VM.sysFail("getJNIRef called with illegal offset > TOP (see above)");
+        } else {
+          RVMThread.dumpStack();
+        }
+        return null;
+      }
       return Magic.addressAsObject(JNIRefs.get(offset >> LOG_BYTES_IN_ADDRESS));
     }
   }

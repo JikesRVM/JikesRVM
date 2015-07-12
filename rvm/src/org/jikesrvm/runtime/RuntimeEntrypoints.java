@@ -47,6 +47,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Entrypoints into the runtime of the virtual machine.
@@ -688,11 +689,12 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    *
    * @param trapCode code indicating kind of exception that was trapped
    * (see TRAP_xxx, above)
-   * @param trapInfo array subscript (for array bounds trap, only)
+   * @param trapInfo array subscript (for array bounds trap, only), marker
+   * (for stack overflow traps on PPC) or
    */
   @Entrypoint
   @UnpreemptibleNoWarn
-  static void deliverHardwareException(int trapCode, int trapInfo) {
+  static void deliverHardwareException(int trapCode, Word trapInfo) {
     if (false) VM.sysWriteln("delivering hardware exception");
     RVMThread myThread = RVMThread.getCurrentThread();
     if (false) VM.sysWriteln("we have a thread = ",Magic.objectAsAddress(myThread));
@@ -741,7 +743,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
             VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
             break;
           case TRAP_ARRAY_BOUNDS:
-            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo, ").");
+            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo.toInt(), ").");
             break;
           case TRAP_DIVIDE_BY_ZERO:
             VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
@@ -763,6 +765,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
             VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
           break;
           }
+          VM.sysWrite("trapCode = ", trapCode);
+        VM.sysWriteln("trapInfo = ", trapInfo.toAddress());
           VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
         }
       }
@@ -774,7 +778,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
         exceptionObject = new java.lang.NullPointerException();
         break;
       case TRAP_ARRAY_BOUNDS:
-        exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo);
+        exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo.toInt());
         break;
       case TRAP_DIVIDE_BY_ZERO:
         exceptionObject = new java.lang.ArithmeticException();
@@ -906,15 +910,15 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
   //----------------//
 
   public static void init() {
-    // tell "RunBootImage.C" to pass control to
+    // tell the bootloader (sysSignal*.c) to pass control to
     // "RuntimeEntrypoints.deliverHardwareException()"
-    // whenever the host operating system detects a hardware trap
+    // whenever the host operating system detects a hardware trap.
     //
     BootRecord.the_boot_record.hardwareTrapMethodId = CompiledMethods.createHardwareTrapCompiledMethod().getId();
     BootRecord.the_boot_record.deliverHardwareExceptionOffset =
         Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
-    // tell "RunBootImage.C" to set "RVMThread.debugRequested" flag
+    // tell the bootloader (sysSignal.c) to set "RVMThread.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     BootRecord.the_boot_record.debugRequestedOffset = Entrypoints.debugRequestedField.getOffset();
@@ -928,7 +932,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * @return array object
    */
   public static Object buildMultiDimensionalArray(int methodId, int[] numElements, RVMArray arrayType) {
-    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMethodRef(methodId).peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
     return buildMDAHelper(method, numElements, 0, arrayType);
   }
@@ -942,7 +946,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * @return array object
    */
   public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, RVMArray arrayType) {
-    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMethodRef(methodId).peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
 
     if (!arrayType.isInstantiated()) {

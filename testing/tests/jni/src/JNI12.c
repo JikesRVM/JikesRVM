@@ -42,8 +42,7 @@ jobject heldGlobal = NULL;
  * Method:    testReflectedMethods
  * Signature: (Ljava/lang/Class;Ljava/lang/reflect/Method;)Ljava/lang/reflect/Method;
  */
-jobject JNICALL
-Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject oldMethObj)
+JNIEXPORT jobject JNICALL Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject oldMethObj)
 {
   jmethodID methID;
   jobject newMethObj;
@@ -65,8 +64,7 @@ Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject ol
 }
 
 
-jobject JNICALL
-Java_JNI12_testGlobalCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
+JNIEXPORT jobject JNICALL Java_JNI12_testGlobalCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
 {
   if (TRACE)
     fprintf(stderr, "Trying NewGlobalRef\n");
@@ -77,8 +75,7 @@ Java_JNI12_testGlobalCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj
 }
 
 
-jobject JNICALL
-Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
+JNIEXPORT jobject JNICALL Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
 {
   if (TRACE)
     fprintf(stderr, "Trying NewWeakGlobalRef\n");
@@ -90,8 +87,7 @@ Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
 
 
 /** 0 on success, nonzero on failure. */
-jint JNICALL
-Java_JNI12_testGlobalPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj)
+JNIEXPORT jint JNICALL Java_JNI12_testGlobalPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj)
 {
   if (TRACE)
     fprintf(stderr, "methObj = %p ==> heldGlobal = %p \n", passedNewMethObj, heldGlobal);
@@ -106,8 +102,7 @@ Java_JNI12_testGlobalPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject
 }
 
 /** 0 on success, nonzero on failure. */
-jint JNICALL
-Java_JNI12_testWeakPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj)
+JNIEXPORT jint JNICALL Java_JNI12_testWeakPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj)
 {
   if (TRACE)
     fprintf(stderr, "methObj = %p ==> heldWeak = %p \n", passedNewMethObj, heldWeak);
@@ -129,8 +124,7 @@ Java_JNI12_testWeakPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject p
  * Signature: (Ljava/lang/Class;Ljava/lang/reflect/Field;)Ljava/lang/reflect/Field;
  *  Also tests NewLocalRef.
  */
-jobject JNICALL
-Java_JNI12_testReflectedFields(JNIEnv *env, jclass myClass,
+JNIEXPORT jobject JNICALL Java_JNI12_testReflectedFields(JNIEnv *env, jclass myClass,
                                jclass cls, jobject oldFldObj)
 {
   jfieldID fldID;

@@ -351,7 +351,7 @@ public class StackTrace {
             int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
             for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
               int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-              RVMMethod method = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+              RVMMethod method = MemberReference.getMethodRef(mid).getResolvedMember();
               int lineNumber = ((NormalMethod)method).getLineNumberForBCIndex(bci);
               elements[element] = new Element(method, lineNumber);
               element++;

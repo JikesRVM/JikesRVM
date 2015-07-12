@@ -19,8 +19,8 @@ package org.jikesrvm.ppc;
  */
 final class OpcodeTab {
 
-  int format;
-  String mnemonic;
+  final int format;
+  final String mnemonic;
 
   OpcodeTab(int format, String mnemonic) {
     this.format = format;

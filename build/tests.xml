@@ -655,6 +655,33 @@
     </sequential>
   </macrodef>
 
+  <!-- Similar to runCompareTest but uses a success message rather than checksum -->
+  <macrodef name="successMessageTest">
+    <attribute name="tag"/>
+    <attribute name="class"/>
+    <attribute name="classpath" default=""/>
+    <attribute name="bootclasspath" default=""/>
+    <attribute name="args" default=""/>
+    <attribute name="execution" default="default"/>
+    <attribute name="initialHeapSize" default=""/>
+    <attribute name="maxHeapSize" default=""/>
+    <attribute name="rvmArgs" default=""/>
+    <attribute name="timeLimit" default=""/>
+    <sequential>
+      <rvm tag="@{tag}"
+           class="@{class}"
+           args="@{args}"
+           classpath="@{classpath}"
+           bootclasspath="@{bootclasspath}"
+           initialHeapSize="@{initialHeapSize}"
+           maxHeapSize="@{maxHeapSize}"
+           rvmArgs="@{rvmArgs}"
+           timeLimit="@{timeLimit}"/>
+      <findStatistic tag="@{tag}" pattern="SUCCESS" key="success"/>
+      <outputResults tag="@{tag}"/>
+    </sequential>
+  </macrodef>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                          Initialize properties                           * -->
