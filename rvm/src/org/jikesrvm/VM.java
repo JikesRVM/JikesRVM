@@ -321,7 +321,7 @@ public class VM extends Properties {
 
     DynamicLibrary.boot();
     if (VM.BuildForOpenJDK) {
-      System.loadLibrary("rvm");
+      System.loadLibrary("jikesrvm");
       System.loadLibrary("jvm");
       System.loadLibrary("java");
       System.loadLibrary("zip");

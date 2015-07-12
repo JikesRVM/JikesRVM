@@ -1,0 +1,7 @@
+CriticalCopy_0.1 {
+  global :
+	 Java_CriticalCopy_setVerboseOff;
+	 Java_CriticalCopy_primitiveIntegerArray;
+	 Java_CriticalCopy_primitiveByteArray;
+  local : *;
+};

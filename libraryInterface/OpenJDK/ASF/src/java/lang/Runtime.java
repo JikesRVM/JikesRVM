@@ -432,6 +432,7 @@ public class Runtime {
           this.load0(libFullName, cL, false);
           return;
         } catch (UnsatisfiedLinkError e) {
+          VM.sysWriteln(e.toString());
         }
       }
     } else {

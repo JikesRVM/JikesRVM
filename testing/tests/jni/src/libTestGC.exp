@@ -1,0 +1,6 @@
+TestGC_0.1 {
+  global :
+	 Java_TestGC_setVerboseOff;
+	 Java_TestGC_testgc;
+  local : *;
+};

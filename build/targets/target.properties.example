@@ -26,14 +26,26 @@ target.bootimage.rmap.address=
 # 64 bit architectures should postfix max mappable address with L or else it will be invalid
 target.max-mappable.address=
 
-# Suffix for shared libraries
+# Suffix for shared libraries / dynamic-link libraries
 target.dll-ext=
 
-# Prefix for shared libraries
+# Prefix for shared libraries / dynamic-link libraries
 target.dll-prefix=
 
-# Suffix for jni shared libraries (differs from dll suffix on OSX)
+# Suffix for JNI shared libraries (differs from DLL suffix on OSX)
 target.jni-suffix=
+
+# Suffix for libraries
+target.lib-ext=
+
+# Prefix for libraries
+target.lib-prefix=
+
+# Suffix for object files
+target.obj-ext=
+
+# Prefix for object files
+target.obj-prefix=
 
 # Set to none, base or full depending on usage of SSE2 instructions on ia32
 target.arch.sse2=
