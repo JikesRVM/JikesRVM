@@ -175,9 +175,9 @@ EXTERNAL void* sysStartMainThreadSignals()
 {
   /* install a stack for hardwareTrapHandler() to run on */
   stack_t stack;
-  char *stackBuf;
+  void *stackBuf;
   memset (&stack, 0, sizeof stack);
-  stackBuf = (char *)checkMalloc(sizeof(char) * SIGSTKSZ);
+  stackBuf = (void *)checkMalloc(SIGSTKSZ);
   stack.ss_sp = stackBuf;
   stack.ss_size = SIGSTKSZ;
   if (sigaltstack (&stack, 0)) {
@@ -247,12 +247,13 @@ EXTERNAL void* sysStartMainThreadSignals()
 EXTERNAL void* sysStartChildThreadSignals()
 {
   stack_t stack;
-  char *stackBuf;
+  void *stackBuf;
   int rc;
+
   TRACE_PRINTF("%s: sysSetupChildThreadSignals\n", Me);
 
   memset (&stack, 0, sizeof stack);
-  stackBuf = (char*)sysMalloc(sizeof(char) * SIGSTKSZ);
+  stackBuf = (void*)sysMalloc(SIGSTKSZ);
   stack.ss_sp = stackBuf;
   stack.ss_flags = 0;
   stack.ss_size = SIGSTKSZ;
