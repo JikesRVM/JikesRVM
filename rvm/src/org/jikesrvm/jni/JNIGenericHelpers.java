@@ -14,6 +14,7 @@ package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 
@@ -52,53 +53,79 @@ import java.nio.CharBuffer;
 public abstract class JNIGenericHelpers {
 
   /**
-   * Compute the length of the given null-terminated string
+   *  Whether to allow reads of undefined memory when computing strlen(..).
+   *  This is enabled by default to improve performance. It will never cause
+   *  undefined behaviour but it may turn up as a false positive when using
+   *  tools such as Valgrind.
+   */
+  private static final boolean ALLOW_READS_OF_UNDEFINED_MEMORY = true;
+
+  /**
+   * Computes the length of the given null-terminated string.
+   * <p>
+   * <strong>NOTE: This method may read undefined memory if {@link #ALLOW_READS_OF_UNDEFINED_MEMORY}
+   * is true. However, the behaviour of this method is always well-defined.</strong>
    *
    * @param ptr address of string in memory
    * @return the length of the string in bytes
    */
   public static int strlen(Address ptr) {
     int length = 0;
-    // align address to size of machine
-    while (!ptr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_ADDRESS - 1)).isZero()) {
-      byte bits = ptr.loadByte(Offset.fromIntZeroExtend(length));
-      if (bits == 0) {
-        return length;
+    // Read words at a time for better performance. This should be unproblematic unless
+    // you're using Valgrind or a similar tool to check for errors. Memory protection
+    // can't be a problem because the reads will be aligned and mprotect works at the
+    // page level (or even coarser).
+    if (ALLOW_READS_OF_UNDEFINED_MEMORY) {
+      // align address to size of machine
+      while (!ptr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_ADDRESS - 1)).isZero()) {
+        byte bits = ptr.loadByte(Offset.fromIntZeroExtend(length));
+        if (bits == 0) {
+          return length;
+        }
+        length++;
       }
-      length++;
-    }
-    // Ascii characters are normally in the range 1 to 128, if we subtract 1
-    // from each byte and look if the top bit of the byte is set then if it is
-    // the chances are the byte's value is 0. Loop over words doing this quick
-    // test and then do byte by byte tests when we think we have the 0
-    Word onesToSubtract;
-    Word maskToTestHighBits;
-    if (VM.BuildFor32Addr) {
-      onesToSubtract     = Word.fromIntZeroExtend(0x01010101);
-      maskToTestHighBits = Word.fromIntZeroExtend(0x80808080);
-    } else {
-      onesToSubtract     = Word.fromLong(0x0101010101010101L);
-      maskToTestHighBits = Word.fromLong(0x8080808080808080L);
-    }
-    while (true) {
-      Word bytes = ptr.loadWord(Offset.fromIntZeroExtend(length));
-      if (!bytes.minus(onesToSubtract).and(maskToTestHighBits).isZero()) {
-        if (VM.LittleEndian) {
-          for (int byteOff = 0; byteOff < BYTES_IN_ADDRESS; byteOff++) {
-            if (bytes.and(Word.fromIntZeroExtend(0xFF)).isZero()) {
-              return length + byteOff;
+      // Ascii characters are normally in the range 1 to 128, if we subtract 1
+      // from each byte and look if the top bit of the byte is set then if it is
+      // the chances are the byte's value is 0. Loop over words doing this quick
+      // test and then do byte by byte tests when we think we have the 0
+      Word onesToSubtract;
+      Word maskToTestHighBits;
+      if (VM.BuildFor32Addr) {
+        onesToSubtract     = Word.fromIntZeroExtend(0x01010101);
+        maskToTestHighBits = Word.fromIntZeroExtend(0x80808080);
+      } else {
+        onesToSubtract     = Word.fromLong(0x0101010101010101L);
+        maskToTestHighBits = Word.fromLong(0x8080808080808080L);
+      }
+      while (true) {
+        Word bytes = ptr.loadWord(Offset.fromIntZeroExtend(length));
+        if (!bytes.minus(onesToSubtract).and(maskToTestHighBits).isZero()) {
+          if (VM.LittleEndian) {
+            for (int byteOff = 0; byteOff < BYTES_IN_ADDRESS; byteOff++) {
+              if (bytes.and(Word.fromIntZeroExtend(0xFF)).isZero()) {
+                return length + byteOff;
+              }
+              bytes = bytes.rshl(BITS_IN_BYTE);
             }
-            bytes = bytes.rshl(8);
-          }
-        } else {
-          for (int byteOff = BYTES_IN_ADDRESS - 1; byteOff >= 0; byteOff--) {
-            if (bytes.rshl(byteOff * 8).and(Word.fromIntZeroExtend(0xFF)).isZero()) {
-              return length + (BYTES_IN_ADDRESS - 1 - byteOff);
+          } else {
+            for (int byteOff = BYTES_IN_ADDRESS - 1; byteOff >= 0; byteOff--) {
+              if (bytes.rshl(byteOff * 8).and(Word.fromIntZeroExtend(0xFF)).isZero()) {
+                return length + (BYTES_IN_ADDRESS - 1 - byteOff);
+              }
             }
           }
         }
+        length += BYTES_IN_ADDRESS;
       }
-      length += BYTES_IN_ADDRESS;
+    } else {
+      // Avoid reads of undefined memory by proceeding one byte at a time
+      Address currentAddress = ptr;
+      byte currentByte = currentAddress.loadByte(Offset.fromIntSignExtend(length));
+      while (currentByte != 0) {
+        length++;
+        currentByte = currentAddress.loadByte(Offset.fromIntSignExtend(length));
+      }
+      return length;
     }
   }
   /**
