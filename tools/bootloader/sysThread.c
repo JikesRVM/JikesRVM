@@ -55,17 +55,6 @@ typedef struct {
 } vmmonitor_t;
 #endif
 
-#ifdef __GLIBC__
-/* use glibc internal longjmp to bypass fortify checks */
-EXTERNAL void __libc_longjmp (jmp_buf buf, int val) \
-__attribute__ ((__noreturn__));
-#define rvm_longjmp(buf, ret) \
-        __libc_longjmp(buf, ret)
-#else
-#define rvm_longjmp(buf, ret) \
-        longjmp(buf, ret)
-#endif /* !__GLIBC__ */
-
 EXTERNAL void VMI_Initialize();
 
 Word DeathLock = NULL;
@@ -86,21 +75,21 @@ EXTERNAL void *sysThreadStartup(void *args);
 EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 
 extern TLS_KEY_TYPE VmThreadKey;
-TLS_KEY_TYPE TerminateJmpBufKey;
+static TLS_KEY_TYPE threadDataKey;
+static TLS_KEY_TYPE trKey;
+static TLS_KEY_TYPE sigStackKey;
 
-TLS_KEY_TYPE createThreadLocal() {
-  TLS_KEY_TYPE key;
+TLS_KEY_TYPE createThreadLocal(TLS_KEY_TYPE *key) {
   int rc;
 #ifdef RVM_FOR_HARMONY
-  rc = hythread_tls_alloc(&key);
+  rc = hythread_tls_alloc(key);
 #else
-  rc = pthread_key_create(&key, 0);
+  rc = pthread_key_create(key, 0);
 #endif
   if (rc != 0) {
     ERROR_PRINTF("%s: alloc tls key failed (err=%d)\n", Me, rc);
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
   }
-  return key;
 }
 
 /** Create keys for thread-specific data. */
@@ -111,9 +100,14 @@ static void createThreadSpecificDataKeys()
 
   // Create a key for thread-specific data so we can associate
   // the id of the Processor object with the pthread it is running on.
-  VmThreadKey = createThreadLocal();
-  TerminateJmpBufKey = createThreadLocal();
-  TRACE_PRINTF("%s: vm processor key=%lu\n", Me, VmThreadKey);
+  createThreadLocal(&VmThreadKey);
+  createThreadLocal(&threadDataKey);
+  createThreadLocal(&trKey);
+  createThreadLocal(&sigStackKey);
+  TRACE_PRINTF("%s: vm thread key=%lu\n", Me, VmThreadKey);
+  TRACE_PRINTF("%s: thread data key key=%lu\n", Me, threadDataKey);
+  TRACE_PRINTF("%s: thread register key=%lu\n", Me, trKey);
+  TRACE_PRINTF("%s: sigStack key=%lu\n", Me, sigStackKey);
 }
 
 void setThreadLocal(TLS_KEY_TYPE key, void * value) {
@@ -492,7 +486,6 @@ EXTERNAL void * sysThreadStartup(void *args)
 #endif
 {
   Address jtoc, tr, ip, fp, threadData;
-  jmp_buf *jb;
   void* sigStack;
 
   ip = ((Address *)args)[0];
@@ -504,6 +497,8 @@ EXTERNAL void * sysThreadStartup(void *args)
         Me, (void*)ip, (void*)fp, (void*)tr, (void*)jtoc, (int)threadData);
   checkFree(args);
 
+  setThreadLocal(threadDataKey, (void *)threadData);
+  setThreadLocal(trKey, (void *)tr);
   if (threadData == CHILD_THREAD) {
     sigStack = sysStartChildThreadSignals();
 #ifdef RVM_FOR_IA32 /* TODO: refactor */
@@ -513,33 +508,17 @@ EXTERNAL void * sysThreadStartup(void *args)
   } else {
     sigStack = sysStartMainThreadSignals();
   }
+  setThreadLocal(sigStackKey, (void *)sigStack);
+  TRACE_PRINTF("%s: sysThreadStartup: booting\n", Me);
 
-  jb = (jmp_buf*)checkMalloc(sizeof(jmp_buf));
-  if (setjmp(*jb)) {
-    // this is where we come to terminate the thread
-    TRACE_PRINTF("%s: sysThreadStartup: terminating\n", Me);
+  // branch to vm code
+  bootThread((void*)ip, (void*)tr, (void*)fp, (void*)jtoc);
+  // not reached
+  ERROR_PRINTF("%s: sysThreadStartup: failed\n", Me);
 #ifdef RVM_FOR_HARMONY
-    hythread_detach(NULL);
-#endif
-    checkFree(jb);
-    *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
-    sysEndThreadSignals(sigStack);
-    if (threadData == MAIN_THREAD_DONT_TERMINATE) {
-      while(1) pause();
-    }
-  } else {
-    TRACE_PRINTF("%s: sysThreadStartup: booting\n", Me);
-    setThreadLocal(TerminateJmpBufKey, (void*)jb);
-
-    // branch to vm code
-    bootThread((void*)ip, (void*)tr, (void*)fp, (void*)jtoc);
-    // not reached
-    ERROR_PRINTF("%s: sysThreadStartup: failed\n", Me);
-  }
-#ifdef RVM_FOR_HARMONY
-  return 0;
+return 0;
 #else
-  return NULL;
+return NULL;
 #endif
 }
 
@@ -802,11 +781,20 @@ EXTERNAL void sysMonitorBroadcast(Word _monitor)
 
 EXTERNAL void sysThreadTerminate()
 {
-  jmp_buf *jb;
   TRACE_PRINTF("%s: sysThreadTerminate\n", Me);
 #ifdef RVM_FOR_POWERPC
   asm("sync");
 #endif
-  jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
-  rvm_longjmp(*jb,1);
+#ifdef RVM_FOR_HARMONY
+  hythread_detach(NULL);
+#endif
+  Address tr = (Address) GET_THREAD_LOCAL(trKey);
+  *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+  Address threadData = (Address) GET_THREAD_LOCAL(threadDataKey);
+  void * sigStack = (void *) GET_THREAD_LOCAL(sigStackKey);
+  sysEndThreadSignals(sigStack);
+  if (threadData == MAIN_THREAD_DONT_TERMINATE) {
+    while(1) pause();
+  }
+  pthread_exit(NULL);
 }
