@@ -2254,7 +2254,7 @@ target.jni-suffix=${target.jni-suffix}
   <target name="main" depends="rvm-unit-tests"/>
 
   <!-- Create an image using a profile (which requires first creating a profile) -->
-  <target name="profiled-image">
+  <target name="profiled-image" description="Compile a baseline version of the RVM for profiling then use the profile information to recompile the given config.name image">
 	<ant inheritAll="false" target="create-bootimage-profile">
 	  <property name="config.with-profile" value="true"/>
 	  <property name="config.bootimage.compiler" value="base"/>
