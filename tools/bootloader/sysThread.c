@@ -79,7 +79,7 @@ static TLS_KEY_TYPE threadDataKey;
 static TLS_KEY_TYPE trKey;
 static TLS_KEY_TYPE sigStackKey;
 
-TLS_KEY_TYPE createThreadLocal(TLS_KEY_TYPE *key) {
+void createThreadLocal(TLS_KEY_TYPE *key) {
   int rc;
 #ifdef RVM_FOR_HARMONY
   rc = hythread_tls_alloc(key);
