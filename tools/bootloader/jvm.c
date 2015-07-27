@@ -183,7 +183,7 @@ static JNIEnv * getJniEnvFromVmThread(void *vmThreadPtr)
  */
 static jint JNICALL DestroyJavaVM(JavaVM UNUSED * vm)
 {
-  ERROR_PRINTF(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
+  ERROR_PRINTF("JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
   return JNI_ERR;
 }
 
@@ -217,9 +217,9 @@ static jint JNICALL AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, 
   if (retval == JNI_OK)
     return retval;
   else if (retval == JNI_EDETACHED) {
-    ERROR_PRINTF(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
+    ERROR_PRINTF("JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
   } else {
-    ERROR_PRINTF(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
+    ERROR_PRINTF("JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
   }
 
   // Upon failure:
@@ -230,7 +230,7 @@ static jint JNICALL AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, 
 /* TODO: Implement */
 static jint JNICALL DetachCurrentThread(JavaVM UNUSED *vm)
 {
-  ERROR_PRINTF(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
+  ERROR_PRINTF("UNIMPLEMENTED JNI call DetachCurrentThread\n");
   return JNI_ERR;
 }
 
