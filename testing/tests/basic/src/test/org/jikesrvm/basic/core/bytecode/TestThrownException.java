@@ -7,6 +7,9 @@
  *
  *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
+ *  Alternatively, this file is licensed to You under the MIT License:
+ *      http://opensource.org/licenses/MIT .
+ *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
