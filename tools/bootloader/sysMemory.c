@@ -23,12 +23,12 @@ int inRVMAddressSpace(Address a);
 void* checkMalloc(int length)
 {
   void *result = malloc(length);
-  if (inRVMAddressSpace((Address)result)) {
-    ERROR_PRINTF("malloc returned something that is in RVM address space: %p\n",result);
-  }
   if (result == NULL) {
     ERROR_PRINTF("%s: error while trying to allocate memory in checkMalloc\n", Me);
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
+  if (inRVMAddressSpace((Address)result)) {
+    ERROR_PRINTF("malloc returned something that is in RVM address space: %p\n",result);
   }
   return result;
 }
@@ -36,12 +36,12 @@ void* checkMalloc(int length)
 void* checkCalloc(int numElements, int sizeOfOneElement)
 {
   void *result = calloc(numElements,sizeOfOneElement);
-  if (inRVMAddressSpace((Address)result)) {
-    ERROR_PRINTF("calloc returned something that is in RVM address space: %p\n",result);
-  }
   if (result == NULL) {
     ERROR_PRINTF("%s: error while trying to allocate memory in checkCalloc\n", Me);
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
+  if (inRVMAddressSpace((Address)result)) {
+    ERROR_PRINTF("calloc returned something that is in RVM address space: %p\n",result);
   }
   return result;
 }
