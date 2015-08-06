@@ -533,7 +533,7 @@ EXTERNAL void* getThreadId()
   void* thread = (void*)pthread_self();
 #endif
 
-  TRACE_PRINTF("%s: getThreadId: thread %x\n", Me, thread);
+  TRACE_PRINTF("%s: getThreadId: thread %p\n", Me, thread);
   return thread;
 }
 

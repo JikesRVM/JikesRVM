@@ -214,7 +214,7 @@ EXTERNAL void * sysMMap(char *start , size_t length ,
                         int fd , Offset offset)
 {
   void *result;
-  TRACE_PRINTF("%s: sysMMap %p %zd %d %d %d %d\n",
+  TRACE_PRINTF("%s: sysMMap %p %zu %d %d %d %d\n",
                Me, start, length, protection, flags, fd, offset);
   result = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   return result;
@@ -229,15 +229,15 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
                              int fd , Offset offset)
 {
   void* res;
-  TRACE_PRINTF("%s: sysMMapErrno %p %d %d %d %d %d\n",
+  TRACE_PRINTF("%s: sysMMapErrno %p %zu %d %d %d %ud\n",
                Me, start, length, protection, flags, fd, offset);
   res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1) {
-    ERROR_PRINTF("%s: sysMMapErrno %p %zd %d %d %d %ld failed with %d.\n",
+    ERROR_PRINTF("%s: sysMMapErrno %p %zu %d %d %d %ld failed with %d.\n",
                  Me, start, length, protection, flags, fd, (long) offset, errno);
     return (void *) errno;
   } else {
-    TRACE_PRINTF("mmap succeeded- region = [%p ... %p]    size = %zd\n",
+    TRACE_PRINTF("mmap succeeded- region = [%p ... %p]    size = %zu\n",
                  res, (void*)(((size_t)res) + length), length);
     return res;
   }
@@ -252,7 +252,7 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
  */
 EXTERNAL int sysMProtect(char *start, size_t length, int prot)
 {
-  TRACE_PRINTF("%s: sysMProtect %p %zd %d\n",
+  TRACE_PRINTF("%s: sysMProtect %p %zu %d\n",
                Me, start, length, prot);
   return mprotect(start, length, prot);
 }
@@ -287,7 +287,7 @@ EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt)
  */
 EXTERNAL void sysSyncCache(void *address, size_t size)
 {
-  TRACE_PRINTF("%s: sync %p %zd\n", Me, address, size);
+  TRACE_PRINTF("%s: sync %p %zu\n", Me, address, size);
 
 #ifdef RVM_FOR_POWERPC
   if (size < 0) {
