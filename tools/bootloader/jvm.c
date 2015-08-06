@@ -200,7 +200,7 @@ static jint JNICALL AttachCurrentThread(JavaVM * vm, /* JNIEnv */ void ** penv, 
   JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
   jint version;
   jint retval;
-  if (args == NULL) {
+  if (aargs == NULL) {
     version = JNI_VERSION_1_1;
   } else {
     version = aargs->version ;
