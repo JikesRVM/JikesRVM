@@ -2269,7 +2269,7 @@ public class VM extends Properties {
                   "* Jikes RVM terminated abnormally indicating a problem in the virtual machine. *\n" +
                   "* Jikes RVM relies on community support to get debug information. Help improve *\n" +
                   "* Jikes RVM for everybody by reporting this error. Please see:                 *\n" +
-                  "*                      http://jikesrvm.org/Reporting+Bugs                      *");
+                  "*                    http://www.jikesrvm.org/ReportingBugs/                    *");
     VM.sysWriteln("********************************************************************************");
   }
 
