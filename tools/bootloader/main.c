@@ -351,7 +351,7 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
       /* Canonicalize the argument, and pass it on to the heavy-weight
        * Java code that parses -X:gc:verbose */
       const size_t bufsiz = 20;
-      char *buf = (char *) checkMalloc(bufsiz);
+      char *buf = (char *) malloc(bufsiz);
       int ret = snprintf(buf, bufsiz, "-X:gc:verbose=%ld", level);
       if (ret < 0) {
         ERROR_PRINTF("%s: Internal error processing the argument"
