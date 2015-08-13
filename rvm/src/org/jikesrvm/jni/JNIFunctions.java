@@ -637,7 +637,12 @@ public class JNIFunctions {
   }
 
   /**
-   * IsInstanceOf: determine if an object is an instance of the class
+   * IsInstanceOf: determine if an object is an instance of the class.
+   * <p>
+   * NOTE: the function behaviour is defined via the behaviour of checkcast
+   * and NOT instanceof as the name of this function would suggest. See
+   * the JNI spec for details.
+   *
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object to check
    * @param classJREF a JREF index for the class to check
@@ -650,7 +655,9 @@ public class JNIFunctions {
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       Object obj = env.getJNIRef(objJREF);
-      if (obj == null) return 0; // null instanceof T is always false
+      // "null instanceof T" is always false but the function behaviour is defined via
+      // checkcast. So we're actually checking "(T) null" which will always succeed.
+      if (obj == null) return 1;
       RVMType RHStype = ObjectModel.getObjectType(obj);
       RVMType LHStype = java.lang.JikesRVMSupport.getTypeForClass(cls);
       return (LHStype == RHStype || RuntimeEntrypoints.isAssignableWith(LHStype, RHStype)) ? 1 : 0;
