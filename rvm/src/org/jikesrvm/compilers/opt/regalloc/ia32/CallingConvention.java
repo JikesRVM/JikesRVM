@@ -662,7 +662,7 @@ public abstract class CallingConvention extends IRTools
             // the symbolic.  First a move from the physical to a fresh temp
             // before start and second a move from the temp to the
             // 'real' parameter symbolic after start.
-            RegisterOperand tmp = ir.regpool.makeTemp(TypeReference.Int);
+            RegisterOperand tmp = ir.regpool.makeTemp(rType);
             Register param = phys.getGPRParam(gprIndex);
             RegisterOperand pOp = new RegisterOperand(param, rType);
             start.insertBefore(PhysicalRegisterTools.makeMoveInstruction(tmp, pOp));
