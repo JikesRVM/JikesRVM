@@ -12,7 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.IA32_REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.IRTools.*;
 import static org.jikesrvm.compilers.opt.ir.Operators.MATERIALIZE_FP_CONSTANT;
 
 import org.jikesrvm.classloader.TypeReference;
@@ -26,7 +27,6 @@ import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.CodeConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.NullConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ObjectConstantOperand;
@@ -37,6 +37,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Normalize the use of constants in the LIR
@@ -79,12 +80,12 @@ public abstract class NormalizeConstants {
                   offset = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(oc.value));
                 }
                 LocationOperand loc = new LocationOperand(offset);
-                s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
+                s.insertBefore(Load.create(IA32_REF_LOAD, rop, jtoc, wordOperand(offset.toWord()), loc));
                 s.putOperand(idx, rop.copyD2U());
               } else {
                 // Ensure object is in JTOC to keep it alive
                 Statics.findOrCreateObjectLiteral(oc.value);
-                s.putOperand(idx, new IntConstantOperand(Magic.objectAsAddress(oc.value).toInt()));
+                s.putOperand(idx, wordOperand(Magic.objectAsAddress(oc.value).toWord()));
               }
             } else if (use instanceof DoubleConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Double);
@@ -107,23 +108,22 @@ public abstract class NormalizeConstants {
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof NullConstantOperand) {
-              s.putOperand(idx, new IntConstantOperand(0));
+              s.putOperand(idx, wordOperand(Word.zero()));
             } else if (use instanceof AddressConstantOperand) {
-              int v = ((AddressConstantOperand) use).value.toInt();
-              s.putOperand(idx, new IntConstantOperand(v));
+              s.putOperand(idx, wordOperand(((AddressConstantOperand) use).value.toWord()));
             } else if (use instanceof TIBConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.TIB);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               Offset offset = ((TIBConstantOperand) use).value.getTibOffset();
               LocationOperand loc = new LocationOperand(offset);
-              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
+              s.insertBefore(Load.create(IA32_REF_LOAD, rop, jtoc, wordOperand(offset.toWord()), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof CodeConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.CodeArray);
               Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               Offset offset = ((CodeConstantOperand) use).value.findOrCreateJtocOffset();
               LocationOperand loc = new LocationOperand(offset);
-              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
+              s.insertBefore(Load.create(IA32_REF_LOAD, rop, jtoc, wordOperand(offset.toWord()), loc));
               s.putOperand(idx, rop.copyD2U());
             }
           }

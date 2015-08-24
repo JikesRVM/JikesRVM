@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
@@ -53,6 +55,7 @@ public abstract class RegisterPool extends GenericRegisterPool {
    */
   public Operand makeJTOCOp(IR ir, Instruction s) {
     Address jtoc = Magic.getTocPointer();
-    return new IntConstantOperand(jtoc.toInt());
+    return VM.BuildFor32Addr ? new IntConstantOperand(jtoc.toInt()) :
+      new LongConstantOperand(jtoc.toLong());
   }
 }

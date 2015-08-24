@@ -87,6 +87,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import static org.jikesrvm.util.Bits.*;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -112,6 +113,7 @@ import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -120,6 +122,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.ia32.TrapConstants;
+import org.jikesrvm.util.Bits;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
 
@@ -233,6 +236,7 @@ abstract class AssemblerBase extends Assembler
     boolean isKnownJumpTarget = op.isBranch() &&
         mcOffsets.getMachineCodeOffset(op.asBranch().target) >= 0;
     return (op instanceof IntConstantOperand) ||
+           (VM.BuildFor64Addr && op instanceof LongConstantOperand) ||
            (op instanceof TrapCodeOperand) ||
            isKnownJumpTarget;
   }
@@ -255,6 +259,12 @@ abstract class AssemblerBase extends Assembler
   int getImm(Operand op) {
     if (op.isIntConstant()) {
       return op.asIntConstant().value;
+    } else if (VM.BuildFor64Addr && op.isLongConstant()) {
+      long v = op.asLongConstant().value;
+      if (!Bits.fits(v, 32)) {
+        throw new OptimizingCompilerException("Invalid immediate operand " + v);
+      }
+      return (int)v;
     } else if (op.isBranch()) {
       // used by ImmOrLabel stuff
       return mcOffsets.getMachineCodeOffset(op.asBranch().target);
@@ -730,6 +740,11 @@ abstract class AssemblerBase extends Assembler
 
     for (int i = 0; i < inst.getNumberOfOperands(); i++) {
       Operand op = inst.getOperand(i);
+      if (VM.BuildFor64Addr) {
+        if (op.isLong() || op.isRef()) {
+          return true;
+        }
+      }
       if (op instanceof MemoryOperand) {
         return (((MemoryOperand) op).size == 8);
       }

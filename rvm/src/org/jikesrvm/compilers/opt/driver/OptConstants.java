@@ -12,6 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.ir.Operator;
+
 /**
  * Class that holds miscellaneous constants used in the opt compiler
  */
@@ -40,6 +47,10 @@ public final class OptConstants {
   public static final byte NO = 0;
   public static final byte YES = 1;
   public static final byte MAYBE = 2;
+
+  public static final Operator IA32_REF_LOAD = VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD;
+  public static final TypeReference PRIMITIVE_TYPE_FOR_WORD =
+    VM.BuildFor32Addr ? TypeReference.Int : TypeReference.Long;
 
   private OptConstants() {
     // prevent instantiation

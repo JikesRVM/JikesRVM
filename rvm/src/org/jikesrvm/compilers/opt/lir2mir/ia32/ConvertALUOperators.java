@@ -14,8 +14,10 @@ package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
 import java.util.Enumeration;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -61,44 +63,92 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
 
+      // BURS doesn't really care, so consolidate to reduce rule space
       switch (s.getOpcode()) {
       case REF_ADD_opcode:
-        s.changeOperatorTo(INT_ADD);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_ADD : LONG_ADD);
         break;
       case REF_SUB_opcode:
-        s.changeOperatorTo(INT_SUB);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_SUB : LONG_SUB);
         break;
       case REF_NEG_opcode:
-        s.changeOperatorTo(INT_NEG);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_NEG : LONG_NEG);
         break;
       case REF_NOT_opcode:
-        s.changeOperatorTo(INT_NOT);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_NOT : LONG_NOT);
         break;
       case REF_AND_opcode:
-        s.changeOperatorTo(INT_AND);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_AND : LONG_AND);
         break;
       case REF_OR_opcode:
-        s.changeOperatorTo(INT_OR);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_OR : LONG_OR);
         break;
       case REF_XOR_opcode:
-        s.changeOperatorTo(INT_XOR);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_XOR : LONG_XOR);
         break;
       case REF_SHL_opcode:
-        s.changeOperatorTo(INT_SHL);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_SHL : LONG_SHL);
         break;
       case REF_SHR_opcode:
-        s.changeOperatorTo(INT_SHR);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_SHR : LONG_SHR);
         break;
       case REF_USHR_opcode:
-        s.changeOperatorTo(INT_USHR);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_USHR : LONG_USHR);
         break;
-
-      // BURS doesn't really care, so consolidate to reduce rule space
+      case REF_LOAD_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD);
+        break;
+      case REF_STORE_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_STORE : LONG_STORE);
+        break;
+      case REF_ALOAD_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_ALOAD : LONG_ALOAD);
+        break;
+      case REF_ASTORE_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_ASTORE : LONG_ASTORE);
+        break;
+      case REF_MOVE_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_MOVE : LONG_MOVE);
+        break;
+      case REF_IFCMP_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_IFCMP : LONG_IFCMP);
+        break;
       case BOOLEAN_CMP_ADDR_opcode:
-        s.changeOperatorTo(BOOLEAN_CMP_INT);
+        s.changeOperatorTo(VM.BuildFor32Addr ? BOOLEAN_CMP_INT : BOOLEAN_CMP_LONG);
+        break;
+      case ATTEMPT_ADDR_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? ATTEMPT_INT : ATTEMPT_LONG);
+        break;
+      case PREPARE_ADDR_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? PREPARE_INT : PREPARE_LONG);
+        break;
+      case INT_2ADDRSigExt_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_MOVE : INT_2LONG);
+        break;
+      case INT_2ADDRZerExt_opcode:
+        if (VM.BuildFor32Addr) {
+          s.changeOperatorTo(INT_MOVE);
+        }
+        break;
+      case ADDR_2INT_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_MOVE : LONG_2INT);
+        break;
+      case ADDR_2LONG_opcode:
+        // Note that a 32-bit ADDR_2LONG cannot be changed to an INT_2LONG because
+        // that implies using the Java conventions. Java widening conversions
+        // use sign extension which are not appropriate for addresses. The unboxed
+        // types that Jikes RVM uses define that the toLong() methods use zero-extension.
+        // For example, for 0xFFFF FFFF (32 bit addresses) the result is supposed to be
+        // 0x0000 0000 FFFF FFFF but with sign extension it would be
+        // 0xFFFF FFFF FFFF FFFF.
+        if (VM.BuildFor64Addr) {
+          s.changeOperatorTo(LONG_MOVE);
+        }
+        break;
+      case LONG_2ADDR_opcode:
+        s.changeOperatorTo(VM.BuildFor32Addr ? LONG_2INT : LONG_MOVE);
         break;
 
-      // BURS doesn't really care, so consolidate to reduce rule space
       case FLOAT_ADD_opcode:
         if (!SSE2_FULL)
           s.changeOperatorTo(FP_ADD);
@@ -148,7 +198,6 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
           s.changeOperatorTo(FP_NEG);
         break;
 
-      // BURS doesn't really care, so consolidate to reduce rule space
       case INT_COND_MOVE_opcode:
       case REF_COND_MOVE_opcode:
         s.changeOperatorTo(CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV));
@@ -163,7 +212,6 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
         OptimizingCompilerException.TODO("Unimplemented conversion" + s);
         break;
 
-      // BURS doesn't really care, so consolidate to reduce rule space
       case INT_2FLOAT_opcode:
         if (!SSE2_FULL)
           s.changeOperatorTo(INT_2FP);
@@ -179,44 +227,6 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
       case LONG_2DOUBLE_opcode:
         if (!SSE2_FULL)
           s.changeOperatorTo(LONG_2FP);
-        break;
-
-      // BURS doesn't really care, so consolidate to reduce rule space
-      case REF_LOAD_opcode:
-        s.changeOperatorTo(INT_LOAD);
-        break;
-      case REF_STORE_opcode:
-        s.changeOperatorTo(INT_STORE);
-        break;
-      case REF_ALOAD_opcode:
-        s.changeOperatorTo(INT_ALOAD);
-        break;
-      case REF_ASTORE_opcode:
-        s.changeOperatorTo(INT_ASTORE);
-        break;
-      case REF_MOVE_opcode:
-        s.changeOperatorTo(INT_MOVE);
-        break;
-      case REF_IFCMP_opcode:
-        s.changeOperatorTo(INT_IFCMP);
-        break;
-      case ATTEMPT_ADDR_opcode:
-        s.changeOperatorTo(ATTEMPT_INT);
-        break;
-      case PREPARE_ADDR_opcode:
-        s.changeOperatorTo(PREPARE_INT);
-        break;
-      case INT_2ADDRSigExt_opcode:
-        s.changeOperatorTo(INT_MOVE);
-        break;
-      case INT_2ADDRZerExt_opcode:
-        s.changeOperatorTo(INT_MOVE);
-        break;
-      case ADDR_2INT_opcode:
-        s.changeOperatorTo(INT_MOVE);
-        break;
-      case LONG_2ADDR_opcode:
-        s.changeOperatorTo(LONG_2INT);
         break;
       }
     }
