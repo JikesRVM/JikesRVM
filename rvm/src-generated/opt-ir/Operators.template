@@ -36,11 +36,7 @@ public final class Operators {
 
   public static final MachineSpecificIR helper =
 $$$$ IF ARCHITECTURE == "ia32"
-$$$$ IF ARCH_BITS == "32"
                                               MachineSpecificIRIA.IA32.singleton;
-$$$$ ELSE
-                                              MachineSpecificIRIA.EM64T.singleton;
-$$$$ END IF
 $$$$ END IF
 $$$$ IF ARCHITECTURE == "ppc"
 $$$$ IF ARCH_BITS == "32"

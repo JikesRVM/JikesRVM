@@ -35,17 +35,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV_ENDING_LIVE_RANGE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FNINIT;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JCC;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
 import static org.jikesrvm.compilers.opt.ir.Operators.PREFETCH_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -76,42 +65,6 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
           return true;
         default:
           throw new OptimizingCompilerException("SimpleEscape: Unexpected " + instruction);
-      }
-    }
-
-    @Override
-    public boolean mayEscapeMethod(Instruction instruction) {
-      return mayEscapeThread(instruction); // at this stage we're no more specific
-    }
-  }
-
-  /**
-   * Wrappers around EMT64-specific IR (64-bit specific)
-   */
-  public static final class EM64T extends MachineSpecificIRIA {
-    public static final EM64T singleton = new EM64T();
-
-    /* common to all ISAs */
-    @Override
-    public boolean mayEscapeThread(Instruction instruction) {
-      switch (instruction.getOpcode()) {
-        case PREFETCH_opcode:
-          return false;
-        case GET_CURRENT_PROCESSOR_opcode:
-        case LONG_OR_opcode:
-        case LONG_AND_opcode:
-        case LONG_XOR_opcode:
-        case LONG_SUB_opcode:
-        case LONG_SHL_opcode:
-        case LONG_ADD_opcode:
-        case LONG_SHR_opcode:
-        case LONG_USHR_opcode:
-        case LONG_NEG_opcode:
-        case LONG_MOVE_opcode:
-        case LONG_2ADDR_opcode:
-          return true;
-        default:
-          throw new OptimizingCompilerException("SimpleEscapge: Unexpected " + instruction);
       }
     }
 
