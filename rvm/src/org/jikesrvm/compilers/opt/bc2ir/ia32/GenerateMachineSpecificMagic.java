@@ -87,7 +87,7 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
       gc.forceFrameAllocation();
       RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       RVMField f = ArchEntrypoints.framePointerField;
-      RegisterOperand pr = new RegisterOperand(phys.getESI(), TypeReference.Int);
+      RegisterOperand pr = new RegisterOperand(phys.getESI(), TypeReference.Address);
       bc2ir.appendInstruction(GetField.create(GETFIELD,
                                               val,
                                               pr.copy(),
