@@ -88,6 +88,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH;
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 
 import java.util.Enumeration;
 
@@ -220,7 +221,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param val2 the second operand
    */
   protected void EMIT_Commutative(Operator operator, Instruction s, Operand result, Operand val1, Operand val2) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister() || result.isMemory());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister() || result.isMemory());
     // Swap operands to reduce chance of generating a move or to normalize
     // constants into val2
     if (val2.similar(result) || val1.isConstant()) {
@@ -244,7 +245,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param val2 the second operand
    */
   protected void EMIT_NonCommutative(Operator operator, Instruction s, Operand result, Operand val1, Operand val2) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister() || result.isMemory());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister() || result.isMemory());
     if (result.similar(val1)) {
       // Straight forward case where instruction is already in accumulate form
       EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
@@ -272,7 +273,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param value the first operand
    */
   protected void EMIT_Unary(Operator operator, Instruction s, Operand result, Operand value) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister() || result.isMemory());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister() || result.isMemory());
     // Do we need to move prior to the operator - result = val1
     if (!result.similar(value)) {
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, result.copy(), value)));
@@ -289,11 +290,11 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected void EMIT_Lea(Instruction s, RegisterOperand result, MemoryOperand mo) {
     // A memory operand is: base + scaled index + displacement
     if ((mo.index == null) && mo.disp.isZero()) {
-      if (VM.VerifyAssertions) VM._assert(mo.scale == 0 && mo.base != null);
+      if (VM.VerifyAssertions) opt_assert(mo.scale == 0 && mo.base != null);
       // If there is no index or displacement emit a move
       EMIT(MIR_Move.mutate(s, IA32_MOV, result, mo.base));
     } else if ((mo.index == null) && result.similar(mo.base)) {
-      if (VM.VerifyAssertions) VM._assert(mo.scale == 0);
+      if (VM.VerifyAssertions) opt_assert(mo.scale == 0);
       // If there is no index and we're redefining the same register, emit an add
       EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(mo.disp.toInt())));
     } else {
@@ -310,8 +311,8 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @return lower or higher equal
    */
   protected static ConditionOperand BIT_TEST(int x, ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM._assert((x == 0) || (x == 1));
-    if (VM.VerifyAssertions) VM._assert(EQ_NE(cond));
+    if (VM.VerifyAssertions) opt_assert((x == 0) || (x == 1));
+    if (VM.VerifyAssertions) opt_assert(EQ_NE(cond));
     if ((x == 1 && cond.isEQUAL()) ||
         (x == 0 && cond.isNOT_EQUAL())) {
       return ConditionOperand.LOWER();
@@ -359,7 +360,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    */
   protected final void pushCOND(ConditionOperand c) {
     if (VM.VerifyAssertions) {
-      VM._assert(cc == null);
+      opt_assert(cc == null);
     }
     cc = c;
   }
@@ -372,7 +373,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final ConditionOperand consumeCOND() {
     ConditionOperand ans = cc;
     if (VM.VerifyAssertions) {
-      VM._assert(cc != null);
+      opt_assert(cc != null);
     }
     cc = null;
     return ans;
@@ -755,7 +756,7 @@ Operand value, boolean signExtend) {
       // we must have a store/load sequence to cause IEEE rounding.
       if (value instanceof BURSManagedFPROperand) {
         if (VM.VerifyAssertions) {
-          VM._assert(value.similar(myFP0()));
+          opt_assert(value.similar(myFP0()));
         }
         EMIT(CPOS(s, MIR_Move.create(IA32_FSTP, MO_CONV(DW), value)));
         EMIT(CPOS(s, MIR_Move.create(IA32_FLD, myFP0(), MO_CONV(DW))));
@@ -1048,7 +1049,7 @@ Operand value, boolean signExtend) {
    * @param val2 the instruction's second value operand
    */
   protected void SSE2_COP(Operator operator, Instruction s, Operand result, Operand val1, Operand val2) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister());
     // Swap operands to reduce chance of generating a move or to normalize
     // constants into val2
     if (val2.similar(result)) {
@@ -1074,7 +1075,7 @@ Operand value, boolean signExtend) {
 
    */
   protected void SSE2_NCOP(Operator operator, Instruction s, Operand result, Operand val1, Operand val2) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister());
     if (result.similar(val1)) {
       // Straight forward case where instruction is already in accumulate form
       EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
@@ -1103,7 +1104,7 @@ Operand value, boolean signExtend) {
    * @param value the instruction's value operand
    */
   protected final void SSE2_NEG(boolean single, Instruction s, Operand result, Operand value) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister());
     if (!result.similar(value)) {
       EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copy(), value)));
     }
@@ -1122,7 +1123,7 @@ Operand value, boolean signExtend) {
    * @param value the instruction's value operand
    */
   protected final void SSE2_CONV(Operator op, Instruction s, Operand result, Operand value) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister());
     EMIT(MIR_Unary.mutate(s, op, result, value));
   }
 
@@ -1171,7 +1172,7 @@ Operand value, boolean signExtend) {
         if (cmpOperator == null) {
           needFlipOperands = !needFlipOperands;
           cmpOperator = SSE2_CMP_OP(cond.flipOperands(), singleCmp);
-          if (VM.VerifyAssertions) VM._assert(cmpOperator != null);
+          if (VM.VerifyAssertions) opt_assert(cmpOperator != null);
         }
       }
     }
@@ -1247,7 +1248,7 @@ Operand value, boolean signExtend) {
   }
 
   protected final void SSE2_ABS(boolean single, Instruction s, Operand result, Operand value) {
-    if (VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (VM.VerifyAssertions) opt_assert(result.isRegister());
     if (!result.similar(value)) {
       EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copy(), value)));
     }
@@ -1576,7 +1577,7 @@ Operand value, boolean signExtend) {
     if (value2.isRegister()) {
       // Leave for complex LIR2MIR expansion as the most efficient form requires
       // a branch
-      if (VM.VerifyAssertions) VM._assert(Binary.getResult(s).similar(result) &&
+      if (VM.VerifyAssertions) opt_assert(Binary.getResult(s).similar(result) &&
           Binary.getVal1(s).similar(value1) && Binary.getVal2(s).similar(value2));
       EMIT(s);
     } else {
@@ -1587,7 +1588,7 @@ Operand value, boolean signExtend) {
         value1 = value2;
         value2 = temp;
       }
-      if (VM.VerifyAssertions) VM._assert(value1.isRegister() && value2.isLongConstant());
+      if (VM.VerifyAssertions) opt_assert(value1.isRegister() && value2.isLongConstant());
 
       // In general, (a,b) * (c,d) = (l(a imul d)+l(b imul c)+u(b mul d), l(b mul d))
 
@@ -1625,7 +1626,7 @@ Operand value, boolean signExtend) {
         if (low2 == 0) {
           // -1, 0
           // CLAIM: (a,b) * (-1,0) = (-b,0)
-          if (VM.VerifyAssertions) VM._assert(lhsReg != lowrhsReg1);
+          if (VM.VerifyAssertions) opt_assert(lhsReg != lowrhsReg1);
           EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
               new RegisterOperand(lhsReg, TypeReference.Int),
               new RegisterOperand(lowrhsReg1, TypeReference.Int))));
@@ -3005,7 +3006,7 @@ Operand value, boolean signExtend) {
         val2 = swap_temp;
       }
       if (VM.VerifyAssertions) {
-        VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL() || cond.isLESS() || cond.isGREATER_EQUAL());
+        opt_assert(cond.isEQUAL() || cond.isNOT_EQUAL() || cond.isLESS() || cond.isGREATER_EQUAL());
       }
       RegisterOperand one = regpool.makeTempInt();
       RegisterOperand lone = regpool.makeTempInt();
@@ -3070,7 +3071,7 @@ Operand value, boolean signExtend) {
       val2 = swap_temp;
     }
     if (VM.VerifyAssertions) {
-      VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL() || cond.isLESS() || cond.isGREATER_EQUAL());
+      opt_assert(cond.isEQUAL() || cond.isNOT_EQUAL() || cond.isLESS() || cond.isGREATER_EQUAL());
     }
     RegisterOperand one = regpool.makeTempInt();
     RegisterOperand lone = regpool.makeTempInt();
@@ -3467,7 +3468,7 @@ Operand value, boolean signExtend) {
     // A little awkward, but probably the easiest workaround...
     if (longConstant) {
       if (VM.VerifyAssertions) {
-        VM._assert((tc.getTrapCode() == RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO) &&
+        opt_assert((tc.getTrapCode() == RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO) &&
                    (((LongConstantOperand) v2).value == 0L));
       }
       RegisterOperand vr = v1.copyRO();
@@ -3538,7 +3539,7 @@ Operand value, boolean signExtend) {
       EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int),
           new RegisterOperand(oldValue_lval, TypeReference.Int)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(oldValue.isLongConstant());
+      if (VM.VerifyAssertions) opt_assert(oldValue.isLongConstant());
       LongConstantOperand val = oldValue.asLongConstant();
       EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEDX(), TypeReference.Int),
           IC(val.upper32())));
@@ -3555,7 +3556,7 @@ Operand value, boolean signExtend) {
       EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEBX(), TypeReference.Int),
           new RegisterOperand(newValue_lval, TypeReference.Int)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(newValue.isLongConstant());
+      if (VM.VerifyAssertions) opt_assert(newValue.isLongConstant());
       LongConstantOperand val = newValue.asLongConstant();
       EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int),
           IC(val.upper32())));
@@ -3606,7 +3607,7 @@ Operand value, boolean signExtend) {
    */
   void OSR(BURS burs, Instruction s) {
     if (VM.VerifyAssertions) {
-      VM._assert(OsrPoint.conforms(s));
+      opt_assert(OsrPoint.conforms(s));
     }
 
     // 1. how many params
@@ -3628,7 +3629,7 @@ Operand value, boolean signExtend) {
         VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
         VM.sysWriteln("  position :" + s.bcIndex + "@" + s.position.method);
       }
-      VM._assert(typeInfo != null);
+      opt_assert(typeInfo != null);
     }
 
     Operand[] params = new Operand[numparam];
@@ -3678,7 +3679,7 @@ Operand value, boolean signExtend) {
     }
 
     if (VM.VerifyAssertions) {
-      VM._assert(pidx == (numparam + numlong));
+      opt_assert(pidx == (numparam + numlong));
     }
 
     /*

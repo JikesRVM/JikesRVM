@@ -45,13 +45,16 @@ public class JikesRVMAssertionStyle extends Check {
 
   private static final String ASSERT_IS_FORBIDDEN_MSG = "The assert keyword must not be used.";
   private static final String IMPROPERLY_GUARDED_ASSERTION_MSG = "All " +
-    "uses of VM._assert must be guarded with one of the following on the left " +
+    "uses of VM._assert or opt_assert must be guarded with one of the following on the left " +
     "side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, " +
     "IR.SANITY_CHECK or IR.PARANOID.";
   private static final String USE_VM_NOT_REACHED_MSG = "Use VM.NOT_REACHED " +
     "instead of false when writing assertions that fail when executed.";
   private static final String STRING_CONCATENATION_FORBIDDEN_MSG = "Message for assert must be " +
     "a string literal or a variable: String concatenation is not allowed in asserts.";
+  private static final String MUST_USE_STATIC_IMPORT_FOR_OPT_ASSERT_MSG = "The method " +
+    "opt_assert must always be used with static imports (i.e. opt_assert(..) instead of " +
+    "OptimizingCompilerException.opt_assert(..)";
 
   private static final String IR = "IR";
   private static final String VM = "VM";
@@ -60,8 +63,10 @@ public class JikesRVMAssertionStyle extends Check {
   private static final String EXTREME_ASSERTIONS = "ExtremeAssertions";
   private static final String PARANOID = "PARANOID";
   private static final String SANITY_CHECK = "SANITY_CHECK";
+  private static final String OCE = "OptimizingCompilerException";
 
   private static final String ASSERT_METHOD = "_assert";
+  private static final String OPT_ASSERT_METHOD = "opt_assert";
 
   private static final boolean DEBUG = false;
 
@@ -181,46 +186,65 @@ public class JikesRVMAssertionStyle extends Check {
 
   private void visitMethodCall(DetailAST ast) {
     DetailAST firstChild = ast.getFirstChild();
-    if (firstChild.getType() != DOT) {
-      return;
+    int firstChildType = firstChild.getType();
+
+    // Examine method calls of the form methodName(args);
+    boolean calleeIsOptAssert = false;
+    if (firstChildType == IDENT) {
+      String calleeName = firstChild.getText();
+      calleeIsOptAssert = calleeName.equals(OPT_ASSERT_METHOD);
     }
 
-    DetailAST callerNameAST = firstChild.getFirstChild();
-    if (callerNameAST.getType() != IDENT) {
-      return;
+    // Examine method calls of the form Class.methodName(args);
+    boolean callerIsVM = false;
+    boolean callerIsOCE = false;
+    boolean calleeIsAssert = false;
+    if (firstChildType == DOT) {
+      DetailAST callerNameAST = firstChild.getFirstChild();
+      String callerName = callerNameAST.getText();
+      if (callerNameAST.getType() != IDENT) {
+        return;
+      }
+      DetailAST calleeNameAST = callerNameAST.getNextSibling();
+      if (calleeNameAST.getType() != IDENT) {
+        return;
+      }
+      String calleeName = calleeNameAST.getText();
+      callerIsVM = callerName != null && callerName.equals(VM);
+      callerIsOCE = callerName != null && callerName.equals(OCE);
+      calleeIsAssert = calleeName.equals(ASSERT_METHOD);
+      calleeIsOptAssert = calleeName.equals(OPT_ASSERT_METHOD);
     }
 
-    String callerName = callerNameAST.getText();
-    boolean callerIsVM = callerName.equals(VM);
-
-    DetailAST calleeNameAST = callerNameAST.getNextSibling();
-    if (calleeNameAST.getType() != IDENT) {
-      return;
+    if (callerIsOCE && calleeIsOptAssert) {
+      log(ast.getLineNo(), ast.getColumnNo(), MUST_USE_STATIC_IMPORT_FOR_OPT_ASSERT_MSG);
     }
-    String calleeName = calleeNameAST.getText();
-    boolean calleeIsAssert = calleeName.equals(ASSERT_METHOD);
 
+    // Complain about improperly guarded asserts
     if (calleeIsAssert && callerIsVM && !assertionGuardsPresent.contains(Boolean.TRUE)) {
+      log(ast.getLineNo(), ast.getColumnNo(), IMPROPERLY_GUARDED_ASSERTION_MSG);
+    } else if (calleeIsOptAssert && !assertionGuardsPresent.contains(Boolean.TRUE)) {
       log(ast.getLineNo(), ast.getColumnNo(), IMPROPERLY_GUARDED_ASSERTION_MSG);
     }
 
-    if (callerIsVM && calleeIsAssert) {
+    // Check for forbidden string concatenation and require use of VM.NOT_REACHED instead of false
+    if (callerIsVM && calleeIsAssert || calleeIsOptAssert) {
       DetailAST parameterList = firstChild.getNextSibling();
-      DetailAST firstArgumentToVMAssert = parameterList.findFirstToken(EXPR);
-      if (firstArgumentToVMAssert == null) {
+      DetailAST firstArgumentToAssert = parameterList.findFirstToken(EXPR);
+      if (firstArgumentToAssert == null) {
         log(ast.getLineNo(), ast.getColumnNo(), "null!");
         return;
       }
-      DetailAST literalFalse = firstArgumentToVMAssert.findFirstToken(LITERAL_FALSE);
+      DetailAST literalFalse = firstArgumentToAssert.findFirstToken(LITERAL_FALSE);
       if (literalFalse != null) {
         log(ast.getLineNo(), ast.getColumnNo(), USE_VM_NOT_REACHED_MSG);
       }
 
-      DetailAST secondArgumentToVMAssert = getASTForNextParameter(firstArgumentToVMAssert);
-      checkForForbiddenStringConcatenation(ast, secondArgumentToVMAssert);
-      if (secondArgumentToVMAssert != null) {
-        DetailAST thirdArgumentToVMAssert = getASTForNextParameter(secondArgumentToVMAssert);
-        checkForForbiddenStringConcatenation(ast, thirdArgumentToVMAssert);
+      DetailAST secondArgumentToAssert = getASTForNextParameter(firstArgumentToAssert);
+      checkForForbiddenStringConcatenation(ast, secondArgumentToAssert);
+      if (secondArgumentToAssert != null) {
+        DetailAST thirdArgumentToAssert = getASTForNextParameter(secondArgumentToAssert);
+        checkForForbiddenStringConcatenation(ast, thirdArgumentToAssert);
       }
     }
   }
