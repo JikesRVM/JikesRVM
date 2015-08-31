@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.*;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
@@ -375,7 +376,7 @@ public final class BC2IR {
   //
   public Instruction generateAnewarray(TypeReference arrayTypeRef, TypeReference elementTypeRef) {
     if (arrayTypeRef == null) {
-      if (VM.VerifyAssertions) VM._assert(elementTypeRef != null);
+      if (VM.VerifyAssertions) opt_assert(elementTypeRef != null);
       arrayTypeRef = elementTypeRef.getArrayTypeForElementType();
     }
     if (elementTypeRef == null) {
@@ -632,7 +633,7 @@ public final class BC2IR {
             break;
           }
           TypeReference type = getRefTypeOf(ref).getArrayElementType();
-          if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
+          if (VM.VerifyAssertions) opt_assert(type.isReferenceType());
           s = _aloadHelper(REF_ALOAD, ref, index, type);
         }
         break;
@@ -646,7 +647,7 @@ public final class BC2IR {
           }
           TypeReference type = getArrayTypeOf(ref);
           if (VM.VerifyAssertions) {
-            VM._assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
+            opt_assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
           }
           if (type == TypeReference.ByteArray) {
             s = _aloadHelper(BYTE_ALOAD, ref, index, TypeReference.Byte);
@@ -832,7 +833,7 @@ public final class BC2IR {
             break;
           }
           TypeReference type = getRefTypeOf(ref).getArrayElementType();
-          if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
+          if (VM.VerifyAssertions) opt_assert(type.isReferenceType());
           if (do_CheckStore(ref, val, type)) {
             break;
           }
@@ -850,7 +851,7 @@ public final class BC2IR {
           }
           TypeReference type = getArrayTypeOf(ref);
           if (VM.VerifyAssertions) {
-            VM._assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
+            opt_assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
           }
           if (type == TypeReference.ByteArray) {
             type = TypeReference.Byte;
@@ -1617,7 +1618,7 @@ public final class BC2IR {
                 }
               }
             } else if (field.isRuntimeFinal()) {
-              if (VM.VerifyAssertions) VM._assert(fieldType.isBooleanType());
+              if (VM.VerifyAssertions) opt_assert(fieldType.isBooleanType());
               boolean rhsBool = field.getRuntimeFinalValue();
               push(new IntConstantOperand(rhsBool ? 1 : 0));
               break;
@@ -1853,7 +1854,7 @@ public final class BC2IR {
               Call.setAddress(s, offsetrop);
               rectifyStateWithErrorHandler();
             } else {
-              if (VM.VerifyAssertions) VM._assert(target != null);
+              if (VM.VerifyAssertions) opt_assert(target != null);
               Call.setAddress(s, new AddressConstantOperand(target.getOffset()));
             }
 
@@ -1895,7 +1896,7 @@ public final class BC2IR {
                 }
               } else {
                 // Array: will always be calling the method defined in java.lang.Object
-                if (VM.VerifyAssertions) VM._assert(target != null, "Huh?  Target method must already be resolved if receiver is array");
+                if (VM.VerifyAssertions) opt_assert(target != null, "Huh?  Target method must already be resolved if receiver is array");
                 methOp.refine(target, true);
               }
             }
@@ -2205,7 +2206,7 @@ public final class BC2IR {
             break;
           }
           if (VM.VerifyAssertions) {
-            VM._assert(getArrayTypeOf(op1).isArrayType());
+            opt_assert(getArrayTypeOf(op1).isArrayType());
           }
           RegisterOperand t = gc.getTemps().makeTempInt();
           s = GuardedUnary.create(ARRAYLENGTH, t, op1, getCurrentGuard());
@@ -2250,7 +2251,7 @@ public final class BC2IR {
             if (DBG_CF) db("skipped gen of checkcast to word type " + typeRef);
             break;
           }
-          if (VM.VerifyAssertions) VM._assert(op2.isRef());
+          if (VM.VerifyAssertions) opt_assert(op2.isRef());
           if (CF_CHECKCAST && !classLoading) {
             if (op2.isDefinitelyNull()) {
               push(op2);
@@ -2310,7 +2311,7 @@ public final class BC2IR {
           TypeReference typeRef = bcodes.getTypeReference();
           boolean classLoading = couldCauseClassLoading(typeRef);
           Operand op2 = pop();
-          if (VM.VerifyAssertions) VM._assert(op2.isRef());
+          if (VM.VerifyAssertions) opt_assert(op2.isRef());
           if (CF_INSTANCEOF && !classLoading) {
             if (op2.isDefinitelyNull()) {
               push(new IntConstantOperand(0));
@@ -2357,7 +2358,7 @@ public final class BC2IR {
           if (do_NullCheck(op0)) {
             break;
           }
-          if (VM.VerifyAssertions) VM._assert(op0.isRef());
+          if (VM.VerifyAssertions) opt_assert(op0.isRef());
           s = MonitorOp.create(MONITORENTER, op0, getCurrentGuard());
         }
         break;
@@ -2576,7 +2577,7 @@ public final class BC2IR {
               if (targetidx == GETREFAT) {
                 Object realObj = ObjectHolder.getRefAt(param1, param2);
 
-                if (VM.VerifyAssertions) VM._assert(realObj != null);
+                if (VM.VerifyAssertions) opt_assert(realObj != null);
 
                 TypeReference klass = Magic.getObjectType(realObj).getTypeRef();
 
@@ -2643,7 +2644,7 @@ public final class BC2IR {
       }
 
       // check runoff
-      if (VM.VerifyAssertions) VM._assert(bcodes.index() <= runoff);
+      if (VM.VerifyAssertions) opt_assert(bcodes.index() <= runoff);
       if (!endOfBasicBlock && bcodes.index() == runoff) {
         if (DBG_BB || DBG_SELECTED) {
           db("runoff occurred! current basic block: " + currentBBLE + ", runoff = " + runoff);
@@ -2662,7 +2663,7 @@ public final class BC2IR {
           return;
         }
         if (fallThrough) {
-          if (VM.VerifyAssertions) VM._assert(bcodes.index() < bcodes.length());
+          if (VM.VerifyAssertions) opt_assert(bcodes.index() < bcodes.length());
           // Get/Create fallthrough BBLE and record it as
           // currentBBLE's fallThrough.
           currentBBLE.fallThrough = getOrCreateBlock(bcodes.index());
@@ -2870,7 +2871,7 @@ public final class BC2IR {
       } else {
         Operand meet = Operand.meet(gc.getResult(), val, gc.getResultReg());
         // Return value can't be forced to bottom...violation of Java spec.
-        if (VM.VerifyAssertions) VM._assert(meet != null);
+        if (VM.VerifyAssertions) opt_assert(meet != null);
         gc.setResult(meet);
       }
     }
@@ -2924,7 +2925,7 @@ public final class BC2IR {
    * @return a new type operand
    */
   private TypeOperand makeTypeOperand(TypeReference type) {
-    if (VM.VerifyAssertions) VM._assert(type != null);
+    if (VM.VerifyAssertions) opt_assert(type != null);
     return new TypeOperand(type);
   }
 
@@ -2935,7 +2936,7 @@ public final class BC2IR {
    * @return a new type operand
    */
   private TypeOperand makeTypeOperand(RVMType type) {
-    if (VM.VerifyAssertions) VM._assert(type != null);
+    if (VM.VerifyAssertions) opt_assert(type != null);
     return new TypeOperand(type);
   }
 
@@ -2974,7 +2975,7 @@ public final class BC2IR {
       default:
         if (VM.VerifyAssertions) {
           String msg = "invalid literal type: 0x" + Integer.toHexString(desc);
-          VM._assert(VM.NOT_REACHED, msg);
+          opt_assert(VM.NOT_REACHED, msg);
         }
         return null;
     }
@@ -2990,7 +2991,7 @@ public final class BC2IR {
    */
   private Instruction do_iload(int index) {
     Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
+    if (VM.VerifyAssertions) opt_assert(r.isIntLike());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -3008,7 +3009,7 @@ public final class BC2IR {
    */
   private Instruction do_fload(int index) {
     Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM._assert(r.isFloat());
+    if (VM.VerifyAssertions) opt_assert(r.isFloat());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -3028,7 +3029,7 @@ public final class BC2IR {
     Operand r = getLocal(index);
     if (VM.VerifyAssertions && !(r.isRef() || r.isAddress())) {
       String msg = r + " not ref, but a " + r.getType();
-      VM._assert(VM.NOT_REACHED, msg);
+      opt_assert(VM.NOT_REACHED, msg);
     }
     if (LOCALS_ON_STACK) {
       push(r);
@@ -3047,7 +3048,7 @@ public final class BC2IR {
    */
   private Instruction do_lload(int index) {
     Operand r = getLocalDual(index);
-    if (VM.VerifyAssertions) VM._assert(r.isLong());
+    if (VM.VerifyAssertions) opt_assert(r.isLong());
     if (LOCALS_ON_STACK) {
       pushDual(r);
       return null;
@@ -3065,7 +3066,7 @@ public final class BC2IR {
    */
   private Instruction do_dload(int index) {
     Operand r = getLocalDual(index);
-    if (VM.VerifyAssertions) VM._assert(r.isDouble());
+    if (VM.VerifyAssertions) opt_assert(r.isDouble());
     if (LOCALS_ON_STACK) {
       pushDual(r);
       return null;
@@ -3084,7 +3085,7 @@ public final class BC2IR {
    */
   private Instruction do_iinc(int index, int amount) {
     Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
+    if (VM.VerifyAssertions) opt_assert(r.isIntLike());
     if (LOCALS_ON_STACK) {
       replaceLocalsOnStack(index, TypeReference.Int);
     }
@@ -3233,7 +3234,7 @@ public final class BC2IR {
    * @param r operand to push
    */
   public void push(Operand r) {
-    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(r.instruction == null);
     stack.push(r);
   }
 
@@ -3243,7 +3244,7 @@ public final class BC2IR {
    * @param r operand to push
    */
   void pushDual(Operand r) {
-    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(r.instruction == null);
     stack.push(DUMMY);
     stack.push(r);
   }
@@ -3255,7 +3256,7 @@ public final class BC2IR {
    * @param type data type of operand
    */
   void push(Operand r, TypeReference type) {
-    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(r.instruction == null);
     if (type.isVoidType()) {
       return;
     }
@@ -3273,7 +3274,7 @@ public final class BC2IR {
    * @return always {@code null}
    */
   private Instruction pushCopy(Operand op1) {
-    if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(op1.instruction == null);
     if (op1 instanceof RegisterOperand) {
       RegisterOperand reg = (RegisterOperand) op1;
       if (!reg.getRegister().isLocal()) {
@@ -3301,7 +3302,7 @@ public final class BC2IR {
    */
   public Operand popInt() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
+    if (VM.VerifyAssertions) opt_assert(r.isIntLike());
     return r;
   }
 
@@ -3311,7 +3312,7 @@ public final class BC2IR {
    */
   Operand popFloat() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isFloat());
+    if (VM.VerifyAssertions) opt_assert(r.isFloat());
     return r;
   }
 
@@ -3321,7 +3322,7 @@ public final class BC2IR {
    */
   public Operand popRef() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isRef() || r.isAddress());
+    if (VM.VerifyAssertions) opt_assert(r.isRef() || r.isAddress());
     return r;
   }
 
@@ -3331,7 +3332,7 @@ public final class BC2IR {
    */
   public Operand popAddress() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isAddress());
+    if (VM.VerifyAssertions) opt_assert(r.isAddress());
     return r;
   }
 
@@ -3341,7 +3342,7 @@ public final class BC2IR {
    */
   Operand popLong() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isLong());
+    if (VM.VerifyAssertions) opt_assert(r.isLong());
     popDummy();
     return r;
   }
@@ -3352,7 +3353,7 @@ public final class BC2IR {
    */
   Operand popDouble() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isDouble());
+    if (VM.VerifyAssertions) opt_assert(r.isDouble());
     popDummy();
     return r;
   }
@@ -3362,7 +3363,7 @@ public final class BC2IR {
    */
   void popDummy() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r == DUMMY);
+    if (VM.VerifyAssertions) opt_assert(r == DUMMY);
   }
 
   /**
@@ -3377,7 +3378,7 @@ public final class BC2IR {
     // if (VM.VerifyAssertions) assertIsType(r, type);
     // Avoid upcasts of magic types to regular j.l.Objects
 //    if (VM.VerifyAssertions && (type == TypeReference.JavaLangObject))
-//      VM._assert(!r.getType().isMagicType());
+//      opt_assert(!r.getType().isMagicType());
     if (VM.VerifyAssertions) {
       if ((type == TypeReference.JavaLangObject) &&
           (r.getType().isMagicType()) &&
@@ -3464,7 +3465,7 @@ public final class BC2IR {
    * @return operand's data type
    */
   public TypeReference getArrayTypeOf(Operand op) {
-    if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
+    if (VM.VerifyAssertions) opt_assert(!op.isDefinitelyNull());
     return op.getType();
   }
 
@@ -3476,7 +3477,7 @@ public final class BC2IR {
    * @return operand's data type
    */
   private TypeReference getRefTypeOf(Operand op) {
-    if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
+    if (VM.VerifyAssertions) opt_assert(!op.isDefinitelyNull());
     return op.getType();
   }
 
@@ -3491,14 +3492,14 @@ public final class BC2IR {
   public void assertIsType(Operand op, TypeReference type) {
     if (VM.VerifyAssertions) {
       if (op.isDefinitelyNull()) {
-        VM._assert(type.isReferenceType());
+        opt_assert(type.isReferenceType());
       } else if (op.isIntLike()) {
-        VM._assert(type.isIntLikeType());
+        opt_assert(type.isIntLikeType());
       } else {
         TypeReference type1 = op.getType();
         if (ClassLoaderProxy.includesType(type, type1) == NO) {
           String msg = op + ": " + type + " is not assignable with " + type1;
-          VM._assert(VM.NOT_REACHED, msg);
+          opt_assert(VM.NOT_REACHED, msg);
         }
       }
     }
@@ -3513,9 +3514,9 @@ public final class BC2IR {
   private void assertIsAssignable(TypeReference parentType, TypeReference childType) {
     if (VM.VerifyAssertions) {
       if (childType.isUnboxedType()) {
-        //TODO: This should be VM._assert(gc.method.getReturnType() == retType.isUnboxedType());
+        //TODO: This should be opt_assert(gc.method.getReturnType() == retType.isUnboxedType());
         // but all word types are converted into addresses and thus the assertion fails. This should be fixed.
-        VM._assert(parentType.isUnboxedType());
+        opt_assert(parentType.isUnboxedType());
       } else {
         // fudge to deal with conservative approximation
         // in ClassLoaderProxy.findCommonSuperclass
@@ -3527,7 +3528,7 @@ public final class BC2IR {
               VM.sysWriteln(callHierarchy.nextElement().toString());
             }
             String msg = parentType + " not assignable with " + childType;
-            VM._assert(VM.NOT_REACHED, msg);
+            opt_assert(VM.NOT_REACHED, msg);
           }
         }
       }
@@ -3565,7 +3566,7 @@ public final class BC2IR {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.getGuard() == null) ||
+        opt_assert((rop.getGuard() == null) ||
                    (rop.getGuard() instanceof RegisterOperand) ||
                    (rop.getGuard() instanceof TrueGuardOperand));
       }
@@ -3612,7 +3613,7 @@ public final class BC2IR {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.getGuard() == null) ||
+        opt_assert((rop.getGuard() == null) ||
                    (rop.getGuard() instanceof RegisterOperand) ||
                    (rop.getGuard() instanceof TrueGuardOperand));
       }
@@ -3623,7 +3624,7 @@ public final class BC2IR {
       }
     }
     if (VM.VerifyAssertions) {
-      VM._assert(op.isConstant());
+      opt_assert(op.isConstant());
     }
     return new TrueGuardOperand();
   }
@@ -3635,7 +3636,7 @@ public final class BC2IR {
   private void setCurrentGuard(Operand guard) {
     if (currentGuard instanceof RegisterOperand) {
       if (VM.VerifyAssertions) {
-        VM._assert(!(guard instanceof TrueGuardOperand));
+        opt_assert(!(guard instanceof TrueGuardOperand));
       }
       // shouldn't happen given current generation --dave.
       RegisterOperand combined = gc.getTemps().makeTempValidation();
@@ -4270,7 +4271,7 @@ public final class BC2IR {
 
   // helper function for ifnull/ifnonnull bytecodes
   private Instruction _refIfNullHelper(ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
+    if (VM.VerifyAssertions) opt_assert(cond.isEQUAL() || cond.isNOT_EQUAL());
     int offset = bcodes.getBranchOffset();
     Operand op0 = popRef();
     if (offset == 3) {
@@ -4367,7 +4368,7 @@ public final class BC2IR {
 
   // helper function for if_acmp?? bytecodes
   private Instruction _refIfCmpHelper(ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
+    if (VM.VerifyAssertions) opt_assert(cond.isEQUAL() || cond.isNOT_EQUAL());
     int offset = bcodes.getBranchOffset();
     Operand op1 = popRef();
     Operand op0 = popRef();
@@ -4681,7 +4682,7 @@ public final class BC2IR {
 
     // verify it
     if (this.osrGuardedInline) {
-      if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
+      if (VM.VerifyAssertions) opt_assert(lastOsrBarrier != null);
       gc.saveOSRBarrierForInst(lastOsrBarrier, callSite);
     }
 
@@ -4867,7 +4868,7 @@ public final class BC2IR {
         op = _prepareDoubleConstant(op);
       }
 
-      if (VM.VerifyAssertions) VM._assert(op != null);
+      if (VM.VerifyAssertions) opt_assert(op != null);
 
       OsrBarrier.setElement(barrier, i, op);
     }
@@ -5004,7 +5005,7 @@ public final class BC2IR {
    * @return a copy of the local variable
    */
   private Operand getLocalDual(int i) {
-    if (VM.VerifyAssertions) VM._assert(_localState[i + 1] == DUMMY);
+    if (VM.VerifyAssertions) opt_assert(_localState[i + 1] == DUMMY);
     Operand local = _localState[i];
     if (DBG_LOCAL || DBG_SELECTED) db("getting local " + i + " for use: " + local);
     return local.copy();
