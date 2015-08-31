@@ -81,6 +81,7 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
@@ -95,7 +96,6 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Prepare;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.Unary;
-import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
@@ -829,204 +829,136 @@ public class GenerateMagic {
   static boolean generatePolymorphicMagic(BC2IR bc2ir, GenerationContext gc, MethodReference meth,
                                           Atom methodName) {
     TypeReference resultType = meth.getReturnType();
+    Instruction s = null;
     if (methodName == MagicNames.wordFromInt || methodName == MagicNames.wordFromIntSignExtend) {
-      RegisterOperand reg = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Unary.create(INT_2ADDRSigExt, reg, bc2ir.popInt()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._unaryHelper(INT_2ADDRSigExt, bc2ir.popInt(), resultType);
     } else if (methodName == MagicNames.wordFromIntZeroExtend) {
-      RegisterOperand reg = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Unary.create(INT_2ADDRZerExt, reg, bc2ir.popInt()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._unaryHelper(INT_2ADDRZerExt, bc2ir.popInt(), resultType);
     } else if (methodName == MagicNames.wordFromLong) {
-      RegisterOperand reg = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Unary.create(LONG_2ADDR, reg, bc2ir.popLong()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._unaryHelper(LONG_2ADDR, bc2ir.popLong(), resultType);
     } else if (methodName == MagicNames.wordToInt) {
-      RegisterOperand reg = gc.getTemps().makeTempInt();
-      bc2ir.appendInstruction(Unary.create(ADDR_2INT, reg, bc2ir.popAddress()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._unaryHelper(ADDR_2INT, bc2ir.popAddress(), resultType);
     } else if (methodName == MagicNames.wordToLong) {
-      RegisterOperand lreg = gc.getTemps().makeTempLong();
-      bc2ir.appendInstruction(Unary.create(ADDR_2LONG, lreg, bc2ir.popAddress()));
-      bc2ir.pushDual(lreg.copyD2U());
+      s = bc2ir._unaryDualHelper(ADDR_2LONG, bc2ir.popAddress(), resultType);
     } else if (methodName == MagicNames.wordToWord) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.Word);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.popAddress(), resultType);
     } else if (methodName == MagicNames.wordToAddress) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.Address);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.popRef(), resultType);
     } else if (methodName == MagicNames.wordToObject) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.JavaLangObject);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.popRef(), resultType);
     } else if (methodName == MagicNames.wordToObjectReference || methodName == MagicNames.wordFromObject) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.ObjectReference);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.popRef(), resultType);
     } else if (methodName == MagicNames.wordToOffset) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.Offset);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.popAddress(), resultType);
     } else if (methodName == MagicNames.wordToExtent) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.Extent);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.popAddress(), resultType);
     } else if (methodName == MagicNames.codeArrayAsObject) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.JavaLangObject);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(TypeReference.CodeArray)));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.pop(TypeReference.CodeArray), resultType);
     } else if (methodName == MagicNames.tibAsObject) {
-      RegisterOperand reg = gc.getTemps().makeTemp(TypeReference.JavaLangObject);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(TypeReference.TIB)));
-      bc2ir.push(reg.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, bc2ir.pop(TypeReference.TIB), resultType);
     } else if (methodName == MagicNames.wordPlus) {
       Operand o2 = bc2ir.pop();
-      Operand o1 = bc2ir.pop();
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
       if (VM.BuildFor64Addr && o2.isInt()) {
-        RegisterOperand op1 = gc.getTemps().makeTemp(resultType);
-        bc2ir.appendInstruction(Unary.create(INT_2ADDRSigExt, op1, o2));
-        bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, op1.copyD2U()));
-      } else {
-        bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, o2));
+        s = bc2ir._unaryHelper(INT_2ADDRSigExt, o2, resultType);
+        if (s != null) bc2ir.appendInstruction(s);
+        o2 = bc2ir.pop();
       }
-      bc2ir.push(op0.copyD2U());
+      Operand o1 = bc2ir.pop();
+      s = bc2ir._binaryHelper(REF_ADD, o1, o2, resultType);
     } else if (methodName == MagicNames.wordMinus) {
       Operand o2 = bc2ir.pop();
-      Operand o1 = bc2ir.pop();
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
       if (VM.BuildFor64Addr && o2.isInt()) {
-        RegisterOperand op1 = gc.getTemps().makeTemp(resultType);
-        bc2ir.appendInstruction(Unary.create(INT_2ADDRSigExt, op1, o2));
-        bc2ir.appendInstruction(Binary.create(REF_SUB, op0, o1, op1));
-      } else {
-        bc2ir.appendInstruction(Binary.create(REF_SUB, op0, o1, o2));
+        s = bc2ir._unaryHelper(INT_2ADDRSigExt, o2, resultType);
+        if (s != null) bc2ir.appendInstruction(s);
+        o2 = bc2ir.pop();
       }
-      bc2ir.push(op0.copyD2U());
+      Operand o1 = bc2ir.pop();
+      s = bc2ir._binaryHelper(REF_SUB, o1, o2, resultType);
     } else if (methodName == MagicNames.wordDiff) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(REF_SUB, op0, o1, o2));
-      bc2ir.push(op0.copyD2U());
+      s = bc2ir._binaryHelper(REF_SUB, o1, o2, resultType);
     } else if (methodName == MagicNames.wordAnd) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(REF_AND, op0, o1, o2));
-      bc2ir.push(op0.copyD2U());
+      s = bc2ir._binaryHelper(REF_AND, o1, o2, resultType);
     } else if (methodName == MagicNames.wordOr) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(REF_OR, op0, o1, o2));
-      bc2ir.push(op0.copyD2U());
+      s = bc2ir._binaryHelper(REF_OR, o1, o2, resultType);
     } else if (methodName == MagicNames.wordXor) {
       Operand o2 = bc2ir.pop();
       Operand o1 = bc2ir.pop();
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(REF_XOR, op0, o1, o2));
-      bc2ir.push(op0.copyD2U());
+      s = bc2ir._binaryHelper(REF_XOR, o1, o2, resultType);
     } else if (methodName == MagicNames.wordNot) {
       Operand o1 = bc2ir.pop();
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Unary.create(REF_NOT, op0, o1));
-      bc2ir.push(op0.copyD2U());
+      s = bc2ir._unaryHelper(REF_NOT, o1, resultType);
     } else if (methodName == MagicNames.wordZero || methodName == MagicNames.wordNull) {
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.zero())));
-      bc2ir.push(op0.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, AC(Address.zero()), resultType);
     } else if (methodName == MagicNames.wordOne) {
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.fromIntZeroExtend(1))));
-      bc2ir.push(op0.copyD2U());
+      s = bc2ir._moveHelper(REF_MOVE, AC(Address.fromIntZeroExtend(1)), resultType);
     } else if (methodName == MagicNames.wordMax) {
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.max())));
-      bc2ir.push(op0.copyD2U());
-    } else if (methodName == MagicNames.wordIsNull) {
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.zero())));
-      ConditionOperand cond = ConditionOperand.EQUAL();
-      cmpHelper(bc2ir, gc, cond, op0.copyRO());
-    } else if (methodName == MagicNames.wordIsZero) {
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.zero())));
-      ConditionOperand cond = ConditionOperand.EQUAL();
-      cmpHelper(bc2ir, gc, cond, op0.copyRO());
+      s = bc2ir._moveHelper(REF_MOVE, AC(Address.max()), resultType);
+    } else if (methodName == MagicNames.wordIsNull || methodName == MagicNames.wordIsZero) {
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.EQUAL(), AC(Address.zero()));
     } else if (methodName == MagicNames.wordIsMax) {
-      RegisterOperand op0 = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new AddressConstantOperand(Address.max())));
-      ConditionOperand cond = ConditionOperand.EQUAL();
-      cmpHelper(bc2ir, gc, cond, op0.copyRO());
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.EQUAL(), AC(Address.max()));
     } else if (methodName == MagicNames.wordEQ) {
-      ConditionOperand cond = ConditionOperand.EQUAL();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.EQUAL(), null);
     } else if (methodName == MagicNames.wordNE) {
-      ConditionOperand cond = ConditionOperand.NOT_EQUAL();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.NOT_EQUAL(), null);
     } else if (methodName == MagicNames.wordLT) {
-      ConditionOperand cond = ConditionOperand.LOWER();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.LOWER(), null);
     } else if (methodName == MagicNames.wordLE) {
-      ConditionOperand cond = ConditionOperand.LOWER_EQUAL();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.LOWER_EQUAL(), null);
     } else if (methodName == MagicNames.wordGT) {
-      ConditionOperand cond = ConditionOperand.HIGHER();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.HIGHER(), null);
     } else if (methodName == MagicNames.wordGE) {
-      ConditionOperand cond = ConditionOperand.HIGHER_EQUAL();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.HIGHER_EQUAL(), null);
     } else if (methodName == MagicNames.wordsLT) {
-      ConditionOperand cond = ConditionOperand.LESS();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.LESS(), null);
     } else if (methodName == MagicNames.wordsLE) {
-      ConditionOperand cond = ConditionOperand.LESS_EQUAL();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.LESS_EQUAL(), null);
     } else if (methodName == MagicNames.wordsGT) {
-      ConditionOperand cond = ConditionOperand.GREATER();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.GREATER(), null);
     } else if (methodName == MagicNames.wordsGE) {
-      ConditionOperand cond = ConditionOperand.GREATER_EQUAL();
-      cmpHelper(bc2ir, gc, cond, null);
+      s = _cmpHelper(bc2ir, gc, ConditionOperand.GREATER_EQUAL(), null);
     } else if (methodName == MagicNames.wordLsh) {
       Operand op2 = bc2ir.popInt();
       Operand op1 = bc2ir.popAddress();
-      RegisterOperand res = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(REF_SHL, res, op1, op2));
-      bc2ir.push(res.copyD2U());
+      s = bc2ir._binaryHelper(REF_SHL, op1, op2, resultType);
     } else if (methodName == MagicNames.wordRshl) {
       Operand op2 = bc2ir.popInt();
       Operand op1 = bc2ir.popAddress();
-      RegisterOperand res = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(REF_USHR, res, op1, op2));
-      bc2ir.push(res.copyD2U());
+      s = bc2ir._binaryHelper(REF_USHR, op1, op2, resultType);
     } else if (methodName == MagicNames.wordRsha) {
       Operand op2 = bc2ir.popInt();
       Operand op1 = bc2ir.popAddress();
-      RegisterOperand res = gc.getTemps().makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(REF_SHR, res, op1, op2));
-      bc2ir.push(res.copyD2U());
+      s = bc2ir._binaryHelper(REF_SHR, op1, op2, resultType);
     } else {
       return false;
+    }
+    if (s != null) {
+      bc2ir.appendInstruction(s);
     }
     return true;
   }
 
-  private static void cmpHelper(BC2IR bc2ir, GenerationContext gc, ConditionOperand cond,
+  private static Instruction _cmpHelper(BC2IR bc2ir, GenerationContext gc, ConditionOperand cond,
                                 Operand given_o2) {
     Operand o2 = given_o2 == null ? bc2ir.pop() : given_o2;
     Operand o1 = bc2ir.pop();
     RegisterOperand res = gc.getTemps().makeTempInt();
-    bc2ir.appendInstruction(BooleanCmp.create(BOOLEAN_CMP_ADDR,
-                                              res.copyRO(),
-                                              o1,
-                                              o2,
-                                              cond,
-                                              new BranchProfileOperand()));
-    bc2ir.push(res.copyD2U());
+    Instruction s = BooleanCmp.create(BOOLEAN_CMP_ADDR, res, o1, o2, cond, new BranchProfileOperand());
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
+    if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
+      gc.getTemps().release(res);
+      bc2ir.push(Move.getClearVal(s));
+      return null;
+    } else {
+      bc2ir.push(res.copyD2U());
+      return s;
+    }
   }
 
   private static LocationOperand mapToMetadata(Operand metadata) {

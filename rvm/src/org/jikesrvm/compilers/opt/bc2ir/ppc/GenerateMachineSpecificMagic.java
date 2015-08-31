@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir.ppc;
 
+import static org.jikesrvm.compilers.opt.ir.IRTools.offsetOperand;
+import static org.jikesrvm.compilers.opt.ir.IRTools.AC;
 import static org.jikesrvm.compilers.opt.ir.Operators.DCBST;
 import static org.jikesrvm.compilers.opt.ir.Operators.DCBT;
 import static org.jikesrvm.compilers.opt.ir.Operators.DCBTST;
@@ -32,13 +34,11 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
-import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Store;
-import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.ppc.StackframeLayoutConstants;
@@ -79,7 +79,7 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
       bc2ir.appendInstruction(Load.create(REF_LOAD,
                                           val,
                                           fp,
-                                          new AddressConstantOperand(Offset.fromIntSignExtend(
+                                          AC(Offset.fromIntSignExtend(
                                               STACKFRAME_FRAME_POINTER_OFFSET)),
                                           null));
       bc2ir.push(val.copyD2U());
@@ -89,7 +89,7 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
       bc2ir.appendInstruction(Store.create(REF_STORE,
                                            val,
                                            fp,
-                                           new AddressConstantOperand(Offset.fromIntSignExtend(
+                                           AC(Offset.fromIntSignExtend(
                                                STACKFRAME_FRAME_POINTER_OFFSET)),
                                            null));
     } else if (methodName == MagicNames.getCompiledMethodID) {
@@ -98,7 +98,7 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
       bc2ir.appendInstruction(Load.create(INT_LOAD,
                                           val,
                                           fp,
-                                          new AddressConstantOperand(Offset.fromIntSignExtend(
+                                          AC(Offset.fromIntSignExtend(
                                               STACKFRAME_METHOD_ID_OFFSET)),
                                           null));
       bc2ir.push(val.copyD2U());
@@ -108,7 +108,7 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
       bc2ir.appendInstruction(Store.create(INT_STORE,
                                            val,
                                            fp,
-                                           new AddressConstantOperand(Offset.fromIntSignExtend(
+                                           AC(Offset.fromIntSignExtend(
                                                STACKFRAME_METHOD_ID_OFFSET)),
                                            null));
     } else if (methodName == MagicNames.getNextInstructionAddress) {
@@ -117,25 +117,21 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
       bc2ir.appendInstruction(Load.create(REF_LOAD,
                                           val,
                                           fp,
-                                          new AddressConstantOperand(Offset.fromIntSignExtend(
+                                          AC(Offset.fromIntSignExtend(
                                               STACKFRAME_RETURN_ADDRESS_OFFSET)),
                                           null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.getReturnAddressLocation) {
       Operand fp = bc2ir.popAddress();
       RegisterOperand callerFP = gc.getTemps().makeTemp(TypeReference.Address);
-      RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD,
                                           callerFP,
                                           fp,
-                                          new AddressConstantOperand(Offset.fromIntSignExtend(
+                                          AC(Offset.fromIntSignExtend(
                                               STACKFRAME_FRAME_POINTER_OFFSET)),
                                           null));
-      bc2ir.appendInstruction(Binary.create(REF_ADD,
-                                            val,
-                                            callerFP.copyRO(),
-                                            new IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
-      bc2ir.push(val.copyD2U());
+      Instruction s = bc2ir._binaryHelper(REF_ADD, callerFP.copyRO(), offsetOperand(Offset.fromIntSignExtend(STACKFRAME_RETURN_ADDRESS_OFFSET)), TypeReference.Address);
+      bc2ir.appendInstruction(s);
     } else if (methodName == MagicNames.isync) {
       bc2ir.appendInstruction(Empty.create(READ_CEILING));
     } else if (methodName == MagicNames.sync) {

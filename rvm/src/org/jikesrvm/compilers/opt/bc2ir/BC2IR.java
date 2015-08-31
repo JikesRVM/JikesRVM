@@ -2673,7 +2673,7 @@ public final class BC2IR {
     }
   }
 
-  private Instruction _unaryHelper(Operator operator, Operand val, TypeReference type) {
+  Instruction _unaryHelper(Operator operator, Operand val, TypeReference type) {
     RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = Unary.create(operator, t, val);
     Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
@@ -2687,7 +2687,7 @@ public final class BC2IR {
     }
   }
 
-  private Instruction _unaryDualHelper(Operator operator, Operand val, TypeReference type) {
+  Instruction _unaryDualHelper(Operator operator, Operand val, TypeReference type) {
     RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = Unary.create(operator, t, val);
     Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
@@ -2701,7 +2701,7 @@ public final class BC2IR {
     }
   }
 
-  private Instruction _binaryHelper(Operator operator, Operand op1, Operand op2,
+  public Instruction _binaryHelper(Operator operator, Operand op1, Operand op2,
                                         TypeReference type) {
     RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = Binary.create(operator, t, op1, op2);
@@ -2761,7 +2761,7 @@ public final class BC2IR {
     }
   }
 
-  private Instruction _moveHelper(Operator operator, Operand val, TypeReference type) {
+  Instruction _moveHelper(Operator operator, Operand val, TypeReference type) {
     RegisterOperand t = gc.getTemps().makeTemp(type);
     push(t.copyD2U());
     Instruction s = Move.create(operator, t, val);

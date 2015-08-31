@@ -30,10 +30,10 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
-import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Store;
@@ -145,12 +145,8 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
                                            null));
     } else if (methodName == MagicNames.getReturnAddressLocation) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
-      bc2ir.appendInstruction(Binary.create(REF_ADD,
-                                            val,
-                                            fp,
-                                            offsetOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
-      bc2ir.push(val.copyD2U());
+      Instruction s = bc2ir._binaryHelper(REF_ADD, fp, offsetOperand(STACKFRAME_RETURN_ADDRESS_OFFSET), TypeReference.Address);
+      bc2ir.appendInstruction(s);
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones)
