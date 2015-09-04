@@ -23,6 +23,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDNPD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDNPS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDPD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDPS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_BT;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CDQ;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMOV;
@@ -2918,6 +2919,73 @@ Operand value, boolean signExtend) {
     }
     EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, res.copyRO(), temp.copyRO())));
     EMIT(MIR_Unary.mutate(s, IA32_MOVSX__B, res.copyRO(), res.copyRO()));
+  }
+
+  /**
+   * @param cond a condition operand
+   * @return whether the given condition operand need its operands flipping as its
+   * non-commutative
+   */
+  private boolean getCMP_needsSwap(ConditionOperand cond) {
+    switch (cond.value) {
+      case ConditionOperand.BORROW_FROM_RSUB:
+      case ConditionOperand.NO_BORROW_FROM_RSUB:
+      case ConditionOperand.OVERFLOW_FROM_RSUB:
+      case ConditionOperand.NO_OVERFLOW_FROM_RSUB:
+      case ConditionOperand.RBIT_TEST:
+      case ConditionOperand.NO_RBIT_TEST:
+        return true;
+      default:
+        return false;
+    }
+  }
+  /**
+   * Gives the MIR condition operator appropriate for the given condition
+   * @param s the comparison instruction
+   * @param cond the condition
+   * @param val1 first operand for the compare
+   * @param val2 second operand for the compare
+   */
+  void EMIT_Compare(Instruction s, ConditionOperand cond,
+      Operand val1, Operand val2) {
+    // Swap operands for non-commutative operators
+    if (getCMP_needsSwap(cond)) {
+      Operand temp = val1;
+      val2 = val1;
+      val1 = temp;
+    }
+    switch (cond.value) {
+      case ConditionOperand.CARRY_FROM_ADD:
+      case ConditionOperand.NO_CARRY_FROM_ADD:
+      case ConditionOperand.OVERFLOW_FROM_ADD:
+      case ConditionOperand.NO_OVERFLOW_FROM_ADD: {
+        RegisterOperand temp = regpool.makeTempInt();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val1.copy())));
+        EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, temp.copyRO(), val2));
+        break;
+      }
+      case ConditionOperand.BIT_TEST:
+      case ConditionOperand.NO_BIT_TEST:
+      case ConditionOperand.RBIT_TEST:
+      case ConditionOperand.NO_RBIT_TEST:
+        if (val2 instanceof MemoryOperand) {
+          RegisterOperand temp = regpool.makeTempInt();
+          EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val2.copy())));
+          val2 = temp;
+        }
+        EMIT(MIR_Compare.mutate(s, IA32_BT, val1.copy(), val2.copy()));
+        break;
+      case ConditionOperand.OVERFLOW_FROM_MUL:
+      case ConditionOperand.NO_OVERFLOW_FROM_MUL: {
+        RegisterOperand temp = regpool.makeTempInt();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val1.copy())));
+        EMIT(MIR_BinaryAcc.mutate(s, IA32_IMUL2, temp.copyRO(), val2));
+        break;
+      }
+      default:
+        EMIT(MIR_Compare.mutate(s, IA32_CMP, val1.copy(), val2.copy()));
+        break;
+    }
   }
 
   /**

@@ -528,8 +528,9 @@ BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), \\
 boolcmp: BOOLEAN_CMP_INT(r,riv)
 13
 EMIT_INSTRUCTION
-pushCOND(BooleanCmp.getCond(P(p))); \\
-EMIT(MIR_Compare.mutate(P(p), IA32_CMP, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p))));
+ConditionOperand cond = BooleanCmp.getCond(P(p)); \\
+pushCOND(cond); \\
+EMIT_Compare(P(p), cond, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)));
 
 r:	BOOLEAN_CMP_INT(r,INT_CONSTANT)
 VR(p) == 0 && CMP_TO_TEST(BooleanCmp.getCond(P(p))) ? 37:INFINITE
@@ -635,8 +636,9 @@ BOOLEAN_CMP_INT(PL(p), BooleanCmp.getResult(P(p)), \\
 boolcmp: BOOLEAN_CMP_INT(load32,riv)
 15
 EMIT_INSTRUCTION
-pushCOND(BooleanCmp.getCond(P(p))); \\
-EMIT(MIR_Compare.mutate(PL(p), IA32_CMP, consumeMO(), BooleanCmp.getVal2(P(p))));
+ConditionOperand cond = BooleanCmp.getCond(P(p)); \\
+pushCOND(cond); \\
+EMIT_Compare(P(p), cond, consumeMO(), BooleanCmp.getVal2(P(p)));
 
 r:	BOOLEAN_CMP_INT(r,load32)
 41
@@ -648,8 +650,9 @@ BOOLEAN_CMP_INT(PR(p), BooleanCmp.getResult(P(p)), \\
 boolcmp: BOOLEAN_CMP_INT(riv,load32)
 15
 EMIT_INSTRUCTION
-pushCOND(BooleanCmp.getCond(P(p)).flipOperands()); \\
-EMIT(MIR_Compare.mutate(PR(p), IA32_CMP, consumeMO(), BooleanCmp.getVal1(P(p))));
+ConditionOperand cond = BooleanCmp.getCond(P(p)); \\
+pushCOND(cond); \\
+EMIT_Compare(P(p), cond, BooleanCmp.getVal1(P(p)), consumeMO());
 
 stm:	BYTE_STORE(boolcmp, OTHER_OPERAND(riv,riv))
 15

@@ -24,42 +24,104 @@ import org.jikesrvm.runtime.Magic;
 public final class ConditionOperand extends Operand {
 
   /* signed integer arithmetic */
-  public static final int EQUAL = 0;
-  public static final int NOT_EQUAL = 1;
-  public static final int LESS = 2;
-  public static final int GREATER_EQUAL = 3;
-  public static final int GREATER = 4;
-  public static final int LESS_EQUAL = 5;
+  /** Integer equal == */
+  public static final int EQUAL               = 0;
+  /** Integer not equal != */
+  public static final int NOT_EQUAL           = 1;
+  /** Signed integer &lt; */
+  public static final int LESS                = 2;
+  /** Signed integer &gt;= */
+  public static final int GREATER_EQUAL       = 3;
+  /** Signed integer &gt; */
+  public static final int GREATER             = 4;
+  /** Signed integer &lt;= */
+  public static final int LESS_EQUAL          = 5;
 
   /* unsigned integer arithmetic */
-  public static final int HIGHER = 6;
-  public static final int LOWER = 7;
-  public static final int HIGHER_EQUAL = 8;
-  public static final int LOWER_EQUAL = 9;
+  /** Unsigned integer &gt; - &gt;U */
+  public static final int HIGHER             = 6;
+  /** Unsigned integer &lt; - &lt;U */
+  public static final int LOWER              = 7;
+  /** Unsigned integer &gt;= - &gt;=U */
+  public static final int HIGHER_EQUAL       = 8;
+  /** Unsigned integer &lt;= - &lt;=U */
+  public static final int LOWER_EQUAL        = 9;
 
   /* floating-point arithmethic */
   // branches that fall through when unordered
-  /** Branch if == (equivalent to CMPG_EQUAL) */
-  public static final int CMPL_EQUAL = 10;
-  /** Branch if &gt; */
-  public static final int CMPL_GREATER = 11;
-  /** Branch if &lt; */
-  public static final int CMPG_LESS = 12;
-  /** Branch if &gt;= */
+  /** Branch if == (equivalent to CMPG_EQUAL)  - ==F */
+  public static final int CMPL_EQUAL         = 10;
+  /** Branch if &gt; - &gt;F */
+  public static final int CMPL_GREATER       = 11;
+  /** Branch if &lt; - &lt;F */
+  public static final int CMPG_LESS          = 12;
+  /** Branch if &gt;= - &gt;=F */
   public static final int CMPL_GREATER_EQUAL = 13;
-  /** Branch if &lt;= */
-  public static final int CMPG_LESS_EQUAL = 14;
+  /** Branch if &lt;= - &lt;=F */
+  public static final int CMPG_LESS_EQUAL    = 14;
+
   // branches that are taken when unordered
-  /** Branch if != (equivalent to CMPG_NOT_EQUAL) */
-  public static final int CMPL_NOT_EQUAL = 17;
-  /** Branch if &lt; or unordered */
-  public static final int CMPL_LESS = 18;
-  /** Branch if &gt;= or unordered */
-  public static final int CMPG_GREATER_EQUAL = 19;
-  /** Branch if &gt; or unordered */
-  public static final int CMPG_GREATER = 20;
-  /** Branch if &lt;= or unordered */
-  public static final int CMPL_LESS_EQUAL = 21;
+  /** Branch if != (equivalent to CMPG_NOT_EQUAL) - !=FU */
+  public static final int CMPL_NOT_EQUAL     = 15;
+  /** Branch if &lt; or unordered - &lt;FU */
+  public static final int CMPL_LESS          = 16;
+  /** Brach if &gt;= or unordered - &gt;=FU */
+  public static final int CMPG_GREATER_EQUAL = 17;
+  /** Branch if &gt; or unordered - &gt;FU */
+  public static final int CMPG_GREATER       = 18;
+  /** Branch if &lt;= or unordered - &lt;=FU */
+  public static final int CMPL_LESS_EQUAL    = 19;
+
+  /* integer arithmetic flag operations */
+  /** Would a+b produce a carry? */
+  public static final int CARRY_FROM_ADD        = 20;
+  /** Would a+b not produce a carry? */
+  public static final int NO_CARRY_FROM_ADD     = 21;
+
+  /** Would a+b cause an overflow? */
+  public static final int OVERFLOW_FROM_ADD     = 22;
+  /** Would a+b not cause an overflow? */
+  public static final int NO_OVERFLOW_FROM_ADD  = 23;
+
+  /** Would a-b produce a borrow? */
+  public static final int BORROW_FROM_SUB       = 24;
+  /** Would a-b not produce a borrow? */
+  public static final int NO_BORROW_FROM_SUB    = 25;
+  /** Would b-a produce a borrow? */
+  public static final int BORROW_FROM_RSUB      = 26;
+  /** Would b-a not produce a borrow? */
+  public static final int NO_BORROW_FROM_RSUB   = 27;
+
+  /** Would a-b cause an overflow? */
+  public static final int OVERFLOW_FROM_SUB     = 28;
+  /** Would a-b not cause an overflow? */
+  public static final int NO_OVERFLOW_FROM_SUB  = 29;
+  /** Would b-a cause an overflow? */
+  public static final int OVERFLOW_FROM_RSUB    = 30;
+  /** Would b-a not cause an overflow? */
+  public static final int NO_OVERFLOW_FROM_RSUB = 31;
+
+  /** Would is bit b set in a? */
+  public static final int BIT_TEST              = 32;
+  /** Would is bit b not set in a? */
+  public static final int NO_BIT_TEST           = 33;
+  /** Would is bit a set in b? */
+  public static final int RBIT_TEST             = 34;
+  /** Would is bit a not set in b? */
+  public static final int NO_RBIT_TEST          = 35;
+
+  /** Would a*b cause an overflow? */
+  public static final int OVERFLOW_FROM_MUL     = 36;
+  /** Would a*b not cause an overflow? */
+  public static final int NO_OVERFLOW_FROM_MUL  = 37;
+
+  /* Results from evaluations */
+  /** Evaluation result is false */
+  public static final int FALSE = 0;
+  /** Evaluation result is true */
+  public static final int TRUE = 1;
+  /** Evaluation result is unknown */
+  public static final int UNKNOWN = 2;
 
   /**
    * Value of this operand.
@@ -164,6 +226,224 @@ public final class ConditionOperand extends Operand {
   }
 
   /**
+   * Create the condition code operand for CMPL_EQUAL
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand CMPL_EQUAL() {
+    return new ConditionOperand(CMPL_EQUAL);
+  }
+
+  /**
+   * Create the condition code operand for CMPL_NOT_EQUAL
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand CMPL_NOT_EQUAL() {
+    return new ConditionOperand(CMPL_NOT_EQUAL);
+  }
+
+  /**
+   * Create the condition code operand for CMPL_GREATER
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand CMPL_GREATER() {
+    return new ConditionOperand(CMPL_GREATER);
+  }
+
+  /**
+   * Create the condition code operand for CMPL_GREATER_EQUAL
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand CMPL_GREATER_EQUAL() {
+    return new ConditionOperand(CMPL_GREATER_EQUAL);
+  }
+
+  /**
+   * Create the condition code operand for CMPG_LESS
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand CMPG_LESS() {
+    return new ConditionOperand(CMPG_LESS);
+ }
+
+  /**
+   * Create the condition code operand for CARRY_FROM_ADD
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand CARRY_FROM_ADD() {
+    return new ConditionOperand(CARRY_FROM_ADD);
+  }
+
+  /**
+   * Create the condition code operand for OVERFLOW_FROM_ADD
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand OVERFLOW_FROM_ADD() {
+    return new ConditionOperand(OVERFLOW_FROM_ADD);
+  }
+
+  /**
+   * Create the condition code operand for BORROW_FROM_SUB
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand BORROW_FROM_SUB() {
+    return new ConditionOperand(BORROW_FROM_SUB);
+  }
+
+  /**
+   * Create the condition code operand for OVERFLOW_FROM_SUB
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand OVERFLOW_FROM_SUB() {
+    return new ConditionOperand(OVERFLOW_FROM_SUB);
+  }
+
+  /**
+   * Create the condition code operand for BIT_TEST
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand BIT_TEST() {
+    return new ConditionOperand(BIT_TEST);
+  }
+
+  /**
+   * Create the condition code operand for OVERFLOW_FROM_ADD
+   *
+   * @return a newly created condition code operand
+   */
+  public static ConditionOperand OVERFLOW_FROM_MUL() {
+    return new ConditionOperand(OVERFLOW_FROM_MUL);
+  }
+
+  /**
+   * Is x higher (unsigned &gt;) than y?
+   * @param x first value for comparison
+   * @param y second value for comparison
+   * @return {@code true} if x is higher (unsigned &gt;)
+   *  than y, {@code false} otherwise
+   */
+  private static boolean higher(int x, int y) {
+    return (x & 0xFFFFFFFFL) > ((long)y & 0xFFFFFFFF);
+  }
+
+  /**
+   * Is x lower (unsigned &lt;) than y?
+   * @param x first value for comparison
+   * @param y second value for comparison
+   * @return {@code true} if x is lower (unsigned &lt;)
+   *  than y, {@code false} otherwise
+   */
+  private static boolean lower(int x, int y) {
+    return (x & 0xFFFFFFFFL) < ((long)y & 0xFFFFFFFF);
+  }
+
+  /**
+   * Is x higher equal (unsigned &gt;=) than y?
+   * @param x first value for comparison
+   * @param y second value for comparison
+   * @return {@code true} if x is higher equal (unsigned &gt;=)
+   *  than y, {@code false} otherwise
+   */
+  private static boolean higher_equal(int x, int y) {
+    return (x & 0xFFFFFFFFL) >= ((long)y & 0xFFFFFFFF);
+  }
+
+  /**
+   * Is x lower equal (unsigned &lt;=) than y?
+   * @param x first value for comparison
+   * @param y second value for comparison
+   * @return {@code true} if x is lower equal (unsigned &lt;=)
+   *  than y, {@code false} otherwise
+   */
+  private static boolean lower_equal(int x, int y) {
+    return (x & 0xFFFFFFFFL) <= ((long)y & 0xFFFFFFFF);
+  }
+
+  /**
+   * Would {@code x + y} produce a carry?
+   * @param x first summand
+   * @param y second summand
+   * @return {@code true} if the addition would produce
+   *   a carry, {@code false} otherwise
+   */
+  private static boolean carry_from_add(int x, int y) {
+    int sum = x + y;
+    return lower(sum, x);
+  }
+
+  /**
+   * Would {@code x - y} produce a borrow?
+   * @param x minuend
+   * @param y subtrahend
+   * @return {@code true} if the subtraction would produce
+   *   a borrow, {@code false} otherwise
+   */
+  private static boolean borrow_from_sub(int x, int y) {
+    return lower(x, y);
+  }
+
+  /**
+   * Would {@code x + y} overflow a register?
+   * @param x first summand
+   * @param y second summand
+   * @return {@code true} if the addition would overflow,
+   *   {@code false} otherwise
+   */
+  private static boolean overflow_from_add(int x, int y) {
+    if (y >= 0)
+      return x > (Integer.MAX_VALUE - y);
+    else
+      return x < (Integer.MIN_VALUE - y);
+  }
+
+  /**
+   * Would {@code x - y} overflow a register?
+   * @param x minuend
+   * @param y subtrahend
+   * @return {@code true} if the subtraction would overflow,
+   *   {@code false} otherwise
+   */
+  private static boolean overflow_from_sub(int x, int y) {
+    if (y >= 0)
+      return x < (Integer.MIN_VALUE + y);
+    else
+      return x > (Integer.MAX_VALUE + y);
+  }
+
+  /**
+   * Would {@code x * y} overflow a register?
+   * @param x first factor
+   * @param y second factor
+   * @return {@code true} if the multiplication would overflow,
+   *   {@code false} otherwise
+   */
+  private static boolean overflow_from_mul(int x, int y) {
+    int z = x * y;
+    long z2 = ((long)x) * ((long)y);
+    return z != z2;
+  }
+
+  /**
+   * Is bit y of x set?
+   *
+   * @param x the number to check
+   * @param y the bit position (0 is least significant bit)
+   * @return whether bit position y of x is set (LSB is 0)
+   */
+  private static boolean bit_test(int x, int y) {
+    return (x & (1 << y)) != 0;
+  }
+
+  /**
    * Is the condition code EQUAL?
    *
    * @return <code>true</code> if it is or <code>false</code> if it is not
@@ -263,6 +543,112 @@ public final class ConditionOperand extends Operand {
       case LOWER:
       case HIGHER_EQUAL:
       case LOWER_EQUAL:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Is the condition code a flag operation?
+   * @return <code>true</code> if it is or <code>false</code> if it is not
+   */
+  public boolean isFLAG_OPERATION() {
+    switch (value) {
+      case CARRY_FROM_ADD:
+      case NO_CARRY_FROM_ADD:
+      case OVERFLOW_FROM_ADD:
+      case NO_OVERFLOW_FROM_ADD:
+      case BORROW_FROM_SUB:
+      case NO_BORROW_FROM_SUB:
+      case OVERFLOW_FROM_SUB:
+      case NO_OVERFLOW_FROM_SUB:
+      case BORROW_FROM_RSUB:
+      case NO_BORROW_FROM_RSUB:
+      case OVERFLOW_FROM_RSUB:
+      case NO_OVERFLOW_FROM_RSUB:
+      case BIT_TEST:
+      case NO_BIT_TEST:
+      case RBIT_TEST:
+      case NO_RBIT_TEST:
+      case OVERFLOW_FROM_MUL:
+      case NO_OVERFLOW_FROM_MUL:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Is the condition code a flag operation following an add?
+   * @return <code>true</code> if it is or <code>false</code> if it is not
+   */
+  public boolean isFLAG_OPERATION_FROM_ADD() {
+    switch (value) {
+      case CARRY_FROM_ADD:
+      case NO_CARRY_FROM_ADD:
+      case OVERFLOW_FROM_ADD:
+      case NO_OVERFLOW_FROM_ADD:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Is the condition code a flag operation following a subtract?
+   * @return <code>true</code> if it is or <code>false</code> if it is not
+   */
+  public boolean isFLAG_OPERATION_FROM_SUB() {
+    switch (value) {
+      case BORROW_FROM_SUB:
+      case NO_BORROW_FROM_SUB:
+      case OVERFLOW_FROM_SUB:
+      case NO_OVERFLOW_FROM_SUB:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Is the condition code a flag operation following a reversed subtract?
+   * @return <code>true</code> if it is or <code>false</code> if it is not
+   */
+  public boolean isFLAG_OPERATION_FROM_RSUB() {
+    switch (value) {
+      case BORROW_FROM_RSUB:
+      case NO_BORROW_FROM_RSUB:
+      case OVERFLOW_FROM_RSUB:
+      case NO_OVERFLOW_FROM_RSUB:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Is the condition code a flag operation following a bit test?
+   * @return <code>true</code> if it is or <code>false</code> if it is not
+   */
+  public boolean isBIT_TEST() {
+    switch (value) {
+      case BIT_TEST:
+      case NO_BIT_TEST:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Is the condition code a flag operation following a reversed bit test?
+   * @return <code>true</code> if it is or <code>false</code> if it is not
+   */
+  public boolean isRBIT_TEST() {
+    switch (value) {
+      case RBIT_TEST:
+      case NO_RBIT_TEST:
         return true;
       default:
         return false;
@@ -384,36 +770,16 @@ public final class ConditionOperand extends Operand {
    */
   public ConditionOperand translateUNSIGNED() {
     switch (value) {
-      case CMPL_EQUAL:
-        value = EQUAL;
-        break;
-      case CMPL_GREATER:
-        value = HIGHER;
-        break;
-      case CMPG_LESS:
-        value = LOWER;
-        break;
-      case CMPL_GREATER_EQUAL:
-        value = HIGHER_EQUAL;
-        break;
-      case CMPG_LESS_EQUAL:
-        value = LOWER_EQUAL;
-        break;
-      case CMPL_NOT_EQUAL:
-        value = NOT_EQUAL;
-        break;
-      case CMPL_LESS:
-        value = LOWER;
-        break;
-      case CMPG_GREATER_EQUAL:
-        value = HIGHER_EQUAL;
-        break;
-      case CMPG_GREATER:
-        value = HIGHER;
-        break;
-      case CMPL_LESS_EQUAL:
-        value = LOWER_EQUAL;
-        break;
+      case CMPL_EQUAL:         value = EQUAL;         break;
+      case CMPL_GREATER:       value = HIGHER;       break;
+      case CMPG_LESS:          value = LOWER;        break;
+      case CMPL_GREATER_EQUAL: value = HIGHER_EQUAL; break;
+      case CMPG_LESS_EQUAL:    value = LOWER_EQUAL;  break;
+      case CMPL_NOT_EQUAL:     value = NOT_EQUAL;     break;
+      case CMPL_LESS:          value = LOWER;        break;
+      case CMPG_GREATER_EQUAL: value = HIGHER_EQUAL; break;
+      case CMPG_GREATER:       value = HIGHER;       break;
+      case CMPL_LESS_EQUAL:    value = LOWER_EQUAL;  break;
       default:
         throw new OptimizingCompilerException("invalid condition " + this);
     }
@@ -429,10 +795,6 @@ public final class ConditionOperand extends Operand {
   public boolean similar(Operand op) {
     return (op instanceof ConditionOperand) && (((ConditionOperand) op).value == value);
   }
-
-  public static final int FALSE = 0;
-  public static final int TRUE = 1;
-  public static final int UNKNOWN = 2;
 
   /**
    * Given two operands, evaluate the condition on them.
@@ -536,7 +898,26 @@ public final class ConditionOperand extends Operand {
         case GREATER:
         case HIGHER:
         case LOWER:
+        case BORROW_FROM_SUB:
+        case NO_BORROW_FROM_SUB:
+        case BORROW_FROM_RSUB:
+        case NO_BORROW_FROM_RSUB:
+        case OVERFLOW_FROM_SUB:
+        case NO_OVERFLOW_FROM_SUB:
+        case OVERFLOW_FROM_RSUB:
+        case NO_OVERFLOW_FROM_RSUB:
           return FALSE;
+        case CARRY_FROM_ADD:
+        case NO_CARRY_FROM_ADD:
+        case OVERFLOW_FROM_ADD:
+        case NO_OVERFLOW_FROM_ADD:
+        case BIT_TEST:
+        case NO_BIT_TEST:
+        case RBIT_TEST:
+        case NO_RBIT_TEST:
+        case OVERFLOW_FROM_MUL:
+        case NO_OVERFLOW_FROM_MUL:
+          return UNKNOWN;
         default:
           throw new OptimizingCompilerException("invalid condition " + this);
       }
@@ -555,50 +936,34 @@ public final class ConditionOperand extends Operand {
    */
   public int evaluate(int v1, int v2) {
     switch (value) {
-      case EQUAL:
-        return (v1 == v2) ? TRUE : FALSE;
-      case NOT_EQUAL:
-        return (v1 != v2) ? TRUE : FALSE;
-      case GREATER:
-        return (v1 > v2) ? TRUE : FALSE;
-      case LESS:
-        return (v1 < v2) ? TRUE : FALSE;
-      case GREATER_EQUAL:
-        return (v1 >= v2) ? TRUE : FALSE;
-      case LESS_EQUAL:
-        return (v1 <= v2) ? TRUE : FALSE;
-      case LOWER:
-        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
-          return (v1 < v2) ? TRUE : FALSE;
-        } else if (v1 < 0) {
-          return FALSE;
-        } else {
-          return TRUE;
-        }
-      case LOWER_EQUAL:
-        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
-          return (v1 <= v2) ? TRUE : FALSE;
-        } else if (v1 < 0) {
-          return FALSE;
-        } else {
-          return TRUE;
-        }
-      case HIGHER:
-        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
-          return (v1 > v2) ? TRUE : FALSE;
-        } else if (v1 < 0) {
-          return TRUE;
-        } else {
-          return FALSE;
-        }
-      case HIGHER_EQUAL:
-        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
-          return (v1 >= v2) ? TRUE : FALSE;
-        } else if (v1 < 0) {
-          return TRUE;
-        } else {
-          return FALSE;
-        }
+      case EQUAL:          return (v1 == v2) ? TRUE : FALSE;
+      case NOT_EQUAL:      return (v1 != v2) ? TRUE : FALSE;
+      case GREATER:        return (v1 > v2)  ? TRUE : FALSE;
+      case LESS:           return (v1 < v2) ? TRUE : FALSE;
+      case GREATER_EQUAL:  return (v1 >= v2)  ? TRUE : FALSE;
+      case LESS_EQUAL:     return (v1 <= v2)  ? TRUE : FALSE;
+      case LOWER:          return lower(v1, v2) ? TRUE : FALSE;
+      case LOWER_EQUAL:    return lower_equal(v1, v2) ? TRUE : FALSE;
+      case HIGHER:         return higher(v1, v2) ? TRUE : FALSE;
+      case HIGHER_EQUAL:   return higher_equal(v1, v2) ? TRUE : FALSE;
+      case CARRY_FROM_ADD:        return carry_from_add(v1, v2) ? TRUE : FALSE;
+      case NO_CARRY_FROM_ADD:     return carry_from_add(v1, v2) ? FALSE : TRUE;
+      case OVERFLOW_FROM_ADD:     return overflow_from_add(v1, v2) ? TRUE : FALSE;
+      case NO_OVERFLOW_FROM_ADD:  return overflow_from_add(v1, v2) ? FALSE : TRUE;
+      case BORROW_FROM_SUB:       return borrow_from_sub(v1, v2) ? TRUE : FALSE;
+      case NO_BORROW_FROM_SUB:    return borrow_from_sub(v1, v2) ? FALSE : TRUE;
+      case BORROW_FROM_RSUB:      return borrow_from_sub(v2, v1) ? TRUE : FALSE;
+      case NO_BORROW_FROM_RSUB:   return borrow_from_sub(v2, v1) ? FALSE : TRUE;
+      case OVERFLOW_FROM_SUB:     return overflow_from_sub(v1, v2) ? TRUE : FALSE;
+      case NO_OVERFLOW_FROM_SUB:  return overflow_from_sub(v1, v2) ? FALSE : TRUE;
+      case OVERFLOW_FROM_RSUB:    return overflow_from_sub(v2, v1) ? TRUE : FALSE;
+      case NO_OVERFLOW_FROM_RSUB: return overflow_from_sub(v2, v1) ? FALSE : TRUE;
+      case BIT_TEST:              return bit_test(v1, v2) ? TRUE : FALSE;
+      case NO_BIT_TEST:           return bit_test(v1, v2) ? FALSE : TRUE;
+      case RBIT_TEST:             return bit_test(v2, v1) ? TRUE : FALSE;
+      case NO_RBIT_TEST:          return bit_test(v2, v1) ? FALSE : TRUE;
+      case OVERFLOW_FROM_MUL:     return overflow_from_mul(v1, v2) ? TRUE : FALSE;
+      case NO_OVERFLOW_FROM_MUL:  return overflow_from_mul(v1, v2) ? FALSE : TRUE;
     }
     throw new OptimizingCompilerException("invalid condition " + this);
   }
@@ -614,18 +979,12 @@ public final class ConditionOperand extends Operand {
    */
   public int evaluate(long v1, long v2) {
     switch (value) {
-      case EQUAL:
-        return (v1 == v2) ? TRUE : FALSE;
-      case NOT_EQUAL:
-        return (v1 != v2) ? TRUE : FALSE;
-      case GREATER:
-        return (v1 > v2) ? TRUE : FALSE;
-      case LESS:
-        return (v1 < v2) ? TRUE : FALSE;
-      case GREATER_EQUAL:
-        return (v1 >= v2) ? TRUE : FALSE;
-      case LESS_EQUAL:
-        return (v1 <= v2) ? TRUE : FALSE;
+      case EQUAL:         return (v1 == v2) ? TRUE : FALSE;
+      case NOT_EQUAL:     return (v1 != v2) ? TRUE : FALSE;
+      case GREATER:       return (v1 > v2)  ? TRUE : FALSE;
+      case LESS:          return (v1 < v2)  ? TRUE : FALSE;
+      case GREATER_EQUAL: return (v1 >= v2) ? TRUE : FALSE;
+      case LESS_EQUAL:    return (v1 <= v2) ? TRUE : FALSE;
     }
     throw new OptimizingCompilerException("invalid condition " + this);
   }
@@ -641,27 +1000,17 @@ public final class ConditionOperand extends Operand {
   public int evaluate(float v1, float v2) {
     switch (value) {
       // Return FALSE when UNORDERED
-      case CMPL_EQUAL:
-        return (v1 == v2) ? TRUE : FALSE;
-      case CMPL_GREATER:
-        return (v1 > v2) ? TRUE : FALSE;
-      case CMPG_LESS:
-        return (v1 < v2) ? TRUE : FALSE;
-      case CMPL_GREATER_EQUAL:
-        return (v1 >= v2) ? TRUE : FALSE;
-      case CMPG_LESS_EQUAL:
-        return (v1 <= v2) ? TRUE : FALSE;
-        // Return TRUE when UNORDERED
-      case CMPL_NOT_EQUAL:
-        return (v1 == v2) ? FALSE : TRUE;
-      case CMPL_LESS:
-        return (v1 >= v2) ? FALSE : TRUE;
-      case CMPG_GREATER_EQUAL:
-        return (v1 < v2) ? FALSE : TRUE;
-      case CMPG_GREATER:
-        return (v1 <= v2) ? FALSE : TRUE;
-      case CMPL_LESS_EQUAL:
-        return (v1 > v2) ? FALSE : TRUE;
+      case CMPL_EQUAL:               return (v1 == v2) ? TRUE : FALSE;
+      case CMPL_GREATER:             return (v1 > v2)  ? TRUE : FALSE;
+      case CMPG_LESS:                return (v1 < v2)  ? TRUE : FALSE;
+      case CMPL_GREATER_EQUAL:        return (v1 >= v2) ? TRUE : FALSE;
+      case CMPG_LESS_EQUAL:          return (v1 <= v2) ? TRUE : FALSE;
+      // Return TRUE when UNORDERED
+      case CMPL_NOT_EQUAL:           return (v1 == v2) ? FALSE : TRUE;
+      case CMPL_LESS:                return (v1 >= v2) ? FALSE : TRUE;
+      case CMPG_GREATER_EQUAL:       return (v1 < v2)  ? FALSE : TRUE;
+      case CMPG_GREATER:             return (v1 <= v2) ? FALSE : TRUE;
+      case CMPL_LESS_EQUAL:          return (v1 > v2)  ? FALSE : TRUE;
     }
     throw new OptimizingCompilerException("invalid condition " + this);
   }
@@ -677,27 +1026,17 @@ public final class ConditionOperand extends Operand {
   public int evaluate(double v1, double v2) {
     switch (value) {
       // Return FALSE when UNORDERED
-      case CMPL_EQUAL:
-        return (v1 == v2) ? TRUE : FALSE;
-      case CMPL_GREATER:
-        return (v1 > v2) ? TRUE : FALSE;
-      case CMPG_LESS:
-        return (v1 < v2) ? TRUE : FALSE;
-      case CMPL_GREATER_EQUAL:
-        return (v1 >= v2) ? TRUE : FALSE;
-      case CMPG_LESS_EQUAL:
-        return (v1 <= v2) ? TRUE : FALSE;
+      case CMPL_EQUAL:               return (v1 == v2) ? TRUE : FALSE;
+      case CMPL_GREATER:             return (v1 > v2)  ? TRUE : FALSE;
+      case CMPG_LESS:                return (v1 < v2)  ? TRUE : FALSE;
+      case CMPL_GREATER_EQUAL:        return (v1 >= v2) ? TRUE : FALSE;
+      case CMPG_LESS_EQUAL:          return (v1 <= v2) ? TRUE : FALSE;
         // Return TRUE when UNORDERED
-      case CMPL_NOT_EQUAL:
-        return (v1 == v2) ? FALSE : TRUE;
-      case CMPL_LESS:
-        return (v1 >= v2) ? FALSE : TRUE;
-      case CMPG_GREATER_EQUAL:
-        return (v1 < v2) ? FALSE : TRUE;
-      case CMPG_GREATER:
-        return (v1 <= v2) ? FALSE : TRUE;
-      case CMPL_LESS_EQUAL:
-        return (v1 > v2) ? FALSE : TRUE;
+      case CMPL_NOT_EQUAL:           return (v1 == v2) ? FALSE : TRUE;
+      case CMPL_LESS:                return (v1 >= v2) ? FALSE : TRUE;
+      case CMPG_GREATER_EQUAL:       return (v1 < v2)  ? FALSE : TRUE;
+      case CMPG_GREATER:             return (v1 <= v2) ? FALSE : TRUE;
+      case CMPL_LESS_EQUAL:          return (v1 > v2)  ? FALSE : TRUE;
     }
     throw new OptimizingCompilerException("invalid condition " + this);
   }
@@ -713,26 +1052,16 @@ public final class ConditionOperand extends Operand {
    */
   public int evaluate(Address v1, Address v2) {
     switch (value) {
-      case EQUAL:
-        return (v1.EQ(v2)) ? TRUE : FALSE;
-      case NOT_EQUAL:
-        return (v1.NE(v2)) ? TRUE : FALSE;
-      case GREATER:
-        return (v1.toWord().toOffset().sGT(v2.toWord().toOffset())) ? TRUE : FALSE;
-      case LESS:
-        return (v1.toWord().toOffset().sLT(v2.toWord().toOffset())) ? TRUE : FALSE;
-      case GREATER_EQUAL:
-        return (v1.toWord().toOffset().sGE(v2.toWord().toOffset())) ? TRUE : FALSE;
-      case LESS_EQUAL:
-        return (v1.toWord().toOffset().sLE(v2.toWord().toOffset())) ? TRUE : FALSE;
-      case LOWER:
-        return (v1.LT(v2)) ? TRUE : FALSE;
-      case LOWER_EQUAL:
-        return (v1.LE(v2)) ? TRUE : FALSE;
-      case HIGHER:
-        return (v1.GT(v2)) ? TRUE : FALSE;
-      case HIGHER_EQUAL:
-        return (v1.GE(v2)) ? TRUE : FALSE;
+      case EQUAL:         return (v1.EQ(v2)) ? TRUE : FALSE;
+      case NOT_EQUAL:     return (v1.NE(v2)) ? TRUE : FALSE;
+      case GREATER:       return (v1.toWord().toOffset().sGT(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case LESS:          return (v1.toWord().toOffset().sLT(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case GREATER_EQUAL: return (v1.toWord().toOffset().sGE(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case LESS_EQUAL:    return (v1.toWord().toOffset().sLE(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case LOWER:         return (v1.LT(v2)) ? TRUE : FALSE;
+      case LOWER_EQUAL:   return (v1.LE(v2)) ? TRUE : FALSE;
+      case HIGHER:        return (v1.GT(v2)) ? TRUE : FALSE;
+      case HIGHER_EQUAL:  return (v1.GE(v2)) ? TRUE : FALSE;
     }
     throw new OptimizingCompilerException("invalid condition " + this);
   }
@@ -756,66 +1085,53 @@ public final class ConditionOperand extends Operand {
    */
   public ConditionOperand flipCode() {
     switch (value) {
-      case EQUAL:
-        value = NOT_EQUAL;
-        break;
-      case NOT_EQUAL:
-        value = EQUAL;
-        break;
-      case LESS:
-        value = GREATER_EQUAL;
-        break;
-      case LESS_EQUAL:
-        value = GREATER;
-        break;
-      case GREATER:
-        value = LESS_EQUAL;
-        break;
-      case GREATER_EQUAL:
-        value = LESS;
-        break;
-      case HIGHER:
-        value = LOWER_EQUAL;
-        break;
-      case LOWER:
-        value = HIGHER_EQUAL;
-        break;
-      case HIGHER_EQUAL:
-        value = LOWER;
-        break;
-      case LOWER_EQUAL:
-        value = HIGHER;
-        break;
-      case CMPL_EQUAL:
-        value = CMPL_NOT_EQUAL;
-        break;
-      case CMPL_GREATER:
-        value = CMPL_LESS_EQUAL;
-        break;
-      case CMPG_LESS:
-        value = CMPG_GREATER_EQUAL;
-        break;
-      case CMPL_GREATER_EQUAL:
-        value = CMPL_LESS;
-        break;
-      case CMPG_LESS_EQUAL:
-        value = CMPG_GREATER;
-        break;
-      case CMPL_NOT_EQUAL:
-        value = CMPL_EQUAL;
-        break;
-      case CMPL_LESS:
-        value = CMPL_GREATER_EQUAL;
-        break;
-      case CMPG_GREATER_EQUAL:
-        value = CMPG_LESS;
-        break;
-      case CMPG_GREATER:
-        value = CMPG_LESS_EQUAL;
-        break;
-      case CMPL_LESS_EQUAL:
-        value = CMPL_GREATER;
-        break;
+      case EQUAL:              value = NOT_EQUAL; break;
+      case NOT_EQUAL:          value = EQUAL; break;
+      case LESS:               value = GREATER_EQUAL; break;
+      case LESS_EQUAL:         value = GREATER; break;
+      case GREATER:            value = LESS_EQUAL; break;
+      case GREATER_EQUAL:      value = LESS; break;
+
+      case HIGHER:             value = LOWER_EQUAL; break;
+      case LOWER:              value = HIGHER_EQUAL; break;
+      case HIGHER_EQUAL:       value = LOWER; break;
+      case LOWER_EQUAL:        value = HIGHER; break;
+
+      case CMPL_EQUAL:         value = CMPL_NOT_EQUAL; break;
+      case CMPL_GREATER:       value = CMPL_LESS_EQUAL; break;
+      case CMPG_LESS:          value = CMPG_GREATER_EQUAL; break;
+      case CMPL_GREATER_EQUAL: value = CMPL_LESS; break;
+      case CMPG_LESS_EQUAL:    value = CMPG_GREATER; break;
+      case CMPL_NOT_EQUAL:     value = CMPL_EQUAL; break;
+      case CMPL_LESS:          value = CMPL_GREATER_EQUAL; break;
+      case CMPG_GREATER_EQUAL: value = CMPG_LESS; break;
+      case CMPG_GREATER:       value = CMPG_LESS_EQUAL; break;
+      case CMPL_LESS_EQUAL:    value = CMPL_GREATER; break;
+
+      case CARRY_FROM_ADD:        value = NO_CARRY_FROM_ADD; break;
+      case NO_CARRY_FROM_ADD:     value = CARRY_FROM_ADD; break;
+
+      case OVERFLOW_FROM_ADD:     value = NO_OVERFLOW_FROM_ADD; break;
+      case NO_OVERFLOW_FROM_ADD:  value = OVERFLOW_FROM_ADD; break;
+
+      case BORROW_FROM_SUB:       value = NO_BORROW_FROM_SUB; break;
+      case NO_BORROW_FROM_SUB:    value = BORROW_FROM_SUB; break;
+      case BORROW_FROM_RSUB:      value = NO_BORROW_FROM_RSUB; break;
+      case NO_BORROW_FROM_RSUB:   value = BORROW_FROM_RSUB; break;
+
+      case OVERFLOW_FROM_SUB:     value = NO_OVERFLOW_FROM_SUB; break;
+      case NO_OVERFLOW_FROM_SUB:  value = OVERFLOW_FROM_SUB; break;
+      case OVERFLOW_FROM_RSUB:    value = NO_OVERFLOW_FROM_RSUB; break;
+      case NO_OVERFLOW_FROM_RSUB: value = OVERFLOW_FROM_RSUB; break;
+
+      case BIT_TEST:              value = NO_BIT_TEST; break;
+      case NO_BIT_TEST:           value = BIT_TEST; break;
+      case RBIT_TEST:             value = NO_RBIT_TEST; break;
+      case NO_RBIT_TEST:          value = RBIT_TEST; break;
+
+      case OVERFLOW_FROM_MUL:     value = NO_OVERFLOW_FROM_MUL; break;
+      case NO_OVERFLOW_FROM_MUL:  value = OVERFLOW_FROM_MUL; break;
+
       default:
         OptimizingCompilerException.UNREACHABLE();
     }
@@ -838,66 +1154,53 @@ public final class ConditionOperand extends Operand {
    */
   public ConditionOperand flipOperands() {
     switch (value) {
-      case EQUAL:
-        value = EQUAL;
-        break;
-      case NOT_EQUAL:
-        value = NOT_EQUAL;
-        break;
-      case LESS:
-        value = GREATER;
-        break;
-      case LESS_EQUAL:
-        value = GREATER_EQUAL;
-        break;
-      case GREATER:
-        value = LESS;
-        break;
-      case GREATER_EQUAL:
-        value = LESS_EQUAL;
-        break;
-      case HIGHER:
-        value = LOWER;
-        break;
-      case LOWER:
-        value = HIGHER;
-        break;
-      case HIGHER_EQUAL:
-        value = LOWER_EQUAL;
-        break;
-      case LOWER_EQUAL:
-        value = HIGHER_EQUAL;
-        break;
-      case CMPL_EQUAL:
-        value = CMPL_EQUAL;
-        break;
-      case CMPL_GREATER:
-        value = CMPG_LESS;
-        break;
-      case CMPG_LESS:
-        value = CMPL_GREATER;
-        break;
-      case CMPL_GREATER_EQUAL:
-        value = CMPG_LESS_EQUAL;
-        break;
-      case CMPG_LESS_EQUAL:
-        value = CMPL_GREATER_EQUAL;
-        break;
-      case CMPL_NOT_EQUAL:
-        value = CMPL_NOT_EQUAL;
-        break;
-      case CMPL_LESS:
-        value = CMPG_GREATER;
-        break;
-      case CMPG_GREATER_EQUAL:
-        value = CMPL_LESS_EQUAL;
-        break;
-      case CMPG_GREATER:
-        value = CMPL_LESS;
-        break;
-      case CMPL_LESS_EQUAL:
-        value = CMPG_GREATER_EQUAL;
-        break;
+      case EQUAL:              value = EQUAL; break;
+      case NOT_EQUAL:          value = NOT_EQUAL;   break;
+      case LESS:               value = GREATER; break;
+      case LESS_EQUAL:         value = GREATER_EQUAL; break;
+      case GREATER:            value = LESS; break;
+      case GREATER_EQUAL:      value = LESS_EQUAL; break;
+
+      case HIGHER:             value = LOWER; break;
+      case LOWER:              value = HIGHER; break;
+      case HIGHER_EQUAL:       value = LOWER_EQUAL; break;
+      case LOWER_EQUAL:        value = HIGHER_EQUAL; break;
+
+      case CMPL_EQUAL:         value = CMPL_EQUAL; break;
+      case CMPL_GREATER:       value = CMPG_LESS; break;
+      case CMPG_LESS:          value = CMPL_GREATER; break;
+      case CMPL_GREATER_EQUAL: value = CMPG_LESS_EQUAL; break;
+      case CMPG_LESS_EQUAL:    value = CMPL_GREATER_EQUAL; break;
+      case CMPL_NOT_EQUAL:     value = CMPL_NOT_EQUAL; break;
+      case CMPL_LESS:          value = CMPG_GREATER; break;
+      case CMPG_GREATER_EQUAL: value = CMPL_LESS_EQUAL; break;
+      case CMPG_GREATER:       value = CMPL_LESS; break;
+      case CMPL_LESS_EQUAL:    value = CMPG_GREATER_EQUAL; break;
+
+      case CARRY_FROM_ADD:        break; // add is commutative
+      case NO_CARRY_FROM_ADD:     break;
+
+      case OVERFLOW_FROM_ADD:     break;
+      case NO_OVERFLOW_FROM_ADD:  break;
+
+      case BORROW_FROM_SUB:       value = BORROW_FROM_RSUB; break;
+      case NO_BORROW_FROM_SUB:    value = NO_BORROW_FROM_RSUB; break;
+      case BORROW_FROM_RSUB:      value = BORROW_FROM_SUB; break;
+      case NO_BORROW_FROM_RSUB:   value = NO_BORROW_FROM_SUB; break;
+
+      case OVERFLOW_FROM_SUB:     value = OVERFLOW_FROM_RSUB; break;
+      case NO_OVERFLOW_FROM_SUB:  value = NO_OVERFLOW_FROM_RSUB; break;
+      case OVERFLOW_FROM_RSUB:    value = OVERFLOW_FROM_SUB; break;
+      case NO_OVERFLOW_FROM_RSUB: value = NO_OVERFLOW_FROM_SUB; break;
+
+      case BIT_TEST:              value = RBIT_TEST; break;
+      case NO_BIT_TEST:           value = NO_RBIT_TEST; break;
+      case RBIT_TEST:             value = BIT_TEST; break;
+      case NO_RBIT_TEST:          value = NO_BIT_TEST; break;
+
+      case OVERFLOW_FROM_MUL:     break; // mul is commutative
+      case NO_OVERFLOW_FROM_MUL:  break;
+
       default:
         OptimizingCompilerException.UNREACHABLE();
     }
@@ -919,48 +1222,55 @@ public final class ConditionOperand extends Operand {
   @Override
   public String toString() {
     switch (value) {
-      case EQUAL:
-        return "==";
-      case NOT_EQUAL:
-        return "!=";
-      case LESS:
-        return "<";
-      case LESS_EQUAL:
-        return "<=";
-      case GREATER:
-        return ">";
-      case GREATER_EQUAL:
-        return ">=";
-      case HIGHER:
-        return ">U";
-      case LOWER:
-        return "<U";
-      case HIGHER_EQUAL:
-        return ">=U";
-      case LOWER_EQUAL:
-        return "<=U";
-      case CMPL_EQUAL:
-        return "==F";
-      case CMPL_GREATER:
-        return ">F";
-      case CMPG_LESS:
-        return "<F";
-      case CMPL_GREATER_EQUAL:
-        return ">=F";
-      case CMPG_LESS_EQUAL:
-        return "<=F";
-      case CMPL_NOT_EQUAL:
-        return "!=FU";
-      case CMPL_LESS:
-        return "<FU";
-      case CMPG_GREATER_EQUAL:
-        return ">=FU";
-      case CMPG_GREATER:
-        return ">FU";
-      case CMPL_LESS_EQUAL:
-        return "<=FU";
-      default:
-        return "UNKNOWN";
+      case EQUAL:              return "==";
+      case NOT_EQUAL:          return "!=";
+      case LESS:               return "<";
+      case LESS_EQUAL:         return "<=";
+      case GREATER:            return ">";
+      case GREATER_EQUAL:      return ">=";
+
+      case HIGHER:             return ">U";
+      case LOWER:              return "<U";
+      case HIGHER_EQUAL:       return ">=U";
+      case LOWER_EQUAL:        return "<=U";
+
+      case CMPL_EQUAL:         return "==F";
+      case CMPL_GREATER:       return ">F";
+      case CMPG_LESS:          return "<F";
+      case CMPL_GREATER_EQUAL: return ">=F";
+      case CMPG_LESS_EQUAL:    return "<=F";
+
+      case CMPL_NOT_EQUAL:     return "!=FU";
+      case CMPL_LESS:          return "<FU";
+      case CMPG_GREATER_EQUAL: return ">=FU";
+      case CMPG_GREATER:       return ">FU";
+      case CMPL_LESS_EQUAL:    return "<=FU";
+
+      case CARRY_FROM_ADD:        return "carry(+)";
+      case NO_CARRY_FROM_ADD:     return "nocarry(+)";
+
+      case OVERFLOW_FROM_ADD:     return "overflow(+)";
+      case NO_OVERFLOW_FROM_ADD:  return "nooverflow(+)";
+
+      case BORROW_FROM_SUB:       return "borrow(-)";
+      case NO_BORROW_FROM_SUB:    return "noborrow(-)";
+      case BORROW_FROM_RSUB:      return "borrow(r-)";
+      case NO_BORROW_FROM_RSUB:   return "noborrow(r-)";
+
+      case OVERFLOW_FROM_SUB:     return "overflow(-)";
+      case NO_OVERFLOW_FROM_SUB:  return "nooverflow(-)";
+      case OVERFLOW_FROM_RSUB:    return "overflow(r-)";
+      case NO_OVERFLOW_FROM_RSUB: return "nooverflow(r-)";
+
+      case BIT_TEST:              return "bt";
+      case NO_BIT_TEST:           return "!bt";
+      case RBIT_TEST:             return "rbt";
+      case NO_RBIT_TEST:          return "!rbt";
+
+      case OVERFLOW_FROM_MUL:     return "overflow(*)";
+      case NO_OVERFLOW_FROM_MUL:  return "nooverflow(*)";
+
+      default:                 return "UNKNOWN";
     }
   }
 }
