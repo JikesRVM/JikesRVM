@@ -1672,7 +1672,7 @@ Operand value, boolean signExtend) {
           EMIT(CPOS(s, MIR_Multiply.create(IA32_MUL,
               new RegisterOperand(getEDX(), TypeReference.Int),
               new RegisterOperand(getEAX(), TypeReference.Int),
-              new RegisterOperand(lowlhsReg, TypeReference.Int))));
+              new RegisterOperand(lowrhsReg1, TypeReference.Int))));
           EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
               new RegisterOperand(lowlhsReg, TypeReference.Int),
               new RegisterOperand(getEAX(), TypeReference.Int))));
