@@ -128,27 +128,26 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                Targets for retrieving mercurial version                  * -->
+  <!-- *                Targets for retrieving Git version                        * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="check-hg-present">
-    <available property="hg.present" file=".hg" type="dir"/>
-    <property name="hg.exe" value="hg"/>
+  <target name="check-git-present">
+    <available property="git.present" file=".git" type="dir"/>
+    <property name="git.exe" value="git"/>
   </target>
 
-  <target name="extract-hg-version" depends="check-hg-present" if="hg.present">
-    <exec executable="${hg.exe}">
-      <arg value="id"/>
-      <arg value="--debug"/>
-      <arg value="-i"/>
-      <redirector outputproperty="hg.revision" errorproperty="hg.revision.erroroutput"/>
+  <target name="extract-git-version" depends="check-git-present" if="git.present">
+    <exec executable="${git.exe}">
+      <arg value="rev-parse"/>
+      <arg value="HEAD"/>
+      <redirector outputproperty="git.revision" errorproperty="git.revision.erroroutput"/>
     </exec>
   </target>
 
-  <target name="get-hg-version" depends="extract-hg-version">
+  <target name="get-git-version" depends="extract-git-version">
     <!-- set property if not already set -->
-    <property name="hg.revision" value="Unknown"/>
+    <property name="git.revision" value="Unknown"/>
   </target>
 
 
