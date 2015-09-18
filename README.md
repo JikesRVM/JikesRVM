@@ -1,7 +1,4 @@
----
-layout: default
----
-# Jikes Research Virtual Machine
+## Jikes Research Virtual Machine
 
 Jikes RVM (Research Virtual Machine) provides a flexible open testbed to prototype virtual machine technologies and experiment with a large variety of design alternatives. The system is licensed under the [EPL](http://www.eclipse.org/legal/epl-v10.html), an [OSI](http://www.opensource.org/) approved license. Jikes RVM runs on IA32 32 bit (64 bit support is work in progress) and PowerPC (big endian only).
 
@@ -9,7 +6,7 @@ A distinguishing characteristic of Jikes RVM is that it is implemented in the Ja
 
 More information is available at our [website](http://www.jikesrvm.org).
 
-# Building
+## Building
 
 You'll need
 
@@ -21,15 +18,15 @@ You'll need
 
 Please see the [user guide](http://www.jikesrvm.org/UserGuide/) for more details.
 
-# Need support?
+## Need support?
 
 Please ask on the researchers [mailing list](http://www.jikesrvm.org/MailingLists/).
 
-# Bug reports
+## Bug reports
 
 If you want to report a bug, please see [this page on our website](http://www.jikesrvm.org/ReportingBugs/).
 
-# Contributions
+## Contributions
 
 See the [contributions page](http://www.jikesrvm.org/Contributions/) for details. 
 
@@ -39,6 +36,6 @@ The short version:
 * You can send us patches or use pull requests. Send patches to the [core mailing list](mailto:jikesrvm-core@lists.sourceforge.net).
 * It is ok to test on one platform only (e.g. only on IA32).
 
-# History
+## History
 
 The project migrated from Subversion to Mercurial and from Mercurial to Git. Certain older changes are not contained in this repository. If you need access to these changes, you can browse the old repositories at [SourceForge](http://sourceforge.net/p/jikesrvm). We will mirror the old repositories on GitHub in the future.
