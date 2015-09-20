@@ -33,6 +33,6 @@ public interface OptGCMapIteratorConstants extends PhysicalRegisterConstants {
   /*
    * the index of last register that may hold a reference
    */
-  int LAST_GCMAP_REG = 7;
+  int LAST_GCMAP_REG = NUM_GPRS - 1;
 
 }
