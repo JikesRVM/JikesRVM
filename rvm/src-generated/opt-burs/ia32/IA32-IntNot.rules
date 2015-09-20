@@ -1,0 +1,19 @@
+#####
+# INT_NOT
+#####
+r:	INT_NOT(r)
+13
+EMIT_INSTRUCTION
+EMIT_Unary(IA32_NOT, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+
+### Memory operands ###
+stm:	INT_STORE(INT_NOT(INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Unary(IA32_NOT, P(p), MO_S(P(p), DW), MO_S(P(p), DW));
+
+stm:	INT_ASTORE(INT_NOT(INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Unary(IA32_NOT, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW));
+

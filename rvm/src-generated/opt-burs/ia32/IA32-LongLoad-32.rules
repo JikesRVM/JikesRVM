@@ -1,0 +1,24 @@
+#####
+# LONG_LOAD
+#####
+r:	LONG_LOAD(riv, riv)
+30
+EMIT_INSTRUCTION
+RegisterOperand hres = Load.getResult(P(p)); \\
+RegisterOperand lres = new RegisterOperand(regpool.getSecondReg(hres.getRegister()), TypeReference.Int); \\
+hres.setType(TypeReference.Int); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_L(P(p), DW, DW).copy()))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_L(P(p), DW)));
+
+#####
+# LONG_ALOAD
+#####
+r:      LONG_ALOAD(riv, riv)
+30
+EMIT_INSTRUCTION
+RegisterOperand hres = ALoad.getResult(P(p)); \\
+RegisterOperand lres = new RegisterOperand(regpool.getSecondReg(hres.getRegister()), TypeReference.Int); \\
+hres.setType(TypeReference.Int); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_AL(P(p), QW_S, DW, DW).copy()))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_AL(P(p), QW_S, DW)));
+

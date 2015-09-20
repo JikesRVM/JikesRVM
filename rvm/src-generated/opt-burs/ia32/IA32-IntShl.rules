@@ -1,0 +1,62 @@
+#####
+# INT_SHL
+#####
+szpr:	INT_SHL(riv, INT_AND(r, INT_CONSTANT))
+VRR(p) == 31 ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PR(p))))); \\
+EMIT_NonCommutative(IA32_SHL, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), new RegisterOperand(getECX(), TypeReference.Int));
+
+szpr:	INT_SHL(riv, riv)
+23
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal2(P(p))))); \\
+EMIT_NonCommutative(IA32_SHL, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), new RegisterOperand(getECX(), TypeReference.Int));
+
+szpr:	INT_SHL(r, INT_CONSTANT)
+13
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 31); \
+if(Binary.getVal2(P(p)).asIntConstant().value == 1) { \\
+ EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal1(P(p)).copy()); \\
+} else { \\
+ EMIT_NonCommutative(IA32_SHL, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \\
+}
+
+r:	INT_SHL(r, INT_CONSTANT)
+!Binary.getResult(P(p)).similar(Binary.getVal1(P(p))) && \
+(Binary.getVal2(P(p)).asIntConstant().value & 0x1f) <= 3 ? 11 : INFINITE
+EMIT_INSTRUCTION
+pushAddress(null, Binary.getVal1(P(p)).asRegister(), LEA_SHIFT(Binary.getVal2(P(p))), Offset.zero()); \\
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+
+# Are shifts being used to mask out lower bits?
+szpr:	INT_SHL(INT_SHR(r, INT_CONSTANT), INT_CONSTANT)
+(VR(p) == VLR(p)) ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)), IC(0xffffffff << VR(p)));
+
+### Memory operands ###
+stm:	INT_STORE(INT_SHL(INT_LOAD(riv,riv),INT_AND(r,INT_CONSTANT)),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), VLRR(p) == 31 ? 27 : INFINITE)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PLR(p))))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), new RegisterOperand(getECX(), TypeReference.Int)));
+
+stm:	INT_STORE(INT_SHL(INT_LOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), Binary.getVal2(PL(p))));
+
+stm:	INT_ASTORE(INT_SHL(INT_ALOAD(riv,riv),INT_AND(r, INT_CONSTANT)),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLRR(p) == 31 ? 27 : INFINITE)
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PLR(p)))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), new RegisterOperand(getECX(), TypeReference.Int)));
+
+stm:	INT_ASTORE(INT_SHL(INT_ALOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLR(p) == 31 ? 17 : INFINITE)
+EMIT_INSTRUCTION
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p))));
+

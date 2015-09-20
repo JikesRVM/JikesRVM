@@ -741,6 +741,7 @@ abstract class AssemblerBase extends Assembler
     for (int i = 0; i < inst.getNumberOfOperands(); i++) {
       Operand op = inst.getOperand(i);
       if (VM.BuildFor64Addr) {
+        if (op == null) continue;
         if (op.isLong() || op.isRef()) {
           return true;
         }

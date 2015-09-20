@@ -1,0 +1,23 @@
+#####
+# INT_2BYTE
+#####
+r:	INT_2BYTE(r)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, Unary.getResult(P(p)), Unary.getVal(P(p))));
+
+r:	INT_2BYTE(load8_16_32)
+17
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, Unary.getResult(P(p)), consumeMO()));
+
+stm:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(riv, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), Unary.getVal(PL(p))));
+
+stm:	BYTE_ASTORE(INT_2BYTE(r),OTHER_OPERAND(riv, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), Unary.getVal(PL(p))));
+

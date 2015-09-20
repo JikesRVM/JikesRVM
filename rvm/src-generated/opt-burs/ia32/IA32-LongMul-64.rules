@@ -1,0 +1,19 @@
+#####
+# LONG_MUL
+#####
+r:	LONG_MUL(r, rlv)
+13
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_IMUL2, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+### Memory operands ###
+r:	INT_MUL(r, load64)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_IMUL2, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r:	INT_MUL(load64, rlv)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_IMUL2, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+

@@ -1,0 +1,19 @@
+#####
+# LONG_STORE
+#####
+stm:	LONG_STORE(r, OTHER_OPERAND(riv, riv))
+30
+EMIT_INSTRUCTION
+RegisterOperand hval = (RegisterOperand)Store.getValue(P(p)); \\
+hval.setType(TypeReference.Int); \\
+RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()), TypeReference.Int); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), hval))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), lval));
+
+stm:	LONG_STORE(LONG_CONSTANT, OTHER_OPERAND(riv, riv))
+26
+EMIT_INSTRUCTION
+LongConstantOperand val = LC(Store.getValue(P(p))); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), IC(val.upper32())))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), IC(val.lower32())));
+

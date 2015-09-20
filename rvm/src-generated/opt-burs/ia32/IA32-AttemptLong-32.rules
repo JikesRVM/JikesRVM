@@ -1,0 +1,10 @@
+#####
+# ATTEMPT_LONG (atomic compare-exchange)
+#####
+r:	ATTEMPT_LONG(riv, OTHER_OPERAND(riv, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+ATTEMPT_LONG(Attempt.getResult(P(p)), \\
+              MO(Attempt.getAddress(P(p)), Attempt.getOffset(P(p)), DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+

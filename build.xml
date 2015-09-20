@@ -534,6 +534,7 @@ Check to make sure all required properties are specified. This includes properti
     <attribute name="operatorList"/>
     <attribute name="rulesList"/>
     <sequential>
+      <echo>Generating IR for architecture @{arch} with address size @{addressSize} </echo>
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir"/>
       <GenerateFromTemplate>
         <args>
@@ -609,6 +610,7 @@ Check to make sure all required properties are specified. This includes properti
 
       <exec executable="${build.jburg.dir}/jburg"
             dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/lir2mir/@{arch}"
+            logError="true"
             failonerror="true">
         <arg value="-a"/>
         <arg value="@{arch}"/>
@@ -742,7 +744,7 @@ Check to make sure all required properties are specified. This includes properti
 	
   <target name="gen-opt-ir-uptodate-check" depends="check-properties, prepare-ant-tasks, jburg-uptodate-check">
     <uptodate-check filename="Opt-IR-uptodate" property="opt-ir-files" srcdir1="${build.ir.dir}" srcdir2="${build.burs.dir}"/>
-  	
+
     <!-- gen-opt-ir uses jburg, so gen-opt-ir can only be uptodate if jburg is also uptodate -->
     <condition property="opt-ir.uptodate">
       <and>
@@ -773,29 +775,46 @@ Check to make sure all required properties are specified. This includes properti
       <filelist dir="${build.burs.dir}/ppc" files="PPC_Common.rules,PPC_Alu64.rules,PPC_Mem64.rules"/>
     </concat>
 
-    <if>
-      <conditions>
-        <equals arg1="${target.arch.sse2}" arg2="full"/>
-      </conditions>
-      <sequential>
-        <property name="ia32-fp-rules" value="IA32_SSE2.rules"/>
-      </sequential>
-    </if>
+    <condition property="IA32-fp-rules"
+      value="IA32_SSE2.rules"
+      else="IA32_x87.rules">
+      <equals arg1="${target.arch.sse2}" arg2="full"/>
+    </condition>
 
-    <property name="ia32-fp-rules" value="IA32_x87.rules"/>
+    <!-- generate rule lists for ia32 32 bit -->
+    <concat destfile="${generated.dir}/IA32-32bit_RulesList.dat">
+      <header file="${build.burs.dir}/ia32/IA32.rules"/>
+      <fileset dir="${build.burs.dir}/ia32">
+        <include name="**/*.rules"/>
+        <exclude name="**/IA32.rules"/>
+        <exclude name="**/*-64.rules"/>
+        <exclude name="**/*SSE2.rules"/>
+        <exclude name="**/*x87.rules"/>
+      </fileset>
+      <footer file="${build.burs.dir}/ia32/${IA32-fp-rules}"/>
+    </concat>
 
-    <concat destfile="${generated.dir}/IA32_RulesList.dat">
-      <filelist dir="${build.burs.dir}/ia32" files="IA32.rules,${ia32-fp-rules}"/>
+    <!-- generate rule lists for ia32 64 bit -->
+    <concat destfile="${generated.dir}/IA32-64bit_RulesList.dat">
+      <header file="${build.burs.dir}/ia32/IA32.rules"/>
+      <fileset dir="${build.burs.dir}/ia32">
+        <include name="**/*.rules"/>
+        <exclude name="**/IA32.rules"/>
+        <exclude name="**/*-32.rules"/>
+        <exclude name="**/*SSE2.rules"/>
+        <exclude name="**/*x87.rules"/>
+      </fileset>
+      <footer file="${build.burs.dir}/ia32/${IA32-fp-rules}"/>
     </concat>
 
     <generate-ir arch="ia32"
                  addressSize="32"
                  operatorList="${build.ir.dir}/ia32/OperatorList.dat"
-                 rulesList="${generated.dir}/IA32_RulesList.dat"/>
+                 rulesList="${generated.dir}/IA32-32bit_RulesList.dat"/>
     <generate-ir arch="ia32"
                  addressSize="64"
                  operatorList="${build.ir.dir}/ia32/OperatorList.dat"
-                 rulesList="${generated.dir}/IA32_RulesList.dat"/>
+                 rulesList="${generated.dir}/IA32-64bit_RulesList.dat"/>
     <generate-ir arch="ppc"
                  addressSize="32"
                  operatorList="${generated.dir}/PPC-32bit_OperatorList.dat"

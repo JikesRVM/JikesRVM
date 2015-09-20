@@ -1,0 +1,29 @@
+#####
+# LONG_MOVE
+#####
+r:	LONG_MOVE(r)
+23
+EMIT_INSTRUCTION
+Register res1 = Move.getResult(P(p)).getRegister();           \\
+Register res2 = regpool.getSecondReg(res1);              \\
+Register val1 = Move.getVal(P(p)).asRegister().getRegister(); \\
+Register val2 = regpool.getSecondReg(val1);              \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new RegisterOperand(res1, TypeReference.Int), \\
+                     new RegisterOperand(val1, TypeReference.Int)));               \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(res2, TypeReference.Int), \\
+                     new RegisterOperand(val2, TypeReference.Int))));
+
+r:	LONG_MOVE(LONG_CONSTANT)
+21
+EMIT_INSTRUCTION
+Register res1 = Move.getResult(P(p)).getRegister();   \\
+Register res2 = regpool.getSecondReg(res1);      \\
+LongConstantOperand val = LC(Move.getVal(P(p))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new RegisterOperand(res1, TypeReference.Int), IC(val.upper32()))); \\
+EMIT(CPOS(P(p),MIR_Move.create(IA32_MOV, new RegisterOperand(res2, TypeReference.Int), IC(val.lower32()))));
+
+load64:	LONG_MOVE(load64)
+0
+NOFLAGS
+// nothing to do
+

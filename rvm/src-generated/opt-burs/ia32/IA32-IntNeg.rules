@@ -1,0 +1,19 @@
+#####
+# INT_NEG
+#####
+szpr:	INT_NEG(r)
+13
+EMIT_INSTRUCTION
+EMIT_Unary(IA32_NEG, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+
+### Memory operands ###
+stm:	INT_STORE(INT_NEG(INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Unary(IA32_NEG, P(p), MO_S(P(p), DW), MO_S(P(p), DW));
+
+stm:	INT_ASTORE(INT_NEG(INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Unary(IA32_NEG, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW));
+

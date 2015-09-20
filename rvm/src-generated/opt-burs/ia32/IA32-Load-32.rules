@@ -1,0 +1,167 @@
+##################################
+# Register loads, also allow Load/Store instructions to be recognized as potential memory operands
+##################################
+#####
+# BYTE_LOAD
+#####
+r:      BYTE_LOAD(riv, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, Load.getResult(P(p)), MO_L(P(p), B)));
+
+sload8:	BYTE_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), B));
+
+#####
+# BYTE_ALOAD
+#####
+r:      BYTE_ALOAD(riv, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B)));
+
+sload8:	BYTE_ALOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), B_S, B));
+
+#####
+# UBYTE_LOAD
+#####
+r:      UBYTE_LOAD(riv, riv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, Load.getResult(P(p)), MO_L(P(p), B)));
+
+uload8:	UBYTE_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), B));
+
+#####
+# UBYTE_ALOAD
+#####
+r:      UBYTE_ALOAD(riv, riv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B)));
+
+uload8:	UBYTE_ALOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), B_S, B));
+
+load8:	sload8
+0
+NOFLAGS
+// no code emitted
+
+load8:	uload8
+0
+NOFLAGS
+// no code emitted
+
+#####
+# SHORT_LOAD
+#####
+r:      SHORT_LOAD(riv, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Load.getResult(P(p)), MO_L(P(p), W)));
+
+sload16: SHORT_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), W));
+
+#####
+# SHORT_ALOAD
+#####
+r:      SHORT_ALOAD(riv, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W)));
+
+sload16: SHORT_ALOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), W_S, W));
+
+#####
+# USHORT_LOAD
+#####
+r:      USHORT_LOAD(riv, riv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, Load.getResult(P(p)), MO_L(P(p), W)));
+
+uload16: USHORT_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), W));
+
+#####
+# USHORT_ALOAD
+#####
+r:      USHORT_ALOAD(riv, riv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W)));
+
+uload16: USHORT_ALOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), W_S, W));
+
+load16:	sload16
+0
+NOFLAGS
+// no code emitted
+
+load16:	uload16
+0
+NOFLAGS
+// no code emitted
+
+load32:	INT_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), DW));
+
+load32:	INT_ALOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), DW_S, DW));
+
+load16_32:      load16
+0
+NOFLAGS
+// no code emitted
+
+load16_32:      load32
+0
+NOFLAGS
+// no code emitted
+
+load8_16_32:	load16_32
+0
+NOFLAGS
+// no code emitted
+
+load8_16_32:	load8
+0
+NOFLAGS
+// no code emitted
+
+load64:	LONG_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), QW));
+
+load64:	LONG_ALOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), QW_S, QW));
+

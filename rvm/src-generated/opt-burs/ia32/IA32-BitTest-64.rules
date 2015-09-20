@@ -1,0 +1,92 @@
+########
+# bit test instructions
+# TODO: long bit tests and long bit test for when AND is testing high 32bits
+########
+# (base >>>/>> offset) & 1
+# int_and
+#    int_ushr              L
+#       register           LL <-- base
+#       int_and            LR <-- offset (if int constant)
+#          register        LRL <-- offset
+#          INT_CONSTANT 31 LRR
+#    INT_CONSTANT 1        R
+bittest:	INT_AND(INT_USHR(r,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+(VR(p) == 1) && (VLRR(p) == 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), Binary.getVal1(PLR(p)).copy()));
+
+bittest:	INT_AND(INT_USHR(load32,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+VR(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+Register tmp = regpool.getInteger(); \\
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Int), Binary.getVal1(PLR(p))))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new RegisterOperand(tmp, TypeReference.Int), IC(VLRR(p))))); \\
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new RegisterOperand(tmp, TypeReference.Int)));
+
+bittest:	INT_AND(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) <= 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), IC(VLR(p))));
+
+bittest:	INT_AND(INT_SHR(r,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+(VR(p) == 1) && (VLRR(p) == 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), Binary.getVal1(PLR(p)).copy()));
+
+bittest:	INT_AND(INT_SHR(load32,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+VR(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+Register tmp = regpool.getInteger(); \\
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Int), Binary.getVal1(PLR(p))))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new RegisterOperand(tmp, TypeReference.Int), IC(VLRR(p))))); \\
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new RegisterOperand(tmp, TypeReference.Int)));
+
+bittest:	INT_AND(INT_SHR(r,INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) <= 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), IC(VLR(p))));
+
+# int_and
+#    int_shl               L
+#       INT_CONSTANT 1     LL
+#       int_and            LR
+#          register        LRL <-- offset
+#          INT_CONSTANT 31 LRR
+#    register              R <-- base
+bittest:	INT_AND(INT_SHL(INT_CONSTANT,INT_AND(riv,INT_CONSTANT)),r)
+(VLL(p) == 1) && (VLRR(p) == 31)? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal2(P(p)), Binary.getVal1(PLR(p)).copy()));
+
+bittest:	INT_AND(INT_SHL(INT_CONSTANT,INT_AND(r, INT_CONSTANT)),load32)
+VLL(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+Register tmp = regpool.getInteger(); \\
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Int), Binary.getVal1(PLR(p))))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new RegisterOperand(tmp, TypeReference.Int), IC(VLRR(p))))); \\
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new RegisterOperand(tmp, TypeReference.Int)));
+
+# int_and
+#    register              L <-- base
+#    int_shl               R
+#       INT_CONSTANT 1     RL
+#       int_and            RR
+#          register        RRL <-- offset
+#          INT_CONSTANT 31 RRR
+bittest:	INT_AND(r,INT_SHL(INT_CONSTANT,INT_AND(r, INT_CONSTANT)))
+(VRL(p) == 1) && (VRRR(p) == 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(P(p)), Binary.getVal1(PRR(p)).copy()));
+
+bittest:	INT_AND(load32,INT_SHL(INT_CONSTANT,INT_AND(r, INT_CONSTANT)))
+VRL(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+Register tmp = regpool.getInteger(); \\
+if (VM.VerifyAssertions) VM._assert((VRRR(p) & 0x7FFFFFFF) <= 31); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Int), Binary.getVal1(PRR(p))))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new RegisterOperand(tmp, TypeReference.Int), IC(VRRR(p))))); \\
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new RegisterOperand(tmp, TypeReference.Int)));
+

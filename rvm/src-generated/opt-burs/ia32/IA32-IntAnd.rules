@@ -1,0 +1,54 @@
+#####
+# INT_AND
+#####
+szpr:	INT_AND(r, riv)
+13
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+szp:	INT_AND(r, riv)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, Binary.getVal1(P(p)), Binary.getVal2(P(p))));
+
+### Memory operands ###
+szpr:	INT_AND(r, load32)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+szpr:	INT_AND(load32, riv)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+szp:	INT_AND(load8_16_32, riv)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal2(P(p))));
+
+szp:	INT_AND(r, load8_16_32)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal1(P(p))));
+
+stm:	INT_STORE(INT_AND(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_S(P(p), DW), MO_S(P(p), DW), Binary.getVal2(PL(p)) );
+
+stm:	INT_STORE(INT_AND(r,INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLR(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_S(P(p), DW), MO_S(P(p), DW), Binary.getVal1(PL(p)) );
+
+stm:	INT_ASTORE(INT_AND(INT_ALOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p)) );
+
+stm:	INT_ASTORE(INT_AND(r,INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal1(PL(p)) );
+

@@ -1,0 +1,168 @@
+#####
+# ATTEMPT_LONG (atomic compare-exchange)
+#####
+r:	ATTEMPT_LONG(rlv, OTHER_OPERAND(rlv, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+ATTEMPT(Attempt.getResult(P(p)), \\
+              MO(Attempt.getAddress(P(p)), Attempt.getOffset(P(p)), DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+r:	ATTEMPT_LONG(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getAddress(P(p))); \\
+ATTEMPT(Attempt.getResult(P(p)), \\
+              consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+r:	ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(r, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getOffset(P(p))); \\
+ATTEMPT(Attempt.getResult(P(p)), \\
+              consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+r:	ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(address1reg, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+combineAddresses(); \\
+ATTEMPT(Attempt.getResult(P(p)), \\
+              consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+r:	ATTEMPT_LONG(address1reg, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+combineAddresses(); \\
+ATTEMPT(Attempt.getResult(P(p)), \\
+              consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+r:	ATTEMPT_LONG(address, OTHER_OPERAND(LONG_CONSTANT, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getOffset(P(p))); \\
+ATTEMPT(Attempt.getResult(P(p)), \\
+              consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+r:	ATTEMPT_LONG(LONG_CONSTANT, OTHER_OPERAND(address, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getAddress(P(p))); \\
+ATTEMPT(Attempt.getResult(P(p)), \\
+              consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(rlv, OTHER_OPERAND(rlv, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isZERO(VR(p), 54)
+EMIT_INSTRUCTION
+ATTEMPT_IFCMP(MO(Attempt.getAddress(PL(p)), Attempt.getOffset(PL(p)), DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isZERO(VR(p), 54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getAddress(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(r, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isZERO(VR(p), 54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getOffset(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(address1reg, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isZERO(VR(p),54)
+EMIT_INSTRUCTION
+combineAddresses(); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address1reg, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isZERO(VR(p),54)
+EMIT_INSTRUCTION
+combineAddresses(); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address, OTHER_OPERAND(LONG_CONSTANT, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isZERO(VR(p), 54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getOffset(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(LONG_CONSTANT, OTHER_OPERAND(address, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isZERO(VR(p),54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getAddress(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(rlv, OTHER_OPERAND(rlv, OTHER_OPERAND(rlv,rlv))), INT_CONSTANT)
+isONE(VR(p), 54)
+EMIT_INSTRUCTION
+ATTEMPT_IFCMP(MO(Attempt.getAddress(PL(p)), Attempt.getOffset(PL(p)), DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isONE(VR(p), 54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getAddress(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(r, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isONE(VR(p), 54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getOffset(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(address1reg, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isONE(VR(p), 54)
+EMIT_INSTRUCTION
+combineAddresses(); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address1reg, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isONE(VR(p), 54)
+EMIT_INSTRUCTION
+combineAddresses(); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(address, OTHER_OPERAND(LONG_CONSTANT, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isONE(VR(p), 54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getOffset(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+stm:	INT_IFCMP(ATTEMPT_LONG(LONG_CONSTANT, OTHER_OPERAND(address, OTHER_OPERAND(rlv,rlv))),INT_CONSTANT)
+isONE(VR(p), 54)
+EMIT_INSTRUCTION
+augmentAddress(Attempt.getAddress(PL(p))); \\
+ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \\
+	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \\
+		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+

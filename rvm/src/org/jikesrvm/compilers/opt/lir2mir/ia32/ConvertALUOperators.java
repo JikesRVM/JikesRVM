@@ -120,7 +120,13 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
         s.changeOperatorTo(VM.BuildFor32Addr ? ATTEMPT_INT : ATTEMPT_LONG);
         break;
       case PREPARE_ADDR_opcode:
-        s.changeOperatorTo(VM.BuildFor32Addr ? PREPARE_INT : PREPARE_LONG);
+        s.changeOperatorTo(VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD);
+        break;
+      case PREPARE_INT_opcode:
+        s.changeOperatorTo(INT_LOAD);
+        break;
+      case PREPARE_LONG_opcode:
+        s.changeOperatorTo(LONG_LOAD);
         break;
       case INT_2ADDRSigExt_opcode:
         s.changeOperatorTo(VM.BuildFor32Addr ? INT_MOVE : INT_2LONG);
@@ -135,12 +141,15 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
         break;
       case ADDR_2LONG_opcode:
         // Note that a 32-bit ADDR_2LONG cannot be changed to an INT_2LONG because
-        // that implies using the Java conventions. Java widening conversions
-        // use sign extension which are not appropriate for addresses. The unboxed
+        // INT_2LONG uses the Java conventions for widening by default. Java widening
+        // uses sign extension which is not appropriate for addresses. The unboxed
         // types that Jikes RVM uses define that the toLong() methods use zero-extension.
         // For example, for 0xFFFF FFFF (32 bit addresses) the result is supposed to be
         // 0x0000 0000 FFFF FFFF but with sign extension it would be
         // 0xFFFF FFFF FFFF FFFF.
+        // Therefore, let BURS rules convert to ADDR_2LONG. The BURS rules can use
+        // methods from BURS_Helpers which provide the possibility to emit code for an
+        // INT_2LONG that uses zero-extension.
         if (VM.BuildFor64Addr) {
           s.changeOperatorTo(LONG_MOVE);
         }

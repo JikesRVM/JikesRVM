@@ -1,0 +1,59 @@
+#####
+# Rotates
+#####
+r:	INT_OR(INT_SHL(r,INT_CONSTANT),INT_USHR(r,INT_CONSTANT))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+((-VLR(p)) & 0x1f) == (VRR(p)&0x1f) ? 13 : INFINITE
+EMIT_INSTRUCTION
+EMIT_NonCommutative(IA32_ROL, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), IC(VLR(p)&0x1f));
+
+r:      INT_OR(INT_USHR(r,INT_CONSTANT),INT_SHL(r,INT_CONSTANT))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+((-VRR(p)) & 0x1f) == (VLR(p)&0x1f) ? 13 : INFINITE
+EMIT_INSTRUCTION
+EMIT_NonCommutative(IA32_ROL, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), IC(VRR(p)&0x1f));
+
+r:      INT_OR(INT_SHL(r,INT_CONSTANT),INT_USHR(r,INT_CONSTANT))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+((-VLR(p)) & 0x1f) == (VRR(p)&0x1f) && ((VLR(p)&0x1f) == 31) ? 11 : INFINITE
+EMIT_INSTRUCTION
+EMIT_NonCommutative(IA32_ROR, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), IC(1));
+
+r:      INT_OR(INT_USHR(r,INT_CONSTANT),INT_SHL(r,INT_CONSTANT))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+((-VRR(p)) & 0x1f) == (VLR(p)&0x1f) && ((VRR(p)&0x1f) == 31) ? 11 : INFINITE
+EMIT_INSTRUCTION
+EMIT_NonCommutative(IA32_ROR, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), IC(1));
+
+r:      INT_OR(INT_SHL(r,INT_AND(r,INT_CONSTANT)),INT_USHR(r,INT_AND(INT_NEG(r),INT_CONSTANT)))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+(VLRR(p) == 31) && (VRRR(p) == 31) && \
+Binary.getVal1(PLR(p)).similar(Unary.getVal(PRRL(p))) ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PLR(p))))); \\
+EMIT_NonCommutative(IA32_ROL, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), new RegisterOperand(getECX(), TypeReference.Int));
+
+r:      INT_OR(INT_USHR(r,INT_AND(INT_NEG(r),INT_CONSTANT)),INT_SHL(r,INT_AND(r,INT_CONSTANT)))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+(VLRR(p) == 31) && (VRRR(p) == 31) && \
+Binary.getVal1(PRR(p)).similar(Unary.getVal(PLRL(p))) ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PRR(p))))); \\
+EMIT_NonCommutative(IA32_ROL, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), new RegisterOperand(getECX(), TypeReference.Int));
+
+r:      INT_OR(INT_SHL(r,INT_AND(INT_NEG(r),INT_CONSTANT)),INT_USHR(r,INT_AND(r,INT_CONSTANT)))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+(VLRR(p) == 31) && (VRRR(p) == 31) && \
+Binary.getVal1(PRR(p)).similar(Unary.getVal(PLRL(p))) ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PRR(p))))); \\
+EMIT_NonCommutative(IA32_ROR, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), new RegisterOperand(getECX(), TypeReference.Int));
+
+r:      INT_OR(INT_USHR(r,INT_AND(r,INT_CONSTANT)),INT_SHL(r,INT_AND(INT_NEG(r),INT_CONSTANT)))
+Binary.getVal1(PL(p)).similar(Binary.getVal1(PR(p))) && \
+(VLRR(p) == 31) && (VRRR(p) == 31) && \
+Binary.getVal1(PLR(p)).similar(Unary.getVal(PRRL(p))) ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PLR(p))))); \\
+EMIT_NonCommutative(IA32_ROR, P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)).copy(), new RegisterOperand(getECX(), TypeReference.Int));
+

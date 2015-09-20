@@ -1,0 +1,15 @@
+#####
+# BOOLEAN_CMP_LONG
+#####
+r:	BOOLEAN_CMP_LONG(rlv,rlv)
+8*13
+EMIT_INSTRUCTION
+BOOLEAN_CMP_LONG(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)), BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP_LONG(rlv,rlv)
+11*13
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \\
+LONG_CMP(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p))); \\
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, BooleanCmp.getResult(P(p)), IC(0))));
+
