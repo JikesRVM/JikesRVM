@@ -1407,6 +1407,7 @@ Operand value, boolean signExtend) {
       rhs2 = lowrhs2.copy();
       rhs2.asMemory().disp = rhs2.asMemory().disp.plus(4);
     }
+
     // Peep hole optimizations
     if ((operator1 == IA32_ADD) &&
         lowrhs2.isIntConstant() &&
@@ -1437,7 +1438,7 @@ Operand value, boolean signExtend) {
           // operation has no effect
           operator2 = null;
         } else if (rhs2.asIntConstant().value == -1) {
-          // move 0
+          // move -1
           operator2 = IA32_MOV;
         }
       }
@@ -1478,6 +1479,8 @@ Operand value, boolean signExtend) {
         }
       }
     }
+    // End of peephole optimizations
+
     if (operator1 == null) {
       // no operation
     } else if (operator1 == IA32_MOV) {
