@@ -1371,7 +1371,15 @@ Operand value, boolean signExtend) {
       lhs = lowlhs.copy();
       lhs.asMemory().disp = lhs.asMemory().disp.plus(4);
     }
-    if (needsMove) {
+
+    // Clobbering can occur when a move is needed and result and value2 have the
+    // same type (e.g. when both result and value2 use the same register after
+    // register allocation).
+    boolean computeOnTemp = needsMove && result.similar(value2);
+    RegisterOperand temp1 = null;
+    RegisterOperand temp2 = null;
+
+    if (needsMove && !computeOnTemp) {
       Operand rhs1, lowrhs1;
       if (value1.isRegister()) {
         Register rhs1Reg = value1.asRegister().getRegister();
@@ -1390,6 +1398,36 @@ Operand value, boolean signExtend) {
       }
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lowlhs.copy(), lowrhs1)));
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lhs.copy(), rhs1)));
+    } else if (needsMove && computeOnTemp) {
+      // Clobbering can't occur for commutative operations due to canonical forms
+      if (VM.VerifyAssertions && computeOnTemp) opt_assert(!commutative);
+
+      // In order to prevent clobbering, the calculation will be done on temp
+      // registers and the result will be moved back to the proper result register
+      // later. Register allocation and subsequent optimizations will clean up
+      // any unneeded moves.
+      Operand rhs1, lowrhs1;
+      temp1 = regpool.makeTempInt();
+      temp2 = regpool.makeTempInt();
+      // Move value1 into temp
+      if (value1.isRegister()) {
+        Register rhs1Reg = value1.asRegister().getRegister();
+        Register lowrhs1Reg = regpool.getSecondReg(rhs1Reg);
+        lowrhs1 = new RegisterOperand(lowrhs1Reg, TypeReference.Int);
+        rhs1 = new RegisterOperand(rhs1Reg, TypeReference.Int);
+      } else if (value1.isMemory()) {
+        if (VM.VerifyAssertions) opt_assert(VM.NOT_REACHED);
+        lowrhs1 = setSize(value1.asMemory(),DW);
+        rhs1 = lowrhs1.copy();
+        rhs1.asMemory().disp = rhs1.asMemory().disp.plus(4);
+      } else {
+        rhs1 = IC(value1.asLongConstant().upper32());
+        lowrhs1 = IC(value1.asLongConstant().lower32());
+      }
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp1, lowrhs1)));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp2, rhs1)));
+      lowlhs = temp1;
+      lhs = temp2;
     }
     // Break apart RHS 2
     Operand rhs2, lowrhs2;
@@ -1509,6 +1547,25 @@ Operand value, boolean signExtend) {
           lhs,
           rhs2)));
     }
+
+    // Move results from temporaries to original result registers
+    if (computeOnTemp) {
+      if (result.isRegister()) {
+        Register lhsReg = result.asRegister().getRegister();
+        Register lowlhsReg = regpool.getSecondReg(lhsReg);
+        lowlhs = new RegisterOperand(lowlhsReg, TypeReference.Int);
+        lhs = new RegisterOperand(lhsReg, TypeReference.Int);
+      } else {
+        // Memory operand
+        if (VM.VerifyAssertions) opt_assert(result.isMemory());
+        lowlhs = setSize(result.asMemory(), DW);
+        lhs = lowlhs.copy();
+        lhs.asMemory().disp = lhs.asMemory().disp.plus(4);
+      }
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lowlhs, temp1)));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lhs, temp2)));
+    }
+
   }
 
   /**
