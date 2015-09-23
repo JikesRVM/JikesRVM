@@ -672,7 +672,7 @@ if ($cvs_head) {
   $cp_flags .= "-Dclasspath.from-cvs=true ";
 }
 
-$rvm_revision=`hg id --debug -i`;
+$rvm_revision=`git rev-parse HEAD`;
 chomp($rvm_revision);
 
 if ($ok) {
@@ -684,7 +684,7 @@ if ($ok) {
     # Principal "-D" defines for ant
     $defs = "-Dtarget.name=$targetConfig ".
             "-Dconfig.name=$config ".
-            "-Dhg.revision=$rvm_revision ";
+            "-Dgit.revision=$rvm_revision ";
      
     if ($suffix ne "") {
       $defs .= "-Dconfig.variant=$suffix ";
@@ -868,7 +868,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
           "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
           "-Dhost.name=$targetConfig ".
-          "-Dhg.revision=$rvm_revision ".
+          "-Dgit.revision=$rvm_revision ".
           "-Dskip.build=true ".
           "-Dexternal.lib.dir=$extlibdir ".
           "-Dresults.dir=$targetRoot/$resultdir ";
