@@ -941,7 +941,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
 
   if ($target ne $local) {
     $rsync = "mkdir -p $localRoot/$resultdir && ".
-             "rm -f $localRoot/results/buildit/$results_name && ".
+             "rm -rf $localRoot/results/buildit/$results_name && ".
              "ln -s $localRoot/$resultdir $localRoot/results/buildit/$results_name && ".
              "rsync -azvLe ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
   }
