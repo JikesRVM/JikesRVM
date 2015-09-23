@@ -1030,14 +1030,14 @@ if ($save_space) {
   }
 
   # Create latest dir again.
-  $createLatestDir = "mkdir -p $localRoot/results/buildit/latest";
+  $createLatestDir = "mkdir -p $localRoot/results/buildit/latest/archive";
   print "$createLatestDir\n";
   if(! $dry_run) {
    system($createLatestDir);
   }
 
   # Move archive results to new latest dir so they can be found for post-processing.
-  $moveArchiveResults = "mv $resultdir/archive/* $localRoot/results/buildit/latest";
+  $moveArchiveResults = "mv $resultdir/archive/* $localRoot/results/buildit/latest/archive";
   print "$moveArchiveResults\n";
   if(! $dry_run) {
     system($moveArchiveResults);
