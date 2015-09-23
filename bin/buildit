@@ -1043,11 +1043,19 @@ if ($save_space) {
     system($moveArchiveResults);
   }
 
+  # Move test results dir to new latest dir so test results (e.g. JUnit report) can be
+  # found for post processing.
+  $moveTestResults = "mv $resultdir/tests  $localRoot/results/buildit/latest/";
+  print "$moveTestResults\n";
+  if(! $dry_run) {
+    system($moveTestResults);
+  }
+
   # Remove result files that won't be archived.
   $removeResults = "rm -rf $resultdir";
   print "$removeResults\n";
   if(! $dry_run) {
-   system($removeResults);
+    system($removeResults);
   }
 
   print "==== Space saving complete ====\n";
