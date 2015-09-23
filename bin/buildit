@@ -113,6 +113,7 @@ Testing Options:
      --ext-lib-dir    Specify the benchmarks directory for testing.
      --processors     Specify the number of processors to use.
  -z, --skip-build     Run tests without building
+     --save-space     Keep only archived results on the local machine and throw away the rest
 
 ";
 
@@ -180,6 +181,7 @@ GetOptions(
   "with-perfevent" => \$with_perfevent,
   "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
+  "save-space" => \$save_space,
   "h|help" => \$help,
   "x87" => \$x87,
   "harmony" => \$harmony,
@@ -992,6 +994,31 @@ if ($test_set) {
   }
 }
 print "===================================================\n";
+
+if ($save_space) {
+ print "==== Saving space by deleting results and only keeping archives ====\n";
+  $makeArchiveDir = "mkdir -p $localRoot/results/buildit/archived";
+  print "$makeArchiveDir\n";
+  if(! $dry_run) {
+    system($makeArchiveDir);
+  }
+  $moveArchiveResults = "mv $resultdir/archive/* $localRoot/results/buildit/archived";
+  print "$moveArchiveResults\n";
+  if(! $dry_run) {
+    system($moveArchiveResults);
+  }
+  $removeResults = "rm -rf $resultdir";
+  print "$removeResults\n";
+  if(! $dry_run) {
+   system($removeResults);
+  }
+  $removeLatestSymlink = "rm $localRoot/results/buildit/latest";
+  print "$removeLatestSymlink\n";
+  if(! $dry_run) {
+   system($removeLatestSymlink);
+  }
+  print "==== Space saving complete ====\n";
+}
 
 
 sub msg_warn {
