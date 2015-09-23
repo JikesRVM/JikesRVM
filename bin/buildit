@@ -865,7 +865,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   $test = "$sshTargetCmdT '$shell \" ".
           "  cd $targetRoot && ".
           "  mkdir -p $resultdir && ".
-          "  rm -f results/buildit/latest && ".
+          "  rm -rf results/buildit/latest && ".
           "  ln -s $testsid results/buildit/latest && ".
           "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
@@ -996,27 +996,60 @@ if ($test_set) {
 print "===================================================\n";
 
 if ($save_space) {
- print "==== Saving space by deleting results and only keeping archives ====\n";
-  $makeArchiveDir = "mkdir -p $localRoot/results/buildit/archived";
-  print "$makeArchiveDir\n";
-  if(! $dry_run) {
-    system($makeArchiveDir);
-  }
-  $moveArchiveResults = "mv $resultdir/archive/* $localRoot/results/buildit/archived";
-  print "$moveArchiveResults\n";
-  if(! $dry_run) {
-    system($moveArchiveResults);
-  }
-  $removeResults = "rm -rf $resultdir";
-  print "$removeResults\n";
-  if(! $dry_run) {
-   system($removeResults);
-  }
+  print "==== Saving space by deleting results and only keeping archives ====\n";
+
+  # The script uses a symlink for latest by default. Remove it.
+  # Note that this only applies if the previous run didn't use --save-space.
+  # If --save-space was used, latest will be a directory.
   $removeLatestSymlink = "rm $localRoot/results/buildit/latest";
   print "$removeLatestSymlink\n";
   if(! $dry_run) {
    system($removeLatestSymlink);
   }
+
+  # When saving space, only the archives are kept. All archives are moved to this
+  # directory.
+  $makeArchiveDir = "mkdir -p $localRoot/results/buildit/archived";
+  print "$makeArchiveDir\n";
+  if(! $dry_run) {
+    system($makeArchiveDir);
+  }
+
+  # Copy archive results to the archive directory.
+  $copyArchiveResults = "cp $resultdir/archive/* $localRoot/results/buildit/archived";
+  print "$copyArchiveResults\n";
+  if(! $dry_run) {
+    system($copyArchiveResults);
+  }
+
+  # Remove latest dir.
+  $removeLatestDir = "rm -rf $localRoot/results/buildit/latest";
+  print "$removeLatestDir\n";
+  if(! $dry_run) {
+   system($removeLatestDir);
+  }
+
+  # Create latest dir again.
+  $createLatestDir = "mkdir -p $localRoot/results/buildit/latest";
+  print "$createLatestDir\n";
+  if(! $dry_run) {
+   system($createLatestDir);
+  }
+
+  # Move archive results to new latest dir so they can be found for post-processing.
+  $moveArchiveResults = "mv $resultdir/archive/* $localRoot/results/buildit/latest";
+  print "$moveArchiveResults\n";
+  if(! $dry_run) {
+    system($moveArchiveResults);
+  }
+
+  # Remove result files that won't be archived.
+  $removeResults = "rm -rf $resultdir";
+  print "$removeResults\n";
+  if(! $dry_run) {
+   system($removeResults);
+  }
+
   print "==== Space saving complete ====\n";
 }
 
