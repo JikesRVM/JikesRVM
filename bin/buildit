@@ -998,66 +998,41 @@ print "===================================================\n";
 if ($save_space) {
   print "==== Saving space by deleting results and only keeping archives ====\n";
 
+  $cleanUpCmd = "$sshHostCmdT '$shell \"";
+
   # The script uses a symlink for latest by default. Remove it.
   # Note that this only applies if the previous run didn't use --save-space.
   # If --save-space was used, latest will be a directory.
-  $removeLatestSymlink = "rm $localRoot/results/buildit/latest";
-  print "$removeLatestSymlink\n";
-  if(! $dry_run) {
-   system($removeLatestSymlink);
-  }
-
+  $cleanUpCmd = $cleanUpCmd."rm $localRoot/results/buildit/latest ; ";
+  
   # When saving space, only the archives are kept. All archives are moved to this
   # directory.
-  $makeArchiveDir = "mkdir -p $localRoot/results/buildit/archived";
-  print "$makeArchiveDir\n";
-  if(! $dry_run) {
-    system($makeArchiveDir);
-  }
+  $cleanUpCmd = $cleanUpCmd."mkdir -p $localRoot/results/buildit/archived ; ";
 
   # Copy archive results to the archive directory.
-  $copyArchiveResults = "cp $resultdir/archive/* $localRoot/results/buildit/archived";
-  print "$copyArchiveResults\n";
-  if(! $dry_run) {
-    system($copyArchiveResults);
-  }
+  $cleanUpCmd = $cleanUpCmd."cp $resultdir/archive/* $localRoot/results/buildit/archived ; ";
 
   # Remove latest dir.
-  $removeLatestDir = "rm -rf $localRoot/results/buildit/latest";
-  print "$removeLatestDir\n";
-  if(! $dry_run) {
-   system($removeLatestDir);
-  }
+  $cleanUpCmd = $cleanUpCmd."rm -rf $localRoot/results/buildit/latest ; ";
 
   # Create latest dir again.
-  $createLatestDir = "mkdir -p $localRoot/results/buildit/latest/archive";
-  print "$createLatestDir\n";
-  if(! $dry_run) {
-   system($createLatestDir);
-  }
+  $cleanUpCmd = $cleanUpCmd."mkdir -p $localRoot/results/buildit/latest/archive ; ";
 
   # Move archive results to new latest dir so they can be found for post-processing.
-  $moveArchiveResults = "mv $resultdir/archive/* $localRoot/results/buildit/latest/archive";
-  print "$moveArchiveResults\n";
-  if(! $dry_run) {
-    system($moveArchiveResults);
-  }
+  $cleanUpCmd = $cleanUpCmd."mv $resultdir/archive/* $localRoot/results/buildit/latest/archive ; ";
 
   # Move test results dir to new latest dir so test results (e.g. JUnit report) can be
   # found for post processing.
-  $moveTestResults = "mv $resultdir/tests  $localRoot/results/buildit/latest/";
-  print "$moveTestResults\n";
-  if(! $dry_run) {
-    system($moveTestResults);
-  }
+  $cleanUpCmd = $cleanUpCmd."mv $resultdir/tests  $localRoot/results/buildit/latest/ ; ";
 
   # Remove result files that won't be archived.
-  $removeResults = "rm -rf $resultdir";
-  print "$removeResults\n";
-  if(! $dry_run) {
-    system($removeResults);
-  }
+  $cleanUpCmd = $cleanUpCmd."rm -rf $resultdir \"'";
 
+
+  print "$cleanUpCmd\n";
+  if(! $dry_run) {
+    system($cleanUpCmd);
+  }
   print "==== Space saving complete ====\n";
 }
 
