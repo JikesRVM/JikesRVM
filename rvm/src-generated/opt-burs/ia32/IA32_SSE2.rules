@@ -235,8 +235,8 @@ r: DOUBLE_ALOAD(riv, r)
 10
 EMIT_INSTRUCTION
 RegisterOperand index=ALoad.getIndex(P(p)).asRegister();\\
-if(index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),Binary.create(IA32_AND,index,index,LC(0xffffffff))));\\
+if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));\\
@@ -276,8 +276,8 @@ r: FLOAT_ALOAD(riv, r)
 10
 EMIT_INSTRUCTION
 RegisterOperand index=ALoad.getIndex(P(p)).asRegister();\\
-if(index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),Binary.create(IA32_AND,index,index,LC(0xffffffff))));\\
+if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));\\
@@ -340,8 +340,8 @@ stm: DOUBLE_ASTORE(r, OTHER_OPERAND(r, r))
 12
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister();\\
-if(index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),Binary.create(IA32_AND,index,index,LC(0xffffffff))));\\
+if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));\\
@@ -391,8 +391,8 @@ stm: FLOAT_ASTORE(r, OTHER_OPERAND(r, r))
 12
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister();\\
-if(index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),Binary.create(IA32_AND,index,index,LC(0xffffffff))));\\
+if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));\\
