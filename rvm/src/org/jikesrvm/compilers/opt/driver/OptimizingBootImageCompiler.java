@@ -128,8 +128,10 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
           System.exit(EXIT_STATUS_OPT_COMPILER_FAILED);
         } else {
           boolean printMsg = true;
+          boolean expected = false;
           if (e instanceof MagicNotImplementedException) {
             printMsg = !((MagicNotImplementedException) e).isExpected;
+            expected = ((MagicNotImplementedException) e).isExpected;
           }
           if (e == escape) {
             printMsg = false;
@@ -142,6 +144,10 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
               String msg = "BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n";
               VM.sysWrite(msg);
             }
+          } else if (!expected && e != escape) {
+            // Treat any unexpected OptimizingCompilerException that occur
+            // when compiling the boot image as fatal.
+            throw new Error(e);
           }
         }
         return baselineCompile(method);
