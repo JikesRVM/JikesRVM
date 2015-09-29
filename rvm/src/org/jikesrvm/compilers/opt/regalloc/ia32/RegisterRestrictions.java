@@ -53,8 +53,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCOMI_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FNINIT;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_IMUL2_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSXQ__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSXQ__W_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSX__B_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSX__W_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVZXQ__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVZXQ__W_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVZX__B_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVZX__W_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MULSD_opcode;
@@ -151,7 +155,9 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
         }
         break;
         case IA32_MOVZX__B_opcode:
-        case IA32_MOVSX__B_opcode: {
+        case IA32_MOVSX__B_opcode:
+        case IA32_MOVZXQ__B_opcode:
+        case IA32_MOVSXQ__B_opcode: {
           if (MIR_Unary.getVal(s).isRegister()) {
             RegisterOperand val = MIR_Unary.getVal(s).asRegister();
             restrictTo8Bits(val.getRegister());
@@ -382,13 +388,17 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       }
       break;
       case IA32_MOVZX__B_opcode:
-      case IA32_MOVSX__B_opcode: {
+      case IA32_MOVSX__B_opcode:
+      case IA32_MOVZXQ__B_opcode:
+      case IA32_MOVSXQ__B_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
         if (op.getRegister() == r) return true;
       }
       break;
       case IA32_MOVZX__W_opcode:
-      case IA32_MOVSX__W_opcode: {
+      case IA32_MOVSX__W_opcode:
+      case IA32_MOVZXQ__W_opcode:
+      case IA32_MOVSXQ__W_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
         if (op.getRegister() == r) return true;
       }
@@ -445,7 +455,9 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     // Look at 8-bit restrictions.
     switch (s.getOpcode()) {
       case IA32_MOVZX__B_opcode:
-      case IA32_MOVSX__B_opcode: {
+      case IA32_MOVSX__B_opcode:
+      case IA32_MOVZXQ__B_opcode:
+      case IA32_MOVSXQ__B_opcode: {
         if (MIR_Unary.getVal(s).isRegister()) {
           RegisterOperand val = MIR_Unary.getVal(s).asRegister();
           if (val.getRegister() == symb) {
