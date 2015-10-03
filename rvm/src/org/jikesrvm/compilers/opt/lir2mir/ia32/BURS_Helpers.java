@@ -3202,49 +3202,54 @@ Operand value, boolean signExtend) {
    * @param address the operand containing the target address
    */
   protected final void CALL(Instruction s, Operand address) {
-    // Step 1: Find out how many parameters we're going to have.
-    int numParams = Call.getNumberOfParams(s);
-    int longParams = 0;
-    for (int pNum = 0; pNum < numParams; pNum++) {
-      if (Call.getParam(s, pNum).getType().isLongType()) {
-        longParams++;
-      }
-    }
-
-    // Step 2: Figure out what the result and result2 values will be.
-    RegisterOperand result = Call.getResult(s);
-    RegisterOperand result2 = null;
-    if (result != null && result.getType().isLongType()) {
-      result.setType(TypeReference.Int);
-      result2 = new RegisterOperand(regpool.getSecondReg(result.getRegister()), TypeReference.Int);
-    }
-
-    // Step 3: Mutate the Call to an MIR_Call.
-    // Note MIR_Call and Call have a different number of fixed
-    // arguments, so some amount of copying is required.
-    Operand[] params = new Operand[numParams];
-    for (int i = 0; i < numParams; i++) {
-      params[i] = Call.getParam(s, i);
-    }
-    MIR_Call.mutate(s, IA32_CALL, result, result2, address, Call.getMethod(s), numParams + longParams);
-    for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
-      Operand param = params[paramIdx++];
-      if (param instanceof RegisterOperand) {
-        RegisterOperand rparam = (RegisterOperand) param;
-        MIR_Call.setParam(s, mirCallIdx++, rparam);
-        if (rparam.getType().isLongType()) {
-          rparam.setType(TypeReference.Int);
-          MIR_Call.setParam(s, mirCallIdx - 1, rparam);
-          MIR_Call.setParam(s, mirCallIdx++,
-            new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
+    if (VM.BuildFor32Addr) {
+      // Step 1: Find out how many parameters we're going to have.
+      int numParams = Call.getNumberOfParams(s);
+      int longParams = 0;
+      for (int pNum = 0; pNum < numParams; pNum++) {
+        if (Call.getParam(s, pNum).getType().isLongType()) {
+          longParams++;
         }
-      } else if (param instanceof LongConstantOperand) {
-        LongConstantOperand val = (LongConstantOperand) param;
-        MIR_Call.setParam(s, mirCallIdx++, IC(val.upper32()));
-        MIR_Call.setParam(s, mirCallIdx++, IC(val.lower32()));
-      } else {
-        MIR_Call.setParam(s, mirCallIdx++, param);
       }
+
+      // Step 2: Figure out what the result and result2 values will be.
+      RegisterOperand result = Call.getResult(s);
+      RegisterOperand result2 = null;
+      if (result != null && result.getType().isLongType()) {
+        result.setType(TypeReference.Int);
+        result2 = new RegisterOperand(regpool.getSecondReg(result.getRegister()), TypeReference.Int);
+      }
+
+      // Step 3: Mutate the Call to an MIR_Call.
+      // Note MIR_Call and Call have a different number of fixed
+      // arguments, so some amount of copying is required.
+      Operand[] params = new Operand[numParams];
+      for (int i = 0; i < numParams; i++) {
+        params[i] = Call.getParam(s, i);
+      }
+      MIR_Call.mutate(s, IA32_CALL, result, result2, address, Call.getMethod(s), numParams + longParams);
+      for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
+        Operand param = params[paramIdx++];
+        if (param instanceof RegisterOperand) {
+          RegisterOperand rparam = (RegisterOperand) param;
+          MIR_Call.setParam(s, mirCallIdx++, rparam);
+          if (rparam.getType().isLongType()) {
+            rparam.setType(TypeReference.Int);
+            MIR_Call.setParam(s, mirCallIdx - 1, rparam);
+            MIR_Call.setParam(s, mirCallIdx++,
+              new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
+          }
+        } else if (param instanceof LongConstantOperand) {
+          LongConstantOperand val = (LongConstantOperand) param;
+          MIR_Call.setParam(s, mirCallIdx++, IC(val.upper32()));
+          MIR_Call.setParam(s, mirCallIdx++, IC(val.lower32()));
+        } else {
+          MIR_Call.setParam(s, mirCallIdx++, param);
+        }
+      }
+    } else {
+      MIR_Call.mutate(s, IA32_CALL, Call.getResult(s), null,
+          address, Call.getMethod(s), Call.getNumberOfParams(s));
     }
 
     // emit the call instruction.
@@ -3260,55 +3265,60 @@ Operand value, boolean signExtend) {
   protected final void SYSCALL(Instruction s, Operand address) {
     burs.ir.setHasSysCall(true);
 
-    // Step 1: Find out how many parameters we're going to have.
-    int numParams = Call.getNumberOfParams(s);
-    int longParams = 0;
-    for (int pNum = 0; pNum < numParams; pNum++) {
-      if (Call.getParam(s, pNum).getType().isLongType()) {
-        longParams++;
-      }
-    }
-
-    // Step 2: Figure out what the result and result2 values will be.
-    RegisterOperand result = Call.getResult(s);
-    RegisterOperand result2 = null;
-    // NOTE: C callee returns longs little endian!
-    if (result != null && result.getType().isLongType()) {
-      result.setType(TypeReference.Int);
-      result2 = result;
-      result = new RegisterOperand(regpool.getSecondReg(result.getRegister()), TypeReference.Int);
-    }
-
-    // Step 3: Mutate the Call to an MIR_Call.
-    // Note MIR_Call and Call have a different number of fixed
-    // arguments, so some amount of copying is required.
-    Operand[] params = new Operand[numParams];
-    for (int i = 0; i < numParams; i++) {
-      params[i] = Call.getParam(s, i);
-    }
-    MIR_Call.mutate(s, IA32_SYSCALL, result, result2, address, Call
-        .getMethod(s), numParams + longParams);
-    for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
-      Operand param = params[paramIdx++];
-      if (param instanceof RegisterOperand) {
-        // NOTE: longs passed little endian to C callee!
-        RegisterOperand rparam = (RegisterOperand) param;
-        if (rparam.getType().isLongType()) {
-          rparam.setType(TypeReference.Int);
-          MIR_Call.setParam(s, mirCallIdx++,
-            new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
+    if (VM.BuildFor32Addr) {
+      // Step 1: Find out how many parameters we're going to have.
+      int numParams = Call.getNumberOfParams(s);
+      int longParams = 0;
+      for (int pNum = 0; pNum < numParams; pNum++) {
+        if (Call.getParam(s, pNum).getType().isLongType()) {
+          longParams++;
         }
-        MIR_Call.setParam(s, mirCallIdx++, param);
-      } else if (param instanceof LongConstantOperand) {
-        long value = ((LongConstantOperand) param).value;
-        int valueHigh = (int) (value >> 32);
-        int valueLow = (int) (value & 0xffffffff);
-        // NOTE: longs passed little endian to C callee!
-        MIR_Call.setParam(s, mirCallIdx++, IC(valueLow));
-        MIR_Call.setParam(s, mirCallIdx++, IC(valueHigh));
-      } else {
-        MIR_Call.setParam(s, mirCallIdx++, param);
       }
+
+      // Step 2: Figure out what the result and result2 values will be.
+      RegisterOperand result = Call.getResult(s);
+      RegisterOperand result2 = null;
+      // NOTE: C callee returns longs little endian!
+      if (result != null && result.getType().isLongType()) {
+        result.setType(TypeReference.Int);
+        result2 = result;
+        result = new RegisterOperand(regpool.getSecondReg(result.getRegister()), TypeReference.Int);
+      }
+
+      // Step 3: Mutate the Call to an MIR_Call.
+      // Note MIR_Call and Call have a different number of fixed
+      // arguments, so some amount of copying is required.
+      Operand[] params = new Operand[numParams];
+      for (int i = 0; i < numParams; i++) {
+        params[i] = Call.getParam(s, i);
+      }
+      MIR_Call.mutate(s, IA32_SYSCALL, result, result2, address, Call
+          .getMethod(s), numParams + longParams);
+      for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
+        Operand param = params[paramIdx++];
+        if (param instanceof RegisterOperand) {
+          // NOTE: longs passed little endian to C callee!
+          RegisterOperand rparam = (RegisterOperand) param;
+          if (rparam.getType().isLongType()) {
+            rparam.setType(TypeReference.Int);
+            MIR_Call.setParam(s, mirCallIdx++,
+              new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
+          }
+          MIR_Call.setParam(s, mirCallIdx++, param);
+        } else if (param instanceof LongConstantOperand) {
+          long value = ((LongConstantOperand) param).value;
+          int valueHigh = (int) (value >> 32);
+          int valueLow = (int) (value & 0xffffffff);
+          // NOTE: longs passed little endian to C callee!
+          MIR_Call.setParam(s, mirCallIdx++, IC(valueLow));
+          MIR_Call.setParam(s, mirCallIdx++, IC(valueHigh));
+        } else {
+          MIR_Call.setParam(s, mirCallIdx++, param);
+        }
+      }
+    } else {
+      MIR_Call.mutate(s, IA32_SYSCALL, Call.getResult(s), null,
+          address, Call.getMethod(s), Call.getNumberOfParams(s));
     }
 
     // emit the call instruction.

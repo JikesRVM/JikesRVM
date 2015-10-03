@@ -185,6 +185,7 @@ public abstract class CallingConvention extends IRTools
     }
 
     if (MIR_Return.hasVal2(ret)) {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
       Operand symb2 = MIR_Return.getClearVal2(ret);
       MIR_Return.setVal2(ret, null);
       TypeReference type = symb2.getType();
@@ -240,7 +241,8 @@ public abstract class CallingConvention extends IRTools
           call.insertAfter(pop);
           if (result1.getType().isFloatType()) {
             pop.insertAfter(MIR_Move.create(IA32_MOVSS, result1, scratch.copy()));
-          } else /* if (result1.type.isDoubleType()) */ {
+          } else {
+            if (VM.VerifyAssertions) VM._assert(result1.getType().isDoubleType());
             pop.insertAfter(MIR_Move.create(IA32_MOVSD, result1, scratch.copy()));
           }
         } else {
@@ -271,6 +273,7 @@ public abstract class CallingConvention extends IRTools
 
     // copy the second result parameter
     if (MIR_Call.hasResult2(call)) {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
       RegisterOperand result2 = MIR_Call.getClearResult2(call);
       // second GPR result register
       Register r = phys.getSecondReturnGPR();
