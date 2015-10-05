@@ -4,13 +4,13 @@
 stm:	LONG_IFCMP(rlv,rlv)
 26
 EMIT_INSTRUCTION
-if (Binary.getVal1(P(p)).isLongConstant()) { \\
+if (IfCmp.getVal1(P(p)).isLongConstant()) { \\
 Register tmp = regpool.getLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long),Binary.getVal1(P(p))))); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long),IfCmp.getVal1(P(p))))); \\
 IFCMP(P(p), IfCmp.getGuardResult(P(p)), new RegisterOperand(tmp, TypeReference.Long), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p))); \\
-} else if (Binary.getVal2(P(p)).isLongConstant()) { \\
+} else if (IfCmp.getVal2(P(p)).isLongConstant()) { \\
 Register tmp = regpool.getLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getVal2(P(p))))); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), IfCmp.getVal2(P(p))))); \\
 IFCMP(P(p), IfCmp.getGuardResult(P(p)), IfCmp.getVal1(P(p)), new RegisterOperand(tmp, TypeReference.Long), IfCmp.getCond(P(p))); \\
 } else { \\
 IFCMP(P(p), IfCmp.getGuardResult(P(p)), IfCmp.getVal1(P(p)), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p))); \\
