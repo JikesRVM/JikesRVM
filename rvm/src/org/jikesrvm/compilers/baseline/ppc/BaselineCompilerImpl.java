@@ -4336,13 +4336,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitLVAL(T0, 1);   // T0 := true
       fr.resolve(asm);
       pushInt(T0);  // push success of conditional store
-    } else if ((methodName == MagicNames.attemptLong) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptObject)) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptObjectReference)) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptAddress)) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptWord))) {
+    } else if (methodName == MagicNames.attemptLong) {
       popAddr(T2);  // pop newValue
-      discardSlot(); // ignore oldValue
+      discardSlots(2); // ignore oldValue which is a long and thus takes 2 slots
       popOffset(T1);  // pop offset
       popAddr(T0);  // pop object
       if (VM.BuildFor64Addr) {
@@ -4350,6 +4346,20 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       } else {
         // TODO: handle 64bit attempts in 32bit environment
       }
+      asm.emitLVAL(T0, 0);  // T0 := false
+      ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
+      asm.emitLVAL(T0, 1);   // T0 := true
+      fr.resolve(asm);
+      pushInt(T0);  // push success of conditional store
+    } else if (VM.BuildFor64Addr && ((methodName == MagicNames.attemptObject) ||
+        (methodName == MagicNames.attemptObjectReference) ||
+        (methodName == MagicNames.attemptAddress) ||
+        (methodName == MagicNames.attemptWord))) {
+      popAddr(T2);  // pop newValue
+      discardSlot(); // ignore oldValue
+      popOffset(T1);  // pop offset
+      popAddr(T0);  // pop object
+      asm.emitSTDCXr(T2, T1, T0); // store new value and set CR0
       asm.emitLVAL(T0, 0);  // T0 := false
       ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
       asm.emitLVAL(T0, 1);   // T0 := true
