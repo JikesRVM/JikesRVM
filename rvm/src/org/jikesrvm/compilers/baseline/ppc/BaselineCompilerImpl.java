@@ -2066,7 +2066,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: could be volatile (post-barrier when first operation)
-    asm.emitSYNC();
+    // LoadLoad and LoadStore barriers.
+    asm.emitHWSYNC();
   }
 
   @Override
@@ -2093,13 +2094,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
-      asm.emitSYNC();
+      // LoadLoad and LoadStore barriers.
+      asm.emitHWSYNC();
     }
   }
 
   @Override
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
     // JMM: could be volatile (pre-barrier when second operation)
+    // StoreStore barrier.
     asm.emitSYNC();
 
     emitDynamicLinkingSequence(T1, fieldRef, true);
@@ -2121,6 +2124,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: Could be volatile, post-barrier when first operation
+    // StoreLoad barrier.
     asm.emitHWSYNC();
   }
 
@@ -2131,6 +2135,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: (pre-barrier when second operation)
+      // StoreStore barrier.
       asm.emitSYNC();
     }
 
@@ -2153,6 +2158,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
+      // StoreLoad barrier.
       asm.emitHWSYNC();
     }
   }
@@ -2203,7 +2209,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: Could be volatile; post-barrier when first operation
-    asm.emitSYNC();
+    // LoadLoad and LoadStore barriers.
+    asm.emitHWSYNC();
   }
 
   @Override
@@ -2252,13 +2259,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
-      asm.emitSYNC();
+      // LoadLoad and LoadStore barriers.
+      asm.emitHWSYNC();
     }
   }
 
   @Override
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
     // JMM: could be volatile (pre-barrier when second operation)
+    // StoreStore barrier.
     asm.emitSYNC();
 
     TypeReference fieldType = fieldRef.getFieldContentsType();
@@ -2328,6 +2337,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: Could be volatile; post-barrier when first operation
+    // StoreLoad barrier.
     asm.emitHWSYNC();
   }
 
@@ -2339,6 +2349,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: pre-barrier when second operation
+      // StoreStore barrier.
       asm.emitSYNC();
     }
 
@@ -2405,6 +2416,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
+      // StoreLoad barrier.
       asm.emitHWSYNC();
     }
   }
@@ -4434,7 +4446,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else if (methodName == MagicNames.pause) {
       // NO-OP
     } else if (methodName == MagicNames.combinedLoadBarrier) {
-      asm.emitISYNC();
+      asm.emitHWSYNC();
     } else if (methodName == MagicNames.storeStoreBarrier) {
       asm.emitSYNC();
     } else if (methodName == MagicNames.fence) {
