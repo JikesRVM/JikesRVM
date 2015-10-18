@@ -38,8 +38,14 @@ The short version:
 
 ## History
 
-The project migrated from Subversion to Mercurial and from Mercurial to Git. Certain older changes are not contained in this repository. If you need access to these changes, you can browse the old repositories at [SourceForge](http://sourceforge.net/p/jikesrvm). We will mirror the old repositories on GitHub in the future.
+The project migrated from Subversion to Mercurial and from Mercurial to Git. Certain older changes are not contained in this repository. If you need access to these changes, you can browse the old repositories at [SourceForge](http://sourceforge.net/p/jikesrvm). The relevant parts of the old repositories are also mirrored on GitHub (see below).
 
 The last commit in the Mercurial repository is commit #11358 (hg commit id d4ced37a7a0d) from Tue, 08 Sep 2015 13:55:48 +0200. The matching commit in this Git repository has the commit id 871ee0e826c161c8cb99bba7280dced6da850779.
 
 The last interesting commit in the Subversion repository is commit #16061 (Move assertion on heavy lock state to within lock mutex to avoid possible race with inflation code). The matching commit in this Git repository has the commit id 164e4f465640364da0b135b78307e8cf1de8a070. The very last commit in the Subversion repository is commit #16068 (disable runs on piccolo until we get hg working on AIX.).
+
+Mirrors of the old repositories on GitHub:
+
+* The main code is mirrored at https://github.com/JikesRVM/mirror-historical-svn-jikesrvm . Please note that the mirror includes old branches which aren't present in this repository.
+* Tuningfork is mirrored at https://github.com/JikesRVM/mirror-historical-svn-tuningfork
+* Cattrack, an application for tracking test results that the project used in the past, is mirrored at https://github.com/JikesRVM/mirror-historical-svn-cattrack
