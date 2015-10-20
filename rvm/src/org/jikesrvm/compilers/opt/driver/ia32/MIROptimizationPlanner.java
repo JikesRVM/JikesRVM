@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.driver.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.IRTools.*;
+
 import java.util.ArrayList;
 
 import org.jikesrvm.compilers.opt.MutateSplits;
@@ -29,6 +31,7 @@ import org.jikesrvm.compilers.opt.regalloc.PrologueEpilogueCreator;
 import org.jikesrvm.compilers.opt.regalloc.RegisterAllocator;
 import org.jikesrvm.compilers.opt.regalloc.ia32.ExpandFPRStackConvention;
 import org.jikesrvm.compilers.opt.regalloc.ia32.MIRSplitRanges;
+import org.jikesrvm.compilers.opt.regalloc.ia32.RewriteMemoryOperandsWithOversizedDisplacements;
 
 /**
  * This class specifies the order in which CompilerPhases are
@@ -88,7 +91,9 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
    */
   private static void MIROptimizations(ArrayList<OptimizationPlanElement> p) {
     // Register Allocation
-    composeComponents(p, "Register Mapping", new Object[]{new MIRSplitRanges(),
+    composeComponents(p, "Register Mapping", new Object[]{
+            new RewriteMemoryOperandsWithOversizedDisplacements(),
+            new MIRSplitRanges(),
                                                           // MANDATORY: Expand calling convention
                                                           new ExpandCallingConvention(),
                                                           // MANDATORY: Insert defs/uses due to floating-point stack
@@ -114,5 +119,4 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
     // MANDATORY: Final assembly
     addComponent(p, new ConvertMIRtoMC());
   }
-
 }

@@ -117,7 +117,8 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
             ir.IRStage = IR.MIR;
             ir.MIRInfo = new MIRInfo(ir);
           }
-        })});
+        }),
+        new OptimizationPlanAtomicElement(new InsertIMMQ_MOVForX64())});
   }
 
   /**
@@ -459,6 +460,31 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
     @Override
     public void perform(IR ir) {
       ComplexLIR2MIRExpansion.convert(ir);
+    }
+  }
+
+  private static final class InsertIMMQ_MOVForX64 extends CompilerPhase {
+    @Override
+    public String getName() {
+      return "Insert IMMQ_MOV instructions for 64-bit immediate values";
+    }
+
+    @Override
+    public boolean shouldPerform(OptOptions options) {
+      return VM.BuildForIA32 && VM.BuildFor64Addr;
+    }
+
+    @Override
+    public CompilerPhase newExecution(IR ir) {
+      return this;
+    }
+
+    @Override
+    public void perform(IR ir) {
+      if (VM.BuildForIA32) {
+        org.jikesrvm.compilers.opt.lir2mir.ia32.ComplexLIR2MIRExpansion.insertIMMQ_MOV(ir);
+      }
+
     }
   }
 }

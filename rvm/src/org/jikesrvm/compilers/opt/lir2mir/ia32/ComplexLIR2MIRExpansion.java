@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -36,6 +38,7 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
@@ -72,11 +75,15 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TEST;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XOR;
+import static org.jikesrvm.compilers.opt.ir.Operators.IMMQ_MOV;
+import static org.jikesrvm.compilers.opt.ir.Operators.IMMQ_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MUL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV_opcode;
+
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -91,6 +98,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.Bits;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose
@@ -1356,5 +1364,38 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     s.remove();
     return nextInstr;
   }
-}
 
+  public static void insertIMMQ_MOV(IR ir) {
+    for (Instruction s = ir.firstInstructionInCodeOrder(); s != null;
+        s = s.nextInstructionInCodeOrder()) {
+      char opcode = s.getOpcode();
+      if (opcode != IMMQ_MOV_opcode) {
+        if (MIR_Move.conforms(s)) {
+          Operand moveResult = MIR_Move.getResult(s);
+          if (opcode == IA32_MOV_opcode && moveResult.isRegister()) {
+            Operand value = MIR_Move.getValue(s);
+            if (value.isLongConstant()) {
+              LongConstantOperand lc = (LongConstantOperand)value;
+              if (!Bits.fits(lc.value, 32)) {
+                MIR_Move.mutate(s, IMMQ_MOV, moveResult, value);
+                continue;
+              }
+            }
+          }
+        }
+        for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+          Operand op = ops.nextElement();
+          if (op.isLongConstant()) {
+            LongConstantOperand lc = (LongConstantOperand)op;
+            if (!Bits.fits(lc.value, 32)) {
+              RegisterOperand temp = ir.regpool.makeTempLong();
+              s.insertBefore(MIR_Move.create(IMMQ_MOV, temp, lc));
+              s.replaceOperand(lc, temp.copyD2U());
+            }
+          }
+        }
+      }
+    }
+  }
+
+}

@@ -8,6 +8,20 @@ ATTEMPT(Attempt.getResult(P(p)), \\
               MO(Attempt.getAddress(P(p)), Attempt.getOffset(P(p)), DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
               Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
 
+r:	ATTEMPT_INT(riv, OTHER_OPERAND(rlv, OTHER_OPERAND(riv, riv)))
+67
+EMIT_INSTRUCTION
+ATTEMPT(Attempt.getResult(P(p)), \\
+              MO(Attempt.getAddress(P(p)), Attempt.getOffset(P(p)), DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
+r:	ATTEMPT_INT(rlv, OTHER_OPERAND(rlv, OTHER_OPERAND(riv, riv)))
+67
+EMIT_INSTRUCTION
+ATTEMPT(Attempt.getResult(P(p)), \\
+              MO(Attempt.getAddress(P(p)), Attempt.getOffset(P(p)), DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \\
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
+
 r:	ATTEMPT_INT(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(riv, riv)))
 67
 EMIT_INSTRUCTION

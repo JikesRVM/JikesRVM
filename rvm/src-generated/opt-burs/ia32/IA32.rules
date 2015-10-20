@@ -356,6 +356,18 @@ Register tmp = regpool.getInteger(); \\
 EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Int), consumeMO()))); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), new RegisterOperand(tmp, TypeReference.Int)));
 
+# Can use long offset
+stm:    SHORT_STORE(rlv, OTHER_OPERAND(rlv, rlv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Store.getValue(P(p))));
+
+# Can use long offset
+stm:    SHORT_STORE(riv, OTHER_OPERAND(rlv, rlv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Store.getValue(P(p))));
+
 #####
 # SHORT_ASTORE
 #####

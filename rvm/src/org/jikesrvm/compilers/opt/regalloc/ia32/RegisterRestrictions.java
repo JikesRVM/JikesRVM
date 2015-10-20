@@ -78,6 +78,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISS_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XORPD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XORPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IMMQ_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH_opcode;
 
@@ -297,6 +298,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       case IA32_ANDNPD_opcode:
       case IA32_ORPD_opcode:
       case IA32_XORPD_opcode:
+      case IMMQ_MOV_opcode:
         return true;
 
       case IA32_ADDSS_opcode:

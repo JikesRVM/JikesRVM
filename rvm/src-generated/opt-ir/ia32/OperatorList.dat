@@ -302,6 +302,15 @@ none
 
 
 
+#########################
+# Move quadword immediate
+#########################
+IMMQ_MOV
+MIR_Move
+move
+
+
+
 ####################
 # A special FMOV instruction which ends the live range of the RHS.
 ####################

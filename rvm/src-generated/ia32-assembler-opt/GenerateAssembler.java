@@ -1309,6 +1309,14 @@ public class GenerateAssembler {
     emitTab(4);
     emit("break;\n");
 
+    // Kludge for IMMQ_MOV
+    emitTab(3);
+    emit("case IMMQ_MOV_opcode:\n");
+    emitTab(4);
+    emit("doIMMQ_MOV(inst);\n");
+    emitTab(4);
+    emit("break;\n");
+
     // Kludge for LOWTABLESWITCH
     emitTab(3);
     emit("case MIR_LOWTABLESWITCH_opcode:\n");
