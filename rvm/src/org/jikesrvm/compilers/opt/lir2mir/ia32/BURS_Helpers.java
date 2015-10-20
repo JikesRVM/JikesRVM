@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.UNREACHABLE;
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_CMPL;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_CMPL;
@@ -91,8 +93,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH;
-import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
-
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
@@ -637,16 +637,26 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    */
   protected final void STORE_LONG_FOR_CONV(Operand op) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
-    if (op instanceof RegisterOperand) {
-      RegisterOperand hval = (RegisterOperand) op;
-      RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()),
-          TypeReference.Int);
-      EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset + 4, DW), hval));
-      EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset, DW), lval));
+    if (VM.BuildFor32Addr) {
+      if (op instanceof RegisterOperand) {
+        RegisterOperand hval = (RegisterOperand) op;
+        RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()),
+            TypeReference.Int);
+        EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset + 4, DW), hval));
+        EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset, DW), lval));
+      } else {
+        LongConstantOperand val = LC(op);
+        EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset + 4, DW), IC(val.upper32())));
+        EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset, DW), IC(val.lower32())));
+      }
     } else {
-      LongConstantOperand val = LC(op);
-      EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset + 4, DW), IC(val.upper32())));
-      EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset, DW), IC(val.lower32())));
+      if (op instanceof RegisterOperand) {
+        RegisterOperand val = (RegisterOperand) op;
+        EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset, QW), val));
+      } else {
+        LongConstantOperand val = LC(op);
+        EMIT(MIR_Move.create(IA32_MOV, new StackLocationOperand(true, offset, QW), val));
+      }
     }
   }
 
@@ -713,21 +723,41 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param signExtend should the value be sign or zero extended?
    */
   protected final void INT_2LONG(Instruction s, RegisterOperand result,
-Operand value, boolean signExtend) {
-    Register hr = result.getRegister();
-    Register lr = regpool.getSecondReg(hr);
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(lr, TypeReference.Int), value)));
-    if (signExtend) {
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
-          new RegisterOperand(hr, TypeReference.Int),
-          new RegisterOperand(lr, TypeReference.Int))));
-      EMIT(MIR_BinaryAcc.mutate(s,IA32_SAR,
-          new RegisterOperand(hr, TypeReference.Int),
-          IC(31)));
+      Operand value, boolean signExtend) {
+    if (VM.BuildFor32Addr) {
+      Register hr = result.getRegister();
+      Register lr = regpool.getSecondReg(hr);
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(lr, TypeReference.Int), value)));
+      if (signExtend) {
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+            new RegisterOperand(hr, TypeReference.Int),
+            new RegisterOperand(lr, TypeReference.Int))));
+        EMIT(MIR_BinaryAcc.mutate(s,IA32_SAR,
+            new RegisterOperand(hr, TypeReference.Int),
+            IC(31)));
+      } else {
+        EMIT(MIR_Move.mutate(s, IA32_MOV,
+            new RegisterOperand(hr, TypeReference.Int),
+            IC(0)));
+      }
     } else {
-      EMIT(MIR_Move.mutate(s, IA32_MOV,
-          new RegisterOperand(hr, TypeReference.Int),
-          IC(0)));
+      //MOVZX, MOVSX doesn't accept memory as target
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, result,value)));
+      if (signExtend) {
+        EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
+            result,
+            LC(32))));
+        EMIT(MIR_BinaryAcc.mutate(s,IA32_SAR,
+            result,
+            LC(32)));
+      } else {
+        EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
+            result,
+            LC(32))));
+        EMIT(MIR_BinaryAcc.mutate(s,IA32_SHR,
+            result,
+            LC(32)));
+      }
     }
   }
 
@@ -980,14 +1010,19 @@ Operand value, boolean signExtend) {
   protected final void SSE2_FPR2GPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand sl = new StackLocationOperand(true, offset, QW);
-    StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
-    StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, Unary.getVal(s))));
-    RegisterOperand i1 = Unary.getResult(s);
-    RegisterOperand i2 = new RegisterOperand(regpool
-        .getSecondReg(i1.getRegister()), TypeReference.Int);
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, i1, sl1)));
-    EMIT(MIR_Move.mutate(s, IA32_MOV, i2, sl2));
+    if (VM.BuildFor32Addr) {
+      StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
+      StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, Unary.getVal(s))));
+      RegisterOperand i1 = Unary.getResult(s);
+      RegisterOperand i2 = new RegisterOperand(regpool
+          .getSecondReg(i1.getRegister()), TypeReference.Int);
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, i1, sl1)));
+      EMIT(MIR_Move.mutate(s, IA32_MOV, i2, sl2));
+    } else {
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, Unary.getVal(s))));
+      EMIT(MIR_Move.mutate(s, IA32_MOV, Unary.getResult(s), sl));
+    }
   }
 
   /**
@@ -998,22 +1033,27 @@ Operand value, boolean signExtend) {
   protected final void SSE2_GPR2FPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand sl = new StackLocationOperand(true, offset, QW);
-    StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
-    StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
-    Operand i1, i2;
     Operand val = Unary.getVal(s);
-    if (val instanceof RegisterOperand) {
-      RegisterOperand rval = (RegisterOperand) val;
-      i1 = val;
-      i2 = new RegisterOperand(regpool.getSecondReg(rval.getRegister()), TypeReference.Int);
+    if (VM.BuildFor32Addr) {
+      StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
+      StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
+      Operand i1, i2;
+      if (val instanceof RegisterOperand) {
+        RegisterOperand rval = (RegisterOperand) val;
+        i1 = val;
+        i2 = new RegisterOperand(regpool.getSecondReg(rval.getRegister()), TypeReference.Int);
+      } else {
+        LongConstantOperand rhs = (LongConstantOperand) val;
+        i1 = IC(rhs.upper32());
+        i2 = IC(rhs.lower32());
+      }
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl1, i1)));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl2, i2)));
+      EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl));
     } else {
-      LongConstantOperand rhs = (LongConstantOperand) val;
-      i1 = IC(rhs.upper32());
-      i2 = IC(rhs.lower32());
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl, val)));
+      EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl));
     }
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl1, i1)));
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl2, i2)));
-    EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl));
   }
 
   /**
@@ -1279,16 +1319,19 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Expansion of INT_DIV and INT_REM
+   * Expansion of INT_DIV, SIGNED_DIV_64_32, UNSIGNED_DIV_64_32 and INT_REM
    *
    * @param s the instruction to expand
    * @param result the result operand
    * @param val1 the first operand
    * @param val2 the second operand
-   * @param isDiv true for div, false for rem
+   * @param isDiv {@code true} for division,
+   *  {@code false} for reminder
+   * @param signed {@code true} for signed,
+   *  {@code false} for unsigned
    */
   protected final void INT_DIVIDES(Instruction s, RegisterOperand result, Operand val1, Operand val2,
-                                   boolean isDiv) {
+                                   boolean isDiv, boolean signed) {
     if (val1.isIntConstant()) {
       int value = val1.asIntConstant().value;
       if (value < 0) {
@@ -1297,6 +1340,32 @@ Operand value, boolean signExtend) {
       } else {
         EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEDX(), TypeReference.Int), IC(0))));
         EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int), val1)));
+      }
+    } else if (val1.isLongConstant()) {
+      int upper32 = val1.asLongConstant().upper32();
+      int lower32 = val1.asLongConstant().lower32();
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEDX(), TypeReference.Int), IC(upper32))));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int), IC(lower32))));
+    } else if (val1.getType().isLongType()) {
+      if (VM.BuildFor32Addr) {
+        Register upperReg = ((RegisterOperand) val1).getRegister();
+        Register lowerReg = regpool.getSecondReg(upperReg);
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+                                     new RegisterOperand(getEDX(), TypeReference.Int),
+                                     new RegisterOperand(upperReg, TypeReference.Int))));
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+                                     new RegisterOperand(getEAX(), TypeReference.Int),
+                                     new RegisterOperand(lowerReg, TypeReference.Int))));
+      } else {
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+            new RegisterOperand(getEDX(), TypeReference.Int),
+            val1)));
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+            new RegisterOperand(getEAX(), TypeReference.Int),
+            val1)));
+        EMIT(CPOS(s, MIR_Move.create(IA32_SHR,
+            new RegisterOperand(getEDX(), TypeReference.Int),
+            LC(32))));
       }
     } else {
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int), val1)));
@@ -1310,7 +1379,7 @@ Operand value, boolean signExtend) {
       val2 = temp.copyRO();
     }
     EMIT(MIR_Divide.mutate(s,
-                           IA32_IDIV,
+                           signed ? IA32_IDIV : IA32_DIV,
                            new RegisterOperand(getEDX(), TypeReference.Int),
                            new RegisterOperand(getEAX(), TypeReference.Int),
                            val2,
@@ -2614,17 +2683,33 @@ Operand value, boolean signExtend) {
    */
   protected final void GET_TIME_BASE(Instruction s,
       RegisterOperand result) {
-    Register highReg = result.getRegister();
-    Register lowReg = regpool.getSecondReg(highReg);
-    EMIT(CPOS(s, MIR_RDTSC.create(IA32_RDTSC,
-        new RegisterOperand(getEAX(), TypeReference.Int),
-        new RegisterOperand(getEDX(), TypeReference.Int))));
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(lowReg, TypeReference.Int),
-        new RegisterOperand(getEAX(), TypeReference.Int))));
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
-        new RegisterOperand(highReg, TypeReference.Int),
-        new RegisterOperand(getEDX(), TypeReference.Int))));
+    if (VM.BuildFor32Addr) {
+      Register highReg = result.getRegister();
+      Register lowReg = regpool.getSecondReg(highReg);
+      EMIT(CPOS(s, MIR_RDTSC.create(IA32_RDTSC,
+          new RegisterOperand(getEAX(), TypeReference.Int),
+          new RegisterOperand(getEDX(), TypeReference.Int))));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+          new RegisterOperand(lowReg, TypeReference.Int),
+          new RegisterOperand(getEAX(), TypeReference.Int))));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+          new RegisterOperand(highReg, TypeReference.Int),
+          new RegisterOperand(getEDX(), TypeReference.Int))));
+    } else {
+      Register res = result.getRegister();
+       EMIT(CPOS(s, MIR_RDTSC.create(IA32_RDTSC,
+           new RegisterOperand(getEAX(), TypeReference.Int),
+           new RegisterOperand(getEDX(), TypeReference.Int))));
+       EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+               new RegisterOperand(res, TypeReference.Long),
+               new RegisterOperand(getEDX(), TypeReference.Long))));
+       EMIT(CPOS(s, MIR_Move.create(IA32_SHL,
+               new RegisterOperand(getEDX(), TypeReference.Long),
+               LC(32))));
+       EMIT(CPOS(s, MIR_Move.create(IA32_OR,
+           new RegisterOperand(res, TypeReference.Long),
+           new RegisterOperand(getEAX(), TypeReference.Long))));
+    }
   }
 
   /**
@@ -2637,41 +2722,57 @@ Operand value, boolean signExtend) {
    * @param val2 the second value
    */
   protected final void LONG_CMP(Instruction s, RegisterOperand res, Operand val1, Operand val2) {
-    RegisterOperand one = regpool.makeTempInt();
-    RegisterOperand lone = regpool.makeTempInt();
-    Operand two, ltwo;
-    if (val1 instanceof RegisterOperand) {
-      Register val1_reg = val1.asRegister().getRegister();
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, new RegisterOperand(val1_reg, TypeReference.Int))));
+    if (VM.BuildFor32Addr) {
+      RegisterOperand one = regpool.makeTempInt();
+      RegisterOperand lone = regpool.makeTempInt();
+      Operand two, ltwo;
+      if (val1 instanceof RegisterOperand) {
+        Register val1_reg = val1.asRegister().getRegister();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, new RegisterOperand(val1_reg, TypeReference.Int))));
+        EMIT(CPOS(s,
+                  MIR_Move.create(IA32_MOV,
+                                  lone,
+                                  new RegisterOperand(regpool.getSecondReg(val1_reg), TypeReference.Int))));
+      } else {
+        LongConstantOperand tmp = (LongConstantOperand) val1;
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, IC(tmp.upper32()))));
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lone, IC(tmp.lower32()))));
+      }
+      if (val2 instanceof RegisterOperand) {
+        two = val2;
+        ltwo = L(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()));
+      } else {
+        LongConstantOperand tmp = (LongConstantOperand) val2;
+        two = IC(tmp.upper32());
+        ltwo = IC(tmp.lower32());
+      }
+      EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, lone.copyRO(), ltwo)));
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SBB, one.copyRO(), two)));
+      EMIT(CPOS(s, MIR_Set
+          .create(IA32_SET__B, res, IA32ConditionOperand.LT()))); // res =
+      // (val1 < val2) ? 1 :0
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, one.copyRO(), lone.copyRO())));
       EMIT(CPOS(s,
-                MIR_Move.create(IA32_MOV,
-                                lone,
-                                new RegisterOperand(regpool.getSecondReg(val1_reg), TypeReference.Int))));
+                MIR_Set.create(IA32_SET__B,
+                               lone.copyRO(),
+                               IA32ConditionOperand.NE()))); // lone = (val1 != val2) ? 1 : 0
+      EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, res.copyRO()))); // res = (val1 <
+      // val2) ? -1 :0
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, res.copyRO(), lone.copyRO())));
+      EMIT(MIR_Unary.mutate(s, IA32_MOVSX__B, res.copyRO(), res.copyRO()));
     } else {
-      LongConstantOperand tmp = (LongConstantOperand) val1;
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, IC(tmp.upper32()))));
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lone, IC(tmp.lower32()))));
-    }
-    if (val2 instanceof RegisterOperand) {
-      two = val2;
-      ltwo = L(burs.ir.regpool.getSecondReg(val2.asRegister().getRegister()));
-    } else {
-      LongConstantOperand tmp = (LongConstantOperand) val2;
-      two = IC(tmp.upper32());
-      ltwo = IC(tmp.lower32());
-    }
-    EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, lone.copyRO(), ltwo)));
-    EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SBB, one.copyRO(), two)));
-    EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, lone.copyRO(), one.copyRO())));
-    // res = (val1 != val2) ? 1 : 0
-    EMIT(CPOS(s,
-              MIR_Set.create(IA32_SET__B,
-                             lone.copyRO(),
+      RegisterOperand one = regpool.makeTempLong();
+      RegisterOperand two = regpool.makeTempLong();
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, val1)));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, two, val2)));
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, one, two)));
+      EMIT(CPOS(s,
+           MIR_Set.create(IA32_SET__B,
+                             res,
                              IA32ConditionOperand.NE())));
-    EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res.copyRO(), lone.copyRO()));
-    // one = (val1 < val2) ? -1 :0
-    EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SAR, one.copyRO(), IC(31))));
-    EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, res.copyRO(), one.copyRO())));
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SAR, one.copyRO(), LC(64))));
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, res.copyRO(), one.copyRO())));
+    }
   }
 
   /**
@@ -2687,9 +2788,13 @@ Operand value, boolean signExtend) {
    */
   protected final void FP_MOV_OP_MOV(Instruction s, Operator op, Operand result, Operand val1,
                                      Operand val2) {
-    EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1)));
-    EMIT(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
-    EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result, D(getFPR(0)))));
+    if (VM.BuildForSSE2) {
+      UNREACHABLE();
+    } else {
+      EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1)));
+      EMIT(MIR_BinaryAcc.mutate(s, op, D(getFPR(0)), val2));
+      EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result, D(getFPR(0)))));
+    }
   }
 
   /**
@@ -2733,8 +2838,7 @@ Operand value, boolean signExtend) {
       EMIT(CPOS(s, MIR_Compare.create(IA32_FCOMI, new RegisterOperand(FP0, TypeReference.Int), two)));
       // res = (value1 > value2) ? 1 : 0
       // temp = ((value1 < value2) || unordered) ? -1 : 0
-      EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, res, IA32ConditionOperand
-          .LGT())));
+      EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, res, IA32ConditionOperand.LGT())));
       EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res.copyRO(), res.copyRO()));
       EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SBB, temp.copyRO(), temp.copyRO())));
     } else {
@@ -2870,7 +2974,8 @@ Operand value, boolean signExtend) {
                                           Operand val1, Operand val2) {
     RegisterOperand temp = regpool.makeTemp(TypeReference.Boolean);
     EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(s))));
-    EMIT(CPOS(s, MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(s))));
+    EMIT(CPOS(s, MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove
+        .getVal2(s))));
     EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
     EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyD2U()));
   }
@@ -3165,31 +3270,35 @@ Operand value, boolean signExtend) {
    * @param s the prologue instruction
    */
   protected final void PROLOGUE(Instruction s) {
-    int numFormals = Prologue.getNumberOfFormals(s);
-    int numLongs = 0;
-    for (int i = 0; i < numFormals; i++) {
-      if (Prologue.getFormal(s, i).getType().isLongType()) {
-        numLongs++;
-      }
-    }
-    if (numLongs != 0) {
-      Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals + numLongs);
-      for (int sidx = 0, s2idx = 0; sidx < numFormals; sidx++) {
-        RegisterOperand sForm = Prologue.getFormal(s, sidx);
-        if (sForm.getType().isLongType()) {
-          sForm.setType(TypeReference.Int);
-          Prologue.setFormal(s2, s2idx++, sForm);
-          Register r2 = regpool.getSecondReg(sForm.getRegister());
-          Prologue.setFormal(s2, s2idx++, new RegisterOperand(r2, TypeReference.Int));
-          sForm.getRegister().clearType();
-          sForm.getRegister().setInteger();
-          r2.clearType();
-          r2.setInteger();
-        } else {
-          Prologue.setFormal(s2, s2idx++, sForm);
+    if (VM.BuildFor32Addr) {
+      int numFormals = Prologue.getNumberOfFormals(s);
+      int numLongs = 0;
+      for (int i = 0; i < numFormals; i++) {
+        if (Prologue.getFormal(s, i).getType().isLongType()) {
+          numLongs++;
         }
       }
-      EMIT(s2);
+      if (numLongs != 0) {
+        Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals + numLongs);
+        for (int sidx = 0, s2idx = 0; sidx < numFormals; sidx++) {
+          RegisterOperand sForm = Prologue.getFormal(s, sidx);
+          if (sForm.getType().isLongType()) {
+            sForm.setType(TypeReference.Int);
+            Prologue.setFormal(s2, s2idx++, sForm);
+            Register r2 = regpool.getSecondReg(sForm.getRegister());
+            Prologue.setFormal(s2, s2idx++, new RegisterOperand(r2, TypeReference.Int));
+            sForm.getRegister().clearType();
+            sForm.getRegister().setInteger();
+            r2.clearType();
+            r2.setInteger();
+          } else {
+            Prologue.setFormal(s2, s2idx++, sForm);
+          }
+        }
+        EMIT(s2);
+      } else {
+        EMIT(s);
+      }
     } else {
       EMIT(s);
     }
@@ -3381,7 +3490,7 @@ Operand value, boolean signExtend) {
     // A slightly ugly matter, but we need to deal with combining
     // the two pieces of a long register from a LONG_ZERO_CHECK.
     // A little awkward, but probably the easiest workaround...
-    if (longConstant) {
+    if (VM.BuildFor32Addr && longConstant) {
       if (VM.VerifyAssertions) {
         opt_assert((tc.getTrapCode() == RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO) &&
                    (((LongConstantOperand) v2).value == 0L));
@@ -3524,79 +3633,112 @@ Operand value, boolean signExtend) {
     if (VM.VerifyAssertions) {
       opt_assert(OsrPoint.conforms(s));
     }
-
-    // 1. how many params
-    int numparam = OsrPoint.getNumberOfElements(s);
-    int numlong = 0;
-    for (int i = 0; i < numparam; i++) {
-      Operand param = OsrPoint.getElement(s, i);
-      if (param.getType().isLongType()) {
-        numlong++;
-      }
-    }
-
-    // 2. collect params
-    InlinedOsrTypeInfoOperand typeInfo = OsrPoint
-        .getClearInlinedTypeInfo(s);
-
-    if (VM.VerifyAssertions) {
-      if (typeInfo == null) {
-        VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
-        VM.sysWriteln("  position :" + s.bcIndex + "@" + s.position.method);
-      }
-      opt_assert(typeInfo != null);
-    }
-
-    Operand[] params = new Operand[numparam];
-    for (int i = 0; i < numparam; i++) {
-      params[i] = OsrPoint.getClearElement(s, i);
-    }
-
-    // set the number of valid params in osr type info, used
-    // in LinearScan
-    typeInfo.validOps = numparam;
-
-    // 3: only makes second half register of long being used
-    // creates room for long types.
-    burs.append(OsrPoint.mutate(s, s.operator(), typeInfo, numparam + numlong));
-
-    int pidx = numparam;
-    for (int i = 0; i < numparam; i++) {
-      Operand param = params[i];
-      OsrPoint.setElement(s, i, param);
-      if (param instanceof RegisterOperand) {
-        RegisterOperand rparam = (RegisterOperand) param;
-        // the second half is appended at the end
-        // LinearScan will update the map.
-        if (rparam.getType().isLongType()) {
-          OsrPoint.setElement(s, pidx++, L(burs.ir.regpool
-              .getSecondReg(rparam.getRegister())));
+    if (VM.BuildFor32Addr) {
+      // 1. how many params
+      int numparam = OsrPoint.getNumberOfElements(s);
+      int numlong = 0;
+      for (int i = 0; i < numparam; i++) {
+        Operand param = OsrPoint.getElement(s, i);
+        if (param.getType().isLongType()) {
+          numlong++;
         }
-      } else if (param instanceof LongConstantOperand) {
-        LongConstantOperand val = (LongConstantOperand) param;
-
-        if (VM.TraceOnStackReplacement) {
-          VM.sysWriteln("caught a long const " + val);
-        }
-
-        OsrPoint.setElement(s, i, IC(val.upper32()));
-        OsrPoint.setElement(s, pidx++, IC(val.lower32()));
-      } else if (param instanceof IntConstantOperand) {
-      } else {
-        throw new OptimizingCompilerException("BURS_Helpers", "unexpected parameter type" + param);
       }
-    }
 
-    if (pidx != (numparam + numlong)) {
-      VM.sysWriteln("pidx = " + pidx);
-      VM.sysWriteln("numparam = " + numparam);
-      VM.sysWriteln("numlong = " + numlong);
-    }
+      // 2. collect params
+      InlinedOsrTypeInfoOperand typeInfo = OsrPoint
+          .getClearInlinedTypeInfo(s);
 
-    if (VM.VerifyAssertions) {
-      opt_assert(pidx == (numparam + numlong));
-    }
+      if (VM.VerifyAssertions) {
+        if (typeInfo == null) {
+          VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
+          VM.sysWriteln("  position :" + s.bcIndex + "@" + s.position.method);
+        }
+        opt_assert(typeInfo != null);
+      }
 
+      Operand[] params = new Operand[numparam];
+      for (int i = 0; i < numparam; i++) {
+        params[i] = OsrPoint.getClearElement(s, i);
+      }
+
+      // set the number of valid params in osr type info, used
+      // in LinearScan
+      typeInfo.validOps = numparam;
+
+      // 3: only makes second half register of long being used
+      // creates room for long types.
+      burs.append(OsrPoint.mutate(s, s.operator(), typeInfo, numparam + numlong));
+
+      int pidx = numparam;
+      for (int i = 0; i < numparam; i++) {
+        Operand param = params[i];
+        OsrPoint.setElement(s, i, param);
+        if (param instanceof RegisterOperand) {
+          RegisterOperand rparam = (RegisterOperand) param;
+          // the second half is appended at the end
+          // LinearScan will update the map.
+          if (rparam.getType().isLongType()) {
+            OsrPoint.setElement(s, pidx++, L(burs.ir.regpool
+                .getSecondReg(rparam.getRegister())));
+          }
+        } else if (param instanceof LongConstantOperand) {
+          LongConstantOperand val = (LongConstantOperand) param;
+
+          if (VM.TraceOnStackReplacement) {
+            VM.sysWriteln("caught a long const " + val);
+          }
+
+          OsrPoint.setElement(s, i, IC(val.upper32()));
+          OsrPoint.setElement(s, pidx++, IC(val.lower32()));
+        } else if (param instanceof IntConstantOperand) {
+        } else {
+          throw new OptimizingCompilerException("BURS_Helpers", "unexpected parameter type" + param);
+        }
+      }
+
+      if (pidx != (numparam + numlong)) {
+        VM.sysWriteln("pidx = " + pidx);
+        VM.sysWriteln("numparam = " + numparam);
+        VM.sysWriteln("numlong = " + numlong);
+      }
+
+      if (VM.VerifyAssertions) {
+        opt_assert(pidx == (numparam + numlong));
+      }
+    } else {
+      int numparam = OsrPoint.getNumberOfElements(s);
+
+      // 2. collect params
+         InlinedOsrTypeInfoOperand typeInfo = OsrPoint
+          .getInlinedTypeInfo(s);
+
+      if (VM.VerifyAssertions) {
+        if (typeInfo == null) {
+          VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
+          VM.sysWriteln("  position :" + s.bcIndex + "@" + s.position.method);
+        }
+        opt_assert(typeInfo != null);
+       }
+
+      // set the number of valid params in osr type info, used
+      // in LinearScan
+      typeInfo.validOps = numparam;
+
+      // 3: only makes second half register of long being used
+      // creates room for long types.
+      burs.append(s);
+
+      int pidx = numparam;
+
+      if (pidx != numparam) {
+        VM.sysWriteln("pidx = " + pidx);
+        VM.sysWriteln("numparam = " + numparam);
+      }
+
+      if (VM.VerifyAssertions) {
+          opt_assert(pidx == numparam);
+      }
+   }
     /*
      * if (VM.TraceOnStackReplacement) { VM.sysWriteln("BURS rewrite OsrPoint
      * "+s); VM.sysWriteln(" position "+s.bcIndex+"@"+s.position.method); }
