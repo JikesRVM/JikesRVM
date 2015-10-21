@@ -21,6 +21,7 @@ import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Conversions;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
@@ -29,9 +30,7 @@ import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
-
 import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -390,6 +389,24 @@ public abstract class Plan {
    */
   public Word bootTimeWriteBarrier(Word reference) {
     return reference;
+  }
+
+  /**
+   * Performs any required initialization of the GC portion of the header.
+   * Called for objects created at boot time.
+   *
+   * @param object the Address representing the storage to be initialized
+   * @param typeRef the type reference for the instance being created
+   * @param size the number of bytes allocated by the GC system for
+   * this object.
+   * @return The new value of the status word
+   */
+  public byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
+    if (HeaderByte.NEEDS_UNLOGGED_BIT) {
+      return HeaderByte.UNLOGGED_BIT;
+    } else {
+      return 0;
+    }
   }
 
   /****************************************************************************

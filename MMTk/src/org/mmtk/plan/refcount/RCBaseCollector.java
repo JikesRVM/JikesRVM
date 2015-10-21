@@ -13,6 +13,7 @@
 package org.mmtk.plan.refcount;
 
 import org.mmtk.plan.Phase;
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.StopTheWorldCollector;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
@@ -90,6 +91,15 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
     if (phaseId == RCBase.PREPARE) {
       getRootTrace().prepare();
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) backupTrace.prepare();
+      return;
+    }
+
+    if (phaseId == RCBase.ROOTS) {
+      VM.scanning.computeGlobalRoots(getCurrentTrace());
+      VM.scanning.computeStaticRoots(getCurrentTrace());
+      if (Plan.SCAN_BOOT_IMAGE && RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        VM.scanning.computeBootImageRoots(getCurrentTrace());
+      }
       return;
     }
 

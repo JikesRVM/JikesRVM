@@ -1157,7 +1157,7 @@ public final class MemoryManager {
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
     //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
-    byte status = org.mmtk.utility.HeaderByte.setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
+    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
     JavaHeader.writeAvailableByte(bootImage, ref, status);
   }
 
