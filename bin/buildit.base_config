@@ -64,6 +64,15 @@ global.arch.ppc=ppc32
 global.arch.ppc64=ppc32
 global.arch.i386=ia32
 
+global.wordsize.x86_64.32=x86_64
+global.wordsize.x86_64.64=x86_64_m64
+global.wordsize.x86_64_m64.32=x86_64
+global.wordsize.x86_64_m64.64=x86_64_m64
+global.wordsize.ppc64.32=ppc32
+global.wordsize.ppc64.64=ppc64
+global.wordsize.ppc32.32=ppc32
+global.wordsize.ppc32.64=ppc64
+
 # Operating system mappings
 global.os.Linux=linux
 global.os.Darwin=osx

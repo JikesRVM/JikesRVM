@@ -72,6 +72,7 @@ Options:
 
 Building Options:
      --x87            Use x87 Compatibility mode.
+     --m32, --m64     Force use of 32- or 64-bit addressing in the build
  -c, --cross-to       Crossbuild to target host (or copy post build).
      --with-perfevent Build with perf event support
  -a, --with-acheck    Build with align checks, implies --x87 --processors 1
@@ -184,6 +185,8 @@ GetOptions(
   "save-space" => \$save_space,
   "h|help" => \$help,
   "x87" => \$x87,
+  "m32" => \$m32,
+  "m64" => \$m64,
   "harmony" => \$harmony,
   "j|java-home=s" => \$javaHomeCmd,
   "ext-lib-dir=s" => \$extlibdir,
@@ -248,6 +251,10 @@ if ($target eq "") {
 }
 if ($root eq "") {
   bad_usage("rvm root is not specified");
+}
+
+if ($m64 ne "" && $m32 ne "") {
+  bad_usage("Only one of --m64 and --m32 can be specified");
 }
 
 $local = `hostname`;
@@ -361,22 +368,29 @@ if (! -e $localRoot . "/rvm") {
 
 if ($custom_host_name ne "") {
   $hostConfig = $custom_host_name;
-} elsif ($config{"$host.host-type"} ne "") {
-  $hostConfig = $config{"$host.host-type"};
 } else {
-  @host_info = split(" ", `$sshHostCmd 'uname -ms'`);
-  chomp(@host_info);
-  $hostConfig = $config{"global.arch.".$host_info[1]}."-".$config{"global.os.".$host_info[0]};
+  if ($config{"$host.host-type"} ne "") {
+    $hostConfig = $config{"$host.host-type"};
+  } else {
+    @host_info = split(" ", `$sshHostCmd 'uname -ms'`);
+    chomp(@host_info);
+    $hostConfig = $config{"global.arch.".$host_info[1]}."-".$config{"global.os.".$host_info[0]};
+  }
+  my ($arch, $os) = split(/-/,$hostConfig);
+  $hostConfig = get_word_variant($arch)."-$os";
 }
 
 if ($custom_target_name ne "") {
   $targetConfig = $custom_target_name;
 } elsif ($config{"$target.host-type"} ne "") {
   $targetConfig = $config{"$target.host-type"};
+  my ($arch, $os) = split(/-/,$targetConfig);
+  $targetConfig = get_word_variant($arch)."-$os";
 } else {
   @target_info = split(" ", `$sshTargetCmd 'uname -ms'`);
   chomp(@target_info);
-  $targetConfig = $config{"global.arch.".$target_info[1]}."-".$config{"global.os.".$target_info[0]};
+  my $arch = get_word_variant($config{"global.arch.".$target_info[1]});
+  $targetConfig = $arch."-".$config{"global.os.".$target_info[0]};
 }
 
 if ($config{"$local.home"} eq "") {
@@ -1114,3 +1128,23 @@ sub getid() {
     $id = sprintf("%s-%4d-%2.2d-%2.2d-%s-%2.2d-%2.2d-%2.2d", $target, $year, $mon, $mday, $day, $hour, $min, $sec);
     return $id;
 }
+
+#
+# Take the detected or saved architecture of the target machine, and 
+# if one of the flags --m32 or --m64 is specified, return the appropriately
+# changed architecture name.  Depends on the properties
+#    global.wordsize.*.[64|32] 
+# in the buildit.base_config file
+#
+sub get_word_variant {
+  my ($raw_arch) = @_;
+  my $arch = $raw_arch;
+  if ($m64 ne "" && $config{"global.wordsize.".$raw_arch.".64"} ne "") {
+    $arch = $config{"global.wordsize.".$raw_arch.".64"};
+  }
+  if ($m32 ne "" && $config{"global.wordsize.".$raw_arch.".32"} ne "") {
+    $arch = $config{"global.wordsize.".$raw_arch.".32"};
+  }
+  return $arch;
+}
+
