@@ -74,10 +74,32 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
+   * @param n register index
+   * @return the (zero-based indexed) nth native GPR that may hold a parameter.
+   */
+  public Register getNativeGPRParam(int n) {
+   return getGPR(NATIVE_PARAMETER_GPRS[n]);
+  }
+
+  /**
    * @return the total number of FPRs that may hold parameters.
    */
   public static int getNumberOfFPRParams() {
     return NUM_PARAMETER_FPRS;
+  }
+
+  /**
+   * @return the total number of native GPRs that may hold parameters.
+   */
+  public static int getNumberOfNativeGPRParams() {
+    return NUM_NATIVE_PARAMETER_GPRS;
+  }
+
+  /**
+   * @return the total number of native FPRs that may hold parameters.
+   */
+  public static int getNumberOfNativeFPRParams() {
+    return NUM_NATIVE_PARAMETER_FPRS;
   }
 
   /**
@@ -99,6 +121,14 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    */
   public final Register getFPRParam(int n) {
     return getFPR(VOLATILE_FPRS[n]);
+  }
+
+  /**
+   * @param n register index
+   * @return the (zero-based indexed) nth native FPR that may hold a parameter.
+   */
+  public Register getNativeFPRParam(int n) {
+    return getFPR(NATIVE_PARAMETER_FPRS[n]);
   }
 
   /**

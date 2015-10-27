@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
@@ -29,7 +30,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.REQUIRE_ESP;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
-
 import java.util.Enumeration;
 
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
@@ -55,6 +55,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.ia32.ArchConstants;
+import org.jikesrvm.ia32.RegisterConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 
@@ -80,6 +81,8 @@ public abstract class CallingConvention extends IRTools
    * Size of a word, in bytes
    */
   private static final int WORDSIZE = BYTES_IN_ADDRESS;
+  private static final TypeReference wordType = VM.BuildFor32Addr ? TypeReference.Int :
+     TypeReference.Long;
 
   /**
    * Expands calling conventions to make physical registers explicit in the
@@ -230,7 +233,7 @@ public abstract class CallingConvention extends IRTools
     if (MIR_Call.hasResult(call)) {
       RegisterOperand result1 = MIR_Call.getClearResult(call);
       if (result1.getType().isFloatType() || result1.getType().isDoubleType()) {
-        if (ArchConstants.SSE2_FULL && isSysCall) {
+        if (VM.BuildFor32Addr && ArchConstants.SSE2_FULL && isSysCall) {
           byte size = (byte)(result1.getType().isFloatType() ? 4 : 8);
           RegisterOperand st0 = new RegisterOperand(phys.getST0(), result1.getType());
           MIR_Call.setResult(call, st0); // result is in st0, set it to avoid extending the live range of st0
@@ -364,10 +367,18 @@ public abstract class CallingConvention extends IRTools
       } else {
         nGPRParams++;
         parameterBytes -= WORDSIZE;
+        if (VM.BuildFor64Addr && param.isLong()) {
+          parameterBytes -= WORDSIZE;
+        }
         if (nGPRParams > PhysicalRegisterSet.getNumberOfGPRParams()) {
           // Too many parameters to pass in registers.  Write the
           // parameter into the appropriate stack frame location.
-          call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE)));
+          if (VM.BuildFor64Addr && param.isLong()) {
+            call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE * 2)));
+            call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, IC(0)));
+          } else {
+            call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE)));
+          }
           call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
         } else {
           // Pass the parameter in a register.
@@ -427,7 +438,7 @@ public abstract class CallingConvention extends IRTools
     for (Enumeration<Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements();) {
       Register r = e.nextElement();
       Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
-      call.insertBefore(MIR_Move.create(IA32_MOV, M, new RegisterOperand(r, TypeReference.Int)));
+      call.insertBefore(MIR_Move.create(IA32_MOV, M, new RegisterOperand(r, wordType)));
       location += WORDSIZE;
     }
 
@@ -460,7 +471,7 @@ public abstract class CallingConvention extends IRTools
     for (Enumeration<Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements();) {
       Register r = e.nextElement();
       Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
-      call.insertAfter(MIR_Move.create(IA32_MOV, new RegisterOperand(r, TypeReference.Int), M));
+      call.insertAfter(MIR_Move.create(IA32_MOV, new RegisterOperand(r, wordType), M));
       location += WORDSIZE;
     }
 
@@ -489,42 +500,125 @@ public abstract class CallingConvention extends IRTools
     int nGPRParams = 0;
     int nFPRParams = 0;
     int parameterBytes = 0;
-
-    // walk over the parameters in reverse order
-    // NOTE: All params to syscall are passed on the stack!
     int numParams = MIR_Call.getNumberOfParams(call);
-    for (int i = numParams - 1; i >= 0; i--) {
-      Operand param = MIR_Call.getClearParam(call, i);
-      MIR_Call.setParam(call, i, null);
-      TypeReference paramType = param.getType();
-      if (paramType.isFloatType() || paramType.isDoubleType()) {
-        nFPRParams++;
-        int size;
-        if (paramType.isFloatType()) {
-          size = BYTES_IN_FLOAT;
-          parameterBytes -= WORDSIZE;
-        } else {
-          size = BYTES_IN_DOUBLE;
-          parameterBytes -= 2 * WORDSIZE;
-        }
-        Operand M = new StackLocationOperand(false, parameterBytes, size);
-        if (ArchConstants.SSE2_FULL) {
+
+    if (VM.BuildFor32Addr) {
+      // walk over the parameters in reverse order
+      // NOTE: All params to syscall are passed on the stack!
+      for (int i = numParams - 1; i >= 0; i--) {
+        Operand param = MIR_Call.getClearParam(call, i);
+        MIR_Call.setParam(call, i, null);
+        TypeReference paramType = param.getType();
+        if (paramType.isFloatType() || paramType.isDoubleType()) {
+          nFPRParams++;
+          int size;
           if (paramType.isFloatType()) {
-            call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
+            size = BYTES_IN_FLOAT;
+            parameterBytes -= WORDSIZE;
           } else {
-            call.insertBefore(MIR_Move.create(IA32_MOVSD, M, param));
+            size = BYTES_IN_DOUBLE;
+            parameterBytes -= 2 * WORDSIZE;
+          }
+          Operand M = new StackLocationOperand(false, parameterBytes, size);
+          if (ArchConstants.SSE2_FULL) {
+            if (paramType.isFloatType()) {
+              call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
+            } else {
+              call.insertBefore(MIR_Move.create(IA32_MOVSD, M, param));
+            }
+          } else {
+            call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
           }
         } else {
-          call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
+          nGPRParams++;
+          parameterBytes -= WORDSIZE;
+          call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE)));
+          call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
         }
-      } else {
-        nGPRParams++;
-        parameterBytes -= WORDSIZE;
-        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE)));
-        call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
       }
+      return parameterBytes;
+    } else {
+      PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      // count the number FPR parameters in a pre-pass
+      int FPRRegisterParams = countFPRParams(call);
+      FPRRegisterParams = Math.min(FPRRegisterParams, PhysicalRegisterSet.getNumberOfNativeFPRParams());
+
+      // offset, in bytes, from the SP, for the next parameter slot on the
+      // stack
+      parameterBytes = -2 * WORDSIZE;
+      RegisterOperand fpCount = new RegisterOperand(phys.getEAX(), TypeReference.Int);
+      call.insertBefore(MIR_Move.create(IA32_MOV, fpCount, IC(FPRRegisterParams)));
+      call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(RegisterConstants.R14), TypeReference.Long),new RegisterOperand(phys.getESI(), TypeReference.Long)));
+      call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(RegisterConstants.R13), TypeReference.Long),new RegisterOperand(phys.getEDI(), TypeReference.Long)));
+      call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getESI(), TypeReference.Long), new RegisterOperand(phys.getGPR(RegisterConstants.R14), TypeReference.Long)));
+      call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getEDI(), TypeReference.Long), new RegisterOperand(phys.getGPR(RegisterConstants.R13), TypeReference.Long)));
+      // Require ESP to be at bottom of frame before a call,
+      call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
+
+      // walk over each parameter
+      // must count the, before we start nulling them out!
+      int nParamsInRegisters = 0;
+      for (int i = 0; i < numParams; i++) {
+        Operand param = MIR_Call.getClearParam(call, i);
+        MIR_Call.setParam(call, i, null);
+        TypeReference paramType = param.getType();
+        if (paramType.isFloatType() || paramType.isDoubleType()) {
+          nFPRParams++;
+          int size;
+          size = BYTES_IN_STACKSLOT;
+          parameterBytes -= WORDSIZE;
+          if (nFPRParams > PhysicalRegisterSet.getNumberOfNativeFPRParams()) {
+            // pass the FP parameter on the stack
+            Operand M = new StackLocationOperand(false, parameterBytes, size);
+            if (ArchConstants.SSE2_FULL) {
+              if (paramType.isFloatType()) {
+                call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
+              } else {
+                call.insertBefore(MIR_Move.create(IA32_MOVSD, M, param));
+              }
+            } else {
+              call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
+            }
+          } else {
+            // Pass the parameter in a register.
+            RegisterOperand real;
+            if (ArchConstants.SSE2_FULL) {
+              real = new RegisterOperand(phys.getNativeFPRParam(nFPRParams - 1), paramType);
+              if (paramType.isFloatType()) {
+                call.insertBefore(MIR_Move.create(IA32_MOVSS, real, param));
+              } else {
+                call.insertBefore(MIR_Move.create(IA32_MOVSD, real, param));
+              }
+            } else {
+              // Note that if k FPRs are passed in registers,
+              // the 1st goes in F(k-1),
+              // the 2nd goes in F(k-2), etc...
+              real = new RegisterOperand(phys.getNativeFPRParam(FPRRegisterParams - nFPRParams), paramType);
+              call.insertBefore(MIR_Move.create(IA32_FMOV, real, param));
+            }
+            // Record that the call now has a use of the real register.
+            MIR_Call.setParam(call, nParamsInRegisters++, real.copy());
+          }
+        } else {
+          nGPRParams++;
+          parameterBytes -= WORDSIZE;
+          if (nGPRParams > PhysicalRegisterSet.getNumberOfNativeGPRParams()) {
+            // Too many parameters to pass in registers.  Write the
+            // parameter into the appropriate stack frame location.
+            call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE)));
+            call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
+          } else {
+            // Pass the parameter in a register.
+            Register phy = phys.getNativeGPRParam(nGPRParams - 1);
+            RegisterOperand real = new RegisterOperand(phy, paramType);
+            call.insertBefore(MIR_Move.create(IA32_MOV, real, param));
+            // Record that the call now has a use of the real register.
+            MIR_Call.setParam(call, nParamsInRegisters++, real.copy());
+          }
+        }
+      }
+      return parameterBytes;
     }
-    return parameterBytes;
   }
 
   /**
@@ -677,6 +771,9 @@ public abstract class CallingConvention extends IRTools
       } else {
         // if optimizing, only define the register if it has uses
         paramByteOffset -= WORDSIZE;
+        if (VM.BuildFor64Addr && symbOp.isLong()) {
+          paramByteOffset -= WORDSIZE;
+        }
         if (!useDU || symbOp.getRegister().useList != null) {
           // t is object, 1/2 of a long, int, short, char, byte, or boolean
           if (gprIndex < PhysicalRegisterSet.getNumberOfGPRParams()) {
@@ -710,4 +807,5 @@ public abstract class CallingConvention extends IRTools
     // set IR_PROLOGUE to have no defs.
     p.replace(Prologue.create(IR_PROLOGUE, 0));
   }
+
 }

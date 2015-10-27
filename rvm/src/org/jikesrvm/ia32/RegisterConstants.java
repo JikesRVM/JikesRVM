@@ -441,5 +441,9 @@ public interface RegisterConstants {
   FloatingPointMachineRegister[] NATIVE_PARAMETER_FPRS =
     VM.buildFor32Addr() ? new FloatingPointMachineRegister[0]
                         : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
+  /** Number of native,sys parameter FPRs */
+  int NUM_NATIVE_PARAMETER_FPRS = NATIVE_PARAMETER_FPRS.length;
+  /** Number of native, sys parameter GPRs */
+  int NUM_NATIVE_PARAMETER_GPRS = NATIVE_PARAMETER_GPRS.length;
 // CHECKSTYLE:ON
 }
