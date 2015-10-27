@@ -481,10 +481,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
     @Override
     public void perform(IR ir) {
-      if (VM.BuildForIA32) {
-        org.jikesrvm.compilers.opt.lir2mir.ia32.ComplexLIR2MIRExpansion.insertIMMQ_MOV(ir);
-      }
-
+      ComplexLIR2MIRExpansion.process64BitImmediateValues(ir);
     }
   }
 }

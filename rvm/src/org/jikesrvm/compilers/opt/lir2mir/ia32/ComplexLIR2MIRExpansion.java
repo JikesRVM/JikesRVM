@@ -1505,7 +1505,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     return nextInstr;
   }
 
-  public static void insertIMMQ_MOV(IR ir) {
+  public static void process64BitImmediateValues(IR ir) {
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null;
         s = s.nextInstructionInCodeOrder()) {
       char opcode = s.getOpcode();

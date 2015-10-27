@@ -594,4 +594,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     BB3.appendInstruction(MIR_Unary.create(PPC_LDI, result.copyRO(), IC(1)));
   }
 
+  public static void process64BitImmediateValues(IR ir) {
+    // nothing to do on PPC
+  }
 }
