@@ -25,7 +25,7 @@ if(Binary.getVal2(P(p)).asIntConstant().value == 1) { \\
 
 r:	LONG_SHL(r, INT_CONSTANT)
 !Binary.getResult(P(p)).similar(Binary.getVal1(P(p))) && \
-(Binary.getVal2(P(p)).asIntConstant().value & 0x1f) <= 3 ? 11 : INFINITE
+(Binary.getVal2(P(p)).asIntConstant().value & 0x3f) <= 3 ? 11 : INFINITE
 EMIT_INSTRUCTION
 pushAddress(null, Binary.getVal1(P(p)).asRegister(), LEA_SHIFT(Binary.getVal2(P(p))), Offset.zero()); \\
 EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(QW, null, null));
