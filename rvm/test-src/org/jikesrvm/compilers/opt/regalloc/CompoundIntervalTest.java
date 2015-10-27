@@ -456,7 +456,7 @@ public class CompoundIntervalTest {
 
     @Override
     SpillLocationInterval findOrCreateSpillLocation(CompoundInterval ci) {
-      return new SpillLocationInterval(SPILL_INTERVAL_OFFSET, SPILL_INTERVAL_SIZE);
+      return new SpillLocationInterval(SPILL_INTERVAL_OFFSET, SPILL_INTERVAL_SIZE, INT_REG);
     }
   }
 

@@ -59,7 +59,7 @@ class SpillLocationManager implements PhysicalRegisterConstants {
     // Search the free intervals and try to find an interval to
     // reuse. First look for the preferred interval.
     if (ir.options.REGALLOC_COALESCE_SPILLS) {
-      result = getSpillPreference(ci, spillSize);
+      result = getSpillPreference(ci, spillSize, type);
       if (result != null) {
         if (LinearScan.DEBUG_COALESCE) {
           System.out.println("SPILL PREFERENCE " + ci + " " + result);
@@ -73,7 +73,7 @@ class SpillLocationManager implements PhysicalRegisterConstants {
       Iterator<SpillLocationInterval> iter = freeIntervals.iterator();
       while (iter.hasNext()) {
         SpillLocationInterval s = iter.next();
-        if (s.getSize() == spillSize && !s.intersects(ci)) {
+        if (s.getSize() == spillSize && !s.intersects(ci) && s.getType() == type) {
           result = s;
           iter.remove();
           break;
@@ -84,7 +84,7 @@ class SpillLocationManager implements PhysicalRegisterConstants {
     if (result == null) {
       // Could not find an interval to reuse.  Create a new interval.
       int location = ir.stackManager.allocateNewSpillLocation(type);
-      result = new SpillLocationInterval(location, spillSize);
+      result = new SpillLocationInterval(location, spillSize, type);
     }
 
     // Update the spill location interval to hold the new spill
@@ -113,9 +113,10 @@ class SpillLocationManager implements PhysicalRegisterConstants {
    *
    * @param ci the interval to spill
    * @param spillSize the size of spill location needed
+   * @param type the physical register's type
    * @return the interval to spill to.  null if no preference found.
    */
-  SpillLocationInterval getSpillPreference(CompoundInterval ci, int spillSize) {
+  SpillLocationInterval getSpillPreference(CompoundInterval ci, int spillSize, int type) {
     // a mapping from SpillLocationInterval to Integer
     // (spill location to weight);
     HashMap<SpillLocationInterval, Integer> map = new HashMap<SpillLocationInterval, Integer>();
@@ -139,7 +140,8 @@ class SpillLocationManager implements PhysicalRegisterConstants {
         int spillOffset = regAllocState.getSpill(neighbor);
         // if this is a candidate interval, update its weight
         for (SpillLocationInterval s : freeIntervals) {
-          if (s.getOffset() == spillOffset && s.getSize() == spillSize && !s.intersects(ci)) {
+          if (s.getOffset() == spillOffset && s.getSize() == spillSize &&
+              !s.intersects(ci) && s.getType() == type) {
             int w = edge.getWeight();
             Integer oldW = map.get(s);
             if (oldW == null) {
@@ -163,7 +165,8 @@ class SpillLocationManager implements PhysicalRegisterConstants {
         int spillOffset = regAllocState.getSpill(neighbor);
         // if this is a candidate interval, update its weight
         for (SpillLocationInterval s : freeIntervals) {
-          if (s.getOffset() == spillOffset && s.getSize() == spillSize && !s.intersects(ci)) {
+          if (s.getOffset() == spillOffset && s.getSize() == spillSize &&
+              !s.intersects(ci) && s.getType() == type) {
             int w = edge.getWeight();
             Integer oldW = map.get(s);
             if (oldW == null) {
