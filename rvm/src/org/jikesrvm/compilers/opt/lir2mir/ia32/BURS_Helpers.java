@@ -2703,10 +2703,10 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
        EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
                new RegisterOperand(res, TypeReference.Long),
                new RegisterOperand(getEDX(), TypeReference.Long))));
-       EMIT(CPOS(s, MIR_Move.create(IA32_SHL,
+       EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SHL,
                new RegisterOperand(getEDX(), TypeReference.Long),
                LC(32))));
-       EMIT(CPOS(s, MIR_Move.create(IA32_OR,
+       EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR,
            new RegisterOperand(res, TypeReference.Long),
            new RegisterOperand(getEAX(), TypeReference.Long))));
     }
