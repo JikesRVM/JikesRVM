@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.driver.ia32;
 
-import static org.jikesrvm.compilers.opt.ir.IRTools.*;
-
 import java.util.ArrayList;
 
 import org.jikesrvm.compilers.opt.MutateSplits;

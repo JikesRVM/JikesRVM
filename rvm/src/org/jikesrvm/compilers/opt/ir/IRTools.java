@@ -62,7 +62,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
 
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This abstract class contains a bunch of useful static methods for
@@ -252,21 +251,6 @@ public abstract class IRTools {
       return new LongConstantOperand(o.toLong());
     } else {
       return new IntConstantOperand(o.toInt());
-    }
-  }
-
-  /**
-   * Generates appropriately sized constant operand for a given Word.
-   *
-   * @param w a word
-   * @return an instance of {@link IntConstantOperand} (32-bit)
-   *  or {@link LongConstantOperand} (64-bit)
-   */
-  public static Operand wordOperand(Word w) {
-    if (VM.BuildFor64Addr) {
-      return new LongConstantOperand(w.toLong());
-    } else {
-      return new IntConstantOperand(w.toInt());
     }
   }
 

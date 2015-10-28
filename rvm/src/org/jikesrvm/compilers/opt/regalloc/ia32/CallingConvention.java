@@ -367,13 +367,13 @@ public abstract class CallingConvention extends IRTools
       } else {
         nGPRParams++;
         parameterBytes -= WORDSIZE;
-        if (VM.BuildFor64Addr && param.isLong()) {
+        if (paramIsNativeLongOn64Bit(param)) {
           parameterBytes -= WORDSIZE;
         }
         if (nGPRParams > PhysicalRegisterSet.getNumberOfGPRParams()) {
           // Too many parameters to pass in registers.  Write the
           // parameter into the appropriate stack frame location.
-          if (VM.BuildFor64Addr && param.isLong()) {
+          if (paramIsNativeLongOn64Bit(param)) {
             call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE * 2)));
             call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, IC(0)));
           } else {
@@ -391,6 +391,12 @@ public abstract class CallingConvention extends IRTools
       }
     }
     return parameterBytes;
+  }
+
+  private static boolean paramIsNativeLongOn64Bit(Operand param) {
+    return VM.BuildFor64Addr && param.isLong() &&
+      ((param.isRegister() && !param.asRegister().convertedFromRef()) ||
+        (param.isLongConstant() && !param.asLongConstant().convertedFromRef()));
   }
 
   /**
@@ -771,7 +777,7 @@ public abstract class CallingConvention extends IRTools
       } else {
         // if optimizing, only define the register if it has uses
         paramByteOffset -= WORDSIZE;
-        if (VM.BuildFor64Addr && symbOp.isLong()) {
+        if (paramIsNativeLongOn64Bit(symbOp)) {
           paramByteOffset -= WORDSIZE;
         }
         if (!useDU || symbOp.getRegister().useList != null) {

@@ -1529,6 +1529,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
             LongConstantOperand lc = (LongConstantOperand)op;
             if (!Bits.fits(lc.value, 32)) {
               RegisterOperand temp = ir.regpool.makeTempLong();
+              if (lc.convertedFromRef()) {
+                temp.flagAsConvertedFromRef();
+              }
               s.insertBefore(MIR_Move.create(IMMQ_MOV, temp, lc));
               s.replaceOperand(lc, temp.copyD2U());
             }
