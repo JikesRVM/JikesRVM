@@ -4,7 +4,31 @@
 szpr:	LONG_AND(r, rlv)
 13
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+if (Binary.getVal2(P(p)).isLongConstant()) { \\
+Register tmp = regpool.getLong(); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getVal2(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), new RegisterOperand(tmp, TypeReference.Long)); \\
+}else{\\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \\
+}
+
+#
+# has int parameter
+#
+szpr:    LONG_AND(r,r)
+9
+EMIT_INSTRUCTION
+if (Binary.getVal1(P(p)).asRegister().getRegister().isInteger()) { \\
+RegisterOperand tmp = regpool.makeTempLong(); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp, Binary.getVal1(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), tmp, Binary.getVal2(P(p))); \\
+} else if (Binary.getVal2(P(p)).asRegister().getRegister().isInteger()) { \\
+RegisterOperand tmp = regpool.makeTempLong(); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp, Binary.getVal2(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), tmp); \\
+} else { \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \\
+}
 
 szp:	LONG_AND(r, rlv)
 11
@@ -20,7 +44,13 @@ EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), c
 szpr:	LONG_AND(load64, rlv)
 15
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+if (Binary.getVal2(P(p)).isLongConstant()) { \\
+Register tmp = regpool.getLong(); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getVal2(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), new RegisterOperand(tmp, TypeReference.Long), consumeMO()); \\
+} else { \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO()); \\
+}
 
 szp:	LONG_AND(load8_16_32_64, rlv)
 11

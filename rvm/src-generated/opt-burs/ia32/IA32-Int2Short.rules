@@ -4,12 +4,20 @@
 r:	INT_2SHORT(r)
 15
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Unary.getResult(P(p)), Unary.getVal(P(p))));
+if (VM.BuildFor32Addr) { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Unary.getResult(P(p)), Unary.getVal(P(p)))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSXQ__W, Unary.getResult(P(p)), Unary.getVal(P(p)))); \\
+}
 
 r:	INT_2SHORT(load16_32)
 17
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Unary.getResult(P(p)), setSize(consumeMO(),2)));
+if (VM.BuildFor32Addr) { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Unary.getResult(P(p)), setSize(consumeMO(), 2))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSXQ__W, Unary.getResult(P(p)), setSize(consumeMO(), 2))); \\
+}
 
 # int2short(load16_32) ===> sload16
 sload16:	INT_2SHORT(load16_32)
