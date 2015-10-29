@@ -202,7 +202,7 @@ public abstract class StackManager extends GenericStackManager {
         rOp = D(r);
         break;
       default:
-        rOp = new RegisterOperand(r, TypeReference.Int);
+        rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
         break;
     }
     StackLocationOperand spill = new StackLocationOperand(true, -location, size);
@@ -757,7 +757,7 @@ public abstract class StackManager extends GenericStackManager {
         s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, new RegisterOperand(ESP, PRIMITIVE_TYPE_FOR_WORD), VM.BuildFor32Addr ? IC(delta) : LC(delta)));
       } else {
         MemoryOperand M =
-            MemoryOperand.BD(new RegisterOperand(ESP, TypeReference.Int),
+            MemoryOperand.BD(new RegisterOperand(ESP, PRIMITIVE_TYPE_FOR_WORD),
                                  Offset.fromIntSignExtend(delta),
                                  (byte) WORDSIZE,
                                  null,
