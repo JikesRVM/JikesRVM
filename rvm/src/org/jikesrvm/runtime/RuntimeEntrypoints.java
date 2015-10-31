@@ -802,6 +802,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
         break;
       case TRAP_UNREACHABLE_BYTECODE:
         exceptionObject = new java.lang.InternalError(UNREACHABLE_BC_MESSAGE);
+        break;
       default:
         exceptionObject = new java.lang.UnknownError();
         RVMThread.traceback("UNKNOWN ERROR");
