@@ -3633,9 +3633,31 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     if (VM.VerifyAssertions) {
       opt_assert(OsrPoint.conforms(s));
     }
+
+    // Check type info first because this needs to be done
+    // for both 32-bit and 64-bit cases.
+    InlinedOsrTypeInfoOperand typeInfo;
+    if (VM.BuildFor32Addr) {
+      // Clearing type info is ok, because instruction will be mutated and the
+      // info will be reinserted
+      typeInfo = OsrPoint.getClearInlinedTypeInfo(s);
+    } else {
+      // Instruction won't be changed so info needs to be left in
+      typeInfo = OsrPoint.getInlinedTypeInfo(s);
+    }
+
+    if (VM.VerifyAssertions) {
+      if (typeInfo == null) {
+        VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
+        VM.sysWriteln("  position :" + s.bcIndex + "@" + s.position.method);
+      }
+      opt_assert(typeInfo != null);
+    }
+
+    int numparam = OsrPoint.getNumberOfElements(s);
+
     if (VM.BuildFor32Addr) {
       // 1. how many params
-      int numparam = OsrPoint.getNumberOfElements(s);
       int numlong = 0;
       for (int i = 0; i < numparam; i++) {
         Operand param = OsrPoint.getElement(s, i);
@@ -3645,17 +3667,6 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       }
 
       // 2. collect params
-      InlinedOsrTypeInfoOperand typeInfo = OsrPoint
-          .getClearInlinedTypeInfo(s);
-
-      if (VM.VerifyAssertions) {
-        if (typeInfo == null) {
-          VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
-          VM.sysWriteln("  position :" + s.bcIndex + "@" + s.position.method);
-        }
-        opt_assert(typeInfo != null);
-      }
-
       Operand[] params = new Operand[numparam];
       for (int i = 0; i < numparam; i++) {
         params[i] = OsrPoint.getClearElement(s, i);
@@ -3706,42 +3717,11 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
         opt_assert(pidx == (numparam + numlong));
       }
     } else {
-      int numparam = OsrPoint.getNumberOfElements(s);
-
-      // 2. collect params
-         InlinedOsrTypeInfoOperand typeInfo = OsrPoint
-          .getInlinedTypeInfo(s);
-
-      if (VM.VerifyAssertions) {
-        if (typeInfo == null) {
-          VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
-          VM.sysWriteln("  position :" + s.bcIndex + "@" + s.position.method);
-        }
-        opt_assert(typeInfo != null);
-       }
-
       // set the number of valid params in osr type info, used
       // in LinearScan
       typeInfo.validOps = numparam;
 
-      // 3: only makes second half register of long being used
-      // creates room for long types.
       burs.append(s);
-
-      int pidx = numparam;
-
-      if (pidx != numparam) {
-        VM.sysWriteln("pidx = " + pidx);
-        VM.sysWriteln("numparam = " + numparam);
-      }
-
-      if (VM.VerifyAssertions) {
-          opt_assert(pidx == numparam);
-      }
    }
-    /*
-     * if (VM.TraceOnStackReplacement) { VM.sysWriteln("BURS rewrite OsrPoint
-     * "+s); VM.sysWriteln(" position "+s.bcIndex+"@"+s.position.method); }
-     */
   }
 }
