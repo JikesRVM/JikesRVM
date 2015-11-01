@@ -173,9 +173,8 @@ EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *conte
 EXTERNAL void* sysStartMainThreadSignals()
 {
   /* install a stack for hardwareTrapHandler() to run on */
-  stack_t stack;
+  stack_t stack = {0};
   void *stackBuf;
-  memset (&stack, 0, sizeof stack);
   stackBuf = (void *)checkMalloc(SIGSTKSZ);
   stack.ss_sp = stackBuf;
   stack.ss_size = SIGSTKSZ;
@@ -185,9 +184,7 @@ EXTERNAL void* sysStartMainThreadSignals()
     return NULL;
   }
   /* install hardware trap signal handler */
-  struct sigaction action;
-
-  memset (&action, 0, sizeof action);
+  struct sigaction action = {0};
   action.sa_sigaction = hardwareTrapHandler;
   /*
    * mask all signal from reaching the signal handler while the signal

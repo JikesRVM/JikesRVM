@@ -185,7 +185,7 @@ EXTERNAL void sysExit(int value)
  */
 EXTERNAL void sysNanoSleep(long long howLongNanos)
 {
-  struct timespec req;
+  struct timespec req = {0};
   const long long nanosPerSec = 1000LL * 1000 * 1000;
   TRACE_PRINTF("%s: sysNanosleep %lld\n", Me, howLongNanos);
   req.tv_sec = howLongNanos / nanosPerSec;
@@ -582,8 +582,8 @@ EXTERNAL void sysThreadYield()
  */
 static int hasPthreadPriority(Word thread_id)
 {
-  struct sched_param param;
-  int policy;
+  struct sched_param param = {0};
+  int policy = 0;
   if (!pthread_getschedparam((pthread_t)thread_id, &policy, &param)) {
     int min = sched_get_priority_min(policy);
     int max = sched_get_priority_max(policy);
@@ -629,8 +629,8 @@ EXTERNAL int sysGetThreadPriority(Word thread, Word handle)
   TRACE_PRINTF("%s: sysGetThreadPriority\n", Me);
   // use pthread priority mechanisms where possible
   if (hasPthreadPriority(thread)) {
-    struct sched_param param;
-    int policy;
+    struct sched_param param = {0};
+    int policy = 0;
     if (!pthread_getschedparam((pthread_t)thread, &policy, &param)) {
       return param.sched_priority - defaultPriority(policy);
     }
@@ -661,8 +661,8 @@ EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority)
 
   // use pthread priority mechanisms where possible
   if (hasPthreadPriority(thread)) {
-    struct sched_param param;
-    int policy;
+    struct sched_param param = {0};
+    int policy = 0;
     int result = pthread_getschedparam((pthread_t)thread, &policy, &param);
     if (!result) {
       param.sched_priority = defaultPriority(policy) + priority;
@@ -739,7 +739,7 @@ EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNan
   if (whenWakeupNanos <= 0) return;
   hythread_monitor_wait_timed((hythread_monitor_t)_monitor, (I_64)(whenWakeupNanos / 1000000LL), (IDATA)(whenWakeupNanos % 1000000LL));
 #else
-  struct timespec ts;
+  struct timespec ts = {0};
   ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
   ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
 #ifdef DEBUG_THREAD

@@ -24,8 +24,8 @@ EXTERNAL long long sysCurrentTimeMillis()
   TRACE_PRINTF("%s: sysCurrentTimeMillis\n", Me);
   int rc;
   long long returnValue;
-  struct timeval tv;
-  struct timezone tz;
+  struct timeval tv = {0};
+  struct timezone tz = {0};
 
   returnValue = 0;
 
@@ -44,7 +44,7 @@ EXTERNAL long long sysNanoTime()
   TRACE_PRINTF("%s: sysNanoTime\n", Me);
   long long retVal;
 #ifndef __MACH__
-  struct timespec tp;
+  struct timespec tp = {0};
   int rc = clock_gettime(CLOCK_REALTIME, &tp);
   if (rc != 0) {
     retVal = rc;
@@ -53,7 +53,7 @@ EXTERNAL long long sysNanoTime()
     retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
   }
 #else
-  struct timeval tv;
+  struct timeval tv = {0};
 
   gettimeofday(&tv,NULL);
 
