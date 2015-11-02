@@ -468,17 +468,23 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
  */
 int main(int argc, const char **argv)
 {
-  int j, ret;
+  int vbufret, j, ret;
   JavaVMInitArgs initArgs;
   JavaVM *mainJavaVM;
   JNIEnv *mainJNIEnv;
 
+  /* Make standard streams unbuffered so that we can use them
+     for low level-debugging */
+  vbufret = setvbuf(stdout, NULL, _IONBF, 0);
+  if (vbufret != 0) {
+    printf("Error making stdout unbuffered: %d\n", vbufret);
+  }
+  vbufret = setvbuf(stderr, NULL, _IONBF, 0);
+  if (vbufret != 0) {
+    printf("Error making stderr unbuffered: %d\n", vbufret);
+  }
   SysErrorFile = stderr;
   SysTraceFile = stdout;
-  setbuf (SysErrorFile, NULL);
-  setbuf (SysTraceFile, NULL);
-  setvbuf(stdout,NULL,_IONBF,0);
-  setvbuf(stderr,NULL,_IONBF,0);
   Me = strrchr(*argv, '/');
   if (Me == NULL) {
     Me = "RVM";
