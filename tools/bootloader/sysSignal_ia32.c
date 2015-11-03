@@ -752,12 +752,10 @@ EXTERNAL void dumpContext(void *context)
 #ifndef RVM_FOR_OSX
   ERROR_PRINTF("fpregs        %p\n", (void*)IA32_FPREGS(context));
 #endif
-#ifdef RVM_FOR_LINUX
-#ifndef __x86_64__
+#if !defined(__x86_64__) && defined(RVM_FOR_LINUX)
   ERROR_PRINTF("oldmask       0x%08lx\n", (unsigned long) IA32_OLDMASK(context));
   /* seems to contain mem address that faulting instruction was trying to access */
   ERROR_PRINTF("cr2           0x%08lx\n", (unsigned long) IA32_FPFAULTDATA(context));
-#endif
 #endif
 }
 
