@@ -1,0 +1,18 @@
+#####
+# LONG_MOVE
+#####
+r:	LONG_MOVE(rlv)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+r:  LONG_MOVE(riv)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+load64:	LONG_MOVE(load64)
+0
+NOFLAGS
+// nothing to do
+

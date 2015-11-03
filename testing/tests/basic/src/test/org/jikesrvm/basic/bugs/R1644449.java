@@ -9,6 +9,9 @@
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
+ *
+ *  Alternatively, this file is licensed to You under the MIT License:
+ *      http://opensource.org/licenses/MIT .
  */
 package test.org.jikesrvm.basic.bugs;
 

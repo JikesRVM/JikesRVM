@@ -2221,6 +2221,25 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * <p>Compare EDX:EAX with the argument and exchange 8 bytes.</p>
    *
    * <PRE>
+   * cmpxchg8b [disp]
+   * </PRE>
+   *
+   * @param disp displacement for argument
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  public final void emitCMPXCHG8B_Abs(Address disp) {
+    int miStart = mi;
+    generateREXprefix(false, null, null, null);
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) 0xC7);
+    emitAbsRegOperands(disp, GPR.getForOpcode(1));
+    if (lister != null) lister.RA(miStart, "CMPXCHG8B", disp);
+  }
+
+  /**
+   * <p>Compare EDX:EAX with the argument and exchange 8 bytes.</p>
+   *
+   * <PRE>
    * cmpxchg8b [dst + disp]
    * </PRE>
    *

@@ -6,5 +6,6 @@ ClassQuery_0.1 {
 	 Java_ClassQuery_testSameObject;
 	 Java_ClassQuery_testAllocObject;
 	 Java_ClassQuery_testGetObjectClass;
+	 Java_ClassQuery_testInstanceOf;
   local : *;
 };

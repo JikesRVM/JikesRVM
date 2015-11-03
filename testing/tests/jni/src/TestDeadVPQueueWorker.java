@@ -43,5 +43,5 @@ class TestDeadVPQueueWorker extends Thread {
 
 
         state = ending;
-      }
    }
+}

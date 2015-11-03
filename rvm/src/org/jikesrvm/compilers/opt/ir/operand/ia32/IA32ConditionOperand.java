@@ -61,54 +61,22 @@ public final class IA32ConditionOperand extends Operand {
    */
   public IA32ConditionOperand flipCode() {
     switch (value) {
-      case O:
-        value = NO;
-        break;
-      case NO:
-        value = O;
-        break;
-      case LLT:
-        value = LGE;
-        break;
-      case LGE:
-        value = LLT;
-        break;
-      case EQ:
-        value = NE;
-        break;
-      case NE:
-        value = EQ;
-        break;
-      case LLE:
-        value = LGT;
-        break;
-      case LGT:
-        value = LLE;
-        break;
-      case S:
-        value = NS;
-        break;
-      case NS:
-        value = S;
-        break;
-      case PE:
-        value = PO;
-        break;
-      case PO:
-        value = PE;
-        break;
-      case LT:
-        value = GE;
-        break;
-      case GE:
-        value = LT;
-        break;
-      case LE:
-        value = GT;
-        break;
-      case GT:
-        value = LE;
-        break;
+      case O:   value =  NO; break;
+      case NO:  value =   O; break;
+      case LLT: value = LGE; break;
+      case LGE: value = LLT; break;
+      case EQ:  value =  NE; break;
+      case NE:  value =  EQ; break;
+      case LLE: value = LGT; break;
+      case LGT: value = LLE; break;
+      case S:   value =  NS; break;
+      case NS:  value =   S; break;
+      case PE:  value =  PO; break;
+      case PO:  value =  PE; break;
+      case LT:  value =  GE; break;
+      case GE:  value =  LT; break;
+      case LE:  value =  GT; break;
+      case GT:  value =  LE; break;
       default:
         OptimizingCompilerException.UNREACHABLE();
     }
@@ -121,30 +89,14 @@ public final class IA32ConditionOperand extends Operand {
    */
   public IA32ConditionOperand flipOperands() {
     switch (value) {
-      case LLT:
-        value = LGT;
-        break;
-      case LGE:
-        value = LLE;
-        break;
-      case LLE:
-        value = LGE;
-        break;
-      case LGT:
-        value = LLT;
-        break;
-      case LT:
-        value = GT;
-        break;
-      case GE:
-        value = LE;
-        break;
-      case LE:
-        value = GE;
-        break;
-      case GT:
-        value = LT;
-        break;
+      case LLT: value = LGT; break;
+      case LGE: value = LLE; break;
+      case LLE: value = LGE; break;
+      case LGT: value = LLT; break;
+      case LT:  value =  GT; break;
+      case GE:  value =  LE; break;
+      case LE:  value =  GE; break;
+      case GT:  value =  LT; break;
       default:
         OptimizingCompilerException.TODO();
     }
@@ -246,13 +198,35 @@ public final class IA32ConditionOperand extends Operand {
         value = LGT;
         break;
       case ConditionOperand.LOWER:
+      case ConditionOperand.CARRY_FROM_ADD:
+      case ConditionOperand.BORROW_FROM_SUB:
+      case ConditionOperand.BORROW_FROM_RSUB:
+      case ConditionOperand.BIT_TEST:
+      case ConditionOperand.RBIT_TEST:
         value = LLT;
         break;
       case ConditionOperand.HIGHER_EQUAL:
+      case ConditionOperand.NO_CARRY_FROM_ADD:
+      case ConditionOperand.NO_BORROW_FROM_SUB:
+      case ConditionOperand.NO_BORROW_FROM_RSUB:
+      case ConditionOperand.NO_BIT_TEST:
+      case ConditionOperand.NO_RBIT_TEST:
         value = LGE;
         break;
       case ConditionOperand.LOWER_EQUAL:
         value = LLE;
+        break;
+      case ConditionOperand.OVERFLOW_FROM_ADD:
+      case ConditionOperand.OVERFLOW_FROM_SUB:
+      case ConditionOperand.OVERFLOW_FROM_RSUB:
+      case ConditionOperand.OVERFLOW_FROM_MUL:
+        value =   O;
+        break;
+      case ConditionOperand.NO_OVERFLOW_FROM_ADD:
+      case ConditionOperand.NO_OVERFLOW_FROM_SUB:
+      case ConditionOperand.NO_OVERFLOW_FROM_RSUB:
+      case ConditionOperand.NO_OVERFLOW_FROM_MUL:
+        value =  NO;
         break;
       case ConditionOperand.CMPL_EQUAL:
       case ConditionOperand.CMPL_GREATER:

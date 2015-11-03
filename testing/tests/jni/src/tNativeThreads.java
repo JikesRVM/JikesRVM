@@ -34,50 +34,41 @@ class tNativeThreads {
 
     System.loadLibrary("tNativeThreads");
 
+    System.out.println("starting TestDispatch stuff");
 
+    NativeThreadsWorker[] a = new NativeThreadsWorker[NUMBER_OF_WORKERS];
+    for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++) {
+         a[wrk] = new NativeThreadsWorker("ping");
+         a[wrk].start();
+       }
 
-      System.out.println("starting TestDispatch stuff");
+    NativeThreadsWorker b = new NativeThreadsWorker("pong");
+    b.start();
 
-      NativeThreadsWorker[] a = new NativeThreadsWorker[NUMBER_OF_WORKERS];
-      for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++) {
-           a[wrk] = new NativeThreadsWorker("ping");
-           a[wrk].start();
-         }
+    while (!b.isFinished)
+        Thread.currentThread().yield();
 
-      NativeThreadsWorker b = new NativeThreadsWorker("pong");
-      b.start();
+    //count number of workers that completed
+    //
+    int cntr = 0;
+    for (int i = 0; i < NUMBER_OF_WORKERS; i++) {
+        if (a[i].isFinished)
+           cntr++;
+    }
+    if (cntr < NUMBER_OF_WORKERS) {
 
-      while (!b.isFinished)
-          Thread.currentThread().yield();
+      //     RVMThread.dumpVirtualMachine();
+    }
 
-      //count number of workers that completed
-      //
-      int cntr = 0;
-      for (int i = 0; i < NUMBER_OF_WORKERS; i++) {
-          if (a[i].isFinished)
-             cntr++;
+    for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk ++)
+      while (!a[wrk].isFinished) {
+        try {
+          //say(name, "sleeping");
+          Thread.currentThread().sleep(300);
+        } catch (InterruptedException e) { }
+        Thread.currentThread().yield();
       }
-      if (cntr < NUMBER_OF_WORKERS) {
 
-        //     RVMThread.dumpVirtualMachine();
-      }
-
-
-      for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk ++)
-        while (!a[wrk].isFinished) {
-          try {
-            //say(name, "sleeping");
-            Thread.currentThread().sleep(300);
-          } catch (InterruptedException e) { }
-          Thread.currentThread().yield();
-        }
-
-      //      RVMThread.dumpVirtualMachine();
+    //      RVMThread.dumpVirtualMachine();
   }
 }
-
-
-
-
-
-

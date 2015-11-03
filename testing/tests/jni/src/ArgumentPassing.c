@@ -1682,10 +1682,3 @@ JNIEXPORT jdouble JNICALL Java_ArgumentPassing_returnDouble
 
   return val1;
 }
-
-
-
-
-
-
-

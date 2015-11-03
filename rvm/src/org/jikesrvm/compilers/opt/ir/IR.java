@@ -956,6 +956,7 @@ public final class IR {
    * <li>1) has operands that back reference it</li>
    * <li>2) is valid for its position in the basic block</li>
    * <li>3) if we are MIR, has no guard operands</li>
+   * <li>4) test instruction is canonical</li>
    * </ul>
    *
    * @param where phrase identifying invoking  compilation phase
@@ -1019,6 +1020,12 @@ public final class IR {
                    " the def operand " +
                    def +
                    " is invalid as it is a validation register and this IR is in MIR form");
+          }
+        }
+        // Perform (4)
+        if (Binary.conforms(instruction) && instruction.operator().isCommutative()) {
+          if (Binary.getVal1(instruction).isConstant()) {
+            verror(where, "Non-canonical commutative operation " + instruction);
           }
         }
         // Perform (2)

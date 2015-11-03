@@ -1,0 +1,30 @@
+#####
+# INT_2LONG
+#####
+r:	INT_2LONG(r)
+15
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), true);
+
+r:	INT_2LONG(load32)
+13
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), consumeMO(), true);
+
+r:      LONG_AND(INT_2LONG(r), LONG_CONSTANT)
+(Binary.getVal2(P(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(P(p)).asLongConstant().lower32() == -1)? 11 : INFINITE
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Binary.getResult(P(p)), Unary.getVal(PL(p)), false);
+
+r:      LONG_AND(INT_2LONG(load32), LONG_CONSTANT)
+(Binary.getVal2(P(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(P(p)).asLongConstant().lower32() == -1)? 13 : INFINITE
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Binary.getResult(P(p)), consumeMO(), false);
+
+r:	INT_2ADDRZerExt(r)
+15
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), false);
+

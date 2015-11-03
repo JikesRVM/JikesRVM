@@ -34,12 +34,22 @@ public final class LongConstantOperand extends ConstantOperand {
   public long value;
 
   /**
+   * Converted from a reference?
+   */
+  private boolean convertedFromRef;
+
+  /**
    * Constructs a new long constant operand with the specified value.
    *
    * @param v value
    */
   public LongConstantOperand(long v) {
     value = v;
+  }
+
+  public LongConstantOperand(long v, boolean convertedFromRef) {
+    this(v);
+    this.convertedFromRef = convertedFromRef;
   }
 
   /**
@@ -64,12 +74,18 @@ public final class LongConstantOperand extends ConstantOperand {
   public int lower32() {
     return Bits.lower32(value);
   }
-
   /**
    * @return the upper 32 bits (as an int) of value
    */
   public int upper32() {
     return Bits.upper32(value);
+  }
+
+  /**
+   * @return whether the operand was converted from a reference type
+   */
+  public boolean convertedFromRef() {
+    return convertedFromRef;
   }
 
   @Override

@@ -1,0 +1,37 @@
+#####
+# INT_2SHORT
+#####
+r:	INT_2SHORT(r)
+15
+EMIT_INSTRUCTION
+if (VM.BuildFor32Addr) { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Unary.getResult(P(p)), Unary.getVal(P(p)))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSXQ__W, Unary.getResult(P(p)), Unary.getVal(P(p)))); \\
+}
+
+r:	INT_2SHORT(load16_32)
+17
+EMIT_INSTRUCTION
+if (VM.BuildFor32Addr) { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Unary.getResult(P(p)), setSize(consumeMO(), 2))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSXQ__W, Unary.getResult(P(p)), setSize(consumeMO(), 2))); \\
+}
+
+# int2short(load16_32) ===> sload16
+sload16:	INT_2SHORT(load16_32)
+0
+EMIT_INSTRUCTION
+pushMO(setSize(consumeMO(),2));
+
+stm:	SHORT_STORE(INT_2SHORT(r), OTHER_OPERAND(riv,riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Unary.getVal(PL(p))));
+
+stm:	SHORT_ASTORE(INT_2SHORT(r), OTHER_OPERAND(riv, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), Unary.getVal(PL(p))));
+

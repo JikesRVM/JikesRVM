@@ -1,0 +1,30 @@
+#####
+# INT_2USHORT
+#####
+szpr:	INT_2USHORT(r)
+23
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), Unary.getVal(P(p))))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)).copyRO(), IC(0xFFFF)));
+
+# int2ushort(load16_32) ===> uload16
+uload16:	INT_2USHORT(load16_32)
+0
+EMIT_INSTRUCTION
+pushMO(setSize(consumeMO(),2));
+
+r:	INT_2USHORT(load16_32)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, Unary.getResult(P(p)), setSize(consumeMO(),2)));
+
+stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(riv,riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Unary.getVal(PL(p))));
+
+stm:	SHORT_ASTORE(INT_2USHORT(r), OTHER_OPERAND(riv, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), Unary.getVal(PL(p))));
+

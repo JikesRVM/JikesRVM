@@ -1,0 +1,64 @@
+######
+# INT_MOVE
+######
+r:	INT_MOVE(riv)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+# INT_MOVEs can also 'preserve' nonterminals other than r
+czr:	INT_MOVE(czr)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+cz:	INT_MOVE(cz)
+0
+NOFLAGS
+//nothing to do
+
+szpr:	INT_MOVE(szpr)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Move.getResult(P(p)), Move.getVal(P(p))));
+
+szp:	INT_MOVE(szp)
+0
+NOFLAGS
+//nothing to do
+
+sload8:	INT_MOVE(sload8)
+0
+NOFLAGS
+//nothing to do
+
+uload8:	INT_MOVE(uload8)
+0
+NOFLAGS
+//nothing to do
+
+load8:	INT_MOVE(load8)
+0
+NOFLAGS
+//nothing to do
+
+sload16: INT_MOVE(sload16)
+0
+NOFLAGS
+//nothing to do
+
+uload16: INT_MOVE(uload16)
+0
+NOFLAGS
+//nothing to do
+
+load16:	INT_MOVE(load16)
+0
+NOFLAGS
+//nothing to do
+
+load32:	INT_MOVE(load32)
+0
+NOFLAGS
+// nothing to do
+

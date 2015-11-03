@@ -1,0 +1,14 @@
+#####
+# LONG_SHR
+#####
+r:	LONG_SHR(rlv, riv)
+20
+EMIT_INSTRUCTION
+LONG_SHR(P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)), false);
+
+r:	LONG_SHR(rlv, INT_AND(riv, INT_CONSTANT))
+20
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 63); \\
+LONG_SHR(P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal1(PR(p)), true);
+

@@ -13,8 +13,10 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.Configuration;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
@@ -57,6 +59,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -234,6 +237,21 @@ public abstract class IRTools {
    */
   public static TrueGuardOperand TG() {
     return new TrueGuardOperand();
+  }
+
+  /**
+   * Generates appropriately sized constant operand for a given Offset.
+   *
+   * @param o an offset
+   * @return an instance of {@link IntConstantOperand} (32-bit)
+   *  or {@link LongConstantOperand} (64-bit)
+   */
+  public static Operand offsetOperand(Offset o) {
+    if (VM.BuildFor64Addr) {
+      return new LongConstantOperand(o.toLong());
+    } else {
+      return new IntConstantOperand(o.toInt());
+    }
   }
 
   /**

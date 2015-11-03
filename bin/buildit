@@ -72,6 +72,7 @@ Options:
 
 Building Options:
      --x87            Use x87 Compatibility mode.
+     --m32, --m64     Force use of 32- or 64-bit addressing in the build
  -c, --cross-to       Crossbuild to target host (or copy post build).
      --with-perfevent Build with perf event support
  -a, --with-acheck    Build with align checks, implies --x87 --processors 1
@@ -114,6 +115,7 @@ Testing Options:
      --ext-lib-dir    Specify the benchmarks directory for testing.
      --processors     Specify the number of processors to use.
  -z, --skip-build     Run tests without building
+     --save-space     Keep only archived results on the local machine and throw away the rest
 
 ";
 
@@ -181,8 +183,11 @@ GetOptions(
   "with-perfevent" => \$with_perfevent,
   "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
+  "save-space" => \$save_space,
   "h|help" => \$help,
   "x87" => \$x87,
+  "m32" => \$m32,
+  "m64" => \$m64,
   "harmony" => \$harmony,
   "openjdk" => \$openjdk,
   "j|java-home=s" => \$javaHomeCmd,
@@ -248,6 +253,10 @@ if ($target eq "") {
 }
 if ($root eq "") {
   bad_usage("rvm root is not specified");
+}
+
+if ($m64 ne "" && $m32 ne "") {
+  bad_usage("Only one of --m64 and --m32 can be specified");
 }
 
 $local = `hostname`;
@@ -361,22 +370,29 @@ if (! -e $localRoot . "/rvm") {
 
 if ($custom_host_name ne "") {
   $hostConfig = $custom_host_name;
-} elsif ($config{"$host.host-type"} ne "") {
-  $hostConfig = $config{"$host.host-type"};
 } else {
-  @host_info = split(" ", `$sshHostCmd 'uname -ms'`);
-  chomp(@host_info);
-  $hostConfig = $config{"global.arch.".$host_info[1]}."-".$config{"global.os.".$host_info[0]};
+  if ($config{"$host.host-type"} ne "") {
+    $hostConfig = $config{"$host.host-type"};
+  } else {
+    @host_info = split(" ", `$sshHostCmd 'uname -ms'`);
+    chomp(@host_info);
+    $hostConfig = $config{"global.arch.".$host_info[1]}."-".$config{"global.os.".$host_info[0]};
+  }
+  my ($arch, $os) = split(/-/,$hostConfig);
+  $hostConfig = get_word_variant($arch)."-$os";
 }
 
 if ($custom_target_name ne "") {
   $targetConfig = $custom_target_name;
 } elsif ($config{"$target.host-type"} ne "") {
   $targetConfig = $config{"$target.host-type"};
+  my ($arch, $os) = split(/-/,$targetConfig);
+  $targetConfig = get_word_variant($arch)."-$os";
 } else {
   @target_info = split(" ", `$sshTargetCmd 'uname -ms'`);
   chomp(@target_info);
-  $targetConfig = $config{"global.arch.".$target_info[1]}."-".$config{"global.os.".$target_info[0]};
+  my $arch = get_word_variant($config{"global.arch.".$target_info[1]});
+  $targetConfig = $arch."-".$config{"global.os.".$target_info[0]};
 }
 
 if ($config{"$local.home"} eq "") {
@@ -674,7 +690,7 @@ if ($cvs_head) {
   $cp_flags .= "-Dclasspath.from-cvs=true ";
 }
 
-$rvm_revision=`hg id --debug -i`;
+$rvm_revision=`git rev-parse HEAD`;
 chomp($rvm_revision);
 
 if ($ok) {
@@ -686,7 +702,7 @@ if ($ok) {
     # Principal "-D" defines for ant
     $defs = "-Dtarget.name=$targetConfig ".
             "-Dconfig.name=$config ".
-            "-Dhg.revision=$rvm_revision ";
+            "-Dgit.revision=$rvm_revision ";
      
     if ($suffix ne "") {
       $defs .= "-Dconfig.variant=$suffix ";
@@ -868,12 +884,12 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   $test = "$sshTargetCmdT '$shell \" ".
           "  cd $targetRoot && ".
           "  mkdir -p $resultdir && ".
-          "  rm -f results/buildit/latest && ".
+          "  rm -rf results/buildit/latest && ".
           "  ln -s $testsid results/buildit/latest && ".
           "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
           "-Dhost.name=$targetConfig ".
-          "-Dhg.revision=$rvm_revision ".
+          "-Dgit.revision=$rvm_revision ".
           "-Dskip.build=true ".
           "-Dexternal.lib.dir=$extlibdir ".
           "-Dresults.dir=$targetRoot/$resultdir ";
@@ -944,7 +960,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
 
   if ($target ne $local) {
     $rsync = "mkdir -p $localRoot/$resultdir && ".
-             "rm -f $localRoot/results/buildit/$results_name && ".
+             "rm -rf $localRoot/results/buildit/$results_name && ".
              "ln -s $localRoot/$resultdir $localRoot/results/buildit/$results_name && ".
              "rsync -azvLe ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
   }
@@ -997,6 +1013,47 @@ if ($test_set) {
   }
 }
 print "===================================================\n";
+
+if ($save_space) {
+  print "==== Saving space by deleting results and only keeping archives ====\n";
+
+  $cleanUpCmd = "$sshHostCmdT '$shell \"";
+
+  # The script uses a symlink for latest by default. Remove it.
+  # Note that this only applies if the previous run didn't use --save-space.
+  # If --save-space was used, latest will be a directory.
+  $cleanUpCmd = $cleanUpCmd."rm $localRoot/results/buildit/latest ; ";
+  
+  # When saving space, only the archives are kept. All archives are moved to this
+  # directory.
+  $cleanUpCmd = $cleanUpCmd."mkdir -p $localRoot/results/buildit/archived ; ";
+
+  # Copy archive results to the archive directory.
+  $cleanUpCmd = $cleanUpCmd."cp $resultdir/archive/* $localRoot/results/buildit/archived ; ";
+
+  # Remove latest dir.
+  $cleanUpCmd = $cleanUpCmd."rm -rf $localRoot/results/buildit/latest ; ";
+
+  # Create latest dir again.
+  $cleanUpCmd = $cleanUpCmd."mkdir -p $localRoot/results/buildit/latest/archive ; ";
+
+  # Move archive results to new latest dir so they can be found for post-processing.
+  $cleanUpCmd = $cleanUpCmd."mv $resultdir/archive/* $localRoot/results/buildit/latest/archive ; ";
+
+  # Move test results dir to new latest dir so test results (e.g. JUnit report) can be
+  # found for post processing.
+  $cleanUpCmd = $cleanUpCmd."mv $resultdir/tests  $localRoot/results/buildit/latest/ ; ";
+
+  # Remove result files that won't be archived.
+  $cleanUpCmd = $cleanUpCmd."rm -rf $resultdir \"'";
+
+
+  print "$cleanUpCmd\n";
+  if(! $dry_run) {
+    system($cleanUpCmd);
+  }
+  print "==== Space saving complete ====\n";
+}
 
 
 sub msg_warn {
@@ -1076,3 +1133,23 @@ sub getid() {
     $id = sprintf("%s-%4d-%2.2d-%2.2d-%s-%2.2d-%2.2d-%2.2d", $target, $year, $mon, $mday, $day, $hour, $min, $sec);
     return $id;
 }
+
+#
+# Take the detected or saved architecture of the target machine, and 
+# if one of the flags --m32 or --m64 is specified, return the appropriately
+# changed architecture name.  Depends on the properties
+#    global.wordsize.*.[64|32] 
+# in the buildit.base_config file
+#
+sub get_word_variant {
+  my ($raw_arch) = @_;
+  my $arch = $raw_arch;
+  if ($m64 ne "" && $config{"global.wordsize.".$raw_arch.".64"} ne "") {
+    $arch = $config{"global.wordsize.".$raw_arch.".64"};
+  }
+  if ($m32 ne "" && $config{"global.wordsize.".$raw_arch.".32"} ne "") {
+    $arch = $config{"global.wordsize.".$raw_arch.".32"};
+  }
+  return $arch;
+}
+

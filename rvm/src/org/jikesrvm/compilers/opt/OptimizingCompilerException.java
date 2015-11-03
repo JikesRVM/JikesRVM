@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 
 /**
@@ -206,6 +208,43 @@ public class OptimizingCompilerException extends RuntimeException {
    */
   public static void TODO(String module) throws OptimizingCompilerException {
     throw new OptimizingCompilerException(module, "Unsupported function in IA32 port");
+  }
+
+  /**
+   * Checks that the condition holds. Fails by throwing an {@link OptimizingCompilerException}
+   * if the condition doesn't hold and assertions are enabled.
+   * <p>
+   * Use this in preference to normal assertions if it's possible to recover from the
+   * error by switching to the baseline compiler
+   *
+   * @param b condition to check
+   */
+  public static void opt_assert(boolean b) {
+    if (!VM.VerifyAssertions) {
+      throw new Error("Assertion should have been guarded by VM.VerifyAssertions");
+    }
+    if (!b) {
+      throw new OptimizingCompilerException("Assertion failure");
+    }
+  }
+
+  /**
+   * Checks that the condition holds. Fails by throwing an {@link OptimizingCompilerException}
+   * if the condition doesn't hold and assertions are enabled.
+   * <p>
+   * Use this in preference to normal assertions if it's possible to recover from the
+   * error by switching to the baseline compiler
+   *
+   * @param b condition to check
+   * @param message the message to print
+   */
+  public static void opt_assert(boolean b, String message) {
+    if (!VM.VerifyAssertions) {
+      throw new Error("Assertion should have been guarded by VM.VerifyAssertions");
+    }
+    if (!b) {
+      throw new OptimizingCompilerException("Assertion failure - " + message);
+    }
   }
 
   /**

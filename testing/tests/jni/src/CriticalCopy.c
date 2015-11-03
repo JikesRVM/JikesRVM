@@ -78,10 +78,5 @@ JNIEXPORT jint JNICALL Java_CriticalCopy_primitiveIntegerArray
  */
 JNIEXPORT jint JNICALL Java_CriticalCopy_primitiveByteArray
 (JNIEnv *env, jclass cls, jbyteArray sourceArray) {
-
-
-
   return 0;
-
 }
-

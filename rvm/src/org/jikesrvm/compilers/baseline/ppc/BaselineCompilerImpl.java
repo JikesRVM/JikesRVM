@@ -2066,7 +2066,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: could be volatile (post-barrier when first operation)
-    asm.emitSYNC();
+    // LoadLoad and LoadStore barriers.
+    asm.emitHWSYNC();
   }
 
   @Override
@@ -2093,13 +2094,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
-      asm.emitSYNC();
+      // LoadLoad and LoadStore barriers.
+      asm.emitHWSYNC();
     }
   }
 
   @Override
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
     // JMM: could be volatile (pre-barrier when second operation)
+    // StoreStore barrier.
     asm.emitSYNC();
 
     emitDynamicLinkingSequence(T1, fieldRef, true);
@@ -2121,6 +2124,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: Could be volatile, post-barrier when first operation
+    // StoreLoad barrier.
     asm.emitHWSYNC();
   }
 
@@ -2131,6 +2135,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: (pre-barrier when second operation)
+      // StoreStore barrier.
       asm.emitSYNC();
     }
 
@@ -2153,6 +2158,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
+      // StoreLoad barrier.
       asm.emitHWSYNC();
     }
   }
@@ -2203,7 +2209,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: Could be volatile; post-barrier when first operation
-    asm.emitSYNC();
+    // LoadLoad and LoadStore barriers.
+    asm.emitHWSYNC();
   }
 
   @Override
@@ -2252,13 +2259,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
-      asm.emitSYNC();
+      // LoadLoad and LoadStore barriers.
+      asm.emitHWSYNC();
     }
   }
 
   @Override
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
     // JMM: could be volatile (pre-barrier when second operation)
+    // StoreStore barrier.
     asm.emitSYNC();
 
     TypeReference fieldType = fieldRef.getFieldContentsType();
@@ -2328,6 +2337,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
 
     // JMM: Could be volatile; post-barrier when first operation
+    // StoreLoad barrier.
     asm.emitHWSYNC();
   }
 
@@ -2339,6 +2349,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
     if (field.isVolatile()) {
       // JMM: pre-barrier when second operation
+      // StoreStore barrier.
       asm.emitSYNC();
     }
 
@@ -2405,6 +2416,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
     if (field.isVolatile()) {
       // JMM: post-barrier when first operation
+      // StoreLoad barrier.
       asm.emitHWSYNC();
     }
   }
@@ -4324,13 +4336,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitLVAL(T0, 1);   // T0 := true
       fr.resolve(asm);
       pushInt(T0);  // push success of conditional store
-    } else if ((methodName == MagicNames.attemptLong) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptObject)) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptObjectReference)) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptAddress)) ||
-        (VM.BuildFor64Addr && (methodName == MagicNames.attemptWord))) {
+    } else if (methodName == MagicNames.attemptLong) {
       popAddr(T2);  // pop newValue
-      discardSlot(); // ignore oldValue
+      discardSlots(2); // ignore oldValue which is a long and thus takes 2 slots
       popOffset(T1);  // pop offset
       popAddr(T0);  // pop object
       if (VM.BuildFor64Addr) {
@@ -4338,6 +4346,20 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       } else {
         // TODO: handle 64bit attempts in 32bit environment
       }
+      asm.emitLVAL(T0, 0);  // T0 := false
+      ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
+      asm.emitLVAL(T0, 1);   // T0 := true
+      fr.resolve(asm);
+      pushInt(T0);  // push success of conditional store
+    } else if (VM.BuildFor64Addr && ((methodName == MagicNames.attemptObject) ||
+        (methodName == MagicNames.attemptObjectReference) ||
+        (methodName == MagicNames.attemptAddress) ||
+        (methodName == MagicNames.attemptWord))) {
+      popAddr(T2);  // pop newValue
+      discardSlot(); // ignore oldValue
+      popOffset(T1);  // pop offset
+      popAddr(T0);  // pop object
+      asm.emitSTDCXr(T2, T1, T0); // store new value and set CR0
       asm.emitLVAL(T0, 0);  // T0 := false
       ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
       asm.emitLVAL(T0, 1);   // T0 := true
@@ -4434,7 +4456,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else if (methodName == MagicNames.pause) {
       // NO-OP
     } else if (methodName == MagicNames.combinedLoadBarrier) {
-      asm.emitISYNC();
+      asm.emitHWSYNC();
     } else if (methodName == MagicNames.storeStoreBarrier) {
       asm.emitSYNC();
     } else if (methodName == MagicNames.fence) {

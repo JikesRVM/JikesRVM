@@ -35,4 +35,3 @@ class BlockingWorker extends Thread {
     isFinished = true;
   }
 }
-

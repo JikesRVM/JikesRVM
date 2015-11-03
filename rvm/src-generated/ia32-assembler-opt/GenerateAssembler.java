@@ -474,7 +474,7 @@ public class GenerateAssembler {
     emitTab(level);
     emit("if (VM.VerifyAssertions && !");
     emitTest(argNumber, argEncoding);
-    emit(") VM._assert(VM.NOT_REACHED, inst.toString());\n");
+    emit(") throw new OptimizingCompilerException(\"Unexpected operand \" + inst.toString());\n");
   }
 
   /**
@@ -950,7 +950,7 @@ public class GenerateAssembler {
               if (currentOpcode.indexOf("MOVZX") == -1 &&
                     currentOpcode.indexOf("MOVSX") == -1) {
                 emitTab(level);
-                emit("if (VM.VerifyAssertions) VM._assert(");
+                emit("if (VM.VerifyAssertions) opt_assert(");
                 emitArgs(i, ArgumentType.GPRegister);
                 emit(".isValidAs8bitRegister());\n");
               }
@@ -1169,6 +1169,7 @@ public class GenerateAssembler {
     emit("import org.jikesrvm.*;\n\n");
     emit("import org.jikesrvm.compilers.opt.*;\n\n");
     emit("import org.jikesrvm.compilers.opt.ir.*;\n\n");
+    emit("import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;\n\n");
     emit("\n\n");
 
     emit("/**\n");
@@ -1305,6 +1306,14 @@ public class GenerateAssembler {
     emit("case IG_PATCH_POINT_opcode:\n");
     emitTab(4);
     emit("emitPatchPoint();\n");
+    emitTab(4);
+    emit("break;\n");
+
+    // Kludge for IMMQ_MOV
+    emitTab(3);
+    emit("case IMMQ_MOV_opcode:\n");
+    emitTab(4);
+    emit("doIMMQ_MOV(inst);\n");
     emitTab(4);
     emit("break;\n");
 

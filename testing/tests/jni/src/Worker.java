@@ -17,9 +17,6 @@ class Worker extends Thread  {
   Object theLock;
   int rc;
 
-  /**
-   * Constructor
-   */
   Worker(String name, Object lockObject) {
     this.name = name;
     theLock = lockObject;
@@ -28,16 +25,8 @@ class Worker extends Thread  {
 
   }
 
-
-
-  // overrides Thread
-  public void start()  {
-    super.start();
-  }
-
-  // overrides Thread
+  @Override
   public void run() {
-
     // signal ready and wait for the main thread to tell to start
     readyFlag = true;
     MonitorTest.printVerbose(".... " + name + " ready to start");
@@ -53,10 +42,6 @@ class Worker extends Thread  {
 
     MonitorTest.printVerbose(".... " + name + " done.");
     doneFlag = true;
-
-
-
   }
-
 
 }

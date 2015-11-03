@@ -1,0 +1,16 @@
+#####
+# INT_DIV
+#####
+r:	INT_DIV(riv, riv)
+52
+EMIT_INSTRUCTION
+INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
+            GuardedBinary.getVal2(P(p)), true, true);
+
+### Memory operands ###
+r:	INT_DIV(riv, load32)
+55
+EMIT_INSTRUCTION
+INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
+            consumeMO(), true, true);
+

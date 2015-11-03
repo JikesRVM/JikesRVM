@@ -24,6 +24,5 @@ class tNative {
 
     returnValue = nativeFoo(30);
     System.out.println("Second nativeFoo return " + returnValue);
-
   }
 }

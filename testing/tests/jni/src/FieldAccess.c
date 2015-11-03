@@ -1095,6 +1095,3 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setObjectField
   return 0;
 
 }
-
-
-

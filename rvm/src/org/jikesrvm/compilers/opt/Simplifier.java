@@ -3718,8 +3718,7 @@ public abstract class Simplifier extends IRTools {
   }
 
   /**
-   * To reduce the number of conditions to consider, we
-   * transform all commutative
+   * To reduce the number of conditions to consider, we transform all commutative
    * operators to a canoncial form.  The following forms are considered
    * canonical:
    * <ul>
@@ -3727,10 +3726,12 @@ public abstract class Simplifier extends IRTools {
    * <li> <code> Reg = Reg &lt;op&gt; Constant </code>
    * <li> <code> Reg = Constant &lt;op&gt; Constant </code>
    * </ul>
-   * @param instr thre instruction to consider
+   * For object constant operands we treat movable objects like registers.
+   * @param instr the instruction to consider
    */
   private static void canonicalizeCommutativeOperator(Instruction instr) {
-    if (Binary.getVal1(instr).isConstant()) {
+    Operand op1 = Binary.getVal1(instr);
+    if (op1.isConstant() && !op1.isMovableObjectConstant()) {
       Operand tmp = Binary.getClearVal1(instr);
       Binary.setVal1(instr, Binary.getClearVal2(instr));
       Binary.setVal2(instr, tmp);

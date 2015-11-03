@@ -1,0 +1,59 @@
+#####
+# INT_SUB
+#####
+czr:	INT_SUB(riv, r)
+13
+EMIT_INSTRUCTION
+EMIT_NonCommutative(IA32_SUB, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+# NB the simplifier means we shouldn't generate the following case
+# r:	INT_SUB(riv, INT_CONSTANT)
+#
+# Cases where we could use negate then add to avoid register pressure
+r:	INT_SUB(riv, r)
+Binary.getResult(P(p)).similar(Binary.getVal2(P(p))) ? 13-2 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_UnaryAcc.create(IA32_NEG, Binary.getResult(P(p))))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, Binary.getResult(P(p)), Binary.getVal1(P(p))));
+
+r:	INT_SUB(load32, r)
+Binary.getResult(P(p)).similar(Binary.getVal2(P(p))) ? 15-2 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_UnaryAcc.create(IA32_NEG, Binary.getResult(P(p))))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, Binary.getResult(P(p)), consumeMO()));
+
+### Memory operands ###
+czr:	INT_SUB(riv, load32)
+15
+EMIT_INSTRUCTION
+EMIT_NonCommutative(IA32_SUB, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+czr:	INT_SUB(load32, riv)
+15
+EMIT_INSTRUCTION
+EMIT_NonCommutative(IA32_SUB, P(p), Binary.getResult(P(p)), consumeMO(), Binary.getVal2(P(p)));
+
+stm:	INT_STORE(INT_SUB(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SUB, MO_S(P(p), DW), Binary.getVal2(PL(p))));
+
+stm:	INT_STORE(INT_SUB(riv, INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLR(p), 27)
+EMIT_INSTRUCTION
+MemoryOperand result = MO_S(P(p), DW); \\
+EMIT(CPOS(P(p), MIR_UnaryAcc.create(IA32_NEG, result))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, result.copy(), Binary.getVal1(PL(p))));
+
+stm:	INT_ASTORE(INT_SUB(INT_ALOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SUB, MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p))));
+
+stm:	INT_ASTORE(INT_SUB(riv, INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 27)
+EMIT_INSTRUCTION
+MemoryOperand result = MO_AS(P(p), DW_S, DW); \\
+EMIT(CPOS(P(p), MIR_UnaryAcc.create(IA32_NEG, result))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, result.copy(), Binary.getVal1(PL(p))));
+

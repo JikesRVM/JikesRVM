@@ -24,6 +24,7 @@ import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -111,7 +112,11 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
         throw new OptimizingCompilerException("three base registers in address");
       }
     } else {
-      int disp = ((IntConstantOperand) op).value;
+      if (VM.fullyBooted) {
+        if (VM.BuildFor64Addr && op instanceof IntConstantOperand)  throw new OptimizingCompilerException("augmenting int to address in 64bit code");
+        if (VM.BuildFor32Addr && op instanceof LongConstantOperand) throw new OptimizingCompilerException("augmenting long to address in 32bit code");
+      }
+      int disp = op instanceof LongConstantOperand ? (int)((LongConstantOperand) op).value : ((IntConstantOperand) op).value;
       AddrStack.displacement = AddrStack.displacement.plus(disp);
     }
   }
@@ -213,51 +218,135 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
 
   protected final MemoryOperand MO(Operand base, Operand offset, byte size, LocationOperand loc,
                                        Operand guard) {
-    if (base instanceof IntConstantOperand) {
-      if (offset instanceof IntConstantOperand) {
-        return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset)), size, loc, guard);
+    if (VM.BuildFor32Addr) {
+      if (base instanceof IntConstantOperand) {
+        if (offset instanceof IntConstantOperand) {
+          return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset)), size, loc, guard);
+        } else {
+          return MO_BD(offset, Offset.fromIntSignExtend(IV(base)), size, loc, guard);
+        }
       } else {
-        return MO_BD(offset, Offset.fromIntSignExtend(IV(base)), size, loc, guard);
+        if (offset instanceof IntConstantOperand) {
+          return MO_BD(base, Offset.fromIntSignExtend(IV(offset)), size, loc, guard);
+        } else {
+          return MO_BI(base, offset, size, loc, guard);
+        }
       }
     } else {
-      if (offset instanceof IntConstantOperand) {
-        return MO_BD(base, Offset.fromIntSignExtend(IV(offset)), size, loc, guard);
+      if (base instanceof LongConstantOperand) {
+        if (offset instanceof LongConstantOperand) {
+          return MO_D(Offset.fromLong(LV(base) + LV(offset)), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_D(Offset.fromLong(LV(base) + IV(offset)), size, loc, guard);
+        } else {
+          return MO_BD(offset, Offset.fromLong(LV(base)), size, loc, guard);
+        }
+      } else if (base instanceof IntConstantOperand) {
+        if (offset instanceof IntConstantOperand) {
+          return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset)), size, loc, guard);
+        } else if (offset instanceof LongConstantOperand) {
+          return MO_D(Offset.fromLong(IV(base) + LV(offset)), size, loc, guard);
+        } else {
+          return MO_BD(offset, Offset.fromIntSignExtend(IV(base)), size, loc, guard);
+        }
       } else {
-        return MO_BI(base, offset, size, loc, guard);
+        if (offset instanceof LongConstantOperand) {
+          return MO_BD(base, Offset.fromLong(LV(offset)), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_BD(base, Offset.fromIntSignExtend(IV(offset)), size, loc, guard);
+        } else {
+          return MO_BI(base, offset, size, loc, guard);
+        }
       }
     }
   }
 
   protected final MemoryOperand MO(Operand base, Operand offset, byte size, LocationOperand loc,
       Operand guard, int disp) {
-    if (base instanceof IntConstantOperand) {
-      if (offset instanceof IntConstantOperand) {
-        return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset) + disp), size, loc, guard);
+    if (VM.BuildFor32Addr) {
+      if (base instanceof IntConstantOperand) {
+        if (offset instanceof IntConstantOperand) {
+          return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset) + disp), size, loc, guard);
+        } else {
+          return MO_BD(offset, Offset.fromIntSignExtend(IV(base) + disp), size, loc, guard);
+        }
       } else {
-        return MO_BD(offset, Offset.fromIntSignExtend(IV(base) + disp), size, loc, guard);
+        if (offset instanceof IntConstantOperand) {
+          return MO_BD(base, Offset.fromIntSignExtend(IV(offset) + disp), size, loc, guard);
+        } else {
+          return MO_BID(base, offset, Offset.fromIntSignExtend(disp), size, loc, guard);
+        }
       }
     } else {
-      if (offset instanceof IntConstantOperand) {
-        return MO_BD(base, Offset.fromIntSignExtend(IV(offset) + disp), size, loc, guard);
+      if (base instanceof LongConstantOperand) {
+        if (offset instanceof LongConstantOperand) {
+          return MO_D(Offset.fromLong(LV(base) + LV(offset) + disp), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_D(Offset.fromLong(LV(base) + IV(offset) + disp), size, loc, guard);
+        } else {
+          return MO_BD(offset, Offset.fromLong(LV(base) + disp), size, loc, guard);
+        }
+      } else if (base instanceof IntConstantOperand) {
+        if (offset instanceof LongConstantOperand) {
+          return MO_D(Offset.fromLong(IV(base) + LV(offset) + disp), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset) + disp), size, loc, guard);
+        } else {
+          return MO_BD(offset, Offset.fromIntSignExtend(IV(base) + disp), size, loc, guard);
+        }
       } else {
-        return MO_BID(base, offset, Offset.fromIntSignExtend(disp), size, loc, guard);
+        if (offset instanceof LongConstantOperand) {
+          return MO_BD(base, Offset.fromLong(LV(offset) + disp), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_BD(base, Offset.fromIntSignExtend(IV(offset) + disp), size, loc, guard);
+        } else {
+          return MO_BID(base, offset, Offset.fromIntSignExtend(disp), size, loc, guard);
+        }
       }
     }
   }
 
   protected final MemoryOperand MO(Operand base, Operand offset, byte size, Offset disp,
                                        LocationOperand loc, Operand guard) {
-    if (base instanceof IntConstantOperand) {
-      if (offset instanceof IntConstantOperand) {
-        return MO_D(disp.plus(IV(base) + IV(offset)), size, loc, guard);
+    if (VM.BuildFor32Addr) {
+      if (base instanceof IntConstantOperand) {
+        if (offset instanceof IntConstantOperand) {
+          return MO_D(disp.plus(IV(base) + IV(offset)), size, loc, guard);
+        } else {
+          return MO_BD(offset, disp.plus(IV(base)), size, loc, guard);
+        }
       } else {
-        return MO_BD(offset, disp.plus(IV(base)), size, loc, guard);
+        if (offset instanceof IntConstantOperand) {
+          return MO_BD(base, disp.plus(IV(offset)), size, loc, guard);
+        } else {
+          return MO_BID(base, offset, disp, size, loc, guard);
+        }
       }
     } else {
-      if (offset instanceof IntConstantOperand) {
-        return MO_BD(base, disp.plus(IV(offset)), size, loc, guard);
+      if (base instanceof LongConstantOperand) {
+        if (offset instanceof LongConstantOperand) {
+          return MO_D(Offset.fromLong(disp.toLong() + LV(base) + LV(offset)), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_D(Offset.fromLong(disp.toLong() + LV(base) + IV(offset)), size, loc, guard);
+        } else {
+          return MO_BD(offset, Offset.fromLong(disp.toLong() + LV(base)), size, loc, guard);
+        }
+      } else if (base instanceof IntConstantOperand) {
+        if (offset instanceof LongConstantOperand) {
+          return MO_D(Offset.fromLong(disp.toLong() + IV(base) + LV(offset)), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_D(disp.plus(IV(base) + IV(offset)), size, loc, guard);
+        } else {
+          return MO_BD(offset, disp.plus(IV(base)), size, loc, guard);
+        }
       } else {
-        return MO_BID(base, offset, disp, size, loc, guard);
+        if (offset instanceof LongConstantOperand) {
+          return MO_BD(base, disp.plus(Offset.fromLong(LV(offset))), size, loc, guard);
+        } else if (offset instanceof IntConstantOperand) {
+          return MO_BD(base, disp.plus(IV(offset)), size, loc, guard);
+        } else {
+          return MO_BID(base, offset, disp, size, loc, guard);
+        }
       }
     }
   }
@@ -324,15 +413,19 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
 
   private MemoryOperand MO_ARRAY(Operand base, Operand index, byte scale, byte size, Offset disp,
                                              LocationOperand loc, Operand guard) {
-    if (base instanceof IntConstantOperand) {
-      if (index instanceof IntConstantOperand) {
+    if (index instanceof IntConstantOperand) {
+      if (VM.BuildFor32Addr && base instanceof IntConstantOperand) {
         return MO_D(disp.plus(IV(base) + (IV(index) << scale)), size, loc, guard);
+      } else if (VM.BuildFor64Addr && base instanceof LongConstantOperand) {
+        return MO_D(disp.plus(Offset.fromLong(LV(base) + (IV(index) << scale))), size, loc, guard);
       } else {
-        return new MemoryOperand(null, R(index), scale, disp.plus(IV(base)), size, loc, guard);
+        return MO_BD(base, disp.plus(IV(index) << scale), size, loc, guard);
       }
     } else {
-      if (index instanceof IntConstantOperand) {
-        return MO_BD(base, disp.plus(IV(index) << scale), size, loc, guard);
+      if (VM.BuildFor32Addr && base instanceof IntConstantOperand) {
+        return new MemoryOperand(null, R(index), scale, disp.plus(IV(base)), size, loc, guard);
+      } else if (VM.BuildFor64Addr && base instanceof LongConstantOperand) {
+        return new MemoryOperand(null, R(index), scale, disp.plus(Offset.fromLong(LV(base))), size, loc, guard);
       } else {
         return new MemoryOperand(R(base), R(index), scale, disp, size, loc, guard);
       }
@@ -348,6 +441,8 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
       LocationOperand loc = new LocationOperand(offset);
       if (base instanceof IntConstantOperand) {
         return MO_D(offset.plus(IV(base)), DW, loc, TG());
+      } else if (VM.BuildFor64Addr && base instanceof LongConstantOperand) {
+        return MO_D(offset.plus(Offset.fromLong(LV(base))), DW, loc, TG());
       } else {
         return MO_BD(base, offset, DW, loc, TG());
       }
@@ -357,6 +452,8 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
       LocationOperand loc = new LocationOperand(offset);
       if (base instanceof IntConstantOperand) {
         return MO_D(offset.plus(IV(base)), QW, loc, TG());
+      } else if (VM.BuildFor64Addr && base instanceof LongConstantOperand) {
+        return MO_D(offset.plus(Offset.fromLong(LV(base))), QW, loc, TG());
       } else {
         return MO_BD(Binary.getVal1(s), dc.offset, QW, loc, TG());
       }

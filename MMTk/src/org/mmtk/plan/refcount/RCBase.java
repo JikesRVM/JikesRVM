@@ -27,8 +27,8 @@ import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
@@ -323,5 +323,10 @@ public class RCBase extends StopTheWorld {
   @Interruptible
   protected void registerSpecializedMethods() {
     super.registerSpecializedMethods();
+  }
+
+  @Override
+  public byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
+    return (byte) RCHeader.UNLOGGED.toInt();
   }
 }

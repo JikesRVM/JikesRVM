@@ -89,7 +89,6 @@ class NativeThreadsWorker extends Thread {
 
 
    static synchronized void say(String who, String what) {
-      RVMThread.trace(who,what);
-      }
+     RVMThread.trace(who,what);
    }
-
+}

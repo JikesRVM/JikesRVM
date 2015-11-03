@@ -58,6 +58,3 @@ JNIEXPORT jint JNICALL Java_tNativeThreads_nativeFoo
 
   return cnt;
 }
-
-
-

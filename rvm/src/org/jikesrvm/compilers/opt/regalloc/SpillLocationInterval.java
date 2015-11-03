@@ -24,6 +24,8 @@ class SpillLocationInterval extends CompoundInterval {
    * The spill location, an offset from the frame pointer
    */
   private final int frameOffset;
+  /* type of the register that is being spilled */
+  private final int type;
 
   int getOffset() {
     return frameOffset;
@@ -38,15 +40,21 @@ class SpillLocationInterval extends CompoundInterval {
     return size;
   }
 
-  SpillLocationInterval(int frameOffset, int size) {
+  SpillLocationInterval(int frameOffset, int size, int type) {
     super(null);
     this.frameOffset = frameOffset;
     this.size = size;
+    this.type = type;
+  }
+
+  public int getType() {
+    return type;
   }
 
   @Override
   public String toString() {
-    return super.toString() + "<Offset:" + frameOffset + "," + size + ">";
+    return super.toString() + "<Offset: " + frameOffset + ", size: " +
+        size + ", type: " + type + ">";
   }
 
   /**

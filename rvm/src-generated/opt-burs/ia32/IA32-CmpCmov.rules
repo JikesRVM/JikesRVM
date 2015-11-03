@@ -1,0 +1,130 @@
+##################################
+# Conditional moves
+##################################
+r: CMP_CMOV(r, OTHER_OPERAND(riv, any))
+(13 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP,  CondMove.getVal1(P(p)), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, any))
+VRL(p) == 0 && CMP_TO_TEST(CondMove.getCond(P(p))) ? (11 + 30):INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, CondMove.getVal1(P(p)), CondMove.getVal1(P(p)).copy()))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# Special case where a conditional move can become a shift
+r: CMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == -1 && VRRR(p) == 0) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == 0 && VRRR(p) == -1) ? 13 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SAR, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), IC(31));
+
+r: CMP_CMOV(load32, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == -1 && VRRR(p) == 0) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == 0 && VRRR(p) == -1) ? 18 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SAR, P(p), CondMove.getResult(P(p)), consumeMO(), IC(31));
+
+r: CMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == 0 && VRRR(p) == -1) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == -1 && VRRR(p) == 0) ? 26 : INFINITE
+EMIT_INSTRUCTION
+RegisterOperand result = CondMove.getResult(P(p)); \\
+EMIT_Commutative(IA32_SAR, P(p), result, CondMove.getVal1(P(p)), IC(31)); \\
+EMIT(CPOS(P(p),MIR_UnaryAcc.create(IA32_NOT, result.copyRO())));
+
+r: CMP_CMOV(load32, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == 0 && VRRR(p) == -1) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == -1 && VRRR(p) == 0) ? 31 : INFINITE
+EMIT_INSTRUCTION
+RegisterOperand result = CondMove.getResult(P(p)); \\
+EMIT_Commutative(IA32_SAR, P(p), result, consumeMO(), IC(31)); \\
+EMIT(CPOS(P(p),MIR_UnaryAcc.create(IA32_NOT, result.copyRO())));
+
+# Because uload is only used for booleans (0/1) we can get away
+# with this for both signed and unsigned loads.
+r: CMP_CMOV(load8, OTHER_OPERAND(INT_CONSTANT, any))
+FITS(CondMove.getVal2(P(p)), 8, (15 + 30))
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# We only use uload8 for boolean values, so if the IR is well-typed,
+# then r must contain either 0 or 1 and we can do this.
+r: CMP_CMOV(uload8, OTHER_OPERAND(riv, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# We only use uload8 for boolean values, so if the IR is well-typed,
+# then r must contain either 0 or 1 and we can do this.
+r: CMP_CMOV(riv, OTHER_OPERAND(uload8, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_CMOV(sload16, OTHER_OPERAND(INT_CONSTANT, any))
+FITS(CondMove.getVal2(P(p)), 8, (15 + 30))
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_CMOV(load32, OTHER_OPERAND(riv, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_CMOV(riv, OTHER_OPERAND(load32, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal1(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).flipOperands(), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# CMP_CMOV((boolcmp, 0/1), tv, fv)
+r: CMP_CMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isNOT_EQUAL()) || \
+(VRL(p) == 1 && CondMove.getCond(P(p)).isEQUAL()) ? 30 : INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(P(p), CondMove.getResult(P(p)), consumeCOND(), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_CMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
+(VRL(p) == 1 && CondMove.getCond(P(p)).isNOT_EQUAL()) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isEQUAL()) ? 30 : INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(P(p), CondMove.getResult(P(p)), consumeCOND().flipCode(), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# CMP_CMOV((bittest, 0/1), tv, fv)
+r: CMP_CMOV(bittest, OTHER_OPERAND(INT_CONSTANT, any))
+(VRL(p) == 0 || VRL(p) == 1) && EQ_NE(CondMove.getCond(P(p))) ? 30 : INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(P(p), CondMove.getResult(P(p)), BIT_TEST(VRL(p), CondMove.getCond(P(p))), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# CMOV((cz, 0), tv ,fv); condition code already set
+r: CMP_CMOV(cz, OTHER_OPERAND(INT_CONSTANT, any))
+isZERO(VRL(p), 30)
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# CMOV((szp, 0), tv ,fv); condition code already set
+r: CMP_CMOV(szp, OTHER_OPERAND(INT_CONSTANT, any))
+isZERO(VRL(p), 30)
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+

@@ -1,0 +1,63 @@
+#####
+# LONG_LOAD
+# A few more cases than for other load operators to handle pointer arithmetic introduced by use of magic
+#####
+r:	LONG_LOAD(rlv, rlv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), MO_L(P(p), QW)));
+
+r:	LONG_LOAD(rlv, address1scaledreg)
+15
+EMIT_INSTRUCTION
+augmentAddress(Load.getAddress(P(p))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \\
+		     consumeAddress(QW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
+
+r:	LONG_LOAD(address1scaledreg, rlv)
+15
+EMIT_INSTRUCTION
+augmentAddress(Load.getOffset(P(p))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \\
+	             consumeAddress(QW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
+
+r:	LONG_LOAD(address1scaledreg, address1reg)
+15
+EMIT_INSTRUCTION
+combineAddresses(); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \\
+	             consumeAddress(QW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
+
+r:	LONG_LOAD(address1reg, address1scaledreg)
+15
+EMIT_INSTRUCTION
+combineAddresses(); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \\
+	             consumeAddress(QW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
+
+r:	LONG_LOAD(address, LONG_CONSTANT)
+15
+EMIT_INSTRUCTION
+augmentAddress(Load.getOffset(P(p))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \\
+	             consumeAddress(QW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
+
+#####
+# LONG_ALOAD
+#####
+r:      LONG_ALOAD(rlv, riv)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));
+
+r:      LONG_ALOAD(rlv, r)
+20
+EMIT_INSTRUCTION
+RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
+if (index.getRegister().isInteger()) { \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW))); \\
+} else { \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW))); \\
+}
+

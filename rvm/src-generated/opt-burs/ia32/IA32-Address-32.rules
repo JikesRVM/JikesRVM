@@ -1,0 +1,95 @@
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Eclipse Public License (EPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/eclipse-1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+##################################
+# Pointer arithmetic rules
+##################################
+address:	address1scaledreg
+0
+NOFLAGS
+//nothing to do
+
+address:	INT_MOVE(address)
+0
+NOFLAGS
+//nothing to do
+
+address:	INT_ADD(r, r)
+0
+EMIT_INSTRUCTION
+pushAddress(R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))), B_S, Offset.zero());
+
+address:	INT_ADD(r, address1scaledreg)
+0
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal1(P(p)));
+
+address:	INT_ADD(address1scaledreg, r)
+0
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal2(P(p)));
+
+address:	INT_ADD(address1scaledreg, INT_CONSTANT)
+0
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal2(P(p)));
+
+address:	INT_ADD(address1scaledreg, address1reg)
+0
+EMIT_INSTRUCTION
+combineAddresses();
+
+address:	INT_ADD(address1reg, address1scaledreg)
+0
+EMIT_INSTRUCTION
+combineAddresses();
+
+address1reg:	INT_ADD(r, INT_CONSTANT)
+0
+EMIT_INSTRUCTION
+pushAddress(R(Binary.getVal1(P(p))), null, B_S, Offset.fromIntSignExtend(VR(p)));
+
+address1reg:	INT_MOVE(r)
+0
+EMIT_INSTRUCTION
+pushAddress(R(Move.getVal(P(p))), null, B_S, Offset.zero());
+
+address1reg:	INT_MOVE(address1reg)
+0
+NOFLAGS
+//nothing to do
+
+address1reg:	INT_ADD(address1reg, INT_CONSTANT)
+0
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal2(P(p)));
+
+address1scaledreg:	address1reg
+0
+NOFLAGS
+//nothing to do
+
+address1scaledreg:	INT_MOVE(address1scaledreg)
+0
+NOFLAGS
+//nothing to do
+
+address1scaledreg:	INT_SHL(r, INT_CONSTANT)
+LEA_SHIFT(Binary.getVal2(P(p)), 0)
+EMIT_INSTRUCTION
+pushAddress(null, Binary.getVal1(P(p)).asRegister(), LEA_SHIFT(Binary.getVal2(P(p))), Offset.zero());
+
+address1scaledreg:	INT_ADD(address1scaledreg, INT_CONSTANT)
+0
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal2(P(p)));
+

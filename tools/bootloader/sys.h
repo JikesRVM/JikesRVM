@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <jni.h>
+#include <signal.h> // for siginfo
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -248,6 +249,27 @@ EXTERNAL void sysPerfEventCreate(int id, const char *eventName);
 EXTERNAL void sysPerfEventEnable();
 EXTERNAL void sysPerfEventDisable();
 EXTERNAL void sysPerfEventRead(int id, long long *values);
+// sysSignal
+EXTERNAL int inRVMAddressSpace(Address addr);
+EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
+EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *context);
+EXTERNAL void* sysStartMainThreadSignals();
+EXTERNAL void* sysStartChildThreadSignals();
+EXTERNAL void sysEndThreadSignals(void *stackBuf);
+// sysSignal - architecture specific
+EXTERNAL void readContextInformation(void *context, Address *instructionPtr,
+                                     Address *instructionFollowingPtr,
+                                     Address *threadPtr, Address *jtocPtr);
+EXTERNAL Address readContextFramePointer(void *context, Address UNUSED threadPtr);
+EXTERNAL int readContextTrapCode(void *context, Address threadPtr, int signo, Address instructionPtr, Word *trapInfo);
+EXTERNAL void setupDumpStackAndDie(void *context);
+EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
+             int trapCode, Word trapInfo,
+             Address instructionPtr,
+             Address instructionFollowingPtr,
+             Address threadPtr, Address jtocPtr,
+             Address framePtr, int signo);
+EXTERNAL void dumpContext(void *context);
 // sysThread
 EXTERNAL Word sysMonitorCreate();
 EXTERNAL void sysMonitorDestroy(Word);

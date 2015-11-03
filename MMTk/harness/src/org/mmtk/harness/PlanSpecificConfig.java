@@ -90,7 +90,8 @@ public class PlanSpecificConfig {
         .addExpectedSpaces("ms"),
         "MS", "MarkSweep");
     register(
-        new PlanSpecific("org.mmtk.plan.nogc.NoGC"),
+        new PlanSpecific("org.mmtk.plan.nogc.NoGC")
+        .addExpectedSpaces("default"),
         "NoGC");
     register(
         new PlanSpecific("org.mmtk.plan.poisoned.Poisoned")

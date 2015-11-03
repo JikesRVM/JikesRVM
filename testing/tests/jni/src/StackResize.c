@@ -100,8 +100,4 @@ JNIEXPORT jboolean JNICALL Java_StackResize_expectNoResize
   }
 
   return JNI_TRUE;   /* test pass */
-
-
 }
-
-

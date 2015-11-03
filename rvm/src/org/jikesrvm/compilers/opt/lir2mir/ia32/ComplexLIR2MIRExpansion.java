@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -36,6 +38,7 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
@@ -72,11 +75,15 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TEST;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XOR;
+import static org.jikesrvm.compilers.opt.ir.Operators.IMMQ_MOV;
+import static org.jikesrvm.compilers.opt.ir.Operators.IMMQ_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MUL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV_opcode;
+
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -91,6 +98,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.Bits;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose
@@ -107,27 +115,6 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     Instruction nextInstr;
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = nextInstr) {
       switch (s.getOpcode()) {
-        case LONG_MUL_opcode:
-          nextInstr = long_mul(s, ir);
-          break;
-        case LONG_SHL_opcode:
-          nextInstr = long_shl(s, ir);
-          break;
-        case LONG_SHR_opcode:
-          nextInstr = long_shr(s, ir);
-          break;
-        case LONG_USHR_opcode:
-          nextInstr = long_ushr(s, ir);
-          break;
-        case LONG_IFCMP_opcode: {
-          Operand val2 = IfCmp.getVal2(s);
-          if (val2 instanceof RegisterOperand) {
-            nextInstr = long_ifcmp(s, ir);
-          } else {
-            nextInstr = long_ifcmp_imm(s, ir);
-          }
-          break;
-        }
         case FLOAT_IFCMP_opcode:
         case DOUBLE_IFCMP_opcode:
           nextInstr = fp_ifcmp(s);
@@ -144,6 +131,47 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
         case DOUBLE_2LONG_opcode:
           nextInstr = double_2long(s, ir);
           break;
+
+        // long operations. Expand them into other operations
+        // for 32-bit addressing and leave them unchanged for
+        // 64-bit addressing.
+
+        case LONG_MUL_opcode:
+          if (VM.BuildFor32Addr) {
+            nextInstr = long_mul(s, ir);
+            break;
+          }
+          // Fall through
+        case LONG_SHL_opcode:
+          if (VM.BuildFor32Addr) {
+            nextInstr = long_shl(s, ir);
+            break;
+          }
+          // Fall through
+        case LONG_SHR_opcode:
+          if (VM.BuildFor32Addr) {
+            nextInstr = long_shr(s, ir);
+            break;
+          }
+          // Fall through
+        case LONG_USHR_opcode:
+          if (VM.BuildFor32Addr) {
+            nextInstr = long_ushr(s, ir);
+            break;
+          }
+          // Fall through
+        case LONG_IFCMP_opcode: {
+          if (VM.BuildFor32Addr) {
+            Operand val2 = IfCmp.getVal2(s);
+            if (val2 instanceof RegisterOperand) {
+              nextInstr = long_ifcmp(s, ir);
+            } else {
+              nextInstr = long_ifcmp_imm(s, ir);
+            }
+            break;
+          }
+          // Fall through
+        }
         default:
           nextInstr = s.nextInstructionInCodeOrder();
           break;
@@ -249,85 +277,156 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     BasicBlock f2lBB = testBB.splitNodeAt(s,ir);
     ir.cfg.linkInCodeOrder(testBB, f2lBB);
 
-    // Move the maxlongFloat value and the value into x87 registers and compare and
-    // branch if they are <= or unordered.
-    RegisterOperand resultHi = Unary.getResult(s);
-    resultHi.setType(TypeReference.Int);
-    RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
-        TypeReference.Int);
-    RegisterOperand value = Unary.getVal(s).asRegister();
-    RegisterOperand cw = ir.regpool.makeTempInt();
-    MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
-    RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
-        TypeReference.Float);
-    RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
-        TypeReference.Float);
-    int offset = -ir.stackManager.allocateSpaceForConversion();
-    StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
-    StackLocationOperand slHi = new StackLocationOperand(true, offset + 4, 4);
-    StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
-    MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
-        Entrypoints.scratchStorageField.getOffset(), (byte)4,
-        new LocationOperand(Entrypoints.scratchStorageField), null);
-    MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
-        Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
-        new LocationOperand(Entrypoints.scratchStorageField), null);
+    if (VM.BuildFor32Addr) {
+      // Move the maxlongFloat value and the value into x87 registers and compare and
+      // branch if they are <= or unordered.
+      RegisterOperand resultHi = Unary.getResult(s);
+      resultHi.setType(TypeReference.Int);
+      RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
+          TypeReference.Int);
+      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand cw = ir.regpool.makeTempInt();
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
+      RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
+          TypeReference.Float);
+      RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
+          TypeReference.Float);
+      int offset = -ir.stackManager.allocateSpaceForConversion();
+      StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
+      StackLocationOperand slHi = new StackLocationOperand(true, offset + 4, 4);
+      StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
+      MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+          Entrypoints.scratchStorageField.getOffset(), (byte)4,
+          new LocationOperand(Entrypoints.scratchStorageField), null);
+      MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+          Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
+          new LocationOperand(Entrypoints.scratchStorageField), null);
 
-    s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSS, slLo, value)));
-    s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, slLo.copy())));
-    s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0.copyRO(), maxlong)));
-    MIR_Compare.mutate(s, IA32_FUCOMIP, st0.copyRO(), st1);
-    testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
-        IA32ConditionOperand.LLE(),
-        nanTestBB.makeJumpTarget(),
-        BranchProfileOperand.unlikely())));
-    testBB.insertOut(f2lBB);
-    testBB.insertOut(nanTestBB);
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSS, slLo, value)));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, slLo.copy())));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0.copyRO(), maxlong)));
+      MIR_Compare.mutate(s, IA32_FUCOMIP, st0.copyRO(), st1);
+      testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.LLE(),
+          nanTestBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      testBB.insertOut(f2lBB);
+      testBB.insertOut(nanTestBB);
 
-    // Convert float to long knowing that if the value is < min long the Intel
-    // unspecified result is min long
-    // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
-    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
-    f2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
-    f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
-    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
-    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
-    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
-    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
-    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo.copy())));
-    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));
-    f2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
-        nextBB.makeJumpTarget())));
-    f2lBB.insertOut(nextBB);
+      // Convert float to long knowing that if the value is < min long the Intel
+      // unspecified result is min long
+      // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
+      f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
+      f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
+      f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));
+      f2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      f2lBB.insertOut(nextBB);
 
-    // Did the compare find a NaN or a maximum integer?
-    nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
-    nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
-        IA32ConditionOperand.PE(),
-        nanBB.makeJumpTarget(),
-        BranchProfileOperand.unlikely())));
-    nanTestBB.insertOut(nanBB);
-    nanTestBB.insertOut(maxintBB);
+      // Did the compare find a NaN or a maximum integer?
+      nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
+      nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.PE(),
+          nanBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      nanTestBB.insertOut(nanBB);
+      nanTestBB.insertOut(maxintBB);
 
-    // Value was >= max long
-    maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultLo.copyRO(),
-        IC((int)Long.MAX_VALUE))));
-    maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultHi.copyRO(),
-        IC((int)(Long.MAX_VALUE >>> 32)))));
-    maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
-        nextBB.makeJumpTarget())));
-    maxintBB.insertOut(nextBB);
+      // Value was >= max long
+      maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultLo.copyRO(),
+          IC((int)Long.MAX_VALUE))));
+      maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultHi.copyRO(),
+          IC((int)(Long.MAX_VALUE >>> 32)))));
+      maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      maxintBB.insertOut(nextBB);
 
-    // In case of NaN result is 0
-    nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultLo.copyRO(),
-        IC(0))));
-    nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultHi.copyRO(),
-        IC(0))));
-    nanBB.insertOut(nextBB);
+      // In case of NaN result is 0
+      nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultLo.copyRO(),
+          IC(0))));
+      nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultHi.copyRO(),
+          IC(0))));
+      nanBB.insertOut(nextBB);
+    } else {
+      // Move the maxlongFloat value and the value into x87 registers and compare and
+      // branch if they are <= or unordered.
+      RegisterOperand result = Unary.getResult(s);
+      result.setType(TypeReference.Long);
+      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand cw = ir.regpool.makeTempInt();
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
+      RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
+          TypeReference.Float);
+      RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
+          TypeReference.Float);
+      int offset = -ir.stackManager.allocateSpaceForConversion();
+      StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
+      MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+          Entrypoints.scratchStorageField.getOffset(), (byte)4,
+          new LocationOperand(Entrypoints.scratchStorageField), null);
+      MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+          Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
+          new LocationOperand(Entrypoints.scratchStorageField), null);
+
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSS, sl, value)));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0.copyRO(), maxlong)));
+      MIR_Compare.mutate(s, IA32_FUCOMIP, st0.copyRO(), st1);
+      testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.LLE(),
+          nanTestBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      testBB.insertOut(f2lBB);
+      testBB.insertOut(nanTestBB);
+
+      // Convert float to long knowing that if the value is < min long the Intel
+      // unspecified result is min long
+      // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
+      f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
+      f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
+      f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, result, sl.copy())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      f2lBB.insertOut(nextBB);
+
+      // Did the compare find a NaN or a maximum integer?
+      nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
+      nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.PE(),
+          nanBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      nanTestBB.insertOut(nanBB);
+      nanTestBB.insertOut(maxintBB);
+
+      // Value was >= max long
+      maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          result.copyRO(),
+          LC(Long.MAX_VALUE))));
+      maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      maxintBB.insertOut(nextBB);
+
+      // In case of NaN result is 0
+      nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          result.copyRO(),
+          LC(0))));
+      nanBB.insertOut(nextBB);
+    }
     return nextInstr;
   }
 
@@ -430,84 +529,153 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
     // Move the maxlongFloat value and the value into x87 registers and compare and
     // branch if they are <= or unordered.
-    RegisterOperand resultHi = Unary.getResult(s);
-    resultHi.setType(TypeReference.Int);
-    RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
-        TypeReference.Int);
-    RegisterOperand value = Unary.getVal(s).asRegister();
-    RegisterOperand cw = ir.regpool.makeTempInt();
-    MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
-    RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
-        TypeReference.Double);
-    RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
-        TypeReference.Double);
-    int offset = -ir.stackManager.allocateSpaceForConversion();
-    StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
-    StackLocationOperand slHi = new StackLocationOperand(true, offset + 4, 4);
-    StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
-    MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
-        Entrypoints.scratchStorageField.getOffset(), (byte)4,
-        new LocationOperand(Entrypoints.scratchStorageField), null);
-    MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
-        Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
-        new LocationOperand(Entrypoints.scratchStorageField), null);
+    if (VM.BuildFor32Addr) {
+      RegisterOperand resultHi = Unary.getResult(s);
+      resultHi.setType(TypeReference.Int);
+      RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
+          TypeReference.Int);
+      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand cw = ir.regpool.makeTempInt();
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
+      RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
+          TypeReference.Double);
+      RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
+          TypeReference.Double);
+      int offset = -ir.stackManager.allocateSpaceForConversion();
+      StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
+      StackLocationOperand slHi = new StackLocationOperand(true, offset + 4, 4);
+      StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
+      MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+          Entrypoints.scratchStorageField.getOffset(), (byte)4,
+          new LocationOperand(Entrypoints.scratchStorageField), null);
+      MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+          Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
+          new LocationOperand(Entrypoints.scratchStorageField), null);
 
-    s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, value)));
-    s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
-    s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0.copyRO(), maxlong)));
-    MIR_Compare.mutate(s, IA32_FUCOMIP, st0.copyRO(), st1);
-    testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
-        IA32ConditionOperand.LLE(),
-        nanTestBB.makeJumpTarget(),
-        BranchProfileOperand.unlikely())));
-    testBB.insertOut(d2lBB);
-    testBB.insertOut(nanTestBB);
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, value)));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0.copyRO(), maxlong)));
+      MIR_Compare.mutate(s, IA32_FUCOMIP, st0.copyRO(), st1);
+      testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.LLE(),
+          nanTestBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      testBB.insertOut(d2lBB);
+      testBB.insertOut(nanTestBB);
 
-    // Convert double to long knowing that if the value is < min long the Intel
-    // unspecified result is min long
-    // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
-    d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
-    d2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
-    d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
-    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
-    d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
-    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
-    d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
-    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo)));
-    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));
-    d2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
-        nextBB.makeJumpTarget())));
-    d2lBB.insertOut(nextBB);
+      // Convert double to long knowing that if the value is < min long the Intel
+      // unspecified result is min long
+      // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
+      d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
+      d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
+      d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo)));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));
+      d2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      d2lBB.insertOut(nextBB);
 
-    // Did the compare find a NaN or a maximum integer?
-    nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
-    nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
-        IA32ConditionOperand.PE(),
-        nanBB.makeJumpTarget(),
-        BranchProfileOperand.unlikely())));
-    nanTestBB.insertOut(nanBB);
-    nanTestBB.insertOut(maxintBB);
+      // Did the compare find a NaN or a maximum integer?
+      nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
+      nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.PE(),
+          nanBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      nanTestBB.insertOut(nanBB);
+      nanTestBB.insertOut(maxintBB);
 
-    // Value was >= max long
-    maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultLo.copyRO(),
-        IC((int)Long.MAX_VALUE))));
-    maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultHi.copyRO(),
-        IC((int)(Long.MAX_VALUE >>> 32)))));
-    maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
-        nextBB.makeJumpTarget())));
-    maxintBB.insertOut(nextBB);
+      // Value was >= max long
+      maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultLo.copyRO(),
+          IC((int)Long.MAX_VALUE))));
+      maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultHi.copyRO(),
+          IC((int)(Long.MAX_VALUE >>> 32)))));
+      maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      maxintBB.insertOut(nextBB);
 
-    // In case of NaN result is 0
-    nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultLo.copyRO(),
-        IC(0))));
-    nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
-        resultHi.copyRO(),
-        IC(0))));
-    nanBB.insertOut(nextBB);
-    return nextInstr;
+      // In case of NaN result is 0
+      nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultLo.copyRO(),
+          IC(0))));
+      nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          resultHi.copyRO(),
+          IC(0))));
+      nanBB.insertOut(nextBB);
+      return nextInstr;
+    } else {
+      RegisterOperand result = Unary.getResult(s);
+      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand cw = ir.regpool.makeTempInt();
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
+      RegisterOperand st0 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
+          TypeReference.Double);
+      RegisterOperand st1 = new RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
+          TypeReference.Double);
+      int offset = -ir.stackManager.allocateSpaceForConversion();
+      StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
+      MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+              Entrypoints.scratchStorageField.getOffset(), (byte)4,
+              new LocationOperand(Entrypoints.scratchStorageField), null);
+      MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
+              Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
+              new LocationOperand(Entrypoints.scratchStorageField), null);
+
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, value)));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
+      s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0.copyRO(), maxlong)));
+      MIR_Compare.mutate(s, IA32_FUCOMIP, st0.copyRO(), st1);
+      testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.LLE(),
+          nanTestBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      testBB.insertOut(d2lBB);
+      testBB.insertOut(nanTestBB);
+
+      // Convert double to long knowing that if the value is < min long the Intel
+      // unspecified result is min long
+      // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
+      d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
+      d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
+      d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, result, sl)));
+      d2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      d2lBB.insertOut(nextBB);
+
+      // Did the compare find a NaN or a maximum integer?
+      nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
+      nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+          IA32ConditionOperand.PE(),
+          nanBB.makeJumpTarget(),
+          BranchProfileOperand.unlikely())));
+      nanTestBB.insertOut(nanBB);
+      nanTestBB.insertOut(maxintBB);
+
+      // Value was >= max long
+      maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          result.copyRO(),
+          LC((int)Long.MAX_VALUE))));
+      maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+          nextBB.makeJumpTarget())));
+      maxintBB.insertOut(nextBB);
+
+      // In case of NaN result is 0
+      nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          result.copyRO(),
+          LC(0))));
+      nanBB.insertOut(nextBB);
+      return nextInstr;
+    }
   }
 
   private static Instruction long_shl(Instruction s, IR ir) {
@@ -1336,5 +1504,41 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     s.remove();
     return nextInstr;
   }
-}
 
+  public static void process64BitImmediateValues(IR ir) {
+    for (Instruction s = ir.firstInstructionInCodeOrder(); s != null;
+        s = s.nextInstructionInCodeOrder()) {
+      char opcode = s.getOpcode();
+      if (opcode != IMMQ_MOV_opcode) {
+        if (MIR_Move.conforms(s)) {
+          Operand moveResult = MIR_Move.getResult(s);
+          if (opcode == IA32_MOV_opcode && moveResult.isRegister()) {
+            Operand value = MIR_Move.getValue(s);
+            if (value.isLongConstant()) {
+              LongConstantOperand lc = (LongConstantOperand)value;
+              if (!Bits.fits(lc.value, 32)) {
+                MIR_Move.mutate(s, IMMQ_MOV, moveResult, value);
+                continue;
+              }
+            }
+          }
+        }
+        for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+          Operand op = ops.nextElement();
+          if (op.isLongConstant()) {
+            LongConstantOperand lc = (LongConstantOperand)op;
+            if (!Bits.fits(lc.value, 32)) {
+              RegisterOperand temp = ir.regpool.makeTempLong();
+              if (lc.convertedFromRef()) {
+                temp.flagAsConvertedFromRef();
+              }
+              s.insertBefore(MIR_Move.create(IMMQ_MOV, temp, lc));
+              s.replaceOperand(lc, temp.copyD2U());
+            }
+          }
+        }
+      }
+    }
+  }
+
+}

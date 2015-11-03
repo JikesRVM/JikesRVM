@@ -33,6 +33,11 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 public final class RegisterOperand extends Operand {
 
   /**
+   * Converted from a reference?
+   */
+  private boolean convertedFromRef = false;
+
+  /**
    * Register object that this operand uses.
    */
   private Register register;
@@ -163,6 +168,7 @@ public final class RegisterOperand extends Operand {
     temp.flags = flags;
     temp.flags2 = flags2;
     temp.nextInDefUseList = nextInDefUseList;
+    temp.convertedFromRef = convertedFromRef;
     temp.guard = guard;
     if (VM.VerifyAssertions) verifyPreciseType();
     return temp;
@@ -530,6 +536,14 @@ public final class RegisterOperand extends Operand {
   @Override
   public TypeReference getType() {
     return type;
+  }
+
+  public void flagAsConvertedFromRef() {
+    convertedFromRef = true;
+  }
+
+  public boolean convertedFromRef() {
+    return convertedFromRef;
   }
 
   /**

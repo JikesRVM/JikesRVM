@@ -1,0 +1,27 @@
+#####
+# LONG_IFCMP
+#####
+stm:	LONG_IFCMP(rlv,rlv)
+26
+EMIT_INSTRUCTION
+if (IfCmp.getVal1(P(p)).isLongConstant()) { \\
+Register tmp = regpool.getLong(); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long),IfCmp.getVal1(P(p))))); \\
+IFCMP(P(p), IfCmp.getGuardResult(P(p)), new RegisterOperand(tmp, TypeReference.Long), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p))); \\
+} else if (IfCmp.getVal2(P(p)).isLongConstant()) { \\
+Register tmp = regpool.getLong(); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), IfCmp.getVal2(P(p))))); \\
+IFCMP(P(p), IfCmp.getGuardResult(P(p)), IfCmp.getVal1(P(p)), new RegisterOperand(tmp, TypeReference.Long), IfCmp.getCond(P(p))); \\
+} else { \\
+IFCMP(P(p), IfCmp.getGuardResult(P(p)), IfCmp.getVal1(P(p)), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p))); \\
+}
+
+stm:	LONG_IFCMP(r, LONG_CONSTANT)
+LV(IfCmp.getVal2(P(p))) == 0 && CMP_TO_TEST(IfCmp.getCond(P(p))) ? 24:INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \\
+EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, IfCmp.getVal1(P(p)), IfCmp.getVal1(P(p)).copy()))); \\
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(IfCmp.getCond(P(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
+
+# TODO: consider LONG_IFCMP(INT_2LONG(load...), LONG_CONSTANT)
+# folds like with INT_IFCMP (it seems unlikely they'll buy much)

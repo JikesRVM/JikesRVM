@@ -13,7 +13,6 @@
 
 #include "sys.h"
 #include <errno.h>
-#include <signal.h>
 #include <string.h>
 
 /**
@@ -174,10 +173,9 @@ EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *conte
 EXTERNAL void* sysStartMainThreadSignals()
 {
   /* install a stack for hardwareTrapHandler() to run on */
-  stack_t stack;
-  char *stackBuf;
-  memset (&stack, 0, sizeof stack);
-  stackBuf = (char *)checkMalloc(sizeof(char) * SIGSTKSZ);
+  stack_t stack = {0};
+  void *stackBuf;
+  stackBuf = (void *)checkMalloc(SIGSTKSZ);
   stack.ss_sp = stackBuf;
   stack.ss_size = SIGSTKSZ;
   if (sigaltstack (&stack, 0)) {
@@ -186,9 +184,7 @@ EXTERNAL void* sysStartMainThreadSignals()
     return NULL;
   }
   /* install hardware trap signal handler */
-  struct sigaction action;
-
-  memset (&action, 0, sizeof action);
+  struct sigaction action = {0};
   action.sa_sigaction = hardwareTrapHandler;
   /*
    * mask all signal from reaching the signal handler while the signal
@@ -247,12 +243,13 @@ EXTERNAL void* sysStartMainThreadSignals()
 EXTERNAL void* sysStartChildThreadSignals()
 {
   stack_t stack;
-  char *stackBuf;
+  void *stackBuf;
   int rc;
+
   TRACE_PRINTF("%s: sysSetupChildThreadSignals\n", Me);
 
   memset (&stack, 0, sizeof stack);
-  stackBuf = (char*)sysMalloc(sizeof(char[SIGSTKSZ]));
+  stackBuf = (void*)sysMalloc(SIGSTKSZ);
   stack.ss_sp = stackBuf;
   stack.ss_flags = 0;
   stack.ss_size = SIGSTKSZ;

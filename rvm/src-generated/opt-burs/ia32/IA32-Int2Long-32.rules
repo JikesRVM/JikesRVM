@@ -1,0 +1,41 @@
+#####
+# INT_2LONG
+#####
+r:	INT_2LONG(r)
+33
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), true);
+
+r:	INT_2LONG(load32)
+38
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Unary.getResult(P(p)), consumeMO(), true);
+
+r:      LONG_AND(INT_2LONG(r), LONG_CONSTANT)
+(Binary.getVal2(P(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(P(p)).asLongConstant().lower32() == -1)? 23 : INFINITE
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Binary.getResult(P(p)), Unary.getVal(PL(p)), false);
+
+r:      LONG_AND(INT_2LONG(load32), LONG_CONSTANT)
+(Binary.getVal2(P(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(P(p)).asLongConstant().lower32() == -1)? 28 : INFINITE
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Binary.getResult(P(p)), consumeMO(), false);
+
+r:      LONG_SHL(INT_2LONG(r), INT_CONSTANT)
+VR(p) == 32 ? 23 : INFINITE
+EMIT_INSTRUCTION
+Register hr = Binary.getResult(P(p)).getRegister(); \\
+Register lr = regpool.getSecondReg(hr); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new RegisterOperand(hr, TypeReference.Int), Unary.getVal(PL(p)).copy())); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(lr, TypeReference.Int), IC(0))));
+
+r:      LONG_SHL(INT_2LONG(load64), INT_CONSTANT)
+VR(p) == 32 ? 23 : INFINITE
+EMIT_INSTRUCTION
+Register hr = Binary.getResult(P(p)).getRegister(); \\
+Register lr = regpool.getSecondReg(hr); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new RegisterOperand(hr, TypeReference.Int), setSize(consumeMO(),4))); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(lr, TypeReference.Int), IC(0))));
+

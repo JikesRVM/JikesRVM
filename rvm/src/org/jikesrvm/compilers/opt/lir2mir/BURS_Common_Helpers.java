@@ -83,6 +83,11 @@ public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
     return IC(op).value;
   }
 
+  // returns the long value of the given operand
+  protected static long LV(Operand op) {
+    return LC(op).value;
+  }
+
   // returns the Address value of the given operand
   protected static Address AV(Operand op) {
     return AC(op).value;

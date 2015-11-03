@@ -93,3 +93,16 @@ JNIEXPORT jclass JNICALL Java_ClassQuery_testGetObjectClass
   return (*env) -> GetObjectClass(env, obj);
 
 }
+
+
+/*
+ * Class:     ClassQuery
+ * Method:    testInstanceOf
+ * Signature: (Ljava/lang/Object;Ljava/lang/Class;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_ClassQuery_testInstanceOf
+(JNIEnv *env, jclass classQuery, jobject obj, jclass cls) {
+
+  return (*env) -> IsInstanceOf(env, obj, cls);
+
+}
