@@ -145,9 +145,8 @@ public class VM extends Properties {
     // register.
     if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
 
-    // TODO get thread local state working and/or
-    // use VM.BuildForOpenJDK when it's been introduced
-    if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
+    // TODO get thread local state working
+    if (!VM.BuildForOpenJDK) {
       // This line was commented out for OpenJDK which led to a checkstyle
       // failure because of an unused import. It is better to leave the line
       // in. Removing and re-adding the import is error-prone as ThreadLocalState
