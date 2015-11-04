@@ -15,6 +15,16 @@
 #include <errno.h>
 #include <string.h>
 
+// Jikes RVM's signal handlers do more work than is generally expected
+// for signal handlers. For example, when -X:verbose is set, the signal
+// handlers will dump the registers. In that case, the signal handler
+// on x64 Linux will take more stack space than the standard size provides.
+// Other platforms might not need that much space. However, dumping the
+// registers in the signal handler is not covered by the current (Nov 2015)
+// set of regression tests. We play it safe and use a larger size
+// for all platforms.
+#define CUSTOM_SIGNAL_STACK_SIZE (2 * SIGSTKSZ)
+
 /**
  * Is the given address within the RVM address space?
  *
@@ -175,9 +185,9 @@ EXTERNAL void* sysStartMainThreadSignals()
   /* install a stack for hardwareTrapHandler() to run on */
   stack_t stack = {0};
   void *stackBuf;
-  stackBuf = (void *)checkMalloc(SIGSTKSZ);
+  stackBuf = (void *)checkMalloc(CUSTOM_SIGNAL_STACK_SIZE);
   stack.ss_sp = stackBuf;
-  stack.ss_size = SIGSTKSZ;
+  stack.ss_size = CUSTOM_SIGNAL_STACK_SIZE;
   if (sigaltstack (&stack, 0)) {
     ERROR_PRINTF("%s: sigaltstack failed (errno=%d)\n",  Me, errno);
     sysFree(stackBuf);
@@ -248,10 +258,10 @@ EXTERNAL void* sysStartChildThreadSignals()
 
   TRACE_PRINTF("%s: sysSetupChildThreadSignals\n", Me);
 
-  stackBuf = (void *)checkMalloc(SIGSTKSZ);
+  stackBuf = (void *)checkMalloc(CUSTOM_SIGNAL_STACK_SIZE);
   stack.ss_sp = stackBuf;
   stack.ss_flags = 0;
-  stack.ss_size = SIGSTKSZ;
+  stack.ss_size = CUSTOM_SIGNAL_STACK_SIZE;
   if (sigaltstack (&stack, 0)) {
     ERROR_PRINTF("sigaltstack failed (errno=%d)\n",errno);
     sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
