@@ -14,6 +14,7 @@ package org.jikesrvm.jni.ia32;
 
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_WORD;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGE;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
@@ -491,6 +492,13 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitMOV_Reg_Imm(T0, nativeIP.toInt());
     } else {
       asm.emitMOV_Reg_Imm_Quad(T0, nativeIP.toLong());
+    }
+    // Trap if stack alignment fails
+    if (VM.ExtremeAssertions && VM.BuildFor64Addr) {
+      asm.emitBT_Reg_Imm(ESP, 3);
+      ForwardReference fr = asm.forwardJcc(LGE);
+      asm.emitINT_Imm(3);
+      fr.resolve(asm);
     }
     // make the call to native code
     asm.emitCALL_Reg(T0);
