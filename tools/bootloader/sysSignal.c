@@ -242,14 +242,13 @@ EXTERNAL void* sysStartMainThreadSignals()
  */
 EXTERNAL void* sysStartChildThreadSignals()
 {
-  stack_t stack;
+  stack_t stack = {0};
   void *stackBuf;
   int rc;
 
   TRACE_PRINTF("%s: sysSetupChildThreadSignals\n", Me);
 
-  memset (&stack, 0, sizeof stack);
-  stackBuf = (void*)sysMalloc(SIGSTKSZ);
+  stackBuf = (void *)checkMalloc(SIGSTKSZ);
   stack.ss_sp = stackBuf;
   stack.ss_flags = 0;
   stack.ss_size = SIGSTKSZ;
