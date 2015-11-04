@@ -63,12 +63,12 @@
 #  define IA32_R14(context) (__GREGS(context)[REG_R14])
 #  define IA32_R15(context) (__GREGS(context)[REG_R15])
 #  define IA32_EIP(context)  (__GREGS(context)[REG_RIP])
+#  define IA32_CSGSFS(context) (__GREGS(context)[REG_CSGSFS])
 #endif
 
 #define IA32_EFLAGS(context)  (__GREGS(context)[REG_EFL])
 #define IA32_TRAPNO(context) (__GREGS(context)[REG_TRAPNO])
 #define IA32_ERR(context) (__GREGS(context)[REG_ERR])
-#define IA32_FALUTVADDR(context) (__GREGS(context)[REG_CS])
 
 #define IA32_FPREGS(context) (__MC(context).fpregs)
 
@@ -737,6 +737,9 @@ EXTERNAL void dumpContext(void *context)
   ERROR_PRINTF("r13           %p\n", (void*)IA32_R13(context));
   ERROR_PRINTF("r14           %p\n", (void*)IA32_R14(context));
   ERROR_PRINTF("r15           %p\n", (void*)IA32_R15(context));
+#ifdef RVM_FOR_LINUX
+  ERROR_PRINTF("cs, gs, fs    %p\n", (void*)IA32_CSGSFS(context));
+#endif
 #else
   ERROR_PRINTF("cs            %p\n", (void*)IA32_CS(context));
   ERROR_PRINTF("ds            %p\n", (void*)IA32_DS(context));
