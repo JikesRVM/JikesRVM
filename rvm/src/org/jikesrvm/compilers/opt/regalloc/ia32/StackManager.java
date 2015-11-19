@@ -728,8 +728,21 @@ public abstract class StackManager extends GenericStackManager {
     int count = 0;
     for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
       Operand op = ops.nextElement();
-      if (op.isRegister() && op.asRegister().getRegister() == r) {
-        count++;
+      if (op.isRegister()) {
+        RegisterOperand rop = op.asRegister();
+        if (rop.getRegister() == r) {
+          count++;
+        }
+        // If the register in question is an int register (i.e. 32 bit)
+        // and the VM is build for x64, we mustn't introduce a memory
+        // operand for the register. All spill locations are 64-bit,
+        // so the 32-bit operation would be converted to a quad operation
+        // because of the memory operand. This would change the semantics
+        // of the operation (e.g. for CMP or ADD).
+        // Moreover, we can't use a 32-bit memory operation because it is
+        // not guaranteed that a x64 memory address would fit into 32 bits.
+        // FIXME need to review this decision before finishing x64 opt work
+        if (VM.BuildFor64Addr && rop.isInt() && rop.getRegister() == r) return true;
       }
     }
     if (count > 1) return true;
