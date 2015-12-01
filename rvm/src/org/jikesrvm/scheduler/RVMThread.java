@@ -2720,6 +2720,9 @@ public final class RVMThread extends ThreadContext {
   /**
    * Method to be executed when this thread starts running. Calls
    * java.lang.Thread.run but system threads can override directly.
+   * <p>
+   * This method will catch all uncaught throwables from the thread
+   * and pass them to the thread's uncaught exception handler.
    */
   @Interruptible
   @Entrypoint
@@ -2737,6 +2740,12 @@ public final class RVMThread extends ThreadContext {
       if (traceAcct) {
         VM.sysWriteln("Thread ",getThreadSlot()," exiting with exception.");
       }
+      // Any throwable that reaches this point wasn't caught by the
+      // thread and is therefore an uncaught exception by definition.
+      // In order to make sure that terminate() sets the correct exit
+      // status for this case, uncaughtExceptionCount needs to be
+      // increased.
+      uncaughtExceptionCount++;
       try {
         Thread.UncaughtExceptionHandler handler;
         handler = thread.getUncaughtExceptionHandler();
@@ -4999,6 +5008,15 @@ public final class RVMThread extends ThreadContext {
     return numActiveDaemons;
   }
 
+  /**
+   * Handles uncaught exceptions for subclasses of {@link SystemThread}.
+   * Uncaught exceptions for normal threads will end up in that thread's {@link #run()}
+   * method which will invoke the thread's uncaught exception handler.
+   *
+   * @param exceptionObject the exception object that wasn't caught
+   * @see #run() run() method of application threads
+   * @see SystemThread#run() run() method of system threads
+   */
   @Interruptible
   public void handleUncaughtException(Throwable exceptionObject) {
     uncaughtExceptionCount++;
