@@ -20,10 +20,41 @@ import org.jikesrvm.classloader.NormalMethod;
  * Entrypoints that are specific to instruction architecture.
  */
 public final class ArchEntrypoints {
+  public static final String ArchCodeArrayName = "Lorg/jikesrvm/ArchitectureSpecific$CodeArray;";
+  public static final String arch;
+
+  static {
+    if (VM.BuildForIA32) {
+      arch = "ia32";
+      saveVolatilesInstructionsField = null;
+      restoreVolatilesInstructionsField = null;
+      registersLRField = null;
+      registersFPField =  EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;",
+          "fp", "Lorg/vmmagic/unboxed/Address;");
+      framePointerField = EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;",
+          "framePointer", "Lorg/vmmagic/unboxed/Address;");
+      hiddenSignatureIdField = EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;",
+          "hiddenSignatureId", "I");
+      arrayIndexTrapParamField = EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;",
+          "arrayIndexTrapParam", "I");
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      arch = "ppc";
+      saveVolatilesInstructionsField = EntrypointHelper.getField("Lorg/jikesrvm/" +
+          arch + "/OutOfLineMachineCode;", "saveVolatilesInstructions", ArchCodeArrayName);
+      restoreVolatilesInstructionsField = EntrypointHelper.getField("Lorg/jikesrvm/" +
+          arch + "/OutOfLineMachineCode;", "restoreVolatilesInstructions", ArchCodeArrayName);
+      registersLRField = EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;",
+          "lr", "Lorg/vmmagic/unboxed/Address;");
+      registersFPField = null;
+      framePointerField = null;
+      hiddenSignatureIdField = null;
+      arrayIndexTrapParamField = null;
+    }
+  }
+
   public static final NormalMethod newArrayArrayMethod =
       EntrypointHelper.getMethod("Lorg/jikesrvm/" + ArchEntrypoints.arch + "/MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
-  public static final String arch = VM.BuildForIA32 ? "ia32" : "ppc";
-  public static final String ArchCodeArrayName = "Lorg/jikesrvm/ArchitectureSpecific$CodeArray;";
   public static final RVMField reflectiveMethodInvokerInstructionsField =
       EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/OutOfLineMachineCode;",
                "reflectiveMethodInvokerInstructions",
@@ -36,13 +67,8 @@ public final class ArchEntrypoints {
       EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/OutOfLineMachineCode;",
                "restoreHardwareExceptionStateInstructions",
                ArchCodeArrayName);
-  public static final RVMField saveVolatilesInstructionsField =
-      (VM.BuildForPowerPC) ?
-      EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/OutOfLineMachineCode;", "saveVolatilesInstructions", ArchCodeArrayName) : null;
-  public static final RVMField restoreVolatilesInstructionsField =
-      (VM.BuildForPowerPC) ?
-      EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/OutOfLineMachineCode;", "restoreVolatilesInstructions", ArchCodeArrayName) : null;
-
+  public static final RVMField saveVolatilesInstructionsField;
+  public static final RVMField restoreVolatilesInstructionsField;
   public static final RVMField trampolineRegistersField =
         EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;", "trampolineRegisters", "Lorg/jikesrvm/ArchitectureSpecific$Registers;");
   public static final RVMField hijackedReturnAddressField =
@@ -53,22 +79,11 @@ public final class ArchEntrypoints {
   public static final RVMField registersGPRsField =
       EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
   public static final RVMField registersInUseField = EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;", "inuse", "Z");
-  public static final RVMField registersLRField =
-      (VM.BuildForPowerPC) ? EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;",
-                                      "lr",
-                                      "Lorg/vmmagic/unboxed/Address;") : null;
-  public static final RVMField registersFPField =
-      (VM.BuildForIA32) ? EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;",
-                                   "fp",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
-  public static final RVMField framePointerField =
-      (VM.BuildForIA32) ? EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;",
-                                   "framePointer",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
-  public static final RVMField hiddenSignatureIdField =
-      (VM.BuildForIA32) ? EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;", "hiddenSignatureId", "I") : null;
-  public static final RVMField arrayIndexTrapParamField =
-      (VM.BuildForIA32) ? EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;", "arrayIndexTrapParam", "I") : null;
+  public static final RVMField registersLRField;
+  public static final RVMField registersFPField;
+  public static final RVMField framePointerField;
+  public static final RVMField hiddenSignatureIdField;
+  public static final RVMField arrayIndexTrapParamField;
 
   private ArchEntrypoints() {
     // prevent instantiation

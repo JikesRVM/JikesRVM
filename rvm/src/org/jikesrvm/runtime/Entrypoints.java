@@ -407,22 +407,34 @@ public class Entrypoints {
       getField(org.jikesrvm.jni.JNIEnvironment.class, "hasPendingException", int.class);
   public static final RVMField JNIExternalFunctionsField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "externalJNIFunctions", org.vmmagic.unboxed.Address.class);
-  public static final RVMField JNIEnvSavedJTOCField =
-      VM.BuildForPowerPC ? getField(org.jikesrvm.jni.JNIEnvironment.class,
-                                    "savedJTOC",
-                                    org.vmmagic.unboxed.Address.class) : null;
-  public static final RVMMethod jniEntry =
-      VM.BuildForIA32 ? getMethod(org.jikesrvm.jni.JNIEnvironment.class,
-                                  "entryToJNI",
-                                  "(I)V") : null;
-  public static final RVMMethod jniExit =
-      VM.BuildForIA32 ? getMethod(org.jikesrvm.jni.JNIEnvironment.class,
-                                  "exitFromJNI",
-                                  "(I)Ljava/lang/Object;") : null;
-      public static final RVMMethod jniThrowPendingException =
-        VM.BuildForPowerPC ? getMethod(org.jikesrvm.jni.JNIEnvironment.class,
-                                    "throwPendingException",
-                                    "()V") : null;
+  public static final RVMField JNIEnvSavedJTOCField;
+  public static final RVMMethod jniThrowPendingException;
+  public static final RVMMethod jniEntry;
+  public static final RVMMethod jniExit;
+
+
+  static {
+    if (VM.BuildForPowerPC) {
+      JNIEnvSavedJTOCField =  getField(org.jikesrvm.jni.JNIEnvironment.class,
+                                              "savedJTOC",
+                                              org.vmmagic.unboxed.Address.class);
+      jniThrowPendingException = getMethod(org.jikesrvm.jni.JNIEnvironment.class,
+                                              "throwPendingException",
+                                              "()V");
+      jniEntry = null;
+      jniExit = null;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32);
+      JNIEnvSavedJTOCField = null;
+      jniThrowPendingException = null;
+      jniEntry = getMethod(org.jikesrvm.jni.JNIEnvironment.class,
+                                            "entryToJNI",
+                                            "(I)V");
+      jniExit = getMethod(org.jikesrvm.jni.JNIEnvironment.class,
+                                            "exitFromJNI",
+                                            "(I)Ljava/lang/Object;");
+    }
+  }
 
   public static final RVMField the_boot_recordField =
       getField(org.jikesrvm.runtime.BootRecord.class, "the_boot_record", org.jikesrvm.runtime.BootRecord.class);
@@ -469,6 +481,7 @@ public class Entrypoints {
   public static final NormalMethod optNew2DArrayMethod;
   public static final NormalMethod sysArrayCopy;
 
+  // Initialize opt-compiler specific fields
   static {
     if (VM.BuildForOptCompiler) {
       specializedMethodsField =
@@ -520,6 +533,7 @@ public class Entrypoints {
   public static final RVMField luni5;
   public static final RVMField luni6;
 
+  // Initialize Harmony classlibrary specific fields
   static {
     if (VM.BuildForHarmony) {
       luni1 = getField("Lorg/apache/harmony/luni/util/Msg;", "bundle", java.util.ResourceBundle.class);
