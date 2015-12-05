@@ -167,6 +167,7 @@
     <runCompareTest tag="RVM_868" class="test.org.jikesrvm.basic.bugs.RVM_868"/>
     <runCompareTest tag="RVM_914" class="test.org.jikesrvm.basic.bugs.RVM_914"/>
     <runCompareTest tag="RVM_915" class="test.org.jikesrvm.basic.bugs.RVM_915"/>
+    <runCompareTest tag="RVM_966" class="test.org.jikesrvm.basic.bugs.RVM_966" exitCode="113"/>
     <finishResults/>
   </target>
 
