@@ -13,6 +13,7 @@
 package org.mmtk.plan;
 
 import static org.mmtk.utility.Constants.*;
+import static org.mmtk.vm.VM.EXIT_CODE_REFLECTION_FAILURE;
 
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
@@ -192,7 +193,7 @@ public abstract class Plan {
       mmtkCollectorClass = Class.forName(contextClassName).asSubclass(ParallelCollector.class);
     } catch (Throwable t) {
       t.printStackTrace();
-      System.exit(-1);
+      System.exit(EXIT_CODE_REFLECTION_FAILURE);
     }
     defaultCollectorContext = mmtkCollectorClass;
   }

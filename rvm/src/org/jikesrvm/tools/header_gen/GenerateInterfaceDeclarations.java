@@ -61,7 +61,7 @@ public class GenerateInterfaceDeclarations {
           (GenArch) Class.forName(VM.BuildForIA32 ? "org.jikesrvm.tools.header_gen.GenArch_ia32" : "org.jikesrvm.tools.header_gen.GenArch_ppc").newInstance();
     } catch (Exception e) {
       e.printStackTrace();
-      System.exit(-1);     // we must *not* go on if the above has failed
+      System.exit(EXIT_STATUS_MISC_TROUBLE);     // we must *not* go on if the above has failed
     }
     arch = tmp;
   }
