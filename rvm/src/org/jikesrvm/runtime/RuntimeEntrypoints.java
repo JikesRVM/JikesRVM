@@ -21,7 +21,6 @@ import static org.jikesrvm.VM.NOT_REACHED;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.MemberReference;
@@ -38,6 +37,7 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;

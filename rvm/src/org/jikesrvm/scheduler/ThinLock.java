@@ -27,9 +27,9 @@ import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_MASK;
 import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
 import static org.jikesrvm.objectmodel.ThinLockConstants.TL_UNLOCK_MASK;
 
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoNullCheck;

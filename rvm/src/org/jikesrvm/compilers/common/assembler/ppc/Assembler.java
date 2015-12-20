@@ -22,7 +22,6 @@ import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
@@ -33,6 +32,7 @@ import org.jikesrvm.ppc.MachineCode;
 import org.jikesrvm.ppc.RegisterConstants;
 import org.jikesrvm.ppc.StackframeLayoutConstants;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;

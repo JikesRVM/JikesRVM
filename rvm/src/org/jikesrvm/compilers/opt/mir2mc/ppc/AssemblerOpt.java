@@ -23,7 +23,6 @@ import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
@@ -57,6 +56,7 @@ import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.ppc.ArchConstants;
 import org.jikesrvm.ppc.Disassembler;
 import org.jikesrvm.util.EmptyIterator;
+import org.jikesrvm.util.Services;
 
 /**
  * Assemble PowerPC MIR into binary code.

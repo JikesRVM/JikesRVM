@@ -18,6 +18,7 @@ import java.io.IOException;
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.UnimplementedError;
 import org.jikesrvm.mm.mminterface.*;
 
 /**

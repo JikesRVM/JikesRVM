@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.Services;
+import org.jikesrvm.util.Services;
 import org.mmtk.plan.TraceLocal;
 
 /**

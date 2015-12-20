@@ -13,9 +13,8 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
 import org.jikesrvm.scheduler.RVMThread;
-
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible

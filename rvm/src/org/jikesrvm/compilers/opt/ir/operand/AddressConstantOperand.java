@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;

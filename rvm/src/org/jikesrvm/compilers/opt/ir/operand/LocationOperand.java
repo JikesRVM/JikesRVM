@@ -14,13 +14,13 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Offset;
 
 /**

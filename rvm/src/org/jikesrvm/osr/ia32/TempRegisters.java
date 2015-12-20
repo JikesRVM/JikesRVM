@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import org.jikesrvm.Services;
 import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.ia32.Registers;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 

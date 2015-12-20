@@ -14,12 +14,12 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.PrintContainer;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.PrintContainer;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 

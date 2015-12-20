@@ -37,8 +37,6 @@ import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Configuration;
-import org.jikesrvm.Services;
-import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.adaptive.OnStackReplacementEvent;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -84,6 +82,8 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.tuningfork.TraceEngine;
+import org.jikesrvm.util.Services;
+import org.jikesrvm.util.UnimplementedError;
 import org.jikesrvm.tuningfork.Feedlet;
 
 /**

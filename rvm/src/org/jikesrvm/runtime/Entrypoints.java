@@ -75,9 +75,9 @@ public class Entrypoints {
 
   public static final RVMField sysWriteLockField = getField(org.jikesrvm.VM.class, "sysWriteLock", int.class);
   public static final RVMField intBufferLockField =
-      getField(org.jikesrvm.Services.class, "intBufferLock", int.class);
+      getField(org.jikesrvm.util.Services.class, "intBufferLock", int.class);
   public static final RVMField dumpBufferLockField =
-      getField(org.jikesrvm.Services.class, "dumpBufferLock", int.class);
+      getField(org.jikesrvm.util.Services.class, "dumpBufferLock", int.class);
 
   public static final NormalMethod unexpectedAbstractMethodCallMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unexpectedAbstractMethodCall", "()V");

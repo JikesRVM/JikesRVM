@@ -31,7 +31,6 @@ import java.io.PrintStream;
 import java.util.Arrays;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
@@ -42,6 +41,7 @@ import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 

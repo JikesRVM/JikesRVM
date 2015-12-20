@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm;
+package org.jikesrvm.util;
 
 /**
  * This error is thrown when the VM encounters an operation

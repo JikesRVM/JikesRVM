@@ -13,7 +13,6 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -24,6 +23,7 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
+import org.jikesrvm.util.Services;
 
 /**
  * SpecialCompiler is a wrapper for compiling specialized byte code.

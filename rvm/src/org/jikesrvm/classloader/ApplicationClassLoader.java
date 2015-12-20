@@ -18,9 +18,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.StringTokenizer;
 
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 
 /**
  * The class loader used by Jikes RVM to load the application program.  Since
