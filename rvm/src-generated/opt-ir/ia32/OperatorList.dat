@@ -77,13 +77,6 @@ none
 
 
 
-# Acquire a pointer to the current processor object.
-GET_CURRENT_PROCESSOR
-Nullary
-none
-
-
-
 # Set the floating-point control word to round-towards-zero
 ROUND_TO_ZERO
 Empty

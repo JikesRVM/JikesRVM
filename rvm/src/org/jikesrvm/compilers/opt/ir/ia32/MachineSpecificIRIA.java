@@ -29,7 +29,6 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
 import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_DEF;
 import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_USE;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_CURRENT_PROCESSOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCLEAR;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV_ENDING_LIVE_RANGE;
@@ -61,8 +60,6 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
       switch (instruction.getOpcode()) {
         case PREFETCH_opcode:
           return false;
-        case GET_CURRENT_PROCESSOR_opcode:
-          return true;
         default:
           throw new OptimizingCompilerException("SimpleEscape: Unexpected " + instruction);
       }
