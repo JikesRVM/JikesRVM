@@ -18,14 +18,14 @@
 #####
 # LONG_LOAD
 #####
-r:	LONG_LOAD(r,INT_CONSTANT)
+r: LONG_LOAD(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),            \
                      R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-	             Load.getLocation(P(p)), Load.getGuard(P(p))));
+                     Load.getLocation(P(p)), Load.getGuard(P(p))));
 
-r:	LONG_LOAD(r,REF_MOVE(ADDRESS_CONSTANT))
+r: LONG_LOAD(r,REF_MOVE(ADDRESS_CONSTANT))
 FITS(Move.getVal(PR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
@@ -34,45 +34,45 @@ EMIT_INSTRUCTION
                           R(Load.getAddress(P(p))), CAU16(val)));             \
    EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),         \
                                  Move.getResult(PR(p)).copyRO(), CAL16(val),  \
-				 Load.getLocation(P(p)),                      \
+                                 Load.getLocation(P(p)),                      \
                                  Load.getGuard(P(p))));                      \
 }
 
-r:	LONG_LOAD(r,r)
+r: LONG_LOAD(r,r)
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddrX, Load.getResult(P(p)),           \
                      R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-	             Load.getLocation(P(p)), Load.getGuard(P(p))));
+                     Load.getLocation(P(p)), Load.getGuard(P(p))));
 
-r:	LONG_LOAD(REF_ADD(r,r),INT_CONSTANT)
+r: LONG_LOAD(REF_ADD(r,r),INT_CONSTANT)
 isZERO(VR(p), 11)
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddrX, Load.getResult(P(p)),           \
                               R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p))));
+                              Load.getLocation(P(p)), Load.getGuard(P(p))));
 
-r:	LONG_LOAD(REF_ADD(r,INT_CONSTANT),INT_CONSTANT)
+r: LONG_LOAD(REF_ADD(r,INT_CONSTANT),INT_CONSTANT)
 SI16(VR(p)+VLR(p)) ? 14 : INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),            \
                               R(Binary.getVal1(PL(p))), IC(VR(p)+VLR(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p))));
+                              Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
 # LONG_STORE
 # A few more cases than for other store operators to handle pointer arithmetic introduced by use of magic
 #####
-stm:	LONG_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
+stm: LONG_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
-			       Store.getLocation(P(p)),                       \
+                               Store.getLocation(P(p)),                       \
                                Store.getGuard(P(p))));
 
-stm:	LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(ADDRESS_CONSTANT)))
+stm: LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(ADDRESS_CONSTANT)))
 FITS(Move.getVal(PRR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \
@@ -81,26 +81,26 @@ EMIT_INSTRUCTION
                           R(Store.getAddress(P(p))), CAU16(val)));            \
    EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),     \
                                   Move.getResult(PRR(p)).copyRO(), CAL16(val),\
-				  Store.getLocation(P(p)),                    \
+                                  Store.getLocation(P(p)),                    \
                                   Store.getGuard(P(p))));                    \
 }
 
-stm:	LONG_STORE(r,OTHER_OPERAND(r,r))
+stm: LONG_STORE(r,OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Store.mutate(P(p), PPC_STAddrX, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
-			       Store.getLocation(P(p)),                       \
+                               Store.getLocation(P(p)),                       \
                                Store.getGuard(P(p))));
 
-stm:	LONG_STORE(r,OTHER_OPERAND(REF_ADD(r,INT_CONSTANT),INT_CONSTANT))
+stm: LONG_STORE(r,OTHER_OPERAND(REF_ADD(r,INT_CONSTANT),INT_CONSTANT))
 SI16(VRR(p)+VRLR(p))?14:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),        \
                                R(Binary.getVal1(PRL(p))),                     \
                                IC(VRR(p) + VRLR(p)), \
-			       Store.getLocation(P(p)),                       \
+                               Store.getLocation(P(p)),                       \
                                Store.getGuard(P(p))));
 
 #####

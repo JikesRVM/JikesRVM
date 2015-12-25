@@ -17,7 +17,7 @@
 #####
 # IR_PROLOGUE:
 #####
-stm:	IR_PROLOGUE
+stm: IR_PROLOGUE
 11
 EMIT_INSTRUCTION
 PROLOGUE(P(p));
@@ -28,7 +28,7 @@ PROLOGUE(P(p));
 #####
 # LONG_ADD
 #####
-r:	LONG_ADD(r,r)
+r: LONG_ADD(r,r)
 20
 EMIT_INSTRUCTION
 LONG_ADD(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
@@ -36,7 +36,7 @@ LONG_ADD(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2
 #####
 # LONG_SUB
 #####
-r:	LONG_SUB(r,r)
+r: LONG_SUB(r,r)
 20
 EMIT_INSTRUCTION
 LONG_SUB(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
@@ -44,7 +44,7 @@ LONG_SUB(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2
 #####
 # LONG_MUL
 #####
-r:	LONG_MUL(r,r)
+r: LONG_MUL(r,r)
 20
 EMIT_INSTRUCTION
 LONG_MUL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
@@ -52,7 +52,7 @@ LONG_MUL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2
 #####
 # LONG_NEG
 #####
-r:	LONG_NEG(r)
+r: LONG_NEG(r)
 20
 EMIT_INSTRUCTION
 LONG_NEG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
@@ -60,12 +60,12 @@ LONG_NEG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 #####
 # LONG_SHL
 #####
-r:	LONG_SHL(r,r)
+r: LONG_SHL(r,r)
 20
 EMIT_INSTRUCTION
 LONG_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
-r:	LONG_SHL(r,INT_CONSTANT)
+r: LONG_SHL(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
 LONG_SHL_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p))));
@@ -73,12 +73,12 @@ LONG_SHL_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.ge
 #####
 # LONG_SHR
 #####
-r:	LONG_SHR(r,r)
+r: LONG_SHR(r,r)
 20
 EMIT_INSTRUCTION
 EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 
-r:	LONG_SHR(r,INT_CONSTANT)
+r: LONG_SHR(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
 LONG_SHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p))));
@@ -86,12 +86,12 @@ LONG_SHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.ge
 #####
 # LONG_USHR
 #####
-r:	LONG_USHR(r,r)
+r: LONG_USHR(r,r)
 20
 EMIT_INSTRUCTION
 LONG_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
-r:	LONG_USHR(r,INT_CONSTANT)
+r: LONG_USHR(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
 LONG_USHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.getVal2(P(p))));
@@ -99,7 +99,7 @@ LONG_USHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Binary.g
 #####
 # LONG_AND
 #####
-r:	LONG_AND(r,r)
+r: LONG_AND(r,r)
 20
 EMIT_INSTRUCTION
 LONG_LOG(P(p), PPC_AND, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
@@ -107,7 +107,7 @@ LONG_LOG(P(p), PPC_AND, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binar
 #####
 # LONG_OR
 #####
-r:	LONG_OR(r,r)
+r: LONG_OR(r,r)
 20
 EMIT_INSTRUCTION
 LONG_LOG(P(p), PPC_OR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
@@ -115,7 +115,7 @@ LONG_LOG(P(p), PPC_OR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary
 #####
 # LONG_XOR
 #####
-r:	LONG_XOR(r,r)
+r: LONG_XOR(r,r)
 20
 EMIT_INSTRUCTION
 LONG_LOG(P(p), PPC_XOR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
@@ -123,7 +123,7 @@ LONG_LOG(P(p), PPC_XOR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binar
 #####
 # LONG_NOT
 #####
-r:	LONG_NOT(r)
+r: LONG_NOT(r)
 20
 EMIT_INSTRUCTION
 LONG_NOT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
@@ -131,7 +131,7 @@ LONG_NOT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 #####
 # INT_2LONG
 #####
-r:	INT_2LONG(r)
+r: INT_2LONG(r)
 20
 EMIT_INSTRUCTION
 INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
@@ -139,7 +139,7 @@ INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 #####
 # LONG_2INT
 #####
-r:	LONG_2INT(r)
+r: LONG_2INT(r)
 10
 EMIT_INSTRUCTION
 LONG_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
@@ -147,7 +147,7 @@ LONG_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 #####
 # DOUBLE_AS_LONG_BITS
 #####
-r:	DOUBLE_AS_LONG_BITS(r)
+r: DOUBLE_AS_LONG_BITS(r)
 40
 EMIT_INSTRUCTION
 FPR2GPR_64(P(p));
@@ -155,7 +155,7 @@ FPR2GPR_64(P(p));
 #####
 # LONG_BITS_AS_DOUBLE
 #####
-r:	LONG_BITS_AS_DOUBLE(r)
+r: LONG_BITS_AS_DOUBLE(r)
 40
 EMIT_INSTRUCTION
 GPR2FPR_64(P(p));
@@ -163,12 +163,12 @@ GPR2FPR_64(P(p));
 #####
 # LONG_MOVE
 #####
-r:	LONG_MOVE(LONG_CONSTANT)
+r: LONG_MOVE(LONG_CONSTANT)
 40
 EMIT_INSTRUCTION
 LONG_CONSTANT(P(p), Move.getResult(P(p)), LC(Move.getVal(P(p))));
 
-r:	LONG_MOVE(r)
+r: LONG_MOVE(r)
 22
 EMIT_INSTRUCTION
 LONG_MOVE(P(p), Move.getResult(P(p)), R(Move.getVal(P(p))));
@@ -176,7 +176,7 @@ LONG_MOVE(P(p), Move.getResult(P(p)), R(Move.getVal(P(p))));
 #####
 # LONG_CMP
 #####
-stm:	LONG_CMP(r,r)
+stm: LONG_CMP(r,r)
 40
 EMIT_INSTRUCTION
 EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
@@ -184,7 +184,7 @@ EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
 #####
 # LONG_IFCMP
 #####
-stm:	LONG_IFCMP(r,r)
+stm: LONG_IFCMP(r,r)
 30
 EMIT_INSTRUCTION
 EMIT(P(p)); //  Leave for ComplexLIR2MIRExpansion
@@ -224,69 +224,69 @@ EMIT_INSTRUCTION
 
 #Do not put these in PPC_Common, because the REF_operations are 64-bit operations on 64-bit.
 #So the condition flags are set concerning 64-bit values instead of 32-bit value as we'd expect.
-stm:	INT_IFCMP(REF_NEG(r),INT_CONSTANT)
+stm: INT_IFCMP(REF_NEG(r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_NEGr, Unary.getResult(PL(p)),           \
                      Unary.getVal(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_NOT(r),INT_CONSTANT)
+stm: INT_IFCMP(REF_NOT(r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_XORr, Unary.getResult(PL(p)),           \
                      R(Unary.getVal(PL(p))), Unary.getVal(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_ADD(r,r),INT_CONSTANT)
+stm: INT_IFCMP(REF_ADD(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ADDr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_AND(r,r),INT_CONSTANT)
+stm: INT_IFCMP(REF_AND(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ANDr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_OR(r,r),INT_CONSTANT)
+stm: INT_IFCMP(REF_OR(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ORr, Binary.getResult(PL(p)),           \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_XOR(r,r),INT_CONSTANT)
+stm: INT_IFCMP(REF_XOR(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_XORr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
+stm: INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&U16(IV(Move.getVal(PLR(p))))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ANDISr, Binary.getResult(PL(p)),        \
                      R(Binary.getVal1(PL(p))),                               \
                      SRI(IV(Move.getVal(PLR(p))), 16), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
+stm: INT_IFCMP(REF_AND(r,REF_MOVE(INT_CONSTANT)),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))&&MASK(IV(Move.getVal(PLR(p))))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO_AND_MASK(P(p), Binary.getResult(PL(p)),           \
                               R(Binary.getVal1(PL(p))),                      \
                               IC(Move.getVal(PLR(p))), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_ADD(r,INT_CONSTANT),INT_CONSTANT)
+stm: INT_IFCMP(REF_ADD(r,INT_CONSTANT),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ADDICr, Binary.getResult(PL(p)),        \
                      R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_AND(r,REF_NOT(r)),INT_CONSTANT)
+stm: INT_IFCMP(REF_AND(r,REF_NOT(r)),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ANDCr, Binary.getResult(PL(p)),         \
                      R(Binary.getVal1(PL(p))), Unary.getVal(PLR(p)), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(REF_OR(r,REF_NOT(r)),INT_CONSTANT)
+stm: INT_IFCMP(REF_OR(r,REF_NOT(r)),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ORCr, Binary.getResult(PL(p)),          \
@@ -295,13 +295,13 @@ CMP_ZERO(P(p), PPC_ORCr, Binary.getResult(PL(p)),          \
 #####
 # REF_AND, cases not valid on 64-bit, due to zero extension of ANDIS
 #####
-czr:	REF_AND(r,REF_MOVE(INT_CONSTANT))
+czr: REF_AND(r,REF_MOVE(INT_CONSTANT))
 U16(IV(Move.getVal(PR(p))))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_ANDISr, Binary.getResult(P(p)),              \
                        R(Binary.getVal1(P(p))), IC(Bits.PPCMaskUpper16(VRL(p)))));
 
-r:	REF_AND(r,REF_MOVE(INT_CONSTANT))
+r: REF_AND(r,REF_MOVE(INT_CONSTANT))
 MASK(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 AND_MASK(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Move.getVal(PR(p))));
@@ -309,12 +309,12 @@ AND_MASK(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), IC(Move.getVal(P
 #####
 # REF_OR, cases not valid on 64-bit, due to zero extension of ORIS
 #####
-r:	REF_OR(r,REF_MOVE(INT_CONSTANT))
+r: REF_OR(r,REF_MOVE(INT_CONSTANT))
 U16(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), SRI(IV(Move.getVal(PR(p))), 16)));
 
-r:	REF_OR(r,REF_MOVE(INT_CONSTANT))
+r: REF_OR(r,REF_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 {                                                                             \
@@ -328,7 +328,7 @@ EMIT_INSTRUCTION
 #####
 # REF_XOR, cases not valid on 64-bit, due to zero extension of XORIS
 #####
-r:	REF_XOR(r,REF_MOVE(INT_CONSTANT))
+r: REF_XOR(r,REF_MOVE(INT_CONSTANT))
 U16(IV(Move.getVal(PR(p))))?10:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_XORIS, Binary.getResult(P(p)), \
@@ -337,17 +337,17 @@ EMIT(MIR_Binary.mutate(P(p), PPC_XORIS, Binary.getResult(P(p)), \
 ######
 # REF_MOVE
 ######
-r:	REF_MOVE(ADDRESS_CONSTANT)
+r: REF_MOVE(ADDRESS_CONSTANT)
 SI16(AV(Move.getVal(P(p))))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), PPC_LDI, Move.getResult(P(p)), CAL16(AV(Move.getVal(P(p))))));
 
-r:	REF_MOVE(ADDRESS_CONSTANT)
+r: REF_MOVE(ADDRESS_CONSTANT)
 U16(AV(Move.getVal(P(p))))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), PPC_LDIS, Move.getResult(P(p)), CAU16(AV(Move.getVal(P(p))))));
 
-r:	REF_MOVE(ADDRESS_CONSTANT)
+r: REF_MOVE(ADDRESS_CONSTANT)
 22
 EMIT_INSTRUCTION
 {                                                                             \
