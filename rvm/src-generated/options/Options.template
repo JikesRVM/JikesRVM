@@ -14,6 +14,7 @@ package org.jikesrvm;
 
 import static org.jikesrvm.runtime.ExitStatus.*;
 
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.vmmagic.pragma.*;
 
 /**

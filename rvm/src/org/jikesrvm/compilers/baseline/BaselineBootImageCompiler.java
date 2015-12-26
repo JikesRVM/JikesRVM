@@ -14,12 +14,12 @@ package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.recompilation.CompilerDNA;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.CompiledMethod;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * Use baseline compiler to build virtual machine boot image.

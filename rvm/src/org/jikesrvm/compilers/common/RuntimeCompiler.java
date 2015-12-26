@@ -18,7 +18,6 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.JNICompiler;
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -40,6 +39,7 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Time;
 import org.jikesrvm.scheduler.RVMThread;
 

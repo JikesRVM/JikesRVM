@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -22,6 +21,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.specialization.InvokeeThreadLocalContext;
 import org.jikesrvm.compilers.opt.specialization.SpecializationDatabase;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * <p> The main driver of the Compiler.

@@ -13,7 +13,6 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -25,6 +24,7 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * Maintain statistic information about on stack replacement events

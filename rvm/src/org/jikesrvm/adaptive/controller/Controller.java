@@ -17,7 +17,6 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
 import java.util.Enumeration;
 import java.util.Vector;
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.OSROrganizerThread;
 import org.jikesrvm.adaptive.database.AOSDatabase;
 import org.jikesrvm.adaptive.database.callgraph.PartialCallGraph;
@@ -32,6 +31,7 @@ import org.jikesrvm.adaptive.util.AOSOptions;
 import org.jikesrvm.adaptive.util.BlockingPriorityQueue;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.RecompilationManager;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.SoftLatch;
 

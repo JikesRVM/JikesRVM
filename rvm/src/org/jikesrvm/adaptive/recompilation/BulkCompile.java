@@ -13,7 +13,6 @@
 package org.jikesrvm.adaptive.recompilation;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
@@ -26,6 +25,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * Utilities for providing compiler advice.  Advice files provided

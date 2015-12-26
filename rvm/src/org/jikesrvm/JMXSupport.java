@@ -13,6 +13,7 @@
 package org.jikesrvm;
 
 import org.jikesrvm.mm.mminterface.Selected;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Time;
 
 /**

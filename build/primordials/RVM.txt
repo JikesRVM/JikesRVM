@@ -21,8 +21,8 @@
 
 [Lorg/jikesrvm/ArchitectureSpecific$CodeArray;
 
-[Lorg/jikesrvm/CommandLineArgs$Prefix;
-[Lorg/jikesrvm/CommandLineArgs$PrefixType;
+[Lorg/jikesrvm/runtime/CommandLineArgs$Prefix;
+[Lorg/jikesrvm/runtime/CommandLineArgs$PrefixType;
 
 [Lorg/jikesrvm/classloader/RVMAnnotation;
 [Lorg/jikesrvm/classloader/RVMAnnotation$AnnotationMember;

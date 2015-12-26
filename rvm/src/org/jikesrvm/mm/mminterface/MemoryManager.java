@@ -24,7 +24,6 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
@@ -45,6 +44,7 @@ import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;

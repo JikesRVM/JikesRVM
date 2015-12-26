@@ -20,14 +20,14 @@ import java.lang.reflect.Method;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.jikesrvm.Callbacks;
-import org.jikesrvm.CommandLineArgs;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Callbacks;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Reflection;
 import org.vmmagic.pragma.Entrypoint;
 

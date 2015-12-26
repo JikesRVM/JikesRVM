@@ -15,7 +15,7 @@ package org.jikesrvm.adaptive.util;
 import static org.jikesrvm.runtime.ExitStatus.*;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.CommandLineArgs;
+import org.jikesrvm.runtime.CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options for the

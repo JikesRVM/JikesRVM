@@ -21,7 +21,6 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
@@ -32,6 +31,7 @@ import org.jikesrvm.objectmodel.FieldLayoutContext;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;

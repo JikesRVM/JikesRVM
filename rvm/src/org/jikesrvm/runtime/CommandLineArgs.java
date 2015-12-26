@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -18,6 +18,8 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import java.io.File;
 import java.util.Arrays;
 
+import org.jikesrvm.Options;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
@@ -242,7 +244,7 @@ public class CommandLineArgs {
   /**
    * Fetch arguments from program command line.
    */
-  static void fetchCommandLineArguments() {
+  public static void fetchCommandLineArguments() {
     if (args != null) {
       // if already been here...
       return;
@@ -516,7 +518,7 @@ public class CommandLineArgs {
    * Only those command line arguments that require a more or less
    * fully booted VM to handle are delayed until lateProcessCommandLineArguments.
    */
-  static void earlyProcessCommandLineArguments() {
+  public static void earlyProcessCommandLineArguments() {
     for (int i = 0; i < app_name_pos; i++) {
       String arg = args[i];
       PrefixType type = arg_types[i];
@@ -703,7 +705,7 @@ public class CommandLineArgs {
    * If no application arguments are specified on the command line,
    * process commands anyway.
    */
-  static String[] lateProcessCommandLineArguments() {
+  public static String[] lateProcessCommandLineArguments() {
     for (int i = 0; i < app_name_pos; i++) {
       String arg = args[i];
       PrefixType type = arg_types[i];

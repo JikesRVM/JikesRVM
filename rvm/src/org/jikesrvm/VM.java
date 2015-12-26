@@ -34,6 +34,8 @@ import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Callbacks;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
