@@ -12,22 +12,29 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_END;
 import static org.jikesrvm.HeapLayoutConstants.MAXIMUM_MAPPABLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 import static org.mmtk.utility.Constants.LOG_BYTES_IN_MBYTE;
 
+import org.jikesrvm.VM;
+import org.jikesrvm.objectmodel.JavaHeader;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Magic;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.runtime.JavaSizeConstants;
-import org.jikesrvm.runtime.UnboxedSizeConstants;
-import org.jikesrvm.objectmodel.JavaHeader;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
 
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory {
 
@@ -56,11 +63,11 @@ import org.vmmagic.pragma.*;
   }
   @Override
   protected final byte getLogBytesInAddressConstant() {
-    return UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+    return LOG_BYTES_IN_ADDRESS;
   }
   @Override
   protected final byte getLogBytesInWordConstant() {
-    return UnboxedSizeConstants.LOG_BYTES_IN_WORD;
+    return LOG_BYTES_IN_WORD;
   }
   @Override
   protected final byte getLogBytesInPageConstant() {
@@ -72,7 +79,7 @@ import org.vmmagic.pragma.*;
   }
   @Override
   protected final int getMaxBytesPaddingConstant() {
-    return JavaSizeConstants.BYTES_IN_DOUBLE;
+    return BYTES_IN_DOUBLE;
   }
   @Override
   protected final int getAlignmentValueConstant() {
@@ -82,7 +89,7 @@ import org.vmmagic.pragma.*;
   /** On Intel we align code to 16 bytes as recommended in the optimization manual. */
   @Override
   protected final byte getMaxAlignmentShiftConstant() {
-    return (VM.BuildForIA32 ? 1 : 0) + JavaSizeConstants.LOG_BYTES_IN_LONG - JavaSizeConstants.LOG_BYTES_IN_INT;
+    return (VM.BuildForIA32 ? 1 : 0) + LOG_BYTES_IN_LONG - LOG_BYTES_IN_INT;
   }
 
   private static ImmortalSpace bootSpace;

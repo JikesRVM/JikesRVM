@@ -26,6 +26,8 @@ import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
@@ -38,7 +40,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
@@ -158,7 +159,7 @@ public final class RVMArray extends RVMType {
   @Pure
   @Uninterruptible
   public int getMemoryBytes() {
-    return UnboxedSizeConstants.BYTES_IN_ADDRESS;
+    return BYTES_IN_ADDRESS;
   }
 
   /**
@@ -204,9 +205,9 @@ public final class RVMArray extends RVMType {
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
       case ClassTypeCode:
-        return UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+        return LOG_BYTES_IN_ADDRESS;
       case ArrayTypeCode:
-        return UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+        return LOG_BYTES_IN_ADDRESS;
       case BooleanTypeCode:
         return LOG_BYTES_IN_BOOLEAN;
       case ByteTypeCode:
@@ -426,12 +427,12 @@ public final class RVMArray extends RVMType {
     innermostElementTypeDimension = innermostElementType.dimension;
     if (VM.BuildForIA32 && typeRef == TypeReference.CodeArray) {
       this.alignment = 16;
-    } else if (BYTES_IN_DOUBLE != UnboxedSizeConstants.BYTES_IN_ADDRESS) {
+    } else if (BYTES_IN_DOUBLE != BYTES_IN_ADDRESS) {
       // Desired alignment on 32bit architectures
       if (elementType.isDoubleType() || elementType.isLongType()) {
         this.alignment = BYTES_IN_DOUBLE;
       } else {
-        this.alignment = UnboxedSizeConstants.BYTES_IN_ADDRESS;
+        this.alignment = BYTES_IN_ADDRESS;
       }
     } else {
       this.alignment = BYTES_IN_DOUBLE;
@@ -615,7 +616,7 @@ public final class RVMArray extends RVMType {
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if ((src != dst || srcIdx >= (dstIdx + UnboxedSizeConstants.BYTES_IN_ADDRESS)) && BYTE_BULK_COPY_SUPPORTED) {
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS)) && BYTE_BULK_COPY_SUPPORTED) {
         if (NEEDS_BYTE_ASTORE_BARRIER || NEEDS_BYTE_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx);
@@ -676,7 +677,7 @@ public final class RVMArray extends RVMType {
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if ((src != dst || srcIdx >= (dstIdx + UnboxedSizeConstants.BYTES_IN_ADDRESS / BYTES_IN_BOOLEAN)) && BOOLEAN_BULK_COPY_SUPPORTED) {
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_BOOLEAN)) && BOOLEAN_BULK_COPY_SUPPORTED) {
         if (NEEDS_BOOLEAN_ASTORE_BARRIER || NEEDS_BOOLEAN_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_BOOLEAN);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_BOOLEAN);
@@ -737,7 +738,7 @@ public final class RVMArray extends RVMType {
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if ((src != dst || srcIdx >= (dstIdx + UnboxedSizeConstants.BYTES_IN_ADDRESS / BYTES_IN_SHORT)) && SHORT_BULK_COPY_SUPPORTED) {
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_SHORT)) && SHORT_BULK_COPY_SUPPORTED) {
         if (NEEDS_SHORT_ASTORE_BARRIER || NEEDS_SHORT_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_SHORT);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_SHORT);
@@ -798,7 +799,7 @@ public final class RVMArray extends RVMType {
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if ((src != dst || srcIdx >= (dstIdx + UnboxedSizeConstants.BYTES_IN_ADDRESS / BYTES_IN_CHAR)) && CHAR_BULK_COPY_SUPPORTED) {
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_CHAR)) && CHAR_BULK_COPY_SUPPORTED) {
         if (NEEDS_CHAR_ASTORE_BARRIER || NEEDS_CHAR_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_CHAR);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_CHAR);
@@ -1131,9 +1132,9 @@ public final class RVMArray extends RVMType {
    * @param len The number of array elements to be copied
    */
   private static void arraycopyNoCheckcast(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
-    Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS);
-    Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS);
-    int bytes = len << UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+    Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_ADDRESS);
+    Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_ADDRESS);
+    int bytes = len << LOG_BYTES_IN_ADDRESS;
 
     if (((src != dst) || (srcIdx > dstIdx)) && OBJECT_BULK_COPY_SUPPORTED) {
       if (NEEDS_OBJECT_ASTORE_BARRIER || NEEDS_OBJECT_ALOAD_BARRIER) {
@@ -1165,23 +1166,23 @@ public final class RVMArray extends RVMType {
     // set up things according to the direction of the copy
     int increment;
     if (srcOffset.sGT(dstOffset)) { // direction of copy
-      increment = UnboxedSizeConstants.BYTES_IN_ADDRESS;
+      increment = BYTES_IN_ADDRESS;
     } else {
-      srcOffset = srcOffset.plus(bytes - UnboxedSizeConstants.BYTES_IN_ADDRESS);
-      dstOffset = dstOffset.plus(bytes - UnboxedSizeConstants.BYTES_IN_ADDRESS);
-      increment = -UnboxedSizeConstants.BYTES_IN_ADDRESS;
+      srcOffset = srcOffset.plus(bytes - BYTES_IN_ADDRESS);
+      dstOffset = dstOffset.plus(bytes - BYTES_IN_ADDRESS);
+      increment = -BYTES_IN_ADDRESS;
     }
 
     // perform the copy
     while (len-- != 0) {
       Object value;
       if (NEEDS_OBJECT_ALOAD_BARRIER) {
-        value = Barriers.objectArrayRead(src, srcOffset.toInt() >> UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS);
+        value = Barriers.objectArrayRead(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
       } else {
         value = Magic.getObjectAtOffset(src, srcOffset);
       }
       if (NEEDS_OBJECT_ASTORE_BARRIER) {
-        Barriers.objectArrayWrite(dst, dstOffset.toInt() >> UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS, value);
+        Barriers.objectArrayWrite(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
       } else {
         Magic.setObjectAtOffset(dst, dstOffset, value);
       }

@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
-
-import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
 
 /**
  * <pre>
@@ -142,7 +142,7 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  */
 public interface StackframeLayoutConstants {
 
-  int LOG_BYTES_IN_STACKSLOT = UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+  int LOG_BYTES_IN_STACKSLOT = LOG_BYTES_IN_ADDRESS;
   int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   /** offset of caller's return address from FP */

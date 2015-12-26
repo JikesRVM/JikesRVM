@@ -12,19 +12,23 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -71,7 +75,6 @@ import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
-import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -654,7 +657,7 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
         if (ref.isConstant())
           return DefUseEffect.MOVE_FOLDED;
@@ -672,13 +675,13 @@ public abstract class Simplifier extends IRTools {
     TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
     TypeReference rhsType = ref.getType();
     byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-    if (ans == OptConstants.YES) {
+    if (ans == YES) {
       Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
       if (ref.isConstant())
         return DefUseEffect.MOVE_FOLDED;
       else
         return DefUseEffect.MOVE_REDUCED;
-    } else if (ans == OptConstants.NO) {
+    } else if (ans == NO) {
       RVMType rType = rhsType.peekType();
       if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
         // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -704,7 +707,7 @@ public abstract class Simplifier extends IRTools {
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       // NOTE: Constants.YES doesn't help because ref may be null and null instanceof T is false
-      if (ans == OptConstants.NO) {
+      if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -725,10 +728,10 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(1));
         return DefUseEffect.MOVE_FOLDED;
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -775,11 +778,11 @@ public abstract class Simplifier extends IRTools {
       if (refIsPrecise && valIsPrecise) {
         // writing a known type of value into a known type of array
         byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-        if (ans == OptConstants.YES) {
+        if (ans == YES) {
           // all stores should succeed
           Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
           return DefUseEffect.MOVE_REDUCED;
-        } else if (ans == OptConstants.NO) {
+        } else if (ans == NO) {
           // all stores will fail
           Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
           return DefUseEffect.TRAP_REDUCED;
@@ -819,11 +822,11 @@ public abstract class Simplifier extends IRTools {
     if (refIsPrecise && valIsPrecise) {
       // writing a known type of value into a known type of array
       byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         // all stores should succeed
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
         return DefUseEffect.MOVE_REDUCED;
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         // all stores will fail
         Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
         return DefUseEffect.TRAP_REDUCED;
@@ -843,7 +846,7 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
       TypeReference rhsType = ref.getType();                     // our type
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         RVMType rType = rhsType.peekType();
         if (rType != null) {
           if (rType.isClassType() && rType.asClass().isInterface()) {
@@ -858,7 +861,7 @@ public abstract class Simplifier extends IRTools {
         } else {
           return DefUseEffect.UNCHANGED;
         }
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -1385,7 +1388,7 @@ public abstract class Simplifier extends IRTools {
         val2 = -val2;
         cost++;
       }
-      if (VM.BuildForIA32 && numBits <= UnboxedSizeConstants.BITS_IN_ADDRESS) {
+      if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS) {
         int lastShift = 0;
         boolean lastShiftWasShort = false;
         for (int i = 1; i < numBits; i++) {
@@ -1411,14 +1414,14 @@ public abstract class Simplifier extends IRTools {
             lastShift = i;
           }
         }
-      } else if (numBits > UnboxedSizeConstants.BITS_IN_ADDRESS) {
-        for (int i = 1; i < UnboxedSizeConstants.BITS_IN_ADDRESS; i++) {
+      } else if (numBits > BITS_IN_ADDRESS) {
+        for (int i = 1; i < BITS_IN_ADDRESS; i++) {
           if ((val2 & (1L << i)) != 0) {
             // each 1 requires a shift and add
             cost += 2;
           }
         }
-        for (int i = UnboxedSizeConstants.BITS_IN_ADDRESS; i < numBits; i++) {
+        for (int i = BITS_IN_ADDRESS; i < numBits; i++) {
           if ((val2 & (1L << i)) != 0) {
             // when the shift is > than the bits in the address we can just 0
             // the bottom word, make the cost cheaper
@@ -1460,7 +1463,7 @@ public abstract class Simplifier extends IRTools {
           if ((val2 & (1L << i)) != 0) {
             Instruction shift;
             RegisterOperand shiftResult = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
-            if (VM.BuildForIA32 && numBits <= UnboxedSizeConstants.BITS_IN_ADDRESS &&
+            if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS &&
                 lastShiftResult != null && ((i - lastShift) <= 3) && (i > 3) && !lastShiftWasShort) {
               // We can produce a short shift (1, 2 or 3) using the result of the last shift
               shift = Binary.create(shiftLeftOperator, shiftResult, lastShiftResult.copyRO(), IC(i - lastShift));
@@ -1846,7 +1849,7 @@ public abstract class Simplifier extends IRTools {
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if ((val2 >= UnboxedSizeConstants.BITS_IN_ADDRESS) || (val2 < 0)) { // x << 32 == 0
+          if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x << 32 == 0
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
@@ -1880,8 +1883,8 @@ public abstract class Simplifier extends IRTools {
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if ((val2 >= UnboxedSizeConstants.BITS_IN_ADDRESS) || (val2 < 0)) { // x >> 32 == x >> 31
-            Binary.setVal2(s, IC(UnboxedSizeConstants.BITS_IN_ADDRESS - 1));
+          if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x >> 32 == x >> 31
+            Binary.setVal2(s, IC(BITS_IN_ADDRESS - 1));
             return DefUseEffect.UNCHANGED;
           }
         }
@@ -2022,7 +2025,7 @@ public abstract class Simplifier extends IRTools {
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if ((val2 >= UnboxedSizeConstants.BITS_IN_ADDRESS) || (val2 < 0)) { // x >>> 32 == 0
+          if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x >>> 32 == 0
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
@@ -3683,7 +3686,7 @@ public abstract class Simplifier extends IRTools {
           } else {
             intOffset = offset.asAddressConstant().value.toInt();
           }
-          int intSlot = intOffset >> UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+          int intSlot = intOffset >> LOG_BYTES_IN_ADDRESS;
 
           // Create appropriate constant operand for TIB slot
           ConstantOperand result;

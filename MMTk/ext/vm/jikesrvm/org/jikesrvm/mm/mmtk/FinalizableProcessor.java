@@ -12,17 +12,22 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
-
-import static org.jikesrvm.runtime.JavaSizeConstants.*;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.jikesrvm.util.Services;
 import org.mmtk.plan.TraceLocal;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class manages the processing of finalizable objects.
@@ -196,7 +201,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
       ref = trace.retainForFinalize(ref);
 
       /* Add to object table */
-      Offset offset = Word.fromIntZeroExtend(lastReadyIndex).lsh(UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS).toOffset();
+      Offset offset = Word.fromIntZeroExtend(lastReadyIndex).lsh(LOG_BYTES_IN_ADDRESS).toOffset();
       Selected.Plan.get().storeObjectReference(Magic.objectAsAddress(readyForFinalize).plus(offset), ref);
       lastReadyIndex = (lastReadyIndex + 1) % readyForFinalize.length;
     }
