@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BITS_IN_BYTE;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_impdep1;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_wide;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BITS_IN_BYTE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.vmmagic.unboxed.Word;
 

@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ppc;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BITS_IN_INT;
-import static org.jikesrvm.SizeConstants.LOG_BITS_IN_INT;
-import static org.jikesrvm.SizeConstants.LOG_BITS_IN_ADDRESS;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BITS_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BITS_IN_ADDRESS;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.util.Bits.*;

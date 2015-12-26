@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.jni.ia32;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_WORD;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;

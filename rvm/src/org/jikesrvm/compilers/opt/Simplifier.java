@@ -12,12 +12,9 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BITS_IN_INT;
-import static org.jikesrvm.SizeConstants.BITS_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
-
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_LONG;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
@@ -74,6 +71,7 @@ import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -1387,7 +1385,7 @@ public abstract class Simplifier extends IRTools {
         val2 = -val2;
         cost++;
       }
-      if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS) {
+      if (VM.BuildForIA32 && numBits <= UnboxedSizeConstants.BITS_IN_ADDRESS) {
         int lastShift = 0;
         boolean lastShiftWasShort = false;
         for (int i = 1; i < numBits; i++) {
@@ -1413,14 +1411,14 @@ public abstract class Simplifier extends IRTools {
             lastShift = i;
           }
         }
-      } else if (numBits > BITS_IN_ADDRESS) {
-        for (int i = 1; i < BITS_IN_ADDRESS; i++) {
+      } else if (numBits > UnboxedSizeConstants.BITS_IN_ADDRESS) {
+        for (int i = 1; i < UnboxedSizeConstants.BITS_IN_ADDRESS; i++) {
           if ((val2 & (1L << i)) != 0) {
             // each 1 requires a shift and add
             cost += 2;
           }
         }
-        for (int i = BITS_IN_ADDRESS; i < numBits; i++) {
+        for (int i = UnboxedSizeConstants.BITS_IN_ADDRESS; i < numBits; i++) {
           if ((val2 & (1L << i)) != 0) {
             // when the shift is > than the bits in the address we can just 0
             // the bottom word, make the cost cheaper
@@ -1462,7 +1460,7 @@ public abstract class Simplifier extends IRTools {
           if ((val2 & (1L << i)) != 0) {
             Instruction shift;
             RegisterOperand shiftResult = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
-            if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS &&
+            if (VM.BuildForIA32 && numBits <= UnboxedSizeConstants.BITS_IN_ADDRESS &&
                 lastShiftResult != null && ((i - lastShift) <= 3) && (i > 3) && !lastShiftWasShort) {
               // We can produce a short shift (1, 2 or 3) using the result of the last shift
               shift = Binary.create(shiftLeftOperator, shiftResult, lastShiftResult.copyRO(), IC(i - lastShift));
@@ -1848,7 +1846,7 @@ public abstract class Simplifier extends IRTools {
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x << 32 == 0
+          if ((val2 >= UnboxedSizeConstants.BITS_IN_ADDRESS) || (val2 < 0)) { // x << 32 == 0
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
@@ -1882,8 +1880,8 @@ public abstract class Simplifier extends IRTools {
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x >> 32 == x >> 31
-            Binary.setVal2(s, IC(BITS_IN_ADDRESS - 1));
+          if ((val2 >= UnboxedSizeConstants.BITS_IN_ADDRESS) || (val2 < 0)) { // x >> 32 == x >> 31
+            Binary.setVal2(s, IC(UnboxedSizeConstants.BITS_IN_ADDRESS - 1));
             return DefUseEffect.UNCHANGED;
           }
         }
@@ -2024,7 +2022,7 @@ public abstract class Simplifier extends IRTools {
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x >>> 32 == 0
+          if ((val2 >= UnboxedSizeConstants.BITS_IN_ADDRESS) || (val2 < 0)) { // x >>> 32 == 0
             Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
@@ -3685,7 +3683,7 @@ public abstract class Simplifier extends IRTools {
           } else {
             intOffset = offset.asAddressConstant().value.toInt();
           }
-          int intSlot = intOffset >> LOG_BYTES_IN_ADDRESS;
+          int intSlot = intOffset >> UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
           // Create appropriate constant operand for TIB slot
           ConstantOperand result;

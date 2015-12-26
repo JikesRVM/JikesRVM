@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.compilers.opt.ir.IRTools.AC;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG;
@@ -71,6 +69,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_SPECIALIZED_METHOD_INDEX;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic;
 import org.jikesrvm.VM;

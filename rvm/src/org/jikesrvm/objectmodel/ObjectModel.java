@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.objectmodel;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ADDRESS_BASED_HASHING;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_OFFSET;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASHCODE_BYTES;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.VM;

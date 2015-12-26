@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
-import static org.jikesrvm.SizeConstants.*;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.*;
 
 import java.util.Enumeration;
@@ -81,6 +80,7 @@ import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.ia32.ArchConstants;
 
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.runtime.JavaSizeConstants.*;
 
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;

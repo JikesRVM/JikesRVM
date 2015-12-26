@@ -15,8 +15,8 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.MachineSpecific;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -68,11 +68,11 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
   public final void initializeStack(ArchitectureSpecific.Registers contextRegisters, Address ip, Address sp) {
     Address fp;
     sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.minus(SizeConstants.BYTES_IN_ADDRESS).minus(STACKFRAME_BODY_OFFSET);
+    fp = sp.minus(UnboxedSizeConstants.BYTES_IN_ADDRESS).minus(STACKFRAME_BODY_OFFSET);
     Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
     Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
-    sp = sp.minus(SizeConstants.BYTES_IN_ADDRESS);                                 // allow for one local
+    sp = sp.minus(UnboxedSizeConstants.BYTES_IN_ADDRESS);                                 // allow for one local
     contextRegisters.gprs.set(ESP.value(), sp.toWord());
     contextRegisters.setInnermost(ip, fp);
   }

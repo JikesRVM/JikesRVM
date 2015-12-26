@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ALIGNMENT_VALUE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.JavaHeader;

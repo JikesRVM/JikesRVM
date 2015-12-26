@@ -23,8 +23,9 @@ import org.mmtk.utility.heap.VMRequest;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.JavaSizeConstants;
+import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.jikesrvm.objectmodel.JavaHeader;
-import org.jikesrvm.SizeConstants;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -55,11 +56,11 @@ import org.vmmagic.pragma.*;
   }
   @Override
   protected final byte getLogBytesInAddressConstant() {
-    return SizeConstants.LOG_BYTES_IN_ADDRESS;
+    return UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
   }
   @Override
   protected final byte getLogBytesInWordConstant() {
-    return SizeConstants.LOG_BYTES_IN_WORD;
+    return UnboxedSizeConstants.LOG_BYTES_IN_WORD;
   }
   @Override
   protected final byte getLogBytesInPageConstant() {
@@ -71,7 +72,7 @@ import org.vmmagic.pragma.*;
   }
   @Override
   protected final int getMaxBytesPaddingConstant() {
-    return SizeConstants.BYTES_IN_DOUBLE;
+    return JavaSizeConstants.BYTES_IN_DOUBLE;
   }
   @Override
   protected final int getAlignmentValueConstant() {
@@ -81,7 +82,7 @@ import org.vmmagic.pragma.*;
   /** On Intel we align code to 16 bytes as recommended in the optimization manual. */
   @Override
   protected final byte getMaxAlignmentShiftConstant() {
-    return (VM.BuildForIA32 ? 1 : 0) + SizeConstants.LOG_BYTES_IN_LONG - SizeConstants.LOG_BYTES_IN_INT;
+    return (VM.BuildForIA32 ? 1 : 0) + JavaSizeConstants.LOG_BYTES_IN_LONG - JavaSizeConstants.LOG_BYTES_IN_INT;
   }
 
   private static ImmortalSpace bootSpace;

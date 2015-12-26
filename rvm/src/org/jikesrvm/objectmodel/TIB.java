@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.objectmodel;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BITS_IN_BYTE;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BITS_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecific.ArchConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;

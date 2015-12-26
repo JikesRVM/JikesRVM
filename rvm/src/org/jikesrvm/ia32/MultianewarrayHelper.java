@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TypeReference;
@@ -19,8 +21,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
-
-import static org.jikesrvm.SizeConstants.BYTES_IN_WORD;
 
 /**
  * Helper routine to pull the parameters to multianewarray off the

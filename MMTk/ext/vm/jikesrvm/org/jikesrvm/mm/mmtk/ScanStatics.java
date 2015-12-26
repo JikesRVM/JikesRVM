@@ -12,11 +12,12 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
-
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
+
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;

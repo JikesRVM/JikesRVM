@@ -12,14 +12,15 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import static org.jikesrvm.SizeConstants.*;
-
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
+
+import static org.jikesrvm.runtime.JavaSizeConstants.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.jikesrvm.util.Services;
 import org.mmtk.plan.TraceLocal;
 
@@ -195,7 +196,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
       ref = trace.retainForFinalize(ref);
 
       /* Add to object table */
-      Offset offset = Word.fromIntZeroExtend(lastReadyIndex).lsh(LOG_BYTES_IN_ADDRESS).toOffset();
+      Offset offset = Word.fromIntZeroExtend(lastReadyIndex).lsh(UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS).toOffset();
       Selected.Plan.get().storeObjectReference(Magic.objectAsAddress(readyForFinalize).plus(offset), ref);
       lastReadyIndex = (lastReadyIndex + 1) % readyForFinalize.length;
     }

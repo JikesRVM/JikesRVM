@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.ppc;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;

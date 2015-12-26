@@ -30,7 +30,6 @@ import static org.jikesrvm.objectmodel.JavaHeaderConstants.STATUS_BYTES;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.Configuration;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
@@ -38,6 +37,8 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
+import org.jikesrvm.runtime.JavaSizeConstants;
+import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.ThinLock;
@@ -147,7 +148,7 @@ public class JavaHeader {
         size += HASHCODE_BYTES;
       }
     }
-    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, SizeConstants.BYTES_IN_INT) -
+    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, JavaSizeConstants.BYTES_IN_INT) -
                                               OBJECT_REF_OFFSET);
   }
 
@@ -167,7 +168,7 @@ public class JavaHeader {
         size += HASHCODE_BYTES;
       }
     }
-    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, SizeConstants.BYTES_IN_INT) -
+    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, JavaSizeConstants.BYTES_IN_INT) -
                                               OBJECT_REF_OFFSET);
   }
 
@@ -292,7 +293,7 @@ public class JavaHeader {
         size += HASHCODE_BYTES;
       }
     }
-    return Memory.alignUp(size, SizeConstants.BYTES_IN_INT);
+    return Memory.alignUp(size, JavaSizeConstants.BYTES_IN_INT);
   }
 
   /**
@@ -312,7 +313,7 @@ public class JavaHeader {
         }
       }
     }
-    return Memory.alignUp(size, SizeConstants.BYTES_IN_INT);
+    return Memory.alignUp(size, JavaSizeConstants.BYTES_IN_INT);
   }
 
   /**
@@ -347,7 +348,7 @@ public class JavaHeader {
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
     while ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-      start = start.plus(SizeConstants.BYTES_IN_WORD);
+      start = start.plus(UnboxedSizeConstants.BYTES_IN_WORD);
     }
     return start.plus(OBJECT_REF_OFFSET).toObjectReference();
   }
@@ -578,7 +579,7 @@ public class JavaHeader {
 
     // Do we need to copy the hash code?
     if (hashState.EQ(HASH_STATE_HASHED)) {
-      int hashCode = Magic.objectAsAddress(fromObj).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+      int hashCode = Magic.objectAsAddress(fromObj).toWord().rshl(UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
       if (DYNAMIC_HASH_OFFSET) {
         Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - OBJECT_REF_OFFSET - HASHCODE_BYTES), hashCode);
       } else {
@@ -599,7 +600,7 @@ public class JavaHeader {
         Word hashState = Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED)) {
           // HASHED, NOT MOVED
-          return Magic.objectAsAddress(o).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+          return Magic.objectAsAddress(o).toWord().rshl(UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
         } else if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
           // HASHED AND MOVED
           if (DYNAMIC_HASH_OFFSET) {
@@ -622,7 +623,7 @@ public class JavaHeader {
           return getObjectHashCode(o);
         }
       } else {
-        return Magic.objectAsAddress(o).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+        return Magic.objectAsAddress(o).toWord().rshl(UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
       }
     } else { // 10 bit hash code in status word
       int hashCode = Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();

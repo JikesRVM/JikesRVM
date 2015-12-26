@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -127,7 +129,7 @@ import org.vmmagic.unboxed.Address;
  */
 public interface StackframeLayoutConstants {
 
-  int LOG_BYTES_IN_STACKSLOT = SizeConstants.LOG_BYTES_IN_ADDRESS;
+  int LOG_BYTES_IN_STACKSLOT = LOG_BYTES_IN_ADDRESS;
   int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   /** size of frame header, in bytes */
@@ -149,7 +151,7 @@ public interface StackframeLayoutConstants {
    * Stackframe alignment. Align to 8 byte boundary for good floating point
    * save/restore performance (on powerPC, anyway).
    */
-  int STACKFRAME_ALIGNMENT = SizeConstants.BYTES_IN_DOUBLE;
+  int STACKFRAME_ALIGNMENT = BYTES_IN_DOUBLE;
 
   // Sizes for stacks and sub-regions thereof.
   // Values are in bytes and must be a multiple of 8 (size of a stack slot on 64-architecture).

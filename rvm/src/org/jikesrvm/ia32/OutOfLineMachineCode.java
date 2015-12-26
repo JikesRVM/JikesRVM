@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.ia32;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NE;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;

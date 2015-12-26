@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;

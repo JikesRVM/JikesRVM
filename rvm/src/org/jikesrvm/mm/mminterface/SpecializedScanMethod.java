@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.classloader.RVMType.REFARRAY_OFFSET_ARRAY;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.FIELD_ZERO_OFFSET;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;

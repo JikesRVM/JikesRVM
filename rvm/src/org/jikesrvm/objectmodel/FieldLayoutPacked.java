@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.objectmodel;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;

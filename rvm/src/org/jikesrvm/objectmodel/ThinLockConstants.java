@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.objectmodel;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BITS_IN_ADDRESS;
 
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Word;

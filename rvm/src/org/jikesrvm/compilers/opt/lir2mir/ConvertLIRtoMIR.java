@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_REM_opcode;
@@ -36,6 +35,7 @@ import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_ARRAY_ELEMENT_TIB_
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;

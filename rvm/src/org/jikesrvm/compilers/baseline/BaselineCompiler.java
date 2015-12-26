@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_caload;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_getfield;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifeq;
@@ -23,6 +22,7 @@ import static org.jikesrvm.classloader.BytecodeConstants.JBC_iflt;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifne;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_nop;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;

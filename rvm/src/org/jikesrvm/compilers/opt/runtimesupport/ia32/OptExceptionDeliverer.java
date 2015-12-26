@@ -13,10 +13,10 @@
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;

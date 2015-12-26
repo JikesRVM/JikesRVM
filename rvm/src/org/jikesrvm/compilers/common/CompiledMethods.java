@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.common;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.util.Comparator;
 import java.util.Set;

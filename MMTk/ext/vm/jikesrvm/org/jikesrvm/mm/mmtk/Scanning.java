@@ -12,11 +12,8 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TransitiveClosure;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
@@ -24,13 +21,18 @@ import org.jikesrvm.jni.JNIGenericHelpers;
 import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
-import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
+import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.SpecializedScanMethod;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 
 @Uninterruptible
 public final class Scanning extends org.mmtk.vm.Scanning {

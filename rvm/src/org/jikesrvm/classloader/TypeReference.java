@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 

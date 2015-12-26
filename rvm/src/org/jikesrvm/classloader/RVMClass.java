@@ -12,11 +12,10 @@
  */
 package org.jikesrvm.classloader;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -36,6 +35,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
+import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -232,7 +232,7 @@ public final class RVMClass extends RVMType {
   @Pure
   @Uninterruptible
   public int getMemoryBytes() {
-    return BYTES_IN_ADDRESS;
+    return UnboxedSizeConstants.BYTES_IN_ADDRESS;
   }
 
   /**
@@ -836,15 +836,15 @@ public final class RVMClass extends RVMType {
    */
   @Uninterruptible
   public int getAlignment() {
-    if (BYTES_IN_ADDRESS == BYTES_IN_DOUBLE) {
-      return BYTES_IN_ADDRESS;
+    if (UnboxedSizeConstants.BYTES_IN_ADDRESS == BYTES_IN_DOUBLE) {
+      return UnboxedSizeConstants.BYTES_IN_ADDRESS;
     } else {
       return alignment;
     }
   }
 
   public void setAlignment(int align) {
-    if (BYTES_IN_ADDRESS != BYTES_IN_DOUBLE) {
+    if (UnboxedSizeConstants.BYTES_IN_ADDRESS != BYTES_IN_DOUBLE) {
       if (VM.VerifyAssertions) VM._assert(align >= alignment);
       alignment = align;
     }
@@ -1049,7 +1049,7 @@ public final class RVMClass extends RVMType {
     } else if (superClass == null) {
       if (VM.VerifyAssertions) VM._assert(isJavaLangObjectType());
       instanceSize = ObjectModel.computeScalarHeaderSize(this);
-      alignment = BYTES_IN_ADDRESS;
+      alignment = UnboxedSizeConstants.BYTES_IN_ADDRESS;
       thinLockOffset = ObjectModel.defaultThinLockOffset();
       depth = 0;
     } else {

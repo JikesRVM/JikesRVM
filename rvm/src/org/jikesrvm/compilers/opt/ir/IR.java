@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
@@ -30,6 +29,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PHI_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import java.util.ArrayList;
 import java.util.Enumeration;

@@ -12,36 +12,37 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;
-import static org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants.CONDITION_VALUE;
-import static org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants.DOUBLE_VALUE;
-import static org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants.FLOAT_VALUE;
-import static org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants.INT_VALUE;
-import static org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants.NUM_FPRS;
-import static org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants.NUM_GPRS;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPreferences;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
-import org.jikesrvm.VM;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.VM.NOT_REACHED;
-
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.CONDITION_VALUE;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_VALUE;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FLOAT_VALUE;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_VALUE;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;
+import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterPreferences;
+import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;

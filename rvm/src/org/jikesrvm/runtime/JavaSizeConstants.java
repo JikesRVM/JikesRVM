@@ -10,12 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm;
+package org.jikesrvm.runtime;
 
 /**
  * Constants defining the basic sizes of primitive quantities
  */
-public final class SizeConstants {
+public final class JavaSizeConstants {
 
   public static final int LOG_BYTES_IN_BYTE = 0;
   public static final int BYTES_IN_BYTE = 1;
@@ -57,27 +57,7 @@ public final class SizeConstants {
   public static final int LOG_BITS_IN_DOUBLE = LOG_BITS_IN_BYTE + LOG_BYTES_IN_DOUBLE;
   public static final int BITS_IN_DOUBLE = 1 << LOG_BITS_IN_DOUBLE;
 
-  public static final int LOG_BYTES_IN_ADDRESS = VM.BuildFor64Addr ? 3 : 2;
-  public static final int BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;
-  public static final int LOG_BITS_IN_ADDRESS = LOG_BITS_IN_BYTE + LOG_BYTES_IN_ADDRESS;
-  public static final int BITS_IN_ADDRESS = 1 << LOG_BITS_IN_ADDRESS;
-
-  public static final int LOG_BYTES_IN_WORD = VM.BuildFor64Addr ? 3 : 2;
-  public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
-  public static final int LOG_BITS_IN_WORD = LOG_BITS_IN_BYTE + LOG_BYTES_IN_WORD;
-  public static final int BITS_IN_WORD = 1 << LOG_BITS_IN_WORD;
-
-  public static final int LOG_BYTES_IN_EXTENT = VM.BuildFor64Addr ? 3 : 2;
-  public static final int BYTES_IN_EXTENT = 1 << LOG_BYTES_IN_EXTENT;
-  public static final int LOG_BITS_IN_EXTENT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_EXTENT;
-  public static final int BITS_IN_EXTENT = 1 << LOG_BITS_IN_EXTENT;
-
-  public static final int LOG_BYTES_IN_OFFSET = VM.BuildFor64Addr ? 3 : 2;
-  public static final int BYTES_IN_OFFSET = 1 << LOG_BYTES_IN_OFFSET;
-  public static final int LOG_BITS_IN_OFFSET = LOG_BITS_IN_BYTE + LOG_BYTES_IN_OFFSET;
-  public static final int BITS_IN_OFFSET = 1 << LOG_BITS_IN_OFFSET;
-
-  private SizeConstants() {
+  private JavaSizeConstants() {
     // prevent instantiation
   }
 

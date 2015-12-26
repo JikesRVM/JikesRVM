@@ -12,9 +12,6 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
@@ -37,6 +34,9 @@ import static org.jikesrvm.osr.OSRConstants.ReturnAddressTypeCode;
 import static org.jikesrvm.osr.OSRConstants.STACK;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;

@@ -13,9 +13,9 @@
 package org.jikesrvm.osr.ppc;
 
 import static org.jikesrvm.VM.NOT_REACHED;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import static org.jikesrvm.osr.OSRConstants.ACONST;
 import static org.jikesrvm.osr.OSRConstants.DOUBLE;
