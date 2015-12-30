@@ -65,17 +65,17 @@ import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDR
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
 import static org.jikesrvm.runtime.EntrypointHelper.getMethodReference;
 
-import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
+import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.jni.FunctionTable;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -1227,7 +1227,7 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                               // object ref
-      BaselineCompilerImpl.baselineEmitLoadTIB(asm, S0, T0);
+      asm.baselineEmitLoadTIB(S0, T0);
       asm.emitPUSH_RegDisp(S0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX << LG_WORDSIZE)); // push RVMType slot of TIB
     }
   }
@@ -1962,11 +1962,11 @@ final class BaselineMagic {
     }
   }
   static {
-    generators.put(getMethodReference(Magic.class, MagicNames.saveThreadState, Registers.class, void.class),
+    generators.put(getMethodReference(Magic.class, MagicNames.saveThreadState, AbstractRegisters.class, void.class),
         new InvokeEntryPoint(ArchEntrypoints.saveThreadStateInstructionsField.getOffset(), 1));
-    generators.put(getMethodReference(Magic.class, MagicNames.threadSwitch, RVMThread.class, Registers.class, void.class),
+    generators.put(getMethodReference(Magic.class, MagicNames.threadSwitch, RVMThread.class, AbstractRegisters.class, void.class),
         new InvokeEntryPoint(ArchEntrypoints.threadSwitchInstructionsField.getOffset(), 2));
-    generators.put(getMethodReference(Magic.class, MagicNames.restoreHardwareExceptionState, Registers.class, void.class),
+    generators.put(getMethodReference(Magic.class, MagicNames.restoreHardwareExceptionState, AbstractRegisters.class, void.class),
         new InvokeEntryPoint(ArchEntrypoints.restoreHardwareExceptionStateInstructionsField.getOffset(), 1));
   }
 
@@ -2249,7 +2249,7 @@ final class BaselineMagic {
   }
   static {
     MagicGenerator g = new LoadByte_Array();
-    generators.put(getMethodReference(CodeArray.class, MagicNames.addressArrayGet, int.class, byte.class), g);
+    generators.put(getMethodReference(CodeArray.class, MagicNames.addressArrayGet, int.class, int.class), g);
   }
 
   /**
@@ -2323,7 +2323,7 @@ final class BaselineMagic {
   }
   static {
     MagicGenerator g = new Store8_Array();
-    generators.put(getMethodReference(CodeArray.class, MagicNames.addressArraySet, int.class, byte.class, void.class), g);
+    generators.put(getMethodReference(CodeArray.class, MagicNames.addressArraySet, int.class, int.class, void.class), g);
   }
 
   /**

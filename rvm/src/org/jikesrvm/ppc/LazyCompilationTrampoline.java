@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.runtime.Entrypoints;
 
 /**
@@ -28,13 +28,13 @@ import org.jikesrvm.runtime.Entrypoints;
  * be the globally shared lazy compilation stub.
  */
 public abstract class LazyCompilationTrampoline implements BaselineConstants {
-  public static final ArchitectureSpecific.CodeArray instructions;
+  public static final CodeArray instructions;
 
   static {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+    Assembler asm = new Assembler(0);
     asm.emitLAddrToc(S0, Entrypoints.lazyMethodInvokerMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitBCCTR();
-    instructions = asm.makeMachineCode().getInstructions();
+    instructions = asm.getMachineCodes();
   }
 }

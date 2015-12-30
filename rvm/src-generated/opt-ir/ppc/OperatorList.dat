@@ -18,58 +18,6 @@ IMPLDEFS
 IMPLUSES
 MIR_TEMPLATE
 
-###################
-# Operators only needed for BURS rules, not real instructions
-###################
-ADDRESS_CONSTANT
-Unassigned
-none
-
-
--1
-
-INT_CONSTANT
-Unassigned
-none
-
-
--1
-
-LONG_CONSTANT
-Unassigned
-none
-
-
--1
-
-REGISTER
-Unassigned
-none
-
-
--1
-
-OTHER_OPERAND
-Unassigned
-none
-
-
--1
-
-NULL
-Unassigned
-none
-
-
--1
-
-BRANCH_TARGET
-Unassigned
-none
-
-
--1
-
 ########################################
 # We begin with machine specific HIR/LIR instructions.
 # These operators are only used to implement Magics.
@@ -1820,4 +1768,167 @@ immedPEI | dynLink
 
 
 (2<<26)
+
+####################
+PPC_CNTLZAddr
+MIR_Unary
+none
+
+
+VM.BuildFor32Addr ? (31<<26 | 26<<1) : (31<<26 | 58<<1)
+
+####################
+PPC_SRAAddrI
+MIR_Binary
+none
+XER
+
+VM.BuildFor32Addr ? (31<<26 | 824<<1) : (31<<26 | 413<<2)
+
+####################
+PPC_SRAddrI
+MIR_Binary
+none
+XER_32
+
+VM.BuildFor32Addr ? (21<<26 |  31<<1) : (30<<26 | 0<<2)
+
+####################
+PPC64_LWA
+MIR_Load
+load
+
+
+(58<<26 | 2)
+
+###################
+#synonym for PPC64_LWA on 64-bit and for PPC_LWZ on 32-bit; difference with PPC_LWZ is Sign Extension on 64-bit
+PPC_LInt
+MIR_Load
+load
+
+
+VM.BuildFor32Addr ? (32<<26) : (58<<26 | 2)
+
+####################
+PPC64_LWAX
+MIR_Load
+load
+
+
+(31<<26 | 341<<1)
+
+####################
+PPC_LIntX
+MIR_Load
+load
+
+
+VM.BuildFor32Addr ? (31<<26 | 23<<1) : (31<<26 | 341<<1)
+
+####################
+PPC_LIntUX
+MIR_LoadUpdate
+load
+
+
+VM.BuildFor32Addr ? (31<<26 | 55<<1) : (31<<26 | 373<<1)
+
+###################
+#synonym for PPC64_LD on 64-bit and for PPC_LWZ on 32-bit
+PPC_LAddr
+MIR_Load
+load
+
+
+VM.BuildFor32Addr ? (32<<26) : (58<<26)
+
+####################
+PPC_LAddrX
+MIR_Load
+load
+
+
+VM.BuildFor32Addr ? (31<<26 | 23<<1) : (31<<26 | 21<<1)
+
+####################
+PPC_LAddrU
+MIR_Load
+load
+
+
+VM.BuildFor32Addr ? (33<<26) : (58<<26 | 1)
+
+####################
+PPC_LAddrUX
+MIR_LoadUpdate
+load
+
+
+VM.BuildFor32Addr ? (31<<26 | 55<<1) : (31<<26 | 53<<1)
+
+####################
+PPC_LAddrARX
+MIR_Load
+memAsLoad | memAsStore | load | acquire
+
+
+VM.BuildFor32Addr ? (31<<26 | 20<<1) : (31<<26 | 84<<1)
+
+####################
+#synonym for PPC64_STD on 64-bit and for PPC_STW on 32-bit
+PPC_STAddr
+MIR_Store
+store
+
+
+VM.BuildFor32Addr ? (36<<26) : (62<<26)
+
+####################
+PPC_STAddrX
+MIR_Store
+store
+
+
+VM.BuildFor32Addr ? (31<<26 | 151<<1) : (31<<26 | 149<<1)
+
+####################
+PPC_STAddrU
+MIR_StoreUpdate
+store
+
+
+VM.BuildFor32Addr ? (37<<26) : (62<<26 | 1)
+
+####################
+PPC_STAddrUX
+MIR_StoreUpdate
+store
+
+
+VM.BuildFor32Addr ? (31<<26 | 183<<1) : (31<<26 | 181<<1)
+
+####################
+PPC_STAddrCXr
+MIR_Store
+memAsLoad | memAsStore | store | compare
+C0_32
+
+VM.BuildFor32Addr ? (31<<26 | 150<<1 | 1) : (31<<26 | 214<<1 | 1)
+
+####################
+PPC_TAddr
+MIR_Trap
+immedPEI | dynLink
+
+
+VM.BuildFor32Addr ? (31<<26 | 4<<1) : (31<<26 | 68<<1)
+
+####################
+MIR_END
+Unassigned
+none
+
+
+-1
 

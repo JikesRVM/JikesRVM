@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
@@ -19,7 +23,7 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
 import org.jikesrvm.ia32.StackframeLayoutConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.unboxed.AddressArray;
 
 /**
  * An instance of this class provides iteration across the references
@@ -30,11 +34,11 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for IA32.
  */
 @Uninterruptible
-public abstract class OptGCMapIterator extends OptGenericGCMapIterator {
+public final class OptGCMapIterator extends OptGenericGCMapIterator {
 
   private static final boolean DEBUG = false;
 
-  public OptGCMapIterator(WordArray registerLocations) {
+  public OptGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
   }
 
@@ -86,7 +90,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator {
         for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = NONVOLATILE_GPRS[i].value();
-          registerLocations.set(registerIndex, location.toWord());
+          registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -106,7 +110,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator {
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = VOLATILE_GPRS[i].value();
-          registerLocations.set(registerIndex, location.toWord());
+          registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);

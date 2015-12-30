@@ -15,9 +15,8 @@ package org.jikesrvm.classloader;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.InterfaceMethodConflictResolver;
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
@@ -419,7 +418,14 @@ public class InterfaceInvocation {
             targets[idx] = p.method;
             sigIds[idx] = p.signature.getId();
           }
-          CodeArray conflictResolutionStub = InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          CodeArray conflictResolutionStub;
+          if (VM.BuildForIA32) {
+            conflictResolutionStub = org.jikesrvm.ia32.InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+            conflictResolutionStub = org.jikesrvm.ppc.InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          }
+
           klass.addCachedObject(Magic.codeArrayAsObject(conflictResolutionStub));
           set(tib, imt, slot, conflictResolutionStub);
         }

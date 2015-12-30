@@ -15,15 +15,15 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -288,8 +288,16 @@ public final class OptCompiledMethod extends CompiledMethod {
   //----------------//
   // implementation //
   //----------------//
-  private static final ArchitectureSpecificOpt.OptExceptionDeliverer exceptionDeliverer =
-      new ArchitectureSpecificOpt.OptExceptionDeliverer();
+  private static final ExceptionDeliverer exceptionDeliverer;
+
+  static {
+    if (VM.BuildForIA32) {
+      exceptionDeliverer = new org.jikesrvm.compilers.opt.runtimesupport.ia32.OptExceptionDeliverer();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      exceptionDeliverer = new org.jikesrvm.compilers.opt.runtimesupport.ppc.OptExceptionDeliverer();
+    }
+  }
 
   private EncodedOSRMap _osrMap;
 
@@ -418,9 +426,9 @@ public final class OptCompiledMethod extends CompiledMethod {
    */
   public int getNumberOfNonvolatileGPRs() {
     if (VM.BuildForPowerPC) {
-      return ArchitectureSpecific.RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
+      return org.jikesrvm.ppc.RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
     } else if (VM.BuildForIA32) {
-      return ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
+      return org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -432,9 +440,9 @@ public final class OptCompiledMethod extends CompiledMethod {
    */
   public int getNumberOfNonvolatileFPRs() {
     if (VM.BuildForPowerPC) {
-      return ArchitectureSpecific.RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
+      return org.jikesrvm.ppc.RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
     } else if (VM.BuildForIA32) {
-      return ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
+      return org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -443,9 +451,9 @@ public final class OptCompiledMethod extends CompiledMethod {
 
   public void setNumberOfNonvolatileGPRs(short n) {
     if (VM.BuildForPowerPC) {
-      setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_GPRS - n);
+      setFirstNonVolatileGPR(org.jikesrvm.ppc.RegisterConstants.NUM_GPRS - n);
     } else if (VM.BuildForIA32) {
-      setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_GPRS - n);
+      setFirstNonVolatileGPR(org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS - n);
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -453,9 +461,9 @@ public final class OptCompiledMethod extends CompiledMethod {
 
   public void setNumberOfNonvolatileFPRs(short n) {
     if (VM.BuildForPowerPC) {
-      setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_FPRS - n);
+      setFirstNonVolatileFPR(org.jikesrvm.ppc.RegisterConstants.NUM_FPRS - n);
     } else if (VM.BuildForIA32) {
-      setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_FPRS - n);
+      setFirstNonVolatileFPR(org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS - n);
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -526,9 +534,9 @@ public final class OptCompiledMethod extends CompiledMethod {
             /* since currently we use only one NOP scheme, the offset
             * is adjusted for one word
             */
-            patchMap[idx++] = (patchPoint >> ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH) - 1;
+            patchMap[idx++] = (patchPoint >> ArchConstants.getLogInstructionWidth()) - 1;
             patchMap[idx++] =
-                (newTarget - patchPoint + (1 << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH));
+                (newTarget - patchPoint + (1 << ArchConstants.getLogInstructionWidth()));
           } else if (VM.VerifyAssertions) {
             VM._assert(VM.NOT_REACHED);
           }
@@ -546,11 +554,11 @@ public final class OptCompiledMethod extends CompiledMethod {
   public void applyCodePatches(CompiledMethod cm) {
     if (patchMap != null) {
       for (int idx = 0; idx < patchMap.length; idx += 2) {
-        ArchitectureSpecific.CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
+        CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
         if (VM.BuildForIA32) {
-          ArchitectureSpecific.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          org.jikesrvm.compilers.common.assembler.ia32.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {
-          ArchitectureSpecificOpt.AssemblerOpt.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          org.jikesrvm.compilers.opt.mir2mc.ppc.AssemblerOpt.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.VerifyAssertions) {
           VM._assert(VM.NOT_REACHED);
         }
@@ -572,7 +580,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         // forced the data caches to be in synch), but we need the icbi instructions
         // to invalidate the instruction caches.
         Memory.sync(Magic.objectAsAddress(instructions),
-                       instructions.length() << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
+                       instructions.length() << ArchConstants.getLogInstructionWidth());
         // Force all other threads to execute isync at the next thread switch point
         // so that the icbi instructions take effect. Another effect is that
         // prefetched instructions are discarded.

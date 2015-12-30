@@ -12,6 +12,8 @@
  */
 package org.jikesrvm;
 
+import org.jikesrvm.runtime.CommandLineArgs;
+
 /**
  * Flags that specify the configuration of our virtual machine.
  *
@@ -19,9 +21,6 @@ package org.jikesrvm;
  *       be recompiled and rebuilt after their values are changed.
  */
 public abstract class Configuration {
-
-  //TODO: Split target specific configuration into separate file
-  public static final @_RVM_ARCH_HELPER_@ archHelper = @_RVM_ARCH_HELPER_@.singleton;
 
   public static final boolean BuildForPowerPC = @_RVM_FOR_POWERPC_@;
   public static final boolean BuildForIA32 = !BuildForPowerPC;

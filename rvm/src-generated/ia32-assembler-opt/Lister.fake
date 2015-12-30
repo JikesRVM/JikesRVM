@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Address;
-import org.jikesrvm.ia32.RegisterConstants.MachineRegister;
+import org.jikesrvm.architecture.MachineRegister;
 
 
 final class Lister {

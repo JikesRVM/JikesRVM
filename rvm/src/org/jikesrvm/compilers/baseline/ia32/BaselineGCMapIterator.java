@@ -29,7 +29,7 @@ import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.unboxed.AddressArray;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler.
@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.WordArray;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public abstract class BaselineGCMapIterator extends GCMapIterator implements BaselineConstants {
+public final class BaselineGCMapIterator extends GCMapIterator implements BaselineConstants {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL = false; // dynamic link frames
 
@@ -102,8 +102,8 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    *
    * @param registerLocations locations of saved registers
    */
-  public BaselineGCMapIterator(WordArray registerLocations) {
-    this.registerLocations = registerLocations; // (in superclass)
+  public BaselineGCMapIterator(AddressArray registerLocations) {
+    super(registerLocations);
     dynamicLink = new DynamicLink();
   }
 
@@ -255,7 +255,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     if (!finishedWithRegularMap) {
       if (counterArrayBase) {
         counterArrayBase = false;
-        return registerLocations.get(EBX.value()).toAddress();
+        return registerLocations.get(EBX.value());
       }
       if (mapId < 0) {
         mapIndex = maps.getNextJSRRefIndex(mapIndex);
@@ -309,10 +309,10 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        registerLocations.set(EDI.value(), framePtr.plus(EDI_SAVE_OFFSET).toWord());
-        registerLocations.set(T0.value(), framePtr.plus(T0_SAVE_OFFSET).toWord());
-        registerLocations.set(T1.value(), framePtr.plus(T1_SAVE_OFFSET).toWord());
-        registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET).toWord());
+        registerLocations.set(EDI.value(), framePtr.plus(EDI_SAVE_OFFSET));
+        registerLocations.set(T0.value(), framePtr.plus(T0_SAVE_OFFSET));
+        registerLocations.set(T1.value(), framePtr.plus(T1_SAVE_OFFSET));
+        registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET));
 
         bridgeRegistersLocationUpdated = true;
       }
@@ -380,10 +380,10 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     } else {
       // point registerLocations[] to our callers stackframe
       //
-      registerLocations.set(EDI.value(), framePtr.plus(EDI_SAVE_OFFSET).toWord());
-      registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET).toWord());
+      registerLocations.set(EDI.value(), framePtr.plus(EDI_SAVE_OFFSET));
+      registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET));
       if (currentMethod.hasBaselineSaveLSRegistersAnnotation()) {
-        registerLocations.set(EBP.value(), framePtr.plus(EBP_SAVE_OFFSET).toWord());
+        registerLocations.set(EBP.value(), framePtr.plus(EBP_SAVE_OFFSET));
       }
     }
 

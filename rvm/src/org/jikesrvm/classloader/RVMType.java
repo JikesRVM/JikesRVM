@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;

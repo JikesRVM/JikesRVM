@@ -13,19 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -693,7 +681,13 @@ public class BasicBlock extends SortedGraphNode {
    */
   public final boolean hasGoto() {
     if (isEmpty()) return false;
-    return Goto.conforms(lastRealInstruction()) || MIR_Branch.conforms(lastRealInstruction());
+    if (Goto.conforms(lastRealInstruction())) return true;
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(lastRealInstruction());
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(lastRealInstruction());
+    }
   }
 
   /**
@@ -704,7 +698,13 @@ public class BasicBlock extends SortedGraphNode {
    */
   public final boolean hasReturn() {
     if (isEmpty()) return false;
-    return Return.conforms(lastRealInstruction()) || MIR_Return.conforms(lastRealInstruction());
+    if (Return.conforms(lastRealInstruction())) return true;
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.MIR_Return.conforms(lastRealInstruction());
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.MIR_Return.conforms(lastRealInstruction());
+    }
   }
 
   /**
@@ -729,7 +729,7 @@ public class BasicBlock extends SortedGraphNode {
     if (isEmpty()) return false;
     Instruction s = lastRealInstruction();
 
-    if (VM.BuildForIA32 && Operators.helper.isAdviseESP(s.operator())) {
+    if (VM.BuildForIA32 && s.operator().isAdviseESP()) {
       s = s.getPrev();
     }
 
@@ -737,8 +737,12 @@ public class BasicBlock extends SortedGraphNode {
       return true;
     }
     MethodOperand mop = null;
-    if (MIR_Call.conforms(s)) {
-      mop = MIR_Call.getMethod(s);
+    if (VM.BuildForIA32 &&
+        org.jikesrvm.compilers.opt.ir.ia32.MIR_Call.conforms(s)) {
+      mop = org.jikesrvm.compilers.opt.ir.ia32.MIR_Call.getMethod(s);
+    } else if (VM.BuildForPowerPC &&
+        org.jikesrvm.compilers.opt.ir.ppc.MIR_Call.conforms(s)) {
+      mop = org.jikesrvm.compilers.opt.ir.ppc.MIR_Call.getMethod(s);
     } else if (Call.conforms(s)) {
       mop = Call.getMethod(s);
     }
@@ -810,7 +814,11 @@ public class BasicBlock extends SortedGraphNode {
    */
   public final BasicBlock getNotTakenNextBlock() {
     Instruction last = lastRealInstruction();
-    if (Goto.conforms(last) || MIR_Branch.conforms(last)) {
+    if (Goto.conforms(last)) {
+      return last.getBranchTarget();
+    } else if (VM.BuildForIA32 && org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(last)) {
+      return last.getBranchTarget();
+    } else if (VM.BuildForPowerPC && org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(last)) {
       return last.getBranchTarget();
     } else {
       return nextBasicBlockInCodeOrder();

@@ -12,12 +12,13 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ppc.RegisterConstants;
-import org.jikesrvm.ppc.StackframeLayoutConstants;
 import org.jikesrvm.runtime.Memory;
 
 /**
@@ -25,7 +26,7 @@ import org.jikesrvm.runtime.Memory;
  * There are two kinds of transitions Java -> native method
  * and native method -> JNIFunction.
  */
-public interface JNIStackframeLayoutConstants extends RegisterConstants, StackframeLayoutConstants {
+public interface JNIStackframeLayoutConstants extends RegisterConstants {
 
   /////////////////////////////////////////////////////////////
   //  Java to native function transition
@@ -41,8 +42,8 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
   // GPR4-10 = 7 words  (does not include R3)
   // FPR1-6  = 12 words
   int JNI_OS_PARAMETER_REGISTER_SIZE =
-      (LAST_OS_PARAMETER_GPR - (FIRST_OS_PARAMETER_GPR + 1) + 1) * BYTES_IN_ADDRESS +
-      (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * BYTES_IN_DOUBLE;
+      (LAST_OS_PARAMETER_GPR.value() - (FIRST_OS_PARAMETER_GPR.value() + 1) + 1) * BYTES_IN_ADDRESS +
+      (LAST_OS_VARARG_PARAMETER_FPR.value() - FIRST_OS_PARAMETER_FPR.value() + 1) * BYTES_IN_DOUBLE;
 
   // offsets into the "non-OS" calling convention portion of the
   // Java to Native glue frame, relative to the Java caller frame.
@@ -50,7 +51,7 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
   // saved RNONVOLATILE_GPRs (for updating by GC) + JNIEnv + GCflag + standard RVM stackframe header
   int JNI_RVM_NONVOLATILE_OFFSET = BYTES_IN_ADDRESS;
   int JNI_ENV_OFFSET =
-      JNI_RVM_NONVOLATILE_OFFSET + ((LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1) * BYTES_IN_ADDRESS);
+      JNI_RVM_NONVOLATILE_OFFSET + ((LAST_NONVOLATILE_GPR.value() - FIRST_NONVOLATILE_GPR.value() + 1) * BYTES_IN_ADDRESS);
   int JNI_OS_PARAMETER_REGISTER_OFFSET = JNI_ENV_OFFSET + BYTES_IN_ADDRESS;
 
   int JNI_GC_FLAG_OFFSET = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
@@ -67,10 +68,10 @@ public interface JNIStackframeLayoutConstants extends RegisterConstants, Stackfr
   //   Volatile GPR 3-10 save area  -  8 * BYTES_IN_ADDRESS
   //   Volatile FPR 1-6  save area  -  6 * BYTES_IN_DOUBLE
   int JNI_GLUE_SAVED_VOL_SIZE =
-      (LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1) * BYTES_IN_ADDRESS +
-      (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1) * BYTES_IN_DOUBLE;
+      (LAST_OS_PARAMETER_GPR.value() - FIRST_OS_PARAMETER_GPR.value() + 1) * BYTES_IN_ADDRESS +
+      (LAST_OS_VARARG_PARAMETER_FPR.value() - FIRST_OS_PARAMETER_FPR.value() + 1) * BYTES_IN_DOUBLE;
 
-  int JNI_GLUE_RVM_EXTRA_GPRS_SIZE = (LAST_RVM_RESERVED_NV_GPR - FIRST_RVM_RESERVED_NV_GPR + 1) * BYTES_IN_ADDRESS;
+  int JNI_GLUE_RVM_EXTRA_GPRS_SIZE = (LAST_RVM_RESERVED_NV_GPR.value() - FIRST_RVM_RESERVED_NV_GPR.value() + 1) * BYTES_IN_ADDRESS;
 
   // offset to previous to java frame 1 (* BYTES_IN_ADDRESS)
   int JNI_GLUE_FRAME_OTHERS = 1 * BYTES_IN_ADDRESS;

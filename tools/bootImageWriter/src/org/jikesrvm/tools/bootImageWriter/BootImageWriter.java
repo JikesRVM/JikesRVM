@@ -57,10 +57,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
-import org.jikesrvm.ArchitectureSpecific.OutOfLineMachineCode;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchitectureFactory;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.JMXSupport;
@@ -72,8 +70,10 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeDescriptorParsing;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.compilers.common.LazyCompilationTrampoline;
 import org.jikesrvm.jni.FunctionTable;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
@@ -1439,7 +1439,7 @@ public class BootImageWriter extends BootImageWriterMessages {
       bootRecord.tocRegister = jtocAddress.plus(intArrayType.getInstanceSize(Statics.middleOfTable));
 
       // set up some stuff we need for compiling
-      OutOfLineMachineCode.init();
+      ArchitectureFactory.initOutOfLineMachineCode();
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
@@ -2308,7 +2308,7 @@ public class BootImageWriter extends BootImageWriterMessages {
             if (verbose >= 2) traceContext.push(values[i].getClass().getName(), jdkClass.getName(), i);
             if (isTIB && values[i] instanceof Word) {
               bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), (Word)values[i], false, false);
-            } else if (isTIB && values[i] == LazyCompilationTrampoline.instructions) {
+            } else if (isTIB && values[i] == LazyCompilationTrampoline.getInstructions()) {
               Address codeAddress = arrayImageAddress.plus(((TIB)parentObject).lazyMethodInvokerTrampolineIndex() << LOG_BYTES_IN_ADDRESS);
               bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), codeAddress.toWord(), false, false);
             } else {

@@ -12,9 +12,106 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.*;
-
+import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT;
+import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_LONG;
+import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT;
+import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_LONG;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_COND_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_DIV_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_MUL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_REM_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_COND_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_DIV_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_MUL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_REM_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COND_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRSigExt_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRZerExt_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_2DOUBLE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_2FLOAT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_2LONG;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_ALOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_AND;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_COND_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_NEG;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_NOT;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_OR;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHL;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHR;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_USHR;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_XOR;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2ADDR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2DOUBLE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2FLOAT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2INT;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ADD;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ALOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_AND;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ASTORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_COND_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_NEG;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_NOT;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_OR;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SUB;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_XOR;
+import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_ADDR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_LONG_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_AND_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_COND_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_NOT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.CMP_CMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.CMP_FCMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FCMP_CMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FCMP_FCMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FP_ADD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FP_DIV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FP_MUL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FP_NEG;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FP_REM;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FP_SUB;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.INT_2FP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.LCMP_CMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.LONG_2FP;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
@@ -29,10 +126,10 @@ import org.jikesrvm.ia32.ArchConstants;
 /**
  * Reduce the number of ALU operators considered by BURS
  */
-public class ConvertALUOperators extends CompilerPhase implements ArchConstants {
+public final class ConvertALUOperators extends CompilerPhase implements ArchConstants {
 
   @Override
-  public final String getName() {
+  public String getName() {
     return "ConvertALUOps";
   }
 
@@ -48,7 +145,7 @@ public class ConvertALUOperators extends CompilerPhase implements ArchConstants 
   }
 
   @Override
-  public final void perform(IR ir) {
+  public void perform(IR ir) {
     // Calling Simplifier.simplify ensures that the instruction is
     // in normalized form. This reduces the number of cases we have to
     // worry about (and does last minute constant folding on the off

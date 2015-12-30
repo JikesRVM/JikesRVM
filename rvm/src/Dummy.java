@@ -33,7 +33,6 @@ class Dummy {
   static org.vmmagic.pragma.SaveVolatile i;
   static org.jikesrvm.mm.mminterface.MemoryManager l;
   static RecompilationManager o;
-  static org.jikesrvm.ArchitectureSpecific.MultianewarrayHelper r;
   static org.vmmagic.unboxed.Address s;
   static MathConstants t;
   static org.vmmagic.unboxed.WordArray x;

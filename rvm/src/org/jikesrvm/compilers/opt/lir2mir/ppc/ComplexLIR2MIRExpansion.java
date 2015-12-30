@@ -18,66 +18,20 @@ import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
-import org.jikesrvm.compilers.opt.ir.MIR_Binary;
-import org.jikesrvm.compilers.opt.ir.MIR_Branch;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
-import org.jikesrvm.compilers.opt.ir.MIR_Load;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Store;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Binary;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Load;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Store;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.Nullary;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_TIME_BASE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_CMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC64_CMP;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC64_CMPI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC64_CMPL;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC64_CMPLI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC64_FCTIDZ;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC64_LD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ADDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_B;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCOND;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCOND2;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_CMP;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_CMPI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_CMPL;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_CMPLI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_FCMPU;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_FCTIWZ;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LInt;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MFTB;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MFTBU;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_OR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_SLW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_SRAW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_SRW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STAddrCXr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STWCXr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_SUBFIC;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
@@ -88,6 +42,9 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
+
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.*;
 
 
 /**
@@ -531,8 +488,8 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       defLow.setSpansBasicBlock();
       defHigh.setSpansBasicBlock();
       // Try to get the base
-      Register TU = ir.regpool.getPhysicalRegisterSet().getTU();
-      Register TL = ir.regpool.getPhysicalRegisterSet().getTL();
+      Register TU = ir.regpool.getPhysicalRegisterSet().asPPC().getTU();
+      Register TL = ir.regpool.getPhysicalRegisterSet().asPPC().getTL();
       s.insertBefore(MIR_Move.create(PPC_MFTBU, I(defHigh), I(TU)));
       s.insertBefore(MIR_Move.create(PPC_MFTB, I(defLow), I(TL)));
       // Try again to see if it changed
@@ -550,7 +507,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       // We read the 64-bit time base register atomically
       Register def = Nullary.getResult(s).getRegister();
       // See PowerPC Architecture, Book II, pp.352-353
-      Register TL = ir.regpool.getPhysicalRegisterSet().getTL();
+      Register TL = ir.regpool.getPhysicalRegisterSet().asPPC().getTL();
       MIR_Move.mutate(s, PPC_MFTB, L(def), L(TL));
     }
   }
@@ -580,7 +537,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
     // Branch to BB3 iff the STWXC succeeds (CR(0) is EQUAL)
     // Else fall through to BB2
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     BB1.appendInstruction(MIR_CondBranch.create(PPC_BCOND,
                                                 I(phys.getConditionRegister(0)),
                                                 PowerPCConditionOperand.EQUAL(),

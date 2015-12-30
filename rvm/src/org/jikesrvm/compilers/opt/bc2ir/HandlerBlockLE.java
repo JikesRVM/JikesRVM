@@ -15,12 +15,12 @@ package org.jikesrvm.compilers.opt.bc2ir;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNTH_CATCH_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
 
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
+import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Nullary;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -56,7 +56,7 @@ final class HandlerBlockLE extends BasicBlockLE {
    * @param cfg ControlFlowGraph into which the block
    *            will eventually be inserted
    */
-  HandlerBlockLE(int loc, InlineSequence position, TypeOperand eType, RegisterPool temps,
+  HandlerBlockLE(int loc, InlineSequence position, TypeOperand eType, GenericRegisterPool temps,
                  int exprStackSize, ControlFlowGraph cfg) {
     super(loc);
     entryBlock = new ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, position, eType, cfg);

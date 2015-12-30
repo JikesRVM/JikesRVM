@@ -12,9 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterTools;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterTools;
+import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
@@ -29,7 +28,7 @@ import org.vmmagic.unboxed.Address;
 /**
  * Contains BURS helper functions common to all platforms.
  */
-public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
+public abstract class BURS_Common_Helpers extends GenericPhysicalRegisterTools {
 
   /** Infinite cost for a rule */
   protected static final int INFINITE = 0x7fff;
@@ -42,7 +41,7 @@ public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
   /**
    * The register pool of the IR being processed
    */
-  protected final RegisterPool regpool;
+  protected final GenericRegisterPool regpool;
 
   protected BURS_Common_Helpers(BURS b) {
     burs = b;
@@ -159,303 +158,303 @@ public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
   }
 
   /* node accessors */
-  protected static Instruction P(BURS_TreeNode p) {
+  protected static Instruction P(AbstractBURS_TreeNode p) {
     return p.getInstruction();
   }
 
-  protected static Instruction PL(BURS_TreeNode p) {
+  protected static Instruction PL(AbstractBURS_TreeNode p) {
     return p.child1.getInstruction();
   }
 
-  protected static Instruction PLL(BURS_TreeNode p) {
+  protected static Instruction PLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLL(BURS_TreeNode p) {
+  protected static Instruction PLLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLLL(BURS_TreeNode p) {
+  protected static Instruction PLLLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLLLLL(BURS_TreeNode p) {
+  protected static Instruction PLLLLLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child1.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLLLLLL(BURS_TreeNode p) {
+  protected static Instruction PLLLLLLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child1.child1.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLLRL(BURS_TreeNode p) {
+  protected static Instruction PLLLRL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child1.child2.child1.getInstruction();
   }
 
-  protected static Instruction PLLLRLL(BURS_TreeNode p) {
+  protected static Instruction PLLLRLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child1.child2.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLLRLLL(BURS_TreeNode p) {
+  protected static Instruction PLLLRLLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child1.child2.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLRLLL(BURS_TreeNode p) {
+  protected static Instruction PLLRLLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child2.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLR(BURS_TreeNode p) {
+  protected static Instruction PLLR(AbstractBURS_TreeNode p) {
     return p.child1.child1.child2.getInstruction();
   }
 
-  protected static Instruction PLLRL(BURS_TreeNode p) {
+  protected static Instruction PLLRL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child2.child1.getInstruction();
   }
 
-  protected static Instruction PLLRLL(BURS_TreeNode p) {
+  protected static Instruction PLLRLL(AbstractBURS_TreeNode p) {
     return p.child1.child1.child2.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLLRLLR(BURS_TreeNode p) {
+  protected static Instruction PLLRLLR(AbstractBURS_TreeNode p) {
     return p.child1.child1.child2.child1.child1.child2.getInstruction();
   }
 
-  protected static Instruction PLR(BURS_TreeNode p) {
+  protected static Instruction PLR(AbstractBURS_TreeNode p) {
     return p.child1.child2.getInstruction();
   }
 
-  protected static Instruction PLRL(BURS_TreeNode p) {
+  protected static Instruction PLRL(AbstractBURS_TreeNode p) {
     return p.child1.child2.child1.getInstruction();
   }
 
-  protected static Instruction PLRLL(BURS_TreeNode p) {
+  protected static Instruction PLRLL(AbstractBURS_TreeNode p) {
     return p.child1.child2.child1.child1.getInstruction();
   }
 
-  protected static Instruction PLRLLRL(BURS_TreeNode p) {
+  protected static Instruction PLRLLRL(AbstractBURS_TreeNode p) {
     return p.child1.child2.child1.child1.child2.child1.getInstruction();
   }
 
-  protected static Instruction PLRR(BURS_TreeNode p) {
+  protected static Instruction PLRR(AbstractBURS_TreeNode p) {
     return p.child1.child2.child2.getInstruction();
   }
 
-  protected static Instruction PR(BURS_TreeNode p) {
+  protected static Instruction PR(AbstractBURS_TreeNode p) {
     return p.child2.getInstruction();
   }
 
-  protected static Instruction PRL(BURS_TreeNode p) {
+  protected static Instruction PRL(AbstractBURS_TreeNode p) {
     return p.child2.child1.getInstruction();
   }
 
-  protected static Instruction PRLL(BURS_TreeNode p) {
+  protected static Instruction PRLL(AbstractBURS_TreeNode p) {
     return p.child2.child1.child1.getInstruction();
   }
 
-  protected static Instruction PRLLL(BURS_TreeNode p) {
+  protected static Instruction PRLLL(AbstractBURS_TreeNode p) {
     return p.child2.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PRLLLL(BURS_TreeNode p) {
+  protected static Instruction PRLLLL(AbstractBURS_TreeNode p) {
     return p.child2.child1.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PRLLR(BURS_TreeNode p) {
+  protected static Instruction PRLLR(AbstractBURS_TreeNode p) {
     return p.child2.child1.child1.child2.getInstruction();
   }
 
-  protected static Instruction PRLLRLLL(BURS_TreeNode p) {
+  protected static Instruction PRLLRLLL(AbstractBURS_TreeNode p) {
     return p.child2.child1.child1.child2.child1.child1.child1.getInstruction();
   }
 
-  protected static Instruction PRLR(BURS_TreeNode p) {
+  protected static Instruction PRLR(AbstractBURS_TreeNode p) {
     return p.child2.child1.child2.getInstruction();
   }
 
-  protected static Instruction PRLRL(BURS_TreeNode p) {
+  protected static Instruction PRLRL(AbstractBURS_TreeNode p) {
     return p.child2.child1.child2.child1.getInstruction();
   }
 
-  protected static Instruction PRR(BURS_TreeNode p) {
+  protected static Instruction PRR(AbstractBURS_TreeNode p) {
     return p.child2.child2.getInstruction();
   }
 
-  protected static Instruction PRRL(BURS_TreeNode p) {
+  protected static Instruction PRRL(AbstractBURS_TreeNode p) {
     return p.child2.child2.child1.getInstruction();
   }
 
-  protected static Instruction PRRR(BURS_TreeNode p) {
+  protected static Instruction PRRR(AbstractBURS_TreeNode p) {
     return p.child2.child2.child2.getInstruction();
   }
 
-  protected static int V(BURS_TreeNode p) {
+  protected static int V(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p).value;
   }
 
-  protected static int VL(BURS_TreeNode p) {
+  protected static int VL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1).value;
   }
 
-  protected static int VLL(BURS_TreeNode p) {
+  protected static int VLL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1).value;
   }
 
-  protected static int VLLL(BURS_TreeNode p) {
+  protected static int VLLL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1).value;
   }
 
-  protected static int VLLLL(BURS_TreeNode p) {
+  protected static int VLLLL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child1).value;
   }
 
-  protected static int VLLLLLR(BURS_TreeNode p) {
+  protected static int VLLLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child1.child1.child2).value;
   }
 
-  protected static int VLLLLLLR(BURS_TreeNode p) {
+  protected static int VLLLLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child1.child1.child1.child2).value;
   }
 
-  protected static int VLLLLLLLR(BURS_TreeNode p) {
+  protected static int VLLLLLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child1.child1.child1.child1.child2).value;
   }
 
-  protected static int VLLLR(BURS_TreeNode p) {
+  protected static int VLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child2).value;
   }
 
-  protected static int VLLLLR(BURS_TreeNode p) {
+  protected static int VLLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child1.child2).value;
   }
 
-  protected static int VLLLRLLLR(BURS_TreeNode p) {
+  protected static int VLLLRLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child2.child1.child1.child1.child2).value;
   }
 
-  protected static int VLLLRLLR(BURS_TreeNode p) {
+  protected static int VLLLRLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child2.child1.child1.child2).value;
   }
 
-  protected static int VLLLRLR(BURS_TreeNode p) {
+  protected static int VLLLRLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child2.child1.child2).value;
   }
 
-  protected static int VLLLRR(BURS_TreeNode p) {
+  protected static int VLLLRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child1.child2.child2).value;
   }
 
-  protected static int VLLR(BURS_TreeNode p) {
+  protected static int VLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child2).value;
   }
 
-  protected static int VLLRLLRR(BURS_TreeNode p) {
+  protected static int VLLRLLRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child2.child1.child1.child2.child2).value;
   }
 
-  protected static int VLLRLR(BURS_TreeNode p) {
+  protected static int VLLRLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child2.child1.child2).value;
   }
 
-  protected static int VLLRLLLR(BURS_TreeNode p) {
+  protected static int VLLRLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child2.child1.child1.child1.child2).value;
   }
 
-  protected static int VLLRLLR(BURS_TreeNode p) {
+  protected static int VLLRLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child2.child1.child1.child2).value;
   }
 
-  protected static int VLLRR(BURS_TreeNode p) {
+  protected static int VLLRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child1.child2.child2).value;
   }
 
-  protected static int VLR(BURS_TreeNode p) {
+  protected static int VLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child2).value;
   }
 
-  protected static int VLRLR(BURS_TreeNode p) {
+  protected static int VLRLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child2.child1.child2).value;
   }
 
-  protected static int VLRL(BURS_TreeNode p) {
+  protected static int VLRL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child2.child1).value;
   }
 
-  protected static int VLRR(BURS_TreeNode p) {
+  protected static int VLRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child2.child2).value;
   }
 
-  protected static int VLRLL(BURS_TreeNode p) {
+  protected static int VLRLL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child2.child1.child1).value;
   }
 
-  protected static int VLRLLRR(BURS_TreeNode p) {
+  protected static int VLRLLRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child2.child1.child1.child2.child2).value;
   }
 
-  protected static int VLRRR(BURS_TreeNode p) {
+  protected static int VLRRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child1.child2.child2.child2).value;
   }
 
-  protected static int VR(BURS_TreeNode p) {
+  protected static int VR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2).value;
   }
 
-  protected static int VRL(BURS_TreeNode p) {
+  protected static int VRL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1).value;
   }
 
-  protected static int VRLLR(BURS_TreeNode p) {
+  protected static int VRLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child1.child2).value;
   }
 
-  protected static int VRLLLR(BURS_TreeNode p) {
+  protected static int VRLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child1.child1.child2).value;
   }
 
-  protected static int VRLLLLR(BURS_TreeNode p) {
+  protected static int VRLLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child1.child1.child1.child2).value;
   }
 
-  protected static int VRLLRLLLR(BURS_TreeNode p) {
+  protected static int VRLLRLLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child1.child2.child1.child1.child1.child2).value;
   }
 
-  protected static int VRLLRLLR(BURS_TreeNode p) {
+  protected static int VRLLRLLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child1.child2.child1.child1.child2).value;
   }
 
-  protected static int VRLLRR(BURS_TreeNode p) {
+  protected static int VRLLRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child1.child2.child2).value;
   }
 
-  protected static int VRLRLR(BURS_TreeNode p) {
+  protected static int VRLRLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child2.child1.child2).value;
   }
 
-  protected static int VRLRR(BURS_TreeNode p) {
+  protected static int VRLRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child2.child2).value;
   }
 
-  protected static int VRLL(BURS_TreeNode p) {
+  protected static int VRLL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child1).value;
   }
 
-  protected static int VRLR(BURS_TreeNode p) {
+  protected static int VRLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child1.child2).value;
   }
 
-  protected static int VRR(BURS_TreeNode p) {
+  protected static int VRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child2).value;
   }
 
-  protected static int VRRL(BURS_TreeNode p) {
+  protected static int VRRL(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child2.child1).value;
   }
 
-  protected static int VRRLR(BURS_TreeNode p) {
+  protected static int VRRLR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child2.child1.child2).value;
   }
 
-  protected static int VRRR(BURS_TreeNode p) {
+  protected static int VRRR(AbstractBURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p.child2.child2.child2).value;
   }
 }

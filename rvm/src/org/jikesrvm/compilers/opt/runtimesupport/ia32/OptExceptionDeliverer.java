@@ -13,13 +13,18 @@
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.STACK_POINTER;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACK_SIZE_GUARD;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.Registers;
+import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
@@ -31,8 +36,7 @@ import org.vmmagic.unboxed.Offset;
  * Handle exception delivery and stack unwinding for methods
  *  compiled by optimizing Compiler.
  */
-public abstract class OptExceptionDeliverer extends ExceptionDeliverer
-    implements ArchitectureSpecific.ArchConstants {
+public final class OptExceptionDeliverer extends ExceptionDeliverer {
 
   private static final boolean TRACE = false;
 
@@ -42,7 +46,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
   @Override
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
-                               Throwable exceptionObject, Registers registers) {
+                               Throwable exceptionObject, AbstractRegisters registers) {
     OptCompiledMethod optMethod = (OptCompiledMethod) compiledMethod;
     Address fp = registers.getInnermostFramePointer();
     RVMThread myThread = RVMThread.getCurrentThread();
@@ -57,7 +61,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
 
     // reset sp to "empty params" state (ie same as it was after prologue)
     Address sp = fp.minus(optMethod.getFrameFixedSize());
-    registers.gprs.set(STACK_POINTER.value(), sp.toWord());
+    registers.getGPRs().set(STACK_POINTER.value(), sp.toWord());
 
     // store exception object for later retrieval by catch block
     int offset = optMethod.getUnsignedExceptionOffset();
@@ -84,24 +88,24 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
       for (GPR reg : GPR.values()) {
         VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
-        VM.sysWrite(registers.gprs.get(reg.value()));
+        VM.sysWrite(registers.getGPRs().get(reg.value()));
         VM.sysWrite("\n");
       }
     }
 
     // set address at which to resume executing frame
-    registers.ip = catchBlockInstructionAddress;
+    registers.setIP(catchBlockInstructionAddress);
 
     if (TRACE) {
       VM.sysWrite("Set ip to ");
-      VM.sysWrite(registers.ip);
+      VM.sysWrite(registers.getIP());
       VM.sysWrite("\n");
     }
 
     VM.enableGC(); // disabled right before RuntimeEntrypoints.deliverException was called
 
-    if (VM.VerifyAssertions) VM._assert(registers.inuse);
-    registers.inuse = false;
+    if (VM.VerifyAssertions) VM._assert(registers.getInUse());
+    registers.setInUse(false);
 
     // 'give back' the portion of the stack we borrowed to run
     // exception delivery code when invoked for a hardware trap.
@@ -120,7 +124,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
    */
   @Override
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
-  public void unwindStackFrame(CompiledMethod compiledMethod, Registers registers) {
+  public void unwindStackFrame(CompiledMethod compiledMethod, AbstractRegisters registers) {
     Address fp = registers.getInnermostFramePointer();
     OptCompiledMethod optMethod = (OptCompiledMethod) compiledMethod;
 
@@ -131,7 +135,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
       for (GPR reg : GPR.values()) {
         VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
-        VM.sysWrite(registers.gprs.get(reg.value()));
+        VM.sysWrite(registers.getGPRs().get(reg.value()));
         VM.sysWrite("\n");
       }
     }
@@ -139,7 +143,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
     // restore non-volatile registers
     int frameOffset = optMethod.getUnsignedNonVolatileOffset();
     for (int i = optMethod.getFirstNonVolatileGPR(); i < NUM_NONVOLATILE_GPRS; i++, frameOffset += BYTES_IN_ADDRESS) {
-      registers.gprs.set(NONVOLATILE_GPRS[i].value(), fp.minus(frameOffset).loadWord());
+      registers.getGPRs().set(NONVOLATILE_GPRS[i].value(), fp.minus(frameOffset).loadWord());
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
 
@@ -152,7 +156,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
       for (GPR reg : GPR.values()) {
         VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
-        VM.sysWrite(registers.gprs.get(reg.value()));
+        VM.sysWrite(registers.getGPRs().get(reg.value()));
         VM.sysWrite("\n");
       }
     }

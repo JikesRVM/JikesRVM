@@ -19,7 +19,6 @@ import java.io.OutputStreamWriter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.TreeSet;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.measurements.Decayable;
@@ -27,6 +26,7 @@ import org.jikesrvm.adaptive.measurements.Reportable;
 import org.jikesrvm.adaptive.util.UnResolvedCallSite;
 import org.jikesrvm.adaptive.util.UnResolvedWeightedCallTargets;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.classloader.MethodReference;
 
 /**

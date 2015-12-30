@@ -46,9 +46,7 @@ import org.vmmagic.unboxed.Offset;
 
  <p><STRONG>Requirement 2:</STRONG>
  After a lock has been obtained, the code of this class must return
- without allowing a thread switch.  (The {@link
-org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer#unwindStackFrame(org.jikesrvm.compilers.common.CompiledMethod, org.jikesrvm.ArchitectureSpecific.Registers)
- exception handler}
+ without allowing a thread switch. The exception handler
  of the baseline compiler assumes that until lock() returns the lock
  has not been obtained.)
  </p>

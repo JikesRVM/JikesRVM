@@ -13,16 +13,21 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
-import static org.jikesrvm.ia32.RegisterConstants.GPR;
+import static org.jikesrvm.ia32.RegisterConstants.*;
 import static org.jikesrvm.util.Bits.*;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
+import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.common.assembler.ia32.Lister;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.ia32.OutOfLineMachineCode;
 import org.jikesrvm.ia32.RegisterConstants;
+import org.jikesrvm.ia32.RegisterConstants.IntelMachineRegister;
+import org.jikesrvm.objectmodel.JavaHeader;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -90,11 +95,11 @@ import org.vmmagic.unboxed.*;
  *
  *  <P> This assembler is shared by the baseline and optimizing
  * compilers: it used directly by the baseline compiler, while the
- * optimizing compiler has an {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt}
+ * optimizing compiler has a class AssemblerOpt
  * that is built on top of this one to match
  * {@link org.jikesrvm.compilers.opt.ir.Instruction}s and
  * {@link org.jikesrvm.compilers.opt.ir.Operator}s to the emit methods
- * this assembler provides.  The {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt}
+ * this assembler provides.  The AssemblerOpt
  * is entirely machine-generated, and this
  * requires that the methods for encoding instructions use a stylized
  * naming and signature convention that is designed to make the method
@@ -177,12 +182,12 @@ import org.vmmagic.unboxed.*;
  *  </DL>
  * </DL>
  *
- * @see org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt
+ * @see "AssemblerOpt"
  * @see Lister
  * @see ForwardReference
  *
 */
-public abstract class Assembler extends AbstractAssembler implements RegisterConstants {
+public class Assembler extends AbstractAssembler implements RegisterConstants {
 
   /**
    * The lister object is used to print generated machine code.
@@ -207,7 +212,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    *
    * @param bytecodeSize initial machine code buffer size.
    */
-  protected Assembler (int bytecodeSize) {
+  public Assembler (int bytecodeSize) {
     this(bytecodeSize, false);
   }
 
@@ -220,9 +225,9 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param bytecodeSize initial machine code buffer size.
    * @param shouldPrint whether to dump generated machine code.
    */
-  protected Assembler (int bytecodeSize, boolean shouldPrint) {
+  public Assembler (int bytecodeSize, boolean shouldPrint) {
     machineCodes = new byte[bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
-    lister = shouldPrint ? new Lister((ArchitectureSpecific.Assembler) this) : null;
+    lister = shouldPrint ? new Lister(this) : null;
   }
 
   /**
@@ -236,7 +241,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param comp BaselineCompilerImpl instance that this assembler is associated with;
    *           currently ignored on IA32.
    */
-  protected Assembler (int bytecodeSize, boolean shouldPrint, BaselineCompilerImpl comp) {
+  public Assembler (int bytecodeSize, boolean shouldPrint, BaselineCompilerImpl comp) {
     this(bytecodeSize, shouldPrint);
   }
 
@@ -293,18 +298,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     machineCodes[index] = data;
   }
 
-
-  /**
-   * Creates the final machine code.
-   * 
-   * @param bytecodeMap mapping from bytecode offsets to machine code offsets
-   * @return the machine code
-   * @see org.jikesrvm.compilers.baseline.TemplateCompilerFramework
-   */
-  public final ArchitectureSpecific.MachineCode finalizeMachineCode(int[] bytecodeMap) {
-    return new ArchitectureSpecific.MachineCode(getMachineCodes(), bytecodeMap);
-  }
-
   /**
    * Should code created by this assembler instance be allocated in the
    * hot code code space? By default the answer is false (ie, no).
@@ -317,10 +310,10 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * Return a copy of the generated code as a CodeArray.
    * @return a copy of the generated code as a CodeArray.
    */
-  public final ArchitectureSpecific.CodeArray getMachineCodes () {
+  public final CodeArray getMachineCodes () {
     int len = getMachineCodeIndex();
-    ArchitectureSpecific.CodeArray trimmed = ArchitectureSpecific.CodeArray.Factory.create(len, isHotCode());
-    for (int i=0; i<len; i++) {
+    CodeArray trimmed = CodeArray.Factory.create(len, false);
+    for (int i = 0; i < len; i++) {
       trimmed.set(i, machineCodes[i]);
     }
     return trimmed;
@@ -337,46 +330,10 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    *     current method's bytecode array.
    * @param bc a message descriptive of the current bytecode.
    */
+  @Override
   public final void noteBytecode (int bytecodeNumber, String bc) {
     if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
   }
-
-  @NoInline
-  public final void noteBytecode (int i, String bcode, int x) {
-    noteBytecode(i, bcode+" "+x);
-  }
-
-  @NoInline
-  public final void noteBytecode (int i, String bcode, long x) {
-    noteBytecode(i, bcode+" "+x);
-  }
-
-  @NoInline
-  public final void noteBytecode (int i, String bcode, Object o) {
-    noteBytecode(i, bcode+" "+o);
-  }
-
-  @NoInline
-  public final void noteBytecode (int i, String bcode, int x, int y) {
-    noteBytecode(i, bcode+" "+x+" "+y);
-  }
-
-  @NoInline
-  public final void noteBranchBytecode (int i, String bcode, int off,
-               int bt) {
-    noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
-  }
-
-  @NoInline
-  public final void noteTableswitchBytecode (int i, int l, int h, int d) {
-    noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
-  }
-
-  @NoInline
-  public final void noteLookupswitchBytecode (int i, int n, int d) {
-    noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
-  }
-
   /**
    * Inform the lister of a comment related to the currently
    * generated machine code.
@@ -434,7 +391,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param B_reg extension of the modrm field, SIB base or opcode reg field
    */
   @Inline
-  private void generateREXprefix(boolean W, MachineRegister R_reg, MachineRegister X_reg, MachineRegister B_reg) {
+  private void generateREXprefix(boolean W, IntelMachineRegister R_reg, IntelMachineRegister X_reg, IntelMachineRegister B_reg) {
     boolean R = R_reg != null && R_reg.needsREXprefix();
     boolean X = X_reg != null && X_reg.needsREXprefix();
     boolean B = B_reg != null && B_reg.needsREXprefix();
@@ -454,7 +411,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @return the encoded ModRM byte.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  private byte regRegModRM(MachineRegister reg1, MachineRegister reg2) {
+  private byte regRegModRM(IntelMachineRegister reg1, IntelMachineRegister reg2) {
     return (byte) ((3 << 6) | ((reg2.value() & 7) << 3) | (reg1.value() & 0x7));
   }
 
@@ -468,7 +425,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @return the encoded ModRM byte.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  private byte regDisp32RegModRM(MachineRegister reg1, MachineRegister reg2) {
+  private byte regDisp32RegModRM(IntelMachineRegister reg1, IntelMachineRegister reg2) {
     return (byte) ((2 << 6) | ((reg2.value() & 7)<< 3) | (reg1.value() & 7));
   }
 
@@ -482,7 +439,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @return the encoded ModRM byte.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  private byte regDisp8RegModRM(MachineRegister reg1, MachineRegister reg2) {
+  private byte regDisp8RegModRM(IntelMachineRegister reg1, IntelMachineRegister reg2) {
     return (byte) ((1 << 6) | ((reg2.value() & 7) << 3) | (reg1.value() & 7));
   }
 
@@ -495,7 +452,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @return the encoded ModRM byte.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  private byte regIndirectRegModRM(MachineRegister reg1, MachineRegister reg2) {
+  private byte regIndirectRegModRM(IntelMachineRegister reg1, IntelMachineRegister reg2) {
     return (byte) (((reg2.value() & 7) << 3) | (reg1.value() & 7));
   }
 
@@ -511,7 +468,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @return the encoded SIB byte.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
-  private byte sib(short scale, MachineRegister baseReg, MachineRegister indexReg) {
+  private byte sib(short scale, IntelMachineRegister baseReg, IntelMachineRegister indexReg) {
     return (byte) ((scale << 6) | ((indexReg.value() & 7) << 3) | (baseReg.value() & 7));
   }
 
@@ -523,7 +480,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  private void emitRegRegOperands(MachineRegister reg1, MachineRegister reg2) {
+  private void emitRegRegOperands(IntelMachineRegister reg1, IntelMachineRegister reg2) {
     setMachineCodes(mi++, regRegModRM(reg1, reg2));
   }
 
@@ -541,7 +498,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
-  private void emitRegDisp32RegOperands(MachineRegister reg1, int disp, MachineRegister reg2) {
+  private void emitRegDisp32RegOperands(IntelMachineRegister reg1, int disp, IntelMachineRegister reg2) {
     setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
     if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
@@ -562,7 +519,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
-  private void emitRegDisp8RegOperands(MachineRegister reg1, byte disp, MachineRegister reg2) {
+  private void emitRegDisp8RegOperands(IntelMachineRegister reg1, byte disp, IntelMachineRegister reg2) {
     setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
     if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
     if (reg1 == R12) setMachineCodes(mi++, SIBforR12);
@@ -583,7 +540,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode.
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
-  private void emitRegDispRegOperands(MachineRegister reg1, Offset disp, MachineRegister reg2) {
+  private void emitRegDispRegOperands(IntelMachineRegister reg1, Offset disp, IntelMachineRegister reg2) {
     if (reg1 == GPR.EIP) {
       setMachineCodes(mi++, regIndirectRegModRM(EBP, reg2)); // EBP == RIP addressing mode
       emitImm32(disp);
@@ -611,7 +568,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other register or extended opcode
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  private void emitRegIndirectRegOperands(MachineRegister reg1, MachineRegister reg2) {
+  private void emitRegIndirectRegOperands(IntelMachineRegister reg1, IntelMachineRegister reg2) {
     if (reg1 == EBP) {
       emitRegDispRegOperands(reg1, Offset.zero(), reg2);
     } else if (reg1 == R13) {
@@ -637,7 +594,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other operand or the extended opcode
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,4})
-  private void emitRegOffRegOperands(MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
+  private void emitRegOffRegOperands(IntelMachineRegister index, short scale, Offset disp, IntelMachineRegister reg2) {
     setMachineCodes(mi++, regIndirectRegModRM(ESP, reg2));
     setMachineCodes(mi++, sib(scale, EBP, index));
     emitImm32(disp);
@@ -651,7 +608,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other operand or the extended opcode
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  private void emitAbsRegOperands(Address disp, MachineRegister reg2) {
+  private void emitAbsRegOperands(Address disp, IntelMachineRegister reg2) {
     if (VM.buildFor32Addr()) {
       setMachineCodes(mi++, regIndirectRegModRM(EBP, reg2)); // EBP == No displacement
     } else {
@@ -674,7 +631,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param reg2 the other operand or the extended opcode
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,5})
-  private void emitSIBRegOperands(MachineRegister base, MachineRegister index, short scale, Offset disp, MachineRegister reg2) {
+  private void emitSIBRegOperands(IntelMachineRegister base, IntelMachineRegister index, short scale, Offset disp, IntelMachineRegister reg2) {
     if (VM.VerifyAssertions) VM._assert(index != ESP);
     if (VM.VerifyAssertions) VM._assert(index != R12);
     if (disp.EQ(Offset.zero()) && base != EBP && base != R13) {
@@ -910,7 +867,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param rel32     the new immediate to use in the branch instruction
    *          the code patcher is going to lay down before patchOffset
    */
-  public static void patchCode(ArchitectureSpecific.CodeArray code, int patchOffset, int rel32) {
+  public static void patchCode(CodeArray code, int patchOffset, int rel32) {
     byte p0 = (byte)0xE9;
     byte p1 = (byte) (rel32 & 0x000000ff);
     byte p2 = (byte)((rel32 & 0x0000ff00) >>>  8);
@@ -924,8 +881,8 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
       code.set(patchOffset--, p3);
       code.set(patchOffset--, p2);
       patchOffset -= 2; // skip over p1, p0
-      byte b1 = code.get(patchOffset--);
-      byte b2 = code.get(patchOffset);
+      byte b1 = (byte)code.get(patchOffset--);
+      byte b2 = (byte)code.get(patchOffset);
       int patch = (((int)p1&0xff) << 24) | (((int)p0&0xff) << 16) |
                   (((int)b1&0xff) << 8)  |  ((int)b2&0xff);
       Magic.setIntAtOffset(code, Offset.fromIntSignExtend(patchOffset), patch);
@@ -1100,6 +1057,23 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
      *  sourceIndex        +3 */
     int ipDelta = mi - sourceIndex;
     emitImm32(ipDelta, sourceIndex + 3);
+  }
+
+  /**
+   * The following method will emit code that moves a reference to an
+   * object's TIB into a destination register.
+   *
+   * @param dest the destination register
+   * @param object the register holding the object reference
+   */
+  @Interruptible
+  public final void baselineEmitLoadTIB(MachineRegister dest, MachineRegister object) {
+    Offset tibOffset = JavaHeader.getTibOffset();
+    if (VM.buildFor32Addr()) {
+      emitMOV_Reg_RegDisp((GPR)dest, (GPR)object, tibOffset);
+    } else {
+      emitMOV_Reg_RegDisp_Quad((GPR)dest, (GPR)object, tibOffset);
+    }
   }
 
   /**

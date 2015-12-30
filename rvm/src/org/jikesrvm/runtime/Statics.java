@@ -12,14 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.util.BitVector;

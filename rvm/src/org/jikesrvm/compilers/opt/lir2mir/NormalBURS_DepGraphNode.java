@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
@@ -25,7 +24,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 class NormalBURS_DepGraphNode extends DepGraphNode {
 
   private int predecessorCount;
-  private BURS_TreeNode currentParent;
+  private AbstractBURS_TreeNode currentParent;
 
   public NormalBURS_DepGraphNode(Instruction instr) {
     super(instr);
@@ -47,11 +46,11 @@ class NormalBURS_DepGraphNode extends DepGraphNode {
     predecessorCount--;
   }
 
-  void setCurrentParent(BURS_TreeNode treeNode) {
+  void setCurrentParent(AbstractBURS_TreeNode treeNode) {
     this.currentParent = treeNode;
   }
 
-  BURS_TreeNode getCurrentParent() {
+  AbstractBURS_TreeNode getCurrentParent() {
     return currentParent;
   }
 

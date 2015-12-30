@@ -29,8 +29,8 @@ import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -201,7 +201,7 @@ public final class RVMArray extends RVMType {
    */
   private int computeLogElementSize() {
     if (elementType.getTypeRef().equals(TypeReference.Code)) {
-      return ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
+      return ArchConstants.getLogInstructionWidth();
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
       case ClassTypeCode:

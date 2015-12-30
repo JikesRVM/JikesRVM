@@ -1,0 +1,770 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
+##NEW_FILE_STARTS_HERE ArchInstructionFormat.java##
+
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+package INSTRFMTPKG;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.operand.*;
+import org.jikesrvm.compilers.opt.ir.InstructionFormat;
+import org.jikesrvm.compilers.opt.ir.Operator;
+
+/**
+ * Abstract parent class of all InstructionFormat classes.<p>
+ *
+ * The header comment for {@link org.jikesrvm.compilers.opt.ir.Instruction} contains
+ * an explanation of the role of InstructionFormats in the
+ * opt compiler's IR.<p>
+ *
+ * NOTE: We currently only support a subset of cases of variable operands.
+ * <ul>
+ *  <li>instructions with 0+ defs, 0+ def/uses, 0+ uses, and a variable number of uses
+ *  <li>instructions with 0+ defs and variable number of defs.
+ * Variable number of def/uses and variable number of defs with non-zero
+ * number of def/uses or uses are not supported (and will generate java code
+ * for the instruction format that doesn't compile).  Fully general support would
+ * be a pain in the butt and since it currently isn't required, we don't do it.
+ * </ul>
+ * <p>
+ *
+ * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
+ * See ArchInstructionFormats.template, InstructionFormatList.dat,
+ * OperatorList.dat, etc
+ */
+public abstract class ArchInstructionFormat extends InstructionFormat {
+
+$$$$ LET MINOPERANDS 5
+  static {
+    if (MIN_OPERAND_ARRAY_LENGTH != MINOPERANDS) {
+      throw new Error("Disagreement between architecture and common instruction formats on minimum operands");
+    }
+  }
+
+  $$$$ IF ARCHITECTURE != "NONE"
+    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
+  /** Typecode for the OPTYPE.NAME InstructionFormat */
+  public static final byte OPTYPE.NAME_format = ARCH_INDEPENDENT_INSTR_FORMAT_END_format+OPTYPE.INDEX;
+    $$$$ END FOREACH
+  $$$$ END IF
+
+$$$$ LOOP INSTR_FORMAT_FILE ARCH_IF_LIST
+$$$$ FOREACH OPTYPE INSTR_FORMAT_FILE
+$$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+  /** Shared traits for operators of the OPTYPE.NAME InstructionFormat */
+    $$$$ IF "VARDORU" == "D"
+  public static final int OPTYPE.NAME_traits = Operator.varDefs;
+    $$$$ ELSE
+      $$$$ IF "VARDORU" == "U"
+  public static final int OPTYPE.NAME_traits = Operator.varUses;
+      $$$$ ELSE
+        $$$$ IF "VARDORU" == ""
+  public static final int OPTYPE.NAME_traits = Operator.none;
+        $$$$ ELSE
+  Improperly defined instruction format OPTYPE.NAME. Has bad "vardoru" field
+        $$$$ END IF
+      $$$$ END IF
+    $$$$ END IF
+$$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+
+}
+
+$$$$ LOOP INSTR_FORMAT_FILE ARCH_IF_LIST
+$$$$ FOREACH OPTYPE INSTR_FORMAT_FILE
+$$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
+$$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+$$$$ LET NUMFIXEDOPS NUMDEFS+NUMDEFUSES+NUMUSES
+##NEW_FILE_STARTS_HERE OPTYPE.NAME.java##
+
+/*
+ * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
+ * See InstructionFormats.template, InstructionFormatList.dat,
+ * OperatorList.dat, etc.
+ */
+
+package INSTRFMTPKG;
+
+import org.jikesrvm.Configuration;
+$$$$ IF ARCHITECTURE == "ia32"
+import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
+$$$$ ELSE
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
+$$$$ END IF
+import org.jikesrvm.compilers.opt.ir.operand.*;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Operator;
+
+/**
+ * The OPTYPE.NAME InstructionFormat class.
+ *
+ * The header comment for {@link Instruction} contains
+ * an explanation of the role of InstructionFormats in the
+ * opt compiler's IR.
+ */
+@SuppressWarnings("unused")  // Machine generated code is never 100% clean
+public final class OPTYPE.NAME extends ArchInstructionFormat {
+  /**
+   * InstructionFormat identification method for OPTYPE.NAME.
+   * @param i an instruction
+   * @return <code>true</code> if the InstructionFormat of the argument
+   *         instruction is OPTYPE.NAME or <code>false</code>
+   *         if it is not.
+   */
+  public static boolean conforms(Instruction i) {
+    return conforms(i.operator());
+  }
+  /**
+   * InstructionFormat identification method for OPTYPE.NAME.
+   * @param o an instruction
+   * @return <code>true</code> if the InstructionFormat of the argument
+   *         operator is OPTYPE.NAME or <code>false</code>
+   *         if it is not.
+   */
+  public static boolean conforms(Operator o) {
+    return o.format == OPTYPE.NAME_format;
+  }
+
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+  /**
+   * Get the operand called NAME from the
+   * argument instruction. Note that the returned operand
+   * will still point to its containing instruction.
+   * @param i the instruction to fetch the operand from
+   * @return the operand called NAME
+   */
+  public static TYPE getNAME(Instruction i) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "VARDORU" IN "" "U"
+    return (TYPE) i.getOperand(PARAM.INDEX);
+    $$$$ ELSE
+      $$$$ IF "USDF" == "D"
+    return (TYPE) i.getOperand(PARAM.INDEX);
+      $$$$ END IF
+    $$$$ END IF
+  }
+  /**
+   * Get the operand called NAME from the argument
+   * instruction clearing its instruction pointer. The returned
+   * operand will not point to any containing instruction.
+   * @param i the instruction to fetch the operand from
+   * @return the operand called NAME
+   */
+  public static TYPE getClearNAME(Instruction i) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "VARDORU" IN "" "U"
+    return (TYPE) i.getClearOperand(PARAM.INDEX);
+    $$$$ ELSE
+      $$$$ IF "USDF" == "D"
+    return (TYPE) i.getClearOperand(PARAM.INDEX);
+      $$$$ END IF
+    $$$$ END IF
+  }
+  /**
+   * Set the operand called NAME in the argument
+   * instruction to the argument operand. The operand will
+   * now point to the argument instruction as its containing
+   * instruction.
+   * @param i the instruction in which to store the operand
+   * @param NAME the operand to store
+   */
+  public static void setNAME(Instruction i, TYPE NAME) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "VARDORU" IN "" "U"
+    i.putOperand(PARAM.INDEX, NAME);
+    $$$$ ELSE
+      $$$$ IF "USDF" == "D"
+    i.putOperand(PARAM.INDEX, NAME);
+      $$$$ END IF
+    $$$$ END IF
+  }
+  /**
+   * Return the index of the operand called NAME
+   * in the argument instruction.
+   * @param i the instruction to access.
+   * @return the index of the operand called NAME
+   *         in the argument instruction
+   */
+  public static int indexOfNAME(Instruction i) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "VARDORU" IN "" "U"
+    return PARAM.INDEX;
+    $$$$ ELSE
+      $$$$ IF "USDF" == "D"
+    return PARAM.INDEX;
+      $$$$ END IF
+    $$$$ END IF
+  }
+  /**
+   * Does the argument instruction have a non-null
+   * operand named NAME?
+   * @param i the instruction to access.
+   * @return <code>true</code> if the instruction has an non-null
+   *         operand named NAME or <code>false</code>
+   *         if it does not.
+   */
+  public static boolean hasNAME(Instruction i) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "VARDORU" IN "" "U"
+    return i.getOperand(PARAM.INDEX) != null;
+    $$$$ ELSE
+      $$$$ IF "USDF" == "D"
+    return i.getOperand(PARAM.INDEX) != null;
+      $$$$ END IF
+    $$$$ END IF
+  }
+
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ IF "VARDORU" != ""
+  $$$$ LOOP PARAM OPTYPE.VARSIG
+  $$$$ SPLIT "PARAM" " " NAME TYPE PLURAL
+  /**
+   * Get the k'th operand called NAME from the
+   * argument instruction. Note that the returned operand
+   * will still point to its containing instruction.
+   * @param i the instruction to fetch the operand from
+   * @param k the index of the operand
+   * @return the k'th operand called NAME
+   */
+  public static TYPE getNAME(Instruction i, int k) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "NUMVAR" eq 1
+    return (TYPE) i.getOperand(NUMFIXEDOPS+k);
+    $$$$ ELSE
+    return (TYPE) i.getOperand(NUMFIXEDOPS+k*NUMVAR+PARAM.INDEX);
+    $$$$ END IF
+  }
+  /**
+   * Get the k'th operand called NAME from the argument
+   * instruction clearing its instruction pointer. The returned
+   * operand will not point to any containing instruction.
+   * @param i the instruction to fetch the operand from
+   * @param k the index of the operand
+   * @return the k'th operand called NAME
+   */
+  public static TYPE getClearNAME(Instruction i, int k) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "NUMVAR" eq 1
+    return (TYPE) i.getClearOperand(NUMFIXEDOPS+k);
+    $$$$ ELSE
+    return (TYPE) i.getClearOperand(NUMFIXEDOPS+k*NUMVAR+PARAM.INDEX);
+    $$$$ END IF
+  }
+  /**
+   * Set the k'th operand called NAME in the argument
+   * instruction to the argument operand. The operand will
+   * now point to the argument instruction as its containing
+   * instruction.
+   * @param i the instruction in which to store the operand
+   * @param k the index of the operand
+   * @param o the operand to store
+   */
+  public static void setNAME(Instruction i, int k, TYPE o) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "NUMVAR" eq 1
+    i.putOperand(NUMFIXEDOPS+k, o);
+    $$$$ ELSE
+    i.putOperand(NUMFIXEDOPS+k*NUMVAR+PARAM.INDEX, o);
+    $$$$ END IF
+  }
+  /**
+   * Return the index of the k'th operand called NAME
+   * in the argument instruction.
+   * @param i the instruction to access.
+   * @param k the index of the operand.
+   * @return the index of the k'th operand called NAME
+   *         in the argument instruction
+   */
+  public static int indexOfNAME(Instruction i, int k) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "NUMVAR" eq 1
+    return NUMFIXEDOPS+k;
+    $$$$ ELSE
+    return NUMFIXEDOPS+k*NUMVAR+PARAM.INDEX;
+    $$$$ END IF
+  }
+  /**
+   * Does the argument instruction have a non-null
+   * k'th operand named NAME?
+   * @param i the instruction to access.
+   * @param k the index of the operand.
+   * @return <code>true</code> if the instruction has an non-null
+   *         k'th operand named NAME or <code>false</code>
+   *         if it does not.
+   */
+  public static boolean hasNAME(Instruction i, int k) {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "NUMVAR" eq 1
+    return i.getOperand(NUMFIXEDOPS+k) != null;
+    $$$$ ELSE
+    return i.getOperand(NUMFIXEDOPS+k*NUMVAR+PARAM.INDEX) != null;
+    $$$$ END IF
+  }
+
+    $$$$ LET NMINDEX NUMFIXEDOPS+PARAM.INDEX
+    $$$$ IF "PLURAL" != ""
+  /**
+   * Return the index of the first operand called PLURAL
+   * in the argument instruction.
+   * @param i the instruction to access.
+   * @return the index of the first operand called PLURAL
+   *         in the argument instruction
+   */
+  public static int indexOfPLURAL(Instruction i)
+    $$$$ ELSE
+  /**
+   * Return the index of the first operand called NAME
+   * in the argument instruction.
+   * @param i the instruction to access.
+   * @return the index of the first operand called NAME
+   *         in the argument instruction
+   */
+  public static int indexOfNAMEs(Instruction i)
+    $$$$ END IF
+  {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    return NMINDEX;
+  }
+    $$$$ IF "PLURAL" != ""
+  /**
+   * Does the argument instruction have any PLURAL
+   * operands?
+   * @param i the instruction to access.
+   * @return <code>true</code> if the instruction has
+   *         PLURAL operands or <code>false</code>
+   *         if it does not.
+   */
+  public static boolean hasPLURAL(Instruction i)
+    $$$$ ELSE
+  /**
+   * Does the argument instruction have any operands
+   * named NAME?
+   * @param i the instruction to access.
+   * @return <code>true</code> if the instruction has operands
+   *         named NAME or <code>false</code> if it does not.
+   */
+  public static boolean hasNAMEs(Instruction i)
+    $$$$ END IF
+  {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    return i.getNumberOfOperands()-NMINDEX > 0 && i.getOperand(NMINDEX) != null;
+  }
+    $$$$ END LET
+
+    $$$$ IF "PLURAL" != ""
+  /**
+   * How many variable-length operands called PLURAL
+   * does the argument instruction have?
+   * @param i the instruction to access
+   * @return the number of PLURAL operands the instruction has
+   */
+  public static int getNumberOfPLURAL(Instruction i)
+    $$$$ ELSE
+  /**
+   * How many variable-length operands called NAMEs
+   * does the argument instruction have?
+   * @param i the instruction to access
+   * @return the number of operands called NAMEs the instruction has
+   */
+  public static int getNumberOfNAMEs(Instruction i)
+    $$$$ END IF
+  {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "NUMVAR" eq 1
+    return i.getNumberOfOperands()-NUMFIXEDOPS;
+    $$$$ ELSE
+    return (i.getNumberOfOperands()-NUMFIXEDOPS)/NUMVAR;
+    $$$$ END IF
+  }
+
+    $$$$ IF "PLURAL" != ""
+  /**
+   * Change the number of PLURAL operands that may be stored in
+   * the argument instruction to numVarOps.
+   * @param i the instruction to access
+   * @param numVarOps the new number of variable operands called PLURAL
+   *        that may be stored in the instruction
+   */
+  public static void resizeNumberOfPLURAL(Instruction i, int numVarOps)
+    $$$$ ELSE
+  /**
+   * Change the number of NAMEs that may be stored in
+   * the argument instruction to numVarOps.
+   * @param i the instruction to access
+   * @param numVarOps the new number of variable operands called NAMEs
+   *        that may be stored in the instruction
+   */
+  public static void resizeNumberOfNAMEs(Instruction i, int numVarOps)
+    $$$$ END IF
+  {
+    if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
+    $$$$ IF "NUMVAR" eq 1
+  if (NUMFIXEDOPS+numVarOps>MIN_OPERAND_ARRAY_LENGTH)
+    i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps);
+  else
+    for (int j = NUMFIXEDOPS+numVarOps; j < MIN_OPERAND_ARRAY_LENGTH; j++)
+      i.putOperand(j, null);
+    $$$$ ELSE
+  if (NUMFIXEDOPS+numVarOps*NUMVAR>MIN_OPERAND_ARRAY_LENGTH)
+    i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps*NUMVAR);
+  else
+    for (int j = NUMFIXEDOPS+numVarOps*NUMVAR; j < MIN_OPERAND_ARRAY_LENGTH; j++)
+      i.putOperand(j, null);
+    $$$$ END IF
+  }
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ END IF
+
+$$$$ EVAL
+$$$$ LET DOLLARS "$$$$"
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE OPTIONAL
+    $$$$ IF "OPTIONAL" == "opt"
+      DOLLARS LOOP I_PARAM.INDEX "include" ""
+    $$$$ ELSE
+      DOLLARS LOOP I_PARAM.INDEX "include"
+    $$$$ END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  /**
+   * Create an instruction of the OPTYPE.NAME instruction format.
+   * @param o the instruction's operator
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+   * @param NAME the instruction's NAME operand
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ IF "VARDORU" != ""
+   * @param numVarOps the number of variable length operands that
+   *                 will be stored in the insruction.
+  $$$$ END IF
+   * @return the newly created OPTYPE.NAME instruction
+   */
+  public static Instruction create(Operator o
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+                   , TYPE NAME
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ IF "VARDORU" != ""
+                   , int numVarOps
+  $$$$ END IF
+                )
+  {
+    if (Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
+  $$$$ IF "VARDORU" != ""
+    $$$$ IF "NUMVAR" eq 1
+    Instruction i = Instruction.create(o, Math.max(NUMFIXEDOPS+numVarOps, MIN_OPERAND_ARRAY_LENGTH));
+    $$$$ ELSE
+    Instruction i = Instruction.create(o, Math.max(NUMFIXEDOPS+numVarOps*NUMVAR, MIN_OPERAND_ARRAY_LENGTH));
+    $$$$ END IF
+  $$$$ ELSE
+    $$$$ LET NUMOPERANDS @IF(NUMFIXEDOPS > MINOPERANDS, NUMFIXEDOPS, MINOPERANDS)
+    Instruction i = Instruction.create(o, NUMOPERANDS);
+    $$$$ END LET
+  $$$$ END IF
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+    i.putOperand(PARAM.INDEX, NAME);
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+    return i;
+  }
+  $$$$ IF "VARDORU" IN "U" "D"
+  $$$$ LOOP NVARARGS 0..NUMALT
+  /**
+   * Create an instruction of the OPTYPE.NAME instruction format
+   * with NVARARGS variable arguments.
+   * @param o the instruction's operator
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+   * @param NAME the instruction's NAME operand
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ LOOP VARARG 1..NVARARGS
+  $$$$ LOOP PARAM OPTYPE.VARSIG
+  $$$$ SPLIT "PARAM" " " NAME TYPE
+  * @param NAME_VARARG the k'th variable argument called NAME
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ END LOOP
+   * @return the newly created OPTYPE.NAME instruction
+   */
+  public static Instruction createNVARARGS(Operator o
+    $$$$ LOOP PARAM OPTYPE.SIG
+    $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+                   , TYPE NAME
+      DOLLARS END IF
+    $$$$ END SPLIT
+    $$$$ END LOOP
+    $$$$ LOOP VARARG 1..NVARARGS
+    $$$$ LOOP PARAM OPTYPE.VARSIG
+    $$$$ SPLIT "PARAM" " " NAME TYPE
+                   , TYPE NAME_VARARG
+    $$$$ END SPLIT
+    $$$$ END LOOP
+    $$$$ END LOOP
+                )
+  {
+    if (Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
+    $$$$ LET NUMOPRNDS_SPEC NUMFIXEDOPS+NVARARGS
+    $$$$ LET NUMOPERANDS @IF(NUMOPRNDS_SPEC > MINOPERANDS, NUMOPRNDS_SPEC, MINOPERANDS)
+    Instruction i = Instruction.create(o, NUMOPERANDS);
+    $$$$ END LET
+    $$$$ END LET
+    $$$$ LOOP PARAM OPTYPE.SIG
+    $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+    i.putOperand(PARAM.INDEX, NAME);
+      DOLLARS END IF
+    $$$$ END SPLIT
+    $$$$ END LOOP
+    $$$$ LOOP VARARG 1..NVARARGS
+      $$$$ LOOP PARAM OPTYPE.VARSIG
+      $$$$ SPLIT "PARAM" " " NAME TYPE
+      $$$$ LET NUMOPRND NUMFIXEDOPS+(VARARG-1)*NUMVAR+PARAM.INDEX
+    i.putOperand(NUMOPRND, NAME_VARARG);
+      $$$$ END LET
+      $$$$ END SPLIT
+      $$$$ END LOOP
+    $$$$ END LOOP
+    return i;
+  }
+  $$$$ END LOOP
+  $$$$ END IF
+
+  /**
+   * Mutate the argument instruction into an instruction of the
+   * OPTYPE.NAME instruction format having the specified
+   * operator and operands.
+   * @param i the instruction to mutate
+   * @param o the instruction's operator
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+   * @param NAME the instruction's NAME operand
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ IF "VARDORU" != ""
+   * @param numVarOps the number of variable length operands that
+   *                  will be stored in the insruction.
+  $$$$ END IF
+   * @return the mutated instruction
+   */
+  public static Instruction mutate(Instruction i, Operator o
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+                   , TYPE NAME
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ IF "VARDORU" != ""
+                   , int numVarOps
+  $$$$ END IF
+                )
+  {
+    if (Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
+  $$$$ IF "VARDORU" != ""
+    $$$$ IF "NUMVAR" eq 1
+    if (NUMFIXEDOPS+numVarOps>MIN_OPERAND_ARRAY_LENGTH)
+      i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps);
+    $$$$ ELSE
+    if (NUMFIXEDOPS+numVarOps*NUMVAR>MIN_OPERAND_ARRAY_LENGTH)
+      i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps*NUMVAR);
+    $$$$ END IF
+
+  $$$$ ELSE
+    $$$$ IF NUMFIXEDOPS gt MINOPERANDS
+    i.resizeNumberOfOperands(NUMFIXEDOPS);
+
+    $$$$ END IF
+  $$$$ END IF
+    i.changeOperatorTo(o);
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+    i.putOperand(PARAM.INDEX, NAME);
+      DOLLARS ELSE // "I_PARAM.INDEX == ""
+    i.putOperand(PARAM.INDEX, null);
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+    return i;
+  }
+  $$$$ IF "VARDORU" != ""
+  $$$$ LOOP NVARARGS 0..NUMALT
+  /**
+   * Mutate the argument instruction into an instruction of the
+   * OPTYPE.NAME instruction format having the specified
+   * operator, operands, and number of variable-length operands.
+   * @param i the instruction to mutate
+   * @param o the instruction's operator
+  $$$$ LOOP PARAM OPTYPE.SIG
+  $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+   * @param NAME the instruction's NAME operand
+      DOLLARS END IF
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ LOOP VARARG 1..NVARARGS
+  $$$$ LOOP PARAM OPTYPE.VARSIG
+  $$$$ SPLIT "PARAM" " " NAME TYPE
+   * @param NAME_VARARG the k'th variable argument called NAME
+  $$$$ END SPLIT
+  $$$$ END LOOP
+  $$$$ END LOOP
+   * @return the mutated instruction
+   */
+  public static Instruction mutateNVARARGS(Instruction i, Operator o
+    $$$$ LOOP PARAM OPTYPE.SIG
+    $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+                   , TYPE NAME
+      DOLLARS END IF
+    $$$$ END SPLIT
+    $$$$ END LOOP
+    $$$$ LOOP VARARG 1..NVARARGS
+    $$$$ LOOP PARAM OPTYPE.VARSIG
+    $$$$ SPLIT "PARAM" " " NAME TYPE
+                   , TYPE NAME_VARARG
+    $$$$ END SPLIT
+    $$$$ END LOOP
+    $$$$ END LOOP
+                )
+  {
+    if (Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
+    $$$$ LET NUMOPERANDS NUMFIXEDOPS+NVARARGS*NUMVAR
+    $$$$ IF NUMOPERANDS gt MINOPERANDS
+    i.resizeNumberOfOperands(NUMOPERANDS);
+    $$$$ END IF
+    $$$$ END LET
+    i.changeOperatorTo(o);
+    $$$$ LOOP PARAM OPTYPE.SIG
+    $$$$ SPLIT "PARAM" " " USDF NAME TYPE
+      DOLLARS IF "I_PARAM.INDEX" != ""
+    i.putOperand(PARAM.INDEX, NAME);
+      DOLLARS ELSE
+    i.putOperand(PARAM.INDEX, null);
+      DOLLARS END IF
+    $$$$ END SPLIT
+    $$$$ END LOOP
+    $$$$ LOOP VARARG 1..NVARARGS
+      $$$$ LOOP PARAM OPTYPE.VARSIG
+      $$$$ SPLIT "PARAM" " " NAME TYPE
+      $$$$ LET NUMOPRND NUMFIXEDOPS+(VARARG-1)*NUMVAR+PARAM.INDEX
+    i.putOperand(NUMOPRND, NAME_VARARG);
+      $$$$ END LET
+      $$$$ END SPLIT
+      $$$$ END LOOP
+    $$$$ END LOOP
+    return i;
+  }
+  $$$$ END LOOP
+  $$$$ END IF
+  $$$$ LOOP PARAM OPTYPE.SIG
+      DOLLARS END LOOP
+  $$$$ END LOOP
+$$$$ END LET
+$$$$ END EVAL
+}
+
+$$$$ END LET
+$$$$ END SPLIT
+$$$$ END IF
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ END LET
+
+$$$$ FOREACH CSIG CommonOperands.dat
+  $$$$ SPLIT CSIG.SIG " " CNAME CTYPE
+
+##NEW_FILE_STARTS_HERE CNAMECarrierLookup.java##
+
+/*
+ * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
+ * See InstructionFormats.template, CommonOperands.dat,
+ * OperatorList.dat, etc.
+ */
+
+package INSTRFMTPKG;
+
+import org.vmmagic.pragma.Pure;
+
+/**
+ * Lookup used to see if an operator is a CNAME (which is CTYPE)
+ */
+public final class CNAMECarrierLookup {
+  /** Look up table */
+  private static final int[] table = {
+           -1    // Unassigned
+  $$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat ARCH_IF_LIST
+  $$$$ FOREACH OPTYPE INSTR_FORMAT_FILE
+  $$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
+    $$$$ JOIN ALLSIGS " " "" OPTYPE.SIG
+    $$$$ IF "ALLSIGS" =~ " CNAME CTYPE"
+      $$$$ LOOP PARAM OPTYPE.SIG
+        $$$$ IF " PARAM" =~ " CNAME CTYPE"
+           , PARAM.INDEX    // OPTYPE.NAME
+        $$$$ END IF
+      $$$$ END LOOP
+    $$$$ ELSE
+           , -1    // OPTYPE.NAME
+    $$$$ END IF
+    $$$$ END JOIN
+  $$$$ END IF
+  $$$$ END FOREACH
+  $$$$ END LOOP
+        };
+
+  /**
+   * Perform table lookup
+   * @param index the index to lookup
+   * @return the index into the instruction operands that carries the CNAME
+   *   or -1 if not carried
+   */
+  @Pure
+  public static int lookup(int index) {
+    return table[index];
+  }
+}
+$$$$ END SPLIT
+$$$$ END FOREACH

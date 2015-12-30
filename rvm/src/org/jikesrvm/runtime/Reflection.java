@@ -17,12 +17,11 @@ import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_VIRTUAL_METHOD_INDEX;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.MachineReflection;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
@@ -129,7 +128,13 @@ public class Reflection {
 
     // decide how to pass parameters
     //
-    int triple = MachineReflection.countParameters(method);
+    int triple = 0;
+    if (VM.BuildForIA32) {
+      triple = org.jikesrvm.ia32.MachineReflection.countParameters(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      triple = org.jikesrvm.ppc.MachineReflection.countParameters(method);
+    }
     int gprs = triple & REFLECTION_GPRS_MASK;
     WordArray GPRs = (gprs > 0) ? WordArray.create(gprs) : emptyWordArray;
     int fprs = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
@@ -198,7 +203,12 @@ public class Reflection {
     RVMThread.getCurrentThread().disableYieldpoints();
 
     CodeArray code = cm.getEntryCodeArray();
-    MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    if (VM.BuildForIA32) {
+      org.jikesrvm.ia32.MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      org.jikesrvm.ppc.MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    }
 
     // critical: no yieldpoints/GCpoints between here and the invoke of code!
     //           We may have references hidden in the GPRs and Spills arrays!!!

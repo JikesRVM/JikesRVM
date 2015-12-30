@@ -13,7 +13,7 @@
 package org.jikesrvm.runtime;
 
 import java.util.Iterator;
-import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
@@ -209,7 +209,7 @@ public final class DynamicLibrary {
       // This operation has been known to require more than 20K of stack.
       RVMThread myThread = RVMThread.getCurrentThread();
       Offset remaining = Magic.getFramePointer().diff(myThread.stackLimit);
-      int stackNeededInBytes = StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
+      int stackNeededInBytes = StackFrameLayout.getStackSizeDLOpen() - remaining.toInt();
       if (stackNeededInBytes > 0) {
         if (myThread.hasNativeStackFrame()) {
           throw new java.lang.StackOverflowError("Not enough space to open shared library");

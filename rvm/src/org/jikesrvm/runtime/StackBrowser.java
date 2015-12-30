@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  *  Use this class to explore the stack.  It is sometimes necessary to
  *  find out the current context class loader, and other things like that.
  */
-public final class StackBrowser implements ArchitectureSpecific.StackframeLayoutConstants {
+public final class StackBrowser {
 
   /** Method associated with current stack location */
   private RVMMethod currentMethod;
@@ -65,7 +65,7 @@ public final class StackBrowser implements ArchitectureSpecific.StackframeLayout
 
     Address prevFP = fp;
     Address newFP = Magic.getCallerFramePointer(fp);
-    if (newFP.EQ(STACKFRAME_SENTINEL_FP)) {
+    if (newFP.EQ(StackFrameLayout.getStackFrameSentinelFP())) {
       return false;
     }
     // getReturnAddress has to be put here, consider the case
@@ -74,10 +74,10 @@ public final class StackBrowser implements ArchitectureSpecific.StackframeLayout
 
     int cmid = Magic.getCompiledMethodID(newFP);
 
-    while (cmid == INVISIBLE_METHOD_ID) {
+    while (cmid == StackFrameLayout.getInvisibleMethodID()) {
       prevFP = newFP;
       newFP = Magic.getCallerFramePointer(newFP);
-      if (newFP.EQ(STACKFRAME_SENTINEL_FP)) {
+      if (newFP.EQ(StackFrameLayout.getStackFrameSentinelFP())) {
         return false;
       }
       newIP = Magic.getReturnAddress(prevFP);

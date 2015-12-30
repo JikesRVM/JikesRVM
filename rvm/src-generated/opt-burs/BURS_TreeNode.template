@@ -10,10 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
+package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_ADDRESS_@;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
-import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Definitions.*;
+import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_ADDRESS_@.BURS_Definitions.*;
 
 import org.jikesrvm.*;
 import org.jikesrvm.compilers.opt.*;
@@ -21,6 +21,9 @@ import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.compilers.opt.ir.operand.*;
 import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
+import org.jikesrvm.compilers.opt.lir2mir.AbstractBURS_TreeNode;
+
+import org.vmmagic.pragma.Inline;
 
 /**
  * An BURS_TreeNode is a node in a binary tree that is fed
@@ -32,72 +35,7 @@ import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
  * @see org.jikesrvm.compilers.opt.lir2mir.BURS
  * @see BURS_STATE
  */
-public class BURS_TreeNode {
-
-  public ArchitectureSpecificOpt.BURS_TreeNode child1;
-  public ArchitectureSpecificOpt.BURS_TreeNode child2;
-
-  /**
-   * Dependence graph node corresponding to
-   * interior node in BURS tree (set to null for
-   * leaf node or for OTHER_OPERAND node).
-   */
-  public final DepGraphNode dg_node;
-
-  /**
-   * Opcode of instruction
-   */
-  private final char opcode;
-
-  /**
-   * nonterminal &gt; 0 ==&gt; this tree node is the
-   * root of a "supernode"; the value of nonterminal
-   *  identifies the matching non-terminal
-   * nonterminal = 0 ==&gt; this tree node is NOT the
-   * root of a "supernode".
-   */
-  private byte nonterminal;
-
-  /**
-   * <pre>
-   * trrr rrrr
-   * t = tree root
-   * r = num of registers used
-   * </pre>
-   */
-  private byte treeroot_registersused;
-
-  public final char getOpcode() {
-    return opcode;
-  }
-
-  public final int getNonTerminal() {
-     return (int)nonterminal & 0xFF;
-  }
-
-  public final void setNonTerminal(int nonterminal) {
-     if (VM.VerifyAssertions) VM._assert(nonterminal <= 0xff);
-     this.nonterminal = (byte)nonterminal;
-  }
-
-  public final boolean isTreeRoot() {
-     return (treeroot_registersused & 0x80 ) != 0;
-  }
-
-  public final void setTreeRoot() {
-     treeroot_registersused |= 0x80;
-  }
-
-  public final void setNumRegisters(int r) {
-    treeroot_registersused = (byte)((treeroot_registersused & 0x80) | (r & 0x7f));
-  }
-  public final int numRegisters() {
-    return treeroot_registersused & 0x7f;
-  }
-
-  public final Instruction getInstruction() {
-     return dg_node._instr;
-  }
+public class BURS_TreeNode extends AbstractBURS_TreeNode {
 
   /**
    * Constructor for interior node.
@@ -105,9 +43,7 @@ public class BURS_TreeNode {
    * @param n corresponding node from the dependence graph
    */
   public BURS_TreeNode(DepGraphNode n) {
-    Instruction instr = n._instr;
-    dg_node = n;
-    opcode = instr.getOpcode();
+    super(n);
   }
 
   /**
@@ -116,23 +52,7 @@ public class BURS_TreeNode {
    * @param opcode the opcode to use for the node
    */
   public BURS_TreeNode(char opcode) {
-    dg_node = null;
-    this.opcode = opcode;
-  }
-
-  @Override
-  public String toString() {
-    String node;
-    node = OperatorNames.operatorName[getOpcode()];
-    return node;
-  }
-
-  public final boolean isSuperNodeRoot() {
-    return (getNonTerminal() > 0 );
-  }
-
-  public final boolean isREGISTERNode() {
-    return getOpcode() == REGISTER_opcode;
+    super(opcode);
   }
 
 /**** remainder will be inserted by the BURS generator *********/

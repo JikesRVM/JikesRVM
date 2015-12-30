@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.driver;
 import java.util.ArrayList;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.MIROptimizationPlanner;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertInstructionCounters;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertMethodInvocationCounter;
 import org.jikesrvm.adaptive.recompilation.instrumentation.InsertYieldpointCounters;
@@ -60,8 +59,9 @@ import org.jikesrvm.osr.AdjustBCIndexes;
 /**
  * This class specifies the order in which CompilerPhases are
  * executed during the HIR and LIR phase of the opt compilation of a method.
- *
- * @see MIROptimizationPlanner
+ * <p>
+ * The order of the compiler phases for MIR is handled separately for each
+ * architecture by the respective MIROptimizationPlanner.
  */
 public class OptimizationPlanner {
 
@@ -157,7 +157,12 @@ public class OptimizationPlanner {
     HIROptimizations(temp);
     HIR2LIR(temp);
     LIROptimizations(temp);
-    MIROptimizationPlanner.intializeMasterPlan(temp);
+    if (VM.BuildForIA32) {
+      org.jikesrvm.compilers.opt.driver.ia32.MIROptimizationPlanner.intializeMasterPlan(temp);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      org.jikesrvm.compilers.opt.driver.ppc.MIROptimizationPlanner.intializeMasterPlan(temp);
+    }
     masterPlan = toArray(temp);
   }
 

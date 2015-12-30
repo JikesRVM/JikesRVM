@@ -12,28 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.OperationNotImplementedException;
-import org.jikesrvm.compilers.opt.ir.ALoad;
-import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.BBend;
-import org.jikesrvm.compilers.opt.ir.GetField;
-import org.jikesrvm.compilers.opt.ir.GetStatic;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.Label;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT_opcode;
@@ -90,6 +68,29 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.OperationNotImplementedException;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.BBend;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
@@ -878,7 +879,7 @@ public final class SSADictionary {
         phiHelper(s, b);
         break;
       default:
-        if (!Operators.helper.isHandledByRegisterUnknown(s.getOpcode()) && !s.isPEI()) {
+        if (!isHandledByRegisterUnknown(s.getOpcode()) && !s.isPEI()) {
           System.out.println("SSA dictionary failed on " + s.toString());
           throw new OperationNotImplementedException("SSADictionary: Unsupported opcode " + s);
         }
@@ -886,6 +887,25 @@ public final class SSADictionary {
     if (insertPEIDeps) {
       if (s.isImplicitStore()) addExceptionStateToUses(s);
       if (s.isPEI()) addExceptionStateToDefs(s, b);
+    }
+  }
+
+  private boolean isHandledByRegisterUnknown(char opcode) {
+    if (VM.BuildForIA32) {
+      return opcode == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PREFETCH_opcode;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      switch (opcode) {
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBST_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBT_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBTST_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZ_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZL_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.ICBI_opcode:
+        return true;
+      default:
+        return false;
+      }
     }
   }
 

@@ -72,7 +72,6 @@ import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_SPECIALIZED_
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MemberReference;
@@ -818,7 +817,12 @@ public class GenerateMagic {
       bc2ir.push(new IntConstantOperand(isConstant ? 1 : 0));
     } else {
       // Wasn't machine-independent, so try the machine-dependent magics next.
-      return GenerateMachineSpecificMagic.generateMagic(bc2ir, gc, meth);
+      if (VM.BuildForIA32) {
+        return org.jikesrvm.compilers.opt.bc2ir.ia32.GenerateMachineSpecificMagic.generateMagic(bc2ir, gc, meth);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        return org.jikesrvm.compilers.opt.bc2ir.ppc.GenerateMachineSpecificMagic.generateMagic(bc2ir, gc, meth);
+      }
     }
     return true;
   } // generateMagic

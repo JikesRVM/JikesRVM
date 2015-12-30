@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.osr.ppc;
 
+import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.ppc.RegisterConstants;
-import org.jikesrvm.ppc.Registers;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
@@ -40,16 +40,16 @@ public class TempRegisters implements RegisterConstants {
    */
   Object[] objs;
 
-  public TempRegisters(Registers contextRegisters) {
+  public TempRegisters(AbstractRegisters contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
     objs = new Object[NUM_GPRS];
 
     for (int i = 0; i < NUM_GPRS; i++) {
-      gprs.set(i, contextRegisters.gprs.get(i));
+      gprs.set(i, contextRegisters.getGPRs().get(i));
     }
-    System.arraycopy(contextRegisters.fprs, 0, fprs, 0, NUM_FPRS);
-    ip = contextRegisters.ip;
+    System.arraycopy(contextRegisters.getFPRs(), 0, fprs, 0, NUM_FPRS);
+    ip = contextRegisters.getIP();
   }
 
   public void dumpContents() {

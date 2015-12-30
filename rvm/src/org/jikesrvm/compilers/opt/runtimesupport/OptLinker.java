@@ -33,8 +33,10 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
  * runtime services.
+ * <p>
+ * This class is used in the final mir expansion which is done in an
+ * architecture-dependent way by the FinalMIRExpansion classes.
  *
- * @see org.jikesrvm.ArchitectureSpecificOpt.FinalMIRExpansion
  * @see OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
  * @see TableBasedDynamicLinker
  */

@@ -16,20 +16,18 @@ import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
-import org.jikesrvm.ia32.MachineCode;
 import org.jikesrvm.jni.JNICompiledMethod;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Entrypoints;
@@ -185,7 +183,7 @@ public abstract class JNICompiler implements BaselineConstants {
     // S0/ECX - reference to the JNI environment after step 3
 
     JNICompiledMethod cm = (JNICompiledMethod)CompiledMethods.createCompiledMethod(method, CompiledMethod.JNI);
-    ArchitectureSpecific.Assembler asm = new ArchitectureSpecific.Assembler(100 /*, true*/);   // some size for the instruction array
+    Assembler asm = new Assembler(100 /*, true*/);   // some size for the instruction array
 
     Address nativeIP = method.getNativeIP();
     final Offset lastParameterOffset = Offset.fromIntSignExtend(2 * WORDSIZE);
@@ -399,7 +397,7 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitPUSH_Reg(PARAMETER_GPRS[0]);
     asm.emitMOV_Reg_Imm(PARAMETER_GPRS[1], encodedReferenceOffsets);
     asm.emitPUSH_Reg(PARAMETER_GPRS[1]);
-    ObjectModel.baselineEmitLoadTIB(asm, S0.value(), PARAMETER_GPRS[0].value());
+    asm.baselineEmitLoadTIB(S0, PARAMETER_GPRS[0]);
     asm.emitCALL_RegDisp(S0, Entrypoints.jniEntry.getOffset());
 
     // (5) Set up stack frame and registers for transition to C
@@ -589,7 +587,7 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitPUSH_Reg(S0);                       // push arg 1
     asm.emitPUSH_Reg(PARAMETER_GPRS[1]);        // push arg 2
     // Do the call
-    ObjectModel.baselineEmitLoadTIB(asm, S0.value(), S0.value());
+    asm.baselineEmitLoadTIB(S0, S0);
     asm.emitCALL_RegDisp(S0, Entrypoints.jniExit.getOffset());
     asm.emitPOP_Reg(S0); // restore JNIEnv
 
@@ -642,8 +640,8 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitRET_Imm((method.getParameterWords() + 1) << LG_WORDSIZE);
     }
 
-    MachineCode machineCode = new ArchitectureSpecific.MachineCode(asm.getMachineCodes(), null);
-    cm.compileComplete(machineCode.getInstructions());
+    CodeArray code = asm.getMachineCodes();
+    cm.compileComplete(code);
     return cm;
   }
 

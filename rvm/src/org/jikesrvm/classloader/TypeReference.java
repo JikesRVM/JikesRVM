@@ -108,15 +108,14 @@ public final class TypeReference {
   public static final TypeReference ObjectReference = findOrCreate(org.vmmagic.unboxed.ObjectReference.class);
   public static final TypeReference Offset = findOrCreate(org.vmmagic.unboxed.Offset.class);
   public static final TypeReference Extent = findOrCreate(org.vmmagic.unboxed.Extent.class);
-  public static final TypeReference Code =
-      findOrCreate(VM.BuildForIA32 ? "Lorg/jikesrvm/ia32/Code;" : "Lorg/jikesrvm/ppc/Code;");
+  public static final TypeReference Code = findOrCreate(org.jikesrvm.compilers.common.Code.class);
   public static final TypeReference WordArray = findOrCreate(org.vmmagic.unboxed.WordArray.class);
   public static final TypeReference AddressArray = findOrCreate(org.vmmagic.unboxed.AddressArray.class);
   public static final TypeReference ObjectReferenceArray =
       findOrCreate(org.vmmagic.unboxed.ObjectReferenceArray.class);
   public static final TypeReference OffsetArray = findOrCreate(org.vmmagic.unboxed.OffsetArray.class);
   public static final TypeReference ExtentArray = findOrCreate(org.vmmagic.unboxed.ExtentArray.class);
-  public static final TypeReference CodeArray = findOrCreate(org.jikesrvm.ArchitectureSpecific.CodeArray.class);
+  public static final TypeReference CodeArray = findOrCreate(org.jikesrvm.compilers.common.CodeArray.class);
   public static final TypeReference Magic = findOrCreate(org.jikesrvm.runtime.Magic.class);
   public static final TypeReference SysCall = findOrCreate(org.vmmagic.pragma.SysCallNative.class);
   public static final TypeReference TIB = findOrCreate(org.jikesrvm.objectmodel.TIB.class);

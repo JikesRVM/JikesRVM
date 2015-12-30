@@ -16,7 +16,6 @@ import static org.jikesrvm.classloader.RVMType.REFARRAY_OFFSET_ARRAY;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.FIELD_ZERO_OFFSET;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -24,6 +23,7 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;

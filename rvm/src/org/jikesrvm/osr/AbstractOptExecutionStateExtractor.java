@@ -10,10 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.ppc;
+package org.jikesrvm.osr;
 
-/**
- * Code represents a unit of code, it is a place holder for an unboxed type.
- */
-public abstract class Code {
+public class AbstractOptExecutionStateExtractor {
+
 }

@@ -18,8 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.util.GraphEdge;
@@ -28,7 +27,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 /**
  * The following class manages allocation and reuse of spill locations.
  */
-class SpillLocationManager implements PhysicalRegisterConstants {
+class SpillLocationManager {
 
   /**
    * The governing IR
@@ -50,11 +49,8 @@ class SpillLocationManager implements PhysicalRegisterConstants {
     SpillLocationInterval result = null;
 
     Register r = ci.getRegister();
-    int type = PhysicalRegisterSet.getPhysicalRegisterType(r);
-    if (type == -1) {
-      type = DOUBLE_REG;
-    }
-    int spillSize = PhysicalRegisterSet.getSpillSize(type);
+    int type = GenericPhysicalRegisterSet.getPhysicalRegisterType(r);
+    int spillSize = GenericPhysicalRegisterSet.getSpillSize(type);
 
     // Search the free intervals and try to find an interval to
     // reuse. First look for the preferred interval.

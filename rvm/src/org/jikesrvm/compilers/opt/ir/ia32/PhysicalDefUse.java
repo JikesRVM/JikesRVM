@@ -136,7 +136,7 @@ public abstract class PhysicalDefUse {
     private final PhysicalRegisterSet phys;
 
     PDUEnumeration(int c, IR ir) {
-      phys = ir.regpool.getPhysicalRegisterSet();
+      phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
       code = c;
       curMask = maskHIGH;
     }

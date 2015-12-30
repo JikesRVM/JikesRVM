@@ -15,8 +15,8 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.CollectorThread;
@@ -44,7 +44,7 @@ public class Collection extends org.mmtk.vm.Collection {
   @Override
   @Interruptible
   public void spawnCollectorContext(CollectorContext context) {
-    byte[] stack = MemoryManager.newStack(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_COLLECTOR);
+    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
     CollectorThread t = new CollectorThread(stack, context);
     t.start();
   }

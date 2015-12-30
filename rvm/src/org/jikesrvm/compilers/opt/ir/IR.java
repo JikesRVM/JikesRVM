@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
-import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -61,6 +59,10 @@ import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.BURSManagedFPROperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 import org.jikesrvm.compilers.opt.liveness.LiveInterval;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
@@ -214,14 +216,14 @@ public final class IR {
   public ControlFlowGraph cfg;
 
   /**
-   * The {@link RegisterPool Register pool}
+   * The {@link GenericRegisterPool register pool}
    */
-  public RegisterPool regpool;
+  public GenericRegisterPool regpool;
 
   /**
    * The {@link GenericStackManager stack manager}.
    */
-  public final GenericStackManager stackManager = new StackManager();
+  public final GenericStackManager stackManager;
 
   /**
    * The IR is tagged to identify its level (stage).
@@ -297,6 +299,15 @@ public final class IR {
     hasSysCall = b;
   }
 
+  {
+    if (VM.BuildForIA32) {
+      stackManager = new org.jikesrvm.compilers.opt.regalloc.ia32.StackManager();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      stackManager = new org.jikesrvm.compilers.opt.regalloc.ppc.StackManager();
+    }
+  }
+
   /**
    * @param m    The method to compile
    * @param ip   The inlining oracle to use for the compilation
@@ -352,7 +363,7 @@ public final class IR {
    * @return {@code true} if any of the instructions requires
    *  {@code strictfp}
    */
-  public boolean strictFP(Instruction... is) {
+  public static boolean strictFP(Instruction... is) {
     for (Instruction i : is) {
       if (i.position.method.isStrictFP()) {
         return true;
@@ -1057,10 +1068,15 @@ public final class IR {
           case DOUBLE_IFCMP_opcode:
           case REF_IFCMP_opcode:
             instruction = instructions.nextElement();
-            if (!Goto.conforms(instruction) && !BBend.conforms(instruction) && !MIR_Branch.conforms(instruction)) {
-              verror(where, "Unexpected instruction after IFCMP " + instruction);
+            if (!Goto.conforms(instruction) && !BBend.conforms(instruction)) {
+              if ((VM.BuildForIA32 && !org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(instruction)) ||
+                  (VM.BuildForPowerPC && !org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(instruction))) {
+                verror(where, "Unexpected instruction after IFCMP " + instruction);
+              }
             }
-            if (Goto.conforms(instruction) || MIR_Branch.conforms(instruction)) {
+            if (Goto.conforms(instruction) ||
+                ((VM.BuildForIA32 && org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(instruction)) ||
+                    (VM.BuildForPowerPC && org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(instruction)))) {
               instruction = instructions.nextElement();
               if (!BBend.conforms(instruction)) {
                 verror(where, "Unexpected instruction after GOTO/MIR_BRANCH " + instruction);
@@ -1387,9 +1403,10 @@ public final class IR {
         operand.isMemory() ||
         (operand instanceof TrapCodeOperand) ||
         (operand instanceof InlinedOsrTypeInfoOperand) ||
-        (Operators.helper.isConditionOperand(operand)) ||
-        (VM.BuildForIA32 && Operators.helper.isBURSManagedFPROperand(operand)) ||
-        (VM.BuildForPowerPC && Operators.helper.isPowerPCTrapOperand(operand))) {
+        (VM.BuildForIA32 && operand instanceof IA32ConditionOperand) ||
+        (VM.BuildForPowerPC && operand instanceof PowerPCConditionOperand) ||
+        (VM.BuildForIA32 && operand instanceof BURSManagedFPROperand) ||
+        (VM.BuildForPowerPC && operand instanceof PowerPCTrapOperand)) {
       return null;
     } else if (operand.isRegister()) {
       Register register = operand.asRegister().getRegister();
@@ -1438,8 +1455,8 @@ public final class IR {
         return null;
       }
       return ((HeapOperand<?>) operand).getHeapVariable();
-    } else if (VM.BuildForIA32 && Operators.helper.isBURSManagedFPROperand(operand)) {
-      return Operators.helper.getBURSManagedFPRValue(operand);
+    } else if (VM.BuildForIA32 && operand instanceof BURSManagedFPROperand) {
+      return ((BURSManagedFPROperand) operand).regNum;
     } else if (operand.isStackLocation() || operand.isMemory()) {
       // it would be nice to handle these but they have multiple
       // constituent parts :-(

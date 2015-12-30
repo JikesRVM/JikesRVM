@@ -10,7 +10,9 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-[Lorg/jikesrvm/ppc/Code;
-[Lorg/jikesrvm/ppc/CodeArray;
 [Lorg/jikesrvm/ppc/OpcodeXX;
 [Lorg/jikesrvm/ppc/OpcodeTab;
+[Lorg/jikesrvm/ppc/RegisterConstants$GPR;
+[Lorg/jikesrvm/ppc/RegisterConstants$FloatingPointMachineRegister;
+[Lorg/jikesrvm/ppc/RegisterConstants$FPR;
+[Lorg/jikesrvm/ppc/RegisterConstants$CR;

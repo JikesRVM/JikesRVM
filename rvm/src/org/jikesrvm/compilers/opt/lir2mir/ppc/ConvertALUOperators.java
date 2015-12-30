@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 /**
  * Nothing to do on PowerPC.
  */
-public abstract class ConvertALUOperators extends CompilerPhase {
+public final class ConvertALUOperators extends CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -33,17 +33,17 @@ public abstract class ConvertALUOperators extends CompilerPhase {
   }
 
   @Override
-  public final String getName() {
+  public String getName() {
     return "ConvertALUOps";
   }
 
   @Override
-  public final boolean printingEnabled(OptOptions options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
   @Override
-  public final void perform(IR ir) {
+  public void perform(IR ir) {
     // Nothing to do on PPC
   }
 }

@@ -26,13 +26,11 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LOOKUPSWITCH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MIR_START_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
 
 import java.util.Enumeration;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -215,14 +213,19 @@ public final class Instruction {
    * INTERNAL IR USE ONLY: create a new instruction with the specified number
    * of operands.<p>
    *
-   * For internal use only -- general clients must use the appropriate
+   * <strong>For internal use only -- general clients MUST use the appropriate
    * InstructionFormat class's create and mutate methods to create
-   * instruction objects!!!
+   * instruction objects!!!</strong>
    *
    * @param op operator
    * @param size number of operands
+   * @return the created instruction
    */
-  Instruction(Operator op, int size) {
+  public static Instruction create(Operator op, int size) {
+    return new Instruction(op, size);
+  }
+
+  private Instruction(Operator op, int size) {
     operator = op;
     ops = new Operand[size];
   }
@@ -290,7 +293,7 @@ public final class Instruction {
     }
 
     // print implicit defs
-    result.append(PhysicalDefUse.getString(operator.implicitDefs));
+    result.append(GenericPhysicalDefUse.getString(operator.implicitDefs));
     defsPrinted += operator.getNumberOfImplicitDefs();
 
     // print separator
@@ -317,7 +320,7 @@ public final class Instruction {
     }
 
     // print implicit defs
-    result.append(PhysicalDefUse.getString(operator.implicitUses));
+    result.append(GenericPhysicalDefUse.getString(operator.implicitUses));
     usesPrinted += operator.getNumberOfImplicitUses();
 
     return result.toString();
@@ -802,8 +805,11 @@ public final class Instruction {
    * outcomes (taken or not taken).
    */
   public boolean isTwoWayBranch() {
-    // Is there a cleaner way to answer this question?
-    return (isConditionalBranch() && !IfCmp2.conforms(this) && !MIR_CondBranch2.conforms(this));
+    return isConditionalBranch() && !IfCmp2.conforms(this) &&
+        !(VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.conforms(this)) &&
+        !(VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.conforms(this));
   }
 
   /**
@@ -1123,13 +1129,21 @@ public final class Instruction {
     operatorInfo |= OI_PEI_VALID;
   }
 
+  private char getMIR_START_opcode() {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_START_opcode;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.MIR_START_opcode;
+    }
+  }
   /**
    * NOTE: ONLY FOR USE ON MIR INSTRUCTIONS!!!!
    * Record that this instruction is a PEI.
    * Note that marking as a PEI implies marking as GCpoint.
    */
   public void markAsPEI() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo |= (OI_PEI_VALID | OI_PEI | OI_GC_VALID | OI_GC);
   }
 
@@ -1139,7 +1153,7 @@ public final class Instruction {
    * Leave exception state (if any) unchanged.
    */
   public void markAsNonGCPoint() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo &= ~OI_GC;
     operatorInfo |= OI_GC_VALID;
   }
@@ -1150,7 +1164,7 @@ public final class Instruction {
    * Leave PEI status (if any) unchanged.
    */
   public void markAsGCPoint() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo |= (OI_GC_VALID | OI_GC);
   }
 
@@ -1159,7 +1173,7 @@ public final class Instruction {
    * Mark this instruction as being neither an exception or GC point.
    */
   public void markAsNonPEINonGCPoint() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo &= ~(OI_PEI | OI_GC);
     operatorInfo |= (OI_PEI_VALID | OI_GC_VALID);
   }
@@ -1220,16 +1234,22 @@ public final class Instruction {
         return InlineGuard.getTarget(this).target.getBasicBlock();
 
       default:
-        if (MIR_Branch.conforms(this)) {
-          return MIR_Branch.getTarget(this).target.getBasicBlock();
-        } else if (MIR_CondBranch.conforms(this)) {
-          return MIR_CondBranch.getTarget(this).target.getBasicBlock();
+        if (VM.BuildForIA32) {
+          if (org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(this)) {
+            return org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.getTarget(this).target.getBasicBlock();
+          } else if (org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.conforms(this)) {
+            return org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.getTarget(this).target.getBasicBlock();
+          }
         } else {
-          throw new OptimizingCompilerException("getBranchTarget()",
-                                                    "operator not implemented",
-                                                    operator.toString());
+        if (org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(this)) {
+          return org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.getTarget(this).target.getBasicBlock();
+        } else if (org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.conforms(this)) {
+          return org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.getTarget(this).target.getBasicBlock();
         }
-
+      }
+      throw new OptimizingCompilerException("getBranchTarget()",
+                    "operator not implemented",
+                    operator.toString());
     }
   }
 
@@ -1290,19 +1310,37 @@ public final class Instruction {
         break;
 
       default:
-        if (MIR_Branch.conforms(this)) {
-          e.addElement(MIR_Branch.getTarget(this).target.getBasicBlock());
-        } else if (MIR_CondBranch.conforms(this)) {
-          e.addElement(MIR_CondBranch.getTarget(this).target.getBasicBlock());
-        } else if (MIR_CondBranch2.conforms(this)) {
-          e.addElement(MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
-          e.addPossiblyDuplicateElement(MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
-        } else if (VM.BuildForIA32 && MIR_LowTableSwitch.conforms(this)) {
-          for (int i = 0; i < MIR_LowTableSwitch.getNumberOfTargets(this); i++) {
-            e.addPossiblyDuplicateElement(MIR_LowTableSwitch.getTarget(this, i).
+
+        if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
+          e.addPossiblyDuplicateElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
+        } else if (VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
+          e.addPossiblyDuplicateElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
+        } else if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch.conforms(this)) {
+          for (int i = 0; i < org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch.getNumberOfTargets(this); i++) {
+            e.addPossiblyDuplicateElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch.getTarget(this, i).
                 target.getBasicBlock());
           }
-        } else if (MIR_CondBranch2.conforms(this)) {
+        } else if ((VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.conforms(this)) ||
+            (VM.BuildForPowerPC &&
+             org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.conforms(this))) {
           throw new OptimizingCompilerException("getBranchTargets()",
                                                     "operator not implemented",
                                                     operator().toString());
@@ -1784,7 +1822,7 @@ public final class Instruction {
    *
    * @param newSize the new minimum number of operands.
    */
-  void resizeNumberOfOperands(int newSize) {
+  public void resizeNumberOfOperands(int newSize) {
     int oldSize = ops.length;
     if (oldSize != newSize) {
       Operand[] newOps = new Operand[newSize];

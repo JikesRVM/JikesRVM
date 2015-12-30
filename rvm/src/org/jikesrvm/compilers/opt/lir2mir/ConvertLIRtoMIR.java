@@ -38,10 +38,6 @@ import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;
-import org.jikesrvm.ArchitectureSpecificOpt.ComplexLIR2MIRExpansion;
-import org.jikesrvm.ArchitectureSpecificOpt.ConvertALUOperators;
-import org.jikesrvm.ArchitectureSpecificOpt.NormalizeConstants;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.NullCheckCombining;
@@ -90,7 +86,9 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
         new OptimizationPlanAtomicElement(new ReduceOperators()),
 
         // Stage 2: Convert ALU operators
-        new OptimizationPlanAtomicElement(new ConvertALUOperators()),
+        new OptimizationPlanAtomicElement(
+          VM.BuildForIA32 ? new org.jikesrvm.compilers.opt.lir2mir.ia32.ConvertALUOperators() :
+                            new org.jikesrvm.compilers.opt.lir2mir.ppc.ConvertALUOperators()),
 
         // Stage 3: Normalize usage of constants to simplify Stage 3.
         new OptimizationPlanAtomicElement(new NormalizeConstantsPhase()),
@@ -136,6 +134,15 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
       return this;
     }
 
+    private void expandSysCall(Instruction s, IR ir) {
+      if (VM.BuildForIA32) {
+        org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.expandSysCall(s, ir);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        org.jikesrvm.compilers.opt.regalloc.ppc.CallingConvention.expandSysCall(s, ir);
+      }
+    }
+
     @Override
     public void perform(IR ir) {
       for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
@@ -170,7 +177,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
             Load.mutate(s,
                         REF_LOAD,
                         Unary.getClearResult(s),
-                        ir.regpool.makeJTOCOp(ir, s),
+                        ir.regpool.makeJTOCOp(),
                         IRTools.AC(offset),
                         new LocationOperand(offset));
           }
@@ -230,7 +237,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          GuardedBinary.getClearVal1(s),
                          GuardedBinary.getClearVal2(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-            CallingConvention.expandSysCall(s, ir);
+            expandSysCall(s, ir);
           }
           break;
 
@@ -244,7 +251,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          GuardedBinary.getClearVal1(s),
                          GuardedBinary.getClearVal2(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-            CallingConvention.expandSysCall(s, ir);
+            expandSysCall(s, ir);
           }
           break;
 
@@ -259,7 +266,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                            Binary.getClearVal1(s),
                            Binary.getClearVal2(s));
               ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-              CallingConvention.expandSysCall(s, ir);
+              expandSysCall(s, ir);
             }
           }
           break;
@@ -273,7 +280,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                            MethodOperand.STATIC(Entrypoints.sysLongToFloatIPField),
                            Unary.getClearVal(s));
               ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-              CallingConvention.expandSysCall(s, ir);
+              expandSysCall(s, ir);
             }
           }
           break;
@@ -287,7 +294,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                            MethodOperand.STATIC(Entrypoints.sysLongToDoubleIPField),
                            Unary.getClearVal(s));
               ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-              CallingConvention.expandSysCall(s, ir);
+              expandSysCall(s, ir);
             }
           }
           break;
@@ -301,7 +308,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          MethodOperand.STATIC(Entrypoints.sysFloatToLongIPField),
                          Unary.getClearVal(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-            CallingConvention.expandSysCall(s, ir);
+            expandSysCall(s, ir);
           }
           break;
 
@@ -314,11 +321,11 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
                          MethodOperand.STATIC(Entrypoints.sysDoubleToLongIPField),
                          Unary.getClearVal(s));
             ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-            CallingConvention.expandSysCall(s, ir);
+            expandSysCall(s, ir);
           }
           break;
           case SYSCALL_opcode:
-            CallingConvention.expandSysCall(s, ir);
+            expandSysCall(s, ir);
             break;
           default:
             break;
@@ -344,7 +351,12 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
     @Override
     public void perform(IR ir) {
-      NormalizeConstants.perform(ir);
+      if (VM.BuildForIA32) {
+        org.jikesrvm.compilers.opt.lir2mir.ia32.NormalizeConstants.perform(ir);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        org.jikesrvm.compilers.opt.lir2mir.ppc.NormalizeConstants.perform(ir);
+      }
     }
   }
 
@@ -459,7 +471,12 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
     @Override
     public void perform(IR ir) {
-      ComplexLIR2MIRExpansion.convert(ir);
+      if (VM.BuildForIA32) {
+        org.jikesrvm.compilers.opt.lir2mir.ia32.ComplexLIR2MIRExpansion.convert(ir);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        org.jikesrvm.compilers.opt.lir2mir.ppc.ComplexLIR2MIRExpansion.convert(ir);
+      }
     }
   }
 
@@ -481,7 +498,9 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
     @Override
     public void perform(IR ir) {
-      ComplexLIR2MIRExpansion.process64BitImmediateValues(ir);
+      if (VM.BuildForIA32) {
+        org.jikesrvm.compilers.opt.lir2mir.ia32.ComplexLIR2MIRExpansion.process64BitImmediateValues(ir);
+      }
     }
   }
 }

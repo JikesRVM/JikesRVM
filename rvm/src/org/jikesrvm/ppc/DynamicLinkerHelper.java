@@ -40,8 +40,8 @@ public abstract class DynamicLinkerHelper implements RegisterConstants {
     callingFrame = Magic.getCallerFramePointer(callingFrame);
     callingFrame = Magic.getCallerFramePointer(callingFrame);
     Address location =
-        callingFrame.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE +
-                           (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * BYTES_IN_ADDRESS);
+        callingFrame.minus((LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) * BYTES_IN_DOUBLE +
+                           (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1) * BYTES_IN_ADDRESS);
 
     return Magic.addressAsObject(location.loadAddress());
   }

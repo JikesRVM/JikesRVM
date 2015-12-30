@@ -483,7 +483,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         load =
             Load.create(INT_LOAD,
                         cbsReg.copyRO(),
-                        ir.regpool.makeJTOCOp(ir, dummy),
+                        ir.regpool.makeJTOCOp(),
                         IRTools.AC(AosEntrypoints.globalCBSField.getOffset()),
                         new LocationOperand(AosEntrypoints.globalCBSField));
 
@@ -529,7 +529,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         store =
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
-                         ir.regpool.makeJTOCOp(ir, dummy),
+                         ir.regpool.makeJTOCOp(),
                          IRTools.AC(AosEntrypoints.globalCBSField.getOffset()),
                          new LocationOperand(AosEntrypoints.globalCBSField));
 
@@ -591,7 +591,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       load =
           Load.create(INT_LOAD,
                       cbsReg.copyRO(),
-                      ir.regpool.makeJTOCOp(ir, dummy),
+                      ir.regpool.makeJTOCOp(),
                       IRTools.AC(AosEntrypoints.cbsResetValueField.getOffset()),
                       new LocationOperand(AosEntrypoints.cbsResetValueField));
 
@@ -610,7 +610,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         store =
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
-                         ir.regpool.makeJTOCOp(ir, dummy),
+                         ir.regpool.makeJTOCOp(),
                          IRTools.AC(AosEntrypoints.globalCBSField.getOffset()),
                          new LocationOperand(AosEntrypoints.globalCBSField));
       }

@@ -15,8 +15,8 @@ package org.jikesrvm.compilers.baseline.ia32;
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * Handle exception delivery and stack unwinding for methods compiled by
  * baseline compiler.
  */
-public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer implements BaselineConstants {
+public final class BaselineExceptionDeliverer extends ExceptionDeliverer implements BaselineConstants {
 
   /**
    * Pass control to a catch block.
@@ -41,7 +41,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
   @Override
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
-                               Throwable exceptionObject, ArchitectureSpecific.Registers registers) {
+                               Throwable exceptionObject, AbstractRegisters registers) {
     Address fp = registers.getInnermostFramePointer();
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();
     RVMThread myThread = RVMThread.getCurrentThread();
@@ -54,17 +54,17 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
     //
     sp = sp.minus(BYTES_IN_ADDRESS);
     sp.store(Magic.objectAsAddress(exceptionObject));
-    registers.gprs.set(SP.value(), sp.toWord());
+    registers.getGPRs().set(SP.value(), sp.toWord());
 
     // set address at which to resume executing frame
-    registers.ip = catchBlockInstructionAddress;
+    registers.setIP(catchBlockInstructionAddress);
 
     // branch to catch block
     //
     VM.enableGC(); // disabled right before RuntimeEntrypoints.deliverException was called
-    if (VM.VerifyAssertions) VM._assert(registers.inuse);
+    if (VM.VerifyAssertions) VM._assert(registers.getInUse());
 
-    registers.inuse = false;
+    registers.setInUse(false);
 
     // 'give back' the portion of the stack we borrowed to run
     // exception delivery code when invoked for a hardware trap.
@@ -81,7 +81,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
    */
   @Override
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
-  public void unwindStackFrame(CompiledMethod compiledMethod, ArchitectureSpecific.Registers registers) {
+  public void unwindStackFrame(CompiledMethod compiledMethod, AbstractRegisters registers) {
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();
     Address fp = registers.getInnermostFramePointer();
     if (method.isSynchronized()) { // release the lock, if it is being held
@@ -104,10 +104,10 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
     }
     // Restore nonvolatile registers used by the baseline compiler.
     if (VM.VerifyAssertions) VM._assert(SAVED_GPRS == 2);
-    registers.gprs.set(EDI.value(), fp.plus(EDI_SAVE_OFFSET).loadWord());
-    registers.gprs.set(EBX.value(), fp.plus(EBX_SAVE_OFFSET).loadWord());
+    registers.getGPRs().set(EDI.value(), fp.plus(EDI_SAVE_OFFSET).loadWord());
+    registers.getGPRs().set(EBX.value(), fp.plus(EBX_SAVE_OFFSET).loadWord());
     if (method.hasBaselineSaveLSRegistersAnnotation()) {
-      registers.gprs.set(EBP.value(), fp.plus(EBP_SAVE_OFFSET).toWord());
+      registers.getGPRs().set(EBP.value(), fp.plus(EBP_SAVE_OFFSET).toWord());
     }
 
     registers.unwindStackFrame();

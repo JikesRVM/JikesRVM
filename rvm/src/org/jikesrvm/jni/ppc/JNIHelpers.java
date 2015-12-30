@@ -19,8 +19,8 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.lang.reflect.Constructor;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMMethod;
@@ -81,12 +81,15 @@ public abstract class JNIHelpers extends JNIGenericHelpers
         // stack frame looks as following:
         //      this method ->
         //
+        //      architecture.JNIHelpers.method -->
+        //
         //      native to java method ->
         //
         //      glue frame ->
         //
         //      native C method ->
-        Address gluefp = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
+        Address gluefp = Magic.getCallerFramePointer(Magic.getCallerFramePointer(
+            Magic.getCallerFramePointer(Magic.getFramePointer())));
         argObjs = packageParameterFromDotArgSVR4(methodRef, gluefp, false);
       }
     } else {
@@ -119,7 +122,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       return callMethod(null, mr, argObjectArray, expectReturnType, true);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
-      Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
+      Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer())));
       Object[] argObjectArray = packageParameterFromDotArgSVR4(mr, glueFP, false);
       return callMethod(null, mr, argObjectArray, expectReturnType, true);
     }
@@ -145,7 +148,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
-      Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer()));
+      Address glueFP = Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getCallerFramePointer(Magic.getFramePointer())));
       Object[] argObjectArray = packageParameterFromDotArgSVR4(mr, glueFP, skip4Args);
       return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
     }
@@ -255,11 +258,12 @@ public abstract class JNIHelpers extends JNIGenericHelpers
 
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
-    // get the FP for this stack frame and traverse 2 frames to get to the glue frame
+    // get the FP for this stack frame and traverse 3 frames to get to the glue frame
     Address gluefp =
-        Magic.getFramePointer().plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-    gluefp = gluefp.plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-    gluefp = gluefp.plus(ArchitectureSpecific.ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+        Magic.getFramePointer().plus(StackFrameLayout.getStackFramePointerOffset()).loadAddress(); // *.ppc.JNIHelpers.invoke*
+    gluefp = gluefp.plus(StackFrameLayout.getStackFramePointerOffset()).loadAddress(); // architecture.JNIHelpers.invoke*
+    gluefp = gluefp.plus(StackFrameLayout.getStackFramePointerOffset()).loadAddress(); // JNIFunctions
+    gluefp = gluefp.plus(StackFrameLayout.getStackFramePointerOffset()).loadAddress(); // glue frame
 
     // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
     // skipping the args which are not part of the arguments for the target method
@@ -505,7 +509,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     for (int i = 0; i < argCount; i++) {
       if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
         int loword, hiword;
-        if (fpr > LAST_OS_PARAMETER_FPR) {
+        if (fpr > LAST_OS_PARAMETER_FPR.value()) {
           // overflow, OTHER
           // round it, bytes are saved from lowest to highest one, regardless endian
           overflowoffset = overflowoffset.plus(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
@@ -530,7 +534,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
 
       } else if (argTypes[i].isLongType()) {
         int loword, hiword;
-        if (gpr > LAST_OS_PARAMETER_GPR - 1) {
+        if (gpr > (LAST_OS_PARAMETER_GPR.value() - 1)) {
           // overflow, OTHER
           // round overflowoffset, assuming overflowarea is aligned to 8 bytes
           overflowoffset = overflowoffset.plus(7).toWord().and(Word.fromIntSignExtend(-8)).toOffset();
@@ -554,7 +558,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       } else {
         // int type left now
         int ivalue;
-        if (gpr > LAST_OS_PARAMETER_GPR) {
+        if (gpr > LAST_OS_PARAMETER_GPR.value()) {
           // overflow, OTHER
           ivalue = overflowarea.loadInt(overflowoffset);
           overflowoffset = overflowoffset.plus(4);

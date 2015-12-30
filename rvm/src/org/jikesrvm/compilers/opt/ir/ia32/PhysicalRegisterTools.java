@@ -12,17 +12,16 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterTools;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
-
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.ia32.ArchConstants;
 

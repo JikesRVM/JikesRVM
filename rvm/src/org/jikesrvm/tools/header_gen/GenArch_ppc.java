@@ -15,6 +15,7 @@ package org.jikesrvm.tools.header_gen;
 import static org.jikesrvm.ppc.TrapConstants.*;
 
 import org.jikesrvm.ppc.RegisterConstants;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.ppc.StackframeLayoutConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
@@ -24,6 +25,11 @@ import org.vmmagic.unboxed.Offset;
  * required to access VM data structures from C.
  */
 final class GenArch_ppc extends GenArch {
+
+  static void pln(String s, GPR gp) {
+    out.print("#define " + s + " 0x" + Integer.toHexString(gp.value()) + "\n");
+  }
+
   @Override
   public void emitArchVirtualMachineDeclarations() {
     Offset offset;

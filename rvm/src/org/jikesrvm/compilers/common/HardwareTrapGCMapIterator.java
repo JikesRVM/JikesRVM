@@ -14,11 +14,11 @@ package org.jikesrvm.compilers.common;
 
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.WordArray;
 
@@ -30,8 +30,8 @@ import org.vmmagic.unboxed.WordArray;
 @Uninterruptible
 public final class HardwareTrapGCMapIterator extends GCMapIterator {
 
-  public HardwareTrapGCMapIterator(WordArray registerLocations) {
-    this.registerLocations = registerLocations;
+  public HardwareTrapGCMapIterator(AddressArray registerLocations) {
+    super(registerLocations);
   }
 
   @Override
@@ -44,10 +44,11 @@ public final class HardwareTrapGCMapIterator extends GCMapIterator {
     // update register locations, noting that the trap handler represented by this stackframe
     // saved all registers into the thread's "exceptionRegisters" object
     //
-    Address registerLocation = Magic.objectAsAddress(thread.getExceptionRegisters().gprs);
-    for (int i = 0; i < ArchitectureSpecific.ArchConstants.NUM_GPRS; ++i) {
-      registerLocations.set(i, registerLocation.toWord());
-      registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
+    WordArray gprs  = thread.getExceptionRegisters().getGPRs();
+    Address gprAddr = Magic.objectAsAddress(gprs);
+    for (int i = 0; i < gprs.length(); ++i) {
+      registerLocations.set(i, gprAddr);
+      gprAddr = gprAddr.plus(BYTES_IN_ADDRESS);
     }
     return Address.zero();
   }

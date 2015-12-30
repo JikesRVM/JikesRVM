@@ -16,8 +16,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -49,7 +49,7 @@ public class RegisterAllocatorState {
    * @param ir the IR whose info is to be reset
    */
   void resetPhysicalRegisters(IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     for (Enumeration<Register> e = phys.enumerateAll(); e.hasMoreElements();) {
       Register reg = e.nextElement();
       reg.deallocateRegister();

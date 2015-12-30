@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
@@ -21,7 +20,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * pool, there is only one instance of an Register with each number.
  *
  * @see RegisterOperand
- * @see org.jikesrvm.ArchitectureSpecificOpt.RegisterPool
+ * @see org.jikesrvm.compilers.opt.ir.GenericRegisterPool GenericRegisterPool
  */
 public final class Register {
 
@@ -312,7 +311,7 @@ public final class Register {
   }
 
   public int getNumber() {
-    int start = PhysicalRegisterSet.getSize();
+    int start = GenericPhysicalRegisterSet.getSize();
     return number - start;
   }
 
@@ -322,7 +321,7 @@ public final class Register {
   @Override
   public String toString() {
     if (isPhysical()) {
-      return PhysicalRegisterSet.getName(number);
+      return GenericPhysicalRegisterSet.getName(number);
     }
 
     // Set s to descriptive letter for register type

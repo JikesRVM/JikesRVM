@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.regalloc.GenericRegisterRestrictions;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 
@@ -21,11 +21,11 @@ import org.jikesrvm.compilers.opt.ir.Register;
  * An instance of this class encapsulates restrictions on register
  * allocation.
  */
-public abstract class RegisterRestrictions extends GenericRegisterRestrictions {
+public final class RegisterRestrictions extends GenericRegisterRestrictions {
   /**
    * Default Constructor
    */
-  public RegisterRestrictions(PhysicalRegisterSet phys) {
+  public RegisterRestrictions(GenericPhysicalRegisterSet phys) {
     super(phys);
   }
 

@@ -41,7 +41,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMMethod;
@@ -64,6 +63,7 @@ import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlockBag;
+import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
@@ -132,7 +132,7 @@ public final class GenerationContext {
   /**
    * The register pool to be used during generation
    */
-  private RegisterPool temps;
+  private GenericRegisterPool temps;
 
   /**
    * The parameters which BC2IR should use to seed the local state
@@ -275,7 +275,12 @@ public final class GenerationContext {
     epilogue.insertOut(exit);
 
     // Create register pool, initialize arguments, resultReg.
-    temps = new RegisterPool(meth);
+    if (VM.BuildForIA32) {
+      temps = new org.jikesrvm.compilers.opt.ir.ia32.RegisterPool(meth);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      temps = new org.jikesrvm.compilers.opt.ir.ppc.RegisterPool(meth);
+    }
     _ncGuards = new HashMap<Register, RegisterOperand>();
     initLocalPool();
     TypeReference[] definedParams = meth.getParameterTypes();
@@ -981,7 +986,7 @@ public final class GenerationContext {
     return cfg;
   }
 
-  public RegisterPool getTemps() {
+  public GenericRegisterPool getTemps() {
     return temps;
   }
 

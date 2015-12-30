@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -20,7 +19,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * Scratch space for JSR processing.  Used from ReferenceMaps
  */
 @Uninterruptible
-final class JSRInfo implements BaselineConstants {
+final class JSRInfo {
 
   int numberUnusualMaps;
   UnusualMaps[] unusualMaps;

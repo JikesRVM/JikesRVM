@@ -45,6 +45,8 @@
     <taskdef name="truncate" classname="org.jikesrvm.tools.ant.TruncateTask" classpath="${tasks.classes}"/>
     <!-- Filter out lines -->
     <taskdef name="lineFilter" classname="org.jikesrvm.tools.ant.LineFilterTask" classpath="${tasks.classes}"/>
+    <!-- Split instruction formats -->
+    <taskdef name="SplitInstructionFormats" classname="org.jikesrvm.tools.ant.SplitInstructionFormats" classpath="${tasks.classes}"/>
   </target>
 
 </project>

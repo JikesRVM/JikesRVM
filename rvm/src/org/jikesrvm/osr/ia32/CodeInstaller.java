@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -58,7 +57,7 @@ public abstract class CodeInstaller implements BaselineConstants {
 
     // should given an estimated length, and print the instructions
     // for debugging
-    Assembler asm = new ArchitectureSpecific.Assembler(50, VM.TraceOnStackReplacement);
+    Assembler asm = new Assembler(50, VM.TraceOnStackReplacement);
 
     // 1. generate bridge instructions to recover saved registers
     if (cType == CompiledMethod.BASELINE) {

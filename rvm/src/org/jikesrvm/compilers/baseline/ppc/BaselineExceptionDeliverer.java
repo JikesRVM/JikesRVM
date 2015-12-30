@@ -16,8 +16,8 @@ import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -31,10 +31,10 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- *  Handle exception delivery and stack unwinding for methods compiled
+ * Handle exception delivery and stack unwinding for methods compiled
  * by baseline compiler.
  */
-public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer implements BaselineConstants {
+public final class BaselineExceptionDeliverer extends ExceptionDeliverer implements BaselineConstants {
 
   /**
    * Pass control to a catch block.
@@ -42,7 +42,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
   @Override
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
   public void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
-                               Throwable exceptionObject, ArchitectureSpecific.Registers registers) {
+                               Throwable exceptionObject, AbstractRegisters registers) {
     Address fp = registers.getInnermostFramePointer();
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();
 
@@ -57,14 +57,14 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
 
     // set address at which to resume executing frame
     //
-    registers.ip = catchBlockInstructionAddress;
+    registers.setIP(catchBlockInstructionAddress);
 
     // branch to catch block
     //
     VM.enableGC(); // disabled right before Runtime.deliverException was called
-    if (VM.VerifyAssertions) VM._assert(registers.inuse);
+    if (VM.VerifyAssertions) VM._assert(registers.getInUse());
 
-    registers.inuse = false;
+    registers.setInUse(false);
     Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
@@ -74,7 +74,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
    */
   @Override
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
-  public void unwindStackFrame(CompiledMethod compiledMethod, ArchitectureSpecific.Registers registers) {
+  public void unwindStackFrame(CompiledMethod compiledMethod, AbstractRegisters registers) {
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();
     BaselineCompiledMethod bcm = (BaselineCompiledMethod) compiledMethod;
     if (method.isSynchronized()) {
@@ -90,7 +90,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
           short location = bcm.getGeneralLocalLocation(0);
           Address addr;
           if (BaselineCompilerImpl.isRegister(location)) {
-            lock = Magic.addressAsObject(registers.gprs.get(location).toAddress());
+            lock = Magic.addressAsObject(registers.getGPRs().get(location).toAddress());
           } else {
             addr =
                 fp.plus(BaselineCompilerImpl.locationToOffset(location) -
@@ -107,15 +107,15 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
     Address fp = registers.getInnermostFramePointer();
     Offset frameOffset = Offset.fromIntSignExtend(BaselineCompilerImpl.getFrameSize(bcm));
 
-    for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
+    for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER.value(); --i) {
       frameOffset = frameOffset.minus(BYTES_IN_DOUBLE);
       long temp = Magic.getLongAtOffset(Magic.addressAsObject(fp), frameOffset);
-      registers.fprs[i] = Magic.longBitsAsDouble(temp);
+      registers.getFPRs()[i] = Magic.longBitsAsDouble(temp);
     }
 
-    for (int i = bcm.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {
+    for (int i = bcm.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER.value(); --i) {
       frameOffset = frameOffset.minus(BYTES_IN_ADDRESS);
-      registers.gprs.set(i, fp.loadWord(frameOffset));
+      registers.getGPRs().set(i, fp.loadWord(frameOffset));
     }
 
     registers.unwindStackFrame();

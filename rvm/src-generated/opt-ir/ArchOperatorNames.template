@@ -10,17 +10,21 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package ARCHOPERATORSPKG;
+
+import org.vmmagic.pragma.Pure;
+import org.jikesrvm.compilers.opt.ir.Operator;
 
 /**
- * Class to store the string representations of different operators.
- * They are in a separate class for efficiency.
- *
- * @see Operator
+ * Class to store the string representations of different operators.<p>
+ * 
+ * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
+ * See ArchOperatorNames.template, OperatorList.dat, etc
  */
-public abstract class OperatorNames {
+public abstract class ArchOperatorNames {
 
-  public static final String[] operatorName = new String[] {
+  /** Lookup for operator names based on their opcode */
+  private static final String[] operatorName = new String[] {
 $$$$ FOREACH OPERATOR OperatorList.dat
 $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
 $$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
@@ -50,15 +54,19 @@ $$$$ END IF
       "<UNKNOWN OPERATOR>"
     };
 
+  /**
+   * Looks up name of operator
+   * @param operator the operator to look up
+   * @return operator's name or a string indicating
+   *  that the operator isn't known
+   */
+  @Pure
   public static String toString(Operator operator) {
      try {
-       return operatorName[operator.opcode];
+       return operatorName[operator.getOpcode()];
      }
      catch (ArrayIndexOutOfBoundsException e) {
        return operatorName[operatorName.length-1];
      }
   }
-
 }
-
-

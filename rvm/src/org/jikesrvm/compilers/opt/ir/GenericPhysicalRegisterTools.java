@@ -13,7 +13,6 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
@@ -36,7 +35,7 @@ public abstract class GenericPhysicalRegisterTools extends IRTools {
    * @return integer register operand
    */
   protected final RegisterOperand A(int regnum) {
-    PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return A(phys.getGPR(regnum));
   }
 
@@ -51,7 +50,7 @@ public abstract class GenericPhysicalRegisterTools extends IRTools {
    * @return integer register operand
    */
   protected final RegisterOperand I(int regnum) {
-    PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return I(phys.getGPR(regnum));
   }
 
@@ -66,7 +65,7 @@ public abstract class GenericPhysicalRegisterTools extends IRTools {
    * @return float register operand
    */
   final RegisterOperand F(int regnum) {
-    PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return F(phys.getFPR(regnum));
   }
 
@@ -81,7 +80,7 @@ public abstract class GenericPhysicalRegisterTools extends IRTools {
    * @return double register operand
    */
   final RegisterOperand D(int regnum) {
-    PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return D(phys.getFPR(regnum));
   }
 
@@ -96,7 +95,7 @@ public abstract class GenericPhysicalRegisterTools extends IRTools {
    * @return long register operand
    */
   final RegisterOperand L(int regnum) {
-    PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
     return L(phys.getGPR(regnum));
   }
 

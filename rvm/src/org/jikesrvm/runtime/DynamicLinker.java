@@ -14,12 +14,11 @@ package org.jikesrvm.runtime;
 
 import static org.jikesrvm.VM.NOT_REACHED;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.DynamicLinkerHelper;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.vmmagic.pragma.DynamicBridge;
@@ -128,7 +127,13 @@ public class DynamicLinker {
       } else {
         // invokevirtual or invokeinterface
         VM.disableGC();
-        Object targetObject = DynamicLinkerHelper.getReceiverObject();
+        Object targetObject;
+        if (VM.BuildForIA32) {
+          targetObject = org.jikesrvm.ia32.DynamicLinkerHelper.getReceiverObject();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          targetObject = org.jikesrvm.ppc.DynamicLinkerHelper.getReceiverObject();
+        }
         VM.enableGC();
         RVMClass targetClass = Magic.getObjectType(targetObject).asClass();
         RVMMethod targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
@@ -170,7 +175,13 @@ public class DynamicLinker {
         targetClass.updateTIBEntry(targetMethod);
       } else {
         VM.disableGC();
-        Object targetObject = DynamicLinkerHelper.getReceiverObject();
+        Object targetObject;
+        if (VM.BuildForIA32) {
+          targetObject = org.jikesrvm.ia32.DynamicLinkerHelper.getReceiverObject();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          targetObject = org.jikesrvm.ppc.DynamicLinkerHelper.getReceiverObject();
+        }
         VM.enableGC();
         RVMClass recvClass = (RVMClass) Magic.getObjectType(targetObject);
         recvClass.updateTIBEntry(targetMethod);

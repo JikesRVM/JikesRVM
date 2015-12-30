@@ -54,7 +54,7 @@ import org.vmmagic.unboxed.WordArray;
  * OptExecutionStateExtractor is a subclass of ExecutionStateExtractor.
  * It extracts the execution state from an optimized activation.
  */
-public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
+public final class OptExecutionStateExtractor extends ExecutionStateExtractor
     implements ArchConstants, PhysicalRegisterConstants {
 
   @Override
@@ -80,7 +80,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     byte[] stack = thread.getStack();
 
     // get registers for the caller ( real method )
-    TempRegisters registers = new TempRegisters(thread.contextRegisters);
+    TempRegisters registers = new TempRegisters(thread.getContextRegisters());
 
     if (VM.VerifyAssertions) {
       int foocmid = Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));

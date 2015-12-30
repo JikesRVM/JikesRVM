@@ -17,6 +17,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  *--------------------------------------------------------------------------
@@ -136,11 +137,11 @@ public interface StackframeLayoutConstants {
   int STACKFRAME_HEADER_SIZE = 3 * BYTES_IN_STACKSLOT;
 
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID depending on ABI.
-  int STACKFRAME_RETURN_ADDRESS_OFFSET = VM.BuildForPower64ELF_ABI ? 2 * BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
-  int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPower64ELF_ABI ? BYTES_IN_STACKSLOT : 2 * BYTES_IN_STACKSLOT;
+  Offset STACKFRAME_RETURN_ADDRESS_OFFSET = Offset.fromIntSignExtend(VM.BuildForPower64ELF_ABI ? 2 * BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT);
+  Offset STACKFRAME_METHOD_ID_OFFSET = Offset.fromIntSignExtend(VM.BuildForPower64ELF_ABI ? BYTES_IN_STACKSLOT : 2 * BYTES_IN_STACKSLOT);
 
   /** base of this frame **/
-  int STACKFRAME_FRAME_POINTER_OFFSET = 0;
+  Offset STACKFRAME_FRAME_POINTER_OFFSET = Offset.zero();
 
   /** fp value indicating end of stack walkback */
   Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);

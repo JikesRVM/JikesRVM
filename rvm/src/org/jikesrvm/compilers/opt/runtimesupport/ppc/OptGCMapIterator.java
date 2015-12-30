@@ -12,14 +12,18 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
+import static org.jikesrvm.compilers.opt.runtimesupport.ppc.OptGCMapIteratorConstants.LAST_GCMAP_REG;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
-import org.jikesrvm.ppc.ArchConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.unboxed.AddressArray;
 
 /**
  * An instance of this class provides iteration across the references
@@ -30,11 +34,11 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for the PowerPC.
  */
 @Uninterruptible
-public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements ArchConstants {
+public final class OptGCMapIterator extends OptGenericGCMapIterator {
 
   private static final boolean DEBUG = false;
 
-  public OptGCMapIterator(WordArray registerLocations) {
+  public OptGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
   }
 
@@ -71,7 +75,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
         // move to the beginning of the save area for nonvolatiles
         Address location = nonVolArea;
         for (int i = first; i <= LAST_GCMAP_REG; i++) {
-          registerLocations.set(i, location.toWord());
+          registerLocations.set(i, location);
           location = location.plus(BYTES_IN_ADDRESS);
         }
       }
@@ -82,14 +86,14 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
         Address location = nonVolArea.minus(SAVE_VOL_SIZE);
 
         // Walk the saved volatiles, updating registerLocations array
-        for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
-          registerLocations.set(i, location.toWord());
+        for (int i = FIRST_VOLATILE_GPR.value(); i <= LAST_VOLATILE_GPR.value(); i++) {
+          registerLocations.set(i, location);
           location = location.plus(BYTES_IN_ADDRESS);
         }
 
         // Walk the saved scratch, updating registerLocations array
-        for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; i++) {
-          registerLocations.set(i, location.toWord());
+        for (int i = FIRST_SCRATCH_GPR.value(); i <= LAST_SCRATCH_GPR.value(); i++) {
+          registerLocations.set(i, location);
           location = location.plus(BYTES_IN_ADDRESS);
         }
       }
@@ -128,13 +132,13 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
         VM.sysWrite("false");
       }
       VM.sysWrite("\nLAST_VOLATILE_GPR: ");
-      VM.sysWrite(LAST_VOLATILE_GPR);
+      VM.sysWrite(LAST_VOLATILE_GPR.toString());
       VM.sysWrite("\tFIRST_VOLATILE_GPR: ");
-      VM.sysWrite(LAST_VOLATILE_GPR);
+      VM.sysWrite(LAST_VOLATILE_GPR.toString());
       VM.sysWrite("\nLAST_SCRATCH_GPR: ");
-      VM.sysWrite(LAST_SCRATCH_GPR);
+      VM.sysWrite(LAST_SCRATCH_GPR.toString());
       VM.sysWrite("\tFIRST_SCRATCH_GPR: ");
-      VM.sysWrite(LAST_SCRATCH_GPR);
+      VM.sysWrite(LAST_SCRATCH_GPR.toString());
       VM.sysWrite("\nSAVE_VOL_SIZE: ");
       VM.sysWrite(SAVE_VOL_SIZE);
       VM.sysWrite("\n");
@@ -167,6 +171,6 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
 
   static final int SPILL_DISTANCE_FROM_FP = 3 * BYTES_IN_ADDRESS;
   static final int SAVE_VOL_SIZE =
-      BYTES_IN_ADDRESS * ((LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1) + (LAST_SCRATCH_GPR - FIRST_SCRATCH_GPR + 1));
+    BYTES_IN_ADDRESS * ((LAST_VOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1) + (LAST_SCRATCH_GPR.value() - FIRST_SCRATCH_GPR.value() + 1));
 
 }

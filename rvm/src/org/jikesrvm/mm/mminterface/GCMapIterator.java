@@ -16,8 +16,8 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.WordArray;
 
 /**
  * Base class for iterators that identify object references and JSR return addresses
@@ -36,7 +36,11 @@ public abstract class GCMapIterator {
   protected Address framePtr;
 
   /** address where each gpr register was saved by previously scanned stackframe(s) */
-  protected WordArray registerLocations;
+  public final AddressArray registerLocations;
+
+  public GCMapIterator(AddressArray registerLocations) {
+    this.registerLocations = registerLocations;
+  }
 
   /**
    * Prepare to scan a thread's stack and saved registers for object references.

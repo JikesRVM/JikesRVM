@@ -12,55 +12,25 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
-import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecific;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.Load;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_Load;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Return;
-import org.jikesrvm.compilers.opt.ir.MIR_Store;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_FMR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LInt;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STW;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
-import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.Prologue;
-import org.jikesrvm.compilers.opt.ir.Store;
-import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.Operand;
-import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_FMR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LAddr;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LFD;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LFS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LInt;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MOVE;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STAddr;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STFD;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STFS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STW;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_DOUBLE_PARAM;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_DOUBLE_RETURN;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_INT_PARAM;
@@ -69,6 +39,39 @@ import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.NUMBER_INT_PARAM;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
+import java.util.Enumeration;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Load;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.Prologue;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Load;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Return;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Store;
+import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
+import org.jikesrvm.ppc.ArchConstants;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -174,14 +177,14 @@ public abstract class CallingConvention extends IRTools {
     // we are restoring the methodID after a sysCall.
     Instruction s2 =
         Store.create(REF_STORE,
-                     ir.regpool.makeJTOCOp(ir, s),
+                     ir.regpool.makeJTOCOp(),
                      ir.regpool.makeFPOp(),
                      AC(Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS)),
                      null);         // TODO: valid location?
     s.insertBefore(s2);
     if (VM.BuildForPower64ELF_ABI) {
       s2 =
-          Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir, s), ip, AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
+          Load.create(REF_LOAD, ir.regpool.makeJTOCOp().asRegister(), ip, AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
       s.insertBefore(s2);
       RegisterOperand iptmp = ir.regpool.makeTempAddress();
       s2 = Load.create(REF_LOAD, iptmp, ip, AC(Offset.zero()), null);
@@ -189,12 +192,11 @@ public abstract class CallingConvention extends IRTools {
       ip = iptmp;
     }
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
-    s2 =
-        Load.create(REF_LOAD,
-                    ir.regpool.makeJTOCOp(ir, s),
-                    ir.regpool.makeFPOp(),
-                    AC(Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS)),
-                    null);         // TODO: valid location?
+    s2 = Load.create(REF_LOAD,
+                     (RegisterOperand)ir.regpool.makeJTOCOp(),
+                     ir.regpool.makeFPOp(),
+                     AC(Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS)),
+                     null);         // TODO: valid location?
     s.insertAfter(s2);
     RegisterOperand temp = ir.regpool.makeTempInt();
     s2 = Move.create(INT_MOVE, temp, IC(ir.compiledMethod.getId()));
@@ -202,7 +204,7 @@ public abstract class CallingConvention extends IRTools {
         Store.create(INT_STORE,
                      temp.copy(),
                      ir.regpool.makeFPOp(),
-                     AC(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)),
+                     AC(STACKFRAME_METHOD_ID_OFFSET),
                      null);  // TODO: valid location?
     s.insertAfter(s3);
     s.insertAfter(s2);
@@ -230,8 +232,8 @@ public abstract class CallingConvention extends IRTools {
     int int_index = 0;
     int double_index = 0;
     int spilledArgumentCounter =
-        (-256 - ArchitectureSpecific.ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+        (-256 - ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
     for (Enumeration<Operand> symParams = prologueInstr.getDefs(); symParams.hasMoreElements();) {
       RegisterOperand symParamOp = (RegisterOperand) symParams.nextElement();
@@ -322,7 +324,7 @@ public abstract class CallingConvention extends IRTools {
     int int_index = 0;          // points to the first integer volatile
     int double_index = 0;       // poinst to the first f.p.    volatile
     int callSpillLoc = STACKFRAME_HEADER_SIZE;
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
     Instruction prev = s.prevInstructionInCodeOrder();
     Register FP = phys.getFP();
     boolean isSysCall = ir.stackManager.isSysCall(s);
@@ -453,7 +455,7 @@ public abstract class CallingConvention extends IRTools {
    * @param ir the ir
    */
   private static void returnExpand(Instruction s, IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
     if (MIR_Return.hasVal(s)) {
       RegisterOperand symb1 = MIR_Return.getClearVal(s);
       RegisterOperand phys1;

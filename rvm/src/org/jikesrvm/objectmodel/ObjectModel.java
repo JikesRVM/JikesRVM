@@ -17,7 +17,6 @@ import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_OFFSET;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASHCODE_BYTES;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
-import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
@@ -1069,19 +1068,6 @@ public class ObjectModel {
     Object obj = addr.toObject();
     RVMType type = Magic.getObjectType(obj);
     VM.sysWrite(type.getDescriptor());
-  }
-
-  /**
-   * The following method will emit code that moves a reference to an
-   * object's TIB into a destination register.
-   *
-   * @param asm the assembler object to emit code with
-   * @param dest the number of the destination register
-   * @param object the number of the register holding the object reference
-   */
-  @Interruptible
-  public static void baselineEmitLoadTIB(Assembler asm, int dest, int object) {
-    JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 }
 

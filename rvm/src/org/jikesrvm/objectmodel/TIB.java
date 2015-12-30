@@ -18,11 +18,11 @@ import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific.ArchConstants;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.common.LazyCompilationTrampoline;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Inline;
@@ -49,7 +49,7 @@ public final class TIB implements RuntimeTable<Object> {
   public static int lazyMethodInvokerTrampolineWords() {
     int codeWords = VM.BuildForIA32 ? (VM.BuildFor32Addr ? 2 : 1) : (VM.BuildFor32Addr ? 3 : 2);
     if (VM.VerifyAssertions && VM.runningVM) {
-      int codeBytes = LazyCompilationTrampoline.instructions.length() << ArchConstants.LG_INSTRUCTION_WIDTH;
+      int codeBytes = LazyCompilationTrampoline.getInstructions().length() << ArchConstants.getLogInstructionWidth();
       VM._assert(codeWords == ((codeBytes + BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_ADDRESS));
     }
     return codeWords;
@@ -240,7 +240,7 @@ public final class TIB implements RuntimeTable<Object> {
   public CodeArray getVirtualMethod(int virtualMethodIndex) {
     int index = TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethodIndex;
     if (VM.runningVM && isInternalLazyCompilationTrampoline(virtualMethodIndex)) {
-      return LazyCompilationTrampoline.instructions;
+      return LazyCompilationTrampoline.getInstructions();
     }
     return (CodeArray) get(index);
   }
@@ -276,7 +276,7 @@ public final class TIB implements RuntimeTable<Object> {
   public void setVirtualMethod(int virtualMethodIndex, CodeArray code) {
     if (VM.VerifyAssertions) VM._assert(virtualMethodIndex >= 0);
 
-    if (VM.runningVM && code == LazyCompilationTrampoline.instructions) {
+    if (VM.runningVM && code == LazyCompilationTrampoline.getInstructions()) {
       Address tibAddress = Magic.objectAsAddress(this);
       Address callAddress = tibAddress.plus(Offset.fromIntZeroExtend(lazyMethodInvokerTrampolineIndex() << LOG_BYTES_IN_ADDRESS));
       set(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethodIndex, callAddress);
@@ -302,18 +302,18 @@ public final class TIB implements RuntimeTable<Object> {
    */
   @NoInline
   public void initializeInternalLazyCompilationTrampoline() {
-    CodeArray source = LazyCompilationTrampoline.instructions;
+    CodeArray source = LazyCompilationTrampoline.getInstructions();
     int targetSlot = lazyMethodInvokerTrampolineIndex();
-    int logIPW = LOG_BYTES_IN_ADDRESS - ArchConstants.LG_INSTRUCTION_WIDTH;
-    int logIPI = LOG_BYTES_IN_INT - ArchConstants.LG_INSTRUCTION_WIDTH;
-    if (VM.VerifyAssertions) VM._assert(ArchConstants.LG_INSTRUCTION_WIDTH <= LOG_BYTES_IN_INT);
+    int logIPW = LOG_BYTES_IN_ADDRESS - ArchConstants.getLogInstructionWidth();
+    int logIPI = LOG_BYTES_IN_INT - ArchConstants.getLogInstructionWidth();
+    if (VM.VerifyAssertions) VM._assert(ArchConstants.getLogInstructionWidth() <= LOG_BYTES_IN_INT);
     int mask = 0xFFFFFFFF >>> (((1 << logIPI) - 1) << LOG_BITS_IN_BYTE);
     for (int i = 0; i < lazyMethodInvokerTrampolineWords(); i++) {
       Word currentWord = Word.zero();
       int base = i << logIPW;
       for (int j = 0; j < (1 << logIPW) && (base + j) < source.length(); j++) {
         Word currentEntry = Word.fromIntZeroExtend(source.get(base + j) & mask);
-        currentEntry = currentEntry.lsh(((VM.LittleEndian ? j : (1 << logIPW) - (j + 1)) << ArchConstants.LG_INSTRUCTION_WIDTH) << LOG_BITS_IN_BYTE);
+        currentEntry = currentEntry.lsh(((VM.LittleEndian ? j : (1 << logIPW) - (j + 1)) << ArchConstants.getLogInstructionWidth()) << LOG_BITS_IN_BYTE);
         currentWord = currentWord.or(currentEntry);
       }
       set(targetSlot + i, currentWord);

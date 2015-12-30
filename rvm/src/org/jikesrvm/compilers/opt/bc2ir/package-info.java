@@ -23,7 +23,7 @@
  * (for information about the generation process and the method
  * that is to be compiled) and {@link org.jikesrvm.compilers.opt.bc2ir.GenerateMagic}
  * (for non-machine specific magics) and one implementation of
- * {@link org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic}.
+ * GenerateMachineSpecificMagic.
  * BC2IR is also responsible for generating code to deal with on-stack-replacement.
  * <p>
  * Note that all inlining of application level methods in the optimizing compiler

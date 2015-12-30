@@ -15,8 +15,6 @@ package org.jikesrvm.compilers.common;
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.JNICompiler;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
@@ -27,6 +25,7 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.AOSInstrumentationPla
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.CompilerAdviceAttribute;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -232,14 +231,14 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
         VM.sysWrite("\t");
         // Ratio of machine code bytes to bytecode bytes
         if (i != JNI_COMPILER) {
-          VM.sysWrite((double) (totalMCLength[i] << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH) /
-                      (double) totalBCLength[i], 2);
+          VM.sysWrite((double) (totalMCLength[i] << ArchConstants.getLogInstructionWidth()) /
+                      totalBCLength[i], 2);
         } else {
           VM.sysWrite("NA");
         }
         VM.sysWrite("\t");
         // Generated machine code Kbytes
-        VM.sysWrite((double) (totalMCLength[i] << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH) /
+        VM.sysWrite((double) (totalMCLength[i] << ArchConstants.getLogInstructionWidth()) /
                     1024, 1);
         VM.sysWrite("\t");
         // Compiled bytecode Kbytes
@@ -675,7 +674,7 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
               // exception in progress. can't use opt compiler:
               // it uses exceptions and runtime doesn't support
               // multiple pending (undelivered) exceptions [--DL]
-              RVMThread.getCurrentThread().getExceptionRegisters().inuse) {
+              RVMThread.getCurrentThread().getExceptionRegisters().getInUse()) {
             // compile with baseline compiler
             cm = baselineCompile(method);
             ControllerMemory.incrementNumBase();
@@ -770,7 +769,12 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
         start = Time.nanoTime();
       }
 
-      cm = JNICompiler.compile(method);
+      if (VM.BuildForIA32) {
+        cm = org.jikesrvm.jni.ia32.JNICompiler.compile(method);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        cm = org.jikesrvm.jni.ppc.JNICompiler.compile(method);
+      }
       if (VM.verboseJNI) {
         VM.sysWriteln("[Dynamic-linking native method " +
                       method.getDeclaringClass() +

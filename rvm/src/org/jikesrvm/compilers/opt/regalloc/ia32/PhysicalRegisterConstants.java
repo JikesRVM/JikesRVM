@@ -20,16 +20,6 @@ import org.jikesrvm.ia32.RegisterConstants;
 public interface PhysicalRegisterConstants extends RegisterConstants {
 
   /*
-   * Types of values stored in physical registers;
-   * These affect instruction selection for accessing
-   * the data
-   */
-  byte INT_VALUE = 0;
-  byte DOUBLE_VALUE = 1;
-  byte FLOAT_VALUE = 2;
-  byte CONDITION_VALUE = 3;
-
-  /*
    * There are different types of hardware registers, so we define
    * the following register classes:
    * NOTE: they must be in consecutive ordering

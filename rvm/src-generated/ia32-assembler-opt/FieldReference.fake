@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.ia32;
-public class MachineCode {
-  public MachineCode(CodeArray x, int[] y) {}
+package org.jikesrvm.classloader;
+
+public class FieldReference {
 }

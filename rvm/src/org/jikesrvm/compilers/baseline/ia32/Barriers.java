@@ -13,9 +13,9 @@
 package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.Configuration;
-import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
@@ -627,6 +627,6 @@ class Barriers implements BaselineConstants {
    * @param objRefReg the register containing the reference
    */
   private static void genNullCheck(Assembler asm, GPR objRefReg) {
-    BaselineCompilerImpl.baselineEmitLoadTIB(asm, S0, T0);
+    asm.baselineEmitLoadTIB(S0, T0);
   }
 }

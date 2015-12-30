@@ -16,12 +16,15 @@ import static org.jikesrvm.compilers.opt.ir.IRTools.offsetOperand;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PAUSE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREFETCH;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PAUSE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PREFETCH;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
@@ -43,7 +46,6 @@ import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
-import org.jikesrvm.ia32.StackframeLayoutConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.MagicNames;
@@ -53,7 +55,7 @@ import org.jikesrvm.runtime.MagicNames;
  *
  * @see org.jikesrvm.compilers.opt.bc2ir.GenerateMagic for the machine-independent magics
  */
-public abstract class GenerateMachineSpecificMagic implements StackframeLayoutConstants {
+public abstract class GenerateMachineSpecificMagic {
 
   /**
    * "Semantic inlining" of methods of the Magic class.
@@ -69,7 +71,7 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
       throws MagicNotImplementedException {
 
     Atom methodName = meth.getName();
-    PhysicalRegisterSet phys = gc.getTemps().getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = gc.getTemps().getPhysicalRegisterSet().asIA32();
 
     if (methodName == MagicNames.getESIAsThread) {
       RegisterOperand rop = gc.getTemps().makeTROp();

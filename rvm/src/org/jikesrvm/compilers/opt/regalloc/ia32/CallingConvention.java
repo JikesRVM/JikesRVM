@@ -12,41 +12,42 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CALL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCLEAR;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FSTP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CALL;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCLEAR;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FSTP;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_PUSH;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SYSCALL;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
-import static org.jikesrvm.compilers.opt.ir.Operators.REQUIRE_ESP;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
+
 import java.util.Enumeration;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.InterfaceMethodSignature;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Return;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Return;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
+import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -74,8 +75,7 @@ import org.jikesrvm.runtime.Entrypoints;
  * TODO: Much of this code could still be factored out as
  * architecture-independent.
  */
-public abstract class CallingConvention extends IRTools
-    implements PhysicalRegisterConstants {
+public abstract class CallingConvention extends IRTools {
 
   /**
    * Size of a word, in bytes
@@ -119,7 +119,7 @@ public abstract class CallingConvention extends IRTools
 
     // 1. Clear the floating-point stack if dirty.
     if (!ArchConstants.SSE2_FULL) {
-      if (call.operator() != CALL_SAVE_VOLATILE) {
+      if (!call.operator().isCallSaveVolatile()) {
         int FPRRegisterParams = countFPRParams(call);
         FPRRegisterParams = Math.min(FPRRegisterParams, PhysicalRegisterSet.getNumberOfFPRParams());
         call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(FPRRegisterParams)));
@@ -160,7 +160,7 @@ public abstract class CallingConvention extends IRTools
    * @param ir the IR that contains the return instruction
    */
   private static void returnExpand(Instruction ret, IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asIA32();
 
     if (MIR_Return.hasVal(ret)) {
       Operand symb1 = MIR_Return.getClearVal(ret);
@@ -227,7 +227,7 @@ public abstract class CallingConvention extends IRTools
    * @param ir the IR that contains the call
    */
   private static void expandResultOfCall(Instruction call, boolean isSysCall, IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
 
     // copy the first result parameter
     if (MIR_Call.hasResult(call)) {
@@ -302,7 +302,7 @@ public abstract class CallingConvention extends IRTools
     int nGPRParams = 0;
     int nFPRParams = 0;
 
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
     // count the number FPR parameters in a pre-pass
     int FPRRegisterParams = countFPRParams(call);
     FPRRegisterParams = Math.min(FPRRegisterParams, PhysicalRegisterSet.getNumberOfFPRParams());
@@ -433,7 +433,7 @@ public abstract class CallingConvention extends IRTools
    * @param ir the IR that contains the call
    */
   static void saveNonvolatilesBeforeSysCall(Instruction call, IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     StackManager sm = (StackManager) ir.stackManager;
 
     // get the offset into the stack frame of where to stash the first
@@ -466,7 +466,7 @@ public abstract class CallingConvention extends IRTools
    * @param ir the IR that contains the call
    */
   static void restoreNonvolatilesAfterSysCall(Instruction call, IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     StackManager sm = (StackManager) ir.stackManager;
 
     // get the offset into the stack frame of where to stash the first
@@ -544,7 +544,7 @@ public abstract class CallingConvention extends IRTools
       }
       return parameterBytes;
     } else {
-      PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asIA32();
       // count the number FPR parameters in a pre-pass
       int FPRRegisterParams = countFPRParams(call);
       FPRRegisterParams = Math.min(FPRRegisterParams, PhysicalRegisterSet.getNumberOfNativeFPRParams());
@@ -718,7 +718,7 @@ public abstract class CallingConvention extends IRTools
         nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(p.operator() == IR_PROLOGUE);
     Instruction start = p.nextInstructionInCodeOrder();
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asIA32();
 
     int gprIndex = 0;
     int fprIndex = 0;

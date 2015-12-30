@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_DEF;
-import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_USE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_DEF;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_USE;
 
 import java.util.Enumeration;
 
@@ -25,9 +25,9 @@ import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Nullary;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.ia32.ArchConstants;
 
@@ -102,7 +102,7 @@ public final class ExpandFPRStackConvention extends CompilerPhase {
     if (ArchConstants.SSE2_FULL) {
       return;
     }
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
 
     for (Enumeration<BasicBlock> b = ir.getBasicBlocks(); b.hasMoreElements();) {
       BasicBlock bb = b.nextElement();

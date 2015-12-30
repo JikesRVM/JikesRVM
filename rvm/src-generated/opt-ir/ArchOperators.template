@@ -1,0 +1,51 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
+/*
+ * THIS FILE IS MACHINE GENERATED. DO NOT EDIT.
+ * The input files are:
+ *  ArchOperators.template
+ *  ARCH_OP_LIST
+ */
+
+package ARCHOPERATORSPKG;
+
+import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.Operators;
+
+/**
+ * Provides architectural literal operators.
+ *
+ * @see Operator
+ */
+public final class ArchOperators extends Operators {
+$$$$ IF ARCHITECTURE != "NONE"
+
+  /* Architecture dependent operator codes */
+
+$$$$ FOREACH OPERATOR ARCH_OP_LIST
+  /** Opcode identifier for OPERATOR.SYMBOL instructions */
+  public static final char OPERATOR.SYMBOL_opcode =
+    (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
+$$$$ END FOREACH
+
+  /* Architecture dependent operators */
+
+$$$$ FOREACH OPERATOR ARCH_OP_LIST
+  /** Operator for OPERATOR.SYMBOL instructions */
+  public static final Operator OPERATOR.SYMBOL =
+    Operator.lookupOpcode(OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode);
+$$$$ END FOREACH
+
+$$$$ END IF
+}

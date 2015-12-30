@@ -12,25 +12,75 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.AF;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.C0;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.C1;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.C2;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.C3;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.CF;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_DOUBLE;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_INT;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_SPECIAL;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.NUM_SPECIALS;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.OF;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.PF;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.SF;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.SPECIAL_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST0;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST1;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ZF;
+import static org.jikesrvm.ia32.RegisterConstants.EAX;
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.ECX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.EDX;
+import static org.jikesrvm.ia32.RegisterConstants.ESI;
+import static org.jikesrvm.ia32.RegisterConstants.ESP;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NATIVE_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NATIVE_PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_RETURN_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_RETURN_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
+
 import java.util.Enumeration;
+
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.BitSet;
 import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
 import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
 import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.ia32.RegisterConstants;
+import org.jikesrvm.ia32.RegisterConstants.FPR;
+import org.jikesrvm.ia32.RegisterConstants.FloatingPointMachineRegister;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
+import org.jikesrvm.ia32.RegisterConstants.XMM;
 import org.jikesrvm.util.EmptyEnumeration;
 
 /**
  * This class represents a set of Registers corresponding to the
  * IA32 register set.
  */
-public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
-    implements RegisterConstants, PhysicalRegisterConstants {
+public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
 
   /**
    * This array holds a pool of objects representing physical registers
@@ -55,7 +105,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   @Override
-  public final int getNumberOfPhysicalRegisters() {
+  public int getNumberOfPhysicalRegisters() {
     return getSize();
   }
 
@@ -106,7 +156,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * @param n register index
    * @return the (zero-based indexed) nth GPR that may hold a parameter.
    */
-  public final Register getGPRParam(int n) {
+  public Register getGPRParam(int n) {
     if (VM.VerifyAssertions) VM._assert(n < 2);
     if (n == 0) {
       return getEAX();
@@ -119,7 +169,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * @param n register index
    * @return the (zero-based indexed) nth FPR that may hold a parameter.
    */
-  public final Register getFPRParam(int n) {
+  public Register getFPRParam(int n) {
     return getFPR(VOLATILE_FPRS[n]);
   }
 
@@ -144,7 +194,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     }
   }
 
-  protected PhysicalRegisterSet() {
+  public PhysicalRegisterSet() {
 
     // 1. Create all the physical registers in the pool.
     for (int i = 0; i < reg.length; i++) {
@@ -226,6 +276,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * @param r the register to check
    * @return {@code true} if and only if a particular register is subject to allocation
    */
+  @Override
   public boolean isAllocatable(Register r) {
     return (r.number < FIRST_SPECIAL && r != getTR() && r != getESP());
   }
@@ -372,7 +423,8 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     return reg[C3];
   }
 
-  public Register getGPR(GPR n) {
+  @Override
+  public Register getGPR(MachineRegister n) {
     return reg[FIRST_INT + n.value()];
   }
 
@@ -606,6 +658,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     return new PhysicalRegisterEnumeration(r);
   }
 
+  @Override
   public Enumeration<Register> enumerateVolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
@@ -653,6 +706,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     }
   }
 
+  @Override
   public Enumeration<Register> enumerateNonvolatilesBackwards(int regClass) {
     return new ReverseEnumerator<Register>(enumerateNonvolatiles(regClass));
   }

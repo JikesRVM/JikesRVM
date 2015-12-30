@@ -16,10 +16,7 @@
 
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.*;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
-import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.util.Bits;
+import org.jikesrvm.VM;
 
 /**
  * An Operator represents the operator of an {@link Instruction}.
@@ -27,22 +24,71 @@ import org.jikesrvm.util.Bits;
  * to represent it. These instances are all stored in static fields
  * of {@link Operators}. Since only one instance is created for each
  * semantic operator, they can be compared using <code>==</code>.
- * <p>
- * A common coding practive is to implement the {@link Operators}
- * interface to be able to reference the IR operators within a class
- * without having to prepend 'Operators.' everywhere.
- * <p>
- * NOTE: Operator.java is mechanically generated from
- * Operator.template using the operator definitions in
- * OperatorList.dat and ARCH_IR_DIROperatorList.dat
- * <p>
- * DO NOT MANUALLY EDIT THE JAVA FILE. Instead, edit Operator.template.
  *
  * @see Operators
  * @see Instruction
- * @see OperatorNames
  */
-public final class Operator {
+public abstract class Operator {
+
+
+  /*
+   * The following are used to encode operator traits in OperatorList.dat.
+   * Had to make a few of them public (yuck) to let us get at them
+   * from InstructionFormat.java.
+   */
+  /** operator has no interesting traits */
+  public static final int none         = 0x00000000;
+  /** operator is a simple move operation from one "register" to another */
+  protected static final int move         = 0x00000001;
+  /** operator is an intraprocedural branch of some form */
+  protected static final int branch       = 0x00000002;
+  /** operator is some kind of call (interprocedural branch) */
+  protected static final int call         = 0x00000004;
+  /** modifer for branches/calls */
+  protected static final int conditional  = 0x00000008;
+  /** modifier for branches/calls, mostly on MIR */
+  protected static final int indirect     = 0x00000010;
+  /** an explicit load of a value from memory */
+  protected static final int load         = 0x00000020;
+  /** operator is modeled as a load by memory system, mostly on MIR */
+  protected static final int memAsLoad    = 0x00000040;
+  /** an explicit store of a value to memory */
+  protected static final int store        = 0x00000080;
+  /** operator is modeled as a store by memory system, mostly on MIR */
+  protected static final int memAsStore   = 0x00000100;
+  /** is an exception throw */
+  protected static final int ethrow       = 0x00000200;
+  /** an immediate PEI (null_check, int_zero_check, but _not_ call); */
+  protected static final int immedPEI     = 0x00000400;
+  /** operator is some kind of compare (val,val)-&gt; cond */
+  protected static final int compare      = 0x00000800;
+  /** an explicit memory allocation */
+  protected static final int alloc        = 0x00001000;
+  /** a return instruction (interprocedural branch) */
+  protected static final int ret          = 0x00002000;
+  /** operator has a variable number of uses */
+  public static final int varUses      = 0x00004000;
+  /** operator has a variable number of defs */
+  public static final int varDefs      = 0x00008000;
+  /**
+   * operator is a potential thread switch point for some reason
+   * other than being a call/immedPEI
+   */
+  protected static final int tsp          = 0x00010000;
+  /** operator is an acquire (monitorenter/lock) HIR only */
+  protected static final int acquire      = 0x00020000;
+  /** operator is a relase (monitorexit/unlock) HIR only */
+  protected static final int release      = 0x00040000;
+  /** operator either directly or indirectly may casue dynamic linking */
+  protected static final int dynLink      = 0x00080000;
+  /** operator is a yield point */
+  protected static final int yieldPoint   = 0x00100000;
+  /** operator pops floating-point stack after performing defs */
+  protected static final int fpPop        = 0x00200000;
+  /** operator pushs floating-point stack before performing defs */
+  protected static final int fpPush       = 0x00400000;
+  /** operator is commutative */
+  protected static final int commutative  = 0x00800000;
 
   /**
    * The operators opcode.
@@ -92,15 +138,31 @@ public final class Operator {
    */
   public final int implicitUses;
 
-$$$$ IF ARCHITECTURE != "NONE"
-$$$$ IF ARCHITECTURE == "ppc"
-  /**
-   * Instruction template used by the assembler to
-   * generate binary code.  Only valid on MIR operators.
-   */
-  public int instTemplate;
-$$$$ END IF
-$$$$ END IF
+  protected Operator(char opcode, byte format, int traits,
+                       int numDefs, int numDefUses, int numUses,
+                       int iDefs, int iUses) {
+    this.opcode       = opcode;
+    this.format       = format;
+    this.traits       = traits;
+    this.numberDefs   = numDefs;
+    this.numberDefUses = numDefUses;
+    this.numberUses   = numUses;
+    this.implicitDefs = iDefs;
+    this.implicitUses = iUses;
+  }
+
+  public static Operator lookupOpcode(int opcode) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.ArchOperator.lookupOpcode(opcode);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.ArchOperator.lookupOpcode(opcode);
+    }
+  }
+
+  public final char getOpcode() {
+    return opcode;
+  }
 
   /**
    * Returns the string representation of this operator.
@@ -109,7 +171,12 @@ $$$$ END IF
    */
   @Override
   public String toString() {
-    return OperatorNames.toString(this);
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.ArchOperatorNames.toString(this);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.ArchOperatorNames.toString(this);
+    }
   }
 
   /**
@@ -251,63 +318,6 @@ $$$$ END IF
     return Integer.bitCount(implicitUses);
   }
 
-  /*
-   * The following are used to encode operator traits in OperatorList.dat.
-   * Had to make a few of them public (yuck) to let us get at them
-   * from InstructionFormat.java.
-   */
-  // operator has no interesting traits
-  public static final int none         = 0x00000000;
-  // operator is a simple move operation from one "register" to another
-  private static final int move         = 0x00000001;
-  // operator is an intraprocedural branch of some form
-  private static final int branch       = 0x00000002;
-  // operator is some kind of call (interprocedural branch)
-  private static final int call         = 0x00000004;
-  // modifer for branches/calls
-  private static final int conditional  = 0x00000008;
-  // modifier for branches/calls, mostly on MIR
-  private static final int indirect     = 0x00000010;
-  // an explicit load of a value from memory
-  private static final int load         = 0x00000020;
-  // operator is modeled as a load by memory system, mostly on MIR
-  private static final int memAsLoad    = 0x00000040;
-  // an explicit store of a value to memory
-  private static final int store        = 0x00000080;
-  // operator is modeled as a store by memory system, mostly on MIR
-  private static final int memAsStore   = 0x00000100;
-  // is an exception throw
-  private static final int ethrow       = 0x00000200;
-  // an immediate PEI (null_check, int_zero_check, but _not_ call);
-  private static final int immedPEI     = 0x00000400;
-  // operator is some kind of compare (val,val)-> cond
-  private static final int compare      = 0x00000800;
-  // an explicit memory allocation
-  private static final int alloc        = 0x00001000;
-  // a return instruction (interprocedural branch)
-  private static final int ret          = 0x00002000;
-  // operator has a variable number of uses
-  public static final int varUses      = 0x00004000;
-  // operator has a variable number of defs
-  public static final int varDefs      = 0x00008000;
-  // operator is a potential thread switch point for some reason
-  // other than being a call/immedPEI
-  private static final int tsp          = 0x00010000;
-  // operator is an acquire (monitorenter/lock) HIR only
-  private static final int acquire      = 0x00020000;
-  // operator is a relase (monitorexit/unlock) HIR only
-  private static final int release      = 0x00040000;
-  // operator either directly or indirectly may casue dynamic linking
-  private static final int dynLink      = 0x00080000;
-  // operator is a yield point
-  private static final int yieldPoint   = 0x00100000;
-  // operator pops floating-point stack after performing defs
-  private static final int fpPop        = 0x00200000;
-  // operator pushs floating-point stack before performing defs
-  private static final int fpPush       = 0x00400000;
-  // operator is commutative
-  private static final int commutative  = 0x00800000;
-
   /**
    * Does the operator represent a simple move (the value is unchanged)
    * from one "register" location to another "register" location?
@@ -336,7 +346,7 @@ $$$$ END IF
    *         intraprocedural branch or <code>false</code> if it is not.
    */
   public boolean isConditionalBranch() {
-    return (traits & (branch|conditional)) == (branch|conditional);
+    return (traits & (branch | conditional)) == (branch | conditional);
   }
 
   /**
@@ -351,7 +361,7 @@ $$$$ END IF
    *         intraprocedural branch or <code>false</code> if it is not.
    */
   public boolean isUnconditionalBranch() {
-    return (traits & (branch|conditional)) == branch;
+    return (traits & (branch | conditional)) == branch;
   }
 
   /**
@@ -363,7 +373,7 @@ $$$$ END IF
    *         intraprocedural branch or <code>false</code> if it is not.
    */
   public boolean isDirectBranch() {
-    return (traits & (branch|indirect)) == branch;
+    return (traits & (branch | indirect)) == branch;
   }
 
   /**
@@ -373,7 +383,7 @@ $$$$ END IF
    *         interprocedural branch or <code>false</code> if it is not.
    */
   public boolean isIndirectBranch() {
-    return (traits & (branch|indirect)) == (branch|indirect);
+    return (traits & (branch | indirect)) == (branch | indirect);
   }
 
   /**
@@ -395,7 +405,7 @@ $$$$ END IF
    *         conditional call or <code>false</code> if it is not.
    */
   public boolean isConditionalCall() {
-    return (traits & (call|conditional)) == (call|conditional);
+    return (traits & (call | conditional)) == (call | conditional);
   }
 
   /**
@@ -407,7 +417,7 @@ $$$$ END IF
    *         call or <code>false</code> if it is not.
    */
   public boolean isUnconditionalCall() {
-    return (traits & (call|conditional)) == call;
+    return (traits & (call | conditional)) == call;
   }
 
   /**
@@ -419,7 +429,7 @@ $$$$ END IF
    *         or <code>false</code> if it is not.
    */
   public boolean isDirectCall() {
-    return (traits & (call|indirect)) == call;
+    return (traits & (call | indirect)) == call;
   }
 
   /**
@@ -431,7 +441,7 @@ $$$$ END IF
    *         or <code>false</code> if it is not.
    */
   public boolean isIndirectCall() {
-    return (traits & (call|indirect)) == (call|indirect);
+    return (traits & (call | indirect)) == (call | indirect);
   }
 
   /**
@@ -453,7 +463,7 @@ $$$$ END IF
    *         or <code>false</code> if it is not.
    */
   public boolean isImplicitLoad() {
-    return (traits & (load|memAsLoad|call)) != 0;
+    return (traits & (load | memAsLoad | call)) != 0;
   }
 
   /**
@@ -475,7 +485,7 @@ $$$$ END IF
    *         or <code>false</code> if it is not.
    */
   public boolean isImplicitStore() {
-    return (traits & (store|memAsStore|call)) != 0;
+    return (traits & (store | memAsStore | call)) != 0;
   }
 
   /**
@@ -495,7 +505,7 @@ $$$$ END IF
    *         or <code>false</code> if it is not.
    */
   public boolean isPEI() {
-    return (traits & (ethrow|immedPEI)) != 0;
+    return (traits & (ethrow | immedPEI)) != 0;
   }
 
   /**
@@ -505,7 +515,7 @@ $$$$ END IF
    *         GC point or <code>false</code> if it is not.
    */
   public boolean isGCPoint() {
-    return isPEI() || ((traits & (alloc|tsp)) != 0);
+    return isPEI() || ((traits & (alloc | tsp)) != 0);
   }
 
   /**
@@ -652,139 +662,40 @@ $$$$ END IF
     return (traits & commutative) != 0;
   }
 
-
-$$$$ IF ARCHITECTURE == "NONE"
-  private static final int _empty = 0;
-$$$$ END IF
-  public static final Operator[] OperatorArray = {
-$$$$ FOREACH OPERATOR OperatorList.dat
-$$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
-     new Operator((char)OPERATOR.INDEX, InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,  //OPERATOR.SYMBOL
-$$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
-                      (OPERATOR.TRAITS),
-                      0,0,0,
-$$$$ ELSE
-                      (OPERATOR.TRAITS | InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
-    $$$$ FOREACH OPTYPE InstructionFormatList.dat
-        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
-            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      NUMDEFS, NUMDEFUSES, NUMUSES,
-            $$$$ END SPLIT
-        $$$$ END IF
-     $$$$ END FOREACH
-$$$$ END IF
-$$$$ IF ARCHITECTURE != "NONE"
-                      PhysicalDefUse.maskOPERATOR.IMPLDEFS,
-                      PhysicalDefUse.maskOPERATOR.IMPLUSES),
-$$$$ ELSE
-                      _empty,_empty),
-$$$$ END IF
-$$$$ END IF
-$$$$ END FOREACH
-$$$$ IF ARCHITECTURE != "NONE"
-  //////////////////////////
-  // END   Architecture Independent opcodes.
-  // BEGIN Architecture Dependent opcodes & MIR.
-  //////////////////////////
-$$$$ IF ARCHITECTURE == "ppc"
-  $$$$ FOREACH OPERATOR ARCH_OP_LIST
-     new Operator((char)(OPERATOR.INDEX + Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
-                      InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,
-  $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
-                      (OPERATOR.TRAITS),
-                      0,0,0,
-  $$$$ ELSE
-                      (OPERATOR.TRAITS | InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
-    $$$$ FOREACH OPTYPE InstructionFormatList.dat
-        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
-            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      NUMDEFS, NUMDEFUSES, NUMUSES,
-            $$$$ END SPLIT
-        $$$$ END IF
-     $$$$ END FOREACH
-    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
-        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
-            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      NUMDEFS, NUMDEFUSES, NUMUSES,
-            $$$$ END SPLIT
-        $$$$ END IF
-     $$$$ END FOREACH
-  $$$$ END IF
-                      PhysicalDefUse.maskOPERATOR.IMPLDEFS,
-                      PhysicalDefUse.maskOPERATOR.IMPLUSES,
-                      OPERATOR.MIR_TEMPLATE),
-  $$$$ END FOREACH
-$$$$ ELSE
-  $$$$ FOREACH OPERATOR ARCH_OP_LIST
-     new Operator((char)(OPERATOR.INDEX + Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
-                      InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,
-  $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
-                      (OPERATOR.TRAITS),
-                      0,0,0,
-  $$$$ ELSE
-                      (OPERATOR.TRAITS | InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
-    $$$$ FOREACH OPTYPE InstructionFormatList.dat
-        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
-            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      NUMDEFS, NUMDEFUSES, NUMUSES,
-            $$$$ END SPLIT
-        $$$$ END IF
-     $$$$ END FOREACH
-    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
-        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
-            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      NUMDEFS, NUMDEFUSES, NUMUSES,
-            $$$$ END SPLIT
-        $$$$ END IF
-     $$$$ END FOREACH
-  $$$$ END IF
-                      PhysicalDefUse.maskOPERATOR.IMPLDEFS,
-                      PhysicalDefUse.maskOPERATOR.IMPLUSES),
-  $$$$ END FOREACH
-$$$$ END IF
-$$$$ END IF
-$$$$ IF ARCHITECTURE == "NONE"
-$$$$ IF USE_EXTRA_OPLIST == "TRUE"
-  $$$$ FOREACH OPERATOR ExtraOperatorList.dat
-     new Operator((char)(OPERATOR.INDEX + Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
-                      InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,
-                      (OPERATOR.TRAITS),
-                      0,0,0,
-                      _empty,_empty),
-  $$$$ END FOREACH
-$$$$ END IF
-$$$$ END IF
-     null };
-
-  // For HIR/LIR
-  private Operator(char opcode, byte format, int traits,
-                       int numDefs, int numDefUses, int numUses,
-                       int iDefs, int iUses) {
-    this.opcode       = opcode;
-    this.format       = format;
-    this.traits       = traits;
-    this.numberDefs   = numDefs;
-    this.numberDefUses= numDefUses;
-    this.numberUses   = numUses;
-    this.implicitDefs = iDefs;
-    this.implicitUses = iUses;
+  /**
+   * @return whether this is a operator a call to a routine that will save volatile
+   *  registers
+   */
+  public boolean isCallSaveVolatile() {
+    if (VM.BuildForIA32) {
+      return this == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.CALL_SAVE_VOLATILE;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return this == org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.CALL_SAVE_VOLATILE;
+    }
   }
 
-$$$$ IF ARCHITECTURE == "ppc"
-  // For MIR
-  private Operator(char opcode, byte format, int traits,
-                       int numDefs, int numDefUses, int numUses,
-                       int iDefs, int iUses,
-                       int iTemp) {
-    this.opcode       = opcode;
-    this.format       = format;
-    this.traits       = traits;
-    this.instTemplate = iTemp;
-    this.numberDefs   = numDefs;
-    this.numberDefUses= numDefUses;
-    this.numberUses   = numUses;
-    this.implicitDefs = iDefs;
-    this.implicitUses = iUses;
+  /** @return is this the IA32 ADVISE_ESP operator? */
+  public boolean isAdviseESP() {
+    return VM.BuildForIA32 &&
+      this == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP;
   }
-$$$$ END IF
+
+  /** @return is this the IA32 FNINIT operator? */
+  public boolean isFNInit() {
+    return VM.BuildForIA32 &&
+      this == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FNINIT;
+  }
+
+  /** @return is this the IA32 FCLEAR operator? */
+  public boolean isFClear() {
+    return VM.BuildForIA32 &&
+      this == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCLEAR;
+  }
+
+  /**
+   * @return Instruction template used by the assembler to
+   * generate binary code. Only valid on MIR operators.
+   */
+  public abstract int instTemplate();
 }

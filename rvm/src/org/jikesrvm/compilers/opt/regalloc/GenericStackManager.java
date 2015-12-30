@@ -14,35 +14,25 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
-import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.CONDITION_VALUE;
-import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_VALUE;
-import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FLOAT_VALUE;
-import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_VALUE;
-import static org.jikesrvm.ia32.RegisterConstants.NUM_FPRS;
-import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecificOpt.CallingConvention;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPreferences;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -52,6 +42,16 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * the stackframe.
  */
 public abstract class GenericStackManager extends IRTools {
+
+  /*
+   * Types of values stored in physical registers;
+   * These affect instruction selection for accessing
+   * the data
+   */
+  public static final byte INT_VALUE = 0;
+  public static final byte DOUBLE_VALUE = 1;
+  public static final byte FLOAT_VALUE = 2;
+  public static final byte CONDITION_VALUE = 3;
 
   protected static final boolean DEBUG = false;
   protected static final boolean VERBOSE = false;
@@ -70,18 +70,27 @@ public abstract class GenericStackManager extends IRTools {
   /**
    * Object holding register preferences
    */
-  protected final RegisterPreferences pref = new RegisterPreferences();
+  protected final GenericRegisterPreferences pref;
 
-  RegisterPreferences getPreferences() {
+  {
+    if (VM.BuildForIA32) {
+      pref = new org.jikesrvm.compilers.opt.regalloc.ia32.RegisterPreferences();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      pref = new org.jikesrvm.compilers.opt.regalloc.ppc.RegisterPreferences();
+    }
+  }
+
+  GenericRegisterPreferences getPreferences() {
     return pref;
   }
 
   /**
    * Object holding register restrictions
    */
-  protected RegisterRestrictions restrict;
+  protected GenericRegisterRestrictions restrict;
 
-  RegisterRestrictions getRestrictions() {
+  GenericRegisterRestrictions getRestrictions() {
     return restrict;
   }
 
@@ -89,7 +98,7 @@ public abstract class GenericStackManager extends IRTools {
    * Spill pointer (in bytes) relative to the beginning of the
    * stack frame (starts after the header).
    */
-  protected int spillPointer = ArchitectureSpecific.ArchConstants.STACKFRAME_HEADER_SIZE;
+  protected int spillPointer = StackFrameLayout.getStackFrameHeaderSize();
 
   /**
    * Have we decided that a stack frame is required for this method?
@@ -131,15 +140,15 @@ public abstract class GenericStackManager extends IRTools {
    * An array which holds the spill location number used to stash nonvolatile
    * registers.
    */
-  protected final int[] nonVolatileGPRLocation = new int[NUM_GPRS];
-  protected final int[] nonVolatileFPRLocation = new int[NUM_FPRS];
+  protected final int[] nonVolatileGPRLocation = new int[ArchConstants.getNumberOfGPRs()];
+  protected final int[] nonVolatileFPRLocation = new int[ArchConstants.getNumberOfFPRs()];
 
   /**
    * An array which holds the spill location number used to stash volatile
    * registers in the SaveVolatile protocol.
    */
-  protected final int[] saveVolatileGPRLocation = new int[NUM_GPRS];
-  protected final int[] saveVolatileFPRLocation = new int[NUM_FPRS];
+  protected final int[] saveVolatileGPRLocation = new int[ArchConstants.getNumberOfGPRs()];
+  protected final int[] saveVolatileFPRLocation = new int[ArchConstants.getNumberOfFPRs()];
 
   /**
    * An object used to track adjustments to the GC maps induced by scratch
@@ -731,7 +740,7 @@ public abstract class GenericStackManager extends IRTools {
    * @return the scratch register that will hold the value
    */
   private ScratchRegister createScratchBefore(RegisterAllocatorState regAllocState, Instruction s, Register r, Register symb) {
-    int type = PhysicalRegisterSet.getPhysicalRegisterType(r);
+    int type = GenericPhysicalRegisterSet.getPhysicalRegisterType(r);
     int spillLocation = regAllocState.getSpill(r);
     if (spillLocation <= 0) {
       // no spillLocation yet assigned to the physical register.
@@ -862,7 +871,7 @@ public abstract class GenericStackManager extends IRTools {
    * @throws OptimizingCompilerException if no free FPR was found
    */
   private Register getFirstFPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
     for (Enumeration<Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements();) {
@@ -888,7 +897,7 @@ public abstract class GenericStackManager extends IRTools {
    * @return {@code null} if no register found, a dead and unused FPR otherwise
    */
   private Register getFirstDeadFPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
     for (Enumeration<Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements();) {
@@ -912,7 +921,7 @@ public abstract class GenericStackManager extends IRTools {
    * @return a free GPR
    */
   private Register getFirstGPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration<Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements();) {
       Register p = e.nextElement();
@@ -942,7 +951,7 @@ public abstract class GenericStackManager extends IRTools {
    * @return {@code null} if no register found, a dead and unused GPR otherwise
    */
   private Register getFirstDeadGPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration<Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements();) {
       Register p = e.nextElement();
@@ -972,13 +981,13 @@ public abstract class GenericStackManager extends IRTools {
     if (VM
         .BuildForIA32 &&
                       r.isFloatingPoint() &&
-                      (Operators.helper.isFNInit(s.operator()) || Operators.helper.isFClear(s.operator()))) {
+                      (s.operator().isFNInit() || s.operator().isFClear())) {
       return true;
     }
 
     // Assume that all volatile registers 'appear' in all call
     // instructions
-    return s.isCall() && s.operator() != CALL_SAVE_VOLATILE && r.isVolatile();
+    return s.isCall() && !s.operator().isCallSaveVolatile() && r.isVolatile();
   }
 
   /**
@@ -1169,7 +1178,12 @@ public abstract class GenericStackManager extends IRTools {
 
         // deal with sys calls that may bash non-volatiles
         if (isSysCall(s)) {
-          CallingConvention.saveNonvolatilesAroundSysCall(s, ir);
+          if (VM.BuildForIA32) {
+            org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.saveNonvolatilesAroundSysCall(s, ir);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+            org.jikesrvm.compilers.opt.regalloc.ppc.CallingConvention.saveNonvolatilesAroundSysCall(s, ir);
+          }
         }
       }
     }
@@ -1412,7 +1426,12 @@ l   */
     ir.compiledMethod.setUnsignedExceptionOffset(caughtExceptionOffset);
 
     // (5) initialize the restrictions object
-    restrict = new RegisterRestrictions(ir.regpool.getPhysicalRegisterSet());
+    if (VM.BuildForIA32) {
+      restrict = new org.jikesrvm.compilers.opt.regalloc.ia32.RegisterRestrictions(ir.regpool.getPhysicalRegisterSet());
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      restrict = new org.jikesrvm.compilers.opt.regalloc.ppc.RegisterRestrictions(ir.regpool.getPhysicalRegisterSet());
+    }
   }
 
   /**
@@ -1431,9 +1450,9 @@ l   */
    *  @return the allocated register or null
    */
   public final Register allocateVolatileRegister(Register symbReg) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    int physType = PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
+    int physType = GenericPhysicalRegisterSet.getPhysicalRegisterType(symbReg);
     for (Enumeration<Register> e = phys.enumerateVolatiles(physType); e.hasMoreElements();) {
       Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
@@ -1482,8 +1501,8 @@ l   */
    *  @return the allocated register or null
    */
   public final Register allocateNonVolatileRegister(Register symbReg) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int physType = PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    int physType = GenericPhysicalRegisterSet.getPhysicalRegisterType(symbReg);
     for (Enumeration<Register> e = phys.enumerateNonvolatilesBackwards(physType); e.hasMoreElements();) {
       Register realReg = e.nextElement();
       if (realReg.isAvailable()) {

@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.ia32.RegisterConstants;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Address;

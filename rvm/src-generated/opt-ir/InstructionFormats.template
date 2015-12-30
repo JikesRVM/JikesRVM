@@ -48,7 +48,7 @@ public abstract class InstructionFormat {
    * if the instruction is mutated.
    */
 $$$$ LET MINOPERANDS 5
-  static final int MIN_OPERAND_ARRAY_LENGTH = MINOPERANDS;
+  protected static final int MIN_OPERAND_ARRAY_LENGTH = MINOPERANDS;
 
   /** Typecode for the Unassigned InstructionFormat */
   public static final byte Unassigned_format = 0;
@@ -58,14 +58,8 @@ $$$$ LET MINOPERANDS 5
   public static final byte OPTYPE.NAME_format = TYPEINDEX;
   $$$$ END LET
   $$$$ END FOREACH
-  $$$$ IF ARCHITECTURE != "NONE"
-    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
-  /** Typecode for the OPTYPE.NAME InstructionFormat */
-  public static final byte OPTYPE.NAME_format = ARCH_INDEPENDENT_INSTR_FORMAT_END_format+OPTYPE.INDEX;
-    $$$$ END FOREACH
-  $$$$ END IF
 
-$$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat ARCH_IF_LIST
+$$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat
 $$$$ FOREACH OPTYPE INSTR_FORMAT_FILE
 $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
 $$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
@@ -119,7 +113,7 @@ $$$$ END LOOP
     }
 }
 
-$$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat ARCH_IF_LIST
+$$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat
 $$$$ FOREACH OPTYPE INSTR_FORMAT_FILE
 $$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
 $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
@@ -135,12 +129,6 @@ $$$$ LET NUMFIXEDOPS NUMDEFS+NUMDEFUSES+NUMUSES
 package INSTRFMTPKG;
 
 import org.jikesrvm.Configuration;
-$$$$ IF ARCHITECTURE == "ia32"
-import org.jikesrvm.compilers.opt.ir.operand.ARCHPKG.IA32ConditionOperand; //NOPMD
-$$$$ ELSE
-import org.jikesrvm.compilers.opt.ir.operand.ARCHPKG.PowerPCConditionOperand;
-import org.jikesrvm.compilers.opt.ir.operand.ARCHPKG.PowerPCTrapOperand;
-$$$$ END IF
 import org.jikesrvm.compilers.opt.ir.operand.*;
 
 /**
@@ -509,13 +497,13 @@ $$$$ LET DOLLARS "$$$$"
     if (Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
   $$$$ IF "VARDORU" != ""
     $$$$ IF "NUMVAR" eq 1
-    Instruction i = new Instruction(o, Math.max(NUMFIXEDOPS+numVarOps, MIN_OPERAND_ARRAY_LENGTH));
+    Instruction i = Instruction.create(o, Math.max(NUMFIXEDOPS+numVarOps, MIN_OPERAND_ARRAY_LENGTH));
     $$$$ ELSE
-    Instruction i = new Instruction(o, Math.max(NUMFIXEDOPS+numVarOps*NUMVAR, MIN_OPERAND_ARRAY_LENGTH));
+    Instruction i = Instruction.create(o, Math.max(NUMFIXEDOPS+numVarOps*NUMVAR, MIN_OPERAND_ARRAY_LENGTH));
     $$$$ END IF
   $$$$ ELSE
     $$$$ LET NUMOPERANDS @IF(NUMFIXEDOPS > MINOPERANDS, NUMFIXEDOPS, MINOPERANDS)
-    Instruction i = new Instruction(o, NUMOPERANDS);
+    Instruction i = Instruction.create(o, NUMOPERANDS);
     $$$$ END LET
   $$$$ END IF
   $$$$ LOOP PARAM OPTYPE.SIG
@@ -569,7 +557,7 @@ $$$$ LET DOLLARS "$$$$"
     if (Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
     $$$$ LET NUMOPRNDS_SPEC NUMFIXEDOPS+NVARARGS
     $$$$ LET NUMOPERANDS @IF(NUMOPRNDS_SPEC > MINOPERANDS, NUMOPRNDS_SPEC, MINOPERANDS)
-    Instruction i = new Instruction(o, NUMOPERANDS);
+    Instruction i = Instruction.create(o, NUMOPERANDS);
     $$$$ END LET
     $$$$ END LET
     $$$$ LOOP PARAM OPTYPE.SIG
@@ -751,32 +739,28 @@ $$$$ FOREACH CSIG CommonOperands.dat
 package INSTRFMTPKG;
 
 import org.jikesrvm.Configuration;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.operand.*;
 
 /**
  * InstructionFormats that have a CNAME (which is CTYPE)
  */
 public final class CNAMECarrier extends InstructionFormat {
-  private static final int[] _index = {
-           -1    // Unassigned
-  $$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat ARCH_IF_LIST
-  $$$$ FOREACH OPTYPE INSTR_FORMAT_FILE
-  $$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
-    $$$$ JOIN ALLSIGS " " "" OPTYPE.SIG
-    $$$$ IF "ALLSIGS" =~ " CNAME CTYPE"
-      $$$$ LOOP PARAM OPTYPE.SIG
-        $$$$ IF " PARAM" =~ " CNAME CTYPE"
-           , PARAM.INDEX    // OPTYPE.NAME
-        $$$$ END IF
-      $$$$ END LOOP
-    $$$$ ELSE
-           , -1    // OPTYPE.NAME
-    $$$$ END IF
-    $$$$ END JOIN
-  $$$$ END IF
-  $$$$ END FOREACH
-  $$$$ END LOOP
-        };
+
+  /**
+   * Performs table lookup
+   * @param index the index to lookup
+   * @return the index into the instruction operands that carries the CNAME
+   *   or -1 if not carried
+   */
+  public static int lookup(int index) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.CNAMECarrierLookup.lookup(index);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.CNAMECarrierLookup.lookup(index);
+    }
+  }
 
   /**
    * Does the instruction belong to an instruction format that
@@ -798,7 +782,7 @@ public final class CNAMECarrier extends InstructionFormat {
    *         <code>false</code> if it does not.
    */
   public static boolean conforms(Operator o) {
-    return _index[o.format] != -1;
+    return lookup(o.format) != -1;
   }
 
   /**
@@ -810,7 +794,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static CTYPE getCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator().format];
+    int index = lookup(i.operator().format);
     return (CTYPE) i.getOperand(index);
   }
   /**
@@ -822,7 +806,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static CTYPE getClearCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator().format];
+    int index = lookup(i.operator().format);
     return (CTYPE) i.getClearOperand(index);
   }
   /**
@@ -835,7 +819,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static void setCNAME(Instruction i, CTYPE op) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator().format];
+    int index = lookup(i.operator().format);
     i.putOperand(index, op);
   }
   /**
@@ -847,7 +831,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static int indexOfCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    return _index[i.operator().format];
+    return lookup(i.operator().format);
   }
   /**
    * Does the argument instruction have a non-null
@@ -859,7 +843,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static boolean hasCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator().format];
+    int index = lookup(i.operator().format);
     return i.getOperand(index) != null;
   }
 }

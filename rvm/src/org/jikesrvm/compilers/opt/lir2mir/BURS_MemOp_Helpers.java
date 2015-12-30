@@ -29,6 +29,7 @@ import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.vmmagic.unboxed.Offset;
+import static org.jikesrvm.compilers.opt.ir.IRTools.TG;
 
 /**
  * Contains common BURS helper functions for platforms with memory operands.
@@ -51,11 +52,11 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
   }
 
   // Cost functions better suited to grammars with multiple non-termials
-  protected final int ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost) {
+  protected static int ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost) {
     return ADDRESS_EQUAL(store, load, trueCost, INFINITE);
   }
 
-  protected final int ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost, int falseCost) {
+  protected static int ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost, int falseCost) {
     if (Store.getAddress(store).similar(Load.getAddress(load)) &&
         Store.getOffset(store).similar(Load.getOffset(load))) {
       return trueCost;
@@ -64,11 +65,11 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
     }
   }
 
-  protected final int ARRAY_ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost) {
+  protected static int ARRAY_ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost) {
     return ARRAY_ADDRESS_EQUAL(store, load, trueCost, INFINITE);
   }
 
-  protected final int ARRAY_ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost, int falseCost) {
+  protected static int ARRAY_ADDRESS_EQUAL(Instruction store, Instruction load, int trueCost, int falseCost) {
     if (AStore.getArray(store).similar(ALoad.getArray(load)) && AStore.getIndex(store).similar(ALoad.getIndex(load))) {
       return trueCost;
     } else {

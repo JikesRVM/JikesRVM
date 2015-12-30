@@ -10,11 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.ia32;
+package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.ArchitectureSpecific;
-
-public class CodeArray {
+public final class CodeArray {
   private byte [] data;
 
   public byte get (int index) {
@@ -30,7 +28,7 @@ public class CodeArray {
   }
 
   public static class Factory {
-    public static ArchitectureSpecific.CodeArray create(int numInstrs, boolean isHot) {
+    public static CodeArray create(int numInstrs, boolean isHot) {
       return null;
     }
   }

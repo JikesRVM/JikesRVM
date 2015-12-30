@@ -15,7 +15,7 @@ package org.jikesrvm.objectmodel;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;

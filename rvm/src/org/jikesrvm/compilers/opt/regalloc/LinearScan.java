@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
@@ -36,11 +35,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
                                             new OptimizationPlanAtomicElement(new UpdateGCMaps2()),
                                             new OptimizationPlanAtomicElement(new UpdateOSRMaps()),});
   }
-
-  /**
-   * Mark FMOVs that end a live range?
-   */
-  static final boolean MUTATE_FMOV = VM.BuildForIA32;
 
   /*
    * debug flags

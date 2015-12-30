@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.ArchitectureSpecific.JNICompiler;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
@@ -97,6 +96,12 @@ public abstract class BootImageCompiler {
    */
   public static CompiledMethod compile(NativeMethod method) {
     Callbacks.notifyMethodCompile(method, CompiledMethod.JNI);
-    return JNICompiler.compile(method);
+
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.jni.ia32.JNICompiler.compile(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.jni.ppc.JNICompiler.compile(method);
+    }
   }
 }

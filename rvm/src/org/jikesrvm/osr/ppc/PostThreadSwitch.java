@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.osr.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
@@ -40,7 +40,7 @@ public abstract class PostThreadSwitch implements BaselineConstants {
     * the new code get executed.
     */
     // add branch instruction from CTR.
-    ArchitectureSpecific.CodeArray bridge = myThread.bridgeInstructions;
+    CodeArray bridge = myThread.bridgeInstructions;
 
     Address bridgeaddr = Magic.objectAsAddress(bridge);
 

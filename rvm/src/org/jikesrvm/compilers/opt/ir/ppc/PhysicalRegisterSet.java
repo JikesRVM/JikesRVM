@@ -17,6 +17,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.util.Enumeration;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -56,18 +57,18 @@ import org.jikesrvm.ppc.RegisterConstants;
  * using getPrev().
  * <P> TODO; clean up all this and provide appropriate enumerators
  */
-public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
+public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     implements RegisterConstants, PhysicalRegisterConstants {
 
   /**
    * This array holds a pool of objects representing physical registers
    */
-  private Register[] reg = new Register[getSize()];
+  private final Register[] reg = new Register[getSize()];
 
   /**
    * The set of volatile registers; cached for efficiency
    */
-  private BitSet volatileSet;
+  private final BitSet volatileSet;
 
   /**
    * The condition registers that we allocate
@@ -82,26 +83,26 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   private static final int TSR_REG = 7;
 
   /**
-   * Return the total number of physical registers.
+   * @return the total number of physical registers.
    */
   public static int getSize() {
     return NUM_GPRS + NUM_FPRS + NUM_CRS + NUM_SPECIALS;
   }
 
   @Override
-  public final int getNumberOfPhysicalRegisters() {
+  public int getNumberOfPhysicalRegisters() {
     return getSize();
   }
 
   /**
-   * Return the total number of nonvolatile GPRs.
+   * @return the total number of nonvolatile GPRs.
    */
   public static int getNumberOfNonvolatileGPRs() {
     return NUM_NONVOLATILE_GPRS;
   }
 
   /**
-   * Return the total number of nonvolatile FPRs.
+   * @return the total number of nonvolatile FPRs.
    */
   public static int getNumberOfNonvolatileFPRs() {
     return NUM_NONVOLATILE_FPRS;
@@ -139,51 +140,54 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     }
 
     // 5. set up the volatile GPRs
-    for (int i = FIRST_VOLATILE_GPR; i < LAST_VOLATILE_GPR; i++) {
+    for (int i = FIRST_VOLATILE_GPR.value(); i < LAST_VOLATILE_GPR.value(); i++) {
       Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
-    reg[LAST_VOLATILE_GPR].setVolatile();
-    reg[LAST_VOLATILE_GPR].linkWithNext(reg[FIRST_SCRATCH_GPR]);
-    for (int i = FIRST_SCRATCH_GPR; i < LAST_SCRATCH_GPR; i++) {
+    reg[LAST_VOLATILE_GPR.value()].setVolatile();
+    reg[LAST_VOLATILE_GPR.value()].linkWithNext(reg[FIRST_SCRATCH_GPR.value()]);
+    for (int i = FIRST_SCRATCH_GPR.value(); i < LAST_SCRATCH_GPR.value(); i++) {
       Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
-    reg[LAST_SCRATCH_GPR].setVolatile();
+    reg[LAST_SCRATCH_GPR.value()].setVolatile();
 
     // 6. set up the non-volatile GPRs
-    for (int i = FIRST_NONVOLATILE_GPR; i < LAST_NONVOLATILE_GPR; i++) {
+    for (int i = FIRST_NONVOLATILE_GPR.value(); i < LAST_NONVOLATILE_GPR.value(); i++) {
       Register r = reg[i];
       r.setNonVolatile();
       r.linkWithNext(reg[i + 1]);
     }
 
     // 7. set properties on some special registers
-    reg[THREAD_REGISTER].setSpansBasicBlock();
-    reg[FRAME_POINTER].setSpansBasicBlock();
-    reg[JTOC_POINTER].setSpansBasicBlock();
+    reg[THREAD_REGISTER.value()].setSpansBasicBlock();
+    reg[FRAME_POINTER.value()].setSpansBasicBlock();
+    reg[JTOC_POINTER.value()].setSpansBasicBlock();
 
     // 8. set up the volatile FPRs
-    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE + LAST_VOLATILE_FPR; i++) {
+    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR.value();
+         i < FIRST_DOUBLE + LAST_VOLATILE_FPR.value(); i++) {
       Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
-    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].linkWithNext(reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR]);
-    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].setVolatile();
+    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR.value()].linkWithNext(reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR.value()]);
+    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR.value()].setVolatile();
     if (FIRST_SCRATCH_FPR != LAST_SCRATCH_FPR) {
-      for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR; i < FIRST_DOUBLE + LAST_SCRATCH_FPR; i++) {
+      for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR.value();
+           i < FIRST_DOUBLE + LAST_SCRATCH_FPR.value(); i++) {
         Register r = reg[i];
         r.setVolatile();
         r.linkWithNext(reg[i + 1]);
       }
     }
-    reg[FIRST_DOUBLE + LAST_SCRATCH_FPR].setVolatile();
+    reg[FIRST_DOUBLE + LAST_SCRATCH_FPR.value()].setVolatile();
 
     // 9. set up the non-volatile FPRs
-    for (int i = FIRST_DOUBLE + FIRST_NONVOLATILE_FPR; i < FIRST_DOUBLE + LAST_NONVOLATILE_FPR; i++) {
+    for (int i = FIRST_DOUBLE + FIRST_NONVOLATILE_FPR.value();
+         i < FIRST_DOUBLE + LAST_NONVOLATILE_FPR.value(); i++) {
       Register r = reg[i];
       r.setNonVolatile();
       r.linkWithNext(reg[i + 1]);
@@ -216,22 +220,22 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     reg[TU].setExcludedLiveA();
     reg[TL].setExcludedLiveA();
     reg[XER].setExcludedLiveA();
-    reg[FRAME_POINTER].setExcludedLiveA();
-    reg[JTOC_POINTER].setExcludedLiveA();
+    reg[FRAME_POINTER.value()].setExcludedLiveA();
+    reg[JTOC_POINTER.value()].setExcludedLiveA();
     reg[LR].setExcludedLiveA();
   }
 
   /**
    * Is a certain physical register allocatable?
    */
+  @Override
   public boolean isAllocatable(Register r) {
-    switch (r.number) {
-      case THREAD_REGISTER:
-      case FRAME_POINTER:
-      case JTOC_POINTER:
-        return false;
-      default:
-        return (r.number < FIRST_SPECIAL);
+    if (r.number == THREAD_REGISTER.value() ||
+        r.number == FRAME_POINTER.value() ||
+        r.number == JTOC_POINTER.value()) {
+      return false;
+    } else {
+      return (r.number < FIRST_SPECIAL);
     }
   }
 
@@ -281,17 +285,17 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * @return the JTOC register
    */
   public Register getJTOC() {
-    return reg[JTOC_POINTER];
+    return reg[JTOC_POINTER.value()];
   }
 
   @Override
   public Register getFP() {
-    return reg[FRAME_POINTER];
+    return reg[FRAME_POINTER.value()];
   }
 
   @Override
   public Register getTR() {
-    return reg[THREAD_REGISTER];
+    return reg[THREAD_REGISTER.value()];
   }
 
   /**
@@ -307,38 +311,46 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
+   * @return the nth physical GPR
+   */
+  @Override
+  public Register getGPR(MachineRegister n) {
+    return reg[FIRST_INT + n.value()];
+  }
+
+  /**
    * @return the first scratch GPR
    */
   public Register getFirstScratchGPR() {
-    return reg[FIRST_SCRATCH_GPR];
+    return reg[FIRST_SCRATCH_GPR.value()];
   }
 
   /**
    * @return the last scratch GPR
    */
   public Register getLastScratchGPR() {
-    return reg[LAST_SCRATCH_GPR];
+    return reg[LAST_SCRATCH_GPR.value()];
   }
 
   /**
    * @return the first volatile GPR
    */
   public Register getFirstVolatileGPR() {
-    return reg[FIRST_INT + FIRST_VOLATILE_GPR];
+    return reg[FIRST_INT + FIRST_VOLATILE_GPR.value()];
   }
 
   /**
    * @return the first nonvolatile GPR
    */
   public Register getFirstNonvolatileGPR() {
-    return reg[FIRST_INT + FIRST_NONVOLATILE_GPR];
+    return reg[FIRST_INT + FIRST_NONVOLATILE_GPR.value()];
   }
 
   /**
    * @return the last nonvolatile GPR
    */
   public Register getLastNonvolatileGPR() {
-    return reg[FIRST_INT + LAST_NONVOLATILE_GPR];
+    return reg[FIRST_INT + LAST_NONVOLATILE_GPR.value()];
   }
 
   @Override
@@ -355,38 +367,39 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * @return the first scratch FPR
    */
   public Register getFirstScratchFPR() {
-    return reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR];
+    return reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR.value()];
   }
 
   /**
    * @return the first volatile FPR
    */
   public Register getFirstVolatileFPR() {
-    return reg[FIRST_DOUBLE + FIRST_VOLATILE_FPR];
+    return reg[FIRST_DOUBLE + FIRST_VOLATILE_FPR.value()];
   }
 
   /**
    * @return the last scratch FPR
    */
   public Register getLastScratchFPR() {
-    return reg[FIRST_DOUBLE + LAST_SCRATCH_FPR];
+    return reg[FIRST_DOUBLE + LAST_SCRATCH_FPR.value()];
   }
 
   /**
    * @return the first nonvolatile FPR
    */
   public Register getFirstNonvolatileFPR() {
-    return reg[FIRST_DOUBLE + FIRST_NONVOLATILE_FPR];
+    return reg[FIRST_DOUBLE + FIRST_NONVOLATILE_FPR.value()];
   }
 
   /**
    * @return the last nonvolatile FPR
    */
   public Register getLastNonvolatileFPR() {
-    return reg[FIRST_DOUBLE + LAST_NONVOLATILE_FPR];
+    return reg[FIRST_DOUBLE + LAST_NONVOLATILE_FPR.value()];
   }
 
   /**
+   * @param n number of the condition register
    * @return the nth physical condition register
    */
   public Register getConditionRegister(int n) {
@@ -477,8 +490,12 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * Given a physical register (XER, LR, or CTR), return the integer that
    * denotes the PowerPC Special Purpose Register (SPR) in the PPC
    * instruction set.  See p.129 of PPC ISA book
+   *
+   * @param r a physical register (XER, LR or CTR)
+   * @return the integer that denotes the PowerPC Special Purpose Register (SPR)
+   *  in the PPC  instruction set.
    */
-  public final byte getSPR(Register r) {
+  public byte getSPR(Register r) {
     if (VM.VerifyAssertions) {
       VM._assert((r == getXER()) || (r == getLR()) || (r == getCTR()));
     }
@@ -511,9 +528,9 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     for (int i = 0; i < NUM_CRS; i++) {
       regName[i + FIRST_CONDITION] = "C" + i;
     }
-    regName[JTOC_POINTER] = "JTOC";
-    regName[FRAME_POINTER] = "FP";
-    regName[THREAD_REGISTER] = "TR";
+    regName[JTOC_POINTER.value()] = "JTOC";
+    regName[FRAME_POINTER.value()] = "FP";
+    regName[THREAD_REGISTER.value()] = "TR";
     regName[XER] = "XER";
     regName[LR] = "LR";
     regName[CTR] = "CTR";
@@ -532,7 +549,8 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Get the register name for a register with a particular number in the
+   * @param number a register number
+   * @return the register name for a register with a particular number in the
    * pool
    */
   public static String getName(int number) {
@@ -540,8 +558,9 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Get the spill size for a register with a particular type
+   * Gets the spill size for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
+   * @return the spill size in bytes
    */
   public static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
@@ -555,8 +574,9 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Get the required spill alignment for a register with a particular type
+   * Gets the required spill alignment for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
+   * @return the alignment in bytes
    */
   public static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
@@ -581,19 +601,21 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
 
   @Override
   public Enumeration<Register> enumerateVolatileGPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_VOLATILE_GPR, FIRST_INT + LAST_SCRATCH_GPR);
+    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_VOLATILE_GPR.value(), FIRST_INT + LAST_SCRATCH_GPR.value());
   }
 
   static {
     // enumerateVolatileGPRs relies on volatiles & scratches being
     // contiguous; so let's make sure that is the case!
     if (VM.VerifyAssertions) {
-      VM._assert(LAST_VOLATILE_GPR + 1 == FIRST_SCRATCH_GPR);
+      VM._assert(LAST_VOLATILE_GPR.value() + 1 == FIRST_SCRATCH_GPR.value());
     }
   }
 
   /**
    * Enumerate the first n GPR parameters.
+   * @param n count of GPR parameters to enumerate
+   * @return enumeration of the first n GPR parameters
    */
   public Enumeration<Register> enumerateGPRParameters(int n) {
     if (VM.VerifyAssertions) {
@@ -604,7 +626,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
 
   @Override
   public Enumeration<Register> enumerateNonvolatileGPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_NONVOLATILE_GPR, FIRST_INT + LAST_NONVOLATILE_GPR);
+    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_NONVOLATILE_GPR.value(), FIRST_INT + LAST_NONVOLATILE_GPR.value());
   }
 
   @Override
@@ -613,17 +635,20 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Enumerate all the volatile FPRs in this set.
+   * Enumerates all the volatile FPRs in this set.
    * NOTE: This assumes the scratch FPRs are numbered immediately
-   * <em> before</em> the volatile FPRs
+   * <em> before</em> the volatile FPRs.
+   * @return an enumeration containing all volatile FPRs in this set
    */
   @Override
   public Enumeration<Register> enumerateVolatileFPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_SCRATCH_FPR, FIRST_DOUBLE + LAST_VOLATILE_FPR);
+    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_SCRATCH_FPR.value(), FIRST_DOUBLE + LAST_VOLATILE_FPR.value());
   }
 
   /**
-   * Enumerate the first n FPR parameters.
+   * Enumerates the first n FPR parameters.
+   * @param n count of FPR parameters
+   * @return an enumeration containing the firs n FPRs
    */
   public Enumeration<Register> enumerateFPRParameters(int n) {
     if (VM.VerifyAssertions) {
@@ -634,12 +659,13 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
 
   @Override
   public Enumeration<Register> enumerateNonvolatileFPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_NONVOLATILE_FPR, FIRST_DOUBLE + LAST_NONVOLATILE_FPR);
+    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_NONVOLATILE_FPR.value(), FIRST_DOUBLE + LAST_NONVOLATILE_FPR.value());
   }
 
   /**
-   * Enumerate the volatile physical condition registers.
+   * Enumerates the volatile physical condition registers.
    * Note that the TSR is non-volatile.
+   * @return an enumeration of the volatile condition registers
    */
   public Enumeration<Register> enumerateVolatileConditionRegisters() {
     return new Enumeration<Register>() {
@@ -658,8 +684,10 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Enumerate the non-volatile physical condition registers.
+   * Enumerates the non-volatile physical condition registers.
    * Note that only the TSR is non-volatile.
+   *
+   * @return an enumeration containing only TSR
    */
   public Enumeration<Register> enumerateNonvolatileConditionRegisters() {
     return new PhysicalRegisterEnumeration(0, -1);
@@ -668,7 +696,10 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate the volatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, CONDITION_REG
+   * @return enumeration containing the physical registers of the
+   *  desired class
    */
+  @Override
   public Enumeration<Register> enumerateVolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
@@ -693,7 +724,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Return a set of all the volatile registers.
+   * @return a set of all the volatile registers.
    */
   public BitSet getVolatiles() {
     return volatileSet;
@@ -702,6 +733,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate the nonvolatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, CONDITION_REG
+   * @return the non-volatile physical registers of the given class
    */
   public Enumeration<Register> enumerateNonvolatiles(int regClass) {
     switch (regClass) {
@@ -718,20 +750,18 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     }
   }
 
-  /**
-   * Enumerate the nonvolatile physical registers of a given class,
-   * backwards.
-   */
+  @Override
   public Enumeration<Register> enumerateNonvolatilesBackwards(int regClass) {
     return new ReverseEnumerator<Register>(enumerateNonvolatiles(regClass));
   }
 
   /**
-   * If the passed in physical register r is used as a GPR parameter register,
+   * @param r a physical register
+   * @return If the passed in physical register r is used as a GPR parameter register,
    * return the index into the GPR parameters for r.  Otherwise, return -1;
    */
   public int getGPRParamIndex(Register r) {
-    if ((r.number < FIRST_INT_PARAM) || (r.number > LAST_VOLATILE_GPR)) {
+    if ((r.number < FIRST_INT_PARAM) || (r.number > LAST_VOLATILE_GPR.value())) {
       return -1;
     } else {
       return r.number - FIRST_INT_PARAM;
@@ -739,11 +769,12 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * If the passed in physical register r is used as an FPR parameter register,
+   * @param r a physical register
+   * @return If the passed in physical register r is used as an FPR parameter register,
    * return the index into the FPR parameters for r.  Otherwise, return -1;
    */
   public int getFPRParamIndex(Register r) {
-    if ((r.number < FIRST_DOUBLE_PARAM) || (r.number > LAST_VOLATILE_FPR)) {
+    if ((r.number < FIRST_DOUBLE_PARAM) || (r.number > LAST_VOLATILE_FPR.value())) {
       return -1;
     } else {
       return r.number - FIRST_DOUBLE_PARAM;
@@ -751,7 +782,8 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * If r is used as the first half of a (long) register pair, return
+   * @param r a register
+   * @return If r is used as the first half of a (long) register pair, return
    * the second half of the pair.
    */
   public Register getSecondHalf(Register r) {
@@ -763,7 +795,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * An enumerator for use by the physical register utilities.
    */
   final class PhysicalRegisterEnumeration implements Enumeration<Register> {
-    private int end;
+    private final int end;
     private int index;
 
     PhysicalRegisterEnumeration(int start, int end) {

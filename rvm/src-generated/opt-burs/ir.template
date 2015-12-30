@@ -13,9 +13,9 @@
  */
 //ir.brg
 
-/**
- * Generate from ir.template and assembled rules files.
- */
+  /**
+   * Generate from ir.template and assembled rules files.
+   */
 %}
 $$$$ FOREACH OPERATOR ../opt-ir/OperatorList.dat
   $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
@@ -40,33 +40,81 @@ RULE.PRODUCTION		"" RULE.COST
 $$$$ END IF
 $$$$ END FOREACH
 %%
-public static final byte[] action={0
+  /**
+   * For each BURS rule (the number of which provides the index) give its flags byte
+   */
+  private static final byte[] action={
+    0,
 $$$$ FOREACH RULE THE_RULE_FILE
-   ,RULE.FLAGS
-$$$$ END FOREACH
-};
-
-$$$$ FOREACH RULE THE_RULE_FILE
-$$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
   $$$$ LET CASE RULE.INDEX+1
-void codeCASE(BURS_TreeNode p) {
-    RULE.TEMPLATE
-}
+    RULE.FLAGS, // CASE - RULE.PRODUCTION
   $$$$ END LET
-$$$$ END IF
 $$$$ END FOREACH
+  };
 
-public void code(BURS_TreeNode p, int  n, int ruleno) {
-  switch(ruleno) {
-$$$$ FOREACH RULE THE_RULE_FILE
-$$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
-  $$$$ LET CASE RULE.INDEX+1
-  case CASE: codeCASE(p); break;
-  $$$$ END LET
-$$$$ END IF
-$$$$ END FOREACH
-  default:
-    throw new OptimizingCompilerException("BURS","rule without emit code:",BURS_Debug.string[ruleno]);
+  /**
+   * Gets the action flags (such as EMIT_INSTRUCTION) associated with the given
+   * rule number.
+   *
+   * @param ruleno the rule number we want the action flags for
+   * @return the action byte for the rule
+   */
+  @Pure
+  public static byte action(int ruleno) {
+    return action[unsortedErnMap[ruleno]];
   }
-}
+
+  /**
+   * Decode the target non-terminal and minimal cost covering statement
+   * into the rule that produces the non-terminal
+   *
+   * @param goalnt the non-terminal that we wish to produce.
+   * @param stateNT the state encoding the non-terminals associated associated
+   *        with covering a tree with minimal cost (computed by at compile time
+   *        by jburg).
+   * @return the rule number
+   */
+   @Pure
+   public static char decode(int goalnt, int stateNT) {
+     return decode[goalnt][stateNT];
+   }
+
+$$$$ FOREACH RULE THE_RULE_FILE
+$$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
+  $$$$ LET CASE RULE.INDEX+1
+
+  /**
+   * Emit code for rule number CASE:
+   * RULE.PRODUCTION
+   * @param p BURS node to apply the rule to
+   */
+  private void codeCASE(AbstractBURS_TreeNode p) {
+    RULE.TEMPLATE
+  }
+  $$$$ END LET
+$$$$ END IF
+$$$$ END FOREACH
+
+  /**
+   * Emit code using given rule number
+   *
+   * @param p the tree that's being emitted
+   * @param n the non-terminal goal of that tree
+   * @param ruleno the rule that will generate the tree
+   */
+    @Override
+  public void code(AbstractBURS_TreeNode p, int  n, int ruleno) {
+    switch(unsortedErnMap[ruleno]) {
+  $$$$ FOREACH RULE THE_RULE_FILE
+  $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
+    $$$$ LET CASE RULE.INDEX+1
+    case CASE: codeCASE(p); break;
+    $$$$ END LET
+  $$$$ END IF
+  $$$$ END FOREACH
+    default:
+      throw new OptimizingCompilerException("BURS", "rule " + ruleno + " without emit code:",
+        BURS_Debug.string[unsortedErnMap[ruleno]]);
+    }
+  }
 }

@@ -12,13 +12,10 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
-import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer;
-
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMArray;
@@ -39,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
  * Compiler-specific information associated with a method's machine
  * instructions.
  */
-public final class BaselineCompiledMethod extends CompiledMethod implements BaselineConstants {
+public final class BaselineCompiledMethod extends CompiledMethod {
 
   /** Does the baseline compiled method have a counters array? */
   private boolean hasCounters;
@@ -58,7 +55,16 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Baseline exception deliverer object
    */
-  private static final ExceptionDeliverer exceptionDeliverer = new BaselineExceptionDeliverer();
+  private static final ExceptionDeliverer exceptionDeliverer;
+
+  static {
+    if (VM.BuildForIA32) {
+      exceptionDeliverer = new org.jikesrvm.compilers.baseline.ia32.BaselineExceptionDeliverer();
+    } else {
+      exceptionDeliverer = new org.jikesrvm.compilers.baseline.ppc.BaselineExceptionDeliverer();
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    }
+  }
 
   /**
    * Stack-slot reference maps for the compiled method.
@@ -113,7 +119,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    */
   @Uninterruptible
   public short getGeneralLocalLocation(int localIndex) {
-    return BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, (NormalMethod) method);
+    return BaselineCompiler.getGeneralLocalLocation(localIndex, localFixedLocations, (NormalMethod) method);
   }
 
   /**
@@ -128,12 +134,12 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    */
   @Uninterruptible
   public short getFloatLocalLocation(int localIndex) {
-    return BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFloatLocations, (NormalMethod) method);
+    return BaselineCompiler.getFloatLocalLocation(localIndex, localFloatLocations, (NormalMethod) method);
   }
 
   @Uninterruptible
   public short getGeneralStackLocation(int stackIndex) {
-    return BaselineCompilerImpl.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
+    return BaselineCompiler.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
@@ -158,7 +164,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     super(id, m);
     NormalMethod nm = (NormalMethod) m;
     //this.startLocalOffset = BaselineCompilerImpl.getStartLocalOffset(nm);
-    this.emptyStackOffset = (short)BaselineCompilerImpl.getEmptyStackOffset(nm);
+    this.emptyStackOffset = BaselineCompiler.getEmptyStackOffset(nm);
     this.localFixedLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
     this.localFloatLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
     this.lastFixedStackRegister = -1;
@@ -167,7 +173,13 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
 
   /** Compile method */
   public void compile() {
-    BaselineCompilerImpl comp = new BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+    BaselineCompiler comp;
+    if (VM.BuildForIA32) {
+      comp = new org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      comp = new org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+    }
     comp.compile();
     this.lastFixedStackRegister = comp.getLastFixedStackRegister();
     this.lastFloatStackRegister = comp.getLastFloatStackRegister();
@@ -251,7 +263,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    */
   @Uninterruptible
   public int findBytecodeIndexForInstruction(Offset instructionOffset) {
-    Offset instructionIndex = instructionOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+    Offset instructionIndex = instructionOffset.toWord().rsha(ArchConstants.getLogInstructionWidth()).toOffset();
     int candidateIndex = -1;
     int bcIndex = 0;
     Offset instrIndex = Offset.zero();

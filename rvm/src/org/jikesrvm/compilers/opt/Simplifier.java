@@ -23,12 +23,12 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -47,7 +47,6 @@ import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.OperatorNames;
 import org.jikesrvm.compilers.opt.ir.StoreCheck;
 import org.jikesrvm.compilers.opt.ir.Trap;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
@@ -521,7 +520,7 @@ public abstract class Simplifier extends IRTools {
           boolean moveHasConstantRHS = Move.conforms(s) && (Move.getVal(s) instanceof ConstantOperand);
           if (!moveHasConstantRHS) {
             String msg = "RHS of move " + s + " should be constant during simplification of " +
-                OperatorNames.operatorName[opcode];
+                s.operator();
             VM._assert(VM.NOT_REACHED, msg);
           }
           break;
@@ -530,7 +529,7 @@ public abstract class Simplifier extends IRTools {
           boolean moveHasNonConstantRHS = Move.conforms(s) && !(Move.getVal(s) instanceof ConstantOperand);
           if (!moveHasNonConstantRHS) {
             String msg = "RHS of move " + s + " shouldn't be constant during simplification of " +
-                OperatorNames.operatorName[opcode];
+                s.operator();
             VM._assert(moveHasNonConstantRHS, msg);
           }
           break;

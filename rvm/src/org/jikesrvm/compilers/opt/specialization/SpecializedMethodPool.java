@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.specialization;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 
 /**

@@ -15,7 +15,7 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 
 /**
  * A method that is specialized across all reference types.

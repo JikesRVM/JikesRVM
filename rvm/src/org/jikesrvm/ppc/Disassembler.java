@@ -126,9 +126,9 @@ public class Disassembler implements ArchConstants {
   static String rname(int n) {
     String rvmName;
     if (n >= 0 && n <= 31) {
-      rvmName = GPR_NAMES[n];
+      rvmName = GPR.lookup(n).toString();
     } else if (n >= 128 && n <= 135) {
-      rvmName = FPR_NAMES[n - 128];
+      rvmName = FPR.lookup(n - 128).toString();
     } else {
       switch (n) {
         case IAR:
@@ -1003,7 +1003,7 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
     switch (opcode) {
       case 58:
         mnemonic = opcode58[XO].mnemonic;
-        if (mnemonic == "RESERVED") return "    Invalid opcode";
+        if (mnemonic.equals("RESERVED")) return "    Invalid opcode";
         return "        ".substring(mnemonic.length()) +
                mnemonic +
                "   " +
@@ -1015,7 +1015,7 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
                ")";
       case 62:
         mnemonic = opcode62[XO].mnemonic;
-        if (mnemonic == "RESERVED") return "    Invalid opcode";
+        if (mnemonic.equals("RESERVED")) return "    Invalid opcode";
         return "        ".substring(mnemonic.length()) +
                mnemonic +
                "   " +

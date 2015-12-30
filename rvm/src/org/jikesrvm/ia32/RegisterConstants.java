@@ -17,6 +17,7 @@ import static org.jikesrvm.util.Bits.*;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.runtime.Magic;
 
 public interface RegisterConstants {
@@ -31,8 +32,7 @@ public interface RegisterConstants {
   /**
    * Common interface implemented by all registers constants
    */
-  public interface MachineRegister {
-    /** @return encoded value of this register */
+  public interface IntelMachineRegister extends MachineRegister {
     byte value();
     /** @return does this register require a REX prefix byte? */
     boolean needsREXprefix();
@@ -41,13 +41,13 @@ public interface RegisterConstants {
   /**
    * Super interface for floating point registers
    */
-  public interface FloatingPointMachineRegister extends MachineRegister {
+  public interface FloatingPointMachineRegister extends IntelMachineRegister {
   }
 
   /**
    * Representation of general purpose registers
    */
-  public enum GPR implements MachineRegister {
+  public enum GPR implements IntelMachineRegister {
     EAX(0), ECX(1), EDX(2), EBX(3), ESP(4), EBP(5), ESI(6), EDI(7),
     R8(8), R9(9), R10(10), R11(11), R12(12), R13(13), R14(14), R15(15),
     EIP(16);
@@ -175,7 +175,7 @@ public interface RegisterConstants {
    * Representation of MMX MM registers
    * N.B. MM and x87 FPR registers alias
    */
-  public enum MM implements MachineRegister {
+  public enum MM implements IntelMachineRegister {
     MM0(0), MM1(1), MM2(2), MM3(3), MM4(4), MM5(5), MM6(6), MM7(7),
     MM8(8), MM9(9), MM10(10), MM11(11), MM12(12), MM13(13), MM14(14), MM15(15);
     /** Local copy of the backing array. Copied here to avoid calls to clone */

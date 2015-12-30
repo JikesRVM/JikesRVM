@@ -17,13 +17,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -45,11 +44,11 @@ public abstract class GenericRegisterRestrictions {
   // a set of symbolic registers that must not be spilled.
   private final HashSet<Register> noSpill = new HashSet<Register>();
 
-  protected final PhysicalRegisterSet phys;
+  protected final GenericPhysicalRegisterSet phys;
 
   protected RegisterAllocatorState regAllocState;
 
-  protected GenericRegisterRestrictions(PhysicalRegisterSet phys) {
+  protected GenericRegisterRestrictions(GenericPhysicalRegisterSet phys) {
     this.phys = phys;
   }
 
@@ -124,7 +123,7 @@ public abstract class GenericRegisterRestrictions {
     // case.
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
-      if (s.operator().isCall() && s.operator() != CALL_SAVE_VOLATILE) {
+      if (s.operator().isCall() && !s.operator().isCallSaveVolatile()) {
         for (LiveIntervalElement symb : symbolic) {
           if (contains(symb, regAllocState.getDFN(s))) {
             forbidAllVolatiles(symb.getRegister());
@@ -352,7 +351,7 @@ public abstract class GenericRegisterRestrictions {
       noVolatiles = true;
     }
 
-    RestrictedRegisterSet(PhysicalRegisterSet phys) {
+    RestrictedRegisterSet(GenericPhysicalRegisterSet phys) {
       bitset = new BitSet(phys);
     }
 

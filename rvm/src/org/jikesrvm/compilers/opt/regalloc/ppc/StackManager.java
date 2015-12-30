@@ -12,80 +12,80 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
-import java.util.Enumeration;
-import java.util.Iterator;
-import org.jikesrvm.VM;
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.CALL_SAVE_VOLATILE;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_ADDI;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BCTRL_SYS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BLR_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BL_SYS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_CMPI;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_FMR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_FMR_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LAddr;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LAddr_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LDI;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LDIS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LFD;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LFD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LFS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LFS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LInt;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LInt_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LMW;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LWZ;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LWZ_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MFSPR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MOVE;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MTSPR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_ORI;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STAddr;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STAddrU;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STFD;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STFS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STMW;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STW;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_TAddr;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.DOUBLE_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACK_SIZE_GUARD;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.util.Bits.PPCMaskLower16;
+import static org.jikesrvm.util.Bits.fits;
+
+import java.util.Enumeration;
+import java.util.Iterator;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.MIR_Binary;
-import org.jikesrvm.compilers.opt.ir.MIR_Load;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Store;
-import org.jikesrvm.compilers.opt.ir.MIR_StoreUpdate;
-import org.jikesrvm.compilers.opt.ir.MIR_Trap;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ADDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCTRL_SYS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BLR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BL_SYS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_CMPI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_FMR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_FMR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LAddr_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LDIS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFS_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LInt;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LInt_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LMW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LWZ;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LWZ_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MFSPR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MTSPR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ORI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STAddrU;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STMW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_TAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Binary;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Load;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Store;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_StoreUpdate;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Trap;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.CONDITION_VALUE;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.DOUBLE_REG;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.DOUBLE_VALUE;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_SCRATCH_GPR;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FLOAT_VALUE;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.INT_REG;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.INT_VALUE;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
-import static org.jikesrvm.util.Bits.*;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
-import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
-import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
-import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
-import static org.jikesrvm.ppc.StackframeLayoutConstants.STACK_SIZE_GUARD;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -95,14 +95,14 @@ import org.vmmagic.unboxed.Offset;
  * functions.
  * <p>
  */
-public abstract class StackManager extends GenericStackManager {
+public final class StackManager extends GenericStackManager {
 
   /**
-   * stack locaiton to save the XER register
+   * stack location to save the XER register
    */
   private int saveXERLocation;
   /**
-   * stack locaiton to save the CTR register
+   * stack location to save the CTR register
    */
   private int saveCTRLocation;
 
@@ -111,7 +111,7 @@ public abstract class StackManager extends GenericStackManager {
    * @return size in bytes of the fixed portion of the stackframe
    */
   @Override
-  public final int getFrameFixedSize() {
+  public int getFrameFixedSize() {
     return frameSize;
   }
 
@@ -123,7 +123,7 @@ public abstract class StackManager extends GenericStackManager {
    * @return the spill location
    */
   @Override
-  public final int allocateNewSpillLocation(int type) {
+  public int allocateNewSpillLocation(int type) {
     int spillSize = PhysicalRegisterSet.getSpillSize(type);
 
     // Naturally align the spill pointer
@@ -195,10 +195,9 @@ public abstract class StackManager extends GenericStackManager {
    * @param location the spill location
    */
   @Override
-  public final void insertSpillBefore(Instruction s, Register r, byte type, int location) {
+  public void insertSpillBefore(Instruction s, Register r, byte type, int location) {
 
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    Register FP = phys.getFP();
+    Register FP = ir.regpool.getPhysicalRegisterSet().getFP();
     if (type == FLOAT_VALUE) {
       s.insertBefore(MIR_Store.create(PPC_STFS, F(r), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
     } else if (type == DOUBLE_VALUE) {
@@ -213,7 +212,7 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Create an MIR instruction to move rhs into lhs
    */
-  final Instruction makeMoveInstruction(Register lhs, Register rhs) {
+  Instruction makeMoveInstruction(Register lhs, Register rhs) {
     if (rhs.isFloatingPoint() && lhs.isFloatingPoint()) {
       return MIR_Move.create(PPC_FMR, D(lhs), D(rhs));
       //} else if (rhs.isInteger() && lhs.isInteger()) { // integer
@@ -235,9 +234,8 @@ public abstract class StackManager extends GenericStackManager {
    * @param location the spill location
    */
   @Override
-  public final void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
-
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+  public void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     Register FP = phys.getFP();
     if (type == CONDITION_VALUE) {
       Register temp = phys.getTemp();
@@ -267,10 +265,10 @@ public abstract class StackManager extends GenericStackManager {
     restoreNonVolatiles(ret);
 
     // 2. Restore return address
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     Register temp = phys.getTemp();
     Register FP = phys.getFP();
-    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET + frameSize)));
+    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET.toInt() + frameSize)));
 
     // 3. Load return address into LR
     ret.insertBefore(MIR_Move.create(PPC_MTSPR, A(phys.getLR()), A(phys.getTemp())));
@@ -287,7 +285,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param inst
    */
   private void saveVolatiles(Instruction inst) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
 
     // 1. save the volatile GPRs
     Register FP = phys.getFP();
@@ -323,7 +321,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param inst the first instruction after the prologue.
    */
   private void saveNonVolatiles(Instruction inst) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
     if (ir.compiledMethod.isSaveVolatile()) {
       // pretend we use all non-volatiles
@@ -377,7 +375,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param inst the return instruction
    */
   private void restoreNonVolatiles(Instruction inst) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     // 1. restore the nonvolatile GPRs
@@ -422,7 +420,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param inst the return instruction
    */
   private void restoreVolatileRegisters(Instruction inst) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
 
     // 1. restore the volatile GPRs
     Register FP = phys.getFP();
@@ -480,8 +478,8 @@ public abstract class StackManager extends GenericStackManager {
    * Schedule prologue for 'normal' case (see above)
    */
   @Override
-  public final void insertNormalPrologue() {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+  public void insertNormalPrologue() {
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     Register FP = phys.getFP();
     Register TR = phys.getTR();
     Register TSR = phys.getTSR();
@@ -535,8 +533,8 @@ public abstract class StackManager extends GenericStackManager {
     ptr.insertBefore(MIR_Store.create(PPC_STAddr,
                                       A(R0),
                                       A(FP),
-                                      IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET))); // 8
-    ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET))); // 9
+                                      IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET.toInt()))); // 8
+    ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET.toInt()))); // 9
 
     if (stackOverflow) {
       // Mutate the Prologue instruction into the trap
@@ -557,7 +555,7 @@ public abstract class StackManager extends GenericStackManager {
    * (1) R0 is the only available scratch register.
    * (2) stack overflow check has to come first.
    */
-  final void insertExceptionalPrologue() {
+  void insertExceptionalPrologue() {
     if (VM.VerifyAssertions) {
       VM._assert((frameSize & (STACKFRAME_ALIGNMENT - 1)) == 0, "Stack frame alignment error");
     }
@@ -565,7 +563,7 @@ public abstract class StackManager extends GenericStackManager {
       throw new OptimizingCompilerException("Stackframe size exceeded!");
     }
 
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     Register FP = phys.getFP();
     Register TR = phys.getTR();
     Register TSR = phys.getTSR();
@@ -583,12 +581,12 @@ public abstract class StackManager extends GenericStackManager {
       // R0 is fairly useless (can't be operand 1 of an addi or the base ptr
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
-      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET)));
+      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET.toInt())));
       Offset offset = Entrypoints.stackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getTR()), IC(PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), IC(frameSize)));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET)));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET.toInt())));
 
       // Mutate the Prologue holder instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TAddr, PowerPCTrapOperand.LESS(), A(FP), A(R0), TrapCodeOperand.StackOverflow());
@@ -607,7 +605,7 @@ public abstract class StackManager extends GenericStackManager {
     // Buy stack frame, save LR, caller's FP
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0), A(phys.getLR())));
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize)));
-    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP), IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET)));
+    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP), IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET.toInt())));
 
     // Store cmid
     int cmid = ir.compiledMethod.getId();
@@ -617,7 +615,7 @@ public abstract class StackManager extends GenericStackManager {
       ptr.insertBefore(MIR_Unary.create(PPC_LDIS, I(R0), IC(cmid >>> 16)));
       ptr.insertBefore(MIR_Binary.create(PPC_ORI, I(R0), I(R0), IC(cmid & 0xffff)));
     }
-    ptr.insertBefore(MIR_Store.create(PPC_STW, I(R0), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET)));
+    ptr.insertBefore(MIR_Store.create(PPC_STW, I(R0), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET.toInt())));
 
     // Now save the volatile/nonvolatile registers
     if (ir.compiledMethod.isSaveVolatile()) {
@@ -647,7 +645,7 @@ public abstract class StackManager extends GenericStackManager {
    */
   @Override
   public void computeNonVolatileArea() {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     if (ir.compiledMethod.isSaveVolatile()) {
       // Record that we use every nonvolatile GPR
@@ -836,8 +834,8 @@ public abstract class StackManager extends GenericStackManager {
    * @param ir the governing ir
    */
   @Override
-  public final void initForArch(IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+  public void initForArch(IR ir) {
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     phys.getJTOC().reserveRegister();
     phys.getFirstConditionRegister().reserveRegister();
   }
@@ -845,6 +843,7 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Is a particular instruction a system call?
    */
+  @Override
   public boolean isSysCall(Instruction s) {
     return s.operator() == PPC_BCTRL_SYS || s.operator() == PPC_BL_SYS;
   }

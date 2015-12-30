@@ -16,9 +16,9 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSFAIL;
 
-import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.JMXSupport;
@@ -147,7 +147,12 @@ public class VM extends Properties {
     // has placed a pointer to the current RVMThread in a special
     // register.
     if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
-    ThreadLocalState.boot();
+    if (VM.BuildForIA32) {
+      org.jikesrvm.ia32.ThreadLocalState.boot();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      org.jikesrvm.ppc.ThreadLocalState.boot();
+    }
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
@@ -156,7 +161,7 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     RVMThread currentThread = RVMThread.getCurrentThread();
     currentThread.stackLimit = Magic.objectAsAddress(
-        currentThread.getStack()).plus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD);
+        currentThread.getStack()).plus(StackFrameLayout.getStackSizeGuard());
 
     finishBooting();
   }
@@ -2597,10 +2602,10 @@ public class VM extends Properties {
 
     // 1.
     //
-    if (Magic.getFramePointer().minus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
+    if (Magic.getFramePointer().minus(StackFrameLayout.getStackSizeGCDisabled())
         .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
       RVMThread.resizeCurrentStack(myThread.getStackLength() +
-          ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
+          StackFrameLayout.getStackSizeGCDisabled(), null);
     }
 
     // 2.

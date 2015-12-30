@@ -12,18 +12,28 @@
  */
 package org.jikesrvm.compilers.opt.escape;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PREFETCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBST_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBTST_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBT_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZL_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZ_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.ICBI_opcode;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
@@ -35,120 +45,9 @@ import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
-
-import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_OBJ_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_TYPE_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRSigExt_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRZerExt_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MUST_IMPLEMENT_INTERFACE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEWOBJMULTIARRAY_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEW_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEW_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PHI_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PUTFIELD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PUTSTATIC_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
-import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Store;
@@ -581,6 +480,17 @@ class SimpleEscape extends CompilerPhase {
       case INT_2ADDRZerExt_opcode:
       case ADDR_2INT_opcode:
       case ADDR_2LONG_opcode:
+      case LONG_OR_opcode:
+      case LONG_AND_opcode:
+      case LONG_XOR_opcode:
+      case LONG_SUB_opcode:
+      case LONG_SHL_opcode:
+      case LONG_ADD_opcode:
+      case LONG_SHR_opcode:
+      case LONG_USHR_opcode:
+      case LONG_NEG_opcode:
+      case LONG_MOVE_opcode:
+      case LONG_2ADDR_opcode:
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
@@ -589,7 +499,23 @@ class SimpleEscape extends CompilerPhase {
         // we do not know exactly, so be conservative
         return true;
       default:
-        return Operators.helper.mayEscapeThread(inst);
+        if (VM.BuildForPowerPC) {
+          switch (inst.getOpcode()) {
+            case DCBST_opcode:
+            case DCBT_opcode:
+            case DCBTST_opcode:
+            case DCBZ_opcode:
+            case DCBZL_opcode:
+            case ICBI_opcode:
+              return false;
+            }
+        } else {
+          switch (inst.getOpcode()) {
+            case PREFETCH_opcode:
+              return false;
+          }
+        }
+        throw new OptimizingCompilerException("SimpleEscapge: Unexpected " + inst);
     }
   }
 
@@ -765,13 +691,40 @@ class SimpleEscape extends CompilerPhase {
       case INT_2ADDRZerExt_opcode:
       case ADDR_2INT_opcode:
       case ADDR_2LONG_opcode:
+      case LONG_OR_opcode:
+      case LONG_AND_opcode:
+      case LONG_XOR_opcode:
+      case LONG_SUB_opcode:
+      case LONG_SHL_opcode:
+      case LONG_ADD_opcode:
+      case LONG_SHR_opcode:
+      case LONG_USHR_opcode:
+      case LONG_NEG_opcode:
+      case LONG_MOVE_opcode:
+      case LONG_2ADDR_opcode:
       case YIELDPOINT_OSR_opcode:
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
         return true;
       default:
-        return Operators.helper.mayEscapeMethod(inst);
+        if (VM.BuildForPowerPC) {
+          switch(inst.getOpcode()) {
+            case DCBST_opcode:
+            case DCBT_opcode:
+            case DCBTST_opcode:
+            case DCBZ_opcode:
+            case DCBZL_opcode:
+            case ICBI_opcode:
+              return false;
+            }
+        } else {
+          switch(inst.getOpcode()) {
+            case PREFETCH_opcode:
+              return false;
+          }
+        }
+        throw new OptimizingCompilerException("SimpleEscapge: Unexpected " + inst);
       }
     } catch (Exception e) {
       OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use (" + use + ") of: " + inst);

@@ -60,7 +60,7 @@ import org.vmmagic.unboxed.Word;
  * from a suspended thread whose top method was compiled by the
  * baseline compiler.
  */
-public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
+public final class BaselineExecutionStateExtractor extends ExecutionStateExtractor
     implements ArchConstants, PhysicalRegisterConstants {
 
   /**

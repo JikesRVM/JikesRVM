@@ -15,10 +15,10 @@ package org.jikesrvm.compilers.opt.regalloc;
 import java.util.HashSet;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
@@ -59,7 +59,7 @@ final class UpdateGCMaps2 extends CompilerPhase {
    */
   @Override
   public void perform(IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     ScratchMap scratchMap = ir.stackManager.getScratchMap();
     RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
 

@@ -14,17 +14,14 @@ package org.jikesrvm.mm.mminterface;
 
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.BaselineGCMapIterator;
-import org.jikesrvm.ArchitectureSpecific.JNIGCMapIterator;
-import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIterator;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.HardwareTrapGCMapIterator;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.unboxed.AddressArray;
 
 /**
  * Maintains a collection of compiler specific GCMapIterators that are used
@@ -45,7 +42,7 @@ import org.vmmagic.unboxed.WordArray;
 public final class GCMapIteratorGroup {
 
   /** current location (memory address) of each gpr register */
-  private final WordArray registerLocations;
+  private final AddressArray registerLocations;
 
   /** iterator for baseline compiled frames */
   private final GCMapIterator baselineIterator;
@@ -60,15 +57,26 @@ public final class GCMapIteratorGroup {
   private final GCMapIterator jniIterator;
 
   public GCMapIteratorGroup() {
-    registerLocations = WordArray.create(ArchitectureSpecific.ArchConstants.NUM_GPRS);
+    registerLocations = AddressArray.create(ArchConstants.getNumberOfGPRs());
 
-    baselineIterator = new BaselineGCMapIterator(registerLocations);
-    if (VM.BuildForOptCompiler) {
-      optIterator = new OptGCMapIterator(registerLocations);
+    if (VM.BuildForIA32) {
+      baselineIterator = new org.jikesrvm.compilers.baseline.ia32.BaselineGCMapIterator(registerLocations);
+      jniIterator = new org.jikesrvm.jni.ia32.JNIGCMapIterator(registerLocations);
+      if (VM.BuildForOptCompiler) {
+        optIterator = new org.jikesrvm.compilers.opt.runtimesupport.ia32.OptGCMapIterator(registerLocations);
+      } else {
+        optIterator = null;
+      }
     } else {
-      optIterator = null;
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      baselineIterator = new org.jikesrvm.compilers.baseline.ppc.BaselineGCMapIterator(registerLocations);
+      jniIterator = new org.jikesrvm.jni.ppc.JNIGCMapIterator(registerLocations);
+      if (VM.BuildForOptCompiler) {
+        optIterator = new org.jikesrvm.compilers.opt.runtimesupport.ppc.OptGCMapIterator(registerLocations);
+      } else {
+        optIterator = null;
+      }
     }
-    jniIterator = new JNIGCMapIterator(registerLocations);
     hardwareTrapIterator = new HardwareTrapGCMapIterator(registerLocations);
   }
 
@@ -89,8 +97,8 @@ public final class GCMapIteratorGroup {
    */
   @Uninterruptible
   public void newStackWalk(RVMThread thread, Address registerLocation) {
-    for (int i = 0; i < ArchitectureSpecific.ArchConstants.NUM_GPRS; ++i) {
-      registerLocations.set(i, registerLocation.toWord());
+    for (int i = 0; i < registerLocations.length(); ++i) {
+      registerLocations.set(i, registerLocation);
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
     }
     baselineIterator.newStackWalk(thread);

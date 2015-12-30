@@ -26,6 +26,7 @@ We have modified Iburg in two ways:
  (1) We modified the input patterns it accepts to be consistent with
 our intermediate representation.
  (2) We modified it to produce Java code instead of C code.
+ (3) Ian Rogers modified it to improve the quality of the code it generates.
 
 All bug reports related to the use of jburg in building Jikes RVM
 should be reported to the Jikes RVM project and _not_ to David
