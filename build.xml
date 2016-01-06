@@ -1253,7 +1253,7 @@ Check to make sure all required properties are specified. This includes properti
     </if>
   </target>
 
-  <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
+  <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,update-eclipse-project,choose-classlib,do-checkstyle">
 
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
@@ -2541,6 +2541,17 @@ target.jni-suffix=${target.jni-suffix}
     </sequential>
   </macrodef>
 
+  <macrodef name="update-gen-base-and-gen-config">
+    <sequential>
+      <copy todir="eclipse/gen-base">
+        <fileset dir="${generated.java}"><include name="**/*.*"/></fileset>
+      </copy>
+      <copy todir="eclipse/gen-config">
+        <fileset dir="${generated.config.java}"><include name="**/*.*"/></fileset>
+      </copy>
+    </sequential>
+  </macrodef>
+
   <target name="eclipse-project" depends="prepare-source">
     <property name="eclipse.project.name" value="JikesRVM"/>
     <remove-eclipse-project-files/>
@@ -2569,12 +2580,7 @@ target.jni-suffix=${target.jni-suffix}
         <property name="classpath.template.name" value="classpath.harmony.template" />
       </sequential>
     </if>
-    <copy todir="eclipse/gen-base">
-      <fileset dir="${generated.java}"><include name="**/*.*"/></fileset>
-    </copy>
-    <copy todir="eclipse/gen-config">
-      <fileset dir="${generated.config.java}"><include name="**/*.*"/></fileset>
-    </copy>
+    <update-gen-base-and-gen-config/>
     <copy todir="eclipse/gen-arch">
       <fileset dir="${generated.vmmagic.arch.java}"><include name="**/*.*"/></fileset>
     </copy>
@@ -2603,4 +2609,24 @@ target.jni-suffix=${target.jni-suffix}
       </filterset>
     </copy>
   </target>
+
+  <target name="check-for-eclipse-project">
+    <condition property="eclipse-project-needs-update">
+      <and>
+        <!-- If gen-base and gen-config are not present (e.g. in an MMTK harness eclipse project),
+             no update is necessary. -->
+        <available file="eclipse/gen-base" type="dir"/>
+        <available file="eclipse/gen-config" type="dir"/>
+
+        <not>
+          <isset property="generated-source.uptodate"/>
+        </not>
+      </and>
+    </condition>
+  </target>
+
+  <target name="update-eclipse-project" depends="check-for-eclipse-project" if="eclipse-project-needs-update">
+    <update-gen-base-and-gen-config/>
+  </target>
+
 </project>
