@@ -13,14 +13,26 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
-import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_UNRESOLVED_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_ZERO_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ZERO_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
 
 import java.util.Enumeration;
 import java.util.HashSet;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -164,7 +176,7 @@ public class BasicBlock extends SortedGraphNode {
     // In fact, the block may end in a different method entirely,
     // so setting its position to the same as start may silently
     // get us into all kinds of trouble. --dave.
-    end.bcIndex = OptConstants.UNKNOWN_BCI;
+    end.bcIndex = UNKNOWN_BCI;
     start.linkWithNext(end);
     initInOutSets();
   }

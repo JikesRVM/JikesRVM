@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_DEF;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_USE;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 
 import java.util.Enumeration;
 
@@ -29,7 +30,6 @@ import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Nullary;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
-import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * At the beginning of each basic block, the register allocator expects
@@ -99,7 +99,7 @@ public final class ExpandFPRStackConvention extends CompilerPhase {
    */
   @Override
   public void perform(IR ir) {
-    if (ArchConstants.SSE2_FULL) {
+    if (SSE2_FULL) {
       return;
     }
     PhysicalRegisterSet phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();

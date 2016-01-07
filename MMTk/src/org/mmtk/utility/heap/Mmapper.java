@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.utility.*;
 
 import org.mmtk.vm.Lock;
@@ -43,8 +45,8 @@ import org.vmmagic.pragma.*;
    * Number of chunks that can be mmapped, 64bit work around allowing 8GB
    * of addressable memory
    */
-  private static final int MMAP_NUM_CHUNKS = (Constants.LOG_BYTES_IN_ADDRESS_SPACE == 32) ?
-    1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_BYTES) :
+  private static final int MMAP_NUM_CHUNKS = (LOG_BYTES_IN_ADDRESS_SPACE == 32) ?
+    1 << (LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_BYTES) :
     1 << (33 - LOG_MMAP_CHUNK_BYTES);
   public static final boolean verbose = false;
 

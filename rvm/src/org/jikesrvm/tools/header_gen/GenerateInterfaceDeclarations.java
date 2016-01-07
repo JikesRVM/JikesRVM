@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.tools.header_gen;
 
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BAD_WORKING_DIR;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_COULD_NOT_EXECUTE;
@@ -36,7 +37,6 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -385,7 +385,7 @@ public class GenerateInterfaceDeclarations {
     pln("Constants_STACKFRAME_FRAME_POINTER_OFFSET", StackFrameLayout.getStackFramePointerOffset());
     pln("Constants_STACKFRAME_SENTINEL_FP", StackFrameLayout.getStackFrameSentinelFP());
 
-    pln("ThinLockConstants_TL_THREAD_ID_SHIFT", ThinLockConstants.TL_THREAD_ID_SHIFT);
+    pln("ThinLockConstants_TL_THREAD_ID_SHIFT", TL_THREAD_ID_SHIFT);
 
     // values in RuntimeEntrypoints
     //

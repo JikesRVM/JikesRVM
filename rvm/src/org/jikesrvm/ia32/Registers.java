@@ -12,8 +12,12 @@
  */
 package org.jikesrvm.ia32;
 
-import static org.jikesrvm.architecture.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.ia32.RegisterConstants.ESP;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
@@ -106,10 +110,10 @@ public final class Registers extends AbstractRegisters {
   @Uninterruptible
   public void initializeStack(Address ip, Address sp) {
     Address fp;
-    sp = sp.minus(StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.minus(BYTES_IN_ADDRESS).minus(StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
-    Magic.setCallerFramePointer(fp, StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
-    Magic.setCompiledMethodID(fp, StackframeLayoutConstants.INVISIBLE_METHOD_ID);
+    sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
+    fp = sp.minus(BYTES_IN_ADDRESS).minus(STACKFRAME_BODY_OFFSET);
+    Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
+    Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
     sp = sp.minus(BYTES_IN_ADDRESS);                                 // allow for one local
     getGPRs().set(ESP.value(), sp.toWord());

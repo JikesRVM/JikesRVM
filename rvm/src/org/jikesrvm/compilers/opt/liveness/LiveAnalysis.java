@@ -12,9 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.liveness;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
+import static org.jikesrvm.osr.OSRConstants.STACK;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -44,7 +46,6 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 import org.jikesrvm.compilers.opt.util.SortedGraphIterator;
-import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.LocalRegPair;
 import org.jikesrvm.osr.MethodVariables;
 import org.jikesrvm.osr.VariableMap;
@@ -1240,14 +1241,14 @@ public final class LiveAnalysis extends CompilerPhase {
         if (ls[i] != VoidTypeCode) {
           // check liveness
           Operand op = OsrPoint.getElement(inst, elm_idx++);
-          LocalRegPair tuple = new LocalRegPair(OSRConstants.LOCAL, i, ls[i], op);
+          LocalRegPair tuple = new LocalRegPair(LOCAL, i, ls[i], op);
           // put it in the list
           tupleList.add(tuple);
 
           // get another half of a long type operand
           if (VM.BuildFor32Addr && (ls[i] == LongTypeCode)) {
             Operand other_op = OsrPoint.getElement(inst, snd_long_idx++);
-            tuple._otherHalf = new LocalRegPair(OSRConstants.LOCAL, i, ls[i], other_op);
+            tuple._otherHalf = new LocalRegPair(LOCAL, i, ls[i], other_op);
 
           }
         }
@@ -1257,13 +1258,13 @@ public final class LiveAnalysis extends CompilerPhase {
       for (int i = 0, n = ss.length; i < n; i++) {
         if (ss[i] != VoidTypeCode) {
           LocalRegPair tuple =
-              new LocalRegPair(OSRConstants.STACK, i, ss[i], OsrPoint.getElement(inst, elm_idx++));
+              new LocalRegPair(STACK, i, ss[i], OsrPoint.getElement(inst, elm_idx++));
 
           tupleList.add(tuple);
 
           if (VM.BuildFor32Addr && (ss[i] == LongTypeCode)) {
             tuple._otherHalf =
-                new LocalRegPair(OSRConstants.STACK, i, ss[i], OsrPoint.getElement(inst, snd_long_idx++));
+                new LocalRegPair(STACK, i, ss[i], OsrPoint.getElement(inst, snd_long_idx++));
           }
         }
       }

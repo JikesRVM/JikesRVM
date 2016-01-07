@@ -16,6 +16,7 @@ import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
 
@@ -41,7 +42,6 @@ import org.jikesrvm.objectmodel.ITableArray;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
@@ -879,7 +879,7 @@ public final class MemoryManager {
       return IMT.allocate();
     }
 
-    return (IMT)newRuntimeTable(TIBLayoutConstants.IMT_METHOD_SLOTS, RVMType.IMTType);
+    return (IMT)newRuntimeTable(IMT_METHOD_SLOTS, RVMType.IMTType);
   }
 
   /**

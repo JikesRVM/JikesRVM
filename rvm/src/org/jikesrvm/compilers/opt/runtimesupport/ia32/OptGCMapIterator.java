@@ -16,11 +16,12 @@ import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.FPU_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
-import org.jikesrvm.ia32.StackframeLayoutConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -135,7 +136,7 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
    */
   @Override
   public Address getFirstSpillLoc() {
-    return framePtr.plus(StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
+    return framePtr.plus(STACKFRAME_BODY_OFFSET);
   }
 
   /**
@@ -152,5 +153,5 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
   }
 
   static final int VOL_SIZE = BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS;
-  static final int SAVE_VOL_SIZE = VOL_SIZE + StackframeLayoutConstants.FPU_STATE_SIZE;
+  static final int SAVE_VOL_SIZE = VOL_SIZE + FPU_STATE_SIZE;
 }

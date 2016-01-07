@@ -12,9 +12,8 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.GENERATE_GC_TRACE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
-
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 
 /**
  * Defines other header words not used for
@@ -32,7 +31,7 @@ public final class MiscHeaderConstants {
 
   /* amount by which tracing causes headers to grow */
   public static final int GC_TRACING_HEADER_WORDS =
-      (MemoryManagerConstants.GENERATE_GC_TRACE ? 3 : 0);
+      (GENERATE_GC_TRACE ? 3 : 0);
   public static final int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS << LOG_BYTES_IN_ADDRESS;
 
   /**

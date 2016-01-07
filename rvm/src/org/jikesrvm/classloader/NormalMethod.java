@@ -220,8 +220,8 @@ public final class NormalMethod extends RVMMethod {
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
     if (VM.VerifyAssertions) {
-      VM._assert((BytecodeConstants.JBC_invokevirtual <= bytecode) &&
-                 (bytecode <= BytecodeConstants.JBC_invokeinterface));
+      VM._assert((JBC_invokevirtual <= bytecode) &&
+                 (bytecode <= JBC_invokeinterface));
     }
     int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << BITS_IN_BYTE) | (bytecodes[bcIndex + 2] & 0xFF);
     dynamicLink.set(getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);

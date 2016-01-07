@@ -36,7 +36,6 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.jni.JNIGlobalRefTable;
-import org.jikesrvm.ppc.ArchConstants;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.ArchEntrypoints;
@@ -1357,7 +1356,7 @@ public abstract class JNICompiler
 
     // check to see if this frame address is the sentinel since there
     // may be no further Java frame below
-    asm.emitCMPAddrI(T3, ArchConstants.STACKFRAME_SENTINEL_FP.toInt());
+    asm.emitCMPAddrI(T3, STACKFRAME_SENTINEL_FP.toInt());
     ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLAddr(S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     fr4.resolve(asm);

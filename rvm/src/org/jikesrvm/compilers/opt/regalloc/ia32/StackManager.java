@@ -43,6 +43,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
@@ -75,7 +76,6 @@ import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
-import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
@@ -122,7 +122,7 @@ public final class StackManager extends GenericStackManager {
       case INT_VALUE:
         return (byte) (WORDSIZE);
       case FLOAT_VALUE:
-        if (ArchConstants.SSE2_FULL) return (byte) BYTES_IN_FLOAT;
+        if (SSE2_FULL) return (byte) BYTES_IN_FLOAT;
       case DOUBLE_VALUE:
         return (byte) BYTES_IN_DOUBLE;
       default:
@@ -140,9 +140,9 @@ public final class StackManager extends GenericStackManager {
       case INT_VALUE:
         return IA32_MOV;
       case DOUBLE_VALUE:
-        if (ArchConstants.SSE2_FULL) return IA32_MOVSD;
+        if (SSE2_FULL) return IA32_MOVSD;
       case FLOAT_VALUE:
-        if (ArchConstants.SSE2_FULL) return IA32_MOVSS;
+        if (SSE2_FULL) return IA32_MOVSS;
         return IA32_FMOV;
       default:
         OptimizingCompilerException.TODO("getMoveOperator: unsupported");
@@ -222,7 +222,7 @@ public final class StackManager extends GenericStackManager {
       // Record that we need a stack frame.
       setFrameRequired();
 
-      if (ArchConstants.SSE2_FULL) {
+      if (SSE2_FULL) {
         for (int i = 0; i < 8; i++) {
           fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);
         }
@@ -527,7 +527,7 @@ public final class StackManager extends GenericStackManager {
    */
   private void saveFloatingPointState(Instruction inst) {
 
-    if (ArchConstants.SSE2_FULL) {
+    if (SSE2_FULL) {
       GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       for (int i = 0; i < 8; i++) {
         inst.insertBefore(MIR_Move.create(IA32_MOVQ,
@@ -546,7 +546,7 @@ public final class StackManager extends GenericStackManager {
    * @param inst the return instruction after the epilogue.
    */
   private void restoreFloatingPointState(Instruction inst) {
-    if (ArchConstants.SSE2_FULL) {
+    if (SSE2_FULL) {
       GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       for (int i = 0; i < 8; i++) {
         inst.insertBefore(MIR_Move.create(IA32_MOVQ,
@@ -632,7 +632,7 @@ public final class StackManager extends GenericStackManager {
     // Create a memory operand M representing the spill location.
     int size;
     if (VM.BuildFor32Addr) {
-      if (ArchConstants.SSE2_FULL) {
+      if (SSE2_FULL) {
         size = symb.getType().getMemoryBytes();
         if (size < WORDSIZE)
           size = WORDSIZE;

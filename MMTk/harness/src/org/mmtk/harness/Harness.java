@@ -12,16 +12,40 @@
  */
 package org.mmtk.harness;
 
+import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_PAGE;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.mmtk.harness.options.*;
+import org.mmtk.harness.options.BaseHeap;
+import org.mmtk.harness.options.Bits;
+import org.mmtk.harness.options.DumpPcode;
+import org.mmtk.harness.options.GcEvery;
+import org.mmtk.harness.options.HarnessOptionSet;
+import org.mmtk.harness.options.InitHeap;
+import org.mmtk.harness.options.LockTimeout;
+import org.mmtk.harness.options.MaxHeap;
+import org.mmtk.harness.options.Plan;
+import org.mmtk.harness.options.PolicyStats;
+import org.mmtk.harness.options.RandomPolicyLength;
+import org.mmtk.harness.options.RandomPolicyMax;
+import org.mmtk.harness.options.RandomPolicyMin;
+import org.mmtk.harness.options.RandomPolicySeed;
+import org.mmtk.harness.options.SanityUsesReadBarrier;
+import org.mmtk.harness.options.Scheduler;
+import org.mmtk.harness.options.SchedulerPolicy;
+import org.mmtk.harness.options.Timeout;
+import org.mmtk.harness.options.Trace;
+import org.mmtk.harness.options.WatchAddress;
+import org.mmtk.harness.options.WatchObject;
+import org.mmtk.harness.options.WatchVar;
+import org.mmtk.harness.options.YieldInterval;
 import org.mmtk.harness.scheduler.AbstractPolicy;
 import org.mmtk.harness.scheduler.MMTkThread;
-import org.mmtk.harness.vm.*;
-
+import org.mmtk.harness.vm.ActivePlan;
+import org.mmtk.harness.vm.Factory;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.policy.Space;
@@ -31,7 +55,6 @@ import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
-import org.vmmagic.unboxed.harness.MemoryConstants;
 import org.vmmagic.unboxed.harness.SimulatedMemory;
 import org.vmutil.options.BooleanOption;
 import org.vmutil.options.StringOption;
@@ -238,8 +261,8 @@ public class Harness {
     double heapFactor = PlanSpecificConfig.heapFactor(plan.getValue());
     int scaledHeap = (int)Math.ceil(baseHeap.getPages() * heapFactor);
     System.out.printf("heapFactor=%4.2f, baseHeap=%dK, initHeap=%dK%n",
-        heapFactor, baseHeap.getPages() * MemoryConstants.BYTES_IN_PAGE / 1024,
-        scaledHeap * MemoryConstants.BYTES_IN_PAGE / 1024);
+        heapFactor, baseHeap.getPages() * BYTES_IN_PAGE / 1024,
+        scaledHeap * BYTES_IN_PAGE / 1024);
     initHeap.setPages(scaledHeap);
     maxHeap.setPages(scaledHeap);
   }

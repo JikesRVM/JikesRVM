@@ -71,7 +71,6 @@ import org.jikesrvm.compilers.opt.ir.ppc.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.ppc.MIR_Return;
 import org.jikesrvm.compilers.opt.ir.ppc.MIR_Store;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
-import org.jikesrvm.ppc.ArchConstants;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -232,7 +231,7 @@ public abstract class CallingConvention extends IRTools {
     int int_index = 0;
     int double_index = 0;
     int spilledArgumentCounter =
-        (-256 - ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
+        (-256 - STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
     GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
     for (Enumeration<Operand> symParams = prologueInstr.getDefs(); symParams.hasMoreElements();) {

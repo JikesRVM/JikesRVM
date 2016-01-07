@@ -16,6 +16,7 @@ import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_OBJECTS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
@@ -103,7 +104,7 @@ public class DebugUtil {
       Space.printVMMap();
       return false;
     }
-    if (MemoryManagerConstants.MOVES_OBJECTS) {
+    if (MOVES_OBJECTS) {
       /*
       TODO: Work out how to check if forwarded
       if (Plan.isForwardedOrBeingForwarded(ref)) {

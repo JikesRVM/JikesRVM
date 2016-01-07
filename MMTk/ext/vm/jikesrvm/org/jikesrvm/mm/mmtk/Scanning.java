@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_CODE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
@@ -21,7 +22,6 @@ import org.jikesrvm.jni.JNIGenericHelpers;
 import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.SpecializedScanMethod;
 import org.jikesrvm.runtime.Magic;
@@ -186,7 +186,7 @@ public final class Scanning extends org.mmtk.vm.Scanning {
    * then all roots must be computed (both new and preexisting).
    */
   private void computeThreadRoots(TraceLocal trace, boolean newRootsSufficient) {
-    boolean processCodeLocations = MemoryManagerConstants.MOVES_CODE;
+    boolean processCodeLocations = MOVES_CODE;
 
     /* scan all threads */
     while (true) {

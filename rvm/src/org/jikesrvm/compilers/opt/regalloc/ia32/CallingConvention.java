@@ -25,6 +25,9 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.R13;
+import static org.jikesrvm.ia32.RegisterConstants.R14;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
@@ -55,8 +58,6 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
-import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.ia32.RegisterConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 
@@ -118,7 +119,7 @@ public abstract class CallingConvention extends IRTools {
     int parameterBytes = isSysCall ? expandParametersToSysCall(call, ir) : expandParametersToCall(call, ir);
 
     // 1. Clear the floating-point stack if dirty.
-    if (!ArchConstants.SSE2_FULL) {
+    if (!SSE2_FULL) {
       if (!call.operator().isCallSaveVolatile()) {
         int FPRRegisterParams = countFPRParams(call);
         FPRRegisterParams = Math.min(FPRRegisterParams, PhysicalRegisterSet.getNumberOfFPRParams());
@@ -169,7 +170,7 @@ public abstract class CallingConvention extends IRTools {
       if (type.isFloatType() || type.isDoubleType()) {
         Register r = phys.getReturnFPR();
         RegisterOperand rOp = new RegisterOperand(r, type);
-        if (ArchConstants.SSE2_FULL) {
+        if (SSE2_FULL) {
           if (type.isFloatType()) {
             ret.insertBefore(MIR_Move.create(IA32_MOVSS, rOp, symb1));
           } else {
@@ -199,7 +200,7 @@ public abstract class CallingConvention extends IRTools {
     }
 
     // Clear the floating-point stack if dirty.
-    if (!ArchConstants.SSE2_FULL) {
+    if (!SSE2_FULL) {
       int nSave = 0;
       if (MIR_Return.hasVal(ret)) {
         Operand symb1 = MIR_Return.getClearVal(ret);
@@ -233,7 +234,7 @@ public abstract class CallingConvention extends IRTools {
     if (MIR_Call.hasResult(call)) {
       RegisterOperand result1 = MIR_Call.getClearResult(call);
       if (result1.getType().isFloatType() || result1.getType().isDoubleType()) {
-        if (VM.BuildFor32Addr && ArchConstants.SSE2_FULL && isSysCall) {
+        if (VM.BuildFor32Addr && SSE2_FULL && isSysCall) {
           byte size = (byte)(result1.getType().isFloatType() ? 4 : 8);
           RegisterOperand st0 = new RegisterOperand(phys.getST0(), result1.getType());
           MIR_Call.setResult(call, st0); // result is in st0, set it to avoid extending the live range of st0
@@ -253,7 +254,7 @@ public abstract class CallingConvention extends IRTools {
           RegisterOperand physical = new RegisterOperand(r, result1.getType());
           MIR_Call.setResult(call, physical.copyRO()); // result is in physical, set it to avoid extending its live range
           Instruction tmp;
-          if (ArchConstants.SSE2_FULL) {
+          if (SSE2_FULL) {
             if (result1.getType().isFloatType()) {
               tmp = MIR_Move.create(IA32_MOVSS, result1, physical);
             } else {
@@ -335,7 +336,7 @@ public abstract class CallingConvention extends IRTools {
         if (nFPRParams > PhysicalRegisterSet.getNumberOfFPRParams()) {
           // pass the FP parameter on the stack
           Operand M = new StackLocationOperand(false, parameterBytes, size);
-          if (ArchConstants.SSE2_FULL) {
+          if (SSE2_FULL) {
             if (paramType.isFloatType()) {
               call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
             } else {
@@ -347,7 +348,7 @@ public abstract class CallingConvention extends IRTools {
         } else {
           // Pass the parameter in a register.
           RegisterOperand real;
-          if (ArchConstants.SSE2_FULL) {
+          if (SSE2_FULL) {
             real = new RegisterOperand(phys.getFPRParam(nFPRParams - 1), paramType);
             if (paramType.isFloatType()) {
               call.insertBefore(MIR_Move.create(IA32_MOVSS, real, param));
@@ -526,7 +527,7 @@ public abstract class CallingConvention extends IRTools {
             parameterBytes -= 2 * WORDSIZE;
           }
           Operand M = new StackLocationOperand(false, parameterBytes, size);
-          if (ArchConstants.SSE2_FULL) {
+          if (SSE2_FULL) {
             if (paramType.isFloatType()) {
               call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
             } else {
@@ -554,10 +555,10 @@ public abstract class CallingConvention extends IRTools {
       parameterBytes = -2 * WORDSIZE;
       RegisterOperand fpCount = new RegisterOperand(phys.getEAX(), TypeReference.Int);
       call.insertBefore(MIR_Move.create(IA32_MOV, fpCount, IC(FPRRegisterParams)));
-      call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(RegisterConstants.R14), TypeReference.Long),new RegisterOperand(phys.getESI(), TypeReference.Long)));
-      call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(RegisterConstants.R13), TypeReference.Long),new RegisterOperand(phys.getEDI(), TypeReference.Long)));
-      call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getESI(), TypeReference.Long), new RegisterOperand(phys.getGPR(RegisterConstants.R14), TypeReference.Long)));
-      call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getEDI(), TypeReference.Long), new RegisterOperand(phys.getGPR(RegisterConstants.R13), TypeReference.Long)));
+      call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(R14), TypeReference.Long),new RegisterOperand(phys.getESI(), TypeReference.Long)));
+      call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(R13), TypeReference.Long),new RegisterOperand(phys.getEDI(), TypeReference.Long)));
+      call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getESI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R14), TypeReference.Long)));
+      call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getEDI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R13), TypeReference.Long)));
       // Require ESP to be at bottom of frame before a call,
       call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
 
@@ -576,7 +577,7 @@ public abstract class CallingConvention extends IRTools {
           if (nFPRParams > PhysicalRegisterSet.getNumberOfNativeFPRParams()) {
             // pass the FP parameter on the stack
             Operand M = new StackLocationOperand(false, parameterBytes, size);
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               if (paramType.isFloatType()) {
                 call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
               } else {
@@ -588,7 +589,7 @@ public abstract class CallingConvention extends IRTools {
           } else {
             // Pass the parameter in a register.
             RegisterOperand real;
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               real = new RegisterOperand(phys.getNativeFPRParam(nFPRParams - 1), paramType);
               if (paramType.isFloatType()) {
                 call.insertBefore(MIR_Move.create(IA32_MOVSS, real, param));
@@ -749,7 +750,7 @@ public abstract class CallingConvention extends IRTools {
             // Note that if k FPRs are passed in registers,
             // the 1st goes in F(k-1),
             // the 2nd goes in F(k-2), etc...
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               Register param = phys.getFPRParam(fprIndex);
               if (rType.isFloatType()) {
                 start.insertBefore(MIR_Move.create(IA32_MOVSS, symbOp.copyRO(), F(param)));
@@ -762,7 +763,7 @@ public abstract class CallingConvention extends IRTools {
             }
           } else {
             Operand M = new StackLocationOperand(true, paramByteOffset, size);
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               if (rType.isFloatType()) {
                 start.insertBefore(MIR_Move.create(IA32_MOVSS, symbOp.copyRO(), M));
               } else {

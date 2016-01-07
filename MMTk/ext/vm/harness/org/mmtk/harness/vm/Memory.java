@@ -12,14 +12,19 @@
  */
 package org.mmtk.harness.vm;
 
+import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_WORD;
+import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_PAGE;
+import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_WORD;
+
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.heap.VMRequest;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.unboxed.harness.MemoryConstants;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.harness.SimulatedMemory;
-import org.vmmagic.pragma.*;
 
 @Uninterruptible
 public class Memory extends org.mmtk.vm.Memory {
@@ -159,19 +164,19 @@ public class Memory extends org.mmtk.vm.Memory {
   }
   @Override
   protected byte getLogBytesInAddressConstant() {
-    return (byte) MemoryConstants.LOG_BYTES_IN_WORD;
+    return (byte) LOG_BYTES_IN_WORD;
   }
   @Override
   protected byte getLogBytesInWordConstant() {
-    return (byte) MemoryConstants.LOG_BYTES_IN_WORD;
+    return (byte) LOG_BYTES_IN_WORD;
   }
   @Override
   protected byte getLogBytesInPageConstant() {
-    return MemoryConstants.LOG_BYTES_IN_PAGE;
+    return LOG_BYTES_IN_PAGE;
   }
   @Override
   protected byte getLogMinAlignmentConstant()  {
-    return (byte) MemoryConstants.LOG_BYTES_IN_WORD;
+    return (byte) LOG_BYTES_IN_WORD;
   }
   @Override
   protected byte getMaxAlignmentShiftConstant() {
@@ -179,7 +184,7 @@ public class Memory extends org.mmtk.vm.Memory {
   }
   @Override
   protected int getMaxBytesPaddingConstant() {
-    return MemoryConstants.BYTES_IN_WORD;
+    return BYTES_IN_WORD;
   }
   @Override
   protected int getAlignmentValueConstant() {

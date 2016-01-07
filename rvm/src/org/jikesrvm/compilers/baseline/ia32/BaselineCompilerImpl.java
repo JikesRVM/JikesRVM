@@ -17,6 +17,7 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_BYTES;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
@@ -57,7 +58,6 @@ import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.jni.ia32.JNICompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
-import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
@@ -2926,7 +2926,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler implements Base
 
           if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
             // must do arraybounds check of implements bit vector
-            if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+            if (ARRAY_LENGTH_BYTES == 4) {
               asm.emitCMP_RegDisp_Imm(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
             } else {
               asm.emitCMP_RegDisp_Imm_Quad(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
@@ -3114,7 +3114,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler implements Base
   @Override
   protected void emit_arraylength() {
     asm.emitPOP_Reg(T0);                // T0 is array reference
-    if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+    if (ARRAY_LENGTH_BYTES == 4) {
       if (VM.BuildFor32Addr) {
         asm.emitPUSH_RegDisp(T0, ObjectModel.getArrayLengthOffset());
       } else {
@@ -3162,7 +3162,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler implements Base
 
     if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
       // must do arraybounds check of implements bit vector
-      if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+      if (ARRAY_LENGTH_BYTES == 4) {
         asm.emitCMP_RegDisp_Imm(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
       } else {
         asm.emitCMP_RegDisp_Imm_Quad(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
@@ -3203,7 +3203,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler implements Base
     }
     if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
       // must do arraybounds check of superclass display
-      if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+      if (ARRAY_LENGTH_BYTES == 4) {
         asm.emitCMP_RegDisp_Imm(S0, ObjectModel.getArrayLengthOffset(), LHSDepth);
       } else {
         asm.emitCMP_RegDisp_Imm_Quad(S0, ObjectModel.getArrayLengthOffset(), LHSDepth);
@@ -3268,7 +3268,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler implements Base
     ForwardReference outOfBounds = null;
     if (DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
       // must do arraybounds check of implements bit vector
-      if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+      if (ARRAY_LENGTH_BYTES == 4) {
         asm.emitCMP_RegDisp_Imm(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
       } else {
         asm.emitCMP_RegDisp_Imm_Quad(S0, ObjectModel.getArrayLengthOffset(), interfaceIndex);
@@ -3309,7 +3309,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler implements Base
     ForwardReference outOfBounds = null;
     if (DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
       // must do arraybounds check of superclass display
-      if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+      if (ARRAY_LENGTH_BYTES == 4) {
         asm.emitCMP_RegDisp_Imm(S0, ObjectModel.getArrayLengthOffset(), LHSDepth);
       } else {
         asm.emitCMP_RegDisp_Imm_Quad(S0, ObjectModel.getArrayLengthOffset(), LHSDepth);
@@ -3666,7 +3666,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler implements Base
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,2})
   static void genBoundsCheck(Assembler asm, GPR indexReg, GPR arrayRefReg) {
     // compare index to array length
-    if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+    if (ARRAY_LENGTH_BYTES == 4) {
       asm.emitCMP_RegDisp_Reg(arrayRefReg, ObjectModel.getArrayLengthOffset(), indexReg);
     } else {
       asm.emitCMP_RegDisp_Reg_Quad(arrayRefReg, ObjectModel.getArrayLengthOffset(), indexReg);

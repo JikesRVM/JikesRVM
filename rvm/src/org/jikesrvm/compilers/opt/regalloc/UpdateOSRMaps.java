@@ -13,6 +13,11 @@
 package org.jikesrvm.compilers.opt.regalloc;
 
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.osr.OSRConstants.ACONST;
+import static org.jikesrvm.osr.OSRConstants.ICONST;
+import static org.jikesrvm.osr.OSRConstants.LCONST;
+import static org.jikesrvm.osr.OSRConstants.PHYREG;
+import static org.jikesrvm.osr.OSRConstants.SPILL;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -27,7 +32,6 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.osr.LocalRegPair;
 import org.jikesrvm.osr.MethodVariables;
-import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.VariableMapElement;
 import org.vmmagic.unboxed.Word;
 
@@ -125,18 +129,18 @@ public final class UpdateOSRMaps extends CompilerPhase {
             * Perhaps, ConvertToLowLevelIR can skip OsrPoint instruction.
             */
           } else if (op.isIntConstant()) {
-            setTupleValue(tuple, OSRConstants.ICONST, ((IntConstantOperand) op).value);
+            setTupleValue(tuple, ICONST, ((IntConstantOperand) op).value);
             if (VM.BuildFor32Addr && (tuple.typeCode == LongTypeCode)) {
               LocalRegPair other = tuple._otherHalf;
               Operand other_op = other.operand;
 
               if (VM.VerifyAssertions) VM._assert(other_op.isIntConstant());
-              setTupleValue(other, OSRConstants.ICONST, ((IntConstantOperand) other_op).value);
+              setTupleValue(other, ICONST, ((IntConstantOperand) other_op).value);
             }
           } else if (op.isAddressConstant()) {
-            setTupleValue(tuple, OSRConstants.ACONST, ((AddressConstantOperand) op).value.toWord());
+            setTupleValue(tuple, ACONST, ((AddressConstantOperand) op).value.toWord());
           } else if (VM.BuildFor64Addr && op.isLongConstant()) {
-            setTupleValue(tuple, OSRConstants.LCONST, Word.fromLong(((LongConstantOperand) op).value));
+            setTupleValue(tuple, LCONST, Word.fromLong(((LongConstantOperand) op).value));
           } else {
             throw new OptimizingCompilerException("LinearScan", "Unexpected operand type at ", op.toString());
           } // for the op type
@@ -154,12 +158,12 @@ public final class UpdateOSRMaps extends CompilerPhase {
     // is is really confusing that sometimes a sym reg is a phy,
     // and sometimes not.
     if (sym_reg.isAllocated()) {
-      setTupleValue(tuple, OSRConstants.PHYREG, sym_reg.number & REG_MASK);
+      setTupleValue(tuple, PHYREG, sym_reg.number & REG_MASK);
     } else if (sym_reg.isPhysical()) {
-      setTupleValue(tuple, OSRConstants.PHYREG, sym_reg.number & REG_MASK);
+      setTupleValue(tuple, PHYREG, sym_reg.number & REG_MASK);
     } else if (sym_reg.isSpilled()) {
       int spillLocation = ir.MIRInfo.regAllocState.getSpill(sym_reg);
-      setTupleValue(tuple, OSRConstants.SPILL, spillLocation);
+      setTupleValue(tuple, SPILL, spillLocation);
     } else {
       dumpIR(ir, "PANIC");
       throw new RuntimeException("LinearScan PANIC in OSRMAP, " + sym_reg + " is not alive");

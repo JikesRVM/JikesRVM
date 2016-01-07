@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.GENERATE_GC_TRACE;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.NEEDS_LINEAR_SCAN;
+import static org.jikesrvm.objectmodel.MiscHeaderConstants.NUM_BYTES_HEADER;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
@@ -49,7 +52,7 @@ public final class JavaHeaderConstants {
   /** Number of bytes used by the GC Header */
   public static final int GC_HEADER_BYTES = MemoryManagerConstants.GC_HEADER_BYTES;
   /** Number of bytes used by the miscellaneous header */
-  public static final int MISC_HEADER_BYTES = MiscHeaderConstants.NUM_BYTES_HEADER;
+  public static final int MISC_HEADER_BYTES = NUM_BYTES_HEADER;
   /** Size of GC and miscellaneous headers */
   public static final int OTHER_HEADER_BYTES = GC_HEADER_BYTES + MISC_HEADER_BYTES;
 
@@ -73,7 +76,7 @@ public final class JavaHeaderConstants {
    *     In a copying collector, this forces us to add a word
    *     to copied objects that have had their hashcode taken.
    */
-  public static final boolean ADDRESS_BASED_HASHING = !MemoryManagerConstants.GENERATE_GC_TRACE;
+  public static final boolean ADDRESS_BASED_HASHING = !GENERATE_GC_TRACE;
 
   /** How many bits in the header are available for the GC and MISC headers? */
   public static final int NUM_AVAILABLE_BITS = ADDRESS_BASED_HASHING ? 8 : 2;
@@ -88,7 +91,7 @@ public final class JavaHeaderConstants {
    * Does this object model place the hash for a hashed and moved object
    * after the data (at a dynamic offset)
    */
-  public static final boolean DYNAMIC_HASH_OFFSET = ADDRESS_BASED_HASHING && MemoryManagerConstants.NEEDS_LINEAR_SCAN;
+  public static final boolean DYNAMIC_HASH_OFFSET = ADDRESS_BASED_HASHING && NEEDS_LINEAR_SCAN;
 
   /**
    * Can we perform a linear scan?

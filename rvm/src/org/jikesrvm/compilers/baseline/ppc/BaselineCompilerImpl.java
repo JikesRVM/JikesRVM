@@ -17,8 +17,8 @@ import static org.jikesrvm.compilers.baseline.BBConstants.ADDRESS_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.DOUBLE_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.FLOAT_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.INT_TYPE;
-import static org.jikesrvm.compilers.baseline.BBConstants.LONG_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.LONGHALF_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.LONG_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.VOID_TYPE;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GE;
@@ -100,6 +100,8 @@ import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_FRAME_POINTE
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.ppc.TrapConstants.CHECKCAST_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.MUST_IMPLEMENT_TRAP;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
@@ -113,8 +115,8 @@ import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_OFFSET;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
@@ -146,7 +148,6 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.RegisterConstants.FPR;
 import org.jikesrvm.ppc.RegisterConstants.GPR;
-import org.jikesrvm.ppc.TrapConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.MagicNames;
@@ -2613,7 +2614,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
             asm.emitLVAL(T2, interfaceIndex);
             asm.emitCMPL(T2, T1);
             ForwardReference fr1 = asm.emitForwardBC(LT);  // if in bounds, jump around trap.  TODO: would like to encode "y" bit that this branch is expected to be takem.
-            asm.emitTWI(31, GPR.R12, TrapConstants.MUST_IMPLEMENT_TRAP); // encoding of TRAP_ALWAYS MUST_IMPLEMENT_INTERFACE
+            asm.emitTWI(31, GPR.R12, MUST_IMPLEMENT_TRAP); // encoding of TRAP_ALWAYS MUST_IMPLEMENT_INTERFACE
             fr1.resolve(asm);
           }
 
@@ -2626,7 +2627,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
             asm.emitANDIS(S0, T1, interfaceMask);
           }
           ForwardReference fr2 = asm.emitForwardBC(NE);     // TODO: encode "y" bit that branch is likely taken.
-          asm.emitTWI(31, GPR.R12, TrapConstants.MUST_IMPLEMENT_TRAP); // encoding of TRAP_ALWAYS MUST_IMPLEMENT_INTERFACE
+          asm.emitTWI(31, GPR.R12, MUST_IMPLEMENT_TRAP); // encoding of TRAP_ALWAYS MUST_IMPLEMENT_INTERFACE
           fr2.resolve(asm);
         }
       }
@@ -2808,7 +2809,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitLVAL(T2, interfaceIndex);
       asm.emitCMPL(T2, T1);
       ForwardReference fr1 = asm.emitForwardBC(LT);      // if in bounds, jump around trap.  TODO: would like to encode "y" bit that this branch is expected to be takem.
-      asm.emitTWI(31, GPR.R12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+      asm.emitTWI(31, GPR.R12, CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
       fr1.resolve(asm);
     }
 
@@ -2821,7 +2822,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitANDIS(S0, T1, interfaceMask);
     }
     ForwardReference fr2 = asm.emitForwardBC(NE);      // TODO: encode "y" bit that branch is likely taken.
-    asm.emitTWI(31, GPR.R12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+    asm.emitTWI(31, GPR.R12, CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
     fr2.resolve(asm);
     isNull.resolve(asm);
   }
@@ -2843,7 +2844,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitLVAL(T2, LHSDepth);
       asm.emitCMPL(T2, T1);
       ForwardReference fr1 = asm.emitForwardBC(LT);      // if in bounds, jump around trap.  TODO: would like to encode "y" bit that this branch is expected to be takem.
-      asm.emitTWI(31, GPR.R12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+      asm.emitTWI(31, GPR.R12, CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
       fr1.resolve(asm);
     }
 
@@ -2856,7 +2857,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitCMP(T0, T1);
     }
     ForwardReference fr2 = asm.emitForwardBC(EQ);      // TODO: encode "y" bit that branch is likely taken.
-    asm.emitTWI(31, GPR.R12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+    asm.emitTWI(31, GPR.R12, CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
     fr2.resolve(asm);
     isNull.resolve(asm);
   }
@@ -2871,7 +2872,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     asm.emitLAddrToc(T1, type.getTibOffset());          // TIB of LHS type
     asm.emitCMP(T0, T1);                                // TIBs equal?
     ForwardReference fr = asm.emitForwardBC(EQ);       // TODO: encode "y" bit that branch is likely taken.
-    asm.emitTWI(31, GPR.R12, TrapConstants.CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
+    asm.emitTWI(31, GPR.R12, CHECKCAST_TRAP); // encoding of TRAP_ALWAYS CHECKCAST
     fr.resolve(asm);
     isNull.resolve(asm);
   }

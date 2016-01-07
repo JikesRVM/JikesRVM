@@ -13,11 +13,18 @@
 package org.jikesrvm.ppc;
 
 import static org.jikesrvm.ppc.RegisterConstants.FRAME_POINTER;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Memory;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
@@ -115,11 +122,11 @@ public final class Registers extends AbstractRegisters {
   public void initializeStack(Address ip, Address sp) {
     Address fp;
     // align stack frame
-    int INITIAL_FRAME_SIZE = StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
-    fp = Memory.alignDown(sp.minus(INITIAL_FRAME_SIZE), StackframeLayoutConstants.STACKFRAME_ALIGNMENT);
-    fp.plus(StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET).store(StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
-    fp.plus(StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET).store(ip); // need to fix
-    fp.plus(StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET).store(StackframeLayoutConstants.INVISIBLE_METHOD_ID);
+    int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
+    fp = Memory.alignDown(sp.minus(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
+    fp.plus(STACKFRAME_FRAME_POINTER_OFFSET).store(STACKFRAME_SENTINEL_FP);
+    fp.plus(STACKFRAME_RETURN_ADDRESS_OFFSET).store(ip); // need to fix
+    fp.plus(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
 
     getGPRs().set(FRAME_POINTER.value(), fp.toWord());
     this.ip = ip;

@@ -29,8 +29,6 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.ppc.Disassembler;
-import org.jikesrvm.ppc.RegisterConstants;
-import org.jikesrvm.ppc.StackframeLayoutConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
@@ -2049,7 +2047,7 @@ public final class Assembler extends AbstractAssembler implements BaselineConsta
 
   public void emitStackOverflowCheck(int frameSize) {
     emitLAddrOffset(GPR.R0,
-                    RegisterConstants.THREAD_REGISTER,
+                    THREAD_REGISTER,
                     Entrypoints.stackLimitField.getOffset()); // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                             // S0 := &new frame
     emitTAddrLT(S0, GPR.R0);                                  // trap if new frame below guard page
@@ -2083,14 +2081,14 @@ public final class Assembler extends AbstractAssembler implements BaselineConsta
    */
   public void emitNativeStackOverflowCheck(int frameSize) {
     emitLAddrOffset(S0,
-                    RegisterConstants.THREAD_REGISTER,
+                    THREAD_REGISTER,
                     Entrypoints.jniEnvField.getOffset());      // S0 := thread.jniEnv
     emitLIntOffset(GPR.R0, S0, Entrypoints.JNIRefsTopField.getOffset()); // R0 := thread.jniEnv.JNIRefsTop
     emitCMPI(GPR.R0, 0);                                                 // check if S0 == 0 -> first native frame on stack
     ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
     emitLAddrOffset(GPR.R0,
-                    RegisterConstants.THREAD_REGISTER,
+                    THREAD_REGISTER,
                     Entrypoints.stackLimitField.getOffset()); // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                             // S0 := &new frame pointer
     emitTAddrLT(S0, GPR.R0);                                  // trap if new frame below guard page
@@ -2099,9 +2097,9 @@ public final class Assembler extends AbstractAssembler implements BaselineConsta
     // check for enough space for STACK_SIZE_JNINATIVE
     fr1.resolve(this);
     emitLAddrOffset(GPR.R0,
-                    RegisterConstants.THREAD_REGISTER,
+                    THREAD_REGISTER,
                     Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
-    emitLVAL(S0, StackframeLayoutConstants.STACK_SIZE_JNINATIVE);
+    emitLVAL(S0, STACK_SIZE_JNINATIVE);
     emitSUBFC(S0, S0, FP);             // S0 := &new frame pointer
 
     emitCMPLAddr(GPR.R0, S0);

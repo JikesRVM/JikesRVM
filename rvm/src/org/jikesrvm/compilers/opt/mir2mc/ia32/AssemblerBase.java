@@ -95,6 +95,7 @@ import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST0;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST1;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.util.Bits.fits;
 
 import java.util.ArrayList;
@@ -130,7 +131,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
-import org.jikesrvm.ia32.TrapConstants;
 import org.jikesrvm.util.Bits;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
@@ -277,7 +277,7 @@ abstract class AssemblerBase extends Assembler {
       // used by ImmOrLabel stuff
       return mcOffsets.getMachineCodeOffset(op.asBranch().target);
     } else {
-      return ((TrapCodeOperand) op).getTrapCode() + TrapConstants.RVM_TRAP_BASE;
+      return ((TrapCodeOperand) op).getTrapCode() + RVM_TRAP_BASE;
     }
   }
 

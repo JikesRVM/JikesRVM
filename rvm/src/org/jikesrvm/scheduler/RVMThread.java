@@ -17,6 +17,7 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_DYING_WITH_UNCAUGHT_EX
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
 import static org.jikesrvm.runtime.SysCall.sysCall;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -42,7 +43,6 @@ import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.ThreadContext;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.osr.ObjectHolder;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Entrypoints;
@@ -1588,7 +1588,7 @@ public final class RVMThread extends ThreadContext {
 
       acctLock.unlock();
     }
-    lockingId = threadSlot << ThinLockConstants.TL_THREAD_ID_SHIFT;
+    lockingId = threadSlot << TL_THREAD_ID_SHIFT;
     if (traceAcct) {
       VM.sysWriteln("Thread #", threadSlot, " at ", Magic.objectAsAddress(this));
       VM.sysWriteln("stack at ", Magic.objectAsAddress(stack), " up to ", Magic.objectAsAddress(stack).plus(stack.length));

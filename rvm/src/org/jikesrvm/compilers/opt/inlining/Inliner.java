@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.inlining;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
@@ -24,9 +25,9 @@ import java.util.Enumeration;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.database.AOSDatabase;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
@@ -34,7 +35,6 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
@@ -249,7 +249,7 @@ public class Inliner {
           boolean requiresImplementsTest = true;
           if (recType != null && recType.isResolved() && !recType.isInterface()) {
             byte doesImplement = ClassLoaderProxy.includesType(interfaceType.getTypeRef(), recTypeRef);
-            requiresImplementsTest = doesImplement != OptConstants.YES;
+            requiresImplementsTest = doesImplement != YES;
           }
           if (requiresImplementsTest) {
             RegisterOperand checkedReceiver = parent.getTemps().makeTemp(receiver);
@@ -309,7 +309,7 @@ public class Inliner {
           // (2) at runtime.
           byte doesImplement = ClassLoaderProxy.
               includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
-          if (doesImplement != OptConstants.YES) {
+          if (doesImplement != YES) {
             // We can't be sure at compile time that the receiver implements
             // the interface. So, inject a test to make sure that it does.
             // Unlike the above case, this can actually happen (when

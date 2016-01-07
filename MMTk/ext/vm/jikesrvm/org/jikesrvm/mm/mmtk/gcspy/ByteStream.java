@@ -12,15 +12,14 @@
  */
 package org.jikesrvm.mm.mmtk.gcspy;
 
-import org.mmtk.utility.gcspy.Color;
-import org.mmtk.utility.gcspy.GCspy;
-import org.mmtk.utility.gcspy.StreamConstants;
-import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+import static org.mmtk.utility.gcspy.StreamConstants.BYTE_TYPE;
 
 import org.jikesrvm.VM;
-import static org.jikesrvm.runtime.SysCall.sysCall;
-
-import org.vmmagic.pragma.*;
+import org.mmtk.utility.gcspy.Color;
+import org.mmtk.utility.gcspy.GCspy;
+import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -77,7 +76,7 @@ import org.vmmagic.unboxed.Address;
       Address tmpPre = GCspy.util.getBytes(stringPre);
       Address tmpPost = GCspy.util.getBytes(stringPost);
 
-      sysCall.gcspyStreamInit(stream, streamId, StreamConstants.BYTE_TYPE,
+      sysCall.gcspyStreamInit(stream, streamId, BYTE_TYPE,
           tmpName, minValue, maxValue, zeroValue, defaultValue,
           tmpPre, tmpPost, presentation, paintStyle, indexMaxStream,
           colour.getRed(), colour.getGreen(), colour.getBlue());

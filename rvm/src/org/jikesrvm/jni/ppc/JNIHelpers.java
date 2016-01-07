@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
@@ -28,7 +29,6 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.jni.JNIGenericHelpers;
 import org.jikesrvm.ppc.RegisterConstants;
-import org.jikesrvm.ppc.StackframeLayoutConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.scheduler.RVMThread;
@@ -401,7 +401,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
     // GPR r3 - r10 and FPR f1 - f8 are saved in glue stack frame
-    Address regsavearea = glueFP.plus(StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
+    Address regsavearea = glueFP.plus(STACKFRAME_HEADER_SIZE);
 
     // spill area offset
     Address overflowarea = nativeFP.plus(NATIVE_FRAME_HEADER_SIZE);

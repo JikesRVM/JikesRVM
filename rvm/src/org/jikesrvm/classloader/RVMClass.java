@@ -12,7 +12,24 @@
  */
 package org.jikesrvm.classloader;
 
-import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_ABSTRACT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_ANNOTATION;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_ENUM;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_FINAL;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_INTERFACE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_PUBLIC;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_STATIC;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_SUPER;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_SYNTHETIC;
+import static org.jikesrvm.classloader.ClassLoaderConstants.APPLICABLE_TO_CLASSES;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INITIALIZED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INITIALIZER_FAILED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INITIALIZING;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INSTANTIATED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_LOADED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_RESOLVED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_MEMBER;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_UTF;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
@@ -36,7 +53,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.runtime.UnboxedSizeConstants;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -838,7 +854,7 @@ public final class RVMClass extends RVMType {
   @Uninterruptible
   public int getAlignment() {
     if (BYTES_IN_ADDRESS == BYTES_IN_DOUBLE) {
-      return UnboxedSizeConstants.BYTES_IN_ADDRESS;
+      return BYTES_IN_ADDRESS;
     } else {
       return alignment;
     }

@@ -31,6 +31,7 @@ import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST0;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST1;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ZF;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import static org.jikesrvm.ia32.RegisterConstants.EAX;
 import static org.jikesrvm.ia32.RegisterConstants.EBP;
 import static org.jikesrvm.ia32.RegisterConstants.EBX;
@@ -69,7 +70,6 @@ import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.util.BitSet;
 import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
 import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
-import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.ia32.RegisterConstants.FPR;
 import org.jikesrvm.ia32.RegisterConstants.FloatingPointMachineRegister;
 import org.jikesrvm.ia32.RegisterConstants.GPR;
@@ -465,14 +465,14 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
    */
   public Register getST0() {
     if (VM.VerifyAssertions) VM._assert(NUM_RETURN_FPRS == 1);
-    if (VM.VerifyAssertions) VM._assert(ArchConstants.SSE2_FULL);
+    if (VM.VerifyAssertions) VM._assert(SSE2_FULL);
     return reg[ST0];
   }
   /**
    * @return the special ST1 x87 register
    */
   public Register getST1() {
-    if (VM.VerifyAssertions) VM._assert(ArchConstants.SSE2_FULL);
+    if (VM.VerifyAssertions) VM._assert(SSE2_FULL);
     return reg[ST1];
   }
 
@@ -534,7 +534,7 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
     for (GPR r : GPR.values()) {
       regName[r.ordinal() + FIRST_INT] = r.toString();
     }
-    if (ArchConstants.SSE2_FULL) {
+    if (SSE2_FULL) {
       for (XMM r : XMM.values()) {
         regName[r.ordinal() + FIRST_DOUBLE] = r.toString();
       }

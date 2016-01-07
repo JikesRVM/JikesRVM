@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.ppc.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
 import org.jikesrvm.VM;
@@ -50,9 +51,9 @@ public abstract class MultianewarrayHelper {
       // fetch number of elements to be allocated for each array dimension
       VM.disableGC();
       Address argp = Magic.getFramePointer().loadAddress().plus(argOffset);
-      int offset = (StackframeLayoutConstants.BYTES_IN_STACKSLOT * 0) + BYTES_IN_INT;
+      int offset = (BYTES_IN_STACKSLOT * 0) + BYTES_IN_INT;
       dim0 = argp.minus(offset).loadInt();
-      offset = (StackframeLayoutConstants.BYTES_IN_STACKSLOT * 1) + BYTES_IN_INT;
+      offset = (BYTES_IN_STACKSLOT * 1) + BYTES_IN_INT;
       dim1 = argp.minus(offset).loadInt();
       VM.enableGC();
       // validate arguments
@@ -67,7 +68,7 @@ public abstract class MultianewarrayHelper {
       VM.disableGC();
       Address argp = Magic.getFramePointer().loadAddress().plus(argOffset);
       for (int i = 0; i < numDimensions; ++i) {
-        int offset = (StackframeLayoutConstants.BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
+        int offset = (BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
         numElements[i] = argp.minus(offset).loadInt();
       }
       VM.enableGC();

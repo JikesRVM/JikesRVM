@@ -15,15 +15,15 @@ package org.jikesrvm.ia32;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NE;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
-import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_BYTES;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
-import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.EntrypointHelper;
@@ -284,7 +284,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     } else {
       asm.emitMOV_Reg_RegDisp_Quad(S0, THREAD_REGISTER, fpOffset);
       asm.emitMOV_Reg_RegDisp_Quad(S0, S0, PARAMS_FP_OFFSET);// S0 <- Parameters
-      if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+      if (ARRAY_LENGTH_BYTES == 4) {
         asm.emitMOV_Reg_RegDisp(T1, S0, ObjectModel.getArrayLengthOffset());     // T1 <- Parameters.length()
         asm.emitCMP_Reg_Imm(T1, 0);                      // length == 0 ?
       } else {
@@ -306,7 +306,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     } else {
       asm.emitADD_Reg_Imm_Quad(S0, WORDSIZE);          // i++
     }
-    if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+    if (ARRAY_LENGTH_BYTES == 4) {
       asm.emitADD_Reg_Imm(T1, -1);                     // length--
     } else {
       asm.emitADD_Reg_Imm_Quad(T1, -1);                // length--
@@ -325,7 +325,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       } else {
         asm.emitMOV_Reg_RegDisp_Quad(S0, THREAD_REGISTER, fpOffset);
         asm.emitMOV_Reg_RegDisp_Quad(T0, S0, FPRS_FP_OFFSET);    // T0 <- FPRs
-        if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+        if (ARRAY_LENGTH_BYTES == 4) {
           asm.emitMOV_Reg_RegDisp(T1, T0, ObjectModel.getArrayLengthOffset());      // T1 <- FPRs.length()
         } else {
           asm.emitMOV_Reg_RegDisp_Quad(T1, T0, ObjectModel.getArrayLengthOffset()); // T1 <- FPRs.length()
@@ -407,7 +407,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     } else {
       asm.emitMOV_Reg_RegDisp_Quad(S0, THREAD_REGISTER, fpOffset);
       asm.emitMOV_Reg_RegDisp_Quad(S0, S0, GPRS_FP_OFFSET);   // S0 <- GPRs
-      if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+      if (ARRAY_LENGTH_BYTES == 4) {
         asm.emitMOV_Reg_RegDisp(T1, S0, ObjectModel.getArrayLengthOffset());    // T1 <- GPRs.length()
         asm.emitCMP_Reg_Imm(T1, 0);                        // length == 0 ?
       } else {
