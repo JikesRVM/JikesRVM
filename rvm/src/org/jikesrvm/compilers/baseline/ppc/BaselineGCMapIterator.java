@@ -12,11 +12,19 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FIXED_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FLOAT_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MethodReference;
@@ -27,13 +35,13 @@ import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.ppc.BaselineConstants;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler.<p>
@@ -44,7 +52,7 @@ import org.vmmagic.unboxed.WordArray;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public abstract class BaselineGCMapIterator extends GCMapIterator implements BaselineConstants {
+public final class BaselineGCMapIterator extends GCMapIterator {
 
   // Iterator state for mapping any stackframe.
   //
@@ -58,7 +66,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
   /** place to keep info returned by CompiledMethod.getDynamicLink */
-  private DynamicLink dynamicLink;
+  private final DynamicLink dynamicLink;
   /** method to be invoked via dynamic bridge ({@code null}: current frame is not a dynamic bridge) */
   private MethodReference bridgeTarget;
   /** method for the frame */
@@ -79,7 +87,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
   /** current parameter being mapped (-1 == "this") */
   private int bridgeParameterIndex;
   /**  gpr register it lives in */
-  private int bridgeRegisterIndex;
+  private GPR bridgeRegisterIndex;
   /**  memory address at which that register was saved */
   private Address bridgeRegisterLocation;
   /** current spilled param location */
@@ -92,8 +100,8 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
   // other types of iterators (ones for the opt compiler built frames)
   // The locations are kept as addresses within the stack.
   //
-  public BaselineGCMapIterator(WordArray registerLocations) {
-    this.registerLocations = registerLocations; // (in superclass)
+  public BaselineGCMapIterator(AddressArray registerLocations) {
+    super(registerLocations);
     dynamicLink = new DynamicLink();
   }
 
@@ -133,7 +141,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
         Address nextCallerAddress;
         short location = convertIndexToLocation(JSRindex);
         if (BaselineCompilerImpl.isRegister(location)) {
-          nextCallerAddress = registerLocations.get(location).toAddress();
+          nextCallerAddress = registerLocations.get(location);
         } else {
           nextCallerAddress =
               framePtr.plus(BaselineCompilerImpl.locationToOffset(location) -
@@ -168,7 +176,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     bridgeParameterMappingRequired = false;
     bridgeRegistersLocationUpdated = false;
     bridgeParameterIndex = 0;
-    bridgeRegisterIndex = 0;
+    bridgeRegisterIndex = GPR.R0;
     bridgeRegisterLocation = Address.zero();
     bridgeSpilledParamLocation = Address.zero();
 
@@ -205,8 +213,8 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       bridgeRegisterIndex = FIRST_VOLATILE_GPR;
       bridgeRegisterLocation = framePtr.loadAddress();
       bridgeRegisterLocation =
-          bridgeRegisterLocation.minus(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
-                                       BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
+          bridgeRegisterLocation.minus(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) +
+                                       BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1));
 
       // get to my caller's frameptr and then walk up to the spill area
       Address callersFP = Magic.getCallerFramePointer(framePtr);
@@ -259,7 +267,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
 
         Address nextCallerAddress;
         if (BaselineCompilerImpl.isRegister(location)) {
-          nextCallerAddress = registerLocations.get(location).toAddress();
+          nextCallerAddress = registerLocations.get(location);
         } else {
           nextCallerAddress =
               framePtr.plus(BaselineCompilerImpl.locationToOffset(location) -
@@ -267,7 +275,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
         }
         nextCallerAddress = nextCallerAddress.loadAddress();
         if (BaselineCompilerImpl.isRegister(location)) {
-          return registerLocations.get(location).toAddress();
+          return registerLocations.get(location);
         } else {
           return framePtr.plus(BaselineCompilerImpl.locationToOffset(location) -
                                BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
@@ -284,11 +292,11 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
         // point registerLocations[] to our callers stackframe
         //
         Address location = framePtr.plus(BaselineCompilerImpl.getFrameSize(currentCompiledMethod));
-        location = location.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE);
+        location = location.minus((LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) * BYTES_IN_DOUBLE);
         // skip non-volatile and volatile fprs
-        for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
+        for (int i = LAST_NONVOLATILE_GPR.value(); i >= FIRST_VOLATILE_GPR.value(); --i) {
           location = location.minus(BYTES_IN_ADDRESS);
-          registerLocations.set(i, location.toWord());
+          registerLocations.set(i, location);
         }
 
         bridgeRegistersLocationUpdated = true;
@@ -298,7 +306,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       //
       if (bridgeParameterIndex == -1) {
         bridgeParameterIndex += 1;
-        bridgeRegisterIndex += 1;
+        bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
         bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
 
         if (VM.TraceStkMaps) {
@@ -316,12 +324,12 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
         TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
 
         // are we still processing the regs?
-        if (bridgeRegisterIndex <= LAST_VOLATILE_GPR) {
+        if (bridgeRegisterIndex.value() <= LAST_VOLATILE_GPR.value()) {
 
           // update the bridgeRegisterLocation (based on type) and return a value if it is a ref
           if (bridgeParameterType.isReferenceType()) {
             bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
-            bridgeRegisterIndex += 1;
+            bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
 
             if (VM.TraceStkMaps) {
               VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, ");
@@ -331,13 +339,14 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
             }
             return bridgeRegisterLocation.minus(BYTES_IN_ADDRESS);
           } else if (bridgeParameterType.isLongType()) {
-            bridgeRegisterIndex += VM.BuildFor64Addr ? 1 : 2;
+            bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
+            if (VM.BuildFor32Addr) bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
             bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_LONG);
           } else if (bridgeParameterType.isDoubleType() || bridgeParameterType.isFloatType()) {
             // nothing to do, these are not stored in gprs
           } else {
             // boolean, byte, char, short, int
-            bridgeRegisterIndex += 1;
+            bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
             bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
           }
         } else {  // now process the register spill area for the remain params
@@ -396,7 +405,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     }
     Address nextCallerAddress;
     if (BaselineCompilerImpl.isRegister(location)) {
-      nextCallerAddress = registerLocations.get(location).toAddress();
+      nextCallerAddress = registerLocations.get(location);
     } else {
       nextCallerAddress =
           framePtr.plus(BaselineCompilerImpl.locationToOffset(location) -
@@ -404,7 +413,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     }
     nextCallerAddress = nextCallerAddress.loadAddress();
     if (BaselineCompilerImpl.isRegister(location)) {
-      return registerLocations.get(location).toAddress();
+      return registerLocations.get(location);
     } else {
       return framePtr.plus(BaselineCompilerImpl.locationToOffset(location) -
                            BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
@@ -444,12 +453,12 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       if (VM.TraceStkMaps) VM.sysWriteln("    Update Caller RegisterLocations");
       Address addr = framePtr.plus(BaselineCompilerImpl.getFrameSize(currentCompiledMethod));
       addr =
-          addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER + 1) <<
+          addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER.value() + 1) <<
                      LOG_BYTES_IN_DOUBLE); //skip float registers
 
-      for (int i = currentCompiledMethod.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {
+      for (int i = currentCompiledMethod.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER.value(); --i) {
         addr = addr.minus(BYTES_IN_ADDRESS);
-        registerLocations.set(i, addr.toWord());
+        registerLocations.set(i, addr);
       }
     }
   }

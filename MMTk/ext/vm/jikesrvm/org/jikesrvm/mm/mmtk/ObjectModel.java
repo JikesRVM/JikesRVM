@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_BASE_OFFSET;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.GC_HEADER_OFFSET;
 
 import org.jikesrvm.classloader.Atom;
@@ -20,7 +21,6 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.MemoryManager;
-import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.CollectorContext;
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.Word;
 
   @Override
   protected Offset getArrayBaseOffset() {
-    return JavaHeaderConstants.ARRAY_BASE_OFFSET;
+    return ARRAY_BASE_OFFSET;
   }
 
   @Override

@@ -19,7 +19,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.scheduler.RVMThread;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.vmmagic.pragma.NoInline;

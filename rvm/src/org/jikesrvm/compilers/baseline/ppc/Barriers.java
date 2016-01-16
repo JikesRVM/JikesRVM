@@ -12,11 +12,18 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import static org.jikesrvm.ppc.BaselineConstants.F0;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.BaselineConstants.T1;
+import static org.jikesrvm.ppc.BaselineConstants.T2;
+import static org.jikesrvm.ppc.BaselineConstants.T3;
+import static org.jikesrvm.ppc.BaselineConstants.T4;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -25,7 +32,7 @@ import org.vmmagic.unboxed.Offset;
  * write barrier for generational garbage collectors.  For baseline
  * compiled methods, the write barrier calls methods of WriteBarrier.
  */
-class Barriers implements BaselineConstants {
+class Barriers {
 
   // on entry java stack contains ...|array_ref|index|value|
   static void compileArrayStoreBarrier(BaselineCompilerImpl comp) {

@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.Callbacks.ClassLoadedMonitor;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Callbacks.ClassLoadedMonitor;
 import org.jikesrvm.scheduler.Synchronization;
 
 /**

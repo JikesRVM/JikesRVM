@@ -15,13 +15,13 @@ package org.jikesrvm.tools.bootImageWriter;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_RMAP_START;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.FIRST_TYPE_DICTIONARY_INDEX;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_ALLOCATION_DEFERRED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_ALLOCATED;
@@ -58,12 +58,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
-import org.jikesrvm.ArchitectureSpecific.OutOfLineMachineCode;
-import org.jikesrvm.Callbacks;
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchitectureFactory;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.JMXSupport;
@@ -75,8 +71,10 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeDescriptorParsing;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.compilers.common.LazyCompilationTrampoline;
 import org.jikesrvm.jni.FunctionTable;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
@@ -85,10 +83,12 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.RuntimeTable;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -1445,7 +1445,7 @@ public class BootImageWriter extends BootImageWriterMessages {
       bootRecord.tocRegister = jtocAddress.plus(intArrayType.getInstanceSize(Statics.middleOfTable));
 
       // set up some stuff we need for compiling
-      OutOfLineMachineCode.init();
+      ArchitectureFactory.initOutOfLineMachineCode();
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
@@ -2323,7 +2323,7 @@ public class BootImageWriter extends BootImageWriterMessages {
             if (verbose >= 2) traceContext.push(values[i].getClass().getName(), jdkClass.getName(), i);
             if (isTIB && values[i] instanceof Word) {
               bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), (Word)values[i], false, false);
-            } else if (isTIB && values[i] == LazyCompilationTrampoline.instructions) {
+            } else if (isTIB && values[i] == LazyCompilationTrampoline.getInstructions()) {
               Address codeAddress = arrayImageAddress.plus(((TIB)parentObject).lazyMethodInvokerTrampolineIndex() << LOG_BYTES_IN_ADDRESS);
               bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), codeAddress.toWord(), false, false);
             } else {

@@ -11,8 +11,8 @@
  *  regarding copyright ownership.
  */
 
-import org.jikesrvm.Services;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 
 /**

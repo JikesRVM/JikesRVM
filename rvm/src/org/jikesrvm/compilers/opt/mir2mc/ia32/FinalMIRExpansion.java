@@ -12,82 +12,81 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.CALL_SAVE_VOLATILE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.CALL_SAVE_VOLATILE_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_DEF_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_USE_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CALL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPXCHG;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPXCHG8B;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCLEAR_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FFREE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV_ENDING_LIVE_RANGE_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FST;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FSTP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FXCH;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_INT;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JCC;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JCC2_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JMP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LEA_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LOCK;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LOCK_CMPXCHG8B_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LOCK_CMPXCHG_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVAPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVAPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZX__B;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SET__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SHL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XOR;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP_opcode;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.ir.BBend;
-import org.jikesrvm.compilers.opt.ir.Label;
-import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
-import org.jikesrvm.compilers.opt.ir.MIR_Branch;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_Compare;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
-import org.jikesrvm.compilers.opt.ir.MIR_Empty;
-import org.jikesrvm.compilers.opt.ir.MIR_Lea;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
-import org.jikesrvm.compilers.opt.ir.MIR_Set;
-import org.jikesrvm.compilers.opt.ir.MIR_Test;
-import org.jikesrvm.compilers.opt.ir.MIR_Trap;
-import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
-import org.jikesrvm.compilers.opt.ir.MIR_XChng;
-import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-
-import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_DEF_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_USE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADD;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CALL;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMP;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPXCHG;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPXCHG8B;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCLEAR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FFREE;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FLD;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV_ENDING_LIVE_RANGE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FST;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FSTP;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FXCH;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_INT;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JCC;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JCC2_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JMP;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LEA_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG8B_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_CMPXCHG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVAPD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVAPS_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVZX__B;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SET__B_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SHL;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TEST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TRAPIF;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TRAPIF_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XOR;
-import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REQUIRE_ESP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE_opcode;
-
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_BinaryAcc;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Compare;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Empty;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Lea;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Nullary;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Set;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Test;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Trap;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_TrapIf;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_XChng;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
@@ -126,7 +125,7 @@ public class FinalMIRExpansion extends IRTools {
    * @return return value is garbage for IA32
    */
   public static int expand(IR ir) {
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asIA32();
     MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
 
     for (Instruction next, p = ir.firstInstructionInCodeOrder(); p != null; p = next) {
@@ -446,7 +445,7 @@ public class FinalMIRExpansion extends IRTools {
   private static void expandFClear(Instruction s, IR ir) {
     int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
     int fpStackHeight = ir.MIRInfo.fpStackHeight;
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asIA32();
 
     for (int i = nSave; i < fpStackHeight; i++) {
       Register f = phys.getFPR(i);

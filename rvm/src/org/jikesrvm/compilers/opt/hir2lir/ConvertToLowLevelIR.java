@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.hir2lir;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
@@ -86,15 +84,18 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_TIBS;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
-import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.InterfaceInvocation;
 import org.jikesrvm.classloader.InterfaceMethodSignature;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
@@ -141,7 +142,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.specialization.SpecializedMethod;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
@@ -176,7 +176,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         case GETSTATIC_opcode: {
           LocationOperand loc = GetStatic.getClearLocation(s);
           RegisterOperand result = GetStatic.getClearResult(s);
-          Operand address = ir.regpool.makeJTOCOp(ir, s);
+          Operand address = ir.regpool.makeJTOCOp();
           Operand offset = GetStatic.getClearOffset(s);
           Load.mutate(s, IRTools.getLoadOp(loc.getFieldRef(), true), result, address, offset, loc);
         }
@@ -185,7 +185,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         case PUTSTATIC_opcode: {
           LocationOperand loc = PutStatic.getClearLocation(s);
           Operand value = PutStatic.getClearValue(s);
-          Operand address = ir.regpool.makeJTOCOp(ir, s);
+          Operand address = ir.regpool.makeJTOCOp();
           Operand offset = PutStatic.getClearOffset(s);
           Store.mutate(s, IRTools.getStoreOp(loc.getFieldRef(), true), value, address, offset, loc);
         }
@@ -1068,7 +1068,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                             ir,
                             operator,
                             type,
-                            ir.regpool.makeJTOCOp(ir, s),
+                            ir.regpool.makeJTOCOp(),
                             AC(offset),
                             new LocationOperand(offset),
                             null);
@@ -1085,7 +1085,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    */
   static RegisterOperand InsertLoadOffsetJTOC(Instruction s, IR ir, Operator operator,
                                                   TypeReference type, Operand offset) {
-    return InsertLoadOffset(s, ir, operator, type, ir.regpool.makeJTOCOp(ir, s), offset, null, null);
+    return InsertLoadOffset(s, ir, operator, type, ir.regpool.makeJTOCOp(), offset, null, null);
   }
 
   /**
@@ -1184,7 +1184,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
 
   static Operand getTIB(Instruction s, IR ir, TypeOperand type) {
     RVMType t = type.getVMType();
-    if (VM.BuildForIA32 && !MemoryManagerConstants.MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
+    if (VM.BuildForIA32 && !MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
       Address addr = Magic.objectAsAddress(t.getTypeInformationBlock());
       return new AddressConstantOperand(addr);
     } else if (!t.isResolved()) {

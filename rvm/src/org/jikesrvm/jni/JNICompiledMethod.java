@@ -100,7 +100,7 @@ public final class JNICompiledMethod extends CompiledMethod {
   }
 
   @Override
-  public void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out) {
+  public void printStackTrace(Offset instructionOffset, org.jikesrvm.util.PrintLN out) {
     if (method != null) {
       // print name of native method
       out.print("\tat ");

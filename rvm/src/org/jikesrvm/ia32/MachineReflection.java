@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
 import static org.jikesrvm.runtime.Reflection.REFLECTION_FPRS_BITS;
 import static org.jikesrvm.runtime.Reflection.REFLECTION_GPRS_BITS;
 
@@ -26,7 +29,7 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * Machine dependent portion of Reflective method invoker.
  */
-public abstract class MachineReflection implements RegisterConstants {
+public abstract class MachineReflection {
 
   /**
    * Determines number/type of registers and parameters required to
@@ -112,7 +115,7 @@ public abstract class MachineReflection implements RegisterConstants {
   public static void packageParameters(RVMMethod method, Object thisArg, Object[] otherArgs, WordArray GPRs,
                                        double[] FPRs, byte[] FPRmeta, WordArray Parameters) {
     int GPR = 0;
-    int FPR = ArchConstants.SSE2_FULL ? 0 : FPRs.length;
+    int FPR = SSE2_FULL ? 0 : FPRs.length;
     int parameter = 0;
 
     int gp = NUM_PARAMETER_GPRS; // 0, 1, 2
@@ -163,7 +166,7 @@ public abstract class MachineReflection implements RegisterConstants {
       } else if (t.isFloatType()) {
         if (fp > 0) {
           fp--;
-          if (ArchConstants.SSE2_FULL) {
+          if (SSE2_FULL) {
             FPRs[FPR] = (Float)otherArgs[i];
             FPRmeta[FPR] = 0x0;
             FPR++;
@@ -177,7 +180,7 @@ public abstract class MachineReflection implements RegisterConstants {
         if (VM.BuildFor32Addr) {
           if (fp > 0) {
             fp--;
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               FPRs[FPR] = (Double)otherArgs[i];
               FPRmeta[FPR] = 0x1;
               FPR++;
@@ -192,7 +195,7 @@ public abstract class MachineReflection implements RegisterConstants {
         } else {
           if (fp > 0) {
             fp--;
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               FPRs[FPR] = (Double)otherArgs[i];
               FPRmeta[FPR] = 0x1;
               FPR++;

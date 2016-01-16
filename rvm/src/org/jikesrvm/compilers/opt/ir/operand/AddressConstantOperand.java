@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.Services;
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
@@ -104,7 +105,7 @@ public final class AddressConstantOperand extends ConstantOperand {
 
   @Override
   public int hashCode() {
-    return value.toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+    return value.toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();
   }
 
   /**

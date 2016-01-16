@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -24,6 +22,7 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
+import org.jikesrvm.util.Services;
 
 /**
  * SpecialCompiler is a wrapper for compiling specialized byte code.
@@ -107,7 +106,13 @@ public class SpecialCompiler {
     * because the compiler will generate maps after compilation.
     * Any necessary adjustment should be made during the compilation
     */
-    CompiledMethod newCompiledMethod = BaselineCompilerImpl.compile(method);
+    CompiledMethod newCompiledMethod;
+    if (VM.BuildForIA32) {
+      newCompiledMethod = org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.compile(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      newCompiledMethod = org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.compile(method);
+    }
 
     // compiled method was already set by BaselineCompilerImpl.compile
     // the call here does nothing

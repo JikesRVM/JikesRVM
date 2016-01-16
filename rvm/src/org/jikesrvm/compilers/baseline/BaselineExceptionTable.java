@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.ExceptionTable;
@@ -40,11 +40,11 @@ final class BaselineExceptionTable extends ExceptionTable {
 
     for (int i = 0; i < tableSize; i++) {
       eTable[i * 4 + TRY_START] =
-          bytecodeMap[startPCs[i]] << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH;
+          bytecodeMap[startPCs[i]] << ArchConstants.getLogInstructionWidth();
       eTable[i * 4 + TRY_END] =
-          bytecodeMap[endPCs[i]] << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH;
+          bytecodeMap[endPCs[i]] << ArchConstants.getLogInstructionWidth();
       eTable[i * 4 + CATCH_START] =
-          bytecodeMap[handlerPCs[i]] << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH;
+          bytecodeMap[handlerPCs[i]] << ArchConstants.getLogInstructionWidth();
       try {
         eTable[i * 4 + EX_TYPE] = exceptionTypes[i].resolve().getId();
       } catch (NoClassDefFoundError except) {

@@ -14,9 +14,6 @@ package org.jikesrvm.compilers.opt.lir2mir;
 
 import java.util.Enumeration;
 
-import org.jikesrvm.ArchitectureSpecificOpt.BURS_Debug;
-import org.jikesrvm.ArchitectureSpecificOpt.BURS_STATE;
-import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -43,8 +40,8 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * The intended purpose is to reduce compile time by doing quick and
  * dirty instruction selection for infrequently executed basic blocks.
  *
- * @see BURS_STATE
- * @see BURS_TreeNode
+ * @see BURS_StateCoder
+ * @see AbstractBURS_TreeNode
  */
 final class MinimalBURS extends BURS {
 
@@ -64,12 +61,12 @@ final class MinimalBURS extends BURS {
    * @param bb the basic block to process
    */
   public void invoke(BasicBlock bb) {
-    BURS_STATE burs = new BURS_STATE(this);
+    BURS_StateCoder burs = makeCoder();
     for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      BURS_TreeNode tn = buildTree(s);
-      burs.label(tn);
-      BURS_STATE.mark(tn, /* goalnt */(byte) 1);
+      AbstractBURS_TreeNode tn = buildTree(s);
+      label(tn);
+      mark(tn, /* goalnt */(byte) 1);
       generateTree(tn, burs);
     }
   }
@@ -88,16 +85,15 @@ final class MinimalBURS extends BURS {
    * @param s The instruction for which a tree must be built
    * @return the root of the newly constructed tree
    */
-  private BURS_TreeNode buildTree(Instruction s) {
-
-    BURS_TreeNode root = new BURS_TreeNode(new DepGraphNode(s));
-    BURS_TreeNode cur = root;
+  private AbstractBURS_TreeNode buildTree(Instruction s) {
+    AbstractBURS_TreeNode root = AbstractBURS_TreeNode.create(new DepGraphNode(s));
+    AbstractBURS_TreeNode cur = root;
     for (Enumeration<Operand> uses = s.getUses(); uses.hasMoreElements();) {
       Operand op = uses.nextElement();
       if (op == null) continue;
 
-      // Set child = BURS_TreeNode for operand op
-      BURS_TreeNode child;
+      // Set child = AbstractBURS_TreeNode for operand op
+      AbstractBURS_TreeNode child;
       if (op instanceof RegisterOperand) {
         if (op.asRegister().getRegister().isValidation()) continue;
         child = Register;
@@ -123,8 +119,8 @@ final class MinimalBURS extends BURS {
       } else {
         // Create auxiliary node so as to represent
         // a instruction with arity > 2 in a binary tree.
-        BURS_TreeNode child1 = cur.child2;
-        BURS_TreeNode aux = new BURS_TreeNode(OTHER_OPERAND_opcode);
+        AbstractBURS_TreeNode child1 = cur.child2;
+        AbstractBURS_TreeNode aux = AbstractBURS_TreeNode.create(OTHER_OPERAND_opcode);
         cur.child2 = aux;
         cur = aux;
         cur.child1 = child1;
@@ -156,16 +152,16 @@ final class MinimalBURS extends BURS {
    * @param k the root to start generation at
    * @param burs the current BURS state
    */
-  private void generateTree(BURS_TreeNode k, BURS_STATE burs) {
-    BURS_TreeNode child1 = k.child1;
-    BURS_TreeNode child2 = k.child2;
+  private void generateTree(AbstractBURS_TreeNode k, BURS_StateCoder burs) {
+    AbstractBURS_TreeNode child1 = k.child1;
+    AbstractBURS_TreeNode child2 = k.child2;
     if (child1 != null) {
       if (child2 != null) {
         // k has two children; use register labeling to
         // determine order that minimizes register pressure
         if (k.isSuperNodeRoot()) {
-          byte act = BURS_STATE.action[k.rule(k.getNonTerminal())];
-          if ((act & BURS_STATE.RIGHT_CHILD_FIRST) != 0) {
+          byte act = action(k.rule(k.getNonTerminal()));
+          if ((act & BURS_StateCoder.RIGHT_CHILD_FIRST) != 0) {
             // rule selected forces order of evaluation
             generateTree(child2, burs);
             generateTree(child1, burs);
@@ -188,7 +184,7 @@ final class MinimalBURS extends BURS {
       int nonterminal = k.getNonTerminal();
       int rule = k.rule(nonterminal);
       burs.code(k, nonterminal, rule);
-      if (DEBUG) VM.sysWrite(k + " " + BURS_Debug.string[rule] + "\n");
+      if (DEBUG) VM.sysWrite(k + " " + debug(rule) + "\n");
     }
   }
 }

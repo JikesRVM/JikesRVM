@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
 import org.jikesrvm.compilers.opt.ir.Operators;
 
 /**
@@ -22,9 +21,14 @@ import org.jikesrvm.compilers.opt.ir.Operators;
  * int constant during BURS, so we make it easy to do so by creating
  * a special kind of node.
  */
-final class BURS_IntConstantTreeNode extends BURS_TreeNode {
+final class BURS_IntConstantTreeNode extends AbstractBURS_TreeNode {
 
+  /** The int constant value associated with this tree node */
   final int value;
+
+  /** Where costs and rules are stored */
+  private final AbstractBURS_TreeNode delegate =
+    AbstractBURS_TreeNode.create(Operators.INT_CONSTANT_opcode);
 
   /**
    * Constructor for interior node.
@@ -40,5 +44,41 @@ final class BURS_IntConstantTreeNode extends BURS_TreeNode {
   @Override
   public String toString() {
     return "INT_CONSTANT " + value;
+  }
+
+ /**
+  * Gets the BURS rule number associated with this tree node for a given non-terminal
+  *
+  * @param goalNT the non-terminal we want to know the rule for (e.g. stm_NT)
+  * @return the rule number
+  */
+  @Override
+  public int rule(int goalNT) {
+    return delegate.rule(goalNT);
+  }
+
+  @Override
+  public char getCost(int goalNT) {
+    return delegate.getCost(goalNT);
+  }
+
+  @Override
+  public void setCost(int goalNT, char cost) {
+    delegate.setCost(goalNT, cost);;
+  }
+
+  @Override
+  public void initCost() {
+    delegate.initCost();
+  }
+
+  @Override
+  public void writePacked(int word, int mask, int shiftedValue) {
+    delegate.writePacked(word, mask, shiftedValue);
+  }
+
+  @Override
+  public int readPacked(int word, int shift, int mask) {
+    return readPacked(word, shift, mask);
   }
 }

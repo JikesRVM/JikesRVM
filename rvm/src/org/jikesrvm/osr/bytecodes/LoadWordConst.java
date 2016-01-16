@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadWordConst;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.vmmagic.unboxed.Word;
 

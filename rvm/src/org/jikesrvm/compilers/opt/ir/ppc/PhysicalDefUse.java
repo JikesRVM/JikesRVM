@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.ppc;
 
 import java.util.Enumeration;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Register;
 
@@ -20,7 +21,7 @@ import org.jikesrvm.compilers.opt.ir.Register;
  * This class provides utilities to record defs and uses of physical
  * registers by IR operators.
  */
-public abstract class PhysicalDefUse {
+public final class PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
   public static final int mask = 0x00;  // empty mask
@@ -44,7 +45,13 @@ public abstract class PhysicalDefUse {
   public static final int maskTSPDefs = maskTR;
   public static final int maskTSPUses = maskJTOC;
 
+  /** XER mask on 32bit otherwise no mask */
+  public static final int maskXER_32 = VM.BuildFor32Addr ? maskXER : mask;
+  /** C0 mask on 32bit otherwise no mask */
+  public static final int maskC0_32 = VM.BuildFor32Addr ? maskC0 : mask;
+
   /**
+   * @param code register code
    * @return a string representation of the physical registers encoded by
    * an integer
    */
@@ -85,10 +92,10 @@ public abstract class PhysicalDefUse {
   public static final class PDUEnumeration implements Enumeration<Register> {
     private int code;
     private int curMask;
-    private PhysicalRegisterSet phys;
+    private final PhysicalRegisterSet phys;
 
     PDUEnumeration(int c, IR ir) {
-      phys = ir.regpool.getPhysicalRegisterSet();
+      phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
       code = c;
       curMask = maskHIGH;
     }

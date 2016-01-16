@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.compilers.opt.regalloc.LinearScanState;
 import org.jikesrvm.compilers.opt.regalloc.RegisterAllocatorState;

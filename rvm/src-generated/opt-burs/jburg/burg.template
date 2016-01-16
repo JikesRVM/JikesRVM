@@ -10,25 +10,31 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
+package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_ADDRESS_@;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
-import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Definitions.*;
-
-import org.jikesrvm.compilers.opt.ir.@_ARCH_@.*;
-import org.jikesrvm.classloader.*;
+import static org.jikesrvm.compilers.opt.ir.@_ARCH_@.ArchOperators.*;
+import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_ADDRESS_@.BURS_Definitions.*;
+import static org.jikesrvm.compilers.opt.ir.IRTools.*;
 
 import org.jikesrvm.*;
-import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
+import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.@_ARCH_@.*;
 import org.jikesrvm.compilers.opt.ir.operand.*;
 import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
+import org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Helpers;
+import org.jikesrvm.compilers.opt.lir2mir.@_ARCH_ADDRESS_@.BURS_TreeNode;
+import org.jikesrvm.compilers.opt.lir2mir.AbstractBURS_TreeNode;
 import org.jikesrvm.compilers.opt.lir2mir.BURS;
+import org.jikesrvm.compilers.opt.lir2mir.BURS_StateCoder;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.util.Bits; //NOPMD
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Pure;
 
 /**
  * Machine-specific instruction selection rules.  Program generated.
@@ -42,12 +48,7 @@ import org.vmmagic.unboxed.*;
  * NOTE: Program generated file, do not edit!
  */
 @SuppressWarnings("unused") // Machine generated code is hard to get perfect
-public class BURS_STATE extends BURS_Helpers {
-
-          static final byte NOFLAGS           = 0x00;
-          static final byte EMIT_INSTRUCTION  = 0x01;
-   public static final byte LEFT_CHILD_FIRST  = 0x02;
-   public static final byte RIGHT_CHILD_FIRST = 0x04;
+public class BURS_STATE extends BURS_Helpers implements BURS_StateCoder {
 
    public BURS_STATE(BURS b) {
       super(b);
@@ -66,7 +67,7 @@ public class BURS_STATE extends BURS_Helpers {
     *
     * @return the node's state
     */
-   private static BURS_TreeNode STATE(BURS_TreeNode a) { return a; }
+   private static AbstractBURS_TreeNode STATE(AbstractBURS_TreeNode a) { return a; }
 
    /***********************************************************************
     *
@@ -85,10 +86,10 @@ public class BURS_STATE extends BURS_Helpers {
     * @param cost the rule's cost
     * @param bestcost the best cost seen so far
     */
-   void trace(BURS_TreeNode p, int rule, int cost, int bestcost) {
+   private static void trace(AbstractBURS_TreeNode p, int rule, int cost, int bestcost) {
      if (BURS.DEBUG) {
-       VM.sysWrite(p+" matched "+BURS_Debug.string[rule]+" with cost "+
-		   cost+"vs. "+bestcost);
+       VM.sysWriteln(p + " matched " + BURS_Debug.string[rule] + " with cost " +
+                     cost + " vs. " + bestcost);
      }
    }
 
@@ -98,24 +99,24 @@ public class BURS_STATE extends BURS_Helpers {
     *
     * @param p the node to start at
     */
-   public static void dumpTree(BURS_TreeNode p) {
+   public static void dumpTree(AbstractBURS_TreeNode p) {
      if (BURS.DEBUG) {
        VM.sysWrite(dumpTree("\n",p,1));
      }
    }
 
-   public static String dumpTree(String out, BURS_TreeNode p, int indent) {
+   public static String dumpTree(String out, AbstractBURS_TreeNode p, int indent) {
      if (p == null) return out;
      StringBuilder result = new StringBuilder(out);
      for (int i=0; i<indent; i++)
        result.append("   ");
      result.append(p);
      result.append('\n');
-     if (p.child1 != null) {
+     if (p.getChild1() != null) {
        indent++;
-       result.append(dumpTree("",p.child1,indent));
-       if (p.child2 != null) {
-         result.append(dumpTree("",p.child2,indent));
+       result.append(dumpTree("",p.getChild1(),indent));
+       if (p.getChild2() != null) {
+         result.append(dumpTree("",p.getChild2(),indent));
        }
      }
      return result.toString();
@@ -127,33 +128,37 @@ public class BURS_STATE extends BURS_Helpers {
     * disabled.
     *
     * @param p the tree's root
-    * @param goalnt the goal's non-terminal
+    * @param goalnt the non-terminal that is a goal. This is an external rule number
     * @param indent number of spaces to use for indentation
     */
-   public static void dumpCover(BURS_TreeNode p, byte goalnt, int indent){
+   public static void dumpCover(AbstractBURS_TreeNode p, byte goalnt, int indent){
       if (BURS.DEBUG) {
-	if (p == null) return;
-	int rule = STATE(p).rule(goalnt);
-	VM.sysWrite(STATE(p).getCost(goalnt)+"\t");
-	for (int i = 0; i < indent; i++)
-          VM.sysWrite(' ');
-	VM.sysWrite(BURS_Debug.string[rule]+"\n");
-	for (int i = 0; i < nts[rule].length; i++)
-          dumpCover(kids(p,rule,i), nts[rule][i], indent + 1);
+      if (p == null) return;
+      int rule = STATE(p).rule(goalnt);
+      VM.sysWrite(STATE(p).getCost(goalnt)+"\t");
+      for (int i = 0; i < indent; i++)
+        VM.sysWrite(' ');
+      VM.sysWrite(BURS_Debug.string[rule]+"\n");
+      for (int i = 0; i < nts[rule].length; i++)
+        dumpCover(kids(p,rule,i), nts[rule][i], indent + 1);
       }
    }
 
    // caution: MARK should be used in single threaded mode,
-   public static void mark(BURS_TreeNode p, byte goalnt) {
+   @Inline
+   public static void mark(AbstractBURS_TreeNode p, byte goalnt) {
      if (p == null) return;
      int rule = STATE(p).rule(goalnt);
-     byte act = action[rule];
+     byte act = action(rule);
      if ((act & EMIT_INSTRUCTION) != 0) {
        p.setNonTerminal(goalnt);
      }
      if (rule == 0) {
-       throw new OptimizingCompilerException("BURS","rule missing in ",
-						 p.getInstruction().toString(), dumpTree("",p,1));
+       if (BURS.DEBUG) {
+         VM.sysWrite("marking " + p + " with a goalnt of " + goalnt + " failed as the rule " + rule + " has no action");
+       }
+       throw new OptimizingCompilerException("BURS", "rule missing in ",
+         p.getInstructionString(), dumpTree("", p, 1));
      }
      mark_kids(p,rule);
    }

@@ -46,7 +46,7 @@ public final class AosEntrypoints {
   public static final RVMField specializedMethodsField =
       getField(org.jikesrvm.compilers.opt.specialization.SpecializedMethodPool.class,
                "specializedMethods",
-               org.jikesrvm.ArchitectureSpecific.CodeArray[].class);
+               org.jikesrvm.compilers.common.CodeArray[].class);
 
   private AosEntrypoints() {
     // prevent instantiation

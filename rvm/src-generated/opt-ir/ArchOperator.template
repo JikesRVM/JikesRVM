@@ -1,0 +1,182 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+/*
+ * NOTE: ArchOperator.java is mechanically generated from
+ * ArchOperator.template using the operator definitions in
+ * OperatorList.dat and ARCH_IR_DIROperatorList.dat
+ *
+ * DO NOT MANUALLY EDIT THE JAVA FILE.
+ */
+
+package ARCHOPERATORSPKG;
+
+import org.jikesrvm.*;
+import org.jikesrvm.compilers.opt.ir.InstructionFormat;
+import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.*;
+import org.jikesrvm.util.Bits;
+import org.vmmagic.pragma.Pure;
+
+/**
+ * The implementation of operator that is specific to a particular
+ * architecture.
+ */
+public final class ArchOperator extends Operator {
+
+  /** Array holding all singleton operators */
+$$$$ IF ARCHITECTURE == "NONE"
+  private static final int _empty = 0;
+$$$$ END IF
+  private static final Operator[] OperatorArray = {
+$$$$ FOREACH OPERATOR OperatorList.dat
+$$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
+     new ArchOperator((char)OPERATOR.INDEX, ArchInstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,  //OPERATOR.SYMBOL
+$$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
+                      (OPERATOR.TRAITS),
+                      0,0,0,
+$$$$ ELSE
+                      (OPERATOR.TRAITS | ArchInstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
+    $$$$ FOREACH OPTYPE InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+$$$$ END IF
+$$$$ IF ARCHITECTURE != "NONE"
+                      PhysicalDefUse.maskOPERATOR.IMPLDEFS,
+                      PhysicalDefUse.maskOPERATOR.IMPLUSES),
+$$$$ ELSE
+                      _empty,_empty),
+$$$$ END IF
+$$$$ END IF
+$$$$ END FOREACH
+$$$$ IF ARCHITECTURE != "NONE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+$$$$ IF ARCHITECTURE == "ppc"
+  $$$$ FOREACH OPERATOR ARCH_OP_LIST
+     new ArchOperator((char)(OPERATOR.INDEX + Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
+                      ArchInstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,
+  $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
+                      (OPERATOR.TRAITS),
+                      0,0,0,
+  $$$$ ELSE
+                      (OPERATOR.TRAITS | ArchInstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
+    $$$$ FOREACH OPTYPE InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+  $$$$ END IF
+                      PhysicalDefUse.maskOPERATOR.IMPLDEFS,
+                      PhysicalDefUse.maskOPERATOR.IMPLUSES,
+                      OPERATOR.MIR_TEMPLATE),
+  $$$$ END FOREACH
+$$$$ ELSE
+  $$$$ FOREACH OPERATOR ARCH_OP_LIST
+     new ArchOperator((char)(OPERATOR.INDEX + Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
+                      ArchInstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,
+  $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
+                      (OPERATOR.TRAITS),
+                      0,0,0,
+  $$$$ ELSE
+                      (OPERATOR.TRAITS | ArchInstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
+    $$$$ FOREACH OPTYPE InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+    $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
+        $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
+            $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
+            $$$$ END SPLIT
+        $$$$ END IF
+     $$$$ END FOREACH
+  $$$$ END IF
+                      PhysicalDefUse.maskOPERATOR.IMPLDEFS,
+                      PhysicalDefUse.maskOPERATOR.IMPLUSES),
+  $$$$ END FOREACH
+$$$$ END IF
+$$$$ END IF
+     null };
+
+$$$$ IF ARCHITECTURE == "ppc"
+  /**
+   * Instruction template used by the assembler to
+   * generate binary code.  Only valid on MIR operators.
+   */
+  private final int instTemplate;
+$$$$ END IF
+ 
+  @Pure
+  public static Operator lookupOpcode(int opcode) {
+    return OperatorArray[opcode];
+  }
+
+  /** @return array that holds all operators for this architecture */
+  public static Operator[] operatorArray() {
+    return OperatorArray;
+  }
+
+  /**
+   * Instruction template used by the assembler to
+   * generate binary code.  Only valid on MIR operators.
+   */
+  @Override
+  public int instTemplate() {
+$$$$ IF ARCHITECTURE == "ppc"
+    return instTemplate;
+$$$$ ELSE
+    org.jikesrvm.compilers.opt.OptimizingCompilerException.UNREACHABLE();
+    return 0;
+$$$$ END IF
+  }
+
+  /* Constructor for HIR/LIR */
+  private ArchOperator(char opcode, byte format, int traits,
+                       int numDefs, int numDefUses, int numUses,
+                       int iDefs, int iUses) {
+    super(opcode, format, traits, numDefs, numDefUses, numUses, iDefs, iUses);
+$$$$ IF ARCHITECTURE == "ppc"
+    this.instTemplate = 0;
+$$$$ END IF
+  }
+
+$$$$ IF ARCHITECTURE == "ppc"
+  /* Constructor for MIR */
+  private ArchOperator(char opcode, byte format, int traits,
+                       int numDefs, int numDefUses, int numUses,
+                       int iDefs, int iUses,
+                       int iTemp) {
+    super(opcode, format, traits, numDefs, numDefUses, numUses, iDefs, iUses);
+    this.instTemplate = iTemp;
+  }
+$$$$ END IF
+}

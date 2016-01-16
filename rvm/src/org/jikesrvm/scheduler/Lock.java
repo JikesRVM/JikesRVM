@@ -12,19 +12,22 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_ID_MASK;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_ID_SHIFT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
-import org.jikesrvm.Services;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.objectmodel.ThinLockConstants;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.unboxed.Word;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  Lock provides RVM support for monitors and Java level
@@ -46,9 +49,7 @@ import org.vmmagic.unboxed.Offset;
 
  <p><STRONG>Requirement 2:</STRONG>
  After a lock has been obtained, the code of this class must return
- without allowing a thread switch.  (The {@link
-org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer#unwindStackFrame(org.jikesrvm.compilers.common.CompiledMethod, org.jikesrvm.ArchitectureSpecific.Registers)
- exception handler}
+ without allowing a thread switch. The exception handler
  of the baseline compiler assumes that until lock() returns the lock
  has not been obtained.)
  </p>
@@ -405,7 +406,7 @@ public final class Lock {
     VM.sysWrite(" ownerId: ");
     VM.sysWriteInt(ownerId);
     VM.sysWrite(" (");
-    VM.sysWriteInt(ownerId >>> ThinLockConstants.TL_THREAD_ID_SHIFT);
+    VM.sysWriteInt(ownerId >>> TL_THREAD_ID_SHIFT);
     VM.sysWrite(") recursionCount: ");
     VM.sysWriteInt(recursionCount);
     VM.sysWriteln();
@@ -455,8 +456,8 @@ public final class Lock {
     if (VM.VerifyAssertions) {
       // check that each potential lock is addressable
       VM._assert(((MAX_LOCKS - 1) <=
-                  ThinLockConstants.TL_LOCK_ID_MASK.rshl(ThinLockConstants.TL_LOCK_ID_SHIFT).toInt()) ||
-                  ThinLockConstants.TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
+                  TL_LOCK_ID_MASK.rshl(TL_LOCK_ID_SHIFT).toInt()) ||
+                  TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
     }
   }
 

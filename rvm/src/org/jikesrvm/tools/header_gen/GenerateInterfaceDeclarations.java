@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.tools.header_gen;
 
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BAD_WORKING_DIR;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_COULD_NOT_EXECUTE;
@@ -30,18 +31,17 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -61,7 +61,7 @@ public class GenerateInterfaceDeclarations {
           (GenArch) Class.forName(VM.BuildForIA32 ? "org.jikesrvm.tools.header_gen.GenArch_ia32" : "org.jikesrvm.tools.header_gen.GenArch_ppc").newInstance();
     } catch (Exception e) {
       e.printStackTrace();
-      System.exit(-1);     // we must *not* go on if the above has failed
+      System.exit(EXIT_STATUS_MISC_TROUBLE);     // we must *not* go on if the above has failed
     }
     arch = tmp;
   }
@@ -378,13 +378,14 @@ public class GenerateInterfaceDeclarations {
 
     // values in Constants, from Configuration
     //
-    pln("Constants_STACK_SIZE_GUARD", ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD);
-    pln("Constants_INVISIBLE_METHOD_ID", ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID);
-    pln("ThinLockConstants_TL_THREAD_ID_SHIFT", ThinLockConstants.TL_THREAD_ID_SHIFT);
-    pln("Constants_STACKFRAME_HEADER_SIZE", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
-    pln("Constants_STACKFRAME_METHOD_ID_OFFSET", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET);
-    pln("Constants_STACKFRAME_FRAME_POINTER_OFFSET", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET);
-    pln("Constants_STACKFRAME_SENTINEL_FP", ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
+    pln("Constants_STACK_SIZE_GUARD", StackFrameLayout.getStackSizeGuard());
+    pln("Constants_INVISIBLE_METHOD_ID", StackFrameLayout.getInvisibleMethodID());
+    pln("Constants_STACKFRAME_HEADER_SIZE", StackFrameLayout.getStackFrameHeaderSize());
+    pln("Constants_STACKFRAME_METHOD_ID_OFFSET", StackFrameLayout.getStackFrameMethodIDOffset());
+    pln("Constants_STACKFRAME_FRAME_POINTER_OFFSET", StackFrameLayout.getStackFramePointerOffset());
+    pln("Constants_STACKFRAME_SENTINEL_FP", StackFrameLayout.getStackFrameSentinelFP());
+
+    pln("ThinLockConstants_TL_THREAD_ID_SHIFT", TL_THREAD_ID_SHIFT);
 
     // values in RuntimeEntrypoints
     //

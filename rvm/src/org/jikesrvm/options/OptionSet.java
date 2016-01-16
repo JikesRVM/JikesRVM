@@ -14,8 +14,8 @@ package org.jikesrvm.options;
 
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_PRINTED_HELP_MESSAGE;
 
-import org.jikesrvm.CommandLineArgs;
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Memory;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;

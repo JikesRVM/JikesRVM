@@ -12,11 +12,12 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.OSR_PROLOGUE;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -70,7 +71,7 @@ public class AdjustBCIndexes extends CompilerPhase {
       if (s.bcIndex >= offset) {
         s.bcIndex -= offset;
       } else if (s.bcIndex >= 0) {
-        s.bcIndex = OptConstants.OSR_PROLOGUE;
+        s.bcIndex = OSR_PROLOGUE;
       }
     }
   }

@@ -288,14 +288,6 @@ EMIT(MIR_TrapIf.mutate(P(p), IA32_TRAPIF, \\
 # Loads (memory to register moves)
 ##################################
 #####
-# GET_CURRENT_PROCESSOR (TODO: generalize)
-#####
-r:	GET_CURRENT_PROCESSOR
-15
-EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Nullary.getResult(P(p)), new RegisterOperand(getESI(), TypeReference.Int)));
-
-#####
 # other load8 patterns
 #####
 # load8_16_32 & 0xff ===> uload8

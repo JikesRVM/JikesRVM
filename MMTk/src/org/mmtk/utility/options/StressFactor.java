@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
 
 /**
  * Force frequent collections after amounts of allocation.
@@ -24,6 +24,6 @@ public final class StressFactor extends org.vmutil.options.PagesOption {
   public StressFactor() {
     super(Options.set, "Stress Factor",
           "Force a collection after this much allocation",
-        Integer.MAX_VALUE >>> Constants.LOG_BYTES_IN_PAGE);
+        Integer.MAX_VALUE >>> LOG_BYTES_IN_PAGE);
   }
 }

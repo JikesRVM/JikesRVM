@@ -13,10 +13,10 @@
 package org.jikesrvm.compilers.common;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
 import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;

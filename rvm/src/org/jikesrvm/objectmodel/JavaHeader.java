@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.GC_HEADER_BITS;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_OBJECTS;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ADDRESS_BASED_HASHING;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ALIGNMENT_MASK;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_BYTES;
@@ -27,15 +29,15 @@ import static org.jikesrvm.objectmodel.JavaHeaderConstants.JAVA_HEADER_OFFSET;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.NUM_AVAILABLE_BITS;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.OTHER_HEADER_BYTES;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.STATUS_BYTES;
+import static org.jikesrvm.objectmodel.MiscHeader.REQUESTED_BITS;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.Configuration;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.scheduler.Lock;
@@ -120,7 +122,7 @@ public class JavaHeader {
 
   static {
     if (VM.VerifyAssertions) {
-      VM._assert(MiscHeader.REQUESTED_BITS + MemoryManagerConstants.GC_HEADER_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert(REQUESTED_BITS + GC_HEADER_BITS <= NUM_AVAILABLE_BITS);
       VM._assert((THIN_LOCK_SHIFT + NUM_THIN_LOCK_BITS - THIN_LOCK_DEDICATED_U16_SHIFT) == 16);
     }
   }
@@ -147,7 +149,7 @@ public class JavaHeader {
         size += HASHCODE_BYTES;
       }
     }
-    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, SizeConstants.BYTES_IN_INT) -
+    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, BYTES_IN_INT) -
                                               OBJECT_REF_OFFSET);
   }
 
@@ -167,7 +169,7 @@ public class JavaHeader {
         size += HASHCODE_BYTES;
       }
     }
-    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, SizeConstants.BYTES_IN_INT) -
+    return Magic.objectAsAddress(obj).plus(Memory.alignUp(size, BYTES_IN_INT) -
                                               OBJECT_REF_OFFSET);
   }
 
@@ -265,7 +267,7 @@ public class JavaHeader {
    */
   public static int bytesUsed(Object obj, RVMClass type) {
     int size = type.getInstanceSize();
-    if (MemoryManagerConstants.MOVES_OBJECTS) {
+    if (MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING) {
         Word hashState = Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -292,7 +294,7 @@ public class JavaHeader {
         size += HASHCODE_BYTES;
       }
     }
-    return Memory.alignUp(size, SizeConstants.BYTES_IN_INT);
+    return Memory.alignUp(size, BYTES_IN_INT);
   }
 
   /**
@@ -304,7 +306,7 @@ public class JavaHeader {
    */
   public static int bytesUsed(Object obj, RVMArray type, int numElements) {
     int size = type.getInstanceSize(numElements);
-    if (MemoryManagerConstants.MOVES_OBJECTS) {
+    if (MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING) {
         Word hashState = Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -312,7 +314,7 @@ public class JavaHeader {
         }
       }
     }
-    return Memory.alignUp(size, SizeConstants.BYTES_IN_INT);
+    return Memory.alignUp(size, BYTES_IN_INT);
   }
 
   /**
@@ -324,7 +326,7 @@ public class JavaHeader {
    */
   @Inline
   public static Address objectStartRef(ObjectReference obj) {
-    if (MemoryManagerConstants.MOVES_OBJECTS) {
+    if (MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
         Word hashState = obj.toAddress().loadWord(STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
@@ -347,7 +349,7 @@ public class JavaHeader {
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
     while ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-      start = start.plus(SizeConstants.BYTES_IN_WORD);
+      start = start.plus(BYTES_IN_WORD);
     }
     return start.plus(OBJECT_REF_OFFSET).toObjectReference();
   }
@@ -578,7 +580,7 @@ public class JavaHeader {
 
     // Do we need to copy the hash code?
     if (hashState.EQ(HASH_STATE_HASHED)) {
-      int hashCode = Magic.objectAsAddress(fromObj).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+      int hashCode = Magic.objectAsAddress(fromObj).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();
       if (DYNAMIC_HASH_OFFSET) {
         Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - OBJECT_REF_OFFSET - HASHCODE_BYTES), hashCode);
       } else {
@@ -595,11 +597,11 @@ public class JavaHeader {
   @Interruptible
   public static int getObjectHashCode(Object o) {
     if (ADDRESS_BASED_HASHING) {
-      if (MemoryManagerConstants.MOVES_OBJECTS) {
+      if (MOVES_OBJECTS) {
         Word hashState = Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED)) {
           // HASHED, NOT MOVED
-          return Magic.objectAsAddress(o).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+          return Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();
         } else if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
           // HASHED AND MOVED
           if (DYNAMIC_HASH_OFFSET) {
@@ -622,7 +624,7 @@ public class JavaHeader {
           return getObjectHashCode(o);
         }
       } else {
-        return Magic.objectAsAddress(o).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
+        return Magic.objectAsAddress(o).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();
       }
     } else { // 10 bit hash code in status word
       int hashCode = Magic.getWordAtOffset(o, STATUS_OFFSET).and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();
@@ -1075,18 +1077,5 @@ public class JavaHeader {
     // TIB dumped in ObjectModel
     VM.sysWrite(" STATUS=");
     VM.sysWriteHex(Magic.getWordAtOffset(ref, STATUS_OFFSET).toAddress());
-  }
-
-  /**
-   * The following method will emit code that moves a reference to an
-   * object's TIB into a destination register.
-   *
-   * @param asm the assembler object to emit code with
-   * @param dest the number of the destination register
-   * @param object the number of the register holding the object reference
-   */
-  @Interruptible
-  public static void baselineEmitLoadTIB(Assembler asm, int dest, int object) {
-    Configuration.archHelper.baselineEmitLoadTIB(asm, dest, object, TIB_OFFSET);
   }
 }

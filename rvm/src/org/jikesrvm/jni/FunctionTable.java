@@ -13,7 +13,7 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.objectmodel.RuntimeTable;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.NonMoving;

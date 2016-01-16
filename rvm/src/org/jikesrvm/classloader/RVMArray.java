@@ -12,25 +12,25 @@
  */
 package org.jikesrvm.classloader;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_BOOLEAN;
-import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_BOOLEAN;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -201,7 +201,7 @@ public final class RVMArray extends RVMType {
    */
   private int computeLogElementSize() {
     if (elementType.getTypeRef().equals(TypeReference.Code)) {
-      return ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
+      return ArchConstants.getLogInstructionWidth();
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
       case ClassTypeCode:

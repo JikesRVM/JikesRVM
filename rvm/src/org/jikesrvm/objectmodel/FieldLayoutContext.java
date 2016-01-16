@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.objectmodel;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.runtime.Memory;
 

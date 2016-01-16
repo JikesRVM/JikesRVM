@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt;
 import static org.jikesrvm.runtime.ExitStatus.*;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options for the

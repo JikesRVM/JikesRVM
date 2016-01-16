@@ -12,12 +12,19 @@
  */
 package org.mmtk.vm.gcspy;
 
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_ENUM;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_MAX_VAR;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PERCENT;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PERCENT_VAR;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PLAIN;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PLUS;
+
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.Color;
-import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.VM;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -158,14 +165,14 @@ import org.vmmagic.unboxed.Address;
   @Interruptible
   private void setupSummary(int presentation) {
     switch (presentation) {
-      case StreamConstants.PRESENTATION_PLAIN:
-      case StreamConstants.PRESENTATION_PLUS:
-      case StreamConstants.PRESENTATION_MAX_VAR:
-      case StreamConstants.PRESENTATION_ENUM:
+      case PRESENTATION_PLAIN:
+      case PRESENTATION_PLUS:
+      case PRESENTATION_MAX_VAR:
+      case PRESENTATION_ENUM:
         summaryLen = 1;
         break;
-      case StreamConstants.PRESENTATION_PERCENT:
-      case StreamConstants.PRESENTATION_PERCENT_VAR:
+      case PRESENTATION_PERCENT:
+      case PRESENTATION_PERCENT_VAR:
         summaryLen = 2;
         break;
       default:
@@ -179,8 +186,8 @@ import org.vmmagic.unboxed.Address;
    */
   public void setSummary(int value0) {
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(presentation != StreamConstants.PRESENTATION_PERCENT &&
-                            presentation != StreamConstants.PRESENTATION_PERCENT_VAR);
+      VM.assertions._assert(presentation != PRESENTATION_PERCENT &&
+                            presentation != PRESENTATION_PERCENT_VAR);
     summary0 = value0;
   }
 
@@ -192,8 +199,8 @@ import org.vmmagic.unboxed.Address;
    */
   public void setSummary(int value0, int value1) {
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(presentation == StreamConstants.PRESENTATION_PERCENT ||
-                            presentation == StreamConstants.PRESENTATION_PERCENT_VAR);
+      VM.assertions._assert(presentation == PRESENTATION_PERCENT ||
+                            presentation == PRESENTATION_PERCENT_VAR);
     summary0 = value0;
     summary1 = value1;
   }

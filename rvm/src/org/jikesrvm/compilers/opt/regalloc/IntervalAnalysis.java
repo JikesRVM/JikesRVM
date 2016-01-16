@@ -12,20 +12,23 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.liveness.LiveInterval;
 
 /**
@@ -48,6 +51,11 @@ public final class IntervalAnalysis extends CompilerPhase {
    *  a reverse topological list of basic blocks
    */
   private BasicBlock reverseTopFirst;
+
+  /**
+   * Mark FMOVs that end a live range?
+   */
+  private static final boolean MUTATE_FMOV = VM.BuildForIA32;
 
   /**
    * Constructor for this compiler phase
@@ -101,7 +109,7 @@ public final class IntervalAnalysis extends CompilerPhase {
     this.regAllocState = ir.MIRInfo.regAllocState;
 
     ControlFlowGraph cfg = ir.cfg;
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     LinearScanState state = new LinearScanState();
     ir.MIRInfo.linearScanState = state;
 
@@ -227,6 +235,38 @@ public final class IntervalAnalysis extends CompilerPhase {
   }
 
   /**
+   * Mutate FMOVs that end live ranges
+   *
+   * @param live The live interval for a basic block/reg pair
+   * @param register The register for this live interval
+   * @param dfnbegin The (adjusted) begin for this interval
+   * @param dfnend The (adjusted) end for this interval
+   * @return whether an actual change was necessary (as opposed to
+   *  simple removal because the end was dead)
+   */
+  private boolean mutateFMOVs(LiveIntervalElement live, Register register, int dfnbegin, int dfnend) {
+    Instruction end = live.getEnd();
+    if (end != null && end.operator() == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV) {
+      if (dfnend == dfnbegin) {
+        // if end, an FMOV, both begins and ends the live range,
+        // then end is dead.  Change it to a NOP and return null.
+        Empty.mutate(end, NOP);
+        return false;
+      } else {
+        if (!end.isPEI()) {
+          if (VM.VerifyAssertions) {
+            Operand value = org.jikesrvm.compilers.opt.ir.ia32.MIR_Move.getValue(end);
+            VM._assert(value.isRegister());
+            VM._assert(org.jikesrvm.compilers.opt.ir.ia32.MIR_Move.getValue(end).asRegister().getRegister() == register);
+          }
+          end.changeOperatorTo(org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV_ENDING_LIVE_RANGE);
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
    * for each live interval associated with this block
    * we either add a new interval, or extend a previous interval
    * if it is contiguous
@@ -243,8 +283,8 @@ public final class IntervalAnalysis extends CompilerPhase {
     int dfnend = regAllocState.getDfnEnd(live, bb);
     int dfnbegin = regAllocState.getDfnBegin(live, bb);
 
-    if (LinearScan.MUTATE_FMOV && reg.isFloatingPoint()) {
-      Operators.helper.mutateFMOVs(live, reg, dfnbegin, dfnend);
+    if (MUTATE_FMOV && reg.isFloatingPoint()) {
+      mutateFMOVs(live, reg, dfnbegin, dfnend);
     }
 
     // check for an existing live interval for this register

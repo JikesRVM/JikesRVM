@@ -12,14 +12,6 @@
  */
 package org.jikesrvm.classloader;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_BOOLEAN;
-import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
-import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
@@ -30,6 +22,14 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;

@@ -14,14 +14,12 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import java.lang.reflect.Constructor;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 
-public final class LinearScanPhase extends CompilerPhase
-    implements PhysicalRegisterConstants {
+public final class LinearScanPhase extends CompilerPhase {
 
   /**
    * An object which manages spill location assignments.

@@ -21,9 +21,9 @@ import static org.jikesrvm.osr.OSRConstants.REF;
 import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 
-import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Word;
 
 /**

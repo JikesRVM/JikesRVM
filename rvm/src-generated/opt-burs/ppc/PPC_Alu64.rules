@@ -17,7 +17,7 @@
 #####
 # IR_PROLOGUE:
 #####
-stm:	IR_PROLOGUE
+stm: IR_PROLOGUE
 11
 EMIT_INSTRUCTION
 EMIT(P(p));
@@ -126,12 +126,12 @@ EMIT(MIR_Binary.mutate(P(p), PPC64_SRD, Binary.getResult(P(p)),               \
 #####
 # INT_2LONG
 #####
-rs:	INT_2LONG(r)
+rs: INT_2LONG(r)
 11
 EMIT_INSTRUCTION
 INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
-rs:	INT_2LONG(rs)
+rs: INT_2LONG(rs)
 10
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Unary.getResult(P(p)), R(Unary.getVal(P(p)))));
@@ -139,7 +139,7 @@ EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Unary.getResult(P(p)), R(Unary.getVal(P(p))
 #####
 # LONG_2INT
 #####
-r:	LONG_2INT(r)
+r: LONG_2INT(r)
 10
 EMIT_INSTRUCTION
 LONG_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
@@ -147,7 +147,7 @@ LONG_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 #####
 # FLOAT_2LONG
 #####
-r:	FLOAT_2LONG(r)
+r: FLOAT_2LONG(r)
 10
 EMIT_INSTRUCTION
 EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
@@ -155,7 +155,7 @@ EMIT(P(p));  // Leave for ComplexLIR2MIRExpansion
 #####
 # DOUBLE_2LONG
 #####
-r:	DOUBLE_2LONG(r)
+r: DOUBLE_2LONG(r)
 10
 EMIT_INSTRUCTION
 EMIT(P(p));  // Leave for ComplexLIR2MIRExpansionLeave
@@ -163,7 +163,7 @@ EMIT(P(p));  // Leave for ComplexLIR2MIRExpansionLeave
 #####
 # DOUBLE_AS_LONG_BITS
 #####
-r:	DOUBLE_AS_LONG_BITS(r)
+r: DOUBLE_AS_LONG_BITS(r)
 40
 EMIT_INSTRUCTION
 FPR2GPR_64(P(p));
@@ -171,7 +171,7 @@ FPR2GPR_64(P(p));
 #####
 # LONG_BITS_AS_DOUBLE
 #####
-r:	LONG_BITS_AS_DOUBLE(r)
+r: LONG_BITS_AS_DOUBLE(r)
 40
 EMIT_INSTRUCTION
 GPR2FPR_64(P(p));
@@ -179,12 +179,12 @@ GPR2FPR_64(P(p));
 #####
 # REF_MOVE
 #####
-r:	REF_MOVE(ADDRESS_CONSTANT)
+r: REF_MOVE(ADDRESS_CONSTANT)
 40
 EMIT_INSTRUCTION
 LONG_CONSTANT(P(p), Move.getResult(P(p)), AC(Move.getVal(P(p))));
 
-r:	REF_MOVE(LONG_CONSTANT)
+r: REF_MOVE(LONG_CONSTANT)
 40
 EMIT_INSTRUCTION
 LONG_CONSTANT(P(p), Move.getResult(P(p)), LC(Move.getVal(P(p))));
@@ -192,7 +192,7 @@ LONG_CONSTANT(P(p), Move.getResult(P(p)), LC(Move.getVal(P(p))));
 #####
 # LONG_CMP
 #####
-r:	LONG_CMP(r,r)
+r: LONG_CMP(r,r)
 40
 EMIT_INSTRUCTION
 EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
@@ -251,12 +251,12 @@ EMIT_INSTRUCTION
 #####
 # INT_2ADDRZerExt
 #####
-rz:	INT_2ADDRZerExt(rz)
+rz: INT_2ADDRZerExt(rz)
 10
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Unary.getResult(P(p)), R(Unary.getVal(P(p)))));
 
-rz:	INT_2ADDRZerExt(r)
+rz: INT_2ADDRZerExt(r)
 11
 EMIT_INSTRUCTION
 INT_2ADDRZerExt(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));

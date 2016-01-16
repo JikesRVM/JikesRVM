@@ -12,9 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
@@ -60,8 +59,17 @@ final class AssemblerDriver extends CompilerPhase {
     // As part of the generation, the machinecode offset
     // of every instruction will be set.
     //////////
-    AssemblerOpt asm = new AssemblerOpt(0, shouldPrint, ir);
-    int codeLength = asm.generateCode();
+    int codeLength;
+    if (VM.BuildForIA32) {
+      org.jikesrvm.compilers.opt.mir2mc.ia32.AssemblerOpt asm =
+          new org.jikesrvm.compilers.opt.mir2mc.ia32.AssemblerOpt(0, shouldPrint, ir);
+      codeLength = asm.generateCode();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      org.jikesrvm.compilers.opt.mir2mc.ppc.AssemblerOpt asm =
+          new org.jikesrvm.compilers.opt.mir2mc.ppc.AssemblerOpt(0, shouldPrint, ir);
+      codeLength = asm.generateCode();
+    }
 
     //////////
     // STEP 3: Generate all the mapping information
@@ -86,7 +94,7 @@ final class AssemblerDriver extends CompilerPhase {
 
     if (VM.runningVM) {
       Memory.sync(Magic.objectAsAddress(ir.MIRInfo.machinecode),
-                     codeLength << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
+                     codeLength << ArchConstants.getLogInstructionWidth());
     }
   }
 

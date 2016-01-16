@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.adaptive.measurements.listeners;
 
-import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.Offset;
  * the callee, caller, and machine code offset of the call site
  */
 @Uninterruptible
-public class EdgeListener extends ContextListener implements StackframeLayoutConstants {
+public class EdgeListener extends ContextListener {
 
   protected static final boolean DEBUG = false;
 
@@ -134,13 +134,13 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
     int callerCMID = 0;
     Address returnAddress = Address.zero();
 
-    if (sfp.loadAddress().EQ(STACKFRAME_SENTINEL_FP)) {
+    if (sfp.loadAddress().EQ(StackFrameLayout.getStackFrameSentinelFP())) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");
       return;
     }
 
     calleeCMID = Magic.getCompiledMethodID(sfp);
-    if (calleeCMID == INVISIBLE_METHOD_ID) {
+    if (calleeCMID == StackFrameLayout.getInvisibleMethodID()) {
       if (DEBUG) {
         VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
         VM.sysWrite(calleeCMID);
@@ -151,12 +151,12 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
 
     returnAddress = Magic.getReturnAddress(sfp); // return address in caller
     sfp = Magic.getCallerFramePointer(sfp);      // caller's frame pointer
-    if (sfp.loadAddress().EQ(STACKFRAME_SENTINEL_FP)) {
+    if (sfp.loadAddress().EQ(StackFrameLayout.getStackFrameSentinelFP())) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack\n");
       return;
     }
     callerCMID = Magic.getCompiledMethodID(sfp);
-    if (callerCMID == INVISIBLE_METHOD_ID) {
+    if (callerCMID == StackFrameLayout.getInvisibleMethodID()) {
       if (DEBUG) {
         VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
         VM.sysWrite(callerCMID);

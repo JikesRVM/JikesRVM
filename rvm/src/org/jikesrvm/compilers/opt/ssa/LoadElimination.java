@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.TypeReference;
@@ -55,6 +54,7 @@ import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -375,7 +375,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * @return the temporary register allocated for the value number
    */
   static Register findOrCreateRegister(Object heapType, int valueNumber, HashMap<UseRecord, Register> registers,
-                                           RegisterPool pool, TypeReference type) {
+                                       GenericRegisterPool pool, TypeReference type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
     Register result = registers.get(key);
     if (result == null) {
@@ -400,7 +400,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * @return the temporary register allocated for the pair
    */
   static Register findOrCreateRegister(Object heapType, int v1, int v2, HashMap<UseRecord, Register> registers,
-                                           RegisterPool pool, TypeReference type) {
+                                       GenericRegisterPool pool, TypeReference type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     Register result = registers.get(key);
     if (result == null) {

@@ -16,7 +16,6 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_OPT_COMPILER_FAILED;
 
 import java.util.Vector;
 
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.CompilerDNA;
 import org.jikesrvm.classloader.NormalMethod;
@@ -30,6 +29,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * Use optimizing compiler to build virtual machine boot image.

@@ -18,9 +18,9 @@ import java.lang.management.ThreadInfo;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.scheduler.JMXSupport;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.UnimplementedError;
 
 final class VMThreadMXBeanImpl {
 

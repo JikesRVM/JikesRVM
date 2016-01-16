@@ -12,16 +12,17 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
-import org.mmtk.utility.gcspy.Color;
-import org.mmtk.utility.gcspy.StreamConstants;
-import org.mmtk.vm.VM;
-import org.mmtk.vm.gcspy.ShortStream;
-import org.mmtk.vm.gcspy.ServerInterpreter;
+import static org.mmtk.utility.gcspy.StreamConstants.PAINT_STYLE_ZERO;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PLUS;
 
 import org.mmtk.policy.LargeObjectSpace;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.utility.gcspy.Color;
+import org.mmtk.vm.VM;
+import org.mmtk.vm.gcspy.ServerInterpreter;
+import org.mmtk.vm.gcspy.ShortStream;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 
 /**
@@ -84,8 +85,8 @@ import org.vmmagic.pragma.*;
                      (short)0,
                      "Remset references: ",
                      " references",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Cyan,
                      true);

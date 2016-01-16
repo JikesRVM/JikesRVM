@@ -15,8 +15,8 @@ package org.jikesrvm.classloader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
+import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.common.LazyCompilationTrampoline;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -31,8 +31,9 @@ import org.vmmagic.pragma.RuntimePure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
-import static org.jikesrvm.SizeConstants.BITS_IN_SHORT;
+
 import static org.jikesrvm.classloader.TypeReference.baseReflectionClass;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_SHORT;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 
@@ -609,7 +610,7 @@ public abstract class RVMMethod extends RVMMember {
           // All other virtual methods in the family must use unique stubs to
           // ensure correct operation of the method test (guarded inlining of virtual calls).
           // It is TIBs job to marshall between the actual trampoline and this marker.
-          return LazyCompilationTrampoline.instructions;
+          return LazyCompilationTrampoline.getInstructions();
         }
       } else {
         // We'll never do a method test against this method.

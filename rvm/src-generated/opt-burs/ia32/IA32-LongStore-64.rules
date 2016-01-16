@@ -7,11 +7,6 @@ stm:	LONG_STORE(rlv, OTHER_OPERAND(rlv, rlv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), QW), Store.getValue(P(p))));
 
-stm:	LONG_STORE(rlv, OTHER_OPERAND(rlv, riv))
-15
-EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), QW), Store.getValue(P(p))));
-
 stm:	LONG_STORE(rlv, OTHER_OPERAND(rlv, address1scaledreg))
 15
 EMIT_INSTRUCTION

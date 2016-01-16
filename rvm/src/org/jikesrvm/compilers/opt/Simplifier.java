@@ -12,22 +12,23 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BITS_IN_INT;
-import static org.jikesrvm.SizeConstants.BITS_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -46,7 +47,6 @@ import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.OperatorNames;
 import org.jikesrvm.compilers.opt.ir.StoreCheck;
 import org.jikesrvm.compilers.opt.ir.Trap;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
@@ -520,7 +520,7 @@ public abstract class Simplifier extends IRTools {
           boolean moveHasConstantRHS = Move.conforms(s) && (Move.getVal(s) instanceof ConstantOperand);
           if (!moveHasConstantRHS) {
             String msg = "RHS of move " + s + " should be constant during simplification of " +
-                OperatorNames.operatorName[opcode];
+                s.operator();
             VM._assert(VM.NOT_REACHED, msg);
           }
           break;
@@ -529,7 +529,7 @@ public abstract class Simplifier extends IRTools {
           boolean moveHasNonConstantRHS = Move.conforms(s) && !(Move.getVal(s) instanceof ConstantOperand);
           if (!moveHasNonConstantRHS) {
             String msg = "RHS of move " + s + " shouldn't be constant during simplification of " +
-                OperatorNames.operatorName[opcode];
+                s.operator();
             VM._assert(moveHasNonConstantRHS, msg);
           }
           break;
@@ -656,7 +656,7 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
         if (ref.isConstant())
           return DefUseEffect.MOVE_FOLDED;
@@ -674,13 +674,13 @@ public abstract class Simplifier extends IRTools {
     TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
     TypeReference rhsType = ref.getType();
     byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-    if (ans == OptConstants.YES) {
+    if (ans == YES) {
       Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
       if (ref.isConstant())
         return DefUseEffect.MOVE_FOLDED;
       else
         return DefUseEffect.MOVE_REDUCED;
-    } else if (ans == OptConstants.NO) {
+    } else if (ans == NO) {
       RVMType rType = rhsType.peekType();
       if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
         // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -706,7 +706,7 @@ public abstract class Simplifier extends IRTools {
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       // NOTE: Constants.YES doesn't help because ref may be null and null instanceof T is false
-      if (ans == OptConstants.NO) {
+      if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -727,10 +727,10 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(1));
         return DefUseEffect.MOVE_FOLDED;
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -777,11 +777,11 @@ public abstract class Simplifier extends IRTools {
       if (refIsPrecise && valIsPrecise) {
         // writing a known type of value into a known type of array
         byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-        if (ans == OptConstants.YES) {
+        if (ans == YES) {
           // all stores should succeed
           Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
           return DefUseEffect.MOVE_REDUCED;
-        } else if (ans == OptConstants.NO) {
+        } else if (ans == NO) {
           // all stores will fail
           Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
           return DefUseEffect.TRAP_REDUCED;
@@ -821,11 +821,11 @@ public abstract class Simplifier extends IRTools {
     if (refIsPrecise && valIsPrecise) {
       // writing a known type of value into a known type of array
       byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         // all stores should succeed
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
         return DefUseEffect.MOVE_REDUCED;
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         // all stores will fail
         Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
         return DefUseEffect.TRAP_REDUCED;
@@ -845,7 +845,7 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
       TypeReference rhsType = ref.getType();                     // our type
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         RVMType rType = rhsType.peekType();
         if (rType != null) {
           if (rType.isClassType() && rType.asClass().isInterface()) {
@@ -860,7 +860,7 @@ public abstract class Simplifier extends IRTools {
         } else {
           return DefUseEffect.UNCHANGED;
         }
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative

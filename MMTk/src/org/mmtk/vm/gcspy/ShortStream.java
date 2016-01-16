@@ -12,13 +12,14 @@
  */
 package org.mmtk.vm.gcspy;
 
+import static org.mmtk.utility.gcspy.StreamConstants.SHORT_TYPE;
+
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.GCspy;
-import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.VM;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Set up a GCspy Stream with data type SHORT_TYPE.
@@ -74,7 +75,7 @@ import org.vmmagic.pragma.*;
          Color colour,
          boolean summary) {
 
-    super(driver, StreamConstants.SHORT_TYPE, name,
+    super(driver, SHORT_TYPE, name,
           minValue, maxValue, zeroValue, defaultValue,
           stringPre, stringPost, presentation, paintStyle,
           indexMaxStream, colour, summary);

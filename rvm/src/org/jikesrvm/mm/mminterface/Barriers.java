@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_BOOLEAN;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 import static org.mmtk.utility.Constants.ARRAY_ELEMENT;
 import static org.mmtk.utility.Constants.INSTANCE_FIELD;
 import static org.mmtk.utility.Constants.LOG_BYTES_IN_ADDRESS;

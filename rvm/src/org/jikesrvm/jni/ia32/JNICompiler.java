@@ -12,23 +12,49 @@
  */
 package org.jikesrvm.jni.ia32;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_WORD;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGE;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.T0;
+import static org.jikesrvm.ia32.BaselineConstants.T1;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.ESP;
+import static org.jikesrvm.ia32.RegisterConstants.FP0;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_NONVOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ia32.RegisterConstants.XMM0;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
-import org.jikesrvm.ia32.BaselineConstants;
-import org.jikesrvm.ia32.MachineCode;
+import org.jikesrvm.ia32.RegisterConstants.FPR;
+import org.jikesrvm.ia32.RegisterConstants.FloatingPointMachineRegister;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
+import org.jikesrvm.ia32.RegisterConstants.XMM;
 import org.jikesrvm.jni.JNICompiledMethod;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Entrypoints;
@@ -85,7 +111,7 @@ import org.vmmagic.unboxed.Offset;
  *     JNI refs directly, so we don't need to transition these</li>
  * </ol>
  */
-public abstract class JNICompiler implements BaselineConstants {
+public abstract class JNICompiler {
 
   /** Dummy field to force compilation of the exception deliverer */
   private org.jikesrvm.jni.ia32.JNIExceptionDeliverer unused;
@@ -184,7 +210,7 @@ public abstract class JNICompiler implements BaselineConstants {
     // S0/ECX - reference to the JNI environment after step 3
 
     JNICompiledMethod cm = (JNICompiledMethod)CompiledMethods.createCompiledMethod(method, CompiledMethod.JNI);
-    ArchitectureSpecific.Assembler asm = new ArchitectureSpecific.Assembler(100 /*, true*/);   // some size for the instruction array
+    Assembler asm = new Assembler(100 /*, true*/);   // some size for the instruction array
 
     Address nativeIP = method.getNativeIP();
     final Offset lastParameterOffset = Offset.fromIntSignExtend(2 * WORDSIZE);
@@ -398,7 +424,7 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitPUSH_Reg(PARAMETER_GPRS[0]);
     asm.emitMOV_Reg_Imm(PARAMETER_GPRS[1], encodedReferenceOffsets);
     asm.emitPUSH_Reg(PARAMETER_GPRS[1]);
-    ObjectModel.baselineEmitLoadTIB(asm, S0.value(), PARAMETER_GPRS[0].value());
+    asm.baselineEmitLoadTIB(S0, PARAMETER_GPRS[0]);
     asm.emitCALL_RegDisp(S0, Entrypoints.jniEntry.getOffset());
 
     // (5) Set up stack frame and registers for transition to C
@@ -492,6 +518,13 @@ public abstract class JNICompiler implements BaselineConstants {
     } else {
       asm.emitMOV_Reg_Imm_Quad(T0, nativeIP.toLong());
     }
+    // Trap if stack alignment fails
+    if (VM.ExtremeAssertions && VM.BuildFor64Addr) {
+      asm.emitBT_Reg_Imm(ESP, 3);
+      ForwardReference fr = asm.forwardJcc(LGE);
+      asm.emitINT_Imm(3);
+      fr.resolve(asm);
+    }
     // make the call to native code
     asm.emitCALL_Reg(T0);
 
@@ -581,7 +614,7 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitPUSH_Reg(S0);                       // push arg 1
     asm.emitPUSH_Reg(PARAMETER_GPRS[1]);        // push arg 2
     // Do the call
-    ObjectModel.baselineEmitLoadTIB(asm, S0.value(), S0.value());
+    asm.baselineEmitLoadTIB(S0, S0);
     asm.emitCALL_RegDisp(S0, Entrypoints.jniExit.getOffset());
     asm.emitPOP_Reg(S0); // restore JNIEnv
 
@@ -634,8 +667,8 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitRET_Imm((method.getParameterWords() + 1) << LG_WORDSIZE);
     }
 
-    MachineCode machineCode = new ArchitectureSpecific.MachineCode(asm.getMachineCodes(), null);
-    cm.compileComplete(machineCode.getInstructions());
+    CodeArray code = asm.getMachineCodes();
+    cm.compileComplete(code);
     return cm;
   }
 

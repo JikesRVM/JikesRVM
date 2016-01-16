@@ -18,9 +18,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -375,7 +374,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     }
 
     Register r = ci.getRegister();
-    RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+    GenericRegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
     // first attempt to allocate to the preferred register
     if (ir.options.REGALLOC_COALESCE_MOVES) {
@@ -388,8 +387,8 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       }
     }
 
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int type = PhysicalRegisterSet.getPhysicalRegisterType(r);
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    int type = GenericPhysicalRegisterSet.getPhysicalRegisterType(r);
 
     // next attempt to allocate to a volatile
     if (!restrict.allVolatilesForbidden(r)) {
@@ -421,7 +420,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    */
   Register findAvailableRegister(Register symb) {
 
-    RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+    GenericRegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
     // first attempt to allocate to the preferred register
     if (ir.options.REGALLOC_COALESCE_MOVES) {
@@ -434,8 +433,8 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       }
     }
 
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int type = PhysicalRegisterSet.getPhysicalRegisterType(symb);
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    int type = GenericPhysicalRegisterSet.getPhysicalRegisterType(symb);
 
     // next attempt to allocate to a volatile
     if (!restrict.allVolatilesForbidden(symb)) {
@@ -643,9 +642,9 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    *  given physical register, {@code false} otherwise
    */
   private boolean allocateToPhysical(CompoundInterval i, Register p) {
-    RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+    GenericRegisterRestrictions restrict = ir.stackManager.getRestrictions();
     Register r = i.getRegister();
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     if (p != null && !phys.isAllocatable(p)) return false;
 
     if (LinearScan.VERBOSE_DEBUG && p != null) {
@@ -677,8 +676,8 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    * register
    */
   private boolean allocateNewSymbolicToPhysical(Register symb, Register p) {
-    RegisterRestrictions restrict = ir.stackManager.getRestrictions();
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    GenericRegisterRestrictions restrict = ir.stackManager.getRestrictions();
+    GenericPhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     if (p != null && !phys.isAllocatable(p)) return false;
 
     if (LinearScan.VERBOSE_DEBUG && p != null) {
@@ -700,7 +699,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     if (ir.options.FREQ_FOCUS_EFFORT && newInterval.isInfrequent()) {
       // if it's legal to spill this infrequent interval, then just do so!
       // don't spend any more effort.
-      RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+      GenericRegisterRestrictions restrict = ir.stackManager.getRestrictions();
       if (!restrict.mustNotSpill(newInterval.getRegister())) {
         return newInterval;
       }
@@ -720,7 +719,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     if (LinearScan.VERBOSE_DEBUG) {
       System.out.println(" interval caused a spill: " + newInterval);
     }
-    RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+    GenericRegisterRestrictions restrict = ir.stackManager.getRestrictions();
     Register r = newInterval.getRegister();
     double minCost = spillCost.getCost(r);
     if (LinearScan.VERBOSE_DEBUG) {
@@ -789,7 +788,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
   private boolean checkAssignmentIfSpilled(CompoundInterval i, CompoundInterval spill) {
     Register r = spill.getAssignment(regAllocState);
 
-    RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+    GenericRegisterRestrictions restrict = ir.stackManager.getRestrictions();
     if (restrict.isForbidden(i.getRegister(), r)) return false;
 
     // 1. Speculatively simulate the spill.

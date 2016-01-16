@@ -13,10 +13,6 @@
 package org.jikesrvm.osr.ppc;
 
 import static org.jikesrvm.VM.NOT_REACHED;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-
 import static org.jikesrvm.osr.OSRConstants.ACONST;
 import static org.jikesrvm.osr.OSRConstants.DOUBLE;
 import static org.jikesrvm.osr.OSRConstants.FLOAT;
@@ -30,6 +26,20 @@ import static org.jikesrvm.osr.OSRConstants.REF;
 import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
 import static org.jikesrvm.osr.OSRConstants.SPILL;
 import static org.jikesrvm.osr.OSRConstants.WORD;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_GPRS;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MemberReference;
@@ -38,13 +48,11 @@ import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.osr.EncodedOSRMap;
-import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.ExecutionState;
+import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.OSRMapIterator;
 import org.jikesrvm.osr.VariableElement;
-import org.jikesrvm.ppc.ArchConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -56,8 +64,7 @@ import org.vmmagic.unboxed.WordArray;
  * OptExecutionStateExtractor is a subclass of ExecutionStateExtractor.
  * It extracts the execution state of a optimized activation.
  */
-public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
-    implements ArchConstants, PhysicalRegisterConstants {
+public final class OptExecutionStateExtractor extends ExecutionStateExtractor {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
@@ -201,14 +208,14 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
 
     // recover volatile GPRs.
     Offset lastVoffset = nvArea;
-    for (int i = LAST_SCRATCH_GPR; i >= FIRST_VOLATILE_GPR; i--) {
+    for (int i = LAST_SCRATCH_GPR.value(); i >= FIRST_VOLATILE_GPR.value(); i--) {
       lastVoffset = lastVoffset.minus(BYTES_IN_STACKSLOT);
       gprs.set(i, Magic.objectAsAddress(stack).loadWord(lastVoffset));
     }
 
     // recover nonvolatile GPRs
     if (firstGPR != -1) {
-      for (int i = firstGPR; i <= LAST_NONVOLATILE_GPR; i++) {
+      for (int i = firstGPR; i <= LAST_NONVOLATILE_GPR.value(); i++) {
         gprs.set(i, Magic.objectAsAddress(stack).loadWord(nvArea));
         nvArea = nvArea.plus(BYTES_IN_STACKSLOT);
       }
@@ -231,7 +238,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     */
 
     // recover all volatile FPRs
-    for (int i = FIRST_SCRATCH_FPR; i <= LAST_VOLATILE_FPR; i++) {
+    for (int i = FIRST_SCRATCH_FPR.value(); i <= LAST_VOLATILE_FPR.value(); i++) {
       long lbits = Magic.getLongAtOffset(stack, nvArea);
       fprs[i] = Magic.longBitsAsDouble(lbits);
       nvArea = nvArea.plus(BYTES_IN_DOUBLE);

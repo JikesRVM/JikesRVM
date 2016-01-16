@@ -12,21 +12,23 @@
  */
 package org.jikesrvm.jni.ppc;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GC_FLAG_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_RVM_NONVOLATILE_OFFSET;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to
@@ -43,8 +45,7 @@ import org.vmmagic.unboxed.WordArray;
  * these regs, and the transition return code does not do the restore.
  */
 @Uninterruptible
-public abstract class JNIGCMapIterator extends GCMapIterator
-    implements BaselineConstants, JNIStackframeLayoutConstants {
+public final class JNIGCMapIterator extends GCMapIterator {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.
@@ -75,8 +76,8 @@ public abstract class JNIGCMapIterator extends GCMapIterator
   private int jniNextRef;
   private int jniFramePtr;
 
-  public JNIGCMapIterator(WordArray registerLocations) {
-    this.registerLocations = registerLocations;
+  public JNIGCMapIterator(AddressArray registerLocations) {
+    super(registerLocations);
   }
 
   // Override newStackWalk() in parent class GCMapIterator to
@@ -137,8 +138,8 @@ public abstract class JNIGCMapIterator extends GCMapIterator
     // the JNI transition frame at a fixed negative offset from the callers FP.
     Address registerLocation = this.framePtr.loadAddress().minus(JNI_RVM_NONVOLATILE_OFFSET);
 
-    for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR - 1; --i) {
-      registerLocations.set(i, registerLocation.toWord());
+    for (int i = LAST_NONVOLATILE_GPR.value(); i >= FIRST_NONVOLATILE_GPR.value() - 1; --i) {
+      registerLocations.set(i, registerLocation);
       registerLocation = registerLocation.minus(BYTES_IN_ADDRESS);
     }
 

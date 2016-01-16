@@ -12,20 +12,24 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
+import static org.mmtk.utility.gcspy.StreamConstants.PAINT_STYLE_ZERO;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PERCENT;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PLUS;
+
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.LinearScan;
-import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.Subspace;
-import org.mmtk.vm.gcspy.IntStream;
-import org.mmtk.vm.gcspy.ShortStream;
-
-import org.mmtk.utility.Log;
-import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.vm.gcspy.IntStream;
+import org.mmtk.vm.gcspy.ServerInterpreter;
+import org.mmtk.vm.gcspy.ShortStream;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * GCspy driver for the MMTk ContigousSpace.<p>
@@ -127,8 +131,8 @@ import org.vmmagic.pragma.*;
                      0,                                     // default value
                     "Scalars and primitive arrays: ",       // value prefix
                     " bytes",                               // value suffix
-                     StreamConstants.PRESENTATION_PERCENT,  // presentation style
-                     StreamConstants.PAINT_STYLE_ZERO,      // paint style
+                     PRESENTATION_PERCENT,  // presentation style
+                     PAINT_STYLE_ZERO,      // paint style
                      0,                                     // index of max stream (only needed if the presentation is *_VAR)
                      Color.Red,                             // tile colour
                      true);                                 // summary enabled
@@ -145,8 +149,8 @@ import org.vmmagic.pragma.*;
                      0,
                     "Reference arrays: ",
                     " bytes",
-                     StreamConstants.PRESENTATION_PERCENT,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PERCENT,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);
@@ -164,8 +168,8 @@ import org.vmmagic.pragma.*;
                      (short)0,
                      "Scalars: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Green,
                      true);
@@ -183,8 +187,8 @@ import org.vmmagic.pragma.*;
                      (short)0,
                      "Primitive arrays: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Yellow,
                      true);
@@ -202,8 +206,8 @@ import org.vmmagic.pragma.*;
                      (short)0,
                      "Reference arrays: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Cyan,
                      true);
@@ -221,8 +225,8 @@ import org.vmmagic.pragma.*;
                      (short)0,
                      "Roots: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);
@@ -240,8 +244,8 @@ import org.vmmagic.pragma.*;
                      (short)0,
                      "References from immortal space: ",
                      " references",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);

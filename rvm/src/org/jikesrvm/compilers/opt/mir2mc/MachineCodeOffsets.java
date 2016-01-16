@@ -36,8 +36,8 @@ public final class MachineCodeOffsets {
   }
 
   /**
-   * Only for use by {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode};
-   * sets the machine code offset of the instruction as described in
+   * This method is only for use by opt assemblers to generate code.
+   * It sets the machine code offset of the instruction as described in
    * {@link #getMachineCodeOffset(Instruction)}.
    *
    * @param inst the instruction whose offset will be set
@@ -51,7 +51,7 @@ public final class MachineCodeOffsets {
    * Gets the offset into the machine code array (in bytes) that
    * corresponds to the first byte after this instruction.<p>
    * This method only returns a valid value after it has been set as a
-   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.<p>
+   * side-effect of a call to generateCode in AssemblerOpt during final assembly.<p>
    * To get the offset in INSTRUCTIONs you must shift by LG_INSTRUCTION_SIZE.<p>
    *
    * @param inst the instruction whose offset is queried

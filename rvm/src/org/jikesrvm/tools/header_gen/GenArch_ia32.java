@@ -12,12 +12,29 @@
  */
 package org.jikesrvm.tools.header_gen;
 
+import static org.jikesrvm.ia32.ArchConstants.SSE2_BASE;
+import static org.jikesrvm.ia32.BaselineConstants.TR;
+import static org.jikesrvm.ia32.RegisterConstants.EAX;
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.ECX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.EDX;
+import static org.jikesrvm.ia32.RegisterConstants.ESI;
+import static org.jikesrvm.ia32.RegisterConstants.ESP;
+import static org.jikesrvm.ia32.RegisterConstants.R10;
+import static org.jikesrvm.ia32.RegisterConstants.R11;
+import static org.jikesrvm.ia32.RegisterConstants.R12;
+import static org.jikesrvm.ia32.RegisterConstants.R13;
+import static org.jikesrvm.ia32.RegisterConstants.R14;
+import static org.jikesrvm.ia32.RegisterConstants.R15;
+import static org.jikesrvm.ia32.RegisterConstants.R8;
+import static org.jikesrvm.ia32.RegisterConstants.R9;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.ia32.BaselineConstants;
-import org.jikesrvm.ia32.RegisterConstants;
-import org.jikesrvm.ia32.StackframeLayoutConstants;
-import org.jikesrvm.ia32.TrapConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -33,39 +50,39 @@ final class GenArch_ia32 extends GenArch {
     offset = ArchEntrypoints.registersFPField.getOffset();
     pln("Registers_fp_offset", offset);
 
-    pln("Constants_EAX", RegisterConstants.EAX.value());
-    pln("Constants_ECX", RegisterConstants.ECX.value());
-    pln("Constants_EDX", RegisterConstants.EDX.value());
-    pln("Constants_EBX", RegisterConstants.EBX.value());
-    pln("Constants_ESP", RegisterConstants.ESP.value());
-    pln("Constants_EBP", RegisterConstants.EBP.value());
-    pln("Constants_ESI", RegisterConstants.ESI.value());
-    pln("Constants_EDI", RegisterConstants.EDI.value());
+    pln("Constants_EAX", EAX.value());
+    pln("Constants_ECX", ECX.value());
+    pln("Constants_EDX", EDX.value());
+    pln("Constants_EBX", EBX.value());
+    pln("Constants_ESP", ESP.value());
+    pln("Constants_EBP", EBP.value());
+    pln("Constants_ESI", ESI.value());
+    pln("Constants_EDI", EDI.value());
     if (VM.BuildFor64Addr) {
-      pln("Constants_R8", RegisterConstants.R8.value());
-      pln("Constants_R9", RegisterConstants.R9.value());
-      pln("Constants_R10", RegisterConstants.R10.value());
-      pln("Constants_R11", RegisterConstants.R11.value());
-      pln("Constants_R12", RegisterConstants.R12.value());
-      pln("Constants_R13", RegisterConstants.R13.value());
-      pln("Constants_R14", RegisterConstants.R14.value());
-      pln("Constants_R15", RegisterConstants.R15.value());
+      pln("Constants_R8", R8.value());
+      pln("Constants_R9", R9.value());
+      pln("Constants_R10", R10.value());
+      pln("Constants_R11", R11.value());
+      pln("Constants_R12", R12.value());
+      pln("Constants_R13", R13.value());
+      pln("Constants_R14", R14.value());
+      pln("Constants_R15", R15.value());
     }
-    pln("Constants_STACKFRAME_BODY_OFFSET", StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
-    pln("Constants_STACKFRAME_RETURN_ADDRESS_OFFSET", StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-    pln("Constants_RVM_TRAP_BASE", TrapConstants.RVM_TRAP_BASE);
+    pln("Constants_STACKFRAME_BODY_OFFSET", STACKFRAME_BODY_OFFSET);
+    pln("Constants_STACKFRAME_RETURN_ADDRESS_OFFSET", STACKFRAME_RETURN_ADDRESS_OFFSET);
+    pln("Constants_RVM_TRAP_BASE", RVM_TRAP_BASE);
 
     offset = ArchEntrypoints.framePointerField.getOffset();
     pln("Thread_framePointer_offset", offset);
     offset = ArchEntrypoints.arrayIndexTrapParamField.getOffset();
     pln("Thread_arrayIndexTrapParam_offset", offset);
 
-    pln("ArchConstants_SSE2", (ArchConstants.SSE2_BASE ? 1 : 0));
+    pln("ArchConstants_SSE2", (SSE2_BASE ? 1 : 0));
   }
 
   @Override
   public void emitArchAssemblerDeclarations() {
-    if (BaselineConstants.TR != BaselineConstants.ESI) {
+    if (TR != ESI) {
       throw new Error("Unexpected TR value");
     }
     p("#define TR %ESI\n");

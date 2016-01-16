@@ -12,12 +12,20 @@
  */
 package org.jikesrvm.jni;
 
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
+import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
+
 import org.jikesrvm.VM;
-
-import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
-
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMMethod;
@@ -33,15 +41,6 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
-
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 
 /**
  * Platform independent utility functions called from JNIFunctions

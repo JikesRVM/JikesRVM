@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.objectmodel;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
 import org.jikesrvm.classloader.RVMClass;
 

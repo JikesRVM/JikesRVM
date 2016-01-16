@@ -16,9 +16,9 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSFAIL;
 
-import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.JMXSupport;
@@ -34,6 +34,8 @@ import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Callbacks;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -49,6 +51,7 @@ import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.runtime.FileSystem;
 import org.jikesrvm.tuningfork.TraceEngine;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -147,11 +150,12 @@ public class VM extends Properties {
 
     // TODO get thread local state working
     if (!VM.BuildForOpenJDK) {
-      // This line was commented out for OpenJDK which led to a checkstyle
-      // failure because of an unused import. It is better to leave the line
-      // in. Removing and re-adding the import is error-prone as ThreadLocalState
-      // is using ArchitectureSpecific.
-      ThreadLocalState.boot();
+      if (VM.BuildForIA32) {
+        org.jikesrvm.ia32.ThreadLocalState.boot();
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        org.jikesrvm.ppc.ThreadLocalState.boot();
+      }
     }
 
     // Finish thread initialization that couldn't be done in boot image.
@@ -161,7 +165,7 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     RVMThread currentThread = RVMThread.getCurrentThread();
     currentThread.stackLimit = Magic.objectAsAddress(
-        currentThread.getStack()).plus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD);
+        currentThread.getStack()).plus(StackFrameLayout.getStackSizeGuard());
 
     finishBooting();
   }
@@ -2675,10 +2679,10 @@ public class VM extends Properties {
 
     // 1.
     //
-    if (Magic.getFramePointer().minus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
+    if (Magic.getFramePointer().minus(StackFrameLayout.getStackSizeGCDisabled())
         .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
       RVMThread.resizeCurrentStack(myThread.getStackLength() +
-          ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
+          StackFrameLayout.getStackSizeGCDisabled(), null);
     }
 
     // 2.

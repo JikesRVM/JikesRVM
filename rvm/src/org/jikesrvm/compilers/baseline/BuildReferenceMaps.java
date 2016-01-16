@@ -21,7 +21,6 @@ import static org.jikesrvm.compilers.baseline.BBConstants.FLOAT_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.INT_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.LONG_TYPE;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
@@ -2128,7 +2127,7 @@ final class BuildReferenceMaps {
     boolean popParams = true;
 
     if (target.getType().isMagicType()) {
-      boolean producesCall = BaselineCompilerImpl.checkForActualCall(target);
+      boolean producesCall = BaselineCompiler.checkForActualCall(target);
       if (producesCall) {
         // register a map, but do NOT include any of the parameters to the call.
         // Chances are what appear to be parameters are not parameters to

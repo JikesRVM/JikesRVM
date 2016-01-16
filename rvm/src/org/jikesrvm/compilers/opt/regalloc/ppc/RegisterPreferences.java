@@ -12,21 +12,22 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MOVE_opcode;
 
 import java.util.Enumeration;
-import org.jikesrvm.compilers.opt.regalloc.GenericRegisterPreferences;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
+
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Move;
+import org.jikesrvm.compilers.opt.regalloc.GenericRegisterPreferences;
 
 /**
  * An instance of this class provides a mapping from symbolic register to
  * physical register, representing a preferred register assignment.
  */
-public abstract class RegisterPreferences extends GenericRegisterPreferences {
+public final class RegisterPreferences extends GenericRegisterPreferences {
 
   /**
    * If the following is set, we use a heuristic optimization as follows:

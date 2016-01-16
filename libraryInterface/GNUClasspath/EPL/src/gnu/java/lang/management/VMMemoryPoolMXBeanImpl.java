@@ -15,8 +15,8 @@ package gnu.java.lang.management;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 
-import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.mm.mminterface.JMXSupport;
+import org.jikesrvm.util.UnimplementedError;
 
 /**
  * NOTE: Features related to memory usage are currently not implemented.

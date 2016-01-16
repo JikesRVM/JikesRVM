@@ -301,23 +301,51 @@ public final class MethodReference extends MemberReference {
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
+    // According to 5.4.3.3, (2) in the JVM spec, search all classes first, ignoring
+    // interfaces
     for (RVMClass c = declaringClass; c != null; c = c.getSuperClass()) {
       if (DBG) {
         VM.sysWrite("Checking for <" + name + "," + descriptor + "> in class " + c + "...");
       }
 
-      RVMMethod it = c.findDeclaredMethod(name, descriptor);
-      if (it != null) {
+      RVMMethod method = c.findDeclaredMethod(name, descriptor);
+      if (method != null) {
         if (DBG) {
           VM.sysWriteln("...found <" + name + "," + descriptor + "> in class " + c);
         }
-        resolvedMember = it;
+        resolvedMember = method;
         return resolvedMember;
       }
       if (DBG) {
         VM.sysWriteln("...NOT found <" + name + "," + descriptor + "> in class " + c);
       }
     }
+    // If nothing found, search superinterfaces (i.e. all interfaces implemented by
+    // the class, directly or indirectly), according to 5.4.3.3 (3)
+    for (RVMClass i : declaringClass.getAllImplementedInterfaces()) {
+      if (DBG) {
+        VM.sysWrite("Checking for <" + name + "," + descriptor + "> in interface " + i + "...");
+        VM.sysWrite("interface " + i + " is resolved: " + i.isResolved());
+      }
+      RVMMethod method = i.findDeclaredMethod(name, descriptor);
+      if (method != null) {
+        if (DBG) {
+          VM.sysWriteln("...found <" + name + "," + descriptor + "> in interface " + i);
+        }
+        // Interfaces only declare methods - they don't implement them (at least for Java 6
+        // which is all we support right now).
+        if (VM.VerifyAssertions) VM._assert(!method.hasOffset());
+        // Find the virtual method to call.
+        resolvedMember = declaringClass.findVirtualMethod(name, descriptor);
+        if (VM.VerifyAssertions) VM._assert(resolvedMember != null);
+        if (VM.VerifyAssertions) VM._assert(resolvedMember.hasOffset());
+        return resolvedMember;
+      }
+      if (DBG) {
+        VM.sysWriteln("...NOT found <" + name + "," + descriptor + "> in interface " + i);
+      }
+    }
+
     if (!VM.fullyBooted) {
       VM.sysWrite("MethodReference.resolveInternal():");
       VM.sysWrite(" Unable to find a method named ");
@@ -329,7 +357,6 @@ public final class MethodReference extends MemberReference {
       if (VM.runningVM) {
         VM.sysWriteln(", while booting the VM");
         VM.sysFail("MethodReference.resolveInternal(): Unable to resolve a method during VM booting");
-
       } else {
         VM.sysWriteln(", while writing the boot image");
         Thread.dumpStack();

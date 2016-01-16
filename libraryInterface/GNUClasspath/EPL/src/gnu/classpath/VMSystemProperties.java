@@ -15,9 +15,9 @@ package gnu.classpath;
 import java.util.Properties;
 
 import org.jikesrvm.VM;     // for VM.sysWrite()
-import org.jikesrvm.CommandLineArgs;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.scheduler.Lock;
 

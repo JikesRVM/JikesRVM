@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
@@ -23,11 +24,11 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *
  * @see Register
  */
-public class GenericRegisterPool extends AbstractRegisterPool {
+public abstract class GenericRegisterPool extends AbstractRegisterPool {
 
-  protected final PhysicalRegisterSet physical = new PhysicalRegisterSet();
+  protected final GenericPhysicalRegisterSet physical;
 
-  public PhysicalRegisterSet getPhysicalRegisterSet() {
+  public GenericPhysicalRegisterSet getPhysicalRegisterSet() {
     return physical;
   }
 
@@ -37,9 +38,15 @@ public class GenericRegisterPool extends AbstractRegisterPool {
    * @param meth the RVMMethod of the outermost method
    */
   protected GenericRegisterPool(RVMMethod meth) {
+    if (VM.BuildForIA32) {
+      physical = new org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      physical = new org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet();
+    }
     // currentNum is assigned an initial value to avoid overlap of
     // physical and symbolic registers.
-    currentNum = PhysicalRegisterSet.getSize();
+    currentNum = physical.getNumberOfPhysicalRegisters();
   }
 
   /**
@@ -47,7 +54,7 @@ public class GenericRegisterPool extends AbstractRegisterPool {
    * @return the number of symbolic registers allocated by the pool
    */
   public int getNumberOfSymbolicRegisters() {
-    int start = PhysicalRegisterSet.getSize();
+    int start = physical.getNumberOfPhysicalRegisters();
     return currentNum - start;
   }
 
@@ -87,4 +94,13 @@ public class GenericRegisterPool extends AbstractRegisterPool {
     return trOp;
   }
 
+  /**
+   * @return a temporary that represents the JTOC register (as an Address)
+   */
+  public abstract Operand makeJTOCOp();
+
+  /**
+   * @return a temporary that represents the JTOC register (as an Object)
+   */
+  public abstract Operand makeTocOp();
 }

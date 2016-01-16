@@ -12,11 +12,9 @@
  */
 package org.jikesrvm.ia32;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.runtime.Entrypoints;
-
-import static org.jikesrvm.ia32.RegisterConstants.*;
 
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
@@ -29,11 +27,11 @@ import static org.jikesrvm.ia32.RegisterConstants.*;
  * instructions does not imply source equality, since both targets may in fact
  * be the globally shared lazy compilation stub.
  */
-public abstract class LazyCompilationTrampoline implements BaselineConstants {
-  public static final ArchitectureSpecific.CodeArray instructions;
+public abstract class LazyCompilationTrampoline {
+  public static final CodeArray instructions;
 
   static {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+    Assembler asm = new Assembler(0);
     asm.generateJTOCjmp(Entrypoints.lazyMethodInvokerMethod.getOffset());
     instructions = asm.getMachineCodes();
   }

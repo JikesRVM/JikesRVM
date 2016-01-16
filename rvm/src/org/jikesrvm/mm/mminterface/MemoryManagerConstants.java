@@ -12,7 +12,8 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_WORD;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
+
 
 /**
  * This class merely exposes the MMTk constants into the Jikes RVM

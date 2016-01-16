@@ -82,6 +82,9 @@ public final class VM {
   /** Global debugging switch */
   public static final boolean DEBUG;
 
+  /** Exit code to pass if reflection for querying or creating important objects fails. */
+  public static final int EXIT_CODE_REFLECTION_FAILURE = 2;
+
   /*
    * VM-specific functionality captured in a series of singleton classs
    */
@@ -143,7 +146,7 @@ public final class VM {
       xfa = (Factory) Class.forName(vmFactory).newInstance();
     } catch (Exception e) {
       e.printStackTrace();
-      System.exit(-1);     // we must *not* go on if the above has failed
+      System.exit(EXIT_CODE_REFLECTION_FAILURE);     // we must *not* go on if the above has failed
     }
     factory = xfa;
 

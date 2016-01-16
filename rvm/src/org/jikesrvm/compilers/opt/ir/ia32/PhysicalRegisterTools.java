@@ -12,19 +12,18 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterTools;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
-
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * This abstract class provides a set of useful methods for
@@ -45,7 +44,7 @@ public abstract class PhysicalRegisterTools extends GenericPhysicalRegisterTools
       if (VM.VerifyAssertions) {
         VM._assert(lhs.getRegister().isFloatingPoint());
       }
-      if (ArchConstants.SSE2_FULL) {
+      if (SSE2_FULL) {
         if (rhs.getRegister().isFloat()) {
           return MIR_Move.create(IA32_MOVSS, lhs, rhs);
         } else {

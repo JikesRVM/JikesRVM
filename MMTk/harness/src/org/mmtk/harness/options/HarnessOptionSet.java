@@ -12,13 +12,15 @@
  */
 package org.mmtk.harness.options;
 
+import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_PAGE;
+import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_PAGE;
+
 import java.util.TreeSet;
 
 import org.mmtk.harness.Main;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
-import org.vmmagic.unboxed.harness.MemoryConstants;
 import org.vmmagic.unboxed.harness.WordComparator;
 import org.vmutil.options.AddressOption;
 import org.vmutil.options.BooleanOption;
@@ -407,12 +409,12 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
   @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(MemoryConstants.BYTES_IN_PAGE - 1).toWord().rshl(MemoryConstants.LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(BYTES_IN_PAGE - 1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }
 
   @Override
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {
-    return Word.fromIntZeroExtend(pages).lsh(MemoryConstants.LOG_BYTES_IN_PAGE).toExtent();
+    return Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
   }
 }

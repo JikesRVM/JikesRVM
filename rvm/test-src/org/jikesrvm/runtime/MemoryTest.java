@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
-import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
 import static org.junit.Assert.fail;
 
 import org.jikesrvm.VM;

@@ -12,28 +12,27 @@
  */
 package org.jikesrvm.jni;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
 import static org.jikesrvm.runtime.ExitStatus.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
-//import java.security.PrivilegedAction;
-import org.jikesrvm.ArchitectureSpecific.JNIHelpers;
 import org.jikesrvm.Properties;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.JNIHelpers;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.NativeMethod;
@@ -165,7 +164,7 @@ public class JNIFunctions {
     try {
       String classString = null;
       if (!classNameAddress.isZero()) {
-        JNIHelpers.createStringFromC(classNameAddress);
+        JNIGenericHelpers.createStringFromC(classNameAddress);
       }
       ClassLoader cl;
       if (classLoader == 0) {
@@ -202,7 +201,7 @@ public class JNIFunctions {
 
     String classString = null;
     try {
-      classString = JNIHelpers.createStringFromC(classNameAddress);
+      classString = JNIGenericHelpers.createStringFromC(classNameAddress);
       classString = classString.replace('/', '.');
       if (classString.startsWith("L") && classString.endsWith(";")) {
         classString = classString.substring(1, classString.length() - 1);
@@ -317,7 +316,7 @@ public class JNIFunctions {
       Constructor<?> constMethod = cls.getConstructor(argClasses);
       // prepare the parameter list for reflective invocation
       Object[] argObjs = new Object[1];
-      argObjs[0] = JNIHelpers.createStringFromC(exceptionNameAddress);
+      argObjs[0] = JNIGenericHelpers.createStringFromC(exceptionNameAddress);
 
       // invoke the constructor to obtain a new Throwable object
       env.recordException((Throwable) constMethod.newInstance(argObjs));
@@ -403,7 +402,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM.sysWrite(JNIHelpers.createStringFromC(messageAddress));
+      VM.sysWrite(JNIGenericHelpers.createStringFromC(messageAddress));
       System.exit(EXIT_STATUS_JNI_TROUBLE);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -687,9 +686,9 @@ public class JNIFunctions {
 
     try {
       // obtain the names as String from the native space
-      String methodString = JNIHelpers.createStringFromC(methodNameAddress);
+      String methodString = JNIGenericHelpers.createStringFromC(methodNameAddress);
       Atom methodName = Atom.findOrCreateAsciiAtom(methodString);
-      String sigString = JNIHelpers.createStringFromC(methodSigAddress);
+      String sigString = JNIGenericHelpers.createStringFromC(methodSigAddress);
       Atom sigName = Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class
@@ -2253,10 +2252,10 @@ public class JNIFunctions {
         VM.sysWriteln("called GetFieldID with classJREF = ",classJREF);
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       if (VM.VerifyAssertions) VM._assert(cls != null);
-      String fieldString = JNIHelpers.createStringFromC(fieldNameAddress);
+      String fieldString = JNIGenericHelpers.createStringFromC(fieldNameAddress);
       Atom fieldName = Atom.findOrCreateAsciiAtom(fieldString);
 
-      String descriptorString = JNIHelpers.createStringFromC(descriptorAddress);
+      String descriptorString = JNIGenericHelpers.createStringFromC(descriptorAddress);
       Atom descriptor = Atom.findOrCreateAsciiAtom(descriptorString);
 
       // list of all instance fields including superclasses.
@@ -2688,9 +2687,9 @@ public class JNIFunctions {
 
     try {
       // obtain the names as String from the native space
-      String methodString = JNIHelpers.createStringFromC(methodNameAddress);
+      String methodString = JNIGenericHelpers.createStringFromC(methodNameAddress);
       Atom methodName = Atom.findOrCreateAsciiAtom(methodString);
-      String sigString = JNIHelpers.createStringFromC(methodSigAddress);
+      String sigString = JNIGenericHelpers.createStringFromC(methodSigAddress);
       Atom sigName = Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class
@@ -3455,9 +3454,9 @@ public class JNIFunctions {
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
 
-      String fieldString = JNIHelpers.createStringFromC(fieldNameAddress);
+      String fieldString = JNIGenericHelpers.createStringFromC(fieldNameAddress);
       Atom fieldName = Atom.findOrCreateAsciiAtom(fieldString);
-      String descriptorString = JNIHelpers.createStringFromC(descriptorAddress);
+      String descriptorString = JNIGenericHelpers.createStringFromC(descriptorAddress);
       Atom descriptor = Atom.findOrCreateAsciiAtom(descriptorString);
 
       RVMType rvmType = java.lang.JikesRVMSupport.getTypeForClass(cls);
@@ -3979,7 +3978,7 @@ public class JNIFunctions {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      String returnString = JNIHelpers.createUTFStringFromC(utf8bytes);
+      String returnString = JNIGenericHelpers.createUTFStringFromC(utf8bytes);
       return env.pushJNIRef(returnString);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4036,7 +4035,7 @@ public class JNIFunctions {
       return Address.zero();
     }
     try {
-      JNIHelpers.createUTFForCFromString(str, copyBuffer, len);
+      JNIGenericHelpers.createUTFForCFromString(str, copyBuffer, len);
       JNIGenericHelpers.setBoolStar(isCopyAddress, true);
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -5539,10 +5538,10 @@ public class JNIFunctions {
 
       Address curMethod = methodsAddress;
       for (int i = 0; i < nmethods; i++) {
-        String methodString = JNIHelpers.createStringFromC(curMethod.loadAddress());
+        String methodString = JNIGenericHelpers.createStringFromC(curMethod.loadAddress());
         Atom methodName = Atom.findOrCreateAsciiAtom(methodString);
         String sigString =
-            JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS)));
+            JNIGenericHelpers.createStringFromC(curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS)));
         Atom sigName = Atom.findOrCreateAsciiAtom(sigString);
 
         // Find the target method
@@ -5869,7 +5868,7 @@ public class JNIFunctions {
       String region = str.substring(start, start + len);
       // Get length of C string
       int utflen = UTF8Convert.utfLength(region) + 1; // for terminating zero
-      JNIHelpers.createUTFForCFromString(region, buf, utflen);
+      JNIGenericHelpers.createUTFForCFromString(region, buf, utflen);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);

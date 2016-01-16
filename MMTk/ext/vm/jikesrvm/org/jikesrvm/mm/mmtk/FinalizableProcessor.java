@@ -12,16 +12,22 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import static org.jikesrvm.SizeConstants.*;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.Services;
+import org.jikesrvm.util.Services;
 import org.mmtk.plan.TraceLocal;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class manages the processing of finalizable objects.

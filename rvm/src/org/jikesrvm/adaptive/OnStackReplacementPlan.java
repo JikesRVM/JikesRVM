@@ -13,9 +13,6 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.BaselineExecutionStateExtractor;
-import org.jikesrvm.ArchitectureSpecificOpt.CodeInstaller;
-import org.jikesrvm.ArchitectureSpecificOpt.OptExecutionStateExtractor;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
 import org.jikesrvm.adaptive.util.AOSLogging;
@@ -104,11 +101,21 @@ public class OnStackReplacementPlan {
 
       boolean invalidate = true;
       if (cm.getCompilerType() == CompiledMethod.BASELINE) {
-        extractor = new BaselineExecutionStateExtractor();
+        if (VM.BuildForIA32) {
+          extractor = new org.jikesrvm.osr.ia32.BaselineExecutionStateExtractor();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          extractor = new org.jikesrvm.osr.ppc.BaselineExecutionStateExtractor();
+        }
         // don't need to invalidate when transitioning from baseline
         invalidate = false;
       } else if (cm.getCompilerType() == CompiledMethod.OPT) {
-        extractor = new OptExecutionStateExtractor();
+        if (VM.BuildForIA32) {
+          extractor = new org.jikesrvm.osr.ia32.OptExecutionStateExtractor();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          extractor = new org.jikesrvm.osr.ppc.OptExecutionStateExtractor();
+        }
       } else {
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         return;
@@ -135,7 +142,11 @@ public class OnStackReplacementPlan {
         setStatus(ControllerPlan.COMPLETED);
         // now let CodeInstaller generate a code stub,
         // and PostThreadSwitch will install the stub to run.
-        CodeInstaller.install(state, newCM);
+        if (VM.BuildForIA32) {
+          org.jikesrvm.osr.ia32.CodeInstaller.install(state, newCM);
+        } else {
+          org.jikesrvm.osr.ppc.CodeInstaller.install(state, newCM);
+        }
         AOSLogging.logger.logOsrEvent("OSR compilation succeeded! " + compPlan.method);
       }
     }

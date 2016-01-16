@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Offset;
  * GC uses the methods provided here
  */
 @Uninterruptible
-public final class ReferenceMaps implements BaselineConstants {
+public final class ReferenceMaps {
 
   public static final byte JSR_MASK = -128;     // byte = x'80'
   public static final byte JSR_INDEX_MASK = 0x7F;
@@ -115,7 +115,7 @@ public final class ReferenceMaps implements BaselineConstants {
    */
   public int locateGCPoint(Offset machCodeOffset, RVMMethod method) {
 
-    machCodeOffset = machCodeOffset.minus(1 << LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
+    machCodeOffset = machCodeOffset.minus(1 << ArchConstants.getLogInstructionWidth());  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
 
     if (VM.TraceStkMaps) {
@@ -892,7 +892,7 @@ public final class ReferenceMaps implements BaselineConstants {
    */
   public void translateByte2Machine(int[] b2m) {
     for (int i = 0; i < MCSites.length; i++) {
-      MCSites[i] = b2m[MCSites[i]] << LG_INSTRUCTION_WIDTH;
+      MCSites[i] = b2m[MCSites[i]] << ArchConstants.getLogInstructionWidth();
     }
   }
 

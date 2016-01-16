@@ -12,32 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.escape;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.ClassLoaderProxy;
-import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
-import org.jikesrvm.compilers.opt.ir.Empty;
-import org.jikesrvm.compilers.opt.ir.GetField;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.InstanceOf;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.New;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Trap;
-import org.jikesrvm.compilers.opt.ir.TypeCheck;
-
+import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.IRTools.IC;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT_opcode;
@@ -63,8 +39,33 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
-import org.jikesrvm.compilers.opt.ir.Register;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.ClassLoaderProxy;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.PutField;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.Trap;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
@@ -221,7 +222,7 @@ final class ObjectReplacer implements AggregateReplacer {
         // We cannot handle removing the checkcast if the result of the
         // checkcast test is unknown
         TypeReference lhsType = TypeCheck.getType(inst).getTypeRef();
-        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == OptConstants.YES) {
+        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == YES) {
           if (visited == null) {
             visited = new HashSet<Register>();
           }
@@ -246,7 +247,7 @@ final class ObjectReplacer implements AggregateReplacer {
         // instanceof test is unknown
         TypeReference lhsType = InstanceOf.getType(inst).getTypeRef();
         Instruction i2;
-        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == OptConstants.YES) {
+        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == YES) {
           i2 = Move.create(INT_MOVE, InstanceOf.getClearResult(inst), IC(1));
         } else {
           i2 = Move.create(INT_MOVE, InstanceOf.getClearResult(inst), IC(0));
@@ -306,9 +307,9 @@ final class ObjectReplacer implements AggregateReplacer {
           // checkcast test is unknown
           TypeReference lhsType = TypeCheck.getType(use.instruction).getTypeRef();
           byte ans = ClassLoaderProxy.includesType(lhsType, klass.getTypeRef());
-          if (ans == OptConstants.MAYBE) {
+          if (ans == MAYBE) {
             return true;
-          } else if (ans == OptConstants.YES) {
+          } else if (ans == YES) {
             // handle as a move
             if (visited == null) {
               visited = new HashSet<Register>();
@@ -329,7 +330,7 @@ final class ObjectReplacer implements AggregateReplacer {
           // We cannot handle removing the instanceof if the result of the
           // instanceof test is unknown
           TypeReference lhsType = InstanceOf.getType(use.instruction).getTypeRef();
-          if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == OptConstants.MAYBE) {
+          if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == MAYBE) {
             return true;
           }
         }

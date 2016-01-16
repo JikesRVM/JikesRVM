@@ -1,0 +1,72 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+package ARCHOPERATORSPKG;
+
+import org.vmmagic.pragma.Pure;
+import org.jikesrvm.compilers.opt.ir.Operator;
+
+/**
+ * Class to store the string representations of different operators.<p>
+ * 
+ * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
+ * See ArchOperatorNames.template, OperatorList.dat, etc
+ */
+public abstract class ArchOperatorNames {
+
+  /** Lookup for operator names based on their opcode */
+  private static final String[] operatorName = new String[] {
+$$$$ FOREACH OPERATOR OperatorList.dat
+$$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
+$$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
+      "OSYM ",
+$$$$ END LET
+$$$$ END IF
+$$$$ END FOREACH
+$$$$ IF ARCHITECTURE != "NONE"
+  //////////////////////////
+  // END   Architecture Independent opcodes.
+  // BEGIN Architecture Dependent opcodes & MIR.
+  //////////////////////////
+  $$$$ FOREACH OPERATOR ARCH_OP_LIST
+    $$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
+      "OSYM ",
+    $$$$ END LET
+  $$$$ END FOREACH
+$$$$ ELSE
+$$$$ IF USE_EXTRA_OPLIST == "TRUE"
+  $$$$ FOREACH OPERATOR ExtraOperatorList.dat
+    $$$$ LET OSYM @PAD(@LOWER(@SUBST("OPERATOR.SYMBOL", "r", ".")), 23, " ")
+      "OSYM ",
+    $$$$ END LET
+  $$$$ END FOREACH
+$$$$ END IF
+$$$$ END IF
+      "<UNKNOWN OPERATOR>"
+    };
+
+  /**
+   * Looks up name of operator
+   * @param operator the operator to look up
+   * @return operator's name or a string indicating
+   *  that the operator isn't known
+   */
+  @Pure
+  public static String toString(Operator operator) {
+     try {
+       return operatorName[operator.getOpcode()];
+     }
+     catch (ArrayIndexOutOfBoundsException e) {
+       return operatorName[operatorName.length-1];
+     }
+  }
+}

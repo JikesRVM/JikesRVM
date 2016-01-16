@@ -206,7 +206,7 @@ public abstract class NormalizeConstants extends IRTools {
           if (use != null) {
             if (use instanceof ObjectConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(use.getType());
-              RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              RegisterOperand jtoc = (RegisterOperand)ir.regpool.makeJTOCOp();
               ObjectConstantOperand oc = (ObjectConstantOperand) use;
               Offset offset = oc.offset;
               if (offset.isZero()) {
@@ -226,7 +226,7 @@ public abstract class NormalizeConstants extends IRTools {
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof DoubleConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Double);
-              RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              RegisterOperand jtoc = (RegisterOperand)ir.regpool.makeJTOCOp();
               DoubleConstantOperand dc = (DoubleConstantOperand) use;
               Offset offset = dc.offset;
               if (offset.isZero()) {
@@ -238,7 +238,7 @@ public abstract class NormalizeConstants extends IRTools {
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof FloatConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Float);
-              RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              RegisterOperand jtoc = (RegisterOperand)ir.regpool.makeJTOCOp();
               FloatConstantOperand fc = (FloatConstantOperand) use;
               Offset offset = fc.offset;
               if (offset.isZero()) {
@@ -260,7 +260,7 @@ public abstract class NormalizeConstants extends IRTools {
               s.putOperand(idx, AC(Address.zero()));
             } else if (use instanceof TIBConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.JavaLangObjectArray);
-              Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              Operand jtoc = ir.regpool.makeJTOCOp();
               Offset offset = ((TIBConstantOperand) use).value.getTibOffset();
               LocationOperand loc = new LocationOperand(offset);
               s.insertBefore(Load.create(VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD,
@@ -271,7 +271,7 @@ public abstract class NormalizeConstants extends IRTools {
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof CodeConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.CodeArray);
-              Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              Operand jtoc = ir.regpool.makeJTOCOp();
               Offset offset = ((CodeConstantOperand) use).value.findOrCreateJtocOffset();
               LocationOperand loc = new LocationOperand(offset);
               s.insertBefore(Load.create(VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD,

@@ -14,11 +14,11 @@ package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import static org.jikesrvm.compilers.opt.ir.IRTools.IC;
 import static org.jikesrvm.compilers.opt.ir.IRTools.LC;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADD;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSXQ__W;
-import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SHL;
-import static org.jikesrvm.compilers.opt.ir.Operators.IMMQ_MOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXQ__W;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SHL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IMMQ_MOV;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
@@ -26,8 +26,8 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_BinaryAcc;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
