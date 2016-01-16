@@ -2842,6 +2842,9 @@ target.jni-suffix=${target.jni-suffix}
       </sequential>
     </if>
     <update-gen-base-and-gen-config/>
+    <copy todir="eclipse/gen-arch">
+      <fileset dir="${generated.vmmagic.arch.java}"><include name="**/*.*"/></fileset>
+    </copy>
     <copy file="build/eclipse/project.template" tofile=".project">
       <filterset>
         <filter token="TITLE" value="${eclipse.project.name}"/>
