@@ -17,10 +17,11 @@
  * <p>
  * After the transition to machine-specific IR, almost all remaining
  * operators can be directly mapped to machine instructions. The actual
- * transition is done by {@link ConvertLIRtoMIR} which calls all the other
- * classes. Some of these classes are necessarily architecture-specific
- * which is why they can be found in the architecture-specific lir2mir
- * packages.
+ * transition is done by
+ * {@link org.jikesrvm.compilers.opt.lir2mir.ConvertLIRtoMIR ConvertLIRtoMIR}
+ * which calls all the other classes. Some of these classes are
+ * necessarily architecture-specific which is why they can be found in
+ * the architecture-specific lir2mir packages.
  * <p>
  * A large part of the work of mapping of LIR instruction sequences to
  * MIR instruction sequences is done by the BURS classes.
