@@ -187,7 +187,7 @@ import org.vmmagic.unboxed.*;
  * @see ForwardReference
  *
 */
-public class Assembler extends AbstractAssembler implements RegisterConstants {
+public class Assembler extends AbstractAssembler {
 
   /**
    * The lister object is used to print generated machine code.

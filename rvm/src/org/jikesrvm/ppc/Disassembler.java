@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.ppc;
 
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
+
 /**
  * Disassembler for Rios instruction set.<p>
  *
@@ -87,7 +90,7 @@ package org.jikesrvm.ppc;
  *  </pre>
  *
  */
-public class Disassembler implements ArchConstants {
+public class Disassembler {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;
   static final int MSR = 129;

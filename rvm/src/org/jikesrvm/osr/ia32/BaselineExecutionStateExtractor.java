@@ -23,6 +23,11 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.ia32.RegisterConstants.INSTRUCTION_WIDTH;
+import static org.jikesrvm.ia32.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.osr.OSRConstants.DOUBLE;
 import static org.jikesrvm.osr.OSRConstants.FLOAT;
 import static org.jikesrvm.osr.OSRConstants.INT;
@@ -43,8 +48,6 @@ import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
-import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.osr.BytecodeTraverser;
 import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.osr.ExecutionStateExtractor;
@@ -60,8 +63,7 @@ import org.vmmagic.unboxed.Word;
  * from a suspended thread whose top method was compiled by the
  * baseline compiler.
  */
-public final class BaselineExecutionStateExtractor extends ExecutionStateExtractor
-    implements ArchConstants, PhysicalRegisterConstants {
+public final class BaselineExecutionStateExtractor extends ExecutionStateExtractor {
 
   /**
    * Implements ExecutionStateExtractor.extractState.

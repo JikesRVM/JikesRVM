@@ -14,6 +14,30 @@ package org.jikesrvm.jni.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGE;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.T0;
+import static org.jikesrvm.ia32.BaselineConstants.T1;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.ESP;
+import static org.jikesrvm.ia32.RegisterConstants.FP0;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_NONVOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ia32.RegisterConstants.XMM0;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 
 import org.jikesrvm.VM;
@@ -26,7 +50,10 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
-import org.jikesrvm.ia32.BaselineConstants;
+import org.jikesrvm.ia32.RegisterConstants.FPR;
+import org.jikesrvm.ia32.RegisterConstants.FloatingPointMachineRegister;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
+import org.jikesrvm.ia32.RegisterConstants.XMM;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.BootRecord;
@@ -84,7 +111,7 @@ import org.vmmagic.unboxed.Offset;
  *     JNI refs directly, so we don't need to transition these</li>
  * </ol>
  */
-public abstract class JNICompiler implements BaselineConstants {
+public abstract class JNICompiler {
 
   /** Dummy field to force compilation of the exception deliverer */
   private org.jikesrvm.jni.ia32.JNIExceptionDeliverer unused;

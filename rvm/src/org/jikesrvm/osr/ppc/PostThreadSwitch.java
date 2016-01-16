@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.osr.ppc;
 
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+
 import org.jikesrvm.compilers.common.CodeArray;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
@@ -26,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  */
 
 @Uninterruptible
-public abstract class PostThreadSwitch implements BaselineConstants {
+public abstract class PostThreadSwitch {
 
   /* This method must be inlined to keep the correctness
    * This method is called at the end of threadSwitch, the caller

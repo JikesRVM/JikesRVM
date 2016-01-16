@@ -20,14 +20,14 @@ import org.jikesrvm.VM;
 import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.runtime.Magic;
 
-public interface RegisterConstants {
+public final class RegisterConstants {
   //---------------------------------------------------------------------------------------//
   //               RVM register usage conventions - Intel version.                         //
   //---------------------------------------------------------------------------------------//
 
   /** log2 of instruction width in bytes */
-  byte LG_INSTRUCTION_WIDTH = 0;
-  int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
+  public static final byte LG_INSTRUCTION_WIDTH = 0;
+  public static final int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
   /**
    * Common interface implemented by all registers constants
@@ -258,85 +258,85 @@ public interface RegisterConstants {
    *   GCMapIterator.registerLocations[]
    *   RegisterConstants.GPR_NAMES[]
    */
-  GPR EAX = GPR.EAX;
-  GPR ECX = GPR.ECX;
-  GPR EDX = GPR.EDX;
-  GPR EBX = GPR.EBX;
-  GPR ESP = GPR.ESP;
-  GPR EBP = GPR.EBP;
-  GPR ESI = GPR.ESI;
-  GPR EDI = GPR.EDI;
+  public static final GPR EAX = GPR.EAX;
+  public static final GPR ECX = GPR.ECX;
+  public static final GPR EDX = GPR.EDX;
+  public static final GPR EBX = GPR.EBX;
+  public static final GPR ESP = GPR.ESP;
+  public static final GPR EBP = GPR.EBP;
+  public static final GPR ESI = GPR.ESI;
+  public static final GPR EDI = GPR.EDI;
 
-  GPR R0 = GPR.EAX;
-  GPR R1 = GPR.ECX;
-  GPR R2 = GPR.EDX;
-  GPR R3 = GPR.EBX;
-  GPR R4 = GPR.ESP;
-  GPR R5 = GPR.EBP;
-  GPR R6 = GPR.ESI;
-  GPR R7 = GPR.EDI;
-  GPR R8 = GPR.R8;
-  GPR R9 = GPR.R9;
-  GPR R10 = GPR.R10;
-  GPR R11 = GPR.R11;
-  GPR R12 = GPR.R12;
-  GPR R13 = GPR.R13;
-  GPR R14 = GPR.R14;
-  GPR R15 = GPR.R15;
+  public static final GPR R0 = GPR.EAX;
+  public static final GPR R1 = GPR.ECX;
+  public static final GPR R2 = GPR.EDX;
+  public static final GPR R3 = GPR.EBX;
+  public static final GPR R4 = GPR.ESP;
+  public static final GPR R5 = GPR.EBP;
+  public static final GPR R6 = GPR.ESI;
+  public static final GPR R7 = GPR.EDI;
+  public static final GPR R8 = GPR.R8;
+  public static final GPR R9 = GPR.R9;
+  public static final GPR R10 = GPR.R10;
+  public static final GPR R11 = GPR.R11;
+  public static final GPR R12 = GPR.R12;
+  public static final GPR R13 = GPR.R13;
+  public static final GPR R14 = GPR.R14;
+  public static final GPR R15 = GPR.R15;
 
-  FPR FP0 = FPR.FP0;
-  FPR FP1 = FPR.FP1;
-  FPR FP2 = FPR.FP2;
-  FPR FP3 = FPR.FP3;
-  FPR FP4 = FPR.FP4;
-  FPR FP5 = FPR.FP5;
-  FPR FP6 = FPR.FP6;
-  FPR FP7 = FPR.FP7;
+  public static final FPR FP0 = FPR.FP0;
+  public static final FPR FP1 = FPR.FP1;
+  public static final FPR FP2 = FPR.FP2;
+  public static final FPR FP3 = FPR.FP3;
+  public static final FPR FP4 = FPR.FP4;
+  public static final FPR FP5 = FPR.FP5;
+  public static final FPR FP6 = FPR.FP6;
+  public static final FPR FP7 = FPR.FP7;
 
-  MM MM0 = MM.MM0;
-  MM MM1 = MM.MM1;
-  MM MM2 = MM.MM2;
-  MM MM3 = MM.MM3;
-  MM MM4 = MM.MM4;
-  MM MM5 = MM.MM5;
-  MM MM6 = MM.MM6;
-  MM MM7 = MM.MM7;
-  MM MM8 = MM.MM8;
-  MM MM9 = MM.MM9;
-  MM MM10 = MM.MM10;
-  MM MM11 = MM.MM11;
-  MM MM12 = MM.MM12;
-  MM MM13 = MM.MM13;
-  MM MM14 = MM.MM14;
-  MM MM15 = MM.MM15;
+  public static final MM MM0 = MM.MM0;
+  public static final MM MM1 = MM.MM1;
+  public static final MM MM2 = MM.MM2;
+  public static final MM MM3 = MM.MM3;
+  public static final MM MM4 = MM.MM4;
+  public static final MM MM5 = MM.MM5;
+  public static final MM MM6 = MM.MM6;
+  public static final MM MM7 = MM.MM7;
+  public static final MM MM8 = MM.MM8;
+  public static final MM MM9 = MM.MM9;
+  public static final MM MM10 = MM.MM10;
+  public static final MM MM11 = MM.MM11;
+  public static final MM MM12 = MM.MM12;
+  public static final MM MM13 = MM.MM13;
+  public static final MM MM14 = MM.MM14;
+  public static final MM MM15 = MM.MM15;
 
-  XMM XMM0 = XMM.XMM0;
-  XMM XMM1 = XMM.XMM1;
-  XMM XMM2 = XMM.XMM2;
-  XMM XMM3 = XMM.XMM3;
-  XMM XMM4 = XMM.XMM4;
-  XMM XMM5 = XMM.XMM5;
-  XMM XMM6 = XMM.XMM6;
-  XMM XMM7 = XMM.XMM7;
-  XMM XMM8 = XMM.XMM8;
-  XMM XMM9 = XMM.XMM9;
-  XMM XMM10 = XMM.XMM10;
-  XMM XMM11 = XMM.XMM11;
-  XMM XMM12 = XMM.XMM12;
-  XMM XMM13 = XMM.XMM13;
-  XMM XMM14 = XMM.XMM14;
-  XMM XMM15 = XMM.XMM15;
+  public static final XMM XMM0 = XMM.XMM0;
+  public static final XMM XMM1 = XMM.XMM1;
+  public static final XMM XMM2 = XMM.XMM2;
+  public static final XMM XMM3 = XMM.XMM3;
+  public static final XMM XMM4 = XMM.XMM4;
+  public static final XMM XMM5 = XMM.XMM5;
+  public static final XMM XMM6 = XMM.XMM6;
+  public static final XMM XMM7 = XMM.XMM7;
+  public static final XMM XMM8 = XMM.XMM8;
+  public static final XMM XMM9 = XMM.XMM9;
+  public static final XMM XMM10 = XMM.XMM10;
+  public static final XMM XMM11 = XMM.XMM11;
+  public static final XMM XMM12 = XMM.XMM12;
+  public static final XMM XMM13 = XMM.XMM13;
+  public static final XMM XMM14 = XMM.XMM14;
+  public static final XMM XMM15 = XMM.XMM15;
 
   /*
    * Dedicated registers.
    */
 
   /** Register current stack pointer. NB the frame pointer is maintained in the processor. */
-  GPR STACK_POINTER = ESP;
+  public static final GPR STACK_POINTER = ESP;
   /** Register holding a reference to thread local information */
-  GPR THREAD_REGISTER = ESI;
+  public static final GPR THREAD_REGISTER = ESI;
   /** Register holding the value of the JTOC, only necessary when we can't directly address the JTOC */
-  GPR JTOC_REGISTER = (VM.buildFor32Addr() || VM.runningTool ||
+  public static final GPR JTOC_REGISTER = (VM.buildFor32Addr() || VM.runningTool ||
       fits(Magic.getTocPointer(), 32)) ? null : R15;
 
   /*
@@ -345,41 +345,41 @@ public interface RegisterConstants {
    */
 // CHECKSTYLE:OFF
   /** All general purpose registers */
-  GPR[] ALL_GPRS =
+  public static final GPR[] ALL_GPRS =
     VM.buildFor32Addr() ? new GPR[]{EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI}
                         : new GPR[]{EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI, R8, R9, R10, R11, R12, R13, R14, R15};
 
   /** Number of general purpose registers */
-  byte NUM_GPRS = (byte)ALL_GPRS.length;
+  public static final byte NUM_GPRS = (byte)ALL_GPRS.length;
 
   /**
    * All floating point purpose registers
    * NB with SSE x87 registers must be explicitly managed
    */
-  FloatingPointMachineRegister[] ALL_FPRS =
+  public static final FloatingPointMachineRegister[] ALL_FPRS =
     VM.buildFor32Addr() ? (VM.buildForSSE2() ? new FPR[]{FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7}
                                              : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7})
       : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
                   XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15};
 
   /** Number of floating point registers */
-  byte NUM_FPRS = (byte)ALL_FPRS.length;
+  public static final byte NUM_FPRS = (byte)ALL_FPRS.length;
 
   /**
    * Volatile general purpose registers.
    * NB: the order here is important.  The opt-compiler allocates
    * the volatile registers in the order they appear here.
    */
-  GPR[] VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{R0 /*EAX*/, R2 /*EDX*/, R1 /*ECX*/} : new GPR[]{R0, R2, R1};
-  int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
+  public static final GPR[] VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{R0 /*EAX*/, R2 /*EDX*/, R1 /*ECX*/} : new GPR[]{R0, R2, R1};
+  public static final int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
 
   /**
    * Volatile floating point registers within the RVM.
    * TODO: this should include XMMs
    */
-  FloatingPointMachineRegister[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
+  public static final FloatingPointMachineRegister[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
   /** Number of volatile FPRs */
-  int NUM_VOLATILE_FPRS = VOLATILE_FPRS.length;
+  public static final int NUM_VOLATILE_FPRS = VOLATILE_FPRS.length;
 
   /**
    * Non-volatile general purpose registers within the RVM.
@@ -389,61 +389,66 @@ public interface RegisterConstants {
    * be used in instructions that are using r8 and we must ensure that
    * opt doesn't skip over another nonvol while looking for an r8 nonvol.
    */
-  GPR[] NONVOLATILE_GPRS =
+  public static final GPR[] NONVOLATILE_GPRS =
     VM.buildFor32Addr() ? new GPR[]{R5 /*EBP*/, R7 /*EDI*/, R3 /*EBX*/}
                         : new GPR[]{R5, R7, R3};
   /** Number of non-volatile GPRs */
-  int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
+  public static final int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
 
   /** Non-volatile floating point registers within the RVM. */
-  FloatingPointMachineRegister[] NONVOLATILE_FPRS = {};
+  public static final FloatingPointMachineRegister[] NONVOLATILE_FPRS = {};
   /** Number of non-volatile FPRs */
-  int NUM_NONVOLATILE_FPRS = NONVOLATILE_FPRS.length;
+  public static final int NUM_NONVOLATILE_FPRS = NONVOLATILE_FPRS.length;
 
   /** General purpose registers to pass arguments within the RVM */
-  GPR[] PARAMETER_GPRS = new GPR[]{EAX, EDX};
+  public static final GPR[] PARAMETER_GPRS = new GPR[]{EAX, EDX};
   /** Number of parameter GPRs */
-  int NUM_PARAMETER_GPRS = PARAMETER_GPRS.length;
+  public static final int NUM_PARAMETER_GPRS = PARAMETER_GPRS.length;
 
   /** Floating point registers to pass arguments within the RVM */
-  FloatingPointMachineRegister[] PARAMETER_FPRS =
+  public static final FloatingPointMachineRegister[] PARAMETER_FPRS =
     VM.buildForSSE2() ? new XMM[]{XMM0, XMM1, XMM2, XMM3}
                     : new FPR[]{FP0, FP1, FP2, FP3};
   /** Number of parameter FPRs */
-  int NUM_PARAMETER_FPRS = PARAMETER_FPRS.length;
+    public static final int NUM_PARAMETER_FPRS = PARAMETER_FPRS.length;
   /** GPR registers used for returning values */
-  GPR[] RETURN_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, EDX} : new GPR[]{EAX};
+  public static final GPR[] RETURN_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, EDX} : new GPR[]{EAX};
   /** Number of return GPRs */
-  int NUM_RETURN_GPRS = RETURN_GPRS.length;
+  public static final int NUM_RETURN_GPRS = RETURN_GPRS.length;
 
   /** FPR registers used for returning values */
-  FloatingPointMachineRegister[] RETURN_FPRS =
+  public static final FloatingPointMachineRegister[] RETURN_FPRS =
     VM.buildForSSE2() ? new XMM[]{XMM0} : new FPR[]{FP0};
   /** Number of return FPRs */
-  int NUM_RETURN_FPRS = RETURN_FPRS.length;
+  public static final int NUM_RETURN_FPRS = RETURN_FPRS.length;
 
   /** Native volatile GPRS */
-  GPR[] NATIVE_VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, ECX, EDX} : new GPR[]{EAX, ECX, EDX, R8, R9, R10, R11};
+  public static final GPR[] NATIVE_VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, ECX, EDX} : new GPR[]{EAX, ECX, EDX, R8, R9, R10, R11};
   /** Native non-volatile GPRS */
-  GPR[] NATIVE_NONVOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EBX, EBP, EDI, ESI} : new GPR[]{EBX, EBP, R12, R13, R14, R15};
+  public static final GPR[] NATIVE_NONVOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EBX, EBP, EDI, ESI} : new GPR[]{EBX, EBP, R12, R13, R14, R15};
 
   /** Native volatile FPRS */
-  FloatingPointMachineRegister[] NATIVE_VOLATILE_FPRS = ALL_FPRS;
+  public static final FloatingPointMachineRegister[] NATIVE_VOLATILE_FPRS = ALL_FPRS;
   /** Native non-volatile FPRS */
-  FloatingPointMachineRegister[] NATIVE_NONVOLATILE_FPRS = new FloatingPointMachineRegister[0];
+  public static final FloatingPointMachineRegister[] NATIVE_NONVOLATILE_FPRS = new FloatingPointMachineRegister[0];
 
   /** General purpose registers to pass arguments to native code */
-  GPR[] NATIVE_PARAMETER_GPRS =
+  public static final GPR[] NATIVE_PARAMETER_GPRS =
     VM.buildFor32Addr() ? new GPR[0]
                         : new GPR[]{EDI /*R7*/, ESI /*R6*/, EDX /*R2*/, ECX /*R1*/, R8, R9};
 
   /** Floating point registers to pass arguments to native code */
-  FloatingPointMachineRegister[] NATIVE_PARAMETER_FPRS =
+  public static final FloatingPointMachineRegister[] NATIVE_PARAMETER_FPRS =
     VM.buildFor32Addr() ? new FloatingPointMachineRegister[0]
                         : new XMM[]{XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
   /** Number of native,sys parameter FPRs */
-  int NUM_NATIVE_PARAMETER_FPRS = NATIVE_PARAMETER_FPRS.length;
+  public static final int NUM_NATIVE_PARAMETER_FPRS = NATIVE_PARAMETER_FPRS.length;
   /** Number of native, sys parameter GPRs */
-  int NUM_NATIVE_PARAMETER_GPRS = NATIVE_PARAMETER_GPRS.length;
+  public static final int NUM_NATIVE_PARAMETER_GPRS = NATIVE_PARAMETER_GPRS.length;
 // CHECKSTYLE:ON
+
+  private RegisterConstants() {
+    // prevent instantiation
+  }
+
 }

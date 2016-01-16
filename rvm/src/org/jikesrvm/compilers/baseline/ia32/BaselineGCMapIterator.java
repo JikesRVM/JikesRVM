@@ -12,6 +12,21 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
+import static org.jikesrvm.ia32.BaselineConstants.BRIDGE_FRAME_EXTRA_SIZE;
+import static org.jikesrvm.ia32.BaselineConstants.EBP_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
+import static org.jikesrvm.ia32.BaselineConstants.STACKFRAME_FIRST_PARAMETER_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.T0;
+import static org.jikesrvm.ia32.BaselineConstants.T0_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.T1;
+import static org.jikesrvm.ia32.BaselineConstants.T1_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
@@ -22,14 +37,13 @@ import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler.
@@ -40,7 +54,7 @@ import org.vmmagic.unboxed.AddressArray;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public final class BaselineGCMapIterator extends GCMapIterator implements BaselineConstants {
+public final class BaselineGCMapIterator extends GCMapIterator {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL = false; // dynamic link frames
 

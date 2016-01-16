@@ -14,6 +14,9 @@ package org.jikesrvm.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.GT;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LT;
+import static org.jikesrvm.ia32.RegisterConstants.EAX;
+import static org.jikesrvm.ia32.RegisterConstants.ECX;
+import static org.jikesrvm.ia32.RegisterConstants.THREAD_REGISTER;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
@@ -34,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
  * <p><STRONG>Assumption:</STRONG>
  * Register ECX is available as a scratch register (we need one!)
  */
-public abstract class InterfaceMethodConflictResolver implements RegisterConstants {
+public abstract class InterfaceMethodConflictResolver {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   //

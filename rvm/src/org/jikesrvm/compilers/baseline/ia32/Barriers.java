@@ -12,21 +12,25 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.T0;
+
 import org.jikesrvm.Configuration;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
-import org.jikesrvm.ia32.BaselineConstants;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.runtime.Entrypoints;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Class called from baseline compiler to generate architecture specific
  * write barriers for garbage collectors.  For baseline
  * compiled methods, the write barrier calls methods of WriteBarrier.
  */
-class Barriers implements BaselineConstants {
+class Barriers {
 
   /**
    * Generate code to perform an array store barrier. On entry the stack holds:

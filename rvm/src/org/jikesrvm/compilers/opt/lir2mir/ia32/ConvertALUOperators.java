@@ -111,6 +111,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.FP_SUB;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.INT_2FP;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.LCMP_CMOV;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.LONG_2FP;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 
 import java.util.Enumeration;
 
@@ -121,12 +122,11 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * Reduce the number of ALU operators considered by BURS
  */
-public final class ConvertALUOperators extends CompilerPhase implements ArchConstants {
+public final class ConvertALUOperators extends CompilerPhase {
 
   @Override
   public String getName() {

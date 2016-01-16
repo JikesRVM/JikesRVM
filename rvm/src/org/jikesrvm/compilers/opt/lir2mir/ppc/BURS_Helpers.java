@@ -94,6 +94,7 @@ import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_TW;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_TWI;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_XORI;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_XORIS;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.CTR;
 import static org.jikesrvm.ppc.TrapConstants.CHECKCAST_TRAP;
 import static org.jikesrvm.ppc.TrapConstants.MUST_IMPLEMENT_TRAP;
 import static org.jikesrvm.ppc.TrapConstants.STORE_CHECK_TRAP;
@@ -156,7 +157,6 @@ import org.jikesrvm.compilers.opt.ir.ppc.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.lir2mir.BURS;
 import org.jikesrvm.compilers.opt.lir2mir.BURS_Common_Helpers;
-import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Address;
@@ -166,8 +166,7 @@ import org.vmmagic.unboxed.Word;
 /**
  * Contains architecture-specific helper functions for BURS.
  */
-public abstract class BURS_Helpers extends BURS_Common_Helpers
-    implements PhysicalRegisterConstants {
+public abstract class BURS_Helpers extends BURS_Common_Helpers {
 
   public BURS_Helpers(BURS burs) {
     super(burs);

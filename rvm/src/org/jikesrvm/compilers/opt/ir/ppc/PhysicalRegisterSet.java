@@ -12,21 +12,60 @@
  */
 package org.jikesrvm.compilers.opt.ir.ppc;
 
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.CONDITION_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.CR;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.CTR;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.DOUBLE_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_CONDITION;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_DOUBLE;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_DOUBLE_PARAM;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_INT;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_INT_PARAM;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_INT_RETURN;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.FIRST_SPECIAL;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LR;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.NUMBER_DOUBLE_PARAM;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.NUMBER_INT_PARAM;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.SPECIAL_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.TL;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.TU;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.XER;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FRAME_POINTER;
+import static org.jikesrvm.ppc.RegisterConstants.JTOC_POINTER;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_CRS;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_GPRS;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_NONVOLATILE_FPRS;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_NONVOLATILE_GPRS;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_SPECIALS;
+import static org.jikesrvm.ppc.RegisterConstants.THREAD_REGISTER;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.BitSet;
 import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
-import org.jikesrvm.util.EmptyEnumeration;
 import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
-import org.jikesrvm.ppc.RegisterConstants;
+import org.jikesrvm.util.EmptyEnumeration;
 
 /**
  * This class represents a set of Registers corresponding to the
@@ -57,8 +96,7 @@ import org.jikesrvm.ppc.RegisterConstants;
  * using getPrev().
  * <P> TODO; clean up all this and provide appropriate enumerators
  */
-public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet
-    implements RegisterConstants, PhysicalRegisterConstants {
+public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
 
   /**
    * This array holds a pool of objects representing physical registers

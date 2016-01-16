@@ -27,6 +27,9 @@ import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBTST;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZ;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZL;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.ICBI;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
@@ -41,7 +44,6 @@ import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.ppc.StackframeLayoutConstants;
 import org.jikesrvm.runtime.MagicNames;
 
 /**
@@ -49,7 +51,7 @@ import org.jikesrvm.runtime.MagicNames;
  *
  * @see org.jikesrvm.compilers.opt.bc2ir.GenerateMagic for the machine-independent magics.
  */
-public abstract class GenerateMachineSpecificMagic implements StackframeLayoutConstants {
+public abstract class GenerateMachineSpecificMagic {
 
   /**
    * "Semantic inlining" of methods of the Magic class

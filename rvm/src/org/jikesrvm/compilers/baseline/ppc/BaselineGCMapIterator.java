@@ -12,6 +12,14 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FIXED_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FLOAT_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
@@ -27,13 +35,13 @@ import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.ppc.BaselineConstants;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler.<p>
@@ -44,7 +52,7 @@ import org.vmmagic.unboxed.AddressArray;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public final class BaselineGCMapIterator extends GCMapIterator implements BaselineConstants {
+public final class BaselineGCMapIterator extends GCMapIterator {
 
   // Iterator state for mapping any stackframe.
   //

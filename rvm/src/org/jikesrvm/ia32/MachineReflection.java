@@ -13,6 +13,8 @@
 package org.jikesrvm.ia32;
 
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
 import static org.jikesrvm.runtime.Reflection.REFLECTION_FPRS_BITS;
 import static org.jikesrvm.runtime.Reflection.REFLECTION_GPRS_BITS;
 
@@ -27,7 +29,7 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * Machine dependent portion of Reflective method invoker.
  */
-public abstract class MachineReflection implements RegisterConstants {
+public abstract class MachineReflection {
 
   /**
    * Determines number/type of registers and parameters required to

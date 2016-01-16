@@ -13,6 +13,13 @@
 package org.jikesrvm.ppc;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.LOG_BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.runtime.Reflection.REFLECTION_FPRS_BITS;
 import static org.jikesrvm.runtime.Reflection.REFLECTION_GPRS_BITS;
 
@@ -27,7 +34,7 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * Machine dependent portion of Reflective method invoker.
  */
-public abstract class MachineReflection implements ArchConstants {
+public abstract class MachineReflection {
 
   /**
    * Determine number/type of registers/spills required to call specified method.

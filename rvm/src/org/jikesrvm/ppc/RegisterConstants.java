@@ -21,14 +21,14 @@ import org.vmmagic.pragma.UninterruptibleNoWarn;
 /**
  * Register Usage Conventions for PowerPC.
  */
-public interface RegisterConstants {
+public final class RegisterConstants {
   // Machine instructions.
   //
 
   /** log2 of instruction width in bytes, powerPC */
-  int LG_INSTRUCTION_WIDTH = 2;
+  public static final int LG_INSTRUCTION_WIDTH = 2;
   /** instruction width in bytes, powerPC */
-  int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
+  public static final int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
   /**
    * Representation of general purpose registers
@@ -160,74 +160,79 @@ public interface RegisterConstants {
   // These constants encode conventions for Linux.
 
   // 0 is for function prologs, 1 is stack frame pointer, 2 is TOC pointer
-  GPR FIRST_OS_PARAMETER_GPR   = GPR.R3;
-  GPR LAST_OS_PARAMETER_GPR    = GPR.R10;
-  GPR FIRST_OS_VOLATILE_GPR    = GPR.R3;
-  GPR LAST_OS_VOLATILE_GPR     = GPR.R12;
-  GPR FIRST_OS_NONVOLATILE_GPR = (VM.BuildForPower64ELF_ABI) ? GPR.R14 : GPR.R13;
-  GPR LAST_OS_NONVOLATILE_GPR  = GPR.R31;
-  FPR FIRST_OS_PARAMETER_FPR   = FPR.FR1;
-  FPR LAST_OS_PARAMETER_FPR    = VM.BuildForLinux ? FPR.FR8 : FPR.FR13;
-  FPR FIRST_OS_VOLATILE_FPR    = FPR.FR1;
-  FPR LAST_OS_VOLATILE_FPR     = FPR.FR13;
-  FPR FIRST_OS_NONVOLATILE_FPR = FPR.FR14;
-  FPR LAST_OS_NONVOLATILE_FPR  = FPR.FR31;
-  FPR LAST_OS_VARARG_PARAMETER_FPR = FPR.FR8;
+  public static final GPR FIRST_OS_PARAMETER_GPR   = GPR.R3;
+  public static final GPR LAST_OS_PARAMETER_GPR    = GPR.R10;
+  public static final GPR FIRST_OS_VOLATILE_GPR    = GPR.R3;
+  public static final GPR LAST_OS_VOLATILE_GPR     = GPR.R12;
+  public static final GPR FIRST_OS_NONVOLATILE_GPR = (VM.BuildForPower64ELF_ABI) ? GPR.R14 : GPR.R13;
+  public static final GPR LAST_OS_NONVOLATILE_GPR  = GPR.R31;
+  public static final FPR FIRST_OS_PARAMETER_FPR   = FPR.FR1;
+  public static final FPR LAST_OS_PARAMETER_FPR    = VM.BuildForLinux ? FPR.FR8 : FPR.FR13;
+  public static final FPR FIRST_OS_VOLATILE_FPR    = FPR.FR1;
+  public static final FPR LAST_OS_VOLATILE_FPR     = FPR.FR13;
+  public static final FPR FIRST_OS_NONVOLATILE_FPR = FPR.FR14;
+  public static final FPR LAST_OS_NONVOLATILE_FPR  = FPR.FR31;
+  public static final FPR LAST_OS_VARARG_PARAMETER_FPR = FPR.FR8;
 
   // Jikes RVM's general purpose register usage (32 or 64 bits wide based on VM.BuildFor64Addr).
   //
   /** special instruction semantics on this register */
-  GPR REGISTER_ZERO = GPR.R0;
+  public static final GPR REGISTER_ZERO = GPR.R0;
   /** same as Linux */
-  GPR FRAME_POINTER = GPR.R1;
-  GPR FIRST_VOLATILE_GPR = FIRST_OS_PARAMETER_GPR;
+  public static final GPR FRAME_POINTER = GPR.R1;
+  public static final GPR FIRST_VOLATILE_GPR = FIRST_OS_PARAMETER_GPR;
   //                                            ...
-  GPR LAST_VOLATILE_GPR = LAST_OS_PARAMETER_GPR;
-  GPR FIRST_SCRATCH_GPR = GPR.lookup(LAST_VOLATILE_GPR.value() + 1);
-  GPR LAST_SCRATCH_GPR = LAST_OS_VOLATILE_GPR;
+  public static final GPR LAST_VOLATILE_GPR = LAST_OS_PARAMETER_GPR;
+  public static final GPR FIRST_SCRATCH_GPR = GPR.lookup(LAST_VOLATILE_GPR.value() + 1);
+  public static final GPR LAST_SCRATCH_GPR = LAST_OS_VOLATILE_GPR;
 
   // NOTE: the PPC-specific part of the bootloader that deals with starting of threads
   // makes assumptions about the register usage. You will need to update the code
   // there if you change the assignments for the JTOC pointer or the thread register.
 
   // PowerPC 64 ELF ABI reserves R13 for use by libpthread; therefore Jikes RVM doesn't touch it.
-  GPR FIRST_RVM_RESERVED_NV_GPR = VM.BuildFor64Addr ? GPR.R14 : GPR.R13;
-  GPR THREAD_REGISTER = FIRST_RVM_RESERVED_NV_GPR;
+  public static final GPR FIRST_RVM_RESERVED_NV_GPR = VM.BuildFor64Addr ? GPR.R14 : GPR.R13;
+  public static final GPR THREAD_REGISTER = FIRST_RVM_RESERVED_NV_GPR;
 
   // 2 is used by Linux for thread context and on OS X it's a scratch.
-  GPR JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ? GPR.lookup(THREAD_REGISTER.value() + 1) :
+  public static final GPR JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ? GPR.lookup(THREAD_REGISTER.value() + 1) :
     GPR.R2; // use TOC register on PowerPC 64-bit ELF ABI
   // Use THREAD_REGISTER + 2 for 32-bit Linux and THREAD_REGISTER + 1 for 64-bit Linux
-  GPR KLUDGE_TI_REG = GPR.lookup(THREAD_REGISTER.value() + (VM.BuildForLinux && VM.BuildFor32Addr ? 2 : 1));
+  public static final GPR KLUDGE_TI_REG = GPR.lookup(THREAD_REGISTER.value() + (VM.BuildForLinux && VM.BuildFor32Addr ? 2 : 1));
 
-  GPR LAST_RVM_RESERVED_NV_GPR = KLUDGE_TI_REG;
-  GPR FIRST_NONVOLATILE_GPR = GPR.values()[LAST_RVM_RESERVED_NV_GPR.value() + 1];
+  public static final GPR LAST_RVM_RESERVED_NV_GPR = KLUDGE_TI_REG;
+  public static final GPR FIRST_NONVOLATILE_GPR = GPR.values()[LAST_RVM_RESERVED_NV_GPR.value() + 1];
   //                                            ...
-  GPR LAST_NONVOLATILE_GPR = LAST_OS_NONVOLATILE_GPR;
-  int NUM_GPRS = 32;
+  public static final GPR LAST_NONVOLATILE_GPR = LAST_OS_NONVOLATILE_GPR;
+  public static final int NUM_GPRS = 32;
 
   // Floating point register usage. (FPR's are 64 bits wide).
 
   /** Linux is 0 */
-  FPR FIRST_SCRATCH_FPR = FPR.FR0;
+  public static final FPR FIRST_SCRATCH_FPR = FPR.FR0;
   /** Linux is 0 */
-  FPR LAST_SCRATCH_FPR = FPR.FR0;
-  FPR FIRST_VOLATILE_FPR = FIRST_OS_VOLATILE_FPR;
+  public static final FPR LAST_SCRATCH_FPR = FPR.FR0;
+  public static final FPR FIRST_VOLATILE_FPR = FIRST_OS_VOLATILE_FPR;
   //
-  FPR LAST_VOLATILE_FPR = LAST_OS_VOLATILE_FPR;
-  FPR FIRST_NONVOLATILE_FPR = FIRST_OS_NONVOLATILE_FPR;
+  public static final FPR LAST_VOLATILE_FPR = LAST_OS_VOLATILE_FPR;
+  public static final FPR FIRST_NONVOLATILE_FPR = FIRST_OS_NONVOLATILE_FPR;
   //                                            ...
-  FPR LAST_NONVOLATILE_FPR = LAST_OS_NONVOLATILE_FPR;
-  int NUM_FPRS = 32;
+  public static final FPR LAST_NONVOLATILE_FPR = LAST_OS_NONVOLATILE_FPR;
+  public static final int NUM_FPRS = 32;
 
-  int NUM_NONVOLATILE_GPRS = LAST_NONVOLATILE_GPR.value() - FIRST_NONVOLATILE_GPR.value() + 1;
-  int NUM_NONVOLATILE_FPRS = LAST_NONVOLATILE_FPR.value() - FIRST_NONVOLATILE_FPR.value() + 1;
+  public static final int NUM_NONVOLATILE_GPRS = LAST_NONVOLATILE_GPR.value() - FIRST_NONVOLATILE_GPR.value() + 1;
+  public static final int NUM_NONVOLATILE_FPRS = LAST_NONVOLATILE_FPR.value() - FIRST_NONVOLATILE_FPR.value() + 1;
 
   // condition registers
   // TODO: fill table
-  int NUM_CRS = 8;
+  public static final int NUM_CRS = 8;
 
   /** number of special registers (user visible) */
-  int NUM_SPECIALS = 8;
+  public static final int NUM_SPECIALS = 8;
+
+  private RegisterConstants() {
+    // prevent instantiation
+  }
+
 }
 

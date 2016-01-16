@@ -13,6 +13,15 @@
 package org.jikesrvm.compilers.baseline.ia32;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.ia32.BaselineConstants.EBP_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.SAVED_GPRS;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACK_SIZE_GUARD;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
@@ -20,7 +29,6 @@ import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
@@ -33,7 +41,7 @@ import org.vmmagic.unboxed.Offset;
  * Handle exception delivery and stack unwinding for methods compiled by
  * baseline compiler.
  */
-public final class BaselineExceptionDeliverer extends ExceptionDeliverer implements BaselineConstants {
+public final class BaselineExceptionDeliverer extends ExceptionDeliverer {
 
   /**
    * Pass control to a catch block.

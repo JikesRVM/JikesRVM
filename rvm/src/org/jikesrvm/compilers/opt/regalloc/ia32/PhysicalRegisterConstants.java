@@ -12,12 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
-import org.jikesrvm.ia32.RegisterConstants;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
 
 /**
  * This class holds constants that describe IA32 physical register set.
  */
-public interface PhysicalRegisterConstants extends RegisterConstants {
+public final class PhysicalRegisterConstants {
 
   /*
    * There are different types of hardware registers, so we define
@@ -25,44 +26,48 @@ public interface PhysicalRegisterConstants extends RegisterConstants {
    * NOTE: they must be in consecutive ordering
    * TODO: Kill this?
    */
-  byte INT_REG = 0;
-  byte DOUBLE_REG = 1;
-  byte SPECIAL_REG = 2;
-  byte NUMBER_TYPE = 3;
+  public static final byte INT_REG = 0;
+  public static final byte DOUBLE_REG = 1;
+  public static final byte SPECIAL_REG = 2;
+  public static final byte NUMBER_TYPE = 3;
 
   /*
    * Derived constants for use by the register pool.
    * In the register pool, the physical registers are assigned integers
    * based on these constants.
    */
-  int FIRST_INT = 0;
-  int FIRST_DOUBLE = NUM_GPRS;
-  int FIRST_SPECIAL = NUM_GPRS + NUM_FPRS;
+  public static final int FIRST_INT = 0;
+  public static final int FIRST_DOUBLE = NUM_GPRS;
+  public static final int FIRST_SPECIAL = NUM_GPRS + NUM_FPRS;
 
   /** special intel registers or register sub-fields. */
-  int NUM_SPECIALS = 12;
+  public static final int NUM_SPECIALS = 12;
   /** AF bit of EFLAGS */
-  int AF = FIRST_SPECIAL + 0;
+  public static final int AF = FIRST_SPECIAL + 0;
   /** CF bit of EFLAGS */
-  int CF = FIRST_SPECIAL + 1;
+  public static final int CF = FIRST_SPECIAL + 1;
   /** OF bit of EFLAGS */
-  int OF = FIRST_SPECIAL + 2;
+  public static final int OF = FIRST_SPECIAL + 2;
   /** PF bit of EFLAGS */
-  int PF = FIRST_SPECIAL + 3;
+  public static final int PF = FIRST_SPECIAL + 3;
   /** SF bit of EFLAGS */
-  int SF = FIRST_SPECIAL + 4;
+  public static final int SF = FIRST_SPECIAL + 4;
   /** ZF bit of EFLAGS */
-  int ZF = FIRST_SPECIAL + 5;
+  public static final int ZF = FIRST_SPECIAL + 5;
   /** C0 bit of EFLAGS */
-  int C0 = FIRST_SPECIAL + 6;
+  public static final int C0 = FIRST_SPECIAL + 6;
   /** C1 bit of EFLAGS */
-  int C1 = FIRST_SPECIAL + 7;
+  public static final int C1 = FIRST_SPECIAL + 7;
   /** C2 bit of EFLAGS */
-  int C2 = FIRST_SPECIAL + 8;
+  public static final int C2 = FIRST_SPECIAL + 8;
   /** C3 bit of EFLAGS */
-  int C3 = FIRST_SPECIAL + 9;
+  public static final int C3 = FIRST_SPECIAL + 9;
   /** ST0 - top of FP stack (for SSE2) */
-  int ST0 = FIRST_SPECIAL + 10;
+  public static final int ST0 = FIRST_SPECIAL + 10;
   /** ST1 - below top of FP stack (for SSE2) */
-  int ST1 = FIRST_SPECIAL + 11;
+  public static final int ST1 = FIRST_SPECIAL + 11;
+
+  private PhysicalRegisterConstants() {
+    // prevent instantiation
+  }
 }

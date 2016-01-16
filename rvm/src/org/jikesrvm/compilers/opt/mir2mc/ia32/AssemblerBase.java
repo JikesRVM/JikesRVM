@@ -95,6 +95,8 @@ import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST0;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST1;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.FP0;
+import static org.jikesrvm.ia32.RegisterConstants.FP1;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.util.Bits.fits;
 
@@ -131,6 +133,10 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
+import org.jikesrvm.ia32.RegisterConstants.FPR;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
+import org.jikesrvm.ia32.RegisterConstants.MM;
+import org.jikesrvm.ia32.RegisterConstants.XMM;
 import org.jikesrvm.util.Bits;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;

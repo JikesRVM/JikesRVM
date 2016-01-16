@@ -14,14 +14,13 @@ package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.MachineRegister;
-import org.jikesrvm.ia32.RegisterConstants;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.pragma.Pure;
 
 /**
  */
-public final class Lister implements RegisterConstants {
+public final class Lister {
 
   private static final int PREFIX_AREA_SIZE = 8;
   private static final int OP_AREA_SIZE = 9;

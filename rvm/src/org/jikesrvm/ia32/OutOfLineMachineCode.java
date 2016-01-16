@@ -14,6 +14,37 @@ package org.jikesrvm.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NE;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.T0;
+import static org.jikesrvm.ia32.BaselineConstants.T1;
+import static org.jikesrvm.ia32.BaselineConstants.TR;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.ia32.RegisterConstants.ALL_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.EAX;
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.ECX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.EDX;
+import static org.jikesrvm.ia32.RegisterConstants.ESI;
+import static org.jikesrvm.ia32.RegisterConstants.FP0;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ia32.RegisterConstants.XMM0;
+import static org.jikesrvm.ia32.RegisterConstants.XMM1;
+import static org.jikesrvm.ia32.RegisterConstants.XMM2;
+import static org.jikesrvm.ia32.RegisterConstants.XMM3;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_BYTES;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
@@ -24,6 +55,7 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.EntrypointHelper;
@@ -46,7 +78,7 @@ import org.vmmagic.unboxed.Offset;
  * <p>These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsField).
  */
-public abstract class OutOfLineMachineCode implements BaselineConstants {
+public abstract class OutOfLineMachineCode {
   //-----------//
   // interface //
   //-----------//

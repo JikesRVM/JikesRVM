@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+
 import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.runtime.Entrypoints;
 
 /**
@@ -27,7 +29,7 @@ import org.jikesrvm.runtime.Entrypoints;
  * instructions does not imply source equality, since both targets may in fact
  * be the globally shared lazy compilation stub.
  */
-public abstract class LazyCompilationTrampoline implements BaselineConstants {
+public abstract class LazyCompilationTrampoline {
   public static final CodeArray instructions;
 
   static {

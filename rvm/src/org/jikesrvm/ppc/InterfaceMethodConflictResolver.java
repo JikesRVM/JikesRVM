@@ -14,6 +14,10 @@ package org.jikesrvm.ppc;
 
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.S1;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
@@ -26,7 +30,7 @@ import org.jikesrvm.runtime.Memory;
  * Generates a custom IMT-conflict resolution stub.
  * We create a binary search tree.
  */
-public abstract class InterfaceMethodConflictResolver implements BaselineConstants {
+public abstract class InterfaceMethodConflictResolver {
 
 
   /**

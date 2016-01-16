@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
-import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
 
 /**
  * This interface holds constants for the Opt GC map code specific to IA32
  */
-public interface OptGCMapIteratorConstants extends PhysicalRegisterConstants {
+public final class OptGCMapIteratorConstants {
 
   // NOTE: The following two constants seem to imply that registers
   //       that can hold references are contiguous.  This is not true,
@@ -28,11 +28,15 @@ public interface OptGCMapIteratorConstants extends PhysicalRegisterConstants {
   /*
    * The index of the first nonvolatile register that may hold a reference,
    */
-  int FIRST_GCMAP_REG = 0;
+  public static final int FIRST_GCMAP_REG = 0;
 
   /*
    * the index of last register that may hold a reference
    */
-  int LAST_GCMAP_REG = NUM_GPRS - 1;
+  public static final int LAST_GCMAP_REG = NUM_GPRS - 1;
+
+  private OptGCMapIteratorConstants() {
+    // prevent instantiation
+  }
 
 }

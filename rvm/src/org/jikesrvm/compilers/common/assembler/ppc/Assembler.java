@@ -19,6 +19,13 @@ import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LE;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
+import static org.jikesrvm.ppc.BaselineConstants.FP;
+import static org.jikesrvm.ppc.BaselineConstants.JTOC;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.T1;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ppc.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACK_SIZE_JNINATIVE;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.MachineRegister;
@@ -27,8 +34,10 @@ import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.objectmodel.JavaHeader;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.ppc.Disassembler;
+import org.jikesrvm.ppc.RegisterConstants.CR;
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
@@ -55,7 +64,7 @@ import org.vmmagic.unboxed.Word;
  * <p>
  * Machine code generators:
  */
-public final class Assembler extends AbstractAssembler implements BaselineConstants {
+public final class Assembler extends AbstractAssembler {
 
   /**
    * The array holding the generated binary code.

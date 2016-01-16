@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.runtime.Magic;
@@ -37,7 +39,7 @@ import org.vmmagic.unboxed.Offset;
  * @see JNICompiler
  */
 @Uninterruptible
-public final class JNIGCMapIterator extends GCMapIterator implements BaselineConstants {
+public final class JNIGCMapIterator extends GCMapIterator {
 
   // Java to Native C transition frame...(see JNICompiler)
   //

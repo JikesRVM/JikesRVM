@@ -12,13 +12,23 @@
  */
 package org.jikesrvm.osr.ia32;
 
+import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.TR;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -34,7 +44,7 @@ import org.vmmagic.unboxed.Offset;
  * The glue code is installed right before returning to the threading method
  * by PostThreadSwitch
  */
-public abstract class CodeInstaller implements BaselineConstants {
+public abstract class CodeInstaller {
 
   public static boolean install(ExecutionState state, CompiledMethod cm) {
     RVMThread thread = state.getThread();

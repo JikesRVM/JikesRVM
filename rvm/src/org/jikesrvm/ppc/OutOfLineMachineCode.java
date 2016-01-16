@@ -12,19 +12,45 @@
  */
 package org.jikesrvm.ppc;
 
-
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.ppc.BaselineConstants.FP;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.S1;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.BaselineConstants.T1;
+import static org.jikesrvm.ppc.BaselineConstants.T2;
+import static org.jikesrvm.ppc.BaselineConstants.T3;
+import static org.jikesrvm.ppc.BaselineConstants.T4;
+import static org.jikesrvm.ppc.BaselineConstants.VOLATILE_FPRS;
+import static org.jikesrvm.ppc.BaselineConstants.VOLATILE_GPRS;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ppc.RegisterConstants.REGISTER_ZERO;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
-
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.pragma.Entrypoint;
@@ -43,8 +69,8 @@ import org.vmmagic.unboxed.Offset;
  * These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsMethod).
  */
-public abstract class OutOfLineMachineCode
-    implements BaselineConstants, JNIStackframeLayoutConstants {
+public abstract class OutOfLineMachineCode {
+
   public static void init() {
     reflectiveMethodInvokerInstructions = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions = generateSaveThreadStateInstructions();

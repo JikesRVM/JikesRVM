@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.osr.ia32;
 
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CodeArray;
-import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
@@ -28,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
  * because it deals with row instruction address.
  */
 @Uninterruptible
-public final class PostThreadSwitch implements BaselineConstants {
+public final class PostThreadSwitch {
 
   /**
    * This method must not be inlined to keep the correctness

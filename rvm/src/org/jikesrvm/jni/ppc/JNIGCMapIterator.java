@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GC_FLAG_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_RVM_NONVOLATILE_OFFSET;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
@@ -19,7 +23,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
@@ -42,8 +45,7 @@ import org.vmmagic.unboxed.Offset;
  * these regs, and the transition return code does not do the restore.
  */
 @Uninterruptible
-public final class JNIGCMapIterator extends GCMapIterator
-    implements BaselineConstants, JNIStackframeLayoutConstants {
+public final class JNIGCMapIterator extends GCMapIterator {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.

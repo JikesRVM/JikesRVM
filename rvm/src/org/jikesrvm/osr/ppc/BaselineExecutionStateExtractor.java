@@ -34,6 +34,17 @@ import static org.jikesrvm.osr.OSRConstants.ReturnAddressTypeCode;
 import static org.jikesrvm.osr.OSRConstants.STACK;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FIXED_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FLOAT_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.LAST_FIXED_STACK_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.LAST_FLOAT_STACK_REGISTER;
+import static org.jikesrvm.ppc.RegisterConstants.INSTRUCTION_WIDTH;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
@@ -47,13 +58,11 @@ import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.osr.BytecodeTraverser;
 import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.VariableElement;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -65,8 +74,7 @@ import org.vmmagic.unboxed.WordArray;
  * BaselineExecutionStateExtractor retrieves the runtime state from a suspended
  * thread whose top method was compiled by a baseline compiler.
  */
-public final class BaselineExecutionStateExtractor extends ExecutionStateExtractor
-    implements BaselineConstants, PhysicalRegisterConstants {
+public final class BaselineExecutionStateExtractor extends ExecutionStateExtractor {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset methFPoff, int cmid) {

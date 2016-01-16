@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
@@ -24,7 +28,7 @@ import org.vmmagic.unboxed.Address;
  * Machine specific helper functions for dynamic linking.
  */
 @Uninterruptible
-public abstract class DynamicLinkerHelper implements RegisterConstants {
+public abstract class DynamicLinkerHelper {
 
   /**
    * Reach up two stack frames into a frame that is compiled

@@ -16,8 +16,6 @@ import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.runtime.Entrypoints;
 
-import static org.jikesrvm.ia32.RegisterConstants.*;
-
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
  * This is then copied into individual TIBs.
@@ -29,7 +27,7 @@ import static org.jikesrvm.ia32.RegisterConstants.*;
  * instructions does not imply source equality, since both targets may in fact
  * be the globally shared lazy compilation stub.
  */
-public abstract class LazyCompilationTrampoline implements BaselineConstants {
+public abstract class LazyCompilationTrampoline {
   public static final CodeArray instructions;
 
   static {

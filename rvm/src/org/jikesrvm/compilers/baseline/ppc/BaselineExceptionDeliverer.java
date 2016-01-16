@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.baseline.ppc;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FIXED_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FLOAT_LOCAL_REGISTER;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
@@ -22,7 +24,6 @@ import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
@@ -34,7 +35,7 @@ import org.vmmagic.unboxed.Offset;
  * Handle exception delivery and stack unwinding for methods compiled
  * by baseline compiler.
  */
-public final class BaselineExceptionDeliverer extends ExceptionDeliverer implements BaselineConstants {
+public final class BaselineExceptionDeliverer extends ExceptionDeliverer {
 
   /**
    * Pass control to a catch block.

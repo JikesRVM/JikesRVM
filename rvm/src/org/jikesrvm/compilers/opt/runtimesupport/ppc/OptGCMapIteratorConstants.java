@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
-import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_GPRS;
 
 /**
  * This interface holds constants for the Opt GC map code specific to PowerPC
  */
-public interface OptGCMapIteratorConstants extends PhysicalRegisterConstants {
+public final class OptGCMapIteratorConstants {
 
   // NOTE: The following two constants seem to imply that registers
   //       that can hold references are contiguous.  This is not true,
@@ -28,10 +28,10 @@ public interface OptGCMapIteratorConstants extends PhysicalRegisterConstants {
   /**
    * The first register that may hold a reference
    */
-  int FIRST_GCMAP_REG = 1;
+  public static final int FIRST_GCMAP_REG = 1;
 
   /**
    * The last register that may hold a reference
    */
-  int LAST_GCMAP_REG = NUM_GPRS - 1;
+  public static final int LAST_GCMAP_REG = NUM_GPRS - 1;
 }

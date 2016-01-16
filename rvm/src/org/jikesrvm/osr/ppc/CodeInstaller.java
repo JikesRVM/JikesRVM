@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.osr.ppc;
 
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FIXED_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FLOAT_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FP;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
@@ -24,7 +34,8 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.osr.ExecutionState;
-import org.jikesrvm.ppc.BaselineConstants;
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Statics;
@@ -38,7 +49,7 @@ import org.vmmagic.unboxed.Offset;
  * prologue ( machine code ) is adjusted to cooperate with the code
  * installer.
  */
-public abstract class CodeInstaller implements BaselineConstants {
+public abstract class CodeInstaller {
 
   /* install the newly compiled instructions. */
   public static boolean install(ExecutionState state, CompiledMethod cm) {

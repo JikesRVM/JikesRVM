@@ -12,23 +12,63 @@
  */
 package org.jikesrvm.jni.ppc;
 
-
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_ENV_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GC_FLAG_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GLUE_FRAME_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GLUE_OFFSET_TO_PREV_JFRAME;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GLUE_SAVED_VOL_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_RVM_NONVOLATILE_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_SAVE_AREA_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.NATIVE_FRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.BaselineConstants.F3;
+import static org.jikesrvm.ppc.BaselineConstants.FP;
+import static org.jikesrvm.ppc.BaselineConstants.JTOC;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.S1;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.BaselineConstants.T1;
+import static org.jikesrvm.ppc.BaselineConstants.T2;
+import static org.jikesrvm.ppc.BaselineConstants.T3;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_OS_PARAMETER_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_OS_PARAMETER_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_RVM_RESERVED_NV_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.KLUDGE_TI_REG;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_PARAMETER_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_PARAMETER_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_VARARG_PARAMETER_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_RVM_RESERVED_NV_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.REGISTER_ZERO;
+import static org.jikesrvm.ppc.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_JNI_COMPILER_FAILED;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_JNI_COMPILER_FAILED;
-
-import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
-import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
-import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -36,9 +76,10 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.jni.JNIGlobalRefTable;
-import org.jikesrvm.ppc.BaselineConstants;
-import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
@@ -53,8 +94,7 @@ import org.vmmagic.unboxed.Offset;
  *       for testing again, so we can actually test that the refactors
  *       are correct.
  */
-public abstract class JNICompiler
-    implements BaselineConstants, JNIStackframeLayoutConstants {
+public abstract class JNICompiler {
 
   /**
    * This method creates the stub to link native method.  It will be called

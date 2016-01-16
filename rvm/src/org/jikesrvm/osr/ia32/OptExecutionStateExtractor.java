@@ -13,6 +13,15 @@
 package org.jikesrvm.osr.ia32;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_DOUBLE;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 import static org.jikesrvm.osr.OSRConstants.ACONST;
 import static org.jikesrvm.osr.OSRConstants.DOUBLE;
 import static org.jikesrvm.osr.OSRConstants.FLOAT;
@@ -34,9 +43,8 @@ import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.ia32.ArchConstants;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.osr.EncodedOSRMap;
 import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.osr.ExecutionStateExtractor;
@@ -54,8 +62,7 @@ import org.vmmagic.unboxed.WordArray;
  * OptExecutionStateExtractor is a subclass of ExecutionStateExtractor.
  * It extracts the execution state from an optimized activation.
  */
-public final class OptExecutionStateExtractor extends ExecutionStateExtractor
-    implements ArchConstants, PhysicalRegisterConstants {
+public final class OptExecutionStateExtractor extends ExecutionStateExtractor {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {

@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GLUE_FRAME_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.NATIVE_FRAME_HEADER_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.VARARG_AREA_OFFSET;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_PARAMETER_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_PARAMETER_GPR;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
@@ -28,7 +33,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.jni.JNIGenericHelpers;
-import org.jikesrvm.ppc.RegisterConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.scheduler.RVMThread;
@@ -44,8 +48,7 @@ import org.vmmagic.unboxed.Word;
  *
  * @see org.jikesrvm.jni.JNIFunctions
  */
-public abstract class JNIHelpers extends JNIGenericHelpers
-    implements RegisterConstants, JNIStackframeLayoutConstants {
+public abstract class JNIHelpers extends JNIGenericHelpers {
 
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
