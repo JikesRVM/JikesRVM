@@ -79,8 +79,9 @@ Extent determinePageSize();
 #define BOOTCLASSPATH_P_INDEX         VMCLASSES_INDEX + 1
 #define BOOTCLASSPATH_A_INDEX         BOOTCLASSPATH_P_INDEX + 1
 #define PROCESSORS_INDEX              BOOTCLASSPATH_A_INDEX + 1
+#define VERBOSE_SIGNAL_HANDLING       PROCESSORS_INDEX + 1
 
-#define numNonstandardArgs      PROCESSORS_INDEX + 1
+#define numNonstandardArgs      VERBOSE_SIGNAL_HANDLING + 1
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
   "-X",
@@ -103,6 +104,7 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
   "-Xbootclasspath/p:",
   "-Xbootclasspath/a:",
   "-X:availableProcessors=",
+  "-X:verboseSignalHandling",
 };
 
 // a NULL-terminated list.
@@ -137,6 +139,8 @@ static const char* nonStandardUsage[] = {
   "  -Xbootclasspath/a:<cp>     (a)ppend specified classpath to bootclasspath",
   "  -X:availableProcessors=<n> desired level of application parallelism (set",
   "                             -X:gc:threads to control gc parallelism)",
+  "  -X:verboseSignalHandling   Print out information when handling software and",
+  "                             hardware signals",
   NULL                         /* End of messages */
 };
 
@@ -271,6 +275,11 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
     }
     if (STREQUAL(token, nonStandardArgs[VERBOSE_INDEX])) {
       ++verbose;
+      ++verboseSignalHandling;
+      continue;
+    }
+    if (STREQUAL(token, nonStandardArgs[VERBOSE_SIGNAL_HANDLING])) {
+      ++verboseSignalHandling;
       continue;
     }
     if (STRNEQUAL(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {

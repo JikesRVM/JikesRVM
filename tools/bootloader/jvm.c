@@ -54,6 +54,9 @@ FILE *SysTraceFile;
 /** Verbose command line option */
 int verbose = 0;
 
+/** Verbose signal handling command line option */
+int verboseSignalHandling = 0;
+
 /** Verbose boot up set */
 int verboseBoot = 0;
 
@@ -436,6 +439,7 @@ int createVM(int vmInSeparateThread)
   bootRecord->bootImageRMapStart   = (Address) bootRMapRegion;
   bootRecord->bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
   bootRecord->verboseBoot      = verboseBoot;
+  bootRecord->verboseSignalHandling = verboseSignalHandling;
   bootRecord->bytesInPage = pageSize;
 
   /* write syscall linkage information into boot record */

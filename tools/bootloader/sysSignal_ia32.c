@@ -650,21 +650,21 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
   sp = sp - __SIZEOF_POINTER__; /* first parameter is trap code */
   ((int *)sp)[0] = trapCode;
   IA32_EAX(context) = trapCode;
-  TRACE_PRINTF("%s: trap code is %d\n", Me, trapCode);
+  VERBOSE_SIGNALS_PRINTF("%s: trap code is %d\n", Me, trapCode);
 
   sp = sp - __SIZEOF_POINTER__; /* next parameter is trap info */
   ((Word *)sp)[0] = trapInfo;
   IA32_EDX(context) = trapInfo;
-  TRACE_PRINTF("%s: trap info is %d\n", Me, trapInfo);
+  VERBOSE_SIGNALS_PRINTF("%s: trap info is %d\n", Me, trapInfo);
 
   sp = sp - __SIZEOF_POINTER__; /* return address - looks like called from failing instruction */
   *(Address *) sp = instructionFollowingPtr;
 
   /* store instructionFollowing and fp in Registers.ip and Registers.fp */
   *(Address*)vmr_ip = instructionFollowingPtr;
-  TRACE_PRINTF("%s: set vmr_ip to %p\n", Me, (void*)instructionFollowingPtr);
+  VERBOSE_SIGNALS_PRINTF("%s: set vmr_ip to %p\n", Me, (void*)instructionFollowingPtr);
   *(Address*)vmr_fp = framePtr;
-  TRACE_PRINTF("%s: set vmr_fp to %p\n", Me, (void*)framePtr);
+  VERBOSE_SIGNALS_PRINTF("%s: set vmr_fp to %p\n", Me, (void*)framePtr);
 
   /* set up context block to look like the artificial stack frame is
    * returning

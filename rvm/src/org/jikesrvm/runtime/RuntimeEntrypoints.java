@@ -698,12 +698,12 @@ public class RuntimeEntrypoints {
   @Entrypoint
   @UnpreemptibleNoWarn
   static void deliverHardwareException(int trapCode, Word trapInfo) {
-    if (false) VM.sysWriteln("delivering hardware exception");
+    if (VM.verboseSignalHandling) VM.sysWriteln("delivering hardware exception");
     RVMThread myThread = RVMThread.getCurrentThread();
-    if (false) VM.sysWriteln("we have a thread = ",Magic.objectAsAddress(myThread));
-    if (false) VM.sysWriteln("it's in state = ",myThread.getExecStatus());
+    if (VM.verboseSignalHandling) VM.sysWriteln("we have a thread = ",Magic.objectAsAddress(myThread));
+    if (VM.verboseSignalHandling) VM.sysWriteln("it's in state = ",myThread.getExecStatus());
     AbstractRegisters exceptionRegisters = myThread.getExceptionRegisters();
-    if (false) VM.sysWriteln("we have exception registers = ",Magic.objectAsAddress(exceptionRegisters));
+    if (VM.verboseSignalHandling) VM.sysWriteln("we have exception registers = ",Magic.objectAsAddress(exceptionRegisters));
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.getStack().length < (StackFrameLayout.getMaxStackSize() >> LOG_BYTES_IN_ADDRESS) &&

@@ -165,6 +165,12 @@ public class BootRecord {
    */
   public int verboseBoot = 0;
 
+  /**
+   * Print messages when delivering hardware exceptions to threads?
+   * Set by -X:verboseSignalHandling
+   */
+  public int verboseSignalHandling = 0;
+
   // RVM startoff
   //
   public Address spRegister;   // value to place into SP register

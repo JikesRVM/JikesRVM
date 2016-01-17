@@ -139,6 +139,7 @@ public class VM extends Properties {
     writingBootImage = false;
     runningVM = true;
     verboseBoot = BootRecord.the_boot_record.verboseBoot;
+    verboseSignalHandling = BootRecord.the_boot_record.verboseSignalHandling != 0;
 
     sysWriteLockOffset = Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");

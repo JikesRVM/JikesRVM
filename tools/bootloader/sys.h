@@ -81,6 +81,8 @@ extern struct BootRecord *bootRecord;
 extern const struct JavaVM_ sysJavaVM;
 /** Verbose command line option */
 extern int verbose;
+/** Verbose signal handling command line option */
+extern int verboseSignalHandling;
 /** Verbose boot up set */
 extern int verboseBoot;
 /** File name for part of boot image containing code */
@@ -111,6 +113,9 @@ extern Extent pageSize;
 /** Trace execution of syscalls */
 #define TRACE verbose
 #define TRACE_PRINTF(...) if (TRACE) fprintf(SysTraceFile, __VA_ARGS__)
+
+/** Conditional printouts for verbose signal handling */
+#define VERBOSE_SIGNALS_PRINTF(...) if (verboseSignalHandling) fprintf(SysTraceFile, __VA_ARGS__)
 
 /* String utilities */
 #define STREQUAL(s1, s2) (strcmp(s1, s2) == 0)
