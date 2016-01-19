@@ -20,6 +20,7 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
@@ -36,6 +37,14 @@ import org.vmmagic.unboxed.Offset;
  * of the call stack at a particular instant.
  */
 public class StackTrace {
+
+  /**
+   * Prints an internal stack trace for every stack trace obtained via
+   * {@link #getStackTrace(Throwable)}. The internal stack trace
+   * has machine code offsets and bytecode index information for methods.
+   */
+  private static final boolean PRINT_INTERNAL_STACK_TRACE = false;
+
   /**
    * The compiled method ids of the stack trace. Ordered with the top of the stack at
    * 0 and the bottom of the stack at the end of the array
@@ -202,13 +211,13 @@ public class StackTrace {
   /** Class to wrap up a stack frame element */
   public static class Element {
     /** Stack trace's method, null =&gt; invisible or trap */
-    private final RVMMethod method;
+    protected final RVMMethod method;
     /** Line number of element */
-    private final int lineNumber;
+    protected final int lineNumber;
     /** Is this an invisible method? */
-    private final boolean isInvisible;
+    protected final boolean isInvisible;
     /** Is this a hardware trap method? */
-    private final boolean isTrap;
+    protected final boolean isTrap;
 
     /**
      * Constructor for non-opt compiled methods
@@ -298,6 +307,75 @@ public class StackTrace {
     }
   }
 
+  /**
+   * A stack trace element that contains additional debugging information,
+   * namely machine code offsets and byte code indexes.
+   */
+  static class InternalStackTraceElement extends Element {
+    /** machine code offset */
+    private Offset mcOffset;
+    /** byte code index */
+    private int bci;
+
+    /**
+     * Constructor for non-opt compiled methods
+     * @param cm the compiled method
+     * @param off offset of the instruction from start of machine code,
+     *  in bytes
+     */
+    InternalStackTraceElement(CompiledMethod cm, int off) {
+      super(cm, off);
+      if (!isInvisible) {
+        if (!isTrap) {
+          Offset machineCodeOffset = Offset.fromIntSignExtend(off);
+          mcOffset = machineCodeOffset;
+          if (cm instanceof BaselineCompiledMethod) {
+            bci = ((BaselineCompiledMethod) cm).findBytecodeIndexForInstruction(machineCodeOffset);
+          } else if (cm instanceof OptCompiledMethod) {
+            bci = ((OptCompiledMethod) cm).getMCMap().getBytecodeIndexForMCOffset(machineCodeOffset);
+          } else {
+            bci = 0;
+          }
+        } else {
+          mcOffset = Offset.zero();
+          bci = 0;
+        }
+      } else {
+        mcOffset = Offset.zero();
+        bci = 0;
+      }
+    }
+
+    /**
+     * Constructor for opt compiled methods.
+     * @param method the method that was called
+     * @param ln the line number
+     * @param mcOffset the machine code offset for the line
+     * @param bci the bytecode index for the line
+     *
+     */
+    InternalStackTraceElement(RVMMethod method, int ln, Offset mcOffset, int bci) {
+      super(method, ln);
+      this.mcOffset = mcOffset;
+      this.bci = bci;
+    }
+
+    void printForDebugging() {
+      VM.sysWrite("{IST: ");
+      VM.sysWrite(method.getDeclaringClass().toString());
+      VM.sysWrite(".");
+      VM.sysWrite(method.getName());
+      VM.sysWrite(" --- ");
+      VM.sysWrite("line_number: ");
+      VM.sysWrite(lineNumber);
+      VM.sysWrite(" byte_code_index: ");
+      VM.sysWrite(bci);
+      VM.sysWrite(" machine_code_offset: ");
+      VM.sysWrite(mcOffset);
+      VM.sysWriteln();
+    }
+  }
+
   private CompiledMethod getCompiledMethod(int element) {
     if ((element >= 0) && (element < compiledMethods.length)) {
       int mid = compiledMethods[element];
@@ -316,7 +394,30 @@ public class StackTrace {
     int first = firstRealMethod(cause);
     int last = lastRealMethod(first);
     Element[] elements = buildStackTrace(first, last);
+    if (PRINT_INTERNAL_STACK_TRACE) {
+      VM.sysWriteln();
+      for (Element e : elements) {
+        InternalStackTraceElement internalEle = (InternalStackTraceElement) e;
+        internalEle.printForDebugging();
+      }
+    }
     return elements;
+  }
+
+  private Element createStandardStackTraceElement(CompiledMethod cm, int off) {
+    if (!PRINT_INTERNAL_STACK_TRACE) {
+      return new Element(cm, off);
+    } else {
+      return new InternalStackTraceElement(cm, off);
+    }
+  }
+
+  private Element createOptStackTraceElement(RVMMethod m, int ln, Offset mcOffset, int bci) {
+    if (!PRINT_INTERNAL_STACK_TRACE) {
+      return new Element(m, ln);
+    } else {
+      return new InternalStackTraceElement(m, ln, mcOffset, bci);
+    }
   }
 
   private Element[] buildStackTrace(int first, int last) {
@@ -324,7 +425,7 @@ public class StackTrace {
     if (!VM.BuildForOptCompiler) {
       int element = 0;
       for (int i = first; i <= last; i++) {
-        elements[element] = new Element(getCompiledMethod(i), instructionOffsets[i]);
+        elements[element] = createStandardStackTraceElement(getCompiledMethod(i), instructionOffsets[i]);
         element++;
       }
     } else {
@@ -334,7 +435,7 @@ public class StackTrace {
         if ((compiledMethod == null) ||
             (compiledMethod.getCompilerType() != CompiledMethod.OPT)) {
           // Invisible or non-opt compiled method
-          elements[element] = new Element(compiledMethod, instructionOffsets[i]);
+          elements[element] = createStandardStackTraceElement(compiledMethod, instructionOffsets[i]);
           element++;
         } else {
           Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
@@ -342,7 +443,7 @@ public class StackTrace {
           OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);
           if (iei < 0) {
-            elements[element] = new Element(compiledMethod, instructionOffsets[i]);
+            elements[element] = createStandardStackTraceElement(compiledMethod, instructionOffsets[i]);
             element++;
           } else {
             int[] inlineEncoding = map.inlineEncoding;
@@ -351,7 +452,7 @@ public class StackTrace {
               int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
               RVMMethod method = MemberReference.getMethodRef(mid).getResolvedMember();
               int lineNumber = ((NormalMethod)method).getLineNumberForBCIndex(bci);
-              elements[element] = new Element(method, lineNumber);
+              elements[element] = createOptStackTraceElement(method, lineNumber, instructionOffset, bci);
               element++;
               if (iei > 0) {
                 bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);

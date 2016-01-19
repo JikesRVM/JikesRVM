@@ -32,6 +32,7 @@ import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -5549,7 +5550,7 @@ public final class RVMThread extends ThreadContext {
                         int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
                         method = MemberReference.getMethodRef(mid).getResolvedMember();
                         lineNumber = ((NormalMethod) method).getLineNumberForBCIndex(bci);
-                        showMethod(method, lineNumber, fp);
+                        showMethod(method, lineNumber, fp, bci, instructionOffset);
                         if (iei > 0) {
                           bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
                         }
@@ -5558,13 +5559,18 @@ public final class RVMThread extends ThreadContext {
                     }
                   }
                   if (!frameShown) {
-                    showMethod(method, lineNumber, fp);
+                    int bci = -1;
+                    if (compiledMethod.getCompilerType() == CompiledMethod.BASELINE) {
+                      BaselineCompiledMethod bcm = (BaselineCompiledMethod) compiledMethod;
+                      bci = bcm.findBytecodeIndexForInstruction(instructionOffset);
+                    }
+                    showMethod(method, lineNumber, fp, bci, instructionOffset);
                   }
                 } else {
                   VM.sysWrite("    WARNING: Instruction pointer ");
                   VM.sysWrite(ip);
                   VM.sysWrite(" not in method code");
-                  showMethod(method, -1, fp);
+                  showMethod(method, -1, fp, -1, Offset.max());
                 }
               }
             }
@@ -5657,8 +5663,10 @@ public final class RVMThread extends ThreadContext {
    * @param method the underlying method
    * @param lineNumber the line number for the stack trace
    * @param fp the frame pointer of the method's frame
+   * @param bci byte code index (value &lt; 0 if unknown)
+   * @param mcOffset machine code offset for the instruction ({@code Offset.max()} if unknown)
    */
-  private static void showMethod(RVMMethod method, int lineNumber, Address fp) {
+  private static void showMethod(RVMMethod method, int lineNumber, Address fp, int bci, Offset mcOffset) {
     showPrologue(fp);
     if (method == null) {
       VM.sysWrite("<unknown method>");
@@ -5671,6 +5679,14 @@ public final class RVMThread extends ThreadContext {
     if (lineNumber > 0) {
       VM.sysWrite(" at line ");
       VM.sysWriteInt(lineNumber);
+    }
+    if (bci >= 0) {
+      VM.sysWrite(" at bytecode index ");
+      VM.sysWriteInt(bci);
+    }
+    if (!mcOffset.isMax()) {
+      VM.sysWrite(" at machine code offset ");
+      VM.sysWrite(mcOffset);
     }
     VM.sysWrite("\n");
   }
