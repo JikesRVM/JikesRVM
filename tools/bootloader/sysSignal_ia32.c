@@ -655,7 +655,7 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
   sp = sp - __SIZEOF_POINTER__; /* next parameter is trap info */
   ((Word *)sp)[0] = trapInfo;
   IA32_EDX(context) = trapInfo;
-  VERBOSE_SIGNALS_PRINTF("%s: trap info is %d\n", Me, trapInfo);
+  VERBOSE_SIGNALS_PRINTF("%s: trap info is %x\n", Me, trapInfo);
 
   sp = sp - __SIZEOF_POINTER__; /* return address - looks like called from failing instruction */
   *(Address *) sp = instructionFollowingPtr;
