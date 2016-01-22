@@ -13,7 +13,6 @@
 <project name="classpath" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <!-- NOTE: when incrementing classpath version, check the patches -->
   <!-- in target patch-classpath-web                                -->

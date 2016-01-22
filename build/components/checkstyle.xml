@@ -13,9 +13,8 @@
 <project name="checkstyle" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
-  <property name="checkstyle.version" value="6.4"/>
+  <property name="checkstyle.version" value="6.14.1"/>
   <property name="checkstyle.description" value="Checkstyle"/>
 
   <property name="checkstyle.package.dir" value="${components.dir}/checkstyle/${checkstyle.version}"/>

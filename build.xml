@@ -320,6 +320,14 @@
     <ant antfile="build/components/junit.xml" target="ensure"/>
     <ant antfile="build/components/hamcrest.xml" target="ensure"/>
     <ant antfile="build/components/mockito.xml" target="ensure"/>
+    <if>
+      <conditions>
+        <equals arg1="${require.checkstyle}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/checkstyle.xml" target="ensure"/>
+      </sequential>
+    </if>
     <property file="${components.file}"/>
   </target>
 
@@ -2325,11 +2333,6 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="ensure-checkstyle">
-    <ant antfile="build/components/checkstyle.xml" target="ensure"/>
-    <property file="${components.file}"/>
-  </target> 
-
   <target name="do-checkstyle">
     <if>
       <conditions>
@@ -2341,9 +2344,9 @@ target.jni-suffix=${target.jni-suffix}
     </if>
   </target>
 
-  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle,
+  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,
     test-checkstyle-plugin">
-    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}:${plugin.jar}"/>
+    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${plugin.jar}"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">

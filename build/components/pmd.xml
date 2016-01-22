@@ -13,7 +13,6 @@
 <project name="pmd" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="pmd.version" value="3.9"/>
   <property name="pmd.description" value="PMD"/>
