@@ -147,7 +147,11 @@
     <!-- Jikes RVM assertion style                       -->
     <!-- See http://www.jikesrvm.org/Coding+Conventions  -->
     <module name="JikesRVMAssertionStyle"/>
-
+    <!-- Jikes RVM architecture import restrictions -->
+    <module name="JikesRVMArchitectureImportRestrictions">
+      <property name="knownArchitectures" value="${checkstyle.known.archs}"/>
+      <property name="targetArchitecture" value="${checkstyle.target.arch}"/>
+    </module>
   </module>
 
 </module>

@@ -18,7 +18,7 @@
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
   <import file="build/tasks.xml"/>
-  <import file="build/checkstylePlugin.xml"/>
+  <import file="build/checkstyle-plugins.xml"/>
 
   <property name="config.mmtk" value="default"/>
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
@@ -2345,11 +2345,13 @@ target.jni-suffix=${target.jni-suffix}
   </target>
 
   <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,
-    test-checkstyle-plugin">
-    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${plugin.jar}"/>
+    compile-plugins-into-single-jar">
+    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${checkstyle.plugin.combined.jar}"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
+      <property key="checkstyle.known.archs" value="ia32,ppc"/>
+      <property key="checkstyle.target.arch" value="${target.arch}"/>
       <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
       <fileset dir="rvm/src" includes="**/*.java"/>
       <fileset dir="rvm/src-generated" includes="**/*.java"/>

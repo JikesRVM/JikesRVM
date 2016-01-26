@@ -1,0 +1,9 @@
+
+Checkstyle Results for Checkstyle architecture import restrictions plugin test cases
+============================================================
+ at line 15,1 : The import "import org.jikesrvm.bar.Disassembler;" is forbidden because the architecture of the imported package (bar) does not match the current architecture of foo
+ at line 15,1 : The import "import org.jikesrvm.bar.something.Disassembler;" is forbidden because the architecture of the imported package (bar) does not match the current architecture of foo
+ at line 15,1 : The import "import bar.something.Disassembler;" is forbidden because the architecture of the imported package (bar) does not match the current architecture of foo
+ at line 15,1 : The import "import static org.jikesrvm.bar.something.CONSTANT;" is forbidden because the architecture of the imported package (bar) does not match the current architecture of foo
+
+Found 4 errors in 4 of 10 files.
