@@ -2344,7 +2344,11 @@ target.jni-suffix=${target.jni-suffix}
     </if>
   </target>
 
-  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,
+  <target name="set-checkstyle-as-required">
+    <property name="require.checkstyle" value="true"/>
+  </target>
+
+  <target name="checkstyle" depends="set-checkstyle-as-required,prepare-source,prepare-config-source,choose-classlib,
     compile-plugins-into-single-jar">
     <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${checkstyle.plugin.combined.jar}"/>
 
