@@ -55,7 +55,7 @@ public final class RegisterConstants {
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final GPR[] vals = values();
 
-    private GPR(int v) {
+    GPR(int v) {
       if (v != ordinal()) {
         throw new Error("Invalid register ordinal");
       }

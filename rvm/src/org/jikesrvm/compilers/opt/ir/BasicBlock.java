@@ -1938,7 +1938,7 @@ public class BasicBlock extends SortedGraphNode {
   static final class InEdgeEnum implements Enumeration<BasicBlock> {
     private SpaceEffGraphEdge _edge;
 
-    public InEdgeEnum(SpaceEffGraphNode n) {
+    InEdgeEnum(SpaceEffGraphNode n) {
       _edge = n.firstInEdge();
     }
 
@@ -1959,7 +1959,7 @@ public class BasicBlock extends SortedGraphNode {
   static final class OutEdgeEnum implements Enumeration<BasicBlock> {
     private SpaceEffGraphEdge _edge;
 
-    public OutEdgeEnum(SpaceEffGraphNode n) {
+    OutEdgeEnum(SpaceEffGraphNode n) {
       _edge = n.firstOutEdge();
     }
 

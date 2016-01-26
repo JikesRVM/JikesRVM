@@ -210,7 +210,7 @@ public class BootImageWriter extends BootImageWriterMessages {
      * Constructor.
      * @param jdkType the type to associate with the key
      */
-    public FieldInfo(Class<?> jdkType, RVMType rvmType) {
+    FieldInfo(Class<?> jdkType, RVMType rvmType) {
       this.jdkFields = jdkType.getDeclaredFields();
       this.jdkType = jdkType;
       this.rvmType = rvmType;
@@ -230,7 +230,7 @@ public class BootImageWriter extends BootImageWriterMessages {
      * Constructor.
      * @param jdkType the type to associate with the key
      */
-    public Key(Class<?> jdkType) {
+    Key(Class<?> jdkType) {
       this.jdkType = jdkType;
     }
 
@@ -1959,8 +1959,7 @@ public class BootImageWriter extends BootImageWriterMessages {
    *            it's not part of bootimage)
    */
   private static Address copyToBootImage(Object jdkObject, boolean allocOnly,
-      Address overwriteAddress, Object parentObject, boolean untraced, int alignCode) throws IllegalAccessException
-  {
+      Address overwriteAddress, Object parentObject, boolean untraced, int alignCode) throws IllegalAccessException {
     try {
       // Return object if it is already copied and not being overwritten
       BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);

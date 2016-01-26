@@ -609,7 +609,7 @@ public final class AnnotationAdder {
      * @param cv the reader of the class
      * @param name the name of the class being read
      */
-    public AddAnnotationClassAdapter(ClassVisitor cv, String name) {
+    AddAnnotationClassAdapter(ClassVisitor cv, String name) {
       super(cv);
       this.className = name;
     }
@@ -652,7 +652,7 @@ public final class AnnotationAdder {
      * @param mv the reader of the method
      * @param anns annotations to add
      */
-    public AddAnnotationMethodAdapter(MethodVisitor mv, Set<Class<? extends Annotation>> anns) {
+    AddAnnotationMethodAdapter(MethodVisitor mv, Set<Class<? extends Annotation>> anns) {
       super(mv);
       toAddAnnotations = anns;
     }

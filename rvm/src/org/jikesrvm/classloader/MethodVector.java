@@ -23,7 +23,7 @@ final class MethodVector {
   // interface //
   //-----------//
 
-  public MethodVector() {
+  MethodVector() {
     array = new RVMMethod[10];
   }
 

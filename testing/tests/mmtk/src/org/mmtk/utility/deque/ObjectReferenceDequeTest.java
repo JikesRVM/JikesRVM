@@ -294,7 +294,7 @@ public class ObjectReferenceDequeTest {
     private final int ins;
     protected final ObjectReferenceDeque deque;
 
-    public AddRemoveThread(SharedDeque shared, int n, int ordinal, int ins) {
+    AddRemoveThread(SharedDeque shared, int n, int ordinal, int ins) {
       this.shared = shared;
       this.n = n;
       this.ordinal = ordinal;
@@ -332,7 +332,7 @@ public class ObjectReferenceDequeTest {
    */
   private class PushThread extends AddRemoveThread {
 
-    public PushThread(SharedDeque shared, int n, int ordinal, int ins) {
+    PushThread(SharedDeque shared, int n, int ordinal, int ins) {
       super(shared, n, ordinal, ins);
     }
 
@@ -347,7 +347,7 @@ public class ObjectReferenceDequeTest {
    */
   private class InsertThread extends AddRemoveThread {
 
-    public InsertThread(SharedDeque shared, int n, int ordinal, int ins) {
+    InsertThread(SharedDeque shared, int n, int ordinal, int ins) {
       super(shared, n, ordinal, ins);
     }
 

@@ -22,7 +22,7 @@ final class TypeReferenceVector {
   // interface //
   //-----------//
 
-  public TypeReferenceVector() {
+  TypeReferenceVector() {
     array = new TypeReference[10];
   }
 

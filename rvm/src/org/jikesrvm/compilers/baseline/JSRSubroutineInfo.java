@@ -34,7 +34,7 @@ final class JSRSubroutineInfo {
   private static int JSRRoutinesWithMismatch;
   private boolean hasMismatch;
 
-  public JSRSubroutineInfo(int subroutineByteCodeStart, byte[] startReferenceMap, int localsTop) {
+  JSRSubroutineInfo(int subroutineByteCodeStart, byte[] startReferenceMap, int localsTop) {
     this.subroutineByteCodeStart = subroutineByteCodeStart;
     this.startReferenceMap = new byte[localsTop + 1];
     for (int i = 0; i <= localsTop; i++) {

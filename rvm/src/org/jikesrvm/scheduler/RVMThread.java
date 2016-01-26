@@ -977,7 +977,7 @@ public final class RVMThread extends ThreadContext {
    * An enumeration that describes the different manners in which a thread might
    * be voluntarily waiting.
    */
-  protected static enum Waiting {
+  protected enum Waiting {
     /** The thread is not waiting at all. In fact it's running. */
     RUNNABLE,
     /** The thread is waiting without a timeout. */

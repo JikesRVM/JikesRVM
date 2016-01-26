@@ -30,7 +30,7 @@ final class BuildBB {
   // ---------------- Static Class Fields --------------------
 
   /** Types of Instructions */
-  private static enum InstructionType {
+  private enum InstructionType {
     NONBRANCH, CONDITIONAL_BRANCH, BRANCH
   };
 

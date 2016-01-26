@@ -378,73 +378,73 @@ public class TestNullChecks {
   private static final Extent WRITE_EXTENT = Extent.fromIntZeroExtend(32);
 
   private static class ClassWithByteField {
-    public ClassWithByteField() {
+    ClassWithByteField() {
       this.b = DEFAULT_BYTE;
     }
     public byte b;
   }
   private static class ClassWithBooleanField {
-    public ClassWithBooleanField() {
+    ClassWithBooleanField() {
       this.b = DEFAULT_BOOLEAN;
     }
     public boolean b;
   }
   private static class ClassWithCharField {
-    public ClassWithCharField() {
+    ClassWithCharField() {
       this.c = DEFAULT_CHAR;
     }
     public char c;
   }
   private static class ClassWithShortField {
-    public ClassWithShortField() {
+    ClassWithShortField() {
       this.s = DEFAULT_SHORT;
     }
     public short s;
   }
   private static class ClassWithIntField {
-    public ClassWithIntField() {
+    ClassWithIntField() {
       this.i = DEFAULT_INT;
     }
     public int i;
   }
   private static class ClassWithLongField {
-    public ClassWithLongField() {
+    ClassWithLongField() {
       this.l = DEFAULT_LONG;
     }
     public long l;
   }
   private static class ClassWithDoubleField {
-    public ClassWithDoubleField() {
+    ClassWithDoubleField() {
       this.d = DEFAULT_DOUBLE;
     }
     public double d;
   }
   private static class ClassWithFloatField {
-    public ClassWithFloatField() {
+    ClassWithFloatField() {
       this.f = DEFAULT_FLOAT;
     }
     public float f;
   }
   private static class ClassWithWordField {
-    public ClassWithWordField() {
+    ClassWithWordField() {
       this.w = DEFAULT_WORD;
     }
     public Word w;
   }
   private static class ClassWithAddressField {
-    public ClassWithAddressField() {
+    ClassWithAddressField() {
       this.a = DEFAULT_ADDRESS;
     }
     public Address a;
   }
   private static class ClassWithOffsetField {
-    public ClassWithOffsetField() {
+    ClassWithOffsetField() {
       this.o = DEFAULT_OFFSET;
     }
     public Offset o;
   }
   private static class ClassWithExtentField {
-    public ClassWithExtentField() {
+    ClassWithExtentField() {
       this.e = DEFAULT_EXTENT;
     }
     public Extent e;

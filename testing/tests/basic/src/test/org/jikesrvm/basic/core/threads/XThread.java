@@ -50,7 +50,7 @@ abstract class XThread extends Thread {
   boolean completed;
   boolean running;
 
-  public XThread(String name) {
+  XThread(String name) {
     super(name);
     synchronized (XThread.class) {
       id = maxId++;

@@ -20,7 +20,8 @@ class QuotedStringTokenizer {
   private int maxPos;
 
   public static final String delim = " \t\n\r\f";
-  public QuotedStringTokenizer(String str) {
+
+  QuotedStringTokenizer(String str) {
     curPos = 0;
     this.str = str;
     maxPos = str.length();

@@ -139,8 +139,7 @@ public class NullCheckCombining extends CompilerPhase {
         } while (combined & remaining);
 
         // (2) Blow away all validation registers in bb.
-        for (Instruction instr = bb.firstRealInstruction(), nextInstr = null; instr != lastInstr; instr = nextInstr)
-        {
+        for (Instruction instr = bb.firstRealInstruction(), nextInstr = null; instr != lastInstr; instr = nextInstr) {
           nextInstr = instr.nextInstructionInCodeOrder();
           Operator op = instr.operator();
           if (op == GUARD_MOVE || op == GUARD_COMBINE) {

@@ -16,11 +16,11 @@ class UnterminatedStringException extends RuntimeException {
 
   private static final long serialVersionUID = 5639864127476661778L;
 
-  public UnterminatedStringException() {
+  UnterminatedStringException() {
     super();
   }
 
-  public UnterminatedStringException(String msg) {
+  UnterminatedStringException(String msg) {
     super(msg);
   }
 }

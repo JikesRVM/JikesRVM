@@ -82,7 +82,7 @@ public class BootImageMap extends BootImageWriterMessages {
      * Constructor.
      * @param jdkObject the object to associate with the key
      */
-    public Key(Object jdkObject) {
+    Key(Object jdkObject) {
       this.jdkObject = jdkObject;
     }
 

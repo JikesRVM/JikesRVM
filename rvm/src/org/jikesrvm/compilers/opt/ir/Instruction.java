@@ -1606,7 +1606,7 @@ public final class Instruction {
     private final int defEnd;
     private Operand deferredMOReg;
 
-    public OE(Instruction instr, int start, int end, int defEnd) {
+    OE(Instruction instr, int start, int end, int defEnd) {
       super(instr, start, end);
       this.defEnd = defEnd;
       if (DEBUG) {
@@ -1662,7 +1662,7 @@ public final class Instruction {
    * operands, since the contained operands of a MO are uses).
    */
   private static final class OEDefsOnly extends BASE_OE {
-    public OEDefsOnly(Instruction instr, int start, int end) {
+    OEDefsOnly(Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
         System.out.println(" --> OEDefsOnly called with inst\n" + instr + "\n start: " + start + ", end: " + end);
@@ -1688,7 +1688,7 @@ public final class Instruction {
 
   /** Enumerate the memory operands of an instruction */
   private static final class MOE extends BASE_OE {
-    public MOE(Instruction instr, int start, int end) {
+    MOE(Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
         System.out.println(" --> MOE called with inst\n" + instr + "\n start: " + start + ", end: " + end);
@@ -1714,7 +1714,7 @@ public final class Instruction {
 
   /** Enumerate the root operands of an instruction */
   private static final class ROE extends BASE_OE {
-    public ROE(Instruction instr, int start, int end) {
+    ROE(Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
         System.out.println(" --> ROE called with inst\n" + instr + "\n start: " + start + ", end: " + end);

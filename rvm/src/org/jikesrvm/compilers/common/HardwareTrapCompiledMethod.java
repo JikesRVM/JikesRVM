@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Offset;
  */
 final class HardwareTrapCompiledMethod extends CompiledMethod {
 
-  public HardwareTrapCompiledMethod(int id, RVMMethod m) {
+  HardwareTrapCompiledMethod(int id, RVMMethod m) {
     super(id, m);
   }
 

@@ -23,7 +23,7 @@ final class FieldVector {
   // interface //
   //-----------//
 
-  public FieldVector() {
+  FieldVector() {
     array = new RVMField[10];
   }
 

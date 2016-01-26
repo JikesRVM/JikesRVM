@@ -44,7 +44,7 @@ class MonitorTest {
   /**
    * constructor initializes instance fields
    */
-  public MonitorTest() {
+  MonitorTest() {
 
   }
 

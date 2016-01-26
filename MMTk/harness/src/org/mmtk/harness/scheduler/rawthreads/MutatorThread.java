@@ -25,7 +25,7 @@ class MutatorThread extends RawThread {
   final Env env = new Env();
   final Schedulable code;
 
-  public MutatorThread(Schedulable code, RawThreadModel model) {
+  MutatorThread(Schedulable code, RawThreadModel model) {
     super(model);
     this.code = code;
     setName("Mutator-" + model.nextMutatorId());

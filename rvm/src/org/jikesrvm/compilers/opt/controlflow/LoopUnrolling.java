@@ -973,12 +973,12 @@ public class LoopUnrolling extends CompilerPhase {
       }
     }
 
-    public RealDefs(Operand use) {
+    RealDefs(Operand use) {
       this.init(use);
       theVisit++;
     }
 
-    public RealDefs(Operand use, int visit) {
+    RealDefs(Operand use, int visit) {
       this.init(use);
       theVisit = visit;
     }

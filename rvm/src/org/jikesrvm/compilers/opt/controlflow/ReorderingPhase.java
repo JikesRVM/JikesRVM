@@ -333,8 +333,7 @@ public final class ReorderingPhase extends CompilerPhase {
 
   private void dumpChain(BasicBlock head) {
     VM.sysWrite("{" + head);
-    for (BasicBlock next = head.nextBasicBlockInCodeOrder(); next != null; next = next.nextBasicBlockInCodeOrder())
-    {
+    for (BasicBlock next = head.nextBasicBlockInCodeOrder(); next != null; next = next.nextBasicBlockInCodeOrder()) {
       VM.sysWrite(", " + next);
     }
     VM.sysWriteln("}");

@@ -194,7 +194,7 @@ class MethodInvocation {
   /************************************************************
    * Dummy constructor to get to the virtual methods
    */
-  public MethodInvocation() {
+  MethodInvocation() {
 
   }
 

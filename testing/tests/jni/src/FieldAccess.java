@@ -93,7 +93,7 @@ class FieldAccess {
   /**
    * constructor initializes instance fields
    */
-  public FieldAccess() {
+  FieldAccess() {
     instanceInt = 456;
     instanceByte = 34;
     instanceChar = 't';

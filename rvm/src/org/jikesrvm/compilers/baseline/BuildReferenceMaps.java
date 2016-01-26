@@ -66,7 +66,7 @@ final class BuildReferenceMaps {
    */
   static final byte SET_TO_NONREFERENCE = 3;
 
-  private static enum PrimitiveSize {
+  private enum PrimitiveSize {
     ONEWORD, DOUBLEWORD
   };
 

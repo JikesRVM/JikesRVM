@@ -1269,7 +1269,7 @@ public final class AnnotatedLSTNode extends LSTNode {
     /**
      * Constructor
      */
-    public BBEnum() {
+    BBEnum() {
       blocks = new ArrayList<BasicBlock>();
     }
 

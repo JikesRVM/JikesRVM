@@ -27,7 +27,7 @@ class TestSuspend extends XThread {
     XThread.outputMessages();
   }
 
-  public TestSuspend() {
+  TestSuspend() {
     super("Resumer");
   }
 

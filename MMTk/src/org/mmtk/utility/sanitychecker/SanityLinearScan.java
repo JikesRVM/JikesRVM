@@ -24,7 +24,8 @@ import org.vmmagic.unboxed.ObjectReference;
 final class SanityLinearScan extends LinearScan {
 
   private final SanityChecker sanityChecker;
-  public SanityLinearScan(SanityChecker sanityChecker) {
+
+  SanityLinearScan(SanityChecker sanityChecker) {
     this.sanityChecker = sanityChecker;
   }
 

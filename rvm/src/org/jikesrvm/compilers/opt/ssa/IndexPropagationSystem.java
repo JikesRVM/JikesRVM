@@ -74,7 +74,7 @@ class IndexPropagationSystem extends DF_System {
    * Set up the system of dataflow equations.
    * @param _ir the IR
    */
-  public IndexPropagationSystem(IR _ir) {
+  IndexPropagationSystem(IR _ir) {
     ir = _ir;
     ssa = ir.HIRInfo.dictionary;
     valueNumbers = ir.HIRInfo.valueNumbers;

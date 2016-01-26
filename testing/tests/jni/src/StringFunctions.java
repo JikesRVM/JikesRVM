@@ -31,10 +31,7 @@ class StringFunctions {
   static native String testGetReleaseStringChars(String s);
   static native String testGetReleaseStringUTFChars(String s);
 
-  /**
-   * constructor
-   */
-  public StringFunctions() {
+  StringFunctions() {
   }
 
   public static void main(String[] args) {

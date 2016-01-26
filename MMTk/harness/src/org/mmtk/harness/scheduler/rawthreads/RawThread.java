@@ -39,7 +39,7 @@ class RawThread extends MMTkThread {
   /** The queue this thread is blocked on (or null if it's running) */
   private ThreadQueue queue;
 
-  public RawThread(RawThreadModel model) {
+  RawThread(RawThreadModel model) {
     this.model = model;
     this.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       @Override public void uncaughtException(Thread t, Throwable e) {
