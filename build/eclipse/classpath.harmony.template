@@ -23,6 +23,13 @@
   <classpathentry kind="src" path="tools/bootImageWriter/src"/>
   <classpathentry kind="src" path="common/vmmagic/src"/>
   <classpathentry kind="src" path="external/tuningforklib/src"/>
+  <classpathentry kind="src" path="testing/tests/basic/src"/>
+  <classpathentry kind="src" path="testing/tests/gctest/src"/>
+  <classpathentry kind="src" path="testing/tests/gctracingtest/src"/>
+
+  <!-- Entries with exclusion -->
+  <classpathentry excluding="tNativeThreads.java|NativeThreadsWorker.java|StackResize.java" kind="src" path="testing/tests/jni/src"/>
+  <classpathentry excluding="TestEncodedCallSiteTree.java|testpm.java|dtc.java|ExceptionTest6.java|TestThrow.java|TestThrow2.java" kind="src" path="testing/tests/opttests/src"/>
 
   <classpathentry kind="src" path="eclipse/gen-base"/>
   <classpathentry kind="src" path="eclipse/gen-config"/>
