@@ -17,7 +17,7 @@
 <xsl:template match="checkstyle">
 Checkstyle Results for Checkstyle assertion plugin test case
 ============================================================<xsl:for-each select="file[error]">
-
+<!--  no file name output because there's only a single test file -->
 <xsl:for-each select="error">
  at line <xsl:value-of select="@line"/>,<xsl:value-of select="@column"/> : <xsl:value-of select="@message"/> 
 </xsl:for-each>

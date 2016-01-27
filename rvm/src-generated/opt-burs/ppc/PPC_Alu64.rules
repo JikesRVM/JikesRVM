@@ -31,13 +31,13 @@ EMIT(P(p));
 r:      LONG_MUL(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_MULLI, Binary.getResult(P(p)),               \
+EMIT(MIR_Binary.mutate(P(p), PPC_MULLI, Binary.getResult(P(p)),               \\
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:      LONG_MUL(r,r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC64_MULLD, Binary.getResult(P(p)),               \
+EMIT(MIR_Binary.mutate(P(p), PPC64_MULLD, Binary.getResult(P(p)),               \\
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
@@ -46,13 +46,13 @@ EMIT(MIR_Binary.mutate(P(p), PPC64_MULLD, Binary.getResult(P(p)),               
 r:      LONG_DIV(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC64_DIVD, GuardedBinary.getResult(P(p)),  \
+EMIT(MIR_Binary.mutate(P(p), PPC64_DIVD, GuardedBinary.getResult(P(p)),  \\
                        R(GuardedBinary.getVal1(P(p))), GuardedBinary.getVal2(P(p))));
 
 r:      LONG_DIV(r,REF_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
-LONG_DIV_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
+LONG_DIV_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \\
                    Move.getResult(PR(p)), IC(Move.getVal(PR(p))));
 
 #####
@@ -66,7 +66,7 @@ LONG_REM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), R(
 r:      LONG_REM(r,REF_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
-LONG_REM_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
+LONG_REM_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \\
                    Move.getResult(PR(p)), IC(Move.getVal(PR(p))));
 
 #####
@@ -75,25 +75,25 @@ LONG_REM_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p)))
 r:      LONG_SHL(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC64_SLDI, Binary.getResult(P(p)),              \
+EMIT(MIR_Binary.mutate(P(p), PPC64_SLDI, Binary.getResult(P(p)),              \\
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:      LONG_SHL(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC64_SLD, Binary.getResult(P(p)),               \
+EMIT(MIR_Binary.mutate(P(p), PPC64_SLD, Binary.getResult(P(p)),               \\
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:      LONG_SHL(LONG_USHR(r,INT_CONSTANT),INT_CONSTANT)
 (VLR(p) <= VR(p)) ? 10 : INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_RotateAndMask.mutate(P(p), PPC64_RLDICR, Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
+EMIT(MIR_RotateAndMask.mutate(P(p), PPC64_RLDICR, Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \\
                               IC(VR(p) - VLR(p)), IC(0), IC(63 - VR(p))));
 
 r:      LONG_USHR(LONG_SHL(r,INT_CONSTANT),INT_CONSTANT)
 (VLR(p) <= VR(p)) ? 10 : INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_RotateAndMask.mutate(P(p), PPC64_RLDICL, Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
+EMIT(MIR_RotateAndMask.mutate(P(p), PPC64_RLDICL, Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \\
                               IC(64 - (VR(p) - VLR(p))), IC(VR(p)), IC(63)));
 
 #####
@@ -120,7 +120,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC64_SRDI, Binary.getResult(P(p)), R(Binary.getVal
 r:      LONG_USHR(r,r)
 20
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC64_SRD, Binary.getResult(P(p)),               \
+EMIT(MIR_Binary.mutate(P(p), PPC64_SRD, Binary.getResult(P(p)),               \\
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
@@ -221,31 +221,31 @@ CMP64(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), tr
 stm:    INT_IFCMP(ATTEMPT_INT(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-{                                                                             \
-   ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
-   EMIT(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
-                                  R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
-                                  Attempt.getLocation(PL(p)),                \
-                                  Attempt.getGuard(PL(p))));                \
-   EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \
-                              new PowerPCConditionOperand(c),             \
-                              IfCmp.getTarget(P(p)),                         \
-                              IfCmp.getBranchProfile(P(p))));                 \
+{                                                                             \\
+   ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \\
+   EMIT(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \\
+                                  R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \\
+                                  Attempt.getLocation(PL(p)),                \\
+                                  Attempt.getGuard(PL(p))));                \\
+   EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \\
+                              new PowerPCConditionOperand(c),             \\
+                              IfCmp.getTarget(P(p)),                         \\
+                              IfCmp.getBranchProfile(P(p))));                 \\
 }
 
 stm:    INT_IFCMP(ATTEMPT_ADDR(r,r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION
-{                                                                             \
-   ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
-   EMIT(MIR_Store.create(PPC_STAddrCXr, R(Attempt.getNewValue(PL(p))), \
-                                  R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
-                                  Attempt.getLocation(PL(p)),                \
-                                  Attempt.getGuard(PL(p))));                \
-   EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \
-                              new PowerPCConditionOperand(c),             \
-                              IfCmp.getTarget(P(p)),                         \
-                              IfCmp.getBranchProfile(P(p))));                 \
+{                                                                             \\
+   ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \\
+   EMIT(MIR_Store.create(PPC_STAddrCXr, R(Attempt.getNewValue(PL(p))), \\
+                                  R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \\
+                                  Attempt.getLocation(PL(p)),                \\
+                                  Attempt.getGuard(PL(p))));                \\
+   EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \\
+                              new PowerPCConditionOperand(c),             \\
+                              IfCmp.getTarget(P(p)),                         \\
+                              IfCmp.getBranchProfile(P(p))));                 \\
 }
 
 #####
@@ -264,21 +264,21 @@ INT_2ADDRZerExt(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 rz: INT_2ADDRZerExt(INT_LOAD(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(PL(p), PPC_LWZ, Unary.getResult(P(p)),            \
-                     R(Load.getAddress(PL(p))), Load.getOffset(PL(p)), \
+EMIT(MIR_Load.mutate(PL(p), PPC_LWZ, Unary.getResult(P(p)),            \\
+                     R(Load.getAddress(PL(p))), Load.getOffset(PL(p)), \\
                      Load.getLocation(PL(p)), Load.getGuard(PL(p))));
 
 rz: INT_2ADDRZerExt(INT_LOAD(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(PL(p), PPC_LWZX, Unary.getResult(P(p)),           \
-                     R(Load.getAddress(PL(p))), Load.getOffset(PL(p)), \
+EMIT(MIR_Load.mutate(PL(p), PPC_LWZX, Unary.getResult(P(p)),           \\
+                     R(Load.getAddress(PL(p))), Load.getOffset(PL(p)), \\
                      Load.getLocation(PL(p)), Load.getGuard(PL(p))));
 
 rz: INT_2ADDRZerExt(INT_LOAD(REF_ADD(r,INT_CONSTANT),INT_CONSTANT))
 SI16(VLR(p)+VLLR(p)) ? 14 : INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(PL(p), PPC_LWZ, Unary.getResult(P(p)),            \
-                              R(Binary.getVal1(PLL(p))), IC(VLR(p)+VLLR(p)), \
+EMIT(MIR_Load.mutate(PL(p), PPC_LWZ, Unary.getResult(P(p)),            \\
+                              R(Binary.getVal1(PLL(p))), IC(VLR(p)+VLLR(p)), \\
                               Load.getLocation(PL(p)), Load.getGuard(PL(p))));
 

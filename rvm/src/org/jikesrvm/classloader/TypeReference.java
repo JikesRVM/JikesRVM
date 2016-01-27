@@ -18,10 +18,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
-// TODO: The following is due to a bug in checkstyle 4.3
-// CHECKSTYLE:OFF
 import org.vmmagic.pragma.Uninterruptible;
-// CHECKSTYLE:ON
 
 /**
  * A class to represent the reference in a class file to some

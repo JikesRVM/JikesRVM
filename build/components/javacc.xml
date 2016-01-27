@@ -13,7 +13,6 @@
 <project name="javacc" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="javacc.version" value="5.0"/>
   <property name="javacc.description" value="Java CC"/>

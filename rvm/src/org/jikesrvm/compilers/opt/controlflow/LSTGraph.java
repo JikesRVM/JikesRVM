@@ -165,8 +165,7 @@ public class LSTGraph extends SpaceEffGraph {
 
     // compute the natural loops for each back edge.
     // merge backedges with the same header
-    for (BasicBlock node = (BasicBlock) entry.nextSorted; node != null; node = (BasicBlock) node.nextSorted)
-    {
+    for (BasicBlock node = (BasicBlock) entry.nextSorted; node != null; node = (BasicBlock) node.nextSorted) {
       LSTNode header = null;
       for (SpaceEffGraphEdge edge = node.firstInEdge(); edge != null; edge = edge.getNextIn()) {
         if (edge.backEdge()) {

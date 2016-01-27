@@ -63,7 +63,7 @@ class TestRuntimeExec extends Thread {
 
     public static final String PROGRAM = "tee";
 
-    public TestRuntimeExec(int myNum) {
+    TestRuntimeExec(int myNum) {
         this.myNumber = myNum;
     }
 

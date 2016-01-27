@@ -2488,7 +2488,12 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
                (VM.BuildFor32Addr && fieldType.isWordLikeType())) {
       // 32bit load
       asm.emitPOP_Reg(S0);                                  // S0 is object reference
-      asm.emitPUSH_RegIdx(S0, T0, BYTE, NO_SLOT); // place field value on stack
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegIdx(S0, T0, BYTE, NO_SLOT); // place field value on stack
+      } else {
+        asm.emitMOV_Reg_RegIdx(T1, S0, T0, BYTE, NO_SLOT); // T1 is field value
+        asm.emitPUSH_Reg(T1);  // place value on stack
+      }
     } else {
       // 64bit load
       if (VM.VerifyAssertions) {
@@ -2555,7 +2560,12 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
                (VM.BuildFor32Addr && fieldType.isWordLikeType())) {
       // 32bit load
       asm.emitPOP_Reg(S0);                   // S0 is object reference
-      asm.emitPUSH_RegDisp(S0, fieldOffset); // T0 is field value
+      if (VM.BuildFor32Addr) {
+        asm.emitPUSH_RegDisp(S0, fieldOffset); // place value on stack
+      } else {
+        asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
+        asm.emitPUSH_Reg(T0);  // place value on stack
+      }
     } else {
       // 64bit load
       if (VM.VerifyAssertions) {
@@ -2631,7 +2641,12 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
                  (VM.BuildFor32Addr && fieldType.isWordType())) {
         // 32bit load
         stackMoveHelper(S0, offset);                         // S0 is object reference
-        asm.emitPUSH_RegDisp(S0, fieldOffset);               // place value on stack
+        if (VM.BuildFor32Addr) {
+          asm.emitPUSH_RegDisp(S0, fieldOffset); // place value on stack
+        } else {
+          asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
+          asm.emitPUSH_Reg(T0);  // place value on stack
+        }
       } else {
         // 64bit load
         if (VM.VerifyAssertions) {

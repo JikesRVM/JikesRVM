@@ -47,7 +47,7 @@ public class SpawnOp extends EnnaryOp implements ResolvableOp {
     /** The method parameters */
     private final Value[] values;
 
-    public SpawnedMethod(Value...values) {
+    SpawnedMethod(Value...values) {
       this.values = values;
     }
 

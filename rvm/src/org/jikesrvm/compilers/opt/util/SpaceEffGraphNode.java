@@ -628,7 +628,7 @@ public class SpaceEffGraphNode implements GraphNode {
   static final class InEdgeEnumeration implements GraphEdgeEnumeration<GraphEdge> {
     private SpaceEffGraphEdge _edge;
 
-    public InEdgeEnumeration(SpaceEffGraphNode n) {
+    InEdgeEnumeration(SpaceEffGraphNode n) {
       _edge = n._inEdgeStart;
     }
 
@@ -653,7 +653,7 @@ public class SpaceEffGraphNode implements GraphNode {
   static final class InNodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphEdge _edge;
 
-    public InNodeEnumeration(SpaceEffGraphNode n) {
+    InNodeEnumeration(SpaceEffGraphNode n) {
       _edge = n._inEdgeStart;
     }
 
@@ -698,7 +698,7 @@ public class SpaceEffGraphNode implements GraphNode {
   static final class OutNodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphEdge _edge;
 
-    public OutNodeEnumeration(SpaceEffGraphNode n) {
+    OutNodeEnumeration(SpaceEffGraphNode n) {
       _edge = n._outEdgeStart;
     }
 

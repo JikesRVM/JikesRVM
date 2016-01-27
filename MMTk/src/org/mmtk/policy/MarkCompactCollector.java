@@ -107,7 +107,7 @@ public final class MarkCompactCollector {
     /**
      * @param name The name of the region - for debugging messages.
      */
-    public RegionCursor(String name) {
+    RegionCursor(String name) {
       this.name = name;
     }
 
@@ -233,7 +233,7 @@ public final class MarkCompactCollector {
    */
   @Uninterruptible
   private static final class FromCursor extends RegionCursor {
-    public FromCursor() {
+    FromCursor() {
       super("from");
     }
 
@@ -320,7 +320,7 @@ public final class MarkCompactCollector {
    */
   @Uninterruptible
   private static final class ToCursor extends RegionCursor {
-    public ToCursor() {
+    ToCursor() {
       super("to");
     }
 

@@ -564,7 +564,7 @@ class ArgumentPassing {
   //
 
   // dummy constructor for test on virtual methods
-  public ArgumentPassing() {
+  ArgumentPassing() {
 
   }
 

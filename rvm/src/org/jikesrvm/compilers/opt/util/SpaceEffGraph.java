@@ -407,7 +407,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   private static final class NodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphNode _node;
 
-    public NodeEnumeration(SpaceEffGraphNode n) {
+    NodeEnumeration(SpaceEffGraphNode n) {
       _node = n;
     }
 

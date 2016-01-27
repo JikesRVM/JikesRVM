@@ -1189,7 +1189,7 @@ public final class LiveAnalysis extends CompilerPhase {
     private final Instruction inst;
     private final List<RegSpillListElement> list;
 
-    public MapElement(Instruction inst, List<RegSpillListElement> list) {
+    MapElement(Instruction inst, List<RegSpillListElement> list) {
       this.inst = inst;
       this.list = list;
     }

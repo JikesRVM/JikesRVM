@@ -41,7 +41,7 @@ final class PendingRETInfo {
 
   // --------------------- Constructors ----------------------------
 
-  public PendingRETInfo(int JSRSubStartByteIndex, int JSRBBNum, int returnAddressLocation, short JSRNextBBNum) {
+  PendingRETInfo(int JSRSubStartByteIndex, int JSRBBNum, int returnAddressLocation, short JSRNextBBNum) {
     this.JSRSubStartByteIndex = JSRSubStartByteIndex;
     this.JSRBBNum = JSRBBNum;
     this.returnAddressLocation = returnAddressLocation;
@@ -49,7 +49,7 @@ final class PendingRETInfo {
     updatedOnce = false;
   }
 
-  public PendingRETInfo(PendingRETInfo copyfrom) {
+  PendingRETInfo(PendingRETInfo copyfrom) {
     this.JSRSubStartByteIndex = copyfrom.JSRSubStartByteIndex;
     this.JSRBBNum = copyfrom.JSRBBNum;
     this.returnAddressLocation = copyfrom.returnAddressLocation;

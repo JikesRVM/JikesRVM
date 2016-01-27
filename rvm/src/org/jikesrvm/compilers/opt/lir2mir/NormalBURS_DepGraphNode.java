@@ -26,7 +26,7 @@ class NormalBURS_DepGraphNode extends DepGraphNode {
   private int predecessorCount;
   private AbstractBURS_TreeNode currentParent;
 
-  public NormalBURS_DepGraphNode(Instruction instr) {
+  NormalBURS_DepGraphNode(Instruction instr) {
     super(instr);
   }
 

@@ -35,11 +35,15 @@ class TestClassInitializerB {
 }
 
 class TestClassInitializerC {
-   static     { System.out.println("clinit called for TestClassInitializerC"); }
+   static {
+     System.out.println("clinit called for TestClassInitializerC");
+   }
 }
 
 class TestClassInitializerD extends TestClassInitializerC {
-   static     { System.out.println("clinit called for TestClassInitializerD"); }
+   static {
+     System.out.println("clinit called for TestClassInitializerD");
+   }
    static int i = 123;
 }
 

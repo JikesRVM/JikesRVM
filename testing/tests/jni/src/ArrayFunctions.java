@@ -427,12 +427,7 @@ class ArrayFunctions {
 
   }
 
-
-
-  /**
-   * constructor
-   */
-  public ArrayFunctions() {
+  ArrayFunctions() {
   }
 
   public static void main(String[] args) {

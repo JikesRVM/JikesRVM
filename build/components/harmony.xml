@@ -13,7 +13,6 @@
 <project name="harmony" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="harmony.version" value="5.0M10"/>
   <property name="harmony.svn.revision" value="782693"/>

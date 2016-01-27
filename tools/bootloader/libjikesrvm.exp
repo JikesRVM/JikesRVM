@@ -7,6 +7,7 @@ JVM_0.1 {
     Me;
     verbose;
     verboseBoot;
+    verboseSignalHandling;
     sysJavaVM;
     initialHeapSize;
     maximumHeapSize;

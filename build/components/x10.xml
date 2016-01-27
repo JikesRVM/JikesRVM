@@ -13,7 +13,6 @@
 <project name="x10" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="x10.version" value="1"/>
   <property name="x10.description" value="X10"/>

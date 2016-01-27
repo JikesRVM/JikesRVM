@@ -29,7 +29,7 @@ public @interface Inline {
   /**
    * Enumeration defining when to inline
    */
-  public enum When {
+  enum When {
     /**
      * Always inline, regardless of arguments
      */

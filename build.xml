@@ -18,7 +18,7 @@
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
   <import file="build/tasks.xml"/>
-  <import file="build/checkstylePlugin.xml"/>
+  <import file="build/checkstyle-plugins.xml"/>
 
   <property name="config.mmtk" value="default"/>
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
@@ -344,6 +344,14 @@
     <ant antfile="build/components/junit.xml" target="ensure"/>
     <ant antfile="build/components/hamcrest.xml" target="ensure"/>
     <ant antfile="build/components/mockito.xml" target="ensure"/>
+    <if>
+      <conditions>
+        <equals arg1="${require.checkstyle}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/checkstyle.xml" target="ensure"/>
+      </sequential>
+    </if>
     <property file="${components.file}"/>
   </target>
 
@@ -2571,11 +2579,6 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="ensure-checkstyle">
-    <ant antfile="build/components/checkstyle.xml" target="ensure"/>
-    <property file="${components.file}"/>
-  </target> 
-
   <target name="do-checkstyle">
     <if>
       <conditions>
@@ -2587,12 +2590,18 @@ target.jni-suffix=${target.jni-suffix}
     </if>
   </target>
 
-  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle,
-    test-checkstyle-plugin">
-    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}:${plugin.jar}"/>
+  <target name="set-checkstyle-as-required">
+    <property name="require.checkstyle" value="true"/>
+  </target>
+
+  <target name="checkstyle" depends="set-checkstyle-as-required,prepare-source,prepare-config-source,choose-classlib,
+    compile-plugins-into-single-jar">
+    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${checkstyle.plugin.combined.jar}"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
+      <property key="checkstyle.known.archs" value="ia32,ppc"/>
+      <property key="checkstyle.target.arch" value="${target.arch}"/>
       <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
       <fileset dir="rvm/src" includes="**/*.java"/>
       <fileset dir="rvm/src-generated" includes="**/*.java"/>

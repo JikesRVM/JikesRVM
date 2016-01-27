@@ -75,12 +75,12 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
   readContextInformation(context, &instructionPtr, &instructionFollowingPtr,
                          &threadPtr, &jtocPtr);
-  TRACE_PRINTF("%s: hardwareTrapHandler %d %p - %p %p %p %p\n", Me, signo,
+  VERBOSE_SIGNALS_PRINTF("%s: hardwareTrapHandler %d %p - %p %p %p %p\n", Me, signo,
                (void*)context, (void*)instructionPtr, (void*)instructionFollowingPtr,
                (void*)threadPtr, (void*)jtocPtr);
 
-  TRACE_PRINTF("%s: hardwareTrapHandler: trap context:\n", Me);
-  if(TRACE) dumpContext(context);
+  VERBOSE_SIGNALS_PRINTF("%s: hardwareTrapHandler: trap context:\n", Me);
+  if (verboseSignalHandling) dumpContext(context);
 
   /* die if the signal didn't originate from the RVM */
   if (!inRVMAddressSpace(instructionPtr) || !inRVMAddressSpace(threadPtr)) {
@@ -106,7 +106,7 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   unsigned char *inuse = ((unsigned  char*)vmRegisters + Registers_inuse_offset);
   if (*inuse) {
     /* unexpected VM registers in use.. dump VM and die */
-    TRACE_PRINTF("%s: VM registers in use whilst delivering hardware trap\n", Me);
+    VERBOSE_SIGNALS_PRINTF("%s: VM registers in use whilst delivering hardware trap\n", Me);
     setupDumpStackAndDie(context);
   } else {
     *inuse = 1; /* mark in use */
@@ -114,8 +114,8 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
          instructionPtr, instructionFollowingPtr,
          threadPtr, jtocPtr, framePtr, signo);
   }
-  TRACE_PRINTF("%s: hardwareTrapHandler: trap context on exit:\n", Me);
-  if(TRACE) dumpContext(context);
+  VERBOSE_SIGNALS_PRINTF("%s: hardwareTrapHandler: trap context on exit:\n", Me);
+  if (verboseSignalHandling) dumpContext(context);
 }
 
 /**
@@ -127,16 +127,16 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
  */
 EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *context)
 {
-  TRACE_PRINTF("%s: softwareSignalHandler %d %p\n", Me, signo, context);
+  VERBOSE_SIGNALS_PRINTF("%s: softwareSignalHandler %d %p\n", Me, signo, context);
 
   // asynchronous signal used to awaken internal debugger
   if (signo == SIGQUIT) {
     // Turn on debug-request flag.
     unsigned *flag = (unsigned *)((char *)bootRecord->tocRegister + bootRecord->debugRequestedOffset);
     if (*flag) {
-      TRACE_PRINTF("%s: debug request already in progress, please wait\n", Me);
+      VERBOSE_SIGNALS_PRINTF("%s: debug request already in progress, please wait\n", Me);
     } else {
-      TRACE_PRINTF("%s: debug requested, waiting for a thread switch\n", Me);
+      VERBOSE_SIGNALS_PRINTF("%s: debug requested, waiting for a thread switch\n", Me);
       *flag = 1;
     }
     return;
@@ -150,7 +150,7 @@ EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *conte
     // Presumably we received this signal because someone wants us
     // to shut down.  Exit directly (unless the verbose flag is set).
     // TODO: Run the shutdown hooks instead.
-    if (!verbose) {
+    if (!verboseSignalHandling) {
       /* Now reraise the signal.  We reactivate the signal's
          default handling, which is to terminate the process.
          We could just call `exit' or `abort',
@@ -161,17 +161,17 @@ EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *conte
       raise(signo);
     }
 
-    TRACE_PRINTF("%s: kill requested: invoking dumpStackAndDie\n", Me);
+    VERBOSE_SIGNALS_PRINTF("%s: kill requested: invoking dumpStackAndDie\n", Me);
     setupDumpStackAndDie(context);
     return;
   }
 
   /* Default case. */
-  TRACE_PRINTF("%s: got an unexpected software signal (# %d)", Me, signo);
+  VERBOSE_SIGNALS_PRINTF("%s: got an unexpected software signal (# %d)", Me, signo);
 #if defined __GLIBC__ && defined _GNU_SOURCE
-  TRACE_PRINTF(" %s", strsignal(signo));
+  VERBOSE_SIGNALS_PRINTF(" %s", strsignal(signo));
 #endif
-  TRACE_PRINTF("; ignoring it.\n");
+  VERBOSE_SIGNALS_PRINTF("; ignoring it.\n");
 }
 
 

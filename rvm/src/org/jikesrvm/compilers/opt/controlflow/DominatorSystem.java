@@ -34,7 +34,7 @@ class DominatorSystem extends DF_System {
    * Default constructor.
    * @param ir the governing IR
    */
-  public DominatorSystem(IR ir) {
+  DominatorSystem(IR ir) {
     this.ir = ir;
     setupEquations();
   }

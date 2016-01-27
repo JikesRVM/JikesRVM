@@ -27,10 +27,7 @@ class NativeException {
   static native boolean testExceptionThrowNew(Class eclass);
   static native boolean testFatalError(boolean allTestPass, int[] sourceArray);
 
-  /**
-   * constructor
-   */
-  public NativeException() {
+  NativeException() {
 
   }
 

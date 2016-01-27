@@ -99,7 +99,7 @@ public class CommandLineArgs {
      * @param v argument string
      * @param t type of prefix, must be non-null
      */
-    public Prefix(String v, PrefixType t) {
+    Prefix(String v, PrefixType t) {
       value = v;
       type = t;
       if (t == null) {

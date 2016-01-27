@@ -36,7 +36,7 @@ public final class ReferenceMaps {
   public static final int STARTINDEX = 0;
   public static final int NOMORE = 0;
   /** Kinds of merge operation when merging delta maps into table maps */
-  private static enum MergeOperation {
+  private enum MergeOperation {
     OR, NAND, COPY
   }
 
@@ -1365,9 +1365,8 @@ public final class ReferenceMaps {
       VM.sysWrite("\n");
 
       VM.sysWrite("              -jsr base map  = ");
-      for (i = 0; i < bytesPerMap(); i++)
-      // ORIGINAL VM.sysWrite( jsrInfo.unusualReferenceMaps[jsrBaseMapIndex + i]);
-      {
+      for (i = 0; i < bytesPerMap(); i++) {
+        // ORIGINAL VM.sysWrite( jsrInfo.unusualReferenceMaps[jsrBaseMapIndex + i]);
         VM.sysWrite(referenceMaps[jsrBaseMapIndex + i]);
       }
       VM.sysWrite("\n");

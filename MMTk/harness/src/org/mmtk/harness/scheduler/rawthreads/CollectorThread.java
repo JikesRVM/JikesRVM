@@ -39,7 +39,7 @@ class CollectorThread extends RawThread {
   }
 
   /** Create a collector thread, with a new collector */
-  public CollectorThread(RawThreadModel model, CollectorContext context) {
+  CollectorThread(RawThreadModel model, CollectorContext context) {
     this(model,context,true);
   }
 

@@ -13,7 +13,6 @@
 <project name="mockito" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="mockito.version" value="1.9.5-rc1"/>
   <property name="mockito.description" value="Mockito"/>

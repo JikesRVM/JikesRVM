@@ -27,7 +27,7 @@ import org.vmmagic.Pragma;
 @Pragma
 public @interface RuntimePure {
   /** Enumeration of the special boot image return values */
-  public enum ReturnValue {
+  enum ReturnValue {
     /** the return value is unavailable until runtime*/
     Unavailable
   }

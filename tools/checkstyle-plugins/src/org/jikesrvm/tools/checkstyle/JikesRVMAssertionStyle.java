@@ -27,7 +27,6 @@ import static com.puppycrawl.tools.checkstyle.api.TokenTypes.*;
 
 import java.util.Stack;
 
-import com.puppycrawl.tools.checkstyle.api.Check;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.FullIdent;
 
@@ -41,7 +40,7 @@ import com.puppycrawl.tools.checkstyle.api.FullIdent;
  * visitor for the traversal) from the interesting parts in order to keep the
  * set of declared tokens small (see {@link #defaultTokens}).
  */
-public class JikesRVMAssertionStyle extends Check {
+public final class JikesRVMAssertionStyle extends AbstractJikesRVMPlugin {
 
   private static final String ASSERT_IS_FORBIDDEN_MSG = "The assert keyword must not be used.";
   private static final String IMPROPERLY_GUARDED_ASSERTION_MSG = "All " +
@@ -70,8 +69,6 @@ public class JikesRVMAssertionStyle extends Check {
 
   private static final boolean DEBUG = false;
 
-  private final StringBuilder packageNameBuilder;
-  private final StringBuilder classNameBuilder;
   private int classDepth;
 
   private boolean isMMTkHarnessClass;
@@ -87,8 +84,7 @@ public class JikesRVMAssertionStyle extends Check {
   private final Stack<Boolean> assertionGuardsPresent;
 
   public JikesRVMAssertionStyle() {
-    packageNameBuilder = new StringBuilder();
-    classNameBuilder = new StringBuilder();
+    super();
     assertionGuardsPresent = new Stack<Boolean>();
   }
 
@@ -281,18 +277,6 @@ public class JikesRVMAssertionStyle extends Check {
     return !isMMTkHarnessClass;
   }
 
-  private void visitClassOrEnumDef(DetailAST ast) {
-    DetailAST classNameAST = ast.findFirstToken(IDENT);
-    String className = classNameAST.getText();
-    if (classDepth > 0) {
-      classNameBuilder.append("$");
-    }
-    classNameBuilder.append(className);
-    classDepth++;
-
-    checkIfClassIsExcluded();
-  }
-
   private void visitPackageDef(DetailAST ast) {
     isMMTkHarnessClass = false;
     packageNameBuilder.setLength(0);
@@ -302,7 +286,8 @@ public class JikesRVMAssertionStyle extends Check {
     packageNameBuilder.append(fullIdent.getText());
   }
 
-  private void checkIfClassIsExcluded() {
+  @Override
+  protected void checkIfClassIsExcluded() {
     String packageName = packageNameBuilder.toString();
     isMMTkHarnessClass = packageName.endsWith("harness") || packageName.contains(".harness.");
 

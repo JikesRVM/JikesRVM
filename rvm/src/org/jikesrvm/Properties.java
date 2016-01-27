@@ -70,6 +70,13 @@ public class Properties extends Options {
   public static int verboseBoot = 0;
 
   /**
+   * The following is set on by -X:verboseSignalHandling command line argument.
+   * When {@code true}, it generates messages to the sysWrite stream when
+   * a hardware exception is delivered to a thread.
+   */
+  public static boolean verboseSignalHandling = false;
+
+  /**
    * The following is set on by -verbose:class command line argument.
    * When true, it generates messages to the sysWrite stream summarizing
    * class loading activities

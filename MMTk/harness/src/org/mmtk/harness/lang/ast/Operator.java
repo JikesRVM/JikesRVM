@@ -124,7 +124,7 @@ public enum Operator {
   /** Printable representation */
   private final String image;
 
-  private Operator(String image) {
+  Operator(String image) {
     this.image = image;
   }
 

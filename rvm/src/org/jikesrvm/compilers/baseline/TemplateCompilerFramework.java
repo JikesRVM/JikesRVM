@@ -132,7 +132,7 @@ public abstract class TemplateCompilerFramework {
    */
   protected final boolean isUnpreemptible;
 
-  public static enum BranchCondition {
+  public enum BranchCondition {
     EQ, NE, LT, GE, GT, LE
   }
 

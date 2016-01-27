@@ -200,8 +200,7 @@ private static void p0() {
 }
 
 
-private static void pout(int n, int j, int k, double x1, double x2, double x3, double x4)
-{
+private static void pout(int n, int j, int k, double x1, double x2, double x3, double x4) {
    System.out.println(x1 + " " + x2 + " " + x3 + " " + x4 +
                       //" " + Double.doubleToLongBits(x1) +
                       //" " + Double.doubleToLongBits(x2) +

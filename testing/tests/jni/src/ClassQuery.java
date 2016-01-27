@@ -28,10 +28,7 @@ class ClassQuery extends ClassQuerySuper {
   static native Class testGetObjectClass(Object obj);
   static native boolean testInstanceOf(Object obj, Class cls);
 
-  /**
-   * constructor
-   */
-  public ClassQuery() {
+  ClassQuery() {
     toTestConstructor = 2;
   }
 

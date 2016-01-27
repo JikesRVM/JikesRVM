@@ -14,7 +14,9 @@ package test.org.jikesrvm.basic.core.bytecode;
 
 class TestClassInitializer {
   private static class TypeA {
-    static { System.out.println("TypeA.<clinit>()"); }
+    static {
+      System.out.println("TypeA.<clinit>()");
+    }
 
     static int f() {
       System.out.println("TypeA.f()");
@@ -25,7 +27,9 @@ class TestClassInitializer {
   }
 
   private static class TypeB {
-    static { System.out.println("TypeB.<clinit>()"); }
+    static {
+      System.out.println("TypeB.<clinit>()");
+    }
 
     int f() {
       System.out.println("TypeB.f()");
@@ -34,11 +38,15 @@ class TestClassInitializer {
   }
 
   private static class TypeC {
-    static { System.out.println("TypeC.<clinit>()"); }
+    static {
+      System.out.println("TypeC.<clinit>()");
+    }
   }
 
   private static class TypeD extends TypeC {
-    static { System.out.println("TypeD.<clinit>()"); }
+    static {
+      System.out.println("TypeD.<clinit>()");
+    }
 
     static int i = 123;
   }
