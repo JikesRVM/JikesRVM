@@ -59,11 +59,17 @@
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
         <module name="MethodName"/>
-        <module name="PackageName"/>
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
     -->
+    <!-- Standard checks for package name to allow everything
+      that's in the Java Specification. Checkstyle's manual
+      mentions that most configurations want to forbid underscores
+      and upper case letters as they are uncommon. We stick with the
+      default because Jikes RVM uses both underscore (header_gen packages)
+      and upper case (bootImageWriter packages) -->
+    <module name="PackageName"/>
 
     <!-- Checks for imports                              -->
     <!-- See http://checkstyle.sf.net/config_imports.html -->
