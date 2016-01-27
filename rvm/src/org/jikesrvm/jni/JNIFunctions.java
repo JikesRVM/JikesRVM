@@ -6082,8 +6082,7 @@ public class JNIFunctions {
    *RVM native interfaces for Openjdk library
    */
 
-  private static int RVM_DoPrivileged(JNIEnvironment env, int refClass, int refaction, int refcontext, Address iswarpException)
-  {
+  private static int RVM_DoPrivileged(JNIEnvironment env, int refClass, int refaction, int refcontext, Address iswarpException) {
     VM.sysWriteln("############RVM_Doprivileged is called");
     //    PrivilegedAction action = (PrivilegedAction) env.getJNIRef(refaction);
     //    Object a = action.run();
