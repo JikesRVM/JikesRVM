@@ -20,10 +20,7 @@
   <import file="build/tasks.xml"/>
   <import file="build/checkstyle-plugins.xml"/>
 
-  <property name="config.mmtk" value="default"/>
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
-  <property name="mmtk.properties" location="${jikesrvm.dir}/build/mmtk/${config.mmtk}.properties"/>
-  <property name="default.mmtk.properties" location="${jikesrvm.dir}/build/mmtk/default.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>
@@ -218,6 +215,10 @@
   </target>
 
   <target name="check-mmtk-properties"  depends="check-host-name">
+    <property name="config.mmtk" value="default"/>
+    <property name="mmtk.properties" location="${jikesrvm.dir}/build/mmtk/${config.mmtk}.properties"/>
+    <property name="default.mmtk.properties" location="${jikesrvm.dir}/build/mmtk/default.properties"/>
+
     <available property="mmtk_properties_present" file="${mmtk.properties}"/>
     <fail unless="mmtk_properties_present">
       MMTk properties file ${mmtk.properties} not present. Please set mmtk.properties to the name of file in ${jikesrvm.dir}/build/mmtk directory without the .properties suffix.

@@ -42,12 +42,9 @@ public abstract class PageResource {
    * Class variables
    */
 
-  /**
-   *
-   */
-  protected static final boolean ZERO_ON_RELEASE = false; // debugging
-
+  /** lock protecting count of total cumulative pages committed */
   private static final Lock classLock;
+  /** cumulative count of pages ever committed */
   private static long cumulativeCommitted = 0;
 
 

@@ -307,7 +307,7 @@ public final class MonotonePageResource extends PageResource {
     int pages = Conversions.bytesToPages(bytes);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
-    if (ZERO_ON_RELEASE)
+    if (VM.config.ZERO_PAGES_ON_RELEASE)
       VM.memory.zero(false, first, bytes);
     if (Options.protectOnRelease.getValue())
       Mmapper.protect(first, pages);
