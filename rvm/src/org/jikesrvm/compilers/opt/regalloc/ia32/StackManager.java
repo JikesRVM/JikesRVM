@@ -105,7 +105,7 @@ public final class StackManager extends GenericStackManager {
    * registers in move instructions.  Note: as of Feb. 02, we think this
    * is a bad idea.
    */
-  private static boolean FLOAT_ESP = false;
+  private static final boolean FLOAT_ESP = false;
 
   @Override
   public int getFrameFixedSize() {
