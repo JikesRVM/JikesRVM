@@ -1032,6 +1032,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER" value="true" else="false">
       <equals arg1="${config.bootimage.compiler}" arg2="base"/>
     </condition>
+    <condition property="pp_RVM_OVERSIZED_IMAGE" value="true" else="false">
+      <equals arg1="${config.allowOversizedImage}" arg2="true"/>
+    </condition>
     <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
     </condition>
@@ -1062,6 +1065,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${config.include.aos}"/>
         <filter token="_RVM_WITH_OPT_COMPILER_" value="${pp_RVM_WITH_OPT_COMPILER}"/>
         <filter token="_RVM_WITH_BASE_BOOTIMAGE_COMPILER_" value="${pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER}"/>
+        <filter token="_RVM_OVERSIZED_IMAGE_" value="${pp_RVM_OVERSIZED_IMAGE}"/>
         <filter token="_RVM_MMTK_PLAN_" value="${config.mmtk.plan}"/>
         <filter token="_RVM_WITH_GCSPY_" value="${config.include.gcspy}"/>
         <filter token="_RVM_STRESSGC_INTERVAL_" value="${config.stress-gc-interval}"/>

@@ -80,6 +80,9 @@ public abstract class Configuration {
   /** build with Base boot image compiler? */
   public static final boolean BuildWithBaseBootImageCompiler = @_RVM_WITH_BASE_BOOTIMAGE_COMPILER_@;
 
+  /** allow bootimage writer to build oversized images? */
+  public static final boolean AllowOversizedImages = @_RVM_OVERSIZED_IMAGE_@;
+
   // Interface method dispatch strategy.
   // We either use IMT's (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA 2001)
   // or searched ITables. See also the research archive for the variants on these
