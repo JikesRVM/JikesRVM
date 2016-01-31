@@ -366,6 +366,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="include.ppc" value="true">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
+    <condition property="include.32bit" value="true">
+      <equals arg1="${target.address.size}" arg2="32"/>
+    </condition>
     <condition property="include.aos" value="true">
       <and>
         <equals arg1="${config.include.aos}" arg2="true"/>
@@ -1577,13 +1580,17 @@ Check to make sure all required properties are specified. This includes properti
       <include name="org/**/*.class" />
       <include name="com/ibm/tuningfork/**/*.class" />
       <exclude name="**/ppc/*.class" unless="include.ppc"/>
+      <exclude name="**/ppc_*/*.class" unless="include.ppc"/>
       <exclude name="**/ia32/*.class" if="include.ppc"/>
+      <exclude name="**/ia32_*/*.class" if="include.ppc"/>
       <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
       <exclude name="org/jikesrvm/compilers/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/ArchitectureSpecificOpt$*.class" unless="include.opt"/>
+      <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_32/**/*.class" unless="include.32bit"/>
+      <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_64/**/*.class" if="include.32bit"/>
       <include name="**/JikesRVMSupport.class"/>
       <include name="java/**/VM*.class" />
       <include name="gnu/**/VM*.class" />
