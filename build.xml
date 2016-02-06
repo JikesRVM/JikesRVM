@@ -451,7 +451,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
-           source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false">
+           source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false" deprecation="yes">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.options.classes}"/>
