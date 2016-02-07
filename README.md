@@ -42,15 +42,17 @@ For work based on Jikes RVM, see our [publications page](http://www.jikesrvm.org
 
 ## Other GitHub repositories that are based on Jikes RVM
 
-There are a lot of projects on GitHub that are based on Jikes RVM but aren't forks of this repository. If you want your project listed (or not listed) here, please send us a patch or pull request. The list is divided into repositories with code changes and additional information (description, README, paper, thesis, ...), repositories that have code changes but no (known) support material and repositories where it's unclear if there are actually any code changes against the base Jikes RVM.
+There are a lot of projects on GitHub that are based on Jikes RVM but aren't forks of this repository. If you want your project listed (or not listed) here, please send us a patch or pull request.
+
+The list is divided into repositories with code changes and additional information (description, README, paper, thesis, ...), repositories that have code changes but no (known) support material and repositories where it's unclear if there are actually any code changes against the base Jikes RVM.
 
 Projects with code changes and additional information
 * [HeraJVM](https://github.com/rmcilroy/HeraJVM), a JVM implementation for the Cell processor. See the thesis [Using program behaviour to exploit heterogeneous multi-core processors ](http://theses.gla.ac.uk/1755/) by Ross McIlroy or the paper "Hera-JVM: A Runtime System for Heterogeneous Multi-Core Architectures".
-* [Metacircular Research Platform] by Ian Rogers. We're trying to merge most of the changes from MRP, with the notable exception of Apache Harmony support (because it's dead upstream) and Windows support (because that is implemented with Apache Harmony in MRP). If you want to help, see the [MRP merge status page](http://www.jikesrvm.org/MergeStatusOfMRPChangesets/) and ask on the core mailing list first.
+* [Metacircular Research Platform](https://github.com/codehaus/mrp) by Ian Rogers. We're trying to merge most of the changes from MRP, with the notable exception of Apache Harmony support (because it's dead upstream) and Windows support (because that is implemented with Apache Harmony in MRP). If you want to help, see the [MRP merge status page](http://www.jikesrvm.org/MergeStatusOfMRPChangesets/) and ask on the core mailing list first.
 * [A mark-compact related GC implementation](https://github.com/ampasowa/jikesrvm)
 * [Cost-aware Parallel GC](https://github.com/junjieqian/CAP-GC) by Junjie Qian
 * [Deutsch-Bobrow-GC](https://github.com/NikolausDemmel/pgc-jikesrvm)
-* [GPU garbage collection](https://github.com/preames/gpu-garbage-collection) code from the paper "GPUs as an Opportunity for Offloading Garbage Collection" by Maas et al.from ISMM 2012.
+* [GPU garbage collection](https://github.com/preames/gpu-garbage-collection) code from the paper "GPUs as an Opportunity for Offloading Garbage Collection" by Maas et al. from ISMM 2012.
 * [Reference-counting Immix](https://github.com/rifatshahriyar/rcimmix) by Rifat Shahriyar et al. See the paper "Taking Off the Gloves with Reference Counting Immix" (OOPSLA'13). There's also a conservative version of the collector and an associated paper in OOPSLA'14. Patches to produce both collector implementations from a base Jikes RVM can be found in Rifat's [patch repository](https://github.com/rifatshahriyar/rcimmixpatch). If you want to help to get the code into mainline Jikes RVM, contact us on the core mailing list. The relevant issues are [RVM-1061](https://xtenlang.atlassian.net/browse/RVM-1061) for RCImmix and [RVM-1085](https://xtenlang.atlassian.net/browse/RVM-1085) for conservative RC Immix.
 * [Sapphire garbage collector](https://github.com/perlfu/sapphire). See that repository's readme for more information. If you want to help get the collector into mainline, contact us on the core mailing list. The associated issue is [RVM-893](https://xtenlang.atlassian.net/browse/RVM-893).
 * [The MMTk tutorial collector implemented](https://github.com/Elizaveta239/MMTk-gc)
