@@ -2035,7 +2035,7 @@ public class BootImageWriter extends BootImageWriterMessages {
         // Handle the code array that is represented as either byte or int arrays
         if (verbosity.isAtLeast(DETAILED)) depth--;
         Object backing = ((CodeArray)jdkObject).getBacking();
-        mapEntry.imageAddress = copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
+        return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
       } else if (rvmType.getTypeRef().isMagicType()) {
         say("Unhandled copying of magic type: " + rvmType.getDescriptor().toString() +
             " in object of type " + parentObject.getClass().toString());
@@ -2214,11 +2214,18 @@ public class BootImageWriter extends BootImageWriterMessages {
         Object value = jdkFieldAcc.get(jdkObject);
         if (!allocOnly) {
           Class<?> jdkClass = jdkFieldAcc.getDeclaringClass();
-          if (verbosity.isAtLeast(DETAILED)) traceContext.push(value.getClass().getName(),
+          if (verbosity.isAtLeast(DETAILED)) {
+            String typeName = (value == null) ? "(unknown: value was null)" :
+              value.getClass().getName();
+            traceContext.push(typeName,
               jdkClass.getName(),
               jdkFieldAcc.getName());
+          }
           copyReferenceFieldToBootImage(rvmFieldAddress, value, jdkObject,
               !untracedField, !(untracedField || rvmField.isFinal()), rvmFieldName, rvmFieldType);
+          if (verbosity.isAtLeast(DETAILED)) {
+            traceContext.pop();
+          }
         }
       }
     }
