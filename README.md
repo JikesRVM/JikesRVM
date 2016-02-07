@@ -36,6 +36,47 @@ The short version:
 * You can send us patches or use pull requests. Send patches to the [core mailing list](mailto:jikesrvm-core@lists.sourceforge.net).
 * It is ok to test on one platform only (e.g. only on IA32).
 
+## Work based on Jikes RVM
+
+For work based on Jikes RVM, see our [publications page](http://www.jikesrvm.org/Resources/Publications/). Bear in mind that this page is almost always incomplete. You can help rectify this by submitting pull requests or patches against the [website repository](https://github.com/JikesRVM/jikesrvm.github.io/). Additionally, some authors have decided to publish the code for their papers in the [research archive at Sourceforge](http://sourceforge.net/p/jikesrvm/research-archive/?limit=250).
+
+## Other GitHub repositories that are based on Jikes RVM
+
+There are a lot of projects on GitHub that are based on Jikes RVM but aren't forks of this repository. If you want your project listed (or not listed) here, please send us a patch or pull request. The list is divided into repositories with code changes and additional information (description, README, paper, thesis, ...), repositories that have code changes but no (known) support material and repositories where it's unclear if there are actually any code changes against the base Jikes RVM.
+
+Projects with code changes and additional information
+* [HeraJVM](https://github.com/rmcilroy/HeraJVM), a JVM implementation for the Cell processor. See the thesis [Using program behaviour to exploit heterogeneous multi-core processors ](http://theses.gla.ac.uk/1755/) by Ross McIlroy or the paper "Hera-JVM: A Runtime System for Heterogeneous Multi-Core Architectures".
+* [Metacircular Research Platform] by Ian Rogers. We're trying to merge most of the changes from MRP, with the notable exception of Apache Harmony support (because it's dead upstream) and Windows support (because that is implemented with Apache Harmony in MRP). If you want to help, see the [MRP merge status page](http://www.jikesrvm.org/MergeStatusOfMRPChangesets/) and ask on the core mailing list first.
+* [A mark-compact related GC implementation](https://github.com/ampasowa/jikesrvm)
+* [Cost-aware Parallel GC](https://github.com/junjieqian/CAP-GC) by Junjie Qian
+* [Deutsch-Bobrow-GC](https://github.com/NikolausDemmel/pgc-jikesrvm)
+* [GPU garbage collection](https://github.com/preames/gpu-garbage-collection) code from the paper "GPUs as an Opportunity for Offloading Garbage Collection" by Maas et al.from ISMM 2012.
+* [Reference-counting Immix](https://github.com/rifatshahriyar/rcimmix) by Rifat Shahriyar et al. See the paper "Taking Off the Gloves with Reference Counting Immix" (OOPSLA'13). There's also a conservative version of the collector and an associated paper in OOPSLA'14. Patches to produce both collector implementations from a base Jikes RVM can be found in Rifat's [patch repository](https://github.com/rifatshahriyar/rcimmixpatch). If you want to help to get the code into mainline Jikes RVM, contact us on the core mailing list. The relevant issues are [RVM-1061](https://xtenlang.atlassian.net/browse/RVM-1061) for RCImmix and [RVM-1085](https://xtenlang.atlassian.net/browse/RVM-1085) for conservative RC Immix.
+* [Sapphire garbage collector](https://github.com/perlfu/sapphire). See that repository's readme for more information. If you want to help get the collector into mainline, contact us on the core mailing list. The associated issue is [RVM-893](https://xtenlang.atlassian.net/browse/RVM-893).
+* [The MMTk tutorial collector implemented](https://github.com/Elizaveta239/MMTk-gc)
+* [A tool related to Pacer](https://github.com/jaggerlink/cs356).
+* [ByteSTM](https://github.com/mohamedin/bytestm). See the paper "ByteSTM: Virtual Machine-level Java Software Transactional Memory" by Mohamedin et al.
+* [Laminar](https://github.com/ut-osa/laminar). See the paper "Laminar: Practical Fine-Grained Decentralized Information Flow Control" by Roy et al. in PLDI'09. The changes can be found in the form of patches in the Jikes RVM [research archive entry](http://sourceforge.net/p/jikesrvm/research-archive/26/).
+* [A minimal implementation of causal profiling for Java applications running on Jikes RVM](https://github.com/alanweide/coff)
+
+Projects with code changes but without any additional information
+* [https://github.com/vilay/check](https://github.com/vilay/check)
+* [https://github.com/gdeOo/ditto](https://github.com/gdeOo/ditto)
+* [https://github.com/Scharrels/e-strobe](https://github.com/Scharrels/e-strobe)
+* [https://github.com/leizhao833/jikes-bmm](https://github.com/leizhao833/jikes-bmm)
+* [https://github.com/josemsimao/jikesrvm](https://github.com/josemsimao/jikesrvm)
+
+Projects that may or may not have any changes compared to a released version of Jikes RVM
+* [https://github.com/hkrish4/ConcurrentGC](https://github.com/hkrish4/ConcurrentGC)
+* [https://github.com/zitterbewegung/cs398](https://github.com/zitterbewegung/cs398)
+* [https://github.com/danyaberezun/JBPractise](https://github.com/danyaberezun/JBPractise)
+* [https://github.com/sirinath/jikesrvm](https://github.com/sirinath/jikesrvm)
+* [https://github.com/yanxiaoliang/jikesrvm](https://github.com/yanxiaoliang/jikesrvm)
+* [https://github.com/Betula-L/jikesrvm-3.1.3-hg_DrFinder](https://github.com/Betula-L/jikesrvm-3.1.3-hg_DrFinder)
+* [https://github.com/CodeOffloading/JikesRVM-CCO](https://github.com/CodeOffloading/JikesRVM-CCO)
+* [https://github.com/ravifreek63/RVMJikes](https://github.com/ravifreek63/RVMJikes)
+* [https://github.com/perpetualcoder/SMPGC](https://github.com/perpetualcoder/SMPGC)
+
 ## History
 
 The project migrated from Subversion to Mercurial and from Mercurial to Git. Certain older changes are not contained in this repository. If you need access to these changes, you can browse the old repositories at [SourceForge](http://sourceforge.net/p/jikesrvm). The relevant parts of the old repositories are also mirrored on GitHub (see below).
