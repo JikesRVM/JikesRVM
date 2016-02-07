@@ -144,7 +144,9 @@ public class BootImageWriter extends BootImageWriterMessages {
    * How much talking while we work?
    */
   private static int verbose = 0;
-  private static int depthCutoff = 3;  // how deeply in the recursive copy do we continue to blather
+
+  /** how deeply in the recursive copy do we continue to blather */
+  private static final int DEPTH_CUTOFF = 3;
 
   /**
    * Places to look for classes when building bootimage.
@@ -2105,9 +2107,9 @@ public class BootImageWriter extends BootImageWriterMessages {
       RVMClass rvmScalarType, boolean allocOnly, Address overwriteAddress, Object parentObject, boolean  untraced)
   throws IllegalAccessException {
     if (verbose >= 2) {
-      if (depth == depthCutoff)
+      if (depth == DEPTH_CUTOFF)
         say(SPACES.substring(0, depth + 1), "TOO DEEP: cutting off");
-      else if (depth < depthCutoff) {
+      else if (depth < DEPTH_CUTOFF) {
         String tab = SPACES.substring(0, depth + 1);
         if (depth == 0 && jtocCount >= 0)
           tab = tab + "jtoc #" + String.valueOf(jtocCount) + " ";
@@ -2240,9 +2242,9 @@ public class BootImageWriter extends BootImageWriterMessages {
       boolean allocOnly, Address overwriteAddress, Object parentObject, boolean  untraced)
   throws IllegalAccessException {
     if (verbose >= 2) {
-      if (depth == depthCutoff)
+      if (depth == DEPTH_CUTOFF)
         say(SPACES.substring(0, depth + 1), "TOO DEEP: cutting off");
-      else if (depth < depthCutoff) {
+      else if (depth < DEPTH_CUTOFF) {
         String tab = SPACES.substring(0, depth + 1);
         if (depth == 0 && jtocCount >= 0)
           tab = tab + "jtoc #" + String.valueOf(jtocCount) + ": ";
@@ -2367,9 +2369,9 @@ public class BootImageWriter extends BootImageWriterMessages {
     mapEntry.imageAddress = arrayImageAddress;
 
     if (verbose >= 2) {
-      if (depth == depthCutoff)
+      if (depth == DEPTH_CUTOFF)
         say(SPACES.substring(0, depth + 1), "TOO DEEP: cutting off");
-      else if (depth < depthCutoff) {
+      else if (depth < DEPTH_CUTOFF) {
         String tab = SPACES.substring(0, depth + 1);
         if (depth == 0 && jtocCount >= 0)
           tab = tab + "jtoc #" + String.valueOf(jtocCount) + ": ";
@@ -3090,9 +3092,9 @@ public class BootImageWriter extends BootImageWriterMessages {
           }
         }
         if (verbose >= 2) {
-          if (depth == depthCutoff)
+          if (depth == DEPTH_CUTOFF)
             say(SPACES.substring(0, depth + 1), "TOO DEEP: cutting off");
-          else if (depth < depthCutoff) {
+          else if (depth < DEPTH_CUTOFF) {
             String tab = SPACES.substring(0, depth + 1);
             if (depth == 0 && jtocCount >= 0)
               tab = tab + "jtoc #" + String.valueOf(jtocCount);
@@ -3149,9 +3151,9 @@ public class BootImageWriter extends BootImageWriterMessages {
           }
         }
         if (verbose >= 2) {
-          if (depth == depthCutoff)
+          if (depth == DEPTH_CUTOFF)
             say(SPACES.substring(0, depth + 1), "TOO DEEP: cutting off");
-          else if (depth < depthCutoff) {
+          else if (depth < DEPTH_CUTOFF) {
             String tab = SPACES.substring(0,depth + 1);
             if (depth == 0 && jtocCount >= 0)
               tab = tab + "#" + String.valueOf(jtocCount);
