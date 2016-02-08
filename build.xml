@@ -1685,6 +1685,17 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
 
+    <if>
+      <conditions>
+        <not>
+         <isset property="config.bootimage.writer.args"/>
+        </not>
+      </conditions>
+      <sequential>
+        <property name="config.bootimage.writer.args" value=""/>
+      </sequential>
+    </if>
+
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
     <echo message="MMTk properties = ${mmtk.properties}"/>
     <java classname="org.jikesrvm.tools.bootImageWriter.BootImageWriter"
@@ -1717,6 +1728,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-demographics"/>
       <arg value="-m"/>
       <arg path="${build.base}/RVM.map"/>
+      <arg line="${config.bootimage.writer.args}"/>
       <!-- <arg value="-trace"/> -->
       <!-- <arg value="-detailed"/> -->
       <!-- <arg value="-X:bc:verbose=true"/> -->
