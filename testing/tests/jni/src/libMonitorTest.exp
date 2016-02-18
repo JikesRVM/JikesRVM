@@ -1,0 +1,6 @@
+MonitorTest_0.1 {
+  global :
+	 Java_MonitorTest_setVerboseOff;
+	 Java_MonitorTest_accessMonitorFromNative;
+  local : *;
+};

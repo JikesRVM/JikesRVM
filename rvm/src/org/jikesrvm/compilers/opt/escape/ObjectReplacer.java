@@ -12,32 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.escape;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.ClassLoaderProxy;
-import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
-import org.jikesrvm.compilers.opt.ir.Empty;
-import org.jikesrvm.compilers.opt.ir.GetField;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.InstanceOf;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.New;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Trap;
-import org.jikesrvm.compilers.opt.ir.TypeCheck;
-
+import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.IRTools.IC;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT_opcode;
@@ -63,8 +39,33 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
-import org.jikesrvm.compilers.opt.ir.Register;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.ClassLoaderProxy;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.Empty;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.New;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.PutField;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.Trap;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
@@ -93,7 +94,7 @@ final class ObjectReplacer implements AggregateReplacer {
    * allocation site
    *
    * @param inst the allocation site
-   * @param ir
+   * @param ir the governing IR
    * @return the object, or null if illegal
    */
   public static ObjectReplacer getReplacer(Instruction inst, IR ir) {
@@ -139,8 +140,9 @@ final class ObjectReplacer implements AggregateReplacer {
   }
 
   /**
-   * Returns a ArrayList<RVMField>, holding the fields of the object
+   * Returns the instance fields of the object.
    * @param klass the type of the object
+   * @return a list holding the instance fields of the object
    */
   private static ArrayList<RVMField> getFieldsAsArrayList(RVMClass klass) {
     ArrayList<RVMField> v = new ArrayList<RVMField>();
@@ -167,10 +169,12 @@ final class ObjectReplacer implements AggregateReplacer {
    * @param use the use to replace
    * @param scalars an array of scalar register operands to replace
    *                  the object's fields with
+   * @param fields the object's fields
+   * @param visited the registers that were already seen
    */
   private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, ArrayList<RVMField> fields, Set<Register> visited) {
     Instruction inst = use.instruction;
-    try{
+    try {
       switch (inst.getOpcode()) {
       case PUTFIELD_opcode: {
         FieldReference fr = PutField.getLocation(inst).getFieldRef();
@@ -218,12 +222,12 @@ final class ObjectReplacer implements AggregateReplacer {
         // We cannot handle removing the checkcast if the result of the
         // checkcast test is unknown
         TypeReference lhsType = TypeCheck.getType(inst).getTypeRef();
-        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == OptConstants.YES) {
+        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == YES) {
           if (visited == null) {
             visited = new HashSet<Register>();
           }
           Register copy = TypeCheck.getResult(inst).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
             transform2(copy, inst, scalars, fields, visited);
             // NB will remove inst
@@ -243,7 +247,7 @@ final class ObjectReplacer implements AggregateReplacer {
         // instanceof test is unknown
         TypeReference lhsType = InstanceOf.getType(inst).getTypeRef();
         Instruction i2;
-        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == OptConstants.YES) {
+        if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == YES) {
           i2 = Move.create(INT_MOVE, InstanceOf.getClearResult(inst), IC(1));
         } else {
           i2 = Move.create(INT_MOVE, InstanceOf.getClearResult(inst), IC(0));
@@ -261,7 +265,7 @@ final class ObjectReplacer implements AggregateReplacer {
           visited = new HashSet<Register>();
         }
         Register copy = Move.getResult(use.instruction).getRegister();
-        if(!visited.contains(copy)) {
+        if (!visited.contains(copy)) {
           visited.add(copy);
           transform2(copy, inst, scalars, fields, visited);
           // NB will remove inst
@@ -274,7 +278,7 @@ final class ObjectReplacer implements AggregateReplacer {
         throw new OptimizingCompilerException("ObjectReplacer: unexpected use " + inst);
       }
     } catch (Exception e) {
-      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use ("+ use +") of: "+ inst);
+      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use (" + use + ") of: " + inst);
       oe.initCause(e);
       throw oe;
     }
@@ -282,6 +286,13 @@ final class ObjectReplacer implements AggregateReplacer {
 
   /**
    * Some cases we don't handle yet. TODO: handle them.
+   *
+   * @param ir the IR to check
+   * @param reg the register whose uses are being checked
+   * @param klass the class of the newly created object
+   * @param visited registers that were already seen
+   *
+   * @return {@code true} if the IR contains a case that we don't handle yet
    */
   private static boolean containsUnsupportedUse(IR ir, Register reg, RVMClass klass, Set<Register> visited) {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
@@ -296,17 +307,17 @@ final class ObjectReplacer implements AggregateReplacer {
           // checkcast test is unknown
           TypeReference lhsType = TypeCheck.getType(use.instruction).getTypeRef();
           byte ans = ClassLoaderProxy.includesType(lhsType, klass.getTypeRef());
-          if (ans == OptConstants.MAYBE) {
+          if (ans == MAYBE) {
             return true;
-          } else if (ans == OptConstants.YES) {
+          } else if (ans == YES) {
             // handle as a move
             if (visited == null) {
               visited = new HashSet<Register>();
             }
             Register copy = TypeCheck.getResult(use.instruction).getRegister();
-            if(!visited.contains(copy)) {
+            if (!visited.contains(copy)) {
               visited.add(copy);
-              if(containsUnsupportedUse(ir, copy, klass, visited)) {
+              if (containsUnsupportedUse(ir, copy, klass, visited)) {
                 return true;
               }
             }
@@ -319,7 +330,7 @@ final class ObjectReplacer implements AggregateReplacer {
           // We cannot handle removing the instanceof if the result of the
           // instanceof test is unknown
           TypeReference lhsType = InstanceOf.getType(use.instruction).getTypeRef();
-          if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == OptConstants.MAYBE) {
+          if (ClassLoaderProxy.includesType(lhsType, klass.getTypeRef()) == MAYBE) {
             return true;
           }
         }
@@ -329,9 +340,9 @@ final class ObjectReplacer implements AggregateReplacer {
             visited = new HashSet<Register>();
           }
           Register copy = Move.getResult(use.instruction).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
-            if(containsUnsupportedUse(ir, copy, klass, visited)) {
+            if (containsUnsupportedUse(ir, copy, klass, visited)) {
               return true;
             }
           }

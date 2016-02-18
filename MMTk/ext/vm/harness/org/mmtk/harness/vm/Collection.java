@@ -12,18 +12,24 @@
  */
 package org.mmtk.harness.vm;
 
-import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.Mutators;
 import org.mmtk.harness.exception.OutOfMemory;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
-
+import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.harness.Clock;
 
 @Uninterruptible
 public class Collection extends org.mmtk.vm.Collection {
+
+  private static int gcCount = 0;
+
+  public static int getGcCount() {
+    return gcCount;
+  }
 
   @Override
   public void prepareMutator(MutatorContext m) {
@@ -32,7 +38,7 @@ public class Collection extends org.mmtk.vm.Collection {
 
   @Override
   public void requestMutatorFlush() {
-    Assert.notImplemented();
+    Mutator.current().getContext().flush();
   }
 
   /**
@@ -51,7 +57,10 @@ public class Collection extends org.mmtk.vm.Collection {
    */
   @Override
   public void blockForGC() {
+    gcCount++;
+    Clock.stop();
     Scheduler.waitForGC();
+    Clock.start();
   }
 
   /**
@@ -61,7 +70,7 @@ public class Collection extends org.mmtk.vm.Collection {
    */
   @Override
   public int getDefaultThreads() {
-    return Harness.collectors.getValue();
+    return Options.threads.getValue();
   }
 
   @Override
@@ -76,16 +85,22 @@ public class Collection extends org.mmtk.vm.Collection {
 
   @Override
   public void spawnCollectorContext(CollectorContext context) {
+    Clock.stop();
     Scheduler.scheduleCollector(context);
+    Clock.start();
   }
 
   @Override
   public void stopAllMutators() {
+    Clock.stop();
     Scheduler.stopAllMutators();
+    Clock.start();
   }
 
   @Override
   public void resumeAllMutators() {
+    Clock.stop();
     Scheduler.resumeAllMutators();
+    Clock.start();
   }
 }

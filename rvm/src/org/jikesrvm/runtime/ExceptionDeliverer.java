@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific.Registers;
+import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
@@ -62,7 +62,7 @@ public abstract class ExceptionDeliverer {
    */
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public abstract void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
-                                        Throwable exceptionObject, Registers registers);
+                                        Throwable exceptionObject, AbstractRegisters registers);
 
   /**
    * Stackframe's method has no "catch" block for exception being thrown
@@ -87,5 +87,5 @@ public abstract class ExceptionDeliverer {
    *                  and unwinding the stackframe
    */
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
-  public abstract void unwindStackFrame(CompiledMethod compiledMethod, Registers registers);
+  public abstract void unwindStackFrame(CompiledMethod compiledMethod, AbstractRegisters registers);
 }

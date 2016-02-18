@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 import org.vmmagic.unboxed.Offset;
 
@@ -22,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
  *  An interface method signature is a pair of atoms:
  *  interfaceMethodName + interfaceMethodDescriptor.
  */
-public final class InterfaceMethodSignature implements TIBLayoutConstants, SizeConstants {
+public final class InterfaceMethodSignature {
 
   /**
    * Used to canonicalize InterfaceMethodSignatures
@@ -63,7 +64,7 @@ public final class InterfaceMethodSignature implements TIBLayoutConstants, SizeC
    * @return the interface method signature
    */
   public static synchronized InterfaceMethodSignature findOrCreate(MemberReference ref) {
-    InterfaceMethodSignature key = new InterfaceMethodSignature(ref.getName(), ref.getDescriptor(), nextId+1);
+    InterfaceMethodSignature key = new InterfaceMethodSignature(ref.getName(), ref.getDescriptor(), nextId + 1);
     InterfaceMethodSignature val = dictionary.get(key);
     if (val != null) return val;
     nextId++;
@@ -88,7 +89,9 @@ public final class InterfaceMethodSignature implements TIBLayoutConstants, SizeC
   /**
    * @return the id of thie interface method signature.
    */
-  public int getId() { return id; }
+  public int getId() {
+    return id;
+  }
 
   @Override
   public String toString() {
@@ -113,7 +116,7 @@ public final class InterfaceMethodSignature implements TIBLayoutConstants, SizeC
   /**
    * If using embedded IMTs, Get offset of interface method slot in TIB.
    * If using indirect IMTs, Get offset of interface method slot in IMT.
-   * Note that all methods with same name & descriptor map to the same slot.
+   * Note that all methods with same name &amp; descriptor map to the same slot.
    * <p>
    * TODO!! replace this stupid offset assignment algorithm with something more reasonable.
    *

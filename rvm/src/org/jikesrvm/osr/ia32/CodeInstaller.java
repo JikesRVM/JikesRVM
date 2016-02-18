@@ -12,14 +12,23 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.TR;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.ia32.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -35,7 +44,7 @@ import org.vmmagic.unboxed.Offset;
  * The glue code is installed right before returning to the threading method
  * by PostThreadSwitch
  */
-public abstract class CodeInstaller implements BaselineConstants {
+public abstract class CodeInstaller {
 
   public static boolean install(ExecutionState state, CompiledMethod cm) {
     RVMThread thread = state.getThread();
@@ -58,7 +67,7 @@ public abstract class CodeInstaller implements BaselineConstants {
 
     // should given an estimated length, and print the instructions
     // for debugging
-    Assembler asm = new ArchitectureSpecific.Assembler(50, VM.TraceOnStackReplacement);
+    Assembler asm = new Assembler(50, VM.TraceOnStackReplacement);
 
     // 1. generate bridge instructions to recover saved registers
     if (cType == CompiledMethod.BASELINE) {
@@ -68,6 +77,7 @@ public abstract class CodeInstaller implements BaselineConstants {
       // unwind stack pointer, SP is FP now
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
 
+      // TODO is this ok for 64-bit with JTOC in register?
       asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
 
       // restore saved EDI

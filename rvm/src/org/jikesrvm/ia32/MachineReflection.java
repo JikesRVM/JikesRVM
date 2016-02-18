@@ -12,8 +12,13 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
+import static org.jikesrvm.runtime.Reflection.REFLECTION_FPRS_BITS;
+import static org.jikesrvm.runtime.Reflection.REFLECTION_GPRS_BITS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
@@ -24,14 +29,17 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * Machine dependent portion of Reflective method invoker.
  */
-public abstract class MachineReflection implements RegisterConstants {
+public abstract class MachineReflection {
 
   /**
-   * Determine number/type of registers and parameters required to
+   * Determines number/type of registers and parameters required to
    * call specified method.
    * Unlike the PowerPC code we count all the parameters, not just the
    * ones that spill.  This allow us to make enough space on the stack
    * following the calling convention.
+   *
+   * @param method the method whose parameters to count
+   * @return number of parameters, gprs and frps encoded in a triple
    */
   public static int countParameters(RVMMethod method) {
     int GPRs = 0;
@@ -82,21 +90,32 @@ public abstract class MachineReflection implements RegisterConstants {
     }
 
     // hack to return triple
-    return (parameters << (Constants.REFLECTION_FPRS_BITS + Constants.REFLECTION_GPRS_BITS)) |
-           (FPRs << Constants.REFLECTION_GPRS_BITS) |
+    return (parameters << (REFLECTION_FPRS_BITS + REFLECTION_GPRS_BITS)) |
+           (FPRs << REFLECTION_GPRS_BITS) |
            GPRs;
   }
 
   /**
-   * Collect parameters into arrays of registers/spills, as required to
+   * Collects parameters into arrays of registers/spills, as required to
    * call specified method.
+   *
+   * @param method method whose parameters are to be packaged
+   * @param thisArg the receiver argument
+   * @param otherArgs all other arguments (primitives are boxed)
+   * @param GPRs space for GPRs (empty array if none needed)
+   * @param FPRs space for FPRs (empty array if none needed)
+   * @param FPRmeta meta-data for FPRs ({@code null} if no SSE2)
+   * @param Parameters more space for parameters. Refer to the source code
+   *  to get all the details.
+   *
+   * @see #countParameters(RVMMethod) more machine-specific details
    */
-  @UnpreemptibleNoWarn("GC is disabled as Objects are turned into Words."+
+  @UnpreemptibleNoWarn("GC is disabled as Objects are turned into Words." +
     "avoid preemption but still allow calls to preemptible unboxing routines")
   public static void packageParameters(RVMMethod method, Object thisArg, Object[] otherArgs, WordArray GPRs,
                                        double[] FPRs, byte[] FPRmeta, WordArray Parameters) {
     int GPR = 0;
-    int FPR = ArchConstants.SSE2_FULL ? 0 : FPRs.length;
+    int FPR = SSE2_FULL ? 0 : FPRs.length;
     int parameter = 0;
 
     int gp = NUM_PARAMETER_GPRS; // 0, 1, 2
@@ -147,7 +166,7 @@ public abstract class MachineReflection implements RegisterConstants {
       } else if (t.isFloatType()) {
         if (fp > 0) {
           fp--;
-          if (ArchConstants.SSE2_FULL) {
+          if (SSE2_FULL) {
             FPRs[FPR] = (Float)otherArgs[i];
             FPRmeta[FPR] = 0x0;
             FPR++;
@@ -161,7 +180,7 @@ public abstract class MachineReflection implements RegisterConstants {
         if (VM.BuildFor32Addr) {
           if (fp > 0) {
             fp--;
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               FPRs[FPR] = (Double)otherArgs[i];
               FPRmeta[FPR] = 0x1;
               FPR++;
@@ -176,7 +195,7 @@ public abstract class MachineReflection implements RegisterConstants {
         } else {
           if (fp > 0) {
             fp--;
-            if (ArchConstants.SSE2_FULL) {
+            if (SSE2_FULL) {
               FPRs[FPR] = (Double)otherArgs[i];
               FPRmeta[FPR] = 0x1;
               FPR++;

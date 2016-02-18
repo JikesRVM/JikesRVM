@@ -49,8 +49,8 @@ public class CMSMutator extends ConcurrentMutator {
   /**
    *
    */
-  private MarkSweepLocal ms;
-  private TraceWriteBuffer remset;
+  private final MarkSweepLocal ms;
+  private final TraceWriteBuffer remset;
 
   /****************************************************************************
    *

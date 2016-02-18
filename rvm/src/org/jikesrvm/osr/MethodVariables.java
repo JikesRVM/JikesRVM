@@ -41,7 +41,7 @@ public final class MethodVariables {
 
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("");
+    StringBuilder buf = new StringBuilder();
 
     buf.append(" pc@").append(bcIndex).append(MemberReference.getMemberRef(methId).getName());
     buf.append("\n");

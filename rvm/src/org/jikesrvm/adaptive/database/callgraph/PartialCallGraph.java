@@ -19,7 +19,6 @@ import java.io.OutputStreamWriter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.TreeSet;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.measurements.Decayable;
@@ -27,6 +26,7 @@ import org.jikesrvm.adaptive.measurements.Reportable;
 import org.jikesrvm.adaptive.util.UnResolvedCallSite;
 import org.jikesrvm.adaptive.util.UnResolvedWeightedCallTargets;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.classloader.MethodReference;
 
 /**
@@ -76,7 +76,9 @@ public final class PartialCallGraph implements Decayable, Reportable {
   /**
    * @return sum of all edge weights in the partial call graph
    */
-  public double getTotalEdgeWeights() { return totalEdgeWeights; }
+  public double getTotalEdgeWeights() {
+    return totalEdgeWeights;
+  }
 
   /**
    * Visit the WeightedCallTargets for every call site send them the
@@ -293,8 +295,12 @@ public final class PartialCallGraph implements Decayable, Reportable {
       if (o1.equals(o2)) return 0;
       double w1 = callGraph.get(o1).totalWeight();
       double w2 = callGraph.get(o2).totalWeight();
-      if (w1 < w2) { return 1; }
-      if (w1 > w2) { return -1; }
+      if (w1 < w2) {
+        return 1;
+      }
+      if (w1 > w2) {
+        return -1;
+      }
       // equal weights; sort lexicographically
       return o1.toString().compareTo(o2.toString());
     }

@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import static org.jikesrvm.runtime.ExitStatus.*;
+
 import org.jikesrvm.VM;
 
 /**

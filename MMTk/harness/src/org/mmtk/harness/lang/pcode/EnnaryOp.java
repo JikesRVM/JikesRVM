@@ -30,7 +30,7 @@ public abstract class EnnaryOp extends PseudoOp {
   public EnnaryOp(AST source, String name, Register resultTemp, Register...ops) {
     super(source,ops.length, name, resultTemp);
     this.ops = new int[ops.length];
-    for (int i=0; i < ops.length; i++) {
+    for (int i = 0; i < ops.length; i++) {
       this.ops[i] = ops[i].getIndex();
     }
   }
@@ -42,7 +42,7 @@ public abstract class EnnaryOp extends PseudoOp {
   public EnnaryOp(AST source, String name, Register...ops) {
     super(source,ops.length, name);
     this.ops = new int[ops.length];
-    for (int i=0; i < ops.length; i++) {
+    for (int i = 0; i < ops.length; i++) {
       this.ops[i] = ops[i].getIndex();
     }
   }
@@ -50,8 +50,8 @@ public abstract class EnnaryOp extends PseudoOp {
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder(String.format("%s(",super.toString()));
-    for (int i=0; i < ops.length; i++) {
-      buf.append("t"+ops[i]);
+    for (int i = 0; i < ops.length; i++) {
+      buf.append("t" + ops[i]);
       if (i != ops.length - 1) {
         buf.append(",");
       }
@@ -62,7 +62,7 @@ public abstract class EnnaryOp extends PseudoOp {
 
   public Value[] getOperandValues(StackFrame frame) {
     Value[] actuals = new Value[arity];
-    for (int i=0; i < arity; i++) {
+    for (int i = 0; i < arity; i++) {
       actuals[i] = frame.get(ops[i]);
     }
     return actuals;

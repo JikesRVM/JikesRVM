@@ -11,12 +11,19 @@
  *  regarding copyright ownership.
  */
  
+ option baseHeap "20m";
+ option threads "8";
+
  /*
   * MMTk test script.  Allocate a large object holding pointers to objects of a wide
   * (random) sizes.  Keep 100 live objects, and keep the newest objects
   * live.
   *
   * Highly non-generational :)  Basic exercise of multi-class allocation.
+  *
+  * This is one of the few scripts where MS and associated collectors need almost
+  * as large a heap as SS, because it maximizes fragmentation across size classes
+  * and threads.  
   */
 void main() {
   int i=0;
@@ -35,7 +42,7 @@ void thread() {
   
   barrierWait("begin",32);
   object parent = alloc(live, 0, false);       // Parent object with 'live' pointers
-  while (i < n) {             // loop for a while
+  while (gcCount() < 30) {             // loop for a while
     parent.object[i%live] = alloc(0, random(small,large), false);
     i = i + 1;                // loop counter
   }

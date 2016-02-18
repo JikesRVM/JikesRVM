@@ -64,7 +64,12 @@ class tClass {
     return "And I Say Vello Back";
   }
 
+  // CHECKSTYLE:OFF
+  // If Checkstyle were enabled here, it would complain about a
+  // redudant public modifier. Removing the modifier changes
+  // the test output.
   public tClass(String s) {
+  // CHECKSTYLE:ON
     System.out.println("tClass constructor called with " + s);
   }
 

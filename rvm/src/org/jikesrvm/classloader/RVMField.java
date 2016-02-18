@@ -12,8 +12,22 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_ENUM;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_FINAL;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_PRIVATE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_STATIC;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_SYNTHETIC;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_TRANSIENT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_VOLATILE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.APPLICABLE_TO_FIELDS;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_GETFIELD_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_GETSTATIC_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_PUTSTATIC_BARRIER;
+
 import java.io.DataInputStream;
 import java.io.IOException;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
@@ -23,7 +37,6 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
-import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 /**
  * A field of a java class.
@@ -31,7 +44,7 @@ import static org.jikesrvm.mm.mminterface.Barriers.*;
 public final class RVMField extends RVMMember {
 
   /**
-   * constant pool index of field's value (0 --> not a "static final constant")
+   * constant pool index of field's value (0 --&gt; not a "static final constant")
    */
   private final int constantValueIndex;
 
@@ -70,12 +83,14 @@ public final class RVMField extends RVMMember {
     this.reference = typeRef.isReferenceType();
     this.madeTraced = false;
     if (VM.runningVM && isUntraced()) {
-      VM.sysFail("Untraced field " + toString() + " created at runtime!");
+      VM.sysFail("Untraced field " + toString() + " created at runtime!" +
+          " Untraced fields must be resolved at build time to ensure that" +
+          " the Untraced annotation is visible to the compilers!");
     }
   }
 
   /**
-   * Read and create a field. NB only {@link RVMClass} is allowed to
+   * Reads and creates a field. NB only {@link RVMClass} is allowed to
    * create an instance of a RVMField.
    *
    * @param declaringClass the TypeReference object of the class
@@ -84,6 +99,9 @@ public final class RVMField extends RVMMember {
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the field's attributed from
+   *
+   * @return the newly created field
+   * @throws IOException when a skip is shorter than expected
    */
   static RVMField readField(TypeReference declaringClass, int[] constantPool, MemberReference memRef,
                             short modifiers, DataInputStream input) throws IOException {
@@ -118,15 +136,12 @@ public final class RVMField extends RVMMember {
                         annotations);
   }
 
-  /**
-   * Create a field for a synthetic annotation class
-   */
   static RVMField createAnnotationField(TypeReference annotationClass, MemberReference memRef) {
     return new RVMField(annotationClass, memRef, (short) (ACC_PRIVATE | ACC_SYNTHETIC), null, 0, null);
   }
 
   /**
-   * Get type of this field's value.
+   * @return type of this field's value.
    */
   @Uninterruptible
   public TypeReference getType() {
@@ -134,14 +149,14 @@ public final class RVMField extends RVMMember {
   }
 
   /**
-   * How many stackslots do value of this type take?
+   * @return the number of stackslots that value of this type takes
    */
   public int getNumberOfStackSlots() {
     return getType().getStackWords();
   }
 
   /**
-   * How many bytes of memory words do value of this type take?
+   * @return the number of bytes of memory words that a value of this type takes
    */
   public int getSize() {
     return size;
@@ -149,6 +164,8 @@ public final class RVMField extends RVMMember {
 
   /**
    * Does the field hold a reference?
+   *
+   * @return {@code true} if this field needs to be traced by the garbage collector
    */
   public boolean isTraced() {
     return (reference && !isUntraced()) || madeTraced;
@@ -156,6 +173,8 @@ public final class RVMField extends RVMMember {
 
   /**
    * Does the field hold a made-traced reference?
+   *
+   * @return {@code true} if this field was made traced
    */
   @Uninterruptible
   public boolean madeTraced() {
@@ -164,14 +183,14 @@ public final class RVMField extends RVMMember {
 
 
   /**
-   * Does the field hold a reference?
+   * @return {@code true} if this field holds a reference
    */
   public boolean isReferenceType() {
     return reference;
   }
 
   /**
-   * Shared among all instances of this class?
+   * @return {@code true} if this field is shared among all instances of this class
    */
   @Uninterruptible
   public boolean isStatic() {
@@ -179,7 +198,7 @@ public final class RVMField extends RVMMember {
   }
 
   /**
-   * May only be assigned once?
+   * @return {@code true} if this field may only be assigned once
    */
   @Uninterruptible
   public boolean isFinal() {
@@ -187,7 +206,7 @@ public final class RVMField extends RVMMember {
   }
 
   /**
-   * Value not to be cached in a register?
+   * @return {@code true} if the value of this field may not be cached in a register
    */
   @Uninterruptible
   public boolean isVolatile() {
@@ -195,7 +214,7 @@ public final class RVMField extends RVMMember {
   }
 
   /**
-   * Value not to be written/read by persistent object manager?
+   * @return {@code true} if this field's value is not to be written/read by persistent object manager
    */
   @Uninterruptible
   public boolean isTransient() {
@@ -203,14 +222,14 @@ public final class RVMField extends RVMMember {
   }
 
   /**
-   * Not present in source code file?
+   * @return {@code true} if this field is not present in source code file
    */
   public boolean isSynthetic() {
     return (modifiers & ACC_SYNTHETIC) != 0;
   }
 
   /**
-   * Enum constant
+   * @return {@code true} if this field is an enum constant
    */
   public boolean isEnumConstant() {
     return (modifiers & ACC_ENUM) != 0;
@@ -219,14 +238,15 @@ public final class RVMField extends RVMMember {
   /**
    * Is the field RuntimeFinal? That is can the annotation value be used in
    * place a reading the field.
-   * @return whether the method has a pure annotation
+   * @return whether the method is final at runtime
    */
   public boolean isRuntimeFinal() {
    return hasRuntimeFinalAnnotation();
   }
 
   /**
-   * Is this field invisible to the memory management system.
+   * @return {@code true} if this this field is invisible to the memory
+   *  management system.
    */
   public boolean isUntraced() {
     return hasUntracedAnnotation();
@@ -242,8 +262,9 @@ public final class RVMField extends RVMMember {
   }
 
   /**
-   * Get the value from the runtime final field
-   * @return whether the method has a pure annotation
+   * Gets the value from the runtime final field.
+   * @return the value of the field, i.e. if the method is final at runtime or
+   *  not
    */
   public boolean getRuntimeFinalValue() {
     org.vmmagic.pragma.RuntimeFinal ann;
@@ -263,7 +284,7 @@ public final class RVMField extends RVMMember {
   /**
    * Get index of constant pool entry containing this
    * "static final constant" field's value.
-   * @return constant pool index (0 --> field is not a "static final constant")
+   * @return constant pool index (0 --&gt; field is not a "static final constant")
    */
   @Uninterruptible
   int getConstantValueIndex() {
@@ -281,6 +302,9 @@ public final class RVMField extends RVMMember {
    * Read the contents of the field.
    * If the contents of this field is an object, return that object.
    * If the contents of this field is a primitive, get the value and wrap it in an object.
+   *
+   * @param obj the object whose field is to be read
+   * @return the value of this field. For primitiv types, a boxed value is used.
    */
   public Object getObjectUnchecked(Object obj) {
     if (isReferenceType()) {
@@ -302,7 +326,7 @@ public final class RVMField extends RVMMember {
   /**
    * Read one object ref from heap using RVM object model, GC safe.
    * @param obj the object whose field is to be read,
-   * or null if the field is static.
+   * or {@code null} if the field is static.
    * @return the reference described by this RVMField from the given object.
    */
   public Object getObjectValueUnchecked(Object obj) {

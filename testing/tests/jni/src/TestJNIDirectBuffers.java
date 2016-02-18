@@ -22,7 +22,7 @@ public class TestJNIDirectBuffers {
   public static void main(String[] args) throws Exception {
     System.loadLibrary("TestJNIDirectBuffers");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -101,7 +101,7 @@ public class TestJNIDirectBuffers {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

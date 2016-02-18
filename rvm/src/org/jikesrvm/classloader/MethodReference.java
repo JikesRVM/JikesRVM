@@ -39,6 +39,10 @@ public final class MethodReference extends MemberReference {
 
   /**
    * Find or create a method reference
+   * @param tRef the type reference
+   * @param mn the name of the member
+   * @param md the descriptor of the member
+   * @return a method reference, never {@code null}
    * @see MemberReference#findOrCreate(TypeReference, Atom, Atom)
    */
   @Pure
@@ -77,7 +81,7 @@ public final class MethodReference extends MemberReference {
   }
 
   /**
-   * Space required by method for its parameters, in words.
+   * @return space required by method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
   @Uninterruptible
@@ -88,7 +92,12 @@ public final class MethodReference extends MemberReference {
   }
 
   /**
-   * Do this and that definitely refer to the different methods?
+   * Do this and that definitely refer to different methods?
+   *
+   * @param that the reference to compare with
+   * @return {@code true} if the methods are definitely different, {@code false}
+   *  if it's not known (e.g. because at least one of the method references is
+   *  unresolved)
    */
   public boolean definitelyDifferent(MethodReference that) {
     if (this == that) return false;
@@ -101,7 +110,13 @@ public final class MethodReference extends MemberReference {
 
   /**
    * Do this and that definitely refer to the same method?
+   *
+   * @param that the reference to compare with
+   * @return {@code true} if the methods are definitely the same, {@code false}
+   *  if it's not known (e.g. because at least one of the method references is
+   *  unresolved)
    */
+
   public boolean definitelySame(MethodReference that) {
     if (this == that) return true;
     if (name != that.name || descriptor != that.descriptor) return false;
@@ -112,7 +127,8 @@ public final class MethodReference extends MemberReference {
   }
 
   /**
-   * Has the method reference already been resolved into a target method?
+   * @return {@code true} if the method reference has already been resolved
+   *  into a target method
    */
   public boolean isResolved() {
     return resolvedMember != null;
@@ -121,22 +137,21 @@ public final class MethodReference extends MemberReference {
   /**
    * Get the member this reference has been resolved to, if
    * it has already been resolved. Does NOT force resolution.
+   *
+   * @return the resolved RVMMethod or {@code null} if not yet resolved
    */
   @Uninterruptible
   public RVMMethod getResolvedMember() {
     return resolvedMember;
   }
 
-  /**
-   * For use by RVMMethod constructor
-   */
   void setResolvedMember(RVMMethod it) {
     if (VM.VerifyAssertions) VM._assert(resolvedMember == null || resolvedMember == it);
     resolvedMember = it;
   }
 
   /**
-   * Resolve the method reference for an invoke special into a target
+   * Resolves the method reference for an invoke special into a target
    * method, if that is possible without causing classloading.
    *
    * @return target method or {@code null} if the method cannot be resolved without classloading.
@@ -208,13 +223,15 @@ public final class MethodReference extends MemberReference {
    * method invocation points to a method inherited from an
    * interface.
    *
-   * @return boolean    {@code true} iff this member method reference is a miranda method
+   * @return {@code true} iff this member method reference is a miranda method
    */
   public boolean isMiranda() {
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
     RVMClass declaringClass = (RVMClass) type.peekType();
-    if (declaringClass == null) { return false; }
+    if (declaringClass == null) {
+      return false;
+    }
 
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
@@ -247,6 +264,8 @@ public final class MethodReference extends MemberReference {
   /**
    * Is the method reference to a magic method? NB. In the case of
    * SysCall annotated methods we don't know until they are resolved.
+   *
+   * @return {@code true} if this method reference is for a magic method
    */
   public boolean isMagic() {
     return getType().isMagicType() || ((resolvedMember != null) && (resolvedMember.isSysCall() || resolvedMember.isSpecializedInvoke()));
@@ -254,6 +273,8 @@ public final class MethodReference extends MemberReference {
 
   /**
    * Is the method reference to a specialized invoke? NB. we don't know until they are resolved.
+   *
+   * @return {@code true} if this method reference is for a specialized invoke
    */
   public boolean isSpecializedInvoke() {
     return (resolvedMember != null) && (resolvedMember.isSpecializedInvoke());
@@ -262,6 +283,8 @@ public final class MethodReference extends MemberReference {
   /**
    * Is the method reference to a magic method? NB. In the case of
    * SysCall annotated methods we don't know until they are resolved.
+   *
+   * @return {@code true} if this method reference is for a sysCall method
    */
   public boolean isSysCall() {
     return (getType() == TypeReference.SysCall) || ((resolvedMember != null) && (resolvedMember.isSysCall()));
@@ -270,30 +293,59 @@ public final class MethodReference extends MemberReference {
   /**
    * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
+   * @param declaringClass the class that declared the method
    * @return the RVMMethod that this method ref resolved to.
    */
   private RVMMethod resolveInternal(RVMClass declaringClass) {
-    final boolean DBG=false;
+    final boolean DBG = false;
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
+    // According to 5.4.3.3, (2) in the JVM spec, search all classes first, ignoring
+    // interfaces
     for (RVMClass c = declaringClass; c != null; c = c.getSuperClass()) {
       if (DBG) {
         VM.sysWrite("Checking for <" + name + "," + descriptor + "> in class " + c + "...");
       }
 
-      RVMMethod it = c.findDeclaredMethod(name, descriptor);
-      if (it != null) {
+      RVMMethod method = c.findDeclaredMethod(name, descriptor);
+      if (method != null) {
         if (DBG) {
           VM.sysWriteln("...found <" + name + "," + descriptor + "> in class " + c);
         }
-        resolvedMember = it;
+        resolvedMember = method;
         return resolvedMember;
       }
       if (DBG) {
         VM.sysWriteln("...NOT found <" + name + "," + descriptor + "> in class " + c);
       }
     }
+    // If nothing found, search superinterfaces (i.e. all interfaces implemented by
+    // the class, directly or indirectly), according to 5.4.3.3 (3)
+    for (RVMClass i : declaringClass.getAllImplementedInterfaces()) {
+      if (DBG) {
+        VM.sysWrite("Checking for <" + name + "," + descriptor + "> in interface " + i + "...");
+        VM.sysWrite("interface " + i + " is resolved: " + i.isResolved());
+      }
+      RVMMethod method = i.findDeclaredMethod(name, descriptor);
+      if (method != null) {
+        if (DBG) {
+          VM.sysWriteln("...found <" + name + "," + descriptor + "> in interface " + i);
+        }
+        // Interfaces only declare methods - they don't implement them (at least for Java 6
+        // which is all we support right now).
+        if (VM.VerifyAssertions) VM._assert(!method.hasOffset());
+        // Find the virtual method to call.
+        resolvedMember = declaringClass.findVirtualMethod(name, descriptor);
+        if (VM.VerifyAssertions) VM._assert(resolvedMember != null);
+        if (VM.VerifyAssertions) VM._assert(resolvedMember.hasOffset());
+        return resolvedMember;
+      }
+      if (DBG) {
+        VM.sysWriteln("...NOT found <" + name + "," + descriptor + "> in interface " + i);
+      }
+    }
+
     if (!VM.fullyBooted) {
       VM.sysWrite("MethodReference.resolveInternal():");
       VM.sysWrite(" Unable to find a method named ");
@@ -305,7 +357,6 @@ public final class MethodReference extends MemberReference {
       if (VM.runningVM) {
         VM.sysWriteln(", while booting the VM");
         VM.sysFail("MethodReference.resolveInternal(): Unable to resolve a method during VM booting");
-
       } else {
         VM.sysWriteln(", while writing the boot image");
         Thread.dumpStack();
@@ -362,6 +413,7 @@ public final class MethodReference extends MemberReference {
   /**
    * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
+   * @param declaringClass the class that declared the method
    * @return the RVMMethod that this method ref resolved to or {@code null} for error
    */
   private RVMMethod resolveInterfaceMethodInternal(RVMClass declaringClass) {

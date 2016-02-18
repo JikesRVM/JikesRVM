@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_DEF;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.DUMMY_USE;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
@@ -22,17 +26,15 @@ import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Nullary;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
-import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * At the beginning of each basic block, the register allocator expects
  * all floating-point stack locations to be available, and named
- * FPi, 0 < i < 7
+ * FPi, 0 &lt; i &lt; 7
  *
  * <p>However, BURS may consume FP stack locations by inserting instructions
  * that push or pop the floating-point stack.  This phase inserts dummy
@@ -63,7 +65,7 @@ import org.jikesrvm.ia32.ArchConstants;
  * beginning of each catch block.
  */
 
-public final class ExpandFPRStackConvention extends CompilerPhase implements Operators {
+public final class ExpandFPRStackConvention extends CompilerPhase {
 
   /**
    * The number of FPRs available for allocation.
@@ -97,10 +99,10 @@ public final class ExpandFPRStackConvention extends CompilerPhase implements Ope
    */
   @Override
   public void perform(IR ir) {
-    if (ArchConstants.SSE2_FULL) {
+    if (SSE2_FULL) {
       return;
     }
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
 
     for (Enumeration<BasicBlock> b = ir.getBasicBlocks(); b.hasMoreElements();) {
       BasicBlock bb = b.nextElement();

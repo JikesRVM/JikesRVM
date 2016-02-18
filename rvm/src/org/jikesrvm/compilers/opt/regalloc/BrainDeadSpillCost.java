@@ -20,15 +20,17 @@ import org.jikesrvm.compilers.opt.ir.IR;
  * <p>
  * This implementation returns a cost of zero for all registers.
  */
-class BrainDeadSpillCost extends SpillCostEstimator {
+final class BrainDeadSpillCost extends SpillCostEstimator {
 
   BrainDeadSpillCost(IR ir) {
     calculate(ir);
   }
 
   /**
-   * Calculate the estimated cost for each register.
+   * {@inheritDoc}
    * This brain-dead version does nothing.
+   *
+   * @param ir unused
    */
   @Override
   void calculate(IR ir) {

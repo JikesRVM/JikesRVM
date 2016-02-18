@@ -18,7 +18,11 @@ class SerializationData implements Serializable {
   private static final class Obj implements Serializable {
     private static final long serialVersionUID = 42L;
 
+    // CHECKSTYLE:OFF
+    // If Checkstyle were enabled here, it would complain
+    // about a redundant public modifier.
     public Obj() {}
+    // CHECKSTYLE:ON
 
     public String toString() {
       return "SerializationData$Obj(42L)";
@@ -45,7 +49,11 @@ class SerializationData implements Serializable {
   private String[] sa;  // [Ljava/lang/String;
   private Obj[] oa;     // [LSerializationData$Obj;
 
+  // CHECKSTYLE:OFF
+  // If Checkstyle were enabled here, it would complain
+  // about a redundant public modifier.
   public SerializationData() {
+  // CHECKSTYLE:ON
     z = true;         // Z
     b = (byte) 1;      // B
     h = (short) 2;     // S

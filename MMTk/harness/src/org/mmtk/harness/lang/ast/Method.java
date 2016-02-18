@@ -68,7 +68,9 @@ public abstract class Method extends AbstractAST implements Statement, Expressio
 
   public abstract List<Type> getParamTypes();
 
-  public Type getReturnType() { return returnType; }
+  public Type getReturnType() {
+    return returnType;
+  }
 
   public Method getMethod() {
     return this;

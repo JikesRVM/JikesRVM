@@ -13,7 +13,6 @@
 package org.jikesrvm.adaptive.recompilation;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
@@ -26,6 +25,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * Utilities for providing compiler advice.  Advice files provided
@@ -46,7 +46,6 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
  * strictly an optimization, so they are options.
  *
  * @see org.jikesrvm.adaptive.util.CompilerAdviceAttribute
- * @see org.jikesrvm.adaptive.util.CompilerAdviceInfoReader
  * @see org.jikesrvm.compilers.common.RuntimeCompiler
  */
 public class BulkCompile implements Callbacks.StartupMonitor {
@@ -144,19 +143,30 @@ public class BulkCompile implements Callbacks.StartupMonitor {
               // for invocation counter, we only use one optimization level
               compPlan = InvocationCounts.createCompilationPlan((NormalMethod) method);
               AOSLogging.logger.recompilationStarted(compPlan);
-              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) { VM.sysWrite("Bulk compiling for counters "); VM.sysWriteln(value.toString()); }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
+                VM.sysWrite("Bulk compiling for counters ");
+                VM.sysWriteln(value.toString());
+              }
               RuntimeCompiler.recompileWithOpt(compPlan);
               AOSLogging.logger.recompilationCompleted(compPlan);
             } else if (Controller.options.sampling()) {
               // Create our set of standard optimization plans.
               compPlan = Controller.recompilationStrategy.createCompilationPlan((NormalMethod) method, value.getOptLevel(), null);
-              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) { VM.sysWrite("Bulk compiling for sampling "); VM.sysWriteln(value.toString()); }
-              if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) { VM.sysWrite(value.getOptLevel()); }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
+                VM.sysWrite("Bulk compiling for sampling ");
+                VM.sysWriteln(value.toString());
+              }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) {
+                VM.sysWrite(value.getOptLevel());
+              }
               AOSLogging.logger.recompilationStarted(compPlan);
               RuntimeCompiler.recompileWithOpt(compPlan);
               AOSLogging.logger.recompilationCompleted(compPlan);
             } else {
-              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) { VM.sysWrite("Compiler advice file overridden "); VM.sysWriteln(value.toString()); }
+              if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
+                VM.sysWrite("Compiler advice file overridden ");
+                VM.sysWriteln(value.toString());
+              }
               method.compile();
             }
           }

@@ -12,9 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.util.BitVector;
@@ -67,20 +71,20 @@ import org.vmmagic.unboxed.Word;
  *                     +---------------+
  * literal          -1 |     123       |
  *                     +---------------+       +---------------+
- * [jtoc register]-> 0:|      0        |       |   (header)    |
+ * [jtoc register]-&gt; 0:|      0        |       |   (header)    |
  *                     +---------------+       +---------------+
- * literal           1:|  (objref)   --------->|    "abc"      |
+ * literal           1:|  (objref)   ---------&gt;|    "abc"      |
  *                     +---------------+       +---------------+
  * field             2:|     B.s       |
  *                     +---------------+       +---------------+
  *                   3:|  (coderef)  ------+   |   (header)    |
  *                     +---------------+   |   +---------------+
- *                     |     ...       |   +-->|  machine code |
+ *                     |     ...       |   +--&gt;|  machine code |
  *                     +---------------+       |    for "m"    |
  *                                             +---------------+
  * </pre>
  */
-public class Statics implements Constants {
+public class Statics {
   /**
    * How many 32bit slots do we want in the JTOC to hold numeric (non-reference) values?
    */
@@ -147,6 +151,9 @@ public class Statics implements Constants {
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
+   *
+   * @param slot the JTOC slot index
+   * @return the JTOC offset
    */
   @Uninterruptible
   public static Offset slotAsOffset(int slot) {
@@ -155,6 +162,9 @@ public class Statics implements Constants {
 
   /**
    * Conversion from JTOC offset to JTOC slot index.
+   *
+   * @param offset the JTOC offset
+   * @return the JTOC slot index
    */
   @Uninterruptible
   public static int offsetAsSlot(Offset offset) {
@@ -163,14 +173,14 @@ public class Statics implements Constants {
   }
 
   /**
-   * Return the lowest slot number in use
+   * @return the lowest slot number in use
    */
   public static int getLowestInUseSlot() {
     return nextNumericSlot + 1;
   }
 
   /**
-   * Return the highest slot number in use
+   * @return the highest slot number in use
    */
   public static int getHighestInUseSlot() {
     return nextReferenceSlot - (VM.BuildFor32Addr ? 1 : 2);
@@ -185,7 +195,7 @@ public class Statics implements Constants {
   public static int findOrCreateIntSizeLiteral(int literal) {
     final int bottom = getLowestInUseSlot();
     final int top = middleOfTable;
-    for (int i=top; i >= bottom; i--) {
+    for (int i = top; i >= bottom; i--) {
       if ((slots[i] == literal) && !numericFieldVector.get(i) && (i != numericSlotHole)) {
         return slotAsOffset(i).toInt();
       }
@@ -204,11 +214,11 @@ public class Statics implements Constants {
   public static int findOrCreateLongSizeLiteral(long literal) {
     final int bottom = getLowestInUseSlot();
     final int top = middleOfTable & 0xFFFFFFFE;
-    for (int i=top; i >= bottom; i-=2) {
+    for (int i = top; i >= bottom; i -= 2) {
       Offset off = slotAsOffset(i);
       if ((getSlotContentsAsLong(off) == literal) &&
-          !numericFieldVector.get(i) && !(numericFieldVector.get(i+1)) &&
-          (i != numericSlotHole) && (i+1 != numericSlotHole)) {
+          !numericFieldVector.get(i) && !(numericFieldVector.get(i + 1)) &&
+          (i != numericSlotHole) && (i + 1 != numericSlotHole)) {
         return slotAsOffset(i).toInt();
       }
     }
@@ -227,14 +237,14 @@ public class Statics implements Constants {
   public static int findOrCreate16ByteSizeLiteral(long literal_high, long literal_low) {
     final int bottom = getLowestInUseSlot();
     final int top = middleOfTable & 0xFFFFFFFC;
-    for (int i=top; i >= bottom; i-=4) {
+    for (int i = top; i >= bottom; i -= 4) {
       Offset off = slotAsOffset(i);
       if ((getSlotContentsAsLong(off) == literal_low) &&
           (getSlotContentsAsLong(off.plus(8)) == literal_high) &&
-          !numericFieldVector.get(i) && !(numericFieldVector.get(i+1)) &&
-          !numericFieldVector.get(i+2) && !(numericFieldVector.get(i+3)) &&
-          (i != numericSlotHole) && (i+1 != numericSlotHole) &&
-          (i+2 != numericSlotHole) && (i+3 != numericSlotHole)) {
+          !numericFieldVector.get(i) && !(numericFieldVector.get(i + 1)) &&
+          !numericFieldVector.get(i + 2) && !(numericFieldVector.get(i + 3)) &&
+          (i != numericSlotHole) && (i + 1 != numericSlotHole) &&
+          (i + 2 != numericSlotHole) && (i + 3 != numericSlotHole)) {
         return slotAsOffset(i).toInt();
       }
     }
@@ -257,7 +267,7 @@ public class Statics implements Constants {
     } else {
       Offset newOff = allocateReferenceSlot(false);
       setSlotContents(newOff, literal);
-      synchronized(objectLiterals) {
+      synchronized (objectLiterals) {
         objectLiterals.put(literal, newOff.toInt());
       }
       return newOff.toInt();
@@ -279,12 +289,15 @@ public class Statics implements Constants {
   /**
    * Marks a slot that was previously a field as being a literal as its value is
    * final.
+   *
+   * @param size the slot's size
+   * @param fieldOffset the field's offset in the JTOC
    */
   public static synchronized void markAsNumericLiteral(int size, Offset fieldOffset) {
     int slot = offsetAsSlot(fieldOffset);
     if (size == BYTES_IN_LONG) {
       numericFieldVector.clear(slot);
-      numericFieldVector.clear(slot+1);
+      numericFieldVector.clear(slot + 1);
     } else {
       numericFieldVector.clear(slot);
     }
@@ -293,6 +306,8 @@ public class Statics implements Constants {
   /**
    * Marks a slot that was previously a field as being a literal as its value is
    * final.
+   *
+   * @param fieldOffset the field's offset in the JTOC
    */
   public static synchronized void markAsReferenceLiteral(Offset fieldOffset) {
     Object literal = getSlotContentsAsObject(fieldOffset);
@@ -302,7 +317,7 @@ public class Statics implements Constants {
       return;
     } else if (literal != null) {
       if (findObjectLiteral(literal) == 0) {
-        synchronized(objectLiterals) {
+        synchronized (objectLiterals) {
           objectLiterals.put(literal, fieldOffset.toInt());
         }
       }
@@ -323,7 +338,7 @@ public class Statics implements Constants {
     // other slots for alignment.
     if (size == 16) {
       // widen for a wide
-      nextNumericSlot-=3;
+      nextNumericSlot -= 3;
       // check alignment
       if ((nextNumericSlot & 1) != 0) {
         // slot isn't 8byte aligned so increase by 1 and record hole
@@ -332,16 +347,16 @@ public class Statics implements Constants {
       }
       if ((nextNumericSlot & 3) != 0) {
         // slot not 16byte aligned, ignore any holes
-        nextNumericSlot-=2;
+        nextNumericSlot -= 2;
       }
       // Remember the slot and adjust the next available slot
       slot = nextNumericSlot;
       nextNumericSlot--;
       if (field) {
         numericFieldVector.set(slot);
-        numericFieldVector.set(slot+1);
-        numericFieldVector.set(slot+2);
-        numericFieldVector.set(slot+3);
+        numericFieldVector.set(slot + 1);
+        numericFieldVector.set(slot + 2);
+        numericFieldVector.set(slot + 3);
       }
     } else if (size == BYTES_IN_LONG) {
       // widen for a wide
@@ -357,7 +372,7 @@ public class Statics implements Constants {
       nextNumericSlot--;
       if (field) {
         numericFieldVector.set(slot);
-        numericFieldVector.set(slot+1);
+        numericFieldVector.set(slot + 1);
       }
     } else {
       // 4byte quantity, try to reuse hole if one is available
@@ -404,7 +419,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch number of numeric JTOC slots currently allocated.
+   * @return number of numeric JTOC slots currently allocated.
    */
   @Uninterruptible
   public static int getNumberOfNumericSlots() {
@@ -412,7 +427,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch number of reference JTOC slots currently allocated.
+   * @return number of reference JTOC slots currently allocated.
    */
   @Uninterruptible
   public static int getNumberOfReferenceSlots() {
@@ -420,7 +435,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch total number of slots comprising the JTOC.
+   * @return total number of slots comprising the JTOC.
    */
   @Uninterruptible
   public static int getTotalNumberOfSlots() {
@@ -430,7 +445,7 @@ public class Statics implements Constants {
   /**
    * Does specified JTOC slot contain a reference?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   @Uninterruptible
   public static boolean isReference(int slot) {
@@ -440,7 +455,7 @@ public class Statics implements Constants {
   /**
    * Does specified JTOC slot contain an int sized literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   public static boolean isIntSizeLiteral(int slot) {
     if (isReference(slot) || slot < getLowestInUseSlot()) {
@@ -453,20 +468,20 @@ public class Statics implements Constants {
   /**
    * Does specified JTOC slot contain a long sized literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   public static boolean isLongSizeLiteral(int slot) {
     if (isReference(slot) || slot < getLowestInUseSlot() || ((slot & 1) != 0)) {
       return false;
     } else {
-      return !numericFieldVector.get(slot) && !numericFieldVector.get(slot+1);
+      return !numericFieldVector.get(slot) && !numericFieldVector.get(slot + 1);
     }
   }
 
   /**
    * Does specified JTOC slot contain a reference literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   public static boolean isReferenceLiteral(int slot) {
     if (!isReference(slot) || slot > getHighestInUseSlot()) {
@@ -478,7 +493,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Get size occupied by a reference
+   * @return size occupied by a reference
    */
   @Uninterruptible
   public static int getReferenceSlotSize() {
@@ -486,7 +501,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch JTOC object (for JNI environment and GC).
+   * @return JTOC object (for JNI environment and GC).
    */
   @Uninterruptible
   public static Address getSlots() {
@@ -494,7 +509,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch JTOC object (for JNI environment and GC).
+   * @return JTOC object (for JNI environment and GC).
    */
   @Uninterruptible
   public static int[] getSlotsAsIntArray() {
@@ -502,7 +517,8 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch contents of a slot, as an integer
+   * @param offset the slot's offset in the JTOC
+   * @return contents of a slot, as an integer
    */
   @Uninterruptible
   public static int getSlotContentsAsInt(Offset offset) {
@@ -515,7 +531,8 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch contents of a slot-pair, as a long integer.
+   * @param offset the slot's offset
+   * @return contents of a slot-pair, as a long integer.
    */
   @Uninterruptible
   public static long getSlotContentsAsLong(Offset offset) {
@@ -536,7 +553,8 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch contents of a slot, as an object.
+   * @param offset the slot's offset
+   * @return contents of a slot, as an object.
    */
   @Uninterruptible
   public static Object getSlotContentsAsObject(Offset offset) {
@@ -548,7 +566,8 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch contents of a slot, as an Address.
+   * @param offset the slot's offset
+   * @return contents of a slot, as an Address.
    */
   @UninterruptibleNoWarn("Interruptible code only reachable during boot image creation")
   public static Address getSlotContentsAsAddress(Offset offset) {
@@ -578,6 +597,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as an integer.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, int value) {
@@ -590,6 +612,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as an float.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, float value) {
@@ -602,6 +627,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as a double.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, double value) {
@@ -622,6 +650,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as a long integer.
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, long value) {
@@ -641,6 +672,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as an object.
+   *
+   * @param offset the slot's offset
+   * @param object new value for the slot
    */
   @UninterruptibleNoWarn("Interruptible code only reachable during boot image creation")
   public static void setSlotContents(Offset offset, Object object) {
@@ -664,6 +698,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as a CodeArray.
+   *
+   * @param offset the slot's offset
+   * @param code  new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, CodeArray code) {
@@ -671,7 +708,10 @@ public class Statics implements Constants {
   }
 
   /**
-   * Set contents of a slot, as a CodeArray.
+   * Set contents of a slot, as a TIB.
+   *
+   * @param offset the slot's offset
+   * @param tib new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, TIB tib) {
@@ -680,6 +720,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as a Word.
+   *
+   * @param offset the slot's offset
+   * @param word new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Word word) {
@@ -696,6 +739,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as a Address
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Address value) {
@@ -712,6 +758,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as a Extent
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Extent value) {
@@ -728,6 +777,9 @@ public class Statics implements Constants {
 
   /**
    * Set contents of a slot, as a Offset
+   *
+   * @param offset the slot's offset
+   * @param value new value for the slot
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, Offset value) {

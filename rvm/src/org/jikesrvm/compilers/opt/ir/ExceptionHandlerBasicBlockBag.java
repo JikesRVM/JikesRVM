@@ -57,8 +57,10 @@ public final class ExceptionHandlerBasicBlockBag {
   }
 
   /**
-   * take an element out f the bag.  Throw an exception if the block
-   * to remove is not in the bag
+   * Takes an element out of the bag. Throws an exception if the block
+   * to remove is not in the bag.
+   *
+   * @param bb the block to remove
    */
   public void remove(BasicBlock bb) {
     for (int i = 0; i < local.length; i++) {
@@ -90,14 +92,18 @@ public final class ExceptionHandlerBasicBlockBag {
       // Initialize enumeration to point to first ehbb (if any)
       {
         ExceptionHandlerBasicBlockBag c = ExceptionHandlerBasicBlockBag.this;
-        while (c != null && (c.local == null || c.local.length == 0)) { c = c.caller; }
+        while (c != null && (c.local == null || c.local.length == 0)) {
+          c = c.caller;
+        }
         if (c != null) {
           cur_bag = c;
         }
       }
 
       @Override
-      public boolean hasMoreElements() { return cur_bag != null; }
+      public boolean hasMoreElements() {
+        return cur_bag != null;
+      }
 
       @Override
       public BasicBlock nextElement() {
@@ -105,7 +111,9 @@ public final class ExceptionHandlerBasicBlockBag {
         try {
           ans = cur_bag.local[cur_idx++];
         } catch (NullPointerException e) {
-          throw new java.util.NoSuchElementException();
+          java.util.NoSuchElementException nse = new java.util.NoSuchElementException();
+          nse.initCause(e);
+          throw nse;
         }
         // Now advance state to point to next element.
         if (cur_idx == cur_bag.local.length) {

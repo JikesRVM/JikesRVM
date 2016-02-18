@@ -34,7 +34,7 @@ public final class WordArray implements RuntimeTable<Word> {
   private WordArray(int size) {
     data = new Word[size];
     Word zero = Word.zero();
-    for (int i=0; i<size; i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = zero;
     }
   }

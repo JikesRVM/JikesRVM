@@ -67,12 +67,6 @@ public final class RVMAnnotation {
     this.elementValuePairs = elementValuePairs;
   }
 
-  /**
-   * Read an annotation attribute from the class file
-   *
-   * @param constantPool from constant pool being loaded
-   * @param input the data being read
-   */
   static RVMAnnotation readAnnotation(int[] constantPool, DataInputStream input, ClassLoader classLoader)
       throws IOException, ClassNotFoundException {
     TypeReference type;
@@ -128,14 +122,6 @@ public final class RVMAnnotation {
         new AnnotationFactory());
   }
 
-  /**
-   * Read the element_value field of an annotation
-   *
-   * @param type the type of the value to read or null
-   * @param constantPool the constant pool for the class being read
-   * @param input stream to read from
-   * @return object representing the value read
-   */
   static <T> Object readValue(TypeReference type, int[] constantPool, DataInputStream input, ClassLoader classLoader)
       throws IOException, ClassNotFoundException {
     // Read element value's tag
@@ -148,57 +134,57 @@ public final class RVMAnnotation {
     Object value;
     switch (elementValue_tag) {
       case'B': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Byte);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Byte);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (byte) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'C': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Char);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Char);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (char) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'D': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Double);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Double);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         long longValue = Statics.getSlotContentsAsLong(offset);
         value = Double.longBitsToDouble(longValue);
         break;
       }
       case'F': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Float);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Float);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         int intValue = Statics.getSlotContentsAsInt(offset);
         value = Float.intBitsToFloat(intValue);
         break;
       }
       case'I': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Int);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Int);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'J': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Long);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Long);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsLong(offset);
         break;
       }
       case'S': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Short);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Short);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (short) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'Z': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Boolean);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Boolean);
         Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsInt(offset) == 1;
         break;
       }
       case's': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangString);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangString);
         value = ClassFileReader.getUtf(constantPool, input.readUnsignedShort()).toString();
         break;
       }
@@ -214,7 +200,7 @@ public final class RVMAnnotation {
         break;
       }
       case'c': {
-        if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangClass);
+        if (VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangClass);
         int classInfoIndex = input.readUnsignedShort();
         // Value should be a class but resolving the class at this point could cause infinite recursion in class loading
         TypeReference unresolvedValue = TypeReference.findOrCreate(classLoader, ClassFileReader.getUtf(constantPool, classInfoIndex));
@@ -358,14 +344,13 @@ public final class RVMAnnotation {
     return value;
   }
 
-  /** Handle late resolution of class value annotations */
   static Object firstUse(Object value) {
     if (value instanceof TypeReference) {
       return ((TypeReference)value).resolve().getClassForType();
     } else if (value instanceof Object[]) {
       Object[] values = (Object[])value;
       boolean typeChanged = false;
-      for (int i=0; i < values.length; i++) {
+      for (int i = 0; i < values.length; i++) {
         Object newVal = firstUse(values[i]);
         if (newVal.getClass() != values[i].getClass()) {
           typeChanged = true;
@@ -374,7 +359,7 @@ public final class RVMAnnotation {
       }
       if (typeChanged) {
         Object[] newValues = (Object[])Array.newInstance(values[0].getClass(), values.length);
-        for (int i=0; i < values.length; i++) {
+        for (int i = 0; i < values.length; i++) {
           newValues[i] = values[i];
         }
         return newValues;
@@ -392,7 +377,9 @@ public final class RVMAnnotation {
    * @return TypeReferernce of interface annotation object implements
    */
   @Uninterruptible
-  TypeReference annotationType() { return type; }
+  TypeReference annotationType() {
+    return type;
+  }
 
   /*
    * Hash map support
@@ -410,7 +397,7 @@ public final class RVMAnnotation {
         if (elementValuePairs.length != that.elementValuePairs.length) {
           return false;
         }
-        for (int i=0; i<elementValuePairs.length; i++) {
+        for (int i = 0; i < elementValuePairs.length; i++) {
           if (!elementValuePairs[i].equals(that.elementValuePairs[i])) {
             return false;
           }
@@ -425,32 +412,37 @@ public final class RVMAnnotation {
   }
 
   /**
-   * Return a string representation of the annotation of the form
+   * @return a string representation of the annotation of the form
    * "@type(name1=val1, ...nameN=valN)"
    */
   @Override
   public String toString() {
     RVMClass annotationInterface = type.resolve().asClass();
     RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
-    String result = "@" + type.resolve().getClassForType().getName() + "(";
+    StringBuilder result = new StringBuilder("@");
+    result.append(type.resolve().getClassForType().getName());
+    result.append('(');
     try {
-      for (int i=0; i < annotationMethods.length; i++) {
-        String name=annotationMethods[i].getName().toUnicodeString();
-        Object value=getElementValue(name, annotationMethods[i].getReturnType().resolve().getClassForType());
-        result += elementString(name, value);
+      for (int i = 0; i < annotationMethods.length; i++) {
+        String name = annotationMethods[i].getName().toUnicodeString();
+        Object value = getElementValue(name,
+            annotationMethods[i].getReturnType().resolve().getClassForType());
+        result.append(elementString(name, value));
         if (i < (annotationMethods.length - 1)) {
-          result += ", ";
+          result.append(", ");
         }
       }
     } catch (java.io.UTFDataFormatException e) {
       throw new Error(e);
     }
-    result += ")";
-    return result;
+    result.append(')');
+    return result.toString();
   }
 
   /**
-   * String representation of the value pair of the form
+   * @param name the name
+   * @param value the value
+   * @return string representation of the value pair of the form
    * "name=value"
    */
   private String elementString(String name, Object value) {
@@ -473,7 +465,6 @@ public final class RVMAnnotation {
     }
   }
 
-  /** Find the value for an annotation */
   private Object getElementValue(String name, Class<?> valueType) {
     for (AnnotationMember evp : elementValuePairs) {
       String evpFieldName = evp.getName().toString();
@@ -493,7 +484,6 @@ public final class RVMAnnotation {
     }
   }
 
-  /** Hash code for annotation value */
   private int annotationHashCode() {
     RVMClass annotationInterface = type.resolve().asClass();
     RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
@@ -535,7 +525,6 @@ public final class RVMAnnotation {
     return result;
   }
 
-  /** Are two annotations equal? */
   private boolean annotationEquals(Annotation a, Annotation b) {
     if (a == b) {
       return true;
@@ -555,7 +544,7 @@ public final class RVMAnnotation {
               return false;
             }
           } else {
-            if(!Arrays.equals((Object[]) objA, (Object[]) objB)) {
+            if (!Arrays.equals((Object[]) objA, (Object[]) objB)) {
               return false;
             }
           }
@@ -577,7 +566,6 @@ public final class RVMAnnotation {
     AnnotationFactory() {
     }
 
-    /** Entry point to factory */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
       if (method.getName().equals("annotationType")) {
@@ -624,21 +612,12 @@ public final class RVMAnnotation {
      * Is this not the first use of the member?
      */
     private boolean notFirstUse = false;
-    /**
-     * Construct a read value pair
-     */
+
     private AnnotationMember(MethodReference meth, Object value) {
       this.meth = meth;
       this.value = value;
     }
 
-    /**
-     * Read the pair from the input stream and create object
-     * @param constantPool the constant pool for the class being read
-     * @param input stream to read from
-     * @param classLoader the class loader being used to load this annotation
-     * @return a newly created annotation member
-     */
     static AnnotationMember readAnnotationMember(TypeReference type, int[] constantPool, DataInputStream input, ClassLoader classLoader)
         throws IOException, ClassNotFoundException {
       // Read name of pair
@@ -660,7 +639,7 @@ public final class RVMAnnotation {
         } else {
             // Reading the value lets us make a MemberReference that is likely to be correct.
             meth = MemberReference.findOrCreate(type, name,
-                    Atom.findOrCreateAsciiAtom("()"+TypeReference.findOrCreate(value.getClass()).getName())
+                    Atom.findOrCreateAsciiAtom("()" + TypeReference.findOrCreate(value.getClass()).getName())
             ).asMethodReference();
         }
       }
@@ -675,7 +654,7 @@ public final class RVMAnnotation {
     @Pure
     Object getValue() {
       if (!notFirstUse) {
-        synchronized(this) {
+        synchronized (this) {
           value = firstUse(value);
           notFirstUse = true;
         }
@@ -683,9 +662,6 @@ public final class RVMAnnotation {
       return value;
     }
 
-    /**
-     * Are two members equivalent?
-     */
     @Override
     public boolean equals(Object o) {
       if (o instanceof AnnotationMember) {
@@ -704,9 +680,6 @@ public final class RVMAnnotation {
       return meth.hashCode();
     }
 
-    /**
-     * Ordering for sorted annotation members
-     */
     @Override
     public int compareTo(AnnotationMember am) {
       if (am.meth != this.meth) {

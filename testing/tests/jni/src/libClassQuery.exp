@@ -1,0 +1,11 @@
+ClassQuery_0.1 {
+  global :
+	 Java_ClassQuery_setVerboseOff;
+	 Java_ClassQuery_testSuperClass;
+	 Java_ClassQuery_testAssignable;
+	 Java_ClassQuery_testSameObject;
+	 Java_ClassQuery_testAllocObject;
+	 Java_ClassQuery_testGetObjectClass;
+	 Java_ClassQuery_testInstanceOf;
+  local : *;
+};

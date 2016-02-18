@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * <p>
  * All methods of this class have the following signature:
  * <pre>
- * public abstract <TYPE> NAME(<args to pass to sysNAME via native calling convention>)
+ * public abstract &lt;TYPE&gt; NAME(&lt;args to pass to sysNAME via native calling convention&gt;)
  * </pre>
  * which will call the corresponding method in system call trampoline
  * with the added function address from the boot image.
@@ -80,8 +80,28 @@ public abstract class SysCall {
   public abstract int sysGetenv(byte[] varName, byte[] buf, int limit);
 
   // memory
+
+  /**
+   * Copies memory.<p>
+   *
+   * Assumption: the memory regions do not overlap. Use
+   * {@link #sysMemmove(Address, Address, Extent)} if the regions might overlap.
+   * @param dst destination address
+   * @param src source address
+   * @param cnt number of bytes to copy
+   */
   @SysCallTemplate
   public abstract void sysCopy(Address dst, Address src, Extent cnt);
+
+  /**
+   * Copies memory without making any assumptions about the memory areas.
+   *
+   * @param dst destination address
+   * @param src source address
+   * @param cnt number of bytes to copy
+   */
+  @SysCallTemplate
+  public abstract void sysMemmove(Address dst, Address src, Extent cnt);
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
@@ -120,9 +140,6 @@ public abstract class SysCall {
 
   // files
   @SysCallTemplate
-  public abstract int sysStat(byte[] name, int kind);
-
-  @SysCallTemplate
   public abstract int sysReadByte(int fd);
 
   @SysCallTemplate
@@ -134,18 +151,6 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract int sysWriteBytes(int fd, Address buf, int cnt);
 
-  @SysCallTemplate
-  public abstract int sysBytesAvailable(int fd);
-
-  @SysCallTemplate
-  public abstract int sysSyncFile(int fd);
-
-  @SysCallTemplate
-  public abstract int sysSetFdCloseOnExec(int fd);
-
-  @SysCallTemplate
-  public abstract int sysAccess(byte[] name, int kind);
-
   // mmap - memory mapping
   @SysCallTemplate
   public abstract Address sysMMap(Address start, Extent length, int protection, int flags, int fd, Offset offset);
@@ -156,22 +161,20 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract int sysMProtect(Address start, Extent length, int prot);
 
-  @SysCallTemplate
-  public abstract int sysGetPageSize();
-
   // threads
   @SysCallTemplate
   public abstract int sysNumProcessors();
 
   /**
-   * Create a native thread (aka "unix kernel thread", "pthread").
-   * @param tr
-   * @param ip
-   * @param fp
+   * Creates a native thread (aka "unix kernel thread", "pthread").
+   * @param ip the current instruction pointer
+   * @param fp the frame pointer
+   * @param tr the address of the RVMThread object for the thread
+   * @param jtoc value for the thread jtoc
    * @return native thread's o/s handle
    */
   @SysCallTemplate
-  public abstract Word sysThreadCreate(Address tr, Address ip, Address fp);
+  public abstract Word sysThreadCreate(Address ip, Address fp, Address tr, Address jtoc);
 
   /**
    * Tells you if the current system supportes sysNativeThreadBind().
@@ -190,7 +193,13 @@ public abstract class SysCall {
   public abstract Word sysGetThreadId();
 
   @SysCallTemplate
-  public abstract void sysSetupHardwareTrapHandler();
+  public abstract Word sysGetThreadPriorityHandle();
+
+  @SysCallTemplate
+  public abstract int sysGetThreadPriority(Word thread, Word handle);
+
+  @SysCallTemplate
+  public abstract int sysSetThreadPriority(Word thread, Word handle, int priority);
 
   // This implies that the RVMThread is somehow pinned, or else the
   // pthread key value gets moved.  (hence RVMThread is @NonMoving)
@@ -201,16 +210,21 @@ public abstract class SysCall {
   /**
    * Allocate the space for a pthread_mutex (using malloc) and initialize
    * it using pthread_mutex_init with the recursive mutex options.  Note:
-   * it is perfectly OK for the C/C++ code that implements this syscall to
+   * it is perfectly OK for the C code that implements this syscall to
    * use some other locking mechanism (for example, on systems that don't
    * have recursive mutexes you could imagine the recursive feature to be
    * emulated).
+   *
+   * @return pointer to the created monitor for use in other monitor sys calls
    */
   @SysCallTemplate
   public abstract Word sysMonitorCreate();
   /**
    * Destroy the monitor pointed to by the argument and free its memory
    * by calling free.
+   *
+   * @param monitor the pointer to the monitor that is supposed to be
+   *  destroyed
    */
   @SysCallTemplate
   public abstract void sysMonitorDestroy(Word monitor);
@@ -282,7 +296,21 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract int sysPrimitiveParseInt(byte[] buf);
 
-  /** Parse memory sizes passed as command-line arguments.
+  /**
+   * Primitive parsing of memory sizes, with proper error handling,
+   * and so on. For all the gory details, see the code in the
+   * bootloader.
+   * <p>
+   * Note: all byte array parameters for this method represent Strings.
+   *
+   * @param sizeName the option's name
+   * @param sizeFlag the flag's name, e.g. mx (as in "-Xmx")
+   * @param defaultFactor factor for modifying sizes, e.g. "K", "M" or "pages"
+   * @param roundTo round up to a multiple of this number
+   * @param argToken the full command line argument, e.g. "-Xmx200M"
+   * @param subArg the value for the argument, e.g. "200M"
+   * @return Negative values on error.
+   *      Otherwise, positive or zero values as bytes.
    */
   @SysCallTemplate
   public abstract long sysParseMemorySize(byte[] sizeName, byte[] sizeFlag, byte[] defaultFactor, int roundTo,
@@ -305,9 +333,29 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract Address sysDlsym(Address libHandler, byte[] symbolName);
 
-  // system startup pthread sync. primitives
+  // var args
   @SysCallTemplate
-  public abstract void sysCreateThreadSpecificDataKeys();
+  public abstract Address sysVaCopy(Address va_list);
+  @SysCallTemplate
+  public abstract void sysVaEnd(Address va_list);
+  @SysCallTemplate
+  public abstract boolean sysVaArgJboolean(Address va_list);
+  @SysCallTemplate
+  public abstract byte sysVaArgJbyte(Address va_list);
+  @SysCallTemplate
+  public abstract char sysVaArgJchar(Address va_list);
+  @SysCallTemplate
+  public abstract short sysVaArgJshort(Address va_list);
+  @SysCallTemplate
+  public abstract int sysVaArgJint(Address va_list);
+  @SysCallTemplate
+  public abstract long sysVaArgJlong(Address va_list);
+  @SysCallTemplate
+  public abstract float sysVaArgJfloat(Address va_list);
+  @SysCallTemplate
+  public abstract double sysVaArgJdouble(Address va_list);
+  @SysCallTemplate
+  public abstract int sysVaArgJobject(Address va_list);
 
   // system calls for alignment checking
   @SysCallTemplate

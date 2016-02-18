@@ -12,8 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.Monitor;
 import org.mmtk.vm.VM;
 
@@ -24,7 +22,7 @@ import org.vmmagic.pragma.*;
  * to perform collection activity.
  */
 @Uninterruptible
-public class ParallelCollectorGroup implements Constants {
+public class ParallelCollectorGroup {
 
   /****************************************************************************
    * Instance fields
@@ -49,7 +47,7 @@ public class ParallelCollectorGroup implements Constants {
   private volatile boolean aborted;
 
   /** Used to count threads during calls to rendezvous() */
-  private int[] rendezvousCounter = new int[2];
+  private final int[] rendezvousCounter = new int[2];
 
   /** Which rendezvous counter is currently in use */
   private volatile int currentRendezvousCounter;
@@ -57,6 +55,10 @@ public class ParallelCollectorGroup implements Constants {
   /****************************************************************************
    *
    * Initialization
+   */
+
+  /**
+   * @param name human-readable name of the collector group
    */
   public ParallelCollectorGroup(String name) {
     this.name = name;
@@ -80,7 +82,7 @@ public class ParallelCollectorGroup implements Constants {
     this.lock = VM.newHeavyCondLock("CollectorContextGroup");
     this.triggerCount = 1;
     this.contexts = new ParallelCollector[size];
-    for(int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
       try {
         contexts[i] = klass.newInstance();
         contexts[i].group = this;
@@ -115,7 +117,7 @@ public class ParallelCollectorGroup implements Constants {
   }
 
   /**
-   * Has the cycle been aborted?
+   * @return whether the cycle has been aborted
    */
   public boolean isAborted() {
     return aborted;
@@ -161,7 +163,7 @@ public class ParallelCollectorGroup implements Constants {
    * @return {@code true} if the context is a member.
    */
   public boolean isMember(CollectorContext context) {
-    for(CollectorContext c: contexts) {
+    for (CollectorContext c: contexts) {
       if (c == context) {
         return true;
       }
@@ -178,12 +180,12 @@ public class ParallelCollectorGroup implements Constants {
     lock.lock();
     int i = currentRendezvousCounter;
     int me = rendezvousCounter[i]++;
-    if (me == contexts.length-1) {
+    if (me == contexts.length - 1) {
       currentRendezvousCounter ^= 1;
       rendezvousCounter[currentRendezvousCounter] = 0;
       lock.broadcast();
     } else {
-      while(rendezvousCounter[i] < contexts.length) {
+      while (rendezvousCounter[i] < contexts.length) {
         lock.await();
       }
     }

@@ -11,8 +11,9 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-require "getopts.pl";
-&Getopts('t:e:o:');
+use Getopt::Std;
+
+getopts('t:e:o:');
 
 $alarm_exit_code = 1;
 

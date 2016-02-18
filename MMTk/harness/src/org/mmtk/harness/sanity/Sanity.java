@@ -40,9 +40,9 @@ public class Sanity {
   public static void assertValid(ObjectReference ref) {
     if (ref.isNull()) return;
     assert ref.toAddress().toWord().and(Word.fromIntZeroExtend(0x3)).EQ(Word.zero()) :
-      ref+" is incorrectly aligned for an object reference";
+      ref + " is incorrectly aligned for an object reference";
     assert ObjectModel.hasValidId(ref) :
-      ref+" does not have a valid Object ID";
+      ref + " does not have a valid Object ID";
     if (ENFORCE_OBJECT_SANITY) {
       getObjectTable().assertValid(ref);
     }

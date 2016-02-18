@@ -132,6 +132,3 @@ public abstract class OptEncodedCallSiteTree {
     return false;
   }
 }
-
-
-

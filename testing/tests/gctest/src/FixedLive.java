@@ -111,14 +111,14 @@ class FixedLive {
     System.out.println("Total Allocation Time: " + sumAllocTime + " s");
     System.out.println("   Total Tracing Time: " + sumTraceTime + " s");
     System.out.println();
-    System.out.println("Overall: SUCCESS");
+    System.out.println("ALL TESTS PASSED");
   }
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated
   //
   @NoInline
   public static void allocateLoop(int count) {
-    for (int i=0; i<count; i++)
+    for (int i = 0; i < count; i++)
       junk = new Node2I2A();
   }
 
@@ -132,7 +132,7 @@ class FixedLive {
     int checkFreqObj = checkFreq / Node2I2A.objectSize;
     long last = System.currentTimeMillis();
     double allocatedSize = 0;
-    for (int i=0; i< count / checkFreqObj && sampleCount < maxGC; i++) {
+    for (int i = 0; i < count / checkFreqObj && sampleCount < maxGC; i++) {
       long start = System.currentTimeMillis();
       allocateLoop(checkFreqObj);
       allocatedSize += checkFreq;

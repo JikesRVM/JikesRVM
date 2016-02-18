@@ -32,7 +32,7 @@ jstring testNewObjectV_part2(JNIEnv *env, jclass cls, jobject stringClass, ...);
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_Allocation_setVerboseOff
-  (JNIEnv *env, jclass cls) {
+(JNIEnv *env, jclass cls) {
   verbose=0;
 
 }
@@ -44,7 +44,7 @@ JNIEXPORT void JNICALL Java_Allocation_setVerboseOff
  * Signature: (LClass;[C)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_Allocation_testNewObjectA
-  (JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
+(JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
 
   jobject newObj;
   jmethodID methodID;
@@ -68,7 +68,7 @@ JNIEXPORT jstring JNICALL Java_Allocation_testNewObjectA
  * Signature: (LClass;[C)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_Allocation_testNewObjectV
-  (JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
+(JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
 
   return testNewObjectV_part2(env, cls, stringClass, inputChar);
 
@@ -101,7 +101,7 @@ jstring testNewObjectV_part2(JNIEnv *env, jclass cls, jobject stringClass, ...) 
  * Signature: (LClass;[C)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_Allocation_testNewObject
-  (JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
+(JNIEnv *env, jclass cls, jobject stringClass, jcharArray inputChar) {
 
   jobject newObj;
   jmethodID methodID;

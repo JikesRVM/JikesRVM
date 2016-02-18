@@ -30,9 +30,6 @@ public final class RCFindRootSetTraceLocal extends TraceLocal {
 
   private final ObjectReferenceDeque rootBuffer;
 
-  /**
-   * Constructor
-   */
   public RCFindRootSetTraceLocal(Trace trace, ObjectReferenceDeque rootBuffer) {
     super(trace);
     this.rootBuffer = rootBuffer;

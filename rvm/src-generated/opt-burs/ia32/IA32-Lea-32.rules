@@ -1,0 +1,50 @@
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Eclipse Public License (EPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/eclipse-1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+##################################
+# Some cases where an LEA can replace several add/shift operations
+##################################
+r:	INT_ADD(address1scaledreg, r)
+11
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal2(P(p))); \\
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+
+r:	INT_ADD(r, address1scaledreg)
+11
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal1(P(p))); \\
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+
+r:	INT_ADD(address1scaledreg, address1reg)
+11
+EMIT_INSTRUCTION
+combineAddresses(); \\
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+
+r:	INT_ADD(address1reg, address1scaledreg)
+11
+EMIT_INSTRUCTION
+combineAddresses(); \\
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+
+r:	INT_ADD(address, INT_CONSTANT)
+11
+EMIT_INSTRUCTION
+augmentAddress(Binary.getVal2(P(p))); \\
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+
+r:	INT_MOVE(address)
+20
+EMIT_INSTRUCTION
+EMIT_Lea(P(p), Move.getResult(P(p)), consumeAddress(DW, null, null));
+

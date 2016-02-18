@@ -59,9 +59,6 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
   }
 
   @Override
-  public abstract String toString();
-
-  @Override
   public void addUse(DF_Equation eq) {
     uses.add(eq);
   }
@@ -77,10 +74,14 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
       private final Iterator<DF_Equation> i = defs.iterator();
 
       @Override
-      public boolean hasMoreElements() { return i.hasNext(); }
+      public boolean hasMoreElements() {
+        return i.hasNext();
+      }
 
       @Override
-      public GraphNode nextElement() { return i.next(); }
+      public GraphNode nextElement() {
+        return i.next();
+      }
     };
   }
 
@@ -90,10 +91,14 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
       private final Iterator<DF_Equation> i = uses.iterator();
 
       @Override
-      public boolean hasMoreElements() { return i.hasNext(); }
+      public boolean hasMoreElements() {
+        return i.hasNext();
+      }
 
       @Override
-      public GraphNode nextElement() { return i.next(); }
+      public GraphNode nextElement() {
+        return i.next();
+      }
     };
   }
 
@@ -115,18 +120,4 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
     return index;
   }
 
-  private int scratch;
-
-  @Override
-  public int getScratch() {
-    return scratch;
-  }
-
-  @Override
-  public int setScratch(int o) {
-    return (scratch = o);
-  }
 }
-
-
-

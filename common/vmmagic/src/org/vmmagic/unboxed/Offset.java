@@ -31,6 +31,10 @@ public final class Offset {
     return null;
   }
 
+  public static Offset fromLong(long address) {
+    return null;
+  }
+
   public static Offset zero() {
     return null;
   }
@@ -52,6 +56,10 @@ public final class Offset {
   }
 
   public Offset plus(int byteSize) {
+    return null;
+  }
+
+  public Offset plus(Offset off2) {
     return null;
   }
 

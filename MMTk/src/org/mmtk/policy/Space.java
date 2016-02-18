@@ -12,6 +12,8 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.Map;
@@ -21,7 +23,6 @@ import org.mmtk.utility.heap.SpaceDescriptor;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -40,11 +41,11 @@ import org.vmmagic.unboxed.*;
  *
  * In addition to tracking virtual memory use and the mapping to
  * policy, spaces also manage memory consumption (<i>used</i> virtual
- * memory).<p>
+ * memory).
  *
  */
 @Uninterruptible
-public abstract class Space implements Constants {
+public abstract class Space {
 
   /****************************************************************************
    *
@@ -165,6 +166,7 @@ public abstract class Space implements Constants {
         VM.assertions.fail(name + " starting on non-aligned boundary: " + start.toLong() + " bytes");
       }
     } else if (vmRequest.top) {
+      if (Map.isFinalized()) VM.assertions.fail("heap is narrowed after regionMap is finalized: " + name);
       heapLimit = heapLimit.minus(extent);
       start = heapLimit;
     } else {
@@ -202,43 +204,67 @@ public abstract class Space implements Constants {
    * Accessor methods
    */
 
-  /** Start of discontig getter @return The start of the discontiguous space */
-  public static Address getDiscontigStart() { return heapCursor; }
+  /** @return The start of the discontiguous space */
+  public static Address getDiscontigStart() {
+    return heapCursor;
+  }
 
-  /** End of discontig getter @return The end of the discontiguous space */
-  public static Address getDiscontigEnd() { return heapLimit.minus(1); }
+  /** @return The end of the discontiguous space */
+  public static Address getDiscontigEnd() {
+    return heapLimit.minus(1);
+  }
 
-  /** Name getter @return The name of this space */
-  public final String getName() { return name; }
+  /** @return The name of this space */
+  public final String getName() {
+    return name;
+  }
 
-  /** Start getter @return The start address of this space */
-  public final Address getStart() { return start; }
+  /** @return The start address of this space */
+  public final Address getStart() {
+    return start;
+  }
 
-  /** Extent getter @return The size (extent) of this space */
-  public final Extent getExtent() { return extent; }
+  /** @return The size (extent) of this space */
+  public final Extent getExtent() {
+    return extent;
+  }
 
-  /** Descriptor method @return The integer descriptor for this space */
-  public final int getDescriptor() { return descriptor; }
+  /** @return The integer descriptor for this space */
+  public final int getDescriptor() {
+    return descriptor;
+  }
 
-  /** Index getter @return The index (ordinal number) of this space */
-  public final int getIndex() { return index; }
+  /** @return The index (ordinal number) of this space */
+  public final int getIndex() {
+    return index;
+  }
 
-  /** Immortal getter @return {@code true} if this space is never collected */
-  public final boolean isImmortal() { return immortal; }
+  /** @return {@code true} if this space is never collected */
+  public final boolean isImmortal() {
+    return immortal;
+  }
 
-  /** Movable getter @return {@code true} if objects in this space may move */
-  public boolean isMovable() { return movable; }
+  /** @return {@code true} if objects in this space may move */
+  public boolean isMovable() {
+    return movable;
+  }
 
-  /** ReservedPages getter @return The number of reserved pages */
-  public final int reservedPages() { return pr.reservedPages(); }
+  /** @return The number of reserved pages */
+  public final int reservedPages() {
+    return pr.reservedPages();
+  }
 
-  /** CommittedPages getter @return The number of committed pages */
-  public final int committedPages() { return pr.committedPages(); }
+  /** @return The number of committed pages */
+  public final int committedPages() {
+    return pr.committedPages();
+  }
 
-  /** AvailablePages getter @return The number of pages available for allocation */
-  public final int availablePhysicalPages() { return pr.getAvailablePhysicalPages(); }
+  /** @return The number of pages available for allocation */
+  public final int availablePhysicalPages() {
+    return pr.getAvailablePhysicalPages();
+  }
 
-  /** Cumulative committed pages getter @return Cumulative committed pages. */
+  /** @return Cumulative committed pages. */
   public static long cumulativeCommittedPages() {
     return PageResource.cumulativeCommittedPages();
   }
@@ -371,7 +397,10 @@ public abstract class Space implements Constants {
    */
 
   /**
-   * Update the zeroing approach for this space.
+   * Updates the zeroing approach for this space.
+   *
+   * @param useNT whether to use non-temporal instructions for zeroing
+   * @param concurrent whether zeroing will be done concurrently
    */
   @Interruptible
   public void setZeroingApproach(boolean useNT, boolean concurrent) {
@@ -464,7 +493,7 @@ public abstract class Space implements Constants {
    * @return The number of chunks needed to satisfy the request
    */
   public static int requiredChunks(int pages) {
-    Extent extent = chunkAlign(Extent.fromIntZeroExtend(pages<<LOG_BYTES_IN_PAGE), false);
+    Extent extent = chunkAlign(Extent.fromIntZeroExtend(pages << LOG_BYTES_IN_PAGE), false);
     return extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
   }
 
@@ -534,12 +563,16 @@ public abstract class Space implements Constants {
   /**
    * Print out the memory used by all spaces, in megabytes
    */
-  public static void printUsageMB() { printUsage(MB); }
+  public static void printUsageMB() {
+    printUsage(MB);
+  }
 
   /**
    * Print out the memory used by all spaces, in megabytes
    */
-  public static void printUsagePages() { printUsage(PAGES); }
+  public static void printUsagePages() {
+    printUsage(PAGES);
+  }
 
   /**
    * Print out a map of virtual memory useage by all spaces
@@ -569,10 +602,10 @@ public abstract class Space implements Constants {
         Log.writeln();
       } else {
         Log.write("D [");
-        for(Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
+        for (Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
           Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
-          if (Map.getNextContiguousRegion(a) != Address.zero())
+          if (!Map.getNextContiguousRegion(a).isZero())
             Log.write(", ");
         }
         Log.writeln("]");
@@ -585,7 +618,7 @@ public abstract class Space implements Constants {
   /**
    * Interface to use to implement the Visitor Pattern for Spaces.
    */
-  public static interface SpaceVisitor {
+  public interface SpaceVisitor {
     void visit(Space s);
   }
 
@@ -630,7 +663,7 @@ public abstract class Space implements Constants {
           Log.write("->");
           Log.writeln(space.start.plus(space.extent.minus(1)));
         }
-        Mmapper.ensureMapped(space.start, space.extent.toInt()>>LOG_BYTES_IN_PAGE);
+        Mmapper.ensureMapped(space.start, space.extent.toInt() >> LOG_BYTES_IN_PAGE);
       }
     }
   }
@@ -643,11 +676,13 @@ public abstract class Space implements Constants {
   public static void eagerlyMmapMMTkDiscontiguousSpaces() {
     Address regionStart = Space.getDiscontigStart();
     Address regionEnd = Space.getDiscontigEnd();
-    int pages = regionEnd.diff(regionStart).toInt()>>LOG_BYTES_IN_PAGE;
-    Log.write("Mapping discontiguous spaces ");
-    Log.write(regionStart);
-    Log.write("->");
-    Log.writeln(regionEnd.minus(1));
+    int pages = regionEnd.diff(regionStart).toInt() >> LOG_BYTES_IN_PAGE;
+    if (Options.verbose.getValue() > 2) {
+      Log.write("Mapping discontiguous spaces ");
+      Log.write(regionStart);
+      Log.write("->");
+      Log.writeln(regionEnd.minus(1));
+    }
     Mmapper.ensureMapped(getDiscontigStart(), pages);
   }
 
@@ -765,4 +800,19 @@ public abstract class Space implements Constants {
     Extent rtn = mb.lsh(LOG_BYTES_IN_MBYTE).toExtent();
     return chunkAlign(rtn, false);
   }
+
+  /** @return the actual number of spaces in the space array */
+  public static int getSpaceCount() {
+    return spaceCount;
+  }
+
+  /**
+   * @return the spaces array. Note that the array is partially empty:
+   * use {@link #getSpaceCount()} to determine the maximum index that
+   * is still filled.
+   */
+  public static Space[] getSpaces() {
+    return spaces;
+  }
+
 }

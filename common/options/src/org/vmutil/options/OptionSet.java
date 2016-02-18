@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.*;
 public abstract class OptionSet {
   private Option head;
   private Option tail;
-  private boolean loggingChanges;
+  private final boolean loggingChanges;
 
   /**
    * Initialize the option set so that options can be created.
@@ -50,6 +50,8 @@ public abstract class OptionSet {
    * Register the option to this set, computing its key in the process.
    *
    * @param o The option to register.
+   * @param name the option's name
+   * @return the computed key for the option
    */
   final String register(Option o, String name) {
     if (tail == null) {
@@ -134,7 +136,7 @@ public abstract class OptionSet {
     logString("<options>");
     logNewLine();
 
-    for(Option o = getFirst(); o != null; o = o.getNext()) {
+    for (Option o = getFirst(); o != null; o = o.getNext()) {
       logXml(o);
     }
 
@@ -152,6 +154,8 @@ public abstract class OptionSet {
 
   /**
    * Log a string.
+   *
+   * @param s the string to log
    */
   protected abstract void logString(String s);
 

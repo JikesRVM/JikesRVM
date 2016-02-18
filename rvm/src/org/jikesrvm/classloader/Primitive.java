@@ -12,7 +12,25 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.Constants;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;
 import org.vmmagic.pragma.NonMoving;
@@ -40,7 +58,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class Primitive extends RVMType implements Constants, ClassLoaderConstants {
+public final class Primitive extends RVMType {
   /**
    * The pretty (external) name for this primitive.
    * For example, for a long the name is 'long'
@@ -90,8 +108,9 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Create an instance of a {@link Primitive}
+   * Creates an instance of a {@link Primitive}.
    * @param tr   The canonical type reference for this primitive
+   * @return a newly created instance of {@link Primitive}
    */
   static Primitive createPrimitive(TypeReference tr) {
     Atom name;
@@ -154,7 +173,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
         classForType = Double.TYPE;
         break;
       default:
-        throw new Error("Unknown primitive "+tr.getName().classFileNameFromDescriptor());
+        throw new Error("Unknown primitive " + tr.getName().classFileNameFromDescriptor());
     }
     return new Primitive(tr, classForType, name, stackWords, memoryBytes);
   }

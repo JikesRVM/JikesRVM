@@ -41,15 +41,15 @@ public class hanoi {
 
   public static void moves(int n, int f, int t) {
     int o;
-    if(n == 1) {
+    if (n == 1) {
       num[f]--;
       num[t]++;
       cnt++;
     } else {
-      o = (6-(f+t));
-      moves(n-1,f,o);
+      o = (6 - (f + t));
+      moves(n - 1,f,o);
       moves(1,f,t);
-      moves(n-1,o,t);
+      moves(n - 1,o,t);
     }
   }
 }

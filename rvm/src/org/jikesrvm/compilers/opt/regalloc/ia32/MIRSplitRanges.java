@@ -12,15 +12,17 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_LOWTABLESWITCH_opcode;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -29,7 +31,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * This class splits live ranges for certain special cases to ensure
  * correctness during IA32 register allocation.
  */
-public class MIRSplitRanges extends CompilerPhase implements Operators {
+public class MIRSplitRanges extends CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -86,7 +88,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
         // NOTE: Any operator that is an IA32 special case that must have
         //       a particular operand in a register must be mentioned both
         //       here and in RegisterRestrictions!
-        if (s.isPEI() && s.operator != IR_PROLOGUE) {
+        if (s.isPEI() && s.operator() != IR_PROLOGUE) {
           if (bb.hasApplicableExceptionalOut(s) || !RegisterRestrictions.SCRATCH_IN_PEI) {
             splitAllLiveRanges(s, newMap, ir, false);
           }
@@ -158,11 +160,12 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
   }
 
   /**
-   * Find or create a temporary register to cache a symbolic register.
+   * Finds or creates a temporary register to cache a symbolic register.
    *
-   * @param rOp the symbolic register
+   * @param rOp the symbolic register operand
    * @param map a mapping from symbolics to temporaries
    * @param ir the governing IR
+   * @return a register operand to cache the symbolic register
    */
   private static RegisterOperand findOrCreateTemp(RegisterOperand rOp,
                                                       java.util.HashMap<Register, Register> map, IR ir) {
@@ -177,7 +180,11 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
   }
 
   /**
-   * Insert an instruction to move r1 into r2 before instruction s
+   * Inserts an instruction to move r1 into r2 before instruction s.
+   *
+   * @param r1 the move source
+   * @param r2 the move target
+   * @param s the instruction before which the move needs to be inserted
    */
   private static void insertMoveBefore(RegisterOperand r2, RegisterOperand r1, Instruction s) {
     Instruction m = PhysicalRegisterTools.makeMoveInstruction(r2, r1);
@@ -185,7 +192,11 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
   }
 
   /**
-   * Insert an instruction to move r1 into r2 after instruction s
+   * Insert an instruction to move r1 into r2 after instruction s.
+   *
+   * @param r1 the move source
+   * @param r2 the move target
+   * @param s the instruction after which the move needs to be inserted
    */
   private static void insertMoveAfter(RegisterOperand r2, RegisterOperand r1, Instruction s) {
     Instruction m = PhysicalRegisterTools.makeMoveInstruction(r2, r1);

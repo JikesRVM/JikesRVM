@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.adaptive.controller;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+
 import java.util.Enumeration;
 import java.util.Vector;
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.OSROrganizerThread;
 import org.jikesrvm.adaptive.database.AOSDatabase;
 import org.jikesrvm.adaptive.database.callgraph.PartialCallGraph;
@@ -30,6 +31,7 @@ import org.jikesrvm.adaptive.util.AOSOptions;
 import org.jikesrvm.adaptive.util.BlockingPriorityQueue;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.RecompilationManager;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.SoftLatch;
 
@@ -55,7 +57,9 @@ public class Controller implements Callbacks.ExitMonitor,
   private static String[] optCompilerOptions = new String[0];
 
   /**
-   * Add a deferred command line argument
+   * Adds a deferred command line argument.
+   *
+   * @param arg the deferred arguments
    */
   public static void addOptCompilerOption(String arg) {
     String[] tmp = new String[optCompilerOptions.length + 1];
@@ -67,9 +71,11 @@ public class Controller implements Callbacks.ExitMonitor,
   }
 
   /**
-   * Get the deferred command line arguments
+   * @return the deferred command line arguments
    */
-  public static String[] getOptCompilerOptions() {return optCompilerOptions;}
+  public static String[] getOptCompilerOptions() {
+    return optCompilerOptions;
+  }
 
   /**
    * The controller thread, it makes all the decisions
@@ -148,9 +154,13 @@ public class Controller implements Callbacks.ExitMonitor,
     // Initialize the controller input queue
     controllerInputQueue = new BlockingPriorityQueue(new BlockingPriorityQueue.CallBack() {
       @Override
-      public void aboutToWait() { controllerThread.aboutToWait(); }
+      public void aboutToWait() {
+        controllerThread.aboutToWait();
+      }
       @Override
-      public void doneWaiting() { controllerThread.doneWaiting(); }
+      public void doneWaiting() {
+        controllerThread.doneWaiting();
+      }
     });
 
     compilationQueue = new BlockingPriorityQueue();
@@ -233,7 +243,7 @@ public class Controller implements Callbacks.ExitMonitor,
   public static void processCommandLineArg(String arg) {
     if (!options.processAsOption("-X:aos", arg)) {
       VM.sysWrite("vm: illegal adaptive configuration directive \"" + arg + "\" specified as -X:aos:" + arg + "\n");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

@@ -58,7 +58,9 @@ import org.vmmagic.unboxed.Address;
    * This address is used in all calls to the server in the C library.
    * @return the address of the server
    */
-  public Address getServerAddress() { return server; }
+  public Address getServerAddress() {
+    return server;
+  }
 
   /**
    * Add a GCspy ServerSpace to the ServerInterpreter.

@@ -26,19 +26,25 @@ public abstract class GenericRegisterPreferences {
   private final CoalesceGraph graph = new CoalesceGraph();
 
   /**
-   * Add a affinity of weight w between two registers.
+   * Adds a affinity of weight w between two registers.
+   *
+   * @param w the affinity
+   * @param r1 the first register
+   * @param r2 the second register
    */
   protected void addAffinity(int w, Register r1, Register r2) {
     graph.addAffinity(w, r1, r2);
   }
 
   /**
-   * Set up register preferences for an IR. This is machine-dependent.
+   * Sets up register preferences for an IR. This is machine-dependent.
+   *
+   * @param ir the IR
    */
   public abstract void initialize(IR ir);
 
   /**
-   * Return the backing graph holding the preferences.
+   * @return the backing graph holding the preferences.
    */
   public CoalesceGraph getGraph() {
     return graph;

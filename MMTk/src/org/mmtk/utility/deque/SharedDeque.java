@@ -12,9 +12,10 @@
  */
 package org.mmtk.utility.deque;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
@@ -30,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * of the deque.
  */
 @Uninterruptible
-public class SharedDeque extends Deque implements Constants {
+public class SharedDeque extends Deque {
   private static final boolean DISABLE_WAITING = true;
   private static final Offset NEXT_OFFSET = Offset.zero();
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
@@ -45,7 +46,9 @@ public class SharedDeque extends Deque implements Constants {
    */
 
   /**
-   * Constructor
+   * @param name the queue's human-readable name
+   * @param rps the space to get pages from
+   * @param arity the arity (number of words per entry) of this queue
    */
   public SharedDeque(String name, RawPageSpace rps, int arity) {
     this.rps = rps;
@@ -57,16 +60,18 @@ public class SharedDeque extends Deque implements Constants {
     tail = TAIL_INITIAL_VALUE;
   }
 
-  /** Get the arity (words per entry) of this queue */
+  /** @return the arity (words per entry) of this queue */
   @Inline
-  final int getArity() { return arity; }
+  final int getArity() {
+    return arity;
+  }
 
   /**
    * Enqueue a block on the head or tail of the shared queue
    *
-   * @param buf
-   * @param arity
-   * @param toTail
+   * @param buf the block to enqueue
+   * @param arity the arity of this queue
+   * @param toTail whether to enqueue to the tail of the shared queue
    */
   final void enqueue(Address buf, int arity, boolean toTail) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == this.arity);
@@ -204,7 +209,7 @@ public class SharedDeque extends Deque implements Constants {
   private final String name;
 
   /** Raw page space from which to allocate */
-  private RawPageSpace rps;
+  private final RawPageSpace rps;
 
   /** Number of words per entry */
   private final int arity;
@@ -230,9 +235,9 @@ public class SharedDeque extends Deque implements Constants {
   protected volatile Address tail;
   @Entrypoint
   private volatile int bufsenqueued;
-  private Lock lock;
+  private final Lock lock;
 
-  private static final long WARN_PERIOD = (long)(2*1E9);
+  private static final long WARN_PERIOD = (long)(2 * 1E9);
   private static final long TIMEOUT_PERIOD = 10 * WARN_PERIOD;
 
   /**
@@ -240,8 +245,8 @@ public class SharedDeque extends Deque implements Constants {
    * queue is empty, wait for either a new block to show up or all the
    * other consumers to join us.
    *
-   * @param waiting
-   * @param fromTail
+   * @param waiting whether to wait to dequeue a block if none is present
+   * @param fromTail whether to dequeue from the tail
    * @return the Address of the block
    */
   private Address dequeue(boolean waiting, boolean fromTail) {
@@ -439,7 +444,7 @@ public class SharedDeque extends Deque implements Constants {
   }
 
   /**
-   * Is the current round of processing complete ?
+   * @return whether the current round of processing is complete
    */
   private boolean complete() {
     return completionFlag == 1;

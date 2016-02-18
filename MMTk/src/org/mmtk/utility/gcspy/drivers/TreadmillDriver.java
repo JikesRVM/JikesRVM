@@ -12,19 +12,23 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
+import static org.mmtk.utility.gcspy.StreamConstants.PAINT_STYLE_ZERO;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PERCENT;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PLUS;
+
 import org.mmtk.policy.LargeObjectSpace;
-import org.mmtk.utility.gcspy.Color;
-import org.mmtk.utility.gcspy.StreamConstants;
-import org.mmtk.utility.gcspy.Subspace;
-import org.mmtk.vm.gcspy.IntStream;
-import org.mmtk.vm.gcspy.ShortStream;
-import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.gcspy.Color;
+import org.mmtk.utility.gcspy.Subspace;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.vm.gcspy.IntStream;
+import org.mmtk.vm.gcspy.ServerInterpreter;
+import org.mmtk.vm.gcspy.ShortStream;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 
 /**
@@ -116,8 +120,8 @@ import org.vmmagic.pragma.*;
                      0,                                      // default value
                     "Space used: ",                          // value prefix
                     " bytes",                                // value suffix
-                     StreamConstants.PRESENTATION_PERCENT,   // presentation style
-                     StreamConstants.PAINT_STYLE_ZERO,       // paint style
+                     PRESENTATION_PERCENT,   // presentation style
+                     PAINT_STYLE_ZERO,       // paint style
                      0,                                      // index of the max stream (only needed if presentation is *_VAR)
                      Color.Red,                              // tile colour
                      true);                                  // summary enabled
@@ -129,13 +133,13 @@ import org.vmmagic.pragma.*;
                      this,
                      "Objects stream",
                      (short)0,
-                     (short)(blockSize/threshold),
+                     (short)(blockSize / threshold),
                      (short)0,
                      (short)0,
                      "No. of objects = ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Green,
                      true);
@@ -148,13 +152,13 @@ import org.vmmagic.pragma.*;
                      "Roots stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Roots: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);
@@ -167,13 +171,13 @@ import org.vmmagic.pragma.*;
                      "References from Immortal stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "References from immortal space: ",
                      " references",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);
@@ -245,7 +249,7 @@ import org.vmmagic.pragma.*;
     Address start = subspace.getStart();
     int required = countTileNum(start, maxAddr, blockSize);
     int current = subspace.getBlockNum();
-    if (required > current || maxAddr != subspace.getEnd()) {
+    if (required > current || maxAddr.NE(subspace.getEnd())) {
       subspace.reset(start, maxAddr, 0, required);
       allTileNum = required;
       serverSpace.resize(allTileNum);
@@ -287,7 +291,7 @@ import org.vmmagic.pragma.*;
    * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRoot(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       rootsStream.increment(index, (short)1);
@@ -317,7 +321,7 @@ import org.vmmagic.pragma.*;
    */
   @Override
   public boolean handleReferenceFromImmortalSpace(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       refFromImmortalStream.increment(index, (short)1);

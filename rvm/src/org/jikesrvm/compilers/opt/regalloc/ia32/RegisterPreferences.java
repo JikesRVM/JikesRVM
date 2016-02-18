@@ -12,24 +12,25 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV_opcode;
+
 import java.util.Enumeration;
 
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.regalloc.GenericRegisterPreferences;
 
-public class RegisterPreferences extends GenericRegisterPreferences implements Operators {
+public class RegisterPreferences extends GenericRegisterPreferences {
 
   @Override
   public void initialize(IR ir) {
 
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      switch (s.operator.opcode) {
+      switch (s.getOpcode()) {
         case IA32_MOV_opcode:
           // add affinities produced by MOVE instructions
           Operand result = MIR_Move.getResult(s);

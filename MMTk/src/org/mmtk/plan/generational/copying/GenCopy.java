@@ -32,13 +32,13 @@ import org.vmmagic.pragma.*;
  * collector).  Thus both fixed and flexible nursery sizes are
  * supported.  Full heap collections occur when the nursery size has
  * dropped to a statically defined threshold,
- * <code>NURSERY_THRESHOLD</code><p>
+ * <code>NURSERY_THRESHOLD</code>.<p>
  *
- * See the Jones & Lins GC book, chapter 7 for a detailed discussion
+ * See the Jones &amp; Lins GC book, chapter 7 for a detailed discussion
  * of generational collection and section 7.3 for an overview of the
  * flexible nursery behavior ("The Standard ML of New Jersey
  * collector"), or go to Appel's paper "Simple generational garbage
- * collection and fast allocation." SP&E 19(2):171--183, 1989.<p>
+ * collection and fast allocation." SP&amp;E 19(2):171--183, 1989.<p>
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities.  Global activities must be
@@ -70,14 +70,14 @@ import org.vmmagic.pragma.*;
    * The low half of the copying mature space.  We allocate into this space
    * when <code>hi</code> is <code>false</code>.
    */
-  static CopySpace matureSpace0 = new CopySpace("ss0", false, VMRequest.create());
+  static CopySpace matureSpace0 = new CopySpace("ss0", false, VMRequest.discontiguous());
   static final int MS0 = matureSpace0.getDescriptor();
 
   /**
    * The high half of the copying mature space. We allocate into this space
    * when <code>hi</code> is <code>true</code>.
    */
-  static CopySpace matureSpace1 = new CopySpace("ss1", true, VMRequest.create());
+  static CopySpace matureSpace1 = new CopySpace("ss1", true, VMRequest.discontiguous());
   static final int MS1 = matureSpace1.getDescriptor();
 
 
@@ -115,7 +115,9 @@ import org.vmmagic.pragma.*;
   /**
    * @return Space descriptor for to-space.
    */
-  static int toSpaceDesc() { return hi ? MS1 : MS0; }
+  static int toSpaceDesc() {
+    return hi ? MS1 : MS0;
+  }
 
   /**
    * @return The semispace we are currently copying from
@@ -128,7 +130,9 @@ import org.vmmagic.pragma.*;
   /**
    * @return Space descriptor for from-space
    */
-  static int fromSpaceDesc() { return hi ? MS0 : MS1; }
+  static int fromSpaceDesc() {
+    return hi ? MS0 : MS1;
+  }
 
   /****************************************************************************
    *

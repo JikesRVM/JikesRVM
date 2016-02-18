@@ -36,6 +36,9 @@ public abstract class WeightedCallTargets {
    * NOTE: This method may change the representation of the target
    * method.  The caller must be sure to update their backing store of
    * WeightedCallTargets accordingly to avoid losing the update.
+   *
+   * @param target the method whose count is to be incremented
+   * @return the object representing the method's targets
    */
   public final WeightedCallTargets incrementCount(RVMMethod target) {
     return augmentCount(target, 1);
@@ -46,6 +49,10 @@ public abstract class WeightedCallTargets {
    * NOTE: This method may change the representation of the target
    * method.  The caller must be sure to update their backing store of
    * WeightedCallTargets accordingly to avoid losing the update.
+   *
+   * @param target the method whose count is to be incremented
+   * @param amount amount to increment by
+   * @return the object representing the method's targets
    */
   public abstract WeightedCallTargets augmentCount(RVMMethod target, double amount);
 
@@ -56,7 +63,7 @@ public abstract class WeightedCallTargets {
   public abstract void decay(double rate);
 
   /**
-   * totalWeight of all call targets
+   * @return total weight of all call targets
    */
   public abstract double totalWeight();
 
@@ -116,7 +123,9 @@ public abstract class WeightedCallTargets {
     }
 
     @Override
-    public double totalWeight() { return weight; }
+    public double totalWeight() {
+      return weight;
+    }
 
     @Override
     public WeightedCallTargets filter(RVMMethod goal, boolean isPrecise) {
@@ -178,7 +187,9 @@ public abstract class WeightedCallTargets {
             return this;
           }
         } else {
-          if (empty == -1) { empty = i; }
+          if (empty == -1) {
+            empty = i;
+          }
         }
       }
 
@@ -244,7 +255,7 @@ public abstract class WeightedCallTargets {
         }
 
         MultiTarget filtered = new MultiTarget();
-        for (int i=0; i<methods.length; i++) {
+        for (int i = 0; i < methods.length; i++) {
           RVMMethod method = methods[i];
           if (method != null && RuntimeEntrypoints.isAssignableWith(goal.getDeclaringClass(), method.getDeclaringClass())) {
             filtered.augmentCount(method, weights[i]);

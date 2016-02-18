@@ -12,6 +12,12 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_OBJECTS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMType;
@@ -31,7 +37,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * Common debugging utility functions used by various garbage collectors
  */
 @Uninterruptible
-public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Constants {
+public class DebugUtil {
 
   private static TIB tibForArrayType;
   private static TIB tibForClassType;
@@ -51,6 +57,8 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
    * Check if an address appears to point to an instance of RVMType
    *
    * @param typeAddress the address to check
+   * @return {@code true} if and only if the address appears to
+   *  be an an instance of RVMType
    */
   @Uninterruptible
   public static boolean validType(ObjectReference typeAddress) {
@@ -64,8 +72,8 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
   }
 
   /**
-   * Dump all threads & their stacks starting at the frame identified
-   * by the threads saved contextRegisters (ip & fp fields).
+   * Dump all threads &amp; their stacks starting at the frame identified
+   * by the threads saved contextRegisters (ip &amp; fp fields).
    */
   @Uninterruptible
   public static void dumpAllThreadStacks() {
@@ -73,7 +81,12 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
   }  // dumpAllThreadStacks
 
   /**
-   * Check if a ref, its tib pointer & type pointer are all in the heap
+   * Checks if a reference, its TIB pointer and type pointer
+   * are all in the heap.
+   *
+   * @param ref the reference to check
+   * @return {@code true} if and only if the reference
+   *  refers to a valid object
    */
   @Uninterruptible
   public static boolean validObject(Object ref) {
@@ -91,7 +104,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
       Space.printVMMap();
       return false;
     }
-    if (MemoryManagerConstants.MOVES_OBJECTS) {
+    if (MOVES_OBJECTS) {
       /*
       TODO: Work out how to check if forwarded
       if (Plan.isForwardedOrBeingForwarded(ref)) {

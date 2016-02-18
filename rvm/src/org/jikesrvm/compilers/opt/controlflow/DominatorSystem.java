@@ -34,7 +34,7 @@ class DominatorSystem extends DF_System {
    * Default constructor.
    * @param ir the governing IR
    */
-  public DominatorSystem(IR ir) {
+  DominatorSystem(IR ir) {
     this.ir = ir;
     setupEquations();
   }
@@ -134,9 +134,9 @@ class DominatorSystem extends DF_System {
   }
 
   /**
-   * Return a list of lattice cells corresponding to the
-   * predecessors of a basic block.
    * @param bb the basic block
+   * @return a list of lattice cells corresponding to the
+   *  predecessors of a basic block
    */
   DF_LatticeCell[] getCellsForPredecessors(BasicBlock bb) {
     if (Dominators.COMPUTE_POST_DOMINATORS) {

@@ -42,7 +42,7 @@ class CriticalCopy {
 
     System.loadLibrary("CriticalCopy");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -56,10 +56,10 @@ class CriticalCopy {
     if (verbose)
       System.out.println("Updated copy");
 
-    for (int i=0; i<intArray.length; i++) {
+    for (int i = 0; i < intArray.length; i++) {
       if (verbose)
         System.out.println("    " + i + " = " + intArray[i]);
-      if (intArray[i]!=i)
+      if (intArray[i] != i)
         checkFlag = false;
     }
     checkTest(returnValue, checkFlag, "primitiveIntegerArray");
@@ -79,7 +79,7 @@ class CriticalCopy {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

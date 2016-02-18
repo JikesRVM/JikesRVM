@@ -12,23 +12,24 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport;
 
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.VM;
-import org.jikesrvm.PrintLN;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.osr.EncodedOSRMap;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
@@ -36,6 +37,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.PrintLN;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
@@ -83,9 +85,42 @@ public final class OptCompiledMethod extends CompiledMethod {
     if (eTable == null) {
       return -1;
     } else {
-      return ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
+      int catchOffset = ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
+      dealWithPossibleRemovalOfCatchBlockByTheOptCompiler(instructionOffset,
+          exceptionType, catchOffset);
+      return catchOffset;
     }
   }
+
+  @Uninterruptible
+  private void dealWithPossibleRemovalOfCatchBlockByTheOptCompiler(
+      Offset instructionOffset, RVMType exceptionType, int catchOffset) {
+    if (OptExceptionTable.belongsToUnreachableCatchBlock(catchOffset)) {
+      if (VM.VerifyAssertions) {
+        VM.sysWriteln("Attempted to use a catch block that was determined to be unreachable" +
+            " by the optimizing compiler and thus removed from the IR before " +
+            "code was generated for it.");
+        VM.sysWrite("Instruction offset: ");
+        VM.sysWrite(instructionOffset);
+        VM.sysWriteln();
+        VM.sysWrite("Exception type: ");
+        VM.sysWrite(exceptionType.getDescriptor());
+        VM.sysWriteln();
+        ExceptionTable.printExceptionTableUninterruptible(eTable);
+        VM._assert(VM.NOT_REACHED,
+            "Attempted to use catch block that was removed from the code by the opt compiler!");
+      } else {
+        if (VM.TraceExceptionDelivery) {
+          VM.sysWriteln("Found a catch block that was determined by the optimizing" +
+              " compiler to be unreachable (and thus removed), ignoring it.");
+        }
+        // Nothing more to do. The unreachable catch block marker is negative which
+        // will cause the exception delivery code to ignore the catch block.
+      }
+    }
+  }
+
+
 
   /**
    * Fetch symbolic reference to a method that's called
@@ -108,6 +143,28 @@ public final class OptCompiledMethod extends CompiledMethod {
   @Interruptible
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+
+    // Use an explicit null check here because this method is called from
+    // code for delivery of hardware exceptions. That code is unpreemptible, so
+    // a NullPointerException in this method would lead to a crash due to recursive
+    // use of hardware exception registers. It is better to crash with a reasonable
+    // error message when no method is found.
+    if (realMethod == null) {
+      VM.sysWrite("Failing instruction offset: ");
+      VM.sysWrite(instructionOffset);
+      VM.sysWrite(" in method ");
+      RVMMethod thisMethod = this.getMethod();
+      VM.sysWrite(thisMethod.getName());
+      VM.sysWrite(" with descriptor ");
+      VM.sysWriteln(thisMethod.getDescriptor());
+      String msg = "Couldn't find a method for given instruction offset";
+      if (VM.VerifyAssertions) {
+        VM._assert(NOT_REACHED, msg);
+      } else {
+        VM.sysFail(msg);
+      }
+    }
+
     return realMethod.isUninterruptible();
   }
 
@@ -136,7 +193,7 @@ public final class OptCompiledMethod extends CompiledMethod {
       browser.setInlineEncodingIndex(iei);
       browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
       browser.setCompiledMethod(this);
-      browser.setMethod(MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
+      browser.setMethod(MemberReference.getMethodRef(mid).peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
         VM.sysWrite("setting stack to frame (opt): ");
@@ -162,7 +219,7 @@ public final class OptCompiledMethod extends CompiledMethod {
 
       browser.setInlineEncodingIndex(next);
       browser.setBytecodeIndex(bci);
-      browser.setMethod(MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
+      browser.setMethod(MemberReference.getMethodRef(mid).peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
         VM.sysWrite("up within frame stack (opt): ");
@@ -188,7 +245,7 @@ public final class OptCompiledMethod extends CompiledMethod {
       for (int j = iei; j >= 0; j = OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         NormalMethod m =
-            (NormalMethod) MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+            (NormalMethod) MemberReference.getMethodRef(mid).peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci); // might be 0 if unavailable.
         out.print("\tat ");
         out.print(m.getDeclaringClass());
@@ -231,14 +288,22 @@ public final class OptCompiledMethod extends CompiledMethod {
   //----------------//
   // implementation //
   //----------------//
-  private static final ArchitectureSpecificOpt.OptExceptionDeliverer exceptionDeliverer =
-      new ArchitectureSpecificOpt.OptExceptionDeliverer();
+  private static final ExceptionDeliverer exceptionDeliverer;
+
+  static {
+    if (VM.BuildForIA32) {
+      exceptionDeliverer = new org.jikesrvm.compilers.opt.runtimesupport.ia32.OptExceptionDeliverer();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      exceptionDeliverer = new org.jikesrvm.compilers.opt.runtimesupport.ppc.OptExceptionDeliverer();
+    }
+  }
 
   private EncodedOSRMap _osrMap;
 
   @Interruptible
   public void createFinalOSRMap(IR ir) {
-    this._osrMap = EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap);
+    this._osrMap = EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap, ir.MIRInfo.mcOffsets);
   }
 
   public EncodedOSRMap getOSRMap() {
@@ -357,13 +422,13 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Return the number of non-volatile GPRs used by this method.
+   * @return the number of non-volatile GPRs used by this method.
    */
   public int getNumberOfNonvolatileGPRs() {
     if (VM.BuildForPowerPC) {
-      return ArchitectureSpecific.RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
+      return org.jikesrvm.ppc.RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
     } else if (VM.BuildForIA32) {
-      return ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
+      return org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
@@ -371,48 +436,39 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Return the number of non-volatile FPRs used by this method.
+   * @return the number of non-volatile FPRs used by this method.
    */
   public int getNumberOfNonvolatileFPRs() {
     if (VM.BuildForPowerPC) {
-      return ArchitectureSpecific.RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
+      return org.jikesrvm.ppc.RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
     } else if (VM.BuildForIA32) {
-      return ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
+      return org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
     return -1;
   }
 
-  /**
-   * Set the number of non-volatile GPRs used by this method.
-   */
   public void setNumberOfNonvolatileGPRs(short n) {
     if (VM.BuildForPowerPC) {
-      setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_GPRS - n);
+      setFirstNonVolatileGPR(org.jikesrvm.ppc.RegisterConstants.NUM_GPRS - n);
     } else if (VM.BuildForIA32) {
-      setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_GPRS - n);
+      setFirstNonVolatileGPR(org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS - n);
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
   }
 
-  /**
-   * Set the number of non-volatile FPRs used by this method.
-   */
   public void setNumberOfNonvolatileFPRs(short n) {
     if (VM.BuildForPowerPC) {
-      setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_FPRS - n);
+      setFirstNonVolatileFPR(org.jikesrvm.ppc.RegisterConstants.NUM_FPRS - n);
     } else if (VM.BuildForIA32) {
-      setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_NONVOLATILE_FPRS - n);
+      setFirstNonVolatileFPR(org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS - n);
     } else if (VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);
     }
   }
 
-  /**
-   * Print the eTable
-   */
   @Interruptible
   public void printExceptionTable() {
     if (eTable != null) ExceptionTable.printExceptionTable(eTable);
@@ -463,25 +519,24 @@ public final class OptCompiledMethod extends CompiledMethod {
     // (2) if we have patch points, create the map.
     if (patchPoints != 0) {
       patchMap = new int[patchPoints * 2];
+      MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
       int idx = 0;
       for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         if (s.operator() == IG_PATCH_POINT) {
-          int patchPoint = s.getmcOffset();
-          int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
+          int patchPoint = mcOffsets.getMachineCodeOffset(s);
+          int newTarget = mcOffsets.getMachineCodeOffset(InlineGuard.getTarget(s).target);
           // A patch map is the offset of the last byte of the patch point
           // and the new branch immediate to lay down if the code is ever patched.
           if (VM.BuildForIA32) {
             patchMap[idx++] = patchPoint - 1;
             patchMap[idx++] = newTarget - patchPoint;
           } else if (VM.BuildForPowerPC) {
-
-            // otherwise, it must be RFOR_POWERPC
             /* since currently we use only one NOP scheme, the offset
             * is adjusted for one word
             */
-            patchMap[idx++] = (patchPoint >> ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH) - 1;
+            patchMap[idx++] = (patchPoint >> ArchConstants.getLogInstructionWidth()) - 1;
             patchMap[idx++] =
-                (newTarget - patchPoint + (1 << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH));
+                (newTarget - patchPoint + (1 << ArchConstants.getLogInstructionWidth()));
           } else if (VM.VerifyAssertions) {
             VM._assert(VM.NOT_REACHED);
           }
@@ -491,45 +546,50 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Apply the code patches to the INSTRUCTION array of cm
+   * Applies the code patches to the INSTRUCTION array of cm.
+   *
+   * @param cm the method which will be patched
    */
   @Interruptible
   public void applyCodePatches(CompiledMethod cm) {
     if (patchMap != null) {
       for (int idx = 0; idx < patchMap.length; idx += 2) {
-        ArchitectureSpecific.CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
+        CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
         if (VM.BuildForIA32) {
-          ArchitectureSpecific.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          org.jikesrvm.compilers.common.assembler.ia32.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {
-          ArchitectureSpecificOpt.AssemblerOpt.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+          org.jikesrvm.compilers.opt.mir2mc.ppc.AssemblerOpt.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.VerifyAssertions) {
           VM._assert(VM.NOT_REACHED);
         }
       }
 
       if (VM.BuildForPowerPC) {
-        /* we need synchronization on PPC to handle the weak memory model
-         * and its icache/dcache synchronization requriements.
-         * before the class loading finish, other processor should get
-         * synchronized.
-         */
+        // we need synchronization on PPC to handle the weak memory model
+        // and its icache/dcache synchronization requirements.
+        // Before the class loading finishes, other processors must get
+        // synchronized.
         boolean DEBUG_CODE_PATCH = false;
 
-        // let other processors see changes; although really physical processors
-        // need synchronization, we set each virtual processor to execute
-        // isync at thread switch point.
+        // let other processors see changes.
         Magic.sync();
 
         // All other processors now will see the patched code in their data cache.
         // We now need to force everyone's instruction caches to be in synch with their
         // data caches.  Some of the work of this call is redundant (since we already have
         // forced the data caches to be in synch), but we need the icbi instructions
+        // to invalidate the instruction caches.
         Memory.sync(Magic.objectAsAddress(instructions),
-                       instructions.length() << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
+                       instructions.length() << ArchConstants.getLogInstructionWidth());
+        // Force all other threads to execute isync at the next thread switch point
+        // so that the icbi instructions take effect. Another effect is that
+        // prefetched instructions are discarded.
+        // Note: it would be sufficient to execute isync once for each
+        // physical processor.
         RVMThread.softHandshake(codePatchSyncRequestVisitor);
 
         if (DEBUG_CODE_PATCH) {
-          VM.sysWrite("all processors get synchronized!\n");
+          VM.sysWrite("all processors got synchronized!\n");
         }
       }
 
@@ -537,12 +597,5 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   private static RVMThread.SoftHandshakeVisitor codePatchSyncRequestVisitor =
-    new RVMThread.SoftHandshakeVisitor() {
-      @Override
-      @Uninterruptible
-      public boolean checkAndSignal(RVMThread t) {
-        t.codePatchSyncRequested = true;
-        return true; // handshake with everyone but ourselves.
-      }
-    };
+    new CodePatchSyncRequestVisitor();
 }

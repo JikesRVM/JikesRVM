@@ -35,6 +35,16 @@ public final class ImmutableEntryIdentityHashMapRVM<K, V> extends AbstractHashMa
   }
 
   @Override
+  public V remove(K key) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void removeAll() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   protected boolean same(K k1, K k2) {
     return k1 == k2;
   }

@@ -78,7 +78,9 @@ public class EstimateBlockFrequencies extends CompilerPhase {
   private BasicBlock[] topOrder;
 
   @Override
-  public String getName() { return "Estimate Block Frequencies"; }
+  public String getName() {
+    return "Estimate Block Frequencies";
+  }
 
   @Override
   public void reportAdditionalStats() {
@@ -141,6 +143,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
 
   /**
    * Set the frequency of each basic block to 1.0f.
+   *
+   * @param ir the IR that contains the blocks
    */
   private void setDumbFrequencies(IR ir) {
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
@@ -158,9 +162,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    *   <li>Start with S = {all basic blocks}.
    *   <li>Sort the blocks by frequency.  Starting with the most frequent
    *       blocks, remove blocks from S until the sum of block frequencies in S
-   *       <= f.  Then blocks in S are infrequent.
+   *       &lt;= f.  Then blocks in S are infrequent.
    * </ol>
-   * </pre>
    *
    * @param ir the governing IR.
    */
@@ -202,6 +205,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
   /**
    * Postorder traversal of LST computing loop multiplier and loop exits
    * for each loop.
+   *
+   * @param n a node
    */
   private void computeLoopMultipliers(LSTNode n) {
     for (Enumeration<LSTNode> e = n.getChildren(); e.hasMoreElements();) {
@@ -215,6 +220,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
 
   /**
    * Compute the loop multiplier for this loop nest
+   *
+   * @param n starting node
    */
   private void computeMultiplier(LSTNode n) {
     n.initializeLoopExits();
@@ -226,6 +233,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
   /**
    * Propagate execution frequencies through the loop.
    * Also records loop exit edges in loopExits.
+   *
+   * @param n starting node
    */
   private void computeNodeWeights(LSTNode n) {
     n.header.setExecutionFrequency(1f);

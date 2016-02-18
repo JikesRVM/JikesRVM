@@ -12,11 +12,18 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import static org.jikesrvm.ppc.BaselineConstants.F0;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.BaselineConstants.T1;
+import static org.jikesrvm.ppc.BaselineConstants.T2;
+import static org.jikesrvm.ppc.BaselineConstants.T3;
+import static org.jikesrvm.ppc.BaselineConstants.T4;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -25,7 +32,7 @@ import org.vmmagic.unboxed.Offset;
  * write barrier for generational garbage collectors.  For baseline
  * compiled methods, the write barrier calls methods of WriteBarrier.
  */
-class Barriers implements BaselineConstants {
+class Barriers {
 
   // on entry java stack contains ...|array_ref|index|value|
   static void compileArrayStoreBarrier(BaselineCompilerImpl comp) {
@@ -285,45 +292,74 @@ class Barriers implements BaselineConstants {
   // on entry java stack contains ...|target_ref|value_to_store|
   // T2 already contains the offset of the field on entry
   static void compilePutfieldBarrierWord(BaselineCompilerImpl comp, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, locationMetadata, Entrypoints.wordFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, locationMetadata, Entrypoints.wordFieldWriteBarrierMethod);
   }
 
   // on entry java stack contains ...|target_ref|value_to_store|
   static void compilePutfieldBarrierWordImm(BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.wordFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.wordFieldWriteBarrierMethod);
   }
 
   // on entry java stack contains ...|target_ref|value_to_store|
   // T2 already contains the offset of the field on entry
   static void compilePutfieldBarrierAddress(BaselineCompilerImpl comp, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, locationMetadata, Entrypoints.addressFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, locationMetadata, Entrypoints.addressFieldWriteBarrierMethod);
   }
 
   // on entry java stack contains ...|target_ref|value_to_store|
   static void compilePutfieldBarrierAddressImm(BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.addressFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.addressFieldWriteBarrierMethod);
   }
 
   // on entry java stack contains ...|target_ref|value_to_store|
   // T2 already contains the offset of the field on entry
   static void compilePutfieldBarrierOffset(BaselineCompilerImpl comp, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, locationMetadata, Entrypoints.offsetFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, locationMetadata, Entrypoints.offsetFieldWriteBarrierMethod);
   }
 
   // on entry java stack contains ...|target_ref|value_to_store|
   static void compilePutfieldBarrierOffsetImm(BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.offsetFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.offsetFieldWriteBarrierMethod);
   }
 
   // on entry java stack contains ...|target_ref|value_to_store|
   // T2 already contains the offset of the field on entry
   static void compilePutfieldBarrierExtent(BaselineCompilerImpl comp, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, locationMetadata, Entrypoints.extentFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, locationMetadata, Entrypoints.extentFieldWriteBarrierMethod);
   }
 
   // on entry java stack contains ...|target_ref|value_to_store|
   static void compilePutfieldBarrierExtentImm(BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
-    putfieldStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.extentFieldWriteBarrierMethod);
+    putfieldUnboxedStoreBarrierHelper(comp, fieldOffset, locationMetadata, Entrypoints.extentFieldWriteBarrierMethod);
+  }
+
+  // on entry java stack contains ...|target_ref|value_to_store|
+  // T2 already contains the offset of the field on entry
+  private static void putfieldUnboxedStoreBarrierHelper(BaselineCompilerImpl comp, int locationMetadata, NormalMethod barrier) {
+    Assembler asm = comp.asm;
+    asm.emitLAddrToc(S0, barrier.getOffset());
+    asm.emitMTCTR(S0);
+    comp.peekAddr(T0, 1);               // store target_ref in T0
+    asm.emitNullCheck(T0);
+    comp.peekUnboxed(T1, 0);               // value to store
+    asm.emitLVAL(T3, locationMetadata);
+    asm.emitBCCTRL();                   // call barrier with parameters in (T0,T1,T2,T3)
+    comp.discardSlots(2);
+  }
+
+  // on entry java stack contains ...|target_ref|value_to_store|
+  private static void putfieldUnboxedStoreBarrierHelper(BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata,
+                                                 NormalMethod barrier) {
+    Assembler asm = comp.asm;
+    asm.emitLAddrToc(S0, barrier.getOffset());
+    asm.emitMTCTR(S0);
+    comp.peekAddr(T0, 1);               // store target_ref in T0
+    asm.emitNullCheck(T0);
+    asm.emitLVALAddr(T2, fieldOffset);       // offset
+    comp.peekUnboxed(T1, 0);                 // value to store
+    asm.emitLVAL(T3, locationMetadata);
+    asm.emitBCCTRL();
+    comp.discardSlots(2);               // clean up stack
   }
 
   //  on entry java stack contains ...|ref_to_store|

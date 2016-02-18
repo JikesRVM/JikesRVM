@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.ArchitectureSpecific.ArchConstants;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -23,7 +23,7 @@ import org.vmmagic.pragma.NonMoving;
 public final class BootThread extends SystemThread {
 
   public BootThread() {
-    super(new byte[ArchConstants.STACK_SIZE_BOOT], "Jikes_RBoot_Thread");
+    super(new byte[StackFrameLayout.getStackSizeBoot()], "Jikes_RBoot_Thread");
   }
 
   @Override

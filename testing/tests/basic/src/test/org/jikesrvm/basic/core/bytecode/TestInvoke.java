@@ -9,6 +9,9 @@
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
+ *
+ *  Alternatively, this file is licensed to You under the MIT License:
+ *      http://opensource.org/licenses/MIT .
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
@@ -18,28 +21,40 @@ import org.vmmagic.pragma.NoInline;
 */
 class TestInvoke {
 
-  static interface MyInterface {
+  interface MyInterface {
     void performMagic();
   }
 
   static class TypeA {
-    TypeA() {System.out.println("TypeA.<init>()");}
+    TypeA() {
+      System.out.println("TypeA.<init>()");
+    }
 
-    void f() { System.out.println("TypeA.f()"); }
+    void f() {
+      System.out.println("TypeA.f()");
+    }
   }
 
   static class TypeB extends TypeA {
-    TypeB() {System.out.println("TypeB.<init>()");}
+    TypeB() {
+      System.out.println("TypeB.<init>()");
+    }
 
     //invokevirtual
-    void f() { System.out.println("TypeB.f()"); }
+    void f() {
+      System.out.println("TypeB.f()");
+    }
 
     //invokestatic
-    static int g(int value) { return 3 + value; }
+    static int g(int value) {
+      return 3 + value;
+    }
   }
 
   static class TypeC extends TypeB implements MyInterface {
-    TypeC() {System.out.println("TypeC.<init>()");}
+    TypeC() {
+      System.out.println("TypeC.<init>()");
+    }
 
     void test() {
       System.out.println("TypeC.test()");

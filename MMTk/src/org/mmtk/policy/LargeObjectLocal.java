@@ -14,7 +14,6 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 
@@ -31,7 +30,7 @@ import org.vmmagic.pragma.*;
  * instances of this class, one for each CPU, TreadmillSpace pair.
  */
 @Uninterruptible
-public final class LargeObjectLocal extends LargeObjectAllocator implements Constants {
+public final class LargeObjectLocal extends LargeObjectAllocator {
 
   /****************************************************************************
    *
@@ -71,12 +70,16 @@ public final class LargeObjectLocal extends LargeObjectAllocator implements Cons
   /**
    * Prepare for a collection.  Clear the treadmill to-space head and
    * prepare the collector.  If paranoid, perform a sanity check.
+   *
+   * @param fullHeap whether the collection will be full heap
    */
   public void prepare(boolean fullHeap) {
   }
 
   /**
    * Finish up after a collection.
+   *
+   * @param fullHeap whether the collection was full heap
    */
   public void release(boolean fullHeap) {
   }

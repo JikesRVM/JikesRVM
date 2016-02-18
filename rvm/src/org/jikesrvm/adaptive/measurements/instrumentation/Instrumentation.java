@@ -33,7 +33,9 @@ public final class Instrumentation {
   public static InstrumentedEventCounterManager eventCounterManager;
 
   /**
-   * Called at boot time
+   * Called at boot time to set up the required data structures.
+   *
+   * @param options the options that govern the setup
    **/
   public static void boot(AOSOptions options) {
 
@@ -128,7 +130,8 @@ public final class Instrumentation {
   }
 
   /**
-   * Is it currently O.K. to compile a method and insert instrumentation?
+   * @return whether it is  currently O.K. to compile a method
+   *  and insert instrumentation
    */
   public static boolean instrumentationEnabled() {
     return instrumentationEnabled;

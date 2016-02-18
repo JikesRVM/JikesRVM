@@ -47,7 +47,10 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    */
 
   /**
-   * Constructor
+   *
+   * @param specializedScan the id of the specialized scan
+   * @param trace the global trace class to use
+   * @param plan the state of the generational collector
    */
   public GenMatureTraceLocal(int specializedScan, Trace trace, GenCollector plan) {
     super(specializedScan, trace);
@@ -57,7 +60,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   }
 
   /**
-   * Constructor
+   * @param trace the global trace class to use
+   * @param plan the state of the generational collector
    */
   public GenMatureTraceLocal(Trace trace, GenCollector plan) {
     super(Gen.SCAN_MATURE, trace);
@@ -89,7 +93,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    * collection (i.e. this object is definitely not an unforwarded
    * object).
    *
-   * @param object
+   * @param object the object that might move
    * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */

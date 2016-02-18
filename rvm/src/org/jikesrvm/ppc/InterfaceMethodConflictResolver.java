@@ -12,12 +12,17 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.S1;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 
@@ -25,7 +30,7 @@ import org.jikesrvm.runtime.Memory;
  * Generates a custom IMT-conflict resolution stub.
  * We create a binary search tree.
  */
-public abstract class InterfaceMethodConflictResolver implements BaselineConstants, AssemblerConstants {
+public abstract class InterfaceMethodConflictResolver {
 
 
   /**
@@ -34,10 +39,10 @@ public abstract class InterfaceMethodConflictResolver implements BaselineConstan
    * @param targets TODO document me!
    * @return TODO document me!
    */
-  public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
+  public static CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
     // (1) Create an assembler.
     int numEntries = sigIds.length;
-    Assembler asm = new ArchitectureSpecific.Assembler(numEntries); // pretend each entry is a bytecode
+    Assembler asm = new Assembler(numEntries); // pretend each entry is a bytecode
 
     // (2) signatures must be in ascending order (to build binary search tree).
     if (VM.VerifyAssertions) {
@@ -56,7 +61,7 @@ public abstract class InterfaceMethodConflictResolver implements BaselineConstan
     insertStubPrologue(asm);
     insertStubCase(asm, sigIds, targets, bcIndices, 0, numEntries - 1);
 
-    ArchitectureSpecific.CodeArray stub = asm.makeMachineCode().getInstructions();
+    CodeArray stub = asm.getMachineCodes();
 
     // (5) synchronize icache with generated machine code that was written through dcache
     if (VM.runningVM) Memory.sync(Magic.objectAsAddress(stub), stub.length() << LG_INSTRUCTION_WIDTH);
@@ -95,7 +100,7 @@ public abstract class InterfaceMethodConflictResolver implements BaselineConstan
    * @param asm TODO document me!
    */
   private static void insertStubPrologue(Assembler asm) {
-    ObjectModel.baselineEmitLoadTIB((ArchitectureSpecific.Assembler) asm, S0, T0);
+    asm.baselineEmitLoadTIB(S0, T0);
   }
 
   /**

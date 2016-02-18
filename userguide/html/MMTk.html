@@ -1,0 +1,1635 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>16 MMTk</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 16</span><br /><a 
+ id="x19-21800016"></a>MMTk</h2>
+<!--l. 5--><p class="noindent" >The garbage collectors for Jikes RVM are provided by MMTk. The document
+<a 
+href="http://cs.anu.edu.au/~Robin.Garner/mmtk-guide.pdf" >MMTk: The Memory Manager Toolkit</a> describes MMTk and gives a tutorial on how
+to use and edit it and is the best place to start. An updated version of the tutorial is
+available in this <a 
+href="UsingGCSpyc.html#x20-249000III">guide</a>. A detailed description of the call chain from the compilers
+through to MMTk <a 
+href="#x19-22800016.2">here</a> is another good place to start understanding how MMTk
+integrates with Jikes RVM. <a 
+href="#x19-21900016.1">Anatomy of a Garbage Collector</a> describes the major
+building blocks of an MMTk collector and <a 
+href="#x19-23300016.3">Scanning Objects in Jikes RV</a>M describes
+how objects are scanned for their pointer ﬁelds during GC. MMTk also has a pure
+Java <a 
+href="TheMMTkTestHarness.html#x13-13600011">test harness</a> that allows development of garbage collectors in an IDE like
+eclipse.
+</p><!--l. 7--><p class="noindent" >Jikes RVM can be conﬁgured to employ various diﬀerent allocation managers taken
+from the MMTk memory management toolkit. Managers divide the available space
+up as they see ﬁt. However, they normally subdivide the available address range to
+provide: </p>
+     <ul class="itemize1">
+     <li class="itemize">a metadata area which enables the manager to track the status of allocated
+     and unallocated storage in the rest of the heap.
+     </li>
+     <li class="itemize">an immortal data area used to service allocations of objects which are
+     expected to persist across the whole lifetime of the Jikes RVM runtime
+     (e.g. the boot image)
+     </li>
+     <li class="itemize">a large object space used to service allocations of objects which are larger
+     than some speciﬁed size (e.g. a virtual memory page) - the large object
+     space may employ a diﬀerent allocation and reclamation strategy to that
+     used for other objects.
+     </li>
+     <li class="itemize">a small object allocation area which may be divided into e.g.two semi
+     spaces,  a  nursery  space  and  a  mature  space,  a  set  of  generations,  a
+     non-relocatable buddy hierarchy etc depending upon the allocation and
+     reclamation strategy employed by the memory manager.
+     </li>
+     <li class="itemize">separate  spaces  for  code.  These  are  designed  to  exclude  performance
+     problems that can occur on some architectures when code and data are
+     mixed. See <a 
+href="http://dl.acm.org/citation.cfm?doid=1133956.1133980" >this paper</a> for the original motivation and experiments for a
+     separate code space.</li></ul>
+<!--l. 16--><p class="noindent" >Virtual memory pages are lazily mapped into Jikes RVM&#x2019;s memory image as they are
+needed.
+</p><!--l. 18--><p class="noindent" >The main class which is used to interface to the memory manager is called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Plan</span></span></span>.
+Each ﬂavor of the manager is implemented by substituting a diﬀerent implementation
+of this class. Most plans inherit from class <span 
+class="cmtt-10">StopTheWorldGC </span>which ensures that all
+active mutator threads (i.e. ones which do not perform the job of reclaiming storage)
+are suspended before reclamation is commenced. The argument passed to
+                                                                  
+
+                                                                  
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:gc:threads</span></span></span> determines the number of parallel collector threads that will be used
+for collection.
+</p><!--l. 20--><p class="noindent" >Generational collectors employ a plan which inherits from class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Generational</span></span></span>. Inter
+alia, this class ensures that a write barrier is employed so that updates from old to
+new spaces are detected.
+</p><!--l. 22--><p class="noindent" >Jikes RVM may also use the <a 
+href="#x19-23700016.4">GCSpy</a> visualization framework. GCSpy allows
+developers to observe the behavior of the heap and related data structures.
+</p>
+<h3 class="sectionHead"><span class="titlemark">16.1   </span> <a 
+ id="x19-21900016.1"></a>Anatomy of a Garbage Collector</h3>
+<!--l. 5--><p class="noindent" ><span 
+class="cmbx-10">** Work in progress, contributions appreciated ** </span><br 
+class="newline" />
+</p><!--l. 8--><p class="noindent" >This page gives a brief outline of the major control ﬂows in the execution of a
+garbage collector in MMTk. For simplicity, we focus on the MarkSweep collector,
+although much of the discussion will be relevant to other collectors.
+</p><!--l. 10--><p class="noindent" >This page assumes you have a basic knowledge of garbage collection. For those that
+don&#x2019;t, please see one of the standard texts such as <a 
+href="http://gchandbook.org/" >The Garbage Collection
+Handbook</a>.
+</p><!--l. 12--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.1.1   </span> <a 
+ id="x19-22000016.1.1"></a>Structure of a Plan</h4>
+<!--l. 14--><p class="noindent" >An MMTk Plan is required to provide 5 classes. They are required to have consistent
+names which start with the same name and have a suﬃx that indicates which
+class it inherits from. in the case of the MarkSweep plan, the name is ”MS”.
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MS</span></span></span> - this is a singleton class that is a subclass of <span 
+class="cmtt-10">org.mmtk.plan.Plan</span>.
+     This class encapsulates data structures that are shared among multiple
+     threads.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MSMutator</span></span></span> -  subclass  of  <span 
+class="cmtt-10">org.mmtk.plan.MutatorContext</span>.  This  class
+     encapsulates data structures that are local to a single mutator thread. In
+     the case of Jikes RVM, a Thread is actually a subclass of this class for
+     eﬃciency reasons.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MSCollector</span></span></span> -  subclass  of  <span 
+class="cmtt-10">org.mmtk.plan.CollectorContext</span>.  This
+     provides thread-local data structures speciﬁc to a garbage collector thread.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MSConstraints</span></span></span> -  subclass  of  <span 
+class="cmtt-10">org.mmtk.plan.PlanConstraints</span>.  This
+     provides conﬁguration information that the host virtual machine might
+     need. It is separated out from the Plan class in order to prevent circular
+     class loading dependencies.
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MSTraceLocal</span></span></span> - subclass of <span 
+class="cmtt-10">org.mmtk.plan.TraceLocal</span>. This provides
+     thread-local data structures speciﬁc to a particular way of traversing the
+     heap. In a simple collector like MarkSweep, there is only one of these
+     classes, but in more complex collectors there may be several. For example,
+     in a generational collector, there will be one <span 
+class="cmtt-10">TraceLocal </span>class for a nursery
+     collection, and another for a full-heap collection.</li></ul>
+<!--l. 23--><p class="noindent" >The basic architecture of MMTk is that virtual address space is divided into chunks
+(of 4MB in a 32-bit memory model) that are managed according to a speciﬁc <span 
+class="cmti-10">policy</span>.
+A policy is implemented by an instance of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Space</span></span></span> class, and it is in the policy
+class that the mechanics of a particular mechanism (like mark-sweep) is implemented.
+The task of a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Plan</span></span></span> is to create the policy (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Space</span></span></span>) objects that manage the
+heap, and to integrate them into the MMTk framework. MMTk exposes
+some of this memory management policy to the host VM, by allowing the
+VM to specify an allocator (represented by a small integer) when allocating
+space. The interface exposed to the VM allows it to choose whether an object
+will move during collection or not, whether the object is large enough to
+require special handling etc. The MMTk plan is free (within the semantic
+guarantees exposed to the VM) to direct each of these allocators to a particular
+policy.
+</p><!--l. 28--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.1.2   </span> <a 
+ id="x19-22100016.1.2"></a>Policies</h4>
+<!--l. 29--><p class="noindent" >A policy describes how a range of virtual address space is managed. The base class of
+all policies is <span 
+class="cmtt-10">org.mmtk.policy.Space</span>, and a particular instance of a policy is known
+generically as a space. The static initializer of a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Plan</span></span></span> and its subclasses deﬁne the
+spaces that make up an MMTk plan.
+</p>
+<!--l. 31-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp0x19-22100016.1.2:
+    </span><span  
+class="content">MS.java</span></div><!--tex4ht:label?: x19-22100016.1 --><div class="lstlisting" id="listing-124"><span class="label"><a 
+ id="x19-221001r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> MarkSweepSpace msSpace = <span 
+class="cmbx-10">new</span> MarkSweepSpace(”ms”, VMRequest.discontiguous()); <br /><span class="label"><a 
+ id="x19-221002r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">int</span> MARK_SWEEP = msSpace.getDescriptor();
+</div>
+<!--l. 36--><p class="noindent" >In this code fragment, we see the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MS</span></span></span> plan deﬁned. Note that we generally also deﬁne
+a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">static final</span></span></span> space descriptor. This is an optimization that allows some rapid
+operations on spaces.
+</p><!--l. 38--><p class="noindent" >A <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Space</span></span></span> is a global object, shared among multiple mutator threads. Each policy will
+also have one or more thread-local classes which provide unsynchronized allocation.
+These classes are subclasses of <span 
+class="cmtt-10">org.mmtk.utility.alloc.Allocator</span>, and in the
+case of MarkSweep, it is called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MarkSweepLocal</span></span></span>. Instances of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MarkSweepLocal</span></span></span> are
+created as part of a mutator context, like this
+</p>
+<!--l. 40-->
+<br />
+                                                                  
+
+                                                                  
+    <div class="caption" 
+><span class="id">22cAp1x19-22100016.1.2:
+    </span><span  
+class="content">MSMutator.java</span></div><!--tex4ht:label?: x19-22100016.1 --><div class="lstlisting" id="listing-125"><span class="label"><a 
+ id="x19-221003r1"></a></span><span 
+class="cmbx-10">protected</span> MarkSweepLocal ms = <span 
+class="cmbx-10">new</span> MarkSweepLocal(MS.msSpace);
+</div>
+<!--l. 44--><p class="noindent" >The design pattern is that the local Allocator will allocate space from a
+thread-local buﬀer, and when that is exhausted it will allocate a new buﬀer from
+the global <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Space</span></span></span>, performing appropriate locking. The constructor of the
+<span 
+class="cmtt-10">MarkSweepLocal </span>speciﬁes the space from which the allocator will allocate global
+memory.
+</p><!--l. 48--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.1.3   </span> <a 
+ id="x19-22200016.1.3"></a>Allocation</h4>
+<!--l. 50--><p class="noindent" >MMTk provides two methods for allocating an object. These are provided by the
+<span 
+class="cmtt-10">MSMutator </span>class, to give each plan the opportunity to use fast, unsynchronized
+thread-local allocation before falling back to a slower synchronized slow-path.
+</p><!--l. 52--><p class="noindent" >The version implemented in MarkSweep looks like this:
+</p>
+<!--l. 54-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp2x19-22200016.1.3:
+    </span><span  
+class="content">MSMutator.java</span></div><!--tex4ht:label?: x19-22200016.1 --><div class="lstlisting" id="listing-126"><span class="label"><a 
+ id="x19-222001r1"></a></span><span 
+class="cmbx-10">public</span> Address alloc(<span 
+class="cmbx-10">int</span> bytes, <span 
+class="cmbx-10">int</span> align, <span 
+class="cmbx-10">int</span> offset, <span 
+class="cmbx-10">int</span> allocator, <span 
+class="cmbx-10">int</span> site) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222002r2"></a></span>  <span 
+class="cmbx-10">if</span> (allocator == MS.ALLOC_DEFAULT) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222003r3"></a></span>    <span 
+class="cmbx-10">return</span> ms.alloc(bytes, align, offset); <br /><span class="label"><a 
+ id="x19-222004r4"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-222005r5"></a></span>  <span 
+class="cmbx-10">return</span> <span 
+class="cmbx-10">super</span>.alloc(bytes, align, offset, allocator, site); <br /><span class="label"><a 
+ id="x19-222006r6"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 63--><p class="noindent" >The basic structure of this method is common to all MMTk plans. First
+they decide whether the operation applies to this level of abstraction (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">if</span>
+<span 
+class="cmtt-10">(allocator == MS.ALLOC_DEFAULT)</span></span></span>), and if so, delegate to the appropriate place,
+otherwise pass it up the chain to the super-class. In the case of MarkSweep,
+<span 
+class="cmtt-10">MSMutator </span>delegates the allocation to its thread-local <span 
+class="cmtt-10">MarkSweepLocal </span>object
+ms.
+</p><!--l. 65--><p class="noindent" >The alloc method of <span 
+class="cmtt-10">MarkSweepLocal </span>is inherited from <span 
+class="cmtt-10">SegregatedFreeListLocal</span>
+(mark-sweep is not the only way of managing free-list allocation), and looks like
+this
+</p>
+<!--l. 67-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp3x19-22200016.1.3:
+    </span><span  
+class="content">SegregatedFreeListLocal.java
+    (simpliﬁed)</span></div><!--tex4ht:label?: x19-22200016.1 --><div class="lstlisting" id="listing-127"><span class="label"><a 
+ id="x19-222007r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">final</span> Address alloc(<span 
+class="cmbx-10">int</span> bytes, <span 
+class="cmbx-10">int</span> align, <span 
+class="cmbx-10">int</span> offset) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222008r2"></a></span>  <span 
+class="cmbx-10">int</span> sizeClass = getSizeClass(bytes); <br /><span class="label"><a 
+ id="x19-222009r3"></a></span>  Address cell = freeList.get(sizeClass); <br /><span class="label"><a 
+ id="x19-222010r4"></a></span>  <span 
+class="cmbx-10">if</span> (!cell.isZero()) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222011r5"></a></span>    freeList.set(sizeClass, cell.loadAddress()); <br /><span class="label"><a 
+ id="x19-222012r6"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">/</span><span 
+class="tcti-1000">*</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Clear</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">free</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">list</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">link</span><span 
+class="cmti-10"> </span><span 
+class="tcti-1000">*</span><span 
+class="cmti-10">/</span> <br /><span class="label"><a 
+ id="x19-222013r7"></a></span>    cell.store(Address.zero()); <br /><span class="label"><a 
+ id="x19-222014r8"></a></span>    <span 
+class="cmbx-10">return</span> cell; <br /><span class="label"><a 
+ id="x19-222015r9"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-222016r10"></a></span>  <span 
+class="cmbx-10">return</span> allocSlow(bytes, align, offset); <br /><span class="label"><a 
+ id="x19-222017r11"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 81--><p class="noindent" >This is a standard pattern for thread-local allocation: ﬁrst we look in the thread-local
+space (line 3), and if successful return the result (lines 4-8). If unsuccessful, we
+request space from the global policy via the method <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Allocator.allocSlow</span></span></span>. This is
+the common interface that all Allocators use to request space from the global policy.
+This will eventually call the allocator-speciﬁc <span 
+class="cmtt-10">allocSlowOnce method</span>. The workings
+                                                                  
+
+                                                                  
+of the <span 
+class="cmtt-10">allocSlowOnce </span>method are very policy-speciﬁc, so not appropriate to look at
+at this stage, but eventually all policies will attempt to acquire fresh virtual memory
+via the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Space.acquire</span></span></span> method.
+</p><!--l. 83--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Space.acquire</span></span></span> is the only correct way for a policy to allocate new virtual memory
+for its own use.
+</p>
+<!--l. 86-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp4x19-22200016.1.3:
+    </span><span  
+class="content">Space.java
+    (simpliﬁed)</span></div><!--tex4ht:label?: x19-22200016.1 --><div class="lstlisting" id="listing-128"><span class="label"><a 
+ id="x19-222018r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">final</span> Address acquire(<span 
+class="cmbx-10">int</span> pages) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222019r2"></a></span>  pr.reservePages(pages); <br /><span class="label"><a 
+ id="x19-222020r3"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Poll</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">either</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">fixing</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">budget</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">or</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">requiring</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">GC</span> <br /><span class="label"><a 
+ id="x19-222021r4"></a></span>  <span 
+class="cmbx-10">if</span> (VM.activePlan.global().poll(<span 
+class="cmbx-10">false</span>, <span 
+class="cmbx-10">this</span>)) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222022r5"></a></span>    VM.collection.blockForGC(); <br /><span class="label"><a 
+ id="x19-222023r6"></a></span>    <span 
+class="cmbx-10">return</span> Address.zero(); <span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">GC</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">required</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">return</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">failure</span> <br /><span class="label"><a 
+ id="x19-222024r7"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-222025r8"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Page</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">budget</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">is</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">ok</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">try</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">acquire</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">virtual</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">memory</span> <br /><span class="label"><a 
+ id="x19-222026r9"></a></span>  Address rtn = pr.getNewPages(pagesReserved, pages, zeroed); <br /><span class="label"><a 
+ id="x19-222027r10"></a></span>  <span 
+class="cmbx-10">if</span> (rtn.isZero()) <span 
+class="cmsy-10">{</span> <span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Failed</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">so</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">force</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">a</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">GC</span> <br /><span class="label"><a 
+ id="x19-222028r11"></a></span>    <span 
+class="cmbx-10">boolean</span> gcPerformed = VM.activePlan.global().poll(<span 
+class="cmbx-10">true</span>, <span 
+class="cmbx-10">this</span>); <br /><span class="label"><a 
+ id="x19-222029r12"></a></span>    VM.collection.blockForGC(); <br /><span class="label"><a 
+ id="x19-222030r13"></a></span>    <span 
+class="cmbx-10">return</span> Address.zero(); <br /><span class="label"><a 
+ id="x19-222031r14"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-222032r15"></a></span>  <span 
+class="cmbx-10">return</span> rtn; <br /><span class="label"><a 
+ id="x19-222033r16"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 105--><p class="noindent" >The logic of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">space.acquire</span></span></span> is: </p>
+     <ul class="itemize1">
+     <li class="itemize">First, poll the plan to ﬁnd out whether the heap is full. This logic is
+     performed by the plan, because it has knowledge of copy reserves etc.
+     </li>
+     <li class="itemize">The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">poll</span></span></span> method will request a GC if required, and return <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">true</span></span></span> if it has
+     done so.
+     </li>
+     <li class="itemize">Then we wait for GC if required. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">poll</span></span></span> can&#x2019;t wait, because it is called in
+     circumstances that aren&#x2019;t GC safe.
+     </li>
+     <li class="itemize">If <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Plan.poll(...)</span></span></span> returns <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">false</span></span></span> (we are within the allowed heap size),
+     we call <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">pr.getNewPages</span></span></span> to allocate virtual memory. At this stage we can
+     ﬁnd that we have run out of virtual memory, and if so, we force a GC
+     </li>
+     <li class="itemize">If a GC is performed, we return <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Address.zero()</span></span></span>, rather than retrying
+     locally. In many plans, the next allocation request will be satisﬁed by
+     re-using space in a page that already belongs to a policy, so the post-GC
+     allocation must be performed further up in the call stack. The retry logic
+     is handled in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Allocator.allocSlowInline</span></span></span>.</li></ul>
+<!--l. 114-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp5x19-22200016.1.3:
+    </span><span  
+class="content">Allocator.java
+    (simpliﬁed)</span></div><!--tex4ht:label?: x19-22200016.1 --><div class="lstlisting" id="listing-129"><span class="label"><a 
+ id="x19-222034r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">final</span> Address allocSlowInline(<span 
+class="cmbx-10">int</span> bytes, <span 
+class="cmbx-10">int</span> alignment, <span 
+class="cmbx-10">int</span> offset) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222035r2"></a></span>  <span 
+class="cmbx-10">boolean</span> emergencyCollection = <span 
+class="cmbx-10">false</span>; <br /><span class="label"><a 
+ id="x19-222036r3"></a></span>  <span 
+class="cmbx-10">while</span> (<span 
+class="cmbx-10">true</span>) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222037r4"></a></span>    Address result = allocSlowOnce(bytes, alignment, offset); <br /><span class="label"><a 
+ id="x19-222038r5"></a></span>    <span 
+class="cmbx-10">if</span> (!result.isZero()) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222039r6"></a></span>      <span 
+class="cmbx-10">return</span> result; <br /><span class="label"><a 
+ id="x19-222040r7"></a></span>    <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-222041r8"></a></span>    <span 
+class="cmbx-10">if</span> (emergencyCollection) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-222042r9"></a></span>      VM.collection.outOfMemory(); <br /><span class="label"><a 
+ id="x19-222043r10"></a></span>    <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-222044r11"></a></span>    emergencyCollection = Plan.isEmergencyCollection(); <br /><span class="label"><a 
+ id="x19-222045r12"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-222046r13"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 130--><p class="noindent" >This code fragment shows the retry logic in the allocator. We try allocating using
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">allocSlowOnce</span></span></span>, which may recycle partially-used blocks and eventually call
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Space.acquire</span></span></span>. If a GC occurred, we try again. Eventually the plan will request an
+emergency collection which will (for example) cause soft references to be dropped. If
+this fails we throw an <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OutOfMemoryError</span></span></span>.
+                                                                  
+
+                                                                  
+</p><!--l. 134--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.1.4   </span> <a 
+ id="x19-22300016.1.4"></a>Collection</h4>
+<!--l. 136--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-22400016.1.4"></a>Scheduling</h5>
+<!--l. 138--><p class="noindent" >In a stop-the-world garbage collector like MarkSweep, the mutator threads run
+until memory is exhausted, then all mutator threads are suspended, the
+collector threads are activated, and they perform a garbage collection. After
+the GC is complete, the collector threads are suspended and the mutator
+threads resume. MMTk also has some support for concurrent collectors, in
+which one or more collector threads can be scheduled to run alongside the
+mutator, either exclusively or in addition to (hopefully briefer) stop-the-world
+phases.
+</p><!--l. 140--><p class="noindent" >Thread scheduling in MMTk is handled by a GC controller thread, implemented in
+the singleton class <span 
+class="cmtt-10">org.mmtk.plan.ControllerCollectorContext </span>held in the static
+ﬁeld <span 
+class="cmtt-10">Plan.controlCollectorContext</span>. Whenever a collection is initiated, it is done
+by calling methods on this object.
+</p><!--l. 144--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-22500016.1.4"></a>Initiating</h5>
+<!--l. 146--><p class="noindent" >As mentioned above, every attempt to allocate fresh virtual memory calls
+the current plan&#x2019;s <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">poll(...)</span></span></span> method. This initiates a GC by calling
+<span 
+class="cmtt-10">controlCollectorContext.request()</span>, which in a stop-the-world collector
+like MarkSweep pauses the mutator threads and then wakes the collector
+threads. The main loop of the garbage collector is simply the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">run()</span></span></span> method of
+<span 
+class="cmtt-10">ParallelCollector</span>, shown below.
+</p>
+<!--l. 148-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp6x19-22500016.1.4:
+    </span><span  
+class="content">ParallelCollector</span></div><!--tex4ht:label?: x19-22500016.1 --><div class="lstlisting" id="listing-130"><span class="label"><a 
+ id="x19-225001r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">void</span> run() <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-225002r2"></a></span>  <span 
+class="cmbx-10">while</span>(<span 
+class="cmbx-10">true</span>) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-225003r3"></a></span>    park(); <br /><span class="label"><a 
+ id="x19-225004r4"></a></span>    collect(); <br /><span class="label"><a 
+ id="x19-225005r5"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-225006r6"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 157--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">collect()</span></span></span> method is speciﬁc to the type of collector, and in <span 
+class="cmtt-10">StopTheWorldCollector</span>
+it looks like this </p><!--l. 158-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp7x19-22500016.1.4:
+    </span><span  
+class="content">StopTheWorldCollector</span></div><!--tex4ht:label?: x19-22500016.1 --><div class="lstlisting" id="listing-131"><span class="label"><a 
+ id="x19-225007r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">void</span> collect() <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-225008r2"></a></span>  Phase.beginNewPhaseStack(Phase.scheduleComplex(global().collection)); <br /><span class="label"><a 
+ id="x19-225009r3"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+                                                                  
+
+                                                                  
+<!--l. 166--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-22600016.1.4"></a>Collector Phases</h5>
+<!--l. 168--><p class="noindent" >Every garbage collection consists of a series of steps. Each step is either executed
+once (e.g. updating the mark state before marking the heap), or in parallel on all
+available collector threads (e.g. the parallel mark phase). The actual work of a step is
+done by the <span 
+class="cmtt-10">collectionPhase </span>method of the global, collector or mutator class of a
+plan.
+</p><!--l. 170--><p class="noindent" >In early versions of MMTk, the main collection method was a template method,
+calling individual methods for each phase of the collection. As the number of
+collectors in MMTk grew, this became unwieldy and has been replaced with a
+conﬁgurable mechanism of phases.
+</p><!--l. 172--><p class="noindent" >The class org.mmtk.plan.Simple deﬁnes the basic structure of most of MMTk&#x2019;s
+garbage collectors. First it deﬁnes the phases themselves,
+</p>
+<!--l. 174-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp8x19-22600016.1.4:
+    </span><span  
+class="content">Simple.java</span></div><!--tex4ht:label?: x19-22600016.1 --><div class="lstlisting" id="listing-132"><span class="label"><a 
+ id="x19-226001r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">short</span> SET_COLLECTION_KIND = Phase.createSimple(”set-collection-kind”, <span 
+class="cmbx-10">null</span>); <br /><span class="label"><a 
+ id="x19-226002r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">short</span> INITIATE            = Phase.createSimple(”initiate”, <span 
+class="cmbx-10">null</span>); <br /><span class="label"><a 
+ id="x19-226003r3"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">short</span> PREPARE             = Phase.createSimple(”prepare”); <br /><span class="label"><a 
+ id="x19-226004r4"></a></span>...
+</div>
+<!--l. 181--><p class="noindent" >Each phase of the collection is represented by a 16-bit integer, an index into a table
+of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Phase</span></span></span> objects. Simple phases are scheduled, and combined into sequences, or
+complex phases.
+</p>
+<!--l. 183-->
+<br />
+        <div class="caption" 
+><span class="id">22cAp9x19-22600016.1.4:
+        </span><span  
+class="content">Simple.java</span></div><!--tex4ht:label?: x19-22600016.1 --><div class="lstlisting" id="listing-133"><span class="label"><a 
+ id="x19-226005r1"></a></span><span 
+class="cmti-10">/</span><span 
+class="tcti-1000">*</span><span 
+class="tcti-1000">*</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Ensure</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">stacks</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">are</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">ready</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">be</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">scanned</span><span 
+class="cmti-10"> </span><span 
+class="tcti-1000">*</span><span 
+class="cmti-10">/</span> <br /><span class="label"><a 
+ id="x19-226006r2"></a></span><span 
+class="cmbx-10">protected</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">short</span> prepareStacks = Phase.createComplex(”prepare-stacks”, <span 
+class="cmbx-10">null</span>, <br /><span class="label"><a 
+ id="x19-226007r3"></a></span>    Phase.scheduleMutator    (PREPARE_STACKS), <br /><span class="label"><a 
+ id="x19-226008r4"></a></span>    Phase.scheduleGlobal     (PREPARE_STACKS));
+</div>
+<!--l. 190--><p class="noindent" >A simple phase can be scheduled in one of 4 ways: </p>
+     <ul class="itemize1">
+     <li class="itemize">Global.  One  collector  thread  is  chosen  to  run  the  <span 
+class="cmtt-10">collectionPhase</span>
+     method of the global <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Plan</span></span></span> object.
+     </li>
+     <li class="itemize">Collector.  All  collector  threads  run  <span 
+class="cmtt-10">collectionPhase </span>of  the  plan&#x2019;s
+     <span 
+class="cmtt-10">CollectorContext </span>object(s).
+     </li>
+     <li class="itemize">Mutator. The collector threads run in parallel and iterate over the available
+     <span 
+class="cmtt-10">MutatorContext </span>objects (ie the mutator threads), and run the mutator&#x2019;s
+     <span 
+class="cmtt-10">collectionPhase </span>method. Note that the collector threads are performing
+     work on a per-mutator basis, because in general the mutator threads are
+     stopped at this point.
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize">Concurrent. The controller is requested to start a concurrent collectcor
+     thread.</li></ul>
+<!--l. 198--><p class="noindent" >Between every phase of a collection, the collector threads rendezvous at a
+synchronization barrier. The actual execution of a collector&#x2019;s phases is done in the
+method <span 
+class="cmtt-10">Phase.processPhaseStack</span>. This method handles resuming a concurrent
+collection as well as running a full stop-the-world collection.
+</p><!--l. 200--><p class="noindent" >The actual work of a collection phase is done (as mentioned above) in the
+<span 
+class="cmtt-10">collectionPhase </span>method of the major <span 
+class="cmtt-10">Plan </span>classes.
+</p>
+<!--l. 202-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp10x19-22600016.1.4:
+    </span><span  
+class="content">MS.java</span></div><!--tex4ht:label?: x19-22600016.1 --><div class="lstlisting" id="listing-134"><span class="label"><a 
+ id="x19-226009r1"></a></span>@Inline <br /><span class="label"><a 
+ id="x19-226010r2"></a></span>@Override <br /><span class="label"><a 
+ id="x19-226011r3"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">void</span> collectionPhase(<span 
+class="cmbx-10">short</span> phaseId) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-226012r4"></a></span>  <span 
+class="cmbx-10">if</span> (phaseId == PREPARE) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-226013r5"></a></span>    <span 
+class="cmbx-10">super</span>.collectionPhase(phaseId); <br /><span class="label"><a 
+ id="x19-226014r6"></a></span>    msTrace.prepare(); <br /><span class="label"><a 
+ id="x19-226015r7"></a></span>    msSpace.prepare(<span 
+class="cmbx-10">true</span>); <br /><span class="label"><a 
+ id="x19-226016r8"></a></span>    <span 
+class="cmbx-10">return</span>; <br /><span class="label"><a 
+ id="x19-226017r9"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-226018r10"></a></span>  <span 
+class="cmbx-10">if</span> (phaseId == CLOSURE) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-226019r11"></a></span>    msTrace.prepare(); <br /><span class="label"><a 
+ id="x19-226020r12"></a></span>    <span 
+class="cmbx-10">return</span>; <br /><span class="label"><a 
+ id="x19-226021r13"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-226022r14"></a></span>  <span 
+class="cmbx-10">if</span> (phaseId == RELEASE) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-226023r15"></a></span>    msTrace.release(); <br /><span class="label"><a 
+ id="x19-226024r16"></a></span>    msSpace.release(); <br /><span class="label"><a 
+ id="x19-226025r17"></a></span>    <span 
+class="cmbx-10">super</span>.collectionPhase(phaseId); <br /><span class="label"><a 
+ id="x19-226026r18"></a></span>    <span 
+class="cmbx-10">return</span>; <br /><span class="label"><a 
+ id="x19-226027r19"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-226028r20"></a></span>  <span 
+class="cmbx-10">super</span>.collectionPhase(phaseId); <br /><span class="label"><a 
+ id="x19-226029r21"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 226--><p class="noindent" >This excerpt shows how the global MS plan implements <span 
+class="cmtt-10">collectionPhase</span>,
+illustrating the key phases of a simple stop-the-world collector. The prepare phase
+performs tasks such as changing the mark state, the closure phase performs a
+transitive closure over the heap (the mark phase of a mark-sweep algorithm) and the
+release phase performs any post-collection steps. Where possible, a plan is structured
+so that each layer of inheritance deals only with the objects it creates, i.e. the MS
+class operates on the <span 
+class="cmtt-10">msSpace </span>and delegates work on all other spaces to the
+super-class where they are deﬁned. By convention the <span 
+class="cmtt-10">PREPARE </span>phase is performed
+outside-in (super-class preparation ﬁrst) and <span 
+class="cmtt-10">RELEASE </span>is done inside-out (local ﬁrst,
+super-class second).
+</p><!--l. 230--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-22700016.1.4"></a>Tracing the heap</h5>
+<!--l. 232--><p class="noindent" >The main operation of a tracing collector is the transitive closure operation where all
+(or a subset) of the object graph is visited. Some collectors such as generational
+collectors perform these operations in more than one way, e.g. a nursery collection in
+a generational collector does not trace through pointers into the mature space, while
+a full-heap collection does. All MMTk collectors are designed to run using several
+parallel threads, using data structures that have unsynchronized thread-local
+and synchronized global components in the same way as MMTk&#x2019;s policy
+classes.
+</p><!--l. 234--><p class="noindent" >MMTk&#x2019;s trace operation uses the following terminology: </p>
+     <ul class="itemize1">
+     <li class="itemize">An <span 
+class="cmti-10">edge </span>is a reference in the heap from one reference ﬁeld to the object
+     (or node) it points to.
+     </li>
+     <li class="itemize"><span 
+class="cmti-10">Tracing  </span>an  object  is  the  policy-deﬁned  operation  performed  by  the
+     collector on an object. In a mark-sweep policy this means setting the mark
+     state of the object. In a copying policy this means moving the object to
+     its new location.
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize"><span 
+class="cmti-10">Scanning </span>is the process of identifying the reference ﬁelds of an object and
+     processing the objects reachable from each of them.</li></ul>
+<!--l. 241--><p class="noindent" >Each distinct transitive closure operation is deﬁned as a subclass of <span 
+class="cmti-10">TraceLocal</span>.
+The closure is performed in the <span 
+class="cmti-10">collectionPhase </span>method of the plan-speciﬁc
+<span 
+class="cmti-10">CollectorContext </span>class
+</p>
+<!--l. 243-->
+<br />
+    <div class="caption" 
+><span class="id">22cAp11x19-22700016.1.4:
+    </span><span  
+class="content">MSCollector.java</span></div><!--tex4ht:label?: x19-22700016.1 --><div class="lstlisting" id="listing-135"><span class="label"><a 
+ id="x19-227001r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">void</span> collectionPhase(<span 
+class="cmbx-10">short</span> phaseId, <span 
+class="cmbx-10">boolean</span> primary) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-227002r2"></a></span>  ... <br /><span class="label"><a 
+ id="x19-227003r3"></a></span>  <span 
+class="cmbx-10">if</span> (phaseId == MS.CLOSURE) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-227004r4"></a></span>    fullTrace.completeTrace(); <br /><span class="label"><a 
+ id="x19-227005r5"></a></span>    <span 
+class="cmbx-10">return</span>; <br /><span class="label"><a 
+ id="x19-227006r6"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-227007r7"></a></span>  ... <br /><span class="label"><a 
+ id="x19-227008r8"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 254--><p class="noindent" >The initial starting point for the closure is computed by the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">STACK_ROOTS</span></span></span>
+and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ROOTS</span></span></span> phases, which add root locations to a buﬀer by calling
+<span 
+class="cmtt-10">TraceLocal.reportDelayedRootEdge</span>. The closure operation proceeds by invoking
+<span 
+class="cmtt-10">traceObiect </span>on each root location (in method <span 
+class="cmtt-10">processRootEdge</span>), and then
+invoking <span 
+class="cmtt-10">scanObject </span>on each heap object encountered. Note that the <span 
+class="cmtt-10">CLOSURE</span>
+operation is performed multiple times in each GC, due to processing of reference
+types.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">16.2   </span> <a 
+ id="x19-22800016.2"></a>Memory Allocation in Jikes RVM</h3>
+<!--l. 5--><p class="noindent" >The way that objects are allocated in Jikes RVM can be diﬃcult to grasp for
+someone new to the code base. This document provides a detailed look at some of
+the paths through the JikesRVM - MMTk interface code to help bootstrap
+understanding of the process. The process and code illustrated below is
+current as of March 2011, svn revision 16052 (between JikesRVM 3.1.1 and
+3.1.2).
+</p><!--l. 7--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.2.1   </span> <a 
+ id="x19-22900016.2.1"></a>Memory Manager Interface</h4>
+<!--l. 9--><p class="noindent" >The best starting place to understand the allocation sequence is in the class
+<span 
+class="cmtt-10">org.jikesrvm.mm.mminterface.MemoryManager</span>, which is a facade class for the
+MMTk allocators. MMTk provides a variety of memory management plans which are
+designed to be independent of the actual language being implemented. The
+<span 
+class="cmtt-10">MemoryManager </span>class orchestrates the services of MMTk to allocate memory,
+and adds the structure necessary to make the allocated memory into Java
+objects.
+</p><!--l. 11--><p class="noindent" >The method <span 
+class="cmtt-10">allocateScalar </span>is where all scalar (ie non-array) objects are allocated.
+The parameters of this method specify the object to be allocated in suﬃcient detail
+that when this method is compiled by the opt compiler, all of the parameters are
+compile-time constants, allowing maximum optimization. Working through the body
+                                                                  
+
+                                                                  
+of the method,
+</p>
+<!--l. 13-->
+<div class="lstlisting" id="listing-136"><span class="label"><a 
+ id="x19-229001r1"></a></span>Selected.Mutator mutator = Selected.Mutator.get();
+</div>
+<!--l. 17--><p class="noindent" >As mentioned above, MMTk provides many diﬀerent memory management
+plans, one of which is selected at build time. This call acquires a pointer
+to the thread-local per-mutator component of MMTk. Much of MMTk&#x2019;s
+performance comes from providing unsynchronized thread-local data structures for
+the frequently used operations, so rather than provide a single interface
+object, it provides a per-thread interface object for both mutator and collector
+threads.
+</p>
+<!--l. 19-->
+<div class="lstlisting" id="listing-137"><span class="label"><a 
+ id="x19-229002r1"></a></span>allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
+</div>
+<!--l. 23--><p class="noindent" >An MMTk plan in general provides several spaces where objects can be allocated,
+each with their own characteristics. Jikes RVM is free to request allocation in any of
+these spaces, but sometimes there are constraints only available on a per-allocation
+basis that might force MMTk to override Jikes RVM&#x2019;s request. For example, Jikes
+RVM may specify that objects allocated by a particular class are allocated in
+MMTk&#x2019;s non-moving space. At execution time, one such object may turn
+out to be too large for allocation in the general non-moving space provided
+by that particular plan, and so MMTk needs to promote the object to the
+Large Object Space (LOS), which is also non-moving, but has high space
+overheads. This call will generally compile down to 0 or a small handful of
+instructions.
+</p>
+<!--l. 25-->
+<div class="lstlisting" id="listing-138"><span class="label"><a 
+ id="x19-229003r1"></a></span>Address region = allocateSpace(mutator, size, align, offset, allocator, site);
+</div>
+<!--l. 29--><p class="noindent" >This calls a method of <span 
+class="cmtt-10">MemoryManager</span>, common to all allocation methods (for
+Arrays and other special objects), that calls
+</p>
+<!--l. 31-->
+<div class="lstlisting" id="listing-139"><span class="label"><a 
+ id="x19-229004r1"></a></span>Address region = mutator.alloc(bytes, align, offset, allocator, site);
+</div>
+<!--l. 35--><p class="noindent" >to actually allocate memory from the current MMTk plan.
+</p>
+<!--l. 37-->
+<div class="lstlisting" id="listing-140"><span class="label"><a 
+ id="x19-229005r1"></a></span>Object result = ObjectModel.initializeScalar(region, tib, size);
+                                                                  
+
+                                                                  
+</div>
+<!--l. 41--><p class="noindent" >Now we call the Jikes RVM object model to initialize the allocated region as a scalar
+object, and then
+</p>
+<!--l. 43-->
+<div class="lstlisting" id="listing-141"><span class="label"><a 
+ id="x19-229006r1"></a></span>mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
+</div>
+<!--l. 47--><p class="noindent" >we call MMTk&#x2019;s <span 
+class="cmtt-10">postAlloc </span>method to perform initialization that can only be
+performed after an object has been initialized by the virtual machine.
+</p><!--l. 51--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.2.2   </span> <a 
+ id="x19-23000016.2.2"></a>Compiler integration</h4>
+<!--l. 53--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">allocateScalar</span></span></span> method discussed above is only actually called
+from one place, the method <span 
+class="cmtt-10">resolvedNewScalar(int ...) </span>in the class
+<span 
+class="cmtt-10">org.jikesrvm.runtime.RuntimeEntrypoints</span>. This class provides methods that are
+accessed directly by the compilers, via ﬁelds in the <span 
+class="cmtt-10">org.jikesrvm.runtime.Entrypoints</span>
+class. The &#x2019;resolved&#x2019; part of the method name indicates that the class of object being
+allocated is resolved at compile time (recall that the Java Language Spec requires
+that classes are only loaded, resolved etc when they are needed - sometimes it&#x2019;s
+necessary to compile code that performs classloading and then allocate the
+object).
+</p><!--l. 55--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RuntimeEntrypoints</span></span></span> also contains an overload, <span 
+class="cmtt-10">resolvedNewScalar(RVMClass)</span>,
+that is used by the reﬂection API to allocate objects. It&#x2019;s instructive to look at this
+method, as it performs essentially the same operations as the compiler when
+compiling the call to <span 
+class="cmtt-10">resolvedNewScalar(int...)</span>.
+</p><!--l. 57--><p class="noindent" >Working backwards from this point requires delving into the individual compilers.
+</p><!--l. 59--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-23100016.2.2"></a>Baseline Compiler</h5>
+<!--l. 61--><p class="noindent" >There is a diﬀerent baseline compiler for each architecture. The relevant
+code in the baseline compiler for the ia32 architecture is in the class
+<span 
+class="cmtt-10">org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl</span>. The method
+<span 
+class="cmtt-10">e-mit</span><span 
+class="cmtt-10">_resolved</span><span 
+class="cmtt-10">_new(RVMClass) </span>is responsible for generating code to execute the
+<span 
+class="cmti-10">new </span>bytecode when the target class is already resolved. Looking at this method, you
+can see it does essentially what the <span 
+class="cmtt-10">resolvedNewScalar(RVMClass) </span>method in
+<span 
+class="cmtt-10">RuntimeEntrypoints does</span>, then generates machine code to perform the call to
+the <span 
+class="cmtt-10">resolvedNewScalar </span>entrypoint. Note how the work of calculating the
+size, alignment etc of the object is performed by the compiler, at compile
+time.
+</p><!--l. 63--><p class="noindent" >Similar code exists in the PPC baseline compiler.
+                                                                  
+
+                                                                  
+</p><!--l. 67--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-23200016.2.2"></a>Optimizing Compiler</h5>
+<!--l. 69--><p class="noindent" >The optimizing compiler is paradoxically somewhat simpler than the baseline
+compiler, in that injection of the call to the entrypoint is done in an architecture
+independent level of compiler IR. (An overview of the Jikes RVM optimizing compiler
+can be found in the paper <a 
+href="http://suif.stanford.edu/~jwhaley/papers/javagrande99.pdf" >The Jalapeño Dynamic Optimizing Compiler for
+Java</a>).
+</p><!--l. 71--><p class="noindent" >In HIR (the high-level Intermediate Representation), allocation is expressed
+as a &#x2019;new&#x2019; opcode. During the translation from HIR to LIR (Low-level
+IR), this and other opcodes are translated into instructions by the class
+<span 
+class="cmtt-10">org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices</span>. The method
+<span 
+class="cmtt-10">perform(IR) </span>performs this translation, selecting particular operations via
+a large switch statement. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NEW_opcode</span></span></span> case performs the task we&#x2019;re
+interested in, doing essentially the same job as the baseline compiler, but
+generating IR rather than machine instructions. The compiler generates a &#x2019;call&#x2019;
+operation, and then (if the compilation policy decides it&#x2019;s required) inlines
+it.
+</p><!--l. 73--><p class="noindent" >At this point in code generation, all the methods called by
+<span 
+class="cmtt-10">RuntimeEntrypoints.resolvedNewScalar(int...) </span>which are annotated <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">@Inline</span></span></span>
+are also inlined into the current method. This inlining extends through to the MMTk
+code so that the allocation sequence can be optimized down to a handful of
+instructions.
+</p><!--l. 75--><p class="noindent" >It can be instructive to look at the various levels of IR generated for object allocation
+using a simple test program and the <a 
+href="Compilers.html#x16-16700013.2.4">OptTestHarness</a> utility described elsewhere in
+the user guide.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">16.3   </span> <a 
+ id="x19-23300016.3"></a>Scanning Objects in Jikes RVM</h3>
+<!--l. 5--><p class="noindent" >One of the services that MMTk expects a virtual machine to perform on its behalf is
+the scanning of objects, i.e. identifying and processing the pointer ﬁelds of the live
+objects it encounters during collection. In principle the implementation of this
+interface is simple, but there are two moderately complex optimizations layered on
+top of this.
+</p><!--l. 7--><p class="noindent" >From MMTk&#x2019;s point of view, each time an object requires scanning it passes it to the
+VM, along with a <span 
+class="cmtt-10">TransitiveClosure </span>object. The VM is expected to identify the
+pointers and invoke the <span 
+class="cmtt-10">processEdge </span>method on each of the pointer ﬁelds in the
+object. The rationale for the current object scanning scheme is presented in <a 
+href="http://portal.acm.org/citation.cfm?id=1993484" >this
+paper</a>.
+</p><!--l. 9--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.3.1   </span> <a 
+ id="x19-23400016.3.1"></a>JikesRVM to MMTk Interface</h4>
+<!--l. 11--><p class="noindent" >MMTk requires its host virtual machine to provide an implementation of
+the class <span 
+class="cmtt-10">org.mmtk.vm.Scanning </span>as its interface to scanning objects.
+                                                                  
+
+                                                                  
+Jikes RVM&#x2019;s implementation of this class is found under the source tree
+<span 
+class="cmtt-10">MMTk/ext/vm/jikesrvm</span>, in the class <span 
+class="cmtt-10">org.jikesrvm.mm.mmtk.Scanning</span>.
+The methods we are interested in are <span 
+class="cmtt-10">scanObject(TransitiveClosure,</span>
+<span 
+class="cmtt-10">ObjectReference) </span>and <span 
+class="cmtt-10">specializedScanObject(int, TransitiveClosure,</span>
+<span 
+class="cmtt-10">ObjectReference)</span>.
+</p><!--l. 13--><p class="noindent" >In MMTk, each plan deﬁnes one or more <span 
+class="cmtt-10">TransitiveClosure </span>operations. Simple
+full-heap collectors like MarkSweep only deﬁne one <span 
+class="cmtt-10">TransitiveClosure</span>, but complex
+plans like GenImmix or the RefCount plans deﬁne several. MMTk allows the plan to
+request specialized scanning on a closure-by-closure basis, closures that are
+specialized call <span 
+class="cmtt-10">specializedScanObject </span>while unspecialized ones call <span 
+class="cmtt-10">scanObject</span>.
+Specialization is covered in more detail below.
+</p><!--l. 15--><p class="noindent" >In the absence of hand-inlined scanning, or if specialization is globally disabled, scanning
+reverts to the fallback method in <span 
+class="cmtt-10">org.jikesrvm.mm.mminterface.SpecializedScanMethod</span>.
+This method can be regarded as the basic underlying mechanism, and is worth
+understanding in detail.
+</p>
+<!--l. 17-->
+<div class="lstlisting" id="listing-142"><span class="label"><a 
+ id="x19-234001r1"></a></span>RVMType type = ObjectModel.getObjectType(objectRef.toObject()); <br /><span class="label"><a 
+ id="x19-234002r2"></a></span>    <span 
+class="cmbx-10">int</span>[] offsets = type.getReferenceOffsets();
+</div>
+<!--l. 22--><p class="noindent" >This code fetches the array of oﬀsets that Jikes RVM uses to identify the pointer
+ﬁelds in the object. This array is constructed by the classloader when a class is
+resolved.
+</p>
+<!--l. 24-->
+<div class="lstlisting" id="listing-143"><span class="label"><a 
+ id="x19-234003r1"></a></span><span 
+class="cmbx-10">if</span> (offsets != REFARRAY_OFFSET_ARRAY) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-234004r2"></a></span>  <span 
+class="cmbx-10">for</span>(<span 
+class="cmbx-10">int</span> i=0; i <span 
+class="cmmi-10">&#x003C;</span> offsets.length; i++) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-234005r3"></a></span>    trace.processEdge(objectRef, objectRef.toAddress().plus(offsets[i])); <br /><span class="label"><a 
+ id="x19-234006r4"></a></span>  <span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 31--><p class="noindent" >One distinguished value (actually <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">null</span></span></span>) is used to identify arrays of reference objects,
+and this block of code scans scalar objects by tracing each of the ﬁelds at the oﬀsets
+given by the oﬀset array. </p><!--l. 32-->
+<div class="lstlisting" id="listing-144"><span class="label"><a 
+ id="x19-234007r1"></a></span><span 
+class="cmsy-10">}</span> <span 
+class="cmbx-10">else</span> <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-234008r2"></a></span>   <span 
+class="cmbx-10">for</span>(<span 
+class="cmbx-10">int</span> i=0; i <span 
+class="cmmi-10">&#x003C;</span> ObjectModel.getArrayLength(objectRef.toObject()); i++) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-234009r3"></a></span>    trace.processEdge(objectRef, objectRef.toAddress().plus(i <span 
+class="cmmi-10">&#x003C;&#x003C;</span> LOG_BYTES_IN_ADDRESS)); <br /><span class="label"><a 
+ id="x19-234010r4"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x19-234011r5"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 40--><p class="noindent" >The other case is reference arrays, for which we fetch the array length and scan each
+of the elements.
+</p><!--l. 42--><p class="noindent" >The internals of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">trace.processEdge</span></span></span> vary by collector and by collection type (e.g.
+nursery/full-heap in a generational collector), and the details need not concern us
+here.
+</p><!--l. 46--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.3.2   </span> <a 
+ id="x19-23500016.3.2"></a>Hand Inlining</h4>
+<!--l. 48--><p class="noindent" >Hand inlining was introduced in February 2011, and uses a cute technique to encode
+3 bits of metadata into the TIB pointer in an object&#x2019;s header. The 7 most frequent
+                                                                  
+
+                                                                  
+object patterns are encoded into these bits, and then special-case code is written for
+each of them.
+</p><!--l. 50--><p class="noindent" >Hand inlining produces an average-case speedup slightly better than specialization,
+but performs poorly on some benchmarks. This is why we use it in combination with
+specialization.
+</p><!--l. 54--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.3.3   </span> <a 
+ id="x19-23600016.3.3"></a>Specialized Scanning</h4>
+<!--l. 56--><p class="noindent" >Specialized Scanning was introduced in September 2007. It speeds up GC by
+removing the process of fetching and interpreting the oﬀset array that describes each
+object, by jumping directly to a hard-coded method for scanning objects with a
+particular pattern.
+</p><!--l. 58--><p class="noindent" >The departure point from ”standard” java into the specialized scanning
+method is <span 
+class="cmtt-10">SpecializedScanMethod.invoke(...)</span>, which looks like this
+</p><!--l. 59-->
+<div class="lstlisting" id="listing-145"><span class="label"><a 
+ id="x19-236001r1"></a></span>@SpecializedMethodInvoke <br /><span class="label"><a 
+ id="x19-236002r2"></a></span>@NoInline <br /><span class="label"><a 
+ id="x19-236003r3"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">void</span> invoke(<span 
+class="cmbx-10">int</span> id, Object object, TransitiveClosure trace) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x19-236004r4"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">/</span><span 
+class="tcti-1000">*</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">By</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">default</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">we</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">call</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">a</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">non</span><span 
+class="cmti-10">-</span><span 
+class="cmti-10">specialized</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">fallback</span><span 
+class="cmti-10"> </span><span 
+class="tcti-1000">*</span><span 
+class="cmti-10">/</span> <br /><span class="label"><a 
+ id="x19-236005r5"></a></span>  fallback(object, trace); <br /><span class="label"><a 
+ id="x19-236006r6"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 68--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">@SpecializedMethodInvoke</span></span></span> annotation signals to the compiler that it should
+dispatch to one of the specialized method slots in the TIB.
+</p><!--l. 70--><p class="noindent" >Creation of specialized methods is handled by the class
+<span 
+class="cmtt-10">org.jikesrvm.classloader.SpecializedMethodManager</span>.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">16.4   </span> <a 
+ id="x19-23700016.4"></a>Using GCSpy</h3>
+<!--l. 5--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.4.1   </span> <a 
+ id="x19-23800016.4.1"></a>The GCspy Heap Visualisation Framework</h4>
+<!--l. 7--><p class="noindent" >GCspy is a visualisation framework that allows developers to observe the behaviour
+of the heap and related data structures. For details of the GCspy model, see <a 
+href="http://www.cs.kent.ac.uk/pubs/2002/1426/" >GCspy:
+An adaptable heap visualisation frameworkby Tony Printezis and Richard Jones,
+OOPSLA&#x2019;02</a>. The framework comprises two components that communicate across a
+socket: a <span 
+class="cmti-10">client </span>and a <span 
+class="cmti-10">server </span>incorporated into the virtual machine of the system
+being visualised. The client is usually a visualiser (written in Java) but the
+framework also provides other tools (for example, to store traces in a compressed
+ﬁle). The GCspy server implementation for Jikes RVM was contributed by Richard
+Jones of the University of Kent.
+</p><!--l. 9--><p class="noindent" >GCspy is designed to be independent of the target system. Instead, it requires the
+GC developer to describe their system in terms of four GCspy abstractions: <span 
+class="cmti-10">spaces</span>,
+<span 
+class="cmti-10">streams</span>, <span 
+class="cmti-10">tiles </span>and <span 
+class="cmti-10">events</span>. This description is transmitted to the visualiser when it
+connects to the server.
+                                                                  
+
+                                                                  
+</p><!--l. 11--><p class="noindent" >A <span 
+class="cmti-10">space </span>is an abstraction of a component of the system; it may represent a memory
+region, a free-list, a remembered-set or whatever. Each space is divided into
+a number of blocks which are represented by the visualiser as <span 
+class="cmti-10">tiles</span>. Each
+space will have a number of attributes – <span 
+class="cmti-10">streams </span>– such as the amount of
+space used, the number of objects it contains, the length of a free-list and so
+on.
+</p><!--l. 13--><p class="noindent" >In order to instrument a Jikes RVM collector with GCspy:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x19-238002x1">Provide  a  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">startGCspyServer</span></span></span> method  in  that  collector&#x2019;s  plan.  That
+     method  initialises  the  GCspy  server  with  the  port  on  which  to
+     communicate and a list of event names, instantiates drivers for each space,
+     and then starts the server.
+     </li>
+     <li 
+  class="enumerate" id="x19-238004x2">Gather data from each space for the tiles of each stream (e.g. before,
+     during and after each collection).
+     </li>
+     <li 
+  class="enumerate" id="x19-238006x3">Provide a driver for each space.</li></ol>
+<!--l. 20--><p class="noindent" ><span 
+class="cmti-10">Space drivers </span>handle communication between collectors and the GCspy infrastructure
+by mapping information collected by the memory manager to the space&#x2019;s streams. A
+typical space driver will:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x19-238008x1">Create a GCspy space.
+     </li>
+     <li 
+  class="enumerate" id="x19-238010x2">Create a stream for each attribute of the space.
+     </li>
+     <li 
+  class="enumerate" id="x19-238012x3">Update the tile statistics as the memory manager passes it information.
+     </li>
+     <li 
+  class="enumerate" id="x19-238014x4">Send the tile data along with any summary or control information to the
+     visualiser.</li></ol>
+<!--l. 28--><p class="noindent" >The Jikes RVM <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspy</span></span></span> plan gives an example of how to instrument a collector. It
+provides GCspy spaces, streams and drivers for the semi-spaces, the immortal space
+and the large object space, and also illustrates how performance may be traded for
+the gathering of more detailed information.
+</p><!--l. 32--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.4.2   </span> <a 
+ id="x19-23900016.4.2"></a>Installation of GCspy with Jikes RVM</h4>
+                                                                  
+
+                                                                  
+<!--l. 34--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-24000016.4.2"></a>Building GCSpy</h5>
+<!--l. 36--><p class="noindent" >The GCspy client code makes use of the Java Advanced Imaging (JAI) API. The
+build system will attempt to download and install the JAI component when
+required but this is only supported on the ia32-linux platform. The build
+system will also attempt to download and install the GCSpy server when
+required.
+</p><!--l. 40--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-24100016.4.2"></a>Building Jikes RVM to use GCspy</h5>
+<!--l. 42--><p class="noindent" >To build the Jikes RVM with GCSpy support the conﬁguration parameter
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">config.include.gcspy</span></span></span> must be set to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">true</span></span></span> such as in the <span 
+class="cmtt-10">BaseBaseSemiSpaceGCspy</span>
+conﬁguration. You can also have the Jikes RVM build process create a script to start
+the GCSpy client tool if GCSpy was built with support for client component. To
+achieve this the conﬁguration parameter <span 
+class="cmtt-10">config.include.gcspy-client </span>must be set
+to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">true</span></span></span>.
+</p><!--l. 44--><p class="noindent" >The following steps build the Jikes RVM with support for GCSpy on linux-ia32
+platform. </p><!--l. 45-->
+<div class="lstlisting" id="listing-146"><span class="label"><a 
+ id="x19-241001r1"></a></span><span 
+class="tcrm-1000">$</span> cd <span 
+class="tcrm-1000">$</span>RVM_ROOT <br /><span class="label"><a 
+ id="x19-241002r2"></a></span><span 
+class="tcrm-1000">$</span> ant -Dhost.name=ia32-linux -Dconfig.name=BaseBaseSemiSpaceGCspy -Dconfig.include.gcspy-client=1
+</div>
+<!--l. 50--><p class="noindent" >It is also possible to build the Jikes RVM with GCSpy support but link it against a
+fake stub implementation rather than the real GCSpy implementation. This is
+achieved by setting the conﬁguration parameter <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">config.include.gcspy-stub</span></span></span> to
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">true</span></span></span>. This is used in the nightly testing process.
+</p><!--l. 54--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-24200016.4.2"></a>Running Jikes RVM with GCspy</h5>
+<!--l. 56--><p class="noindent" >To start Jikes RVM with GCSpy enabled you need to specify the port the GCSpy
+server will listen on. </p><!--l. 57-->
+<div class="lstlisting" id="listing-147"><span class="label"><a 
+ id="x19-242001r1"></a></span><span 
+class="tcrm-1000">$</span> cd <span 
+class="tcrm-1000">$</span>RVM_ROOT/dist/BaseBaseSemiSpaceGCspy_ia32-linux <br /><span class="label"><a 
+ id="x19-242002r2"></a></span><span 
+class="tcrm-1000">$</span> ./rvm -Xms20m -X:gc:gcspyPort=3000 -X:gc:gcspyWait=true &#x0026;
+</div>
+<!--l. 62--><p class="noindent" >Then you need to start the GCspy visualiser client. </p><!--l. 63-->
+<div class="lstlisting" id="listing-148"><span class="label"><a 
+ id="x19-242003r1"></a></span><span 
+class="tcrm-1000">$</span> cd <span 
+class="tcrm-1000">$</span>RVM_ROOT/dist/BaseBaseSemiSpaceGCspy_ia32-linux <br /><span class="label"><a 
+ id="x19-242004r2"></a></span><span 
+class="tcrm-1000">$</span> ./tools/gcspy/gcspy
+</div>
+<!--l. 68--><p class="noindent" >After this you can specify the port and host to connect to (i.e. localhost:3000) and
+click the ”Connect” button in the bottom right-hand corner of the visualiser.
+                                                                  
+
+                                                                  
+</p><!--l. 74--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.4.3   </span> <a 
+ id="x19-24300016.4.3"></a>Command line arguments</h4>
+<!--l. 76--><p class="noindent" >Additional GCspy-related arguments to the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">rvm</span></span></span> command: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:gc:gcspyPort=&#x003C;port&#x003E;</span></span></span> <br 
+class="newline" />The number of the port on which to connect to the visualiser. The default
+     is port 0, which signiﬁes no connection.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:gc:gcspyWait=&#x003C;true|false&#x003E;</span></span></span> <br 
+class="newline" />Whether Jikes RVM should wait for a visualiser to connect.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:gc:gcspyTilesize=&#x003C;size&#x003E;</span></span></span> <br 
+class="newline" />How many KB are represented by one tile. The default value is 128.</li></ul>
+<!--l. 88--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">16.4.4   </span> <a 
+ id="x19-24400016.4.4"></a>Writing GCspy drivers</h4>
+<!--l. 90--><p class="noindent" >To instrument a new collector with GCspy, you will probably want to subclass your
+collector and to write new drivers for it. The following sections explain the
+modiﬁcations you need to make and how to write a driver. You may use
+<span 
+class="cmtt-10">org.mmtk.plan.semispace.gcspy </span>and its drivers as an example.
+</p><!--l. 92--><p class="noindent" >The recommended way to instrument a Jikes RVM collector with GCspy is to create
+a gcspy subdirectory in the directory of the collector being instrumented, e.g.
+<span 
+class="cmtt-10">MMTk/src/org/mmtk/plan/semispace/gcspy</span>. In that directory, we need 5 classes:
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspy</span></span></span>,
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyCollector</span></span></span>,
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyConstraints</span></span></span>,
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyMutator</span></span></span> and
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyTraceLocal</span></span></span>.</li></ul>
+<!--l. 101--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspy</span></span></span> is the plan for the instrumented collector. It is a subclass of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SS</span></span></span>.
+</p><!--l. 103--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyConstraints</span></span></span> extends <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSConstraints</span></span></span> to provide methods <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">boolean</span>
+<span 
+class="cmtt-10">needsLinearScan()</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">boolean withGCspy()</span></span></span>, both of which return <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">true</span></span></span>.
+</p><!--l. 105--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyTraceLocal</span></span></span> extends <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSTraceLocal</span></span></span> to override methods <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">traceObject</span></span></span> and
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">willNotMove</span></span></span> to ensure that tracing deals properly with GCspy objects: the
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">GCspyTraceLocal</span></span></span> ﬁle will be similar for any instrumented collector.
+                                                                  
+
+                                                                  
+</p><!--l. 107--><p class="noindent" >The instrumented collector, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyCollector</span></span></span>, extends <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSCollector</span></span></span>. It needs to
+override <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">collectionPhase</span></span></span>.
+</p><!--l. 109--><p class="noindent" >Similarly, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyMutator</span></span></span> extends <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSMutator</span></span></span> and must also override its parent&#x2019;s
+methods <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">collectionPhase</span></span></span>, to allow the allocators to collect data; and its
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">alloc</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">postAlloc</span></span></span> methods to allocate GCspy objects in GCspy&#x2019;s heap
+space.
+</p><!--l. 111--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-24500016.4.4"></a>The Plan</h5>
+<!--l. 113--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspy.startGCspyServer</span></span></span> is called immediately before the ”main” method is
+loaded and run. It initialises the GCspy server with the port on which to
+communicate, adds event names, instantiates a driver for each space, and then starts
+the server, forcing the VM to wait for a GCspy to connect if necessary. This method
+has the following responsibilities. </p>
+     <ul class="itemize1">
+     <li class="itemize">Initialise    the    GCspy    server:    <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">server.init(name, portNumber,</span>
+     <span 
+class="cmtt-10">verbose);</span></span></span>
+     </li>
+     <li class="itemize">Add   each   event   to   the   ServerInterpreter   (‘server&#x2019;   for   short)
+     <span 
+class="cmtt-10">server.addEvent(eventID, eventName);</span>
+     </li>
+     <li class="itemize">Set some general information about the server (e.g. name of the collector,
+     build, etc) <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">server.setGeneralInfo(info);</span></span></span>
+     </li>
+     <li class="itemize">Create new drivers for each component to be visualised <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">myDriver = new</span>
+     <span 
+class="cmtt-10">MyDriver(server, args...);</span></span></span></li></ul>
+<!--l. 121--><p class="noindent" >Drivers extend <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">AbstractDriver</span></span></span> and register their space with the <span 
+class="cmtt-10">ServerInterpreter</span>.
+In addition to the server, drivers will take as arguments the name of the space, the
+MMTk space, the tilesize, and whether this space is to be the main space in the
+visualiser.
+</p><!--l. 125--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-24600016.4.4"></a>The Collector and Mutator</h5>
+<!--l. 127--><p class="noindent" >Instrumenters will typically want to add data collection points before, during and
+after a collection by overriding <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">collectionPhase</span></span></span> in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyCollector</span></span></span> and
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyMutator</span></span></span>.
+</p><!--l. 129--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyCollector</span></span></span> deals with the data in the semi-spaces that has been allocated
+there (copied) by the collector. It only does any real work at the end of the collector&#x2019;s
+last tracing phase, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">FORWARD_FINALIZABLE</span></span></span>.
+</p><!--l. 131--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyMutator</span></span></span> is more complex: as well as gathering data for objects that it
+allocated in From-space at the start of the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PREPARE_MUTATOR</span></span></span> phase, it also deals with
+the immortal and large object spaces.
+</p><!--l. 133--><p class="noindent" >At a collection point, the collector or mutator will typically
+                                                                  
+
+                                                                  
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x19-246002x1">Return if the GCspy port number is 0 (as no client can be connected).
+     </li>
+     <li 
+  class="enumerate" id="x19-246004x2">Check  whether  the  server  is  connected  at  this  event.  If  so,  the
+     compensation timer (which discounts the time taken by GCspy to ather
+     the data) should be started before gathering data and stopped after it.
+     </li>
+     <li 
+  class="enumerate" id="x19-246006x3">After gathering the data, have each driver call its transmit method.
+     </li>
+     <li 
+  class="enumerate" id="x19-246008x4"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyCollector</span></span></span> does not call the GCspy server&#x2019;s <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">serverSafepoint</span></span></span>
+     method, as the collector phase is usually followed by a mutator phase.
+     Instead, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">serverSafepoint</span></span></span> can be called by <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SSGCspyMutator</span></span></span> to indicate
+     that this is a point at which the server can pause, play one event, etc.</li></ol>
+<!--l. 141--><p class="noindent" >Gathering data will vary from MMTk space to space. It will typically be necessary to
+resize a space before gathering data. For a space, </p>
+     <ul class="itemize1">
+     <li class="itemize">We may need to reset the GCspy driver&#x2019;s data depending on the collection
+     phase.
+     </li>
+     <li class="itemize">We will pass the driver as a call-back to the allocator. The allocator will
+     typically ask the driver to set the range of addresses from which we want
+     to gather data, using the driver&#x2019;s setRange method. The driver should
+     then iterate through its MMTk space, passing a reference to each object
+     found to the driver&#x2019;s scan method.</li></ul>
+<!--l. 149--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-24700016.4.4"></a>The Driver</h5>
+<!--l. 151--><p class="noindent" >GCspy space drivers extend <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">AbstractDriver</span></span></span>. This class creates a new GCspy
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ServerSpace</span></span></span> and initializes the control values for each tile in the space. Control
+values indicate whether a tile is <span 
+class="cmti-10">used</span>, <span 
+class="cmti-10">unused</span>, a <span 
+class="cmti-10">background</span>, a <span 
+class="cmti-10">separator </span>or a <span 
+class="cmti-10">link</span>. The
+constructor for a typical space driver will:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x19-247002x1">Create a GCspy Stream for each attribute of a space.
+     </li>
+     <li 
+  class="enumerate" id="x19-247004x2">Initialise the tile statistics in each stream.</li></ol>
+<!--l. 157--><p class="noindent" >Some drivers may also create a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">LinearScan</span></span></span> object to handle call-backs from the VM
+as it sweeps the heap (see above).
+</p><!--l. 159--><p class="noindent" >The chief roles of a driver are to accumulate tile statistics, and to transmit the
+summary and control data and the data for all of their streams. Their data gathering
+interface is the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">scan</span></span></span> method (to which an object reference or address is
+passed).
+                                                                  
+
+                                                                  
+</p><!--l. 161--><p class="noindent" >When the collector or mutator has ﬁnished gathering data, it calls the transmit of
+the driver for each space that needs to send its data. Streams may send
+values of types <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">byte, \spverb</span></span></span>short+ or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span>, implemented through classes
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ByteStream</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ShortStream</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IntStream</span></span></span>. A driver&#x2019;s transmit method will
+typically:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x19-247006x1">Determine whether a GCspy client is connected and interested in this
+     event, e.g. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">server.isConnected(event)</span></span></span>
+     </li>
+     <li 
+  class="enumerate" id="x19-247008x2">Setup        the        summaries        for        each        stream,        e.g.
+     <span 
+class="cmtt-10">stream.setSummary(values...);</span>
+     </li>
+     <li 
+  class="enumerate" id="x19-247010x3">Setup the control information for each tile. e.g. <!--l. 166-->
+     <div class="lstlisting" id="listing-149"><span class="label"><a 
+ id="x19-247011r1"></a></span>controlValues(CONTROL_USED, start, numBlocks); <br /><span class="label"><a 
+ id="x19-247012r2"></a></span>controlValues(CONTROL_UNUSED, end, remainingBlocks);
+     
+     </div>
+     </li>
+     <li 
+  class="enumerate" id="x19-247014x4">Set up the space information, e.g. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">setSpace(info);</span></span></span>
+     </li>
+     <li 
+  class="enumerate" id="x19-247016x5">Send the data for all streams, e.g. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">send(event, numTiles);</span></span></span></li></ol>
+<!--l. 174--><p class="noindent" >Note that <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">AbstractDriver.send</span></span></span> takes care of sending the information for all
+streams (including control data).
+</p><!--l. 178--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x19-24800016.4.4"></a>Subspaces</h5>
+<!--l. 180--><p class="noindent" >Subspace provides a useful abstraction of a contiguous region of a heap, recording its
+start and end address, the index of its ﬁrst block, the size of blocks in this space and
+the number of blocks in the region. In particular, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Subspace</span></span></span> provides methods to:
+</p>
+     <ul class="itemize1">
+     <li class="itemize">Determine whether an address falls within a subspace;
+     </li>
+     <li class="itemize">Determine the block index of the address;
+     </li>
+     <li class="itemize">Calculate how much space remains in a block after a given address;</li></ul>
+                                                                  
+
+                                                                  
+<!--l. 121--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 121--><p class="noindent" ><a 
+ id="tailMMTk.html"></a></p> 
+</body></html> 

@@ -12,19 +12,26 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
+
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
@@ -35,14 +42,13 @@ import org.jikesrvm.objectmodel.ITableArray;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
@@ -68,7 +74,7 @@ import org.vmmagic.unboxed.WordArray;
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MemoryManager implements HeapLayoutConstants, Constants {
+public final class MemoryManager {
 
   /***********************************************************************
    *
@@ -111,13 +117,22 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
+    Extent pageSize = BootRecord.the_boot_record.bytesInPage;
+    org.jikesrvm.runtime.Memory.setPageSize(pageSize);
     Mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
-    Monitor.boot();
+
+    Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
+      @Override
+      public void notifyExit(int value) {
+        Selected.Plan.get().notifyExit(value);
+      }
+    });
+
     booted = true;
   }
 
@@ -150,7 +165,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Is collection enabled?
+   * @return whether collection is enabled
    */
   public static boolean collectionEnabled() {
     return collectionEnabled;
@@ -164,14 +179,11 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
     Selected.Plan.get().fullyBooted();
   }
 
-  /**
-   *  Process GC parameters.
-   */
   @Interruptible
   public static void processCommandLineArg(String arg) {
     if (!OptionSet.gc.process(arg)) {
       VM.sysWriteln("Unrecognized command line argument: \"" + arg + "\"");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 
@@ -438,11 +450,11 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
     int allocator = Plan.ALLOC_DEFAULT;
     if (type.isArrayType()) {
       RVMType elementType = type.asArray().getElementType();
-      if (elementType.isPrimitiveType() || elementType.isUnboxedType()){
+      if (elementType.isPrimitiveType() || elementType.isUnboxedType()) {
         allocator = Plan.ALLOC_NON_REFERENCE;
       }
     }
-    if(type.isNonMoving()) {
+    if (type.isNonMoving()) {
       allocator = Plan.ALLOC_NON_MOVING;
     }
     byte[] typeBA = type.getDescriptor().toByteArray();
@@ -588,6 +600,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param context The collector context to be used for this allocation
    * @param bytes The size of the allocation in bytes
+   * @param allocator the allocator associated with this request
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
    * @param from The source object from which this is to be copied
@@ -681,9 +694,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a non moving word array
+   * Allocates a non moving word array.
    *
    * @param size The size of the array
+   * @return the new non moving word array
    */
   @NoInline
   @Interruptible
@@ -711,9 +725,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a non moving double array
+   * Allocates a non moving double array.
    *
    * @param size The size of the array
+   * @return the new non moving double array
    */
   @NoInline
   @Interruptible
@@ -741,9 +756,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a non moving int array
+   * Allocates a non moving int array.
    *
    * @param size The size of the array
+   * @return the new non moving int array
    */
   @NoInline
   @Interruptible
@@ -771,9 +787,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a non moving int array
+   * Allocates a non moving short array.
    *
    * @param size The size of the array
+   * @return the new non moving short array
    */
   @NoInline
   @Interruptible
@@ -801,11 +818,12 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a new type information block (TIB).
+   * Allocates a new type information block (TIB).
    *
    * @param numVirtualMethods the number of virtual method slots in the TIB
-   * @param alignCode TODO
+   * @param alignCode alignment encoding for the TIB
    * @return the new TIB
+   * @see AlignmentEncoding
    */
   @NoInline
   @Interruptible
@@ -861,7 +879,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
       return IMT.allocate();
     }
 
-    return (IMT)newRuntimeTable(TIBLayoutConstants.IMT_METHOD_SLOTS, RVMType.IMTType);
+    return (IMT)newRuntimeTable(IMT_METHOD_SLOTS, RVMType.IMTType);
   }
 
   /**
@@ -897,9 +915,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Allocate a new runtime table (at runtime)
+   * Allocates a new runtime table (at runtime).
    *
-   * @param size The size of the table.
+   * @param size The size of the table
+   * @param type the type for the table
    * @return the newly allocated table
    */
   @NoInline
@@ -931,7 +950,12 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   *  Will this object move (allows us to optimize some JNI calls)
+   * Checks if the object can move. This information is useful to
+   *  optimize some JNI calls.
+   *
+   * @param obj the object in question
+   * @return {@code true} if this object can never move, {@code false}
+   *   if it can move.
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
@@ -939,7 +963,8 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   *  Will this object move (allows us to optimize some JNI calls)
+   * @param obj the object in question
+   * @return whether the object is immortal
    */
   @Pure
   public static boolean isImmortal(Object obj) {
@@ -982,6 +1007,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Add a soft reference to the list of soft references.
    *
    * @param obj the soft reference to be added to the list
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
@@ -992,6 +1018,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Add a weak reference to the list of weak references.
    *
    * @param obj the weak reference to be added to the list
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
@@ -1002,6 +1029,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Add a phantom reference to the list of phantom references.
    *
    * @param obj the phantom reference to be added to the list
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
@@ -1082,7 +1110,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   }
 
   /**
-   * Return the number of specialized methods.
+   * @return the number of specialized methods.
    */
   public static int numSpecializedMethods() {
     return SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
@@ -1092,6 +1120,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Initialize a specified specialized method.
    *
    * @param id the specializedMethod
+   * @return the created specialized scan method
    */
   @Interruptible
   public static SpecializedMethod createSpecializedMethod(int id) {
@@ -1114,19 +1143,29 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
 
   /**
    * Override the boot-time initialization method here, so that
-   * the core JMTk code doesn't need to know about the
+   * the core MMTk code doesn't need to know about the
    * BootImageInterface type.
+   *
+   * @param bootImage the bootimage instance
+   * @param ref the object's address
+   * @param tib the object's TIB
+   * @param size the number of bytes allocated by the GC system for
+   *  the object
+   * @param isScalar whether the header belongs to a scalar or an array
    */
   @Interruptible
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
     //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
-    byte status = org.mmtk.utility.HeaderByte.setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
+    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
     JavaHeader.writeAvailableByte(bootImage, ref, status);
   }
 
   /**
-   * Install a reference into the boot image.
+   * Installs a reference into the boot image.
+   *
+   * @param value the reference to install
+   * @return the installed reference
    */
   @Interruptible
   public static Word bootTimeWriteBarrier(Word value) {

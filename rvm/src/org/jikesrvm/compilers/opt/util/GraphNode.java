@@ -24,7 +24,7 @@ import java.util.Enumeration;
  * @see GraphEdge
  * @see GraphUtilities
  */
-public interface GraphNode extends GraphElement {
+public interface GraphNode {
 
   /**
    * Get an enumeration of all the edges to which edges sourced at

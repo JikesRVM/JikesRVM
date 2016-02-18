@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
@@ -23,10 +24,11 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * ObjectHolder helps the specialized prologue to load reference
- * get around of GC problem
+ * get around of GC problem.<p>
+ * TODO this class needs better comments.
  */
 @Uninterruptible
-public class ObjectHolder implements SizeConstants {
+public class ObjectHolder {
 
   // initialize pool size
   private static final int POOLSIZE = 8;
@@ -48,7 +50,9 @@ public class ObjectHolder implements SizeConstants {
     }
   }
 
-  /**
+  /*
+   * TODO add better documentation and turn this into a JavaDoc comment.
+   *
    * The VM scope descriptor extractor can hand in an object here
    */
   @Interruptible
@@ -69,7 +73,9 @@ public class ObjectHolder implements SizeConstants {
     return n;
   }
 
-  /**
+  /*
+   * TODO add better documentation and turn this into a JavaDoc comment.
+   *
    * Get the object handed in before, only called by specialized code.
    */
   @Inline
@@ -82,7 +88,9 @@ public class ObjectHolder implements SizeConstants {
     return obj;
   }
 
-  /**
+  /*
+   * TODO add better documentation and turn this into a JavaDoc comment.
+   *
    * Clean objects. This method is called by specialized bytecode prologue
    * Uses magic because it must be uninterruptible
    */

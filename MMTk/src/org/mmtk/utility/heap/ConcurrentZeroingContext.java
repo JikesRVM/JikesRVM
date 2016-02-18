@@ -27,8 +27,8 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class ConcurrentZeroingContext extends CollectorContext {
 
-  private PageResource pr;
-  private Monitor lock;
+  private final PageResource pr;
+  private final Monitor lock;
   private volatile int trigger;
 
   public ConcurrentZeroingContext(PageResource pr) {
@@ -44,11 +44,11 @@ public class ConcurrentZeroingContext extends CollectorContext {
   }
 
   @Override
-  public void run(){
+  public void run() {
     if (Options.verbose.getValue() >= 2) {
       Log.writeln("ZeroingThread running");
     }
-    while(true) {
+    while (true) {
       lock.lock();
       while (trigger == 0) {
         lock.await();

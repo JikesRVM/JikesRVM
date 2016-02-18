@@ -12,23 +12,74 @@
  */
 package org.jikesrvm.jni.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_ENV_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GC_FLAG_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GLUE_FRAME_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GLUE_OFFSET_TO_PREV_JFRAME;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_GLUE_SAVED_VOL_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_RVM_NONVOLATILE_OFFSET;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_SAVE_AREA_SIZE;
+import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.NATIVE_FRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.BaselineConstants.F3;
+import static org.jikesrvm.ppc.BaselineConstants.FP;
+import static org.jikesrvm.ppc.BaselineConstants.JTOC;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.S1;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.BaselineConstants.T1;
+import static org.jikesrvm.ppc.BaselineConstants.T2;
+import static org.jikesrvm.ppc.BaselineConstants.T3;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_OS_PARAMETER_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_OS_PARAMETER_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_RVM_RESERVED_NV_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.KLUDGE_TI_REG;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_PARAMETER_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_PARAMETER_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_OS_VARARG_PARAMETER_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_RVM_RESERVED_NV_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.REGISTER_ZERO;
+import static org.jikesrvm.ppc.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_JNI_COMPILER_FAILED;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.jni.JNIGlobalRefTable;
-import org.jikesrvm.ppc.BaselineConstants;
-import org.jikesrvm.ppc.MachineCode;
-import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.ArchEntrypoints;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
@@ -39,11 +90,11 @@ import org.vmmagic.unboxed.Offset;
  *
  * TODO: This class is a disaster.
  *       Refactor into an abstract parent with subclasses for target ABIs.
- *       Problem: can't risk doing that until we get OSX working again,
- *                so we can actually test that the refactors are correct.
+ *       Problem: can't risk doing that until we get access to 32-Bit PPC
+ *       for testing again, so we can actually test that the refactors
+ *       are correct.
  */
-public abstract class JNICompiler
-    implements BaselineConstants, AssemblerConstants, JNIStackframeLayoutConstants {
+public abstract class JNICompiler {
 
   /**
    * This method creates the stub to link native method.  It will be called
@@ -61,7 +112,6 @@ public abstract class JNICompiler
    *  <li>Push a new JREF frame on the JNIRefs stack
    *  <li>Supply the first JNI argument:  the JNI environment pointer
    *  <li>Supply the second JNI argument:  class object if static, "this" if virtual
-   *  <li>Setup the TOC (AIX only) and IP to the corresponding native code
    * </ol>
    * <p>
    * The stub performs the following tasks in the epilogue:
@@ -75,9 +125,9 @@ public abstract class JNICompiler
    * <p>
    * Within the stackframe, we have two frames.
    * The "main" frame exactly follows the OS native ABI and is therefore
-   * different for PowerOpenABI, SVR4ABI, and MachOABI.
+   * different for each ABI.
    * The "mini-frame" is identical on all platforms and is stores RVM-specific fields.
-   * The picture below shows the frames for PowerOpenABI.
+   * The picture below shows the frames for 64-bit PowerPC ELF ABI.
    * <pre>
    *
    *   | fp       | <- native frame
@@ -130,14 +180,15 @@ public abstract class JNICompiler
   public static synchronized CompiledMethod compile(NativeMethod method) {
     JNICompiledMethod cm = (JNICompiledMethod)CompiledMethods.createCompiledMethod(method, CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+    Assembler asm = new Assembler(0);
     int frameSize = getFrameSize(method);
     RVMClass klass = method.getDeclaringClass();
 
     /* initialization */
-    if (VM.VerifyAssertions) VM._assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
-    if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
-    if (VM.VerifyAssertions) VM._assert(S0 < S1 && S1 <= LAST_SCRATCH_GPR); // need 2 scratch
+    if (VM.VerifyAssertions) VM._assert(T3.value() <= LAST_VOLATILE_GPR.value()); // need 4 gp temps
+    if (VM.VerifyAssertions) VM._assert(F3.value() <= LAST_VOLATILE_FPR.value()); // need 4 fp temps
+    if (VM.VerifyAssertions) VM._assert(S0.value() < S1.value() &&
+                                        S1.value() <= LAST_SCRATCH_GPR.value());  // need 2 scratch
 
     Address nativeIP = method.getNativeIP();
     Address nativeTOC = method.getNativeTOC();
@@ -149,14 +200,14 @@ public abstract class JNICompiler
 
     // save return address in caller frame
     asm.emitMFLR(REGISTER_ZERO);
-    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
+    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt(), FP);
 
     // buy mini frame
     asm.emitSTAddrU(FP, -JNI_SAVE_AREA_SIZE, FP);
 
     // store CMID for native method in mini-frame
     asm.emitLVAL(S0, compiledMethodId);
-    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
+    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET.toInt(), FP);
 
     // buy main frame, the total size equals to frameSize
     asm.emitSTAddrU(FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
@@ -177,10 +228,10 @@ public abstract class JNICompiler
     asm.emitSTAddrOffset(THREAD_REGISTER, S0, Entrypoints.JNITopJavaFPField.getOffset());
 
     // save the RVM nonvolatile GPRs, to be scanned by GC stack mapper
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
-         i >= FIRST_NONVOLATILE_GPR;
+    for (int i = LAST_NONVOLATILE_GPR.value(), offset = JNI_RVM_NONVOLATILE_OFFSET;
+         i >= FIRST_NONVOLATILE_GPR.value();
          --i, offset += BYTES_IN_STACKSLOT) {
-      asm.emitSTAddr(i, frameSize - offset, FP);
+      asm.emitSTAddr(GPR.lookup(i), frameSize - offset, FP);
     }
 
     // clear the GC flag on entry to native code
@@ -210,11 +261,11 @@ public abstract class JNICompiler
 
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);         // get status for thread
-    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));            // we should be in java code?
+    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));            // we should be in java code?
     ForwardReference notInJava = asm.emitForwardBC(NE);
     asm.emitLVAL(S0, RVMThread.IN_JNI);             // S0  <- new state value
     asm.emitSTWCXr(S0, S1, THREAD_REGISTER);        // attempt to change state to IN_JNI
-    ForwardReference enteredJNIRef = asm.emitForwardBC(Assembler.EQ); // branch if success over slow path
+    ForwardReference enteredJNIRef = asm.emitForwardBC(EQ); // branch if success over slow path
 
     notInJava.resolve(asm);
 
@@ -273,11 +324,11 @@ public abstract class JNICompiler
     }
 
     //
-    // try to return virtual processor to vpStatus IN_JAVA
+    // try to return thread status to IN_JAVA
     //
     int label1 = asm.getMachineCodeIndex();
 
-    //TODO: we can do this directly from FP becasue we know framesize at compiletime
+    //TODO: we can do this directly from FP because we know framesize at compiletime
     //      (the same way we stored the JNI Env above)
     asm.emitLAddr(S0, 0, FP);           // get mini-frame
     asm.emitLAddr(S0, 0, S0);           // get Java caller FP
@@ -288,7 +339,7 @@ public abstract class JNICompiler
     asm.emitLAddrOffset(THREAD_REGISTER, THREAD_REGISTER, Entrypoints.JNIEnvSavedTRField.getOffset());
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);     // get status for processor
-    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));         // are we IN_JNI code?
+    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));         // are we IN_JNI code?
     ForwardReference blocked = asm.emitForwardBC(NE);
 
     asm.emitLVAL(S0, RVMThread.IN_JAVA);               // S0  <- new state value
@@ -313,10 +364,10 @@ public abstract class JNICompiler
     asm.emitLWZ(T2, frameSize - JNI_GC_FLAG_OFFSET, FP);
     asm.emitCMPI(T2, 0);
     ForwardReference fr1 = asm.emitForwardBC(EQ);
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
-         i >= FIRST_NONVOLATILE_GPR;
+    for (int i = LAST_NONVOLATILE_GPR.value(), offset = JNI_RVM_NONVOLATILE_OFFSET;
+         i >= FIRST_NONVOLATILE_GPR.value();
          --i, offset += BYTES_IN_STACKSLOT) {
-      asm.emitLAddr(i, frameSize - offset, FP);
+      asm.emitLAddr(GPR.lookup(i), frameSize - offset, FP);
     }
     fr1.resolve(asm);
 
@@ -352,7 +403,7 @@ public abstract class JNICompiler
     TypeReference returnType = method.getReturnType();
     if (returnType.isReferenceType()) {
       asm.emitCMPI(T0, 0);
-      ForwardReference globalRef = asm.emitForwardBC(Assembler.LT);
+      ForwardReference globalRef = asm.emitForwardBC(LT);
 
       // Local ref - load from JNIRefs
       asm.emitLAddrX(T0, S1, T0);         // S1 is still the base of the JNIRefs array
@@ -364,7 +415,7 @@ public abstract class JNICompiler
       asm.emitAND(T1, T0, T3);
       asm.emitLAddrOffset(T2, JTOC, Entrypoints.JNIGlobalRefsField.getOffset());
       asm.emitCMPI(T1, 0);
-      ForwardReference weakGlobalRef = asm.emitForwardBC(Assembler.EQ);
+      ForwardReference weakGlobalRef = asm.emitForwardBC(EQ);
 
       // Strong global references
       asm.emitNEG(T0, T0);
@@ -389,7 +440,7 @@ public abstract class JNICompiler
     // C return value is already where caller expected it (T0/T1 or F0)
     // So, just restore the return address to the link register.
 
-    asm.emitLAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
+    asm.emitLAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt(), FP);
     asm.emitMTLR(REGISTER_ZERO);                           // restore return address
 
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
@@ -406,14 +457,13 @@ public abstract class JNICompiler
     asm.emitMTCTR(T1);                         // point LR to the exception delivery code
     asm.emitBCCTR();                           // then branch to the exception delivery code, does not return
 
-    MachineCode machineCode = asm.makeMachineCode();
-    cm.compileComplete(machineCode.getInstructions());
+    cm.compileComplete(asm.getMachineCodes());
     return cm;
   }
 
   public static int getFrameSize(NativeMethod m) {
     // space for:
-    //   -NATIVE header (AIX 6 words, LINUX 2 words)
+    //   -NATIVE header (LINUX 2 words)
     //   -parameters and 2 extra JNI parameters (jnienv + obj), minimum 8 words
     //   -JNI_SAVE_AREA_OFFSET; see JNIStackframeLayoutConstants
     int argSpace = BYTES_IN_STACKSLOT * (m.getParameterWords() + 2);
@@ -445,7 +495,7 @@ public abstract class JNICompiler
 
     // offset to the spill area in the callee (OS frame):
     int spillOffsetOS;
-    if (VM.BuildForPowerOpenABI || VM.BuildForMachOABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       // 1st spill = JNIEnv, 2nd spill = class
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE + 2 * BYTES_IN_STACKSLOT;
     } else {
@@ -506,20 +556,20 @@ public abstract class JNICompiler
     //                   R3 = JNIenv                         R3 = JNIenv
     //
 
-    nextOSArgFloatReg = FIRST_OS_PARAMETER_FPR;
-    nextVMArgFloatReg = FIRST_VOLATILE_FPR;
-    nextOSArgReg = FIRST_OS_PARAMETER_GPR + 2;   // 1st reg = JNIEnv, 2nd reg = class/this
+    nextOSArgFloatReg = FIRST_OS_PARAMETER_FPR.value();
+    nextVMArgFloatReg = FIRST_VOLATILE_FPR.value();
+    nextOSArgReg = FIRST_OS_PARAMETER_GPR.value() + 2;   // 1st reg = JNIEnv, 2nd reg = class/this
     if (method.isStatic()) {
-      nextVMArgReg = FIRST_VOLATILE_GPR;
+      nextVMArgReg = FIRST_VOLATILE_GPR.value();
     } else {
-      nextVMArgReg = FIRST_VOLATILE_GPR + 1; // 1st reg = this, to be processed separately
+      nextVMArgReg = FIRST_VOLATILE_GPR.value() + 1; // 1st reg = this, to be processed separately
     }
 
     // The loop below assumes the following relationship:
     if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_FPR == FIRST_VOLATILE_FPR);
-    if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_FPR <= LAST_VOLATILE_FPR);
+    if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_FPR.value() <= LAST_VOLATILE_FPR.value());
     if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_GPR == FIRST_VOLATILE_GPR);
-    if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_GPR <= LAST_VOLATILE_GPR);
+    if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_GPR.value() <= LAST_VOLATILE_GPR.value());
 
     generateParameterPassingCode(asm,
                                  types,
@@ -534,7 +584,7 @@ public abstract class JNICompiler
 
     // if static method, append ref for class, else append ref for "this"
     // and pass offset in JNIRefs array in r4 (as second arg to called native code)
-    int SECOND_OS_PARAMETER_GPR = FIRST_OS_PARAMETER_GPR + 1;
+    GPR SECOND_OS_PARAMETER_GPR = GPR.lookup(FIRST_OS_PARAMETER_GPR.value() + 1);
     if (method.isStatic()) {
       klass.getClassForType();     // ensure the Java class object is created
       // ASSMPTION: JTOC saved above in JNIEnv is still valid,
@@ -575,8 +625,8 @@ public abstract class JNICompiler
                                                    int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
                                                    int nextOSArgFloatReg, int spillOffsetOS) {
     // TODO: The callee methods are prime candidates for being moved to ABI-specific subclasses.
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      genSVR4orMachOParameterPassingCode(asm,
+    if (VM.BuildForSVR4ABI) {
+      genSVR4ParameterPassingCode(asm,
                                          types,
                                          nextVMArgReg,
                                          nextVMArgFloatReg,
@@ -585,8 +635,8 @@ public abstract class JNICompiler
                                          nextOSArgFloatReg,
                                          spillOffsetOS);
     } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
-      genPowerOpenParameterPassingCode(asm,
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPower64ELF_ABI);
+      gen64BitPowerPC_ELF_ParameterPassingCode(asm,
                                        types,
                                        nextVMArgReg,
                                        nextVMArgFloatReg,
@@ -612,10 +662,10 @@ public abstract class JNICompiler
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
    * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */
-  private static void genSVR4orMachOParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
+  private static void genSVR4ParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
                                                          int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
                                                          int nextOSArgFloatReg, int spillOffsetOS) {
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+    if (VM.BuildForSVR4ABI) {
       // create one Assembler object for each argument
       // This is needed for the following reason:
       //   -2 new arguments are added in front for native methods, so the normal arguments
@@ -631,10 +681,7 @@ public abstract class JNICompiler
       Assembler[] asmForArgs = new Assembler[numArguments];
 
       for (int arg = 0; arg < numArguments; arg++) {
-        int spillSizeOSX = 0;          /* TODO: ONLY USED ON OS X */
-        int nextOsxGprIncrement = 1;   /* TODO: ONLY USED ON OS X */
-
-        asmForArgs[arg] = new ArchitectureSpecific.Assembler(0);
+        asmForArgs[arg] = new Assembler(0);
         Assembler asmArg = asmForArgs[arg];
 
         // For 32-bit float arguments, must be converted to
@@ -643,19 +690,10 @@ public abstract class JNICompiler
         if (types[arg].isFloatType() || types[arg].isDoubleType()) {
           boolean is32bits = types[arg].isFloatType();
 
-          if (VM.BuildForMachOABI) {
-            if (is32bits) {
-              spillSizeOSX = 4;
-            } else {
-              spillSizeOSX = 8;
-              nextOsxGprIncrement = 2;
-            }
-          }
-
           // 1. check the source, the value will be in srcVMArg
-          int srcVMArg; // scratch fpr
-          if (nextVMArgFloatReg <= LAST_VOLATILE_FPR) {
-            srcVMArg = nextVMArgFloatReg;
+          FPR srcVMArg; // scratch fpr
+          if (nextVMArgFloatReg <= LAST_VOLATILE_FPR.value()) {
+            srcVMArg = FPR.lookup(nextVMArgFloatReg);
             nextVMArgFloatReg++;
           } else {
             srcVMArg = FIRST_SCRATCH_FPR;
@@ -670,7 +708,7 @@ public abstract class JNICompiler
           }
 
           // 2. check the destination,
-          if (nextOSArgFloatReg <= LAST_OS_PARAMETER_FPR) {
+          if (nextOSArgFloatReg <= LAST_OS_PARAMETER_FPR.value()) {
             // leave it there
             nextOSArgFloatReg++;
           } else {
@@ -685,27 +723,15 @@ public abstract class JNICompiler
                 asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
                 spillOffsetOS += BYTES_IN_DOUBLE;
               }
-            } else {
-              if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-              if (is32bits) {
-                asmArg.emitSTFS(srcVMArg, spillOffsetOS, FP);
-              } else {
-                asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
-              }
             }
           }
           // for 64-bit long arguments
         } else if (types[arg].isLongType() && VM.BuildFor32Addr) {
-          if (VM.BuildForMachOABI) {
-            spillSizeOSX = 8;
-            nextOsxGprIncrement = 2;
-          }
-
           // handle OS first
           boolean dstSpilling;
           int regOrSpilling = -1;  // it is register number or spilling offset
           // 1. check if Linux register > 9
-          if (nextOSArgReg > (LAST_OS_PARAMETER_GPR - 1)) {
+          if (nextOSArgReg > (LAST_OS_PARAMETER_GPR.value() - 1)) {
             // goes to spilling area
             dstSpilling = true;
 
@@ -714,15 +740,12 @@ public abstract class JNICompiler
                * was implemented in GCC.
                * -- Feng
                */
-              nextOSArgReg = LAST_OS_PARAMETER_GPR + 1;
+              nextOSArgReg = LAST_OS_PARAMETER_GPR.value() + 1;
 
               // do alignment and compute spilling offset
               spillOffsetOS = (spillOffsetOS + 7) & -8;
               regOrSpilling = spillOffsetOS;
               spillOffsetOS += BYTES_IN_LONG;
-            } else {
-              if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-              regOrSpilling = spillOffsetOS;
             }
           } else {
             // use registers
@@ -733,56 +756,46 @@ public abstract class JNICompiler
               nextOSArgReg += (nextOSArgReg + 1) & 0x01; // if gpr is even, gpr += 1
               regOrSpilling = nextOSArgReg;
               nextOSArgReg += 2;
-            } else {
-              if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-              regOrSpilling = nextOSArgReg;
             }
           }
 
           // handle RVM source
-          if (nextVMArgReg < LAST_VOLATILE_GPR) {
+          if (nextVMArgReg < LAST_VOLATILE_GPR.value()) {
             // both parts in registers
             if (dstSpilling) {
-              asmArg.emitSTW(nextVMArgReg + 1, regOrSpilling + 4, FP);
+              asmArg.emitSTW(GPR.lookup(nextVMArgReg + 1), regOrSpilling + 4, FP);
 
               if (VM.BuildForSVR4ABI) {
-                asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
-              } else {
-                if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-                if (nextOSArgReg == LAST_OS_PARAMETER_GPR) {
-                  asmArg.emitMR(nextOSArgReg, nextVMArgReg);
-                } else {
-                  asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
-                }
+                asmArg.emitSTW(GPR.lookup(nextVMArgReg), regOrSpilling, FP);
               }
             } else {
-              asmArg.emitMR(regOrSpilling + 1, nextVMArgReg + 1);
-              asmArg.emitMR(regOrSpilling, nextVMArgReg);
+              asmArg.emitMR(GPR.lookup(regOrSpilling + 1), GPR.lookup(nextVMArgReg + 1));
+              asmArg.emitMR(GPR.lookup(regOrSpilling), GPR.lookup(nextVMArgReg));
             }
             // advance register counting, Linux register number
             // already advanced
             nextVMArgReg += 2;
-          } else if (nextVMArgReg == LAST_VOLATILE_GPR) {
+          } else if (nextVMArgReg == LAST_VOLATILE_GPR.value()) {
             // VM striding
             if (dstSpilling) {
               asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM, FP);
               asmArg.emitSTW(REGISTER_ZERO, regOrSpilling + 4, FP);
-              asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
+              asmArg.emitSTW(GPR.lookup(nextVMArgReg), regOrSpilling, FP);
             } else {
-              asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM, FP);
-              asmArg.emitMR(regOrSpilling, nextVMArgReg);
+              asmArg.emitLWZ(GPR.lookup(regOrSpilling + 1), spillOffsetVM, FP);
+              asmArg.emitMR(GPR.lookup(regOrSpilling), GPR.lookup(nextVMArgReg));
             }
             // advance spillOffsetVM and nextVMArgReg
             nextVMArgReg++;
             spillOffsetVM += BYTES_IN_STACKSLOT;
-          } else if (nextVMArgReg > LAST_VOLATILE_GPR) {
+          } else if (nextVMArgReg > LAST_VOLATILE_GPR.value()) {
             if (dstSpilling) {
               asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
               asmArg.emitSTFD(FIRST_SCRATCH_FPR, regOrSpilling, FP);
             } else {
               // this shouldnot happen, VM spills, OS has registers
-              asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM + 4, FP);
-              asmArg.emitLWZ(regOrSpilling, spillOffsetVM, FP);
+              asmArg.emitLWZ(GPR.lookup(regOrSpilling + 1), spillOffsetVM + 4, FP);
+              asmArg.emitLWZ(GPR.lookup(regOrSpilling), spillOffsetVM, FP);
             }
             spillOffsetVM += BYTES_IN_LONG;
           }
@@ -792,7 +805,7 @@ public abstract class JNICompiler
           boolean dstSpilling;
           int regOrSpilling = -1;  // it is register number or spilling offset
           // 1. check if Linux register > 9
-          if (nextOSArgReg > LAST_OS_PARAMETER_GPR) {
+          if (nextOSArgReg > LAST_OS_PARAMETER_GPR.value()) {
             // goes to spilling area
             dstSpilling = true;
 
@@ -800,7 +813,7 @@ public abstract class JNICompiler
              * was implemented in GCC.
              * -- Feng
              */
-            nextOSArgReg = LAST_OS_PARAMETER_GPR + 1;
+            nextOSArgReg = LAST_OS_PARAMETER_GPR.value() + 1;
 
             // do alignment and compute spilling offset
             spillOffsetOS = (spillOffsetOS + 7) & -8;
@@ -817,35 +830,31 @@ public abstract class JNICompiler
           }
 
           // handle RVM source
-          if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+          if (nextVMArgReg <= LAST_VOLATILE_GPR.value()) {
             // both parts in registers
             if (dstSpilling) {
-              asmArg.emitSTD(nextVMArgReg, regOrSpilling, FP);
+              asmArg.emitSTD(GPR.lookup(nextVMArgReg), regOrSpilling, FP);
             } else {
-              asmArg.emitMR(regOrSpilling, nextVMArgReg);
+              asmArg.emitMR(GPR.lookup(regOrSpilling), GPR.lookup(nextVMArgReg));
             }
             // advance register counting, Linux register number
             // already advanced
             nextVMArgReg += 1;
-          } else if (nextVMArgReg > LAST_VOLATILE_GPR) {
+          } else if (nextVMArgReg > LAST_VOLATILE_GPR.value()) {
             if (dstSpilling) {
               asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
               asmArg.emitSTFD(FIRST_SCRATCH_FPR, regOrSpilling, FP);
             } else {
               // this shouldnot happen, VM spills, OS has registers;
-              asmArg.emitLD(regOrSpilling, spillOffsetVM, FP);
+              asmArg.emitLD(GPR.lookup(regOrSpilling), spillOffsetVM, FP);
             }
             spillOffsetVM += BYTES_IN_LONG;
           }
         } else if (types[arg].isReferenceType()) {
-          if (VM.BuildForMachOABI) {
-            spillSizeOSX = 4;
-          }
-
           // For reference type, replace with handles before passing to native
-          int srcreg;
-          if (nextVMArgReg <= LAST_VOLATILE_GPR) {
-            srcreg = nextVMArgReg++;
+          GPR srcreg;
+          if (nextVMArgReg <= LAST_VOLATILE_GPR.value()) {
+            srcreg = GPR.lookup(nextVMArgReg++);
           } else {
             srcreg = REGISTER_ZERO;
             asmArg.emitLAddr(srcreg, spillOffsetVM, FP);
@@ -858,8 +867,8 @@ public abstract class JNICompiler
 
           // NO: put it in the JNIRefs array and pass offset
           asmArg.emitSTAddrU(srcreg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
-            asmArg.emitSUBFC(nextOSArgReg, THREAD_REGISTER, KLUDGE_TI_REG);
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
+            asmArg.emitSUBFC(GPR.lookup(nextOSArgReg), THREAD_REGISTER, KLUDGE_TI_REG);
           } else {
             asmArg.emitSUBFC(REGISTER_ZERO, THREAD_REGISTER, KLUDGE_TI_REG);
             asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS, FP);
@@ -868,8 +877,8 @@ public abstract class JNICompiler
 
           // YES: pass NULL (0)
           isNull.resolve(asmArg);
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
-            asmArg.emitLVAL(nextOSArgReg, 0);
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
+            asmArg.emitLVAL(GPR.lookup(nextOSArgReg), 0);
           } else {
             asmArg.emitSTAddr(srcreg, spillOffsetOS, FP);
           }
@@ -878,7 +887,7 @@ public abstract class JNICompiler
           done.resolve(asmArg);
 
           if (VM.BuildForSVR4ABI) {
-            if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+            if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
               nextOSArgReg++;
             } else {
               spillOffsetOS += BYTES_IN_ADDRESS;
@@ -886,21 +895,17 @@ public abstract class JNICompiler
           }
 
         } else {
-          if (VM.BuildForMachOABI) {
-            spillSizeOSX = 4;
-          }
-
           // For all other types: int, short, char, byte, boolean
           // (1a) fit in OS register, move the register
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
             if (VM.BuildForSVR4ABI) {
-              asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
+              asmArg.emitMR(GPR.lookup(nextOSArgReg++), GPR.lookup(nextVMArgReg++));
             } else {
-              asmArg.emitMR(nextOSArgReg, nextVMArgReg++);
+              asmArg.emitMR(GPR.lookup(nextOSArgReg), GPR.lookup(nextVMArgReg++));
             }
-          } else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+          } else if (nextVMArgReg <= LAST_VOLATILE_GPR.value()) {
             // (1b) spill OS register, but still fit in VM register
-            asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS, FP);
+            asmArg.emitSTAddr(GPR.lookup(nextVMArgReg++), spillOffsetOS, FP);
             if (VM.BuildForSVR4ABI) {
               spillOffsetOS += BYTES_IN_ADDRESS;
             }
@@ -916,17 +921,13 @@ public abstract class JNICompiler
           }
         }
 
-        if (VM.BuildForMachOABI) {
-          spillOffsetOS += spillSizeOSX;
-          nextOSArgReg += nextOsxGprIncrement;
-        }
       }
 
       // Append the code sequences for parameter mapping
       // to the current machine code in reverse order
       // so that the move does not overwrite the parameters
       for (int arg = asmForArgs.length - 1; arg >= 0; arg--) {
-        asm.appendInstructions(asmForArgs[arg].makeMachineCode().getInstructions());
+        asm.appendInstructions(asmForArgs[arg].getMachineCodes());
       }
     }
   }
@@ -946,10 +947,10 @@ public abstract class JNICompiler
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
    * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */
-  private static void genPowerOpenParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
+  private static void gen64BitPowerPC_ELF_ParameterPassingCode(Assembler asm, TypeReference[] types, int nextVMArgReg,
                                                        int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
                                                        int nextOSArgFloatReg, int spillOffsetOS) {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       // create one Assembler object for each argument
       // This is needed for the following reason:
       //   -2 new arguments are added in front for native methods, so the normal arguments
@@ -966,7 +967,7 @@ public abstract class JNICompiler
 
       for (int arg = 0; arg < numArguments; arg++) {
         boolean mustSaveFloatToSpill;
-        asmForArgs[arg] = new ArchitectureSpecific.Assembler(0);
+        asmForArgs[arg] = new Assembler(0);
         Assembler asmArg = asmForArgs[arg];
 
         // For 32-bit float arguments
@@ -974,7 +975,7 @@ public abstract class JNICompiler
         if (types[arg].isFloatType()) {
           // Side effect of float arguments on the GPR's
           // (1a) reserve one GPR for each float if it is available
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
             nextOSArgReg++;
             mustSaveFloatToSpill = false;
           } else {
@@ -986,16 +987,16 @@ public abstract class JNICompiler
           spillOffsetOS += BYTES_IN_STACKSLOT;
           // Check if the args need to be moved
           // (2a) leave those in FPR[1:13] as is unless the GPR has spilled
-          if (nextVMArgFloatReg <= LAST_OS_PARAMETER_FPR) {
+          if (nextVMArgFloatReg <= LAST_OS_PARAMETER_FPR.value()) {
             if (mustSaveFloatToSpill) {
-              asmArg.emitSTFS(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_FLOAT, FP);
+              asmArg.emitSTFS(FPR.lookup(nextVMArgFloatReg), spillOffsetOS - BYTES_IN_FLOAT, FP);
             }
             nextOSArgFloatReg++;
             nextVMArgFloatReg++;
-          } else if (nextVMArgFloatReg <= LAST_VOLATILE_FPR) {
+          } else if (nextVMArgFloatReg <= LAST_VOLATILE_FPR.value()) {
             // (2b) run out of FPR in OS, but still have 2 more FPR in VM,
             // so FPR[14:15] goes to the callee spill area
-            asmArg.emitSTFS(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_FLOAT, FP);
+            asmArg.emitSTFS(FPR.lookup(nextVMArgFloatReg), spillOffsetOS - BYTES_IN_FLOAT, FP);
             nextVMArgFloatReg++;
           } else {
             // (2c) run out of FPR in VM, now get the remaining args from the caller spill area
@@ -1010,7 +1011,7 @@ public abstract class JNICompiler
           if (VM.BuildFor64Addr) {
             // Side effect of float arguments on the GPR's
             // (1a) reserve one GPR for double
-            if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+            if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
               nextOSArgReg++;
               mustSaveFloatToSpill = false;
             } else {
@@ -1022,12 +1023,12 @@ public abstract class JNICompiler
           } else {
             // Side effect of float arguments on the GPR's
             // (1a) reserve two GPR's for double
-            if (nextOSArgReg <= LAST_OS_PARAMETER_GPR - 1) {
+            if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value() - 1) {
               nextOSArgReg += 2;
               mustSaveFloatToSpill = false;
             } else {
               // if only one GPR is left, reserve it anyway although it won't be used
-              if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+              if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
                 nextOSArgReg++;
               }
               mustSaveFloatToSpill = true;
@@ -1038,16 +1039,16 @@ public abstract class JNICompiler
               BYTES_IN_DOUBLE; //Kris Venstermans: equals 2 slots on 32-bit platforms and 1 slot on 64-bit platform
           // Check if the args need to be moved
           // (2a) leave those in FPR[1:13] as is unless the GPR has spilled
-          if (nextVMArgFloatReg <= LAST_OS_PARAMETER_FPR) {
+          if (nextVMArgFloatReg <= LAST_OS_PARAMETER_FPR.value()) {
             if (mustSaveFloatToSpill) {
-              asmArg.emitSTFD(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_DOUBLE, FP);
+              asmArg.emitSTFD(FPR.lookup(nextVMArgFloatReg), spillOffsetOS - BYTES_IN_DOUBLE, FP);
             }
             nextOSArgFloatReg++;
             nextVMArgFloatReg++;
-          } else if (nextVMArgFloatReg <= LAST_VOLATILE_FPR) {
+          } else if (nextVMArgFloatReg <= LAST_VOLATILE_FPR.value()) {
             // (2b) run out of FPR in OS, but still have 2 more FPR in VM,
             // so FPR[14:15] goes to the callee spill area
-            asmArg.emitSTFD(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_DOUBLE, FP);
+            asmArg.emitSTFD(FPR.lookup(nextVMArgFloatReg), spillOffsetOS - BYTES_IN_DOUBLE, FP);
             nextVMArgFloatReg++;
           } else {
             // (2c) run out of FPR in VM, now get the remaining args from the caller spill area
@@ -1061,27 +1062,27 @@ public abstract class JNICompiler
           //
           spillOffsetOS += BYTES_IN_LONG;
           // (1a) fit in OS register, move the pair
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR - 1) {
-            asmArg.emitMR(nextOSArgReg + 1, nextVMArgReg + 1);  // move lo-word first
-            asmArg.emitMR(nextOSArgReg, nextVMArgReg);      // so it doesn't overwritten
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value() - 1) {
+            asmArg.emitMR(GPR.lookup(nextOSArgReg + 1), GPR.lookup(nextVMArgReg + 1));  // move lo-word first
+            asmArg.emitMR(GPR.lookup(nextOSArgReg), GPR.lookup(nextVMArgReg));      // so it doesn't overwritten
             nextOSArgReg += 2;
             nextVMArgReg += 2;
-          } else if (nextOSArgReg == LAST_OS_PARAMETER_GPR && nextVMArgReg <= LAST_VOLATILE_GPR - 1) {
+          } else if (nextOSArgReg == LAST_OS_PARAMETER_GPR.value() && nextVMArgReg <= LAST_VOLATILE_GPR.value() - 1) {
             // (1b) fit in VM register but straddle across OS register/spill
-            asmArg.emitSTW(nextVMArgReg + 1,
+            asmArg.emitSTW(GPR.lookup(nextVMArgReg + 1),
                            spillOffsetOS - BYTES_IN_STACKSLOT,
                            FP);   // move lo-word first, so it doesn't overwritten
-            asmArg.emitMR(nextOSArgReg, nextVMArgReg);
+            asmArg.emitMR(GPR.lookup(nextOSArgReg), GPR.lookup(nextVMArgReg));
             nextOSArgReg += 2;
             nextVMArgReg += 2;
-          } else if (nextOSArgReg > LAST_OS_PARAMETER_GPR && nextVMArgReg <= LAST_VOLATILE_GPR - 1) {
+          } else if (nextOSArgReg > LAST_OS_PARAMETER_GPR.value() && nextVMArgReg <= LAST_VOLATILE_GPR.value() - 1) {
             // (1c) fit in VM register, spill in OS without straddling register/spill
-            asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - 2 * BYTES_IN_STACKSLOT, FP);
-            asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - BYTES_IN_STACKSLOT, FP);
-          } else if (nextVMArgReg == LAST_VOLATILE_GPR) {
+            asmArg.emitSTW(GPR.lookup(nextVMArgReg++), spillOffsetOS - 2 * BYTES_IN_STACKSLOT, FP);
+            asmArg.emitSTW(GPR.lookup(nextVMArgReg++), spillOffsetOS - BYTES_IN_STACKSLOT, FP);
+          } else if (nextVMArgReg == LAST_VOLATILE_GPR.value()) {
             // (1d) split across VM/spill, spill in OS
             spillOffsetVM += BYTES_IN_STACKSLOT;
-            asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - 2 * BYTES_IN_STACKSLOT, FP);
+            asmArg.emitSTW(GPR.lookup(nextVMArgReg++), spillOffsetOS - 2 * BYTES_IN_STACKSLOT, FP);
             asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM - BYTES_IN_STACKSLOT, FP);
             asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS - BYTES_IN_STACKSLOT, FP);
           } else {
@@ -1095,11 +1096,11 @@ public abstract class JNICompiler
           //
           spillOffsetOS += BYTES_IN_LONG;
           // (1a) fit in OS register, move the register
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
-            asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
+            asmArg.emitMR(GPR.lookup(nextOSArgReg++), GPR.lookup(nextVMArgReg++));
             // (1b) spill OS register, but still fit in VM register
-          } else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
-            asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS - BYTES_IN_LONG, FP);
+          } else if (nextVMArgReg <= LAST_VOLATILE_GPR.value()) {
+            asmArg.emitSTAddr(GPR.lookup(nextVMArgReg++), spillOffsetOS - BYTES_IN_LONG, FP);
           } else {
             // (1c) spill VM register
             spillOffsetVM += BYTES_IN_LONG;
@@ -1114,28 +1115,28 @@ public abstract class JNICompiler
           spillOffsetOS += BYTES_IN_ADDRESS;
 
           // (1a) fit in OS register, move the register
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
             // Are we passing NULL?
-            asmArg.emitCMPI(nextVMArgReg, 0);
+            asmArg.emitCMPI(GPR.lookup(nextVMArgReg), 0);
             ForwardReference isNull = asmArg.emitForwardBC(EQ);
             // NO: put it in the JNIRefs array and pass offset
-            asmArg.emitSTAddrU(nextVMArgReg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
-            asmArg.emitSUBFC(nextOSArgReg, THREAD_REGISTER, KLUDGE_TI_REG);    // pass offset in bytes of jref
+            asmArg.emitSTAddrU(GPR.lookup(nextVMArgReg), BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
+            asmArg.emitSUBFC(GPR.lookup(nextOSArgReg), THREAD_REGISTER, KLUDGE_TI_REG);    // pass offset in bytes of jref
             ForwardReference done = asmArg.emitForwardB();
             // YES: pass NULL (0)
             isNull.resolve(asmArg);
-            asmArg.emitMR(nextOSArgReg, nextVMArgReg);
+            asmArg.emitMR(GPR.lookup(nextOSArgReg), GPR.lookup(nextVMArgReg));
             // JOIN PATHS
             done.resolve(asmArg);
             nextVMArgReg++;
             nextOSArgReg++;
-          } else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+          } else if (nextVMArgReg <= LAST_VOLATILE_GPR.value()) {
             // (1b) spill OS register, but still fit in VM register
             // Are we passing NULL?
-            asmArg.emitCMPI(nextVMArgReg, 0);
+            asmArg.emitCMPI(GPR.lookup(nextVMArgReg), 0);
             ForwardReference isNull = asmArg.emitForwardBC(EQ);
             // NO: put it in the JNIRefs array and pass offset
-            asmArg.emitSTAddrU(nextVMArgReg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
+            asmArg.emitSTAddrU(GPR.lookup(nextVMArgReg), BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
             asmArg.emitSUBFC(REGISTER_ZERO, THREAD_REGISTER, KLUDGE_TI_REG);     // compute offset in bytes for jref
             ForwardReference done = asmArg.emitForwardB();
             // YES: pass NULL (0)
@@ -1170,11 +1171,11 @@ public abstract class JNICompiler
           spillOffsetOS += BYTES_IN_STACKSLOT;
 
           // (1a) fit in OS register, move the register
-          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
-            asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
-          } else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+          if (nextOSArgReg <= LAST_OS_PARAMETER_GPR.value()) {
+            asmArg.emitMR(GPR.lookup(nextOSArgReg++), GPR.lookup(nextVMArgReg++));
+          } else if (nextVMArgReg <= LAST_VOLATILE_GPR.value()) {
             // (1b) spill OS register, but still fit in VM register
-            asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS - BYTES_IN_ADDRESS, FP);
+            asmArg.emitSTAddr(GPR.lookup(nextVMArgReg++), spillOffsetOS - BYTES_IN_ADDRESS, FP);
           } else {
             // (1c) spill VM register
             spillOffsetVM += BYTES_IN_STACKSLOT;
@@ -1188,18 +1189,7 @@ public abstract class JNICompiler
       // to the current machine code in reverse order
       // so that the move does not overwrite the parameters
       for (int arg = numArguments - 1; arg >= 0; arg--) {
-        asm.appendInstructions(asmForArgs[arg].makeMachineCode().getInstructions());
-      }
-    }
-  }
-
-  static void generateReturnCodeForJNIMethod(Assembler asm, RVMMethod mth) {
-    if (VM.BuildForMachOABI) {
-      TypeReference t = mth.getReturnType();
-      if (VM.BuildFor32Addr && t.isLongType()) {
-        asm.emitMR(S0, T0);
-        asm.emitMR(T0, T1);
-        asm.emitMR(T1, S0);
+        asm.appendInstructions(asmForArgs[arg].getMachineCodes());
       }
     }
   }
@@ -1214,27 +1204,6 @@ public abstract class JNICompiler
     String mthName = mth.getName().toString();
     final boolean usesVarargs =
         (mthName.startsWith("Call") && mthName.endsWith("Method")) || mthName.equals("NewObject");
-
-    if (VM.BuildForMachOABI) {
-      // Find extra amount of space that needs to be added to the frame
-      //to hold copies of the vararg values. This calculation is
-      //overkill since some of these values will be in registers and
-      //already stored. But then either 3 or 4 of the parameters don't
-      //show up in the signature anyway (JNIEnvironment, class, method
-      //id, instance object).
-      if (usesVarargs) {
-        TypeReference[] argTypes = mth.getParameterTypes();
-        int argCount = argTypes.length;
-
-        for (int i = 0; i < argCount; i++) {
-          if (argTypes[i].isLongType() || argTypes[i].isDoubleType()) {
-            varargAmount += 2 * BYTES_IN_ADDRESS;
-          } else {
-            varargAmount += BYTES_IN_ADDRESS;
-          }
-        }
-      }
-    }
 
     int glueFrameSize = JNI_GLUE_FRAME_SIZE + varargAmount;
 
@@ -1256,39 +1225,31 @@ public abstract class JNICompiler
     // GPR 4-10 and FPR 1-6 into the volatile save area.
 
     if (usesVarargs) {
-      if (VM.BuildForPowerOpenABI) {
+      if (VM.BuildForPower64ELF_ABI) {
         offset = STACKFRAME_HEADER_SIZE + 3 * BYTES_IN_STACKSLOT;   // skip over slots for GPR 3-5
         for (int i = 6; i <= 10; i++) {
-          asm.emitSTAddr(i, offset, FP);
+          asm.emitSTAddr(GPR.lookup(i), offset, FP);
           offset += BYTES_IN_ADDRESS;
         }
         // store FPRs 1-3 in first 3 slots of volatile FPR save area
         for (int i = 1; i <= 3; i++) {
-          asm.emitSTFD(i, offset, FP);
+          asm.emitSTFD(FPR.lookup(i), offset, FP);
           offset += BYTES_IN_DOUBLE;
         }
       } else if (VM.BuildForSVR4ABI) {
         // save all parameter registers
         offset = STACKFRAME_HEADER_SIZE + 0;
-        for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
-          asm.emitSTAddr(i, offset, FP);
+        for (int i = FIRST_OS_PARAMETER_GPR.value(); i <= LAST_OS_PARAMETER_GPR.value(); i++) {
+          asm.emitSTAddr(GPR.lookup(i), offset, FP);
           offset += BYTES_IN_ADDRESS;
         }
-        for (int i = FIRST_OS_PARAMETER_FPR; i <= LAST_OS_PARAMETER_FPR; i++) {
-          asm.emitSTFD(i, offset, FP);
+        for (int i = FIRST_OS_PARAMETER_FPR.value(); i <= LAST_OS_PARAMETER_FPR.value(); i++) {
+          asm.emitSTFD(FPR.lookup(i), offset, FP);
           offset += BYTES_IN_DOUBLE;
-        }
-      } else {
-        if (VM.VerifyAssertions) VM._assert(VM.BuildForMachOABI);
-        // save all gpr parameter registers
-        offset = STACKFRAME_HEADER_SIZE + 0;
-        for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
-          asm.emitSTAddr(i, offset, FP);
-          offset += BYTES_IN_ADDRESS;
         }
       }
     } else {
-      if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+      if (VM.BuildForSVR4ABI) {
         // adjust register contents (following SVR4 ABI) for normal JNI functions
         // especially dealing with long, spills
         // number of parameters of normal JNI functions should fix in
@@ -1297,11 +1258,11 @@ public abstract class JNICompiler
       }
     }
 
-    // Save AIX non-volatile GPRs that will not be saved and restored by RVM.
+    // Save non-volatile GPRs that will not be saved and restored by RVM.
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_RVM_RESERVED_NV_GPR; i <= LAST_RVM_RESERVED_NV_GPR; i++) {
-      asm.emitSTAddr(i, offset, FP);
+    for (int i = FIRST_RVM_RESERVED_NV_GPR.value(); i <= LAST_RVM_RESERVED_NV_GPR.value(); i++) {
+      asm.emitSTAddr(GPR.lookup(i), offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
 
@@ -1310,15 +1271,16 @@ public abstract class JNICompiler
     //
     asm.emitLVAL(S0, INVISIBLE_METHOD_ID);
     asm.emitMFLR(REGISTER_ZERO);
-    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-    asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
+    asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET.toInt(), FP);
+    asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_RETURN_ADDRESS_OFFSET.toInt(), FP);
 
     // Attempt to change the vpStatus of the current Processor to IN_JAVA
     //
     // on entry T0 = JNIEnv* which is an interior pointer to this thread's JNIEnvironment.
     // We first adjust this in place to be a pointer to a JNIEnvironment and then use
-    // it to acquire THREAD_REGISTER (and JTOC on OSX/Linux).
+    // it to acquire THREAD_REGISTER (and JTOC on Linux).
     //
+    // TODO update for AIX removal
     // AIX non volatile gprs 13-16 have been saved & are available (also gprs 11-13 can be used).
     // S0=13, S1=14, TI=15, THREAD_REGISTER=16 are available (&have labels) for changing state.
     // we leave the passed arguments untouched, unless we are blocked and have to call sysVirtualProcessorYield
@@ -1328,17 +1290,18 @@ public abstract class JNICompiler
     asm.emitADDI(T0, Offset.zero().minus(Entrypoints.JNIExternalFunctionsField.getOffset()), T0);
 
     int retryLoop = asm.getMachineCodeIndex();
-    // acquire Jikes RVM THREAD_REGISTER (and JTOC OSX/Linux only).
+    // acquire Jikes RVM THREAD_REGISTER (and JTOC Linux only).
     asm.emitLAddrOffset(THREAD_REGISTER, T0, Entrypoints.JNIEnvSavedTRField.getOffset());
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
-      // Thus, we only need this load on non-AIX platforms
+    if (VM.BuildForSVR4ABI) {
+      // When using the 64-bit PowerPC ELF ABI (e.g. on PPC64 Linux), the JTOC is part of
+      // the Linkage triplet and this already set by our caller.
+      // Thus, we only need this load when not on PPC64 Linux.
       asm.emitLAddrOffset(JTOC, T0, Entrypoints.JNIEnvSavedJTOCField.getOffset());
     }
 
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);               // get status for processor
-    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));       // check if GC in progress, blocked in native mode
+    asm.emitCMPI(S0, RVMThread.IN_JNI + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));       // check if GC in progress, blocked in native mode
     ForwardReference frBlocked = asm.emitForwardBC(NE);
 
     asm.emitLVAL(S0, RVMThread.IN_JAVA);                // S0  <- new state value
@@ -1353,14 +1316,14 @@ public abstract class JNICompiler
     offset = STACKFRAME_HEADER_SIZE;
 
     // save volatile GPRS 3-10
-    for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
-      asm.emitSTAddr(i, offset, FP);
+    for (int i = FIRST_OS_PARAMETER_GPR.value(); i <= LAST_OS_PARAMETER_GPR.value(); i++) {
+      asm.emitSTAddr(GPR.lookup(i), offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
 
     // save volatile FPRS 1-6
-    for (int i = FIRST_OS_PARAMETER_FPR; i <= LAST_OS_VARARG_PARAMETER_FPR; i++) {
-      asm.emitSTFD(i, offset, FP);
+    for (int i = FIRST_OS_PARAMETER_FPR.value(); i <= LAST_OS_VARARG_PARAMETER_FPR.value(); i++) {
+      asm.emitSTFD(FPR.lookup(i), offset, FP);
       offset += BYTES_IN_DOUBLE;
     }
 
@@ -1374,14 +1337,14 @@ public abstract class JNICompiler
     offset = STACKFRAME_HEADER_SIZE;
 
     // restore volatile GPRS 3-10
-    for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
-      asm.emitLAddr(i, offset, FP);
+    for (int i = FIRST_OS_PARAMETER_GPR.value(); i <= LAST_OS_PARAMETER_GPR.value(); i++) {
+      asm.emitLAddr(GPR.lookup(i), offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
 
     // restore volatile FPRS 1-6
-    for (int i = FIRST_OS_PARAMETER_FPR; i <= LAST_OS_VARARG_PARAMETER_FPR; i++) {
-      asm.emitLFD(i, offset, FP);
+    for (int i = FIRST_OS_PARAMETER_FPR.value(); i <= LAST_OS_VARARG_PARAMETER_FPR.value(); i++) {
+      asm.emitLFD(FPR.lookup(i), offset, FP);
       offset += BYTES_IN_DOUBLE;
     }
 
@@ -1399,7 +1362,7 @@ public abstract class JNICompiler
                         T0,
                         Entrypoints.JNITopJavaFPField.getOffset());       // get addr of top java frame from JNIEnv
     asm.emitSUBFC(S0, FP, S0);                                                 // S0 <- offset from current FP
-    // AIX -4, LINUX - 8
+    // LINUX - 8
     asm.emitSTW(S0, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP);  // store offset at end of glue frame
 
     // BRANCH TO THE PROLOG FOR THE JNI FUNCTION
@@ -1426,14 +1389,14 @@ public abstract class JNICompiler
     // frame pointer if it is necessary to do GC with a processors active thread
     // stuck (and blocked) in native C, ie. GC starts scanning the threads stack at that frame.
 
-    // AIX -4, LINUX -8
+    // LINUX -8
     asm.emitLInt(T3, glueFrameSize + JNI_GLUE_OFFSET_TO_PREV_JFRAME, FP); // load offset from FP to top java frame
     asm.emitADD(T3, FP, T3);                                    // T3 <- address of top java frame
     asm.emitSTAddrOffset(T3, T2, Entrypoints.JNITopJavaFPField.getOffset());     // store TopJavaFP back into JNIEnv
 
     // check to see if this frame address is the sentinel since there
     // may be no further Java frame below
-    asm.emitCMPAddrI(T3, ArchitectureSpecific.ArchConstants.STACKFRAME_SENTINEL_FP.toInt());
+    asm.emitCMPAddrI(T3, STACKFRAME_SENTINEL_FP.toInt());
     ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLAddr(S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     fr4.resolve(asm);
@@ -1445,11 +1408,11 @@ public abstract class JNICompiler
     //
     asm.emitLVALAddr(S1, Entrypoints.execStatusField.getOffset());
     asm.emitLWARX(S0, S1, THREAD_REGISTER);
-    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION?100:0));
+    asm.emitCMPI(S0, RVMThread.IN_JAVA + (RVMThread.ALWAYS_LOCK_ON_STATE_TRANSITION ? 100 : 0));
     ForwardReference notInJava = asm.emitForwardBC(NE);
     asm.emitLVAL(S0, RVMThread.IN_JNI);
     asm.emitSTWCXr(S0, S1, THREAD_REGISTER);
-    ForwardReference enteredJNIRef = asm.emitForwardBC(Assembler.EQ);
+    ForwardReference enteredJNIRef = asm.emitForwardBC(EQ);
 
     notInJava.resolve(asm);
 
@@ -1473,12 +1436,12 @@ public abstract class JNICompiler
 
     enteredJNIRef.resolve(asm);
 
-    // Restore those AIX nonvolatile registers saved in the prolog above
+    // Restore the nonvolatile registers saved in the prolog above
     // Here we only save & restore ONLY those registers not restored by RVM
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
-    for (int i = FIRST_RVM_RESERVED_NV_GPR; i <= LAST_RVM_RESERVED_NV_GPR; i++) {
-      asm.emitLAddr(i, offset, FP);                     // 4 instructions
+    for (int i = FIRST_RVM_RESERVED_NV_GPR.value(); i <= LAST_RVM_RESERVED_NV_GPR.value(); i++) {
+      asm.emitLAddr(GPR.lookup(i), offset, FP);                     // 4 instructions
       offset += BYTES_IN_ADDRESS;
     }
 
@@ -1488,7 +1451,7 @@ public abstract class JNICompiler
     // load return address & return to caller
     // T0 & T1 (or F1) should still contain the return value
     //
-    asm.emitLAddr(T2, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
+    asm.emitLAddr(T2, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt(), FP);
     asm.emitMTLR(T2);
     asm.emitBCLR(); // branch always, through link register
 
@@ -1500,42 +1463,40 @@ public abstract class JNICompiler
   // we only process JNI functions that uses parameters directly
   // so only handle parameters in gprs now
   static void convertParametersFromSVR4ToJava(Assembler asm, RVMMethod meth) {
-    if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
+    if (VM.BuildForSVR4ABI) {
       TypeReference[] argTypes = meth.getParameterTypes();
       int argCount = argTypes.length;
-      int nextVMReg = FIRST_VOLATILE_GPR;
-      int nextOSReg = FIRST_OS_PARAMETER_GPR;
+      int nextVMReg = FIRST_VOLATILE_GPR.value();
+      int nextOSReg = FIRST_OS_PARAMETER_GPR.value();
 
       for (int i = 0; i < argCount; i++) {
         if (argTypes[i].isFloatType()) {
           // skip over
         } else if (argTypes[i].isDoubleType()) {
-          if (VM.BuildForMachOABI) {
-            nextOSReg++;
-          }
+          // skip over
         } else {
           if (argTypes[i].isLongType() && VM.BuildFor32Addr) {
             if (VM.BuildForSVR4ABI) {
               nextOSReg += (nextOSReg + 1) & 0x01;  // round up to odd for linux
             }
             if (nextOSReg != nextVMReg) {
-              asm.emitMR(nextVMReg, nextOSReg);
-              asm.emitMR(nextVMReg + 1, nextOSReg + 1);
+              asm.emitMR(GPR.lookup(nextVMReg), GPR.lookup(nextOSReg));
+              asm.emitMR(GPR.lookup(nextVMReg + 1), GPR.lookup(nextOSReg + 1));
             }
             nextOSReg += 2;
             nextVMReg += 2;
           } else {
             if (nextOSReg != nextVMReg) {
-              asm.emitMR(nextVMReg, nextOSReg);
+              asm.emitMR(GPR.lookup(nextVMReg), GPR.lookup(nextOSReg));
             }
             nextOSReg++;
             nextVMReg++;
           }
         }
 
-        if (nextOSReg > LAST_OS_PARAMETER_GPR + 1) {
+        if (nextOSReg > LAST_OS_PARAMETER_GPR.value() + 1) {
           VM.sysWrite("ERROR: " + meth + " has too many int or long parameters\n");
-          VM.sysExit(VM.EXIT_STATUS_JNI_COMPILER_FAILED);
+          VM.sysExit(EXIT_STATUS_JNI_COMPILER_FAILED);
         }
       }
     }

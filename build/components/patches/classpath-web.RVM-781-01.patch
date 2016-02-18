@@ -1,0 +1,16 @@
+Index: gnu/java/lang/CPStringBuilder.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/java/lang/CPStringBuilder.java,v
+retrieving revision 1.10
+diff -u -r1.10 CPStringBuilder.java
+--- gnu/java/lang/CPStringBuilder.java	15 Jun 2008 21:33:57 -0000	1.10
++++ gnu/java/lang/CPStringBuilder.java	24 Feb 2009 22:04:15 -0000
+@@ -94,7 +94,7 @@
+     String cap =
+       SystemProperties.getProperty("gnu.classpath.cpstringbuilder.capacity");
+     if (cap == null)
+-      DEFAULT_CAPACITY = 32;
++      DEFAULT_CAPACITY = 16;
+     else
+       DEFAULT_CAPACITY = Integer.parseInt(cap);
+   }

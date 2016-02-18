@@ -154,10 +154,8 @@ public final class LinkedListRVM<T> implements List<T> {
   }
 
   /**
-   * Return the nth element of the list
-   * <p>
-   * UNIMPLEMENTED
-   * @param index
+   * @param index index of the element to return
+   * @return the nth element of the list
    */
   @Override
   public T get(int index) {

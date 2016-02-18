@@ -67,10 +67,10 @@ public final class Trace {
    * @return the names of the items in the Item enumeration
    */
   public static String[] itemNames() {
-    String[] result = new String[Item.values().length+1];
+    String[] result = new String[Item.values().length + 1];
     result[0] = "NONE";
-    for (int i=0; i < Item.values().length; i++) {
-      result[i+1] = Item.values()[i].toString();
+    for (int i = 0; i < Item.values().length; i++) {
+      result[i + 1] = Item.values()[i].toString();
     }
     return result;
   }
@@ -107,6 +107,7 @@ public final class Trace {
    * @param args Format arguments
    */
   public static synchronized void trace(Item item, String pattern, Object...args) {
+    Clock.assertStopped();
     if (isEnabled(item)) {
       printf(item, pattern + "%n", args);
     }
@@ -118,7 +119,8 @@ public final class Trace {
    * @return The string prefix
    */
   public static String prefix(Item item) {
-    return (Clock.ENABLE_CLOCK ? Clock.read()+":" : "") +"["+item+"] ";
+    return String.format("%6d: <%02d> [%s] ",
+        Clock.read(), Thread.currentThread().getId(), item);
   }
 
   /**
@@ -137,6 +139,7 @@ public final class Trace {
    * @param args Format arguments
    */
   public static void printf(String pattern, Object...args) {
+    Clock.assertStopped();
     System.err.printf(pattern,args);
     System.err.flush();
   }

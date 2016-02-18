@@ -24,14 +24,22 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public abstract class ConcurrentConstraints extends SimpleConstraints {
   @Override
-  public boolean needsConcurrentWorkers() { return true; }
+  public boolean needsConcurrentWorkers() {
+    return true;
+  }
 
   @Override
-  public boolean needsObjectReferenceWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() {
+    return true;
+  }
 
   @Override
-  public boolean needsJavaLangReferenceReadBarrier() { return true; }
+  public boolean needsJavaLangReferenceReadBarrier() {
+    return true;
+  }
 
   //@Override
-  // TODO public boolean needsStaticWriteBarrier() { return true; }
+  // TODO public boolean needsStaticWriteBarrier() {
+  //  return true;
+  //}
 }

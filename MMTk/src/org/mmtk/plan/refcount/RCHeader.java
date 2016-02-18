@@ -12,7 +12,8 @@
  */
 package org.mmtk.plan.refcount;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.BITS_IN_BYTE;
+
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -20,7 +21,7 @@ import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Word;
 
 @Uninterruptible
-public class RCHeader implements Constants {
+public class RCHeader {
 
   /* Requirements */
   public static final int LOCAL_GC_BITS_REQUIRED = 0;
@@ -163,7 +164,8 @@ public class RCHeader implements Constants {
   public static final Word READ_MASK = refSticky;
 
   /**
-   * Has this object been marked by the most recent backup trace.
+   * @param object an object
+   * @return whether the object been marked by the most recent backup trace
    */
   @Inline
   public static boolean isMarked(ObjectReference object) {
@@ -171,7 +173,8 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Has this object been marked by the most recent backup trace.
+   * Clears the mark status for the given object.
+   * @param object the object whose status will be cleared
    */
   @Inline
   public static void clearMarked(ObjectReference object) {
@@ -184,7 +187,8 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Has this object been marked by the most recent backup trace.
+   * @param header the header
+   * @return whether the header has been marked
    */
   @Inline
   private static boolean isHeaderMarked(Word header) {
@@ -192,7 +196,11 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Attempt to atomically mark this object. Return <code>true</code> if the mark was performed.
+   * Attempts to atomically mark this object.
+   *
+   * @param object the object to mark
+   * @return {@code true} if the mark was performed, {@code false}
+   *  otherwise
    */
   @Inline
   public static boolean testAndMark(ObjectReference object) {
@@ -208,7 +216,8 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Has this object been marked as new.
+   * @param object an object
+   * @return whether the object has been marked as new
    */
   @Inline
   public static boolean isNew(ObjectReference object) {
@@ -216,7 +225,8 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Has this object been marked as new.
+   * @param header an object's header
+   * @return whether the header has a new marking
    */
   @Inline
   private static boolean isHeaderNew(Word header) {
@@ -232,7 +242,7 @@ public class RCHeader implements Constants {
   @Inline
   public static void initializeHeader(ObjectReference object, boolean initialInc) {
     Word existingValue = VM.objectModel.readAvailableBitsWord(object);
-    Word initialValue = existingValue.and(WRITE_MASK).or((initialInc)? INCREMENT : Word.zero());
+    Word initialValue = existingValue.and(WRITE_MASK).or((initialInc) ? INCREMENT : Word.zero());
     VM.objectModel.writeAvailableBitsWord(object, initialValue);
   }
 
@@ -392,7 +402,8 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Has this object been stuck
+   * @param value a word
+   * @return whether the word contains a sticky marking
    */
   @Inline
   private static boolean isStuck(Word value) {

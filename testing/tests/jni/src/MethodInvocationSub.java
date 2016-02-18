@@ -40,7 +40,7 @@ class MethodInvocationSub extends MethodInvocation {
   public char virtualReturnChar(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    if (val1=='x')
+    if (val1 == 'x')
       return 'q';
     else
       return 'r';    // didn't get the expected argument, force test to fail
@@ -99,7 +99,7 @@ class MethodInvocationSub extends MethodInvocation {
   /************************************************************
    * Dummy constructor to get to the virtual methods
    */
-  public MethodInvocationSub() {
+  MethodInvocationSub() {
 
   }
 

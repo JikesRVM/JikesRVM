@@ -9,6 +9,9 @@
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
+ *
+ *  Alternatively, this file is licensed to You under the MIT License:
+ *      http://opensource.org/licenses/MIT .
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
@@ -22,6 +25,7 @@ public class TestCompare {
     a_cmp();
     null_cmp();
     str_cmp();
+    l_cmp_boundary_conditions();
   }
 
   static void zero_cmp() {
@@ -68,7 +72,22 @@ public class TestCompare {
     if (b <  a) System.out.print(1); else System.out.print(0);
     if (b == a) System.out.print(1); else System.out.print(0);
     if (b >  a) System.out.print(1); else System.out.print(0); // lcmp(1)
+    System.out.println();
+  }
 
+  static void l_cmp_boundary_conditions() {
+    System.out.print("l_cmp_boundary_conditions Expected: 11110000 Actual: ");
+
+    long long0 = 0L;
+    long c = 0;
+    if (c == long0) System.out.print(1); else System.out.print(0);
+    if (Long.MIN_VALUE < Long.MAX_VALUE) System.out.print(1); else System.out.print(0);
+    if (c < Long.MAX_VALUE) System.out.print(1); else System.out.print(0);
+    if (Long.MIN_VALUE < c) System.out.print(1); else System.out.print(0);
+    if (c != long0) System.out.print(1); else System.out.print(0);
+    if (Long.MIN_VALUE > Long.MAX_VALUE) System.out.print(1); else System.out.print(0);
+    if (c > Long.MAX_VALUE) System.out.print(1); else System.out.print(0);
+    if (Long.MIN_VALUE > c) System.out.print(1); else System.out.print(0);
     System.out.println();
   }
 

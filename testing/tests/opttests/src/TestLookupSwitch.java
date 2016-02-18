@@ -23,31 +23,31 @@ class TestLookupSwitch {
     switch (bar) {
     case -1000:
     case -100:
-      retVal = (bar+1);
+      retVal = (bar + 1);
       break;
     case -10:
-      retVal = (bar+2);
+      retVal = (bar + 2);
       break;
     case -1:
-      retVal = (bar+3);
+      retVal = (bar + 3);
     case 1:
     case 10:
-      retVal = (bar+4);
+      retVal = (bar + 4);
       break;
     case 100:
-      retVal = (bar+5);
+      retVal = (bar + 5);
       break;
     case 1000:
     case 10000:
     case 100000:
     case 1000000:
-      retVal = (bar+6);
+      retVal = (bar + 6);
       break;
     case 10000000:
     case 100000000:
-      retVal = (bar+7);
+      retVal = (bar + 7);
     default:
-      retVal = (bar+8);
+      retVal = (bar + 8);
       break;
     }
 

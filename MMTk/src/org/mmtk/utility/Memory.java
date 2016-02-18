@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -27,7 +29,7 @@ import org.vmmagic.pragma.*;
  * FIXME: Why can't these operations be performed at word-granularity?
  */
 @Uninterruptible
-public class Memory implements Constants {
+public class Memory {
 
   /****************************************************************************
    *
@@ -36,7 +38,7 @@ public class Memory implements Constants {
 
   /** zero operations greater than this size are done using the
    * underlying OS implementation of zero() */
-  private static final int SMALL_REGION_THRESHOLD = 1<<8; // empirically chosen
+  private static final int SMALL_REGION_THRESHOLD = 1 << 8; // empirically chosen
 
 
   /****************************************************************************
@@ -111,7 +113,7 @@ public class Memory implements Constants {
    * @return {@code true} if the region is zeroed
    */
   @Inline
-  public static boolean IsZeroed(Address start, int bytes) {
+  public static boolean isZeroed(Address start, int bytes) {
     return isSet(start, bytes, false, 0);
   }
 
@@ -157,7 +159,7 @@ public class Memory implements Constants {
   }
 
   private static void assertAligned(Word value) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT - 1)).isZero());
   }
 
   private static void assertAligned(Extent value) {
@@ -175,6 +177,9 @@ public class Memory implements Constants {
    * @param bytes The size of the region to check, in bytes
    * @param verbose If {@code true}, produce verbose output
    * @param value The value to which the memory should be set
+   * @return {@code true} if the memory range is set to the given value,
+   *  {@code false} if there's at least one address where another value
+   *  is saved
    */
   @NoInline
   private static boolean isSet(Address start, int bytes, boolean verbose,

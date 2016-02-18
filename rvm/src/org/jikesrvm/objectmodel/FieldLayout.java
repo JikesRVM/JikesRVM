@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.vmmagic.unboxed.Offset;
@@ -24,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  * <p>
  * The field layout object encapsulates layout state.
  */
-public abstract class FieldLayout implements SizeConstants {
+public abstract class FieldLayout {
 
   /**
    * Enable debugging
@@ -43,14 +45,8 @@ public abstract class FieldLayout implements SizeConstants {
   }
 
   /**
-   * Maximum of two integers
-   */
-  protected static int max(int x, int y) {
-    return (x > y) ? x : y;
-  }
-
-  /**
-   * Log base 2 of an integer
+   * @param x the integer
+   * @return log base 2 of an integer
    */
   protected static int log2(int x) {
     int logSize = 0;
@@ -139,10 +135,10 @@ public abstract class FieldLayout implements SizeConstants {
   }
 
   /**
-   * Update the RVMClass with context info.
+   * Updates the RVMClass with context info.
    *
-   * @param klass
-   * @param fieldLayout
+   * @param klass the class to update
+   * @param fieldLayout the layout for the class
    */
   protected void updateClass(RVMClass klass, FieldLayoutContext fieldLayout) {
     /*
@@ -157,9 +153,9 @@ public abstract class FieldLayout implements SizeConstants {
   /**
    * Update a field to set its offset within the object.
    *
-   * @param klass
-   * @param field
-   * @param offset
+   * @param klass the class that the field belongs to
+   * @param field the field
+   * @param offset the new offset for the field
    */
   protected void setOffset(RVMClass klass, RVMField field, int offset) {
 
@@ -186,7 +182,7 @@ public abstract class FieldLayout implements SizeConstants {
    * @param layout State for the layout process
    * @param klass The class whose fields we're laying out.
    * @param field The field we are laying out.
-   * @param fieldSize The size of the field.
+   * @param fieldSize The size of the field in bytes
    */
   protected void layoutField(FieldLayoutContext layout, RVMClass klass, RVMField field, int fieldSize) {
     boolean isRef = field.isReferenceType();

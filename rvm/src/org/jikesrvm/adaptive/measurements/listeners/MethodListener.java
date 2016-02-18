@@ -136,7 +136,9 @@ public final class MethodListener extends Listener {
   /**
    * @return the buffer of samples
    */
-  public int[] getSamples() { return samples; }
+  public int[] getSamples() {
+    return samples;
+  }
 
   /**
    * @return how many samples in the array returned by getSamples are valid

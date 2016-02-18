@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
+import org.jikesrvm.architecture.ArchConstants;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -29,6 +29,7 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
@@ -42,7 +43,8 @@ import org.vmmagic.unboxed.Word;
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
  */
-@Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements ArchitectureSpecific.ArchConstants {
+@Uninterruptible
+public final class TraceInterface extends org.mmtk.vm.TraceInterface {
 
   /***********************************************************************
    *
@@ -137,6 +139,8 @@ import org.vmmagic.unboxed.Word;
     Address ip = Magic.getReturnAddressUnchecked(fp);
     fp = Magic.getCallerFramePointer(fp);
     // This code borrows heavily from RVMThread.dumpStack
+    final Address STACKFRAME_SENTINEL_FP = StackFrameLayout.getStackFrameSentinelFP();
+    final int INVISIBLE_METHOD_ID = StackFrameLayout.getInvisibleMethodID();
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       compiledMethodID = Magic.getCompiledMethodID(fp);
       if (compiledMethodID != INVISIBLE_METHOD_ID) {
@@ -158,7 +162,7 @@ import org.vmmagic.unboxed.Word;
               for (int j = iei; j >= 0 && allocCall;
                    j = OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
                 int mid = OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-                m = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                m = MemberReference.getMethodRef(mid).getResolvedMember();
                 if (!isAllocCall(m.getName().getBytes()))
                   allocCall = false;
                 if (j > 0)
@@ -172,6 +176,7 @@ import org.vmmagic.unboxed.Word;
             if (!isAllocCall(m.getName().getBytes())) {
               BaselineCompiledMethod baseInfo =
                 (BaselineCompiledMethod)compiledMethod;
+              final int INSTRUCTION_WIDTH = ArchConstants.getInstructionWidth();
               bci = baseInfo.findBytecodeIndexForInstruction(ipOffset.toWord().lsh(INSTRUCTION_WIDTH).toOffset());
               break;
             }

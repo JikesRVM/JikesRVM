@@ -9,6 +9,9 @@
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
+ *
+ *  Alternatively, this file is licensed to You under the MIT License:
+ *      http://opensource.org/licenses/MIT .
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
@@ -33,7 +36,9 @@ class TestFieldAccess {
   double x7 = -7;
   Object x8 = this;
 
-  public String toString() { return "Instance of " + getClass().getName(); }
+  public String toString() {
+    return "Instance of " + getClass().getName();
+  }
 
   public static void main(String[] args) {
     System.out.println(TestFieldAccess.s0);

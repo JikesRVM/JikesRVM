@@ -12,8 +12,17 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
@@ -22,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * Provides minimal abstraction layer to a stream of bytecodes
  * from the code attribute of a method.
  */
-public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, SizeConstants {
+public class BytecodeStream {
   private final NormalMethod method;
   private final int bcLength;
   private final byte[] bcodes;
@@ -152,7 +161,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
    */
   public final void skipInstruction() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
-    int len = JBC_length[opcode] - 1;
+    int len = JBC_length(opcode) - 1;
     if (wide) len += len;
     if (len >= 0) {
       bcIndex += len;
@@ -170,7 +179,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
    */
   public final void skipInstruction(int opcode, boolean wide) {
     if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
-    int len = JBC_length[opcode] - 1;
+    int len = JBC_length(opcode) - 1;
     if (wide) len += len;
     if (len >= 0) {
       bcIndex += len;
@@ -471,6 +480,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns a reference to a field, for use prior to the class being loaded.<p>
    * Used for getstatic, putstatic, getfield, putfield
+   * @param constantPool the constant pool for the class
    * @return field reference
    */
   public final FieldReference getFieldReference(int[] constantPool) {
@@ -500,6 +510,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns a reference to a field, for use prior to the class being loaded.<p>
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
+   * @param constantPool the constant pool for the class
    * @return method reference
    */
   public final MethodReference getMethodReference(int[] constantPool) {
@@ -668,6 +679,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns the type of a constant at a given constant pool index (as a byte).<p>
    * Used for ldc, ldc_w, ldc2_w
+   * @param index index into constant pool
    * @return constant type
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -688,6 +700,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns the constant at a given constant pool index (as an int).<p>
    * Used for ldc, ldc_w
+   * @param index index into constant pool
    * @return int constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -710,6 +723,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns the constant at a given constant pool index (as a long).<p>
    * Used for ldc2_w
+   * @param index index into constant pool
    * @return long constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -731,6 +745,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns the constant at a given constant pool index (as a float).<p>
    * Used for ldc, ldc_w
+   * @param index index into constant pool
    * @return float constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -754,6 +769,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns the constant at a given constant pool index (as a double).<p>
    * Used for ldc2_w
+   * @param index index into constant pool
    * @return double constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -776,6 +792,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
   /**
    * Returns the constant at a given constant pool index (as a String).<p>
    * Used for ldc, ldc_w
+   * @param index index into constant pool
    * @return String constant
    * @see #getConstantIndex()
    * @see #getWideConstantIndex()
@@ -818,7 +835,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
       break;
       case JBC_wide: {
         int oc = getWideOpcode();
-        int len = JBC_length[oc] - 1;
+        int len = JBC_length(oc) - 1;
         bcIndex += len + len;
       }
       break;

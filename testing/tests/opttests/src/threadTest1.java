@@ -43,7 +43,7 @@ public class threadTest1 {
          yy = 5;
          idx = xx - yy;
          while (idx < NUM_THREADS) {
-                 while (aResult[idx] == 0) {};
+                 while (aResult[idx] == 0) { };
 
                  idx ++;
          }
@@ -59,7 +59,9 @@ public class threadTest1 {
 // prototype of the user thread
 class TestThread1 extends Thread {
 
-    TestThread1(int id) { _tid = id;}
+    TestThread1(int id) {
+      _tid = id;
+    }
 
     public void run() {
 
@@ -68,7 +70,7 @@ class TestThread1 extends Thread {
             threadTest1.b += 2;
        }
 
-       if (_tid*2 > threadTest1.NUM_THREADS) {
+       if (_tid * 2 > threadTest1.NUM_THREADS) {
          for (int i = 0; i < 10000; i++) {
             threadTest1.a++;
             threadTest1.b += 2;

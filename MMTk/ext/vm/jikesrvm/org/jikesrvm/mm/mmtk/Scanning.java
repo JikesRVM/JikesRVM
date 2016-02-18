@@ -12,27 +12,30 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.Constants;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_CODE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
+import org.jikesrvm.jni.JNIGenericHelpers;
 import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.Selected;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.SpecializedScanMethod;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 
 @Uninterruptible
-public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
+public final class Scanning extends org.mmtk.vm.Scanning {
   /****************************************************************************
    *
    * Class variables
@@ -79,8 +82,9 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   }
 
   @Override
-  public void notifyInitialThreadScanComplete() {
-    CompiledMethods.snipObsoleteCompiledMethods();
+  public void notifyInitialThreadScanComplete(boolean partialScan) {
+    if (!partialScan)
+      CompiledMethods.snipObsoleteCompiledMethods();
     /* flush out any remset entries generated during the above activities */
     Selected.Mutator.get().flushRememberedSets();
   }
@@ -119,22 +123,28 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   @Override
   public void computeGlobalRoots(TraceLocal trace) {
-    /* scan jni functions */
+    /* scan JNI functions */
     CollectorContext cc = RVMThread.getCurrentThread().getCollectorContext();
     Address jniFunctions = Magic.objectAsAddress(JNIEnvironment.JNIFunctions);
     int threads = cc.parallelWorkerCount();
     int size = JNIEnvironment.JNIFunctions.length();
     int chunkSize = size / threads;
     int start = cc.parallelWorkerOrdinal() * chunkSize;
-    int end = (cc.parallelWorkerOrdinal()+1 == threads) ? size : threads * chunkSize;
+    int end = (cc.parallelWorkerOrdinal() + 1 == threads) ? size : threads * chunkSize;
 
-    for(int i=start; i < end; i++) {
-      trace.processRootEdge(jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS), true);
+    for (int i = start; i < end; i++) {
+      Address functionAddressSlot = jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS);
+      if (JNIGenericHelpers.implementedInJava(i)) {
+        trace.processRootEdge(functionAddressSlot, true);
+      } else {
+        // Function implemented as a C function, must not be
+        // scanned.
+      }
     }
 
-    Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.LinkageTriplets);
-    if (linkageTriplets != null) {
-      for(int i=start; i < end; i++) {
+    Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.linkageTriplets);
+    if (!linkageTriplets.isZero()) {
+      for (int i = start; i < end; i++) {
         trace.processRootEdge(linkageTriplets.plus(i << LOG_BYTES_IN_ADDRESS), true);
       }
     }
@@ -144,32 +154,39 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
     size = JNIGlobalRefTable.JNIGlobalRefs.length();
     chunkSize = size / threads;
     start = cc.parallelWorkerOrdinal() * chunkSize;
-    end = (cc.parallelWorkerOrdinal()+1 == threads) ? size : threads * chunkSize;
+    end = (cc.parallelWorkerOrdinal() + 1 == threads) ? size : threads * chunkSize;
 
-    for(int i=start; i < end; i++) {
+    for (int i = start; i < end; i++) {
       trace.processRootEdge(jniGlobalRefs.plus(i << LOG_BYTES_IN_ADDRESS), true);
     }
   }
 
   /**
-   * Computes roots pointed to by threads, their associated registers
-   * and stacks.  This method places these roots in the root values,
-   * root locations and interior root locations queues.  This method
-   * should not have side effects (such as copying or forwarding of
-   * objects).  There are a number of important preconditions:
-   *
-   * <ul>
-   * <li> The <code>threadCounter</code> must be reset so that load
-   * balancing parallel GC can share the work of scanning threads.
-   * </ul>
-   *
-   * TODO try to rewrite using chunking to avoid the per-thread synchronization?
-   *
-   * @param trace The trace to use for computing roots.
+   * {@inheritDoc}
    */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
-    boolean processCodeLocations = MemoryManagerConstants.MOVES_CODE;
+    computeThreadRoots(trace, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void computeNewThreadRoots(TraceLocal trace) {
+    computeThreadRoots(trace, true);
+  }
+
+  /**
+   * Compute roots pointed to by threads.
+   *
+   * @param trace The trace to use for computing roots.
+   * @param newRootsSufficient  True if it sufficient for this method to only
+   * compute those roots that are new since the previous stack scan.   If false
+   * then all roots must be computed (both new and preexisting).
+   */
+  private void computeThreadRoots(TraceLocal trace, boolean newRootsSufficient) {
+    boolean processCodeLocations = MOVES_CODE;
 
     /* scan all threads */
     while (true) {
@@ -180,7 +197,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
       if (thread == null || thread.isCollectorThread()) continue;
 
       /* scan the thread (stack etc.) */
-      ScanThread.scanThread(thread, trace, processCodeLocations);
+      ScanThread.scanThread(thread, trace, processCodeLocations, newRootsSufficient);
     }
 
     /* flush out any remset entries generated during the above activities */
@@ -190,5 +207,10 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   @Override
   public void computeBootImageRoots(TraceLocal trace) {
     ScanBootImage.scanBootImage(trace);
+  }
+
+  @Override
+  public boolean supportsReturnBarrier() {
+    return VM.BuildForIA32 && VM.BuildFor32Addr;
   }
 }

@@ -124,7 +124,7 @@ public enum Operator {
   /** Printable representation */
   private final String image;
 
-  private Operator(String image) {
+  Operator(String image) {
     this.image = image;
   }
 
@@ -160,9 +160,9 @@ public enum Operator {
   }
 
   public Value operate(Value operand) {
-    throw new RuntimeException("Unsupported unary operation, "+this);
+    throw new RuntimeException("Unsupported unary operation, " + this);
   }
   public Value operate(Value lhs, Value rhs) {
-    throw new RuntimeException("Unsupported binary operation, "+this);
+    throw new RuntimeException("Unsupported binary operation, " + this);
   }
 }

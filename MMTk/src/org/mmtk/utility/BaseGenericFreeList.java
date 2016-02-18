@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
  * The basic data structure used by the algorithm is a large table,
  * with one word per allocatable unit.  Each word is used in a
  * number of different ways, some combination of "undefined" (32),
- * "free/used" (1), "multi/single" (1), "prev" (15), "next" (15) &
+ * "free/used" (1), "multi/single" (1), "prev" (15), "next" (15) &amp;
  * "size" (15) where field sizes in bits are in parenthesis.
  * <pre>
  *                       +-+-+-----------+-----------+
@@ -66,11 +66,11 @@ import org.vmmagic.pragma.*;
  *         unit block    |              ...          |  ...
  *            |          +-+-+-----------+-----------+
  *            |          |1|1|           |   size    |
- *           >--------  +-+-+-----------+-----------+
+ *           &gt;--------  +-+-+-----------+-----------+
  *   single free unit    |1|0|   prev    |   next    |
- *           >--------  +-+-+-----------+-----------+
+ *           &gt;--------  +-+-+-----------+-----------+
  *   single used unit    |0|0|                       |
- *           >--------  +-+-+-----------------------+
+ *           &gt;--------  +-+-+-----------------------+
  *            |          |0|1|                       |
  *            |          +-+-+-----------+-----------+
  *            |          |0|1|           |   size    |
@@ -89,7 +89,7 @@ import org.vmmagic.pragma.*;
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
  */
-@Uninterruptible abstract class BaseGenericFreeList implements Constants {
+@Uninterruptible abstract class BaseGenericFreeList {
 
   /****************************************************************************
    *
@@ -130,6 +130,7 @@ import org.vmmagic.pragma.*;
    * Allocate <code>size</code> units. Return the unit ID
    *
    * @param size  The number of units to be allocated
+   * @param unit TODO needs documentation
    * @return The index of the first of the <code>size</code>
    * contiguous units, or -1 if the request can't be satisfied
    */
@@ -146,6 +147,8 @@ import org.vmmagic.pragma.*;
    * Allocate <code>size</code> units. Return the unit ID
    *
    * @param size  The number of units to be allocated
+   * @param unit TODO needs documentation
+   * @param unitSize TODO needs documentation
    * @return The index of the first of the <code>size</code>
    * contiguous units, or -1 if the request can't be satisfied
    */
@@ -228,6 +231,7 @@ import org.vmmagic.pragma.*;
    * everything
    *
    * @param units The number of units in the heap
+   * @param grain TODO needs documentation
    */
   protected final void initializeHeap(int units, int grain) {
     // Initialize the sentinels

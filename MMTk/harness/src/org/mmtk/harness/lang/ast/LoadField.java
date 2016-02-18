@@ -46,8 +46,19 @@ public class LoadField extends AbstractAST implements Expression {
   }
 
   /* Getters */
-  public Symbol getObjectSymbol() { return symbol;  }
-  public Expression getIndex() { return index; }
-  public Type getFieldType() { return fieldType; }
-  public int getSlot() { return slot; }
+  public Symbol getObjectSymbol() {
+    return symbol;
+  }
+
+  public Expression getIndex() {
+    return index;
+  }
+
+  public Type getFieldType() {
+    return fieldType;
+  }
+
+  public int getSlot() {
+    return slot;
+  }
 }

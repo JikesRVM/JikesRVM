@@ -12,11 +12,10 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.PrintLN;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
-import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
-import org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMArray;
@@ -28,6 +27,7 @@ import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.StackBrowser;
+import org.jikesrvm.util.PrintLN;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
  * Compiler-specific information associated with a method's machine
  * instructions.
  */
-public final class BaselineCompiledMethod extends CompiledMethod implements BaselineConstants {
+public final class BaselineCompiledMethod extends CompiledMethod {
 
   /** Does the baseline compiled method have a counters array? */
   private boolean hasCounters;
@@ -55,7 +55,16 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Baseline exception deliverer object
    */
-  private static final ExceptionDeliverer exceptionDeliverer = new BaselineExceptionDeliverer();
+  private static final ExceptionDeliverer exceptionDeliverer;
+
+  static {
+    if (VM.BuildForIA32) {
+      exceptionDeliverer = new org.jikesrvm.compilers.baseline.ia32.BaselineExceptionDeliverer();
+    } else {
+      exceptionDeliverer = new org.jikesrvm.compilers.baseline.ppc.BaselineExceptionDeliverer();
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    }
+  }
 
   /**
    * Stack-slot reference maps for the compiled method.
@@ -104,10 +113,13 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * before accessing, substract size of value you want to access.<p>
    * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT<br>
    * e.g. to load long: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_LONG
+   *
+   * @param localIndex the index for the local general purpose variable
+   * @return location of the general purpose variable with the given index
    */
   @Uninterruptible
   public short getGeneralLocalLocation(int localIndex) {
-    return BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, (NormalMethod) method);
+    return BaselineCompiler.getGeneralLocalLocation(localIndex, localFixedLocations, (NormalMethod) method);
   }
 
   /**
@@ -116,43 +128,43 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * before accessing, substract size of value you want to access.<p>
    * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT<br>
    * e.g. to load double: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
+   *
+   * @param localIndex the index for the local general purpose variable
+   * @return location of the floating point variable with the given index
    */
   @Uninterruptible
   public short getFloatLocalLocation(int localIndex) {
-    return BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFloatLocations, (NormalMethod) method);
+    return BaselineCompiler.getFloatLocalLocation(localIndex, localFloatLocations, (NormalMethod) method);
   }
 
-  /** Offset onto stack of a particular general purpose operand stack location */
   @Uninterruptible
   public short getGeneralStackLocation(int stackIndex) {
-    return BaselineCompilerImpl.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
+    return BaselineCompiler.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
-  /** Offset onto stack of a particular operand stack location for a floating point value */
   @Uninterruptible
   public short getFloatStackLocation(int stackIndex) {
     // for now same implementation as getGeneralStackLocation
     return getGeneralStackLocation(stackIndex);
   }
 
-  /** Last general purpose register holding part of the operand stack */
+  /** @return last general purpose register holding part of the operand stack */
   @Uninterruptible
   public int getLastFixedStackRegister() {
     return lastFixedStackRegister;
   }
 
-  /** Last floating point register holding part of the operand stack */
+  /** @return last floating point register holding part of the operand stack */
   @Uninterruptible
   public int getLastFloatStackRegister() {
     return lastFloatStackRegister;
   }
 
-  /** Constructor */
   public BaselineCompiledMethod(int id, RVMMethod m) {
     super(id, m);
     NormalMethod nm = (NormalMethod) m;
     //this.startLocalOffset = BaselineCompilerImpl.getStartLocalOffset(nm);
-    this.emptyStackOffset = (short)BaselineCompilerImpl.getEmptyStackOffset(nm);
+    this.emptyStackOffset = BaselineCompiler.getEmptyStackOffset(nm);
     this.localFixedLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
     this.localFloatLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
     this.lastFixedStackRegister = -1;
@@ -161,7 +173,13 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
 
   /** Compile method */
   public void compile() {
-    BaselineCompilerImpl comp = new BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+    BaselineCompiler comp;
+    if (VM.BuildForIA32) {
+      comp = new org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      comp = new org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+    }
     comp.compile();
     this.lastFixedStackRegister = comp.getLastFixedStackRegister();
     this.lastFloatStackRegister = comp.getLastFloatStackRegister();
@@ -181,7 +199,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   }
 
   /**
-   * Get the exception deliverer for this kind of compiled method
+   * @return the exception deliverer for this kind of compiled method
    */
   @Override
   @Uninterruptible
@@ -213,6 +231,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   }
 
   /**
+   * @param instructionOffset the instruction's offset in the code for the method
    * @return The line number, a positive integer.  Zero means unable to find.
    */
   @Override
@@ -244,7 +263,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    */
   @Uninterruptible
   public int findBytecodeIndexForInstruction(Offset instructionOffset) {
-    Offset instructionIndex = instructionOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+    Offset instructionIndex = instructionOffset.toWord().rsha(ArchConstants.getLogInstructionWidth()).toOffset();
     int candidateIndex = -1;
     int bcIndex = 0;
     Offset instrIndex = Offset.zero();
@@ -318,13 +337,17 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     if (eTable != null) ExceptionTable.printExceptionTable(eTable);
   }
 
-  /** Set the lock acquisition offset for synchronized methods */
+  /**
+   * Sets the lock acquisition offset for synchronized methods.
+   *
+   * @param off new offset
+   */
   public void setLockAcquisitionOffset(int off) {
     if (VM.VerifyAssertions) VM._assert((off & 0xFFFF) == off);
     lockOffset = (char) off;
   }
 
-  /** Get the lock acquisition offset */
+  /** @return the lock acquisition offset */
   @Uninterruptible
   public Offset getLockAcquisitionOffset() {
     return Offset.fromIntZeroExtend(lockOffset);
@@ -335,7 +358,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     hasCounters = true;
   }
 
-  /** Does the method have a counters array? */
+  /** @return whether the method has a counters array */
   @Uninterruptible
   public boolean hasCounterArray() {
     return hasCounters;

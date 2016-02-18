@@ -13,6 +13,7 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.jni.FunctionTable;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
@@ -33,7 +34,7 @@ import org.vmmagic.unboxed.Offset;
  * loader, by the virtual machine's initializer methods, and by the virtual
  * machine's operating system call interface methods.
  *
- * <p> See also: BootImageWriter.main(), RunBootImage.C
+ * <p> See also: BootImageWriter.main(), jvm.c
  *
  * <p>The boot record looks like this
  * (note that fields are layed out "backwards"):
@@ -69,13 +70,13 @@ import org.vmmagic.unboxed.Offset;
  *                  +---------------+  |      header
  *                  |    .length    |  |
  *                  +---------------+ /
- *                  |    <empty>    |
+ *                  |    &lt;empty&gt;    |
  *                  +---------------+
  *                  |     ...       |
  *                  +---------------+
- *                  |    <empty>    |
+ *                  |    &lt;empty&gt;    |
  *                  +---------------+
- *    spRegister ->      hi-mem
+ *    spRegister -&gt;      hi-mem
  * </pre>
  *
  * <P> The "ipRegister" field of the boot record points to the first word
@@ -126,11 +127,11 @@ public class BootRecord {
   }
 
   // The following fields are written when the virtual machine image
-  // is generated (see BootImage.java), loaded (see RunBootImage.C),
+  // is generated (see BootImage.java), loaded (see jvm.C),
   // or executed (see VM.java).
   //
   // If you add/remove/change fields here, be sure to change the
-  // corresponding code in RunBootImage.
+  // corresponding code in jvm.c
 
   /**
    * address at which image is to be loaded into memory
@@ -152,7 +153,10 @@ public class BootRecord {
    */
   public Extent maximumHeapSize;
 
-  @Untraced
+  /** size of a virtual memory page in bytes */
+  public Extent bytesInPage;
+
+  @Untraced // because bootloader code must be able to access it
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
   // C-style termination with sentinel values
   /**
@@ -161,9 +165,14 @@ public class BootRecord {
    */
   public int verboseBoot = 0;
 
+  /**
+   * Print messages when delivering hardware exceptions to threads?
+   * Set by -X:verboseSignalHandling
+   */
+  public int verboseSignalHandling = 0;
+
   // RVM startoff
   //
-  public int tiRegister;          // value to place into TI register
   public Address spRegister;   // value to place into SP register
   public Address ipRegister;   // value to place into IP register
   public Address tocRegister;  // value to place into JTOC register
@@ -176,9 +185,15 @@ public class BootRecord {
 
   /**
    * address of JavaVM, used by JNI_OnLoad and JNIEnv.GetJavaVM,
-   * defined in Sys.C
+   * defined in jvm.c
    */
   public Address sysJavaVM;
+
+  /**
+   * Reference to JNI function table
+   */
+  @Untraced // because bootloader code must be able to access it
+  public FunctionTable JNIFunctions;
 
   // Additional RVM entrypoints
   //
@@ -208,7 +223,7 @@ public class BootRecord {
   @Entrypoint
   int externalSignalFlag;
 
-  // Host operating system entrypoints - see "sys.C"
+  // Host operating system entrypoints - see "sys.cpp"
   //
 
   // lowlevel write to console
@@ -226,6 +241,7 @@ public class BootRecord {
 
   // memory
   public Address sysCopyIP;
+  public Address sysMemmoveIP;
   public Address sysMallocIP;
   public Address sysCallocIP;
   public Address sysFreeIP;
@@ -235,22 +251,15 @@ public class BootRecord {
   public Address sysSyncCacheIP;
 
   // files
-  public Address sysStatIP;
   public Address sysReadByteIP;
   public Address sysWriteByteIP;
   public Address sysReadBytesIP;
   public Address sysWriteBytesIP;
-  public Address sysBytesAvailableIP;
-  public Address sysSyncFileIP;
-  public Address sysSetFdCloseOnExecIP;
-
-  public Address sysAccessIP;
 
   // mmap - memory mapping
   public Address sysMMapIP;
   public Address sysMMapErrnoIP;
   public Address sysMProtectIP;
-  public Address sysGetPageSizeIP;
 
   // threads
   public Address sysNumProcessorsIP;
@@ -259,9 +268,11 @@ public class BootRecord {
   public Address sysThreadCreateIP;
   public Address sysThreadYieldIP;
   public Address sysGetThreadIdIP;
-  public Address sysSetupHardwareTrapHandlerIP;
   public Address sysStashVMThreadIP;
   public Address sysThreadTerminateIP;
+  public Address sysGetThreadPriorityHandleIP;
+  public Address sysGetThreadPriorityIP;
+  public Address sysSetThreadPriorityIP;
 
   // monitors
   public Address sysMonitorCreateIP;
@@ -304,8 +315,18 @@ public class BootRecord {
   Address sysDlopenIP;
   Address sysDlsymIP;
 
-  // system startup pthread sync. primitives
-  public Address sysCreateThreadSpecificDataKeysIP;
+  // var args
+  public Address sysVaCopyIP;
+  public Address sysVaEndIP;
+  public Address sysVaArgJbooleanIP;
+  public Address sysVaArgJbyteIP;
+  public Address sysVaArgJcharIP;
+  public Address sysVaArgJshortIP;
+  public Address sysVaArgJintIP;
+  public Address sysVaArgJlongIP;
+  public Address sysVaArgJfloatIP;
+  public Address sysVaArgJdoubleIP;
+  public Address sysVaArgJobjectIP;
 
   // VMMath
   public Address sysVMMathSinIP;

@@ -142,7 +142,9 @@ class TestFieldReflection {
       try {
         field.setBoolean(object, false);
         changeSuccess();
-      } catch (Exception e) { changeError(e); }
+      } catch (Exception e) {
+        changeError(e);
+      }
     }
     System.out.println();
   }
@@ -153,7 +155,9 @@ class TestFieldReflection {
       try {
         field.setByte(object, (byte) 12);
         changeSuccess();
-      } catch (Exception e) { changeError(e); }
+      } catch (Exception e) {
+        changeError(e);
+      }
     }
     System.out.println();
   }
@@ -164,7 +168,9 @@ class TestFieldReflection {
       try {
         field.setShort(object, (short) 2);
         changeSuccess();
-      } catch (Exception e) { changeError(e); }
+      } catch (Exception e) {
+        changeError(e);
+      }
     }
     System.out.println();
   }
@@ -175,7 +181,9 @@ class TestFieldReflection {
       try {
         field.setInt(object, 3);
         changeSuccess();
-      } catch (Exception e) { changeError(e); }
+      } catch (Exception e) {
+        changeError(e);
+      }
     }
     System.out.println();
   }
@@ -186,7 +194,9 @@ class TestFieldReflection {
       try {
         field.setLong(object, 4);
         changeSuccess();
-      } catch (Exception e) { changeError(e); }
+      } catch (Exception e) {
+        changeError(e);
+      }
     }
     System.out.println();
   }
@@ -197,7 +207,9 @@ class TestFieldReflection {
       try {
         field.setFloat(object, 5.0F);
         changeSuccess();
-      } catch (Exception e) { changeError(e); }
+      } catch (Exception e) {
+        changeError(e);
+      }
     }
     System.out.println();
   }
@@ -208,7 +220,9 @@ class TestFieldReflection {
       try {
         field.setDouble(object, 6.0);
         changeSuccess();
-      } catch (Exception e) { changeError(e); }
+      } catch (Exception e) {
+        changeError(e);
+      }
     }
     System.out.println();
   }
@@ -217,7 +231,9 @@ class TestFieldReflection {
     System.out.print("Set " + typename + "s to " + value + " ");
   }
 
-  private static void changeSuccess() { System.out.print("+"); }
+  private static void changeSuccess() {
+    System.out.print("+");
+  }
 
   private static void changeError(final Exception e) {
     if (e instanceof IllegalAccessException) {

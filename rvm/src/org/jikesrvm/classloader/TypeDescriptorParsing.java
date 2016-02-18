@@ -12,6 +12,17 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Pure;
@@ -72,7 +83,7 @@ import org.vmmagic.pragma.Pure;
  field descriptor of the return type.  There are no spaces or other
  separator characters between the argument types.  "<code>V</code>" is
  used to denote the <code>void</code> method return type.  Constructors
- use "<code>V</code>" as their return type and use "<code>&lt;init&gt;"
+ use "<code>V</code>" as their return type and use "<code>&lt;init&gt;</code>"
  as their name.
  </blockquote>
 
@@ -82,13 +93,13 @@ import org.vmmagic.pragma.Pure;
  <dt>TypeReference names</dt>
  <dd>Inside Jikes RVM, we use the TypeReference class to represent the
  reference in some class file to some type (class, interface, primitive, or
- array).  We also use them to represent Void (TypeReference.Void).</dd>
- TypeReference names are just field descriptors plus "V".
+ array).  We also use them to represent Void ({@code TypeReference.Void}).
+ TypeReference names are just field descriptors plus "V".</dd>
  </dl>
 
  */
 
-public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
+public abstract class TypeDescriptorParsing {
   /** Is the string <code>s</code> a legal name for a Java class or interface?
    * This will take either fully-qualified names or names that are not fully
    * qualified.
@@ -189,8 +200,11 @@ public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
   /**
    * Is this the internal form of a Java class name?  (the one with the "/"
    * instead of the "." separating components?)
-   * Takes a character array (i.e., an exploded string) and the indices of the
-   * first and last characters of the array that are to be checked.
+   *
+   * @param val a string as a char array
+   * @param first the start index of the string to be checked
+   * @param last the last index of the string to be checked
+   * @return {@code true} if the given char array represents an internal java class name
    */
   public static boolean isJavaClassNameInternalForm(char[] val, int first, int last) {
     if (val[first++] != ClassTypeCode) {
@@ -262,8 +276,10 @@ public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
     }
   }
 
-  /** Validate that the String @param s is a valid type descriptor.
-   @throws IllegalArgumentException if it isn't.
+  /**
+   * Validates that the given String is a valid type descriptor.
+   * @param s string to check
+   * @throws IllegalArgumentException if the string is not a valid type descriptor
    */
   @Interruptible
   @Pure
@@ -339,8 +355,6 @@ public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
     }
   }
 
-  /** Gripe and throw <code>IllegalArgumentException</code> if we get a
-   * malformed type name. */
   private static void malformed(String msg, String typeName) throws IllegalArgumentException {
     throw new IllegalArgumentException("Malformed type name" +
                                        ((msg == null) ? "" : ": " + msg) +

@@ -43,10 +43,6 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
    */
   public double counter1, counter2;
 
-  /**
-   * Create a plan element corresponding to a particular compiler phase.
-   * @param   p
-   */
   public OptimizationPlanAtomicElement(CompilerPhase p) {
     myPhase = p;
     p.setContainer(this);

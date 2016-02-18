@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.DynamicLinkerHelper;
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.vmmagic.pragma.DynamicBridge;
@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * Implement lazy compilation.
  */
 @DynamicBridge
-public class DynamicLinker implements Constants {
+public class DynamicLinker {
 
   /**
    * Resolve, compile if necessary, and invoke a method.
@@ -82,11 +82,10 @@ public class DynamicLinker implements Constants {
   private static class DL_Helper {
 
     /**
-     * Discover method reference to be invoked via dynamic bridge.
-     * <pre>
-     * Taken:       nothing (call stack is examined to find invocation site)
-     * Returned:    DynamicLink that describes call site.
-     * </pre>
+     * Discovers a method reference to be invoked via dynamic bridge. The call
+     * stack is examined to find the invocation site.
+     *
+     * @return an DynamicLink describing the call site
      */
     @NoInline
     static DynamicLink resolveDynamicInvocation() {
@@ -111,11 +110,10 @@ public class DynamicLinker implements Constants {
     }
 
     /**
-     * Resolve method ref into appropriate RVMMethod
-     * <pre>
-     * Taken:       DynamicLink that describes call site.
-     * Returned:    RVMMethod that should be invoked.
-     * </pre>
+     * Resolves a method ref into appropriate RVMMethod.
+     *
+     * @param dynamicLink a DynamicLink that describes call site
+     * @return the RVMMethod that should be invoked.
      */
     @NoInline
     static RVMMethod resolveMethodRef(DynamicLink dynamicLink) {
@@ -129,7 +127,13 @@ public class DynamicLinker implements Constants {
       } else {
         // invokevirtual or invokeinterface
         VM.disableGC();
-        Object targetObject = DynamicLinkerHelper.getReceiverObject();
+        Object targetObject;
+        if (VM.BuildForIA32) {
+          targetObject = org.jikesrvm.ia32.DynamicLinkerHelper.getReceiverObject();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          targetObject = org.jikesrvm.ppc.DynamicLinkerHelper.getReceiverObject();
+        }
         VM.enableGC();
         RVMClass targetClass = Magic.getObjectType(targetObject).asClass();
         RVMMethod targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
@@ -141,7 +145,9 @@ public class DynamicLinker implements Constants {
     }
 
     /**
-     * Compile (if necessary) targetMethod and patch the appropriate disaptch tables
+     * Compile (if necessary) targetMethod and patch the appropriate dispatch tables.
+     *
+     * @param dynamicLink a DynamicLink that describes call site.
      * @param targetMethod the RVMMethod to compile (if not already compiled)
      */
     @NoInline
@@ -169,7 +175,13 @@ public class DynamicLinker implements Constants {
         targetClass.updateTIBEntry(targetMethod);
       } else {
         VM.disableGC();
-        Object targetObject = DynamicLinkerHelper.getReceiverObject();
+        Object targetObject;
+        if (VM.BuildForIA32) {
+          targetObject = org.jikesrvm.ia32.DynamicLinkerHelper.getReceiverObject();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          targetObject = org.jikesrvm.ppc.DynamicLinkerHelper.getReceiverObject();
+        }
         VM.enableGC();
         RVMClass recvClass = (RVMClass) Magic.getObjectType(targetObject);
         recvClass.updateTIBEntry(targetMethod);

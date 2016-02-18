@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 
@@ -20,7 +22,6 @@ import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
 import org.mmtk.vm.VM;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -29,10 +30,10 @@ import org.vmmagic.pragma.*;
  * This class manages the allocation of pages for a space.  When a
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
- * be satisfied (for either reason) a GC may be triggered.<p>
+ * be satisfied (for either reason) a GC may be triggered.
  */
 @Uninterruptible
-public final class FreeListPageResource extends PageResource implements Constants {
+public final class FreeListPageResource extends PageResource {
 
   private final GenericFreeList freeList;
   private int highWaterMark = 0;
@@ -86,6 +87,7 @@ public final class FreeListPageResource extends PageResource implements Constant
    * be some set of pages, according to demand and availability.
    *
    * @param space The space to which this resource is attached
+   * @param metaDataPagesPerRegion the number of meta data pages per region
    */
   public FreeListPageResource(Space space, int metaDataPagesPerRegion) {
     super(space);
@@ -118,9 +120,9 @@ public final class FreeListPageResource extends PageResource implements Constant
   public int getAvailablePhysicalPages() {
     int rtn = pagesCurrentlyOnFreeList;
     if (!contiguous) {
-      int chunks = Map.getAvailableDiscontiguousChunks()-Map.getChunkConsumerCount();
+      int chunks = Map.getAvailableDiscontiguousChunks() - Map.getChunkConsumerCount();
       if (chunks < 0) chunks = 0;
-      rtn += chunks*(Space.PAGES_IN_CHUNK-metaDataPagesPerRegion);
+      rtn += chunks * (Space.PAGES_IN_CHUNK - metaDataPagesPerRegion);
     }
     return rtn;
   }
@@ -194,7 +196,7 @@ public final class FreeListPageResource extends PageResource implements Constant
     int pageOffset = Conversions.bytesToPages(first.diff(start));
 
     int pages = freeList.size(pageOffset);
-    if (ZERO_ON_RELEASE)
+    if (VM.config.ZERO_PAGES_ON_RELEASE)
       VM.memory.zero(false, first, Conversions.pagesToBytes(pages));
     /* Can't use protect here because of the chunk sizes involved!
     if (protectOnRelease.getValue())
@@ -266,7 +268,7 @@ public final class FreeListPageResource extends PageResource implements Constant
     Address region = space.growDiscontiguousSpace(requiredChunks);
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
-      int regionEnd = regionStart + (requiredChunks*Space.PAGES_IN_CHUNK) - 1;
+      int regionEnd = regionStart + (requiredChunks * Space.PAGES_IN_CHUNK) - 1;
       freeList.setUncoalescable(regionStart);
       freeList.setUncoalescable(regionEnd + 1);
       for (int p = regionStart; p < regionEnd; p += Space.PAGES_IN_CHUNK) {
@@ -297,7 +299,7 @@ public final class FreeListPageResource extends PageResource implements Constant
 
     /* nail down all pages associated with the chunk, so it is no longer on our free list */
     int chunkStart = Conversions.bytesToPages(chunk.diff(start));
-    int chunkEnd = chunkStart + (numChunks*Space.PAGES_IN_CHUNK);
+    int chunkEnd = chunkStart + (numChunks * Space.PAGES_IN_CHUNK);
     while (chunkStart < chunkEnd) {
       freeList.setUncoalescable(chunkStart);
       if (metaDataPagesPerRegion > 0)
@@ -341,10 +343,12 @@ public final class FreeListPageResource extends PageResource implements Constant
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
   @Override
-  public int adjustForMetaData(int pages) { return pages; }
+  public int adjustForMetaData(int pages) {
+    return pages;
+  }
 
   public Address getHighWater() {
-    return start.plus(Extent.fromIntSignExtend(highWaterMark<<LOG_BYTES_IN_PAGE));
+    return start.plus(Extent.fromIntSignExtend(highWaterMark << LOG_BYTES_IN_PAGE));
   }
 
   /**

@@ -15,7 +15,6 @@ package org.mmtk.policy;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -29,7 +28,7 @@ import org.vmmagic.unboxed.*;
  * data.
  */
 @Uninterruptible
-public final class RawPageSpace extends Space implements Constants {
+public final class RawPageSpace extends Space {
 
   /**
    * The caller specifies the region of virtual memory to be used for

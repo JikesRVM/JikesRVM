@@ -12,9 +12,13 @@
  */
 package org.mmtk.utility.options;
 
-import static org.mmtk.plan.generational.Gen.DEFAULT_PRETENURE_THRESHOLD_FRACTION;
-
 public class PretenureThresholdFraction extends org.vmutil.options.FloatOption {
+
+  /**
+   * if object is bigger than this fraction of nursery, pretenure to LOS
+   */
+  private static final float DEFAULT_PRETENURE_THRESHOLD_FRACTION = 0.5f;
+
   /**
    * Create the option.
    */

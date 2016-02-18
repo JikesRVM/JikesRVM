@@ -13,7 +13,6 @@
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.SegregatedFreeListSpace;
-import org.mmtk.utility.*;
 
 import org.mmtk.vm.VM;
 
@@ -38,11 +37,10 @@ import org.vmmagic.unboxed.*;
  * which will serve the role of the current free list.  When the free
  * list on the current block is exhausted, the next block for that
  * size class becomes the current block and its free list is used.  If
- * there are no more blocks the a new block is allocated.<p>
+ * there are no more blocks the a new block is allocated.
  */
 @Uninterruptible
-public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace> extends SegregatedFreeList<S>
-  implements Constants {
+public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace> extends SegregatedFreeList<S> {
 
   /****************************************************************************
    *
@@ -71,7 +69,7 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    */
   public SegregatedFreeListLocal(S space) {
     super(space);
-    this.currentBlock = AddressArray.create(space.sizeClassCount());
+    this.currentBlock = AddressArray.create(SegregatedFreeListSpace.sizeClassCount());
   }
 
   /****************************************************************************
@@ -154,7 +152,7 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    * then free lists are remembered for each block.
    */
   public final void flush() {
-    for (int sizeClass = 0; sizeClass < space.sizeClassCount(); sizeClass++) {
+    for (int sizeClass = 0; sizeClass < SegregatedFreeListSpace.sizeClassCount(); sizeClass++) {
       Address block = currentBlock.get(sizeClass);
       if (!block.isZero()) {
         Address cell = freeList.get(sizeClass);

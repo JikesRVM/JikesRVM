@@ -28,6 +28,7 @@ import static org.mmtk.harness.scheduler.ThreadModel.State.*;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Monitor;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * The deterministic thread scheduler.  Java threads are used for all
@@ -97,11 +98,11 @@ public final class RawThreadModel extends ThreadModel {
   private void dumpThreads() {
     System.err.println("-- Mutator threads --");
     for (RawThread thread : mutators) {
-      System.err.println(thread.getId()+" : "+thread.toString());
+      System.err.println(thread.getId() + " : " + thread.toString());
     }
     System.err.println("-- Collector threads --");
     for (RawThread thread : collectors) {
-      System.err.println(thread.getId()+" : "+thread.toString());
+      System.err.println(thread.getId() + " : " + thread.toString());
     }
   }
 
@@ -110,7 +111,7 @@ public final class RawThreadModel extends ThreadModel {
    * @param m The mutator thread
    */
   void removeMutator(MutatorThread m) {
-    synchronized(scheduler) {
+    synchronized (scheduler) {
       mutators.remove(m);
       Trace.trace(Item.SCHEDULER, "%d: mutator removed, %d mutators remaining",m.getId(),mutators.size());
       wakeScheduler();
@@ -123,7 +124,7 @@ public final class RawThreadModel extends ThreadModel {
    * @param c The collector thread
    */
   void removeCollector(CollectorThread c) {
-    synchronized(scheduler) {
+    synchronized (scheduler) {
       collectors.remove(c);
       wakeScheduler();
     }
@@ -166,15 +167,15 @@ public final class RawThreadModel extends ThreadModel {
 
   @Override
   public int mutatorRendezvous(String where, int expected) {
-    String barrierName = "Barrier-"+where;
+    String barrierName = "Barrier-" + where;
     Trace.trace(Item.SCHEDULER, "%s: rendezvous(%s)", current.getId(), barrierName);
     ThreadQueue queue = rendezvousQueues.get(barrierName);
     if (queue == null) {
       queue = new ThreadQueue(where,mutatorsBlocked);
       rendezvousQueues.put(barrierName, queue);
     }
-    current.setOrdinal(queue.size()+1);
-    if (queue.size() == expected-1) {
+    current.setOrdinal(queue.size() + 1);
+    if (queue.size() == expected - 1) {
       resume(queue);
       rendezvousQueues.put(barrierName, null);
     } else {
@@ -206,9 +207,9 @@ public final class RawThreadModel extends ThreadModel {
   @Override
   public void scheduleMutator(Schedulable method) {
     MutatorThread m = new MutatorThread(method, RawThreadModel.this);
-    synchronized(scheduler) {
+    synchronized (scheduler) {
       Trace.trace(Item.SCHEDULER, "%d: creating new mutator, id=%d", Thread.currentThread().getId(), m.getId());
-      m.setName("Mutator-"+mutators.size());
+      m.setName("Mutator-" + mutators.size());
       mutators.add(m);
       if (!isState(MUTATOR)) {
         Trace.trace(Item.SCHEDULER, "%d: Adding to GC wait queue", Thread.currentThread().getId());
@@ -246,6 +247,7 @@ public final class RawThreadModel extends ThreadModel {
    */
   @Override
   public void yield() {
+    Clock.stop();
     if (isRunning()) {
       if (current.yieldPolicy()) {
         Trace.trace(Item.YIELD, "%d: Yieldpoint", Thread.currentThread().getId());
@@ -254,6 +256,7 @@ public final class RawThreadModel extends ThreadModel {
         Trace.trace(Item.YIELD, "%d: Yieldpoint - not taken", Thread.currentThread().getId());
       }
     }
+    Clock.start();
   }
 
   /**
@@ -262,9 +265,10 @@ public final class RawThreadModel extends ThreadModel {
    */
   void yield(ThreadQueue queue) {
     assert current != null;
-    Trace.trace(Item.SCHED_DETAIL,"%d: Yielded onto queue %s with %d members",Thread.currentThread().getId(),queue.getName(),queue.size());
+    Trace.trace(Item.SCHED_DETAIL,"%s: Yielded onto queue %s with %d members",
+        Thread.currentThread().getName(),queue.getName(),queue.size());
     assert queue.size() <= mutators.size() + collectors.size() :
-      "yielded to queue size "+queue.size()+" where there are "+mutators.size()+" m and "+collectors.size()+"c";
+      "yielded to queue size " + queue.size() + " where there are " + mutators.size() + " m and " + collectors.size() + "c";
     current.yieldThread(queue);
   }
 
@@ -277,7 +281,7 @@ public final class RawThreadModel extends ThreadModel {
     assert isMutator() : "Collector threads may not yield to a mutator wait queue";
     yield(queue);
     assert mutatorsBlocked.get() <= mutators.size() :
-      mutatorsBlocked.get() + " mutators are blocked but only " + mutators.size() +" exist";
+      mutatorsBlocked.get() + " mutators are blocked but only " + mutators.size() + " exist";
   }
 
   @Override
@@ -287,9 +291,10 @@ public final class RawThreadModel extends ThreadModel {
 
   @Override
   protected void resumeAllMutators() {
+    Trace.trace(Item.SCHEDULER, "Resuming mutators");
     assert isState(BLOCKED) : "Mutators must be blocked before they can be resumed";
     assert mutatorsBlocked.get() <= mutators.size() :
-      mutatorsBlocked.get() + " mutators are blocked but only " + mutators.size() +" exist";
+      mutatorsBlocked.get() + " mutators are blocked but only " + mutators.size() + " exist";
     resume(gcWaitQueue);
     setState(MUTATOR);
   }
@@ -357,44 +362,46 @@ public final class RawThreadModel extends ThreadModel {
      * The scheduler runs until there are no threads to schedule.
      */
     while (!runQueue.isEmpty()) {
-      synchronized(scheduler) {
+      synchronized (scheduler) {
         assert runQueue.size() <= mutators.size() + collectors.size() :
-          "Run queue is unreasonably long, queue="+runQueue.size()+
-          ", m="+mutators.size()+", c="+collectors.size();
+          "Run queue is unreasonably long, queue=" + runQueue.size() +
+          ", m=" + mutators.size() + ", c=" + collectors.size();
         if (runQueue.size() > 0) {
           runQueue.remove().resumeThread();
-          Trace.trace(Item.SCHED_DETAIL, "%d: scheduler sleeping, runqueue=%d", scheduler.getId(), runQueue.size());
+          Trace.trace(Item.SCHED_DETAIL, "%s: scheduler sleeping, runqueue=%d", scheduler.getName(), runQueue.size());
           schedWait();
-          Trace.trace(Item.SCHED_DETAIL, "%d: scheduler resuming, state %s, runqueue=%d", scheduler.getId(),getState(), runQueue.size());
+          Trace.trace(Item.SCHED_DETAIL, "%s: scheduler resuming, state %s, runqueue=%d", scheduler.getName(),getState(), runQueue.size());
         }
         assert mutatorsBlocked.get() <= mutators.size() :
-          mutatorsBlocked.get() + " mutators are blocked but only " + mutators.size() +" exist";
+          mutatorsBlocked.get() + " mutators are blocked but only " + mutators.size() + " exist";
         /*
          * Apply state-transition rules and enforce invariants
          */
         switch (getState()) {
-          case MUTATOR:
-            /* If there are available mutators, at least one of them must be runnable */
-            assert mutators.isEmpty() || !runQueue.isEmpty() :
-              "mutators.isEmpty()="+mutators.isEmpty()+", runQueue.isEmpty()="+runQueue.isEmpty();
-            break;
-          case BLOCKING:
-            blockingCount++;
-            Trace.trace(Item.SCHEDULER, "mutators blocked %d/%d", mutatorsBlocked.get(), mutators.size());
-            if (mutatorsBlocked.get() == mutators.size()) {
-              setState(BLOCKED);
-              blockingCount = 0;
-            }
-            if (blockingCount > 1000000) {
-              System.err.println("Block pending for an unreasonable amount of time");
-              dumpThreads();
-              throw new AssertionError();
-            }
-            break;
-          case BLOCKED:
-            assert ! unitTest && (mutators.size() == 0 || !runQueue.isEmpty()) :
-              "Runqueue cannot be empty while mutators are blocked";
-            break;
+        case MUTATOR:
+          /* If there are available mutators, at least one of them must be runnable */
+          assert mutators.isEmpty() || !runQueue.isEmpty() :
+            "mutators.isEmpty()=" + mutators.isEmpty() + ", runQueue.isEmpty()=" + runQueue.isEmpty();
+          break;
+        case BLOCKING:
+          blockingCount++;
+          Trace.trace(Item.SCHEDULER, "mutators blocked %d/%d", mutatorsBlocked.get(), mutators.size());
+          if (mutatorsBlocked.get() == mutators.size()) {
+            setState(BLOCKED);
+            blockingCount = 0;
+          }
+          if (blockingCount > 1000000) {
+            System.err.println("Block pending for an unreasonable amount of time");
+            dumpThreads();
+            throw new AssertionError();
+          }
+          break;
+        case BLOCKED:
+          assert ! unitTest && (mutators.size() == 0 || !runQueue.isEmpty()) :
+            "Runqueue cannot be empty while mutators are blocked";
+          break;
+        case RESUMING:
+          break;
         }
       }
     }
@@ -410,6 +417,7 @@ public final class RawThreadModel extends ThreadModel {
    * @param clear
    */
   void makeRunnable(ThreadQueue threads, boolean clear) {
+    Trace.trace(Item.SCHEDULER, "making %d threads runnable from queue %s", threads.size(), threads.getName());
     runQueue.addAll(threads);
     assert runQueue.size() <= mutators.size() + collectors.size();
     if (clear) {
@@ -439,8 +447,8 @@ public final class RawThreadModel extends ThreadModel {
   }
 
   void wakeScheduler() {
-    Trace.trace(Item.SCHED_DETAIL, "%d: waking scheduler", Thread.currentThread().getId());
-    synchronized(scheduler) {
+    Trace.trace(Item.SCHED_DETAIL, "%s: waking scheduler", Thread.currentThread().getName());
+    synchronized (scheduler) {
       schedulerIsAwake = true;
       scheduler.notify();
     }
@@ -459,5 +467,6 @@ public final class RawThreadModel extends ThreadModel {
       }
     }
   }
+
 }
 

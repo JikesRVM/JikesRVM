@@ -12,6 +12,9 @@
  */
 /**
  * Native code for ArgumentPassing.java
+ *
+ * Note: Support for AIX has been dropped but test cases for AIX
+ * have been kept.
  */
 
 #include <stdio.h>
@@ -26,7 +29,7 @@ int verbose=1;
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_ArgumentPassing_setVerboseOff
-  (JNIEnv *env, jclass cls){
+(JNIEnv *env, jclass cls) {
   verbose=0;
 }
 
@@ -38,8 +41,8 @@ JNIEXPORT void JNICALL Java_ArgumentPassing_setVerboseOff
  * Signature: (IIIIII)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitStatic
-  (JNIEnv *env, jclass cls,
-   jint val1, jint val2, jint val3, jint val4, jint val5, jint val6) {
+(JNIEnv *env, jclass cls,
+ jint val1, jint val2, jint val3, jint val4, jint val5, jint val6) {
 
   if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9 && val6==11)
     return 0;
@@ -62,9 +65,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitStatic
  * Signature: (IIIIIIIIII)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillAIXStatic
-  (JNIEnv *env, jclass cls,
-   jint val1, jint val2, jint val3, jint val4, jint val5,
-   jint val6, jint val7, jint val8, jint val9, jint val10) {
+(JNIEnv *env, jclass cls,
+ jint val1, jint val2, jint val3, jint val4, jint val5,
+ jint val6, jint val7, jint val8, jint val9, jint val10) {
 
   if (val1==1  && val2==3  && val3==5  && val4==7  && val5==9 &&
       val6==11 && val7==13 && val8==15 && val9==17 && val10==19)
@@ -87,10 +90,10 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillAIXStatic
  * Signature: (IIIIIIIIIIII)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillBothStatic
-  (JNIEnv *env, jclass cls,
-   jint val1, jint val2, jint val3, jint val4, jint val5,
-   jint val6, jint val7, jint val8, jint val9, jint val10,
-   jint val11, jint val12) {
+(JNIEnv *env, jclass cls,
+ jint val1, jint val2, jint val3, jint val4, jint val5,
+ jint val6, jint val7, jint val8, jint val9, jint val10,
+ jint val11, jint val12) {
 
   if (val1==1  && val2==3  && val3==5  && val4==7  && val5==9 &&
       val6==11 && val7==13 && val8==15 && val9==17 && val10==19 &&
@@ -114,9 +117,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillBothStatic
  * Signature: (FFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitStatic
-  (JNIEnv *env, jclass cls,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6) {
+(JNIEnv *env, jclass cls,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6) {
 
   /* NOTE:  in C, FP constants are always type double
    * which is 64 bits;  they need to be converted to type float
@@ -145,9 +148,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitStatic
  * Signature: (FFFFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitStaticSave
-  (JNIEnv *env, jclass cls,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8) {
+(JNIEnv *env, jclass cls,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8) {
 
   if (fval1==(float)0.1 && fval2==(float)0.25 && fval3==(float)0.50 &&
       fval4==(float)0.75 && fval5==(float)1.0 && fval6==(float)1.25 &&
@@ -173,11 +176,11 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitStaticSave
  * Signature: (FFFFFFFFFFFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillAIXStatic
-  (JNIEnv *env, jclass cls,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
-   jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
-   jfloat fval13, jfloat fval14, jfloat fval15) {
+(JNIEnv *env, jclass cls,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
+ jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
+ jfloat fval13, jfloat fval14, jfloat fval15) {
 
   if (fval1==(float)0.1 && fval2==(float)0.25 && fval3==(float)0.50 &&
       fval4==(float)0.75 && fval5==(float)1.0  && fval6==(float)1.25 &&
@@ -206,12 +209,12 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillAIXStatic
  * Signature: (FFFFFFFFFFFFFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillBothStatic
-  (JNIEnv *env, jclass cls,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
-   jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
-   jfloat fval13, jfloat fval14, jfloat fval15, jfloat fval16,
-   jfloat fval17) {
+(JNIEnv *env, jclass cls,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
+ jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
+ jfloat fval13, jfloat fval14, jfloat fval15, jfloat fval16,
+ jfloat fval17) {
 
   if (fval1==(float)0.10 && fval2==(float)0.25 && fval3==(float)0.50 &&
       fval4==(float)0.75 && fval5==(float)1.0 && fval6==(float)1.25 &&
@@ -239,7 +242,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillBothStatic
  * Signature: (DDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitStatic
-  (JNIEnv *env, jclass cls, jdouble fval1, jdouble fval2, jdouble fval3) {
+(JNIEnv *env, jclass cls, jdouble fval1, jdouble fval2, jdouble fval3) {
 
   if (fval1==0.1 && fval2==0.25 && fval3==0.50) {
     return 0;
@@ -261,7 +264,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitStatic
  * Signature: (IDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitStaticStraddle
-  (JNIEnv *env, jclass cls, jint val1, jdouble fval2, jdouble fval3, jdouble fval4){
+(JNIEnv *env, jclass cls, jint val1, jdouble fval2, jdouble fval3, jdouble fval4) {
 
   if (val1== 3 && fval2==0.1 && fval3==0.25 && fval4==0.50) {
     return 0;
@@ -282,8 +285,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitStaticStraddle
  * Signature: (DDDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitStaticSave
-  (JNIEnv *env, jclass cls, jdouble fval1, jdouble fval2, jdouble fval3,
-   jdouble fval4, jdouble fval5) {
+(JNIEnv *env, jclass cls, jdouble fval1, jdouble fval2, jdouble fval3,
+ jdouble fval4, jdouble fval5) {
   if (fval1== 0.1 && fval2==0.25 && fval3==0.50 && fval4==0.75 && fval5==1.0) {
     return 0;
   } else {
@@ -304,12 +307,12 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitStaticSave
  * Signature: (DDDDDDDDDDDDDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillAIXStatic
-  (JNIEnv *env, jclass cls,
-   jdouble fval1, jdouble fval2, jdouble fval3,
-   jdouble fval4, jdouble fval5, jdouble fval6,
-   jdouble fval7, jdouble fval8, jdouble fval9,
-   jdouble fval10, jdouble fval11, jdouble fval12,
-   jdouble fval13, jdouble fval14, jdouble fval15) {
+(JNIEnv *env, jclass cls,
+ jdouble fval1, jdouble fval2, jdouble fval3,
+ jdouble fval4, jdouble fval5, jdouble fval6,
+ jdouble fval7, jdouble fval8, jdouble fval9,
+ jdouble fval10, jdouble fval11, jdouble fval12,
+ jdouble fval13, jdouble fval14, jdouble fval15) {
 
   if (fval1==0.1 && fval2==0.25 && fval3==0.50 &&
       fval4==0.75 && fval5==1.0  && fval6==1.25 &&
@@ -337,13 +340,13 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillAIXStatic
  * Signature: (DDDDDDDDDDDDDDDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillBothStatic
-  (JNIEnv *env, jclass cls,
-   jdouble fval1, jdouble fval2, jdouble fval3,
-   jdouble fval4, jdouble fval5, jdouble fval6,
-   jdouble fval7, jdouble fval8, jdouble fval9,
-   jdouble fval10, jdouble fval11, jdouble fval12,
-   jdouble fval13, jdouble fval14, jdouble fval15,
-   jdouble fval16, jdouble fval17) {
+(JNIEnv *env, jclass cls,
+ jdouble fval1, jdouble fval2, jdouble fval3,
+ jdouble fval4, jdouble fval5, jdouble fval6,
+ jdouble fval7, jdouble fval8, jdouble fval9,
+ jdouble fval10, jdouble fval11, jdouble fval12,
+ jdouble fval13, jdouble fval14, jdouble fval15,
+ jdouble fval16, jdouble fval17) {
 
   if (fval1==0.1 && fval2==0.25 && fval3==0.50 &&
       fval4==0.75 && fval5==1.0  && fval6==1.25 &&
@@ -372,7 +375,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillBothStatic
  * Signature: (JJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitStatic
-  (JNIEnv *env, jclass cls, jlong val1, jlong val2, jlong val3) {
+(JNIEnv *env, jclass cls, jlong val1, jlong val2, jlong val3) {
 
   if (val1==1l && val2==3l && val3==5l)
     return 0;
@@ -392,7 +395,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitStatic
  * Signature: (IJJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitStaticStraddle
-  (JNIEnv *env, jclass cls, jint val1, jlong val2, jlong val3, jlong val4) {
+(JNIEnv *env, jclass cls, jint val1, jlong val2, jlong val3, jlong val4) {
 
   if (val1==1 && val2==3l && val3==5l && val4==7l)
     return 0;
@@ -413,7 +416,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitStaticStraddle
  * Signature: (JJJJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillAIXStatic
-  (JNIEnv *env, jclass cls, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5) {
+(JNIEnv *env, jclass cls, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5) {
 
   if (val1==1l && val2==3l && val3==5l && val4==7l && val5==9l)
     return 0;
@@ -434,8 +437,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillAIXStatic
  * Signature: (JJJJJJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillBothStatic
-  (JNIEnv *env, jclass cls, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5,
-   jlong val6, jlong val7) {
+(JNIEnv *env, jclass cls, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5,
+ jlong val6, jlong val7) {
 
   if (val1==1l && val2==3l && val3==5l && val4==7l && val5==9l &&
       val6==11l && val7==13l )
@@ -458,9 +461,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillBothStatic
  * Signature: (IFIFIF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatFitStatic
-  (JNIEnv *env, jclass cls,
-   jint val1, jfloat fval2, jint val3,
-   jfloat fval4, jint val5, jfloat fval6) {
+(JNIEnv *env, jclass cls,
+ jint val1, jfloat fval2, jint val3,
+ jfloat fval4, jint val5, jfloat fval6) {
 
 
   if (val1==1 && fval2==(float)3.3 && val3==5 && fval4==(float)7.7 &&
@@ -483,9 +486,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatFitStatic
  * Signature: (FIFIFIFI)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatSpillStatic
-  (JNIEnv *env, jclass cls,
-   jfloat fval1, jint val2, jfloat fval3, jint val4,
-   jfloat fval5, jint val6, jfloat fval7, jint val8) {
+(JNIEnv *env, jclass cls,
+ jfloat fval1, jint val2, jfloat fval3, jint val4,
+ jfloat fval5, jint val6, jfloat fval7, jint val8) {
 
   if (fval1==(float)1.1 && val2==3  && fval3==(float)5.5 && val4==7 &&
       fval5==(float)9.9 && val6==11 && fval7==(float)13.13 && val8==15)
@@ -508,8 +511,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatSpillStatic
  * Signature: (IDID)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitStatic
-  (JNIEnv *env, jclass cls,
-   jint val1, jdouble fval2, jint val3, jdouble fval4) {
+(JNIEnv *env, jclass cls,
+ jint val1, jdouble fval2, jint val3, jdouble fval4) {
 
   if (val1==1 && fval2==3.3 && val3==5 && fval4==7.7)
     return 0;
@@ -531,8 +534,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitStatic
  * Signature: (DIIID)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitStaticStraddle
-  (JNIEnv *env, jclass cls,
-   jdouble fval1, jint val2, jint val3, jint val4, jdouble fval5) {
+(JNIEnv *env, jclass cls,
+ jdouble fval1, jint val2, jint val3, jint val4, jdouble fval5) {
 
   if (fval1==1.1 && val2==3 && val3==5 && val4==7 && fval5==9.9 )
     return 0;
@@ -554,8 +557,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitStaticStraddle
  * Signature: (DIDIDI)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleSpillStatic
-  (JNIEnv *env, jclass cls,
-   jdouble fval1, jint val2, jdouble fval3, jint val4, jdouble fval5, jint val6) {
+(JNIEnv *env, jclass cls,
+ jdouble fval1, jint val2, jdouble fval3, jint val4, jdouble fval5, jint val6) {
 
   if (fval1==1.1 && val2==3 && fval3==5.5 && val4==7 && fval5==9.9 && val6==11)
     return 0;
@@ -577,8 +580,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleSpillStatic
  * Signature: (IJIJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitStatic
-  (JNIEnv *env, jclass cls,
-   jint val1, jlong val2, jint val3, jlong val4) {
+(JNIEnv *env, jclass cls,
+ jint val1, jlong val2, jint val3, jlong val4) {
 
   if (val1==1 && val2==3 && val3==5 && val4==7)
     return 0;
@@ -600,8 +603,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitStatic
  * Signature: (IJIIJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitStaticStraddle
-  (JNIEnv *env, jclass cls,
-   jint val1, jlong val2, jint val3, jint val4, jlong val5) {
+(JNIEnv *env, jclass cls,
+ jint val1, jlong val2, jint val3, jint val4, jlong val5) {
 
   if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9)
     return 0;
@@ -623,8 +626,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitStaticStraddle
  * Signature: (JIJIJI)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongSpillStatic
-  (JNIEnv *env, jclass cls,
-   jlong val1, jint val2, jlong val3, jint val4, jlong val5, jint val6) {
+(JNIEnv *env, jclass cls,
+ jlong val1, jint val2, jlong val3, jint val4, jlong val5, jint val6) {
 
   if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9 && val6==11)
     return 0;
@@ -646,8 +649,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongSpillStatic
  * Signature: (FDFD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleFitStatic
-  (JNIEnv *env, jclass cls,
-   jfloat fval1, jdouble fval2, jfloat fval3, jdouble fval4) {
+(JNIEnv *env, jclass cls,
+ jfloat fval1, jdouble fval2, jfloat fval3, jdouble fval4) {
 
   if (fval1==(float)1.1 && fval2==3.3 && fval3==(float)5.5 && fval4==7.7 )
     return 0;
@@ -669,9 +672,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleFitStatic
  * Signature: (DFDFDF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleSpillStatic
-  (JNIEnv *env, jclass cls,
-   jdouble fval1, jfloat fval2, jdouble fval3,
-   jfloat fval4, jdouble fval5, jfloat fval6) {
+(JNIEnv *env, jclass cls,
+ jdouble fval1, jfloat fval2, jdouble fval3,
+ jfloat fval4, jdouble fval5, jfloat fval6) {
 
   if (fval1==1.1 && fval2==(float)3.3 && fval3==5.5 &&
       fval4==(float)7.7 && fval5==9.9 && fval6==(float)11.11)
@@ -694,8 +697,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleSpillStatic
  * Signature: (FJFJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongFitStatic
-  (JNIEnv *env, jclass cls,
-   jfloat fval1, jlong val2, jfloat fval3, jlong val4) {
+(JNIEnv *env, jclass cls,
+ jfloat fval1, jlong val2, jfloat fval3, jlong val4) {
 
   if (fval1==(float)1.1 && val2==3l && fval3==(float)5.5 && val4==7l )
     return 0;
@@ -717,9 +720,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongFitStatic
  * Signature: (JFJFJF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongSpillStatic
-  (JNIEnv *env, jclass cls,
-   jlong val1, jfloat fval2, jlong val3,
-   jfloat fval4, jlong val5, jfloat fval6) {
+(JNIEnv *env, jclass cls,
+ jlong val1, jfloat fval2, jlong val3,
+ jfloat fval4, jlong val5, jfloat fval6) {
 
   if (val1==1l && fval2==(float)3.3 && val3==5l &&
       fval4==(float)7.7 && val5==9l && fval6==(float)11.11)
@@ -742,8 +745,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongSpillStatic
  * Signature: (JDJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongFitStatic
-  (JNIEnv *env, jclass cls,
-   jlong val1, jdouble fval2, jlong val3) {
+(JNIEnv *env, jclass cls,
+ jlong val1, jdouble fval2, jlong val3) {
 
   if (val1==1l && fval2==3.3 && val3==5l )
     return 0;
@@ -764,8 +767,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongFitStatic
  * Signature: (JDJDJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillStatic
-  (JNIEnv *env, jclass cls,
-   jlong val1, jdouble fval2, jlong val3, jdouble fval4, jlong val5) {
+(JNIEnv *env, jclass cls,
+ jlong val1, jdouble fval2, jlong val3, jdouble fval4, jlong val5) {
 
   if (val1==1l && fval2==3.3 && val3==5l && fval4==7.7 && val5==9l )
     return 0;
@@ -795,8 +798,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillStatic
  * Signature: (IIIIII)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitVirtual
-  (JNIEnv *env, jobject obj,
-   jint val1, jint val2, jint val3, jint val4, jint val5, jint val6) {
+(JNIEnv *env, jobject obj,
+ jint val1, jint val2, jint val3, jint val4, jint val5, jint val6) {
 
 
   if (val1==2 && val2==4 && val3==6 && val4==8 && val5==10 && val6==12)
@@ -820,9 +823,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitVirtual
  * Signature: (IIIIIIIIII)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillAIXVirtual
-  (JNIEnv *env, jobject obj,
-   jint val1, jint val2, jint val3, jint val4, jint val5,
-   jint val6, jint val7, jint val8, jint val9) {
+(JNIEnv *env, jobject obj,
+ jint val1, jint val2, jint val3, jint val4, jint val5,
+ jint val6, jint val7, jint val8, jint val9) {
 
   if (val1==2 && val2==4 && val3==6 && val4==8 && val5==10 &&
       val6==12 && val7==14 && val8==16 && val9==18)
@@ -844,9 +847,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillAIXVirtual
  * Signature: (IIIIIIIIIII)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillBothVirtual
-  (JNIEnv *env, jobject obj,
-   jint val1, jint val2, jint val3, jint val4, jint val5,
-   jint val6, jint val7, jint val8, jint val9, jint val10, jint val11) {
+(JNIEnv *env, jobject obj,
+ jint val1, jint val2, jint val3, jint val4, jint val5,
+ jint val6, jint val7, jint val8, jint val9, jint val10, jint val11) {
 
   if (val1==2 && val2==4 && val3==6 && val4==8 && val5==10 &&
       val6==12 && val7==14 && val8==16 && val9==18 &&
@@ -872,9 +875,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillBothVirtual
  * Signature: (FFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitVirtual
-  (JNIEnv *env, jobject obj,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6) {
+(JNIEnv *env, jobject obj,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6) {
 
   /* NOTE:  in C, FP constants are always type double
    * which is 64 bits;  they need to be converted to type float
@@ -903,9 +906,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitVirtual
  * Signature: (FFFFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitVirtualSave
-  (JNIEnv *env, jobject obj,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8) {
+(JNIEnv *env, jobject obj,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8) {
 
   if (fval1==(float)0.1 && fval2==(float)0.25 && fval3==(float)0.50 &&
       fval4==(float)0.75 && fval5==(float)1.0 && fval6==(float)1.25 &&
@@ -931,11 +934,11 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitVirtualSave
  * Signature: (FFFFFFFFFFFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillAIXVirtual
-  (JNIEnv *env, jobject obj,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
-   jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
-   jfloat fval13, jfloat fval14, jfloat fval15) {
+(JNIEnv *env, jobject obj,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
+ jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
+ jfloat fval13, jfloat fval14, jfloat fval15) {
 
   if (fval1==(float)0.1 && fval2==(float)0.25 && fval3==(float)0.50 &&
       fval4==(float)0.75 && fval5==(float)1.0  && fval6==(float)1.25 &&
@@ -964,12 +967,12 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillAIXVirtual
  * Signature: (FFFFFFFFFFFFFFFFF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillBothVirtual
-  (JNIEnv *env, jobject obj,
-   jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
-   jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
-   jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
-   jfloat fval13, jfloat fval14, jfloat fval15, jfloat fval16,
-   jfloat fval17) {
+(JNIEnv *env, jobject obj,
+ jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+ jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
+ jfloat fval9, jfloat fval10, jfloat fval11, jfloat fval12,
+ jfloat fval13, jfloat fval14, jfloat fval15, jfloat fval16,
+ jfloat fval17) {
 
   if (fval1==(float)0.10 && fval2==(float)0.25 && fval3==(float)0.50 &&
       fval4==(float)0.75 && fval5==(float)1.0 && fval6==(float)1.25 &&
@@ -997,7 +1000,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillBothVirtual
  * Signature: (DDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitVirtual
-  (JNIEnv *env, jobject obj, jdouble fval1, jdouble fval2, jdouble fval3) {
+(JNIEnv *env, jobject obj, jdouble fval1, jdouble fval2, jdouble fval3) {
 
   if (fval1==0.1 && fval2==0.25 && fval3==0.50) {
     return 0;
@@ -1019,7 +1022,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitVirtual
  * Signature: (IDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitVirtualStraddle
-  (JNIEnv *env, jobject obj, jint val1, jdouble fval2, jdouble fval3, jdouble fval4){
+(JNIEnv *env, jobject obj, jint val1, jdouble fval2, jdouble fval3, jdouble fval4) {
 
   if (val1== 3 && fval2==0.1 && fval3==0.25 && fval4==0.50) {
     return 0;
@@ -1040,8 +1043,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitVirtualStraddle
  * Signature: (DDDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitVirtualSave
-  (JNIEnv *env, jobject obj, jdouble fval1, jdouble fval2, jdouble fval3,
-   jdouble fval4, jdouble fval5) {
+(JNIEnv *env, jobject obj, jdouble fval1, jdouble fval2, jdouble fval3,
+ jdouble fval4, jdouble fval5) {
   if (fval1== 0.1 && fval2==0.25 && fval3==0.50 && fval4==0.75 && fval5==1.0) {
     return 0;
   } else {
@@ -1062,12 +1065,12 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitVirtualSave
  * Signature: (DDDDDDDDDDDDDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillAIXVirtual
-  (JNIEnv *env, jobject obj,
-   jdouble fval1, jdouble fval2, jdouble fval3,
-   jdouble fval4, jdouble fval5, jdouble fval6,
-   jdouble fval7, jdouble fval8, jdouble fval9,
-   jdouble fval10, jdouble fval11, jdouble fval12,
-   jdouble fval13, jdouble fval14, jdouble fval15) {
+(JNIEnv *env, jobject obj,
+ jdouble fval1, jdouble fval2, jdouble fval3,
+ jdouble fval4, jdouble fval5, jdouble fval6,
+ jdouble fval7, jdouble fval8, jdouble fval9,
+ jdouble fval10, jdouble fval11, jdouble fval12,
+ jdouble fval13, jdouble fval14, jdouble fval15) {
 
   if (fval1==0.1 && fval2==0.25 && fval3==0.50 &&
       fval4==0.75 && fval5==1.0  && fval6==1.25 &&
@@ -1095,13 +1098,13 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillAIXVirtual
  * Signature: (DDDDDDDDDDDDDDDDD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillBothVirtual
-  (JNIEnv *env, jobject obj,
-   jdouble fval1, jdouble fval2, jdouble fval3,
-   jdouble fval4, jdouble fval5, jdouble fval6,
-   jdouble fval7, jdouble fval8, jdouble fval9,
-   jdouble fval10, jdouble fval11, jdouble fval12,
-   jdouble fval13, jdouble fval14, jdouble fval15,
-   jdouble fval16, jdouble fval17) {
+(JNIEnv *env, jobject obj,
+ jdouble fval1, jdouble fval2, jdouble fval3,
+ jdouble fval4, jdouble fval5, jdouble fval6,
+ jdouble fval7, jdouble fval8, jdouble fval9,
+ jdouble fval10, jdouble fval11, jdouble fval12,
+ jdouble fval13, jdouble fval14, jdouble fval15,
+ jdouble fval16, jdouble fval17) {
 
   if (fval1==0.1 && fval2==0.25 && fval3==0.50 &&
       fval4==0.75 && fval5==1.0  && fval6==1.25 &&
@@ -1130,7 +1133,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillBothVirtual
  * Signature: (JJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitVirtual
-  (JNIEnv *env, jobject obj, jlong val1, jlong val2, jlong val3) {
+(JNIEnv *env, jobject obj, jlong val1, jlong val2, jlong val3) {
 
   if (val1==1l && val2==3l && val3==5l)
     return 0;
@@ -1150,7 +1153,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitVirtual
  * Signature: (IJJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitVirtualStraddle
-  (JNIEnv *env, jobject obj, jint val1, jlong val2, jlong val3, jlong val4) {
+(JNIEnv *env, jobject obj, jint val1, jlong val2, jlong val3, jlong val4) {
 
   if (val1==1 && val2==3l && val3==5l && val4==7l)
     return 0;
@@ -1171,7 +1174,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitVirtualStraddle
  * Signature: (JJJJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillAIXVirtual
-  (JNIEnv *env, jobject obj, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5) {
+(JNIEnv *env, jobject obj, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5) {
 
   if (val1==1l && val2==3l && val3==5l && val4==7l && val5==9l)
     return 0;
@@ -1192,8 +1195,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillAIXVirtual
  * Signature: (JJJJJJJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillBothVirtual
-  (JNIEnv *env, jobject obj, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5,
-   jlong val6, jlong val7) {
+(JNIEnv *env, jobject obj, jlong val1, jlong val2, jlong val3, jlong val4, jlong val5,
+ jlong val6, jlong val7) {
 
   if (val1==1l && val2==3l && val3==5l && val4==7l && val5==9l &&
       val6==11l && val7==13l )
@@ -1217,9 +1220,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillBothVirtual
  * Signature: (IFIFIF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatFitVirtual
-  (JNIEnv *env, jobject obj,
-   jint val1, jfloat fval2, jint val3,
-   jfloat fval4, jint val5, jfloat fval6) {
+(JNIEnv *env, jobject obj,
+ jint val1, jfloat fval2, jint val3,
+ jfloat fval4, jint val5, jfloat fval6) {
 
 
   if (val1==1 && fval2==(float)3.3 && val3==5 &&
@@ -1242,9 +1245,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatFitVirtual
  * Signature: (FIFIFIFI)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatSpillVirtual
-  (JNIEnv *env, jobject obj,
-   jfloat fval1, jint val2, jfloat fval3, jint val4,
-   jfloat fval5, jint val6, jfloat fval7, jint val8) {
+(JNIEnv *env, jobject obj,
+ jfloat fval1, jint val2, jfloat fval3, jint val4,
+ jfloat fval5, jint val6, jfloat fval7, jint val8) {
 
   if (fval1==(float)1.1 && val2==3  && fval3==(float)5.5 && val4==7 &&
       fval5==(float)9.9 && val6==11 && fval7==(float)13.13 && val8==15)
@@ -1267,8 +1270,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatSpillVirtual
  * Signature: (IDID)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitVirtual
-  (JNIEnv *env, jobject obj,
-   jint val1, jdouble fval2, jint val3, jdouble fval4) {
+(JNIEnv *env, jobject obj,
+ jint val1, jdouble fval2, jint val3, jdouble fval4) {
 
   if (val1==1 && fval2==3.3 && val3==5 && fval4==7.7)
     return 0;
@@ -1290,8 +1293,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitVirtual
  * Signature: (DIIID)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitVirtualStraddle
-  (JNIEnv *env, jobject obj,
-   jdouble fval1, jint val2, jint val3, jint val4, jdouble fval5) {
+(JNIEnv *env, jobject obj,
+ jdouble fval1, jint val2, jint val3, jint val4, jdouble fval5) {
 
   if (fval1==1.1 && val2==3 && val3==5 && val4==7 && fval5==9.9 )
     return 0;
@@ -1313,8 +1316,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitVirtualStraddle
  * Signature: (DIDIDI)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleSpillVirtual
-  (JNIEnv *env, jobject obj,
-   jdouble fval1, jint val2, jdouble fval3, jint val4, jdouble fval5, jint val6) {
+(JNIEnv *env, jobject obj,
+ jdouble fval1, jint val2, jdouble fval3, jint val4, jdouble fval5, jint val6) {
 
   if (fval1==1.1 && val2==3 && fval3==5.5 && val4==7 && fval5==9.9 && val6==11)
     return 0;
@@ -1336,8 +1339,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleSpillVirtual
  * Signature: (IJIJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitVirtual
-  (JNIEnv *env, jobject obj,
-   jint val1, jlong val2, jint val3, jlong val4) {
+(JNIEnv *env, jobject obj,
+ jint val1, jlong val2, jint val3, jlong val4) {
 
   if (val1==1 && val2==3 && val3==5 && val4==7)
     return 0;
@@ -1359,8 +1362,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitVirtual
  * Signature: (IJIIJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitVirtualStraddle
-  (JNIEnv *env, jobject obj,
-   jint val1, jlong val2, jint val3, jint val4, jlong val5) {
+(JNIEnv *env, jobject obj,
+ jint val1, jlong val2, jint val3, jint val4, jlong val5) {
 
   if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9)
     return 0;
@@ -1382,8 +1385,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitVirtualStraddle
  * Signature: (JIJIJI)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongSpillVirtual
-  (JNIEnv *env, jobject obj,
-   jlong val1, jint val2, jlong val3, jint val4, jlong val5, jint val6) {
+(JNIEnv *env, jobject obj,
+ jlong val1, jint val2, jlong val3, jint val4, jlong val5, jint val6) {
 
   if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9 && val6==11)
     return 0;
@@ -1405,8 +1408,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongSpillVirtual
  * Signature: (FDFD)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleFitVirtual
-  (JNIEnv *env, jobject obj,
-   jfloat fval1, jdouble fval2, jfloat fval3, jdouble fval4) {
+(JNIEnv *env, jobject obj,
+ jfloat fval1, jdouble fval2, jfloat fval3, jdouble fval4) {
 
   if (fval1==(float)1.1 && fval2==3.3 && fval3==(float)5.5 && fval4==7.7 )
     return 0;
@@ -1428,9 +1431,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleFitVirtual
  * Signature: (DFDFDF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleSpillVirtual
-  (JNIEnv *env, jobject obj,
-   jdouble fval1, jfloat fval2, jdouble fval3,
-   jfloat fval4, jdouble fval5, jfloat fval6) {
+(JNIEnv *env, jobject obj,
+ jdouble fval1, jfloat fval2, jdouble fval3,
+ jfloat fval4, jdouble fval5, jfloat fval6) {
 
   if (fval1==1.1 && fval2==(float)3.3 && fval3==5.5 &&
       fval4==(float)7.7 && fval5==9.9 && fval6==(float)11.11)
@@ -1453,8 +1456,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleSpillVirtual
  * Signature: (FJFJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongFitVirtual
-  (JNIEnv *env, jobject obj,
-   jfloat fval1, jlong val2, jfloat fval3, jlong val4) {
+(JNIEnv *env, jobject obj,
+ jfloat fval1, jlong val2, jfloat fval3, jlong val4) {
 
   if (fval1==(float)1.1 && val2==3l && fval3==(float)5.5 && val4==7l )
     return 0;
@@ -1476,9 +1479,9 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongFitVirtual
  * Signature: (JFJFJF)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongSpillVirtual
-  (JNIEnv *env, jobject obj,
-   jlong val1, jfloat fval2, jlong val3,
-   jfloat fval4, jlong val5, jfloat fval6) {
+(JNIEnv *env, jobject obj,
+ jlong val1, jfloat fval2, jlong val3,
+ jfloat fval4, jlong val5, jfloat fval6) {
 
   if (val1==1l && fval2==(float)3.3 && val3==5l &&
       fval4==(float)7.7 && val5==9l && fval6==(float)11.11)
@@ -1501,8 +1504,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongSpillVirtual
  * Signature: (JDJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongFitVirtual
-  (JNIEnv *env, jobject obj,
-   jlong val1, jdouble fval2, jlong val3) {
+(JNIEnv *env, jobject obj,
+ jlong val1, jdouble fval2, jlong val3) {
 
   if (val1==1l && fval2==3.3 && val3==5l )
     return 0;
@@ -1523,8 +1526,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongFitVirtual
  * Signature: (JDJDJ)I
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillVirtual
-  (JNIEnv *env, jobject obj,
-   jlong val1, jdouble fval2, jlong val3, jdouble fval4, jlong val5) {
+(JNIEnv *env, jobject obj,
+ jlong val1, jdouble fval2, jlong val3, jdouble fval4, jlong val5) {
 
   if (val1==1l && fval2==3.3 && val3==5l && fval4==7.7 && val5==9l )
     return 0;
@@ -1539,6 +1542,113 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillVirtual
   }
 
 }
+
+/*
+ * Class:     ArgumentPassing
+ * Method:    exhaustX64FPRsWithDoubleThenUseInt
+ * Signature: (DDDDDDDDDIIII)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64FPRsWithDoubleThenUseInt
+(JNIEnv *env, jobject obj,
+    jdouble fval1, jdouble fval2, jdouble fval3, jdouble fval4,
+    jdouble fval5, jdouble fval6, jdouble fval7, jdouble fval8,
+    jdouble fval9,
+    jint val1, jint val2, jint val3, jint val4) {
+
+  if (fval1==1.1 && fval2==3.3 && fval3==5.5 && fval4==7.7d && fval5==9.9 && fval6==11.11
+      && fval7==13.13 && fval8==15.15 && fval9==17.17 && val1==1 && val2==3 && val3==5 && val4==7)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64FPRsWithDoubleThenUseInt in native: \n");
+      printf(">   expect 1.1, 3.3, 5.5, 7.7, 9.9, 11.11, 13.13, 15.15, 17.17, 1, 3, 5, 7 \n");
+      printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %d, %d, %d, %d\n",
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8, fval9, val1, val2, val3, val4);
+    }
+    return -1;
+  }
+}
+
+/*
+ * Class:     ArgumentPassing
+ * Method:    exhaustX64FPRsWithFloatThenUseInt
+ * Signature: (FFFFFFFFFIIII)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64FPRsWithFloatThenUseInt
+(JNIEnv *env, jobject obj,
+    jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4,
+    jfloat fval5, jfloat fval6, jfloat fval7, jfloat fval8,
+    jfloat fval9,
+    jint val1, jint val2, jint val3, jint val4) {
+  // Note: must use f suffix to force C floating point constants to float (instead of double)
+  if (fval1==1.1f && fval2==3.3f && fval3==5.5f && fval4==7.7f && fval5==9.9f && fval6==11.11f
+      && fval7==13.13f && fval8==15.15f && fval9==13.13f && val1==1 && val2==3 && val3==5 && val4==7)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64FPRsWithFloatThenUseInt in native: \n");
+      printf(">   expect 1.1, 3.3, 5.5, 7.7, 9.9, 11.11, 13.13, 15.15, 13.13, 1, 3, 5, 7");
+      printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %d, %d, %d, %d",
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8, fval9, val1, val2, val3, val4);
+    }
+    return -1;
+  }
+}
+
+
+/*
+ * Class:     ArgumentPassing
+ * Method:    exhaustX64GPRsWithIntThenUseFloat
+ * Signature: (IIIIIIIIIFFFF)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64GPRsWithIntThenUseFloat
+(JNIEnv *env, jobject obj,
+    jint val1, jint val2, jint val3, jint val4,
+    jint val5, jint val6, jint val7, jint val8,
+    jint val9,
+    jfloat fval1, jfloat fval2, jfloat fval3, jfloat fval4) {
+  // Note: must use f suffix to force C floating point constants to float (instead of double)
+  if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9 && val6==11
+      && val7==13 && val8==15 && val9==17 && fval1==1.1f && fval2==3.3f
+      && fval3==5.5f && fval4==7.7f)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64GPRsWithIntThenUseFloat in native: \n");
+      printf(">   expect 1, 3, 5, 7, 9, 11, 13, 15, 17, 1.1, 3.3, 5.5, 7.7");
+      printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d, %3.2f, %3.2f, %3.2f, %3.2f",
+             val1, val2, val3, val4, val5, val6, val7, val8, val9, fval1, fval2, fval3, fval4);
+    }
+    return -1;
+  }
+}
+
+/*
+ * Class:     ArgumentPassing
+ * Method:    exhaustX64GPRsWithIntThenUseDouble;
+ * Signature: (IIIIIIIIIDDDD)I
+ */
+JNIEXPORT jint JNICALL Java_ArgumentPassing_exhaustX64GPRsWithIntThenUseDouble
+(JNIEnv *env, jobject obj,
+    jint val1, jint val2, jint val3, jint val4,
+    jint val5, jint val6, jint val7, jint val8,
+    jint val9,
+    jdouble fval1, jdouble fval2, jdouble fval3, jdouble fval4) {
+  if (val1==1 && val2==3 && val3==5 && val4==7 && val5==9 && val6==11
+      && val7==13 && val8==15 && val9==17 && fval1==1.1 && fval2==3.3
+      && fval3==5.5 && fval4==7.7)
+    return 0;
+  else {
+    if (verbose) {
+      printf("> exhaustX64GPRsWithIntThenUseDouble in native: \n");
+      printf(">   expect 1, 3, 5, 7, 9, 11, 13, 15, 17, 1.1, 3.3, 5.5, 7.7");
+      printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d, %3.2f, %3.2f, %3.2f, %3.2f",
+             val1, val2, val3, val4, val5, val6, val7, val8, val9, fval1, fval2, fval3, fval4);
+    }
+    return -1;
+  }
+}
+
 
 /*
  * Class:     ArgumentPassing
@@ -1557,7 +1667,7 @@ JNIEXPORT jlong JNICALL Java_ArgumentPassing_returnLong
  * Signature: (F)F
  */
 JNIEXPORT jfloat JNICALL Java_ArgumentPassing_returnFloat
-  (JNIEnv *env, jclass cls, jfloat val1) {
+(JNIEnv *env, jclass cls, jfloat val1) {
 
   return val1;
 }
@@ -1568,14 +1678,7 @@ JNIEXPORT jfloat JNICALL Java_ArgumentPassing_returnFloat
  * Signature: (D)D
  */
 JNIEXPORT jdouble JNICALL Java_ArgumentPassing_returnDouble
-  (JNIEnv *env, jclass cls, jdouble val1){
+(JNIEnv *env, jclass cls, jdouble val1) {
 
   return val1;
 }
-
-
-
-
-
-
-

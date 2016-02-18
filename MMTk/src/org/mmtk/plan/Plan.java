@@ -12,14 +12,17 @@
  */
 package org.mmtk.plan;
 
+import static org.mmtk.utility.Constants.*;
+import static org.mmtk.vm.VM.EXIT_CODE_REFLECTION_FAILURE;
+
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LinearScan;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
@@ -28,9 +31,7 @@ import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
-
 import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -55,7 +56,7 @@ import org.vmmagic.unboxed.*;
  * performance properties of MMTk plans.
  */
 @Uninterruptible
-public abstract class Plan implements Constants {
+public abstract class Plan {
   /****************************************************************************
    * Constants
    */
@@ -111,22 +112,22 @@ public abstract class Plan implements Constants {
   public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
-  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", VMRequest.create());
+  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", VMRequest.discontiguous());
 
   /** All meta data that is used by MMTk is allocated (and accounted for) in the meta data space. */
-  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", VMRequest.create());
+  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", VMRequest.discontiguous());
 
   /** Large objects are allocated into a special large object space. */
-  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", VMRequest.create());
+  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", VMRequest.discontiguous());
 
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
-  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", VMRequest.create());
+  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", VMRequest.discontiguous());
 
   /** Space used to allocate objects that cannot be moved. we do not need a large space as the LOS is non-moving. */
-  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", VMRequest.create());
+  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", VMRequest.discontiguous());
 
-  public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", VMRequest.create()) : null;
-  public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", VMRequest.create()) : null;
+  public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", VMRequest.discontiguous()) : null;
+  public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", VMRequest.discontiguous()) : null;
 
   public static int pretenureThreshold = Integer.MAX_VALUE;
 
@@ -175,6 +176,7 @@ public abstract class Plan implements Constants {
     Options.debugAddress = new DebugAddress();
     Options.perfEvents = new PerfEvents();
     Options.useReturnBarrier = new UseReturnBarrier();
+    Options.useShortStackScans = new UseShortStackScans();
     Options.threads = new Threads();
     Options.cycleTriggerThreshold = new CycleTriggerThreshold();
     Map.finalizeStaticSpaceMap();
@@ -182,7 +184,7 @@ public abstract class Plan implements Constants {
 
     // Determine the default collector context.
     Class<? extends Plan> mmtkPlanClass = this.getClass().asSubclass(Plan.class);
-    while(!mmtkPlanClass.getName().startsWith("org.mmtk.plan")) {
+    while (!mmtkPlanClass.getName().startsWith("org.mmtk.plan")) {
       mmtkPlanClass = mmtkPlanClass.getSuperclass().asSubclass(Plan.class);
     }
     String contextClassName = mmtkPlanClass.getName() + "Collector";
@@ -191,7 +193,7 @@ public abstract class Plan implements Constants {
       mmtkCollectorClass = Class.forName(contextClassName).asSubclass(ParallelCollector.class);
     } catch (Throwable t) {
       t.printStackTrace();
-      System.exit(-1);
+      System.exit(EXIT_CODE_REFLECTION_FAILURE);
     }
     defaultCollectorContext = mmtkCollectorClass;
   }
@@ -228,7 +230,7 @@ public abstract class Plan implements Constants {
     if (Options.verbose.getValue() > 3) VM.config.printConfig();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
-    pretenureThreshold = (int) ((Options.nurserySize.getMaxNursery()<<LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+    pretenureThreshold = (int) ((Options.nurserySize.getMaxNursery() << LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
   }
 
   /**
@@ -237,15 +239,102 @@ public abstract class Plan implements Constants {
    */
   @Interruptible
   public void enableCollection() {
-    // Make sure that if we have not explicitly set threads, then we use the right default.
-    Options.threads.updateDefaultValue(VM.collection.getDefaultThreads());
+    int actualThreadCount = determineThreadCount();
 
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(actualThreadCount == VM.activePlan.collectorCount(),
+          "Actual thread count does not match collector count from active plan.");
+    }
+
+    preCollectorSpawn();
+
+    spawnCollectorThreads(actualThreadCount);
+  }
+
+  /**
+   * Determines the number of threads that will be used for collection.<p>
+   *
+   * Collectors that need fine-grained control over the number of spawned collector
+   * threads may override this method. Subclasses must ensure that the return value
+   * of this method is consistent with the number of collector threads in
+   * the active plan.
+   *
+   * @return number of threads to be used for collection
+   * @see PlanConstraints#maxNumGCThreads() setting only the maximum number
+   *  of collectors
+   */
+  @Interruptible("Options methods and Math.min are interruptible")
+  protected int determineThreadCount() {
+    int defaultThreadCount = VM.collection.getDefaultThreads();
+    int maxThreadCount = VM.activePlan.constraints().maxNumGCThreads();
+    int safeDefaultValue = Math.min(defaultThreadCount, maxThreadCount);
+
+    // Make sure that if we have not explicitly set threads, then we use the right default.
+    if (Options.verbose.getValue() > 0) {
+        Log.write("Setting default thread count for MMTk to minimum of ");
+        Log.write("default thread count ");
+        Log.write(defaultThreadCount);
+        Log.write(" and maximal thread count ");
+        Log.write(maxThreadCount);
+        Log.write(" supported by current GC plan.");
+        Log.writeln();
+        Log.write("New default thread count value is ");
+        Log.write(safeDefaultValue);
+        Log.writeln();
+    }
+    Options.threads.updateDefaultValue(safeDefaultValue);
+
+    int desiredThreadCount = Options.threads.getValue();
+    int actualThreadCount = Math.min(desiredThreadCount, maxThreadCount);
+    if (Options.verbose.getValue() > 0) {
+      Log.write("Setting actual thread count for MMTk to minimum of ");
+      Log.write("desired thread count ");
+      Log.write(desiredThreadCount);
+      Log.write(" and maximal thread count ");
+      Log.write(maxThreadCount);
+      Log.write(" supported by current GC plan.");
+      Log.writeln();
+      Log.write("New actual thread count is ");
+      Log.write(actualThreadCount);
+      Log.writeln();
+    }
+    Options.threads.setValue(actualThreadCount);
+
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(actualThreadCount > 0,
+          "Determining the number of gc threads yieled a result <= 0");
+    }
+
+    return actualThreadCount;
+  }
+
+  /**
+   * Prepares for spawning of collectors.<p>
+   *
+   * This is a good place to do initialization work that depends on
+   * options that are only known at runtime. Collectors must keep allocation
+   * to a minimum because collection is not yet enabled.
+   */
+  @Interruptible
+  protected void preCollectorSpawn() {
+    // most collectors do not need to do any work here
+  }
+
+  /**
+   * Spawns the collector threads.<p>
+   *
+   * Collection is enabled after this method returns.
+   *
+   * @param numThreads the number of collector threads to spawn
+   */
+  @Interruptible("Spawning collector threads requires allocation")
+  protected void spawnCollectorThreads(int numThreads) {
     // Create our parallel workers
-    parallelWorkers.initGroup(Options.threads.getValue(), defaultCollectorContext);
+    parallelWorkers.initGroup(numThreads, defaultCollectorContext);
 
     // Create the concurrent worker threads.
     if (VM.activePlan.constraints().needsConcurrentWorkers()) {
-      concurrentWorkers.initGroup(Options.threads.getValue(), defaultCollectorContext);
+      concurrentWorkers.initGroup(numThreads, defaultCollectorContext);
     }
 
     // Create our control thread.
@@ -297,10 +386,28 @@ public abstract class Plan implements Constants {
    * a boot time.
    *
    * @param reference the reference value that is to be stored
-   * @return The raw value to be
+   * @return The raw value to be stored
    */
   public Word bootTimeWriteBarrier(Word reference) {
     return reference;
+  }
+
+  /**
+   * Performs any required initialization of the GC portion of the header.
+   * Called for objects created at boot time.
+   *
+   * @param object the Address representing the storage to be initialized
+   * @param typeRef the type reference for the instance being created
+   * @param size the number of bytes allocated by the GC system for
+   * this object.
+   * @return The new value of the status word
+   */
+  public byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
+    if (HeaderByte.NEEDS_UNLOGGED_BIT) {
+      return HeaderByte.UNLOGGED_BIT;
+    } else {
+      return 0;
+    }
   }
 
   /****************************************************************************
@@ -482,8 +589,11 @@ public abstract class Plan implements Constants {
     if (gcStatus == NOT_IN_GC) {
       /* From NOT_IN_GC to any phase */
       stacksPrepared = false;
+      // Need to call this method to get a correct collection
+      // count (which we need for JMX). This call won't cause
+      // gathering of additional stats unless stats are enabled.
+      Stats.startGC();
       if (Stats.gatheringStats()) {
-        Stats.startGC();
         VM.activePlan.global().printPreStats();
       }
     }
@@ -884,11 +994,6 @@ public abstract class Plan implements Constants {
     return false;
   }
 
-  /**
-   * Log a message from within 'poll'
-   * @param space
-   * @param message
-   */
   protected void logPoll(Space space, String message) {
     if (Options.verbose.getValue() >= 5) {
       Log.write("  [POLL] ");
@@ -968,13 +1073,14 @@ public abstract class Plan implements Constants {
    */
 
   /**
-   * Register specialized methods.
+   * Registers specialized methods.
    */
   @Interruptible
   protected void registerSpecializedMethods() {}
 
   /**
-   * Get the specialized scan with the given id.
+   * @param id the id of the specialized scan class
+   * @return the specialized scan with the given id
    */
   public final Class<?> getSpecializedScanClass(int id) {
     return TransitiveClosure.getSpecializedScanClass(id);

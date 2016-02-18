@@ -15,9 +15,8 @@ package org.jikesrvm.compilers.opt.ir.ppc;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
@@ -28,7 +27,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *
  * @see Register
  */
-public abstract class RegisterPool extends GenericRegisterPool {
+public final class RegisterPool extends GenericRegisterPool {
 
   /**
    * Initializes a new register pool for the method meth.
@@ -45,27 +44,16 @@ public abstract class RegisterPool extends GenericRegisterPool {
    * @return the JTOC register
    */
   public Register getJTOC() {
-    return physical.getJTOC();
+      return ((PhysicalRegisterSet)physical).getJTOC();
   }
 
-  /**
-   * Get a temporary that represents the JTOC register (as an Address)
-   *
-   * @param ir
-   * @param s
-   * @return the temp
-   */
-  public RegisterOperand makeJTOCOp(IR ir, Instruction s) {
+  @Override
+  public Operand makeJTOCOp() {
     return new RegisterOperand(getJTOC(), TypeReference.Address);
   }
 
-  /**
-   * Get a temporary that represents the JTOC register (as an Object)
-   *
-   * @return the temp
-   */
-  public RegisterOperand makeTocOp() {
+  @Override
+  public Operand makeTocOp() {
     return new RegisterOperand(getJTOC(), TypeReference.JavaLangObject);
   }
-
 }

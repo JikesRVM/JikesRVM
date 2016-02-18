@@ -13,6 +13,7 @@
 package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
@@ -20,7 +21,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.LineReuseRatio;
 import org.mmtk.utility.options.Options;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.ForwardingWord;
 import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.Log;
@@ -42,7 +42,7 @@ import org.vmmagic.unboxed.*;
  *
  */
 @Uninterruptible
-public final class ImmixSpace extends Space implements Constants {
+public final class ImmixSpace extends Space {
 
   /****************************************************************************
    *
@@ -68,8 +68,8 @@ public final class ImmixSpace extends Space implements Constants {
   private boolean inCollection;
   private int linesConsumed = 0;
 
-  private Lock mutatorLock = VM.newLock(getName()+"mutator");
-  private Lock gcLock = VM.newLock(getName()+"gc");
+  private final Lock mutatorLock = VM.newLock(getName() + "mutator");
+  private final Lock gcLock = VM.newLock(getName() + "gc");
 
   private Address allocBlockCursor = Address.zero();
   private Address allocBlockSentinel = Address.zero();
@@ -118,6 +118,11 @@ public final class ImmixSpace extends Space implements Constants {
     defrag = new Defrag((FreeListPageResource) pr);
   }
 
+  @Interruptible
+  public void initializeDefrag() {
+    defrag.prepareHistograms();
+  }
+
   /****************************************************************************
    *
    * Global prepare and release
@@ -125,6 +130,8 @@ public final class ImmixSpace extends Space implements Constants {
 
   /**
    * Prepare for a new collection increment.
+   *
+   * @param majorGC whether the collection will be a full heap collection
    */
   public void prepare(boolean majorGC) {
     if (majorGC) {
@@ -135,13 +142,12 @@ public final class ImmixSpace extends Space implements Constants {
     chunkMap.reset();
     defrag.prepare(chunkMap, this);
     inCollection = true;
-
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(VM.activePlan.collectorCount() <= MAX_COLLECTORS);
   }
 
   /**
    * A new collection increment has completed.  Release global resources.
-   * @param majorGC TODO
+   * @param majorGC whether the collection was a full heap collection
+   * @return whether defragmentation occurred
    */
   public boolean release(boolean majorGC) {
     boolean didDefrag = defrag.inDefrag();
@@ -223,7 +229,7 @@ public final class ImmixSpace extends Space implements Constants {
    * @return The number of pages allocated since the last collection
    */
   public int getPagesAllocated() {
-    return linesConsumed>>(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_LINE);
+    return linesConsumed >> (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
   }
 
   /**
@@ -251,7 +257,10 @@ public final class ImmixSpace extends Space implements Constants {
    *
    * @param hot True if the requesting context is for hot allocations (used for
    * allocations from high allocation volume sites).
-   * @return The pointer into the alloc table containing usable blocks.
+   * @param copy TODO needs documentation
+   * @param lineUseCount TODO needs documentation
+   * @return the pointer into the alloc table containing usable blocks, {@code null}
+   *  if no usable blocks are available
    */
   public Address getSpace(boolean hot, boolean copy, int lineUseCount) {
     Address rtn;
@@ -271,7 +280,7 @@ public final class ImmixSpace extends Space implements Constants {
       Block.setBlockAsInUse(rtn);
       Chunk.updateHighWater(rtn);
       if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-        Log.write("gs["); Log.write(rtn); Log.write(" -> "); Log.write(rtn.plus(BYTES_IN_BLOCK-1)); Log.write(" copy: "); Log.write(copy); Log.writeln("]");
+        Log.write("gs["); Log.write(rtn); Log.write(" -> "); Log.write(rtn.plus(BYTES_IN_BLOCK - 1)); Log.write(" copy: "); Log.write(copy); Log.writeln("]");
       }
     }
 
@@ -356,6 +365,7 @@ public final class ImmixSpace extends Space implements Constants {
   * Perform any required post allocation initialization
   *
   * @param object the object ref to the storage to be initialized
+  * @param bytes size of the allocated object in bytes
   */
   @Inline
   public void postAlloc(ObjectReference object, int bytes) {
@@ -371,6 +381,7 @@ public final class ImmixSpace extends Space implements Constants {
   * a copying GC.
   *
   * @param object the object ref to the storage to be initialized
+  * @param bytes size of the copied object in bytes
   * @param majorGC Is this copy happening during a major gc?
   */
   @Inline
@@ -496,6 +507,7 @@ public final class ImmixSpace extends Space implements Constants {
    * @param trace The trace performing the transitive closure
    * @param object The object to be traced.
    * @param allocator The allocator to which any copying should be directed
+   * @param nurseryCollection whether the current collection is a nursery collection
    * @return Either the object or a forwarded object, if it was forwarded.
    */
   @Inline
@@ -637,11 +649,11 @@ public final class ImmixSpace extends Space implements Constants {
    */
   private int getUsableLinesInRegion(Address start, Address end, int[] spillAvailHistogram) {
     int usableLines = 0;
-    Address blockCursor = Chunk.isAligned(start) ? start.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK) : start;
+    Address blockCursor = Chunk.isAligned(start) ? start.plus(Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK) : start;
     Address blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
     Address chunkCursor = Chunk.align(blockCursor);
-    if (Chunk.getByteOffset(end) < Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK)
-      end = Chunk.align(end).plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
+    if (Chunk.getByteOffset(end) < Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK)
+      end = Chunk.align(end).plus(Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK);
 
     for (int i = 0; i <= MAX_CONSV_SPILL_COUNT; i++) spillAvailHistogram[i] = 0;
 
@@ -659,7 +671,7 @@ public final class ImmixSpace extends Space implements Constants {
       if (blockCursor.GT(highwater)) {
         chunkCursor = chunkMap.nextChunk(chunkCursor);
         if (chunkCursor.isZero()) break;
-        blockCursor = chunkCursor.plus(Chunk.FIRST_USABLE_BLOCK_INDEX<<LOG_BYTES_IN_BLOCK);
+        blockCursor = chunkCursor.plus(Chunk.FIRST_USABLE_BLOCK_INDEX << LOG_BYTES_IN_BLOCK);
         blockStateCursor = Block.getBlockMarkStateAddress(blockCursor);
         highwater = Chunk.getHighWater(chunkCursor);
       } else
@@ -776,12 +788,17 @@ public final class ImmixSpace extends Space implements Constants {
   */
 
   /**
-   *
+   * @param ptr the block's address
+   * @return whether the block has the {@link ImmixConstants#RECYCLE_ALLOC_CHUNK_MASK} flag
    */
   public static boolean isRecycleAllocChunkAligned(Address ptr) {
     return ptr.toWord().and(RECYCLE_ALLOC_CHUNK_MASK).EQ(Word.zero());
   }
 
-  ChunkList getChunkMap() { return chunkMap; }
-  Defrag getDefrag() { return defrag; }
+  ChunkList getChunkMap() {
+    return chunkMap;
+  }
+  Defrag getDefrag() {
+    return defrag;
+  }
 }

@@ -1,0 +1,8 @@
+#####
+# LONG_IFCMP
+#####
+stm:	LONG_IFCMP(r,rlv)
+30
+EMIT_INSTRUCTION
+EMIT(P(p)); //  Leave for ComplexLIR2MIRExpansion
+

@@ -158,6 +158,9 @@ public abstract class CompilerPhase {
   /**
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
+   *
+   * @param klass the compiler phase to construct
+   * @return a no-argument constructor for the compiler phase
    */
   protected static Constructor<CompilerPhase> getCompilerPhaseConstructor(Class<? extends CompilerPhase> klass) {
     return getCompilerPhaseConstructor(klass, null);
@@ -166,6 +169,10 @@ public abstract class CompilerPhase {
   /**
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
+   *
+   * @param phaseType the class for the compiler phase
+   * @param initTypes the argument types for the constructor
+   * @return a constructor for the compiler phase
    */
   protected static Constructor<CompilerPhase> getCompilerPhaseConstructor(Class<? extends CompilerPhase> phaseType,
                                                                               Class<?>[] initTypes) {
@@ -179,9 +186,6 @@ public abstract class CompilerPhase {
     }
   }
 
-  /**
-   * Set the containing optimization plan element for this phase
-   */
   public final void setContainer(OptimizationPlanAtomicElement atomEl) {
     container = atomEl;
   }
@@ -200,7 +204,7 @@ public abstract class CompilerPhase {
         //}
       }
     }
-    if (ir.options.PRINT_PHASES) VM.sysWrite(getName() + " (" + ir.method.toString()+ ")");
+    if (ir.options.PRINT_PHASES) VM.sysWrite(getName() + " (" + ir.method.toString() + ")");
 
     perform(ir);                // DOIT!!
 
@@ -224,6 +228,18 @@ public abstract class CompilerPhase {
    * @param tag a String to use in the start/end message of the IR dump
    */
   public static void dumpIR(IR ir, String tag) {
+    if (ir.options.PRINT_VISUALIZATION) {
+      try {
+        CFGVisualization visualization = new CFGVisualization(ir, tag);
+        visualization.visualizeCFG();
+        return;
+      } catch (Exception e) {
+        System.out.println("Error generating IR visualization: ");
+        e.printStackTrace(System.out);
+        System.out.println("Generating text dump instead ...");
+      }
+    }
+
     dumpIR(ir, tag, false);
   }
 

@@ -32,7 +32,12 @@ import org.vmmagic.pragma.Uninterruptible;
 public class Latch {
   private final Monitor schedLock = new Monitor();
   private boolean open;
-  /** Create a new latch, with the given open/closed state. */
+
+  /**
+   * Create a new latch, with the given open/closed state.
+   * @param open whether the latch is open or closed at
+   *  the beginning
+   */
   public Latch(boolean open) {
     this.open = open;
   }
@@ -43,7 +48,7 @@ public class Latch {
    */
   public void openWithHandshake() {
     schedLock.lockWithHandshake();
-    open=true;
+    open = true;
     schedLock.broadcast();
     schedLock.unlock();
   }
@@ -55,7 +60,7 @@ public class Latch {
   @Uninterruptible
   public void openNoHandshake() {
     schedLock.lockNoHandshake();
-    open=true;
+    open = true;
     schedLock.broadcast();
     schedLock.unlock();
   }
@@ -65,7 +70,7 @@ public class Latch {
    */
   public void closeWithHandshake() {
     schedLock.lockWithHandshake();
-    open=false;
+    open = false;
     schedLock.unlock();
   }
   /**
@@ -89,7 +94,7 @@ public class Latch {
     while (!open) {
       schedLock.waitWithHandshake();
     }
-    open=false;
+    open = false;
     schedLock.unlock();
   }
 }

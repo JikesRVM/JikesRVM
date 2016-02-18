@@ -12,6 +12,8 @@
  */
 package org.mmtk.plan.generational;
 
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
+
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
@@ -55,7 +57,6 @@ public abstract class Gen extends StopTheWorld {
   /**
    *
    */
-  public static final float DEFAULT_PRETENURE_THRESHOLD_FRACTION = 0.5f; // if object is bigger than this fraction of nursery, pretenure to LOS
   protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
   protected static final float MATURE_FRACTION = 0.5f; // est yield
   private static final float WORST_CASE_COPY_EXPANSION = 1.5f; // worst case for addition of one word overhead due to address based hashing
@@ -98,7 +99,7 @@ public abstract class Gen extends StopTheWorld {
   public static final SizeCounter nurseryCons;
 
   /* The nursery space is where all new objects are allocated by default */
-  private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(NURSERY_VM_FRACTION, true);
+  private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.discontiguous() : VMRequest.highFraction(NURSERY_VM_FRACTION);
   public static final CopySpace nurserySpace = new CopySpace("nursery", false, vmRequest);
 
   public static final int NURSERY = nurserySpace.getDescriptor();
@@ -175,7 +176,7 @@ public abstract class Gen extends StopTheWorld {
 
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      if (traceFullHeap()){
+      if (traceFullHeap()) {
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
@@ -186,6 +187,12 @@ public abstract class Gen extends StopTheWorld {
         remsetPool.clearDeque(1);
         arrayRemsetPool.clearDeque(2);
       }
+      return;
+    }
+
+    if (phaseId == STACK_ROOTS) {
+      VM.scanning.notifyInitialThreadScanComplete(!traceFullHeap());
+      setGCStatus(GC_PROPER);
       return;
     }
 
@@ -220,7 +227,7 @@ public abstract class Gen extends StopTheWorld {
     int availableNurseryPages = Options.nurserySize.getMaxNursery() - nurserySpace.reservedPages();
 
     /* periodically recalculate nursery pretenure threshold */
-    Plan.pretenureThreshold = (int) ((availableNurseryPages<<LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+    Plan.pretenureThreshold = (int) ((availableNurseryPages << LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
 
     if (availableNurseryPages <= 0) {
       return true;

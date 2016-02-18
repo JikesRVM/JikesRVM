@@ -26,11 +26,11 @@ class Allocation {
   public static void main(String[] args) {
 
     String returnObj;
-    Class classObj=null;
+    Class classObj = null;
 
     System.loadLibrary("Allocation");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -80,7 +80,7 @@ class Allocation {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
@@ -21,7 +20,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * pool, there is only one instance of an Register with each number.
  *
  * @see RegisterOperand
- * @see org.jikesrvm.ArchitectureSpecificOpt.RegisterPool
+ * @see org.jikesrvm.compilers.opt.ir.GenericRegisterPool GenericRegisterPool
  */
 public final class Register {
 
@@ -31,7 +30,7 @@ public final class Register {
   public final int number;
 
   /**
-   * Encoding of register properties & scratch bits
+   * Encoding of register properties &amp; scratch bits
    */
   private int flags;
 
@@ -74,75 +73,145 @@ public final class Register {
   public static final int LONG_TYPE = LONG >>> TYPE_SHIFT;
   public static final int VALIDATION_TYPE = VALIDATION >>> TYPE_SHIFT;
 
-  public boolean isTemp() { return (flags & LOCAL) == 0; }
+  public boolean isTemp() {
+    return (flags & LOCAL) == 0;
+  }
 
-  public boolean isLocal() { return (flags & LOCAL) != 0; }
+  public boolean isLocal() {
+    return (flags & LOCAL) != 0;
+  }
 
-  public boolean spansBasicBlock() { return (flags & SPAN_BASIC_BLOCK) != 0; }
+  public boolean spansBasicBlock() {
+    return (flags & SPAN_BASIC_BLOCK) != 0;
+  }
 
-  public boolean isSSA() { return (flags & SSA) != 0; }
+  public boolean isSSA() {
+    return (flags & SSA) != 0;
+  }
 
-  public boolean seenUse() { return (flags & SEEN_USE) != 0; }
+  public boolean seenUse() {
+    return (flags & SEEN_USE) != 0;
+  }
 
-  public boolean isPhysical() { return (flags & PHYSICAL) != 0; }
+  public boolean isPhysical() {
+    return (flags & PHYSICAL) != 0;
+  }
 
-  public boolean isSymbolic() { return (flags & PHYSICAL) == 0; }
+  public boolean isSymbolic() {
+    return (flags & PHYSICAL) == 0;
+  }
 
-  public boolean isAddress() { return (flags & ADDRESS) != 0; }
+  public boolean isAddress() {
+    return (flags & ADDRESS) != 0;
+  }
 
-  public boolean isInteger() { return (flags & INTEGER) != 0; }
+  public boolean isInteger() {
+    return (flags & INTEGER) != 0;
+  }
 
-  public boolean isLong() { return (flags & LONG) != 0; }
+  public boolean isLong() {
+    return (flags & LONG) != 0;
+  }
 
-  public boolean isNatural() { return (flags & (INTEGER | LONG | ADDRESS)) != 0; }
+  public boolean isNatural() {
+    return (flags & (INTEGER | LONG | ADDRESS)) != 0;
+  }
 
-  public boolean isFloat() { return (flags & FLOAT) != 0; }
+  public boolean isFloat() {
+    return (flags & FLOAT) != 0;
+  }
 
-  public boolean isDouble() { return (flags & DOUBLE) != 0; }
+  public boolean isDouble() {
+    return (flags & DOUBLE) != 0;
+  }
 
-  public boolean isFloatingPoint() { return (flags & (FLOAT | DOUBLE)) != 0; }
+  public boolean isFloatingPoint() {
+    return (flags & (FLOAT | DOUBLE)) != 0;
+  }
 
-  public boolean isCondition() { return (flags & CONDITION) != 0; }
+  public boolean isCondition() {
+    return (flags & CONDITION) != 0;
+  }
 
-  public boolean isValidation() { return (flags & VALIDATION) != 0; }
+  public boolean isValidation() {
+    return (flags & VALIDATION) != 0;
+  }
 
-  public boolean isExcludedLiveA() { return (flags & EXCLUDE_LIVEANAL) != 0; }
+  public boolean isExcludedLiveA() {
+    return (flags & EXCLUDE_LIVEANAL) != 0;
+  }
 
-  public int getType() { return (flags & TYPE_MASK) >>> TYPE_SHIFT; }
+  public int getType() {
+    return (flags & TYPE_MASK) >>> TYPE_SHIFT;
+  }
 
-  public boolean isVolatile() { return (flags & VOLATILE) != 0; }
+  public boolean isVolatile() {
+    return (flags & VOLATILE) != 0;
+  }
 
-  public boolean isNonVolatile() { return (flags & NON_VOLATILE) != 0; }
+  public boolean isNonVolatile() {
+    return (flags & NON_VOLATILE) != 0;
+  }
 
-  public void setLocal() { flags |= LOCAL; }
+  public void setLocal() {
+    flags |= LOCAL;
+  }
 
-  public void setSpansBasicBlock() { flags |= SPAN_BASIC_BLOCK; }
+  public void setSpansBasicBlock() {
+    flags |= SPAN_BASIC_BLOCK;
+  }
 
-  public void setSSA() { flags |= SSA; }
+  public void setSSA() {
+    flags |= SSA;
+  }
 
-  public void setSeenUse() { flags |= SEEN_USE; }
+  public void setSeenUse() {
+    flags |= SEEN_USE;
+  }
 
-  public void setPhysical() { flags |= PHYSICAL; }
+  public void setPhysical() {
+    flags |= PHYSICAL;
+  }
 
-  public void setAddress() { flags |= ADDRESS; }
+  public void setAddress() {
+    flags |= ADDRESS;
+  }
 
-  public void setInteger() { flags |= INTEGER; }
+  public void setInteger() {
+    flags |= INTEGER;
+  }
 
-  public void setFloat() { flags |= FLOAT; }
+  public void setFloat() {
+    flags |= FLOAT;
+  }
 
-  public void setDouble() { flags |= DOUBLE; }
+  public void setDouble() {
+    flags |= DOUBLE;
+  }
 
-  public void setLong() { flags |= LONG; }
+  public void setLong() {
+    flags |= LONG;
+  }
 
-  public void setCondition() { flags = (flags & ~TYPE_MASK) | CONDITION; }
+  public void setCondition() {
+    flags = (flags & ~TYPE_MASK) | CONDITION;
+  }
 
-  public void setValidation() { flags |= VALIDATION; }
+  public void setValidation() {
+    flags |= VALIDATION;
+  }
 
-  public void setExcludedLiveA() { flags |= EXCLUDE_LIVEANAL; }
+  public void setExcludedLiveA() {
+    flags |= EXCLUDE_LIVEANAL;
+  }
 
-  public void setVolatile() { flags |= VOLATILE; }
+  public void setVolatile() {
+    flags |= VOLATILE;
+  }
 
-  public void setNonVolatile() { flags |= NON_VOLATILE; }
+  public void setNonVolatile() {
+    flags |= NON_VOLATILE;
+  }
 
   public void putSSA(boolean a) {
     if (a) {
@@ -160,43 +229,56 @@ public final class Register {
     }
   }
 
-  public void clearLocal() { flags &= ~LOCAL; }
-
-  public void clearSpansBasicBlock() { flags &= ~SPAN_BASIC_BLOCK; }
-
-  public void clearSSA() { flags &= ~SSA; }
-
-  public void clearSeenUse() { flags &= ~SEEN_USE; }
-
-  public void clearPhysical() { flags &= ~PHYSICAL; }
-
-  public void clearAddress() { flags &= ~ADDRESS; }
-
-  public void clearInteger() { flags &= ~INTEGER; }
-
-  public void clearFloat() { flags &= ~FLOAT; }
-
-  public void clearDouble() { flags &= ~DOUBLE; }
-
-  public void clearLong() { flags &= ~LONG; }
-
-  public void clearCondition() { flags &= ~CONDITION; }
-
-  public void clearType() { flags &= ~TYPE_MASK; }
-
-  public void clearValidation() { flags &= ~VALIDATION; }
-
-  public Object scratchObject;
-
-  /**
-   * Used in dependence graph construction.
-   */
-  public void setdNode(org.jikesrvm.compilers.opt.depgraph.DepGraphNode a) {
-    scratchObject = a;
+  public void clearLocal() {
+    flags &= ~LOCAL;
   }
 
-  public org.jikesrvm.compilers.opt.depgraph.DepGraphNode dNode() {
-    return (org.jikesrvm.compilers.opt.depgraph.DepGraphNode) scratchObject;
+  public void clearSpansBasicBlock() {
+    flags &= ~SPAN_BASIC_BLOCK;
+  }
+
+  public void clearSSA() {
+    flags &= ~SSA;
+  }
+
+  public void clearSeenUse() {
+    flags &= ~SEEN_USE;
+  }
+
+  public void clearPhysical() {
+    flags &= ~PHYSICAL;
+  }
+
+  public void clearAddress() {
+    flags &= ~ADDRESS;
+  }
+
+  public void clearInteger() {
+    flags &= ~INTEGER;
+  }
+
+  public void clearFloat() {
+    flags &= ~FLOAT;
+  }
+
+  public void clearDouble() {
+    flags &= ~DOUBLE;
+  }
+
+  public void clearLong() {
+    flags &= ~LONG;
+  }
+
+  public void clearCondition() {
+    flags &= ~CONDITION;
+  }
+
+  public void clearType() {
+    flags &= ~TYPE_MASK;
+  }
+
+  public void clearValidation() {
+    flags &= ~VALIDATION;
   }
 
   /**
@@ -207,6 +289,9 @@ public final class Register {
 
   /**
    * This accessor is only valid when register lists are valid
+   *
+   * @return the first definition of this register or {@code null} if
+   *  no def list is available
    */
   public Instruction getFirstDef() {
     if (defList == null) {
@@ -221,17 +306,12 @@ public final class Register {
    */
   public int useCount;
 
-  /**
-   * A field optimizations can use as they choose
-   */
-  public int scratch;
-
   public Register(int Number) {
     number = Number;
   }
 
   public int getNumber() {
-    int start = PhysicalRegisterSet.getSize();
+    int start = GenericPhysicalRegisterSet.getSize();
     return number - start;
   }
 
@@ -241,7 +321,7 @@ public final class Register {
   @Override
   public String toString() {
     if (isPhysical()) {
-      return PhysicalRegisterSet.getName(number);
+      return GenericPhysicalRegisterSet.getName(number);
     }
 
     // Set s to descriptive letter for register type
@@ -345,10 +425,6 @@ public final class Register {
     return mapsToRegister;
   }
 
-  public int getSpillAllocated() {
-    return scratch;
-  }
-
   @Override
   public int hashCode() {
     return number;
@@ -356,11 +432,17 @@ public final class Register {
 
   /* inlined behavior of DoublyLinkedListElement */ Register next, prev;
 
-  public Register getNext() { return next; }
+  public Register getNext() {
+    return next;
+  }
 
-  void setNext(Register e) { next = e; }
+  void setNext(Register e) {
+    next = e;
+  }
 
-  public Register getPrev() { return prev; }
+  public Register getPrev() {
+    return prev;
+  }
 
   public void linkWithNext(Register Next) {
     next = Next;
@@ -379,4 +461,5 @@ public final class Register {
     return Next;
   }
   /* end of inlined behavior */
+
 }

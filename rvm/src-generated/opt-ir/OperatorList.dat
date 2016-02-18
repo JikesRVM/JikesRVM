@@ -472,7 +472,7 @@ none
 # memory fence
 FENCE
 Empty
-memAsLoad | memAsStore | release
+memAsLoad | memAsStore | release | acquire
 
 
 
@@ -1673,6 +1673,57 @@ none
 LOWTABLESWITCH
 LowTableSwitch
 branch
+
+
+
+###################
+# Operators only needed for BURS rules, not real instructions
+###################
+ADDRESS_CONSTANT
+Unassigned
+none
+
+
+
+####################
+INT_CONSTANT
+Unassigned
+none
+
+
+
+####################
+LONG_CONSTANT
+Unassigned
+none
+
+
+
+####################
+REGISTER
+Unassigned
+none
+
+
+
+####################
+OTHER_OPERAND
+Unassigned
+none
+
+
+
+####################
+NULL
+Unassigned
+none
+
+
+
+####################
+BRANCH_TARGET
+Unassigned
+none
 
 
 

@@ -54,10 +54,9 @@
     <attribute name="script"/>
     <attribute name="tag"/>
     <attribute name="plan" default="org.mmtk.plan.nogc.NoGC"/>
-    <attribute name="heap" default="3m"/>
     <attribute name="scheduler" default="JAVA"/>
     <attribute name="gcevery" default="NONE"/>
-    <attribute name="collectors" default="2"/>
+    <attribute name="threads" default="2"/>
     <attribute name="bits" default="32"/>
     <sequential>
       <property name="test.@{tag}.@{script}.output.file" value="${output.dir}/@{tag}.@{script}.txt"/>
@@ -70,11 +69,10 @@
           <pathelement location="${build.mmtk-harness.jar}"/>
         </classpath>
         <arg value="${test.script.path}/@{script}.script"/>
-        <arg value="initHeap=@{heap}"/>
-	    <arg value="scheduler=@{scheduler}"/>
-	    <arg value="plan=@{plan}"/>
-	    <arg value="gcEvery=@{gcevery}"/>
-        <arg value="collectors=@{collectors}"/>
+        <arg value="scheduler=@{scheduler}"/>
+        <arg value="plan=@{plan}"/>
+        <arg value="gcEvery=@{gcevery}"/>
+        <arg value="threads=@{threads}"/>
         <arg value="bits=@{bits}"/>
       </java>
       <findStatistic tag="@{tag}" file="${test.@{tag}.@{script}.output.file}" execution="@{script}" pattern="SUCCESS" key="success"/>
@@ -89,21 +87,22 @@
   <macrodef name="runAllScripts">
     <attribute name="tag"/>
     <attribute name="plan"/>
+    <attribute name="bits" default="32"/>
     <sequential>
-      <runTest tag="@{tag}" plan="@{plan}" script="Alignment"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent1"/>      
-      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent2"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="CyclicGarbage"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="FixedLive"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="HashCode"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="LargeObject"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="Lists" heap="5m"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="OutOfMemory"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="Quicksort" heap="5m"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="ReferenceTypes"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="Spawn"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="SpreadAlloc16" heap="16m"/>
-      <runTest tag="@{tag}" plan="@{plan}" script="SpreadAlloc"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="Alignment"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="Concurrent1"/>      
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="Concurrent2"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="CyclicGarbage"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="FixedLive"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="HashCode"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="LargeObject"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="Lists"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="OutOfMemory"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="Quicksort"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="ReferenceTypes"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="Spawn"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="SpreadAlloc16"/>
+      <runTest tag="@{tag}" plan="@{plan}" bits="@{bits}" script="SpreadAlloc"/>
     </sequential>
   </macrodef>
 
@@ -116,7 +115,7 @@
       <runTest tag="@{tag}" plan="@{plan}" script="Concurrent2"/>
       <runTest tag="@{tag}" plan="@{plan}" script="CyclicGarbage"/>
       <runTest tag="@{tag}" plan="@{plan}" script="HashCode"/>
-  	  <runTest tag="@{tag}" plan="@{plan}" script="LargeObject"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="LargeObject"/>
       <runTest tag="@{tag}" plan="@{plan}" script="OutOfMemory"/>
       <runTest tag="@{tag}" plan="@{plan}" script="ReferenceTypes"/>
       <runTest tag="@{tag}" plan="@{plan}" script="Spawn"/>
@@ -128,49 +127,50 @@
     <attribute name="plan"/>
     <attribute name="scheduler" default="JAVA"/>
     <sequential>
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent1" collectors="8"/>      
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent2" collectors="8"/>
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Spawn" collectors="4"/>
-      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="SpreadAlloc16" heap="16m" collectors="16"/>
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent1" threads="8"/>      
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Concurrent2" threads="8"/>
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="Spawn" threads="4"/>
+      <runTest tag="@{tag}" plan="@{plan}" scheduler="@{scheduler}" script="SpreadAlloc16" threads="16"/>
     </sequential>
   </macrodef>
 
   <target name="test" depends="prepare-ant-tasks,ensure-mmtk-harness,init">
     <startResults/>
-
+ 
     <!-- Run all scripts on the main collectors -->
-    <runAllScripts tag="GenImmix"    plan="org.mmtk.plan.generational.immix.GenImmix"/>
-    <runAllScripts tag="GenMS"       plan="org.mmtk.plan.generational.marksweep.GenMS"/>
-    <runAllScripts tag="GenCopy"     plan="org.mmtk.plan.generational.copying.GenCopy"/>
-    <runAllScripts tag="SemiSpace"   plan="org.mmtk.plan.semispace.SS"/>
-    <runAllScripts tag="MarkSweep"   plan="org.mmtk.plan.marksweep.MS"/>
-    <runAllScripts tag="Immix"       plan="org.mmtk.plan.immix.Immix"/>
-    <runAllScripts tag="Poisoned"    plan="org.mmtk.plan.poisoned.Poisoned"/>
-    <runAllScripts tag="PrimitiveWb" plan="org.mmtk.plan.semispace.usePrimitiveWriteBarriers.UsePrimitiveWriteBarriers"/>
+    <runAllScripts tag="GenImmix"    plan="GenImmix"/>
+    <runAllScripts tag="SemiSpace"   plan="SS"/>
+    <runAllScripts tag="MarkSweep"   plan="MS"/>
+    <runAllScripts tag="Immix"       plan="Immix"/>
+    <runAllScripts tag="Poisoned"    plan="Poisoned"/>
+    <runAllScripts tag="PrimitiveWB" plan="PrimitiveWB"/>
 
     <!-- Run the faster scripts on the less mainstream collectors -->
-    <runFastScripts tag="CopyMS-fast"      plan="org.mmtk.plan.marksweep.MS"/>
-    <runFastScripts tag="RC-fast"          plan="org.mmtk.plan.refcount.fullheap.RC"/>
-    <runFastScripts tag="GenRC-fast"       plan="org.mmtk.plan.refcount.generational.GenRC"/>
-    <runFastScripts tag="MC-fast"          plan="org.mmtk.plan.markcompact.MC"/>
-    <runFastScripts tag="StickyImmix-fast" plan="org.mmtk.plan.stickyimmix.StickyImmix"/>
-    <runFastScripts tag="StickyMS-fast"    plan="org.mmtk.plan.stickyms.StickyMS"/>
+    <runFastScripts tag="GenMS"            plan="GenMS"/>
+    <runFastScripts tag="GenCopy"          plan="GenCopy"/>
+    <runFastScripts tag="CopyMS-fast"      plan="MS"/>
+    <runFastScripts tag="RC-fast"          plan="RC"/>
+    <runFastScripts tag="GenRC-fast"       plan="GenRC"/>
+    <runFastScripts tag="MC-fast"          plan="MC"/>
+    <runFastScripts tag="StickyImmix-fast" plan="StickyImmix"/>
+    <runFastScripts tag="StickyMS-fast"    plan="StickyMS"/>
     
     <!-- Run the multithreaded scripts on selected collectors -->
-    <runMtScripts tag="GenImmix-mt"    plan="org.mmtk.plan.generational.immix.GenImmix"/>
-    <runMtScripts tag="GenMS-mt"       plan="org.mmtk.plan.generational.marksweep.GenMS"/>
-    <runMtScripts tag="SemiSpace-mt"   plan="org.mmtk.plan.semispace.SS"/>
-    <runMtScripts tag="MarkSweep-mt"   plan="org.mmtk.plan.marksweep.MS"/>
-    <runMtScripts tag="Immix-mt"       plan="org.mmtk.plan.immix.Immix"/>
+    <runMtScripts tag="GenImmix-mt"    plan="GenImmix"/>
+    <runMtScripts tag="GenMS-mt"       plan="GenMS"/>
+    <runMtScripts tag="SemiSpace-mt"   plan="SS"/>
+    <runMtScripts tag="MarkSweep-mt"   plan="MS"/>
+    <runMtScripts tag="Immix-mt"       plan="Immix"/>
     
     <!-- Run the multithreaded scripts on selected collectors using the deterministic scheduler -->
-    <runMtScripts tag="GenImmix-dt" scheduler="DETERMINISTIC" plan="org.mmtk.plan.generational.immix.GenImmix"/>
-    <runMtScripts tag="GenMS-dt"    scheduler="DETERMINISTIC" plan="org.mmtk.plan.generational.marksweep.GenMS"/>
-    <finishResults/>
+    <runMtScripts tag="GenImmix-dt" scheduler="DETERMINISTIC" plan="GenImmix"/>
+    <runMtScripts tag="GenMS-dt"    scheduler="DETERMINISTIC" plan="GenMS"/>
     
     <!-- Run all scripts in 64-bit mode on the production collectors -->
-    <runAllScripts tag="GenImmix-64"   bits="64" plan="org.mmtk.plan.generational.immix.GenImmix"/>
-    <runAllScripts tag="GenMS-64"      bits="64" plan="org.mmtk.plan.generational.marksweep.GenMS"/>
+    <runAllScripts tag="GenImmix-64"   bits="64" plan="GenImmix"/>
+    <runAllScripts tag="GenMS-64"      bits="64" plan="GenMS"/>
+    
+    <finishResults/>
   </target>
 
 </project>

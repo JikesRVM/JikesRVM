@@ -121,11 +121,12 @@ public abstract class Factory {
   public abstract ObjectModel newObjectModel();
 
   /**
-   * Create a new ReferenceProcessor instance using the appropriate VM-specific
+   * Creates a new ReferenceProcessor instance using the appropriate VM-specific
    * concrete ReferenceProcessor sub-class.
    *
-   * @see ReferenceProcessor
+   * @param semantics the semantics that the reference processor will use
    * @return A concrete VM-specific ReferenceProcessor instance.
+   * @see ReferenceProcessor
    */
   public abstract ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics);
 
@@ -188,11 +189,13 @@ public abstract class Factory {
   /**
    * Create a new MMTk_Events instance using the appropriate VM-specific
    * concrete MMTk_Events sub-class.
+   *
+   * @return a new MMTK_Events instance
    */
   public abstract MMTk_Events newEvents();
 
   /**
-   * Create a new debug object
+   * @return a newly created debug object
    */
   public abstract Debug newDebug();
 
@@ -262,6 +265,7 @@ public abstract class Factory {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific IntStream instance.
@@ -299,6 +303,7 @@ public abstract class Factory {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific ByteStream instance.
@@ -336,6 +341,7 @@ public abstract class Factory {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific ShortStream instance.

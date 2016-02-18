@@ -38,7 +38,7 @@ public final class YieldCounterListener extends NullListener {
 
   @Override
   public void update(int whereFrom) {
-    if (VM.VerifyAssertions) VM._assert(AosEntrypoints.yieldCountListenerNumYieldsField!=null);
+    if (VM.VerifyAssertions) VM._assert(AosEntrypoints.yieldCountListenerNumYieldsField != null);
     int yp = Synchronization.fetchAndAdd(this, AosEntrypoints.yieldCountListenerNumYieldsField.getOffset(), 1) + 1;
     if (yp == yieldThreshold) {
       totalYields += yp;
@@ -57,9 +57,9 @@ public final class YieldCounterListener extends NullListener {
   @Override
   public void reset() { }
 
-  private int yieldThreshold;
+  private final int yieldThreshold;
   @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"})
 // Accessed via EntryPoints
-  private int numYields = 0;
+  private final int numYields = 0;
   private int totalYields = 0;
 }

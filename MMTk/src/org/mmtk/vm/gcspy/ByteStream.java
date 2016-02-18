@@ -12,13 +12,14 @@
  */
 package org.mmtk.vm.gcspy;
 
+import static org.mmtk.utility.gcspy.StreamConstants.BYTE_TYPE;
+
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.GCspy;
-import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 import org.mmtk.vm.VM;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Set up a GCspy Stream with data type BYTE_TYPE
@@ -30,8 +31,8 @@ import org.vmmagic.pragma.*;
    *
    * Instance variables
    */
-  private byte[] data;          // The stream data
-  private byte defaultValue;    // The default value for the data items
+  private final byte[] data;          // The stream data
+  private final byte defaultValue;    // The default value for the data items
 
 
   /****************************************************************************
@@ -55,6 +56,7 @@ import org.vmmagic.pragma.*;
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    */
   public ByteStream(
          AbstractDriver driver,
@@ -71,7 +73,7 @@ import org.vmmagic.pragma.*;
          Color colour,
          boolean summary) {
 
-    super(driver, StreamConstants.BYTE_TYPE, name,
+    super(driver, BYTE_TYPE, name,
           minValue, maxValue, zeroValue, defaultValue,
           stringPre, stringPost, presentation, paintStyle,
           indexMaxStream, colour, summary);
@@ -125,7 +127,9 @@ import org.vmmagic.pragma.*;
    * @param index the index
    * @param value the increment
    */
-  public void increment(int index, byte value) { data[index] += value; }
+  public void increment(int index, byte value) {
+    data[index] += value;
+  }
 
   @Override
   public void send(int event, int numTiles) {

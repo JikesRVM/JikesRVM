@@ -1,0 +1,322 @@
+# Taken from upstream GNU Classpath commit fafe5baa380e6e792ebb973e5a87199373409eb3 .
+diff --git a/java/text/DateFormatSymbols.java b/java/text/DateFormatSymbols.java
+index 41cf5c2..9d0ace6 100644
+--- a/java/text/DateFormatSymbols.java
++++ b/java/text/DateFormatSymbols.java
+@@ -55,6 +55,10 @@ import java.util.Properties;
+ import java.util.ResourceBundle;
+ import java.util.ServiceLoader;
+ import java.util.TimeZone;
++
++import java.util.concurrent.ConcurrentMap;
++import java.util.concurrent.ConcurrentHashMap;
++
+ import java.util.regex.Pattern;
+ 
+ import java.util.spi.TimeZoneNameProvider;
+@@ -72,14 +76,6 @@ import java.util.spi.TimeZoneNameProvider;
+  */
+ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+ {
+-  String[] ampms;
+-  String[] eras;
+-  private String localPatternChars;
+-  String[] months;
+-  String[] shortMonths;
+-  String[] shortWeekdays;
+-  String[] weekdays;
+-
+   /**
+    * The set of properties for obtaining the metazone data.
+    */
+@@ -106,6 +102,169 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+   private static final Pattern FIELD_SEP = Pattern.compile("\u00ae");
+ 
+   /**
++   * Class for storing DateFormatSymbols data parsed from the property files.
++   */
++  private static class DFSData
++  {
++    private String[] ampms;
++    private String[] eras;
++    private String localPatternChars;
++    private String[] months;
++    private String[] shortMonths;
++    private String[] weekdays;
++    private String[] shortWeekdays;
++    private String[] dateFormats;
++    private String[] timeFormats;
++    private String[][] runtimeZoneStrings;
++
++    /**
++     * Construct a new instance with the parsed data.
++     *
++     * @param ampms strings for "am" and "pm".
++     * @param eras strings for calendar eras.
++     * @param localPatternChars localised pattern characters.
++     * @param months strings for the months of the year.
++     * @param shortMonths short strings for the months of the year.
++     * @param weekdays strings for the days of the week.
++     * @param shortWeekdays short strings for the days of the week.
++     * @param dateFormats localised date formats.
++     * @param timeFormats localised time formats.
++     * @param runtimeZoneStrings localised time zone names.
++     */
++    public DFSData(String[] ampms, String[] eras, String localPatternChars,
++                   String[] months, String[] shortMonths, String[] weekdays,
++                   String[] shortWeekdays, String[] dateFormats,
++                   String[] timeFormats, String[][] runtimeZoneStrings)
++    {
++      this.ampms = ampms;
++      this.eras = eras;
++      this.localPatternChars = localPatternChars;
++      this.months = months;
++      this.shortMonths = shortMonths;
++      this.weekdays = weekdays;
++      this.shortWeekdays = shortWeekdays;
++      this.dateFormats = dateFormats;
++      this.timeFormats = timeFormats;
++      this.runtimeZoneStrings = runtimeZoneStrings;
++    }
++
++    /**
++     * Accessor for the AM/PM data.
++     *
++     * @return the AM/PM strings.
++     */
++    public String[] getAMPMs()
++    {
++      return ampms.clone();
++    }
++
++    /**
++     * Accessor for the era data.
++     *
++     * @return the era strings.
++     */
++    public String[] getEras()
++    {
++      return eras.clone();
++    }
++
++    /**
++     * Accessor for the local pattern characters.
++     *
++     * @return the local pattern characters.
++     */
++    public String getLocalPatternChars()
++    {
++      return localPatternChars;
++    }
++
++    /**
++     * Accessor for the months of the year (long form).
++     *
++     * @return the months of the year (long form).
++     */
++    public String[] getMonths()
++    {
++      return months.clone();
++    }
++
++    /**
++     * Accessor for the months of the year (short form).
++     *
++     * @return the months of the year (short form).
++     */
++    public String[] getShortMonths()
++    {
++      return shortMonths.clone();
++    }
++
++    /**
++     * Accessor for the days of the week (long form).
++     *
++     * @return the days of the week (long form).
++     */
++    public String[] getWeekdays()
++    {
++      return weekdays.clone();
++    }
++
++    /**
++     * Accessor for the days of the week (short form).
++     *
++     * @return the days of the week (short form).
++     */
++    public String[] getShortWeekdays()
++    {
++      return shortWeekdays.clone();
++    }
++
++    /**
++     * Accessor for the date formats.
++     *
++     * @return the date formats.
++     */
++    public String[] getDateFormats()
++    {
++      return dateFormats.clone();
++    }
++
++    /**
++     * Accessor for the time formats.
++     *
++     * @return the time formats.
++     */
++    public String[] getTimeFormats()
++    {
++      return timeFormats.clone();
++    }
++
++    /**
++     * Accessor for the zone strings.
++     *
++     * @return the zone strings.
++     */
++    public String[][] getZoneStrings()
++    {
++      // Perform a deep clone so subarrays aren't modifiable
++      String[][] clone = runtimeZoneStrings.clone();
++      for (int a = 0; a < clone.length; ++a)
++        clone[a] = runtimeZoneStrings[a].clone();
++      return clone;
++    }
++
++  }
++
++  private static final ConcurrentMap<Locale, DFSData> dataCache = new ConcurrentHashMap<Locale, DFSData>();
++
++  String[] ampms;
++  String[] eras;
++  private String localPatternChars;
++  String[] months;
++  String[] shortMonths;
++  String[] shortWeekdays;
++  String[] weekdays;
++
++  /**
+    * The timezone strings supplied by the runtime.
+    */
+   private String[][] runtimeZoneStrings;
+@@ -185,7 +344,7 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+     return data;
+   }
+ 
+-  private String[][] getZoneStrings(List<ResourceBundle> bundles, Locale locale)
++  private static String[][] getZoneStrings(List<ResourceBundle> bundles, Locale locale)
+   {
+     List<String[]> allZones = new ArrayList<String[]>();
+     try
+@@ -296,7 +455,7 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+    * @param key the type of format to retrieve.
+    * @param an array of localised strings for each format prefix.
+    */
+-  private String[] formatsForKey(List<ResourceBundle> bundles, String key)
++  private static String[] formatsForKey(List<ResourceBundle> bundles, String key)
+   {
+     String[] values = new String[formatPrefixes.length];
+ 
+@@ -316,7 +475,7 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+    * @return the first non-null non-empty String found or the last
+    *         retrieved if one isn't found.
+    */
+-  private String getString(List<ResourceBundle> bundles, String key)
++  private static String getString(List<ResourceBundle> bundles, String key)
+   {
+     String val = null;
+     for (ResourceBundle bundle : bundles)
+@@ -329,6 +488,52 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+   }
+ 
+   /**
++   * Retrieves the locale data from the property files and constructs a
++   * {@code DFSData} instance for it.
++   *
++   * @param the locale for which data should be retrieved.
++   * @return the parsed data.
++   * @throws MissingResourceException if the resources for the specified
++   *                                  locale could not be found or loaded.
++   */
++  private static DFSData retrieveData(Locale locale)
++    throws MissingResourceException
++  {
++    DFSData data = dataCache.get(locale);
++    if (data == null)
++      {
++        ClassLoader ldr = ClassLoader.getSystemClassLoader();
++        List<ResourceBundle> bundles = new ArrayList<ResourceBundle>();
++        ResourceBundle res
++          = ResourceBundle.getBundle("gnu.java.locale.LocaleInformation", locale, ldr);
++        bundles.add(res);
++        Locale resLocale = res.getLocale();
++        while (resLocale != Locale.ROOT)
++          {
++            res = ResourceBundle.getBundle("gnu.java.locale.LocaleInformation",
++                                           LocaleHelper.getFallbackLocale(resLocale), ldr);
++            bundles.add(res);
++            resLocale = res.getLocale();
++          }
++        String[] lMonths = getStringArray(bundles, "months", 13);
++        String[] lWeekdays = getStringArray(bundles, "weekdays", 8);
++        data = new DFSData(getStringArray(bundles, "ampms", 2),
++                           getStringArray(bundles, "eras", 2),
++                           getString(bundles, "localPatternChars"),
++                           lMonths, getStringArray(bundles, "shortMonths", 13, lMonths),
++                           lWeekdays, getStringArray(bundles, "shortWeekdays", 8, lWeekdays),
++                           formatsForKey(bundles, "DateFormat"),
++                           formatsForKey(bundles, "TimeFormat"),
++                           getZoneStrings(bundles, locale));
++        DFSData cachedData = dataCache.putIfAbsent(locale, data);
++        // Use the earlier version if another thread beat us to it.
++        if (cachedData != null)
++          data = cachedData;
++      }
++    return data;
++  }
++
++  /**
+    * This method initializes a new instance of <code>DateFormatSymbols</code>
+    * by loading the date format information for the specified locale.
+    * This constructor only obtains instances using the runtime's resources;
+@@ -344,29 +549,17 @@ public class DateFormatSymbols implements java.io.Serializable, Cloneable
+   public DateFormatSymbols (Locale locale)
+     throws MissingResourceException
+   {
+-    ClassLoader ldr = ClassLoader.getSystemClassLoader();
+-    List<ResourceBundle> bundles = new ArrayList<ResourceBundle>();
+-    ResourceBundle res
+-      = ResourceBundle.getBundle("gnu.java.locale.LocaleInformation", locale, ldr);
+-    bundles.add(res);
+-    Locale resLocale = res.getLocale();
+-    while (resLocale != Locale.ROOT)
+-      {
+-        res = ResourceBundle.getBundle("gnu.java.locale.LocaleInformation",
+-                                       LocaleHelper.getFallbackLocale(resLocale), ldr);
+-        bundles.add(res);
+-        resLocale = res.getLocale();
+-      }
+-    ampms = getStringArray(bundles, "ampms", 2);
+-    eras = getStringArray(bundles, "eras", 2);
+-    localPatternChars = getString(bundles, "localPatternChars");
+-    months = getStringArray(bundles, "months", 13);
+-    shortMonths = getStringArray(bundles, "shortMonths", 13, months);
+-    weekdays = getStringArray(bundles, "weekdays", 8);
+-    shortWeekdays = getStringArray(bundles, "shortWeekdays", 8, weekdays);
+-    dateFormats = formatsForKey(bundles, "DateFormat");
+-    timeFormats = formatsForKey(bundles, "TimeFormat");
+-    runtimeZoneStrings = getZoneStrings(bundles, locale);
++    DFSData data = retrieveData(locale);
++    ampms = data.getAMPMs();
++    eras = data.getEras();
++    localPatternChars = data.getLocalPatternChars();
++    months = data.getMonths();
++    shortMonths = data.getShortMonths();
++    weekdays = data.getWeekdays();
++    shortWeekdays = data.getShortWeekdays();
++    dateFormats = data.getDateFormats();
++    timeFormats = data.getTimeFormats();
++    runtimeZoneStrings = data.getZoneStrings();
+   }
+ 
+   /**

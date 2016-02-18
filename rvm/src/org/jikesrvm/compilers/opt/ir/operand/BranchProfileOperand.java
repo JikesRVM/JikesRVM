@@ -61,6 +61,8 @@ public final class BranchProfileOperand extends Operand {
 
   /**
    * Flip the probability (p = 1 - p)
+   *
+   * @return this
    */
   public BranchProfileOperand flip() {
     takenProbability = 1f - takenProbability;

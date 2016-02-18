@@ -14,32 +14,10 @@
 # Temporary script
 
 TEST_DIR=MMTk/harness/test-scripts
-
-classForPlan() {
-  local plan=$1
-  case $plan in
-    CopyMS) echo "org.mmtk.plan.copyms.CopyMS";;
-    GenCopy) echo "org.mmtk.plan.generational.copying.GenCopy";;
-    GenImmix) echo "org.mmtk.plan.generational.immix.GenImmix";;
-    GenMS) echo "org.mmtk.plan.generational.marksweep.GenMS";;
-    Immix) echo "org.mmtk.plan.immix.Immix";;
-    MC) echo "org.mmtk.plan.markcompact.MC";;
-    MS) echo "org.mmtk.plan.marksweep.MS";;
-    Poisoned) echo "org.mmtk.plan.poisoned.Poisoned";;
-    PrimitiveWB) echo "org.mmtk.plan.semispace.usePrimitiveWriteBarriers.UsePrimitiveWriteBarriers";;
-    RC) echo "org.mmtk.plan.refcount.fullheap.RC";;
-    GenRC) echo "org.mmtk.plan.refcount.generational.GenRC";;
-    SS) echo "org.mmtk.plan.semispace.SS";;
-    StickyImmix) echo "org.mmtk.plan.stickyimmix.StickyImmix";;
-    StickyMS) echo "org.mmtk.plan.stickyms.StickyMS";;
-    *) echo "Unknown plan" >> /dev/stderr
-       return 1;;
-  esac
-}
+JARFILE=dist/mmtk-harness.jar
 
 plans="CopyMS GenCopy GenImmix GenMS Immix MC MS Poisoned PrimitiveWB RC GenRC SS StickyImmix StickyMS"
 
-opts="variableSizeHeap=false"
 #opts="$opts gcEvery=SAFEPOINT"
 
 jvm_opts="-ea"
@@ -49,7 +27,7 @@ clean=true
 results=
 stats=true
 
-scripts="*"
+scripts="$(cd $TEST_DIR; ls -1 *.script | sed 's/\.script//')"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -66,7 +44,7 @@ while [ $# -gt 0 ]; do
     -nostats) stats="false";;
     *) echo "Unknown parameter $1"
        echo "Usage: $0 [-plan plan] [-opts harness-options]"
-       echo "          [-script script1[,script2...]] "
+       echo "          [-script script1[ script2...]] (put multiple script names in quotes)"
        echo "          [-[no]build]                   [Don't] build MMTk Harness before running tests"
        echo "          [-[no]clean]                   [Don't] delete old results before running tests"
        echo "          [-buildonly]                   Build only, don't run any tests"
@@ -98,28 +76,30 @@ fi
 
 for plan in $plans
 do
-  planClass=$(classForPlan $plan)
   mkdir -p ${RESULTS}/$plan
-  for script in `ls -1 $TEST_DIR/${scripts}.script`
+  for scriptname in ${scripts}
   do
-    showscript=`echo $script | sed -e "s/.*[\/]//g" | sed -e "s/\.script$//g"`
-    if [ -f $TEST_DIR/$showscript.options ]; then
-      scriptopts=$(cat  $TEST_DIR/$showscript.options)
-    else
-      scriptopts=
+    script=$TEST_DIR/$scriptname.script
+    if [ ! -f $script ]; then
+      echo "Script $script does not exist"
+      exit 1;
     fi
+    starttime=$(date +%s)
     (
-      echo $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts;
-      $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts
+      echo $JAVA ${jvm_opts} -jar $JARFILE $script plan=$plan $opts
+      $JAVA ${jvm_opts} -jar $JARFILE $script plan=$plan $opts
     ) &> ${RESULTS}/temp.out
-    if [ $? == 0 ]
+    RC=$?
+    endtime=$(date +%s)
+    elapsed=$[endtime-starttime]
+    if [ $RC == 0 ]
     then
-      logfile=${RESULTS}/$plan/$showscript.out.pass
-      printf "PASSED: %s %-15s %-15s %s\\n" "${results#/}" $plan $showscript $logfile
+      logfile=${RESULTS}/$plan/$scriptname.out.pass
+      printf "PASSED: %s %-15s %-15s (%s sec) %s\\n" "${results#/}" $plan $scriptname $elapsed $logfile
       mv ${RESULTS}/temp.out $logfile
     else
-      logfile=${RESULTS}/$plan/$showscript.out.fail
-      printf "FAILED: %s %-15s %-15s %s\\n" "${results#/}" $plan $showscript $logfile
+      logfile=${RESULTS}/$plan/$scriptname.out.fail
+      printf "FAILED: %s %-15s %-15s (%s sec) %s\\n" "${results#/}" $plan $scriptname $elapsed $logfile
       mv ${RESULTS}/temp.out $logfile
     fi
   done

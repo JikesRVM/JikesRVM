@@ -25,7 +25,7 @@
 extern void directCallMe();
 extern void sysWrite(int,int);
 
-JNIEXPORT void JNICALL Java_SelectTest_doit(JNIEnv *env, jclass cls){
+JNIEXPORT void JNICALL Java_SelectTest_doit(JNIEnv *env, jclass cls) {
   fd_set rfds;
   struct timeval tv;
   int retval;
@@ -39,4 +39,3 @@ JNIEXPORT void JNICALL Java_SelectTest_doit(JNIEnv *env, jclass cls){
   else
     printf("No data within five seconds.\n");
 }
-

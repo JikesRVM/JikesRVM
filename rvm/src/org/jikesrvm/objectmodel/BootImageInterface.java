@@ -26,6 +26,7 @@ public interface BootImageInterface {
    * @param size the number of bytes to allocate
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
+   * @return start address of the allocated memory
    */
   Address allocateDataStorage(int size, int align, int offset);
 
@@ -35,6 +36,7 @@ public interface BootImageInterface {
    * @param size the number of bytes to allocate
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
+   * @return start address of the allocated memory
    */
   Address allocateCodeStorage(int size, int align, int offset);
 

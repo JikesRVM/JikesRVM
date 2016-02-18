@@ -1,0 +1,39 @@
+#####
+# LONG_AND
+#####
+r:	LONG_AND(r, rlv)
+26
+EMIT_INSTRUCTION
+EMIT_LongBinary(IA32_AND, IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)), true);
+
+### Memory operands ###
+r:	LONG_AND(r, load64)
+30
+EMIT_INSTRUCTION
+EMIT_LongBinary(IA32_AND, IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO(), true);
+
+r:	LONG_AND(load64, rlv)
+30
+EMIT_INSTRUCTION
+EMIT_LongBinary(IA32_AND, IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO(), true);
+
+stm:	LONG_STORE(LONG_AND(LONG_LOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
+ADDRESS_EQUAL(P(p), PLL(p), 34)
+EMIT_INSTRUCTION
+EMIT_LongBinary(IA32_AND, IA32_AND, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal2(PL(p)), true);
+
+stm:	LONG_STORE(LONG_AND(r,LONG_LOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
+ADDRESS_EQUAL(P(p), PLR(p), 34)
+EMIT_INSTRUCTION
+EMIT_LongBinary(IA32_AND, IA32_AND, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal1(PL(p)), true);
+
+stm:	LONG_ASTORE(LONG_AND(LONG_ALOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 34)
+EMIT_INSTRUCTION
+EMIT_LongBinary(IA32_AND, IA32_AND, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal2(PL(p)), true);
+
+stm:	LONG_ASTORE(LONG_AND(r,LONG_ALOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
+ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 34)
+EMIT_INSTRUCTION
+EMIT_LongBinary(IA32_AND, IA32_AND, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal1(PL(p)), true);
+

@@ -12,20 +12,24 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
+import static org.mmtk.utility.gcspy.StreamConstants.PAINT_STYLE_ZERO;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PERCENT;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PLUS;
+
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.LinearScan;
-import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.Subspace;
-import org.mmtk.vm.gcspy.IntStream;
-import org.mmtk.vm.gcspy.ShortStream;
-
-import org.mmtk.utility.Log;
-import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.vm.gcspy.IntStream;
+import org.mmtk.vm.gcspy.ServerInterpreter;
+import org.mmtk.vm.gcspy.ShortStream;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * GCspy driver for the MMTk ContigousSpace.<p>
@@ -107,11 +111,15 @@ import org.vmmagic.pragma.*;
   }
 
   @Override
-  protected String getDriverName() { return "MMTk LinearSpaceDriver"; }
+  protected String getDriverName() {
+    return "MMTk LinearSpaceDriver";
+  }
 
-  /**
+  /*
    * Private creator methods to create the Streams.
    */
+
+
   @Interruptible
   private IntStream createScalarUsedSpaceStream() {
     return VM.newGCspyIntStream(
@@ -123,8 +131,8 @@ import org.vmmagic.pragma.*;
                      0,                                     // default value
                     "Scalars and primitive arrays: ",       // value prefix
                     " bytes",                               // value suffix
-                     StreamConstants.PRESENTATION_PERCENT,  // presentation style
-                     StreamConstants.PAINT_STYLE_ZERO,      // paint style
+                     PRESENTATION_PERCENT,  // presentation style
+                     PAINT_STYLE_ZERO,      // paint style
                      0,                                     // index of max stream (only needed if the presentation is *_VAR)
                      Color.Red,                             // tile colour
                      true);                                 // summary enabled
@@ -141,8 +149,8 @@ import org.vmmagic.pragma.*;
                      0,
                     "Reference arrays: ",
                     " bytes",
-                     StreamConstants.PRESENTATION_PERCENT,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PERCENT,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);
@@ -155,13 +163,13 @@ import org.vmmagic.pragma.*;
                      "Scalar Objects stream",
                      (short)0,
                      // Say, max value = 50% of max possible
-                     (short)(maxObjectsPerBlock(blockSize)/2),
+                     (short)(maxObjectsPerBlock(blockSize) / 2),
                      (short)0,
                      (short)0,
                      "Scalars: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Green,
                      true);
@@ -174,13 +182,13 @@ import org.vmmagic.pragma.*;
                      "Array Primitive stream",
                      (short)0,
                      // Say, typical primitive array size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Primitive arrays: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Yellow,
                      true);
@@ -193,13 +201,13 @@ import org.vmmagic.pragma.*;
                      "Array Objects stream",
                      (short)0,
                      // Say, typical ref array size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Reference arrays: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Cyan,
                      true);
@@ -212,13 +220,13 @@ import org.vmmagic.pragma.*;
                      "Roots stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Roots: ",
                      " objects",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);
@@ -231,13 +239,13 @@ import org.vmmagic.pragma.*;
                      "References from immortal stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "References from immortal space: ",
                      " references",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
                      true);
@@ -271,7 +279,9 @@ import org.vmmagic.pragma.*;
    * BumpPointer.linearScan needs a LinearScan object, which we provide here.
    * @return the scanner for this driver
    */
-   public LinearScan getScanner() { return scanner; }
+   public LinearScan getScanner() {
+     return scanner;
+   }
 
    /**
     * Set the current address range of a contiguous space
@@ -284,7 +294,7 @@ import org.vmmagic.pragma.*;
     int required = countTileNum(start, end, subspace.getBlockSize());
 
     // Reset the subspace
-    if(required != current)
+    if (required != current)
       subspace.reset(start, end, 0, required);
 
     if (DEBUG) {
@@ -299,7 +309,10 @@ import org.vmmagic.pragma.*;
     // spaces. If pages were to be released, change the test here to
     //     if (allTileNum != required) {
     if (allTileNum < required) {
-      if (DEBUG) { Log.write(", resize from ", allTileNum); Log.write(" to ", required); }
+      if (DEBUG) {
+        Log.write(", resize from ", allTileNum);
+        Log.write(" to ", required);
+      }
       allTileNum = required;
       serverSpace.resize(allTileNum);
       setTilenames(subspace, allTileNum);
@@ -329,7 +342,7 @@ import org.vmmagic.pragma.*;
     Address addr = obj.toAddress();
 
     if (VM.VERIFY_ASSERTIONS) {
-      if(addr.LT(lastAddress.plus(lastSize))) {
+      if (addr.LT(lastAddress.plus(lastSize))) {
         Log.write("\nContiguousSpaceDriver finds addresses going backwards: ");
         Log.write("last="); Log.write(lastAddress);
         Log.write(" last size="); Log.write(lastSize);
@@ -351,7 +364,7 @@ import org.vmmagic.pragma.*;
           totalArrayUsedSpace += length;
         }
       } else {
-        if(!this.scanCheckPrimitiveArray(obj, index, total, length)) {
+        if (!this.scanCheckPrimitiveArray(obj, index, total, length)) {
           // real object
           scalarObjectsStream.increment(index, (short)1);
           if (total) {
@@ -375,7 +388,7 @@ import org.vmmagic.pragma.*;
    * @return {@code true} if this Object is an array of primitives.
    */
   protected boolean scanCheckPrimitiveArray(ObjectReference obj, int index, boolean total, int length) {
-    if(VM.objectModel.isPrimitiveArray(obj)) {
+    if (VM.objectModel.isPrimitiveArray(obj)) {
       arrayPrimitiveStream.increment(index, (short)1);
       if (total) {
         totalPrimitives++;
@@ -466,7 +479,7 @@ import org.vmmagic.pragma.*;
    * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRoot(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       rootsStream.increment(index, (short)1);
@@ -496,7 +509,7 @@ import org.vmmagic.pragma.*;
    */
   @Override
   public boolean handleReferenceFromImmortalSpace(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       refFromImmortalStream.increment(index, (short)1);

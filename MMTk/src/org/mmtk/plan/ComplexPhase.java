@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
@@ -26,8 +25,7 @@ import org.vmmagic.pragma.*;
  *
  */
 @Uninterruptible
-public final class ComplexPhase extends Phase
-  implements Constants {
+public final class ComplexPhase extends Phase {
 
   /****************************************************************************
    * Instance fields
@@ -70,7 +68,7 @@ public final class ComplexPhase extends Phase
   private void checkPhases() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(scheduledSubPhases.length > 0);
-      for(int scheduledPhase: scheduledSubPhases) {
+      for (int scheduledPhase: scheduledSubPhases) {
         VM.assertions._assert(getSchedule(scheduledPhase) > 0);
         VM.assertions._assert(getPhaseId(scheduledPhase) > 0);
       }
@@ -78,7 +76,7 @@ public final class ComplexPhase extends Phase
   }
 
   /**
-   * The number of scheduled sub phases.
+   * @return the number of scheduled sub phases.
    */
   protected int count() {
     return scheduledSubPhases.length;

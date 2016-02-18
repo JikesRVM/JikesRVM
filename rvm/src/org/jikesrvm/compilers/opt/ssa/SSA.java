@@ -49,12 +49,13 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *  <li> Heap variables are represented implicitly. Each instruction
  *       that reads or writes from the heap implicitly uses a Heap variable.
  *       The particular heap variable for each instruction is cached
- *       in {@link SSADictionary <code> ir.HIRInfo.dictionary </code>}.
+ *       in {@link org.jikesrvm.compilers.opt.ir.HIRInfo#dictionary} which
+ *       is reachable via the IR object.
+ *
  *       dphi functions do <em> not </em>
  *       explicitly appear in the IR.
  *  <p>
  *  For example, consider the code:
- *  <p>
  *  <pre>
  *              a.x = z;
  *              b[100] = 5;
@@ -65,7 +66,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *  <pre>
  *              HEAP_x[a] = z
  *              HEAP_x = dphi(HEAP_x,HEAP_x)
- *              HEAP_I[] = { < b,100,5 > }
+ *              HEAP_I[] = { &lt; b,100,5 &gt; }
  *              HEAP_I[] = dphi(HEAP_I[], HEAP_I[])
  *              y = HEAP_x[a]
  *  </pre>
@@ -146,7 +147,7 @@ class SSA {
       for (Enumeration<Instruction> e = dictionary.getAllInstructions(bb); e.hasMoreElements();) {
         Instruction s = e.nextElement();
         System.out.print(s.bcIndex + "\t" + s);
-        if (dictionary.defsHeapVariable(s) && s.operator != PHI) {
+        if (dictionary.defsHeapVariable(s) && s.operator() != PHI) {
           System.out.print("  (Implicit Defs: ");
           HeapOperand<?>[] defs = dictionary.getHeapDefs(s);
           if (defs != null) {
@@ -154,7 +155,7 @@ class SSA {
           }
           System.out.print(" )");
         }
-        if (dictionary.usesHeapVariable(s) && s.operator != PHI) {
+        if (dictionary.usesHeapVariable(s) && s.operator() != PHI) {
           System.out.print("  (Implicit Uses: ");
           HeapOperand<?>[] uses = dictionary.getHeapUses(s);
           if (uses != null) {
@@ -162,7 +163,7 @@ class SSA {
           }
           System.out.print(" )");
         }
-        System.out.print("\n");
+        System.out.print('\n');
       }
     }
     System.out.println("*********   END OF IR DUMP in SSA FOR " + ir.method);
@@ -177,13 +178,14 @@ class SSA {
    * @param r1 the destination
    * @param r2 the source
    * @param t the type of r1 and r2.
+   * @return the created move instruction
    */
   static Instruction makeMoveInstruction(IR ir, Register r1, Register r2, TypeReference t) {
     Operator mv = IRTools.getMoveOp(t);
     RegisterOperand o1 = new RegisterOperand(r1, t);
     RegisterOperand o2 = new RegisterOperand(r2, t);
     Instruction s = Move.create(mv, o1, o2);
-    s.position = ir.gc.inlineSequence;
+    s.position = ir.gc.getInlineSequence();
     s.bcIndex = SSA_SYNTH_BCI;
     return s;
   }
@@ -196,13 +198,14 @@ class SSA {
    * @param ir the governing ir
    * @param r1 the destination
    * @param c the source
+   * @return the created move instruction
    */
   static Instruction makeMoveInstruction(IR ir, Register r1, ConstantOperand c) {
     Operator mv = IRTools.getMoveOp(c.getType());
     RegisterOperand o1 = new RegisterOperand(r1, c.getType());
     Operand o2 = c.copy();
     Instruction s = Move.create(mv, o1, o2);
-    s.position = ir.gc.inlineSequence;
+    s.position = ir.gc.getInlineSequence();
     s.bcIndex = SSA_SYNTH_BCI;
     return s;
   }

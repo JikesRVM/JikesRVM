@@ -13,7 +13,6 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.Options;
@@ -27,13 +26,13 @@ import org.vmmagic.unboxed.*;
  * This abstract class and its global counterpart implement the core
  * functionality for a transitive closure over the heap graph. This class
  * specifically implements the unsynchronized thread-local component
- * (ie the 'fast path') of the trace mechanism.<p>
+ * (ie the 'fast path') of the trace mechanism.
  *
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
  */
 @Uninterruptible
-public abstract class TraceLocal extends TransitiveClosure implements Constants {
+public abstract class TraceLocal extends TransitiveClosure {
   /****************************************************************************
    *
    * Instance variables
@@ -76,7 +75,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
 
   /**
-   * Should reference values be overwritten as the heap is traced?
+   * @return whether reference values should be overwritten as the heap is traced
    */
   protected boolean overwriteReferenceDuringTrace() {
     return true;
@@ -151,7 +150,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
     Offset offset = interiorRef.diff(target.toAddress());
     ObjectReference newTarget = traceObject(target, root);
     if (VM.VERIFY_ASSERTIONS) {
-      if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1<<24))) {
+      if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1 << 24))) {
         // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta to interior pointer");
         Log.write("       object base = "); Log.writeln(target);
@@ -408,11 +407,13 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * <i>For many collectors these semantics reflect those of
    * <code>traceObject</code>, which is implemented here.  Other
-   * collectors must override this method.</i>
+   * collectors must override this method.</i><p>
+   *
+   * TODO is the JavaDoc for this method still up to date?
    *
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.  <i>In this
-   * case return <code>object</code>, copying collectors must override
+   * case return <code>object</code></i>, copying collectors must override
    *         this method.
    */
   public ObjectReference retainForFinalize(ObjectReference object) {

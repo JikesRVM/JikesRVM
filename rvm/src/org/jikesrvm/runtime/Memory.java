@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.runtime;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
@@ -35,6 +35,8 @@ import org.vmmagic.unboxed.Word;
  */
 @Uninterruptible
 public class Memory {
+
+  private static final int UNKNOWN = -1;
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory
@@ -85,7 +87,7 @@ public class Memory {
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
    *
-   * Assumptions: <code> src != dst || (scrPos >= dstPos + 4) </code>
+   * Assumptions: <code> src != dst || (scrPos &gt;= dstPos + 4) </code>
    *              and src and dst are 8Bit arrays.
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
@@ -102,7 +104,7 @@ public class Memory {
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
-   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
+   * Assumption <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 4 bytes.
    *
    * @param dstPtr The destination start address
    * @param srcPtr The source start address
@@ -113,11 +115,11 @@ public class Memory {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
       if (copyBytes >= BYTES_IN_COPY &&
-          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)) ==
-          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1))))) {
+          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)).EQ(
+          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)))))) {
         // relative alignment is the same
         Address endPtr = srcPtr.plus(copyBytes);
-        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
+        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1).not()).toAddress();
 
         if (BYTES_IN_COPY == 8) {
           if (srcPtr.toWord().and(Word.fromIntZeroExtend(1)).NE(Word.zero())) {
@@ -195,7 +197,7 @@ public class Memory {
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
    * <p>
-   * Assumption; {@code src != dst || (srcPos >= dstPos + 2)}.
+   * Assumption; {@code src != dst || (srcPos &gt;= dstPos + 2)}.
    *
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
@@ -212,7 +214,7 @@ public class Memory {
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    * <p>
-   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 2 bytes.
+   * Assumption: <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 2 bytes.
    *
    * @param dstPtr The destination start address
    * @param srcPtr The source start address
@@ -223,11 +225,11 @@ public class Memory {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
       if (copyBytes >= BYTES_IN_COPY &&
-          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)) ==
-          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1))))) {
+          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)).EQ(
+          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)))))) {
         // relative alignment is the same
         Address endPtr = srcPtr.plus(copyBytes);
-        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
+        Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1).not()).toAddress();
 
         if (BYTES_IN_COPY == 8) {
           if (srcPtr.toWord().and(Word.fromIntZeroExtend(2)).NE(Word.zero())) {
@@ -285,7 +287,7 @@ public class Memory {
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    * <p>
-   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
+   * Assumption: <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 4 bytes.
    *
    * @param src     the source array
    * @param srcIdx  index in the source array to begin copy
@@ -303,7 +305,7 @@ public class Memory {
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    * <p>
-   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
+   * Assumption: <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 8 bytes.
    *
    * @param src     the source array
    * @param srcIdx  index in the source array to begin copy
@@ -321,7 +323,7 @@ public class Memory {
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
-   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
+   * Assumption <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 8 bytes.
    *
    * @param dstPtr The destination start address
    * @param srcPtr The source start address
@@ -345,7 +347,7 @@ public class Memory {
 
   /**
    * Copy copyBytes from src to dst.
-   * Assumption: either the ranges are non overlapping, or {@code src >= dst + 4}.
+   * Assumption: either the ranges are non overlapping, or {@code src &gt;= dst + 4}.
    * Also, src and dst are 4 byte aligned and numBytes is a multiple of 4.
    *
    * @param dst the destination addr
@@ -365,7 +367,7 @@ public class Memory {
     } else {
       Offset numBytes = Offset.fromIntSignExtend(copyBytes);
       if (BYTES_IN_COPY == 8 && copyBytes != 0) {
-        Word wordMask = Word.fromIntZeroExtend(BYTES_IN_COPY-1);
+        Word wordMask = Word.fromIntZeroExtend(BYTES_IN_COPY - 1);
         Word srcAlignment = src.toWord().and(wordMask);
         if (srcAlignment.EQ(dst.toWord().and(wordMask))) {
           Offset i = Offset.zero();
@@ -393,7 +395,7 @@ public class Memory {
 
   /**
    * Copy numbytes from src to dst.
-   * Assumption: either the ranges are non overlapping, or {@code src >= dst + BYTES_IN_ADDRESS}.
+   * Assumption: either the ranges are non overlapping, or {@code src &gt;= dst + BYTES_IN_ADDRESS}.
    * Also, src and dst are word aligned and numBytes is a multiple of BYTES_IN_ADDRESS.
    * @param dst the destination addr
    * @param src the source addr
@@ -409,7 +411,7 @@ public class Memory {
 
   /**
    * Copy <code>numbytes</code> from <code>src</code> to <code>dst</code>.
-   * Assumption either the ranges are non overlapping, or <code>src >= dst + BYTES_IN_ADDRESS</code>.
+   * Assumption either the ranges are non overlapping, or <code>src &gt;= dst + BYTES_IN_ADDRESS</code>.
    * @param dst     The destination addr
    * @param src     The source addr
    * @param numBytes The number of bytes to copy
@@ -424,21 +426,34 @@ public class Memory {
   }
 
   /**
-   * Copy a region of memory.
-   * <p>
-   * Assumption: source and destination regions do not overlap
+   * Copies a region of memory.
    *
    * @param dst   Destination address
    * @param src   Source address
    * @param cnt   Number of bytes to copy
    */
   public static void memcopy(Address dst, Address src, Extent cnt) {
-    SysCall.sysCall.sysCopy(dst, src, cnt);
+    Address srcEnd = src.plus(cnt);
+    Address dstEnd = dst.plus(cnt);
+    boolean overlap = !srcEnd.LE(dst) && !dstEnd.LE(src);
+    if (overlap) {
+      SysCall.sysCall.sysMemmove(dst, src, cnt);
+    } else {
+      SysCall.sysCall.sysCopy(dst, src, cnt);
+    }
   }
 
+  /**
+   * Wrapper method for {@link #memcopy(Address, Address, Extent)}.
+   *
+   * @param dst   Destination address
+   * @param src   Source address
+   * @param cnt   Number of bytes to copy
+   */
   public static void memcopy(Address dst, Address src, int cnt) {
-    SysCall.sysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
+    memcopy(dst, src, Extent.fromIntSignExtend(cnt));
   }
+
 
   /**
    * Zero a region of memory.
@@ -480,7 +495,7 @@ public class Memory {
   public static final int PROT_EXEC = 4;
 
   public static final int MAP_PRIVATE = 2;
-  public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : (VM.BuildForSolaris) ? 0x10 :256;
+  public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : (VM.BuildForSolaris) ? 0x10 : 256;
   public static final int MAP_ANONYMOUS = (VM.BuildForLinux) ? 32 : (VM.BuildForOsx) ? 0x1000 : (VM.BuildForSolaris) ? 0x100 : 16;
 
   public static boolean isPageMultiple(int val) {
@@ -547,25 +562,48 @@ public class Memory {
     return SysCall.sysCall.sysMProtect(address, size, prot) == 0;
   }
 
-  private static int pagesize = -1;
-  private static int pagesizeLog = -1;
+  private static int pagesize = UNKNOWN;
+  private static int pagesizeLog = UNKNOWN;
 
   /**
-   * Do getpagesize call
-   * @return page size
+   * Sets the page size.
+   * <p>
+   * Note: this method may only be called once, at boot time. Multithreading is not
+   * yet enabled at this point, so no synchronization is necessary.
+   * @param pageSizeFromBootRecord the page size
    */
-  public static int getPagesize() {
-    if (pagesize == -1) {
-      pagesize = SysCall.sysCall.sysGetPageSize();
-      pagesizeLog = -1;
+  public static void setPageSize(Extent pageSizeFromBootRecord) {
+    if (pagesize == UNKNOWN) {
+      int newPageSize = pageSizeFromBootRecord.toInt();
+      if (VM.VerifyAssertions) VM._assert(Extent.fromIntSignExtend(newPageSize).EQ(pageSizeFromBootRecord));
+      pagesize = newPageSize;
+      pagesizeLog = UNKNOWN;
       int temp = pagesize;
       while (temp > 0) {
         temp >>>= 1;
         pagesizeLog++;
       }
       if (VM.VerifyAssertions) VM._assert((1 << pagesizeLog) == pagesize);
+      return;
     }
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  public static int getPagesize() {
+    if (VM.VerifyAssertions) VM._assert(pagesize != UNKNOWN);
     return pagesize;
+  }
+
+  public static int getPagesizeLog() {
+    if (VM.VerifyAssertions) VM._assert(pagesizeLog != UNKNOWN);
+    return pagesizeLog;
+  }
+
+  public static byte getPagesizeLogAsByte() {
+    int pageSizeLog = getPagesizeLog();
+    byte pageSizeLogByte = (byte) pageSizeLog;
+    if (VM.VerifyAssertions) VM._assert(pageSizeLog == pageSizeLogByte);
+    return pageSizeLogByte;
   }
 
   public static void dumpMemory(Address start, int beforeBytes, int afterBytes) {
@@ -605,4 +643,13 @@ public class Memory {
   public static int alignDown(int address, int alignment) {
     return (address & ~(alignment - 1));
   }
+
+  /**
+   * For use in test cases only.
+   * @return native threshold (number in bytes before copying uses C code)
+   */
+  static int getNativeThreshold() {
+    return NATIVE_THRESHOLD;
+  }
+
 }

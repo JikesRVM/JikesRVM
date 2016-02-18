@@ -27,7 +27,6 @@ public class JikesRVMSupport {
     return new Method(m);
   }
 
-  @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
     return new Constructor<T>(m);
   }

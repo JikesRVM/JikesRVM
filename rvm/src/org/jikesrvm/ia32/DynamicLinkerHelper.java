@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.ia32.BaselineConstants.STACKFRAME_FIRST_PARAMETER_OFFSET;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.NoInline;
@@ -26,18 +29,19 @@ public abstract class DynamicLinkerHelper {
 
   /**
    * Reach up two stack frames into a frame that is compiled
-   * with the DynamicBridge register protocol and grap
+   * with the DynamicBridge register protocol and grab
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
+   *
+   * @return the receiver object for the method invocation
    */
   @NoInline
   public static Object getReceiverObject() {
-
     Address callingFrame = Magic.getCallerFramePointer(Magic.getFramePointer());
     callingFrame = Magic.getCallerFramePointer(callingFrame);
     Address location = Address.zero();
-    if (0 < RegisterConstants.NUM_PARAMETER_GPRS) {
-      location = callingFrame.plus(BaselineConstants.STACKFRAME_FIRST_PARAMETER_OFFSET).loadAddress();
+    if (0 < NUM_PARAMETER_GPRS) {
+      location = callingFrame.plus(STACKFRAME_FIRST_PARAMETER_OFFSET).loadAddress();
 
     } else {
       VM.sysFail("DynamicLinerHelper: assumes at least one param passed in registers");

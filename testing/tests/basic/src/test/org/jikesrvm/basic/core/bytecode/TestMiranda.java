@@ -22,7 +22,7 @@ public class TestMiranda {
   /**
    * A simple interface with a method in it
    */
-  static interface Interface {
+  interface Interface {
     /** A method that can be implemented */
     int someMethod(int i, int j);
   }
@@ -44,7 +44,7 @@ public class TestMiranda {
   private static class ConcreteClass extends AbstractClass {
     /** Implementation of the Miranda method our test will call */
     public int someMethod(int i, int j) {
-      return i*j;
+      return i * j;
     }
   }
 

@@ -13,7 +13,7 @@
 package org.jikesrvm.runtime;
 
 import java.util.Iterator;
-import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
@@ -33,10 +33,10 @@ public final class DynamicLibrary {
       new ImmutableEntryHashMapRVM<String, DynamicLibrary>();
 
   /**
-   * Add symbol for the boot image runner to find symbols within it.
+   * Add symbol for the bootloader to find symbols within it.
    */
   public static void boot() {
-    System.loadLibrary("rvmdynlib");
+    System.loadLibrary("jvm_jni");
   }
 
   /**
@@ -60,36 +60,13 @@ public final class DynamicLibrary {
   private final Address jniOnUnload;
 
   /**
-   * Load a dynamic library and maintain it in this object.
-   * @param libraryName library name
+   * Maintain a loaded library, call it's JNI_OnLoad function if present
+   * @param libName library name
+   * @param libHandler handle of loaded library
    */
-  private DynamicLibrary(String libraryName) {
-    // Convert file name from unicode to filesystem character set.
-    // (Assume file name is ASCII, for now).
-    //
-    byte[] asciiName = StringUtilities.stringToBytesNullTerminated(libraryName);
-
-    // make sure we have enough stack to load the library.
-    // This operation has been known to require more than 20K of stack.
-    RVMThread myThread = RVMThread.getCurrentThread();
-    Offset remaining = Magic.getFramePointer().diff(myThread.stackLimit);
-    int stackNeededInBytes = StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
-    if (stackNeededInBytes > 0) {
-      if (myThread.hasNativeStackFrame()) {
-        throw new java.lang.StackOverflowError("dlopen");
-      } else {
-        RVMThread.resizeCurrentStack(myThread.getStackLength() + stackNeededInBytes, null);
-      }
-    }
-
-    libHandler = SysCall.sysCall.sysDlopen(asciiName);
-
-    if (libHandler.isZero()) {
-      VM.sysWriteln("error loading library: " + libraryName);
-      throw new UnsatisfiedLinkError();
-    }
-
-    libName = libraryName;
+  private DynamicLibrary(String libName, Address libHandler) {
+    this.libName = libName;
+    this.libHandler = libHandler;
     jniOnLoad = getJNI_OnLoad();
     jniOnUnload = getJNI_OnUnload();
     try {
@@ -111,9 +88,9 @@ public final class DynamicLibrary {
   private Address getJNI_OnLoad() {
     Address candidate = getSymbol("JNI_OnLoad");
     Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
-    while(libs.hasNext()) {
+    while (libs.hasNext()) {
       DynamicLibrary lib = libs.next();
-      if (lib.jniOnLoad == candidate) {
+      if (lib.jniOnLoad.EQ(candidate)) {
         return Address.zero();
       }
     }
@@ -127,9 +104,9 @@ public final class DynamicLibrary {
   private Address getJNI_OnUnload() {
     Address candidate = getSymbol("JNI_OnUnload");
     Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
-    while(libs.hasNext()) {
+    while (libs.hasNext()) {
       DynamicLibrary lib = libs.next();
-      if (lib.jniOnUnload == candidate) {
+      if (lib.jniOnUnload.EQ(candidate)) {
         return Address.zero();
       }
     }
@@ -159,14 +136,14 @@ public final class DynamicLibrary {
   private static native int runJNI_OnLoad(Address JNI_OnLoadAddress);
 
   /**
-   * Check JNI version is &le; 1.4 and if not throw an
+   * Check JNI version is &ge; 1 and &le; 1.4 and if not throw an
    * UnsatisfiedLinkError
    * @param version to check
    */
   private static void checkJNIVersion(int version) {
     int major = version >>> 16;
     int minor = version & 0xFFFF;
-    if (major > 1 || minor > 4) {
+    if (major != 1 || minor > 4) {
       throw new UnsatisfiedLinkError("Unsupported JNI version: " + major + "." + minor);
     }
   }
@@ -174,13 +151,15 @@ public final class DynamicLibrary {
   /**
    * @return the true name of the dynamic library
    */
-  public String getLibName() { return libName; }
+  public String getLibName() {
+    return libName;
+  }
 
   /**
    * look up this dynamic library for a symbol
    * @param symbolName symbol name
    * @return The <code>Address</code> of the symbol system handler
-   * (actually an address to an AixLinkage triplet).
+   * (or an address of a PowerPC Linkage triplet).
    *           (-1: not found or couldn't be created)
    */
   public Address getSymbol(String symbolName) {
@@ -213,23 +192,46 @@ public final class DynamicLibrary {
 
   /**
    * Load a dynamic library
-   * @param libname the name of the library to load.
+   * @param libName the name of the library to load.
    * @return 0 on failure, 1 on success
    */
-  public static synchronized int load(String libname) {
-    DynamicLibrary dl = dynamicLibraries.get(libname);
-    if (dl != null) return 1; // success: already loaded
-
-    if (FileSystem.stat(libname, FileSystem.STAT_EXISTS) == 1) {
-      dynamicLibraries.put(libname, new DynamicLibrary(libname));
-      return 1;
+  public static synchronized int load(String libName) {
+    DynamicLibrary dl = dynamicLibraries.get(libName);
+    if (dl != null) {
+      return 1; // success: already loaded
     } else {
-      return 0; // fail; file does not exist
+      // Convert file name from unicode to filesystem character set.
+      // (Assume file name is ASCII, for now).
+      //
+      byte[] asciiName = StringUtilities.stringToBytesNullTerminated(libName);
+
+      // make sure we have enough stack to load the library.
+      // This operation has been known to require more than 20K of stack.
+      RVMThread myThread = RVMThread.getCurrentThread();
+      Offset remaining = Magic.getFramePointer().diff(myThread.stackLimit);
+      int stackNeededInBytes = StackFrameLayout.getStackSizeDLOpen() - remaining.toInt();
+      if (stackNeededInBytes > 0) {
+        if (myThread.hasNativeStackFrame()) {
+          throw new java.lang.StackOverflowError("Not enough space to open shared library");
+        } else {
+          RVMThread.resizeCurrentStack(myThread.getStackLength() + stackNeededInBytes, null);
+        }
+      }
+
+      Address libHandler = SysCall.sysCall.sysDlopen(asciiName);
+
+      if (!libHandler.isZero()) {
+        dynamicLibraries.put(libName, new DynamicLibrary(libName, libHandler));
+        return 1;
+      } else {
+        return 0; // fail; file does not exist
+      }
     }
   }
 
   /**
-   * Resolve a symbol to an address in a currently loaded dynamic library.
+   * Resolves a symbol to an address in a currently loaded dynamic library.
+   * @param symbol the symbol to resolves
    * @return the address of the symbol of Address.zero() if it cannot be resolved
    */
   public static synchronized Address resolveSymbol(String symbol) {

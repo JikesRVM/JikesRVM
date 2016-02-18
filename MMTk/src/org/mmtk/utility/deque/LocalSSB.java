@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.*;
 
 import org.mmtk.vm.VM;
 
@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.*;
  * overflows on inserts and pops (underflow actually) will always arise
  * when then cursor is buffer-size aligned.
  */
-@Uninterruptible class LocalSSB extends Deque implements Constants {
+@Uninterruptible class LocalSSB extends Deque {
 
   /****************************************************************************
    *
@@ -108,7 +108,7 @@ import org.vmmagic.unboxed.*;
    * @param arity The arity of the values stored in this SSB: the
    * buffer must contain enough space for this many words.
    */
-  @Inline(value=Inline.When.AssertionsDisabled)
+  @Inline(value = Inline.When.AssertionsDisabled)
   protected final void checkTailInsert(int arity) {
     if (bufferOffset(tail).isZero())
       tailOverflow(arity);
@@ -122,7 +122,7 @@ import org.vmmagic.unboxed.*;
    *
    * @param value the value to be inserted.
    */
-  @Inline(value=Inline.When.AssertionsDisabled)
+  @Inline(value = Inline.When.AssertionsDisabled)
   protected final void uncheckedTailInsert(Address value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.minus(BYTES_IN_ADDRESS);

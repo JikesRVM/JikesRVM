@@ -35,7 +35,7 @@ public class SpaceEffGraphEdge implements GraphEdge {
    * are reserved for SpaceEffGraph.  Classes that subclass this one
    * can use the remaining 28 bits
    */
-  protected int scratch;
+  protected int flags;
 
   static final int VISITED = 0x10000000; // general purpose
 
@@ -44,50 +44,74 @@ public class SpaceEffGraphEdge implements GraphEdge {
 
   static final int INFO_MASK = 0x0fffffff;
 
-  public final boolean visited() { return (scratch & VISITED) != 0; }
+  public final boolean visited() {
+    return (flags & VISITED) != 0;
+  }
 
-  public final boolean backEdge() { return (scratch & BACK_EDGE) != 0; }
+  public final boolean backEdge() {
+    return (flags & BACK_EDGE) != 0;
+  }
 
-  public final boolean dominatorEdge() { return (scratch & DOMINATOR) != 0; }
+  public final boolean dominatorEdge() {
+    return (flags & DOMINATOR) != 0;
+  }
 
-  public final void setVisited() { scratch |= VISITED; }
+  public final void setVisited() {
+    flags |= VISITED;
+  }
 
-  public final void setBackEdge() { scratch |= BACK_EDGE; }
+  public final void setBackEdge() {
+    flags |= BACK_EDGE;
+  }
 
-  public final void setDominatorEdge() { scratch |= DOMINATOR; }
+  public final void setDominatorEdge() {
+    flags |= DOMINATOR;
+  }
 
-  public final void clearVisited() { scratch &= ~VISITED; }
+  public final void clearVisited() {
+    flags &= ~VISITED;
+  }
 
-  public final void clearBackEdge() { scratch &= ~BACK_EDGE; }
+  public final void clearBackEdge() {
+    flags &= ~BACK_EDGE;
+  }
 
-  public final void clearDominatorEdge() { scratch &= ~DOMINATOR; }
+  public final void clearDominatorEdge() {
+    flags &= ~DOMINATOR;
+  }
 
   public final int getInfo() {
-    return scratch & INFO_MASK;
+    return flags & INFO_MASK;
   }
 
   public final void setInfo(int value) {
-    scratch = (scratch & ~INFO_MASK) | (value & INFO_MASK);
+    flags = (flags & ~INFO_MASK) | (value & INFO_MASK);
   }
 
   /**
    * Get the end node for the edge.
    * @return end node for the edge
    */
-  public final SpaceEffGraphNode toNode() { return _toNode; }
+  public final SpaceEffGraphNode toNode() {
+    return _toNode;
+  }
 
   /**
    * Get the start node for the edge.
    * @return start node for the edge
    */
-  public final SpaceEffGraphNode fromNode() { return _fromNode; }
+  public final SpaceEffGraphNode fromNode() {
+    return _fromNode;
+  }
 
   /**
    * Set end node.
    * WARNING: use with caution
    * @param toNode new end node
    */
-  final void setToNode(SpaceEffGraphNode toNode) { _toNode = toNode; }
+  final void setToNode(SpaceEffGraphNode toNode) {
+    _toNode = toNode;
+  }
 
   /**
    * Set start node.
@@ -101,7 +125,9 @@ public class SpaceEffGraphEdge implements GraphEdge {
   /**
    * Constructs an empty edge.
    */
-  SpaceEffGraphEdge() { }
+  SpaceEffGraphEdge() {
+    // explicitly defined to get package-private constructor
+  }
 
   /**
    * Constructs an edge starting at a given node and ending at a given node.
@@ -125,7 +151,9 @@ public class SpaceEffGraphEdge implements GraphEdge {
    * Returns the string representation of the edge type.
    * @return string representation of the edge type
    */
-  public String getTypeString() { return ""; }
+  public String getTypeString() {
+    return "";
+  }
 
   /**
    * Returns the string representation of the end node (used for printing).
@@ -148,14 +176,18 @@ public class SpaceEffGraphEdge implements GraphEdge {
    * @return end node for the edge
    */
   @Override
-  public final GraphNode to() { return _toNode; }
+  public final GraphNode to() {
+    return _toNode;
+  }
 
   /**
    * Get the start node for the edge.
    * @return start node for the edge
    */
   @Override
-  public final GraphNode from() { return _fromNode; }
+  public final GraphNode from() {
+    return _fromNode;
+  }
 
   /**
    * Links inlined from LinkedListElement2.
@@ -166,24 +198,32 @@ public class SpaceEffGraphEdge implements GraphEdge {
    * Get the next in edge.
    * @return next in edge.
    */
-  public final SpaceEffGraphEdge getNextIn() { return nextIn; }
+  public final SpaceEffGraphEdge getNextIn() {
+    return nextIn;
+  }
 
   /**
    * Get the next out edge.
    * @return next out edge.
    */
-  public final SpaceEffGraphEdge getNextOut() { return nextOut; }
+  public final SpaceEffGraphEdge getNextOut() {
+    return nextOut;
+  }
 
   /**
    * Append a given edge after this edge as an in edge.
    * @param e the edge to append
    */
-  final void appendIn(SpaceEffGraphEdge e) { nextIn = e; }
+  final void appendIn(SpaceEffGraphEdge e) {
+    nextIn = e;
+  }
 
   /**
    * Append a given edge after this edge as an out edge.
    * @param e the edge to append
    */
-  final void appendOut(SpaceEffGraphEdge e) { nextOut = e; }
+  final void appendOut(SpaceEffGraphEdge e) {
+    nextOut = e;
+  }
 }
 

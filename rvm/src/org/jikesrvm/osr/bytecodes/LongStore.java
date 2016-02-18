@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_lstore;
 
 /**
  * BC_LongStore: {@code lstore}, {@code lstore_<n>}
@@ -20,7 +21,7 @@ package org.jikesrvm.osr.bytecodes;
 public class LongStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;
-  private int lnum;
+  private final int lnum;
 
   public LongStore(int local) {
     this.lnum = local;

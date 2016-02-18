@@ -27,12 +27,12 @@ import org.jikesrvm.compilers.common.CompiledMethod;
  * Each attribute encodes an compiler site and the advice for that
  * site:
  * <ul>
- * <li><code>&lt;class></code> <i>string</i> The name of the class</li>
- * <li><code>&lt;method></code> <i>string</i> The name of the method</li>
- * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
- * <li><code>&lt;advice></code> <i>in </i> The integer value for the
+ * <li><code>&lt;class&gt;</code> <i>string</i> The name of the class</li>
+ * <li><code>&lt;method&gt;</code> <i>string</i> The name of the method</li>
+ * <li><code>&lt;signature&gt;</code> <i>string</i> The method signature</li>
+ * <li><code>&lt;advice&gt;</code> <i>in </i> The integer value for the
  * compiler, as given in CompilerInfo</li>
- * <li><code>&lt;optLevel></code> <i>in </i> The optimization level when
+ * <li><code>&lt;optLevel&gt;</code> <i>in </i> The optimization level when
  the Opt compiler is used
  * </ul>
  *
@@ -50,8 +50,8 @@ public class CompilerAdviceAttribute {
   private Atom className;  // The name of the class for the compiler site
   private Atom methodName; // The name of the method for the compiler site
   private Atom methodSig;  // The signature of the method
-  private int compiler;   // The compiler to use for the method
-  private int optLevel;   // The optimization level
+  private final int compiler;   // The compiler to use for the method
+  private final int optLevel;   // The optimization level
 
   /**
    * Initialization of key compiler advice data structure.
@@ -72,35 +72,45 @@ public class CompilerAdviceAttribute {
    *
    * @return the class name for this attribute
    */
-  public Atom getClassName() { return className; }
+  public Atom getClassName() {
+    return className;
+  }
 
   /**
    * Getter method for method name
    *
    * @return the method name for this attribute
    */
-  public Atom getMethodName() { return methodName; }
+  public Atom getMethodName() {
+    return methodName;
+  }
 
   /**
    * Getter method for method signature
    *
    * @return the method signature for this attribute
    */
-  public Atom getMethodSig() { return methodSig; }
+  public Atom getMethodSig() {
+    return methodSig;
+  }
 
   /**
    * Getter method for compiler ID
    *
    * @return the compiler ID for this attribute
    */
-  public int getCompiler() { return compiler; }
+  public int getCompiler() {
+    return compiler;
+  }
 
   /**
    * Getter method for optimization level
    *
    * @return the optimization level for this attribute
    */
-  public int getOptLevel() { return optLevel; }
+  public int getOptLevel() {
+    return optLevel;
+  }
 
   /**
    * Constructor

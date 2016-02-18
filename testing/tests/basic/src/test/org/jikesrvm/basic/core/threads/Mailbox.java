@@ -34,7 +34,11 @@ class Mailbox {
   //
   synchronized void await() {
     if (received != messages.length) {
-      try { wait(); } catch (InterruptedException e) {}
+      try {
+        wait();
+      } catch (InterruptedException e) {
+        // ignore
+      }
     }
     XThread.say("mailbox: notification received");
   }

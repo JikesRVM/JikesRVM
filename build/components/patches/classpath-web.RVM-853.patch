@@ -1,0 +1,35 @@
+--- java/net/URL.java	2015-03-13 11:45:03.000000000 +0100
++++ java/net/URL.java	2015-03-13 11:50:03.000000000 +0100
+@@ -128,9 +128,6 @@
+   private static final String DEFAULT_SEARCH_PATH =
+     "gnu.java.net.protocol|gnu.inet";
+ 
+-  // Cached System ClassLoader
+-  private static ClassLoader systemClassLoader;
+-
+   /**
+    * The name of the protocol for this URL.
+    * The protocol is always stored in lower case.
+@@ -932,10 +929,10 @@
+         // Finally loop through our search path looking for a match.
+         StringTokenizer pkgPrefix = new StringTokenizer(ph_search_path, "|");
+ 
+-        // Cache the systemClassLoader
+-        if (systemClassLoader == null)
++        // Use the context classloader to load everything if possible.
++        ClassLoader contextClassloader = Thread.currentThread().getContextClassLoader();
+           {
+-            systemClassLoader = AccessController.doPrivileged
++            contextClassloader = AccessController.doPrivileged
+               (new PrivilegedAction<ClassLoader>() {
+                   public ClassLoader run()
+                   {
+@@ -953,7 +950,7 @@
+                 // and try to cast it to a URLStreamHandler.
+                 String clsName =
+                   (pkgPrefix.nextToken() + "." + protocol + ".Handler");
+-                Class c = Class.forName(clsName, true, systemClassLoader);
++                Class c = Class.forName(clsName, true, contextClassloader);
+                 ph = (URLStreamHandler) c.newInstance();
+               }
+             catch (ThreadDeath death)

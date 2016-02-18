@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.compilers.common;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeMap;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -27,14 +27,15 @@ import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
 /**
  * Manage pool of compiled methods. <p>
- * Original extracted from RVMClassLoader. <p>
+ * Original extracted from RVMClassLoader.
  */
-public class CompiledMethods implements SizeConstants {
+public class CompiledMethods {
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row
    */
@@ -42,7 +43,7 @@ public class CompiledMethods implements SizeConstants {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /**
    * Java methods that have been compiled into machine code.
    * Note that there may be more than one compiled versions of the same method
@@ -62,13 +63,15 @@ public class CompiledMethods implements SizeConstants {
   private static boolean scanForObsoleteMethods = false;
 
   /**
-   * Ensure space in backing array for id
+   * Ensure space in backing array for id.
+   *
+   * @param id the id we need to ensure capacity for
    */
   private static void ensureCapacity(int id) {
     int column = id >> LOG_ROW_SIZE;
     if (column >= compiledMethods.length) {
-      CompiledMethod[][] tmp = new CompiledMethod[column+1][];
-      for (int i=0; i < column; i++) {
+      CompiledMethod[][] tmp = new CompiledMethod[column + 1][];
+      for (int i = 0; i < column; i++) {
         tmp[i] = compiledMethods[i];
       }
       tmp[column] = new CompiledMethod[1 << LOG_ROW_SIZE];
@@ -78,7 +81,8 @@ public class CompiledMethods implements SizeConstants {
   }
 
   /**
-   * Fetch a previously compiled method without checking
+   * @param cmid id of the method
+   * @return a previously compiled method without checking
    */
   @Uninterruptible
   public static CompiledMethod getCompiledMethodUnchecked(int cmid) {
@@ -86,9 +90,6 @@ public class CompiledMethods implements SizeConstants {
     return compiledMethods[column][cmid & ROW_MASK];
   }
 
-  /**
-   * Set entry in compiled method lookup
-   */
   @Uninterruptible
   private static void setCompiledMethod(int cmid, CompiledMethod cm) {
     int column = cmid >> LOG_ROW_SIZE;
@@ -97,7 +98,8 @@ public class CompiledMethods implements SizeConstants {
   }
 
   /**
-   * Fetch a previously compiled method.
+   * @param compiledMethodId the id of the compiled method
+   * @return a previously compiled method
    */
   @Uninterruptible
   public static CompiledMethod getCompiledMethod(int compiledMethodId) {
@@ -114,9 +116,6 @@ public class CompiledMethods implements SizeConstants {
     return getCompiledMethodUnchecked(compiledMethodId);
   }
 
-  /**
-   * Create a CompiledMethod appropriate for the given compilerType
-   */
   public static synchronized CompiledMethod createCompiledMethod(RVMMethod m, int compilerType) {
     int id = currentCompiledMethodId + 1;
     ensureCapacity(id);
@@ -136,7 +135,7 @@ public class CompiledMethods implements SizeConstants {
   }
 
   /**
-   * Create a CompiledMethod for the synthetic hardware trap frame
+   * @return a CompiledMethod for the synthetic hardware trap frame
    */
   public static synchronized CompiledMethod createHardwareTrapCompiledMethod() {
     int id = currentCompiledMethodId + 1;
@@ -148,7 +147,7 @@ public class CompiledMethods implements SizeConstants {
   }
 
   /**
-   * Get number of methods compiled so far.
+   * @return number of methods compiled so far.
    */
   @Uninterruptible
   public static int numCompiledMethods() {
@@ -178,7 +177,7 @@ public class CompiledMethods implements SizeConstants {
    * have no idea how far to back up the instruction pointer to point to the
    * "call site" or "exception site".
    *
-   * @return method (<code>null</code> --> not found)
+   * @return method (<code>null</code> --&gt; not found)
    */
   @Uninterruptible
   public static CompiledMethod findMethodForInstruction(Address ip) {
@@ -202,15 +201,6 @@ public class CompiledMethods implements SizeConstants {
   // executed. Here, we keep track of them until we know they are no longer
   // in use.
   public static void setCompiledMethodObsolete(CompiledMethod compiledMethod) {
-    // Currently, we avoid setting methods of java.lang.Object obsolete.
-    // This is because the TIBs for arrays point to the original version
-    // and are not updated on recompilation.
-    // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
-    //  and update TIB to use newly recompiled method.
-    if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType()) {
-      return;
-    }
-
     compiledMethod.setObsolete();
     Magic.sync();
     scanForObsoleteMethods = true;

@@ -61,6 +61,8 @@ public final class MarkCompactLocal extends BumpPointer {
   }
 
   @Override
-  protected Extent maximumRegionSize() { return Extent.fromIntZeroExtend(4 << LOG_BLOCK_SIZE) ; }
+  protected Extent maximumRegionSize() {
+    return Extent.fromIntZeroExtend(4 << LOG_BLOCK_SIZE);
+  }
 
 }

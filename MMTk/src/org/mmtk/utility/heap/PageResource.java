@@ -13,7 +13,6 @@
 package org.mmtk.utility.heap;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.ProtectOnRelease;
 import org.mmtk.utility.options.Options;
 
@@ -36,19 +35,16 @@ import org.vmmagic.unboxed.*;
  * monotonically before freeing the entire space and starting over).
  */
 @Uninterruptible
-public abstract class PageResource implements Constants {
+public abstract class PageResource {
 
   /****************************************************************************
    *
    * Class variables
    */
 
-  /**
-   *
-   */
-  protected static final boolean ZERO_ON_RELEASE = false; // debugging
-
+  /** lock protecting count of total cumulative pages committed */
   private static final Lock classLock;
+  /** cumulative count of pages ever committed */
   private static long cumulativeCommitted = 0;
 
 
@@ -89,9 +85,8 @@ public abstract class PageResource implements Constants {
   }
 
   /**
-   * Constructor
-   *
    * @param space The space to which this resource is attached
+   * @param contiguous whether the space is contiguous or discontiguous
    */
   private PageResource(Space space, boolean contiguous) {
     this.contiguous = contiguous;
@@ -100,7 +95,7 @@ public abstract class PageResource implements Constants {
   }
 
   /**
-   * Constructor for discontiguous spaces
+   * Constructor for discontiguous spaces.
    *
    * @param space The space to which this resource is attached
    */
@@ -109,9 +104,10 @@ public abstract class PageResource implements Constants {
   }
 
   /**
-   * Constructor for contiguous spaces
+   * Constructor for contiguous spaces.
    *
    * @param space The space to which this resource is attached
+   * @param start start address of the space
    */
   PageResource(Space space, Address start) {
     this(space, true);
@@ -173,6 +169,9 @@ public abstract class PageResource implements Constants {
 
   /**
    * Update the zeroing approach for this page resource.
+   *
+   * @param nontemporal whether to use non-temporal instructions for zeroing
+   * @param concurrent whether to do the zeroing concurrently
    */
   @Interruptible
   public void updateZeroingApproach(boolean nontemporal, boolean concurrent) {
@@ -269,21 +268,27 @@ public abstract class PageResource implements Constants {
    *
    * @return The number of reserved pages.
    */
-  public final int reservedPages() { return reserved; }
+  public final int reservedPages() {
+    return reserved;
+  }
 
   /**
    * Return the number of committed pages
    *
    * @return The number of committed pages.
    */
-  public final int committedPages() { return committed; }
+  public final int committedPages() {
+    return committed;
+  }
 
   /**
    * Return the cumulative number of committed pages
    *
    * @return The cumulative number of committed pages.
    */
-  public static long cumulativeCommittedPages() { return cumulativeCommitted; }
+  public static long cumulativeCommittedPages() {
+    return cumulativeCommitted;
+  }
 
   /**
    * Add to the total cumulative committed page count.

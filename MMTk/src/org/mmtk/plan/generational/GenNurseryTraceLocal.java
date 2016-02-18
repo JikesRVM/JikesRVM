@@ -12,6 +12,8 @@
  */
 package org.mmtk.plan.generational;
 
+import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
+
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.HeaderByte;
@@ -41,7 +43,8 @@ public final class GenNurseryTraceLocal extends TraceLocal {
   private final AddressPairDeque arrayRemset;
 
   /**
-   * Constructor
+   * @param trace the global trace class to use
+   * @param plan the state of the generational collector
    */
   public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
     super(Gen.SCAN_NURSERY, trace);
@@ -64,7 +67,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     if (Gen.inNursery(object)) {
       return Gen.nurserySpace.isLive(object);
     }
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
+    /* During a nursery trace, all objects not in the nursery are considered alive */
     return true;
   }
 

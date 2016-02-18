@@ -109,7 +109,9 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
     private static final boolean DEBUG = false;
 
     @Override
-    public String getName() { return "RBE Transform"; }
+    public String getName() {
+      return "RBE Transform";
+    }
 
     @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
@@ -205,7 +207,8 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
     }
 
     /**
-     * Return the basic block that s's block will goto if s is not taken.
+     * @param s an instruction instruction
+     * @return the basic block that s's block will goto if s is not taken.
      */
     private BasicBlock getNotTakenBlock(Instruction s) {
       s = s.nextInstructionInCodeOrder();
@@ -238,7 +241,12 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
     }
 
     /**
-     * Transform cb into a GOTO, updating PHI nodes to maintain SSA form.
+     * Transforms a conditional branch into a GOTO, updating PHI nodes
+     *  to maintain SSA form.
+     *
+     * @param source the basic block that contains the branch instruction
+     * @param cb the conditional branch to transform
+     * @param ir the governing IR, in SSA form
      */
     private void takeCondBranch(BasicBlock source, Instruction cb, IR ir) {
       if (DEBUG) VM.sysWrite("Eliminating definitely taken branch " + cb + "\n");

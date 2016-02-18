@@ -16,19 +16,20 @@ package org.jikesrvm.compilers.baseline;
  * Profile data for a branch instruction.
  */
 public final class ConditionalBranchProfile extends BranchProfile {
-
-  final float taken;
-  final boolean backwards;
+  /** Probability of being taken */
+  private final float taken;
+  /** Backward branch */
+  private final boolean backwards;
 
   /**
-   * @param _bci the bytecode index of the source branch instruction
-   * @param yea the number of times the branch was taken
-   * @param nea the number of times the branch was not taken
+   * @param bci the bytecode index of the source branch instruction
+   * @param taken the number of times the branch was taken
+   * @param notTaken the number of times the branch was not taken
    * @param bw is this a backwards branch?
    */
-  ConditionalBranchProfile(int _bci, int yea, int nea, boolean bw) {
-    super(_bci, ((float) yea + (float) nea));
-    taken = yea;
+  ConditionalBranchProfile(int bci, int taken, int notTaken, boolean bw) {
+    super(bci, countToFloat(taken) + countToFloat(notTaken));
+    this.taken = countToFloat(taken);
     backwards = bw;
   }
 

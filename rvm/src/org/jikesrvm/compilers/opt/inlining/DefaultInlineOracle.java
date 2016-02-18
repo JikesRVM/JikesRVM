@@ -303,7 +303,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                          * and max allowable.
                          * Other alternatives would be to do a log interpolation or some other step function.
                          */
-                        int range = opts.INLINE_AI_MAX_TARGET_SIZE -  2*opts.INLINE_MAX_TARGET_SIZE;
+                        int range = opts.INLINE_AI_MAX_TARGET_SIZE - 2 * opts.INLINE_MAX_TARGET_SIZE;
                         double slope = (range) / Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD;
                         int scaledAdj = (int) (slope * adjustedWeight);
                         maxCost += opts.INLINE_MAX_TARGET_SIZE + scaledAdj;
@@ -413,7 +413,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               VM.sysWriteln("Error, inlining for " + methodsToInline.size() + " targets");
               VM.sysWriteln("Inlining into " + rootMethod + " at bytecode index " + bcIndex);
               VM.sysWriteln("Method: " + target + " doesn't need a guard");
-              for (int i=0; i < methodsToInline.size(); i++) {
+              for (int i = 0; i < methodsToInline.size(); i++) {
                 VM.sysWriteln("  Method " + i + ": " + methodsToInline.get(i));
                 VM.sysWriteln("  NeedsGuard: " + methodsNeedGuard.get(i));
               }
@@ -439,8 +439,11 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
    * Precondition: lock on {@link RVMClass#classLoadListener} is held.
    *
    * @param caller The caller method
+   * @param singleImpl the method implementation that will be protected by the guard
    * @param callee The callee method
+   * @param state compilation state at this point
    * @param codePatchSupported   Can we use code patching at this call site?
+   * @return the chosen guard
    */
   private byte chooseGuard(RVMMethod caller, RVMMethod singleImpl, RVMMethod callee, CompilationState state,
                            boolean codePatchSupported) {

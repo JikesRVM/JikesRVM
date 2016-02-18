@@ -33,7 +33,7 @@ import java.util.Properties;
 import java.util.PropertyPermission;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.CommandLineArgs;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Time;

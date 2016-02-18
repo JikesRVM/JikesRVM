@@ -20,6 +20,6 @@ public class stack {
 
   public static void overflow(int n) {
     if (n > 0)
-       overflow(n-1);
+       overflow(n - 1);
   }
 }

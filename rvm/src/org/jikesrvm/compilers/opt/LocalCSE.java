@@ -74,9 +74,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 public class LocalCSE extends CompilerPhase {
   private final boolean isHIR;
 
-  /**
-   * Constructor
-   */
   public LocalCSE(boolean isHIR) {
     super(new Object[]{isHIR});
     this.isHIR = isHIR;
@@ -207,16 +204,10 @@ public class LocalCSE extends CompilerPhase {
     }
   }
 
-  /**
-   * Is a given instruction a CSE-able load?
-   */
   public static boolean isLoadInstruction(Instruction s) {
     return GetField.conforms(s) || GetStatic.conforms(s);
   }
 
-  /**
-   * Is a given instruction a CSE-able store?
-   */
   public static boolean isStoreInstruction(Instruction s) {
     return PutField.conforms(s) || PutStatic.conforms(s);
   }
@@ -229,7 +220,7 @@ public class LocalCSE extends CompilerPhase {
    */
   private boolean isExpression(Instruction inst) {
     if (inst.isDynamicLinkingPoint()) return false;
-    switch (inst.operator.format) {
+    switch (inst.operator().format) {
       case InstructionFormat.Unary_format:
       case InstructionFormat.GuardedUnary_format:
       case InstructionFormat.Binary_format:
@@ -377,6 +368,7 @@ public class LocalCSE extends CompilerPhase {
   /**
    * Process a check instruction
    *
+   * @param ir the IR that contains the instruction
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
@@ -432,9 +424,8 @@ public class LocalCSE extends CompilerPhase {
   }
 
   /**
-   * Is this a synchronizing instruction?
-   *
    * @param inst the instruction in question
+   * @return whether this is a synchronizing instruction
    */
   private static boolean isSynchronizing(Instruction inst) {
     switch (inst.getOpcode()) {
@@ -473,7 +464,7 @@ public class LocalCSE extends CompilerPhase {
       Operator opr = inst.operator();
       Operand[] ops = null;
       LocationOperand location = null;
-      switch (inst.operator.format) {
+      switch (inst.operator().format) {
         case InstructionFormat.GetField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
           ops = new Operand[]{GetField.getRef(inst)};
@@ -527,11 +518,11 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.Call_format:
           int numParams = Call.getNumberOfParams(inst);
-          ops = new Operand[numParams+2];
+          ops = new Operand[numParams + 2];
           ops[0] = Call.getAddress(inst);
           ops[1] = Call.getMethod(inst);
-          for (int i=0; i < numParams; i++) {
-            ops[i+2] = Call.getParam(inst, i);
+          for (int i = 0; i < numParams; i++) {
+            ops[i + 2] = Call.getParam(inst, i);
           }
           break;
         default:
@@ -556,7 +547,7 @@ public class LocalCSE extends CompilerPhase {
       Operand[] ops = null;
       LocationOperand location = null;
 
-      switch (inst.operator.format) {
+      switch (inst.operator().format) {
         case InstructionFormat.GetField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
           ops = new Operand[]{GetField.getRef(inst)};
@@ -610,11 +601,11 @@ public class LocalCSE extends CompilerPhase {
           break;
         case InstructionFormat.Call_format:
           int numParams = Call.getNumberOfParams(inst);
-          ops = new Operand[numParams+2];
+          ops = new Operand[numParams + 2];
           ops[0] = Call.getAddress(inst);
           ops[1] = Call.getMethod(inst);
-          for (int i=0; i < numParams; i++) {
-            ops[i+2] = Call.getParam(inst, i);
+          for (int i = 0; i < numParams; i++) {
+            ops[i + 2] = Call.getParam(inst, i);
           }
           break;
         default:
@@ -770,7 +761,7 @@ public class LocalCSE extends CompilerPhase {
           return false;
         }
         boolean result = LocationOperand.mayBeAliased(location, ae.location);
-        if (ops == null || ae.ops == null){
+        if (ops == null || ae.ops == null) {
           return result && ops == ae.ops;
         }
         result = result && ops[0].similar(ae.ops[0]);
@@ -813,7 +804,7 @@ public class LocalCSE extends CompilerPhase {
             return (ops[0].similar(ae.ops[0]) && ops[1].similar(ae.ops[1])) ||
               (isCommutative() && ops[0].similar(ae.ops[1]) && ops[1].similar(ae.ops[0]));
           } else {
-            for (int i=0; i < ops.length; i++) {
+            for (int i = 0; i < ops.length; i++) {
               if (!ops[i].similar(ae.ops[i])) {
                 return false;
               }
@@ -831,37 +822,22 @@ public class LocalCSE extends CompilerPhase {
       return opr.hashCode();
     }
 
-    /**
-     * Does this expression represent the result of a load or store?
-     */
     public boolean isLoadOrStore() {
       return GetField.conforms(opr) || GetStatic.conforms(opr) || PutField.conforms(opr) || PutStatic.conforms(opr);
     }
 
-    /**
-     * Does this expression represent the result of a load?
-     */
     public boolean isLoad() {
       return GetField.conforms(opr) || GetStatic.conforms(opr);
     }
 
-    /**
-     * Does this expression represent the result of a store?
-     */
     public boolean isStore() {
       return PutField.conforms(opr) || PutStatic.conforms(opr);
     }
 
-    /**
-     * Does this expression represent the result of a bounds check?
-     */
     private boolean isBoundsCheck() {
       return BoundsCheck.conforms(opr) || (TrapIf.conforms(opr) && ((TrapCodeOperand) ops[2]).isArrayBounds());
     }
 
-    /**
-     * Is this expression commutative?
-     */
     private boolean isCommutative() {
       return opr.isCommutative();
     }

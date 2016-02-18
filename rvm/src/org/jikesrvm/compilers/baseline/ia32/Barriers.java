@@ -12,22 +12,25 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
+import static org.jikesrvm.ia32.BaselineConstants.S0;
+import static org.jikesrvm.ia32.BaselineConstants.SP;
+import static org.jikesrvm.ia32.BaselineConstants.T0;
+
 import org.jikesrvm.Configuration;
-import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.ia32.BaselineConstants;
+import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.Magic;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Class called from baseline compiler to generate architecture specific
  * write barriers for garbage collectors.  For baseline
  * compiled methods, the write barrier calls methods of WriteBarrier.
  */
-class Barriers implements BaselineConstants {
+class Barriers {
 
   /**
    * Generate code to perform an array store barrier. On entry the stack holds:
@@ -37,7 +40,7 @@ class Barriers implements BaselineConstants {
    */
   static void compileArrayStoreBarrier(Assembler asm) {
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.aastoreMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.aastoreMethod.getOffset());
   }
 
   /**
@@ -47,14 +50,14 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    * @param barrier the designated barrier
    */
-  private static void arayStoreBarrierHelper(Assembler asm, BaselineCompilerImpl compiler, NormalMethod barrier) {
+  private static void arrayStoreBarrierHelper(Assembler asm, BaselineCompilerImpl compiler, NormalMethod barrier) {
     // on entry java stack contains ...|target_array_ref|array_index|value_to_store|
     // Use the correct calling convention to pass parameters by register and the stack
     //  (size of value_to_store varies by type of array store)
     MethodReference method = barrier.getMemberRef().asMethodReference();
     compiler.genParameterRegisterLoad(method, false);
     // call the actual write barrier
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(barrier.getOffset()));
+    asm.generateJTOCcall(barrier.getOffset());
   }
 
   /**
@@ -65,7 +68,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierByte(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.byteArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.byteArrayWriteBarrierMethod);
   }
 
   /**
@@ -76,7 +79,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierChar(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.charArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.charArrayWriteBarrierMethod);
   }
 
   /**
@@ -87,7 +90,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierDouble(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.doubleArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.doubleArrayWriteBarrierMethod);
   }
 
   /**
@@ -98,7 +101,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierFloat(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.floatArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.floatArrayWriteBarrierMethod);
   }
 
   /**
@@ -109,7 +112,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierInt(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.intArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.intArrayWriteBarrierMethod);
   }
 
   /**
@@ -120,7 +123,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierLong(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.longArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.longArrayWriteBarrierMethod);
   }
 
   /**
@@ -131,7 +134,7 @@ class Barriers implements BaselineConstants {
    * @param compiler the compiler instance to ensure correct parameter passing
    */
   static void compileArrayStoreBarrierShort(Assembler asm, BaselineCompilerImpl compiler) {
-    arayStoreBarrierHelper(asm, compiler, Entrypoints.shortArrayWriteBarrierMethod);
+    arrayStoreBarrierHelper(asm, compiler, Entrypoints.shortArrayWriteBarrierMethod);
   }
 
   /**
@@ -148,7 +151,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 4);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectFieldWriteBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectFieldWriteBarrierMethod.getOffset());
   }
 
   /**
@@ -165,7 +168,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 4);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectFieldWriteBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectFieldWriteBarrierMethod.getOffset());
   }
 
   /**
@@ -188,7 +191,7 @@ class Barriers implements BaselineConstants {
     MethodReference method = barrier.getMemberRef().asMethodReference();
     compiler.genParameterRegisterLoad(method, false);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(barrier.getOffset()));
+    asm.generateJTOCcall(barrier.getOffset());
   }
 
   /**
@@ -211,7 +214,7 @@ class Barriers implements BaselineConstants {
     MethodReference method = barrier.getMemberRef().asMethodReference();
     compiler.genParameterRegisterLoad(method, false);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(barrier.getOffset()));
+    asm.generateJTOCcall(barrier.getOffset());
   }
 
   /**
@@ -221,6 +224,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierBoolean(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -234,6 +238,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierBooleanImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -247,6 +252,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierByte(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -260,6 +266,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierByteImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -273,6 +280,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierChar(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -286,6 +294,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierCharImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -299,6 +308,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierDouble(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -312,6 +322,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierDoubleImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -325,6 +336,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierFloat(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -338,6 +350,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierFloatImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -351,6 +364,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierInt(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -364,6 +378,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierIntImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -377,6 +392,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierLong(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -390,6 +406,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierLongImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -403,6 +420,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierShort(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -416,6 +434,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierShortImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -429,6 +448,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierWord(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -442,6 +462,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierWordImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -455,6 +476,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierAddress(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -468,6 +490,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierAddressImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -481,6 +504,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierExtent(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -494,6 +518,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierExtentImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -507,6 +532,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param offset the register holding the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierOffset(Assembler asm, GPR offset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -520,6 +546,7 @@ class Barriers implements BaselineConstants {
    * @param asm the assembler to generate the code in
    * @param fieldOffset the offset of the field
    * @param locationMetadata meta-data about the location
+   * @param compiler the compiler instance to ensure correct parameter passing
    */
   @Inline
   static void compilePutfieldBarrierOffsetImm(Assembler asm, Offset fieldOffset, int locationMetadata, BaselineCompilerImpl compiler) {
@@ -532,7 +559,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Reg(reg); // offset
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticWriteBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectStaticWriteBarrierMethod.getOffset());
  }
 
   static void compilePutstaticBarrierImm(Assembler asm, Offset fieldOffset, int locationMetadata) {
@@ -540,14 +567,14 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticWriteBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectStaticWriteBarrierMethod.getOffset());
   }
 
   static void compileArrayLoadBarrier(Assembler asm, boolean pushResult) {
     // on entry java stack contains ...|target_array_ref|array_index|
     // SP -> index, SP+4 -> target_ref
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectArrayReadBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectArrayReadBarrierMethod.getOffset());
     if (pushResult) asm.emitPUSH_Reg(T0);
   }
 
@@ -558,7 +585,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectFieldReadBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectFieldReadBarrierMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -567,7 +594,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectFieldReadBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectFieldReadBarrierMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -575,7 +602,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Reg(reg);
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticReadBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectStaticReadBarrierMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -583,7 +610,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticReadBarrierMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.objectStaticReadBarrierMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 
@@ -593,7 +620,7 @@ class Barriers implements BaselineConstants {
     // on exit: stack is the same
     asm.emitPUSH_RegDisp(SP, Offset.fromIntSignExtend(offset));   // dup
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 1);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.modifyCheckMethod.getOffset()));
+    asm.generateJTOCcall(Entrypoints.modifyCheckMethod.getOffset());
   }
 
   /**
@@ -604,6 +631,6 @@ class Barriers implements BaselineConstants {
    * @param objRefReg the register containing the reference
    */
   private static void genNullCheck(Assembler asm, GPR objRefReg) {
-    BaselineCompilerImpl.baselineEmitLoadTIB(asm, S0, T0);
+    asm.baselineEmitLoadTIB(S0, T0);
   }
 }

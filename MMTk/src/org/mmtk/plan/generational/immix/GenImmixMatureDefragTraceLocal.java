@@ -34,7 +34,8 @@ import org.vmmagic.pragma.*;
 public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
 
   /**
-   * Constructor
+   * @param global the global trace class to use
+   * @param plan the state of the generational collector
    */
   public GenImmixMatureDefragTraceLocal(Trace global, GenCollector plan) {
     super(-1, global, plan);

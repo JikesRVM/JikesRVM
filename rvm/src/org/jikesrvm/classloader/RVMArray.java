@@ -12,13 +12,27 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.HandInlinedScanning;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.mm.mminterface.Barriers;
+import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
@@ -46,7 +60,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class RVMArray extends RVMType implements Constants, ClassLoaderConstants {
+public final class RVMArray extends RVMType {
 
   /*
    * We hold on to a number of commonly used arrays for easy access.
@@ -187,7 +201,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    */
   private int computeLogElementSize() {
     if (elementType.getTypeRef().equals(TypeReference.Code)) {
-      return ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
+      return ArchConstants.getLogInstructionWidth();
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
       case ClassTypeCode:
@@ -399,11 +413,6 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     return false;
   }
 
-  /**
-   * Constructor
-   * @param typeRef
-   * @param elementType
-   */
   RVMArray(TypeReference typeRef, RVMType elementType) {
     super(typeRef, typeRef.getDimensionality(), null);
     this.elementType = elementType;
@@ -447,26 +456,36 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * Also forces the resolution of the element type.
    */
   @Override
-  public synchronized void resolve() {
-    if (isResolved()) return;
+  public void resolve() {
+    synchronized (this) {
+      if (isResolved()) return;
+      if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
+    }
 
-    if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
-
+    // Resolving the element type requires a lock on the RVMType object that
+    // represents the element type. It does *not* require the lock of this object.
+    // It is thus safe to release the lock on this object while the element type is
+    // being resolved. This helps to to prevent deadlocks when compiling with multiple
+    // threads.
     elementType.resolve();
 
-    // Using the type information block for java.lang.Object as a template,
-    // build a type information block for this new array type by copying the
-    // virtual method fields and substituting an appropriate type field.
-    //
-    TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
+    synchronized (this) {
+      if (isResolved()) return;
 
-    int alignCode = elementType.isReferenceType() ? HandInlinedScanning.referenceArray() : HandInlinedScanning.primitiveArray();
-    TIB allocatedTib = MemoryManager.newTIB(javaLangObjectTIB.numVirtualMethods(), alignCode);
-    superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
-    doesImplement = DynamicTypeCheck.buildDoesImplement(this);
-    publishResolved(allocatedTib, superclassIds, doesImplement);
+      // Using the type information block for java.lang.Object as a template,
+      // build a type information block for this new array type by copying the
+      // virtual method fields and substituting an appropriate type field.
+      //
+      TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
 
-    MemoryManager.notifyClassResolved(this);
+      int alignCode = elementType.isReferenceType() ? HandInlinedScanning.referenceArray() : HandInlinedScanning.primitiveArray();
+      TIB allocatedTib = MemoryManager.newTIB(javaLangObjectTIB.numVirtualMethods(), alignCode);
+      superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
+      doesImplement = DynamicTypeCheck.buildDoesImplement(this);
+      publishResolved(allocatedTib, superclassIds, doesImplement);
+
+      MemoryManager.notifyClassResolved(this);
+    }
   }
 
   /**
@@ -483,7 +502,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     allocatedTib.setType(this);
     allocatedTib.setSuperclassIds(superclassIds);
     allocatedTib.setDoesImplement(doesImplement);
-    if (!(elementType.isPrimitiveType()||elementType.isUnboxedType())) {
+    if (!(elementType.isPrimitiveType() || elementType.isUnboxedType())) {
       allocatedTib.setArrayElementTib(elementType.getTypeInformationBlock());
     }
     typeInformationBlock = allocatedTib;
@@ -510,20 +529,22 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
 
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
     RVMType objectType = RVMType.JavaLangObjectType;
-    int retries=0;
-    while(!objectType.isInstantiated()) {
+    int retries = 0;
+    while (!objectType.isInstantiated()) {
       try {
         Thread.sleep(1);
-      } catch (InterruptedException e) {}
+      } catch (InterruptedException e) {
+        // ignored
+      }
       retries++;
       if (retries > 10) {
-        throw new Error("Failed waiting for java.lang.Object to be instantiated during instantiation of "+toString());
+        throw new Error("Failed waiting for java.lang.Object to be instantiated during instantiation of " + toString());
       }
     }
     if (VM.VerifyAssertions) VM._assert(objectType.isInstantiated());
     TIB javaLangObjectTIB = objectType.getTypeInformationBlock();
 
-    for(int i=0; i < javaLangObjectTIB.numVirtualMethods(); i++) {
+    for (int i = 0; i < javaLangObjectTIB.numVirtualMethods(); i++) {
       typeInformationBlock.setVirtualMethod(i, javaLangObjectTIB.getVirtualMethod(i));
     }
 
@@ -533,7 +554,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Initialization is a no-op (arrays have no <clinit> method).
+   * Initialization is a no-op (arrays have no {@code <clinit>} method).
    */
   @Override
   public void initialize() { }
@@ -584,7 +605,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -645,7 +666,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -658,8 +679,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_BOOLEAN)) && BOOLEAN_BULK_COPY_SUPPORTED) {
         if (NEEDS_BOOLEAN_ASTORE_BARRIER || NEEDS_BOOLEAN_ALOAD_BARRIER) {
-          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_BOOLEAN);
-          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_BOOLEAN);
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_BOOLEAN);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_BOOLEAN);
           Barriers.booleanBulkCopy(src, srcOffset, dst, dstOffset, len);
         } else {
           Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
@@ -706,7 +727,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(short[] src, int srcIdx, short[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -719,8 +740,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_SHORT)) && SHORT_BULK_COPY_SUPPORTED) {
         if (NEEDS_SHORT_ASTORE_BARRIER || NEEDS_SHORT_ALOAD_BARRIER) {
-          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_SHORT);
-          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_SHORT);
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_SHORT);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_SHORT);
           Barriers.shortBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_SHORT);
         } else {
           Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
@@ -767,7 +788,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(char[] src, int srcIdx, char[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -780,8 +801,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_CHAR)) && CHAR_BULK_COPY_SUPPORTED) {
         if (NEEDS_CHAR_ASTORE_BARRIER || NEEDS_CHAR_ALOAD_BARRIER) {
-          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_CHAR);
-          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_CHAR);
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_CHAR);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_CHAR);
           Barriers.charBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_CHAR);
         } else {
           Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
@@ -828,7 +849,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(int[] src, int srcIdx, int[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -841,8 +862,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx >= dstIdx) && INT_BULK_COPY_SUPPORTED) {
         if (NEEDS_INT_ASTORE_BARRIER || NEEDS_INT_ALOAD_BARRIER) {
-          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_INT);
-          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_INT);
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_INT);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_INT);
           Barriers.intBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_INT);
         } else {
           Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
@@ -889,7 +910,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(float[] src, int srcIdx, float[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -902,8 +923,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx > dstIdx) && FLOAT_BULK_COPY_SUPPORTED) {
         if (NEEDS_FLOAT_ASTORE_BARRIER || NEEDS_FLOAT_ALOAD_BARRIER) {
-          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_FLOAT);
-          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_FLOAT);
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_FLOAT);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_FLOAT);
           Barriers.floatBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_FLOAT);
         } else {
           Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
@@ -950,7 +971,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(long[] src, int srcIdx, long[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -963,8 +984,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx > dstIdx) && LONG_BULK_COPY_SUPPORTED) {
         if (NEEDS_LONG_ASTORE_BARRIER || NEEDS_LONG_ALOAD_BARRIER) {
-          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_LONG);
-          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_LONG);
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_LONG);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_LONG);
           Barriers.longBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_LONG);
         } else {
           Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
@@ -1011,7 +1032,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3,4})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1,3,4})
   public static void arraycopy(double[] src, int srcIdx, double[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
@@ -1024,8 +1045,8 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx > dstIdx) && DOUBLE_BULK_COPY_SUPPORTED) {
         if (NEEDS_DOUBLE_ASTORE_BARRIER || NEEDS_DOUBLE_ALOAD_BARRIER) {
-          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_DOUBLE);
-          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_DOUBLE);
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_DOUBLE);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_DOUBLE);
           Barriers.doubleBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_DOUBLE);
         } else {
           Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);

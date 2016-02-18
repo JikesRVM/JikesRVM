@@ -12,9 +12,20 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.mmtk.utility.Constants.ARRAY_ELEMENT;
+import static org.mmtk.utility.Constants.INSTANCE_FIELD;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_ADDRESS;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_CHAR;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_INT;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_SHORT;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
-import org.jikesrvm.VM;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -25,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 @Uninterruptible
-public class Barriers implements org.mmtk.utility.Constants {
+public class Barriers {
   /** {@code true} if the selected plan requires a read barrier on java.lang.ref.Reference types */
   private static final boolean NEEDS_JAVA_LANG_REFERENCE_GC_READ_BARRIER = Selected.Constraints.get().needsJavaLangReferenceReadBarrier();
   /** {@code true} if the selected plan requires a read barrier on java.lang.ref.Reference types */
@@ -95,7 +106,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void booleanArrayWrite(boolean[] ref, int index, boolean value) {
     if (NEEDS_BOOLEAN_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_BOOLEAN);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_BOOLEAN);
       Selected.Mutator.get().booleanWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -132,7 +143,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static boolean booleanArrayRead(boolean[] ref, int index) {
     if (NEEDS_BOOLEAN_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_BOOLEAN);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_BOOLEAN);
       return Selected.Mutator.get().booleanRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -314,7 +325,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void charArrayWrite(char[] ref, int index, char value) {
     if (NEEDS_CHAR_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_CHAR);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR);
       Selected.Mutator.get().charWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -351,7 +362,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static char charArrayRead(char[] ref, int index) {
     if (NEEDS_CHAR_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_CHAR);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR);
       return Selected.Mutator.get().charRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -424,7 +435,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void shortArrayWrite(short[] ref, int index, short value) {
     if (NEEDS_SHORT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_SHORT);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_SHORT);
       Selected.Mutator.get().shortWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -461,7 +472,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static short shortArrayRead(short[] ref, int index) {
     if (NEEDS_SHORT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_SHORT);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_SHORT);
       return Selected.Mutator.get().shortRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -535,7 +546,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void intArrayWrite(int[] ref, int index, int value) {
     if (NEEDS_INT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_INT);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT);
       Selected.Mutator.get().intWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -572,7 +583,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static int intArrayRead(int[] ref, int index) {
     if (NEEDS_INT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_INT);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT);
       return Selected.Mutator.get().intRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -603,6 +614,7 @@ public class Barriers implements org.mmtk.utility.Constants {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean intTryCompareAndSwap(Object ref, Offset offset, int old, int value) {
@@ -664,7 +676,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void longArrayWrite(long[] ref, int index, long value) {
     if (NEEDS_LONG_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_LONG);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_LONG);
       Selected.Mutator.get().longWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -701,7 +713,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static long longArrayRead(long[] ref, int index) {
     if (NEEDS_LONG_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_LONG);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_LONG);
       return Selected.Mutator.get().longRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -714,6 +726,7 @@ public class Barriers implements org.mmtk.utility.Constants {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean longTryCompareAndSwap(Object ref, Offset offset, long old, long value) {
@@ -792,7 +805,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void floatArrayWrite(float[] ref, int index, float value) {
     if (NEEDS_FLOAT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_FLOAT);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_FLOAT);
       Selected.Mutator.get().floatWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -829,7 +842,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static float floatArrayRead(float[] ref, int index) {
     if (NEEDS_FLOAT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_FLOAT);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_FLOAT);
       return Selected.Mutator.get().floatRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -902,7 +915,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void doubleArrayWrite(double[] ref, int index, double value) {
     if (NEEDS_DOUBLE_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_DOUBLE);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_DOUBLE);
       Selected.Mutator.get().doubleWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -939,7 +952,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static double doubleArrayRead(double[] ref, int index) {
     if (NEEDS_DOUBLE_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_DOUBLE);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_DOUBLE);
       return Selected.Mutator.get().doubleRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -1027,6 +1040,7 @@ public class Barriers implements org.mmtk.utility.Constants {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean wordTryCompareAndSwap(Object ref, Offset offset, Word old, Word value) {
@@ -1093,6 +1107,7 @@ public class Barriers implements org.mmtk.utility.Constants {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean addressTryCompareAndSwap(Object ref, Offset offset, Address old, Address value) {
@@ -1245,7 +1260,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void objectArrayWrite(Object[] ref, int index, Object value) {
     if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
       Selected.Mutator.get().objectReferenceWrite(array, array.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -1282,7 +1297,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static Object objectArrayRead(Object[] ref, int index) {
     if (NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
       return Selected.Mutator.get().objectReferenceRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT).toObject();
     } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
@@ -1366,6 +1381,7 @@ public class Barriers implements org.mmtk.utility.Constants {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean objectTryCompareAndSwap(Object ref, Offset offset, Object old, Object value) {

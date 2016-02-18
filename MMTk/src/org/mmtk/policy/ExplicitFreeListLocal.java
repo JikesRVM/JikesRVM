@@ -13,20 +13,19 @@
 package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.SegregatedFreeListLocal;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 
 /**
  * This class implements unsynchronized (local) elements of an
  * explicitly managed collector.  Allocation is via the segregated free list
- * (@see org.mmtk.utility.alloc.SegregatedFreeList).<p>
+ * (@see org.mmtk.utility.alloc.SegregatedFreeList).
  *
  * @see org.mmtk.utility.alloc.SegregatedFreeList
  * @see ExplicitFreeListSpace
  */
 @Uninterruptible
-public final class ExplicitFreeListLocal extends SegregatedFreeListLocal<ExplicitFreeListSpace> implements Constants {
+public final class ExplicitFreeListLocal extends SegregatedFreeListLocal<ExplicitFreeListSpace> {
 
   /****************************************************************************
    *

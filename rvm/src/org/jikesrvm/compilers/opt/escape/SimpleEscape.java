@@ -12,18 +12,28 @@
  */
 package org.jikesrvm.compilers.opt.escape;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PREFETCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBST_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBTST_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBT_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZL_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZ_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.ICBI_opcode;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.bc2ir.ConvertBCtoHIR;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
@@ -33,122 +43,11 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
-import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_OBJ_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_TYPE_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRSigExt_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRZerExt_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MUST_IMPLEMENT_INTERFACE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEWOBJMULTIARRAY_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEW_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NEW_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PHI_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PUTFIELD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PUTSTATIC_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
-import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
+import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Store;
@@ -157,10 +56,25 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- * Simple flow-insensitive escape analysis
+ * Simple flow-insensitive intra-procedural escape analysis. Information
+ * about other procedures is only used when examining call instructions.
+ * <p>
+ * NOTE: The analysis is tailored to the optimizations that currently make
+ * use of it and <em>NOT</em> suited for general tasks that rely on escape
+ * analysis. In particular, the analysis may incorrectly classify uses as
+ * thread-local or method-local. This does not cause problems for the implemented
+ * optimizations because those will only be performed when the definition of
+ * the object in question is contained in the method that's being compiled.
+ * <p>
+ * TODO list:
+ * <ul>
+ *   <li>This would be more effective if formulated as a data-flow problem,
+ *    and solved with iteration.</li>
+ *   <li>Implement a more powerful analysis that it suitable for general use and
+ *    add suitable references</li>
+ *   <li>Write a testsuite that demonstrates the capabilities of the analysis</li>
+ * </ul>
  *
- * <p> TODO: This would be more effective if formulated as a data-flow
- *       problem, and solved with iteration
  */
 class SimpleEscape extends CompilerPhase {
   /**
@@ -196,13 +110,13 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Perform the escape analysis for a method. Returns an
-   * object holding the result of the analysis
+   * Performs the escape analysis for a method.
    *
    * <p> Side effect: updates method summary database to hold
    *                escape analysis result for parameters
    *
    * @param ir IR for the target method
+   * @return an object holding the result of the analysis
    */
   public FI_EscapeSummary simpleEscapeAnalysis(IR ir) {
     final boolean DEBUG = false;
@@ -298,12 +212,14 @@ class SimpleEscape extends CompilerPhase {
   private static final OptimizationPlanElement escapePlan = initEscapePlan();
 
   /**
-   * Check all appearances of a register, to see if any object pointed
-   * to by this register may escape this thread and/or method.
+   * Checks all appearances of a register, to see if any instruction in
+   * this method causes the object pointed to by the register to escape
+   * this thread and/or method.
    *
    * @param reg the register to check
    * @param ir the governing IR
-   * @return true if it may escape this thread, false otherwise
+   * @return {@code true} if it may escape this thread,
+   *  {@code false} otherwise
    */
   private static AnalysisResult checkAllAppearances(Register reg, IR ir) {
     return new AnalysisResult(!checkIfUseEscapesThread(reg, ir, null),
@@ -312,10 +228,7 @@ class SimpleEscape extends CompilerPhase {
   private static boolean checkIfUseEscapesThread(Register reg, IR ir, Set<Register> visited) {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
 
-      if (VM.VerifyAssertions && use.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
-      }
+      assertThatTypeIsNotNull(ir, use);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
@@ -328,10 +241,7 @@ class SimpleEscape extends CompilerPhase {
     }
     for (RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
 
-      if (VM.VerifyAssertions && def.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
-      }
+      assertThatTypeIsNotNull(ir, def);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
@@ -346,25 +256,19 @@ class SimpleEscape extends CompilerPhase {
   }
   private static boolean checkIfUseEscapesMethod(Register reg, IR ir, Set<Register> visited) {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
-      if (VM.VerifyAssertions && use.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
-      }
+      assertThatTypeIsNotNull(ir, use);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
       if (use.getType().isPrimitiveType()) {
-        return false;
+        return true;
       }
       if (checkEscapesMethod(use, ir, visited)) {
         return true;
       }
     }
     for (RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
-      if (VM.VerifyAssertions && def.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
-      }
+      assertThatTypeIsNotNull(ir, def);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
@@ -378,12 +282,21 @@ class SimpleEscape extends CompilerPhase {
     return false;
   }
 
+  private static void assertThatTypeIsNotNull(IR ir, RegisterOperand useOrDef) {
+    if (VM.VerifyAssertions && useOrDef.getType() == null) {
+      ir.printInstructions();
+      String msg = "type of " + useOrDef + " is null";
+      VM._assert(VM.NOT_REACHED, msg);
+    }
+  }
+
   /**
-   * Check a single use, to see if this use may cause the object
+   * Checks a single use, to see if this use may cause the object
    * referenced to escape from this thread.
    *
    * @param use the use to check
    * @param ir the governing IR
+   * @param visited visited registers
    * @return {@code true} if it may escape, {@code false} otherwise
    */
   private static boolean checkEscapesThread(RegisterOperand use, IR ir, Set<Register> visited) {
@@ -470,10 +383,7 @@ class SimpleEscape extends CompilerPhase {
       case INSTANCEOF_opcode:
       case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
-      case CHECKCAST_opcode:
       case MUST_IMPLEMENT_INTERFACE_opcode:
-      case CHECKCAST_NOTNULL_opcode:
-      case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode:
         return false;
@@ -497,10 +407,10 @@ class SimpleEscape extends CompilerPhase {
         }
         // Assume non-annotated native methods let object escape
         if (mop.getTarget().isNative()) {
-          return false;
+          return true;
         }
         // try to get a method summary for the called method
-        MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);
+        MethodSummary summ = getMethodSummaryIfAvailable(mop.getTarget(), ir.options);
         if (summ == null) {
           // couldn't get one. assume the object escapes
           return true;
@@ -512,8 +422,11 @@ class SimpleEscape extends CompilerPhase {
         // use is a parameter to the call.  Find out which one.
         int p = getParameterIndex(use, inst);
         return summ.parameterMayEscapeThread(p);
+      case CHECKCAST_opcode:
+      case CHECKCAST_NOTNULL_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
       case REF_MOVE_opcode: {
-        Register copy = Move.getResult(inst).getRegister();
+        Register copy = ResultCarrier.getResult(inst).getRegister();
         if (!copy.isSSA()) {
           return true;
         } else {
@@ -567,6 +480,17 @@ class SimpleEscape extends CompilerPhase {
       case INT_2ADDRZerExt_opcode:
       case ADDR_2INT_opcode:
       case ADDR_2LONG_opcode:
+      case LONG_OR_opcode:
+      case LONG_AND_opcode:
+      case LONG_XOR_opcode:
+      case LONG_SUB_opcode:
+      case LONG_SHL_opcode:
+      case LONG_ADD_opcode:
+      case LONG_SHR_opcode:
+      case LONG_USHR_opcode:
+      case LONG_NEG_opcode:
+      case LONG_MOVE_opcode:
+      case LONG_2ADDR_opcode:
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
@@ -575,17 +499,34 @@ class SimpleEscape extends CompilerPhase {
         // we do not know exactly, so be conservative
         return true;
       default:
-        return Operators.helper.mayEscapeThread(inst);
+        if (VM.BuildForPowerPC) {
+          switch (inst.getOpcode()) {
+            case DCBST_opcode:
+            case DCBT_opcode:
+            case DCBTST_opcode:
+            case DCBZ_opcode:
+            case DCBZL_opcode:
+            case ICBI_opcode:
+              return false;
+            }
+        } else {
+          switch (inst.getOpcode()) {
+            case PREFETCH_opcode:
+              return false;
+          }
+        }
+        throw new OptimizingCompilerException("SimpleEscapge: Unexpected " + inst);
     }
   }
 
   /**
-   * Check a single use, to see if this use may cause the object
+   * Checks a single use, to see if this use may cause the object
    * referenced to escape from this method.
    *
    * @param use the use to check
    * @param ir the governing IR
-   * @return true if it may escape, false otherwise
+   * @param visited visited registers
+   * @return {@code true} if it may escape, {@code false} otherwise
    */
   private static boolean checkEscapesMethod(RegisterOperand use, IR ir, Set<Register> visited) {
     Instruction inst = use.instruction;
@@ -672,10 +613,7 @@ class SimpleEscape extends CompilerPhase {
       case INSTANCEOF_opcode:
       case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
-      case CHECKCAST_opcode:
       case MUST_IMPLEMENT_INTERFACE_opcode:
-      case CHECKCAST_NOTNULL_opcode:
-      case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode:
         return false;
@@ -694,12 +632,15 @@ class SimpleEscape extends CompilerPhase {
         }
         return true;
       }
+      case CHECKCAST_opcode:
+      case CHECKCAST_NOTNULL_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
       case REF_MOVE_opcode: {
         if (visited == null) {
           visited = new HashSet<Register>();
         }
-        Register copy = Move.getResult(inst).getRegister();
-        if(!copy.isSSA()) {
+        Register copy = ResultCarrier.getResult(inst).getRegister();
+        if (!copy.isSSA()) {
           return true;
         } else {
           visited.add(use.getRegister());
@@ -750,16 +691,43 @@ class SimpleEscape extends CompilerPhase {
       case INT_2ADDRZerExt_opcode:
       case ADDR_2INT_opcode:
       case ADDR_2LONG_opcode:
+      case LONG_OR_opcode:
+      case LONG_AND_opcode:
+      case LONG_XOR_opcode:
+      case LONG_SUB_opcode:
+      case LONG_SHL_opcode:
+      case LONG_ADD_opcode:
+      case LONG_SHR_opcode:
+      case LONG_USHR_opcode:
+      case LONG_NEG_opcode:
+      case LONG_MOVE_opcode:
+      case LONG_2ADDR_opcode:
       case YIELDPOINT_OSR_opcode:
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
         return true;
       default:
-        return Operators.helper.mayEscapeMethod(inst);
+        if (VM.BuildForPowerPC) {
+          switch(inst.getOpcode()) {
+            case DCBST_opcode:
+            case DCBT_opcode:
+            case DCBTST_opcode:
+            case DCBZ_opcode:
+            case DCBZL_opcode:
+            case ICBI_opcode:
+              return false;
+            }
+        } else {
+          switch(inst.getOpcode()) {
+            case PREFETCH_opcode:
+              return false;
+          }
+        }
+        throw new OptimizingCompilerException("SimpleEscapge: Unexpected " + inst);
       }
     } catch (Exception e) {
-      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use ("+ use +") of: "+ inst);
+      OptimizingCompilerException oe = new OptimizingCompilerException("Error handling use (" + use + ") of: " + inst);
       oe.initCause(e);
       throw oe;
     }
@@ -768,6 +736,11 @@ class SimpleEscape extends CompilerPhase {
   /**
    * Which parameter to a call instruction corresponds to op?
    * <p> PRECONDITION: Call.conforms(s)
+   *
+   * @param op the operand whose parameter is sought
+   * @param s the call instruction
+   * @return the index in the instruction for the parameter that matches
+   *  the operand
    */
   private static int getParameterIndex(Operand op, Instruction s) {
     for (int i = 0; i < Call.getNumberOfParams(s); i++) {
@@ -780,12 +753,18 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * If a method summary exists for a method, get it.
-   * Else, iff SIMPLE_ESCAPE_IPA,
-   *   perform escape analysis, which will create the method
-   *    summary as a side effect, and return the summary
+   * Returns a method summary if present.
+   * <p>
+   * In the special case of enabled eager method summary computation,
+   * this method will perform escape analysis for the requested method,
+   * which will create the method summary as a side effect.
+   *
+   * @param m the method whose summary is sought
+   * @param options options to determine whether to create a summary
+   *  if it does not exist
+   * @return a method summary or {@code null}.
    */
-  private static MethodSummary findOrCreateMethodSummary(RVMMethod m, OptOptions options) {
+  private static MethodSummary getMethodSummaryIfAvailable(RVMMethod m, OptOptions options) {
     MethodSummary summ = SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
       if (options.ESCAPE_SIMPLE_IPA) {
@@ -798,9 +777,6 @@ class SimpleEscape extends CompilerPhase {
     }
   }
 
-  /**
-   * Perform the simple escape analysis for a method.
-   */
   private static void performSimpleEscapeAnalysis(RVMMethod m, OptOptions options) {
     if (!options.ESCAPE_SIMPLE_IPA) {
       return;
@@ -822,10 +798,6 @@ class SimpleEscape extends CompilerPhase {
     }
   }
 
-  /**
-   * Static initializer: set up the compilation plan for
-   * simple escape analysis of a method.
-   */
   private static OptimizationPlanElement initEscapePlan() {
     return OptimizationPlanCompositeElement.compose("Escape Analysis",
                                                         new Object[]{new ConvertBCtoHIR(),
@@ -834,10 +806,11 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Return an iterator over the operands that serve as return values
-   * in an IR
+   * TODO: Move this utility elsewhere
    *
-   * <p> TODO: Move this utility elsewhere
+   * @param ir the IR to search for the return values
+   * @return an iterator over the operands that serve as return values
+   * in an IR
    */
   private static Iterator<Operand> iterateReturnValues(IR ir) {
     ArrayList<Operand> returnValues = new ArrayList<Operand>();
@@ -862,9 +835,7 @@ class SimpleEscape extends CompilerPhase {
      * Was the result "the register must point to method-local objects"?
      */
     final boolean methodLocal;
-    /**
-     * Constructor
-     */
+
     AnalysisResult(boolean tl, boolean ml) {
       threadLocal = tl;
       methodLocal = ml;

@@ -21,7 +21,9 @@ import org.vmmagic.pragma.*;
 
 @Uninterruptible public class Assert extends org.mmtk.vm.Assert {
   @Override
-  protected final boolean getVerifyAssertionsConstant() { return VM.VerifyAssertions;}
+  protected final boolean getVerifyAssertionsConstant() {
+    return VM.VerifyAssertions;
+  }
 
   /**
    * This method should be called whenever an error is encountered.
@@ -47,20 +49,24 @@ import org.vmmagic.pragma.*;
   }
 
   @Override
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value = Inline.When.AllArgumentsAreConstant)
   public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
+    //CHECKSTYLE:OFF - Checkstyle assertion plugin would warn otherwise
     VM._assert(cond);
+    //CHECKSTYLE:ON
   }
 
   @Override
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
   public final void _assert(boolean cond, String message) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
     if (!cond) VM.sysWriteln(message);
+    //CHECKSTYLE:OFF - Checkstyle assertion plugin would warn otherwise
     VM._assert(cond);
+    //CHECKSTYLE:ON
   }
 
   @Override

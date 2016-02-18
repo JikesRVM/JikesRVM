@@ -34,7 +34,9 @@
   <property name="test.results.file" value="${test.results.dir}/Results.xml"/>
   <property name="build.results.file" value="${test.results.dir}/BuildResults.xml"/>
   <property name="test.report.file" value="${test.results.dir}/Report.xml"/>
+  <property name="test.report-minimal.file" value="${test.results.dir}/MinimalReport-JUnitFormat.xml"/>
   <property name="test.report.html" value="${test.results.dir}/Report.html"/>
+  <property name="test.report.dna.xml" value="${test.results.dir}/CompilerDNA.xml"/>
   <property name="temp.aggregate.file" value="${test.results.dir}/Aggregate.xml"/>
 
   <property name="test.scripts.dir" value="${jikesrvm.dir}/testing/tests"/>
@@ -45,6 +47,12 @@
   <property name="cattrack.upload.account" value="regression@jikesrvm.anu.edu.au"/>
   <property name="cattrack.upload.incoming.dir" value="/home/regression/incoming"/>
 
+  <condition property="compiler-dna.run">
+    <or>
+      <equals arg1="${test-run.name}" arg2="compiler-dna"/>
+      <equals arg1="${test-run.name}" arg2="compiler-dna-dacapo-2006-10-MR2"/>
+    </or>
+  </condition>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -229,6 +237,9 @@
                   <property name="test.mode" value="${test.config.@{tag}.mode}"/>
                   <property name="test.group.name" value="@{test}"/>
                   <property name="test.config.${test.config.@{tag}.configuration}.extra.rvm.args" value="${test.config.@{tag}.extra.rvm.args}"/>
+                  <!-- Pass down information about compiler-dna status to tests so that they can
+                       do special handling if required (e.g. exclude tests that are not supported on all platforms) -->
+                  <property name="test.compiler-dna" value="${compiler-dna.run}"/>
                   <propertyset>
                     <propertyref prefix="exclude."/>
                   </propertyset>
@@ -252,7 +263,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-xml-results" depends="test,get-hg-version">
+  <target name="gen-xml-results" depends="test,get-git-version">
     <mkdir dir="${build.results.dir}"/>
     <mkdir dir="${test.results.dir}"/>
     <tstamp prefix="test-run.end">
@@ -261,7 +272,7 @@
     <echo file="${test.results.file}" append="false"><![CDATA[<results version="1.1">
 <name>${test-run.name}</name>
 <variant>${test-run.variant}</variant>
-<revision>${hg.revision}</revision>
+<revision>${git.revision}</revision>
 <start-time>${test-run.start.time}</start-time>
 <end-time>${test-run.end.time}</end-time>
 <parameters>
@@ -352,6 +363,16 @@
       <outputproperty name="omit-xml-declaration" value="yes"/>
     </xslt>
     <delete file="${temp.aggregate.file}"/>
+
+    <!-- Generate report in Ant JUnit Task format -->
+    <xslt in="${test.results.file}"
+          out="${test.report-minimal.file}"
+          style="${jikesrvm.dir}/build/results2JUnitReport.xsl"
+          force="true">
+      <outputproperty name="method" value="xml"/>
+      <outputproperty name="encoding" value="US-ASCII"/>
+      <outputproperty name="indent" value="yes"/>
+    </xslt>
   </target>
 
   <!-- **************************************************************************** -->
@@ -362,8 +383,28 @@
 
   <target name="archive" depends="gen-xml-report">
     <mkdir dir="${results.archive}"/>
-    <property name="archive.filename" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${hg.revision}_${target.name}_Report.xml"/>
+    <property name="archive.filename" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${git.revision}_${target.name}_Report.xml"/>
     <gzip src="${test.report.file}" destfile="${results.archive}/${archive.filename}.gz"/>
+    <property name="archive.filename-junit-report" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${git.revision}_${target.name}_MinimalReport-JUnitFormat.xml"/>
+    <gzip src="${test.report-minimal.file}" destfile="${results.archive}/${archive.filename-junit-report}.gz"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *              Targets for generating a compiler DNA report                * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="gen-report-compiler-dna" depends="gen-xml-report" if="compiler-dna.run">
+    <xslt in="${test.report.file}"
+          out="${test.report.dna.xml}"
+          style="${jikesrvm.dir}/build/testing/report2dna.xsl"
+          force="true">
+      <outputproperty name="method" value="xml"/>
+      <outputproperty name="standalone" value="yes"/>
+      <outputproperty name="encoding" value="US-ASCII"/>
+      <outputproperty name="indent" value="yes"/>
+    </xslt>
   </target>
 
   <!-- **************************************************************************** -->
@@ -372,7 +413,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-report-html" depends="archive">
+  <target name="gen-report-html" depends="archive,gen-report-compiler-dna">
     <xslt in="${test.report.file}"
           out="${test.report.html}"
           style="${jikesrvm.dir}/build/testing/report2html.xsl"

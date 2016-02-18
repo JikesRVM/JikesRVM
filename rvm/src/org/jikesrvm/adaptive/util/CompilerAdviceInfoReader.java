@@ -29,22 +29,20 @@ import org.jikesrvm.classloader.Atom;
  * Takes a single argument: the name of the file containing the ascii
  * annotations.  Each line of the file corresponds to an annotation
  * for one method and has the following format:
- * <p>
  * <pre>
- * <class> <method> <signature> <advice> <optLevel>
+ * &lt;class&gt; &lt;method&gt; &lt;signature&gt; &lt;advice&gt; &lt;optLevel&gt;
  * </pre>
  * Where the types and meanings of the fields is as follows:
  * <ul>
- * <li><code>&lt;class></code> <i>string</i> The name of the class</li>
- * <li><code>&lt;method></code> <i>string</i> The name of the method</li>
- * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
- * <li><code>&lt;advice></code> <i>int</i> The compiler type to be used --
+ * <li><code>&lt;class&gt;</code> <i>string</i> The name of the class</li>
+ * <li><code>&lt;method&gt;</code> <i>string</i> The name of the method</li>
+ * <li><code>&lt;signature&gt;</code> <i>string</i> The method signature</li>
+ * <li><code>&lt;advice&gt;</code> <i>int</i> The compiler type to be used --
  * an integer value corresponding to the compiler enumeration in
  CompiledMethod</li>
- * <li><code>&lt;optLevel></code> <i>int</i> (Optional) The opt level to use
+ * <li><code>&lt;optLevel&gt;</code> <i>int</i> (Optional) The opt level to use
  if compiler is optimizing compiler</li>
  * </ul>
- *
  *
  * @see CompilerAdvice
  * @see CompilerAdviceAttribute
@@ -69,7 +67,9 @@ class CompilerAdviceInfoReader {
 
       try {
         for (String s = fileIn.readLine(); s != null; s = fileIn.readLine()) {
-          if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("."); }
+          if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) {
+            VM.sysWrite(".");
+          }
           StringTokenizer parser = new StringTokenizer(s, " \n,");
           compilerAdviceInfo.add(readOneAttribute(parser));
 

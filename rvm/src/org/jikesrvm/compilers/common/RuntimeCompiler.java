@@ -12,11 +12,10 @@
  */
 package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.JNICompiler;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
-import org.jikesrvm.Constants;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -26,6 +25,7 @@ import org.jikesrvm.adaptive.recompilation.instrumentation.AOSInstrumentationPla
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.CompilerAdviceAttribute;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -38,12 +38,13 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Time;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Harness to select which compiler to dynamically
- * compile a method in first invocation.<p>
+ * compile a method in first invocation.
  * <p>
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
@@ -66,11 +67,11 @@ import org.jikesrvm.scheduler.RVMThread;
  *   machine code array and thus CompiledMethod.numberOfInsturctions()
  *   is a close enough approximation of the number of machinecodes generated)
  * </ol>
- *   Note that even if 3. & 4. are inflated due to padding, the numbers will
+ *   Note that even if 3. &amp; 4. are inflated due to padding, the numbers will
  *   still be an accurate measure of the space costs of the compile-only
  *   approach.
  */
-public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
+public class RuntimeCompiler implements Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER = 0;
@@ -230,14 +231,14 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         VM.sysWrite("\t");
         // Ratio of machine code bytes to bytecode bytes
         if (i != JNI_COMPILER) {
-          VM.sysWrite((double) (totalMCLength[i] << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH) /
-                      (double) totalBCLength[i], 2);
+          VM.sysWrite((double) (totalMCLength[i] << ArchConstants.getLogInstructionWidth()) /
+                      totalBCLength[i], 2);
         } else {
           VM.sysWrite("NA");
         }
         VM.sysWrite("\t");
         // Generated machine code Kbytes
-        VM.sysWrite((double) (totalMCLength[i] << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH) /
+        VM.sysWrite((double) (totalMCLength[i] << ArchConstants.getLogInstructionWidth()) /
                     1024, 1);
         VM.sysWrite("\t");
         // Compiled bytecode Kbytes
@@ -275,7 +276,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
   }
 
   /**
-   * Return the current estimate of basline-compiler rate, in bcb/msec
+   * @return the current estimate of basline-compiler rate, in bcb/msec
    */
   public static double getBaselineRate() {
     return Math.exp(totalLogOfRates[BASELINE_COMPILER] / totalLogValueMethods[BASELINE_COMPILER]);
@@ -284,6 +285,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
   /**
    * This method will compile the passed method using the baseline compiler.
    * @param method the method to compile
+   * @return the compiled method
    */
   public static CompiledMethod baselineCompile(NormalMethod method) {
     Callbacks.notifyMethodCompile(method, CompiledMethod.BASELINE);
@@ -311,7 +313,10 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
   }
 
   /**
-   * Process command line argument destined for the opt compiler
+   * Processes a command line argument destined for the opt compiler.
+   *
+   * @param prefix the prefix, e.g. "-X:opt:"
+   * @param arg everything after the last ':'
    */
   public static void processOptCommandLineArg(String prefix, String arg) {
     if (VM.BuildForAdaptiveSystem) {
@@ -321,7 +326,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
           optimizationPlan = OptimizationPlanner.createOptimizationPlan((OptOptions) options);
         } else {
           VM.sysWrite("Unrecognized opt compiler argument \"" + arg + "\"");
-          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+          VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
       } else {
         String[] tmp = new String[earlyOptArgs.length + 2];
@@ -344,6 +349,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * Precondition: compilationInProgress "lock" has been acquired
    * @param method the method to compile
    * @param plan the plan to use for compiling the method
+   * @return a compiled method
    */
   private static CompiledMethod optCompile(NormalMethod method, CompilationPlan plan)
       throws OptimizingCompilerException {
@@ -385,9 +391,11 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * using the default compilation plan.  If
    * this fails we will use the quicker compiler (baseline for now)
    * The following is carefully crafted to avoid (infinte) recursive opt
-   * compilation for all combinations of bootimages & lazy/eager compilation.
+   * compilation for all combinations of bootimages &amp; lazy/eager compilation.
    * Be absolutely sure you know what you're doing before changing it !!!
    * @param method the method to compile
+   * @return a compiled method (opt when possible, baseline when the opt compiler
+   *  busy)
    */
   public static synchronized CompiledMethod optCompileWithFallBack(NormalMethod method) {
     if (VM.BuildForOptCompiler) {
@@ -417,10 +425,12 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * with the passed compilation plan.  If
    * this fails we will use the quicker compiler (baseline for now)
    * The following is carefully crafted to avoid (infinite) recursive opt
-   * compilation for all combinations of bootimages & lazy/eager compilation.
+   * compilation for all combinations of bootimages &amp; lazy/eager compilation.
    * Be absolutely sure you know what you're doing before changing it !!!
    * @param method the method to compile
    * @param plan the compilation plan to use for the compile
+   * @return a compiled method (opt when possible, baseline when the opt compiler
+   *  busy)
    */
   public static synchronized CompiledMethod optCompileWithFallBack(NormalMethod method,
                                                                       CompilationPlan plan) {
@@ -445,6 +455,8 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * This real method that performs the opt compilation.
    * @param method the method to compile
    * @param plan the compilation plan to use
+   * @return a compiled method (opt when possible, baseline when the opt compiler
+   *  busy)
    */
   private static CompiledMethod optCompileWithFallBackInternal(NormalMethod method, CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
@@ -479,7 +491,9 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
   /* recompile the specialized method with Compiler. */
   public static CompiledMethod recompileWithOptOnStackSpecialization(CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
-      if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
+      if (VM.VerifyAssertions) {
+        VM._assert(plan.method.isForOsrSpecialization());
+      }
       if (compilationInProgress) {
         return null;
       }
@@ -578,6 +592,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * A wrapper method for those callers who don't want to make
    * optimization plans
    * @param method the method to recompile
+   * @return a compiled method id or -1 when the compilation failed
    */
   public static int recompileWithOpt(NormalMethod method) {
     if (VM.BuildForOptCompiler) {
@@ -597,6 +612,9 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * This method uses the default compiler (baseline) to compile a method
    * It is typically called when a more aggressive compilation fails.
    * This method is safe to invoke from RuntimeCompiler.compile.
+   *
+   * @param method method to compile
+   * @return a baseline compiled method
    */
   protected static CompiledMethod fallback(NormalMethod method) {
     // call the inherited method "baselineCompile"
@@ -656,7 +674,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
               // exception in progress. can't use opt compiler:
               // it uses exceptions and runtime doesn't support
               // multiple pending (undelivered) exceptions [--DL]
-              RVMThread.getCurrentThread().getExceptionRegisters().inuse) {
+              RVMThread.getCurrentThread().getExceptionRegisters().getInUse()) {
             // compile with baseline compiler
             cm = baselineCompile(method);
             ControllerMemory.incrementNumBase();
@@ -751,7 +769,12 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         start = Time.nanoTime();
       }
 
-      cm = JNICompiler.compile(method);
+      if (VM.BuildForIA32) {
+        cm = org.jikesrvm.jni.ia32.JNICompiler.compile(method);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        cm = org.jikesrvm.jni.ppc.JNICompiler.compile(method);
+      }
       if (VM.verboseJNI) {
         VM.sysWriteln("[Dynamic-linking native method " +
                       method.getDeclaringClass() +
@@ -782,6 +805,26 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    */
   public static String getCompilerName(byte compiler) {
     return name[compiler];
+  }
+
+  /**
+   * @return total compilation time in milliseconds
+   */
+  public static long getTotalCompilationTime() {
+    double baseTime = getTotalCompilationTime(BASELINE_COMPILER);
+    double optTime = getTotalCompilationTime(OPT_COMPILER);
+    double jniTime = getTotalCompilationTime(JNI_COMPILER);
+    return Math.round(baseTime + optTime + jniTime);
+  }
+
+  /**
+   * Returns the total compilation time of compiler number, using the naming scheme
+   * from this class
+   * @param compilerType the compiler of interest
+   * @return the total compilation time for the given compiler in milliseconds
+   */
+  public static double getTotalCompilationTime(byte compilerType) {
+    return totalCompTime[compilerType];
   }
 
 }

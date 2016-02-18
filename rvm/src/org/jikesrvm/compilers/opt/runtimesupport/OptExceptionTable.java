@@ -19,13 +19,27 @@ import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Encoding of try ranges in the final machinecode and the
  * corresponding exception type and catch block start.
  */
 final class OptExceptionTable extends ExceptionTable {
+
+  /**
+   * Marker for catch blocks that have no associated code. This happens
+   * when the optimizing compiler deems the catch block to be unreachable
+   * and removes it from the IR.
+   * <p>
+   * The only constraint on the concrete value for this marker is that
+   * it must be negative to ensure that the non-existent catch block
+   * is never found when exceptions are delivered.
+   */
+  private static final int UNREACHABLE_CATCH_BLOCK = 0xDEADC0DE;
 
   /**
    * Encode an exception table
@@ -38,6 +52,7 @@ final class OptExceptionTable extends ExceptionTable {
     int tableSize = countExceptionTableSize(ir);
     int[] eTable = new int[tableSize * 4];
 
+    MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
     // For each basic block
     //   See if it has code associated with it and if it has
     //   any reachable exception handlers.
@@ -56,8 +71,8 @@ final class OptExceptionTable extends ExceptionTable {
     for (BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null;) {
       // Iteration is explicit in loop
 
-      int startOff = bblock.firstInstruction().getmcOffset();
-      int endOff = bblock.lastInstruction().getmcOffset();
+      int startOff = mcOffsets.getMachineCodeOffset(bblock.firstInstruction());
+      int endOff = mcOffsets.getMachineCodeOffset(bblock.lastInstruction());
       if (endOff > startOff) {
         if (!bblock.hasExceptionHandlers()) {
           bblock = bblock.nextBasicBlockInCodeOrder();
@@ -82,8 +97,8 @@ final class OptExceptionTable extends ExceptionTable {
 
         for (followonBB = bblock.nextBasicBlockInCodeOrder(); followonBB != null; followonBB =
             followonBB.nextBasicBlockInCodeOrder()) {
-          int fStartOff = followonBB.firstInstruction().getmcOffset();
-          int fEndOff = followonBB.lastInstruction().getmcOffset();
+          int fStartOff = mcOffsets.getMachineCodeOffset(followonBB.firstInstruction());
+          int fEndOff = mcOffsets.getMachineCodeOffset(followonBB.lastInstruction());
           // See if followon Block has any code
           if (fEndOff > fStartOff) {
             // See if followon Block has matching handler block bag
@@ -108,15 +123,24 @@ final class OptExceptionTable extends ExceptionTable {
           ExceptionHandlerBasicBlock eBlock = (ExceptionHandlerBasicBlock) e.nextElement();
           for (java.util.Enumeration<TypeOperand> ets = eBlock.getExceptionTypes(); ets.hasMoreElements();) {
             TypeOperand type = ets.nextElement();
-            int catchOffset = eBlock.firstInstruction().getmcOffset();
+            Instruction label = eBlock.firstInstruction();
+            int catchOffset;
+            if (mcOffsets.lacksMachineCodeOffset(label)) {
+              // handler block was removed from the IR and is unreachable.
+              // Make sure that we can recognize this as an error at runtime
+              // if the catch block is actually reachable.
+              catchOffset = UNREACHABLE_CATCH_BLOCK;
+            } else {
+              catchOffset = mcOffsets.getMachineCodeOffset(label);
+            }
             eTable[index + TRY_START] = currStartOff;
             eTable[index + TRY_END] = currEndOff;
             eTable[index + CATCH_START] = catchOffset;
+
             try {
               eTable[index + EX_TYPE] = type.getTypeRef().resolve().getId();
             } catch (NoClassDefFoundError except) {
-              // Yuck.  If this happens beatup Dave and make him do the right
-              // thing. For now, we are forcing early loading of exception
+              // For now, we are forcing early loading of exception
               // types to avoid a bunch of ugly issues in resolving the type
               // when delivering the exception.  The problem is that we
               // currently can't allow a GC while in the midst of delivering
@@ -149,7 +173,8 @@ final class OptExceptionTable extends ExceptionTable {
   }
 
   /**
-   * Return an upper bounds on the size of the exception table for an IR.
+   * @param ir the IR with the exception tables
+   * @return an upper bound on the size of the exception table for an IR.
    */
   private static int countExceptionTableSize(IR ir) {
     int tSize = 0;
@@ -164,7 +189,10 @@ final class OptExceptionTable extends ExceptionTable {
     }
     return tSize;
   }
+
+  @Uninterruptible
+  static boolean belongsToUnreachableCatchBlock(int catchOffset) {
+    return catchOffset == UNREACHABLE_CATCH_BLOCK;
+  }
+
 }
-
-
-

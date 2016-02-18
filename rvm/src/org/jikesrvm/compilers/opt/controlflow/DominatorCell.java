@@ -48,7 +48,7 @@ class DominatorCell extends DF_AbstractCell {
    * @param bb the basic block
    * @param ir the governing IR
    */
-  public DominatorCell(BasicBlock bb, IR ir) {
+  DominatorCell(BasicBlock bb, IR ir) {
     super(CAPACITY);
     block = bb;
     dominators = new BitVector(ir.getMaxBasicBlockNumber() + 1);

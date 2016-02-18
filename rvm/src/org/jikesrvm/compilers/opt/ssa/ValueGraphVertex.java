@@ -39,7 +39,9 @@ final class ValueGraphVertex extends SpaceEffGraphNode {
   }
 
   /**
-   * Set up properties of this vertex identically to another vertex
+   * Sets up properties of this vertex identically to another vertex.
+   *
+   * @param v the vertex to copy the properties from
    */
   void copyVertex(ValueGraphVertex v) {
     this.label = v.label;
@@ -52,7 +54,7 @@ final class ValueGraphVertex extends SpaceEffGraphNode {
   }
 
   /**
-   * Does this vertex represent an incoming parameter?
+   * @return whether this vertex represents an incoming parameter
    */
   boolean representsParameter() {
     return (label instanceof ValueGraphParamLabel);
@@ -96,7 +98,8 @@ final class ValueGraphVertex extends SpaceEffGraphNode {
   }
 
   /**
-   * return the target of the ith operand of this node
+   * @param i operand number
+   * @return the target of the ith operand of this node
    */
   public ValueGraphVertex getTarget(int i) {
     return targets[i];

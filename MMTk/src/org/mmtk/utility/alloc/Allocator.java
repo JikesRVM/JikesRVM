@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.alloc;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.vm.Lock;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -36,10 +38,13 @@ import org.vmmagic.pragma.*;
  *
  * Failing to handle this properly will lead to very hard to trace bugs
  * where the allocation that caused a GC or allocations immediately following
- * GC are run incorrectly.
+ * GC are run incorrectly.<p>
+ *
+ * TODO the comments in this class need to be rephrased from using the
+ * particle terminology to alignments.
  */
 @Uninterruptible
-public abstract class Allocator implements Constants {
+public abstract class Allocator {
 
   /** Lock used for out of memory handling */
   private static Lock oomLock = VM.newLock("OOM Lock");
@@ -81,6 +86,8 @@ public abstract class Allocator implements Constants {
    * @param alignment The requested alignment
    * @param offset The offset from the alignment
    * @param knownAlignment The statically known minimum alignment.
+   * @param fillAlignmentGap whether to fill up holes in the alignment
+   *  with the alignment value ({@link Constants#ALIGNMENT_VALUE})
    * @return The aligned up address.
    */
   @Inline
@@ -91,7 +98,7 @@ public abstract class Allocator implements Constants {
       VM.assertions._assert(!(fillAlignmentGap && region.isZero()));
       VM.assertions._assert(alignment <= MAX_ALIGNMENT);
       VM.assertions._assert(offset >= 0);
-      VM.assertions._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
+      VM.assertions._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT - 1)).isZero());
       VM.assertions._assert((alignment & (MIN_ALIGNMENT - 1)) == 0);
       VM.assertions._assert((offset & (MIN_ALIGNMENT - 1)) == 0);
     }
@@ -184,6 +191,8 @@ public abstract class Allocator implements Constants {
    *
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
+   * @return the minimum size (in bytes) that's necessary to guarantee allocation
+   *  at the given alignment
    */
   @Inline
   public static int getMaximumAlignedSize(int size, int alignment) {
@@ -198,7 +207,10 @@ public abstract class Allocator implements Constants {
    * @param alignment The requested alignment (some factor of 2).
    * @param knownAlignment The known minimum alignment. Specifically for use in
    * allocators that enforce greater than particle alignment. It is a <b>precondition</b>
-   * that size is aligned to knownAlignment, and that knownAlignment >= MIN_ALGINMENT.
+   * that size is aligned to knownAlignment, and that knownAlignment &gt;=
+   * {@link Constants#MIN_ALIGNMENT}.
+   * @return the minimum size (in bytes) that's necessary to guarantee allocation
+   *  at the given alignment
    */
   @Inline
   public static int getMaximumAlignedSize(int size, int alignment, int knownAlignment) {
@@ -253,6 +265,9 @@ public abstract class Allocator implements Constants {
   public final Address allocSlowInline(int bytes, int alignment, int offset) {
     Allocator current = this;
     Space space = current.getSpace();
+
+    // Information about the previous collection.
+    boolean emergencyCollection = false;
     while (true) {
       // Try to allocate using the slow path
       Address result = current.allocSlowOnce(bytes, alignment, offset);
@@ -262,9 +277,6 @@ public abstract class Allocator implements Constants {
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!result.isZero());
         return result;
       }
-
-      // Information about the previous collection.
-      boolean emergencyCollection = Plan.isEmergencyCollection();
 
       if (!result.isZero()) {
         // Report allocation success to assist OutOfMemory handling.
@@ -297,6 +309,13 @@ public abstract class Allocator implements Constants {
        * VMs that dynamically multiplex Java threads onto multiple mutator
        * contexts, */
       current = VM.activePlan.mutator().getAllocatorFromSpace(space);
+
+      /*
+       * Record whether last collection was an Emergency collection.
+       * If so, we make one more attempt to allocate before we signal
+       * an OOM.
+       */
+      emergencyCollection = Plan.isEmergencyCollection();
     }
   }
 }

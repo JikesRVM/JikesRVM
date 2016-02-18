@@ -12,29 +12,40 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.IRTools.offsetOperand;
+import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PAUSE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PREFETCH;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+
 import org.jikesrvm.classloader.Atom;
-import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
-import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
-import org.jikesrvm.ia32.StackframeLayoutConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.MagicNames;
@@ -44,7 +55,7 @@ import org.jikesrvm.runtime.MagicNames;
  *
  * @see org.jikesrvm.compilers.opt.bc2ir.GenerateMagic for the machine-independent magics
  */
-public abstract class GenerateMachineSpecificMagic implements Operators, StackframeLayoutConstants {
+public abstract class GenerateMachineSpecificMagic {
 
   /**
    * "Semantic inlining" of methods of the Magic class.
@@ -54,30 +65,31 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
    * @param bc2ir the bc2ir object generating the ir containing this magic
    * @param gc == bc2ir.gc
    * @param meth the RVMMethod that is the magic method
+   * @return {@code true} if and only if magic was generated
    */
   public static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, MethodReference meth)
       throws MagicNotImplementedException {
 
     Atom methodName = meth.getName();
-    PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = gc.getTemps().getPhysicalRegisterSet().asIA32();
 
     if (methodName == MagicNames.getESIAsThread) {
-      RegisterOperand rop = gc.temps.makeTROp();
+      RegisterOperand rop = gc.getTemps().makeTROp();
       bc2ir.markGuardlessNonNull(rop);
       bc2ir.push(rop);
     } else if (methodName == MagicNames.setESIAsThread) {
       Operand val = bc2ir.popRef();
       if (val instanceof RegisterOperand) {
-        bc2ir.appendInstruction(Move.create(REF_MOVE, gc.temps.makeTROp(), val));
+        bc2ir.appendInstruction(Move.create(REF_MOVE, gc.getTemps().makeTROp(), val));
       } else {
         String msg = " Unexpected operand Magic.setESIAsThread";
         throw MagicNotImplementedException.UNEXPECTED(msg);
       }
     } else if (methodName == MagicNames.getFramePointer) {
-      gc.allocFrame = true;
-      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
+      gc.forceFrameAllocation();
+      RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       RVMField f = ArchEntrypoints.framePointerField;
-      RegisterOperand pr = new RegisterOperand(phys.getESI(), TypeReference.Int);
+      RegisterOperand pr = new RegisterOperand(phys.getESI(), TypeReference.Address);
       bc2ir.appendInstruction(GetField.create(GETFIELD,
                                               val,
                                               pr.copy(),
@@ -87,7 +99,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.getJTOC || methodName == MagicNames.getTocPointer) {
       TypeReference t = (methodName == MagicNames.getJTOC ? TypeReference.IntArray : TypeReference.Address);
-      RegisterOperand val = gc.temps.makeTemp(t);
+      RegisterOperand val = gc.getTemps().makeTemp(t);
       AddressConstantOperand addr = new AddressConstantOperand(Magic.getTocPointer());
       bc2ir.appendInstruction(Move.create(REF_MOVE, val, addr));
       bc2ir.push(val.copyD2U());
@@ -101,11 +113,11 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       bc2ir.appendInstruction(Empty.create(PAUSE));
     } else if (methodName == MagicNames.getCallerFramePointer) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
+      RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD,
                                           val,
                                           fp,
-                                          new IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
+                                          offsetOperand(STACKFRAME_FRAME_POINTER_OFFSET),
                                           null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.setCallerFramePointer) {
@@ -114,15 +126,15 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       bc2ir.appendInstruction(Store.create(REF_STORE,
                                            val,
                                            fp,
-                                           new IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
+                                           offsetOperand(STACKFRAME_FRAME_POINTER_OFFSET),
                                            null));
     } else if (methodName == MagicNames.getCompiledMethodID) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTempInt();
+      RegisterOperand val = gc.getTemps().makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD,
                                           val,
                                           fp,
-                                          new IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
+                                          offsetOperand(STACKFRAME_METHOD_ID_OFFSET),
                                           null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.setCompiledMethodID) {
@@ -131,16 +143,12 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       bc2ir.appendInstruction(Store.create(INT_STORE,
                                            val,
                                            fp,
-                                           new IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
+                                           offsetOperand(STACKFRAME_METHOD_ID_OFFSET),
                                            null));
     } else if (methodName == MagicNames.getReturnAddressLocation) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
-      bc2ir.appendInstruction(Binary.create(REF_ADD,
-                                            val,
-                                            fp,
-                                            new IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
-      bc2ir.push(val.copyD2U());
+      Instruction s = bc2ir._binaryHelper(REF_ADD, fp, offsetOperand(STACKFRAME_RETURN_ADDRESS_OFFSET), TypeReference.Address);
+      bc2ir.appendInstruction(s);
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones)

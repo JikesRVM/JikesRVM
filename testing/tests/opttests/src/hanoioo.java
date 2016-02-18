@@ -63,7 +63,7 @@ class Peg {
     int[] disks = new int[64];
     int nDisks;
 
-    public Peg(int n) {
+    Peg(int n) {
         pegNum = n;
         for (int i = 0; i < Globals.NumDisks; i++)
             disks[i] = 0;

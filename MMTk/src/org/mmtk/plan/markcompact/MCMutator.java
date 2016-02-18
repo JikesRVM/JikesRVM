@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
  *
- * See {@link MC} for an overview of the mark-compact algorithm.<p>
+ * See {@link MC} for an overview of the mark-compact algorithm.
  *
  * @see MC
  * @see MCCollector

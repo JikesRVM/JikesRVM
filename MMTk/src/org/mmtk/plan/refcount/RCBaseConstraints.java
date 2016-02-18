@@ -26,16 +26,27 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class RCBaseConstraints extends StopTheWorldConstraints {
   @Override
-  public int gcHeaderBits() { return RCHeader.GLOBAL_GC_BITS_REQUIRED; }
+  public int gcHeaderBits() {
+    return RCHeader.GLOBAL_GC_BITS_REQUIRED;
+  }
   @Override
-  public int gcHeaderWords() { return RCHeader.GC_HEADER_WORDS_REQUIRED; }
+  public int gcHeaderWords() {
+    return RCHeader.GC_HEADER_WORDS_REQUIRED;
+  }
   @Override
-  public boolean needsObjectReferenceWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() {
+    return true;
+  }
   @Override
-  public int maxNonLOSDefaultAllocBytes() { return MAX_FREELIST_OBJECT_BYTES; }
+  public int maxNonLOSDefaultAllocBytes() {
+    return MAX_FREELIST_OBJECT_BYTES;
+  }
   @Override
-  public boolean objectReferenceBulkCopySupported() { return true; }
-
+  public boolean objectReferenceBulkCopySupported() {
+    return true;
+  }
   /** @return {@code true} if we are building for generational reference counting */
-  public boolean buildForGenRC() { return false; }
+  public boolean buildForGenRC() {
+    return false;
+  }
 }

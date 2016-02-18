@@ -29,15 +29,16 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PHI_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
-import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -46,6 +47,8 @@ import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
+import org.jikesrvm.compilers.opt.controlflow.Dominators;
+import org.jikesrvm.compilers.opt.controlflow.LTDominators;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
@@ -56,6 +59,11 @@ import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.BURSManagedFPROperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
+import org.jikesrvm.compilers.opt.liveness.LiveInterval;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.ssa.HeapVariable;
@@ -80,7 +88,6 @@ import org.vmmagic.pragma.NoInline;
  * grouped into {@link BasicBlock factored basic blocks}.
  * In addition to the FCFG, an <code>IR</code> object also
  * contains a variety of other supporting and derived data structures.
- * <p>
  *
  * @see ControlFlowGraph
  * @see BasicBlock
@@ -171,16 +178,10 @@ public final class IR {
    */
   public SSAOptions actualSSAOptions;
 
-  /**
-   * Are we in SSA form?
-   */
   public boolean inSSAForm() {
     return (actualSSAOptions != null) && actualSSAOptions.getScalarValid();
   }
 
-  /**
-   * Are we in SSA form that's broken awaiting re-entry?
-   */
   public boolean inSSAFormAwaitingReEntry() {
     return (actualSSAOptions != null) && !actualSSAOptions.getScalarValid();
   }
@@ -215,14 +216,14 @@ public final class IR {
   public ControlFlowGraph cfg;
 
   /**
-   * The {@link RegisterPool Register pool}
+   * The {@link GenericRegisterPool register pool}
    */
-  public RegisterPool regpool;
+  public GenericRegisterPool regpool;
 
   /**
    * The {@link GenericStackManager stack manager}.
    */
-  public final GenericStackManager stackManager = new StackManager();
+  public final GenericStackManager stackManager;
 
   /**
    * The IR is tagged to identify its level (stage).
@@ -238,20 +239,44 @@ public final class IR {
   private boolean handlerLivenessComputed = false;
 
   /**
+   * Information about liveness, {@code null} if not yet computed.
+   */
+  private LiveInterval livenessInformation;
+
+  /**
+   * Information about dominators as used for global code placement
+   * during SSA. This dominator information is not to be confused
+   * with the dominator information that is used to leave SSA form.
+   * The field will be {@code null} if the dominator information
+   * was not computed yet.
+   */
+  private Dominators dominators;
+
+  /**
+   * Information about dominators as used for leaving SSA form.
+   * This dominator information is not to be confused
+   * with the dominator information that is used to do global code
+   * placement in the SSA form.
+   * The field will be {@code null} if the dominator information
+   * was not computed yet.
+   */
+  private LTDominators ltDominators;
+
+  /**
    * Pointer to the HIRInfo for this method.
-   * Valid only if {@link #IRStage}>=HIR
+   * Valid only if {@link #IRStage}&gt;=HIR
    */
   public HIRInfo HIRInfo;
 
   /**
    * Pointer to the LIRInfo for this method.
-   * Valid only if {@link #IRStage}>=LIR.
+   * Valid only if {@link #IRStage}&gt;=LIR.
    */
   public LIRInfo LIRInfo;
 
   /**
    * Pointer to the MIRInfo for this method.
-   * Valid only if {@link #IRStage}>=MIR.
+   * Valid only if {@link #IRStage}&gt;=MIR.
    */
   public MIRInfo MIRInfo;
 
@@ -266,9 +291,22 @@ public final class IR {
    */
   private boolean hasSysCall = false;
 
-  public boolean hasSysCall() { return hasSysCall; }
+  public boolean hasSysCall() {
+    return hasSysCall;
+  }
 
-  public void setHasSysCall(boolean b) { hasSysCall = b; }
+  public void setHasSysCall(boolean b) {
+    hasSysCall = b;
+  }
+
+  {
+    if (VM.BuildForIA32) {
+      stackManager = new org.jikesrvm.compilers.opt.regalloc.ia32.StackManager();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      stackManager = new org.jikesrvm.compilers.opt.regalloc.ppc.StackManager();
+    }
+  }
 
   /**
    * @param m    The method to compile
@@ -316,9 +354,16 @@ public final class IR {
   }
 
   /**
-   * Should strictfp be adhered to for the given instructions?
+   * Should {@code strictfp} be adhered to for the given instructions?
+   * <p>
+   * Note: we currently don't support {@code strictfp} at all, so this method
+   * is unused.
+   *
+   * @param is a sequence of instruction
+   * @return {@code true} if any of the instructions requires
+   *  {@code strictfp}
    */
-  public boolean strictFP(Instruction... is) {
+  public static boolean strictFP(Instruction... is) {
     for (Instruction i : is) {
       if (i.position.method.isStrictFP()) {
         return true;
@@ -453,12 +498,17 @@ public final class IR {
 
   /**
    * How many bytes of parameters does this method take?
+   *
+   * @return number of bytes that are necessary to hold the method's
+   *  parameters, including space for the {@code this} parameter
+   *  if applicable
+   *
    */
   public int incomingParameterBytes() {
     int nWords = method.getParameterWords();
     // getParameterWords() does not include the implicit 'this' parameter.
     if (!method.isStatic()) nWords++;
-    return nWords << 2;
+    return nWords << LOG_BYTES_IN_ADDRESS;
   }
 
   /**
@@ -522,79 +572,51 @@ public final class IR {
     }
 
     @Override
-    public boolean hasMoreElements() { return !stack.empty(); }
+    public boolean hasMoreElements() {
+      return !stack.empty();
+    }
 
     @Override
-    public BasicBlock nextElement() { return stack.pop(); }
+    public BasicBlock nextElement() {
+      return stack.pop();
+    }
   }
 
   /**
-   * Densely number all the instructions currently in this IR
-   * from 0...numInstr-1.
-   * Returns the number of instructions in the IR.
-   * Intended style of use:
-   * <pre>
-   *    passInfo = new passInfoObjects[ir.numberInstructions()];
-   *    ...do analysis using passInfo as a look aside
-   *            array holding pass specific info...
-   * </pre>
+   * Counts all the instructions currently in this IR.
    *
    * @return the number of instructions
    */
-  public int numberInstructions() {
+  public int countInstructions() {
     int num = 0;
     for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
         instr.nextInstructionInCodeOrder(), num++) {
-      instr.scratch = num;
     }
     return num;
   }
 
   /**
-   * Set the scratch word on all instructions currently in this
-   * IR to a given value.
+   * Densely numbers all the instructions currently in this IR
+   * from 0...numInstr-1.
    *
-   * @param value value to store in all instruction scratch words
+   * @return a map that maps each instruction to its number
    */
-  public void setInstructionScratchWord(int value) {
+  public Map<Instruction, Integer> numberInstructionsViaMap() {
+    HashMap<Instruction, Integer> instructionNumbers = new HashMap<Instruction, Integer>();
+
+    int num = 0;
     for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
-        instr.nextInstructionInCodeOrder()) {
-      instr.scratch = value;
+        instr.nextInstructionInCodeOrder(), num++) {
+      instructionNumbers.put(instr, Integer.valueOf(num));
     }
+    return instructionNumbers;
   }
 
   /**
-   * Clear (set to zero) the scratch word on all
-   * instructions currently in this IR.
-   */
-  public void clearInstructionScratchWord() {
-    setInstructionScratchWord(0);
-  }
-
-  /**
-   * Clear (set to {@code null}) the scratch object on
-   * all instructions currently in this IR.
-   */
-  public void clearInstructionScratchObject() {
-    for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
-        instr.nextInstructionInCodeOrder()) {
-      instr.scratchObject = null;
-    }
-  }
-
-  /**
-   * Clear (set to {@code null}) the scratch object on
-   * all basic blocks currently in this IR.
-   */
-  public void clearBasicBlockScratchObject() {
-    Enumeration<BasicBlock> e = getBasicBlocks();
-    while (e.hasMoreElements()) {
-      e.nextElement().scratchObject = null;
-    }
-  }
-
-  /**
-   * Return the number of symbolic registers for this IR
+   * Returns the number of symbolic registers for this IR.
+   *
+   * @return number of symbolic registers that were allocated
+   *  for this IR object
    */
   public int getNumberOfSymbolicRegisters() {
     return regpool.getNumberOfSymbolicRegisters();
@@ -633,7 +655,7 @@ public final class IR {
    *         exception handler.
    */
   public boolean hasReachableExceptionHandlers() {
-    return gc.generatedExceptionHandlers;
+    return gc.generatedExceptionHandlers();
   }
 
   /**
@@ -656,19 +678,36 @@ public final class IR {
     }
   }
 
-  /**
-   * States whether liveness for handlers is available
-   & @return whether liveness for handlers is available
-   */
   public boolean getHandlerLivenessComputed() {
     return handlerLivenessComputed;
   }
 
-  /**
-   * Record whether or not liveness information for handlers is available
-   */
   public void setHandlerLivenessComputed(boolean value) {
     handlerLivenessComputed = value;
+  }
+
+  public LiveInterval getLivenessInformation() {
+    return livenessInformation;
+  }
+
+  public void setLivenessInformation(LiveInterval liveInterval) {
+    this.livenessInformation = liveInterval;
+  }
+
+  public Dominators getDominators() {
+    return dominators;
+  }
+
+  public void setDominators(Dominators dominators) {
+    this.dominators = dominators;
+  }
+
+  public LTDominators getLtDominators() {
+    return ltDominators;
+  }
+
+  public void setLtDominators(LTDominators ltDominators) {
+    this.ltDominators = ltDominators;
   }
 
   /**
@@ -805,9 +844,6 @@ public final class IR {
         verror(where, "Instr " + pp + " has next " + p + " but " + p + " has prev " + p.getPrev());
       }
 
-      // initialize the mark bit for the bblist test below
-      cur.scratch = 0;
-
       prev = cur;
       cur = (BasicBlock) cur.getNext();
     }
@@ -820,8 +856,9 @@ public final class IR {
    */
   private void verifyCFG(String where) {
     // Check that the CFG links are well formed
-    final int inBBListMarker = 999;  // actual number is insignificant
     final boolean VERIFY_CFG_EDGES = false;
+    int blockCountEstimate = getMaxBasicBlockNumber();
+    HashSet<BasicBlock> seenBlocks = new HashSet<BasicBlock>(blockCountEstimate);
     HashSet<BasicBlock> origOutSet = null;
     if (VERIFY_CFG_EDGES) origOutSet = new HashSet<BasicBlock>();
 
@@ -884,8 +921,8 @@ public final class IR {
         }
       }
 
-      // mark this block because it is the bblist
-      cur.scratch = inBBListMarker;
+      // remember this block because it is the bblist
+      seenBlocks.add(cur);
     }
 
     // Check to make sure that all blocks connected
@@ -894,7 +931,7 @@ public final class IR {
     for (BasicBlock cur = cfg.firstInCodeOrder(); cur != null; cur = (BasicBlock) cur.getNext()) {
       for (Enumeration<BasicBlock> e = cur.getIn(); e.hasMoreElements();) {
         BasicBlock pred = e.nextElement();
-        if (pred.scratch != inBBListMarker) {
+        if (!seenBlocks.contains(pred)) {
           verror(where,
                  "In Method " +
                  method.getName() +
@@ -907,7 +944,7 @@ public final class IR {
       }
       for (Enumeration<BasicBlock> e = cur.getOut(); e.hasMoreElements();) {
         BasicBlock succ = e.nextElement();
-        if (succ.scratch != inBBListMarker) {
+        if (!seenBlocks.contains(succ)) {
           // the EXIT block is never in the BB list
           if (succ != cfg.exit()) {
             verror(where,
@@ -930,6 +967,7 @@ public final class IR {
    * <li>1) has operands that back reference it</li>
    * <li>2) is valid for its position in the basic block</li>
    * <li>3) if we are MIR, has no guard operands</li>
+   * <li>4) test instruction is canonical</li>
    * </ul>
    *
    * @param where phrase identifying invoking  compilation phase
@@ -995,6 +1033,12 @@ public final class IR {
                    " is invalid as it is a validation register and this IR is in MIR form");
           }
         }
+        // Perform (4)
+        if (Binary.conforms(instruction) && instruction.operator().isCommutative()) {
+          if (Binary.getVal1(instruction).isConstant()) {
+            verror(where, "Non-canonical commutative operation " + instruction);
+          }
+        }
         // Perform (2)
         // test for starting instructions
         if (!startingInstructionsPassed) {
@@ -1010,7 +1054,7 @@ public final class IR {
           startingInstructionsPassed = true;
         }
         // main instruction location test
-        switch (instruction.operator().opcode) {
+        switch (instruction.getOpcode()) {
           // Label and phi nodes must be at the start of a BB
           case PHI_opcode:
           case LABEL_opcode:
@@ -1024,10 +1068,15 @@ public final class IR {
           case DOUBLE_IFCMP_opcode:
           case REF_IFCMP_opcode:
             instruction = instructions.nextElement();
-            if (!Goto.conforms(instruction) && !BBend.conforms(instruction) && !MIR_Branch.conforms(instruction)) {
-              verror(where, "Unexpected instruction after IFCMP " + instruction);
+            if (!Goto.conforms(instruction) && !BBend.conforms(instruction)) {
+              if ((VM.BuildForIA32 && !org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(instruction)) ||
+                  (VM.BuildForPowerPC && !org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(instruction))) {
+                verror(where, "Unexpected instruction after IFCMP " + instruction);
+              }
             }
-            if (Goto.conforms(instruction) || MIR_Branch.conforms(instruction)) {
+            if (Goto.conforms(instruction) ||
+                ((VM.BuildForIA32 && org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(instruction)) ||
+                    (VM.BuildForPowerPC && org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(instruction)))) {
               instruction = instructions.nextElement();
               if (!BBend.conforms(instruction)) {
                 verror(where, "Unexpected instruction after GOTO/MIR_BRANCH " + instruction);
@@ -1087,7 +1136,7 @@ public final class IR {
     resetBasicBlockMap();
     verifyAllBlocksAreReachable(where, cfg.entry(), reachableNormalBlocks, reachableExceptionBlocks, false);
     boolean hasUnreachableBlocks = false;
-    StringBuffer unreachablesString = new StringBuffer();
+    StringBuilder unreachablesString = new StringBuilder();
     for (int j = 0; j < cfg.numberOfNodes(); j++) {
       if (!reachableNormalBlocks.get(j) && !reachableExceptionBlocks.get(j)) {
         hasUnreachableBlocks = true;
@@ -1204,8 +1253,10 @@ public final class IR {
   }
 
   /**
-   * Check whether uses follow definitions and that in SSA form
+   * Checks whether uses follow definitions and that in SSA form
    * variables aren't multiply defined
+   *
+   * @param where phrase identifying invoking compilation phase
    */
   private void verifyUseFollowsDef(String where) {
     // Create set of defined variables and add registers that will be
@@ -1234,6 +1285,7 @@ public final class IR {
    * @param curBB the current BB to work on
    * @param visitedBBs the blocks already visited (to avoid cycles)
    * @param path a record of the path taken to reach this basic block
+   * @param maxPathLength the maximum number of basic blocks that will be followed
    * @param traceExceptionEdges    should paths from exceptions be validated?
    */
   private void verifyUseFollowsDef(String where, HashSet<Object> definedVariables, BasicBlock curBB,
@@ -1263,7 +1315,7 @@ public final class IR {
             // variable should be defined
             Object variable = getVariableUse(where, Phi.getValue(instruction, i));
             if ((variable != null) && (!definedVariables.contains(variable))) {
-              StringBuffer pathString = new StringBuffer();
+              StringBuilder pathString = new StringBuilder();
               for (int j = 0; j < path.size(); j++) {
                 pathString.append(path.get(j).getNumber());
                 if (j < (path.size() - 1)) {
@@ -1280,9 +1332,9 @@ public final class IR {
         while (useOperands.hasMoreElements()) {
           Object variable = getVariableUse(where, useOperands.nextElement());
           if ((variable != null) && (!definedVariables.contains(variable))) {
-            if (instruction.operator.toString().indexOf("xor") != -1)
+            if (instruction.operator().toString().indexOf("xor") != -1)
               continue;
-            StringBuffer pathString = new StringBuffer();
+            StringBuilder pathString = new StringBuilder();
             for (int i = 0; i < path.size(); i++) {
               pathString.append(path.get(i).getNumber());
               if (i < (path.size() - 1)) {
@@ -1351,9 +1403,10 @@ public final class IR {
         operand.isMemory() ||
         (operand instanceof TrapCodeOperand) ||
         (operand instanceof InlinedOsrTypeInfoOperand) ||
-        (Operators.helper.isConditionOperand(operand)) ||
-        (VM.BuildForIA32 && Operators.helper.isBURSManagedFPROperand(operand)) ||
-        (VM.BuildForPowerPC && Operators.helper.isPowerPCTrapOperand(operand))) {
+        (VM.BuildForIA32 && operand instanceof IA32ConditionOperand) ||
+        (VM.BuildForPowerPC && operand instanceof PowerPCConditionOperand) ||
+        (VM.BuildForIA32 && operand instanceof BURSManagedFPROperand) ||
+        (VM.BuildForPowerPC && operand instanceof PowerPCTrapOperand)) {
       return null;
     } else if (operand.isRegister()) {
       Register register = operand.asRegister().getRegister();
@@ -1367,7 +1420,7 @@ public final class IR {
         }
       }
       verror(where, "Basic block not found in CFG for BasicBlockOperand: " + operand);
-      return null; // keep jikes quiet
+      return null;
     } else if (operand instanceof HeapOperand) {
       if (!actualSSAOptions.getHeapValid()) {
         return null;
@@ -1380,8 +1433,8 @@ public final class IR {
         return null;
       }
     } else {
-      verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
-      return null; // keep jikes quiet
+      verror(where, "Use: Unknown variable of " + operand.getClass() + " with operand: " + operand);
+      return null;
     }
   }
 
@@ -1402,15 +1455,15 @@ public final class IR {
         return null;
       }
       return ((HeapOperand<?>) operand).getHeapVariable();
-    } else if (VM.BuildForIA32 && Operators.helper.isBURSManagedFPROperand(operand)) {
-      return Operators.helper.getBURSManagedFPRValue(operand);
+    } else if (VM.BuildForIA32 && operand instanceof BURSManagedFPROperand) {
+      return ((BURSManagedFPROperand) operand).regNum;
     } else if (operand.isStackLocation() || operand.isMemory()) {
       // it would be nice to handle these but they have multiple
       // constituent parts :-(
       return null;
     } else {
-      verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
-      return null; // keep jikes quiet
+      verror(where, "Def: Unknown variable of " + operand.getClass() + " with operand: " + operand);
+      return null;
     }
   }
 
@@ -1426,4 +1479,5 @@ public final class IR {
     VM.sysWriteln("VERIFY: " + where + " " + msg);
     throw new OptimizingCompilerException("VERIFY: " + where, msg);
   }
+
 }

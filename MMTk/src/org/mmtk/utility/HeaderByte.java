@@ -14,7 +14,6 @@ package org.mmtk.utility;
 
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
@@ -24,7 +23,7 @@ import org.vmmagic.unboxed.ObjectReference;
  *
  * The general pattern for use of the GC byte is that the high order bits
  * successively reserved for global use, as necessary.  Any GC policy may use
- * those bits that are not reserved for global use.<p>
+ * those bits that are not reserved for global use.
  */
 @Uninterruptible
 public class HeaderByte {
@@ -32,27 +31,8 @@ public class HeaderByte {
 
   public static final boolean NEEDS_UNLOGGED_BIT = VM.activePlan.constraints().needsLogBitInHeader();
   private static final int UNLOGGED_BIT_NUMBER = TOTAL_BITS - (NEEDS_UNLOGGED_BIT ? 1 : 0);
-  public static final byte UNLOGGED_BIT = (byte) (1<<UNLOGGED_BIT_NUMBER);
+  public static final byte UNLOGGED_BIT = (byte) (1 << UNLOGGED_BIT_NUMBER);
   public static final int USED_GLOBAL_BITS = TOTAL_BITS - UNLOGGED_BIT_NUMBER;
-
-
-  /**
-   * Perform any required initialization of the GC portion of the header.
-   * Called for objects created at boot time.
-   *
-   * @param object the Address representing the storage to be initialized
-   * @param typeRef the type reference for the instance being created
-   * @param size the number of bytes allocated by the GC system for
-   * this object.
-   * @return The new value of the status word
-   */
-  public static byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
-    byte status = 0;
-
-    if (NEEDS_UNLOGGED_BIT)
-      status |= UNLOGGED_BIT;
-    return status;
-  }
 
 
   public static void markAsUnlogged(ObjectReference object) {

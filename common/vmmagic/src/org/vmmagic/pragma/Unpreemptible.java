@@ -35,17 +35,15 @@ import org.vmmagic.Pragma;
  * therefore {@link Unpreemptible}.<p>
  *
  * Any method that is marked as unpreemptible is treated specially by the
- * machine code compiler:<p>
- *
+ * machine code compiler:
  * <ol>
  *  <li>the normal thread switch test that would be emitted in the method
  * prologue is omitted.</li>
  *  <li>the stack overflow test that would be emitted in the method prologue is
  * omitted.</li>
  *  <li>calls to preemptible code causes warnings.</li>
- * <ol>
+ * </ol>
  * <p>
- *
  * This is the inverse of {@link Preemptible}.
  */
 @Retention(RetentionPolicy.RUNTIME)

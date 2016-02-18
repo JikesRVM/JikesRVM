@@ -35,7 +35,7 @@ public class Symbol {
     this.type = type;
     this.location = table.getFreeLocation();
     this.level = table.getCurrentScope();
-    if (SymbolTable.TRACE) System.out.println("Declaring variable "+name+" at location "+getLocation());
+    if (SymbolTable.TRACE) System.out.println("Declaring variable " + name + " at location " + getLocation());
   }
 
   public String getName() {

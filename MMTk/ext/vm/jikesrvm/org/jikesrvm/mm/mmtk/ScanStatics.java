@@ -14,8 +14,10 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
+
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;
@@ -28,7 +30,7 @@ import org.vmmagic.pragma.*;
 /**
  * Class that determines all JTOC slots (statics) that hold references
  */
-public final class ScanStatics implements Constants {
+public final class ScanStatics {
   /**
    * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,
    * 64bit addresses =2)
@@ -43,6 +45,8 @@ public final class ScanStatics implements Constants {
    * Scan static variables (JTOC) for object references.  Executed by
    * all GC threads in parallel, with each doing a portion of the
    * JTOC.
+   *
+   * @param trace the trace to use for scanning
    */
   @Inline
   @Uninterruptible
@@ -63,10 +67,10 @@ public final class ScanStatics implements Constants {
 
     // Start and end of statics region to be processed
     final int start = (threadOrdinal == 0) ? refSlotSize : threadOrdinal * chunkSize;
-    final int end = (threadOrdinal+1 == numberOfCollectors) ? numberOfReferences : (threadOrdinal+1) * chunkSize;
+    final int end = (threadOrdinal + 1 == numberOfCollectors) ? numberOfReferences : (threadOrdinal + 1) * chunkSize;
 
     // Process region
-    for (int slot=start; slot < end; slot+=refSlotSize) {
+    for (int slot = start; slot < end; slot += refSlotSize) {
       Offset slotOffset = Offset.fromIntSignExtend(slot << LOG_BYTES_IN_INT);
       if (ScanThread.VALIDATE_REFS) checkReference(slots.plus(slotOffset), slot);
       trace.processRootEdge(slots.plus(slotOffset), true);
@@ -78,6 +82,8 @@ public final class ScanStatics implements Constants {
    * the reference is invalid, dump stack and die.
    *
    * @param refaddr The address of the reference in question.
+   * @param slot the index of the slot. This is necessary to trace
+   *  where the reference came from in case it turns out to be invalid.
    */
   @Uninterruptible
   private static void checkReference(Address refaddr, int slot) {

@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -23,6 +22,7 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
+import org.jikesrvm.util.Services;
 
 /**
  * SpecialCompiler is a wrapper for compiling specialized byte code.
@@ -79,18 +79,22 @@ public class SpecialCompiler {
    * NOTE: this is different from optCompile which resets the
   *    bytecode after compilation. I believe this minimizes the
   *    work to change both compilers.
-   * @param state
-   * @return a BaselineCompiledMethod
+   * @param state the execution state for the compilation
+   * @return the compiled method produced by the baseline compiler
    */
   public static CompiledMethod baselineCompile(ExecutionState state) {
     NormalMethod method = state.getMethod();
 
-    if (VM.TraceOnStackReplacement) {VM.sysWriteln("BASE : starts compiling " + method); }
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("BASE : starts compiling " + method);
+    }
 
     /* generate prologue bytes */
     byte[] prologue = state.generatePrologue();
 
-    if (VM.TraceOnStackReplacement) {VM.sysWriteln("prologue length " + prologue.length);}
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("prologue length " + prologue.length);
+    }
 
     // the compiler will call setForOsrSpecialization after generating the reference map
     /* set a flag for specialization, compiler will see it, and
@@ -102,7 +106,13 @@ public class SpecialCompiler {
     * because the compiler will generate maps after compilation.
     * Any necessary adjustment should be made during the compilation
     */
-    CompiledMethod newCompiledMethod = BaselineCompilerImpl.compile(method);
+    CompiledMethod newCompiledMethod;
+    if (VM.BuildForIA32) {
+      newCompiledMethod = org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.compile(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      newCompiledMethod = org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.compile(method);
+    }
 
     // compiled method was already set by BaselineCompilerImpl.compile
     // the call here does nothing
@@ -116,7 +126,7 @@ public class SpecialCompiler {
       VM.sysWriteln("BASE : done, CMID 0x" +
                     Integer.toHexString(newCompiledMethod.getId()) +
                     "(" + newCompiledMethod.getId() + ") JTOC offset " +
-                    VM.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
+                    Services.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
     }
 
     return newCompiledMethod;
@@ -131,11 +141,16 @@ public class SpecialCompiler {
    *   <li>compile the method.
    *   <li>restore bytecode, exception, linenumber map to the original one.
    * </ol>
+   *
+   * @param state the execution state for the compilation
+   * @return the compiled method produced by the optimizing compiler
    */
   public static CompiledMethod optCompile(ExecutionState state) {
 
     NormalMethod method = state.getMethod();
-    if (VM.TraceOnStackReplacement) { VM.sysWriteln("OPT : starts compiling " + method); }
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("OPT : starts compiling " + method);
+    }
 
     ControllerPlan latestPlan = ControllerMemory.findLatestPlan(method);
 

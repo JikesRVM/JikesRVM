@@ -10,6 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+
+/**
+ * Note: Support for AIX has been dropped but test cases for AIX
+ * have been kept.
+ */
 class ArgumentPassing {
 
   static boolean verbose = true;         // set to true to get messages for each test
@@ -506,6 +511,45 @@ class ArgumentPassing {
     doubleLongSpillVirtual(long val1, double fval2,
                            long val3, double fval4, long val5);
 
+  // x64 tests
+
+  /**
+   * Virtual method for x64. On x64, 9 doubles exhausts all native parameter floating point
+   * registers and need 1 stack slot. The additional parameters use general purpose
+   * registers.
+   */
+  public native int exhaustX64FPRsWithDoubleThenUseInt(double fval1, double fval2,
+      double fval3, double fval4, double fval5, double fval6, double fval7, double fval8,
+      double fval9, // shouldn't fit into floating point registers any more
+      int val1, int val2, int val3, int val4);
+
+  /**
+   * Virtual method for x64. On x64, 9 floats exhausts all native parameter floating point
+   * registers and need 1 stack slot. The additional parameters use general purpose
+   * registers.
+   */
+  public native int exhaustX64FPRsWithFloatThenUseInt(float fval1, float fval2,
+      float fval3, float fval4, float fval5, float fval6, float fval7, float fval8,
+      float fval9, // shouldn't fit into floating point registers any more
+      int val1, int val2, int val3, int val4);
+
+  /**
+   * Virtual method for x64. On x64, 9 ints exhaust all general purpose registers
+   * and require space on the stack. The additional parameters use floating point registers.
+   */
+  public native int exhaustX64GPRsWithIntThenUseFloat(int val1, int val2,
+      int val3, int val4, int val5, int val6, int val7, int val8,
+      int val9, // should exhaust general registers even if JNIEnv and the this parameter don't take any
+      float fval1, float fval2, float fval3, float fval4);
+
+  /**
+   * Virtual method for x64. On x64, 9 ints exhaust all general purpose registers
+   * and require space on the stack. The additional parameters use floating point registers.
+   */
+  public native int exhaustX64GPRsWithIntThenUseDouble(int val1, int val2,
+      int val3, int val4, int val5, int val6, int val7, int val8,
+      int val9, // should exhaust general registers even if JNIEnv and the this parameter don't take any
+      double fval1, double fval2, double fval3, double fval4);
 
   /**
    * Return value: check for 2 words returned
@@ -520,7 +564,7 @@ class ArgumentPassing {
   //
 
   // dummy constructor for test on virtual methods
-  public ArgumentPassing() {
+  ArgumentPassing() {
 
   }
 
@@ -529,7 +573,7 @@ class ArgumentPassing {
 
     System.loadLibrary("ArgumentPassing");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -754,18 +798,34 @@ class ArgumentPassing {
     returnValue = testobj.doubleLongSpillVirtual(1L, 3.3d, 5L, 7.7d, 9L);
     checkTest(returnValue, "doubleLongSpillVirtual");
 
+    returnValue = testobj.exhaustX64FPRsWithDoubleThenUseInt(1.1d,
+        3.3d, 5.5d, 7.7d, 9.9d, 11.11d, 13.13d, 15.15d, 17.17d, 1, 3, 5, 7);
+    checkTest(returnValue, "exhaustX64FPRsWithDoubleThenUseInt");
+
+    returnValue = testobj.exhaustX64FPRsWithFloatThenUseInt(1.1f,
+        3.3f, 5.5f, 7.7f, 9.9f, 11.11f, 13.13f, 15.15f, 13.13f, 1, 3, 5, 7);
+    checkTest(returnValue, "exhaustX64FPRsWithFloatThenUseInt");
+
+    returnValue = testobj.exhaustX64GPRsWithIntThenUseFloat(1, 3, 5,
+        7, 9, 11, 13, 15, 17, 1.1f, 3.3f, 5.5f, 7.7f);
+    checkTest(returnValue, "exhaustX64GPRsWithIntThenUseFloat");
+
+    returnValue = testobj.exhaustX64GPRsWithIntThenUseDouble(1, 3, 5,
+        7, 9, 11, 13, 15, 17, 1.1d, 3.3d, 5.5d, 7.7d);
+    checkTest(returnValue, "exhaustX64GPRsWithIntThenUseDouble");
+
     long actualLong = returnLong(0x12345678);
     int hi = (int) (actualLong >> 32);
     int lo = (int) (actualLong);
-    returnValue = ((hi==0x00001234) && (lo==0x56780000)) ? 0 : 1;
+    returnValue = ((hi == 0x00001234) && (lo == 0x56780000)) ? 0 : 1;
     checkTest(returnValue, "returnLong");
 
     float actualFloat = returnFloat((float) (1.5));
-    returnValue = (actualFloat==((float) 1.5)) ? 0 : 1;
+    returnValue = (actualFloat == ((float) 1.5)) ? 0 : 1;
     checkTest(returnValue, "returnFloat");
 
     double actualDouble = returnDouble(3.5);
-    returnValue = (actualDouble==3.5) ? 0 : 1;
+    returnValue = (actualDouble == 3.5) ? 0 : 1;
     checkTest(returnValue, "returnDouble");
 
     // Summarize
@@ -785,13 +845,12 @@ class ArgumentPassing {
   }
 
   static void checkTest(int returnValue, String testName) {
-    if (returnValue==0) {
+    if (returnValue == 0) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;
       printVerbose("FAIL: " + testName);
     }
   }
-
 
 }

@@ -12,35 +12,39 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
-import org.jikesrvm.Constants;
 import org.vmmagic.unboxed.Address;
 
 /**
  * Manifest constants for bootimage writer.
  */
-public interface BootImageWriterConstants extends Constants {
+public final class BootImageWriterConstants {
 
   /**
    * Address to associate with objects that haven't yet been placed into image.
    * Any Address that's unaligned will do.
    */
-  Address OBJECT_NOT_ALLOCATED = Address.fromIntSignExtend(0xeeeeeee1);
+  public static final Address OBJECT_NOT_ALLOCATED = Address.fromIntSignExtend(0xeeeeeee1);
 
   /**
    * Address to associate with objects that are not to be placed into image.
    * Any Address that's unaligned will do.
    */
-  Address OBJECT_NOT_PRESENT = Address.fromIntSignExtend(0xeeeeeee2);
+  public static final Address OBJECT_NOT_PRESENT = Address.fromIntSignExtend(0xeeeeeee2);
 
   /**
    * Address to associate with objects that have their allocation deferred.
    */
-  Address OBJECT_ALLOCATION_DEFERRED = Address.fromIntSignExtend(0xeeeeeee3);
+  public static final Address OBJECT_ALLOCATION_DEFERRED = Address.fromIntSignExtend(0xeeeeeee3);
 
   /**
    * Starting index for objects in TypeDictionary.
    * = 1, since slot 0 is reserved for {@code null}
    */
-  int FIRST_TYPE_DICTIONARY_INDEX = 1;
+  public static final int FIRST_TYPE_DICTIONARY_INDEX = 1;
+
+  private BootImageWriterConstants() {
+    // prevent instantiation
+  }
+
 }
 

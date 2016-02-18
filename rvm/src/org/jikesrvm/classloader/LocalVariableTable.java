@@ -53,15 +53,6 @@ public final class LocalVariableTable {
      */
     private final int frameIndex;
 
-    /**
-     * Construct a local variable.
-     *
-     * @param startPC
-     * @param length
-     * @param name
-     * @param descriptor
-     * @param frameIndex
-     */
     LocalVariable(int startPC, int length, Atom name, Atom descriptor, int frameIndex) {
       this.startPC = startPC;
       this.length = length;
@@ -70,9 +61,6 @@ public final class LocalVariableTable {
       this.frameIndex = frameIndex;
     }
 
-    /**
-     * String represenation of this local variable.
-     */
     @Override
     public String toString() {
       return (startPC + " " +
@@ -83,20 +71,10 @@ public final class LocalVariableTable {
     }
   }
 
-  /**
-   * Construct the local variable table
-   *
-   * @param locals
-   */
   LocalVariableTable(LocalVariable[] locals) {
     this.locals = locals;
   }
 
-  /**
-   * Read the local variable table
-   *
-   * @return a local variable table or null if none were present
-   */
   static LocalVariableTable readLocalVariableTable(DataInputStream input, int[] constantPool) throws IOException {
     int numVars = input.readUnsignedShort();
     if (numVars > 0) {

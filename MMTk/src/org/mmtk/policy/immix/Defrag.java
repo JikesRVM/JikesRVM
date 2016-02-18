@@ -14,9 +14,8 @@
 package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
+import static org.mmtk.utility.Constants.*;
 
-
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.options.DefragFreeHeadroom;
@@ -30,16 +29,17 @@ import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.EventCounter;
 import org.mmtk.utility.statistics.SizeCounter;
 import org.mmtk.vm.VM;
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible
-public class Defrag  implements Constants {
+public class Defrag {
   private boolean inDefragCollection = false;
   private int debugBytesDefraged = 0;
   private int availableCleanPagesForDefrag;
   private boolean defragSpaceExhausted = true;
-  private int[][] spillMarkHistograms = new int[MAX_COLLECTORS][SPILL_HISTOGRAM_BUCKETS];
-  private int[] spillAvailHistogram = new int[SPILL_HISTOGRAM_BUCKETS];
+  private int[][] spillMarkHistograms;
+  private final int[] spillAvailHistogram = new int[SPILL_HISTOGRAM_BUCKETS];
   public static SizeCounter defragCleanBytesUsed = new SizeCounter("cleanUsed");
 
   /* verbose stats (used only on stats runs since they induce overhead when gathered) */
@@ -68,7 +68,21 @@ public class Defrag  implements Constants {
     this.pr = pr;
   }
 
-  boolean inDefrag() { return inDefragCollection; }
+  /**
+   * Prepares the histograms.<p>
+   *
+   * This needs to happen at runtime because the collector count is not known
+   * at build time.
+   */
+  @Interruptible
+  void prepareHistograms() {
+    int collectorCount = VM.activePlan.collectorCount();
+    spillMarkHistograms = new int[collectorCount][SPILL_HISTOGRAM_BUCKETS];
+  }
+
+  boolean inDefrag() {
+    return inDefragCollection;
+  }
 
   void prepare(ChunkList chunkMap, ImmixSpace space) {
     availableCleanPagesForDefrag = VM.activePlan.global().getTotalPages() - VM.activePlan.global().getPagesReserved() + getDefragHeadroomPages();
@@ -89,7 +103,7 @@ public class Defrag  implements Constants {
       chunkMap.consolidateMap();
       establishDefragSpillThreshold(chunkMap, space);
       defrags.inc();
-      defragCleanBytesAvailable.inc(availableCleanPagesForDefrag<<LOG_BYTES_IN_PAGE);
+      defragCleanBytesAvailable.inc(availableCleanPagesForDefrag << LOG_BYTES_IN_PAGE);
     }
     availableCleanPagesForDefrag += VM.activePlan.global().getCollectionReserve();
   }
@@ -126,7 +140,9 @@ public class Defrag  implements Constants {
     debugCollectionTypeDetermined = true;
   }
 
-  boolean determined(boolean inDefrag) { return debugCollectionTypeDetermined && !(inDefrag ^ inDefragCollection); }
+  boolean determined(boolean inDefrag) {
+    return debugCollectionTypeDetermined && !(inDefrag ^ inDefragCollection);
+  }
 
   void getBlock() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!inDefragCollection || !defragSpaceExhausted);
@@ -139,7 +155,7 @@ public class Defrag  implements Constants {
 
   private void establishDefragSpillThreshold(ChunkList chunkMap, ImmixSpace space) {
     int cleanLines = space.getAvailableLines(spillAvailHistogram);
-    int availableLines = cleanLines + availableCleanPagesForDefrag<<(LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
+    int availableLines = cleanLines + availableCleanPagesForDefrag << (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
 
     int requiredLines = 0;
     short threshold = MAX_CONSV_SPILL_COUNT;
@@ -170,7 +186,9 @@ public class Defrag  implements Constants {
   }
 
 
-  boolean spaceExhausted() { return defragSpaceExhausted; }
+  boolean spaceExhausted() {
+    return defragSpaceExhausted;
+  }
 
   int[] getAndZeroSpillMarkHistogram(int ordinal) {
     int[] rtn = spillMarkHistograms[ordinal];

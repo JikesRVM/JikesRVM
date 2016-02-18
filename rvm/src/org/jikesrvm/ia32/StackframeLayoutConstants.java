@@ -12,15 +12,19 @@
  */
 package org.jikesrvm.ia32;
 
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
 import org.vmmagic.unboxed.Address;
-import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import org.vmmagic.unboxed.Offset;
 
-/**----------------------------------------------------------------------
+/**
+ * <pre>
+ *-----------------------------------------------------------------------
  *                   Stackframe layout conventions - Intel version.
  *-----------------------------------------------------------------------
- *
+ * </pre>
  * A stack is an array of "slots", declared formally as integers, each slot
  * containing either a primitive (byte, int, float, etc), an object pointer,
  * a machine code pointer (a return address pointer), or a pointer to another
@@ -41,19 +45,19 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
  *              +---------------+                                             .
- *          +-> |     FP=0      |   <-- "end of vm stack" sentinel            .
+ *          +-&gt; |     FP=0      |   &lt;-- "end of vm stack" sentinel            .
  *          |   +---------------+                                             . caller's frame
- *          |   |    cmid=0      |   <-- "invisible method" id                .
+ *          |   |    cmid=0      |   &lt;-- "invisible method" id                .
  *          |   +---------------+                                          ---.
  *          |   |   parameter0  |  \                                        | .
  *          |   +---------------+   \ parameter area                        | .
  *          |   |   parameter1  |   /  (== caller's operand stack area)     | .
  *   ---    |   +---------------+  /                                        |...
- *    |     |   |   saved IP    |  <-- return address (in caller)           |
+ *    |     |   |   saved IP    |  &lt;-- return address (in caller)           |
  *    |      \  +---------------+                                           |
- *  header FP-> |   saved FP    |  <-- this frame's caller's frame          |
+ *  header FP-&gt; |   saved FP    |  &lt;-- this frame's caller's frame          |
  *    |         +---------------+                                           |
- *    |         |    cmid       |  <-- this frame's compiledmethod id       |
+ *    |         |    cmid       |  &lt;-- this frame's compiledmethod id       |
  *    |         +---------------+                                           |
  *    |         |   saved GPRs  |  \                                        |
  *    |         +---------------+   \ nonvolatile register save area        |
@@ -65,14 +69,14 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *    |         +---------------+  /                                        |
  *    |         |   operand0    |  \                                        |
  *    |         +---------------+   \_operand stack area                    |
- *    |    SP-> |   operand1    |   /                                       |
+ *    |    SP-&gt; |   operand1    |   /                                       |
  *    |         +---------------+  /                                        |
  *    |         |     ...       |                                           |
  *   ---        +===============+                                          ---
  *              |     ...       |
  *              +---------------+
- * stackLimit-> |     ...       | \
- *              +---------------+  \_guard region for detecting & processing stack overflow
+ * stackLimit-&gt; |     ...       | \
+ *              +---------------+  \_guard region for detecting &amp; processing stack overflow
  *              |     ...       |  /
  *              +---------------+ /
  *              |(object header)|
@@ -86,22 +90,22 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
  *              +---------------+                                             .
- *          +-> |     FP=0      |   <-- "end of vm stack" sentinel           .
+ *          +-&gt; |     FP=0      |   &lt;-- "end of vm stack" sentinel           .
  *          |   +---------------+                                             . caller's frame
- *          |   |    cmid=-1    |   <-- "invisible method" id                .
+ *          |   |    cmid=-1    |   &lt;-- "invisible method" id                .
  *          |   +---------------+                                          ---.
  *          |   |   parameter0  |  \                                        | .
  *          |   +---------------+   \ parameter area                        | .
  *          |   |   parameter1  |   /  (== caller's operand stack area)     | .
  *   ---    |   +---------------+  /                                        |...
- *    |     |   |   saved IP    |  <-- return address (in caller)           |
+ *    |     |   |   saved IP    |  &lt;-- return address (in caller)           |
  *    |      \  +---------------+                                           |
- *  header FP-> |   saved FP    |  <-- this frame's caller's frame          |
+ *  header FP-&gt; |   saved FP    |  &lt;-- this frame's caller's frame          |
  *    |         +---------------+                                           |
- *    |         |    cmid       |  <-- this frame's compiledmethod id       |
+ *    |         |    cmid       |  &lt;-- this frame's compiledmethod id       |
  *   ---        +---------------+                                           |
  *    |         |               |                                           |
- *    |         |  Spill Area   |  <-- spills and other method-specific     |
+ *    |         |  Spill Area   |  &lt;-- spills and other method-specific     |
  *    |         |     ...       |      compiler-managed storage             |
  *    |         +---------------+                                           |
  *    |         |   Saved FP    |     only SaveVolatile Frames              |
@@ -111,7 +115,7 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *    |         |     ...       |     only SaveVolatile Frames              |
  *    |         |  VolGPR[n]    |                                           |
  *    |         +---------------+                                           |
- *   body       |  NVolGPR[k]   |  <-- info.getUnsignedNonVolatileOffset()  | frame
+ *   body       |  NVolGPR[k]   |  &lt;-- info.getUnsignedNonVolatileOffset()  | frame
  *    |         |     ...       |   k == info.getFirstNonVolatileGPR()      |
  *    |         |  NVolGPR[n]   |                                           |
  *    |         +---------------+                                           |
@@ -121,14 +125,14 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *    |         +---------------+                                           |
  *    |         |   parameter0  |  \                                        |
  *    |         +---------------+   \_parameters to callee frame            |
- *    |    SP-> |   parameter1  |   /                                       |
+ *    |    SP-&gt; |   parameter1  |   /                                       |
  *    |         +---------------+  /                                        |
  *    |         |     ...       |                                           |
  *   ---        +===============+                                          ---
  *              |     ...       |
  *              +---------------+
- * stackLimit-> |     ...       | \
- *              +---------------+  \_guard region for detecting & processing stack overflow
+ * stackLimit-&gt; |     ...       | \
+ *              +---------------+  \_guard region for detecting &amp; processing stack overflow
  *              |     ...       |  /
  *              +---------------+ /
  *              |(object header)|
@@ -136,50 +140,50 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *
  * </pre>
  */
-public interface StackframeLayoutConstants {
+public final class StackframeLayoutConstants {
 
-  int LOG_BYTES_IN_STACKSLOT = SizeConstants.LOG_BYTES_IN_ADDRESS;
-  int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
+  public static final int LOG_BYTES_IN_STACKSLOT = LOG_BYTES_IN_ADDRESS;
+  public static final int BYTES_IN_STACKSLOT = 1 << LOG_BYTES_IN_STACKSLOT;
 
   /** offset of caller's return address from FP */
-  int STACKFRAME_RETURN_ADDRESS_OFFSET = WORDSIZE;
+  public static final Offset STACKFRAME_RETURN_ADDRESS_OFFSET = Offset.fromIntSignExtend(WORDSIZE);
   /** base of this frame */
-  int STACKFRAME_FRAME_POINTER_OFFSET = 0;
+  public static final Offset STACKFRAME_FRAME_POINTER_OFFSET = Offset.zero();
   /** offset of method id from FP */
-  int STACKFRAME_METHOD_ID_OFFSET = -WORDSIZE;
+  public static final Offset STACKFRAME_METHOD_ID_OFFSET = Offset.fromIntSignExtend(-WORDSIZE);
   /** offset of work area from FP */
-  int STACKFRAME_BODY_OFFSET = -2*WORDSIZE;
+  public static final Offset STACKFRAME_BODY_OFFSET = Offset.fromIntSignExtend(-2 * WORDSIZE);
   /** size of frame header, in bytes */
-  int STACKFRAME_HEADER_SIZE = 3*WORDSIZE;
+  public static final int STACKFRAME_HEADER_SIZE = 3 * WORDSIZE;
 
   /** space to save entire FPU state.  The FPU state is saved only for 'bridge' frames */
-  int FPU_STATE_SIZE = 108;
+  public static final int FPU_STATE_SIZE = 108;
   /** Currently only use the low 8 bytes, only use 4 SSE2 params */
-  int XMM_STATE_SIZE = 8 * 4;
+  public static final int XMM_STATE_SIZE = 8 * 4;
 
   /** fp value indicating end of stack walkback */
-  Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
+  public static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
   /** marker for "assembler" frames that have no associated RVMMethod */
-  int INVISIBLE_METHOD_ID = -1;
+  public static final int INVISIBLE_METHOD_ID = -1;
 
   // Stackframe alignment.
-  // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).
+  // Align to 8 byte boundary for good floating popublic static final int save/restore performance (on powerPC, anyway).
   //
-  int STACKFRAME_ALIGNMENT = 8;
+  public static final int STACKFRAME_ALIGNMENT = 8;
 
   // Sizes for stacks and subregions thereof.
   // Values are in bytes and must be a multiple of WORDSIZE (size of a stack slot).
   //
   /** how much to grow stack when overflow detected */
-  int STACK_SIZE_GROW = (VM.BuildFor64Addr ? 16 : 8) * 1024;
+  public static final int STACK_SIZE_GROW = (VM.BuildFor64Addr ? 16 : 8) * 1024;
   /** max space needed for stack overflow trap processing */
-  int STACK_SIZE_GUARD = 64 * 1024;
+  public static final int STACK_SIZE_GUARD = 64 * 1024;
   /** max space needed for any native code called by vm */
-  int STACK_SIZE_SYSCALL = (VM.BuildFor64Addr ? 8 : 4) * 1024;
+  public static final int STACK_SIZE_SYSCALL = (VM.BuildFor64Addr ? 8 : 4) * 1024;
   /** max space needed for dlopen sys call */
-  int STACK_SIZE_DLOPEN = 30 * 1024;
+  public static final int STACK_SIZE_DLOPEN = 30 * 1024;
   /** max space needed while running with gc disabled */
-  int STACK_SIZE_GCDISABLED = (VM.BuildFor64Addr ? 8 : 4) * 1024;
+  public static final int STACK_SIZE_GCDISABLED = (VM.BuildFor64Addr ? 8 : 4) * 1024;
 
    // Complications:
    // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
@@ -195,23 +199,27 @@ public interface StackframeLayoutConstants {
    //
 
   /** initial stack space to allocate for normal thread (includes guard region) */
-  int STACK_SIZE_NORMAL =
+  public static final int STACK_SIZE_NORMAL =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
       200 * 1024;
   /** total stack space to allocate for boot thread (includes guard region) */
-  int STACK_SIZE_BOOT =
+  public static final int STACK_SIZE_BOOT =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
       30 * 1024;
   /** total stack space to allocate for collector thread (includes guard region) */
-  int STACK_SIZE_COLLECTOR =
+  public static final int STACK_SIZE_COLLECTOR =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
       20 * 1024;
   /** upper limit on stack size (includes guard region) */
-  int STACK_SIZE_MAX =
+  public static final int STACK_SIZE_MAX =
       STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 200 * 1024;
 
-  int STACK_SIZE_JNINATIVE_GROW = 0; // TODO!!;
+  public static final int STACK_SIZE_JNINATIVE_GROW = 0; // TODO!!;
+
+  private StackframeLayoutConstants() {
+    // prevent instantiation
+  }
 }

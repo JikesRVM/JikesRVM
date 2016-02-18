@@ -82,6 +82,9 @@ public final class VM {
   /** Global debugging switch */
   public static final boolean DEBUG;
 
+  /** Exit code to pass if reflection for querying or creating important objects fails. */
+  public static final int EXIT_CODE_REFLECTION_FAILURE = 2;
+
   /*
    * VM-specific functionality captured in a series of singleton classs
    */
@@ -143,7 +146,7 @@ public final class VM {
       xfa = (Factory) Class.forName(vmFactory).newInstance();
     } catch (Exception e) {
       e.printStackTrace();
-      System.exit(-1);     // we must *not* go on if the above has failed
+      System.exit(EXIT_CODE_REFLECTION_FAILURE);     // we must *not* go on if the above has failed
     }
     factory = xfa;
 
@@ -251,12 +254,20 @@ public final class VM {
   }
 
   /**
-   * Create a new ServerInterpreter instance using the appropriate
-   * VM-specific concrete ServerInterpreter sub-class.
+   * Create a new ServerSpace instance using the appropriate VM-specific
+   * concrete ServerSpace sub-class.
    *
-   * @see ServerInterpreter
+   * @param serverInterpreter The server that owns this space
+   * @param serverName The server's name
+   * @param driverName The space driver's name
+   * @param title Title for the space
+   * @param blockInfo A label for each block
+   * @param tileNum Max number of tiles in this space
+   * @param unused A label for unused blocks
+   * @param mainSpace Whether this space is the main space
    *
-   * @return A concrete VM-specific ServerInterpreter instance.
+   * @see ServerSpace
+   * @return A concrete VM-specific ServerSpace instance.
    */
   public static ServerSpace newGCspyServerSpace(
       ServerInterpreter serverInterpreter,
@@ -290,6 +301,7 @@ public final class VM {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific ByteStream instance.
@@ -332,6 +344,7 @@ public final class VM {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific IntStream instance.
@@ -374,6 +387,7 @@ public final class VM {
    * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
+   * @param summary        Is a summary enabled?
    * @see IntStream
    *
    * @return A concrete VM-specific IntStream instance.

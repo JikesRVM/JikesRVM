@@ -78,10 +78,14 @@ public final class TailRecursionElimination extends CompilerPhase {
   }
 
   @Override
-  public String getName() { return "Tail Recursion Elimination"; }
+  public String getName() {
+    return "Tail Recursion Elimination";
+  }
 
   @Override
-  public CompilerPhase newExecution(IR ir) { return this; }
+  public CompilerPhase newExecution(IR ir) {
+    return this;
+  }
 
   /**
    * Perform tail recursion elimination.
@@ -178,6 +182,7 @@ public final class TailRecursionElimination extends CompilerPhase {
    * @param prologue The IR_Prologue instruction
    * @param target   The loop head
    * @param ir       the containing IR
+   * @return the bbend instruction of the call's basic block
    */
   Instruction transform(Instruction call, Instruction prologue, BasicBlock target, IR ir) {
     // (1) insert move instructions to assign fresh temporaries

@@ -15,8 +15,8 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.CollectorThread;
@@ -31,8 +31,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 
 @Uninterruptible
-public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utility.Constants,
-                                                                  org.jikesrvm.Constants {
+public class Collection extends org.mmtk.vm.Collection {
 
   /****************************************************************************
    *
@@ -45,7 +44,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   @Override
   @Interruptible
   public void spawnCollectorContext(CollectorContext context) {
-    byte[] stack = MemoryManager.newStack(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_COLLECTOR);
+    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
     CollectorThread t = new CollectorThread(stack, context);
     t.start();
   }
@@ -63,7 +62,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   @Override
   @Unpreemptible
   public void blockForGC() {
-    RVMThread t=RVMThread.getCurrentThread();
+    RVMThread t = RVMThread.getCurrentThread();
     t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
     RVMThread.observeExecStatusAtSTW(t.getExecStatus());
     RVMThread.getCurrentThread().block(RVMThread.gcBlockAdapter);
@@ -141,11 +140,6 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
       public void notifyStuckInNative(RVMThread t) {
         t.flush();
         t.flushRequested = false;
-      }
-      @Override
-      @Uninterruptible
-      public boolean includeThread(RVMThread t) {
-        return !t.isCollectorThread();
       }
     };
 

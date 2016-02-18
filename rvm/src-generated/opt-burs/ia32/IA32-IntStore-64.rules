@@ -1,0 +1,49 @@
+#####
+# INT_STORE
+# A few more cases than for other store operators to handle pointer arithmetic introduced by use of magic
+#####
+stm:	INT_STORE(riv, OTHER_OPERAND(rlv, rlv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), Store.getValue(P(p))));
+
+stm:	INT_STORE(riv, OTHER_OPERAND(rlv, address1scaledreg))
+15
+EMIT_INSTRUCTION
+augmentAddress(Store.getAddress(P(p))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, \\
+                     consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \\
+		     Store.getValue(P(p))));
+
+stm:	INT_STORE(riv, OTHER_OPERAND(address1scaledreg, rlv))
+15
+EMIT_INSTRUCTION
+augmentAddress(Store.getOffset(P(p))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, \\
+                     consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \\
+		     Store.getValue(P(p))));
+
+stm:	INT_STORE(riv, OTHER_OPERAND(address1scaledreg, address1reg))
+15
+EMIT_INSTRUCTION
+combineAddresses(); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV,  \\
+                    consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \\
+                    Store.getValue(P(p))));
+
+stm:	INT_STORE(riv, OTHER_OPERAND(address1reg, address1scaledreg))
+15
+EMIT_INSTRUCTION
+combineAddresses(); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV,  \\
+                    consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \\
+                    Store.getValue(P(p))));
+
+stm:	INT_STORE(riv, OTHER_OPERAND(address, LONG_CONSTANT))
+15
+EMIT_INSTRUCTION
+augmentAddress(Store.getOffset(P(p))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV,  \\
+	             consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \\
+		     Store.getValue(P(p))));
+

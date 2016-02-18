@@ -13,12 +13,13 @@
 package gnu.classpath;
 
 import java.util.Properties;
-import org.jikesrvm.VM;     // for VM.sysWrite()
-import org.jikesrvm.CommandLineArgs;
-import org.jikesrvm.Configuration;
 
+import org.jikesrvm.VM;     // for VM.sysWrite()
+import org.jikesrvm.Configuration;
 import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.scheduler.Lock;
 
 /**
  * Jikes RVM implementation of GNU Classpath's gnu.classpath.VMSystemProperties.
@@ -29,11 +30,7 @@ import org.jikesrvm.classloader.BootstrapClassLoader;
  */
 
 public class VMSystemProperties {
-  /** VMRuntime.insertSystemProperties is used by Classpath versions through
-   *  Classpath  0.12.   Starting with Classpath 0.13, we use
-   *  gnu.classpath.VMSystemProperties.preInit and
-   *  gnu.classpath.VMSystemProperties.postInit.
- */
+
   public static void preInit(Properties p) {
     p.put("java.version", "1.6.0"); /* This is a lie, of course -- we don't
                                        really support all 1.6 features, such
@@ -67,6 +64,15 @@ public class VMSystemProperties {
     p.put("java.io.tmpdir", "/tmp");
     p.put("gnu.cpu.endian", Configuration.LittleEndian ? "little" : "big");
 
+    /* Properties for JMX; this lets the implementation know which
+     * features JikesRVM supports */
+    p.put("gnu.java.compiler.name", "JikesRVM");
+    if (VM.MeasureCompilation) {
+      p.put("gnu.java.lang.management.CompilationTimeSupport", "true");
+    }
+    if (Lock.STATS) {
+      p.put("gnu.java.lang.management.ThreadContentionSupport","true");
+    }
 
     String s;
     s = BootstrapClassLoader.getBootstrapRepositories();
@@ -159,20 +165,23 @@ public class VMSystemProperties {
    * is, in fact, the process we actually follow.  I do not understand this
    * code.  I do not understand why we are adding something to
    * java.library.path.  --Steve Augart, 3/23/2004 XXX
+   *
+   * @param p the properties to modify
    */
   private static void insertLibraryPath(Properties p) {
     String jlp = CommandLineArgs.getEnvironmentArg("java.library.path");
     String snp = CommandLineArgs.getEnvironmentArg("java.home");
     if (jlp == null) jlp = ".";
-    p.put("java.library.path", snp + p.get("path.separator") +jlp);
+    p.put("java.library.path", snp + p.get("path.separator") + jlp);
   }
 
 
-  /** Override the default SystemProperties code; insert the command-line
+  /**
+   * Override the default SystemProperties code; insert the command-line
    * arguments.
    * <p>
    * The following are set by the "runrvm" script before we go into the C
-   * boot image runner, by passing them as command-line args with the -D flag:
+   * bootloader, by passing them as command-line args with the -D flag:
    * <p>
    * os.name, os.arch, os.version
    * user.name, user.home, user.dir
@@ -189,6 +198,8 @@ public class VMSystemProperties {
    * <p>
    * In any case, this function isn't used in Jikes RVM.  Our boot sequence
    * is already handling this OK.
+   *
+   * @param properties the properties to modify
    */
   public static void postInit(Properties properties) {
   }

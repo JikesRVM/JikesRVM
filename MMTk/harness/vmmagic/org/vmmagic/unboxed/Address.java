@@ -1138,4 +1138,19 @@ public final class Address {
   public String toString() {
     return value.toString();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Address) {
+      return EQ((Address)o);
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return (value == null) ? 0 : value.hashCode();
+  }
+
+
 }

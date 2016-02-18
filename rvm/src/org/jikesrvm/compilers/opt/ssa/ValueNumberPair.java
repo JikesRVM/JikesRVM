@@ -21,13 +21,11 @@ class ValueNumberPair implements Comparable<ValueNumberPair> {
   /** the value number of an array index */
   final int v2;
 
-  /** Construct a pair from the given arguments */
   ValueNumberPair(int v1, int v2) {
     this.v1 = v1;
     this.v2 = v2;
   }
 
-  /** Copy a pair */
   ValueNumberPair(ValueNumberPair p) {
     this.v1 = p.v1;
     this.v2 = p.v2;

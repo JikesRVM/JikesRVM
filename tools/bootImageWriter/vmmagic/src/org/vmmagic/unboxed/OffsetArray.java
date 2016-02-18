@@ -27,14 +27,21 @@ public final class OffsetArray implements RuntimeTable<Offset> {
 
   @Interruptible
   public static OffsetArray create(int size) {
-    if (VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
+    if (VM.runningVM) {
+      if (VM.VerifyAssertions) {
+        VM._assert(VM.NOT_REACHED);  // should be hijacked
+      } else {
+        VM.sysFail("This call should have been hijacked.");
+      }
+    }
+
     return new OffsetArray(size);
   }
 
   private OffsetArray(int size) {
     data = new Offset[size];
     Offset zero = Offset.zero();
-    for (int i=0; i<size; i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = zero;
     }
   }

@@ -58,6 +58,7 @@ public abstract class BranchSimplifier {
    * all basic blocks in the IR to remove unreachable code.
    *
    * @param bb the basic block to simplify
+   * @param ir the governing IR
    * @return {@code true} if we do something, {@code false} otherwise.
    */
   public static boolean simplify(BasicBlock bb, IR ir) {
@@ -107,7 +108,6 @@ public abstract class BranchSimplifier {
     return didSomething;
   }
 
-  /** Process IfCmp branch instruction */
   static boolean processIfCmp(IR ir, BasicBlock bb, Instruction s) {
     RegisterOperand guard = IfCmp.getGuardResult(s);
     Operand val1 = IfCmp.getVal1(s);
@@ -160,7 +160,6 @@ public abstract class BranchSimplifier {
     return false;
   }
 
-  /** Process IfCmp2 branch instruction */
   static boolean processIfCmp2(IR ir, BasicBlock bb, Instruction s) {
     RegisterOperand guard = IfCmp2.getGuardResult(s);
     Operand val1 = IfCmp2.getVal1(s);
@@ -228,7 +227,6 @@ public abstract class BranchSimplifier {
     return true;
   }
 
-  /** Process LookupSwitch branch instruction */
   static boolean processLookupSwitch(IR ir, BasicBlock bb, Instruction s) {
     Operand val = LookupSwitch.getValue(s);
     int numMatches = LookupSwitch.getNumberOfMatches(s);
@@ -265,7 +263,6 @@ public abstract class BranchSimplifier {
     return true;
   }
 
-  /** Process TableSwitch branch instruction */
   static boolean processTableSwitch(IR ir, BasicBlock bb, Instruction s) {
     Operand val = TableSwitch.getValue(s);
     int low = TableSwitch.getLow(s).value;
@@ -296,7 +293,6 @@ public abstract class BranchSimplifier {
     return true;
   }
 
-  /** Process InlineGuard branch instruction */
   static boolean processInlineGuard(IR ir, BasicBlock bb, Instruction s) {
     Operand val = InlineGuard.getValue(s);
     if (val.isNullConstant()) {
@@ -313,6 +309,8 @@ public abstract class BranchSimplifier {
   /**
    * To maintain IR integrity, remove any branches that are after the
    * first GOTO in the basic block.
+   *
+   * @param bb the block to search for gotos
    */
   private static void removeBranchesAfterGotos(BasicBlock bb) {
     // identify the first GOTO instruction in the basic block

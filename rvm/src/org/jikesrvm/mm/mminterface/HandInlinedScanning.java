@@ -12,7 +12,8 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.Constants;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -26,7 +27,7 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 public class HandInlinedScanning {
 
-  public static final int AE_FALLBACK = (1<<AlignmentEncoding.FIELD_WIDTH)-1;
+  public static final int AE_FALLBACK = (1 << AlignmentEncoding.FIELD_WIDTH) - 1;
   public static final int AE_REFARRAY = AE_FALLBACK - 1;
 
   public static final int AE_PATTERN_0x0  = 0;
@@ -40,11 +41,11 @@ public class HandInlinedScanning {
     JavaHeader.objectStartOffset(RVMType.JavaLangObjectType) +
     ObjectModel.computeScalarHeaderSize(RVMType.JavaLangObjectType);
 
-  private static final int FIELD1_OFFSET = FIELD0_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD2_OFFSET = FIELD1_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD3_OFFSET = FIELD2_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD4_OFFSET = FIELD3_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD5_OFFSET = FIELD4_OFFSET + Constants.BYTES_IN_ADDRESS;
+  private static final int FIELD1_OFFSET = FIELD0_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD2_OFFSET = FIELD1_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD3_OFFSET = FIELD2_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD4_OFFSET = FIELD3_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD5_OFFSET = FIELD4_OFFSET + BYTES_IN_ADDRESS;
 
   /** Master switch */
   public static final boolean ENABLED = true;
@@ -113,6 +114,12 @@ public class HandInlinedScanning {
    * are ordered in descending frequency of patterns.
    *
    * This entry point falls back to specialized scanning if it is enabled.
+   *
+   * @param code the code to use for specialized scanning. This determines
+   *  the pattern that will be used.
+   * @param id the id of the specialized scan method
+   * @param object the object to scan
+   * @param trace the closure to use
    */
   @Inline
   @Uninterruptible
@@ -125,6 +132,11 @@ public class HandInlinedScanning {
    * are ordered in descending frequency of patterns.
    * <p>
    * This entry point does not fall back to specialized scanning.
+   *
+   * @param code the code to use for specialized scanning. This determines
+   *  the pattern that will be used.
+   * @param object the object to scan
+   * @param trace the closure to use
    */
   @Inline
   @Uninterruptible

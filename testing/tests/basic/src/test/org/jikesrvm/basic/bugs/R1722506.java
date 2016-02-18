@@ -24,7 +24,7 @@ import java.io.RandomAccessFile;
  */
 public class R1722506 {
   public static void main(String[] args) {
-    String filename = System.getProperty("java.io.tmpdir")+"/filetest.tmp";
+    String filename = System.getProperty("java.io.tmpdir") + "/filetest.tmp";
     try {
       File newIndexFile = new File(filename);
       DataOutputStream stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(newIndexFile, false), 2048));
@@ -36,7 +36,7 @@ public class R1722506 {
       System.out.println(streamLen == (new File(filename)).length());
       raFile.close();
     } catch (Exception e) {
-      System.err.println("Caught exception: "+e);
+      System.err.println("Caught exception: " + e);
     } finally {
       (new File(filename)).delete();
     }

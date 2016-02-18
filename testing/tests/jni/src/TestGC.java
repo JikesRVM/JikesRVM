@@ -11,8 +11,8 @@
  *  regarding copyright ownership.
  */
 
-import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -39,8 +39,8 @@ class TestGC {
 
     System.loadLibrary("TestGC");
 
-    if (args.length!=0) {
-        for (int i=0; i<args.length; i++) {
+    if (args.length != 0) {
+        for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-quiet")) {
                 verbose = false;
                 setVerboseOff();
@@ -57,22 +57,22 @@ class TestGC {
 
         Address oldAddress1 = Magic.objectAsAddress(str1);
         Address oldAddress2 = Magic.objectAsAddress(str2);
-        printVerbose("  str1 address = " + VM.addressAsHexString(oldAddress1));
-        printVerbose("  str2 address = " + VM.addressAsHexString(oldAddress2));
+        printVerbose("  str1 address = " + Services.addressAsHexString(oldAddress1));
+        printVerbose("  str2 address = " + Services.addressAsHexString(oldAddress2));
 
         returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");
 
         Address newAddress1 = Magic.objectAsAddress(str1);
         Address newAddress2 = Magic.objectAsAddress(str2);
-        if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
+        if (oldAddress1 != newAddress1 && oldAddress2 != newAddress2) {
             printVerbose("Objects have been moved by GC:");
         } else {
             printVerbose("Objects have NOT been moved by GC:");
         }
-        printVerbose("  str1 address = " + VM.addressAsHexString(newAddress1));
-        printVerbose("  str2 address = " + VM.addressAsHexString(newAddress2));
-        printVerbose("  returnobj address = " + VM.addressAsHexString(Magic.objectAsAddress(returnobj)));
+        printVerbose("  str1 address = " + Services.addressAsHexString(newAddress1));
+        printVerbose("  str2 address = " + Services.addressAsHexString(newAddress2));
+        printVerbose("  returnobj address = " + Services.addressAsHexString(Magic.objectAsAddress(returnobj)));
     } else {
         returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");
@@ -82,7 +82,7 @@ class TestGC {
     //   checkTest( 0, (str1==returnobj), "GC with copying during native code" );
     // else
     //   checkTest( 0, (str1==returnobj), "GC without copying during native code" );
-    checkTest(0, (str1==returnobj), "GC during native code");
+    checkTest(0, (str1 == returnobj), "GC during native code");
   }
 
   static void printVerbose(String str) {
@@ -91,7 +91,7 @@ class TestGC {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       System.out.println("PASS: " + testName);
     } else {
       allTestPass = false;
@@ -100,4 +100,3 @@ class TestGC {
   }
 
 }
-

@@ -12,22 +12,36 @@
  */
 package org.jikesrvm.jni;
 
+import static org.jikesrvm.runtime.ExitStatus.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
-import org.jikesrvm.ArchitectureSpecific.JNIHelpers;
-import org.jikesrvm.VM;
+
 import org.jikesrvm.Properties;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.VM;
+import org.jikesrvm.architecture.JNIHelpers;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.NativeMethod;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
@@ -39,21 +53,23 @@ import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.util.AddressInputStream;
-
-import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * This class implements the 232 JNI functions.
  * All methods here will be specially compiled with the necessary prolog to
- * perform the transition from native code (Linux/AIX/OSX convention) to RVM.
+ * perform the transition from native code (Linux/OSX convention) to RVM.
  * For this reason, no Java methods (including the JNI methods here) can call
  * any methods in this class from within Java.  These JNI methods are to
  * be invoked from native C or C++.   They're all declared private to enforce
  * this discipline.  <br>
+ *
+ * NOTE: Some of the JNIFunctions here are overwritten by C implementations
+ * for IA32. See the bootloader for the implementations of these functions. <br>
  *
  * The first argument for all the functions is the JNIEnvironment object
  * of the thread. <br>
@@ -103,7 +119,12 @@ import org.vmmagic.unboxed.Offset;
 @SuppressWarnings({"unused", "UnusedDeclaration"})
 // methods are called from native code
 @NativeBridge
-public class JNIFunctions implements SizeConstants {
+public class JNIFunctions {
+
+  private static final String ERROR_MSG_WRONG_IMPLEMENTATION =
+      "Architectures other than PowerPC should use C var args processing " +
+      "and the C implementation for this function!";
+
   // one message for each JNI function called from native
   public static final boolean traceJNI = Properties.verboseJNI;
 
@@ -131,9 +152,9 @@ public class JNIFunctions implements SizeConstants {
    * @param data buffer containing the <tt>.class</tt> file
    * @param dataLen buffer length
    * @return a JREF index for the Java Class object, or 0 if not found
-   * @exception ClassFormatError if the class data does not specify a valid class
-   * @exception ClassCircularityError (not implemented)
-   * @exception OutOfMemoryError (not implemented)
+   * @throws ClassFormatError if the class data does not specify a valid class
+   * @throws ClassCircularityError (not implemented)
+   * @throws OutOfMemoryError (not implemented)
    */
   private static int DefineClass(JNIEnvironment env, Address classNameAddress, int classLoader, Address data,
                                  int dataLen) {
@@ -143,7 +164,7 @@ public class JNIFunctions implements SizeConstants {
     try {
       String classString = null;
       if (!classNameAddress.isZero()) {
-        JNIHelpers.createStringFromC(classNameAddress);
+        JNIGenericHelpers.createStringFromC(classNameAddress);
       }
       ClassLoader cl;
       if (classLoader == 0) {
@@ -151,7 +172,7 @@ public class JNIFunctions implements SizeConstants {
       } else {
         cl = (ClassLoader) env.getJNIRef(classLoader);
       }
-      AddressInputStream reader = new AddressInputStream(data, Offset.fromIntZeroExtend(dataLen));
+      AddressInputStream reader = new AddressInputStream(data, Extent.fromIntZeroExtend(dataLen));
 
       final RVMType vmType = RVMClassLoader.defineClassInternal(classString, reader, cl);
       return env.pushJNIRef(vmType.getClassForType());
@@ -168,11 +189,11 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classNameAddress a raw address to a null-terminated string in C for the class name
    * @return a JREF index for the Java Class object, or 0 if not found
-   * @exception ClassFormatError (not implemented)
-   * @exception ClassCircularityError (not implemented)
-   * @exception NoClassDefFoundError if the class cannot be found
-   * @exception OutOfMemoryError (not implemented)
-   * @exception ExceptionInInitializerError (not implemented)
+   * @throws ClassFormatError (not implemented)
+   * @throws ClassCircularityError (not implemented)
+   * @throws NoClassDefFoundError if the class cannot be found
+   * @throws OutOfMemoryError (not implemented)
+   * @throws ExceptionInInitializerError (not implemented)
    */
   private static int FindClass(JNIEnvironment env, Address classNameAddress) {
     if (traceJNI) VM.sysWrite("JNI called: FindClass  \n");
@@ -180,7 +201,7 @@ public class JNIFunctions implements SizeConstants {
 
     String classString = null;
     try {
-      classString = JNIHelpers.createStringFromC(classNameAddress);
+      classString = JNIGenericHelpers.createStringFromC(classNameAddress);
       classString = classString.replace('/', '.');
       if (classString.startsWith("L") && classString.endsWith(";")) {
         classString = classString.substring(1, classString.length() - 1);
@@ -295,7 +316,7 @@ public class JNIFunctions implements SizeConstants {
       Constructor<?> constMethod = cls.getConstructor(argClasses);
       // prepare the parameter list for reflective invocation
       Object[] argObjs = new Object[1];
-      argObjs[0] = JNIHelpers.createStringFromC(exceptionNameAddress);
+      argObjs[0] = JNIGenericHelpers.createStringFromC(exceptionNameAddress);
 
       // invoke the constructor to obtain a new Throwable object
       env.recordException((Throwable) constMethod.newInstance(argObjs));
@@ -381,11 +402,11 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      VM.sysWrite(JNIHelpers.createStringFromC(messageAddress));
-      System.exit(VM.EXIT_STATUS_JNI_TROUBLE);
+      VM.sysWrite(JNIGenericHelpers.createStringFromC(messageAddress));
+      System.exit(EXIT_STATUS_JNI_TROUBLE);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
-      System.exit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+      System.exit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
   }
 
@@ -458,8 +479,8 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @return a JREF index for the uninitialized object
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int AllocObject(JNIEnvironment env, int classJREF) throws InstantiationException, OutOfMemoryError {
     if (traceJNI) VM.sysWrite("JNI called: AllocObject  \n");
@@ -490,14 +511,20 @@ public class JNIFunctions implements SizeConstants {
    * NewObject: create a new object instance
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the new object instance
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int NewObject(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -528,8 +555,8 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or
    *                   2-words of the appropriate type for the constructor invocation
    * @return the new object instance
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int NewObjectV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -561,8 +588,8 @@ public class JNIFunctions implements SizeConstants {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and
    *                   hold an argument of the appropriate type for the constructor invocation
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    * @return the new object instance
    */
   private static int NewObjectA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
@@ -610,7 +637,12 @@ public class JNIFunctions implements SizeConstants {
   }
 
   /**
-   * IsInstanceOf: determine if an object is an instance of the class
+   * IsInstanceOf: determine if an object is an instance of the class.
+   * <p>
+   * NOTE: the function behaviour is defined via the behaviour of checkcast
+   * and NOT instanceof as the name of this function would suggest. See
+   * the JNI spec for details.
+   *
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object to check
    * @param classJREF a JREF index for the class to check
@@ -623,7 +655,9 @@ public class JNIFunctions implements SizeConstants {
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       Object obj = env.getJNIRef(objJREF);
-      if (obj == null) return 0; // null instanceof T is always false
+      // "null instanceof T" is always false but the function behaviour is defined via
+      // checkcast. So we're actually checking "(T) null" which will always succeed.
+      if (obj == null) return 1;
       RVMType RHStype = ObjectModel.getObjectType(obj);
       RVMType LHStype = java.lang.JikesRVMSupport.getTypeForClass(cls);
       return (LHStype == RHStype || RuntimeEntrypoints.isAssignableWith(LHStype, RHStype)) ? 1 : 0;
@@ -641,9 +675,9 @@ public class JNIFunctions implements SizeConstants {
    * @param methodNameAddress a raw address to a null-terminated string in C for the method name
    * @param methodSigAddress a raw address to a null-terminated string in C for the method signature
    * @return id of a MethodReference
-   * @exception NoSuchMethodError if the method cannot be found
-   * @exception ExceptionInInitializerError if the class or interface static initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchMethodError if the method cannot be found
+   * @throws ExceptionInInitializerError if the class or interface static initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetMethodID(JNIEnvironment env, int classJREF, Address methodNameAddress,
                                  Address methodSigAddress) {
@@ -652,9 +686,9 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       // obtain the names as String from the native space
-      String methodString = JNIHelpers.createStringFromC(methodNameAddress);
+      String methodString = JNIGenericHelpers.createStringFromC(methodNameAddress);
       Atom methodName = Atom.findOrCreateAsciiAtom(methodString);
-      String sigString = JNIHelpers.createStringFromC(methodSigAddress);
+      String sigString = JNIGenericHelpers.createStringFromC(methodSigAddress);
       Atom sigName = Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class
@@ -697,12 +731,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -725,6 +766,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -747,24 +789,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, null, false);
-      return env.pushJNIRef(returnObj);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, null /* return type */, false);
+    return env.pushJNIRef(returnObj);
   }
 
   /**
@@ -772,12 +805,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -800,6 +840,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -822,24 +863,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Boolean, false);
-      return Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return false;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Boolean, false);
+    return Reflection.unwrapBoolean(returnObj);
   }
 
   /**
@@ -847,12 +879,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -875,6 +914,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -897,24 +937,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Byte, false);
-      return Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Byte, false);
+    return Reflection.unwrapByte(returnObj);
   }
 
   /**
@@ -922,12 +953,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -950,6 +988,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -972,24 +1011,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Char, false);
-      return Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Char, false);
+    return Reflection.unwrapChar(returnObj);
   }
 
   /**
@@ -997,12 +1027,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1025,6 +1062,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1047,24 +1085,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Short, false);
-      return Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Short, false);
+    return Reflection.unwrapShort(returnObj);
   }
 
   /**
@@ -1072,12 +1101,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1100,6 +1136,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1122,24 +1159,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Int, false);
-      return Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Int, false);
+    return Reflection.unwrapInt(returnObj);
   }
 
   /**
@@ -1147,12 +1175,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1175,6 +1210,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1197,24 +1233,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Long, false);
-      return Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Long, false);
+    return Reflection.unwrapLong(returnObj);
   }
 
   /**
@@ -1222,12 +1249,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1250,6 +1284,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1272,24 +1307,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Float, false);
-      return Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Float, false);
+    return Reflection.unwrapFloat(returnObj);
   }
 
   /**
@@ -1297,12 +1323,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1325,6 +1358,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1347,24 +1381,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Double, false);
-      return Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Double, false);
+    return Reflection.unwrapDouble(returnObj);
   }
 
   /**
@@ -1372,11 +1397,18 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1396,6 +1428,7 @@ public class JNIFunctions implements SizeConstants {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1416,21 +1449,13 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Void, false);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-    }
+    JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Void, false);
   }
 
   /**
@@ -1438,14 +1463,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualObjectMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1469,6 +1501,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualObjectMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
@@ -1492,24 +1525,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualObjectMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, null, true);
-      return env.pushJNIRef(returnObj);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, null /* return type */, true);
+    return env.pushJNIRef(returnObj);
   }
 
   /**
@@ -1517,14 +1541,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallNonvirtualBooleanMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1548,6 +1579,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallNonvirtualBooleanMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
@@ -1571,24 +1603,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallNonvirtualBooleanMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Boolean, true);
-      return Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return false;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Boolean, true);
+    return Reflection.unwrapBoolean(returnObj);
   }
 
   /**
@@ -1596,14 +1619,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallNonvirtualByteMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1627,6 +1657,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallNonvirtualByteMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1650,24 +1681,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @param classJREF a JREF index for the class object that declares this method
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallNonvirtualByteMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Byte, true);
-      return Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Byte, true);
+    return Reflection.unwrapByte(returnObj);
   }
 
   /**
@@ -1675,14 +1697,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallNonvirtualCharMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1706,6 +1735,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallNonvirtualCharMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1729,24 +1759,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallNonvirtualCharMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Char, true);
-      return Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Char, true);
+    return Reflection.unwrapChar(returnObj);
   }
 
   /**
@@ -1754,14 +1775,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallNonvirtualShortMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1785,6 +1813,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallNonvirtualShortMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -1808,24 +1837,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallNonvirtualShortMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Short, true);
-      return Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Short, true);
+    return Reflection.unwrapShort(returnObj);
   }
 
   /**
@@ -1833,14 +1853,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualIntMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1864,6 +1891,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualIntMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
@@ -1887,24 +1915,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualIntMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Int, true);
-      return Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Int, true);
+    return Reflection.unwrapInt(returnObj);
   }
 
   /**
@@ -1912,14 +1931,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallNonvirtualLongMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -1943,6 +1969,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallNonvirtualLongMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1966,24 +1993,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallNonvirtualLongMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Long, true);
-      return Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Long, true);
+    return Reflection.unwrapLong(returnObj);
   }
 
   /**
@@ -1991,14 +2009,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallNonvirtualFloatMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2022,6 +2047,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallNonvirtualFloatMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -2045,24 +2071,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallNonvirtualFloatMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Float, true);
-      return Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Float, true);
+    return Reflection.unwrapFloat(returnObj);
   }
 
   /**
@@ -2070,14 +2087,21 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallNonvirtualDoubleMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2101,6 +2125,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallNonvirtualDoubleMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
@@ -2124,24 +2149,15 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallNonvirtualDoubleMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      Object returnObj = JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Double, true);
-      return Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Double, true);
+    return Reflection.unwrapDouble(returnObj);
   }
 
   /**
@@ -2149,13 +2165,20 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallNonvirtualVoidMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2176,6 +2199,7 @@ public class JNIFunctions implements SizeConstants {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallNonvirtualVoidMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -2197,21 +2221,13 @@ public class JNIFunctions implements SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word
-   *        and hold an argument of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallNonvirtualVoidMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object obj = env.getJNIRef(objJREF);
-      JNIHelpers.invokeWithJValue(obj, methodID, argAddress, TypeReference.Void, true);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-    }
+    JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Void, true);
   }
 
   /**
@@ -2222,9 +2238,9 @@ public class JNIFunctions implements SizeConstants {
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
    * @return the fieldID of an instance field given the class, field name
    *         and type. Return 0 if the field is not found
-   * @exception NoSuchFieldError if the specified field cannot be found
-   * @exception ExceptionInInitializerError if the class initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchFieldError if the specified field cannot be found
+   * @throws ExceptionInInitializerError if the class initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetFieldID(JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                 Address descriptorAddress) {
@@ -2235,18 +2251,18 @@ public class JNIFunctions implements SizeConstants {
       if (traceJNI)
         VM.sysWriteln("called GetFieldID with classJREF = ",classJREF);
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
-      if (VM.VerifyAssertions) VM._assert(cls!=null);
-      String fieldString = JNIHelpers.createStringFromC(fieldNameAddress);
+      if (VM.VerifyAssertions) VM._assert(cls != null);
+      String fieldString = JNIGenericHelpers.createStringFromC(fieldNameAddress);
       Atom fieldName = Atom.findOrCreateAsciiAtom(fieldString);
 
-      String descriptorString = JNIHelpers.createStringFromC(descriptorAddress);
+      String descriptorString = JNIGenericHelpers.createStringFromC(descriptorAddress);
       Atom descriptor = Atom.findOrCreateAsciiAtom(descriptorString);
 
       // list of all instance fields including superclasses.
       // Iterate in reverse order since if there are multiple instance
       // fields of the same name & descriptor we want to find the most derived one.
       RVMField[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
-      for (int i = fields.length-1; i>=0; i--) {
+      for (int i = fields.length - 1; i >= 0; i--) {
         RVMField f = fields[i];
         if (f.getName() == fieldName && f.getDescriptor() == descriptor) {
           return f.getId();
@@ -2277,7 +2293,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       Object objVal = field.getObjectUnchecked(obj);
       return env.pushJNIRef(objVal);
     } catch (Throwable unexpected) {
@@ -2300,7 +2316,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getBooleanValueUnchecked(obj) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2322,7 +2338,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getByteValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2344,7 +2360,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getCharValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2366,7 +2382,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getShortValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2388,7 +2404,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getIntValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2410,7 +2426,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getLongValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2432,7 +2448,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getFloatValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2454,7 +2470,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getDoubleValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2477,7 +2493,7 @@ public class JNIFunctions implements SizeConstants {
     try {
       Object obj = env.getJNIRef(objJREF);
       Object value = env.getJNIRef(valueJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setObjectValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2498,7 +2514,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setBooleanValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2519,7 +2535,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setByteValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2540,7 +2556,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setCharValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2561,7 +2577,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setShortValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2582,7 +2598,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setIntValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2603,7 +2619,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setLongValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2624,7 +2640,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setFloatValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2645,7 +2661,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setDoubleValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2658,11 +2674,11 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodNameAddress a raw address to a null-terminated string in C for the method name
-   * @param methodSigAddress a raw address to a null-terminated string in C for <DOCUMENTME TODO>
+   * @param methodSigAddress a raw address to a null-terminated string in C for (TODO: document me)
    * @return a method ID or null if it fails
-   * @exception NoSuchMethodError if the method is not found
-   * @exception ExceptionInInitializerError if the initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchMethodError if the method is not found
+   * @throws ExceptionInInitializerError if the initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetStaticMethodID(JNIEnvironment env, int classJREF, Address methodNameAddress,
                                        Address methodSigAddress) {
@@ -2671,9 +2687,9 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       // obtain the names as String from the native space
-      String methodString = JNIHelpers.createStringFromC(methodNameAddress);
+      String methodString = JNIGenericHelpers.createStringFromC(methodNameAddress);
       Atom methodName = Atom.findOrCreateAsciiAtom(methodString);
-      String sigString = JNIHelpers.createStringFromC(methodSigAddress);
+      String sigString = JNIGenericHelpers.createStringFromC(methodSigAddress);
       Atom sigName = Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class
@@ -2710,12 +2726,19 @@ public class JNIFunctions implements SizeConstants {
    *                          arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2737,6 +2760,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2758,23 +2782,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, null);
-      return env.pushJNIRef(returnObj);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, null /* return type */, true);
+    return env.pushJNIRef(returnObj);
   }
 
   /**
@@ -2782,12 +2798,19 @@ public class JNIFunctions implements SizeConstants {
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2809,6 +2832,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethodV(JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -2830,23 +2854,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethodA(JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Boolean);
-      return Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return false;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Boolean, true);
+    return Reflection.unwrapBoolean(returnObj);
   }
 
   /**
@@ -2854,12 +2870,19 @@ public class JNIFunctions implements SizeConstants {
    *                        arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2881,6 +2904,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2902,23 +2926,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Byte);
-      return Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Byte, true);
+    return Reflection.unwrapByte(returnObj);
   }
 
   /**
@@ -2926,12 +2942,19 @@ public class JNIFunctions implements SizeConstants {
    *                        arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -2953,6 +2976,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2974,23 +2998,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Char);
-      return Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Char, true);
+    return Reflection.unwrapChar(returnObj);
   }
 
   /**
@@ -2998,12 +3014,19 @@ public class JNIFunctions implements SizeConstants {
    *                         arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3025,6 +3048,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3046,23 +3070,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Short);
-      return Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Short, true);
+    return Reflection.unwrapShort(returnObj);
   }
 
   /**
@@ -3070,12 +3086,19 @@ public class JNIFunctions implements SizeConstants {
    *                       arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticIntMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3097,6 +3120,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticIntMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3121,20 +3145,13 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticIntMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Int);
-      return Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Int, true);
+    return Reflection.unwrapInt(returnObj);
   }
 
   /**
@@ -3142,12 +3159,19 @@ public class JNIFunctions implements SizeConstants {
    *                        arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3169,6 +3193,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3190,23 +3215,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Long);
-      return Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0L;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Long, true);
+    return Reflection.unwrapLong(returnObj);
   }
 
   /**
@@ -3214,12 +3231,19 @@ public class JNIFunctions implements SizeConstants {
    *                         arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3241,6 +3265,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3262,23 +3287,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Float);
-      return Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0f;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Float, true);
+    return Reflection.unwrapFloat(returnObj);
   }
 
   /**
@@ -3286,12 +3303,19 @@ public class JNIFunctions implements SizeConstants {
    *                          arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID an id of a MethodReference
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3313,6 +3337,7 @@ public class JNIFunctions implements SizeConstants {
    * @param argAddress a raw address to a  variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3334,23 +3359,15 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      Object returnObj = JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Double);
-      return Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-      return 0;
-    }
+    Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Double, true);
+    return Reflection.unwrapDouble(returnObj);
   }
 
   /**
@@ -3358,11 +3375,18 @@ public class JNIFunctions implements SizeConstants {
    *                       arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
+   * <p>
+   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
+    }
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethod  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
@@ -3381,6 +3405,7 @@ public class JNIFunctions implements SizeConstants {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3400,20 +3425,13 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
-   *                   of the appropriate type for the method invocation
+   * @param argAddress address of an array of jvalues (jvalue*)
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodA  \n");
-    RuntimeEntrypoints.checkJNICountDownToGC();
-
-    try {
-      JNIHelpers.invokeWithJValue(methodID, argAddress, TypeReference.Void);
-    } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
-      env.recordException(unexpected);
-    }
+    JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Void, true);
   }
 
   /**
@@ -3424,9 +3442,9 @@ public class JNIFunctions implements SizeConstants {
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
    * @return the offset of a static field given the class, field name
    *         and type. Return 0 if the field is not found
-   * @exception NoSuchFieldError if the specified field cannot be found
-   * @exception ExceptionInInitializerError if the class initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchFieldError if the specified field cannot be found
+   * @throws ExceptionInInitializerError if the class initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetStaticFieldID(JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                       Address descriptorAddress) {
@@ -3436,9 +3454,9 @@ public class JNIFunctions implements SizeConstants {
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
 
-      String fieldString = JNIHelpers.createStringFromC(fieldNameAddress);
+      String fieldString = JNIGenericHelpers.createStringFromC(fieldNameAddress);
       Atom fieldName = Atom.findOrCreateAsciiAtom(fieldString);
-      String descriptorString = JNIHelpers.createStringFromC(descriptorAddress);
+      String descriptorString = JNIGenericHelpers.createStringFromC(descriptorAddress);
       Atom descriptor = Atom.findOrCreateAsciiAtom(descriptorString);
 
       RVMType rvmType = java.lang.JikesRVMSupport.getTypeForClass(cls);
@@ -3483,7 +3501,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       Object value = field.getObjectUnchecked(null);
       return env.pushJNIRef(value);
     } catch (Throwable unexpected) {
@@ -3505,7 +3523,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getBooleanValueUnchecked(null) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3526,7 +3544,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getByteValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3547,7 +3565,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getCharValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3568,7 +3586,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getShortValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3589,7 +3607,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getIntValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3610,7 +3628,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getLongValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3631,7 +3649,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getFloatValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3652,7 +3670,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       return field.getDoubleValueUnchecked(null);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3674,7 +3692,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       Object ref = env.getJNIRef(objectJREF);
       field.setObjectValueUnchecked(null, ref);
     } catch (Throwable unexpected) {
@@ -3695,7 +3713,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setBooleanValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3715,7 +3733,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setByteValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3735,7 +3753,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setCharValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3755,7 +3773,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setShortValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3775,7 +3793,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setIntValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3795,7 +3813,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setLongValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3815,7 +3833,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setFloatValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3835,7 +3853,7 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+      RVMField field = MemberReference.getFieldRef(fieldID).resolve();
       field.setDoubleValueUnchecked(null, fieldValue);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3850,7 +3868,7 @@ public class JNIFunctions implements SizeConstants {
    * @param len the number of chars in the C array
    * @return the allocated String Object, converted to a JREF index
    *         or 0 if an OutOfMemoryError Exception has been thrown
-   * @exception OutOfMemoryError
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewString(JNIEnvironment env, Address uchars, int len) {
     if (traceJNI) VM.sysWrite("JNI called: NewString  \n");
@@ -3894,7 +3912,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of isCopy jboolean (an int)
    * @return address of a copy of the String unicode characters
    *         and *isCopy is set to 1 (TRUE)
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetStringChars(JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
@@ -3953,14 +3971,14 @@ public class JNIFunctions implements SizeConstants {
    * @param utf8bytes address of C array of 8 bit utf8 bytes
    * @return the allocated String Object, converted to a JREF index
    *         or 0 if an OutOfMemoryError Exception has been thrown
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewStringUTF(JNIEnvironment env, Address utf8bytes) {
     if (traceJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
-      String returnString = JNIHelpers.createUTFStringFromC(utf8bytes);
+      String returnString = JNIGenericHelpers.createUTFStringFromC(utf8bytes);
       return env.pushJNIRef(returnString);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3996,13 +4014,16 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of isCopy jboolean (an int)
    * @return address of a copy of the String unicode characters
    *         and *isCopy is set to 1 (TRUE)
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetStringUTFChars(JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     String str = (String) env.getJNIRef(strJREF);
+    if (str == null) {
+      return Address.zero();
+    }
 
     // Get length of C string
     int len = UTF8Convert.utfLength(str) + 1; // for terminating zero
@@ -4014,7 +4035,7 @@ public class JNIFunctions implements SizeConstants {
       return Address.zero();
     }
     try {
-      JNIHelpers.createUTFForCFromString(str, copyBuffer, len);
+      JNIGenericHelpers.createUTFForCFromString(str, copyBuffer, len);
       JNIGenericHelpers.setBoolStar(isCopyAddress, true);
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4070,7 +4091,7 @@ public class JNIFunctions implements SizeConstants {
    * @param classJREF a JREF index for the class of the element
    * @param initElementJREF a JREF index for the value to initialize the array elements
    * @return the new Object array initialized
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewObjectArray(JNIEnvironment env, int length, int classJREF, int initElementJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
@@ -4115,7 +4136,7 @@ public class JNIFunctions implements SizeConstants {
    * @param arrayJREF a JREF index for the source array
    * @param index the index for the targeted element
    * @return the object at the specified index
-   * @exception ArrayIndexOutOfBoundsException if the index is out of range
+   * @throws ArrayIndexOutOfBoundsException if the index is out of range
    */
   private static int GetObjectArrayElement(JNIEnvironment env, int arrayJREF, int index) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
@@ -4153,7 +4174,7 @@ public class JNIFunctions implements SizeConstants {
    * @param arrayJREF a JREF index for the source array
    * @param index the index for the targeted element
    * @param objectJREF a JREF index for the object to store into the array
-   * @exception ArrayStoreException if the element types do not match
+   * @throws ArrayStoreException if the element types do not match
    *            ArrayIndexOutOfBoundsException if the index is out of range
    */
   private static void SetObjectArrayElement(JNIEnvironment env, int arrayJREF, int index, int objectJREF) {
@@ -4174,7 +4195,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new boolean array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewBooleanArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
@@ -4195,7 +4216,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new byte array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewByteArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewByteArray  \n");
@@ -4216,7 +4237,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new char array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewCharArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewCharArray  \n");
@@ -4237,7 +4258,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new short array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewShortArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewShortArray  \n");
@@ -4258,7 +4279,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new integer array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewIntArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewIntArray  \n");
@@ -4279,7 +4300,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new long array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewLongArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewLongArray  \n");
@@ -4300,7 +4321,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new float array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewFloatArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
@@ -4321,7 +4342,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new long array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewDoubleArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
@@ -4344,7 +4365,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the boolean array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetBooleanArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
@@ -4382,7 +4403,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the byte array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetByteArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
@@ -4427,7 +4448,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the char array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetCharArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
@@ -4470,7 +4491,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the short array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetShortArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
@@ -4513,7 +4534,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the integer array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetIntArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
@@ -4555,7 +4576,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the long array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetLongArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
@@ -4597,7 +4618,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the float array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetFloatArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
@@ -4640,7 +4661,7 @@ public class JNIFunctions implements SizeConstants {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the double array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetDoubleArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
@@ -5004,7 +5025,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetBooleanArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
@@ -5032,7 +5053,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetByteArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5061,7 +5082,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetCharArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5092,7 +5113,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetShortArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5123,7 +5144,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetIntArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
@@ -5154,7 +5175,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetLongArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5185,7 +5206,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetFloatArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5216,7 +5237,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetDoubleArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
@@ -5247,7 +5268,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetBooleanArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
@@ -5276,7 +5297,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetByteArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5305,7 +5326,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetCharArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5336,7 +5357,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetShortArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5367,7 +5388,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetIntArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
@@ -5398,7 +5419,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetLongArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5429,7 +5450,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetFloatArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5460,7 +5481,7 @@ public class JNIFunctions implements SizeConstants {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetDoubleArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
@@ -5491,7 +5512,7 @@ public class JNIFunctions implements SizeConstants {
    * @param methodsAddress the address of an array of native methods to be registered
    * @param nmethods the number of native methods in the array
    * @return 0 is successful -1 if failed
-   * @exception NoSuchMethodError if a specified method cannot be found or is not native
+   * @throws NoSuchMethodError if a specified method cannot be found or is not native
    */
   private static int RegisterNatives(JNIEnvironment env, int classJREF, Address methodsAddress, int nmethods) {
     if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
@@ -5517,10 +5538,10 @@ public class JNIFunctions implements SizeConstants {
 
       Address curMethod = methodsAddress;
       for (int i = 0; i < nmethods; i++) {
-        String methodString = JNIHelpers.createStringFromC(curMethod.loadAddress());
+        String methodString = JNIGenericHelpers.createStringFromC(curMethod.loadAddress());
         Atom methodName = Atom.findOrCreateAsciiAtom(methodString);
         String sigString =
-            JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS)));
+            JNIGenericHelpers.createStringFromC(curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS)));
         Atom sigName = Atom.findOrCreateAsciiAtom(sigString);
 
         // Find the target method
@@ -5700,7 +5721,7 @@ public class JNIFunctions implements SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
-    RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+    RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
     Object ret;
     if (targetMethod.isObjectInitializer()) {
       ret = java.lang.reflect.JikesRVMSupport.createConstructor(targetMethod);
@@ -5729,7 +5750,7 @@ public class JNIFunctions implements SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
-    RVMField field = MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+    RVMField field = MemberReference.getFieldRef(fieldID).resolve();
     return env.pushJNIRef(java.lang.reflect.JikesRVMSupport.createField(field));
   }
 
@@ -5737,6 +5758,12 @@ public class JNIFunctions implements SizeConstants {
    * We could implement this more fancily, but it seems that we hardly need
    * to, since we allow an unlimited number of local refs.  One could force
    * running out of memory in a long-running loop in JNI, of course.
+   *
+   * @param capacity number of local references to allow. This parameter
+   *  is ignored since we don't put any limits on the number of local
+   *  references.
+   * @param env A JREF index for the JNI environment object
+   * @return always 0
    */
   private static int PushLocalFrame(JNIEnvironment env, int capacity) {
     if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");
@@ -5745,15 +5772,6 @@ public class JNIFunctions implements SizeConstants {
     return 0;                   // OK
   }
 
-  /** Push a local frame for local references.
-   * We could implement this more fancily, but it seems that we hardly need
-   * to, since we allow an unlimited number of local refs.  One could force
-   * running out of memory in a long-running loop in JNI, of course, and this
-   * might save us from that.  Let's hold off until we need it.  TODO.
-   *
-   * @return a local reference in the old frame that refers to the same object
-   *   as oldJREF.
-   */
   private static int PopLocalFrame(JNIEnvironment env, int resultJREF) {
     if (traceJNI) VM.sysWrite("JNI called: PopLocalFrame \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
@@ -5804,7 +5822,7 @@ public class JNIFunctions implements SizeConstants {
    *  @param start index to start reading characters from the string
    *  @param len how many characters to read
    *  @param buf the buffer to copy the region into
-   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range
+   *  @throws StringIndexOutOfBoundsException if asked for an out-of-range
    *        region of the string.
    */
   private static void GetStringRegion(JNIEnvironment env, int strJREF, int start, int len, Address buf) {
@@ -5838,7 +5856,7 @@ public class JNIFunctions implements SizeConstants {
    *  @param start index to start reading characters from the string
    *  @param len how many characters to read from the string
    *  @param buf the buffer to copy the region into -- assume it's big enough
-   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range
+   *  @throws StringIndexOutOfBoundsException if asked for an out-of-range
    *        region of the string.
    */
   private static void GetStringUTFRegion(JNIEnvironment env, int strJREF, int start, int len, Address buf) {
@@ -5847,10 +5865,10 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       String str = (String) env.getJNIRef(strJREF);
-      String region = str.substring(start, start+len);
+      String region = str.substring(start, start + len);
       // Get length of C string
       int utflen = UTF8Convert.utfLength(region) + 1; // for terminating zero
-      JNIHelpers.createUTFForCFromString(region, buf, utflen);
+      JNIGenericHelpers.createUTFForCFromString(region, buf, utflen);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5867,7 +5885,7 @@ public class JNIFunctions implements SizeConstants {
    * @param arrayJREF a JREF index for the primitive array in Java
    * @param isCopyAddress address of isCopy jboolean (an int)
    * @return The address of the primitive array, and the jboolean pointed to by isCopyAddress is set to false, indicating that this is not a copy.   Address zero (null) on error.
-   * @exception OutOfMemoryError is specified but will not be thrown in this implementation
+   * @throws OutOfMemoryError is specified but will not be thrown in this implementation
    *            since no copy will be made
    */
   private static Address GetPrimitiveArrayCritical(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
@@ -5904,7 +5922,7 @@ public class JNIFunctions implements SizeConstants {
    * to the array, no copyback update is necessary;  GC is simply reenabled.
    * @param env A JREF index for the JNI environment object
    * @param arrayJREF a JREF index for the primitive array in Java
-   * @param arrayCopyAddress
+   * @param arrayCopyAddress the address of the array copy
    * @param mode a flag indicating whether to update the Java array with the
    *            copy and whether to free the copy. For this implementation,
    *            no copy was made so this flag has no effect.
@@ -5925,7 +5943,11 @@ public class JNIFunctions implements SizeConstants {
   /** GetStringCritical:
    * Like GetStringChars and ReleaseStringChars, but in some VM environments
    * the VM may be able to avoid making a copy.   Native code must not issue
-   * arbitrary JNI calls and must not cause the current thread to block.
+   * arbitrary JNI calls and must not cause the current thread to block.<p>
+   *
+   * NOTE: Our interpretation of the JNI specification is that callers cannot
+   * expect that changes in the array for the String are propagated back. Our
+   * implementation assumes that the String will not be changed.
    *
    * @param env A JREF index for the JNI environment object
    * @param strJREF a JREF index for the string in Java
@@ -6004,7 +6026,7 @@ public class JNIFunctions implements SizeConstants {
     return env.getException() == null ? 0 : 1;
   }
 
-  /*******************************************************************
+  /*
    * These functions are in JNI 1.4
    */
 
@@ -6056,31 +6078,31 @@ public class JNIFunctions implements SizeConstants {
     }
   }
 
-  /*******************************************************************
+  /*
    * Empty Slots
    */
 
   private static int reserved0(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved1(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved2(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved3(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 }

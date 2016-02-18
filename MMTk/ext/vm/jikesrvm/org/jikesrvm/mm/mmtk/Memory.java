@@ -12,53 +12,95 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.utility.Constants;
-import org.mmtk.utility.heap.VMRequest;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_END;
+import static org.jikesrvm.HeapLayoutConstants.MAXIMUM_MAPPABLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_MBYTE;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.HeapLayoutConstants;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.objectmodel.JavaHeader;
-import org.jikesrvm.SizeConstants;
+import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Magic;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.heap.VMRequest;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+@Uninterruptible public class Memory extends org.mmtk.vm.Memory {
 
-@Uninterruptible public class Memory extends org.mmtk.vm.Memory
-  implements Constants, HeapLayoutConstants, SizeConstants {
+  /**
+   * A lie about the size of a virtual memory page. MMTk currently
+   * assumes that the page size is known at bootimage building time (see RVM-816),
+   * so we need to pass some kind of value.
+   */
+  private static final int LOG_BYTES_IN_PAGE_LIE = 12;
 
   @Override
-  protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }
+  protected final Address getHeapStartConstant() {
+    return BOOT_IMAGE_DATA_START;
+  }
   @Override
-  protected final Address getHeapEndConstant() { return MAXIMUM_MAPPABLE; }
+  protected final Address getHeapEndConstant() {
+    return MAXIMUM_MAPPABLE;
+  }
   @Override
-  protected final Address getAvailableStartConstant() { return BOOT_IMAGE_CODE_END; }
+  protected final Address getAvailableStartConstant() {
+    return BOOT_IMAGE_END;
+  }
   @Override
-  protected final Address getAvailableEndConstant() { return MAXIMUM_MAPPABLE; }
+  protected final Address getAvailableEndConstant() {
+    return MAXIMUM_MAPPABLE;
+  }
   @Override
-  protected final byte getLogBytesInAddressConstant() { return SizeConstants.LOG_BYTES_IN_ADDRESS; }
+  protected final byte getLogBytesInAddressConstant() {
+    return LOG_BYTES_IN_ADDRESS;
+  }
   @Override
-  protected final byte getLogBytesInWordConstant() { return SizeConstants.LOG_BYTES_IN_WORD; }
+  protected final byte getLogBytesInWordConstant() {
+    return LOG_BYTES_IN_WORD;
+  }
   @Override
-  protected final byte getLogBytesInPageConstant() { return SizeConstants.LOG_BYTES_IN_PAGE; }
+  protected final byte getLogBytesInPageConstant() {
+    return LOG_BYTES_IN_PAGE_LIE;
+  }
   @Override
-  protected final byte getLogMinAlignmentConstant() { return JavaHeader.LOG_MIN_ALIGNMENT;}
+  protected final byte getLogMinAlignmentConstant() {
+    return JavaHeader.LOG_MIN_ALIGNMENT;
+  }
   @Override
-  protected final int getMaxBytesPaddingConstant() { return SizeConstants.BYTES_IN_DOUBLE; }
+  protected final int getMaxBytesPaddingConstant() {
+    return BYTES_IN_DOUBLE;
+  }
   @Override
-  protected final int getAlignmentValueConstant() { return JavaHeader.ALIGNMENT_VALUE;}
+  protected final int getAlignmentValueConstant() {
+    return JavaHeader.ALIGNMENT_VALUE;
+  }
 
   /** On Intel we align code to 16 bytes as recommended in the optimization manual. */
   @Override
-  protected final byte getMaxAlignmentShiftConstant() { return (VM.BuildForIA32 ? 1 : 0) + SizeConstants.LOG_BYTES_IN_LONG - SizeConstants.LOG_BYTES_IN_INT; }
+  protected final byte getMaxAlignmentShiftConstant() {
+    return (VM.BuildForIA32 ? 1 : 0) + LOG_BYTES_IN_LONG - LOG_BYTES_IN_INT;
+  }
 
   private static ImmortalSpace bootSpace;
 
-  /* FIXME the following was established via trial and error :-( */
-  //  private static int BOOT_SEGMENT_MB = 4+(BOOT_IMAGE_SIZE.toInt()>>LOG_BYTES_IN_MBYTE);
-  private static int BOOT_SEGMENT_MB = (0x10000000>>LOG_BYTES_IN_MBYTE);
+  private static final int BOOT_SEGMENT_MB;
+
+  static {
+    Offset bootSegmentBytes = BOOT_IMAGE_END.diff(BOOT_IMAGE_DATA_START);
+    BOOT_SEGMENT_MB = org.jikesrvm.runtime.Memory.alignUp(bootSegmentBytes.toInt(),
+        Space.BYTES_IN_CHUNK) >>> LOG_BYTES_IN_MBYTE;
+  }
 
   /**
    * Return the space associated with/reserved for the VM.  In the
@@ -80,13 +122,15 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public final ImmortalSpace getVMSpace() {
     if (bootSpace == null) {
-      bootSpace = new ImmortalSpace("boot", VMRequest.create(BOOT_SEGMENT_MB));
+      bootSpace = new ImmortalSpace("boot", VMRequest.fixedSize(BOOT_SEGMENT_MB));
     }
     return bootSpace;
   }
 
   @Override
-  public final void globalPrepareVMSpace() { bootSpace.prepare(); }
+  public final void globalPrepareVMSpace() {
+    bootSpace.prepare();
+  }
 
   @Override
   public final void collectorPrepareVMSpace() {}
@@ -95,7 +139,9 @@ import org.vmmagic.pragma.*;
   public final void collectorReleaseVMSpace() {}
 
   @Override
-  public final void globalReleaseVMSpace() { bootSpace.release(); }
+  public final void globalReleaseVMSpace() {
+    bootSpace.release();
+  }
 
   @Override
   public final void setHeapRange(int id, Address start, Address end) {

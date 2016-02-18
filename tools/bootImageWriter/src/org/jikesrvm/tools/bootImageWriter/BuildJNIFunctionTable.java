@@ -293,7 +293,7 @@ public class BuildJNIFunctionTable {
    * @return the index for this function, -1 if not found
    */
   private static int indexOf(String[] names, String functionName) {
-    for (int i=0; i<names.length; i++) {
+    for (int i = 0; i < names.length; i++) {
       if (names[i].equals(functionName))
         return i;
     }

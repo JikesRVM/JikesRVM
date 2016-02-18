@@ -21,7 +21,11 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class SSGCspyConstraints extends SSConstraints {
   @Override
-  public boolean needsLinearScan() { return true; }
+  public boolean needsLinearScan() {
+    return true;
+  }
   @Override
-  public boolean withGCspy() { return true; }
+  public boolean withGCspy() {
+    return true;
+  }
 }

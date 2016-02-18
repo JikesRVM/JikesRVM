@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
 import org.mmtk.utility.options.Options;
@@ -25,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * This class is responsible for growing and shrinking the
  * heap size by observing heap utilization and GC load.
  */
-@Uninterruptible public abstract class HeapGrowthManager implements Constants {
+@Uninterruptible public abstract class HeapGrowthManager {
 
   /**
    * The initial heap size (-Xms) in bytes
@@ -88,6 +90,9 @@ import org.vmmagic.unboxed.*;
   /**
    * Initialize heap size parameters and the mechanisms
    * used to adaptively change heap size.
+   *
+   * @param initial the initial heap size
+   * @param max the maximum heap size
    */
   public static void boot(Extent initial, Extent max) {
     initialHeapSize = initial;
@@ -140,6 +145,9 @@ import org.vmmagic.unboxed.*;
    * Record the time taken by the current GC;
    * used to compute gc load, one of the inputs
    * into the heap size management function
+   *
+   * @param time number of time taking for current GC, in
+   *  milliseconds
    */
   public static void recordGCTime(double time) {
     accumulatedGCTime += time;
@@ -163,7 +171,7 @@ import org.vmmagic.unboxed.*;
     Extent reserved = Plan.reservedMemory();
     double liveRatio = reserved.toLong() / ((double) currentHeapSize.toLong());
     double ratio = computeHeapChangeRatio(liveRatio);
-    Extent newSize = Word.fromIntSignExtend((int)(ratio * (oldSize.toLong()>>LOG_BYTES_IN_MBYTE))).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // do arith in MB to avoid overflow
+    Extent newSize = Word.fromIntSignExtend((int)(ratio * (oldSize.toLong() >> LOG_BYTES_IN_MBYTE))).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // do arith in MB to avoid overflow
     if (newSize.LT(reserved)) newSize = reserved;
     newSize = newSize.plus(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
     if (newSize.GT(maxHeapSize)) newSize = maxHeapSize;
@@ -226,11 +234,11 @@ import org.vmmagic.unboxed.*;
       liveRatioUnder = liveRatioAbove;
     } else {
       while (true) {
-        if (function[0][liveRatioUnder+1] > liveRatio) break;
+        if (function[0][liveRatioUnder + 1] > liveRatio) break;
         liveRatioUnder++;
       }
       while (true) {
-        if (function[0][liveRatioAbove-1] <= liveRatio) break;
+        if (function[0][liveRatioAbove - 1] <= liveRatio) break;
         liveRatioAbove--;
       }
     }
@@ -239,11 +247,11 @@ import org.vmmagic.unboxed.*;
       gcLoadUnder = gcLoadAbove;
     } else {
       while (true) {
-        if (function[gcLoadUnder+1][0] > gcLoad) break;
+        if (function[gcLoadUnder + 1][0] > gcLoad) break;
         gcLoadUnder++;
       }
       while (true) {
-        if (function[gcLoadAbove-1][0] <= gcLoad) break;
+        if (function[gcLoadAbove - 1][0] <= gcLoad) break;
         gcLoadAbove--;
       }
     }
@@ -282,9 +290,9 @@ import org.vmmagic.unboxed.*;
     // Check live ratio
     double[] liveRatio = function[0];
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[1] == 0);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[liveRatio.length-1] == 1);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[liveRatio.length - 1] == 1);
     for (int i = 2; i < liveRatio.length; i++) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[i-1] < liveRatio[i]);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[i - 1] < liveRatio[i]);
       for (int j = 1; j < function.length; j++) {
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[j][i] >= 1 || function[j][i] > liveRatio[i]);
       }
@@ -293,14 +301,14 @@ import org.vmmagic.unboxed.*;
     // Check GC load
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[1][0] == 0);
     int len = function.length;
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[len-1][0] == 1);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[len - 1][0] == 1);
     for (int i = 2; i < len; i++) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[i-1][0] < function[i][0]);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[i - 1][0] < function[i][0]);
     }
 
     // Check that we have a rectangular matrix
     for (int i = 1; i < function.length; i++) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[i-1].length == function[i].length);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[i - 1].length == function[i].length);
     }
   }
 }

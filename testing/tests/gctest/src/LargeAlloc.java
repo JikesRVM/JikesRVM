@@ -47,7 +47,7 @@ class LargeAlloc {
     long startUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     while (used < limit) {
       int curSize = itemSize;
-      for (int i=0; i<sizeCount; i++) {
+      for (int i = 0; i < sizeCount; i++) {
         junk = new byte[curSize];
         used += itemSize;
         curSize = (int) (curSize * sizeRatio);
@@ -68,6 +68,6 @@ class LargeAlloc {
     long endUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     System.out.print("\nAfter allocation, usedMemory has increased by ");
     System.out.println(((endUsed - startUsed) / (1024.0 * 1024.0)) + " Mb");
-    System.out.println("Overall: SUCCESS");
+    System.out.println("ALL TESTS PASSED");
   }
 }

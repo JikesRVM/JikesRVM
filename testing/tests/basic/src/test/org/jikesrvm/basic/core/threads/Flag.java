@@ -31,11 +31,21 @@ class Flag {
 
       if (timedWait) {
         while (!flag) {
-          try { wait(1000000); } catch (InterruptedException e) {}
-          if (!flag) { XThread.say("flag: timed out"); }
+          try {
+            wait(1000000);
+          } catch (InterruptedException e) {
+            // ignore
+          }
+          if (!flag) {
+            XThread.say("flag: timed out");
+          }
         }
       } else {
-        try { wait(); } catch (InterruptedException e) {}
+        try {
+          wait();
+        } catch (InterruptedException e) {
+          // ignore
+        }
       }
       XThread.say("flag: notification received");
     } else {

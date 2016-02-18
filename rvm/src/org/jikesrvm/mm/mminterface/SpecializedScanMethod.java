@@ -13,9 +13,9 @@
 package org.jikesrvm.mm.mminterface;
 
 import static org.jikesrvm.classloader.RVMType.REFARRAY_OFFSET_ARRAY;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.FIELD_ZERO_OFFSET;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -23,8 +23,8 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.TransitiveClosure;
@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * the given signature and return type.
  */
 @Uninterruptible
-public final class SpecializedScanMethod extends SpecializedMethod implements SizeConstants, JavaHeaderConstants {
+public final class SpecializedScanMethod extends SpecializedMethod {
 
   /** Use specialized scanning ? */
   public static final boolean ENABLED = true;
@@ -90,7 +90,7 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
     if (!VM.BuildWithBaseBootImageCompiler) {
       /* Compile our specialized methods when we are opt compiling */
       RVMClass myClass = specializedScanMethodType.peekType().asClass();
-      for(int i=0; i < PATTERNS; i++) {
+      for (int i = 0; i < PATTERNS; i++) {
         RVMMethod method = myClass.findStaticMethod(templateMethodName(i), specializedMethodDescriptor);
         specializedMethods[i] = compileSpecializedMethod(method, specializedSignature);
       }
@@ -98,7 +98,8 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   }
 
   /**
-   * Get the pattern index for a given type
+   * @param type the type to scan
+   * @return the index for the given pattern
    */
   @Interruptible
   private static int getPattern(RVMType type) {
@@ -125,7 +126,7 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
     int base = FIELD_ZERO_OFFSET.toInt();
     int pattern = 0;
 
-    for(int i=0; i < offsets.length; i++) {
+    for (int i = 0; i < offsets.length; i++) {
       int reference = (offsets[i] - base);
       if (reference > MAX_SPECIALIZED_OFFSET) {
         return FALLBACK_PATTERN;
@@ -190,25 +191,24 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
     fallback(object, trace);
   }
 
-  /** Fallback */
   public static void fallback(Object object, TransitiveClosure trace) {
     ObjectReference objectRef = ObjectReference.fromObject(object);
     RVMType type = ObjectModel.getObjectType(objectRef.toObject());
     int[] offsets = type.getReferenceOffsets();
     if (offsets != REFARRAY_OFFSET_ARRAY) {
       if (VM.VerifyAssertions) VM._assert(type.isClassType() || (type.isArrayType() && !type.asArray().getElementType().isReferenceType()));
-      for(int i=0; i < offsets.length; i++) {
+      for (int i = 0; i < offsets.length; i++) {
         trace.processEdge(objectRef, objectRef.toAddress().plus(offsets[i]));
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(type.isArrayType() && type.asArray().getElementType().isReferenceType());
-      for(int i=0; i < ObjectModel.getArrayLength(objectRef.toObject()); i++) {
+      for (int i = 0; i < ObjectModel.getArrayLength(objectRef.toObject()); i++) {
         trace.processEdge(objectRef, objectRef.toAddress().plus(i << LOG_BYTES_IN_ADDRESS));
       }
     }
   }
 
-  /** All Scalars */
+  // All Scalars
   public static void scalar(Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object);
     int[] offsets = ObjectModel.getObjectType(object).getReferenceOffsets();
@@ -217,19 +217,19 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
     }
   }
 
-  /** Reference Arrays */
+  // Reference Arrays
   public static void referenceArray(Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object);
     int length = ObjectModel.getArrayLength(object);
-    for (int i=0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       trace.processEdge(ObjectReference.fromObject(object), base.plus(i << LOG_BYTES_IN_ADDRESS));
     }
   }
 
-  /** No Reference fields / Primitive Arrays */
+  // No Reference fields / Primitive Arrays
   public static void noReferences(Object object, TransitiveClosure trace) {}
 
-  /** All patterns bottom out here */
+  // All patterns bottom out here
   @Inline
   public static void pattern(int pattern, Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object).plus(FIELD_ZERO_OFFSET);

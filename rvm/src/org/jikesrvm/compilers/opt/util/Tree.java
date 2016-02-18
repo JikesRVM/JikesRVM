@@ -60,6 +60,8 @@ public class Tree {
   /**
    * Sets the root of the tree to be the passed node.
    * WARNING: the tree should be empty when this occurs
+   *
+   * @param node the new root
    */
   public final void setRoot(TreeNode node) {
     node.clear();  // make sure all pointers are pointing anywhere else
@@ -67,8 +69,8 @@ public class Tree {
   }
 
   /**
-   * Provides an undefined enumeration over all elements in the tree
-   * @return enumeration
+   * @return enumeration an enumeration over all elements in the tree
+   *  in no guaranteed order
    */
   public final Enumeration<TreeNode> elements() {
     return new TreeTopDownEnumerator(root);
@@ -110,7 +112,7 @@ public class Tree {
    */
   @Override
   public final String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     // visit the nodes in a depth first traversal, printing the nodes
     //  as they are visited, indenting by the depth of the traversal
@@ -123,13 +125,14 @@ public class Tree {
    * @param sb  the string buffer to insert the results
    * @param node the node to process
    * @param depth the current depth (root = 0) in the tree
+   * @return the buffer that was passed in
    */
-  private StringBuffer DFS(StringBuffer sb, TreeNode node, int depth) {
+  private StringBuilder DFS(StringBuilder sb, TreeNode node, int depth) {
     // indent appropriate spaces and print node
     for (int i = 0; i < 2 * depth; i++) {
-      sb.append(" ");
+      sb.append(' ');
     }
-    sb.append(node).append("\n");
+    sb.append(node).append('\n');
 
     Enumeration<TreeNode> childEnum = node.getChildren();
     while (childEnum.hasMoreElements()) {

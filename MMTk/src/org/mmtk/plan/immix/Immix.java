@@ -56,7 +56,7 @@ public class Immix extends StopTheWorld {
   /**
    *
    */
-  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.create());
+  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.discontiguous());
   public static final int IMMIX = immixSpace.getDescriptor();
 
   public static final int SCAN_IMMIX = 0;
@@ -165,5 +165,11 @@ public class Immix extends StopTheWorld {
     TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, ImmixTraceLocal.class);
     TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, ImmixDefragTraceLocal.class);
     super.registerSpecializedMethods();
+  }
+
+  @Override
+  @Interruptible
+  public void preCollectorSpawn() {
+    immixSpace.initializeDefrag();
   }
 }

@@ -33,10 +33,14 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
   }
 
   @Override
-  public boolean shouldPerform(OptOptions options) { return true; }
+  public boolean shouldPerform(OptOptions options) {
+    return true;
+  }
 
   @Override
-  public String getName() { return "RegAlloc"; }
+  public String getName() {
+    return "RegAlloc";
+  }
 
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
@@ -65,11 +69,10 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
       return "Register Allocation Preparation";
     }
 
-    /**
-     * create the stack manager
-     */
     @Override
     public final void perform(org.jikesrvm.compilers.opt.ir.IR ir) {
+      int registerCount = ir.regpool.getTotalNumberOfRegisters();
+      ir.MIRInfo.regAllocState = new RegisterAllocatorState(registerCount);
       ir.stackManager.prepare(ir);
     }
   }

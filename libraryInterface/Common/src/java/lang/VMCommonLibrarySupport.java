@@ -37,7 +37,7 @@ final class VMCommonLibrarySupport {
    * Method just to throw an illegal access exception without being inlined
    */
   @NoInline
-  private static void throwNewIllegalAccessException(RVMMember member, RVMClass accessingClass) throws IllegalAccessException{
+  private static void throwNewIllegalAccessException(RVMMember member, RVMClass accessingClass) throws IllegalAccessException {
     throw new IllegalAccessException("Access to " + member + " is denied to " + accessingClass);
   }
   /* ---- General Reflection Support ---- */
@@ -102,6 +102,7 @@ final class VMCommonLibrarySupport {
    * @param dstPos position within destination array
    * @param len amount of elements to copy
    */
+  @Entrypoint
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (src == null || dst == null) {
       RuntimeEntrypoints.raiseNullPointerException();
@@ -139,7 +140,7 @@ final class VMCommonLibrarySupport {
         .findDeclaredField(Atom.findOrCreateUnicodeAtom(fieldName));
       field.setObjectValueUnchecked(null, stream);
     } catch (Exception e) {
-      throw new Error(e.toString());
+      throw new Error("Error setting stream field " + fieldName + " of java.lang.System", e);
     }
   }
   /**

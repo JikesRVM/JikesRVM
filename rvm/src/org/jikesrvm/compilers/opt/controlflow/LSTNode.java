@@ -78,11 +78,17 @@ public class LSTNode extends SpaceEffGraphNode {
 
   @Override
   public String toString() {
-    String tab = "";
+    StringBuilder node = new StringBuilder();
     for (int i = 0; i < depth; i++) {
-      tab += "\t";
+      node.append('\t');
     }
-    return tab + header + " " + loop + " " + loopExits + "\n";
+    node.append(header);
+    node.append(' ');
+    node.append(loop);
+    node.append(' ');
+    node.append(loopExits);
+    node.append('\n');
+    return node.toString();
   }
 
   public LSTNode getParent() {
@@ -94,7 +100,9 @@ public class LSTNode extends SpaceEffGraphNode {
       private SpaceEffGraphEdge _edge = _outEdgeStart;
 
       @Override
-      public boolean hasMoreElements() { return _edge != null; }
+      public boolean hasMoreElements() {
+        return _edge != null;
+      }
 
       @Override
       public LSTNode nextElement() {

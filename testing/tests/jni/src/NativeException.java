@@ -27,10 +27,7 @@ class NativeException {
   static native boolean testExceptionThrowNew(Class eclass);
   static native boolean testFatalError(boolean allTestPass, int[] sourceArray);
 
-  /**
-   * constructor
-   */
-  public NativeException() {
+  NativeException() {
 
   }
 
@@ -42,7 +39,7 @@ class NativeException {
 
     System.loadLibrary("NativeException");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -158,7 +155,7 @@ class NativeException {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

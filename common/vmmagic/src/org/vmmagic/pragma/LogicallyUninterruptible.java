@@ -41,7 +41,7 @@ import org.vmmagic.Pragma;
  * Use of this pragma is being phased out since it lumps together two possible
  * special cases. Use either {@link Unpreemptible} or
  * {@link UninterruptibleNoWarn} instead.
- * {@link <a href="http://jira.codehaus.org/browse/RVM-115">RVM-115</a>} for more
+ * See <a href="http://jira.codehaus.org/browse/RVM-115">RVM-115</a> for more
  * context.
  * @deprecated
  */

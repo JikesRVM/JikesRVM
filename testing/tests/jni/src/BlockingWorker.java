@@ -29,10 +29,9 @@ class BlockingWorker extends Thread {
   public void run() {
     int loopctr = 5;
 
-    for (int i=0; i < loopctr; i++) {
+    for (int i = 0; i < loopctr; i++) {
       t3GT3.nativeBlocking(sleepTime);
     }
     isFinished = true;
   }
 }
-

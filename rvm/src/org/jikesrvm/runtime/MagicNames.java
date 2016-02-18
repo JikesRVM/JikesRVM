@@ -144,8 +144,8 @@ public class MagicNames {
   public static final Atom getArrayLength = Atom.findOrCreateAsciiAtom("getArrayLength");
 
   public static final Atom fence = Atom.findOrCreateAsciiAtom("fence");
-  public static final Atom readCeiling = Atom.findOrCreateAsciiAtom("readCeiling");
-  public static final Atom writeFloor = Atom.findOrCreateAsciiAtom("writeFloor");
+  public static final Atom combinedLoadBarrier = Atom.findOrCreateAsciiAtom("combinedLoadBarrier");
+  public static final Atom storeStoreBarrier = Atom.findOrCreateAsciiAtom("storeStoreBarrier");
   public static final Atom sync = Atom.findOrCreateAsciiAtom("sync");
   public static final Atom isync = Atom.findOrCreateAsciiAtom("isync");
   public static final Atom prefetch = Atom.findOrCreateAsciiAtom("prefetch");

@@ -148,10 +148,6 @@ Perform global code placement
 SSA_GCSE 3 false
 Perform global code placement
 
-# ABCD is currently incomplete; it doesn't check lower bounds
-SSA_GLOBAL_BOUNDS_CHECK -1 false ssa_global_bounds
-Perform (incomplete/unsafe) global Array Bound Check elimination on Demand
-
 SSA_SPLITBLOCK_TO_AVOID_RENAME -1 false
 When leaving SSA create blocks to avoid renaming variables
 
@@ -193,9 +189,6 @@ Plant virtual calls via the JTOC rather than from the tib of anobject when possi
 ##########
 L2M_HANDLER_LIVENESS 2 false
 Store liveness for handlers to improve dependence graph at PEIs
-
-L2M_SCHEDULE_PREPASS -1 false
-Perform prepass instruction scheduling
 
 ##########
 # Options during register allocation
@@ -260,14 +253,8 @@ Print SSA form
 PRINT_DG_BURS -1 false
 Print dependence graph before burs
 
-PRINT_DG_SCHED_PRE -1 false
-Print dependence graph before prepass scheduling
-
-PRINT_DG_SCHED_POST -1 false
-Print dependence graph before postpass scheduling
-
-PRINT_COALESCING -1 false print_coal
-Print coalescing output
+PRINT_VISUALIZATION -1 false
+When dumping the IR, generate a visualization in a file instead
 
 ## Options for IR printing at various points in compilation
 PRINT_HIGH -1 false
@@ -290,12 +277,6 @@ Print IR just before conversion to machine code
 
 PRINT_CFG -1 false
 Print control flow graph too when IR is printed
-
-PRINT_SCHEDULE_PRE -1 false
-Print IR after prepass scheduling
-
-PRINT_SCHEDULE_POST -1 false
-Print IR after postpass scheduling
 
 PRINT_REGALLOC -1 false
 Print IR before and after register allocation

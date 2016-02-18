@@ -15,8 +15,7 @@
  */
 class ClassQuerySuper {
 
-  public ClassQuerySuper() {
-
+  ClassQuerySuper() {
   }
 
 }

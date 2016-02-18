@@ -35,12 +35,14 @@ public final class AINewHotEdgeEvent extends HotMethodEvent implements Controlle
    * create an instance of this event for methods already compiled
    * at max opt level, but it may be required later.
    * <p>
-   * NB: Boost factor is a value >= 1.0!
+   * NB: Boost factor is a value &gt;= 1.0!
    * (1.0 means no boost, 1.1 means a 10% improvement, etc).
    */
-  private double boostFactor;
+  private final double boostFactor;
 
-  public double getBoostFactor() { return boostFactor; }
+  public double getBoostFactor() {
+    return boostFactor;
+  }
 
   /**
    * @param _cm the compiled method

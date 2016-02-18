@@ -12,8 +12,9 @@
  */
 package org.mmtk.utility.alloc;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.BaseLargeObjectSpace;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -30,7 +31,7 @@ import org.vmmagic.pragma.*;
  * improvement...
  */
 @Uninterruptible
-public abstract class LargeObjectAllocator extends Allocator implements Constants {
+public abstract class LargeObjectAllocator extends Allocator {
 
   /****************************************************************************
    *

@@ -32,6 +32,7 @@ import org.mmtk.utility.alloc.Allocator;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
+import org.vmmagic.unboxed.harness.Clock;
 import org.vmmagic.unboxed.harness.MemoryConstants;
 import org.vmmagic.unboxed.harness.SimulatedMemory;
 
@@ -173,20 +174,24 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     // Create an object reference.
     ObjectReference ref = region.toObjectReference();
 
+    Clock.stop();
     if (SimulatedMemory.isWatched(region,bytes)) {
       Trace.printf("%4d  alloc %s [%s-%s]%n", Thread.currentThread().getId(),
           region.toObjectReference(), region, region.plus(bytes));
     }
+    Clock.start();
     if (doubleAlign) region.store(DOUBLE_ALIGN, STATUS_OFFSET);
     setId(ref, allocateObjectId());
     setSite(ref, site);
     setRefCount(ref, refCount);
     setDataCount(ref, dataCount);
+    Clock.stop();
     Sanity.getObjectTable().alloc(region, bytes);
 
     if (isWatched(ref)) {
       System.err.printf("WATCH: Object %s created%n",objectIdString(ref));
     }
+    Clock.start();
 
     // Call MMTk postAlloc
     context.postAlloc(ref, null, bytes, allocator);
@@ -236,6 +241,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @return The call site
    */
   public static int getSite(ObjectReference object) {
+    Clock.assertStopped();
     return object.toAddress().loadInt(SITE_OFFSET);
   }
 
@@ -252,7 +258,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of data words in the object.
    */
   private static void setDataCount(ObjectReference object, int count) {
-    assert count < MAX_DATA_FIELDS && count >= 0 : "Too many data fields, "+count;
+    assert count < MAX_DATA_FIELDS && count >= 0 : "Too many data fields, " + count;
     object.toAddress().store(count, DATACOUNT_OFFSET);
   }
 
@@ -261,7 +267,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Set the number of references in the object.
    */
   private static void setRefCount(ObjectReference object, int count) {
-    assert count < MAX_REF_FIELDS && count >= 0 : "Too many reference fields, "+count;
+    assert count < MAX_REF_FIELDS && count >= 0 : "Too many reference fields, " + count;
     object.toAddress().store(count, REFCOUNT_OFFSET);
   }
 
@@ -365,15 +371,17 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     allocator = c.copyCheckAllocator(from, newBytes, align, allocator);
     Address toRegion = c.allocCopy(from, newBytes, align, getAlignOffsetWhenCopied(from), allocator);
     ObjectReference to = toRegion.toObjectReference();
+    Clock.stop();
     if (isWatched(from) || Trace.isEnabled(Item.COLLECT)) {
       Trace.printf(Item.COLLECT,"Copying object %s from %s to %s%n", objectIdString(from),
           getString(from), getString(to));
     }
     Sanity.assertValid(from);
     Sanity.getObjectTable().copy(from, to);
+    Clock.start();
 
     Address fromRegion = from.toAddress();
-    for(int i=0; i < oldBytes; i += MemoryConstants.BYTES_IN_INT) {
+    for (int i = 0; i < oldBytes; i += MemoryConstants.BYTES_IN_INT) {
       toRegion.plus(i).store(fromRegion.plus(i).loadInt());
     }
 
@@ -384,17 +392,20 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     }
 
     c.postCopy(to, null, newBytes, allocator);
+    Clock.stop();
     if (isWatched(from)) {
       System.err.printf("WATCH: Object %d copied from %s to %s%n",getId(from),
           addressAndSpaceString(from),addressAndSpaceString(to));
       dumpObjectHeader("after copy: ", to);
     }
+    Clock.start();
 
     return to;
   }
 
   @Override
   public Address copyTo(ObjectReference from, ObjectReference to, Address toRegion) {
+    Clock.stop();
     boolean traceThisObject = Trace.isEnabled(Item.COLLECT) || isWatched(from);
     if (traceThisObject) {
       Trace.printf(Item.COLLECT,"Copying object %s explicitly from %s/%s to %s/%s, region %s%n", objectIdString(from),
@@ -405,6 +416,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     }
     Sanity.assertValid(from);
     Sanity.getObjectTable().copy(from, to);
+    Clock.start();
 
     boolean doCopy = !from.equals(to);
     int bytes = getSize(from);
@@ -412,14 +424,16 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     if (doCopy) {
       Address srcRegion = from.toAddress();
       Address dstRegion = to.toAddress();
-      for(int i=0; i < bytes; i += MemoryConstants.BYTES_IN_INT) {
+      for (int i = 0; i < bytes; i += MemoryConstants.BYTES_IN_INT) {
         int before = srcRegion.plus(i).loadInt();
         dstRegion.plus(i).store(before);
         int after = dstRegion.plus(i).loadInt();
+        Clock.stop();
         if (traceThisObject) {
           System.err.printf("copy %s/%08x -> %s/%08x%n",
               srcRegion.plus(i),before,dstRegion.plus(i),after);
         }
+        Clock.start();
       }
 
       int status = dstRegion.loadInt(STATUS_OFFSET);
@@ -431,14 +445,18 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
       Allocator.fillAlignmentGap(toRegion, dstRegion);
     } else {
       if (traceThisObject) {
+        Clock.stop();
         Trace.printf(Item.COLLECT,"%s: no copy required%n", getString(from));
+        Clock.start();
       }
     }
     Address objectEndAddress = getObjectEndAddress(to);
+    Clock.stop();
     if (traceThisObject) {
       dumpObjectHeader("After copy: ", to);
     }
     Sanity.assertValid(to);
+    Clock.start();
     return objectEndAddress;
   }
 
@@ -523,55 +541,67 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
   @Override
   public boolean attemptAvailableBits(ObjectReference object, Word oldVal, Word newVal) {
+    Clock.stop();
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
       Word actual = object.toAddress().loadWord(STATUS_OFFSET);
       Trace.printf(Item.AVBYTE,"%s.status:%s=%s ? ->%s%n", getString(object),actual,oldVal,newVal);
     }
+    Clock.start();
     return object.toAddress().attempt(oldVal, newVal, STATUS_OFFSET);
   }
 
   @Override
   public Word prepareAvailableBits(ObjectReference object) {
+    Clock.stop();
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
       Word old = object.toAddress().loadWord(STATUS_OFFSET);
       Trace.printf(Item.AVBYTE,"%s.gcword=%s (prepare)%n", getString(object),old);
     }
+    Clock.start();
     return object.toAddress().prepareWord(STATUS_OFFSET);
   }
 
   @Override
   public void writeAvailableByte(ObjectReference object, byte val) {
+    Clock.stop();
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
       byte old = object.toAddress().loadByte(STATUS_OFFSET);
       Trace.printf(Item.AVBYTE,"%s.gcbyte:%d->%d%n", getString(object),old,val);
     }
+    Clock.start();
     object.toAddress().store(val, STATUS_OFFSET);
   }
 
   @Override
   public byte readAvailableByte(ObjectReference object) {
+    Clock.stop();
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
       byte old = object.toAddress().loadByte(STATUS_OFFSET);
       Trace.printf(Item.AVBYTE,"%s.gcbyte=%d%n", getString(object),old);
     }
+    Clock.start();
     return object.toAddress().loadByte(STATUS_OFFSET);
   }
 
   @Override
   public void writeAvailableBitsWord(ObjectReference object, Word val) {
+    Clock.stop();
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
       Word old = object.toAddress().loadWord(STATUS_OFFSET);
       Trace.printf(Item.AVBYTE,"%s.gcword:%s->%s%n", getString(object),old,val);
     }
+    Clock.start();
     object.toAddress().store(val, STATUS_OFFSET);
   }
 
   @Override
   public Word readAvailableBitsWord(ObjectReference object) {
+    Clock.stop();
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
       Word old = object.toAddress().loadWord(STATUS_OFFSET);
       Trace.printf(Item.AVBYTE,"%s.gcword=%s%n", getString(object),old);
     }
+    Clock.start();
     return object.toAddress().loadWord(STATUS_OFFSET);
   }
 
@@ -607,11 +637,13 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
   @Override
   public void dumpObject(ObjectReference object) {
+    Clock.stop();
     System.err.println("===================================");
     System.err.println(getString(object));
     System.err.println("===================================");
     SimulatedMemory.dumpMemory(object.toAddress(), 0, getSize(object));
     System.err.println("===================================");
+    Clock.start();
   }
 
   /**
@@ -650,7 +682,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     List<ObjectReference> pointers = new ArrayList<ObjectReference>(refCount);
     System.err.printf("  Object %s <%d %d %1s> [", ObjectModel.formatObject(width, object), refCount, dataCount, (hashed ? "H" : ""));
     if (refCount > 0) {
-      for(int i=0; i < refCount; i++) {
+      for (int i = 0; i < refCount; i++) {
         ObjectReference ref = ActivePlan.plan.loadObjectReference(getRefSlot(object, i));
         System.err.print(" ");
         System.err.print(ObjectModel.formatObject(width, ref));
@@ -673,7 +705,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     if (ref.isNull()) return "<null>";
     int refs = getRefs(ref);
     int data = getDataCount(ref);
-    return addressAndSpaceString(ref)+objectIdString(ref)+refs + "R" + data + "D";
+    return addressAndSpaceString(ref) + objectIdString(ref) + refs + "R" + data + "D";
   }
 
   /**

@@ -117,7 +117,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
      *   thresholdReachedCount * samplesPerInvocationOfThresholdReached > 1 / AI_HOT_CALLSITE_THRESHOLD
      * to be true.
      */
-    thresholdReachedCount = (int)Math.ceil(1.0 /(numberOfBufferTriples * Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD));;
+    thresholdReachedCount = (int) Math.ceil(1.0 / (numberOfBufferTriples * Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD));;
 
     // Install the edge listener
     if (Controller.options.cgTimer()) {
@@ -138,7 +138,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
     if (DEBUG) VM.sysWriteln("DCG_Organizer.thresholdReached()");
 
     for (int i = 0; i < bufferSize; i = i + 3) {
-      int calleeCMID=0;
+      int calleeCMID = 0;
       // FIXME: This is necessary but hacky and may not even be correct.
       while (calleeCMID == 0) {
         calleeCMID = buffer[i + 0];

@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
@@ -30,7 +32,7 @@ import org.vmmagic.unboxed.Word;
  * This class manages the allocation of pages for a space.  When a
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
- * be satisfied (for either reason) a GC may be triggered.<p>
+ * be satisfied (for either reason) a GC may be triggered.
  */
 @Uninterruptible
 public final class MonotonePageResource extends PageResource {
@@ -94,7 +96,7 @@ public final class MonotonePageResource extends PageResource {
   public int getAvailablePhysicalPages() {
     int rtn = Conversions.bytesToPages(sentinel.diff(cursor));
     if (!contiguous)
-      rtn += Map.getAvailableDiscontiguousChunks()*Space.PAGES_IN_CHUNK;
+      rtn += Map.getAvailableDiscontiguousChunks() * Space.PAGES_IN_CHUNK;
     return rtn;
   }
 
@@ -140,7 +142,7 @@ public final class MonotonePageResource extends PageResource {
       int requiredChunks = Space.requiredChunks(requiredPages);
       Address chunk = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
       cursor = chunk;
-      sentinel = cursor.plus(chunk.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
+      sentinel = cursor.plus(chunk.isZero() ? 0 : requiredChunks << Space.LOG_BYTES_IN_CHUNK);
       rtn = cursor;
       tmp = cursor.plus(bytes);
       newChunk = true;
@@ -196,7 +198,7 @@ public final class MonotonePageResource extends PageResource {
    * @return The number of required pages, inclusive of any metadata
    */
   public int adjustForMetaData(int pages, Address begin) {
-    if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin)) {
+    if (getRegionStart(begin).plus(metaDataPagesPerRegion << LOG_BYTES_IN_PAGE).EQ(begin)) {
       pages += metaDataPagesPerRegion;
     }
     return pages;
@@ -253,7 +255,7 @@ public final class MonotonePageResource extends PageResource {
       // TODO: We will perform unnecessary zeroing if the nursery size has decreased.
       if (zeroConcurrent) {
         // Wait for current zeroing to finish.
-        while(zeroingCursor.LT(zeroingSentinel)) {}
+        while (zeroingCursor.LT(zeroingSentinel)) { }
       }
       // Reset zeroing region.
       if (cursor.GT(zeroingSentinel)) {
@@ -261,7 +263,7 @@ public final class MonotonePageResource extends PageResource {
       }
       zeroingCursor = start;
       cursor = start;
-    } else {/* Not contiguous */
+    } else { /* Not contiguous */
       if (!cursor.isZero()) {
         do {
           Extent bytes = cursor.diff(currentChunk).toWord().toExtent();
@@ -294,22 +296,25 @@ public final class MonotonePageResource extends PageResource {
   }
 
   /**
-   * Release a range of pages associated with this page resource, optionally
+   * Releases a range of pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
+   *
+   * @param first start address of memory to be released
+   * @param bytes number of bytes in the memory region
    */
   @Inline
   private void releasePages(Address first, Extent bytes) {
     int pages = Conversions.bytesToPages(bytes);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
-    if (ZERO_ON_RELEASE)
+    if (VM.config.ZERO_PAGES_ON_RELEASE)
       VM.memory.zero(false, first, bytes);
     if (Options.protectOnRelease.getValue())
       Mmapper.protect(first, pages);
     VM.events.tracePageReleased(space, first, pages);
   }
 
-  private static int CONCURRENT_ZEROING_BLOCKSIZE = 1<<16;
+  private static int CONCURRENT_ZEROING_BLOCKSIZE = 1 << 16;
 
   @Override
   public void concurrentZeroing() {

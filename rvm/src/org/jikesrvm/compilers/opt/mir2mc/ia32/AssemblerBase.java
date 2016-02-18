@@ -12,42 +12,132 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.CONDITION;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.WORD;
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
+import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LABEL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADC_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_AND_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPEQSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPEQSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLTSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLTSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPORDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPORDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPUNORDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPUNORDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSD2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSD2SS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSI2SD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSI2SS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSS2SD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSS2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTTSD2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTTSS2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_DIVSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_DIVSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JCC_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LEA_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LOCK_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_METHODSTART_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVAPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVAPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVLPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVQ_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MULSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MULSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_OFFSET_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_RET_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SBB_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SQRTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SUBSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SUBSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_UCOMISD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_UCOMISS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_LOWTABLESWITCH;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_LOWTABLESWITCH_opcode;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_DOUBLE;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_INT;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_SPECIAL;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST0;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.ST1;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.FP0;
+import static org.jikesrvm.ia32.RegisterConstants.FP1;
+import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
+import static org.jikesrvm.util.Bits.fits;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
-import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
-import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
+import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
+import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
-import org.jikesrvm.compilers.opt.ir.MIR_Branch;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_Compare;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
-import org.jikesrvm.compilers.opt.ir.MIR_Lea;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Test;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.ArchOperator;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_BinaryAcc;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Compare;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Lea;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Test;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
-import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
-import org.jikesrvm.ia32.TrapConstants;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
+import org.jikesrvm.ia32.RegisterConstants.FPR;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
+import org.jikesrvm.ia32.RegisterConstants.MM;
+import org.jikesrvm.ia32.RegisterConstants.XMM;
+import org.jikesrvm.util.Bits;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
 
@@ -61,8 +151,7 @@ import org.vmmagic.unboxed.Offset;
  * not meant to be used in isolation, but rather to provide support
  * from the Assembler.
  */
-abstract class AssemblerBase extends Assembler
-    implements Operators, Constants, PhysicalRegisterConstants {
+abstract class AssemblerBase extends Assembler {
 
   private static final boolean DEBUG_ESTIMATE = false;
 
@@ -91,22 +180,26 @@ abstract class AssemblerBase extends Assembler
    */
   private static final Operator[] quadSizeOperators;
 
+  protected final MachineCodeOffsets mcOffsets;
+
+  protected final IR ir;
+
   static {
     ArrayList<Operator> temp = new ArrayList<Operator>();
-    for (Operator opr : Operator.OperatorArray) {
+    for (Operator opr : ArchOperator.operatorArray()) {
       if (opr != null && opr.toString().indexOf("__b") != -1) {
         temp.add(opr);
       }
     }
     byteSizeOperators = temp.toArray(new Operator[temp.size()]);
     temp.clear();
-    for (Operator opr : Operator.OperatorArray) {
+    for (Operator opr : ArchOperator.operatorArray()) {
       if (opr != null && opr.toString().indexOf("__w") != -1) {
         temp.add(opr);
       }
     }
     wordSizeOperators = temp.toArray(new Operator[temp.size()]);
-    for (Operator opr : Operator.OperatorArray) {
+    for (Operator opr : ArchOperator.operatorArray()) {
       if (opr != null && opr.toString().indexOf("__q") != -1) {
         temp.add(opr);
       }
@@ -116,12 +209,19 @@ abstract class AssemblerBase extends Assembler
 
   /**
    * Construct Assembler object
+   *
+   * @param bytecodeSize initial machine code buffer size.
+   * @param shouldPrint whether to dump generated machine code.
+   * @param ir the IR object for the opt compilation
+   *
    * @see Assembler
    */
   AssemblerBase(int bytecodeSize, boolean shouldPrint, IR ir) {
     super(bytecodeSize, shouldPrint);
-    EBP = ir.regpool.getPhysicalRegisterSet().getEBP();
-    ESP = ir.regpool.getPhysicalRegisterSet().getESP();
+    EBP = ir.regpool.getPhysicalRegisterSet().asIA32().getEBP();
+    ESP = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+    mcOffsets = ir.MIRInfo.mcOffsets;
+    this.ir = ir;
   }
 
   /**
@@ -130,7 +230,9 @@ abstract class AssemblerBase extends Assembler
    * (otherwise why are we opt compiling it?).
    */
   @Override
-  protected boolean isHotCode() { return true; }
+  protected boolean isHotCode() {
+    return true;
+  }
 
   /**
    *  Is the given operand an immediate?  In the IA32 assembly, one
@@ -145,13 +247,16 @@ abstract class AssemblerBase extends Assembler
    * @return true if op represents an immediate
    */
   boolean isImm(Operand op) {
+    boolean isKnownJumpTarget = op.isBranch() &&
+        mcOffsets.getMachineCodeOffset(op.asBranch().target) >= 0;
     return (op instanceof IntConstantOperand) ||
+           (VM.BuildFor64Addr && op instanceof LongConstantOperand) ||
            (op instanceof TrapCodeOperand) ||
-           (op instanceof BranchOperand && op.asBranch().target.getmcOffset() >= 0);
+           isKnownJumpTarget;
   }
 
   /**
-   *  Return the IA32 ISA encoding of the immediate value
+   * Return the IA32 ISA encoding of the immediate value
    * represented by the the given operand.  This method assumes the
    * operand is an immediate and will likely throw a
    * ClassCastException if this not the case.  It treats
@@ -168,11 +273,40 @@ abstract class AssemblerBase extends Assembler
   int getImm(Operand op) {
     if (op.isIntConstant()) {
       return op.asIntConstant().value;
+    } else if (VM.BuildFor64Addr && op.isLongConstant()) {
+      long v = op.asLongConstant().value;
+      if (!Bits.fits(v, 32)) {
+        throw new OptimizingCompilerException("Invalid immediate operand " + v);
+      }
+      return (int)v;
     } else if (op.isBranch()) {
       // used by ImmOrLabel stuff
-      return op.asBranch().target.getmcOffset();
+      return mcOffsets.getMachineCodeOffset(op.asBranch().target);
     } else {
-      return ((TrapCodeOperand) op).getTrapCode() + TrapConstants.RVM_TRAP_BASE;
+      return ((TrapCodeOperand) op).getTrapCode() + RVM_TRAP_BASE;
+    }
+  }
+
+  /**
+   * Return the IA32 ISA encoding of the immediate value
+   * represented by the the given operand.  This method assumes the
+   * operand is an immediate and will likely throw a
+   * ClassCastException if this not the case.  It treats
+   * BranchOperands somewhat differently than isImm does: in
+   * case a branch target is not resolved, it simply returns a wrong
+   * answer and trusts the caller to ignore it. This behavior
+   * simplifies life when generating code for ImmOrLabel operands.
+   *
+   * @see #isImm
+   *
+   * @param op the operand being queried
+   * @return the immediate value represented by the operand
+   */
+  long getImmQuad(Operand op) {
+    if (VM.BuildFor64Addr && op.isLongConstant()) {
+      return op.asLongConstant().value;
+    } else {
+      return getImm(op);
     }
   }
 
@@ -220,7 +354,7 @@ abstract class AssemblerBase extends Assembler
    */
   private GPR getGPMachineRegister(Register reg) {
     if (VM.VerifyAssertions) {
-      VM._assert(PhysicalRegisterSet.getPhysicalRegisterType(reg) == INT_REG);
+      opt_assert(PhysicalRegisterSet.getPhysicalRegisterType(reg) == INT_REG);
     }
     return GPR.lookup(reg.number - FIRST_INT);
   }
@@ -247,14 +381,14 @@ abstract class AssemblerBase extends Assembler
     if (type == INT_REG) {
       result = GPR.lookup(reg.number - FIRST_INT);
     } else {
-      if (VM.VerifyAssertions) VM._assert(type == DOUBLE_REG);
+      if (VM.VerifyAssertions) opt_assert(type == DOUBLE_REG);
       if (SSE2_FULL) {
         if (reg.number < FIRST_SPECIAL) {
           result = XMM.lookup(reg.number - FIRST_DOUBLE);
         } else if (reg.number == ST0) {
           result = FP0;
         } else {
-          if (VM.VerifyAssertions) VM._assert(reg.number == ST1);
+          if (VM.VerifyAssertions) opt_assert(reg.number == ST1);
           result = FP1;
         }
       } else {
@@ -290,8 +424,7 @@ abstract class AssemblerBase extends Assembler
   }
 
   MM getMM_Reg(Operand op) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "MM registers not currently supported in the opt compiler");
-    return null;
+    throw new OptimizingCompilerException("MM registers not currently supported in the opt compiler");
   }
 
   XMM getXMM_Reg(Operand op) {
@@ -524,8 +657,9 @@ abstract class AssemblerBase extends Assembler
       // used by ImmOrLabel stuff
       return 0;
     } else {
-      if (op.asBranch().target.getmcOffset() < 0) {
-        return -op.asBranch().target.getmcOffset();
+      int offset = mcOffsets.getMachineCodeOffset(op.asBranch().target);
+      if (offset < 0) {
+        return -offset;
       } else {
         return -1;
       }
@@ -541,7 +675,11 @@ abstract class AssemblerBase extends Assembler
    * @return true if it represents a branch requiring a label target
    */
   boolean isLabel(Operand op) {
-    return (op instanceof BranchOperand && op.asBranch().target.getmcOffset() < 0);
+    if (op.isBranch()) {
+      return mcOffsets.getMachineCodeOffset(op.asBranch().target) < 0;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -572,8 +710,8 @@ abstract class AssemblerBase extends Assembler
    * @return {@code true} if inst operates upon byte data
    */
   boolean isByte(Instruction inst) {
-    for(Operator opr : byteSizeOperators){
-      if (opr == inst.operator) {
+    for (Operator opr : byteSizeOperators) {
+      if (opr == inst.operator()) {
         return true;
       }
     }
@@ -601,8 +739,8 @@ abstract class AssemblerBase extends Assembler
    * @return true if inst operates upon word data
    */
   boolean isWord(Instruction inst) {
-    for(Operator opr : wordSizeOperators){
-      if (opr == inst.operator) {
+    for (Operator opr : wordSizeOperators) {
+      if (opr == inst.operator()) {
         return true;
       }
     }
@@ -618,28 +756,55 @@ abstract class AssemblerBase extends Assembler
   }
 
   /**
-   *  Does the given instruction operate upon quad-sized data?  The
-   * opt compiler does not represent the size of register data, so
-   * this method typically looks at the memory operand, if any, and
-   * checks whether that is a byte.  This method also recognizes
+   * Does the given instruction operate upon quad-sized data
+   * <em>for the purposes of assembling the instruction</em>?
+   * The opt compiler does not represent the size of register data, so
+   * it is necessary to determine whether to emit a quad instruction.
+   * As described above, this method is only concerned with quad data
+   * that changes the instruction. For example, this method will return
+   * {@code false} for {@code FSTP}. {@code FSTP} operates on quad-data
+   * but the instruction's operation is the same for 32-bit and 64-bit
+   * mode, so it is not a quad instruction for the purposes of this method.
+   * <p>
+   * This method typically looks at the memory operand, if any, and
+   * checks whether that is a byte. This method also recognizes
    * the operator convention that __q on the end of the operator
-   * name means operate upon quad data; no operator currently uses
-   * this convention.
+   * name means operate upon quad data. Moreover, it looks at data types
+   * for x64.
    *
    * @param inst the instruction being queried
-   * @return {@code true} if inst operates upon quad data
+   * @return {@code true} if instruction operates upon quad data <b>AND</b>
+   *  is treated as a quad instruction for the purpose of assembling the
+   *  machine code
    */
   boolean isQuad(Instruction inst) {
-    for(Operator opr : quadSizeOperators){
-      if (opr == inst.operator) {
+    for (Operator opr : quadSizeOperators) {
+      if (opr == inst.operator()) {
         return true;
       }
     }
 
     for (int i = 0; i < inst.getNumberOfOperands(); i++) {
       Operand op = inst.getOperand(i);
+      if (VM.BuildFor64Addr) {
+        if (op == null) {
+          continue;
+        }
+        if (op.isLong() || op.isRef()) {
+          return true;
+        }
+      }
       if (op instanceof MemoryOperand) {
-        return (((MemoryOperand) op).size == 8);
+        boolean quadMemOp = ((MemoryOperand) op).size == 8;
+        if (VM.BuildFor32Addr) {
+          return quadMemOp;
+        } else if (VM.BuildFor64Addr) {
+          // 64-bit: other operands may cause the instruction to be 64 bit
+          // even if this one won't
+          if (quadMemOp) {
+            return true;
+          }
+        }
       }
     }
 
@@ -660,7 +825,7 @@ abstract class AssemblerBase extends Assembler
     int offset = 0;
     while (true) {
       if (offset <= budget) return false;
-      if (inst.getmcOffset() == target) {
+      if (mcOffsets.getMachineCodeOffset(inst) == target) {
         return true;
       }
       offset += estimateSize(inst, offset);
@@ -771,6 +936,8 @@ abstract class AssemblerBase extends Assembler
         return size;
       }
       case IA32_MOVD_opcode:
+      case IA32_MOVAPD_opcode:
+      case IA32_MOVAPS_opcode:
       case IA32_MOVLPD_opcode:
       case IA32_MOVQ_opcode:
       case IA32_MOVSS_opcode:
@@ -813,7 +980,7 @@ abstract class AssemblerBase extends Assembler
         return size;
       }
       case MIR_LOWTABLESWITCH_opcode:
-        return MIR_LowTableSwitch.getNumberOfTargets(inst)*4 + 14;
+        return MIR_LowTableSwitch.getNumberOfTargets(inst) * 4 + 14;
       case IA32_OFFSET_opcode:
         return 4;
       case IA32_JCC_opcode:
@@ -924,11 +1091,13 @@ abstract class AssemblerBase extends Assembler
     if (isImm(MIR_CondBranch.getTarget(inst))) {
       emitJCC_Cond_Imm(cond, getImm(MIR_CondBranch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) VM._assert(VM.NOT_REACHED, inst.toString());
-      int sourceLabel = -inst.getmcOffset();
+      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) {
+        throw new OptimizingCompilerException("Unexpected operand " + inst.toString());
+      }
+      int sourceLabel = -mcOffsets.getMachineCodeOffset(inst);
       int targetLabel = getLabel(MIR_CondBranch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
-      if (VM.VerifyAssertions) VM._assert(delta >= 0);
+      if (VM.VerifyAssertions) opt_assert(delta >= 0);
       if (delta < 10 || (delta < 90 && targetIsClose(inst, -targetLabel))) {
         int miStart = mi;
         ForwardReference r = new ForwardReference.ShortBranch(mi, targetLabel);
@@ -953,10 +1122,10 @@ abstract class AssemblerBase extends Assembler
     if (isImm(MIR_Branch.getTarget(inst))) {
       emitJMP_Imm(getImm(MIR_Branch.getTarget(inst)));
     } else if (isLabel(MIR_Branch.getTarget(inst))) {
-      int sourceLabel = -inst.getmcOffset();
+      int sourceLabel = -mcOffsets.getMachineCodeOffset(inst);
       int targetLabel = getLabel(MIR_Branch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
-      if (VM.VerifyAssertions) VM._assert(delta >= 0);
+      if (VM.VerifyAssertions) opt_assert(delta >= 0);
       if (delta < 10 || (delta < 90 && targetIsClose(inst, -targetLabel))) {
         int miStart = mi;
         ForwardReference r = new ForwardReference.ShortBranch(mi, targetLabel);
@@ -985,7 +1154,9 @@ abstract class AssemblerBase extends Assembler
     } else if (isRegInd(MIR_Branch.getTarget(inst))) {
       emitJMP_RegInd(getBase(MIR_Branch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, inst.toString());
+      if (VM.VerifyAssertions) {
+        throw new OptimizingCompilerException("Unexpected operand " + inst.toString());
+      }
     }
   }
 
@@ -1003,15 +1174,15 @@ abstract class AssemblerBase extends Assembler
     // idx += [ms + idx<<2 + ??] - we will patch ?? when we know the placement of the table
     int toPatchAddress = getMachineCodeIndex();
     if (VM.buildFor32Addr()) {
-      emitMOV_Reg_RegIdx(idx, ms, idx, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
       emitADD_Reg_Reg(idx, ms);
     } else {
-      emitMOV_Reg_RegIdx(idx, ms, idx, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
       emitADD_Reg_Reg_Quad(idx, ms);
     }
     // JMP T0
     emitJMP_Reg(idx);
-    emitNOP((4-getMachineCodeIndex()) & 3); // align table
+    emitNOP((4 - getMachineCodeIndex()) & 3); // align table
     // create table of offsets from start of method
     patchSwitchTableDisplacement(toPatchAddress);
     for (int i = 0; i < n; i++) {
@@ -1020,11 +1191,28 @@ abstract class AssemblerBase extends Assembler
     }
   }
 
+  protected void doIMMQ_MOV(Instruction inst) {
+    Operand result = MIR_Move.getResult(inst);
+    if (isGPR_Reg(result)) {
+      if (isQuad(inst)) {
+        Operand value = MIR_Move.getValue(inst);
+        if (isImm(value)) {
+          emitMOV_Reg_Imm_Quad(getGPR_Reg(result),
+              getImmQuad(value));
+          return;
+        }
+      }
+    }
+    throw new OptimizingCompilerException("Unexpected operand/imm " +
+        inst.toString());
+  }
+
   /**
    * Debugging support (return a printable representation of the machine code).
    *
    * @param instr  An integer to be interpreted as a PowerPC instruction
    * @param offset the mcoffset (in bytes) of the instruction
+   * @return a printable representation of the machine code
    */
   public String disasm(int instr, int offset) {
     OptimizingCompilerException.TODO("Assembler: disassembler");
@@ -1032,22 +1220,25 @@ abstract class AssemblerBase extends Assembler
   }
 
   /**
+   * Assembles the given instruction.
+   *
+   * @param inst the instruction to assemble
+   */
+  public abstract void doInst(Instruction inst);
+
+  /**
    * generate machine code into ir.machinecode.
-   * @param ir the IR to generate
-   * @param shouldPrint should we print the machine code?
    * @return the number of machinecode instructions generated
    */
-  public static int generateCode(IR ir, boolean shouldPrint) {
+  public int generateCode() {
     int count = 0;
-    AssemblerOpt asm = new AssemblerOpt(count, shouldPrint, ir);
-
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       // Set the mc offset of all instructions to their negative position.
       // A positive value in their position means they have been created
       // by the assembler.
       count++;
-      p.setmcOffset(-count);
-      if (p.operator() == Operators.MIR_LOWTABLESWITCH) {
+      mcOffsets.setMachineCodeOffset(p, -count);
+      if (p.operator() == MIR_LOWTABLESWITCH) {
         // Table switch kludge, as these will occupy multiple slots in the
         // generated assembler
         count += MIR_LowTableSwitch.getNumberOfTargets(p);
@@ -1056,22 +1247,22 @@ abstract class AssemblerBase extends Assembler
 
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       if (DEBUG_ESTIMATE) {
-        int start = asm.getMachineCodeIndex();
-        int estimate = asm.estimateSize(p, start);
-        asm.doInst(p);
-        int end = asm.getMachineCodeIndex();
+        int start = getMachineCodeIndex();
+        int estimate = estimateSize(p, start);
+        doInst(p);
+        int end = getMachineCodeIndex();
         if (end - start > estimate) {
           VM.sysWriteln("Bad estimate: " + (end - start) + " " + estimate + " " + p);
           VM.sysWrite("\tMachine code: ");
-          asm.writeLastInstruction(start);
+          writeLastInstruction(start);
           VM.sysWriteln();
         }
       } else {
-        asm.doInst(p);
+        doInst(p);
       }
     }
 
-    ir.MIRInfo.machinecode = asm.getMachineCodes();
+    ir.MIRInfo.machinecode = getMachineCodes();
 
     return ir.MIRInfo.machinecode.length();
   }

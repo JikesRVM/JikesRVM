@@ -28,17 +28,31 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class MCConstraints extends StopTheWorldConstraints {
   @Override
-  public boolean movesObjects() { return true; }
+  public boolean movesObjects() {
+    return true;
+  }
   @Override
-  public boolean needsForwardAfterLiveness() { return true; }
+  public boolean needsForwardAfterLiveness() {
+    return true;
+  }
   @Override
-  public boolean needsLinearScan() { return true; }
+  public boolean needsLinearScan() {
+    return true;
+  }
   @Override
-  public int maxNonLOSDefaultAllocBytes() { return MarkCompactLocal.MINIMUM_DATA_SIZE; }
+  public int maxNonLOSDefaultAllocBytes() {
+    return MarkCompactLocal.MINIMUM_DATA_SIZE;
+  }
   @Override
-  public int gcHeaderBits() { return MarkCompactSpace.LOCAL_GC_BITS_REQUIRED; }
+  public int gcHeaderBits() {
+    return MarkCompactSpace.LOCAL_GC_BITS_REQUIRED;
+  }
   @Override
-  public int gcHeaderWords() { return MarkCompactSpace.GC_HEADER_WORDS_REQUIRED; }
+  public int gcHeaderWords() {
+    return MarkCompactSpace.GC_HEADER_WORDS_REQUIRED;
+  }
   @Override
-  public int numSpecializedScans() { return 2; }
+  public int numSpecializedScans() {
+    return 2;
+  }
 }

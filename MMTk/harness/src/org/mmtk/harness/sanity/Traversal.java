@@ -22,10 +22,8 @@ import org.mmtk.harness.Mutator;
 import org.mmtk.harness.Mutators;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
-import org.mmtk.harness.vm.Scanning;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -67,7 +65,7 @@ public final class Traversal {
     if (VERBOSE) {
       Trace.trace(Item.SANITY, "scanning object %s", ObjectModel.getString(object));
     }
-    for (int i=0; i < ObjectModel.getRefs(object); i++) {
+    for (int i = 0; i < ObjectModel.getRefs(object); i++) {
       Address slot = ObjectModel.getRefSlot(object, i);
       ObjectReference ref = loadReferenceSlot(slot);
       if (!ref.isNull()) {
@@ -106,12 +104,9 @@ public final class Traversal {
    * Trace the harness root set
    */
   private void traceRoots() {
-    for (ObjectValue value : Scanning.getRoots()) {
-      traceObject(value.getObjectValue(), true);
-    }
     for (Mutator m : Mutators.getAll()) {
-      for (ObjectValue value : m.getRoots()) {
-        traceObject(value.getObjectValue(), true);
+      for (Address root : m.getRootAddresses()) {
+        traceObject(root.loadObjectReference(), true);
       }
     }
   }
@@ -122,7 +117,7 @@ public final class Traversal {
    */
   private void doClosure() {
     while (markStack.size() > 0) {
-      ObjectReference object = markStack.remove(markStack.size()-1);
+      ObjectReference object = markStack.remove(markStack.size() - 1);
       scan(object);
     }
     blackSet.clear();

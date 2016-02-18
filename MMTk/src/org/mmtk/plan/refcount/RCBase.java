@@ -27,8 +27,8 @@ import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
@@ -143,8 +143,8 @@ public class RCBase extends StopTheWorld {
   /**
    *
    */
-  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", VMRequest.create());
-  public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", VMRequest.create());
+  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", VMRequest.discontiguous());
+  public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", VMRequest.discontiguous());
 
   public static final int REF_COUNT = rcSpace.getDescriptor();
   public static final int REF_COUNT_LOS = rcloSpace.getDescriptor();
@@ -197,7 +197,8 @@ public class RCBase extends StopTheWorld {
    */
 
   /**
-   *
+   * @param object an object reference
+   * @return whether the object is subject to collection by reference counting
    */
   public static final boolean isRCObject(ObjectReference object) {
     return !object.isNull() && (Space.isInSpace(REF_COUNT, object) || Space.isInSpace(REF_COUNT_LOS, object));
@@ -322,5 +323,10 @@ public class RCBase extends StopTheWorld {
   @Interruptible
   protected void registerSpecializedMethods() {
     super.registerSpecializedMethods();
+  }
+
+  @Override
+  public byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
+    return (byte) RCHeader.UNLOGGED.toInt();
   }
 }

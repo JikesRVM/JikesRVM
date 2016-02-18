@@ -78,7 +78,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
   }
   @NonMoving
   class AsyncReporter extends SystemThread {
-    public AsyncReporter() {
+    AsyncReporter() {
       super("Async Profile Reporter");
     }
     @Override

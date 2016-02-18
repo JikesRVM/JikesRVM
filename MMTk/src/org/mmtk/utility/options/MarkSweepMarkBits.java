@@ -33,6 +33,7 @@ public final class MarkSweepMarkBits extends org.vmutil.options.IntOption {
   @Override
   protected void validate() {
     failIf(this.value <= 0, "Must provide at least one bit");
-    failIf(this.value > MarkSweepSpace.MAX_MARKCOUNT_BITS , "Only "+MarkSweepSpace.MAX_MARKCOUNT_BITS+" bits are reserved in MarkSweepSpace");
+    failIf(this.value > MarkSweepSpace.MAX_MARKCOUNT_BITS , "Only " +
+        MarkSweepSpace.MAX_MARKCOUNT_BITS + " bits are reserved in MarkSweepSpace");
   }
 }

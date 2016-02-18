@@ -35,8 +35,6 @@ import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 
-import org.jikesrvm.Callbacks;
-import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
@@ -45,9 +43,11 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
+import org.jikesrvm.util.UnimplementedError;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
@@ -330,7 +330,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       return getComponentType().getSimpleName() + "[]";
     } else {
       String fullName = getName();
-      return fullName.substring(fullName.lastIndexOf(".") + 1);
+      return fullName.substring(fullName.lastIndexOf('.') + 1);
     }
   }
 
@@ -358,9 +358,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (isPrimitive()) {
       return name;
     } else if (isInterface()) {
-      return "interface "+name;
+      return "interface " + name;
     } else {
-      return "class "+name;
+      return "class " + name;
     }
   }
 
@@ -423,7 +423,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Class<?> getComponentType() {
-    return type.isArrayType() ? type.asArray().getElementType().getClassForType(): null;
+    return type.isArrayType() ? type.asArray().getElementType().getClassForType() : null;
   }
 
   public Class<?>[] getDeclaredClasses() throws SecurityException {
@@ -486,7 +486,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (security != null) {
       security.checkMemberAccess(this, type);
       String packageName = getPackageName();
-      if(packageName != "") {
+      if (!packageName.isEmpty()) {
         security.checkPackageAccess(packageName);
       }
     }
@@ -558,16 +558,18 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @NoInline
   private void throwNoSuchMethodException(String name, Class<?>... parameterTypes) throws NoSuchMethodException {
-    String typeString;
+    StringBuilder typeString;
     if (parameterTypes == null || parameterTypes.length == 0) {
-      typeString = "()";
+      typeString = new StringBuilder("()");
     } else {
-      typeString = "(";
-      for (int i=0; i < parameterTypes.length-1; i++) {
+      typeString = new StringBuilder("(");
+      for (int i = 0; i < parameterTypes.length - 1; i++) {
         Class<?> c = parameterTypes[i];
-        typeString += c.toString() + ", ";
+        typeString.append(c.toString());
+        typeString.append(", ");
       }
-      typeString += parameterTypes[parameterTypes.length-1].toString() + ")";
+      typeString.append(parameterTypes[parameterTypes.length - 1]);
+      typeString.append(')');
     }
     throw new NoSuchMethodException(name + typeString);
   }
@@ -590,7 +592,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (maxDepth == -1) {
       browser.init();
       maxDepth = 0;
-      while(browser.hasMoreFrames()) {
+      while (browser.hasMoreFrames()) {
         maxDepth++;
         browser.up();
       }
@@ -601,7 +603,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
     Class<?>[] result = new Class[maxDepth];
     browser.init();
-    for (int i=0; i < maxDepth; i++) {
+    for (int i = 0; i < maxDepth; i++) {
       result[i] = browser.getCurrentClass().getClassForType();
       browser.up();
     }
@@ -635,7 +637,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Class<?> getEnclosingClass() {
     if (type.isClassType()) {
       TypeReference enclosingClass = type.asClass().getEnclosingClass();
-      if(enclosingClass != null) {
+      if (enclosingClass != null) {
         return enclosingClass.resolve().getClassForType();
       } else {
         return null;
@@ -675,7 +677,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @Pure
   public boolean isEnum() {
-    if(type.isClassType()) {
+    if (type.isClassType()) {
       return type.asClass().isEnum();
     } else {
       return false;
@@ -769,7 +771,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     RVMMethod[] methods = type.asClass().getConstructorMethods();
     Constructor<?>[] ans = new Constructor[methods.length];
-    for (int i = 0; i<methods.length; i++) {
+    for (int i = 0; i < methods.length; i++) {
       ans[i] = JikesRVMSupport.createConstructor(methods[i]);
     }
     return ans;
@@ -797,7 +799,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
           } catch (SecurityException e) {
             throw new ClassNotFoundException("Security exception when" +
                                              " trying to get a classloader so we can load the" +
-                                             " class named \"" + className +"\"", e);
+                                             " class named \"" + className + "\"", e);
           }
         }
       }
@@ -838,7 +840,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   // --- newInstance ---
 
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {0})
   public T newInstance() throws IllegalAccessException, InstantiationException,
     ExceptionInInitializerError, SecurityException {
 

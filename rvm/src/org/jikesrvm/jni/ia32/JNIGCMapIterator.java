@@ -12,8 +12,13 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import static org.jikesrvm.ia32.RegisterConstants.EBP;
+import static org.jikesrvm.ia32.RegisterConstants.EBX;
+import static org.jikesrvm.ia32.RegisterConstants.EDI;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.runtime.Magic;
@@ -22,7 +27,6 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to
@@ -35,7 +39,7 @@ import org.vmmagic.unboxed.WordArray;
  * @see JNICompiler
  */
 @Uninterruptible
-public abstract class JNIGCMapIterator extends GCMapIterator implements BaselineConstants {
+public final class JNIGCMapIterator extends GCMapIterator {
 
   // Java to Native C transition frame...(see JNICompiler)
   //
@@ -60,8 +64,8 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
   int jniNextRef;
   int jniFramePtr;
 
-  public JNIGCMapIterator(WordArray registerLocations) {
-    this.registerLocations = registerLocations;
+  public JNIGCMapIterator(AddressArray registerLocations) {
+    super(registerLocations);
   }
 
   // Override newStackWalk() in parent class GCMapIterator to
@@ -120,9 +124,9 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
     // the JNI transition frame at a fixed negative offset from the callers FP.
     // the save non-volatiles are EBX EBP and EDI.
     //
-    registerLocations.set(EDI.value(), framePtr.plus(JNICompiler.EDI_SAVE_OFFSET).toWord());
-    registerLocations.set(EBX.value(), framePtr.plus(JNICompiler.EBX_SAVE_OFFSET).toWord());
-    registerLocations.set(EBP.value(), framePtr.plus(JNICompiler.EBP_SAVE_OFFSET).toWord());
+    registerLocations.set(EDI.value(), framePtr.plus(JNICompiler.EDI_SAVE_OFFSET));
+    registerLocations.set(EBX.value(), framePtr.plus(JNICompiler.EBX_SAVE_OFFSET));
+    registerLocations.set(EBP.value(), framePtr.plus(JNICompiler.EBP_SAVE_OFFSET));
 
     return Address.zero();  // no more refs to report
   }

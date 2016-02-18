@@ -12,15 +12,17 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_TYPE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
@@ -32,9 +34,7 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
 
-/**
- **/
-public final class ClassLoaderProxy implements Constants, OptConstants {
+public final class ClassLoaderProxy {
 
   /**
    * Returns a common superclass of the two types.
@@ -83,7 +83,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
       return t1;
     }
 
-    if (IRGenOptions.DBG_TYPE) {
+    if (DBG_TYPE) {
       VM.sysWrite("finding common supertype of " + t1 + " and " + t2);
     }
 
@@ -112,7 +112,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
       while (arrayDimensions-- > 0) {
         type = type.getArrayTypeForElementType();
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("one is a primitive array, so supertype is " + type);
       }
       return type;
@@ -128,7 +128,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
       while (arrayDimensions-- > 0) {
         type = type.getArrayTypeForElementType();
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("differing dimensionalities for arrays, so supertype is " + type);
       }
       return type;
@@ -151,10 +151,10 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
         s2.push(c2);
         c2 = c2.getSuperClass();
       } while (c2 != null);
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("stack 1: " + s1);
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("stack 2: " + s2);
       }
       TypeReference best = TypeReference.JavaLangObject;
@@ -166,7 +166,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
           break;
         }
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("common supertype of the two classes is " + best);
       }
       while (arrayDimensions-- > 0) {
@@ -174,10 +174,10 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
       }
       return best;
     } else {
-      if (IRGenOptions.DBG_TYPE && c1 == null) {
+      if (DBG_TYPE && c1 == null) {
         VM.sysWrite(c1 + " is not loaded, using Object as common supertype");
       }
-      if (IRGenOptions.DBG_TYPE && c2 == null) {
+      if (DBG_TYPE && c2 == null) {
         VM.sysWrite(c2 + " is not loaded, using Object as common supertype");
       }
       TypeReference common = TypeReference.JavaLangObject;
@@ -312,7 +312,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
       } catch (Throwable e) {
         e.printStackTrace();
         OptimizingCompilerException.UNREACHABLE();
-        return MAYBE;            // placate jikes.
+        return MAYBE;
       }
     }
   }
@@ -323,6 +323,10 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
 
   /**
    * Find the method of the given class that matches the given descriptor.
+   *
+   * @param cls the method's class
+   * @param ref name and descriptor of the method
+   * @return a matching method or {@code null} if none was found
    */
   public static RVMMethod lookupMethod(RVMClass cls, MethodReference ref) {
     RVMMethod newmeth = null;
@@ -340,20 +344,12 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
   // Constant pool access
   // --------------------------------------------------------------------------
 
-  /**
-   * Get the integer stored at a particular index of a class's constant
-   * pool.
-   */
   public static IntConstantOperand getIntFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val = Statics.getSlotContentsAsInt(offset);
     return new IntConstantOperand(val);
   }
 
-  /**
-   * Get the double stored at a particular index of a class's constant
-   * pool.
-   */
   public static DoubleConstantOperand getDoubleFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val_raw = Statics.getSlotContentsAsLong(offset);
@@ -361,10 +357,6 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
     return new DoubleConstantOperand(val, offset);
   }
 
-  /**
-   * Get the float stored at a particular index of a class's constant
-   * pool.
-   */
   public static FloatConstantOperand getFloatFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val_raw = Statics.getSlotContentsAsInt(offset);
@@ -372,20 +364,12 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
     return new FloatConstantOperand(val, offset);
   }
 
-  /**
-   * Get the long stored at a particular index of a class's constant
-   * pool.
-   */
   public static LongConstantOperand getLongFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val = Statics.getSlotContentsAsLong(offset);
-    return new LongConstantOperand(val, offset);
+    return new LongConstantOperand(val);
   }
 
-  /**
-   * Get the String stored at a particular index of a class's constant
-   * pool.
-   */
   public static StringConstantOperand getStringFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
@@ -397,10 +381,6 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
     }
   }
 
-  /**
-   * Get the Class stored at a particular index of a class's constant
-   * pool.
-   */
   public static ClassConstantOperand getClassFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {

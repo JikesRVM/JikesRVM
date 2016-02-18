@@ -26,7 +26,7 @@ public class inlineTest7 {
     int k2 = 30;
     do {
       int k1 = k2 / 2;
-      i2 = bar(i2+1, 25);
+      i2 = bar(i2 + 1, 25);
       k2 = k1;
     } while (k2 > 1);
   }

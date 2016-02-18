@@ -16,70 +16,12 @@ TRAITS
 IMPLDEFS
 IMPLUSES
 
-###################
-# Operators only needed for BURS rules, not real instructions
-###################
-ADDRESS_CONSTANT
-Unassigned
-none
-
-
-
-####################
-INT_CONSTANT
-Unassigned
-none
-
-
-
-####################
-LONG_CONSTANT
-Unassigned
-none
-
-
-
-####################
-REGISTER
-Unassigned
-none
-
-
-
-####################
-OTHER_OPERAND
-Unassigned
-none
-
-
-
-####################
-NULL
-Unassigned
-none
-
-
-
-####################
-BRANCH_TARGET
-Unassigned
-none
-
-
-
 ########################################
-# Next comes the machine specific HIR/LIR instructions.
+# Machine specific HIR/LIR instructions.
 ########################################
 ####################
 MATERIALIZE_FP_CONSTANT
 Binary
-none
-
-
-
-# Acquire a pointer to the current processor object.
-GET_CURRENT_PROCESSOR
-Nullary
 none
 
 
@@ -299,6 +241,15 @@ none
 DUMMY_USE
 MIR_UnaryNoRes
 none
+
+
+
+#########################
+# Move quadword immediate
+#########################
+IMMQ_MOV
+MIR_Move
+move
 
 
 
@@ -578,6 +529,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FFREEP
+MIR_Nullary
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FIADD
 MIR_BinaryAcc
 none
@@ -732,6 +690,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FNSTSW
+MIR_Unary
+none
+C0_C1_C2_C3
+C0_C1_C2_C3
+
+####################
 IA32_FNINIT
 MIR_Empty
 none
@@ -772,6 +737,13 @@ MIR_UnaryNoRes
 none
 C0_C1_C2_C3
 
+
+####################
+IA32_FSTSW
+MIR_Unary
+none
+C0_C1_C2_C3
+C0_C1_C2_C3
 
 ####################
 IA32_FSTP
@@ -952,6 +924,13 @@ move
 
 ####################
 IA32_MOVSXQ__W
+MIR_Unary
+move
+
+
+
+####################
+IA32_MOVSXDQ
 MIR_Unary
 move
 
@@ -1374,6 +1353,20 @@ none
 IA32_CMPORDSD
 MIR_BinaryAcc
 none
+
+
+
+####################
+IA32_MOVAPD
+MIR_Move
+move
+
+
+
+####################
+IA32_MOVAPS
+MIR_Move
+move
 
 
 

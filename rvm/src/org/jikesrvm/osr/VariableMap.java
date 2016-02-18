@@ -19,10 +19,10 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 /**
  * VariableMap, non-encoded yet
  * <pre>
- * VariableMap          ---> LinkedList of VariableMapElement
- * VariableMapElement   ---> (OsrPoint, LinkedList of MethodVariables)
- * MethodVariables      ---> (Method, PC, List of LocalRegTuple)
- * LocalRegTuple   ---> ( LocalNum, regOp, Type ) or ( StackNum, regOp, Type )
+ * VariableMap          ---&gt; LinkedList of VariableMapElement
+ * VariableMapElement   ---&gt; (OsrPoint, LinkedList of MethodVariables)
+ * MethodVariables      ---&gt; (Method, PC, List of LocalRegTuple)
+ * LocalRegTuple   ---&gt; ( LocalNum, regOp, Type ) or ( StackNum, regOp, Type )
  * </pre>
  * *
  */
@@ -35,7 +35,7 @@ public final class VariableMap {
     return list.size();
   }
 
-  /*
+  /**
    * Inserts a new entry into the GCIRMap
    * @param inst      the IR instruction we care about
    * @param mvarList  the set of symbolic registers as a list
@@ -47,6 +47,9 @@ public final class VariableMap {
 
   /**
    * Inserts a new entry at the begin of the list.
+   *
+   * @param inst      the IR instruction we care about
+   * @param mvarList  the set of symbolic registers as a list
    */
   public void insertFirst(Instruction inst, LinkedList<MethodVariables> mvarList) {
     list.addFirst(new VariableMapElement(inst, mvarList));
@@ -65,7 +68,7 @@ public final class VariableMap {
    */
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("");
+    StringBuilder buf = new StringBuilder();
 
     if (list.isEmpty()) {
       buf.append("empty");
@@ -77,6 +80,3 @@ public final class VariableMap {
     return buf.toString();
   }
 }
-
-
-

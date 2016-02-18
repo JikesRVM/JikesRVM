@@ -12,13 +12,12 @@
  */
 package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.ArchitectureSpecific.JNICompiler;
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BaselineBootImageCompiler;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * Abstract superclass to interface bootimage compiler to the rest of the VM.
@@ -27,11 +26,15 @@ import org.jikesrvm.compilers.baseline.BaselineBootImageCompiler;
  */
 public abstract class BootImageCompiler {
 
-  protected static BootImageCompiler baseCompiler = new BaselineBootImageCompiler();
-  protected static BootImageCompiler optCompiler = VM.BuildForAdaptiveSystem ? new org.jikesrvm.compilers.opt.driver.OptimizingBootImageCompiler() : null;
+  protected static final BootImageCompiler baseCompiler;
+  protected static final BootImageCompiler optCompiler;
+  protected static final BootImageCompiler compiler;
 
-  protected static BootImageCompiler compiler = VM.BuildWithBaseBootImageCompiler ? baseCompiler : optCompiler;
-
+  static {
+    baseCompiler = new BaselineBootImageCompiler();
+    optCompiler = VM.BuildForAdaptiveSystem ? new org.jikesrvm.compilers.opt.driver.OptimizingBootImageCompiler() : null;
+    compiler = VM.BuildWithBaseBootImageCompiler ? baseCompiler : optCompiler;
+  }
 
   /**
    * Initialize boot image compiler.
@@ -40,8 +43,10 @@ public abstract class BootImageCompiler {
   protected abstract void initCompiler(String[] args);
 
   /**
-   * Compile a method with bytecodes.
+   * Compiles a method with bytecodes.
    * @param method the method to compile
+   * @param params the specialized types of the method's parameters.
+   *  This will be {@code null} if the types from the method's signature are used.
    * @return the compiled method
    */
   protected abstract CompiledMethod compileMethod(NormalMethod method, TypeReference[] params);
@@ -68,11 +73,15 @@ public abstract class BootImageCompiler {
   }
 
   public static CompiledMethod compile(NormalMethod method, TypeReference[] params) {
-    if (VM.BuildForAdaptiveSystem && VM.BuildWithBaseBootImageCompiler && method.getDeclaringClass().hasSaveVolatileAnnotation()) {
-      // Force opt compilation of SaveVolatile methods.
-      return optCompiler.compileMethod(method, params);
-    } else {
-      return compiler.compileMethod(method, params);
+    try {
+      if (VM.BuildForAdaptiveSystem && VM.BuildWithBaseBootImageCompiler && method.getDeclaringClass().hasSaveVolatileAnnotation()) {
+        // Force opt compilation of SaveVolatile methods.
+        return optCompiler.compileMethod(method, params);
+      } else {
+        return compiler.compileMethod(method, params);
+      }
+    } catch (Exception e) {
+      throw new Error("Exception during compilation of " + method, e);
     }
   }
 
@@ -87,6 +96,12 @@ public abstract class BootImageCompiler {
    */
   public static CompiledMethod compile(NativeMethod method) {
     Callbacks.notifyMethodCompile(method, CompiledMethod.JNI);
-    return JNICompiler.compile(method);
+
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.jni.ia32.JNICompiler.compile(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.jni.ppc.JNICompiler.compile(method);
+    }
   }
 }

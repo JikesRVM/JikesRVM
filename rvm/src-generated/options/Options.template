@@ -12,7 +12,11 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.runtime.ExitStatus.*;
+
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.vmmagic.pragma.*;
+import org.jikesrvm.runtime.CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options meant
@@ -240,7 +244,7 @@ $$$$ FOREACH OPTION VDATFILE
 $$$$ END FOREACH
 $$$$ END LOOP
 
-    VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
+    VM.sysExit(EXIT_STATUS_PRINTED_HELP_MESSAGE);
   }
 
   // print the options values

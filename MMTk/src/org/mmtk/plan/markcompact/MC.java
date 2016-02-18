@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.ObjectReference;
    */
 
   /** The mark compact space itself */
-  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", VMRequest.create(0.6f));
+  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", VMRequest.fraction(0.6f));
 
   /** The space descriptor */
   public static final int MARK_COMPACT = mcSpace.getDescriptor();

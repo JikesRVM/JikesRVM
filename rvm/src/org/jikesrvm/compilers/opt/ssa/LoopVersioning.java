@@ -106,7 +106,7 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  * </ul>
  * <p>
  * Example:
- * <listing>
+ * <pre>
  *   for (int t1=0; t1 &lt; 100; t1++) {
  *      g1 = null_check   l0
  *      g2 = bounds_check l0, t1
@@ -117,11 +117,11 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *      g6 = guard_combine g4,g5
  *           astore t2, l1, t1, g6
  *   }
- * </listing>
+ * </pre>
  *
  * becomes:
  *
- * <listing>
+ * <pre>
  *   goto explicit_test_block
  * successor_to_loops:
  *   g1 = phi g1_1, g1_2
@@ -134,9 +134,9 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   goto after_loop
  * explicit_test_block:
  *   if l0 == null (unlikely) goto sub_optimal_loop
- *   if 100 >= l0.length (unlikely) goto sub_optimal_loop
+ *   if 100 &gt;= l0.length (unlikely) goto sub_optimal_loop
  *   if l1 == null (unlikely) goto sub_optimal_loop
- *   if 100 >= l1.length (unlikely) goto sub_optimal_loop
+ *   if 100 &gt;= l1.length (unlikely) goto sub_optimal_loop
  *   goto optimal_loop
  * sub_optimal_loop:
  *   for (int t1_1=0; t1_1 &lt; 100; t1_1++) {
@@ -163,12 +163,12 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   }
  *   goto successor_to_loops
  * after_loop:
- * </listing>
+ * </pre>
  *
  * The optimisation works on the Heap SSA form. A more accurate
  * example of the transformation would be:
  *
- * <listing>
+ * <pre>
  *   heap1 = ...; // previous heap state
  *   t1_1 = 0;
  *   if t1_1 &ge; 100 goto label2
@@ -185,11 +185,11 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *      heap3 = astore t2, l1, t1_2, g6
  *      t1_3 = t1_2 + 1
  *      if t1_3 &lt; 100 label1 *   label2:
- * </listing>
+ * </pre>
  *
  * becomes:
  *
- * <listing>
+ * <pre>
  *   heap1 = ...; // previous heap state
  *   t1_1 = 0;
  *   if t1_1 &ge; 100 goto label2
@@ -209,9 +209,9 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   goto after_loop
  * explicit_test_block:
  *   g1_2 = if l0 == null (unlikely) goto sub_optimal_loop
- *   g2_2 = if 100 >= l0.length (unlikely) goto sub_optimal_loop
+ *   g2_2 = if 100 &gt;= l0.length (unlikely) goto sub_optimal_loop
  *   g4_2 = if l1 == null (unlikely) goto sub_optimal_loop
- *   g5_2 = if 100 >= l1.length (unlikely) goto sub_optimal_loop
+ *   g5_2 = if 100 &gt;= l1.length (unlikely) goto sub_optimal_loop
  *   goto optimal_loop
  * sub_optimal_loop:
  *   label1_1:
@@ -241,7 +241,7 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   goto successor_to_loops
  * after_loop:
  * label2:
- * </listing>
+ * </pre>
  */
 public final class LoopVersioning extends CompilerPhase {
   // -oO Debug variables Oo-
@@ -298,11 +298,12 @@ public final class LoopVersioning extends CompilerPhase {
   /**
    * SSA options
    */
-  private SSAOptions desiredSSAOptions;
+  private final SSAOptions desiredSSAOptions;
   /**
    * Compiler phases called from this one
    */
-  private CompilerPhase enterSSA, leaveSSA, domPhase;
+  private CompilerPhase enterSSA, leaveSSA;
+  private final CompilerPhase domPhase;
   /**
    * Run inside SSA sub-phase
    */
@@ -625,6 +626,9 @@ public final class LoopVersioning extends CompilerPhase {
    * all register definitions must be unique.
    * @param loop - the loop to examine
    * @param registers - vector to which defined registers are added
+   * @param types list to which the register's types are added
+   * @param definingInstructions list to which the defining instructions for
+   *  the registers are added
    */
   private void getRegistersDefinedInLoop(AnnotatedLSTNode loop, ArrayList<Register> registers,
                                          ArrayList<TypeReference> types,
@@ -658,6 +662,7 @@ public final class LoopVersioning extends CompilerPhase {
    * Generate into a new block phi nodes that define the original
    * register defined by the loop and use two newly created
    * registers.
+   * @param loop the loop to process
    * @param registers - vector to which defined registers need to be
    * created registers.x used in creating phi nodes
    * @param types - vector of corresponding types of registers.
@@ -708,6 +713,8 @@ public final class LoopVersioning extends CompilerPhase {
    * @param loop - loop to clone
    * @param regMap - mapping of original definition to new
    * definition
+   * @param regToBlockMap mapping of registers to new, unoptimized blocks. This starts
+   *  empty and will be filled during execution of the method.
    * @return a mapping from original BBs to created BBs
    */
   private HashMap<BasicBlock, BasicBlock> createCloneLoop(AnnotatedLSTNode loop,
@@ -919,6 +926,11 @@ public final class LoopVersioning extends CompilerPhase {
    * When phi nodes were generated the basic blocks weren't known for
    * the predecessors, fix this up now. (It may also not be possible
    * to reach the unoptimized loop any more)
+   *
+   * @param phiInstructions a list of phi nodes
+   * @param unoptimizedLoopExit the exit block of the unoptimized loop.
+   *  This may be {@code null} if the unoptimized loop is no longer reachable.
+   * @param optimizedLoopExit the exit block of the optimized loop
    */
   private void fixUpPhiPredecessors(ArrayList<Instruction> phiInstructions, BasicBlock unoptimizedLoopExit,
                                     BasicBlock optimizedLoopExit) {
@@ -938,7 +950,9 @@ public final class LoopVersioning extends CompilerPhase {
     }
   }
 
-  /**
+  /*
+   * TODO better JavaDoc comment.
+   * <p>
    * Create the block containing explict branches to either the
    * optimized or unoptimized loops
    * @param optimalRegMap - mapping used to map eliminated bound and
@@ -1287,7 +1301,10 @@ public final class LoopVersioning extends CompilerPhase {
    * Can we eliminate a null check as it has lready been performed?
    * NB SSA guarantees that if a value is null it must always be null
    *
+   * @param header loop header basic block
    * @param instr null check instruction
+   * @return the guard for the null check if it has already been performed,
+   * {@code null} if the check hasn't been performed yet
    */
   private RegisterOperand nullCheckPerformedInLoopPredecessors(BasicBlock header, Instruction instr) {
     if (VM.VerifyAssertions) VM._assert(NullCheck.conforms(instr));
@@ -1306,19 +1323,20 @@ public final class LoopVersioning extends CompilerPhase {
   }
 
   /**
-   * Get the array length reference ignoring instructions that adjust
-   * its result by a fixed amount
+   * Gets the array length reference ignoring instructions that adjust
+   * its result by a fixed amount.
    *
    * @param op operand to chase arraylength opcode to
    * constant value from an array length
+   * @return the array length as defined above
    */
   private Operand getConstantAdjustedArrayLengthRef(Operand op) {
     Operand result = null;
     if (op.isRegister()) {
       Instruction opInstr = AnnotatedLSTNode.definingInstruction(op);
-      if (opInstr.operator.opcode == ARRAYLENGTH_opcode) {
+      if (opInstr.getOpcode() == ARRAYLENGTH_opcode) {
         result = GuardedUnary.getVal(opInstr);
-      } else if ((opInstr.operator.opcode == INT_ADD_opcode) || (opInstr.operator.opcode == INT_SUB_opcode)) {
+      } else if ((opInstr.getOpcode() == INT_ADD_opcode) || (opInstr.getOpcode() == INT_SUB_opcode)) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
@@ -1336,12 +1354,13 @@ public final class LoopVersioning extends CompilerPhase {
    * that adjust the array length result by a constant amount
    *
    * @param op operand to chase arraylength opcode to
+   * @return the array length as defined above
    */
   private int getConstantAdjustedArrayLengthDistance(Operand op) {
     Instruction opInstr = AnnotatedLSTNode.definingInstruction(op);
-    if (opInstr.operator.opcode == ARRAYLENGTH_opcode) {
+    if (opInstr.getOpcode() == ARRAYLENGTH_opcode) {
       return 0;
-    } else if (opInstr.operator.opcode == INT_ADD_opcode) {
+    } else if (opInstr.getOpcode() == INT_ADD_opcode) {
       Operand val1 = Binary.getVal1(opInstr);
       Operand val2 = Binary.getVal2(opInstr);
       if (val1.isConstant()) {
@@ -1350,7 +1369,7 @@ public final class LoopVersioning extends CompilerPhase {
         if (VM.VerifyAssertions) VM._assert(val2.isConstant());
         return getConstantAdjustedArrayLengthDistance(val1) + val2.asIntConstant().value;
       }
-    } else if (opInstr.operator.opcode == INT_SUB_opcode) {
+    } else if (opInstr.getOpcode() == INT_SUB_opcode) {
       Operand val1 = Binary.getVal1(opInstr);
       Operand val2 = Binary.getVal2(opInstr);
       if (val1.isConstant()) {
@@ -1364,7 +1383,9 @@ public final class LoopVersioning extends CompilerPhase {
     }
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
+   * <p>
    * Remove loop and replace register definitions in the original loop
    * with phi instructions
    */
@@ -1485,9 +1506,6 @@ public final class LoopVersioning extends CompilerPhase {
     loop.exit.insertOut(loop.successor);
   }
 
-  /**
-   * Remove unreachable unoptimized loop
-   */
   private void removeUnoptimizedLoop(AnnotatedLSTNode loop,
                                      HashMap<BasicBlock, BasicBlock> unoptimizedLoopMap) {
     Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
@@ -1526,7 +1544,8 @@ public final class LoopVersioning extends CompilerPhase {
     return loopRegisterSet.contains(reg);
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
    * Rename the iterators for optimized loops so we can tell they are still optimized
    */
   private void renameOptimizedLoops(HashMap<Register, Register> subOptimalRegMap,

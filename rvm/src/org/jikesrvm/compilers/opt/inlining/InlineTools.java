@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -31,10 +30,12 @@ import org.vmmagic.pragma.Inline;
 /**
  * This class provides some utilities that are useful for inlining.
  */
-public abstract class InlineTools implements OptConstants {
+public abstract class InlineTools {
 
   /**
-   * Does class <code>A</code> directly implement the interface <code>B</code>?
+   * @param A a class
+   * @param B an interface
+   * @return whether class <code>A</code> directly implement the interface <code>B</code>?
    */
   public static boolean implementsInterface(Class<?> A, Class<?> B) {
     for (Class<?> i : A.getInterfaces()) {
@@ -59,6 +60,7 @@ public abstract class InlineTools implements OptConstants {
    * a mispredicted dynamic dispatch?
    *
    * @param callee the callee method
+   * @return whether a guard is needed
    */
   public static boolean needsGuard(RVMMethod callee) {
     return !(callee.isFinal() ||
@@ -70,8 +72,14 @@ public abstract class InlineTools implements OptConstants {
 
   /**
    * Is the method CURRENTLY final (not overridden by any subclass)?
+   * <p>
    * Note that this says nothing about whether or not the method will
-   * be overriden by future dynamically loaded classes.
+   * be overridden by future dynamically loaded classes.
+   *
+   * @param callee the method to check
+   * @param searchSubclasses whether so search subclasses.
+   * @return whether the method is currently final. This will be a
+   *  conservative approximation if subclasses are not searched.
    */
   public static boolean isCurrentlyFinal(RVMMethod callee, boolean searchSubclasses) {
     RVMClass klass = callee.getDeclaringClass();
@@ -152,9 +160,9 @@ public abstract class InlineTools implements OptConstants {
         reductionFactor -= opts.INLINE_OBJECT_CONST_ARG_BONUS;
       }
     }
-    reductionFactor = Math.max(reductionFactor, 1.0-opts.INLINE_MAX_ARG_BONUS);
+    reductionFactor = Math.max(reductionFactor, 1.0 - opts.INLINE_MAX_ARG_BONUS);
     if (opts.INLINE_CALL_DEPTH_COST != 0.00) {
-      double depthCost = Math.pow(1.0+opts.INLINE_CALL_DEPTH_COST, state.getInlineDepth()+1);
+      double depthCost = Math.pow(1.0 + opts.INLINE_CALL_DEPTH_COST, state.getInlineDepth() + 1);
       return (int) (sizeEstimate * reductionFactor * depthCost);
     } else {
       return (int) (sizeEstimate * reductionFactor);
@@ -184,7 +192,7 @@ public abstract class InlineTools implements OptConstants {
       case AllArgumentsAreConstant: {
         boolean result = true;
         Instruction s = state.getCallInstruction();
-        for (int i=0, n=Call.getNumberOfParams(s); i < n; i++) {
+        for (int i = 0, n = Call.getNumberOfParams(s); i < n; i++) {
           if (!Call.getParam(s, i).isConstant()) {
             result = false;
             break;
@@ -201,8 +209,12 @@ public abstract class InlineTools implements OptConstants {
         int[] args = ann.arguments();
         for (int arg : args) {
           if (VM.VerifyAssertions) {
-            VM._assert(arg >= 0, "argument is invalid: " + arg);
-            VM._assert(arg < Call.getNumberOfParams(s), "argument is invalid: " + arg);
+            boolean biggerThanMin = arg >= 0;
+            boolean smallerThanMax = arg < Call.getNumberOfParams(s);
+            if (!(smallerThanMax && biggerThanMin)) {
+              String msg = "argument is invalid: " + arg;
+              VM._assert(VM.NOT_REACHED, msg);
+            }
           }
           if (!Call.getParam(s, arg).isConstant()) {
             result = false;

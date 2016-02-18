@@ -14,7 +14,6 @@ package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -24,11 +23,11 @@ import org.vmmagic.unboxed.Address;
  * This class implements unsynchronized (local) elements of an
  * immix collector.  Marking is done using both a bit in
  * each header's object word, and a mark byte.  Sweeping is
- * performed lazily.<p>
+ * performed lazily.
  *
  */
 @Uninterruptible
-public final class CollectorLocal implements Constants {
+public final class CollectorLocal {
 
   /****************************************************************************
    *
@@ -73,6 +72,8 @@ public final class CollectorLocal implements Constants {
 
   /**
    * Prepare for a collection. If paranoid, perform a sanity check.
+   *
+   * @param majorGC whether the collection will be a full heap collection
    */
   public void prepare(boolean majorGC) {
     int ordinal = VM.activePlan.collector().parallelWorkerOrdinal();
@@ -98,6 +99,8 @@ public final class CollectorLocal implements Constants {
    * Finish up after a collection.
    *
    * We help sweeping all the blocks in parallel.
+   *
+   * @param majorGC whether the collection was a full heap collection
    */
   public void release(boolean majorGC) {
     sweepAllBlocks(majorGC);

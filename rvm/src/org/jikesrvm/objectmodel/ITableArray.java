@@ -29,9 +29,6 @@ public final class ITableArray implements RuntimeTable<ITable> {
    */
   private final ITable[] backingData;
 
-  /**
-   * Private constructor. Can not create instances.
-   */
   private ITableArray(int size) {
     this.backingData = new ITable[size];
   }

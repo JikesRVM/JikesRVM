@@ -31,7 +31,7 @@ class NullIdentity {
 
     System.loadLibrary("NullIdentity");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -60,7 +60,7 @@ class NullIdentity {
   }
 
   static void checkTest(int returnValue, String testName) {
-    if (returnValue==0) {
+    if (returnValue == 0) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

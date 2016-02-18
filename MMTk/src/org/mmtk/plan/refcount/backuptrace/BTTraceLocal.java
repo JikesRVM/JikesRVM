@@ -26,10 +26,11 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public final class BTTraceLocal extends TraceLocal {
+
   /**
-   * Constructor
+   * @param trace the associated global trace
    */
-  public BTTraceLocal(Trace trace) {
+public BTTraceLocal(Trace trace) {
     super(trace);
   }
 

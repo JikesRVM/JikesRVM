@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
  * This class implements <i>per-collector thread</i> behavior and state for the
  * <i>SSGCspy</i> plan.<p>
  *
- * See {@link SSGCspy} for an overview of the GC-spy mechanisms.<p>
+ * See {@link SSGCspy} for an overview of the GC-spy mechanisms.
  *
  * @see SSCollector
  * @see SSGCspy
@@ -85,7 +85,10 @@ import org.vmmagic.pragma.*;
   @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
-    if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }
+    if (DEBUG) {
+      Log.write("--Phase Collector.");
+      Log.writeln(Phase.getName(phaseId));
+    }
 
     //TODO do we need to worry any longer about primary??
     if (phaseId == SS.PREPARE) {
@@ -129,7 +132,7 @@ import org.vmmagic.pragma.*;
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
-    if(DEBUG) {
+    if (DEBUG) {
       Log.writeln("SSGCspyCollector.gcspyGatherData, event=", event);
       Log.writeln("SSGCspyCollector.gcspyGatherData, port=", GCspy.getGCspyPort());
     }
@@ -202,8 +205,8 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Print some debugging info
-   * @param scannedSpace
+   * Prints some debugging info.
+   * @param scannedSpace the space that was scanned
    */
   private void debugSpaces(CopySpace scannedSpace) {
     Log.write("SSGCspyCollector.gcspyGatherData: gather data for active semispace ");
@@ -216,7 +219,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Reset all root streams.<p>
+   * Reset all root streams.
    */
   void resetRootStreams() {
     SSGCspy.ss0Driver.resetRootsStream();
@@ -234,7 +237,7 @@ import org.vmmagic.pragma.*;
    * @param addr The Address of the object to be checked
    */
   protected void checkAllDriversForRootAddress(Address addr) {
-    if(addr.isZero())
+    if (addr.isZero())
       return;
 
     SSGCspy.ss0Driver.handleRoot(addr);

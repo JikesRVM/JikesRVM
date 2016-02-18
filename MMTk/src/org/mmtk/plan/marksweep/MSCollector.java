@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  * (through <code>trace</code> and the <code>collectionPhase</code>
  * method).<p>
  *
- * @see MS for an overview of the mark-sweep algorithm.<p>
+ * @see MS for an overview of the mark-sweep algorithm.
  *
  * @see MS
  * @see MSMutator

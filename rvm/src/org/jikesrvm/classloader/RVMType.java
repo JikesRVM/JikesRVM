@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
+
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
@@ -60,8 +61,7 @@ import org.vmmagic.unboxed.Offset;
  * are no-ops.
  */
 @NonMoving
-public abstract class RVMType extends AnnotatedElement
-    implements ClassLoaderConstants, SizeConstants, Constants {
+public abstract class RVMType extends AnnotatedElement {
 
   /**
    * A zero-length array, used as GC metadata for primitive
@@ -84,7 +84,7 @@ public abstract class RVMType extends AnnotatedElement
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /** All types */
   private static RVMType[][] types = new RVMType[1][1 << LOG_ROW_SIZE];
 
@@ -206,7 +206,7 @@ public abstract class RVMType extends AnnotatedElement
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
    * classes. NB this field must appear in all Types for fast type
-   * checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
+   * checks (See transformation from HIR to LIR for details).
    */
   @Entrypoint
   protected final int dimension;
@@ -214,13 +214,13 @@ public abstract class RVMType extends AnnotatedElement
    * Number of superclasses to Object. Known immediately for
    * primitives and arrays, but only after resolving for classes. NB
    * this field must appear in all Types for fast object array
-   * store checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
+   * store checks (See transformation from HIR to LIR for details).
    */
   @Entrypoint
   protected int depth;
   /**
    * cached RVMArray that corresponds to arrays of this type.
-   * (null ->> not created yet).
+   * (null --&gt; not created yet).
    */
   private RVMArray cachedElementType;
 
@@ -278,7 +278,7 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * Canonical type reference for this type.
+   * @return canonical type reference for this type.
    */
   @Uninterruptible
   public final TypeReference getTypeRef() {
@@ -286,7 +286,7 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * Get the numeric identifier for this type
+   * @return the numeric identifier for this type
    */
   @Uninterruptible
   public final int getId() {
@@ -294,8 +294,9 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * Instance of java.lang.Class corresponding to this type.
-   * This is commonly used for reflection.
+   * @return instance of java.lang.Class corresponding to this type.
+   * This is commonly used for reflection. NB: this method will cause
+   * resolution to take place if necessary.
    */
   public final Class<?> getClassForType() {
     if (VM.runningVM) {
@@ -311,19 +312,21 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * Instance of java.lang.Class corresponding to this type.
-   * This is commonly used for reflection.
+   * Gets the resolved class for a type.
+   * <p>
+   * Note that this method may only be called when it's clear that the
+   * class has already been resolved. If that is not guaranteed, use
+   * {@link #getClassForType()}.
+   * @return instance of java.lang.Class corresponding to this type.
    */
   @Uninterruptible
   public final Class<?> getResolvedClassForType() {
-    // Resolve the class so that we don't need to resolve it
-    // in reflection code
     if (VM.VerifyAssertions) VM._assert(VM.runningVM && isResolved());
     return classForType;
   }
 
   /**
-   * Get offset of tib slot from start of jtoc, in bytes.
+   * @return offset of TIB slot from start of JTOC, in bytes.
    */
   @Uninterruptible
   public final Offset getTibOffset() {
@@ -331,7 +334,7 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * Get the class loader for this type
+   * @return the class loader for this type
    */
   @Uninterruptible
   public final ClassLoader getClassLoader() {
@@ -353,6 +356,7 @@ public abstract class RVMType extends AnnotatedElement
    *   <li>For an array, something like "[I" or "[Ljava/lang/String;".
    *   <li>For a primitive, something like "I".
    * </ul>
+   * @return descriptor as described above
    */
   @Uninterruptible
   public final Atom getDescriptor() {
@@ -374,6 +378,7 @@ public abstract class RVMType extends AnnotatedElement
    *   <li>0 java.lang.Object, Primitive, and Classes that are interfaces
    *   <li>1 for RVMArrays and classes that extend Object directly
    * </ul>
+   * @return number of superclasses between this type and object
    */
   @Uninterruptible
   public abstract int getTypeDepth();
@@ -381,12 +386,16 @@ public abstract class RVMType extends AnnotatedElement
   /**
    * Reference Count GC: Is a reference of this type contained in
    * another object inherently acyclic (without cycles)?
+   *
+   * @return {@code true} if the reference is acyclic
    */
   @Uninterruptible
   public abstract boolean isAcyclicReference();
 
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for classes
+   *
+   * @return dimensionality of the type (see above)
    */
   @Uninterruptible
   public abstract int getDimensionality();
@@ -506,7 +515,7 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * Get array type corresponding to "this" array element type.
+   * @return array type corresponding to "this" array element type.
    */
   public final RVMArray getArrayTypeForElementType() {
     if (cachedElementType == null) {
@@ -520,7 +529,7 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * get superclass id vector (@see DynamicTypeCheck)
+   * @return superclass id vector (@see DynamicTypeCheck)
    */
   @Uninterruptible
   public final short[] getSuperclassIds() {
@@ -528,7 +537,7 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * get doesImplement vector (@see DynamicTypeCheck)
+   * @return doesImplement vector (@see DynamicTypeCheck)
    */
   @Uninterruptible
   public final int[] getDoesImplement() {
@@ -537,17 +546,20 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * Allocate entry in types array and add it (NB resize array if it's
-   * not long enough)
+   * not long enough).
+   *
+   * @param it the type to add
+   * @return the id of the tpye in the types array
    */
   private static synchronized int nextId(RVMType it) {
     int ans = nextId++;
     int column = ans >> LOG_ROW_SIZE;
     if (column >= types.length) {
-      RVMType[][] newTypes = new RVMType[column+1][];
+      RVMType[][] newTypes = new RVMType[column + 1][];
       for (int i = 0; i < types.length; i++) {
         newTypes[i] = types[i];
       }
-      newTypes[column] = new RVMType[1<<LOG_ROW_SIZE];
+      newTypes[column] = new RVMType[1 << LOG_ROW_SIZE];
       types = newTypes;
     }
     types[ans >> LOG_ROW_SIZE][ans & ROW_MASK] = it;
@@ -556,25 +568,21 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * How many types have been created?
-   * Only intended to be used by the bootimage writer!
+   * Only intended to be used by the bootimage writer
+   * or members of this class!
+   *
+   * @return number of types that have been created
    */
   @Uninterruptible
   public static int numTypes() {
     return nextId - 1;
   }
 
-  /**
-   * Get the type for the given id
-   */
   @Uninterruptible
   public static RVMType getType(int id) {
     return types[id >> LOG_ROW_SIZE][id & ROW_MASK];
   }
 
-  /**
-   * Utility to create a java.lang.Class for the given type using the
-   * given type reference
-   */
   protected static Class<?> createClassForType(RVMType type, TypeReference typeRef) {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.createClass(type);
@@ -590,27 +598,31 @@ public abstract class RVMType extends AnnotatedElement
           String classNameString = className.toString();
           if (classNameString.equals("V")) {
             return void.class;
-          } else if(classNameString.equals("I")){
+          } else if (classNameString.equals("I")) {
             return int.class;
-          } else if(classNameString.equals("J")){
+          } else if (classNameString.equals("J")) {
             return long.class;
-          } else if(classNameString.equals("F")){
+          } else if (classNameString.equals("F")) {
             return float.class;
-          } else if(classNameString.equals("D")){
+          } else if (classNameString.equals("D")) {
             return double.class;
-          } else if(classNameString.equals("C")){
+          } else if (classNameString.equals("C")) {
             return char.class;
-          } else if(classNameString.equals("S")){
+          } else if (classNameString.equals("S")) {
             return short.class;
-          } else if(classNameString.equals("Z")){
+          } else if (classNameString.equals("Z")) {
             return boolean.class;
-          } else if(classNameString.equals("B")){
+          } else if (classNameString.equals("B")) {
             return byte.class;
           } else {
             return Class.forName(classNameString.replace('/', '.'), false, RVMType.class.getClassLoader());
           }
         }
-      } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
+      } catch (ClassNotFoundException e) {
+        x = e;
+      } catch (SecurityException e) {
+        x = e;
+      }
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
         // fix up class for code array
         return CodeArray.class;
@@ -630,7 +642,7 @@ public abstract class RVMType extends AnnotatedElement
    * Find specified virtual method description.
    * @param memberName   method name - something like "foo"
    * @param memberDescriptor method descriptor - something like "I" or "()I"
-   * @return method description (null --> not found)
+   * @return method description (null --&gt; not found)
    */
   public final RVMMethod findVirtualMethod(Atom memberName, Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
@@ -665,6 +677,8 @@ public abstract class RVMType extends AnnotatedElement
    * fields/methods via direct loads/stores/calls (rather than generating
    * code to access fields/methods symbolically, via dynamic linking stubs).<p>
    * Primitives are always treated as "resolved".
+   *
+   * @return {@code true} when the class has been resolved
    */
   @Uninterruptible
   public abstract boolean isResolved();
@@ -675,6 +689,8 @@ public abstract class RVMType extends AnnotatedElement
    * then all its methods have been compiled
    * and its type information block has been placed in the JTOC.<p>
    * Primitives are always treated as "instantiated".
+   *
+   * @return {@code true} when the class has been instantiated
    */
   @Uninterruptible
   public abstract boolean isInstantiated();
@@ -686,6 +702,8 @@ public abstract class RVMType extends AnnotatedElement
    * Arrays have no {@code <clinit>} methods so they become
    * "initialized" immediately upon "instantiation".<p>
    * Primitives are always treated as "initialized".
+   *
+   * @return {@code true} when the class has been initialized
    */
   @Uninterruptible
   public abstract boolean isInitialized();
@@ -697,12 +715,14 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * Is this class part of the virtual machine's boot image?
+   *
+   * @return {@code true} if the class is in the bootimage
    */
   @Uninterruptible
   public abstract boolean isInBootImage();
 
   /**
-   * Get the offset in instances of this type assigned to the thin lock word.
+   * @return the offset in instances of this type assigned to the thin lock word.
    * Offset.max() if instances of this type do not have thin lock words.
    */
   @Uninterruptible
@@ -744,6 +764,7 @@ public abstract class RVMType extends AnnotatedElement
   public abstract boolean isReferenceType();
 
   /**
+   * @param type type to checj
    * @return whether type can be assigned to things of this RVMType
    */
   public boolean isAssignableFrom(RVMType type) {
@@ -760,12 +781,14 @@ public abstract class RVMType extends AnnotatedElement
    * <li> long and double types require 2 words
    * <li> all other primitive types require 1 word
    * </ul>
+   *
+   * @return space in words on the stack
    */
   @Uninterruptible
   public abstract int getStackWords();
 
   /**
-   * Number of bytes in memory required to represent the type
+   * @return number of bytes in memory required to represent the type
    */
   @Uninterruptible
   public abstract int getMemoryBytes();
@@ -800,44 +823,57 @@ public abstract class RVMType extends AnnotatedElement
   public abstract void initialize();
 
   /**
-   * Does this type override java.lang.Object.finalize()?
+   * @return {@code true} if this type overrides {@code java.lang.Object.finalize()}
    */
   @Uninterruptible
   public abstract boolean hasFinalizer();
 
-  /**
-   * Static fields of this class/array type.
-   */
   public abstract RVMField[] getStaticFields();
 
   /**
-   * Non-static fields of this class/array type
+   * @return non-static fields of this class/array type
    * (composed with supertypes, if any).
    */
   public abstract RVMField[] getInstanceFields();
 
-  /**
-   * Statically dispatched methods of this class/array type.
-   */
   public abstract RVMMethod[] getStaticMethods();
 
   /**
-   * Virtually dispatched methods of this class/array type
+   * @return virtually dispatched methods of this class/array type
    * (composed with supertypes, if any).
    */
   public abstract RVMMethod[] getVirtualMethods();
 
   /**
-   * Runtime type information for this class/array type.
+   * @return runtime type information for this class/array type.
    */
   @Uninterruptible
   public abstract TIB getTypeInformationBlock();
 
-  /**
-   * Set the specialized method for a class or array.
-   */
   public final void setSpecializedMethod(int id, CodeArray code) {
     getTypeInformationBlock().setSpecializedMethod(id, code);
+  }
+
+  /**
+   * Updates the TIB for all array types with the newly (re)compiled method.
+   *
+   * @param m the method that was recompiled. Must be a virtual method
+   *  declared by {@code java.lang.Object}.
+   */
+  static synchronized void updateArrayMethods(RVMMethod m) {
+    if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass().isJavaLangObjectType());
+    if (VM.VerifyAssertions) VM._assert(!m.isStatic());
+    // Start at slot 1 since nextId is initialized to 1
+    for (int i = 1; i <= numTypes(); i++) {
+      RVMType type = RVMType.getType(i);
+      if (type.isArrayType() && type.isResolved()) {
+        TIB arrayTIB = type.getTypeInformationBlock();
+        TIB objectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
+        Offset virtualMethodOffset = m.getOffset();
+        CodeArray virtualMethod = objectTIB.getVirtualMethod(virtualMethodOffset);
+        arrayTIB.setVirtualMethod(virtualMethodOffset, virtualMethod);
+      }
+    }
   }
 
   /**
@@ -850,7 +886,7 @@ public abstract class RVMType extends AnnotatedElement
    *
    * In a primitive array this field points to a zero-length array.
    *
-   * In a reference array this field is null.
+   * In a reference array this field is {@code null}.
    *
    * In a class with pointers, it contains the offsets of
    * reference-containing instance fields
@@ -858,7 +894,7 @@ public abstract class RVMType extends AnnotatedElement
   protected int[] referenceOffsets;
 
   /**
-   * Record the allocator information the memory manager holds about this type.
+   * Records the allocator information the memory manager holds about this type.
    *
    * @param allocator the allocator to record
    */
@@ -881,14 +917,14 @@ public abstract class RVMType extends AnnotatedElement
   }
 
   /**
-   * Is this field a type that must never move?
+   * @return is this a type that must never move
    */
   public boolean isNonMoving() {
     return hasNonMovingAnnotation();
   }
 
   /**
-   * Offsets of reference-containing instance fields of this class type.
+   * @return offsets of reference-containing instance fields of this class type.
    * Offsets are with respect to object pointer -- see RVMField.getOffset().
    */
   @Uninterruptible
@@ -896,4 +932,5 @@ public abstract class RVMType extends AnnotatedElement
     if (VM.VerifyAssertions) VM._assert(isResolved());
     return referenceOffsets;
   }
+
 }

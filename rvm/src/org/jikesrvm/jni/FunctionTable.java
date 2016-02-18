@@ -13,7 +13,7 @@
 package org.jikesrvm.jni;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.objectmodel.RuntimeTable;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.NonMoving;
@@ -34,6 +34,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
 
   /**
    * Private constructor. Can not create instances.
+   * @param size size of the function table
    */
   private FunctionTable(int size) {
     this.data = new CodeArray[size];

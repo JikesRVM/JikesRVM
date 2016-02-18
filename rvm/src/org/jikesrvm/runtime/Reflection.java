@@ -12,13 +12,16 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.MachineReflection;
+import static org.jikesrvm.Configuration.BuildForSSE2Full;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_VIRTUAL_METHOD_INDEX;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
@@ -26,12 +29,11 @@ import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
-import static org.jikesrvm.Configuration.BuildForSSE2Full;
-
 /**
  * Arch-independent portion of reflective method invoker.
  */
-public class Reflection implements Constants {
+public class Reflection {
+
   /** Perform reflection using bytecodes (true) or out-of-line machine code (false) */
   public static boolean bytecodeReflection = false;
   /**
@@ -40,10 +42,24 @@ public class Reflection implements Constants {
    * java.lang.reflect objects.
    */
   public static boolean cacheInvokerInJavaLangReflect = true;
+  /*
+   * Reflection uses an integer return from a function which logically
+   * returns a triple.  The values are packed in the integer return value
+   * by the following masks.
+   */
+  public static final int REFLECTION_GPRS_BITS = 5;
+  public static final int REFLECTION_GPRS_MASK = (1 << REFLECTION_GPRS_BITS) - 1;
+  public static final int REFLECTION_FPRS_BITS = 5;
+  public static final int REFLECTION_FPRS_MASK = (1 << REFLECTION_FPRS_BITS) - 1;
+
   /**
    * Does the reflective method scheme need to check the arguments are valid?
    * Bytecode reflection doesn't need arguments checking as they are checking as
    * they are unwrapped
+   *
+   * @param invoker the invoker to use for the reflective invokation
+   * @return whether the reflective method scheme needs to to be check
+   *  the arguments for validity
    */
   @Inline
   public static boolean needsCheckArgs(ReflectionBase invoker) {
@@ -54,11 +70,12 @@ public class Reflection implements Constants {
   /**
    * Call a method.
    * @param method method to be called
+   * @param invoker the invoker to use for the invocation, may be {@code null} in
+   *  certain cases
    * @param thisArg "this" argument (ignored if method is static)
    * @param otherArgs remaining arguments
-   *
-   * isNonvirtual flag is false if the method of the real class of this
-   * object is to be invoked; true if a method of a superclass may be invoked
+   * @param isNonvirtual flag is {@code false} if the method of the real class of this
+   * object is to be invoked; {@code true} if a method of a superclass may be invoked
    * @return return value (wrapped if primitive)
    * See also: java/lang/reflect/Method.invoke()
    */
@@ -111,7 +128,13 @@ public class Reflection implements Constants {
 
     // decide how to pass parameters
     //
-    int triple = MachineReflection.countParameters(method);
+    int triple = 0;
+    if (VM.BuildForIA32) {
+      triple = org.jikesrvm.ia32.MachineReflection.countParameters(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      triple = org.jikesrvm.ppc.MachineReflection.countParameters(method);
+    }
     int gprs = triple & REFLECTION_GPRS_MASK;
     WordArray GPRs = (gprs > 0) ? WordArray.create(gprs) : emptyWordArray;
     int fprs = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
@@ -180,7 +203,12 @@ public class Reflection implements Constants {
     RVMThread.getCurrentThread().disableYieldpoints();
 
     CodeArray code = cm.getEntryCodeArray();
-    MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    if (VM.BuildForIA32) {
+      org.jikesrvm.ia32.MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      org.jikesrvm.ppc.MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    }
 
     // critical: no yieldpoints/GCpoints between here and the invoke of code!
     //           We may have references hidden in the GPRs and Spills arrays!!!
@@ -238,28 +266,44 @@ public class Reflection implements Constants {
   // Method parameter wrappers.
   //
   @NoInline
-  public static Object wrapBoolean(int b) { return b == 1; }
+  public static Object wrapBoolean(int b) {
+    return b == 1;
+  }
 
   @NoInline
-  public static Object wrapByte(byte b) { return b; }
+  public static Object wrapByte(byte b) {
+    return b;
+  }
 
   @NoInline
-  public static Object wrapChar(char c) { return c; }
+  public static Object wrapChar(char c) {
+    return c;
+  }
 
   @NoInline
-  public static Object wrapShort(short s) { return s; }
+  public static Object wrapShort(short s) {
+    return s;
+  }
 
   @NoInline
-  public static Object wrapInt(int i) { return i; }
+  public static Object wrapInt(int i) {
+    return i;
+  }
 
   @NoInline
-  public static Object wrapLong(long l) { return l; }
+  public static Object wrapLong(long l) {
+    return l;
+  }
 
   @NoInline
-  public static Object wrapFloat(float f) { return f; }
+  public static Object wrapFloat(float f) {
+    return f;
+  }
 
   @NoInline
-  public static Object wrapDouble(double d) { return d; }
+  public static Object wrapDouble(double d) {
+    return d;
+  }
 
   // Method parameter unwrappers.
   //
@@ -273,31 +317,49 @@ public class Reflection implements Constants {
   }
 
   @NoInline
-  public static boolean unwrapBoolean(Object o) { return (Boolean) o; }
+  public static boolean unwrapBoolean(Object o) {
+    return (Boolean) o;
+  }
 
   @NoInline
-  public static byte unwrapByte(Object o) { return (Byte) o; }
+  public static byte unwrapByte(Object o) {
+    return (Byte) o;
+  }
 
   @NoInline
-  public static char unwrapChar(Object o) { return (Character) o; }
+  public static char unwrapChar(Object o) {
+    return (Character) o;
+  }
 
   @NoInline
-  public static short unwrapShort(Object o) { return (Short) o; }
+  public static short unwrapShort(Object o) {
+    return (Short) o;
+  }
 
   @NoInline
-  public static int unwrapInt(Object o) { return (Integer) o; }
+  public static int unwrapInt(Object o) {
+    return (Integer) o;
+  }
 
   @NoInline
-  public static long unwrapLong(Object o) { return (Long) o; }
+  public static long unwrapLong(Object o) {
+    return (Long) o;
+  }
 
   @NoInline
-  public static float unwrapFloat(Object o) { return (Float) o; }
+  public static float unwrapFloat(Object o) {
+    return (Float) o;
+  }
 
   @NoInline
-  public static double unwrapDouble(Object o) { return (Double) o; }
+  public static double unwrapDouble(Object o) {
+    return (Double) o;
+  }
 
   @NoInline
-  public static Address unwrapObject(Object o) { return Magic.objectAsAddress(o); }
+  public static Address unwrapObject(Object o) {
+    return Magic.objectAsAddress(o);
+  }
 
   private static boolean firstUse = true;
 }

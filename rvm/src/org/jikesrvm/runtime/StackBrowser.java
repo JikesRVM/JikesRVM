@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  *  Use this class to explore the stack.  It is sometimes necessary to
  *  find out the current context class loader, and other things like that.
  */
-public final class StackBrowser implements ArchitectureSpecific.StackframeLayoutConstants {
+public final class StackBrowser {
 
   /** Method associated with current stack location */
   private RVMMethod currentMethod;
@@ -65,7 +65,7 @@ public final class StackBrowser implements ArchitectureSpecific.StackframeLayout
 
     Address prevFP = fp;
     Address newFP = Magic.getCallerFramePointer(fp);
-    if (newFP.EQ(STACKFRAME_SENTINEL_FP)) {
+    if (newFP.EQ(StackFrameLayout.getStackFrameSentinelFP())) {
       return false;
     }
     // getReturnAddress has to be put here, consider the case
@@ -74,10 +74,10 @@ public final class StackBrowser implements ArchitectureSpecific.StackframeLayout
 
     int cmid = Magic.getCompiledMethodID(newFP);
 
-    while (cmid == INVISIBLE_METHOD_ID) {
+    while (cmid == StackFrameLayout.getInvisibleMethodID()) {
       prevFP = newFP;
       newFP = Magic.getCallerFramePointer(newFP);
-      if (newFP.EQ(STACKFRAME_SENTINEL_FP)) {
+      if (newFP.EQ(StackFrameLayout.getStackFrameSentinelFP())) {
         return false;
       }
       newIP = Magic.getReturnAddress(prevFP);
@@ -99,7 +99,7 @@ public final class StackBrowser implements ArchitectureSpecific.StackframeLayout
     if (VM.VerifyAssertions) VM._assert(ok, "tried to browse off stack");
   }
 
-  /** Are there more stack frames? */
+  /** @return whether there are more stack frames */
   public boolean hasMoreFrames() {
     return upOneFrameInternal(false);
   }
@@ -111,52 +111,59 @@ public final class StackBrowser implements ArchitectureSpecific.StackframeLayout
     }
   }
 
-  /** Set the current bytecode index, called only by the appropriate compiled method code */
   public void setBytecodeIndex(int bytecodeIndex) {
     currentBytecodeIndex = bytecodeIndex;
   }
 
-  /** Set the current method, called only by the appropriate compiled method code */
   public void setMethod(RVMMethod method) {
     currentMethod = method;
   }
 
-  /** Set the current compiled method, called only by the appropriate compiled method code */
   public void setCompiledMethod(CompiledMethod cm) {
     currentCompiledMethod = cm;
   }
 
-  /** Set the inline encoding for opt compiled methods only */
+  /**
+   * Set the inline encoding. This is only necessary for
+   * opt compiled methods.
+   *
+   * @param index the inline encoding index
+   */
   public void setInlineEncodingIndex(int index) {
     currentInlineEncodingIndex = index;
   }
 
-  /** The bytecode index associated with the current stack frame */
+  /** @return the bytecode index associated with the current stack frame */
   public int getBytecodeIndex() {
     return currentBytecodeIndex;
   }
 
-  /** The method associated with the current stack frame */
+  /** @return the method associated with the current stack frame */
   public RVMMethod getMethod() {
     return currentMethod;
   }
 
-  /** The compiled method associated with the current stack frame */
+  /** @return the compiled method associated with the current stack frame */
   public CompiledMethod getCompiledMethod() {
     return currentCompiledMethod;
   }
 
-  /** The class of the method associated with the current stack frame */
+  /** @return the class of the method associated with the current stack frame */
   public RVMClass getCurrentClass() {
     return getMethod().getDeclaringClass();
   }
 
-  /** The class loader of the method associated with the current stack frame */
+  /** @return the class loader of the method associated with the current stack frame */
   public ClassLoader getClassLoader() {
     return getCurrentClass().getClassLoader();
   }
 
-  /** Get the inline encoding associated with the current stack location, called only by opt compiled methods */
+  /**
+   * Get the inline encoding associated with the current stack location.
+   * This method is called only by opt compiled methods.
+   *
+   *  @return the inline encoding associated with the current stack location
+   */
   public int getInlineEncodingIndex() {
     return currentInlineEncodingIndex;
   }

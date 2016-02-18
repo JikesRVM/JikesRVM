@@ -56,4 +56,3 @@ class t3GT3Worker extends Thread {
        }
    }
 }
-

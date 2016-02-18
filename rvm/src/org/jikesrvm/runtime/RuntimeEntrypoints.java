@@ -12,16 +12,21 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.Registers;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.Services;
+import org.jikesrvm.architecture.AbstractRegisters;
+import org.jikesrvm.architecture.StackFrameLayout;
+import org.jikesrvm.classloader.DynamicTypeCheck;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
@@ -32,6 +37,7 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
@@ -41,6 +47,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Entrypoints into the runtime of the virtual machine.
@@ -76,7 +83,7 @@ import org.vmmagic.unboxed.Offset;
  *   <li> "fp" values that point to interior of "stack" objects
  * </ul>
  */
-public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.StackframeLayoutConstants {
+public class RuntimeEntrypoints {
 
   private static final boolean traceAthrow = false;
   // Trap codes for communication with C trap handler.
@@ -92,6 +99,10 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   public static final int TRAP_MUST_IMPLEMENT = 7;
   public static final int TRAP_STORE_CHECK = 8; // opt-compiler
   public static final int TRAP_STACK_OVERFLOW_FATAL = 9; // assertion checking
+  public static final int TRAP_UNREACHABLE_BYTECODE = 10; // IA32 baseline compiler assertion
+
+  private static final String UNREACHABLE_BC_MESSAGE = "Attempted to execute " +
+  "a bytecode that was determined to be unreachable!";
 
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
@@ -166,36 +177,27 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     }
   }
 
-  /**
-   * Perform aastore bytecode
-   */
   @Entrypoint
   static void aastore(Object[] arrayRef, int index, Object value) throws ArrayStoreException, ArrayIndexOutOfBoundsException {
     checkstore(arrayRef, value);
     int nelts = ObjectModel.getArrayLength(arrayRef);
-    if (index >=0 && index < nelts) {
+    if (index >= 0 && index < nelts) {
       Services.setArrayUninterruptible(arrayRef, index, value);
     } else {
       throw new ArrayIndexOutOfBoundsException(index);
     }
   }
 
-  /**
-   * Perform uninterruptible aastore bytecode
-   */
   @Entrypoint
   @Uninterruptible
   static void aastoreUninterruptible(Object[] arrayRef, int index, Object value) {
     if (VM.VerifyAssertions) {
       int nelts = ObjectModel.getArrayLength(arrayRef);
-      VM._assert(index >=0 && index < nelts);
+      VM._assert(index >= 0 && index < nelts);
     }
     Services.setArrayUninterruptible(arrayRef, index, value);
   }
 
-  /**
-   * Throw exception iff array assignment is illegal.
-   */
   @Entrypoint
   @Inline
   static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
@@ -227,14 +229,14 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * May a variable of type "lhs" be assigned a value of type "rhs"?
    * @param lhs type of variable
    * @param rhs type of value
-   * @return true  --> assignment is legal
-   *           false --> assignment is illegal
+   * @return true  --&gt; assignment is legal
+   *           false --&gt; assignment is illegal
    * <strong>Assumption</strong>: caller has already tested "trivial" case
    * (exact type match)
    *             so we need not repeat it here
    */
   @Pure
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value = Inline.When.AllArgumentsAreConstant)
   public static boolean isAssignableWith(RVMType lhs, RVMType rhs) {
     if (!lhs.isResolved()) {
       lhs.resolve();
@@ -251,7 +253,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
 
   /**
    * Allocate something like "new Foo()".
-   * @param id id of type reference of class to create.
+   * @param id id of type reference of class to create
+   * @param site the site id of the calling allocation site
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
@@ -390,6 +393,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * @param allocator int that encodes which allocator should be used
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
+   * @param site the site id of the calling allocation site
    * @return array object with header installed and all elements set
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
@@ -425,6 +429,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *
    * @param obj the object to clone
    * @return the cloned object
+   * @throws CloneNotSupportedException when the object does not support cloning
    */
   public static Object clone(Object obj) throws OutOfMemoryError, CloneNotSupportedException {
     RVMType type = Magic.getObjectType(obj);
@@ -458,6 +463,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * @param obj the object to clone
    * @param type the type information for the class
    * @return the cloned object
+   * @throws CloneNotSupportedException when the object does not support cloning
    */
   private static Object cloneClass(Object obj, RVMType type) throws OutOfMemoryError, CloneNotSupportedException {
     if (!(obj instanceof Cloneable)) {
@@ -582,9 +588,9 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *
    * Side effect: hash value is generated and stored into object's
    * status word.
-   *
+   * @param object the object to hash
    * @return object's hashcode.
-   * @see java.lang.Object#hashCode().
+   * @see java.lang.Object#hashCode
    */
   public static int getObjectHashCode(Object object) {
     return ObjectModel.getObjectHashCode(object);
@@ -598,6 +604,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * Prepare a class for use prior to first allocation,
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
+   *
+   * @param cls the class to prepare for dynamic link
    * @see MemberReference#needsDynamicLink
    */
   public static void initializeClassForDynamicLink(RVMClass cls) {
@@ -642,7 +650,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   /**
    * Deliver a software exception to current java thread.
    * @param exceptionObject exception object to deliver
-   * (null --> deliver NullPointerException).
+   * (null --&gt; deliver NullPointerException).
    * does not return
    * (stack is unwound and execution resumes in a catch block)
    *
@@ -657,10 +665,10 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       RVMThread.dumpStack();
     }
     RVMThread myThread = RVMThread.getCurrentThread();
-    Registers exceptionRegisters = myThread.getExceptionRegisters();
+    AbstractRegisters exceptionRegisters = myThread.getExceptionRegisters();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     Magic.saveThreadState(exceptionRegisters);
-    exceptionRegisters.inuse = true;
+    exceptionRegisters.setInUse(true);
     deliverException(exceptionObject, exceptionRegisters);
   }
 
@@ -678,37 +686,38 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *           which saves the register state of the trap site into the
    *           "exceptionRegisters" field of the current
    *           Thread object.
-   *           The signal handler also inserts a <hardware trap> frame
+   *           The signal handler also inserts a &lt;hardware trap&gt; frame
    *           onto the stack immediately above this frame, for use by
    *           HardwareTrapGCMapIterator during garbage collection.
    *
    * @param trapCode code indicating kind of exception that was trapped
    * (see TRAP_xxx, above)
-   * @param trapInfo array subscript (for array bounds trap, only)
+   * @param trapInfo array subscript (for array bounds trap, only), marker
+   * (for stack overflow traps on PPC) or
    */
   @Entrypoint
   @UnpreemptibleNoWarn
-  static void deliverHardwareException(int trapCode, int trapInfo) {
-    if (false) VM.sysWriteln("delivering hardware exception");
+  static void deliverHardwareException(int trapCode, Word trapInfo) {
+    if (VM.verboseSignalHandling) VM.sysWriteln("delivering hardware exception");
     RVMThread myThread = RVMThread.getCurrentThread();
-    if (false) VM.sysWriteln("we have a thread = ",Magic.objectAsAddress(myThread));
-    if (false) VM.sysWriteln("it's in state = ",myThread.getExecStatus());
-    Registers exceptionRegisters = myThread.getExceptionRegisters();
-    if (false) VM.sysWriteln("we have exception registers = ",Magic.objectAsAddress(exceptionRegisters));
+    if (VM.verboseSignalHandling) VM.sysWriteln("we have a thread = ",Magic.objectAsAddress(myThread));
+    if (VM.verboseSignalHandling) VM.sysWriteln("it's in state = ",myThread.getExecStatus());
+    AbstractRegisters exceptionRegisters = myThread.getExceptionRegisters();
+    if (VM.verboseSignalHandling) VM.sysWriteln("we have exception registers = ",Magic.objectAsAddress(exceptionRegisters));
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
-        myThread.getStack().length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
+        myThread.getStack().length < (StackFrameLayout.getMaxStackSize() >> LOG_BYTES_IN_ADDRESS) &&
         !myThread.hasNativeStackFrame()) {
       // expand stack by the size appropriate for normal or native frame
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
-        RVMThread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
+        RVMThread.resizeCurrentStack(myThread.getStackLength() + StackFrameLayout.getJNIStackGrowthSize(), exceptionRegisters);
       } else {
-        RVMThread.resizeCurrentStack(myThread.getStackLength() + STACK_SIZE_GROW, exceptionRegisters);
+        RVMThread.resizeCurrentStack(myThread.getStackLength() + StackFrameLayout.getStackGrowthSize(), exceptionRegisters);
       }
-      if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse);
-      exceptionRegisters.inuse = false;
+      if (VM.VerifyAssertions) VM._assert(exceptionRegisters.getInUse());
+      exceptionRegisters.setInUse(false);
       Magic.restoreHardwareExceptionState(exceptionRegisters);
 
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -725,7 +734,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     if (!VM.sysFailInProgress()) {
       Address fp = exceptionRegisters.getInnermostFramePointer();
       int compiledMethodId = Magic.getCompiledMethodID(fp);
-      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+      if (compiledMethodId != StackFrameLayout.getInvisibleMethodID()) {
         CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
         Address ip = exceptionRegisters.getInnermostInstructionAddress();
         Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
@@ -735,7 +744,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
             VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
             break;
           case TRAP_ARRAY_BOUNDS:
-            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo, ").");
+            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo.toInt(), ").");
             break;
           case TRAP_DIVIDE_BY_ZERO:
             VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
@@ -753,10 +762,15 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
           case TRAP_STORE_CHECK:
             VM.sysWriteln("\nFatal error: ArrayStoreException within uninterruptible region.");
             break;
+          case TRAP_UNREACHABLE_BYTECODE:
+            VM.sysWriteln("\nFatal error: Reached a bytecode that was determined to be unreachable within uninterruptible region.");
+            break;
           default:
             VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
           break;
           }
+          VM.sysWriteln("trapCode = ", trapCode);
+          VM.sysWriteln("trapInfo = ", trapInfo.toAddress());
           VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
         }
       }
@@ -768,7 +782,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
         exceptionObject = new java.lang.NullPointerException();
         break;
       case TRAP_ARRAY_BOUNDS:
-        exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo);
+        exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo.toInt());
         break;
       case TRAP_DIVIDE_BY_ZERO:
         exceptionObject = new java.lang.ArithmeticException();
@@ -785,6 +799,9 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
         break;
       case TRAP_STORE_CHECK:
         exceptionObject = new java.lang.ArrayStoreException();
+        break;
+      case TRAP_UNREACHABLE_BYTECODE:
+        exceptionObject = new java.lang.InternalError(UNREACHABLE_BC_MESSAGE);
         break;
       default:
         exceptionObject = new java.lang.UnknownError();
@@ -804,7 +821,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *
    * @param objToUnlock object to unlock
    * @param objToThrow exception object to deliver
-   * ({@code null} --> deliver NullPointerException).
+   * ({@code null} --&gt; deliver NullPointerException).
    */
   @NoInline
   @Entrypoint
@@ -817,6 +834,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * Create and throw a java.lang.ArrayIndexOutOfBoundsException.
    * Only used in some configurations where it is easier to make a call
    * then recover the array index from a trap instruction.
+   *
+   * @param index the failing index
    */
   @NoInline
   @Entrypoint
@@ -898,15 +917,15 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   //----------------//
 
   public static void init() {
-    // tell "RunBootImage.C" to pass control to
+    // tell the bootloader (sysSignal*.c) to pass control to
     // "RuntimeEntrypoints.deliverHardwareException()"
-    // whenever the host operating system detects a hardware trap
+    // whenever the host operating system detects a hardware trap.
     //
     BootRecord.the_boot_record.hardwareTrapMethodId = CompiledMethods.createHardwareTrapCompiledMethod().getId();
     BootRecord.the_boot_record.deliverHardwareExceptionOffset =
         Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
-    // tell "RunBootImage.C" to set "RVMThread.debugRequested" flag
+    // tell the bootloader (sysSignal.c) to set "RVMThread.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     BootRecord.the_boot_record.debugRequestedOffset = Entrypoints.debugRequestedField.getOffset();
@@ -920,7 +939,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * @return array object
    */
   public static Object buildMultiDimensionalArray(int methodId, int[] numElements, RVMArray arrayType) {
-    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMethodRef(methodId).peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
     return buildMDAHelper(method, numElements, 0, arrayType);
   }
@@ -934,7 +953,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * @return array object
    */
   public static Object buildTwoDimensionalArray(int methodId, int dim0, int dim1, RVMArray arrayType) {
-    RVMMethod method = MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    RVMMethod method = MemberReference.getMethodRef(methodId).peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
 
     if (!arrayType.isInstantiated()) {
@@ -950,7 +969,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       innerArrayType.instantiate();
     }
 
-    for (int i=0; i<dim0; i++) {
+    for (int i = 0; i < dim0; i++) {
       newArray[i] = resolvedNewArray(dim1, innerArrayType);
     }
 
@@ -962,6 +981,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * @param numElements Number of elements to allocate for each dimension
    * @param dimIndex Current dimension to build
    * @param arrayType type of array that will result
+   * @return a multi-dimensional array
    */
   public static Object buildMDAHelper(RVMMethod method, int[] numElements, int dimIndex, RVMArray arrayType) {
 
@@ -1006,7 +1026,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * @param exceptionRegisters register state corresponding to exception site
    */
   @Unpreemptible("Deliver exception trying to avoid preemption")
-  private static void deliverException(Throwable exceptionObject, Registers exceptionRegisters) {
+  private static void deliverException(Throwable exceptionObject, AbstractRegisters exceptionRegisters) {
     if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("RuntimeEntrypoints.deliverException() entered; just got an exception object.");
     }
@@ -1023,12 +1043,12 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     Address hijackedCalleeFp = RVMThread.getCurrentThread().getHijackedReturnCalleeFp();
     boolean leapfroggedReturnBarrier = false;
     if (VM.VerifyAssertions) VM._assert(hijackedCalleeFp.isZero() || hijackedCalleeFp.GE(fp));
-    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+    while (Magic.getCallerFramePointer(fp).NE(StackFrameLayout.getStackFrameSentinelFP())) {
       if (!hijackedCalleeFp.isZero() && hijackedCalleeFp.LE(fp)) {
         leapfroggedReturnBarrier = true;
       }
       int compiledMethodId = Magic.getCompiledMethodID(fp);
-      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+      if (compiledMethodId != StackFrameLayout.getInvisibleMethodID()) {
         CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
         ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
         Address ip = exceptionRegisters.getInnermostInstructionAddress();
@@ -1079,6 +1099,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *
    * @param currfp The current frame is expected to be one of the JNI functions
    *            called from C, below which is one or more native stack frames
+   * @return the frame pointer for the appropriate frame
    */
   @Uninterruptible
   public static Address unwindNativeStackFrame(Address currfp) {
@@ -1098,7 +1119,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       callee_fp = fp;
       ip = Magic.getReturnAddressUnchecked(fp);
       fp = Magic.getCallerFramePointer(fp);
-    } while (!MemoryManager.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
+    } while (!MemoryManager.addressInVM(ip) && fp.NE(StackFrameLayout.getStackFrameSentinelFP()));
 
     if (VM.BuildForPowerPC) {
       // We want to return fp, not callee_fp because we want the stack walkers
@@ -1116,6 +1137,9 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * below which is one or more native stack frames.
    * Skip over all frames below which do not contain any object
    * references.
+   *
+   * @param currfp the frame pointer of the current frame
+   * @return the frame pointer for the appropriate frame
    */
   @Uninterruptible
   public static Address unwindNativeStackFrameForGC(Address currfp) {
@@ -1123,7 +1147,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Unwind stack frame for an <invisible method>.
+   * Unwind stack frame for an &lt;invisible method&gt;.
    * See also: ExceptionDeliverer.unwindStackFrame()
    * <p>
    * !!TODO: Could be a reflective method invoker frame.
@@ -1132,9 +1156,11 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * (I don't think our current implementations of reflective method
    *  invokers save/restore any nonvolatiles, so we're probably ok.
    *  --dave 6/29/01
+   *
+   *  @param registers exception registers
    */
   @Uninterruptible
-  private static void unwindInvisibleStackFrame(Registers registers) {
+  private static void unwindInvisibleStackFrame(AbstractRegisters registers) {
     registers.unwindStackFrame();
   }
 
@@ -1179,8 +1205,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Return {@code true} if we are stress testing garbage collector and the system is in state where we
-   * can force a garbage collection.
+   * @return {@code true} if we are stress testing garbage collector and the
+   *  system is in state where we can force a garbage collection.
    */
   @Inline
   @Uninterruptible

@@ -22,11 +22,11 @@ import org.junit.Test;
 
 public class TreeTest {
 
-  private TreeNode root = new TreeNode();
-  private TreeNode n0 = new TreeNode();
-  private TreeNode n1 = new TreeNode();
+  private final TreeNode root = new TreeNode();
+  private final TreeNode n0 = new TreeNode();
+  private final TreeNode n1 = new TreeNode();
 
-  private Tree t = newBigTree();
+  private final Tree t = newBigTree();
 
   private Tree newBigTree() {
     root.addChild(n0);

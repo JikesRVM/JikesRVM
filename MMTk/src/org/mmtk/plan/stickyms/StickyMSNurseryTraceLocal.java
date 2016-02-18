@@ -17,7 +17,6 @@ import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -39,9 +38,6 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
   */
  private final ObjectReferenceDeque modBuffer;
 
-  /**
-   * Constructor
-   */
   public StickyMSNurseryTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
     super(StickyMS.SCAN_NURSERY, trace);
     this.modBuffer = modBuffer;
@@ -60,7 +56,6 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
     if (object.isNull()) return false;
     if (Space.isInSpace(StickyMS.MARK_SWEEP, object))
       return StickyMS.msSpace.isLive(object);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
     return true;
   }
 

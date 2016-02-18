@@ -12,15 +12,16 @@
  */
 package org.jikesrvm.mm.mmtk.gcspy;
 
-import org.mmtk.utility.Log;
-import org.mmtk.vm.VM;
-import org.mmtk.utility.gcspy.GCspy;
-
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.JAVA_HEADER_BYTES;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.OTHER_HEADER_BYTES;
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import org.jikesrvm.objectmodel.JavaHeaderConstants;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.gcspy.GCspy;
+import org.mmtk.vm.VM;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Generic GCspy Server Interpreter.
@@ -30,8 +31,7 @@ import org.vmmagic.pragma.*;
  * clients. It handles commands from the client and passes data to it.
  * Mostly it forwards calls to the C gcspy library.
  */
-@Uninterruptible public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter
-  implements JavaHeaderConstants {
+@Uninterruptible public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter {
 
 
   @Override
@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
         Log.writeln("-- Initialising main server on port ",port);
 
       Address tmp = GCspy.util.getBytes(name);
-      server = sysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose?1:0);
+      server = sysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose ? 1 : 0);
 
       if (DEBUG) {
         Log.writeln("gcspy_main_server_t address = "); Log.writeln(server);
@@ -87,10 +87,13 @@ import org.vmmagic.pragma.*;
   @Override
   public void startServer(boolean wait) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
-      if (DEBUG) { Log.write("Starting GCSpy server, wait="); Log.writeln(wait); }
+      if (DEBUG) {
+        Log.write("Starting GCSpy server, wait=");
+        Log.writeln(wait);
+      }
 
       Address serverOuterLoop = sysCall.gcspyMainServerOuterLoop();
-      sysCall.gcspyStartserver(server, wait?1:0, serverOuterLoop);
+      sysCall.gcspyStartserver(server, wait ? 1 : 0, serverOuterLoop);
     }
   }
 
@@ -145,6 +148,6 @@ import org.vmmagic.pragma.*;
 
   @Override
   public int computeHeaderSize() {
-    return JAVA_HEADER_BYTES+OTHER_HEADER_BYTES;
+    return JAVA_HEADER_BYTES + OTHER_HEADER_BYTES;
   }
 }

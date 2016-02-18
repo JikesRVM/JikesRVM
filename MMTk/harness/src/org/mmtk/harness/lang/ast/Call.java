@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * A call to a method.
@@ -30,6 +31,9 @@ public class Call extends AbstractAST implements Statement, Expression {
   private final List<Expression> params;
 
   private final boolean isExpression;
+
+  /** The type of the result - calculated by the type checker pass */
+  private Type type;
 
   /**
    * Call a method.
@@ -56,5 +60,14 @@ public class Call extends AbstractAST implements Statement, Expression {
   @Override
   public Object accept(Visitor v) {
     return v.visit(this);
+  }
+
+  public Type getType() {
+    return type;
+  }
+
+  public void setType(Type type) {
+    assert type != null;
+    this.type = type;
   }
 }

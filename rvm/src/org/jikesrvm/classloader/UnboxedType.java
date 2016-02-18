@@ -12,7 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.Constants;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;
 import org.vmmagic.pragma.NonMoving;
@@ -31,7 +35,7 @@ import org.vmmagic.unboxed.Offset;
  * @see Primitive
  */
 @NonMoving
-public final class UnboxedType extends RVMType implements Constants, ClassLoaderConstants {
+public final class UnboxedType extends RVMType {
   /**
    * The pretty (external) name for this Unboxed type.
    */
@@ -81,6 +85,8 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   /**
    * Create an instance of a {@link UnboxedType}
    * @param tr   The canonical type reference for this primitive
+   *
+   * @return the newly created unboxed type for the type reference
    */
   static UnboxedType createUnboxedType(TypeReference tr) {
     Atom name;
@@ -102,7 +108,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
     try {
       classForType = Class.forName(name.classNameFromDescriptor());
     } catch (Exception e) {
-      throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor());
+      throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor(), e);
     }
 
     return new UnboxedType(tr, classForType, name, stackWords, memoryBytes);

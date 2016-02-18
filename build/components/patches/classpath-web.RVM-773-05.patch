@@ -1,0 +1,27 @@
+# This is GNU Classpath commit 43623e3a6303cc6201f0ebfd151841a2f69b5c11 .
+diff --git a/native/jni/gstreamer-peer/gst_classpath_src.c b/native/jni/gstreamer-peer/gst_classpath_src.c
+index 224622a..cec2abb 100644
+--- a/native/jni/gstreamer-peer/gst_classpath_src.c
++++ b/native/jni/gstreamer-peer/gst_classpath_src.c
+@@ -45,6 +45,7 @@ exception statement from your version. */
+  * TODO: Maybe this should be moved in config.h instead?
+  */
+ #define CLASSPATH_GST_PLUGIN_VERSION PACKAGE_VERSION
++#define GLIB_DISABLE_DEPRECATION_WARNINGS
+ 
+ #include <stdio.h>
+ #include <string.h>
+diff --git a/native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkToolkit.c b/native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkToolkit.c
+index ad99664..758399c 100644
+--- a/native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkToolkit.c
++++ b/native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkToolkit.c
+@@ -273,7 +273,9 @@ init_glib_threads(JNIEnv *env, jint portableNativeSync, jobject lock)
+           global_lock = (*env)->NewGlobalRef(env, lock);
+           gdk_threads_set_lock_functions(&jni_lock_cb, &jni_unlock_cb);
+         }
++#if GLIB_MINOR_VERSION < 32
+       g_thread_init(NULL);
++#endif
+     }
+   else
+     {

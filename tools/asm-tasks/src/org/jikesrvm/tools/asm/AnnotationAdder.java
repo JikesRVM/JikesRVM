@@ -506,7 +506,7 @@ public final class AnnotationAdder {
 
     setup();
 
-    for(AnnotatedElement elem: thingsToAnnotate.keySet()) {
+    for (AnnotatedElement elem: thingsToAnnotate.keySet()) {
       try {
         Class<?> c = getClassForElement(elem);
         if (!processedClasses.contains(c)) {
@@ -514,13 +514,13 @@ public final class AnnotationAdder {
           processedClasses.add(c);
         }
       } catch (Exception e) {
-        throw new Error("Error processing "+elem, e);
+        throw new Error("Error processing " + elem, e);
       }
     }
 
     Set<String> processedClasses2 = new HashSet<String>();
 
-    for(ElementTriple triple: thingsToAnnotate2.keySet()) {
+    for (ElementTriple triple: thingsToAnnotate2.keySet()) {
       String c = triple.getClassName();
       if (!processedClasses2.contains(c)) {
         adaptClass(c);
@@ -609,7 +609,7 @@ public final class AnnotationAdder {
      * @param cv the reader of the class
      * @param name the name of the class being read
      */
-    public AddAnnotationClassAdapter(ClassVisitor cv, String name) {
+    AddAnnotationClassAdapter(ClassVisitor cv, String name) {
       super(cv);
       this.className = name;
     }
@@ -652,7 +652,7 @@ public final class AnnotationAdder {
      * @param mv the reader of the method
      * @param anns annotations to add
      */
-    public AddAnnotationMethodAdapter(MethodVisitor mv, Set<Class<? extends Annotation>> anns) {
+    AddAnnotationMethodAdapter(MethodVisitor mv, Set<Class<? extends Annotation>> anns) {
       super(mv);
       toAddAnnotations = anns;
     }
@@ -688,7 +688,7 @@ public final class AnnotationAdder {
           }
         }
         if (VERBOSE) System.out.println("Adding annotation: " + toAddAnn);
-        mv.visitAnnotation("L"+toAddAnnType.getInternalName()+";", true);
+        mv.visitAnnotation("L" + toAddAnnType.getInternalName() + ";", true);
       }
       mv.visitEnd();
     }

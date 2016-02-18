@@ -30,7 +30,9 @@ public final class RecompilationManager {
 
   /**
    * Use the runtime compiler to forcibly recompile all dynamically
-   * loaded methods
+   * loaded methods.
+   *
+   * @param report whether to print a report
    */
   public static void recompileAllDynamicallyLoadedMethods(boolean report) {
     int numMethods = CompiledMethods.numCompiledMethods();
@@ -88,13 +90,17 @@ public final class RecompilationManager {
 
     if (VM.BuildForAdaptiveSystem) {
       // clear profiling counter
-      if (DEBUG || report) { VM.sysWrite("Reseting profiling information\n"); }
+      if (DEBUG || report) {
+        VM.sysWrite("Reseting profiling information\n");
+      }
       RuntimeMeasurements.resetReportableObjects();
     }
   }
 
   /**
-   * recompile and replace the argument method by invoking the runtime compiler
+   * recompile and replace the argument method by invoking the runtime compiler.
+   *
+   * @param meth the method to recompile
    */
   public static void recompile(NormalMethod meth) {
     try {

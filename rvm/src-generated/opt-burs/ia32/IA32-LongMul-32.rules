@@ -1,0 +1,29 @@
+#####
+# LONG_MUL
+#####
+r:	LONG_MUL(r, rlv)
+5*13
+EMIT_INSTRUCTION
+LONG_MUL(P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+# Unsigned 32*32 => 64
+r:      LONG_MUL(LONG_AND(rlv, LONG_CONSTANT), LONG_AND(rlv, LONG_CONSTANT))
+(Binary.getVal2(PL(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(PL(p)).asLongConstant().lower32() == -1)&& \
+(Binary.getVal2(PR(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(PR(p)).asLongConstant().lower32() == -1) ? (4*11) : INFINITE
+EMIT_INSTRUCTION
+INT_TO_LONG_MUL(P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)), Binary.getVal1(PR(p)), false);
+
+# Unsigned 32*32 => 64
+r:      LONG_MUL(LONG_AND(rlv, LONG_CONSTANT), LONG_CONSTANT)
+(Binary.getVal2(P(p)).asLongConstant().upper32() == 0) ? (4*11) : INFINITE
+EMIT_INSTRUCTION
+INT_TO_LONG_MUL(P(p), Binary.getResult(P(p)), Binary.getVal1(PL(p)), Binary.getVal2(P(p)), false);
+
+# Signed 32*32 => 64
+r:      LONG_MUL(INT_2LONG(riv), INT_2LONG(riv))
+4*11
+EMIT_INSTRUCTION
+INT_TO_LONG_MUL(P(p), Binary.getResult(P(p)), Unary.getVal(PL(p)), Unary.getVal(PR(p)), true);
+

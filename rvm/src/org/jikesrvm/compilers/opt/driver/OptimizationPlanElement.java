@@ -76,6 +76,9 @@ public abstract class OptimizationPlanElement {
 
   /**
    * Helper function for <code> reportStats </code>
+   *
+   * @param time time spent for executing an element
+   * @param totalTime total time spent on executing all the elements
    */
   protected void prettyPrintTime(double time, double totalTime) {
     int t = (int) time;

@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.adaptive.util.AOSOptions;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -22,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *  (see InstrumentationSamplingFramework)
  * */
 @Uninterruptible
-public final class CounterBasedSampling implements Constants {
+public final class CounterBasedSampling {
   static final boolean DEBUG = false;
 
   /**
@@ -37,7 +36,10 @@ public final class CounterBasedSampling implements Constants {
   static int globalCounter = resetValue;
 
   /**
-   * Perform at system boot.
+   * Initializes counter based sampling. Called when the VM boots.
+   *
+   * @param options the options for the AOS (and therefore also
+   *  counter-based sampling)
    */
   public static void boot(AOSOptions options) {
     // Initialize the counter values

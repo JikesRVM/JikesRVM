@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
  * This class extends a simple semi-space collector to instrument it for
  * GCspy. <p>
  *
- * See the Jones & Lins GC book, section 2.2 for an overview of the basic
+ * See the Jones &amp; Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
  * (LOS), and an uncollected "immortal" space.<p>
  *
@@ -222,6 +222,7 @@ import org.vmmagic.pragma.*;
    * TODO is this the best name or should we call it LargeObjectSpaceDriver?
    * @param name Name of the space
    * @param space The space
+   * @param mainSpace whether the space will be the main space
    * @return A new GCspy driver for this space
    */
   @Interruptible
@@ -257,7 +258,10 @@ import org.vmmagic.pragma.*;
   @Override
   @Inline
   public void collectionPhase(short phaseId) {
-    if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
+    if (DEBUG) {
+      Log.write("--Phase Plan.");
+      Log.writeln(Phase.getName(phaseId));
+    }
 
     if (phaseId == SSGCspy.PREPARE) {
       super.collectionPhase(phaseId);
@@ -292,7 +296,7 @@ import org.vmmagic.pragma.*;
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
-    if(DEBUG) {
+    if (DEBUG) {
       Log.writeln("SSGCspy.gcspyGatherData, event=", event);
       Log.writeln("SSGCspy.gcspyGatherData, port=", GCspy.getGCspyPort());
     }
@@ -304,7 +308,7 @@ import org.vmmagic.pragma.*;
     // This is a safepoint for the server, i.e. it is a point at which
     // the server can pause.
     // The Mutator is called after the Collector so the Mutator must set the safepoint
-    if(DEBUG) Log.writeln("SSGCspy safepoint");
+    if (DEBUG) Log.writeln("SSGCspy safepoint");
     GCspy.server.serverSafepoint(event);
   }
 

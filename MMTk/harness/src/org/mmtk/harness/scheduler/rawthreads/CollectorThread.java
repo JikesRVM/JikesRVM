@@ -32,14 +32,14 @@ class CollectorThread extends RawThread {
   protected CollectorThread(RawThreadModel model, CollectorContext context, boolean daemon) {
     super(model);
     this.context = context;
-    setName("Collector-"+model.collectors.size());
+    setName("Collector-" + model.collectors.size());
     setDaemon(daemon);
     Trace.trace(Item.SCHEDULER, "%d: collector thread %d \"%s\" created (%d total)",
         Thread.currentThread().getId(), getId(), getName(),model.collectors.size());
   }
 
   /** Create a collector thread, with a new collector */
-  public CollectorThread(RawThreadModel model, CollectorContext context) {
+  CollectorThread(RawThreadModel model, CollectorContext context) {
     this(model,context,true);
   }
 

@@ -24,6 +24,7 @@ import org.mmtk.harness.lang.runtime.PcodeInterpreter;
 import org.mmtk.harness.lang.runtime.Value;
 import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.Scheduler;
+import org.vmmagic.unboxed.harness.Clock;
 
 public class SpawnOp extends EnnaryOp implements ResolvableOp {
 
@@ -36,7 +37,9 @@ public class SpawnOp extends EnnaryOp implements ResolvableOp {
 
   @Override
   public void exec(Env env) {
+    Clock.stop();
     Scheduler.scheduleMutator(new SpawnedMethod(getOperandValues(env.top())));
+    Clock.start();
   }
 
   private final class SpawnedMethod implements Schedulable {
@@ -44,7 +47,7 @@ public class SpawnOp extends EnnaryOp implements ResolvableOp {
     /** The method parameters */
     private final Value[] values;
 
-    public SpawnedMethod(Value...values) {
+    SpawnedMethod(Value...values) {
       this.values = values;
     }
 

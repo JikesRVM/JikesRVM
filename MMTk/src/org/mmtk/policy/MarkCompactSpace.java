@@ -16,7 +16,6 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.Lock;
@@ -29,8 +28,7 @@ import org.vmmagic.pragma.*;
  * This class implements functionality for a simple sliding mark-compact
  * space.
  */
-@Uninterruptible public final class MarkCompactSpace extends Space
-  implements Constants {
+@Uninterruptible public final class MarkCompactSpace extends Space {
 
   /****************************************************************************
    *
@@ -247,10 +245,8 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
-   *
-   * @param object The object to be marked
+   * @param object the object in question
+   * @return {@code true} if the object is marked
    */
   @Inline
   public static boolean isMarked(ObjectReference object) {
@@ -264,6 +260,7 @@ import org.vmmagic.pragma.*;
    * during GC Returns true if marking was done.
    *
    * @param object The object to be marked
+   * @return {@code true} if marking was done, {@code false} otherwise
    */
   @Inline
   private static boolean testAndClearMark(ObjectReference object) {
@@ -278,12 +275,6 @@ import org.vmmagic.pragma.*;
   }
 
 
-  /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
-   *
-   * @param object The object to be marked
-   */
   @Inline
   public static boolean toBeCompacted(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
@@ -291,12 +282,6 @@ import org.vmmagic.pragma.*;
     return !markBit.isZero() && getForwardingPointer(object).isNull();
   }
 
-  /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
-   *
-   * @param object The object to be marked
-   */
   @Inline
   public static void clearMark(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
@@ -349,7 +334,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Append a region or list of regions to the global list
-   * @param region
+   * @param region the region to append
    */
   public void append(Address region) {
     lock.acquire();

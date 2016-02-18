@@ -12,7 +12,9 @@
  */
 public class EscapeTest {
 
-    public EscapeTest(int i) { val = i; }
+    public EscapeTest(int i) {
+      val = i;
+    }
 
     public static void main(String[] argv) {
         EscapeTest et1 = new EscapeTest(10);

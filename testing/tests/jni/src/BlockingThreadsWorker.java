@@ -34,7 +34,7 @@ class BlockingThreadsWorker extends Thread {
     int loopctr = 5;
 
     if (trace) RVMThread.trace("Worker","hello - time",sleepTime);
-    for (int i=0; i < loopctr; i++) {
+    for (int i = 0; i < loopctr; i++) {
       if (trace) RVMThread.trace("Worker","calling nativeBlocking for time = ",sleepTime);
       tBlockingThreads.nativeBlocking(sleepTime);
       if (trace) RVMThread.trace("Worker","returned from nativeBlocking for time = ",sleepTime);
@@ -43,4 +43,3 @@ class BlockingThreadsWorker extends Thread {
     isFinished = true;
   }
 }
-

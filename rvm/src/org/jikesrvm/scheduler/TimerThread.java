@@ -43,21 +43,21 @@ public class TimerThread extends SystemThread {
   @Override
   public void run() {
     VM.disableYieldpoints();
-    if (verbose>=1) VM.sysWriteln("TimerThread run routine entered");
+    if (verbose >= 1) VM.sysWriteln("TimerThread run routine entered");
     try {
       for (;;) {
-        sysCall.sysNanoSleep(1000L*1000L*VM.interruptQuantum);
+        sysCall.sysNanoSleep(1000L * 1000L * VM.interruptQuantum);
 
         if (VM.BuildForAdaptiveSystem) {
           // grab the lock to prevent threads from getting GC'd while we are
           // iterating (since this thread doesn't stop for GC)
           RVMThread.acctLock.lockNoHandshake();
           RVMThread.timerTicks++;
-          for (int i=0;i<RVMThread.numThreads;++i) {
-            RVMThread candidate=RVMThread.threads[i];
-            if (candidate!=null && candidate.shouldBeSampled()) {
+          for (int i = 0; i < RVMThread.numThreads; ++i) {
+            RVMThread candidate = RVMThread.threads[i];
+            if (candidate != null && candidate.shouldBeSampled()) {
               candidate.timeSliceExpired++;
-              candidate.takeYieldpoint=1;
+              candidate.takeYieldpoint = 1;
             }
           }
           RVMThread.acctLock.unlock();

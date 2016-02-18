@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk.gcspy;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
@@ -29,7 +28,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class provides generally useful methods.
  */
-@Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util implements Constants {
+@Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util {
   private static final boolean DEBUG_ = false;
   public static final int KILOBYTE = 1024;
   public static final int MEGABYTE = 1024 * 1024;
@@ -80,12 +79,12 @@ import org.vmmagic.pragma.*;
       Address rtn = malloc(size);
 
       // Write the string into it, one byte at a time (dodgy conversion)
-      for (int i=0; i < str_length; i++)  {
-        rtn.store((byte)str_backing[str_offset+i], Offset.fromIntSignExtend(i));
+      for (int i = 0; i < str_length; i++)  {
+        rtn.store((byte)str_backing[str_offset + i], Offset.fromIntSignExtend(i));
       }
       // Zero rest of byte[]
-      for (int i=str_length; i < size; i++)  {
-        rtn.store((byte)0, Offset.fromIntSignExtend(i-str_offset));
+      for (int i = str_length; i < size; i++)  {
+        rtn.store((byte)0, Offset.fromIntSignExtend(i - str_offset));
       }
       if (DEBUG_) {
         sysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");

@@ -21,7 +21,7 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
  * database to hold field-level information
- * this is a mapping from RVMField -> FieldDatabaseEntry
+ * this is a mapping from RVMField -&gt; FieldDatabaseEntry
  */
 final class FieldDatabase {
   private static final boolean DEBUG = false;
@@ -39,7 +39,8 @@ final class FieldDatabase {
   }
 
   /**
-   * return the concrete type of a field, or null if none determined
+   * @param f the field in question
+   * @return the concrete type of a field, or null if none determined
    */
   public TypeReference getConcreteType(RVMField f) {
     FieldDatabaseEntry e = db.get(f);
@@ -129,13 +130,21 @@ final class FieldDatabase {
     int status;
     TypeReference concreteType;
 
-    void setBottom() { status |= BOTTOM; }
+    void setBottom() {
+      status |= BOTTOM;
+    }
 
-    void setAnalyzed() { status |= ANALYZED; }
+    void setAnalyzed() {
+      status |= ANALYZED;
+    }
 
-    boolean isBottom() { return (status & BOTTOM) != 0; }
+    boolean isBottom() {
+      return (status & BOTTOM) != 0;
+    }
 
-    boolean isAnalyzed() { return (status & ANALYZED) != 0; }
+    boolean isAnalyzed() {
+      return (status & ANALYZED) != 0;
+    }
   }
 
   // print a debug message

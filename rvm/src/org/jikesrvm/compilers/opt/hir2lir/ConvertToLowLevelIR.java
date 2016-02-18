@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.hir2lir;
 
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
@@ -86,15 +84,18 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_TIBS;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
-import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.InterfaceInvocation;
 import org.jikesrvm.classloader.InterfaceMethodSignature;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
@@ -141,7 +142,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.specialization.SpecializedMethod;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
@@ -166,6 +166,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * Converts the given HIR to LIR.
    *
    * @param ir IR to convert
+   * @param options the options for the conversion
    */
   static void convert(IR ir, OptOptions options) {
     boolean didArrayStoreCheck = false;
@@ -175,7 +176,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         case GETSTATIC_opcode: {
           LocationOperand loc = GetStatic.getClearLocation(s);
           RegisterOperand result = GetStatic.getClearResult(s);
-          Operand address = ir.regpool.makeJTOCOp(ir, s);
+          Operand address = ir.regpool.makeJTOCOp();
           Operand offset = GetStatic.getClearOffset(s);
           Load.mutate(s, IRTools.getLoadOp(loc.getFieldRef(), true), result, address, offset, loc);
         }
@@ -184,7 +185,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         case PUTSTATIC_opcode: {
           LocationOperand loc = PutStatic.getClearLocation(s);
           Operand value = PutStatic.getClearValue(s);
-          Operand address = ir.regpool.makeJTOCOp(ir, s);
+          Operand address = ir.regpool.makeJTOCOp();
           Operand offset = PutStatic.getClearOffset(s);
           Store.mutate(s, IRTools.getStoreOp(loc.getFieldRef(), true), value, address, offset, loc);
         }
@@ -591,8 +592,8 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * @param reg the RegisterOperand that contains the valued being switched on
    * @param low the low index of cases (operands of switchInstr)
    * @param high the high index of cases (operands of switchInstr)
-   * @param min
-   * @param max
+   * @param min minimum for the current case
+   * @param max maximum for the current case
    * @return the last basic block created
    */
   private static BasicBlock _lookupswitchHelper(Instruction switchInstr, RegisterOperand reg,
@@ -760,7 +761,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       Operand index = AStore.getClearIndex(s);
       Operand offset;
       LocationOperand loc = AStore.getClearLocation(s);
-      if (index instanceof IntConstantOperand) {// constant propagation
+      if (index instanceof IntConstantOperand) { // constant propagation
         offset = AC(Address.fromIntZeroExtend(((IntConstantOperand) index).value << logwidth));
       } else {
         if (logwidth != 0) {
@@ -1067,7 +1068,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                             ir,
                             operator,
                             type,
-                            ir.regpool.makeJTOCOp(ir, s),
+                            ir.regpool.makeJTOCOp(),
                             AC(offset),
                             new LocationOperand(offset),
                             null);
@@ -1084,7 +1085,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    */
   static RegisterOperand InsertLoadOffsetJTOC(Instruction s, IR ir, Operator operator,
                                                   TypeReference type, Operand offset) {
-    return InsertLoadOffset(s, ir, operator, type, ir.regpool.makeJTOCOp(ir, s), offset, null, null);
+    return InsertLoadOffset(s, ir, operator, type, ir.regpool.makeJTOCOp(), offset, null, null);
   }
 
   /**
@@ -1158,7 +1159,6 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     return regTarget.copyD2U();
   }
 
-  /** get the tib from the object pointer to by obj */
   static Operand getTIB(Instruction s, IR ir, Operand obj, Operand guard) {
     if (obj.isObjectConstant()) {
       // NB Constant types must already be resolved
@@ -1177,16 +1177,14 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     return res.copyD2U();
   }
 
-  /** get the class tib for type */
   static Operand getTIB(Instruction s, IR ir, RVMType type) {
     return new TIBConstantOperand(type);
     //return getTIB(s, ir, new TypeOperand(type));
   }
 
-  /** get the class tib for type */
   static Operand getTIB(Instruction s, IR ir, TypeOperand type) {
     RVMType t = type.getVMType();
-    if (VM.BuildForIA32 && !MemoryManagerConstants.MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
+    if (VM.BuildForIA32 && !MOVES_TIBS && VM.runningVM && t != null && t.isResolved()) {
       Address addr = Magic.objectAsAddress(t.getTypeInformationBlock());
       return new AddressConstantOperand(addr);
     } else if (!t.isResolved()) {
@@ -1198,32 +1196,14 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     }
   }
 
-  /**
-   * Get an instance method from a TIB
-   */
   static RegisterOperand getInstanceMethod(Instruction s, IR ir, Operand tib, RVMMethod method) {
     return InsertLoadOffset(s, ir, REF_LOAD, TypeReference.CodeArray, tib, method.getOffset());
   }
 
-  /**
-   * Load an instance field.
-   * @param s
-   * @param ir
-   * @param obj
-   * @param field
-   */
   public static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, RVMField field) {
     return getField(s, ir, obj, field, null);
   }
 
-  /**
-   * Load an instance field.
-   * @param s
-   * @param ir
-   * @param obj
-   * @param field
-   * @param guard
-   */
   static RegisterOperand getField(Instruction s, IR ir, RegisterOperand obj, RVMField field,
                                       Operand guard) {
     return InsertLoadOffset(s,
@@ -1237,9 +1217,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   }
 
   /*  RRB 100500 */
-  /**
-   * support for direct call to specialized method.
-   */
+
   static RegisterOperand getSpecialMethod(Instruction s, IR ir, int smid) {
     //  First, get the pointer to the JTOC offset pointing to the
     //  specialized Method table
@@ -1262,6 +1240,9 @@ public abstract class ConvertToLowLevelIR extends IRTools {
   /**
    * Expand symbolic SysCall target into a chain of loads from the bootrecord to
    * the desired target address.
+   *
+   * @param s the call instruction
+   * @param ir the governing IR
    */
   public static void expandSysCallTarget(Instruction s, IR ir) {
     MethodOperand sysM = Call.getMethod(s);
@@ -1273,12 +1254,6 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     }
   }
 
-  /**
-   * Load a static field.
-   * @param s
-   * @param ir
-   * @param field
-   */
   public static RegisterOperand getStatic(Instruction s, IR ir, RVMField field) {
     return InsertLoadOffsetJTOC(s,
                                 ir,

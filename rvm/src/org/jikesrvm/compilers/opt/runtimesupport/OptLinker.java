@@ -12,11 +12,19 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_getfield;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_getstatic;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokeinterface;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokespecial;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokestatic;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokevirtual;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_putfield;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_putstatic;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TableBasedDynamicLinker;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -25,21 +33,26 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
  * runtime services.
+ * <p>
+ * This class is used in the final mir expansion which is done in an
+ * architecture-dependent way by the FinalMIRExpansion classes.
  *
- * @see org.jikesrvm.ArchitectureSpecificOpt.FinalMIRExpansion
  * @see OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
  * @see TableBasedDynamicLinker
  */
-public final class OptLinker implements BytecodeConstants {
+public final class OptLinker {
 
   /**
    * Given an opt compiler info and a machine code offset in that method's
-   * instruction array, perform the dynamic linking required by that
+   * instruction array, performs the dynamic linking required by that
    * instruction.
    * <p>
    * We do this by mapping back to the source RVMMethod and bytecode offset,
    * then examining the bytecodes to see what field/method was being
    * referenced, then calling TableBasedDynamicLinker to do the real work.
+   *
+   * @param cm the opt compiled method
+   * @param offset machine code offset
    */
   public static void resolveDynamicLink(OptCompiledMethod cm, Offset offset) throws NoClassDefFoundError {
     OptMachineCodeMap map = cm.getMCMap();
@@ -90,7 +103,7 @@ public final class OptLinker implements BytecodeConstants {
   public static Object new2DArray(int methodId, int dim0, int dim1, int typeId)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     // validate arguments
-    if ((dim0 < 0)||(dim1 < 0)) throw new NegativeArraySizeException();
+    if ((dim0 < 0) || (dim1 < 0)) throw new NegativeArraySizeException();
 
     // create array
     //

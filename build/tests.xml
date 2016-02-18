@@ -595,7 +595,7 @@
           </not>
         </and>
       </condition>
-      <explainResult tag="@{tag}" execution="@{execution}" message="Unexpected exit code."/>
+      <explainResult tag="@{tag}" execution="@{execution}" message="Unexpected exit code: ${test.@{tag}.@{execution}.exit.code} (expected exit code ${test.@{tag}.expected.exit.code})"/>
     </sequential>
   </macrodef>
 
@@ -631,6 +631,7 @@
     <attribute name="maxHeapSize" default=""/>
     <attribute name="rvmArgs" default=""/>
     <attribute name="timeLimit" default=""/>
+    <attribute name="exitCode" default="0"/>
     <sequential>
       <rvm tag="@{tag}"
            class="@{class}"
@@ -640,7 +641,8 @@
            initialHeapSize="@{initialHeapSize}"
            maxHeapSize="@{maxHeapSize}"
            rvmArgs="@{rvmArgs}"
-           timeLimit="@{timeLimit}"/>
+           timeLimit="@{timeLimit}"
+           exitCode="@{exitCode}"/>
 
       <echo message="@{class}" file="${build.tests.dir}/deleteme.txt"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="." value="${file.separator}"/>
@@ -651,6 +653,34 @@
                        	expected="${main.java}/${test.@{tag}.expected.output.file}.expected"
                         actual="${test.@{tag}.default.sanitized.output.file}"/>
 
+      <outputResults tag="@{tag}"/>
+    </sequential>
+  </macrodef>
+
+  <!-- Similar to runCompareTest but uses a success message rather than checksum -->
+  <macrodef name="successMessageTest">
+    <attribute name="tag"/>
+    <attribute name="class"/>
+    <attribute name="classpath" default=""/>
+    <attribute name="bootclasspath" default=""/>
+    <attribute name="args" default=""/>
+    <attribute name="execution" default="default"/>
+    <attribute name="initialHeapSize" default=""/>
+    <attribute name="maxHeapSize" default=""/>
+    <attribute name="rvmArgs" default=""/>
+    <attribute name="timeLimit" default=""/>
+    <attribute name="message" default="ALL TESTS PASSED"/>
+    <sequential>
+      <rvm tag="@{tag}"
+           class="@{class}"
+           args="@{args}"
+           classpath="@{classpath}"
+           bootclasspath="@{bootclasspath}"
+           initialHeapSize="@{initialHeapSize}"
+           maxHeapSize="@{maxHeapSize}"
+           rvmArgs="@{rvmArgs}"
+           timeLimit="@{timeLimit}"/>
+      <findStatistic tag="@{tag}" pattern="@{message}" key="success"/>
       <outputResults tag="@{tag}"/>
     </sequential>
   </macrodef>

@@ -63,15 +63,15 @@ class TestRuntimeExec extends Thread {
 
     public static final String PROGRAM = "tee";
 
-    public TestRuntimeExec(int myNum) {
+    TestRuntimeExec(int myNum) {
         this.myNumber = myNum;
     }
 
     public void run() {
         try {
-            charsExpected = 10000*(testData[0].length()+testData[1].length());
+            charsExpected = 10000 * (testData[0].length() + testData[1].length());
 
-            String fileName ="/tmp/out" + myNumber;
+            String fileName = "/tmp/out" + myNumber;
 
             final Process tac =
                 Runtime.getRuntime().exec(new String[]{PROGRAM, fileName}, null, new File("/tmp"));
@@ -82,8 +82,8 @@ class TestRuntimeExec extends Thread {
                         new DataOutputStream(tac.getOutputStream());
 
                     try {
-                        for(int x = 0; x < 10000; x++) {
-                            for(int i = 0; i < testData.length; i++) {
+                        for (int x = 0; x < 10000; x++) {
+                            for (int i = 0; i < testData.length; i++) {
                                 charsWritten += testData[i].length();
                                 stdin.writeUTF(testData[i]);
                             }
@@ -104,8 +104,8 @@ class TestRuntimeExec extends Thread {
                         new DataInputStream(tac.getInputStream());
                     try {
 
-                        for(int x = 0; x < 10000; x++) {
-                            for(int i = 0; i < testData.length; i++) {
+                        for (int x = 0; x < 10000; x++) {
+                            for (int i = 0; i < testData.length; i++) {
                                 String in = stdout.readUTF();
                                 charsRead += in.length();
                                 if (! in.equals(testData[i]))
@@ -116,8 +116,8 @@ class TestRuntimeExec extends Thread {
                         int exitCode = tac.waitFor();
 
                         if (exitCode == 0 &&
-                            charsRead==charsExpected &&
-                            charsWritten==charsExpected
+                            charsRead == charsExpected &&
+                            charsWritten == charsExpected
                            )
                             System.err.println("TestRuntimeExec SUCCESS");
                         else
@@ -160,7 +160,11 @@ class TestRuntimeExec extends Thread {
                 // or the process.
                 new Thread() {
                     public void run() {
-                        try { Thread.sleep(2000); } catch (Exception e) { }
+                        try {
+                          Thread.sleep(2000);
+                        } catch (Exception e) {
+                          // ignore
+                        }
                         waiter.interrupt();
                     }
                 }.start();
@@ -179,7 +183,11 @@ class TestRuntimeExec extends Thread {
                             exited = true;
                         } catch (IllegalThreadStateException e) {
                             System.out.println("still alive!");
-                            try { Thread.sleep(1000); } catch (Exception ee) { }
+                            try {
+                              Thread.sleep(1000);
+                            } catch (Exception ee) {
+                              // ignore
+                            }
                         }
                     }
                     while (!exited);

@@ -40,9 +40,9 @@ import org.vmmagic.pragma.*;
   public static final Color White     = new Color(255, 255, 255);
   public static final Color Yellow    = new Color(255, 255, 0);
 
-  private short r; // red component
-  private short g; // green component
-  private short b; // blue component
+  private final short r; // red component
+  private final short g; // green component
+  private final short b; // blue component
 
   /**
    * Constructor for a simple RGB colour model.
@@ -78,19 +78,25 @@ import org.vmmagic.pragma.*;
    *
    * @return the red component
    */
-  public short getRed() { return r; }
+  public short getRed() {
+    return r;
+  }
 
   /**
    * Green component
    *
    * @return the green component
    */
-  public short getGreen() { return g; }
+  public short getGreen() {
+    return g;
+  }
 
   /**
    * Blue component
    *
    * @return the blue component
    */
-  public short getBlue() { return b; }
+  public short getBlue() {
+    return b;
+  }
 }

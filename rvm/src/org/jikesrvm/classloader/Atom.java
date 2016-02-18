@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.Offset;
 public final class Atom {
 
   /**
-   * Used to canonicalize Atoms: possibly non-canonical Atom => Atom
+   * Used to canonicalize Atoms: possibly non-canonical Atom =&gt; Atom
    */
   private static final ImmutableEntryHashMapRVM<Atom, Atom> dictionary =
     new ImmutableEntryHashMapRVM<Atom, Atom>(12000);
@@ -67,7 +67,7 @@ public final class Atom {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /**
    * Dictionary of all Atom instances.
    */
@@ -97,7 +97,9 @@ public final class Atom {
   /**
    *@return the id of this atom.
    */
-  int getId() { return id; }
+  int getId() {
+    return id;
+  }
 
   /**
    * Find or create an atom.
@@ -169,7 +171,7 @@ public final class Atom {
   private static Atom findOrCreate(byte[] utf8, int off, int len, String str) {
     if (str != null) {
       // string substring is cheap, so try to find using this if possible
-      Atom val = new Atom(null, -1, str.substring(off, off+len));
+      Atom val = new Atom(null, -1, str.substring(off, off + len));
       val = dictionary.get(val);
       if (val != null) return val;
     }
@@ -185,17 +187,32 @@ public final class Atom {
    * ultimately created.   The constructor for Atom is a private method, so
    * someone has to call one of the public findOrCreate() methods to get a new
    * one.  And they all feed through here.
+   * <p>
+   * Note: either bytes or str will be null but not both at the same time.
+   *
+   * @param bytes content of atom as utf8 bytes
+   * @param create whether an atom should be created if none can be found
+   * @param str string encoding of atom
+   * @return {@code null} if no atom was found and create is false, an atom
+   *  otherwise
    */
   private static Atom findOrCreate(byte[] bytes, boolean create, String str) {
     Atom val = new Atom(bytes, -1, str);
     val = dictionary.get(val);
     if (val != null || !create) return val;
-    synchronized(Atom.class) {
+
+    synchronized (Atom.class) {
+      // Check if a matching Atom was created while
+      // the current thread tried to acquire the lock
+      val = new Atom(bytes, -1, str);
+      val = dictionary.get(val);
+      if (val != null) return val;
+
       val = new Atom(bytes, nextId++, str);
       int column = val.id >> LOG_ROW_SIZE;
       if (column == atoms.length) {
-        Atom[][] tmp = new Atom[column+1][];
-        for (int i=0; i < column; i++) {
+        Atom[][] tmp = new Atom[column + 1][];
+        for (int i = 0; i < column; i++) {
           tmp[i] = atoms[i];
         }
         atoms = tmp;
@@ -234,6 +251,8 @@ public final class Atom {
   /**
    * Get at a string-like representation without doing any heap allocation.
    * Hideous but necessary.  We will use it in the PrintContainer class.
+   *
+   * @return a representation of the atom as bytes
    */
   @Uninterruptible
   public byte[] toByteArray() {
@@ -241,7 +260,9 @@ public final class Atom {
   }
 
   /**
-   * Return atom as a string literal
+   * @return atom as a string literal
+   * @throws java.io.UTFDataFormatException when conversion of the atom
+   *  to an UTF8 string fails
    */
   @Pure
   public synchronized String toUnicodeString() throws java.io.UTFDataFormatException {
@@ -268,7 +289,7 @@ public final class Atom {
   }
 
   /**
-   * Atom as string literal or null if atom hasn't been converted
+   * @return atom as string literal or {@code null} if atom hasn't been converted
    */
   private synchronized String toUnicodeStringInternal() {
     if (unicodeStringOrJTOCoffset == null) {
@@ -292,7 +313,8 @@ public final class Atom {
   /**
    * Offset of an atom's string in the JTOC, for string literals
    * @return Offset of string literal in JTOC
-   * @throws java.io.UTFDataFormatException
+   * @throws java.io.UTFDataFormatException when conversion of the atom
+   *  to an UTF8 string fails
    */
   public synchronized int getStringLiteralOffset() throws java.io.UTFDataFormatException {
     if (unicodeStringOrJTOCoffset == null) {
@@ -368,7 +390,7 @@ public final class Atom {
     if (unicodeStringOrJTOCoffset == null) {
       return StringUtilities.asciiBytesToString(val, 1, val.length - 2).replace('/', '.');
     } else {
-      return toUnicodeStringInternal().substring(1, val.length-1).replace('/','.');
+      return toUnicodeStringInternal().substring(1, val.length - 1).replace('/','.');
     }
   }
 
@@ -386,7 +408,7 @@ public final class Atom {
     if (unicodeStringOrJTOCoffset == null) {
       return StringUtilities.asciiBytesToString(val, 1, val.length - 2) + ".class";
     } else {
-      return toUnicodeStringInternal().substring(1, val.length-1) + ".class";
+      return toUnicodeStringInternal().substring(1, val.length - 1) + ".class";
     }
   }
 
@@ -395,9 +417,9 @@ public final class Atom {
   //----------------//
 
   /**
-   * Is "this" atom a reserved member name?
-   * Note: Sun has reserved all member names starting with '<' for future use.
-   *       At present, only <init> and <clinit> are used.
+   * Note: Sun has reserved all member names starting with '&lt;' for future use.
+   *       At present, only {@code <init>} and {@code <clinit>} are used.
+   * @return whether "this" atom is a reserved member name
    */
   @Uninterruptible
   @Pure
@@ -407,7 +429,7 @@ public final class Atom {
   }
 
   /**
-   * Is "this" atom a class descriptor?
+   * @return {@code true} if "this" atom is a class descriptor
    */
   @Uninterruptible
   @Pure
@@ -417,7 +439,7 @@ public final class Atom {
   }
 
   /**
-   * Is "this" atom an array descriptor?
+   * @return {@code true} if "this" atom is an array descriptor
    */
   @Uninterruptible
   @Pure
@@ -427,7 +449,7 @@ public final class Atom {
   }
 
   /**
-   * Is "this" atom a method descriptor?
+   * @return {@code true} if "this" atom is a method descriptor
    */
   @Uninterruptible
   @Pure
@@ -444,7 +466,9 @@ public final class Atom {
    * Parse "this" method descriptor to obtain description of method's
    * return type.
    * this: method descriptor - something like "(III)V"
+   * @param cl the classloader
    * @return type description
+   * @see TypeReference#findOrCreate(ClassLoader, Atom)
    */
   @Pure
   public TypeReference parseForReturnType(ClassLoader cl) {
@@ -485,22 +509,22 @@ public final class Atom {
         return TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i, toUnicodeStringInternal()));
       default:
         if (VM.VerifyAssertions) {
-          VM._assert(VM.NOT_REACHED,
-                     "Need a valid method descriptor; got \"" +
-                     this +
-                     "\"; can't parse the character '" +
-                     ((char)val[i]) +
-                     "'");
+          String msg = "Need a valid method descriptor; got \"" + this +
+              "\"; can't parse the character '" + ((char)val[i]) + "'";
+          VM._assert(VM.NOT_REACHED, msg);
         }
         return null;            // NOTREACHED
     }
   }
 
+
   /**
    * Parse "this" method descriptor to obtain descriptions of method's
    * parameters.
    * this: method descriptor     - something like "(III)V"
+   * @param cl the classloader
    * @return parameter descriptions
+   * @see TypeReference#findOrCreate(ClassLoader, Atom)
    */
   @Pure
   public TypeReference[] parseForParameterTypes(ClassLoader cl) {
@@ -571,13 +595,9 @@ public final class Atom {
 
         default:
           if (VM.VerifyAssertions) {
-            VM._assert(VM.NOT_REACHED,
-                       "The class descriptor \"" +
-                       this +
-                       "\" contains the illegal" +
-                       " character '" +
-                       ((char)val[i]) +
-                       "'");
+            String msg = "The class descriptor \"" + this + "\" contains the illegal" +
+                " character '" + ((char)val[i]) + "'";
+            VM._assert(VM.NOT_REACHED, msg);
           }
       }
     }
@@ -587,13 +607,14 @@ public final class Atom {
    * Parse "this" method descriptor to obtain descriptions of method's
    * parameters as classes.
    * this: method descriptor     - something like "(III)V"
+   * @param cl the classloader
    * @return parameter classes
    */
   @Pure
   public Class<?>[] parseForParameterClasses(ClassLoader cl) {
     TypeReference[] typeRefs = this.parseForParameterTypes(cl);
     Class<?>[] classes = new Class<?>[typeRefs.length];
-    for (int i=0; i < typeRefs.length; i++) {
+    for (int i = 0; i < typeRefs.length; i++) {
       TypeReference t = typeRefs[i];
       classes[i] = t.resolve().getClassForType();
     }
@@ -601,7 +622,7 @@ public final class Atom {
   }
 
   /**
-   * Return the underlying set of bytes for the Atom.  This can be used
+   * @return the underlying set of bytes for the Atom.  This can be used
    * to perform comparisons without requiring the allocation of a string.
    */
   @Uninterruptible
@@ -684,7 +705,7 @@ public final class Atom {
   }
 
   /**
-   * Return the innermost element type reference for an array
+   * @return the innermost element type reference for an array
    */
   @Pure
   public Atom parseForInnermostArrayElementDescriptor() {
@@ -784,8 +805,8 @@ public final class Atom {
   }
 
   /**
-   * @return true if this is a class descriptor of a RVM core class.  This is
-   * defined as one that it would be unwise to invalidate, since invalidating
+   * @return {@code true} if this is a class descriptor of a RVM core class.
+   * This is  defined as one that it would be unwise to invalidate, since invalidating
    * it might make it impossible to recompile.
    */
   @Pure
@@ -808,10 +829,12 @@ public final class Atom {
   //-------------//
 
   /**
-   * Create an annotation name from a class name. For example
+   * Creates an annotation name from a class name. For example
    * Lfoo.bar; becomes Lfoo.bar$$; NB in Sun VMs the annotation name
    * of the first annotation is $Proxy1. Classpath may later rely on
    * this to implement serialization correctly.
+   *
+   * @return atom for the annotation name
    */
   @Pure
   public Atom annotationInterfaceToAnnotationClass() {
@@ -824,20 +847,26 @@ public final class Atom {
   }
 
   /**
-   * Create a class name from a type name. For example Lfoo.bar$$;
+   * Creates a class name from a type name. For example Lfoo.bar$$;
    * becomes the string foo.bar
+   *
+   * @return created ASCII string
    */
   @Pure
   public String annotationClassToAnnotationInterface() {
     if (VM.VerifyAssertions) {
+      boolean isClassAnnotation = val[0] == 'L' && val[val.length - 1] == ';';
       VM._assert(val.length > 0);
-      VM._assert(val[0] == 'L' && val[val.length - 1] == ';', toString());
+      if (!isClassAnnotation) {
+        String msg = toString();
+        VM._assert(isClassAnnotation, msg);
+      }
     }
     return StringUtilities.asciiBytesToString(val, 1, val.length - 4).replace('/', '.');
   }
 
   /**
-   * Is this an annotation class name of the form Lfoo.bar$$;
+   * @return whether "this" is an annotation class name of the form Lfoo.bar$$;
    */
   @Pure
   public boolean isAnnotationClass() {
@@ -860,9 +889,6 @@ public final class Atom {
     return val.length;
   }
 
-  /**
-   * Create atom from the key that maps to it.
-   */
   private Atom(byte[] val, int id, String str) {
     this.id = id;
     this.unicodeStringOrJTOCoffset = str;

@@ -63,18 +63,18 @@ public class HeapEntryTest {
         Address.fromIntSignExtend(0x4567890).toObjectReference()
     };
     int[] ids = new int[] { 0,1,2,3,4 };
-    HeapEntry[] left = new HeapEntry[references.length*ids.length];
-    HeapEntry[] right = new HeapEntry[references.length*ids.length];
+    HeapEntry[] left = new HeapEntry[references.length * ids.length];
+    HeapEntry[] right = new HeapEntry[references.length * ids.length];
 
-    for (int i=0; i < references.length; i++) {
-      for (int j=0; j < ids.length; j++) {
-        left[i*ids.length+j] = new HeapEntry(references[i],ids[j]);
-        right[i*ids.length+j] = new HeapEntry(references[i],ids[j]);
+    for (int i = 0; i < references.length; i++) {
+      for (int j = 0; j < ids.length; j++) {
+        left[i * ids.length + j] = new HeapEntry(references[i],ids[j]);
+        right[i * ids.length + j] = new HeapEntry(references[i],ids[j]);
       }
     }
 
-    for (int i=0; i < left.length; i++) {
-      for (int j=0; j < left.length; j++) {
+    for (int i = 0; i < left.length; i++) {
+      for (int j = 0; j < left.length; j++) {
         if (i == j) {
           assertEquals(left[i],right[j]);
         } else {

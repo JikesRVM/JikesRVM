@@ -26,8 +26,7 @@ import org.vmmagic.pragma.*;
 public final class SortTODSharedDeque extends SortSharedDeque {
 
   /**
-   * Constructor
-   *
+   * @param name human-readable name of the queue
    * @param rps The space from which the instance should obtain buffers.
    * @param arity The arity of the data to be enqueued
    */

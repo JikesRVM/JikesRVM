@@ -12,8 +12,16 @@
  */
 package org.mmtk.utility.alloc;
 
+import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
+import static org.mmtk.utility.Constants.CARD_MASK;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
+import static org.mmtk.utility.Constants.LOG_CARD_BYTES;
+import static org.mmtk.utility.Constants.LOG_CARD_META_SIZE;
+import static org.mmtk.utility.Constants.MAX_ALIGNMENT;
+import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
+import static org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;
+
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
@@ -46,7 +54,7 @@ import org.vmmagic.unboxed.Word;
  * <pre>
  *
  *  +-------------+-------------+-------------+---------------
- *  | Region  End | Next Region |  Data  End  | Data -->
+ *  | Region  End | Next Region |  Data  End  | Data --&gt;
  * +-------------+-------------+-------------+---------------
  *
  * </pre>
@@ -62,8 +70,7 @@ import org.vmmagic.unboxed.Word;
  * This class relies on the supporting virtual machine implementing the
  * getNextObject and related operations.
  */
-@Uninterruptible public class BumpPointer extends Allocator
-  implements Constants {
+@Uninterruptible public class BumpPointer extends Allocator {
 
   /****************************************************************************
    *
@@ -76,10 +83,10 @@ import org.vmmagic.unboxed.Word;
    *
    */
   private static final int LOG_DEFAULT_STEP_SIZE = 30; // 1G: let the external slow path dominate
-  private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
+  private static final int STEP_SIZE = 1 << (SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
   protected static final int LOG_BLOCK_SIZE = LOG_BYTES_IN_PAGE + 3;
   protected static final Word BLOCK_MASK = Word.one().lsh(LOG_BLOCK_SIZE).minus(Word.one());
-  private static final int BLOCK_SIZE = (1<<LOG_BLOCK_SIZE);
+  private static final int BLOCK_SIZE = (1 << LOG_BLOCK_SIZE);
 
 
   // Offsets into header
@@ -258,7 +265,7 @@ import org.vmmagic.unboxed.Word;
    */
   private static Address getCardMetaData(Address card) {
     Address metadata = EmbeddedMetaData.getMetaDataBase(card);
-    return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES-LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
+    return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES - LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
   }
 
   /**
@@ -440,7 +447,10 @@ import org.vmmagic.unboxed.Word;
   }
 
   /**
-   * Store the limit value at the end of the region.
+   * Stores the limit value at the end of the region.
+   *
+   * @param region region address
+   * @param limit the limit value
    */
   public static void setRegionLimit(Address region, Address limit) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
@@ -483,6 +493,7 @@ import org.vmmagic.unboxed.Word;
    *
    * @param start The start of the new region
    * @param size The size of the new region (rounded up to block-alignment)
+   * @param bytes the size of the pending allocation, if any
    */
   @Inline
   private void updateMetaData(Address start, Extent size, int bytes) {
@@ -613,13 +624,20 @@ import org.vmmagic.unboxed.Word;
    * load balancing or increments based on region size.
    * @return the maximum region size
    */
-  protected Extent maximumRegionSize() { return Extent.max(); }
+  protected Extent maximumRegionSize() {
+    return Extent.max();
+  }
 
   /** @return the current cursor value */
-  public final Address getCursor() { return cursor; }
+  public final Address getCursor() {
+    return cursor;
+  }
+
   /** @return the space associated with this bump pointer */
   @Override
-  public final Space getSpace() { return space; }
+  public final Space getSpace() {
+    return space;
+  }
 
   /**
    * Print out the status of the allocator (for debugging)

@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.alloc;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 
@@ -30,7 +32,7 @@ import org.vmmagic.unboxed.*;
  * consumed by blocks are accounted for by a memory resource.
  */
 @Uninterruptible
-public final class BlockAllocator implements Constants {
+public final class BlockAllocator {
   /****************************************************************************
    *
    * Class variables
@@ -54,7 +56,7 @@ public final class BlockAllocator implements Constants {
   private static final Offset FL_META_OFFSET = IU_OFFSET.plus(BYTES_IN_SHORT);
   private static final byte BLOCK_SC_MASK = 0xf;             // lower 4 bits
   private static final int BLOCK_PAGE_OFFSET_SHIFT = 4;      // higher 4 bits
-  private static final int MAX_BLOCK_PAGE_OFFSET = (1<<4)-1; // 4 bits
+  private static final int MAX_BLOCK_PAGE_OFFSET = (1 << 4) - 1; // 4 bits
   private static final int LOG_BYTES_IN_BLOCK_META = LOG_BYTES_IN_ADDRESS + 2;
   private static final int LOG_BYTE_COVERAGE = LOG_MIN_BLOCK - LOG_BYTES_IN_BLOCK_META;
 
@@ -70,6 +72,7 @@ public final class BlockAllocator implements Constants {
    * Allocate a block, returning the address of the first usable byte
    * in the block.
    *
+   * @param space the space to request the memory from
    * @param blockSizeClass The size class for the block to be allocated.
    * @return The address of the first usable byte in the block, or
    * zero on failure.
@@ -89,6 +92,7 @@ public final class BlockAllocator implements Constants {
    * not completely free, then the block is added to the free list.
    * Otherwise the block is returned to the virtual memory resource.
    *
+   * @param space the space that contains the block
    * @param block The address of the block to be freed
    */
   public static void free(Space space, Address block) {
@@ -146,7 +150,7 @@ public final class BlockAllocator implements Constants {
         VM.assertions._assert(getBlkStart(address).EQ(block));
         VM.assertions._assert(getBlkSizeClass(address) == sc);
       }
-      address = address.plus(1<<VM.LOG_BYTES_IN_PAGE);
+      address = address.plus(1 << VM.LOG_BYTES_IN_PAGE);
     }
   }
 
@@ -177,7 +181,7 @@ public final class BlockAllocator implements Constants {
   public static Address getBlkStart(Address address) {
     address = Conversions.pageAlign(address);
     byte offset = (byte) (getMetaAddress(address).loadByte(BMD_OFFSET) >>> BLOCK_PAGE_OFFSET_SHIFT);
-    return address.minus(offset<<LOG_BYTES_IN_PAGE);
+    return address.minus(offset << LOG_BYTES_IN_PAGE);
   }
 
   /**
@@ -186,6 +190,7 @@ public final class BlockAllocator implements Constants {
    * to block size class).
    *
    * @param block The address of interest
+   * @param blocksc the block's size class
    * @param sc The value to which this field is to be set
    */
   @Inline
@@ -194,7 +199,7 @@ public final class BlockAllocator implements Constants {
     Address address = block;
     for (int i = 0; i < pagesForSizeClass(blocksc); i++) {
       getMetaAddress(address).store(sc, CSC_OFFSET);
-      address = address.plus(1<<VM.LOG_BYTES_IN_PAGE);
+      address = address.plus(1 << VM.LOG_BYTES_IN_PAGE);
     }
   }
 
@@ -297,9 +302,9 @@ public final class BlockAllocator implements Constants {
    */
 
   /**
-   * Mark the metadata for this block.
+   * Marks the metadata for this block.
    *
-   * @param ref
+   * @param ref the block's reference
    */
   @Inline
   public static void markBlockMeta(ObjectReference ref) {

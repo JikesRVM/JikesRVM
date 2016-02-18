@@ -12,50 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.InterfaceMethodSignature;
-import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.MIR_Binary;
-import org.jikesrvm.compilers.opt.ir.MIR_Branch;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
-import org.jikesrvm.compilers.opt.ir.MIR_CondCall;
-import org.jikesrvm.compilers.opt.ir.MIR_DataLabel;
-import org.jikesrvm.compilers.opt.ir.MIR_Load;
-import org.jikesrvm.compilers.opt.ir.MIR_LoadUpdate;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ADD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ADDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ADDIS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCL;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCOND;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCOND2_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCTR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCTRL;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCTRL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BL;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BLRL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_CMPI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_DATA_LABEL;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LDIS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LInt;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LIntUX;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MFSPR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MTSPR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_SLWI;
 import static org.jikesrvm.compilers.opt.ir.Operators.RESOLVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
@@ -63,13 +21,59 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.MIR_LOWTABLESWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_ADD;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_ADDI;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_ADDIS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BCL;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BCOND;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BCOND2_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BCTR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BCTRL;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BCTRL_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BL;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_BLRL_opcode;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_CMPI;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_DATA_LABEL;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LAddr;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LDI;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LDIS;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LInt;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_LIntUX;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MFSPR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_MTSPR;
+import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_SLWI;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.util.Bits.PPCMaskLower16;
+import static org.jikesrvm.util.Bits.PPCMaskUpper16;
+import static org.jikesrvm.util.Bits.fits;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.InterfaceMethodSignature;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Binary;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_CondCall;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_DataLabel;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Load;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_LoadUpdate;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ppc.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
-import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
-import org.jikesrvm.compilers.opt.util.Bits;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
@@ -92,16 +96,17 @@ public abstract class FinalMIRExpansion extends IRTools {
     int conditionalBranchCount = 0;
     int machinecodeLength = 0;
 
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
+    MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
-      p.setmcOffset(-1);
-      p.scratchObject = null;
+      mcOffsets.setMachineCodeOffset(p, -1);
+
       switch (p.getOpcode()) {
         case MIR_LOWTABLESWITCH_opcode: {
 
           BasicBlock tableBlock = p.getBasicBlock();
           BasicBlock nextBlock = tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
-          nextBlock.firstInstruction().setmcOffset(-1);
+          mcOffsets.setMachineCodeOffset(nextBlock.firstInstruction(), -1);
           Register regI = MIR_LowTableSwitch.getIndex(p).getRegister();
           int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
           tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null, nextBlock.makeJumpTarget()));
@@ -146,7 +151,7 @@ public abstract class FinalMIRExpansion extends IRTools {
                 InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
                 int signatureId = sig.getId();
                 Instruction s;
-                if (Bits.fits(signatureId, 16)) {
+                if (fits(signatureId, 16)) {
                   s = MIR_Unary.create(PPC_LDI, I(phys.getGPR(LAST_SCRATCH_GPR)), IC(signatureId));
                   p.insertBefore(s);
                   instructionCount++;
@@ -154,13 +159,13 @@ public abstract class FinalMIRExpansion extends IRTools {
                   s =
                       MIR_Unary.create(PPC_LDIS,
                                        I(phys.getGPR(LAST_SCRATCH_GPR)),
-                                       IC(Bits.PPCMaskUpper16(signatureId)));
+                                       IC(PPCMaskUpper16(signatureId)));
                   p.insertBefore(s);
                   s =
                       MIR_Binary.create(PPC_ADDI,
                                         I(phys.getGPR(LAST_SCRATCH_GPR)),
                                         I(phys.getGPR(LAST_SCRATCH_GPR)),
-                                        IC(Bits.PPCMaskLower16(signatureId)));
+                                        IC(PPCMaskLower16(signatureId)));
                   p.insertBefore(s);
                   instructionCount += 2;
                 }
@@ -184,12 +189,12 @@ public abstract class FinalMIRExpansion extends IRTools {
             VM._assert(p.bcIndex >= 0 && p.position != null);
           }
           Offset offset = Entrypoints.optResolveMethod.getOffset();
-          if (Bits.fits(offset, 16)) {
-            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(Bits.PPCMaskLower16(offset))));
+          if (fits(offset, 16)) {
+            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(PPCMaskLower16(offset))));
           } else {
-            if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 32)); //not implemented
-            p.insertBefore(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(Bits.PPCMaskUpper16(offset))));
-            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(Bits.PPCMaskLower16(offset))));
+            if (VM.VerifyAssertions) VM._assert(fits(offset, 32)); //not implemented
+            p.insertBefore(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(PPCMaskUpper16(offset))));
+            p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(PPCMaskLower16(offset))));
             instructionCount += 1;
           }
           p.insertBefore(MIR_Move.create(PPC_MTSPR, A(CTR), A(zero)));
@@ -223,8 +228,8 @@ public abstract class FinalMIRExpansion extends IRTools {
           Register TSR = phys.getTSR();
           Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
-          if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
+          if (VM.VerifyAssertions) VM._assert(fits(offset, 16));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
@@ -247,8 +252,8 @@ public abstract class FinalMIRExpansion extends IRTools {
           Register TSR = phys.getTSR();
           Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
-          if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
+          if (VM.VerifyAssertions) VM._assert(fits(offset, 16));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
@@ -311,7 +316,7 @@ public abstract class FinalMIRExpansion extends IRTools {
    */
   static BasicBlock findOrCreateYieldpointBlock(IR ir, int whereFrom) {
     RVMMethod meth = null;
-    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     Register zero = phys.getGPR(0);
 
     // first see if the requested block exists. If not, set up some
@@ -349,12 +354,12 @@ public abstract class FinalMIRExpansion extends IRTools {
     Register JTOC = phys.getJTOC();
     Register CTR = phys.getCTR();
     Offset offset = meth.getOffset();
-    if (Bits.fits(offset, 16)) {
-      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(Bits.PPCMaskLower16(offset))));
+    if (fits(offset, 16)) {
+      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(PPCMaskLower16(offset))));
     } else {
-      if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 32)); //not implemented
-      result.appendInstruction(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(Bits.PPCMaskUpper16(offset))));
-      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(Bits.PPCMaskLower16(offset))));
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32)); //not implemented
+      result.appendInstruction(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(PPCMaskUpper16(offset))));
+      result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(PPCMaskLower16(offset))));
     }
     result.appendInstruction(MIR_Move.create(PPC_MTSPR, A(CTR), A(zero)));
     result.appendInstruction(MIR_Branch.create(PPC_BCTR));

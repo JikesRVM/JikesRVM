@@ -1,0 +1,39 @@
+#####
+# LONG_XOR
+#####
+szpr:	LONG_XOR(r, rlv)
+13
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_XOR, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+### Memory operands ###
+szpr:	LONG_XOR(r, load64)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_XOR, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+szpr:	LONG_XOR(load64, rlv)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_XOR, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+stm:	LONG_STORE(LONG_XOR(LONG_LOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_XOR, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal2(PL(p)) );
+
+stm:	LONG_STORE(LONG_XOR(r,LONG_LOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
+ADDRESS_EQUAL(P(p), PLR(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_XOR, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal1(PL(p)) );
+
+stm:	LONG_ASTORE(LONG_XOR(LONG_ALOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_XOR, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal2(PL(p)) );
+
+stm:	LONG_ASTORE(LONG_XOR(r,LONG_ALOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
+ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_XOR, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal1(PL(p)) );
+

@@ -12,9 +12,11 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.ia32.Registers;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
+
+import org.jikesrvm.architecture.AbstractRegisters;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
@@ -22,7 +24,7 @@ import org.vmmagic.unboxed.WordArray;
  * Temporary register set.
  * see: Registers
  */
-public class TempRegisters implements ArchConstants {
+public class TempRegisters {
 
   final Address ip;        // next instruction address
   final WordArray gprs;
@@ -35,23 +37,23 @@ public class TempRegisters implements ArchConstants {
    */
   final Object[] objs;
 
-  public TempRegisters(Registers contextRegisters) {
+  public TempRegisters(AbstractRegisters contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
     objs = new Object[NUM_GPRS];
 
     for (int i = 0; i < NUM_GPRS; i++) {
-      gprs.set(i, contextRegisters.gprs.get(i));
+      gprs.set(i, contextRegisters.getGPRs().get(i));
     }
-    System.arraycopy(contextRegisters.fprs, 0, fprs, 0, NUM_FPRS);
-    ip = contextRegisters.ip;
+    System.arraycopy(contextRegisters.getFPRs(), 0, fprs, 0, NUM_FPRS);
+    ip = contextRegisters.getIP();
   }
 
   public void dumpContents() {
-    System.err.println("OSR_TempRegister: @" + VM.addressAsHexString(ip));
+    System.err.println("OSR_TempRegister: @" + Services.addressAsHexString(ip));
     System.err.println("  GPRS: ");
     for (int i = 0; i < NUM_GPRS; i++) {
-      System.err.println("    (" + i + "," + VM.addressAsHexString(gprs.get(i).toAddress()) + ")");
+      System.err.println("    (" + i + "," + Services.addressAsHexString(gprs.get(i).toAddress()) + ")");
     }
 
     System.err.println();

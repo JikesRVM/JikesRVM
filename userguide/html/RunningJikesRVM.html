@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>9 Running Jikes RVM</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 9</span><br /><a 
+ id="x11-1010009"></a>Running Jikes RVM</h2>
+<!--l. 5--><p class="noindent" >Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM executes Java virtual machine byte code instructions from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">.class</span></span></span>
+ﬁles. It does <span 
+class="cmti-10">not </span>compile Java<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> source code. Therefore, you must compile all Java
+source ﬁles into bytecode using a Java compiler.
+</p><!--l. 7--><p class="noindent" >For example, to run class foo with source code in ﬁle foo.java:
+</p>
+<!--l. 9-->
+<div class="lstlisting" id="listing-70"><span class="label"><a 
+ id="x11-101001r1"></a></span>% javac foo.java <br /><span class="label"><a 
+ id="x11-101002r2"></a></span>% rvm foo
+</div>
+<!--l. 14--><p class="noindent" >The general syntax is
+</p>
+<!--l. 16-->
+<div class="lstlisting" id="listing-71"><span class="label"><a 
+ id="x11-101003r1"></a></span>rvm [rvm options...] class [args...]
+</div>
+<!--l. 20--><p class="noindent" >You may choose from a myriad of options for the rvm command-line. Options fall
+into two categories: <span 
+class="cmti-10">standard </span>and <span 
+class="cmti-10">non-standard</span>. Non-standard options are preceded
+by ”-X:” and diﬀer between virtual machines (e.g. Jikes RVM&#x2019;s options may not be
+available in HotSpot and vice-versa).
+</p>
+<h3 class="sectionHead"><span class="titlemark">9.1   </span> <a 
+ id="x11-1020009.1"></a>Standard Command-Line Options</h3>
+<!--l. 24--><p class="noindent" >We currently support a subset of the JDK 1.5 standard options. Below is a list of all
+options and their descriptions. Unless otherwise noted each option is supported in
+Jikes RVM.
+</p>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 26--><p class="noindent" ></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-8" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-8-1g"><col 
+id="TBL-8-1" /><col 
+id="TBL-8-2" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-8-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-1-1"  
+class="td11"><!--l. 29--><p class="noindent" >Option                                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-1-2"  
+class="td11"><!--l. 29--><p class="noindent" >Description                          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-2-1"  
+class="td11"><!--l. 30--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-cp</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-classpath</span></span></span> (directories and <br 
+class="newline" />zip/jar ﬁles separated by ”:”)              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-2-2"  
+class="td11"><!--l. 30--><p class="noindent" >set search path for application
+classes and resources              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-3-1"  
+class="td11"><!--l. 31--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-D&#x003C;name&#x003E;=&#x003C;value&#x003E;</span></span></span>                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-3-2"  
+class="td11"><!--l. 31--><p class="noindent" >set a system property             </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-4-1"  
+class="td11"><!--l. 32--><p class="noindent" >-verbose:[class<span 
+class="cmsy-10">|</span>gc<span 
+class="cmsy-10">|</span>jni]                          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-4-2"  
+class="td11"><!--l. 32--><p class="noindent" >enable verbose output            </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-5-1"  
+class="td11"><!--l. 33--><p class="noindent" >-version                                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-5-2"  
+class="td11"><!--l. 33--><p class="noindent" >print  current  VM  version  and
+terminate the run                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-6-1"  
+class="td11"><!--l. 34--><p class="noindent" >-showversion                                    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-6-2"  
+class="td11"><!--l. 34--><p class="noindent" >print  current  VM  version  and
+continue running                   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-7-1"  
+class="td11"><!--l. 35--><p class="noindent" >-fullversion                                      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-7-2"  
+class="td11"><!--l. 35--><p class="noindent" >like  ”-version”,  but  with  more
+information                          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-8-1"  
+class="td11"><!--l. 36--><p class="noindent" >-? or -help                                       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-8-2"  
+class="td11"><!--l. 36--><p class="noindent" >print help message                 </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-9-1"  
+class="td11"><!--l. 37--><p class="noindent" >-X                                                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-9-2"  
+class="td11"><!--l. 37--><p class="noindent" >print   help   on   non-standard
+options                                </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-10-1"  
+class="td11"><!--l. 38--><p class="noindent" >-jar                                                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-10-2"  
+class="td11"><!--l. 38--><p class="noindent" >execute a jar ﬁle                    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-11-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-11-1"  
+class="td11"><!--l. 39--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-javaagent:&#x003C;jarpath&#x003E;[=&#x003C;options&#x003E;]</span></span></span> </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-8-11-2"  
+class="td11"><!--l. 39--><p class="noindent" >load                              Java
+programming  language  agent,
+see <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">java.lang.instrument</span></span></span>   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-8-12-"><td  style="white-space:wrap; text-align:left;" id="TBL-8-12-1"  
+class="td11">                                 </td></tr></table></div>
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<h3 class="sectionHead"><span class="titlemark">9.2   </span> <a 
+ id="x11-1030009.2"></a>Non-Standard Command-Line Options</h3>
+<!--l. 47--><p class="noindent" >It is generally the case that the non-standard options may change from one release to
+another. However, the core and memory non-standard options that are listed here
+don&#x2019;t change often.
+</p><!--l. 49--><p class="noindent" >The bulk of the non-standard options are grouped according to the subsystem that
+they control. See below for details.
+</p><!--l. 51--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">9.2.1   </span> <a 
+ id="x11-1040009.2.1"></a>Core Non-Standard Command-Line Options</h4>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 53--><p class="noindent" ></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-9" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-9-1g"><col 
+id="TBL-9-1" /><col 
+id="TBL-9-2" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-9-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-1-1"  
+class="td11"><!--l. 55--><p class="noindent" >Option                                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-1-2"  
+class="td11"><!--l. 55--><p class="noindent" >Description                                     </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-2-1"  
+class="td11"><!--l. 56--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:verbose</span></span></span>                       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-2-2"  
+class="td11"><!--l. 56--><p class="noindent" >Print      out      additional      lowlevel
+information for GC and hardware trap
+handling                                        </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-3-1"  
+class="td11"><!--l. 57--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:verboseBoot=&#x003C;number&#x003E;</span></span></span>          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-3-2"  
+class="td11"><!--l. 57--><p class="noindent" >Print out additional information while
+VM  is  booting,  using  verbosity  level
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;number&#x003E;</span></span></span>                         </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-4-1"  
+class="td11"><!--l. 58--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:sysLogfile=&#x003C;filename&#x003E;</span></span></span>         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-4-2"  
+class="td11"><!--l. 58--><p class="noindent" >Write   standard   error   message   to
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;filename&#x003E;</span></span></span>                       </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-5-1"  
+class="td11"><!--l. 59--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:ic=&#x003C;filename&#x003E;</span></span></span>                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-5-2"  
+class="td11"><!--l. 59--><p class="noindent" >Read boot image code from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;filename&#x003E;</span></span></span></p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-6-1"  
+class="td11"><!--l. 60--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:id=&#x003C;filename&#x003E;</span></span></span>                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-6-2"  
+class="td11"><!--l. 60--><p class="noindent" >Read boot image data from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;filename&#x003E;</span></span></span></p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-7-1"  
+class="td11"><!--l. 61--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:ir=&#x003C;filename&#x003E;</span></span></span>                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-7-2"  
+class="td11"><!--l. 61--><p class="noindent" >Read   boot   image   ref   map   from
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;filename&#x003E;</span></span></span>                       </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-8-1"  
+class="td11"><!--l. 62--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:vmClasses=&#x003C;path&#x003E;</span></span></span>              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-8-2"  
+class="td11"><!--l. 62--><p class="noindent" >Load the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.jikesrvm.*</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">java.*</span></span></span>
+classes from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;path&#x003E;</span></span></span>                </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-9-1"  
+class="td11"><!--l. 63--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:processors=&#x003C;number|&#x0022;all&#x0022;&#x003E;</span></span></span>     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-9-9-2"  
+class="td11"><!--l. 63--><p class="noindent" >The  number  of  processors  that  the
+garbage collector will use                   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-9-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-9-10-1"  
+class="td11">                                 </td></tr></table></div>
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<h4 class="subsectionHead"><span class="titlemark">9.2.2   </span> <a 
+ id="x11-1050009.2.2"></a>Memory Non-Standard Command-Line Options</h4>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 71--><p class="noindent" ></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-10" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-10-1g"><col 
+id="TBL-10-1" /><col 
+id="TBL-10-2" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-10-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-10-1-1"  
+class="td11"><!--l. 73--><p class="noindent" >Option                                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-10-1-2"  
+class="td11"><!--l. 73--><p class="noindent" >Description                                     </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-10-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-10-2-1"  
+class="td11"><!--l. 74--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-Xms&#x003C;number&#x003E;&#x003C;unit&#x003E;</span></span></span>               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-10-2-2"  
+class="td11"><!--l. 74--><p class="noindent" >Initial  size  of  heap  where  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;number&#x003E;</span></span></span>
+is  an  integer,  an  extended-precision
+ﬂoating  point  or  a  hexadecimal  value
+and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;unit&#x003E;</span></span></span> is one of T (Terabytes), G
+(Gigabytes), M (Megabytes), pages (of
+size 4096), K (Kilobytes) or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;no unit&#x003E;</span></span></span>
+for bytes                                        </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-10-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-10-3-1"  
+class="td11"><!--l. 75--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-Xmx&#x003C;number&#x003E;&#x003C;unit&#x003E;</span></span></span>               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-10-3-2"  
+class="td11"><!--l. 75--><p class="noindent" >Maximum size of heap. See above for
+deﬁnition of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;number&#x003E;</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;unit&#x003E;</span></span></span>    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-10-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-10-4-1"  
+class="td11">                                 </td></tr></table></div>
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<h4 class="subsectionHead"><span class="titlemark">9.2.3   </span> <a 
+ id="x11-1060009.2.3"></a>Subsystem Non-Standard Command-Line Options</h4>
+<!--l. 83--><p class="noindent" >The other non-standard command line options are not listed here because they will
+change from time to time. To get a current list of these options, you can do the
+following: </p>
+     <ul class="itemize1">
+     <li class="itemize">To ﬁnd out which subsystems are available in the image you&#x2019;re using:
+     <!--l. 86-->
+     <div class="lstlisting" id="listing-72"><span class="label"><a 
+ id="x11-106001r1"></a></span>rvm -X
+     
+     </div>
+     </li>
+     <li class="itemize">To get information about the options for a speciﬁc subsystem (e.g. the garbage
+     collection subsystem) <!--l. 90-->
+     <div class="lstlisting" id="listing-73"><span class="label"><a 
+ id="x11-106002r1"></a></span>rvm -X:gc:help
+     
+     </div>
+     </li>
+     <li class="itemize">To ﬁnd out the current values of the options for a speciﬁc subystem (e.g. the
+     optimizing compiler subsystem) <!--l. 94-->
+     <div class="lstlisting" id="listing-74"><span class="label"><a 
+ id="x11-106003r1"></a></span>rvm -X:opt:printOptions
+     
+     </div>
+     </li></ul>
+<!--l. 103--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">9.3   </span> <a 
+ id="x11-1070009.3"></a>Running Jikes RVM with Valgrind</h3>
+<!--l. 105--><p class="noindent" >Jikes RVM can run under valgrind, as of 29-Aug-2007. Applying a patch of this
+revision to release 3.2.1 should also produce a working system. Versions of valgrind
+CVS prior to release 3.0 are also known to have worked. The current git HEAD
+should also work with Valgrind.
+</p><!--l. 107--><p class="noindent" >To run a Jikes RVM build with valgrind, use the -wrap ﬂag to invoke valgrind, eg
+</p><!--l. 108-->
+<div class="lstlisting" id="listing-75"><span class="label"><a 
+ id="x11-107001r1"></a></span>rvm -wrap ”path/to/valgrind --smc-check=all <span 
+class="cmmi-10">&#x003C;</span>valgrind-options<span 
+class="cmmi-10">&#x003E;</span>” <span 
+class="cmmi-10">&#x003C;</span>jikesrvm-options<span 
+class="cmmi-10">&#x003E;</span> ...
+                                                                  
+
+                                                                  
+</div>
+<!--l. 112--><p class="noindent" >Note that the full path to valgrind must be speciﬁed.
+</p><!--l. 114--><p class="noindent" >This will insert the invocation of valgrind at the appropriate place for it to operate
+on Jikes RVM proper rather than a wrapper script.
+</p><!--l. 116--><p class="noindent" >Under some circumstances, valgrind will load shared object libraries or allocate
+memory in areas of the heap that conﬂict with Jikes RVM. Using the ﬂag
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:gc:eagerMmapSpaces=true</span></span></span> will prevent and/or detect this. If this ﬂag reveals
+errors while mapping the spaces, you will need to rearrange the heap to avoid the
+addresses that Valgrind is occupying.
+</p><!--l. 118--><p class="noindent" >If you&#x2019;re using a recent Jikes RVM version (later than 3.1.3), you may want to change
+the line </p><!--l. 119-->
+<div class="lstlisting" id="listing-76"><span class="label"><a 
+ id="x11-107002r1"></a></span><span 
+class="cmbx-10">private</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">boolean</span> ALLOW_READS_OF_UNDEFINED_MEMORY = <span 
+class="cmbx-10">true</span>;
+</div>
+<!--l. 123--><p class="noindent" >in <span 
+class="cmtt-10">org.jikesrvm.jni.JNIGenericHelpers </span>to
+</p>
+<!--l. 125-->
+<div class="lstlisting" id="listing-77"><span class="label"><a 
+ id="x11-107003r1"></a></span><span 
+class="cmbx-10">private</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">boolean</span> ALLOW_READS_OF_UNDEFINED_MEMORY = <span 
+class="cmbx-10">false</span>;
+</div>
+<!--l. 129--><p class="noindent" >to prevent false positives from Valgrind.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailRunningJikesRVM.html"></a></p> 
+</body></html> 

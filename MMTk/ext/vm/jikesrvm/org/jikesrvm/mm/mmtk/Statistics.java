@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.PerfEvent;
 import org.jikesrvm.runtime.Time;
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -20,7 +19,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
-public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
+public final class Statistics extends org.mmtk.vm.Statistics {
 
   /**
    * Read nanoTime (high resolution, monotonically increasing clock).
@@ -43,12 +42,12 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
 
   @Override
   public double nanosToMillis(long c) {
-    return (c)/1e6;
+    return (c) / 1e6;
   }
 
   @Override
   public double nanosToSecs(long c) {
-    return (c)/1e9;
+    return (c) / 1e9;
   }
 
   @Override
@@ -82,9 +81,6 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
     sysCall.sysPerfEventEnable();
   }
 
-  /**
-   * Read a performance event
-   */
   @Override
   public void perfEventRead(int id, long[] values) {
     sysCall.sysPerfEventRead(id, values);

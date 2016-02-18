@@ -13,9 +13,8 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
 import org.jikesrvm.scheduler.RVMThread;
-
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
@@ -30,7 +29,6 @@ public final class Strings extends org.mmtk.vm.Strings {
   public void writeThreadId(char [] c, int len) {
     VM.tsysWrite(c, len);
   }
-
 
   @Override
   public int copyStringToChars(String str, char [] dst,
@@ -65,7 +63,7 @@ public final class Strings extends org.mmtk.vm.Strings {
     int str_offset = java.lang.JikesRVMSupport.getStringOffset(str);
     int n = (dstBegin + str_length <= dstEnd) ? str_length : (dstEnd - dstBegin);
     for (int i = 0; i < n; i++) {
-      Services.setArrayNoBarrier(dst, dstBegin + i, str_backing[str_offset+i]);
+      Services.setArrayNoBarrier(dst, dstBegin + i, str_backing[str_offset + i]);
     }
     RVMThread.getCurrentThread().enableYieldpoints();
     return n;

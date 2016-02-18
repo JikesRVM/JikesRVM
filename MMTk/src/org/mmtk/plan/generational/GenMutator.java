@@ -22,6 +22,7 @@ import org.mmtk.utility.statistics.Stats;
 import org.mmtk.vm.VM;
 import static org.mmtk.plan.generational.Gen.USE_OBJECT_BARRIER_FOR_AASTORE;
 import static org.mmtk.plan.generational.Gen.USE_OBJECT_BARRIER_FOR_PUTFIELD;
+import static org.mmtk.utility.Constants.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

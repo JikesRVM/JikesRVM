@@ -17,7 +17,6 @@ import org.mmtk.plan.Trace;
 import org.mmtk.plan.Simple;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
@@ -29,7 +28,7 @@ import org.vmmagic.unboxed.*;
  * This class performs sanity checks for Simple collectors.
  */
 @Uninterruptible
-public final class SanityChecker implements Constants {
+public final class SanityChecker {
 
   /* Counters */
   public static long referenceCount;
@@ -217,6 +216,7 @@ public final class SanityChecker implements Constants {
    * incrementing counters and enqueuing if this is the first
    * visit to the object.
    *
+   * @param trace the trace to use for processing
    * @param object The object to mark.
    * @param root {@code true} If the object is a root.
    */

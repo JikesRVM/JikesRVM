@@ -12,7 +12,6 @@
  */
 package org.vmmagic.unboxed;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -31,7 +30,7 @@ import org.vmmagic.pragma.UninterruptibleNoWarn;
  *
  */
 @Uninterruptible
-public final class Address extends ArchitecturalWord implements SizeConstants {
+public final class Address extends ArchitecturalWord {
 
   Address(int value) {
     super(value, false);
@@ -151,6 +150,10 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   @UninterruptibleNoWarn
   public static Address fromLong(long address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    if ((address <= Integer.MAX_VALUE) && (address >= Integer.MIN_VALUE)) {
+      int addressAsInt = (int) address;
+      return new Address(addressAsInt);
+    }
     return new Address(address);
  }
 

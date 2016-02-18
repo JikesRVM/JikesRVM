@@ -26,7 +26,9 @@ class TestTimeSlicing {
     }
 
     //start up tasks
-    for (Task task : tasks) { task.start(); }
+    for (Task task : tasks) {
+      task.start();
+    }
 
     // spin and wait for values to fill
     while (countArray[tasks.length - 1] != LAST_COUNT) {
@@ -67,13 +69,13 @@ class TestTimeSlicing {
     void performTask() {
       while (values[id] < LAST_COUNT) {
         boolean increment = false;
-        if(0 == id && values[previous] == values[id]) {
+        if (0 == id && values[previous] == values[id]) {
           increment = true;
-        } else if(0 != id && values[previous] - 1 == values[id]) {
+        } else if (0 != id && values[previous] - 1 == values[id]) {
           increment = true;
         }
 
-        if(increment) {
+        if (increment) {
           values[id]++;
           tsay("incremented to count: " + values[id]);
         }

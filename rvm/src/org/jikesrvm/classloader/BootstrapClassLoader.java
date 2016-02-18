@@ -64,7 +64,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    * These are the ones that implement the VM and its
    * standard runtime libraries.  This may contain several names separated
    * with colons (':'), just
-   * as a classpath may.   (<code>null</code> ==> use the values specified by
+   * as a classpath may.   (<code>null</code> ==&gt; use the values specified by
    * {@link #setBootstrapRepositories} when the boot image was created.  This
    * feature is not actually used, but may be helpful in avoiding trouble.)
    */
@@ -104,7 +104,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   /**
    * Backdoor for use by TypeReference.resolve when !VM.runningVM.
    * As of this writing, it is not used by any other classes.
-   * @throws NoClassDefFoundError
+   * @param className name of the class to be loaded
+   * @return type for the loaded class
+   * @throws NoClassDefFoundError when no definition of the class was found
    */
   synchronized RVMType loadVMClass(String className) throws NoClassDefFoundError {
     try {
@@ -164,7 +166,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    */
   @Override
   public Class<?> findClass(String className) throws ClassNotFoundException {
-    final boolean DBG=false;
+    final boolean DBG = false;
     if (!VM.runningVM) {
       return super.findClass(className);
     }
@@ -220,7 +222,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   public static final String myName = "BootstrapCL";
 
   @Override
-  public String toString() { return myName; }
+  public String toString() {
+    return myName;
+  }
 
   private static HashMap<String, ZipFile> zipFileCache;
 
@@ -238,7 +242,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       InputStream stream;
 
       @Override
-      public InputStream getResult() { return stream; }
+      public InputStream getResult() {
+        return stream;
+      }
 
       @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
@@ -260,7 +266,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       URL url;
 
       @Override
-      public URL getResult() { return url; }
+      public URL getResult() {
+        return url;
+      }
 
       @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
@@ -290,13 +298,13 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
         if (urls == null) urls = new Vector<URL>();
-        urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name));
+        urls.add(new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name));
       }
 
       @Override
       public void process(File file) throws Exception {
         if (urls == null) urls = new Vector<URL>();
-        urls.addElement(new URL("file", null, -1, file.getName()));
+        urls.add(new URL("file", null, -1, file.getName()));
       }
     };
 
@@ -317,11 +325,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
           ZipFile zf = zipFileCache.get(path);
           if (zf == null) {
             zf = new ZipFile(path);
-            if (zf == null) {
-              continue;
-            } else {
-              zipFileCache.put(path, zf);
-            }
+            zipFileCache.put(path, zf);
           }
           // Zip spec. states that separator must be '/' in the path
           if (File.separatorChar != '/') {

@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.options;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_PRINTED_HELP_MESSAGE;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.runtime.CommandLineArgs;
+import org.jikesrvm.runtime.Memory;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
@@ -25,16 +30,12 @@ import org.vmutil.options.Option;
 import org.vmutil.options.PagesOption;
 import org.vmutil.options.StringOption;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.CommandLineArgs;
-
 /**
  * Class to handle command-line arguments and options for GC.
  */
 public final class OptionSet extends org.vmutil.options.OptionSet {
 
-  private String prefix;
+  private final String prefix;
 
   public static final OptionSet gc = new OptionSet("-X:gc");
 
@@ -70,13 +71,13 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     // Split into 'name' and 'value' strings
     int split = arg.indexOf('=');
     if (split == -1) {
-      VM.sysWriteln("  Illegal option specification!\n  \""+arg+
+      VM.sysWriteln("  Illegal option specification!\n  \"" + arg +
                   "\" must be specified as a name-value pair in the form of option=value");
       return false;
     }
 
     String name = arg.substring(0,split);
-    String value = arg.substring(split+1);
+    String value = arg.substring(split + 1);
 
     Option o = getOption(name);
 
@@ -146,7 +147,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       if (o.getType() == Option.BOOLEAN_OPTION) {
         String key = o.getKey();
         VM.sysWrite(key);
-        for (int c = key.length(); c<39;c++) {
+        for (int c = key.length(); c < 39;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWriteln(o.getDescription());
@@ -163,7 +164,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
           o.getType() != Option.ENUM_OPTION) {
         String key = o.getKey();
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         switch (o.getType()) {
@@ -186,7 +187,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       if (o.getType() == Option.ENUM_OPTION) {
         String key = o.getKey();
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWriteln(o.getDescription());
@@ -202,7 +203,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
+    VM.sysExit(EXIT_STATUS_PRINTED_HELP_MESSAGE);
   }
 
   /**
@@ -217,7 +218,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         VM.sysWrite("\t");
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWrite(" = ");
@@ -234,7 +235,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         VM.sysWrite("\t");
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWrite(" = ");
@@ -250,7 +251,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         String key = o.getKey();
         VM.sysWrite("\t");
         VM.sysWrite(key);
-        for (int c = key.length(); c<31;c++) {
+        for (int c = key.length(); c < 31;c++) {
           VM.sysWrite(" ");
         }
         VM.sysWrite(" = ");
@@ -309,16 +310,16 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     if (space < 0) return name.toLowerCase();
 
     String word = name.substring(0, space);
-    String key = word.toLowerCase();
+    StringBuilder key = new StringBuilder(word.toLowerCase());
 
     do {
-      int old = space+1;
+      int old = space + 1;
       space = name.indexOf(' ', old);
       if (space < 0) {
-        key += name.substring(old);
-        return key;
+        key.append(name.substring(old));
+        return key.toString();
       }
-      key += name.substring(old, space);
+      key.append(name.substring(old, space));
     } while (true);
   }
 
@@ -335,12 +336,12 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
   @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(Constants.BYTES_IN_PAGE-1).toWord().rshl(Constants.LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(Memory.getPagesize() - 1).toWord().rshl(Memory.getPagesizeLog()).toInt();
   }
 
   @Override
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {
-    return Word.fromIntZeroExtend(pages).lsh(Constants.LOG_BYTES_IN_PAGE).toExtent();
+    return Word.fromIntZeroExtend(pages).lsh(Memory.getPagesizeLog()).toExtent();
   }
 }

@@ -7,7 +7,7 @@ precise details on the copyright status of a particular file can only be
 accurately determined by examining the history of the file in question.
 
 In addition to all of the core team members and contributors listed
-on the project web pages (http://jikesrvm.org/Acknowledgments), at least
+on the project web pages (http://www.jikesrvm.org/Acknowledgments), at least
 the following organizations have copyright in one or more project files:
 
 Australian National University

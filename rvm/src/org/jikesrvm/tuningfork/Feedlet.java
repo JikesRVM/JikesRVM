@@ -378,7 +378,7 @@ public final class Feedlet {
 
   /**
    * Add an event to the feedlet's generated event stream
-   * @param et
+   * @param et the event's type
    * @param idata an array of int data values (may be null if no such values for this event)
    * @param ldata an array of long data values (may be null if no such values for this event)
    * @param ddata an array of double data values (may be null if no such values for this event)

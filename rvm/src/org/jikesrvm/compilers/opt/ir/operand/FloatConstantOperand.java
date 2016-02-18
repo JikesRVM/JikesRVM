@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
@@ -22,7 +21,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see Operand
  */
-public final class FloatConstantOperand extends ConstantOperand implements SizeConstants {
+public final class FloatConstantOperand extends ConstantOperand {
 
   /**
    * Value of this operand.

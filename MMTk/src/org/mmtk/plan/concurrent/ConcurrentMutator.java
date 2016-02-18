@@ -12,6 +12,8 @@
  */
 package org.mmtk.plan.concurrent;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.*;
 
 import org.mmtk.vm.VM;

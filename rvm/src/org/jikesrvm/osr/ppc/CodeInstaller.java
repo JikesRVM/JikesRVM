@@ -12,7 +12,19 @@
  */
 package org.jikesrvm.osr.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FIXED_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FIRST_FLOAT_LOCAL_REGISTER;
+import static org.jikesrvm.ppc.BaselineConstants.FP;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
@@ -22,8 +34,8 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.osr.ExecutionState;
-import org.jikesrvm.ppc.BaselineConstants;
-import org.jikesrvm.ppc.MachineCode;
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Statics;
@@ -37,7 +49,7 @@ import org.vmmagic.unboxed.Offset;
  * prologue ( machine code ) is adjusted to cooperate with the code
  * installer.
  */
-public abstract class CodeInstaller implements BaselineConstants {
+public abstract class CodeInstaller {
 
   /* install the newly compiled instructions. */
   public static boolean install(ExecutionState state, CompiledMethod cm) {
@@ -54,7 +66,7 @@ public abstract class CodeInstaller implements BaselineConstants {
     CompiledMethod foo = CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
 
-    Assembler asm = new ArchitectureSpecific.Assembler(0, VM.TraceOnStackReplacement);
+    Assembler asm = new Assembler(0, VM.TraceOnStackReplacement);
 
     /////////////////////////////////////
     ////// recover saved registers.
@@ -62,13 +74,13 @@ public abstract class CodeInstaller implements BaselineConstants {
     if (cType == CompiledMethod.BASELINE) {
       BaselineCompiledMethod bcm = (BaselineCompiledMethod) foo;
       int offset = BaselineCompilerImpl.getFrameSize(bcm);
-      for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
+      for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER.value(); --i) {
         offset -= BYTES_IN_DOUBLE;
-        asm.emitLFD(i, offset, FP);
+        asm.emitLFD(FPR.lookup(i), offset, FP);
       }
-      for (int i = bcm.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {
+      for (int i = bcm.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER.value(); --i) {
         offset -= BYTES_IN_ADDRESS;
-        asm.emitLAddr(i, offset, FP);
+        asm.emitLAddr(GPR.lookup(i), offset, FP);
       }
     } else if (cType == CompiledMethod.OPT) {
       OptCompiledMethod fooOpt = (OptCompiledMethod) foo;
@@ -84,8 +96,8 @@ public abstract class CodeInstaller implements BaselineConstants {
       // recover nonvolatile GPRs
       int firstGPR = fooOpt.getFirstNonVolatileGPR();
       if (firstGPR != -1) {
-        for (int i = firstGPR; i <= LAST_NONVOLATILE_GPR; i++) {
-          asm.emitLAddr(i, offset, FP);
+        for (int i = firstGPR; i <= LAST_NONVOLATILE_GPR.value(); i++) {
+          asm.emitLAddr(GPR.lookup(i), offset, FP);
           offset += BYTES_IN_STACKSLOT;
         }
       }
@@ -93,8 +105,8 @@ public abstract class CodeInstaller implements BaselineConstants {
       // recover nonvolatile FPRs
       int firstFPR = fooOpt.getFirstNonVolatileFPR();
       if (firstFPR != -1) {
-        for (int i = firstFPR; i <= LAST_NONVOLATILE_FPR; i++) {
-          asm.emitLFD(i, offset, FP);
+        for (int i = firstFPR; i <= LAST_NONVOLATILE_FPR.value(); i++) {
+          asm.emitLFD(FPR.lookup(i), offset, FP);
           offset += BYTES_IN_DOUBLE;
         }
       }
@@ -112,17 +124,15 @@ public abstract class CodeInstaller implements BaselineConstants {
     // lwz FP, 0(FP)
     asm.emitLAddr(FP, 0, FP);
     // lwz T0, NEXT_INSTR(FP)
-    asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
+    asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt(), FP);
     // mov LR, addr
     asm.emitMTLR(S0);
     // bctr
     asm.emitBCCTR();
 
-    MachineCode mc = asm.makeMachineCode();
-
     // mark the thread as waiting for on stack replacement.
     thread.isWaitingForOsr = true;
-    thread.bridgeInstructions = mc.getInstructions();
+    thread.bridgeInstructions = asm.getMachineCodes();
     thread.fooFPOffset = fooFPOffset;
 
     Address bridgeaddr = Magic.objectAsAddress(thread.bridgeInstructions);

@@ -12,11 +12,16 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSFAIL;
+
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.JMXSupport;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMember;
@@ -29,20 +34,24 @@ import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.BootRecord;
+import org.jikesrvm.runtime.Callbacks;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.ExitStatus;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.SysCall;
+import org.jikesrvm.runtime.Time;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
+
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.MainThread;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.runtime.FileSystem;
 import org.jikesrvm.tuningfork.TraceEngine;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -61,7 +70,12 @@ import org.vmmagic.unboxed.Word;
  * A virtual machine.
  */
 @Uninterruptible
-public class VM extends Properties implements Constants, ExitStatus {
+public class VM extends Properties {
+
+  /**
+   * For assertion checking things that should never happen.
+   */
+  public static final boolean NOT_REACHED = false;
 
   /**
    * Reference to the main thread that is the first none VM thread run
@@ -125,6 +139,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     writingBootImage = false;
     runningVM = true;
     verboseBoot = BootRecord.the_boot_record.verboseBoot;
+    verboseSignalHandling = BootRecord.the_boot_record.verboseSignalHandling != 0;
 
     sysWriteLockOffset = Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
@@ -133,7 +148,12 @@ public class VM extends Properties implements Constants, ExitStatus {
     // has placed a pointer to the current RVMThread in a special
     // register.
     if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
-    ThreadLocalState.boot();
+    if (VM.BuildForIA32) {
+      org.jikesrvm.ia32.ThreadLocalState.boot();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      org.jikesrvm.ppc.ThreadLocalState.boot();
+    }
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
@@ -142,7 +162,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     RVMThread currentThread = RVMThread.getCurrentThread();
     currentThread.stackLimit = Magic.objectAsAddress(
-        currentThread.getStack()).plus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD);
+        currentThread.getStack()).plus(StackFrameLayout.getStackSizeGuard());
 
     finishBooting();
   }
@@ -158,8 +178,8 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // get pthread_id from OS and store into vm_processor field
     //
-    sysCall.sysSetupHardwareTrapHandler();
     RVMThread.getCurrentThread().pthread_id = sysCall.sysGetThreadId();
+    RVMThread.getCurrentThread().priority_handle = sysCall.sysGetThreadPriorityHandle();
     RVMThread.availableProcessors = SysCall.sysCall.sysNumProcessors();
 
     // Set up buffer locks used by Thread for logging and status dumping.
@@ -204,6 +224,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     //
     String bootstrapClasses = CommandLineArgs.getBootstrapClasses();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader: ", bootstrapClasses);
+    Callbacks.addClassLoadedMonitor(JMXSupport.CLASS_LOADING_JMX_SUPPORT);
     RVMClassLoader.boot();      // Wipe out cached application class loader
     BootstrapClassLoader.boot(bootstrapClasses);
 
@@ -387,6 +408,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.lang.annotation.ElementType");
     runClassInitializer("java.lang.Thread$State");
     if (VM.BuildForGnuClasspath) {
+      runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.VMClassLoader");
     }
 
@@ -403,12 +425,12 @@ public class VM extends Properties implements Constants, ExitStatus {
     // Inform interested subsystems that VM is fully booted.
     VM.fullyBooted = true;
     MemoryManager.fullyBootedVM();
+    org.jikesrvm.mm.mminterface.JMXSupport.fullyBootedVM();
     BaselineCompiler.fullyBootedVM();
     TraceEngine.engine.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
-      runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.reflect.Proxy");
       runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
     }
@@ -461,7 +483,7 @@ public class VM extends Properties implements Constants, ExitStatus {
         VM.sysWrite("vm: \"");
         VM.sysWrite(applicationArguments[0]);
         VM.sysWrite("\" is not a recognized Jikes RVM command line argument.\n");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
@@ -489,6 +511,8 @@ public class VM extends Properties implements Constants, ExitStatus {
       SysCall.sysCall.sysEnableAlignmentChecking();
     }
 
+    Time.boot();
+
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
@@ -514,7 +538,7 @@ public class VM extends Properties implements Constants, ExitStatus {
   private static void pleaseSpecifyAClass() {
     VM.sysWrite("vm: Please specify a class to execute.\n");
     VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
-    VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
   /**
@@ -525,12 +549,12 @@ public class VM extends Properties implements Constants, ExitStatus {
    * <p>
    * This method is called only while the VM boots.
    *
-   * @param className
+   * @param className class whose initializer needs to be run
    */
   @Interruptible
   static void runClassInitializer(String className) {
     if (verboseBoot >= 2) {
-      sysWrite("running class intializer for ");
+      sysWrite("running class initializer for ");
       sysWriteln(className);
     }
     Atom classDescriptor = Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
@@ -538,11 +562,11 @@ public class VM extends Properties implements Constants, ExitStatus {
         TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     RVMClass cls = (RVMClass) tRef.peekType();
     if (null == cls) {
-      sysWrite("Failed to run class intializer for ");
+      sysWrite("Failed to run class initializer for ");
       sysWrite(className);
       sysWriteln(" as the class does not exist.");
     } else if (!cls.isInBootImage()) {
-      sysWrite("Failed to run class intializer for ");
+      sysWrite("Failed to run class initializer for ");
       sysWrite(className);
       sysWriteln(" as the class is not in the boot image.");
     } else {
@@ -579,7 +603,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * {@code if (VM.VerifyAssertions) VM._assert(xxx);}
    * @param b the assertion to verify
    */
-  @Inline(value=Inline.When.AllArgumentsAreConstant)
+  @Inline(value = Inline.When.AllArgumentsAreConstant)
   public static void _assert(boolean b) {
     _assert(b, null, null);
   }
@@ -594,12 +618,12 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {0})
   public static void _assert(boolean b, String message) {
     _assert(b, message, null);
   }
 
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
+  @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {0})
   public static void _assert(boolean b, String msg1, String msg2) {
     if (!VM.VerifyAssertions) {
       sysWriteln("vm: somebody forgot to conditionalize their call to assert with");
@@ -626,72 +650,6 @@ public class VM extends Properties implements Constants, ExitStatus {
       sysFail(msg2);
     }
     throw new RuntimeException((msg1 != null ? msg1 : "") + msg2);
-  }
-
-  /**
-   * Format a 32 bit number as "0x" followed by 8 hex digits.
-   * Do this without referencing Integer or Character classes,
-   * in order to avoid dynamic linking.
-   * TODO: move this method to Services.
-   * @param number
-   * @return a String with the hex representation of the integer
-   */
-  @Interruptible
-  public static String intAsHexString(int number) {
-    char[] buf = new char[10];
-    int index = 10;
-    while (--index > 1) {
-      int digit = number & 0x0000000f;
-      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
-      number >>= 4;
-    }
-    buf[index--] = 'x';
-    buf[index] = '0';
-    return new String(buf);
-  }
-
-  /**
-   * Format a 64 bit number as "0x" followed by 16 hex digits.
-   * Do this without referencing Long or Character classes,
-   * in order to avoid dynamic linking.
-   * TODO: move this method to Services.
-   * @param number
-   * @return a String with the hex representation of the long
-   */
-  @Interruptible
-  public static String longAsHexString(long number) {
-    char[] buf = new char[18];
-    int index = 18;
-    while (--index > 1) {
-      int digit = (int) (number & 0x000000000000000fL);
-      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
-      number >>= 4;
-    }
-    buf[index--] = 'x';
-    buf[index] = '0';
-    return new String(buf);
-  }
-
-  /**
-   * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
-   * Do this without referencing Integer or Character classes,
-   * in order to avoid dynamic linking.
-   * TODO: move this method to Services.
-   * @param addr  The 32/64 bit number to format.
-   * @return a String with the hex representation of an Address
-   */
-  @Interruptible
-  public static String addressAsHexString(Address addr) {
-    int len = 2 + (BITS_IN_ADDRESS >> 2);
-    char[] buf = new char[len];
-    while (--len > 1) {
-      int digit = addr.toInt() & 0x0F;
-      buf[len] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
-      addr = addr.toWord().rshl(4).toAddress();
-    }
-    buf[len--] = 'x';
-    buf[len] = '0';
-    return new String(buf);
   }
 
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
@@ -783,12 +741,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   /* don't waste code space inlining these --dave */
   public static void write(char[] value, int len) {
     for (int i = 0, n = len; i < n; ++i) {
-      if (runningVM)
-        /*  Avoid triggering a potential read barrier
-         *
-         *  TODO: Convert this to use org.mmtk.vm.Barriers.getArrayNoBarrier
-         */ {
-        write(Magic.getCharAtOffset(value, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_CHAR)));
+      if (runningVM) {
+        //  Avoid triggering a potential read barrier
+        write(Services.getArrayNoBarrier(value, i));
       } else {
         write(value[i]);
       }
@@ -1000,7 +955,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
   /**
    * Low level print to console.
-   * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
+   * @param value print value
+   * @param fieldWidth the number of characters that the output should contain. If the value
+   *  is too small, the output will be filled up with enough spaces, starting from the left
    */
   @NoInline
   /* don't waste code space inlining these --dave */
@@ -1069,9 +1026,10 @@ public class VM extends Properties implements Constants, ExitStatus {
     write(b ? "true" : "false");
   }
 
-  /**
+  /*
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
+
   @NoInline
   public static void sysWrite(Atom a) {
     swLock();
@@ -1109,7 +1067,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void sysWrite(char c) { write(c); }
+  public static void sysWrite(char c) {
+    write(c);
+  }
 
   @NoInline
   public static void sysWriteField(int w, int v) {
@@ -1724,6 +1684,17 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
+  public static void sysWriteln(String s1, int i1, String s2, String s3) {
+    swLock();
+    write(s1);
+    write(i1);
+    write(s2);
+    write(s3);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
   public static void sysWrite(String s1, String s2, String s3, String s4) {
     swLock();
     write(s1);
@@ -2303,11 +2274,11 @@ public class VM extends Properties implements Constants, ExitStatus {
   @NoInline
   public static void bugReportMessage() {
     VM.sysWriteln("********************************************************************************");
-    VM.sysWriteln("*                      Abnormal termination of Jikes RVM                       *\n"+
-                  "* Jikes RVM terminated abnormally indicating a problem in the virtual machine. *\n"+
-                  "* Jikes RVM relies on community support to get debug information. Help improve *\n"+
-                  "* Jikes RVM for everybody by reporting this error. Please see:                 *\n"+
-                  "*                      http://jikesrvm.org/Reporting+Bugs                      *");
+    VM.sysWriteln("*                      Abnormal termination of Jikes RVM                       *\n" +
+                  "* Jikes RVM terminated abnormally indicating a problem in the virtual machine. *\n" +
+                  "* Jikes RVM relies on community support to get debug information. Help improve *\n" +
+                  "* Jikes RVM for everybody by reporting this error. Please see:                 *\n" +
+                  "*                    http://www.jikesrvm.org/ReportingBugs/                    *");
     VM.sysWriteln("********************************************************************************");
   }
 
@@ -2320,7 +2291,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
-    if(!RVMThread.getCurrentThread().isCollectorThread()) {
+    if (!RVMThread.getCurrentThread().isCollectorThread()) {
       RVMThread.traceback(message);
     } else {
       VM.sysWriteln("Died in GC:");
@@ -2547,8 +2518,13 @@ public class VM extends Properties implements Constants, ExitStatus {
     RVMThread.init();
   }
 
-  public static void disableYieldpoints() { RVMThread.getCurrentThread().disableYieldpoints(); }
-  public static void enableYieldpoints() { RVMThread.getCurrentThread().enableYieldpoints(); }
+  public static void disableYieldpoints() {
+    RVMThread.getCurrentThread().disableYieldpoints();
+  }
+
+  public static void enableYieldpoints() {
+    RVMThread.getCurrentThread().enableYieldpoints();
+  }
 
   /**
    * The disableGC() and enableGC() methods are for use as guards to protect
@@ -2571,9 +2547,9 @@ public class VM extends Properties implements Constants, ExitStatus {
    *   <li>allocating objects with "new"
    *   <li>throwing exceptions
    *   <li>executing trap instructions (including stack-growing traps)
-   *   <li>storing into object arrays, except when runtime types of lhs & rhs
+   *   <li>storing into object arrays, except when runtime types of lhs &amp; rhs
    *     match exactly
-   *   <li>typecasting objects, except when runtime types of lhs & rhs
+   *   <li>typecasting objects, except when runtime types of lhs &amp; rhs
    *     match exactly
    * </ul>
    *
@@ -2593,6 +2569,8 @@ public class VM extends Properties implements Constants, ExitStatus {
    * enforces a stack discipline; we need it for the JNI Get*Critical and
    * Release*Critical functions.  Should be matched with a subsequent call to
    * enableGC().
+   *
+   * @param recursiveOK whether recursion is allowed.
    */
   @Inline
   @Unpreemptible("We may boost the size of the stack with GC disabled and may get preempted doing this")
@@ -2625,10 +2603,10 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // 1.
     //
-    if (Magic.getFramePointer().minus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
+    if (Magic.getFramePointer().minus(StackFrameLayout.getStackSizeGCDisabled())
         .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
-      RVMThread.resizeCurrentStack(myThread.getStackLength()+
-          ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GCDISABLED, null);
+      RVMThread.resizeCurrentStack(myThread.getStackLength() +
+          StackFrameLayout.getStackSizeGCDisabled(), null);
     }
 
     // 2.
@@ -2658,6 +2636,8 @@ public class VM extends Properties implements Constants, ExitStatus {
    * possibly-recursive {@link #disableGC} request.  This enforces a stack discipline;
    * we need it for the JNI Get*Critical and Release*Critical functions.
    * Should be matched with a preceding call to {@link #disableGC}.
+   *
+   * @param recursiveOK unused (!)
    */
   @Inline
   public static void enableGC(boolean recursiveOK) {
@@ -2679,17 +2659,19 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   /**
-   * Is this a build for 32bit addressing? NB. this method is provided
-   * to give a hook to the IA32 assembler that won't be compiled away
-   * by javac
+   * @return whether this is a build for 32bit addressing.
+   * NB. this method is provided to give a hook to the IA32
+   * assembler that won't be compiled away by javac.
    */
   public static boolean buildFor32Addr() {
     return BuildFor32Addr;
   }
 
   /**
-   * Is this a build for SSE2? NB. this method is provided to give a
-   * hook to the IA32 assembler that won't be compiled away by javac
+   * @return whether this is a build for SSE2.
+   * NB. this method is provided to give a hook to the IA32
+   * assembler that won't be compiled away by javac.
+
    */
   public static boolean buildForSSE2() {
     return BuildForSSE2;

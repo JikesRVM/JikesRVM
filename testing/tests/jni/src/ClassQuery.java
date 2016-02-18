@@ -26,11 +26,9 @@ class ClassQuery extends ClassQuerySuper {
   static native boolean testSameObject(Object obj1, Object obj2);
   static native Object testAllocObject(Class cls);
   static native Class testGetObjectClass(Object obj);
+  static native boolean testInstanceOf(Object obj, Class cls);
 
-  /**
-   * constructor
-   */
-  public ClassQuery() {
+  ClassQuery() {
     toTestConstructor = 2;
   }
 
@@ -45,7 +43,7 @@ class ClassQuery extends ClassQuerySuper {
 
     System.loadLibrary("ClassQuery");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         setVerboseOff();
@@ -64,7 +62,7 @@ class ClassQuery extends ClassQuerySuper {
     }
 
     returncls = testSuperClass(subcls);
-    checkTest(returnValue, (supercls==returncls), "GetSuperclass");
+    checkTest(returnValue, (supercls == returncls), "GetSuperclass");
 
 
     /***********************************************
@@ -124,6 +122,56 @@ class ClassQuery extends ClassQuerySuper {
 
     checkTest(returnValue, true, "IsAssignableFrom");
 
+    /***********************************************
+     * check instanceof
+     */
+    // NOTE: the behaviour of instanceof is defined via checkcast according
+    // to the JNI spec. Quote from the spec:
+    // "Returns JNI_TRUE if obj can be cast to clazz; otherwise, returns JNI_FALSE.
+    // A NULL object can be cast to any class."
+    returnFlag = testInstanceOf(null, Object.class);
+    if (!returnFlag) {  // should be true
+      returnValue = 1;
+    }
+    // same type, reference type
+    returnFlag = testInstanceOf(new Object(), Object.class);
+    if (!returnFlag) { // should be true
+      returnValue = 1;
+    }
+    int[] anIntArray = new int[0];
+    // arrays are instances of Object
+    returnFlag = testInstanceOf(anIntArray, Object.class);
+    if (!returnFlag) { // should be true
+      returnValue = 1;
+    }
+    // same primitive array type
+    returnFlag = testInstanceOf(anIntArray, int[].class);
+    if (!returnFlag) { // should be true
+      returnValue = 1;
+    }
+    // different primitive array types
+    returnFlag = testInstanceOf(anIntArray, byte[].class);
+    if (returnFlag) { // should be false
+      returnValue = 1;
+    }
+    // same array reference types
+    Integer[] anIntegerArray = new Integer[0];
+    returnFlag = testInstanceOf(anIntegerArray, Integer[].class);
+    if (!returnFlag) { // should be true
+      returnValue = 1;
+    }
+    // different reference array types, casting succeeds
+    returnFlag = testInstanceOf(anIntegerArray, Number[].class);
+    if (!returnFlag) { // should be true
+      returnValue = 1;
+    }
+    // different reference array types, casting fails
+    returnFlag = testInstanceOf(anIntegerArray, String[].class);
+    if (returnFlag) { // should be false
+      returnValue = 1;
+    }
+    checkTest(returnValue, true, "IsInstanceOf");
+
 
     /***********************************************
      * check for same object
@@ -146,7 +194,7 @@ class ClassQuery extends ClassQuerySuper {
     try {
       subcls = Class.forName("ClassQuery");
       ClassQuery blankObj = (ClassQuery) testAllocObject(subcls);
-      if (blankObj.toTestConstructor==2)    // shouldn't have been initialized
+      if (blankObj.toTestConstructor == 2)    // shouldn't have been initialized
         returnValue = 1;
       else
         returnValue = 0;
@@ -164,7 +212,7 @@ class ClassQuery extends ClassQuerySuper {
     try {
       returncls = testGetObjectClass(obj1);
       subcls = Class.forName("java.lang.String");
-      checkTest(0, (returncls==subcls), "GetObjectClass");
+      checkTest(0, (returncls == subcls), "GetObjectClass");
     } catch (ClassNotFoundException e) {
       checkTest(0, false, "GetObjectClass");
     }
@@ -186,7 +234,7 @@ class ClassQuery extends ClassQuerySuper {
   }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

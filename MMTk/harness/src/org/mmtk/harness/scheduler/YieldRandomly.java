@@ -35,13 +35,13 @@ public final class YieldRandomly extends AbstractPolicy implements Policy {
     super(thread, "YieldRandomly");
     this.schedule = new int[length];
 
-    synchronized(YieldRandomly.class) {
+    synchronized (YieldRandomly.class) {
       if (rng == null) {
         rng = new Random(seed);
       }
     }
-    for (int i=0; i < length; i++) {
-      schedule[i] = rng.nextInt(max-min+1)+min;
+    for (int i = 0; i < length; i++) {
+      schedule[i] = rng.nextInt(max - min + 1) + min;
     }
     Trace.trace(Item.SCHEDULER, "  yield pattern %s", formatPolicy());
   }
@@ -57,9 +57,9 @@ public final class YieldRandomly extends AbstractPolicy implements Policy {
   @Override
   protected String formatPolicy() {
     StringBuilder result = new StringBuilder();
-    for (int i=0; i < schedule.length; i++) {
+    for (int i = 0; i < schedule.length; i++) {
       result.append(schedule[i]);
-      if (i < schedule.length-1) {
+      if (i < schedule.length - 1) {
         result.append(",");
       }
     }

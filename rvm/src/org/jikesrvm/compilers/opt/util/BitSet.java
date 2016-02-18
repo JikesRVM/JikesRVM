@@ -32,7 +32,9 @@ public final class BitSet {
   private final BitSetMapping map;
 
   /**
-   * Constructor: create an empty set corresponding to a given mapping
+   * Creates an empty set corresponding to a given mapping.
+   *
+   * @param map a mapping
    */
   public BitSet(BitSetMapping map) {
     int length = map.getMappingSize();
@@ -42,6 +44,7 @@ public final class BitSet {
 
   /**
    * Add all elements in bitset B to this bit set
+   * @param B the elements to add to this set
    */
   public void addAll(BitSet B) {
     if (VM.VerifyAssertions) {
@@ -52,6 +55,7 @@ public final class BitSet {
 
   /**
    * Add an object to this bit set.
+   * @param o an object that's present in the mapping
    */
   public void add(Object o) {
     int n = map.getMappedIndex(o);
@@ -59,7 +63,8 @@ public final class BitSet {
   }
 
   /**
-   * Does this set contain a certain object?
+   * @param o an object that's present in the mapping
+   * @return whether this set contains the object
    */
   public boolean contains(Object o) {
     int n = map.getMappedIndex(o);

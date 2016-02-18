@@ -48,7 +48,9 @@ import org.mmtk.harness.lang.ast.WhileStatement;
  */
 public abstract class Visitor {
 
-  public Object visit(AST ast) { return ast; }
+  public Object visit(AST ast) {
+    return ast;
+  }
   public Object visit(Alloc alloc) {
     for (Expression arg : alloc.getArgs()) {
       arg.accept(this);
@@ -79,10 +81,18 @@ public abstract class Visitor {
     call.getMethod().accept(this);
     return call;
   }
-  public Object visit(Constant c) { return c; }
-  public Object visit(Declaration decl) { return decl; }
-  public Object visit(Empty e) { return e; }
-  public Object visit(Expect exc) { return exc; }
+  public Object visit(Constant c) {
+    return c;
+  }
+  public Object visit(Declaration decl) {
+    return decl;
+  }
+  public Object visit(Empty e) {
+    return e;
+  }
+  public Object visit(Expect exc) {
+    return exc;
+  }
   public Object visit(IfStatement conditional) {
     for (Expression cond : conditional.getConds()) {
       cond.accept(this);

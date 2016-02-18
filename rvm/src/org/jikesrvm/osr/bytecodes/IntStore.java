@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_istore;
 
 /**
  * BC_IntStore : {@code istore_<?>}, {@code istore}
@@ -24,7 +25,7 @@ package org.jikesrvm.osr.bytecodes;
 public class IntStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;
-  private int lnum;
+  private final int lnum;
 
   public IntStore(int local) {
     this.lnum = local;

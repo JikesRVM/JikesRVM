@@ -31,7 +31,6 @@ import org.vmmagic.unboxed.*;
  * <i>SSGCspy</i> plan.
  *
  * See {@link SSGCspy} for an overview of the GC-spy mechanisms.
- * <p>
  *
  * @see SSMutator
  * @see SSGCspy
@@ -54,7 +53,7 @@ import org.vmmagic.unboxed.*;
   private static final boolean LOS_FROMSPACE = false; // gather from fromspace
 
   /** Per-mutator allocator into GCspy's space */
-  private BumpPointer gcspy = new ImmortalLocal(SSGCspy.gcspySpace);
+  private final BumpPointer gcspy = new ImmortalLocal(SSGCspy.gcspySpace);
 
 
 
@@ -115,7 +114,10 @@ import org.vmmagic.unboxed.*;
   @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
-    if (DEBUG) { Log.write("--Phase Mutator."); Log.writeln(Phase.getName(phaseId)); }
+    if (DEBUG) {
+      Log.write("--Phase Mutator.");
+      Log.writeln(Phase.getName(phaseId));
+    }
 
     // TODO do we need to worry any longer about primary??
     if (phaseId == SSGCspy.PREPARE) {
@@ -153,7 +155,7 @@ import org.vmmagic.unboxed.*;
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
-    if(DEBUG) {
+    if (DEBUG) {
       Log.writeln("SSGCspyMutator.gcspyGatherData, event=", event);
       Log.writeln("SSGCspyMutator.gcspyGatherData, port=", GCspy.getGCspyPort());
     }

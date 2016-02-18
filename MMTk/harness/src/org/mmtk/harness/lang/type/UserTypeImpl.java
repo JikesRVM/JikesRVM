@@ -53,7 +53,7 @@ public class UserTypeImpl extends AbstractType implements UserType {
   @Override
   public void defineField(String fieldName, Type fieldType) {
     if (fields.containsKey(fieldName)) {
-      throw new RuntimeException("Type "+getName()+" already contains a field called "+fieldName);
+      throw new RuntimeException("Type " + getName() + " already contains a field called " + fieldName);
     }
     int offset = fieldType.isObject() ? referenceFields++ : dataFields++;
     Field field = new Field(fieldName,fieldType,offset);
@@ -108,10 +108,20 @@ public class UserTypeImpl extends AbstractType implements UserType {
    * Delegate AST-nature to the 'ast' object
    */
 
-  @Override public Object accept(Visitor v) { return v.visit(this); }
-  @Override public int getColumn() { return ast.getColumn(); }
-  @Override public int getLine() { return ast.getLine(); }
-  @Override public String sourceLocation(String prefix) { return ast.sourceLocation(prefix); }
+  @Override public Object accept(Visitor v) {
+    return v.visit(this);
+  }
+  @Override public int getColumn() {
+    return ast.getColumn();
+  }
+  @Override public int getLine() {
+    return ast.getLine();
+  }
+  @Override public String sourceLocation(String prefix) {
+    return ast.sourceLocation(prefix);
+  }
 
-  @Override public Token getToken() { return ast.getToken();  }
+  @Override public Token getToken() {
+    return ast.getToken();
+  }
 }

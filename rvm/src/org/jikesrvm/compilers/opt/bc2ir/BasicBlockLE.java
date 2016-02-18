@@ -51,7 +51,7 @@ class BasicBlockLE {
   BasicBlockLE fallThrough;
 
   /**
-   * The exception handler BBLE's for this block (null if none)
+   * The exception handler BBLE's for this block ({@code null} if none)
    */
   HandlerBlockLE[] handlers;
 
@@ -66,47 +66,82 @@ class BasicBlockLE {
   private static final byte COLOR = 0x10;           //(Red = 0, Black = 1)
   private static final byte IN_CODE_ORDER = 0x20;
 
-  final void setStackKnown() { flags |= STACK_KNOWN; }
+  final void setStackKnown() {
+    flags |= STACK_KNOWN;
+  }
 
-  final void clearStackKnown() { flags &= ~STACK_KNOWN; }
+  final void clearStackKnown() {
+    flags &= ~STACK_KNOWN;
+  }
 
-  final boolean isStackKnown() { return (flags & STACK_KNOWN) != 0; }
+  final boolean isStackKnown() {
+    return (flags & STACK_KNOWN) != 0;
+  }
 
-  final void setLocalKnown() { flags |= LOCAL_KNOWN; }
+  final void setLocalKnown() {
+    flags |= LOCAL_KNOWN;
+  }
 
-  final void clearLocalKnown() { flags &= ~LOCAL_KNOWN; }
+  final void clearLocalKnown() {
+    flags &= ~LOCAL_KNOWN;
+  }
 
-  final boolean isLocalKnown() { return (flags & LOCAL_KNOWN) != 0; }
+  final boolean isLocalKnown() {
+    return (flags & LOCAL_KNOWN) != 0;
+  }
 
-  final void setSelfRegen() { flags |= SELF_REGEN; }
+  final void setSelfRegen() {
+    flags |= SELF_REGEN;
+  }
 
-  final void clearSelfRegen() { flags &= ~SELF_REGEN; }
+  final void clearSelfRegen() {
+    flags &= ~SELF_REGEN;
+  }
 
-  final boolean isSelfRegen() { return (flags & SELF_REGEN) != 0; }
+  final boolean isSelfRegen() {
+    return (flags & SELF_REGEN) != 0;
+  }
 
-  final void setGenerated() { flags |= GENERATED; }
+  final void setGenerated() {
+    flags |= GENERATED;
+  }
 
-  final void clearGenerated() { flags &= ~GENERATED; }
+  final void clearGenerated() {
+    flags &= ~GENERATED;
+  }
 
-  final boolean isGenerated() { return (flags & GENERATED) != 0; }
+  final boolean isGenerated() {
+    return (flags & GENERATED) != 0;
+  }
 
-  final void setBlack() { flags |= COLOR; }
+  final void setBlack() {
+    flags |= COLOR;
+  }
 
-  final boolean isBlack() { return (flags & COLOR) != 0; }
+  final boolean isBlack() {
+    return (flags & COLOR) != 0;
+  }
 
-  final void setRed() { flags &= ~COLOR; }
+  final void setRed() {
+    flags &= ~COLOR;
+  }
 
-  final boolean isRed() { return (flags & COLOR) == 0; }
+  final boolean isRed() {
+    return (flags & COLOR) == 0;
+  }
 
-  final void setInCodeOrder() { flags |= IN_CODE_ORDER; }
+  final void setInCodeOrder() {
+    flags |= IN_CODE_ORDER;
+  }
 
-  final void clearInCodeOrder() { flags &= ~IN_CODE_ORDER; }
+  final void clearInCodeOrder() {
+    flags &= ~IN_CODE_ORDER;
+  }
 
-  final boolean isInCodeOrder() { return (flags & IN_CODE_ORDER) != 0; }
+  final boolean isInCodeOrder() {
+    return (flags & IN_CODE_ORDER) != 0;
+  }
 
-  /**
-   * Is the BBLE ready to generate?
-   */
   final boolean isReadyToGenerate() {
     // (isStackKnown() && isLocalKnown && !isGenerated)
     byte READY_MASK = STACK_KNOWN | LOCAL_KNOWN | GENERATED;
@@ -125,7 +160,7 @@ class BasicBlockLE {
   }
 
   /**
-   * Return a shallow copy of my local state.
+   * @return a shallow copy of the local state
    */
   final Operand[] copyLocalState() {
     Operand[] ls = new Operand[localState.length];
@@ -134,11 +169,14 @@ class BasicBlockLE {
   }
 
   /**
-   * Add an exception handler BBLE to the handlers array.
+   * Adds an exception handler BBLE to the handlers array.
+   * <p>
    * NOTE: this isn't incredibly efficient, but empirically the expected
    * number of handlers per basic block is 0, with an observed
    * maximum across 10,000+ methods of 3.
    * Until this changes, we just don't care.
+   *
+   * @param handler the handler block to add
    */
   final void addHandler(HandlerBlockLE handler) {
     if (handlers == null) {
@@ -175,7 +213,9 @@ class BasicBlockLE {
   }
 
   // Only for use by subclasses to avoid above constructor.
-  protected BasicBlockLE(int loc) { low = loc;  }
+  protected BasicBlockLE(int loc) {
+    low = loc;
+  }
 
   /**
    * Returns a string representation of this BBLE.
@@ -192,8 +232,9 @@ class BasicBlockLE {
   }
 
   /**
-   * Returns a string representation of state that determines if the BBLE
-   * is ready to be generated */
+   * @return a string representation of state that determines if the BBLE
+   * is ready to be generated
+   */
   public String genState() {
     return "(sk=" + isStackKnown() + ", lk=" + isLocalKnown() + ", gen=" + isGenerated() + ")";
   }

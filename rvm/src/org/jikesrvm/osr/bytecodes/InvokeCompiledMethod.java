@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeCompiledMethod;
+
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -23,10 +28,10 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 public class InvokeCompiledMethod extends PseudoBytecode {
 
   private static int bsize = 10;
-  private int cmid;
+  private final int cmid;
 
   // the bc index of referred call site
-  private int origIdx;
+  private final int origIdx;
 
   public InvokeCompiledMethod(int cmethId, int origBCIndex) {
     this.cmid = cmethId;

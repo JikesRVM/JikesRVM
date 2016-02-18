@@ -13,7 +13,6 @@
 package org.mmtk.plan;
 
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
@@ -22,7 +21,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class (and its sub-classes) implement <i>per-collector thread</i>
+ * <p> This class (and its sub-classes) implement <i>per-collector thread</i>
  * behavior.  We assume <i>N</i> collector threads and <i>M</i>
  * mutator threads, where <i>N</i> is often equal to the number of
  * available processors, P (for P-way parallelism at GC-time), and
@@ -65,7 +64,7 @@ import org.vmmagic.unboxed.*;
  * @see Plan
  */
 @Uninterruptible
-public abstract class CollectorContext implements Constants {
+public abstract class CollectorContext {
 
   /****************************************************************************
    * Instance fields

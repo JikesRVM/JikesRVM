@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.vmmagic.unboxed.Word;
@@ -20,7 +23,7 @@ import org.vmmagic.unboxed.Word;
  * An LocalRegPair keeps the type information and location of
  * a local variable/stack slot from byte code to machine code.
  */
-public class LocalRegPair implements OSRConstants {
+public class LocalRegPair {
 
   /** is it a local or stack? */
   public final boolean kind;
@@ -38,7 +41,7 @@ public class LocalRegPair implements OSRConstants {
    */
   public final Operand operand;
 
-  /* rest part only available after updated by LinearScan.updateOSRMaps. */
+  /* rest part only available after the OSR maps were updated */
 
   /**
    * A reg value could be

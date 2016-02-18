@@ -20,7 +20,7 @@ import org.jikesrvm.scheduler.RVMThread;
  */
 public final class VMThrowable {
   /** The stack trace for this throwable */
-  private StackTrace stackTrace;
+  private final StackTrace stackTrace;
 
   /**
    * Zero length array of stack trace elements, returned when handling an OOM or
@@ -37,7 +37,7 @@ public final class VMThrowable {
    * Create the VMThrowable
    * @return constructed VMThrowable
    */
-  static VMThrowable fillInStackTrace(Throwable parent){
+  static VMThrowable fillInStackTrace(Throwable parent) {
     if (!VM.fullyBooted) {
       return null;
     } else if (RVMThread.getCurrentThread().isCollectorThread()) {
@@ -81,17 +81,7 @@ public final class VMThrowable {
     }
     if (VM.fullyBooted) {
       try {
-        StackTraceElement[] elements = new StackTraceElement[vmElements.length];
-        for (int i=0; i < vmElements.length; i++) {
-          StackTrace.Element vmElement = vmElements[i];
-          String fileName = vmElement.getFileName();
-          int lineNumber = vmElement.getLineNumber();
-          String className = vmElement.getClassName();
-          String methodName = vmElement.getMethodName();
-          boolean isNative = vmElement.isNative();
-          elements[i] = new StackTraceElement(fileName, lineNumber, className, methodName, isNative);
-        }
-        return elements;
+        return JikesRVMStackTraceSupport.convertToJavaClassLibraryStackTrace(vmElements);
       } catch (Throwable t) {
         VM.sysWriteln("Error constructing StackTraceElements: dumping stack");
       }
@@ -109,7 +99,7 @@ public final class VMThrowable {
       String className = vmElement.getClassName();
       String methodName = vmElement.getMethodName();
       VM.sysWrite("   at ");
-      if (className != "") {
+      if (!className.isEmpty()) {
         VM.sysWrite(className);
         VM.sysWrite(".");
       }
@@ -127,4 +117,5 @@ public final class VMThrowable {
     }
     return zeroLengthStackTrace;
   }
+
 }

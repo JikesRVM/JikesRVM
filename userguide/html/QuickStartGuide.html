@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>1 Quick Start Guide</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 1</span><br /><a 
+ id="x3-20001"></a>Quick Start Guide</h2>
+<!--l. 5--><p class="noindent" >On Ubuntu amd64,
+</p>
+<!--l. 7-->
+<div class="lstlisting" id="listing-1"><span class="label"><a 
+ id="x3-2001r1"></a></span>apt-get install git ant gcc g++ gcc-multilib g++-multilib bison automake gettext libtool
+</div>
+<!--l. 12--><p class="noindent" >Then check your Java version. If you are using JDK 7, either ensure you are building
+a Jikes RVM version <span 
+class="cmsy-10">≥ </span>3<span 
+class="cmmi-10">.</span>1<span 
+class="cmmi-10">.</span>3 or switch to JDK 6.
+</p><!--l. 14--><p class="noindent" >Then, </p><!--l. 15-->
+<div class="lstlisting" id="listing-2"><span class="label"><a 
+ id="x3-2002r1"></a></span>git clone https://github.com/JikesRVM/JikesRVM.git jikesrvm <br /><span class="label"><a 
+ id="x3-2003r2"></a></span>cd jikesrvm
+</div>
+<!--l. 21--><p class="noindent" >You can then build with Ant using </p><!--l. 22-->
+<div class="lstlisting" id="listing-3"><span class="label"><a 
+ id="x3-2004r1"></a></span>ant -Dconfig.name=prototype-opt <br /><span class="label"><a 
+ id="x3-2005r2"></a></span>./dist/prototype-opt_x86_64-linux/rvm -version
+</div>
+<!--l. 27--><p class="noindent" >or with buildit
+</p>
+<!--l. 29-->
+<div class="lstlisting" id="listing-4"><span class="label"><a 
+ id="x3-2006r1"></a></span>bin/buildit -j /usr/lib/jvm/default-java localhost prototype-opt <br /><span class="label"><a 
+ id="x3-2007r2"></a></span>./dist/prototype-opt_x86_64-linux/rvm -version
+</div>
+                                                                  
+
+                                                                  
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailQuickStartGuide.html"></a></p> 
+</body></html> 

@@ -12,18 +12,18 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
+import static org.mmtk.utility.gcspy.StreamConstants.PAINT_STYLE_ZERO;
+import static org.mmtk.utility.gcspy.StreamConstants.PRESENTATION_PLUS;
+
 import org.mmtk.policy.Space;
-
-import org.mmtk.utility.gcspy.Color;
-import org.mmtk.utility.gcspy.StreamConstants;
-import org.mmtk.vm.VM;
-import org.mmtk.vm.gcspy.ShortStream;
-
 import org.mmtk.utility.Log;
+import org.mmtk.utility.gcspy.Color;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.gcspy.ServerInterpreter;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.vm.gcspy.ShortStream;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * GCspy driver for the MMTk generational immortal space.
@@ -82,9 +82,11 @@ import org.vmmagic.pragma.*;
     return "MMTk GenImmortalSpaceDriver";
   }
 
-  /**
+  /*
    * Helper methods to create the additional streams
- */
+   */
+
+
   @Interruptible
   private ShortStream createRemsetStream() {
     return VM.newGCspyShortStream(
@@ -92,13 +94,13 @@ import org.vmmagic.pragma.*;
                      "Remembered set stream",
                      (short)0,
                      // Say, typical size = 4 * typical scalar size?
-                     (short)(maxObjectsPerBlock(blockSize)/8),
+                     (short)(maxObjectsPerBlock(blockSize) / 8),
                      (short)0,
                      (short)0,
                      "Remset references: ",
                      " references",
-                     StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO,
+                     PRESENTATION_PLUS,
+                     PAINT_STYLE_ZERO,
                      0,
                      Color.Cyan,
                      true);
@@ -121,7 +123,7 @@ import org.vmmagic.pragma.*;
    * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRemsetAddress(Address addr) {
-    if(subspace.addressInRange(addr)) {
+    if (subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
       remsetStream.increment(index, (short)1);

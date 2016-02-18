@@ -12,18 +12,45 @@
  */
 package org.jikesrvm.osr.ia32;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.ia32.RegisterConstants.INSTRUCTION_WIDTH;
+import static org.jikesrvm.ia32.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.osr.OSRConstants.DOUBLE;
+import static org.jikesrvm.osr.OSRConstants.FLOAT;
+import static org.jikesrvm.osr.OSRConstants.INT;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
+import static org.jikesrvm.osr.OSRConstants.LONG;
+import static org.jikesrvm.osr.OSRConstants.REF;
+import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
+import static org.jikesrvm.osr.OSRConstants.ReturnAddressTypeCode;
+import static org.jikesrvm.osr.OSRConstants.STACK;
+import static org.jikesrvm.osr.OSRConstants.WORD;
+import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
-import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.osr.BytecodeTraverser;
-import org.jikesrvm.osr.OSRConstants;
-import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.ExecutionState;
+import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.VariableElement;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
@@ -36,8 +63,7 @@ import org.vmmagic.unboxed.Word;
  * from a suspended thread whose top method was compiled by the
  * baseline compiler.
  */
-public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
-    implements Constants, ArchConstants, OSRConstants, PhysicalRegisterConstants {
+public final class BaselineExecutionStateExtractor extends ExecutionStateExtractor {
 
   /**
    * Implements ExecutionStateExtractor.extractState.

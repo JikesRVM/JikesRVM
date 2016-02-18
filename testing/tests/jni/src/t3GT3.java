@@ -29,11 +29,11 @@ class t3GT3 {
         }
 
         if (args.length < 5) {
-            System.out.println("If \"-quiet\" is not specified as the first command line argument,\nthen the following 5 command line arguments must be specified:\n"+
-                               "  number of workers,\n"+
-                               "  number of buffers created,\n"+
-                               "  length of buffer append,\n"+
-                               "  waiters, and\n"+
+            System.out.println("If \"-quiet\" is not specified as the first command line argument,\nthen the following 5 command line arguments must be specified:\n" +
+                               "  number of workers,\n" +
+                               "  number of buffers created,\n" +
+                               "  length of buffer append,\n" +
+                               "  waiters, and\n" +
                                "  wait time\n"
                                );
             System.exit(1);
@@ -84,7 +84,7 @@ class t3GT3 {
             // VM.sysWriteln("  Created and started compute workers");
 
             for (int i = 0; i < NUMBER_OF_WORKERS; i++) {
-                while(!a[i].isReady) {
+                while (!a[i].isReady) {
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
@@ -100,7 +100,7 @@ class t3GT3 {
             // VM.sysWriteln("  Notified all");
 
             for (int i = 0; i < NUMBER_OF_WORKERS; i++) {
-                while(!a[i].isFinished) {
+                while (!a[i].isFinished) {
                     synchronized (syncher2) {
                         try {
                             // VM.sysWriteln("  Waiting for worker ", i);

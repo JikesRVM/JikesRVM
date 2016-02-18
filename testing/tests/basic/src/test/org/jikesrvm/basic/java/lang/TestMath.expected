@@ -24,3 +24,10 @@ Math.ceil(-Infinity) Expected: -Infinity Actual: -Infinity
 Math.ceil(Infinity) Expected: Infinity Actual: Infinity
 Math.ceil(0.0) Expected: 0.0 Actual: 0.0
 Math.ceil(0.0) Expected: 0.0 Actual: 0.0
+Math.sqrt(4.0) Expected: 2.0 Actual: 2.0
+Math.sqrt(Infinity) Expected: Infinity Actual: Infinity
+Math.sqrt(NaN) Expected: NaN Actual: NaN
+Math.sqrt(-Infinity) Expected: NaN Actual: NaN
+Math.sqrt(-1.0) Expected: NaN Actual: NaN
+Math.sqrt(-0.0) Expected: -0.0 Actual: -0.0
+Math.sqrt(0.0) Expected: 0.0 Actual: 0.0

@@ -1,0 +1,9 @@
+#####
+# LCMP_CMOV
+#####
+r: LCMP_CMOV(r, OTHER_OPERAND(rlv, any))
+(8*13 + 30)
+EMIT_INSTRUCTION
+LCMP_CMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)),\\
+          CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+

@@ -13,7 +13,6 @@
 <project name="harmony" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="harmony.version" value="5.0M10"/>
   <property name="harmony.svn.revision" value="782693"/>
@@ -137,9 +136,6 @@
     <!-- copy to a build target directory -->
     <condition property="library.suffix" value=".so">
       <equals arg1="${target.os}" arg2="Linux"/>
-    </condition>
-    <condition property="library.suffix" value=".so.0">
-      <equals arg1="${target.os}" arg2="AIX"/>
     </condition>
     <condition property="library.suffix" value=".dylib">
       <equals arg1="${target.os}" arg2="OSX"/>

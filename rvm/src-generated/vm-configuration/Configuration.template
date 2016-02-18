@@ -12,6 +12,8 @@
  */
 package org.jikesrvm;
 
+import org.jikesrvm.runtime.CommandLineArgs;
+
 /**
  * Flags that specify the configuration of our virtual machine.
  *
@@ -19,9 +21,6 @@ package org.jikesrvm;
  *       be recompiled and rebuilt after their values are changed.
  */
 public abstract class Configuration {
-
-  //TODO: Split target specific configuration into separate file
-  public static final @_RVM_ARCH_HELPER_@ archHelper = @_RVM_ARCH_HELPER_@.singleton;
 
   public static final boolean BuildForPowerPC = @_RVM_FOR_POWERPC_@;
   public static final boolean BuildForIA32 = !BuildForPowerPC;
@@ -32,36 +31,27 @@ public abstract class Configuration {
   public static final boolean BuildFor32Addr = @_RVM_FOR_32_ADDR_@;
   public static final boolean BuildFor64Addr = !BuildFor32Addr;
 
-  public static final boolean BuildForAix = @_RVM_FOR_AIX_@;
   public static final boolean BuildForLinux = @_RVM_FOR_LINUX_@;
   public static final boolean BuildForSolaris = @_RVM_FOR_SOLARIS_@; 
-  public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux && !BuildForSolaris;
+  public static final boolean BuildForOsx = @_RVM_FOR_OSX_@;
 
   public static final boolean BuildForGnuClasspath = @_RVM_WITH_GNU_CLASSPATH_@;
   public static final boolean BuildForHarmony = @_RVM_WITH_HARMONY_@;
 
-  public static final boolean LittleEndian = BuildForIA32;
+  public static final boolean LittleEndian = @_RVM_FOR_LITTLE_ENDIAN_@;
 
-  /* ABI selection.  Exactly one of these variables will be true in each build. */
-  public static final boolean BuildForMachOABI = BuildForOsx;
-  public static final boolean BuildForPowerOpenABI = BuildForAix || (BuildForLinux && BuildForPowerPC && BuildFor64Addr);
-  public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
+  /* ABI selection for PowerPC.  Exactly one of these variables will be true in each build. */
+  public static final boolean BuildForPower64ELF_ABI = BuildForLinux && BuildForPowerPC && BuildFor64Addr;
+  public static final boolean BuildForSVR4ABI = !BuildForPower64ELF_ABI;
 
   /** Are we using Classpath's portable native sync feature? */
   public static final boolean PortableNativeSync = @_PORTABLE_NATIVE_SYNC_@;
-
-  /**
-   * Can a dereference of a null pointer result in an access
-   * to 'low' memory addresses that must be explicitly guarded because the
-   * target OS doesn't allow us to read protect low memory?
-   */
-  public static final boolean ExplicitlyGuardLowMemory = BuildForAix;
 
  /** Assertion checking.
       <dl>
       <dt>false</dt>  <dd> no assertion checking at runtime</dd>
       <dt>true  </dt> <dd> execute assertion checks at runtime</dd>
-      <dl>
+      </dl>
 
       Note: code your assertion checks as
       <pre>
@@ -89,6 +79,9 @@ public abstract class Configuration {
 
   /** build with Base boot image compiler? */
   public static final boolean BuildWithBaseBootImageCompiler = @_RVM_WITH_BASE_BOOTIMAGE_COMPILER_@;
+
+  /** allow bootimage writer to build oversized images? */
+  public static final boolean AllowOversizedImages = @_RVM_OVERSIZED_IMAGE_@;
 
   // Interface method dispatch strategy.
   // We either use IMT's (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA 2001)

@@ -1,0 +1,232 @@
+##################################
+# Register loads, also allow Load/Store instructions to be recognized as potential memory operands
+##################################
+#####
+# BYTE_LOAD
+#####
+r:      BYTE_LOAD(rlv, rlv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, Load.getResult(P(p)), MO_L(P(p), B)));
+
+sload8:	BYTE_LOAD(rlv, rlv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), B));
+
+#####
+# BYTE_ALOAD
+#####
+r:      BYTE_ALOAD(rlv, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B)));
+
+r:      BYTE_ALOAD(rlv, r)
+15
+EMIT_INSTRUCTION
+RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
+if (index.getRegister().isInteger()) { \\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
+}
+
+sload8:	BYTE_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), B_S, B));
+
+#####
+# UBYTE_LOAD
+#####
+r:      UBYTE_LOAD(rlv, rlv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, Load.getResult(P(p)), MO_L(P(p), B)));
+
+uload8:	UBYTE_LOAD(rlv, rlv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), B));
+
+#####
+# UBYTE_ALOAD
+#####
+r:	UBYTE_ALOAD(rlv, riv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B)));
+
+r:      UBYTE_ALOAD(rlv, r)
+10
+EMIT_INSTRUCTION
+RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
+if (index.getRegister().isInteger()) { \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
+}
+
+uload8:	UBYTE_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), B_S, B));
+
+load8:	sload8
+0
+NOFLAGS
+// no code emitted
+
+load8:	uload8
+0
+NOFLAGS
+// no code emitted
+
+#####
+# SHORT_LOAD
+#####
+r:      SHORT_LOAD(rlv, rlv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Load.getResult(P(p)), MO_L(P(p), W)));
+
+sload16: SHORT_LOAD(rlv, rlv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), W));
+
+#####
+# SHORT_ALOAD
+#####
+r:      SHORT_ALOAD(rlv, riv)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W)));
+
+r:      SHORT_ALOAD(rlv, r)
+15
+EMIT_INSTRUCTION
+RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
+if (index.getRegister().isInteger()) { \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
+}
+
+sload16: SHORT_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), W_S, W));
+
+#####
+# USHORT_LOAD
+#####
+r:      USHORT_LOAD(rlv, rlv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, Load.getResult(P(p)), MO_L(P(p), W)));
+
+uload16: USHORT_LOAD(rlv, rlv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), W));
+
+#####
+# USHORT_ALOAD
+#####
+r:      USHORT_ALOAD(rlv, riv)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W)));
+
+r:      USHORT_ALOAD(rlv, r)
+10
+EMIT_INSTRUCTION
+RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
+if (index.getRegister().isInteger()) { \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
+} else { \\
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
+}
+
+uload16: USHORT_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), W_S, W));
+
+load16:	sload16
+0
+NOFLAGS
+// no code emitted
+
+load16:	uload16
+0
+NOFLAGS
+// no code emitted
+
+load32:	INT_LOAD(rlv, rlv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), DW));
+
+load32:	INT_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), DW_S, DW));
+
+load16_32:      load16
+0
+NOFLAGS
+// no code emitted
+
+load16_32:      load32
+0
+NOFLAGS
+// no code emitted
+
+load8_16_32:	load16_32
+0
+NOFLAGS
+// no code emitted
+
+load8_16_32:	load8
+0
+NOFLAGS
+// no code emitted
+
+load64:	LONG_LOAD(rlv, rlv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), QW));
+
+load64:	LONG_ALOAD(rlv, rlv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), QW_S, QW));
+
+load64:	LONG_ALOAD(rlv, r)
+0
+EMIT_INSTRUCTION
+RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
+if (index.getRegister().isInteger()) { \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+pushMO(MO_AL(P(p), QW_S, QW)); \\
+} else { \\
+pushMO(MO_AL(P(p), QW_S, QW)); \\
+}
+
+load8_16_32_64:	load64
+0
+NOFLAGS
+// no code emitted
+
+load8_16_32_64:	load8_16_32
+0
+NOFLAGS
+// no code emitted
+

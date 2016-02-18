@@ -12,15 +12,16 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.runtime.Memory;
 
 /**
  * Layout fields in an object, packed like sardines in a crushed tin box.
  */
-public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
+public class FieldLayoutPacked extends FieldLayout {
 
   /**
    * Lay out an object, maintaining offsets of free slots of size 1,2,4 and 8
@@ -34,9 +35,6 @@ public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
     private short slot1;
     private short slot2;
 
-    /**
-     * Get the value for a given slot.
-     */
     private short get(int logSize) {
       switch (logSize) {
         case 0: return slot0;
@@ -47,9 +45,6 @@ public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
       }
     }
 
-    /**
-     * Set the value for a given slot.
-     */
     private void set(int logSize, int value) {
       if (VM.VerifyAssertions) VM._assert(value >= 0 && value < Short.MAX_VALUE);
       short shortValue = (short)value;
@@ -93,7 +88,7 @@ public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
       int result = 0;
 
       /* Find a free slot */
-      for(int i = logSize; i <= LOG_MAX_SLOT_SIZE; i++) {
+      for (int i = logSize; i <= LOG_MAX_SLOT_SIZE; i++) {
         int slot = get(i);
         if (slot != 0 || i == LOG_MAX_SLOT_SIZE) {
           result = slot;
@@ -113,7 +108,7 @@ public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
       if (DEBUG) {
         VM.sysWrite("  field: & offset ", result, " New object size = ", getObjectSize());
         VM.sysWrite(" slots: ");
-        for(int i=0; i < LOG_MAX_SLOT_SIZE; i++) {
+        for (int i = 0; i < LOG_MAX_SLOT_SIZE; i++) {
           VM.sysWrite(get(i), i == LOG_MAX_SLOT_SIZE - 1 ? "" : ", ");
         }
         VM.sysWriteln();

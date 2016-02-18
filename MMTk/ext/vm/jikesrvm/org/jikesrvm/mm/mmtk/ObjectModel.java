@@ -12,28 +12,33 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.vm.VM;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_BASE_OFFSET;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.GC_HEADER_OFFSET;
 
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.objectmodel.JavaHeaderConstants;
-import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.runtime.Magic;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.vm.VM;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
-@Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements org.mmtk.utility.Constants,
-                                                                                           org.jikesrvm.Constants {
+@Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
   @Override
-  protected Offset getArrayBaseOffset() { return JavaHeaderConstants.ARRAY_BASE_OFFSET; }
+  protected Offset getArrayBaseOffset() {
+    return ARRAY_BASE_OFFSET;
+  }
 
   @Override
   @Inline
@@ -218,6 +223,7 @@ import org.vmmagic.pragma.*;
    *
    * @param object the address of the object
    * @param idx the index of the bit
+   * @return {@code true} if argument bit is 1, {@code false} if it is 0
    */
   public boolean testAvailableBit(ObjectReference object, int idx) {
     return org.jikesrvm.objectmodel.ObjectModel.testAvailableBit(object.toObject(), idx);
@@ -271,7 +277,7 @@ import org.vmmagic.pragma.*;
   /* AJG: Should this be a variable rather than method? */
   @Override
   public Offset GC_HEADER_OFFSET() {
-    return org.jikesrvm.objectmodel.ObjectModel.GC_HEADER_OFFSET;
+    return GC_HEADER_OFFSET;
   }
 
   @Override

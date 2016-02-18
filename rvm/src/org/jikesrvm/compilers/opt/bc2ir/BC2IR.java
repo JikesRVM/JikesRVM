@@ -12,19 +12,27 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.*;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.osr.OSRConstants.*;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassLoaderConstants;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.SwitchBranchProfile;
@@ -35,7 +43,6 @@ import org.jikesrvm.compilers.opt.FieldAnalysis;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.StaticFieldReader;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.inlining.CompilationState;
 import org.jikesrvm.compilers.opt.inlining.InlineDecision;
@@ -62,13 +69,12 @@ import org.jikesrvm.compilers.opt.ir.InstanceOf;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.LookupSwitch;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
-import org.jikesrvm.compilers.opt.ir.Multianewarray;
 import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.Multianewarray;
 import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.OsrBarrier;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.PutField;
@@ -99,7 +105,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.ObjectHolder;
 import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Entrypoints;
@@ -132,15 +137,14 @@ import org.vmmagic.unboxed.Offset;
  * in John's thesis.
  * In particular this code takes a different approach to JSRs (inlining them),
  * and has more advanced and effective implementation of the inlining
- * transformation. <p>
+ * transformation.
  *
  *
  * @see IRGenOptions
  * @see GenerationContext
  * @see ConvertBCtoHIR
  */
-public final class BC2IR
-    implements IRGenOptions, Operators, BytecodeConstants, ClassLoaderConstants, OptConstants, OSRConstants {
+public final class BC2IR {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take
@@ -260,9 +264,10 @@ public final class BC2IR
 
   /**
    *  Debugging with method_to_print. Switch following 2
-   *  to both be non-final. Set DBG_SELECTIVE to true
-   *  DBG_SELECTED will then be true when the method matches.
-   *  You must also uncomment the assignment to DBG_SELECTIVE in start
+   *  to both be non-final. Set {@link #DBG_SELECTIVE} to true.
+   *  {@link #DBG_SELECTED} will then be {@code true} when the method matches.
+   *  You must also uncomment the assignment to DBG_SELECTIVE in
+   *  {@link #start(GenerationContext)}.
    */
   private static final boolean DBG_SELECTIVE = false;
   static final boolean DBG_SELECTED = false;
@@ -270,10 +275,6 @@ public final class BC2IR
   //////////
   // End of field declarations
   //////////
-
-  // Prevent external instantiation
-
-  private BC2IR() {}
 
   /**
    * Construct the BC2IR object for the generation context.
@@ -284,9 +285,9 @@ public final class BC2IR
    */
   private BC2IR(GenerationContext context) {
     start(context);
-    for (int argIdx = 0, localIdx = 0; argIdx < context.arguments.length;) {
-      TypeReference argType = context.arguments[argIdx].getType();
-      _localState[localIdx++] = context.arguments[argIdx++];
+    for (int argIdx = 0, localIdx = 0; argIdx < context.getArguments().length;) {
+      TypeReference argType = context.getArguments()[argIdx].getType();
+      _localState[localIdx++] = context.getArguments()[argIdx++];
       if (argType.isLongType() || argType.isDoubleType()) {
         _localState[localIdx++] = DUMMY;
       }
@@ -298,35 +299,30 @@ public final class BC2IR
   private void start(GenerationContext context) {
     gc = context;
     // To use the following you need to change the declarations
-    // in IRGenOption.java
+    // above the constructor
     if (DBG_SELECTIVE) {
-      if (gc.options.hasMETHOD_TO_PRINT() && gc.options.fuzzyMatchMETHOD_TO_PRINT(gc.method.toString())) {
-        VM.sysWrite("Whoops! you need to uncomment the assignment to DBG_SELECTED");
-        // DBG_SELECTED = true;
-      } else {
-        // DBG_SELECTED = false;
-      }
-
+      VM.sysWrite("Whoops! you need to uncomment the assignment to DBG_SELECTED");
+//      DBG_SELECTED = gc.methodIsSelectedForDebuggingWithMethodToPrint();
     }
 
-    if (context.method.isForOsrSpecialization()) {
-      bcodes = context.method.getOsrSynthesizedBytecodes();
+    if (context.getMethod().isForOsrSpecialization()) {
+      bcodes = context.getMethod().getOsrSynthesizedBytecodes();
     } else {
-      bcodes = context.method.getBytecodes();
+      bcodes = context.getMethod().getBytecodes();
     }
 
     // initialize the local state from context.arguments
-    _localState = new Operand[context.method.getLocalWords()];
+    _localState = new Operand[context.getMethod().getLocalWords()];
 
-    if (context.method.isForOsrSpecialization()) {
-      this.bciAdjustment = context.method.getOsrPrologueLength();
+    if (context.getMethod().isForOsrSpecialization()) {
+      this.bciAdjustment = context.getMethod().getOsrPrologueLength();
     } else {
       this.bciAdjustment = 0;
     }
 
     this.osrGuardedInline = VM.runningVM &&
-       context.options.OSR_GUARDED_INLINING &&
-       !context.method.isForOsrSpecialization() &&
+       context.getOptions().OSR_GUARDED_INLINING &&
+       !context.getMethod().isForOsrSpecialization() &&
        OptimizingCompiler.getAppStarted() &&
        (Controller.options != null) &&
        Controller.options.ENABLE_RECOMPILATION;
@@ -334,14 +330,14 @@ public final class BC2IR
 
   private void finish(GenerationContext context) {
     // Initialize simulated stack.
-    stack = new OperandStack(context.method.getOperandWords());
+    stack = new OperandStack(context.getMethod().getOperandWords());
     // Initialize BBSet.
     blocks = new BBSet(context, bcodes, _localState);
     // Finish preparing to generate from bytecode 0
     currentBBLE = blocks.getEntry();
-    gc.prologue.insertOut(currentBBLE.block);
+    gc.getPrologue().insertOut(currentBBLE.block);
     if (DBG_CFG || DBG_SELECTED) {
-      db("Added CFG edge from " + gc.prologue + " to " + currentBBLE.block);
+      db("Added CFG edge from " + gc.getPrologue() + " to " + currentBBLE.block);
     }
     runoff = currentBBLE.max;
   }
@@ -363,7 +359,7 @@ public final class BC2IR
       if (currentBBLE.stackState == null) {
         stack.clear();
       } else {
-        stack = currentBBLE.stackState.copy();
+        stack = currentBBLE.stackState.deepCopy();
       }
       _localState = currentBBLE.copyLocalState();
       if (DBG_BB || DBG_SELECTED) db("bbl: " + printBlocks());
@@ -380,14 +376,14 @@ public final class BC2IR
   //
   public Instruction generateAnewarray(TypeReference arrayTypeRef, TypeReference elementTypeRef) {
     if (arrayTypeRef == null) {
-      if (VM.VerifyAssertions) VM._assert(elementTypeRef != null);
+      if (VM.VerifyAssertions) opt_assert(elementTypeRef != null);
       arrayTypeRef = elementTypeRef.getArrayTypeForElementType();
     }
     if (elementTypeRef == null) {
       elementTypeRef = arrayTypeRef.getArrayElementType();
     }
 
-    RegisterOperand t = gc.temps.makeTemp(arrayTypeRef);
+    RegisterOperand t = gc.getTemps().makeTemp(arrayTypeRef);
     t.setPreciseType();
     markGuardlessNonNull(t);
     // We can do early resolution of the array type if the element type
@@ -449,7 +445,7 @@ public final class BC2IR
            " : 0x" +
            Integer.toHexString(code) +
            " " +
-           ((code < JBC_name.length) ? JBC_name[code] : "unknown bytecode"));
+           JBC_name(code));
       }
       Instruction s = null;
 
@@ -637,7 +633,7 @@ public final class BC2IR
             break;
           }
           TypeReference type = getRefTypeOf(ref).getArrayElementType();
-          if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
+          if (VM.VerifyAssertions) opt_assert(type.isReferenceType());
           s = _aloadHelper(REF_ALOAD, ref, index, type);
         }
         break;
@@ -651,7 +647,7 @@ public final class BC2IR
           }
           TypeReference type = getArrayTypeOf(ref);
           if (VM.VerifyAssertions) {
-            VM._assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
+            opt_assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
           }
           if (type == TypeReference.ByteArray) {
             s = _aloadHelper(BYTE_ALOAD, ref, index, TypeReference.Byte);
@@ -837,7 +833,7 @@ public final class BC2IR
             break;
           }
           TypeReference type = getRefTypeOf(ref).getArrayElementType();
-          if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
+          if (VM.VerifyAssertions) opt_assert(type.isReferenceType());
           if (do_CheckStore(ref, val, type)) {
             break;
           }
@@ -855,7 +851,7 @@ public final class BC2IR
           }
           TypeReference type = getArrayTypeOf(ref);
           if (VM.VerifyAssertions) {
-            VM._assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
+            opt_assert(type == TypeReference.ByteArray || type == TypeReference.BooleanArray);
           }
           if (type == TypeReference.ByteArray) {
             type = TypeReference.Byte;
@@ -992,10 +988,7 @@ public final class BC2IR
         break;
 
         case JBC_swap: {
-          Operand op1 = stack.pop();
-          Operand op2 = stack.pop();
-          stack.push(op1);
-          stack.push(op2);
+          stack.swap();
         }
         break;
 
@@ -1545,7 +1538,7 @@ public final class BC2IR
           Operand op0 = popRef();
           if (VM.VerifyAssertions && !op0.isDefinitelyNull()) {
             TypeReference retType = op0.getType();
-            assertIsAssignable(gc.method.getReturnType(), retType);
+            assertIsAssignable(gc.getMethod().getReturnType(), retType);
           }
           _returnHelper(REF_MOVE, op0);
         }
@@ -1562,9 +1555,9 @@ public final class BC2IR
           LocationOperand fieldOp = makeStaticFieldRef(ref);
           Operand offsetOp;
           TypeReference fieldType = ref.getFieldContentsType();
-          RegisterOperand t = gc.temps.makeTemp(fieldType);
+          RegisterOperand t = gc.getTemps().makeTemp(fieldType);
           if (unresolved) {
-            RegisterOperand offsetrop = gc.temps.makeTempOffset();
+            RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
@@ -1591,7 +1584,7 @@ public final class BC2IR
             // initialized or we're writing the bootimage and the field
             // is from a suitable class, then get the value at compile
             // time.
-            if (gc.options.SIMPLIFY_CHASE_FINAL_FIELDS && field.isFinal()) {
+            if (gc.getOptions().SIMPLIFY_CHASE_FINAL_FIELDS && field.isFinal()) {
               RVMClass declaringClass = field.getDeclaringClass();
 
               boolean initializedClassAtRuntime = VM.runningVM & declaringClass.isInitialized();
@@ -1625,9 +1618,9 @@ public final class BC2IR
                 }
               }
             } else if (field.isRuntimeFinal()) {
-              if (VM.VerifyAssertions) VM._assert(fieldType.isBooleanType());
+              if (VM.VerifyAssertions) opt_assert(fieldType.isBooleanType());
               boolean rhsBool = field.getRuntimeFinalValue();
-              push(new IntConstantOperand(rhsBool? 1 : 0));
+              push(new IntConstantOperand(rhsBool ? 1 : 0));
               break;
             }
           }
@@ -1649,7 +1642,7 @@ public final class BC2IR
           LocationOperand fieldOp = makeStaticFieldRef(ref);
           Operand offsetOp;
           if (unresolved) {
-            RegisterOperand offsetrop = gc.temps.makeTempOffset();
+            RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
@@ -1679,9 +1672,9 @@ public final class BC2IR
           Operand offsetOp;
           TypeReference fieldType = ref.getFieldContentsType();
           RVMField field = null;
-          RegisterOperand t = gc.temps.makeTemp(fieldType);
+          RegisterOperand t = gc.getTemps().makeTemp(fieldType);
           if (unresolved) {
-            RegisterOperand offsetrop = gc.temps.makeTempOffset();
+            RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
@@ -1749,7 +1742,7 @@ public final class BC2IR
           TypeReference fieldType = ref.getFieldContentsType();
           Operand offsetOp;
           if (unresolved) {
-            RegisterOperand offsetrop = gc.temps.makeTempOffset();
+            RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
             offsetOp = offsetrop;
             rectifyStateWithErrorHandler();
@@ -1826,7 +1819,7 @@ public final class BC2IR
               Call.setMethod(s, mop);
               boolean unresolved = vmethRef.needsDynamicLink(bcodes.getMethod());
               if (unresolved) {
-                RegisterOperand offsetrop = gc.temps.makeTempOffset();
+                RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
                 appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
                 Call.setAddress(s, offsetrop);
                 rectifyStateWithErrorHandler();
@@ -1856,12 +1849,12 @@ public final class BC2IR
             // Handle possibility of dynamic linking.
             // Must be done before null_check!
             if (unresolved) {
-              RegisterOperand offsetrop = gc.temps.makeTempOffset();
+              RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
               appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
               Call.setAddress(s, offsetrop);
               rectifyStateWithErrorHandler();
             } else {
-              if (VM.VerifyAssertions) VM._assert(target != null);
+              if (VM.VerifyAssertions) opt_assert(target != null);
               Call.setAddress(s, new AddressConstantOperand(target.getOffset()));
             }
 
@@ -1903,7 +1896,7 @@ public final class BC2IR
                 }
               } else {
                 // Array: will always be calling the method defined in java.lang.Object
-                if (VM.VerifyAssertions) VM._assert(target != null, "Huh?  Target method must already be resolved if receiver is array");
+                if (VM.VerifyAssertions) opt_assert(target != null, "Huh?  Target method must already be resolved if receiver is array");
                 methOp.refine(target, true);
               }
             }
@@ -1937,7 +1930,7 @@ public final class BC2IR
           // Handle possibility of dynamic linking. Must be done before null_check!
           // NOTE: different definition of unresolved due to semantics of invokespecial.
           if (target == null) {
-            RegisterOperand offsetrop = gc.temps.makeTempOffset();
+            RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
             appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
             Call.setAddress(s, offsetrop);
             rectifyStateWithErrorHandler();
@@ -1995,7 +1988,7 @@ public final class BC2IR
             if (methOp.getTarget() == target) {
               // Handle possibility of dynamic linking.
               if (unresolved) {
-                RegisterOperand offsetrop = gc.temps.makeTempOffset();
+                RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
                 appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
                 Call.setAddress(s, offsetrop);
                 rectifyStateWithErrorHandler();
@@ -2055,7 +2048,7 @@ public final class BC2IR
                            MethodOperand.STATIC(target),
                            new IntConstantOperand(ref.getId()),
                            receiver.copy());
-            if (gc.options.H2L_NO_CALLEE_EXCEPTIONS) {
+            if (gc.getOptions().H2L_NO_CALLEE_EXCEPTIONS) {
               callCheck.markAsNonPEI();
             }
 
@@ -2102,7 +2095,7 @@ public final class BC2IR
             // requiresImplementsTest is still true.
             // Note that at this point requiresImplementsTest => resolvedMethod != null
             if (requiresImplementsTest) {
-              RegisterOperand checkedReceiver = gc.temps.makeTemp(receiver);
+              RegisterOperand checkedReceiver = gc.getTemps().makeTemp(receiver);
               appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
                   checkedReceiver,
                   receiver.copy(),
@@ -2120,7 +2113,7 @@ public final class BC2IR
             Call.setMethod(s, mop);
             boolean unresolved = vmethRef.needsDynamicLink(bcodes.getMethod());
             if (unresolved) {
-              RegisterOperand offsetrop = gc.temps.makeTempOffset();
+              RegisterOperand offsetrop = gc.getTemps().makeTempOffset();
               appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
               Call.setAddress(s, offsetrop);
               rectifyStateWithErrorHandler();
@@ -2143,7 +2136,7 @@ public final class BC2IR
               return;
             } else {
               if (requiresImplementsTest) {
-                RegisterOperand checkedReceiver = gc.temps.makeTemp(receiver);
+                RegisterOperand checkedReceiver = gc.getTemps().makeTemp(receiver);
                 appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
                     checkedReceiver,
                     receiver.copy(),
@@ -2161,13 +2154,13 @@ public final class BC2IR
         }
         break;
 
-        case JBC_xxxunusedxxx:
+        case JBC_invokedynamic:
           OptimizingCompilerException.UNREACHABLE();
           break;
 
         case JBC_new: {
           TypeReference klass = bcodes.getTypeReference();
-          RegisterOperand t = gc.temps.makeTemp(klass);
+          RegisterOperand t = gc.getTemps().makeTemp(klass);
           t.setPreciseType();
           markGuardlessNonNull(t);
           Operator operator;
@@ -2190,7 +2183,7 @@ public final class BC2IR
         case JBC_newarray: {
           RVMType array = bcodes.getPrimitiveArrayType();
           TypeOperand arrayOp = makeTypeOperand(array);
-          RegisterOperand t = gc.temps.makeTemp(array.getTypeRef());
+          RegisterOperand t = gc.getTemps().makeTemp(array.getTypeRef());
           t.setPreciseType();
           t.setExtant();
           markGuardlessNonNull(t);
@@ -2213,9 +2206,9 @@ public final class BC2IR
             break;
           }
           if (VM.VerifyAssertions) {
-            VM._assert(getArrayTypeOf(op1).isArrayType());
+            opt_assert(getArrayTypeOf(op1).isArrayType());
           }
-          RegisterOperand t = gc.temps.makeTempInt();
+          RegisterOperand t = gc.getTemps().makeTempInt();
           s = GuardedUnary.create(ARRAYLENGTH, t, op1, getCurrentGuard());
           push(t.copyD2U());
         }
@@ -2229,7 +2222,7 @@ public final class BC2IR
           }
           TypeReference type = getRefTypeOf(op0);
           if (VM.VerifyAssertions) assertIsAssignable(TypeReference.JavaLangThrowable, type);
-          if (!gc.method.isInterruptible()) {
+          if (!gc.getMethod().isInterruptible()) {
             // prevent code motion in or out of uninterruptible code sequence
             appendInstruction(Empty.create(UNINT_END));
           }
@@ -2258,7 +2251,7 @@ public final class BC2IR
             if (DBG_CF) db("skipped gen of checkcast to word type " + typeRef);
             break;
           }
-          if (VM.VerifyAssertions) VM._assert(op2.isRef());
+          if (VM.VerifyAssertions) opt_assert(op2.isRef());
           if (CF_CHECKCAST && !classLoading) {
             if (op2.isDefinitelyNull()) {
               push(op2);
@@ -2278,14 +2271,14 @@ public final class BC2IR
               if (isNonNull(op2)) {
                 // Definite class cast exception
                 endOfBasicBlock = true;
-                appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), TrapCodeOperand.CheckCast()));
+                appendInstruction(Trap.create(TRAP, gc.getTemps().makeTempValidation(), TrapCodeOperand.CheckCast()));
                 rectifyStateWithExceptionHandler(TypeReference.JavaLangClassCastException);
                 if (DBG_CF) db("Converted checkcast into unconditional trap");
                 break;
               } else {
                 // At runtime either it is null and the checkcast succeeds or it is non-null
                 // and a class cast exception is raised
-                RegisterOperand refinedOp2 = gc.temps.makeTemp(op2);
+                RegisterOperand refinedOp2 = gc.getTemps().makeTemp(op2);
                 s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), makeTypeOperand(typeRef.peekType()));
                 refinedOp2.refine(TypeReference.NULL_TYPE);
                 push(refinedOp2.copyRO());
@@ -2296,13 +2289,13 @@ public final class BC2IR
             }
           }
 
-          RegisterOperand refinedOp2 = gc.temps.makeTemp(op2);
+          RegisterOperand refinedOp2 = gc.getTemps().makeTemp(op2);
           if (classLoading) {
             s = TypeCheck.create(CHECKCAST_UNRESOLVED, refinedOp2, op2.copy(), makeTypeOperand(typeRef));
           } else {
             TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
             if (isNonNull(op2)) {
-              s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, getGuard(op2));
+              s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, copyGuardFromOperand(op2));
             } else {
               s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), typeOp);
             }
@@ -2318,7 +2311,7 @@ public final class BC2IR
           TypeReference typeRef = bcodes.getTypeReference();
           boolean classLoading = couldCauseClassLoading(typeRef);
           Operand op2 = pop();
-          if (VM.VerifyAssertions) VM._assert(op2.isRef());
+          if (VM.VerifyAssertions) opt_assert(op2.isRef());
           if (CF_INSTANCEOF && !classLoading) {
             if (op2.isDefinitelyNull()) {
               push(new IntConstantOperand(0));
@@ -2342,13 +2335,13 @@ public final class BC2IR
             }
           }
 
-          RegisterOperand t = gc.temps.makeTempInt();
+          RegisterOperand t = gc.getTemps().makeTempInt();
           if (classLoading) {
             s = InstanceOf.create(INSTANCEOF_UNRESOLVED, t, makeTypeOperand(typeRef), op2);
           } else {
             TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
             if (isNonNull(op2)) {
-              s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, getGuard(op2));
+              s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, copyGuardFromOperand(op2));
             } else {
               s = InstanceOf.create(INSTANCEOF, t, typeOp, op2);
             }
@@ -2365,7 +2358,7 @@ public final class BC2IR
           if (do_NullCheck(op0)) {
             break;
           }
-          if (VM.VerifyAssertions) VM._assert(op0.isRef());
+          if (VM.VerifyAssertions) opt_assert(op0.isRef());
           s = MonitorOp.create(MONITORENTER, op0, getCurrentGuard());
         }
         break;
@@ -2448,7 +2441,7 @@ public final class BC2IR
             s = generateAnewarray(arrayType, null);
           } else {
             TypeOperand typeOp = makeTypeOperand(arrayType);
-            RegisterOperand result = gc.temps.makeTemp(arrayType);
+            RegisterOperand result = gc.getTemps().makeTemp(arrayType);
             markGuardlessNonNull(result);
             result.setPreciseType();
             TypeReference innermostElementTypeRef = arrayType.getInnermostElementType();
@@ -2514,7 +2507,7 @@ public final class BC2IR
                 VM.sysWriteln("PSEUDO_LoadLongConst " + value);
               }
 
-              pushDual(new LongConstantOperand(value, Offset.zero()));
+              pushDual(new LongConstantOperand(value));
               break;
             }
             case PSEUDO_LoadWordConst: {
@@ -2584,11 +2577,11 @@ public final class BC2IR
               if (targetidx == GETREFAT) {
                 Object realObj = ObjectHolder.getRefAt(param1, param2);
 
-                if (VM.VerifyAssertions) VM._assert(realObj != null);
+                if (VM.VerifyAssertions) opt_assert(realObj != null);
 
                 TypeReference klass = Magic.getObjectType(realObj).getTypeRef();
 
-                RegisterOperand op0 = gc.temps.makeTemp(klass);
+                RegisterOperand op0 = gc.getTemps().makeTemp(klass);
                 Call.setResult(s, op0);
                 pop();    // pop the old one and push the new return type.
                 push(op0.copyD2U(), klass);
@@ -2651,7 +2644,7 @@ public final class BC2IR
       }
 
       // check runoff
-      if (VM.VerifyAssertions) VM._assert(bcodes.index() <= runoff);
+      if (VM.VerifyAssertions) opt_assert(bcodes.index() <= runoff);
       if (!endOfBasicBlock && bcodes.index() == runoff) {
         if (DBG_BB || DBG_SELECTED) {
           db("runoff occurred! current basic block: " + currentBBLE + ", runoff = " + runoff);
@@ -2670,7 +2663,7 @@ public final class BC2IR
           return;
         }
         if (fallThrough) {
-          if (VM.VerifyAssertions) VM._assert(bcodes.index() < bcodes.length());
+          if (VM.VerifyAssertions) opt_assert(bcodes.index() < bcodes.length());
           // Get/Create fallthrough BBLE and record it as
           // currentBBLE's fallThrough.
           currentBBLE.fallThrough = getOrCreateBlock(bcodes.index());
@@ -2681,12 +2674,12 @@ public final class BC2IR
     }
   }
 
-  private Instruction _unaryHelper(Operator operator, Operand val, TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+  Instruction _unaryHelper(Operator operator, Operand val, TypeReference type) {
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = Unary.create(operator, t, val);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
-      gc.temps.release(t);
+      gc.getTemps().release(t);
       push(Move.getClearVal(s));
       return null;
     } else {
@@ -2695,12 +2688,12 @@ public final class BC2IR
     }
   }
 
-  private Instruction _unaryDualHelper(Operator operator, Operand val, TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+  Instruction _unaryDualHelper(Operator operator, Operand val, TypeReference type) {
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = Unary.create(operator, t, val);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
-      gc.temps.release(t);
+      gc.getTemps().release(t);
       pushDual(Move.getClearVal(s));
       return null;
     } else {
@@ -2709,13 +2702,13 @@ public final class BC2IR
     }
   }
 
-  private Instruction _binaryHelper(Operator operator, Operand op1, Operand op2,
+  public Instruction _binaryHelper(Operator operator, Operand op1, Operand op2,
                                         TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = Binary.create(operator, t, op1, op2);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
-      gc.temps.release(t);
+      gc.getTemps().release(t);
       push(Move.getClearVal(s));
       return null;
     } else {
@@ -2726,11 +2719,11 @@ public final class BC2IR
 
   private Instruction _guardedBinaryHelper(Operator operator, Operand op1, Operand op2,
                                                Operand guard, TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
-      gc.temps.release(t);
+      gc.getTemps().release(t);
       push(Move.getClearVal(s));
       return null;
     } else {
@@ -2741,11 +2734,11 @@ public final class BC2IR
 
   private Instruction _binaryDualHelper(Operator operator, Operand op1, Operand op2,
                                             TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = Binary.create(operator, t, op1, op2);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
-      gc.temps.release(t);
+      gc.getTemps().release(t);
       pushDual(Move.getClearVal(s));
       return null;
     } else {
@@ -2756,11 +2749,11 @@ public final class BC2IR
 
   private Instruction _guardedBinaryDualHelper(Operator operator, Operand op1, Operand op2,
                                                    Operand guard, TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
-    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
+    Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
     if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
-      gc.temps.release(t);
+      gc.getTemps().release(t);
       pushDual(Move.getClearVal(s));
       return null;
     } else {
@@ -2769,27 +2762,27 @@ public final class BC2IR
     }
   }
 
-  private Instruction _moveHelper(Operator operator, Operand val, TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+  Instruction _moveHelper(Operator operator, Operand val, TypeReference type) {
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     push(t.copyD2U());
     Instruction s = Move.create(operator, t, val);
-    s.position = gc.inlineSequence;
+    s.position = gc.getInlineSequence();
     s.bcIndex = instrIndex;
     return s;
   }
 
   private Instruction _moveDualHelper(Operator operator, Operand val, TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     pushDual(t.copyD2U());
     Instruction s = Move.create(operator, t, val);
-    s.position = gc.inlineSequence;
+    s.position = gc.getInlineSequence();
     s.bcIndex = instrIndex;
     return s;
   }
 
   public Instruction _aloadHelper(Operator operator, Operand ref, Operand index,
                                       TypeReference type) {
-    RegisterOperand t = gc.temps.makeTemp(type);
+    RegisterOperand t = gc.getTemps().makeTemp(type);
     t.setDeclaredType();
     LocationOperand loc = new LocationOperand(type);
     Instruction s = ALoad.create(operator, t, ref, index, loc, getCurrentGuard());
@@ -2807,19 +2800,24 @@ public final class BC2IR
    * If a non-void return, then create a result operand and push it
    * on the stack.
    * Create the call instruction and initialize all its operands.
+   *
+   * @param meth the method to call
+   * @param methOp data about the method
+   *
+   * @return the newly created call instruction
    */
   private Instruction _callHelper(MethodReference meth, MethodOperand methOp) {
     int numHiddenParams = methOp.isStatic() ? 0 : 1;
     TypeReference[] params = meth.getParameterTypes();
     Instruction s = Call.create(CALL, null, null, null, null, params.length + numHiddenParams);
-    if (gc.options.H2L_NO_CALLEE_EXCEPTIONS) {
+    if (gc.getOptions().H2L_NO_CALLEE_EXCEPTIONS) {
       s.markAsNonPEI();
     }
     for (int i = params.length - 1; i >= 0; i--) {
       try {
         Call.setParam(s, i + numHiddenParams, pop(params[i]));
       } catch (OptimizingCompilerException.IllegalUpcast e) {
-        throw new Error("Illegal upcast creating call to " + meth + " from " + gc.method + " argument " + i, e);
+        throw new Error("Illegal upcast creating call to " + meth + " from " + gc.getMethod() + " argument " + i, e);
       }
     }
     if (numHiddenParams != 0) {
@@ -2829,7 +2827,7 @@ public final class BC2IR
     Call.setMethod(s, methOp);
 
     // need to set it up early because the inlining oracle use it
-    s.position = gc.inlineSequence;
+    s.position = gc.getInlineSequence();
     // no longer used by the inline oracle as it is incorrectly adjusted by OSR,
     // can't adjust it here as it will effect the exception handler maps
     s.bcIndex = instrIndex;
@@ -2838,11 +2836,11 @@ public final class BC2IR
     if (rtype.isVoidType()) {
       return s;
     } else {
-      RegisterOperand t = gc.temps.makeTemp(rtype);
+      RegisterOperand t = gc.getTemps().makeTemp(rtype);
       Call.setResult(s, t);
-      Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.temps, gc.options, s);
+      Simplifier.DefUseEffect simp = Simplifier.simplify(true, gc.getTemps(), gc.getOptions(), s);
       if ((simp == Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == Simplifier.DefUseEffect.MOVE_REDUCED)) {
-        gc.temps.release(t);
+        gc.getTemps().release(t);
         push(Move.getClearVal(s), rtype);
         return null;
       } else {
@@ -2853,38 +2851,38 @@ public final class BC2IR
   }
 
   private void _returnHelper(Operator operator, Operand val) {
-    if (gc.resultReg != null) {
+    if (gc.getResultReg() != null) {
       TypeReference returnType = val.getType();
-      RegisterOperand ret = new RegisterOperand(gc.resultReg, returnType);
+      RegisterOperand ret = new RegisterOperand(gc.getResultReg(), returnType);
       boolean returningRegister = false;
       if (val.isRegister()) {
         returningRegister = true;
         ret.setInheritableFlags(val.asRegister());
-        setGuard(ret, getGuard(val));
+        setGuardForRegOp(ret, copyGuardFromOperand(val));
       }
       appendInstruction(Move.create(operator, ret, val));
       // pass analysis facts about val back to our caller
-      if (gc.result == null) {
+      if (gc.getResult() == null) {
         if (returningRegister) {
-          gc.result = ret.copyD2U();
+          gc.setResult(ret.copyD2U());
         } else {
-          gc.result = val.copy();
+          gc.setResult(val.copy());
         }
       } else {
-        Operand meet = Operand.meet(gc.result, val, gc.resultReg);
+        Operand meet = Operand.meet(gc.getResult(), val, gc.getResultReg());
         // Return value can't be forced to bottom...violation of Java spec.
-        if (VM.VerifyAssertions) VM._assert(meet != null);
-        gc.result = meet;
+        if (VM.VerifyAssertions) opt_assert(meet != null);
+        gc.setResult(meet);
       }
     }
-    if (gc.method.isObjectInitializer() && gc.method.getDeclaringClass().declaresFinalInstanceField()) {
+    if (gc.getMethod().isObjectInitializer() && gc.getMethod().getDeclaringClass().declaresFinalInstanceField()) {
       /* JMM Compliance.  Must insert StoreStore barrier before returning from constructor of class with final instance fields */
       appendInstruction(Empty.create(WRITE_FLOOR));
     }
-    appendInstruction(gc.epilogue.makeGOTO());
-    currentBBLE.block.insertOut(gc.epilogue);
+    appendInstruction(gc.getEpilogue().makeGOTO());
+    currentBBLE.block.insertOut(gc.getEpilogue());
     if (DBG_CFG || DBG_SELECTED) {
-      db("Added CFG edge from " + currentBBLE.block + " to " + gc.epilogue);
+      db("Added CFG edge from " + currentBBLE.block + " to " + gc.getEpilogue());
     }
     endOfBasicBlock = true;
   }
@@ -2897,18 +2895,10 @@ public final class BC2IR
    */
   public void appendInstruction(Instruction s) {
     currentBBLE.block.appendInstruction(s);
-    s.position = gc.inlineSequence;
+    s.position = gc.getInlineSequence();
     s.bcIndex = instrIndex;
     lastInstr = s;
     if (DBG_INSTR || DBG_SELECTED) db("-> " + s.bcIndex + ":\t" + s);
-  }
-
-  /**
-   * HACK: Mark current basic block unsafe for scheduling.
-   * TODO: remove when we've got UNINT_BEGIN/END working correctly.
-   */
-  void markBBUnsafeForScheduling() {
-    currentBBLE.block.setUnsafeToSchedule();
   }
 
   //// MAKE A FIELD REFERENCE.
@@ -2917,6 +2907,7 @@ public final class BC2IR
    * given type.
    *
    * @param f desired field
+   * @return a new location operand
    */
   private LocationOperand makeStaticFieldRef(FieldReference f) {
     return new LocationOperand(f);
@@ -2931,9 +2922,10 @@ public final class BC2IR
    * Make a type operand that refers to the given type.
    *
    * @param type desired type
+   * @return a new type operand
    */
   private TypeOperand makeTypeOperand(TypeReference type) {
-    if (VM.VerifyAssertions) VM._assert(type != null);
+    if (VM.VerifyAssertions) opt_assert(type != null);
     return new TypeOperand(type);
   }
 
@@ -2941,9 +2933,10 @@ public final class BC2IR
    * Make a type operand that refers to the given type.
    *
    * @param type desired type
+   * @return a new type operand
    */
   private TypeOperand makeTypeOperand(RVMType type) {
-    if (VM.VerifyAssertions) VM._assert(type != null);
+    if (VM.VerifyAssertions) opt_assert(type != null);
     return new TypeOperand(type);
   }
 
@@ -2959,6 +2952,7 @@ public final class BC2IR
   /**
    * Fetch the value of the next operand, a constant, from the bytecode
    * stream.
+   * @param index constant pool index
    * @return the value of a literal constant from the bytecode stream,
    * encoding as a constant IR operand
    */
@@ -2979,21 +2973,25 @@ public final class BC2IR
       case CP_CLASS:
         return ClassLoaderProxy.getClassFromConstantPool(declaringClass, index);
       default:
-        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));
+        if (VM.VerifyAssertions) {
+          String msg = "invalid literal type: 0x" + Integer.toHexString(desc);
+          opt_assert(VM.NOT_REACHED, msg);
+        }
         return null;
     }
   }
 
   //// LOAD LOCAL VARIABLE ONTO STACK.
   /**
-   * Simulate a load from a given local variable of an int.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of an int.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_iload(int index) {
     Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
+    if (VM.VerifyAssertions) opt_assert(r.isIntLike());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -3003,14 +3001,15 @@ public final class BC2IR
   }
 
   /**
-   * Simulate a load from a given local variable of a float.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a float.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_fload(int index) {
     Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM._assert(r.isFloat());
+    if (VM.VerifyAssertions) opt_assert(r.isFloat());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -3020,15 +3019,17 @@ public final class BC2IR
   }
 
   /**
-   * Simulate a load from a given local variable of a reference.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a reference.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_aload(int index) {
     Operand r = getLocal(index);
     if (VM.VerifyAssertions && !(r.isRef() || r.isAddress())) {
-      VM._assert(VM.NOT_REACHED, r + " not ref, but a " + r.getType());
+      String msg = r + " not ref, but a " + r.getType();
+      opt_assert(VM.NOT_REACHED, msg);
     }
     if (LOCALS_ON_STACK) {
       push(r);
@@ -3039,14 +3040,15 @@ public final class BC2IR
   }
 
   /**
-   * Simulate a load from a given local variable of a long.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a long.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_lload(int index) {
     Operand r = getLocalDual(index);
-    if (VM.VerifyAssertions) VM._assert(r.isLong());
+    if (VM.VerifyAssertions) opt_assert(r.isLong());
     if (LOCALS_ON_STACK) {
       pushDual(r);
       return null;
@@ -3056,14 +3058,15 @@ public final class BC2IR
   }
 
   /**
-   * Simulate a load from a given local variable of a double.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a load from a given local variable of a double.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, a move instruction
+   *  otherwise
    */
   private Instruction do_dload(int index) {
     Operand r = getLocalDual(index);
-    if (VM.VerifyAssertions) VM._assert(r.isDouble());
+    if (VM.VerifyAssertions) opt_assert(r.isDouble());
     if (LOCALS_ON_STACK) {
       pushDual(r);
       return null;
@@ -3074,15 +3077,15 @@ public final class BC2IR
 
   //// INCREMENT A LOCAL VARIABLE.
   /**
-   * Simulate the incrementing of a given int local variable.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates the incrementing of a given int local variable.
    *
    * @param index local variable number
    * @param amount amount to increment by
+   * @return the generated instruction, never {@code null}
    */
   private Instruction do_iinc(int index, int amount) {
     Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
+    if (VM.VerifyAssertions) opt_assert(r.isIntLike());
     if (LOCALS_ON_STACK) {
       replaceLocalsOnStack(index, TypeReference.Int);
     }
@@ -3097,7 +3100,7 @@ public final class BC2IR
         setLocal(index, op0);
       }
       Instruction s = Move.create(INT_MOVE, op0, val);
-      s.position = gc.inlineSequence;
+      s.position = gc.getInlineSequence();
       s.bcIndex = instrIndex;
       return s;
     }
@@ -3107,10 +3110,12 @@ public final class BC2IR
 
   //// POP FROM STACK AND STORE INTO LOCAL VARIABLE.
   /**
-   * Simulate a store into a given local variable of an int/long/double/float
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a store into a given local variable of an int/long/double/float
    *
    * @param index local variable number
+   * @param op1 the value to store
+   * @return {@code null} if no instruction is necessary, the generated
+   *  instruction otherwise
    */
   private Instruction do_store(int index, Operand op1) {
     TypeReference type = op1.getType();
@@ -3135,7 +3140,7 @@ public final class BC2IR
           } else {
             setLocal(index, newop0);
           }
-          gc.temps.release(rop1);
+          gc.getTemps().release(rop1);
           return null;
         }
       }
@@ -3153,16 +3158,17 @@ public final class BC2IR
       setLocal(index, set);
     }
     Instruction s = Move.create(IRTools.getMoveOp(type), op0, op1);
-    s.position = gc.inlineSequence;
+    s.position = gc.getInlineSequence();
     s.bcIndex = instrIndex;
     return s;
   }
 
   /**
-   * Simulate a store into a given local variable of an object ref.
-   * Returns generated instruction (or null if no instruction generated.)
+   * Simulates a store into a given local variable of an object ref.
    *
    * @param index local variable number
+   * @return {@code null} if no instruction is necessary, the generated
+   *  instruction otherwise
    */
   private Instruction do_astore(int index) {
     Operand op1 = pop();
@@ -3193,7 +3199,7 @@ public final class BC2IR
           RegisterOperand newop0 = gc.makeLocal(index, rop1);
           ResultCarrier.setResult(lastInstr, newop0);
           setLocal(index, newop0);
-          gc.temps.release(rop1);
+          gc.getTemps().release(rop1);
           return null;
         }
       }
@@ -3204,8 +3210,8 @@ public final class BC2IR
       op0 = gc.makeLocal(index, rop1);
       if (hasGuard(rop1)) {
         RegisterOperand g0 = gc.makeNullCheckGuard(op0.getRegister());
-        appendInstruction(Move.create(GUARD_MOVE, g0.copyRO(), getGuard(rop1)));
-        setGuard(op0, g0);
+        appendInstruction(Move.create(GUARD_MOVE, g0.copyRO(), copyGuardFromOperand(rop1)));
+        setGuardForRegOp(op0, g0);
       }
     } else {
       op0 = gc.makeLocal(index, type);
@@ -3216,7 +3222,7 @@ public final class BC2IR
       setLocal(index, op0);
     }
     Instruction s = Move.create(REF_MOVE, op0, op1);
-    s.position = gc.inlineSequence;
+    s.position = gc.getInlineSequence();
     s.bcIndex = instrIndex;
     return s;
   }
@@ -3228,7 +3234,7 @@ public final class BC2IR
    * @param r operand to push
    */
   public void push(Operand r) {
-    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(r.instruction == null);
     stack.push(r);
   }
 
@@ -3238,7 +3244,7 @@ public final class BC2IR
    * @param r operand to push
    */
   void pushDual(Operand r) {
-    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(r.instruction == null);
     stack.push(DUMMY);
     stack.push(r);
   }
@@ -3250,7 +3256,7 @@ public final class BC2IR
    * @param type data type of operand
    */
   void push(Operand r, TypeReference type) {
-    if (VM.VerifyAssertions) VM._assert(r.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(r.instruction == null);
     if (type.isVoidType()) {
       return;
     }
@@ -3262,33 +3268,13 @@ public final class BC2IR
   }
 
   /**
-   * Push a copy of the given operand onto simulated stack.
+   * Pushes a copy of the given operand onto simulated stack.
    *
    * @param op1 operand to push
-   * @param b1 bytecode index to associate with the pushed operand
-   */
-  @SuppressWarnings("unused")
-  private Instruction pushCopy(Operand op1, int b1) {
-    if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
-    if (op1 instanceof RegisterOperand) {
-      RegisterOperand reg = (RegisterOperand) op1;
-      if (!reg.getRegister().isLocal()) {
-        lastInstr = null;       // to prevent eliminating this temporary.
-      }
-      stack.push(reg.copy());
-    } else {
-      stack.push(op1.copy());
-    }
-    return null;
-  }
-
-  /**
-   * Push a copy of the given operand onto simulated stack.
-   *
-   * @param op1 operand to push
+   * @return always {@code null}
    */
   private Instruction pushCopy(Operand op1) {
-    if (VM.VerifyAssertions) VM._assert(op1.instruction == null);
+    if (VM.VerifyAssertions) opt_assert(op1.instruction == null);
     if (op1 instanceof RegisterOperand) {
       RegisterOperand reg = (RegisterOperand) op1;
       if (!reg.getRegister().isLocal()) {
@@ -3303,78 +3289,87 @@ public final class BC2IR
 
   //// POP OPERAND FROM THE STACK.
   /**
-   * Pop an operand from the stack. No type checking is performed.
+   * Pops an operand from the stack. No type checking is performed.
+   * @return the popped operand
    */
   Operand pop() {
     return stack.pop();
   }
 
   /**
-   * Pop an int operand from the stack.
+   * Pops an int operand from the stack.
+   * @return the popped operand
    */
   public Operand popInt() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
+    if (VM.VerifyAssertions) opt_assert(r.isIntLike());
     return r;
   }
 
   /**
-   * Pop a float operand from the stack.
+   * Pops a float operand from the stack.
+   * @return the popped operand
    */
   Operand popFloat() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isFloat());
+    if (VM.VerifyAssertions) opt_assert(r.isFloat());
     return r;
   }
 
   /**
-   * Pop a ref operand from the stack.
+   * Pops a ref operand from the stack.
+   * @return the popped operand
    */
   public Operand popRef() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isRef() || r.isAddress());
+    if (VM.VerifyAssertions) opt_assert(r.isRef() || r.isAddress());
     return r;
   }
 
   /**
-   * Pop a ref operand from the stack.
+   * Pops an address operand from the stack.
+   * @return the popped operand
    */
   public Operand popAddress() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isAddress());
+    if (VM.VerifyAssertions) opt_assert(r.isAddress());
     return r;
   }
 
   /**
-   * Pop a long operand from the stack.
+   * Pops a long operand from the stack.
+   * @return the popped operand
    */
   Operand popLong() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isLong());
+    if (VM.VerifyAssertions) opt_assert(r.isLong());
     popDummy();
     return r;
   }
 
   /**
-   * Pop a double operand from the stack.
+   * Pops a double operand from the stack.
+   * @return the popped operand
    */
   Operand popDouble() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isDouble());
+    if (VM.VerifyAssertions) opt_assert(r.isDouble());
     popDummy();
     return r;
   }
 
   /**
-   * Pop a dummy operand from the stack.
+   * Pops a dummy operand from the stack.
    */
   void popDummy() {
     Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r == DUMMY);
+    if (VM.VerifyAssertions) opt_assert(r == DUMMY);
   }
 
   /**
-   * Pop an operand of the given type from the stack.
+   * Pops an operand of the given type from the stack.
+   * @param type the expected type of the operand
+   * @return the popped operand
    */
   Operand pop(TypeReference type) {
     Operand r = pop();
@@ -3383,11 +3378,11 @@ public final class BC2IR
     // if (VM.VerifyAssertions) assertIsType(r, type);
     // Avoid upcasts of magic types to regular j.l.Objects
 //    if (VM.VerifyAssertions && (type == TypeReference.JavaLangObject))
-//      VM._assert(!r.getType().isMagicType());
+//      opt_assert(!r.getType().isMagicType());
     if (VM.VerifyAssertions) {
       if ((type == TypeReference.JavaLangObject) &&
           (r.getType().isMagicType()) &&
-          !gc.method.getDeclaringClass().getTypeRef().isMagicType()) {
+          !gc.getMethod().getDeclaringClass().getTypeRef().isMagicType()) {
         throw new OptimizingCompilerException.IllegalUpcast(r.getType());
       }
     }
@@ -3401,7 +3396,7 @@ public final class BC2IR
    * Pop an int from the stack to be used in a shift. A shift only uses the
    * bottom 5 or 6 bits of an int so the upper bits must be masked to conform
    * with the semantics of xx_SHx. NB the opt compiler shift operators allow that
-   * (x << 16) << 16 == x << 32, which isn't true in the bytecode
+   * {@code (x << 16) << 16 == x << 32}, which isn't true in the bytecode
    * @param longShift is this a shift of a long
    * @return the operand containing the amount to shift by
    */
@@ -3463,24 +3458,26 @@ public final class BC2IR
 
   //// GET TYPE OF AN OPERAND.
   /**
-   * Return the data type of the given operand, assuming that the operand is
-   * an array reference. (and not a null constant.)
+   * Returns the data type of the given operand, assuming that the operand is
+   * an array reference. (and not a {@code null} constant.)
    *
    * @param op operand to get type of
+   * @return operand's data type
    */
   public TypeReference getArrayTypeOf(Operand op) {
-    if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
+    if (VM.VerifyAssertions) opt_assert(!op.isDefinitelyNull());
     return op.getType();
   }
 
   /**
-   * Return the data type of the given operand, assuming that the operand is
-   * a reference. (and not a null constant.)
+   * Returns the data type of the given operand, assuming that the operand is
+   * a reference. (and not a {@code null} constant.)
    *
    * @param op operand to get type of
+   * @return operand's data type
    */
   private TypeReference getRefTypeOf(Operand op) {
-    if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
+    if (VM.VerifyAssertions) opt_assert(!op.isDefinitelyNull());
     return op.getType();
   }
 
@@ -3495,13 +3492,14 @@ public final class BC2IR
   public void assertIsType(Operand op, TypeReference type) {
     if (VM.VerifyAssertions) {
       if (op.isDefinitelyNull()) {
-        VM._assert(type.isReferenceType());
+        opt_assert(type.isReferenceType());
       } else if (op.isIntLike()) {
-        VM._assert(type.isIntLikeType());
+        opt_assert(type.isIntLikeType());
       } else {
         TypeReference type1 = op.getType();
         if (ClassLoaderProxy.includesType(type, type1) == NO) {
-          VM._assert(VM.NOT_REACHED, op + ": " + type + " is not assignable with " + type1);
+          String msg = op + ": " + type + " is not assignable with " + type1;
+          opt_assert(VM.NOT_REACHED, msg);
         }
       }
     }
@@ -3516,20 +3514,21 @@ public final class BC2IR
   private void assertIsAssignable(TypeReference parentType, TypeReference childType) {
     if (VM.VerifyAssertions) {
       if (childType.isUnboxedType()) {
-        //TODO: This should be VM._assert(gc.method.getReturnType() == retType.isUnboxedType());
+        //TODO: This should be opt_assert(gc.method.getReturnType() == retType.isUnboxedType());
         // but all word types are converted into addresses and thus the assertion fails. This should be fixed.
-        VM._assert(parentType.isUnboxedType());
+        opt_assert(parentType.isUnboxedType());
       } else {
         // fudge to deal with conservative approximation
         // in ClassLoaderProxy.findCommonSuperclass
         if (childType != TypeReference.JavaLangObject) {
           if (ClassLoaderProxy.includesType(parentType, childType) == NO) {
             VM.sysWriteln("type reference equality " + (parentType == childType));
-            Enumeration<InlineSequence> callHierarchy = gc.inlineSequence.enumerateFromRoot();
-            while(callHierarchy.hasMoreElements()) {
+            Enumeration<InlineSequence> callHierarchy = gc.getInlineSequence().enumerateFromRoot();
+            while (callHierarchy.hasMoreElements()) {
               VM.sysWriteln(callHierarchy.nextElement().toString());
             }
-            VM._assert(VM.NOT_REACHED, parentType + " not assignable with " + childType);
+            String msg = parentType + " not assignable with " + childType;
+            opt_assert(VM.NOT_REACHED, msg);
           }
         }
       }
@@ -3543,11 +3542,11 @@ public final class BC2IR
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.method.getName() + ":" + val + "\n");
+    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.getMethod().getName() + ":" + val + "\n");
   }
 
   /**
-   * Return a string representation of the current basic block set.
+   * @return a string representation of the current basic block set.
    */
   private String printBlocks() {
     StringBuilder res = new StringBuilder();
@@ -3567,28 +3566,28 @@ public final class BC2IR
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.scratchObject == null) ||
-                   (rop.scratchObject instanceof RegisterOperand) ||
-                   (rop.scratchObject instanceof TrueGuardOperand));
+        opt_assert((rop.getGuard() == null) ||
+                   (rop.getGuard() instanceof RegisterOperand) ||
+                   (rop.getGuard() instanceof TrueGuardOperand));
       }
-      return rop.scratchObject != null;
+      return rop.getGuard() != null;
     } else {
       return op.isConstant();
     }
   }
 
   public static boolean hasGuard(RegisterOperand rop) {
-    return rop.scratchObject != null;
+    return rop.getGuard() != null;
   }
 
   public static boolean hasLessConservativeGuard(RegisterOperand rop1, RegisterOperand rop2) {
-    if (rop1.scratchObject == rop2.scratchObject) {
+    if (rop1.getGuard() == rop2.getGuard()) {
       return false;
     }
-    if (rop1.scratchObject instanceof Operand) {
-      if (rop2.scratchObject instanceof Operand) {
-        Operand op1 = (Operand) rop1.scratchObject;
-        Operand op2 = (Operand) rop2.scratchObject;
+    if (rop1.getGuard() instanceof Operand) {
+      if (rop2.getGuard() instanceof Operand) {
+        Operand op1 = rop1.getGuard();
+        Operand op2 = rop2.getGuard();
         if (op2 instanceof TrueGuardOperand) {
           // rop2 is top therefore rop1 can't be less conservative!
           return false;
@@ -3607,40 +3606,40 @@ public final class BC2IR
   public void markGuardlessNonNull(RegisterOperand rop) {
     RegisterOperand g = gc.makeNullCheckGuard(rop.getRegister());
     appendInstruction(Move.create(GUARD_MOVE, g, new TrueGuardOperand()));
-    rop.scratchObject = g.copy();
+    rop.setGuard(g.copy());
   }
 
-  public static Operand getGuard(Operand op) {
+  public static Operand copyGuardFromOperand(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.scratchObject == null) ||
-                   (rop.scratchObject instanceof RegisterOperand) ||
-                   (rop.scratchObject instanceof TrueGuardOperand));
+        opt_assert((rop.getGuard() == null) ||
+                   (rop.getGuard() instanceof RegisterOperand) ||
+                   (rop.getGuard() instanceof TrueGuardOperand));
       }
-      if (rop.scratchObject == null) {
+      if (rop.getGuard() == null) {
         return null;
       } else {
-        return ((Operand) rop.scratchObject).copy();
+        return rop.getGuard().copy();
       }
     }
     if (VM.VerifyAssertions) {
-      VM._assert(op.isConstant());
+      opt_assert(op.isConstant());
     }
     return new TrueGuardOperand();
   }
 
-  public static void setGuard(RegisterOperand rop, Operand guard) {
-    rop.scratchObject = guard;
+  public static void setGuardForRegOp(RegisterOperand rop, Operand guard) {
+    rop.setGuard(guard);
   }
 
   private void setCurrentGuard(Operand guard) {
     if (currentGuard instanceof RegisterOperand) {
       if (VM.VerifyAssertions) {
-        VM._assert(!(guard instanceof TrueGuardOperand));
+        opt_assert(!(guard instanceof TrueGuardOperand));
       }
       // shouldn't happen given current generation --dave.
-      RegisterOperand combined = gc.temps.makeTempValidation();
+      RegisterOperand combined = gc.getTemps().makeTempValidation();
       appendInstruction(Binary.create(GUARD_COMBINE, combined, getCurrentGuard(), guard.copy()));
       currentGuard = combined;
     } else {
@@ -3661,7 +3660,8 @@ public final class BC2IR
   }
 
   /**
-   * Generate a null-check instruction for the given operand.
+   * Generates a null-check instruction for the given operand.
+   * @param ref the reference to check for null
    * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   public boolean do_NullCheck(Operand ref) {
@@ -3673,13 +3673,13 @@ public final class BC2IR
       if (DBG_CF) db("generating definite exception: null_check of definitely null");
       endOfBasicBlock = true;
       rectifyStateWithNullPtrExceptionHandler();
-      appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), TrapCodeOperand.NullPtr()));
+      appendInstruction(Trap.create(TRAP, gc.getTemps().makeTempValidation(), TrapCodeOperand.NullPtr()));
       return true;
     }
     if (ref instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) ref;
       if (hasGuard(rop)) {
-        Operand guard = getGuard(rop);
+        Operand guard = copyGuardFromOperand(rop);
         setCurrentGuard(guard);
         if (DBG_ELIMNULL) {
           db("null check of " + ref + " is not necessary; guarded by " + guard);
@@ -3692,7 +3692,7 @@ public final class BC2IR
       appendInstruction(NullCheck.create(NULL_CHECK, guard, ref.copy()));
       rectifyStateWithNullPtrExceptionHandler();
       setCurrentGuard(guard);
-      setGuard(rop, guard);
+      setGuardForRegOp(rop, guard);
       if (DBG_ELIMNULL) db(rop + " is guarded by " + guard);
       // Now, try to leverage this null check by updating
       // other unguarded (and thus potentially null)
@@ -3713,7 +3713,7 @@ public final class BC2IR
             if (DBG_ELIMNULL) {
               db("setting local #" + number + "(" + loc + ") to non-null");
             }
-            setGuard((RegisterOperand) loc, guard);
+            setGuardForRegOp((RegisterOperand) loc, guard);
           }
           setLocal(number, loc);
         }
@@ -3732,13 +3732,13 @@ public final class BC2IR
           if (sreg.getRegister() == rop.getRegister()) {
             if (hasGuard(sreg)) {
               if (DBG_ELIMNULL) {
-                db(sreg + " on stack already with guard " + getGuard(sreg));
+                db(sreg + " on stack already with guard " + copyGuardFromOperand(sreg));
               }
             } else {
               if (DBG_ELIMNULL) {
                 db("setting " + sreg + " on stack to be guarded by " + guard);
               }
-              setGuard(sreg, guard);
+              setGuardForRegOp(sreg, guard);
             }
           }
         }
@@ -3755,7 +3755,9 @@ public final class BC2IR
   }
 
   /**
-   * Generate a boundscheck instruction for the given operand and index.
+   * Generates a boundscheck instruction for the given operand and index.
+   * @param ref the array reference
+   * @param index the array index
    * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   public boolean do_BoundsCheck(Operand ref, Operand index) {
@@ -3763,7 +3765,7 @@ public final class BC2IR
     if (gc.noBoundsChecks()) {
       return false;
     }
-    RegisterOperand guard = gc.temps.makeTempValidation();
+    RegisterOperand guard = gc.getTemps().makeTempValidation();
     appendInstruction(BoundsCheck.create(BOUNDS_CHECK, guard, ref.copy(), index.copy(), getCurrentGuard()));
     setCurrentGuard(guard);
     rectifyStateWithArrayBoundsExceptionHandler();
@@ -3771,7 +3773,8 @@ public final class BC2IR
   }
 
   /**
-   * Generate a check for 0 for the given operand
+   * Generates a check for 0 for the given operand
+   * @param div the value to check
    * @return {@code true} if an unconditional trap is generated, {@code false} otherwise
    */
   private boolean do_IntZeroCheck(Operand div) {
@@ -3779,7 +3782,7 @@ public final class BC2IR
       if (((IntConstantOperand) div).value == 0) {
         endOfBasicBlock = true;
         rectifyStateWithArithmeticExceptionHandler();
-        appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), TrapCodeOperand.DivByZero()));
+        appendInstruction(Trap.create(TRAP, gc.getTemps().makeTempValidation(), TrapCodeOperand.DivByZero()));
         return true;
       } else {
         if (DBG_CF) {
@@ -3789,7 +3792,7 @@ public final class BC2IR
         return false;
       }
     }
-    RegisterOperand guard = gc.temps.makeTempValidation();
+    RegisterOperand guard = gc.getTemps().makeTempValidation();
     appendInstruction(ZeroCheck.create(INT_ZERO_CHECK, guard, div.copy()));
     setCurrentGuard(guard);
     rectifyStateWithArithmeticExceptionHandler();
@@ -3797,7 +3800,8 @@ public final class BC2IR
   }
 
   /**
-   * Generate a check for 0 for the given operand
+   * Generates a checks for 0 for the given operand
+   * @param div the value to check
    * @return {@code true} if an unconditional trap is generated, {@code false} otherwise
    */
   private boolean do_LongZeroCheck(Operand div) {
@@ -3805,7 +3809,7 @@ public final class BC2IR
       if (((LongConstantOperand) div).value == 0) {
         endOfBasicBlock = true;
         rectifyStateWithArithmeticExceptionHandler();
-        appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), TrapCodeOperand.DivByZero()));
+        appendInstruction(Trap.create(TRAP, gc.getTemps().makeTempValidation(), TrapCodeOperand.DivByZero()));
         return true;
       } else {
         if (DBG_CF) {
@@ -3815,7 +3819,7 @@ public final class BC2IR
         return false;
       }
     }
-    RegisterOperand guard = gc.temps.makeTempValidation();
+    RegisterOperand guard = gc.getTemps().makeTempValidation();
     appendInstruction(ZeroCheck.create(LONG_ZERO_CHECK, guard, div.copy()));
     setCurrentGuard(guard);
     rectifyStateWithArithmeticExceptionHandler();
@@ -3830,7 +3834,7 @@ public final class BC2IR
    * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   private boolean do_CheckStore(Operand ref, Operand elem, TypeReference elemType) {
-    if (!gc.doesCheckStore) return false;
+    if (gc.noCheckStoreChecks()) return false;
 
     if (CF_CHECKSTORE) {
       // NOTE: BE WARY OF ADDITIONAL OPTIMZATIONS.
@@ -3874,10 +3878,10 @@ public final class BC2IR
       }
     }
 
-    RegisterOperand guard = gc.temps.makeTempValidation();
+    RegisterOperand guard = gc.getTemps().makeTempValidation();
     if (isNonNull(elem)) {
-      RegisterOperand newGuard = gc.temps.makeTempValidation();
-      appendInstruction(Binary.create(GUARD_COMBINE, newGuard, getGuard(elem), getCurrentGuard()));
+      RegisterOperand newGuard = gc.getTemps().makeTempValidation();
+      appendInstruction(Binary.create(GUARD_COMBINE, newGuard, copyGuardFromOperand(elem), getCurrentGuard()));
       appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK_NOTNULL,
                                           guard,
                                           ref.copy(),
@@ -3893,13 +3897,14 @@ public final class BC2IR
 
   //// GENERATE BRANCHING INSTRUCTIONS.
   /**
-   * Get or create a block at the specified target.
+   * Gets or creates a block at the specified target.
    * Rectifies current state with target state.
    * Instructions to rectify state are appended to currentBBLE.
    * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
    *
    * @param target target index
+   * @return a block, never {@code null}
    */
   private BasicBlockLE getOrCreateBlock(int target) {
     return getOrCreateBlock(target, currentBBLE, stack, _localState);
@@ -3918,6 +3923,7 @@ public final class BC2IR
    *                  and to which stack rectification instructions are added.
    * @param simStack stack state to rectify, or {@code null}
    * @param simLocals local state to rectify, or {@code null}
+   * @return a block, never {@code null}
    */
   private BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, Operand[] simLocals) {
     if ((target > bcodes.index()) && (target < runoff)) {
@@ -3966,7 +3972,7 @@ public final class BC2IR
     fallThrough = true;
     if (!(op0 instanceof RegisterOperand)) {
       if (DBG_CF) db("generated int_ifcmp of " + op0 + " with 0");
-      RegisterOperand guard = gc.temps.makeTempValidation();
+      RegisterOperand guard = gc.getTemps().makeTempValidation();
       return IfCmp.create(INT_IFCMP,
                           guard,
                           op0,
@@ -4017,7 +4023,7 @@ public final class BC2IR
                   RegisterOperand locr = (RegisterOperand) loc;
                   RegisterOperand tlocr = locr.copyU2U();
                   guard = gc.makeNullCheckGuard(tlocr.getRegister());
-                  setGuard(tlocr, guard.copyD2U());
+                  setGuardForRegOp(tlocr, guard.copyD2U());
                   tlocr.clearDeclaredType();
                   tlocr.clearPreciseType();
                   tlocr.setType(type2);
@@ -4049,7 +4055,7 @@ public final class BC2IR
                   }
                   RegisterOperand locr = (RegisterOperand) loc;
                   guard = gc.makeNullCheckGuard(locr.getRegister());
-                  setGuard(locr, guard.copyD2U());
+                  setGuardForRegOp(locr, guard.copyD2U());
                   locr.clearDeclaredType();
                   locr.clearPreciseType();
                   locr.setType(type2);
@@ -4059,7 +4065,7 @@ public final class BC2IR
             }
           }
           if (guard == null) {
-            guard = gc.temps.makeTempValidation();
+            guard = gc.getTemps().makeTempValidation();
           }
           return IfCmp.create(INT_IFCMP,
                               guard,
@@ -4143,7 +4149,7 @@ public final class BC2IR
               }
             }
           }
-          RegisterOperand guard = gc.temps.makeTempValidation();
+          RegisterOperand guard = gc.getTemps().makeTempValidation();
           return IfCmp.create(INT_IFCMP,
                               guard,
                               val,
@@ -4198,7 +4204,7 @@ public final class BC2IR
           lastInstr.remove();
           lastInstr = null;
           branch = generateTarget(offset);
-          RegisterOperand guard = gc.temps.makeTempValidation();
+          RegisterOperand guard = gc.getTemps().makeTempValidation();
           return IfCmp.create(operator,
                               guard,
                               val1,
@@ -4213,7 +4219,7 @@ public final class BC2IR
       }
     }
     branch = generateTarget(offset);
-    RegisterOperand guard = gc.temps.makeTempValidation();
+    RegisterOperand guard = gc.getTemps().makeTempValidation();
     return IfCmp.create(INT_IFCMP,
                         guard,
                         val,
@@ -4253,7 +4259,7 @@ public final class BC2IR
       }
     }
     fallThrough = true;
-    RegisterOperand guard = gc.temps.makeTempValidation();
+    RegisterOperand guard = gc.getTemps().makeTempValidation();
     return IfCmp.create(INT_IFCMP,
                         guard,
                         op0,
@@ -4265,7 +4271,7 @@ public final class BC2IR
 
   // helper function for ifnull/ifnonnull bytecodes
   private Instruction _refIfNullHelper(ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
+    if (VM.VerifyAssertions) opt_assert(cond.isEQUAL() || cond.isNOT_EQUAL());
     int offset = bcodes.getBranchOffset();
     Operand op0 = popRef();
     if (offset == 3) {
@@ -4302,6 +4308,15 @@ public final class BC2IR
     RegisterOperand ref = (RegisterOperand) op0;
     BranchOperand branch = null;
     RegisterOperand guard = null;
+
+    // Check for incorrect null checks on unboxed types
+    if (ref.getType().isUnboxedType()) {
+      throw new OptimizingCompilerException("Detected incorrect null check of unboxed type in " +
+          gc.getMethod() + " at bytecode index " + instrIndex + " from class " +
+          gc.getMethod().getDeclaringClass() +
+          " . Use the methods provided on the unboxed types to do null checks!");
+    }
+
     if (cond.isEQUAL()) {
       branch = generateTarget(offset);
       if (ref.getRegister().isLocal()) {
@@ -4311,7 +4326,7 @@ public final class BC2IR
           if (loc instanceof RegisterOperand) {
             RegisterOperand locr = (RegisterOperand) loc;
             guard = gc.makeNullCheckGuard(locr.getRegister());
-            setGuard(locr, guard.copyD2U());
+            setGuardForRegOp(locr, guard.copyD2U());
             setLocal(locNum, loc);
           }
         }
@@ -4326,7 +4341,7 @@ public final class BC2IR
             RegisterOperand locr = (RegisterOperand) loc;
             RegisterOperand tlocr = locr.copyU2U();
             guard = gc.makeNullCheckGuard(locr.getRegister());
-            setGuard(tlocr, guard.copyD2U());
+            setGuardForRegOp(tlocr, guard.copyD2U());
             setLocal(locNum, tlocr);
             branch = generateTarget(offset);
             generated = true;
@@ -4340,7 +4355,7 @@ public final class BC2IR
     }
     fallThrough = true;
     if (guard == null) {
-      guard = gc.temps.makeTempValidation();
+      guard = gc.getTemps().makeTempValidation();
     }
     return IfCmp.create(REF_IFCMP,
                         guard,
@@ -4353,7 +4368,7 @@ public final class BC2IR
 
   // helper function for if_acmp?? bytecodes
   private Instruction _refIfCmpHelper(ConditionOperand cond) {
-    if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
+    if (VM.VerifyAssertions) opt_assert(cond.isEQUAL() || cond.isNOT_EQUAL());
     int offset = bcodes.getBranchOffset();
     Operand op1 = popRef();
     Operand op0 = popRef();
@@ -4380,8 +4395,29 @@ public final class BC2IR
         return null;
       }
     }
+
+    // Check for incorrect comparison operators on unboxed types
+    if (op0.isRegister()) {
+      RegisterOperand op0Reg = op0.asRegister();
+      if (op0Reg.getType().isUnboxedType()) {
+        throw new OptimizingCompilerException("Detected incorrect comparison of unboxed types in " +
+            gc.getMethod() + " at bytecode index " + instrIndex + " from class " +
+            gc.getMethod().getDeclaringClass() +
+            " . Use the methods provided on the unboxed types to do comparisons!");
+      }
+    }
+    if (op1.isRegister()) {
+      RegisterOperand op1Reg = op1.asRegister();
+      if (op1Reg.getType().isUnboxedType()) {
+        throw new OptimizingCompilerException("Detected incorrect comparison of unboxed types in " +
+            gc.getMethod() + " at bytecode index " + instrIndex + " from class " +
+            gc.getMethod().getDeclaringClass() +
+            " . Use the methods provided on the unboxed types to do comparisons!");
+      }
+    }
+
     fallThrough = true;
-    RegisterOperand guard = gc.temps.makeTempValidation();
+    RegisterOperand guard = gc.getTemps().makeTempValidation();
     return IfCmp.create(REF_IFCMP,
                         guard,
                         op0,
@@ -4409,10 +4445,10 @@ public final class BC2IR
       Operand op = stack.getFromTop(i);
       if (gc.isLocal(op, index, type)) {
         RegisterOperand lop = (RegisterOperand) op;
-        RegisterOperand t = gc.temps.makeTemp(lop);
+        RegisterOperand t = gc.getTemps().makeTemp(lop);
         Instruction s = Move.create(IRTools.getMoveOp(t.getType()), t, op);
         stack.replaceFromTop(i, t.copyD2U());
-        s.position = gc.inlineSequence;
+        s.position = gc.getInlineSequence();
         s.bcIndex = instrIndex;
         if (DBG_LOCAL || DBG_SELECTED) {
           db("replacing local " + index + " at " + i + " from tos with " + t);
@@ -4523,8 +4559,8 @@ public final class BC2IR
     // caller method to ensure that the exposed handler blocks are
     // generated if they are reachable from a callee.
     // See maybeInlineMethod.
-    if (gc.enclosingHandlers != null) {
-      for (Enumeration<BasicBlock> e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
+    if (gc.getEnclosingHandlers() != null) {
+      for (Enumeration<BasicBlock> e = gc.getEnclosingHandlers().enumerator(); e.hasMoreElements();) {
         ExceptionHandlerBasicBlock xbb = (ExceptionHandlerBasicBlock) e.nextElement();
         byte mustCatch = xbb.mustCatchException(exceptionType);
         if (mustCatch != NO || xbb.mayCatchException(exceptionType) != NO) {
@@ -4556,7 +4592,7 @@ public final class BC2IR
       if (DBG_EX) {
         db("added explicit edge from " + currentBBLE + " to outermost exit");
       }
-      currentBBLE.block.insertOut(gc.exit);
+      currentBBLE.block.insertOut(gc.getExit());
       if (DBG_CFG || DBG_SELECTED) {
         db("Added CFG edge from " + currentBBLE.block + " to exit");
       }
@@ -4568,6 +4604,7 @@ public final class BC2IR
    * Very similar to the above, but since we aren't told what might be thrown,
    * we are forced to connect to every in scope handler and can't
    * identify a definite target.
+   *
    */
   private void rectifyStateWithExceptionHandlers(boolean linkToExitIfUncaught) {
     currentBBLE.block.setCanThrowExceptions();
@@ -4576,7 +4613,7 @@ public final class BC2IR
       if (DBG_EX) {
         db("PEI of unknown type caused edge from " + currentBBLE + " to outermost exit");
       }
-      currentBBLE.block.insertOut(gc.exit);
+      currentBBLE.block.insertOut(gc.getExit());
       if (DBG_CFG || DBG_SELECTED) {
         db("Added CFG edge from " + currentBBLE.block + " to exit");
       }
@@ -4594,8 +4631,8 @@ public final class BC2IR
       }
     }
     // Now, consider the enclosing exception context; ditto NOTE above.
-    if (gc.enclosingHandlers != null) {
-      for (Enumeration<BasicBlock> e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
+    if (gc.getEnclosingHandlers() != null) {
+      for (Enumeration<BasicBlock> e = gc.getEnclosingHandlers().enumerator(); e.hasMoreElements();) {
         ExceptionHandlerBasicBlock xbb = (ExceptionHandlerBasicBlock) e.nextElement();
         if (DBG_EX) {
           db("PEI of unknown type could be caught by enclosing handler " + xbb);
@@ -4617,13 +4654,14 @@ public final class BC2IR
    * @param call the call instruction being considered for inlining
    * @param isExtant is the receiver of a virtual method an extant object?
    * @param realBCI the real bytecode index of the call instruction, not adjusted because of OSR
+   * @return the inline decision (which cannot be {@code null})
    */
   private InlineDecision shouldInline(Instruction call, boolean isExtant, int realBCI) {
     if (Call.getMethod(call).getTarget() == null) {
       return InlineDecision.NO("Target method is null");
     }
-    CompilationState state = new CompilationState(call, isExtant, gc.options, gc.original_cm, realBCI);
-    InlineDecision d = gc.inlinePlan.shouldInline(state);
+    CompilationState state = new CompilationState(call, isExtant, gc.getOptions(), gc.getOriginalCompiledMethod(), realBCI);
+    InlineDecision d = gc.getInlinePlan().shouldInline(state);
     return d;
   }
 
@@ -4640,13 +4678,12 @@ public final class BC2IR
     }
 
     // Insert OsrBarrier point before the callsite which is going to be
-    // inlined, attach the OsrBarrier instruction to callsite's scratch
-    // object, then the callee can find this barrier
+    // inlined. The callee can find this barrier via its generation context.
 
     // verify it
     if (this.osrGuardedInline) {
-      if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
-      callSite.scratchObject = lastOsrBarrier;
+      if (VM.VerifyAssertions) opt_assert(lastOsrBarrier != null);
+      gc.saveOSRBarrierForInst(lastOsrBarrier, callSite);
     }
 
     // Execute the inline decision.
@@ -4692,14 +4729,14 @@ public final class BC2IR
         blocks.rectifyLocals(_localState, handler);
       }
     }
-    if (inlinedContext.epilogue != null) {
+    if (inlinedContext.getEpilogue() != null) {
       // Wrap a synthetic BBLE around GenerationContext.epilogue and
       // pass it as from to getOrCreateBlock.
       // This causes any compensation code inserted by getOrCreateBlock
       // into the epilogue of the inlined method (see inlineTest7)
       BasicBlockLE epilogueBBLE = new BasicBlockLE(0);
-      epilogueBBLE.block = inlinedContext.epilogue;
-      if (inlinedContext.result != null) {
+      epilogueBBLE.block = inlinedContext.getEpilogue();
+      if (inlinedContext.getResult() != null) {
         // If the call has a result, _callHelper allocated a new
         // temp for it and pushed it onto the expression stack.
         // But, since we successfully inlined the call and
@@ -4716,16 +4753,16 @@ public final class BC2IR
         pop(resultType);        // throw away callSite.result
       }
       blocks.rectifyStacks(currentBBLE.block, stack, epilogueBBLE);
-      if (inlinedContext.result != null) {
+      if (inlinedContext.getResult() != null) {
         TypeReference resultType = Call.getResult(callSite).getType();
-        push(inlinedContext.result, resultType);
+        push(inlinedContext.getResult(), resultType);
       }
       epilogueBBLE.copyIntoLocalState(_localState);
       BasicBlockLE afterBBLE = blocks.getOrCreateBlock(bcodes.index(), epilogueBBLE, stack, _localState);
       // Create the InliningBlockLE and initialize fallThrough links.
       InliningBlockLE inlinedCallee = new InliningBlockLE(inlinedContext, epilogueBBLE);
       currentBBLE.fallThrough = inlinedCallee;
-      currentBBLE.block.insertOut(inlinedCallee.gc.cfg.firstInCodeOrder());
+      currentBBLE.block.insertOut(inlinedCallee.gc.getCfg().firstInCodeOrder());
       epilogueBBLE.fallThrough = afterBBLE;
       epilogueBBLE.block.insertOut(epilogueBBLE.fallThrough.block);
     } else {
@@ -4735,7 +4772,7 @@ public final class BC2IR
       // which will naturally be handled when we generate the branch).
       InliningBlockLE inlinedCallee = new InliningBlockLE(inlinedContext, null);
       currentBBLE.fallThrough = inlinedCallee;
-      currentBBLE.block.insertOut(inlinedCallee.gc.cfg.firstInCodeOrder());
+      currentBBLE.block.insertOut(inlinedCallee.gc.getCfg().firstInCodeOrder());
     }
     endOfBasicBlock = true;
     return true;
@@ -4782,7 +4819,7 @@ public final class BC2IR
     /* the variable on stack can be used directly ? */
     int num_lstacks = 0;
     for (int i = 0, n = stack.getSize(); i < n; i++) {
-      Operand op = stack.peekAt(i);
+      Operand op = stack.getFromBottom(i);
 
       if ((op != null) && (op != DUMMY)) {
 
@@ -4823,7 +4860,7 @@ public final class BC2IR
     for (int i = 0, n = livevars.size(); i < n; i++) {
       Operand op = livevars.get(i);
       if (op instanceof ReturnAddressOperand) {
-        int tgtpc = ((ReturnAddressOperand) op).retIndex - gc.method.getOsrPrologueLength();
+        int tgtpc = ((ReturnAddressOperand) op).retIndex - gc.getMethod().getOsrPrologueLength();
         op = new IntConstantOperand(tgtpc);
       } else if (op instanceof LongConstantOperand) {
         op = _prepareLongConstant(op);
@@ -4831,7 +4868,7 @@ public final class BC2IR
         op = _prepareDoubleConstant(op);
       }
 
-      if (VM.VerifyAssertions) VM._assert(op != null);
+      if (VM.VerifyAssertions) opt_assert(op != null);
 
       OsrBarrier.setElement(barrier, i, op);
     }
@@ -4844,29 +4881,37 @@ public final class BC2IR
     /* if the current method is for specialization, the bcIndex
      * has to be adjusted at "OsrPointConstructor".
      */
-    barrier.position = gc.inlineSequence;
+    barrier.position = gc.getInlineSequence();
     barrier.bcIndex = instrIndex;
 
     return barrier;
   }
 
-  /** special process for long/double constants */
+  /**
+   * special process for long/double constants
+   * @param op a long constant
+   * @return a new operand
+   */
   private Operand _prepareLongConstant(Operand op) {
     /* for long and double constants, always move them to a register,
      * therefor, BURS will split it in two registers.
      */
-    RegisterOperand t = gc.temps.makeTemp(op.getType());
+    RegisterOperand t = gc.getTemps().makeTemp(op.getType());
     appendInstruction(Move.create(LONG_MOVE, t, op));
 
     return t.copyD2U();
   }
 
-  /** special process for long/double constants */
+  /**
+   * special process for long/double constants
+   * @param op a double constant
+   * @return a new operand
+   */
   private Operand _prepareDoubleConstant(Operand op) {
     /* for long and double constants, always move them to a register,
      * therefor, BURS will split it in two registers.
      */
-    RegisterOperand t = gc.temps.makeTemp(op.getType());
+    RegisterOperand t = gc.getTemps().makeTemp(op.getType());
     appendInstruction(Move.create(DOUBLE_MOVE, t, op));
 
     return t.copyD2U();
@@ -4884,7 +4929,7 @@ public final class BC2IR
       return op;
     }
 
-    RegisterOperand t = gc.temps.makeTemp(op.getType());
+    RegisterOperand t = gc.getTemps().makeTemp(op.getType());
 
     byte tcode = op.getType().getName().parseForTypeCode();
 
@@ -4924,11 +4969,15 @@ public final class BC2IR
    * which provides type and variable information.
    * The OsrPoint instruction is going to be refilled immediately
    * after BC2IR, before any other optimizations.
+   *
+   * @param barrier the OSR barrier instruction
+   * @param gc context that has information about OSR
+   * @return the osr point instruction
    */
-  public static Instruction _osrHelper(Instruction barrier) {
+  public static Instruction _osrHelper(Instruction barrier, GenerationContext gc) {
     Instruction inst = OsrPoint.create(YIELDPOINT_OSR, null,  // currently unknown
                                            0);    // currently unknown
-    inst.scratchObject = barrier;
+    gc.saveOSRBarrierForInst(barrier, inst);
     return inst;
   }
 
@@ -4939,6 +4988,7 @@ public final class BC2IR
    * local variable is assumed to contain a particular value.)
    *
    * @param i local variable number
+   * @return a copy of the local variable
    */
   private Operand getLocal(int i) {
     Operand local = _localState[i];
@@ -4952,9 +5002,10 @@ public final class BC2IR
    * of operand (if the local variable is assumed to contain a given value.)
    *
    * @param i local variable number
+   * @return a copy of the local variable
    */
   private Operand getLocalDual(int i) {
-    if (VM.VerifyAssertions) VM._assert(_localState[i + 1] == DUMMY);
+    if (VM.VerifyAssertions) opt_assert(_localState[i + 1] == DUMMY);
     Operand local = _localState[i];
     if (DBG_LOCAL || DBG_SELECTED) db("getting local " + i + " for use: " + local);
     return local.copy();
@@ -4989,12 +5040,18 @@ public final class BC2IR
    */
   private static final class DummyStackSlot extends Operand {
     @Override
-    public Operand copy() { return this; }
+    public Operand copy() {
+      return this;
+    }
 
     @Override
-    public boolean similar(Operand op) { return (op instanceof DummyStackSlot); }
+    public boolean similar(Operand op) {
+      return (op instanceof DummyStackSlot);
+    }
 
     @Override
-    public String toString() { return "<DUMMY>"; }
+    public String toString() {
+      return "<DUMMY>";
+    }
   }
 }

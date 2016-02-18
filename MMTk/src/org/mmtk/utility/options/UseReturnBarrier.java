@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.options;
 
+import org.mmtk.vm.VM;
+
 /**
  * Should we enable a return barrier?
  */
@@ -20,5 +22,10 @@ public final class UseReturnBarrier extends org.vmutil.options.BooleanOption {
     super(Options.set, "Use Return Barrier",
           "Should we enable a return barrier?",
         false);
+  }
+
+  @Override
+  protected void validate() {
+    if (!VM.scanning.supportsReturnBarrier() && value) fail("Use of return barrier only supported on IA32 32-bit");
   }
 }

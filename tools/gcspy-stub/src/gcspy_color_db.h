@@ -20,9 +20,9 @@
 #define _GCSPY_COLOR_DB_H_
 
 typedef struct {
-    unsigned char red;
-    unsigned char green;
-    unsigned char blue;
+  unsigned char red;
+  unsigned char green;
+  unsigned char blue;
 } gcspy_color_t;
 
 #endif // _GCSPY_COLOR_DB_H_

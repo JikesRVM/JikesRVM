@@ -42,7 +42,7 @@
   	<attribute name="maxHeapSize" default="150" />
     <sequential>
       <rvm tag="@{class}" class="@{class}" args="${arg}" initialHeapSize="@{initialHeapSize}" maxHeapSize="@{maxHeapSize}"/>
-      <findStatistic tag="@{class}" pattern="Overall: SUCCESS" key="success"/>
+      <findStatistic tag="@{class}" pattern="ALL TESTS PASSED" key="success"/>
       <outputResults tag="@{class}"/>
     </sequential>
   </macrodef>
@@ -72,8 +72,10 @@
   <target name="test" depends="compile">
     <startResults/>
 
+    <gcTest class="FinalizeTest"/>
     <gcTest class="InlineAllocation"/>
     <gcTest class="ReferenceTest"/>
+    <gcTest class="SoftReferenceClearingTest"/>
     <gcTest class="ReferenceStress"/>
 
     <!-- FixedLive has specific statistics and in performance mode forces O2 initial compilation -->
@@ -84,7 +86,7 @@
     </condition>
     <rvm tag="FixedLive" class="FixedLive" rvmArgs="${fixedlive.aosArgs}" args="${arg}" initialHeapSize="120"/>
     <outputTestStart tag="FixedLive"/>
-    <findStatistic tag="FixedLive" pattern="Overall: SUCCESS" key="success"/>
+    <findStatistic tag="FixedLive" pattern="ALL TESTS PASSED" key="success"/>
     <if>
       <conditions>
         <equals arg1="${test.mode}" arg2="performance"/>

@@ -34,7 +34,7 @@ public class IfStatement extends AbstractAST implements Statement {
     super(t);
     this.conds = conds;
     this.stmts = stmts;
-    assert conds.size() == stmts.size() || conds.size() +1 == stmts.size() :
+    assert conds.size() == stmts.size() || conds.size() + 1 == stmts.size() :
       "mismatch between conditions and statements for a conditional";
   }
 

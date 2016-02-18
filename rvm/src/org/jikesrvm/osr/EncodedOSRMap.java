@@ -12,14 +12,28 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.compilers.opt.runtimesupport.OptGCMap.FIRST_GCMAP_REG;
+import static org.jikesrvm.osr.OSRConstants.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
-import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
@@ -30,7 +44,7 @@ import org.vmmagic.unboxed.Offset;
  * In OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
  */
-public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConstants {
+public final class EncodedOSRMap {
 
   /** osr info entries */
   private final long[] mapEntries;
@@ -51,7 +65,11 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   }
 
   /**
-   * mark a register as reference type
+   * Marks a register as a reference type.
+   *
+   * @param map the map
+   * @param regnum the register's number
+   * @return the updated map
    */
   private static int setRegister(int map, int regnum) {
     int bitpos = getRegBitPosition(regnum);
@@ -59,9 +77,6 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
     return map;
   }
 
-  /**
-   * get register bit position
-   */
   @Inline
   private static int getRegBitPosition(int regnum) {
     return regnum - FIRST_GCMAP_REG + 1;
@@ -74,8 +89,13 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
     this.lastEntry = -1;
   }
 
-  /** Constructor that builds EncodedOSRMap from variable map */
-  private EncodedOSRMap(VariableMap varMap) {
+  /**
+   * @param varMap the variable map to use for building
+   *  the EncodedOSRMap
+   * @param mcOffsets the machine code offsets for the
+   *  instructions
+   */
+  private EncodedOSRMap(VariableMap varMap, MachineCodeOffsets mcOffsets) {
     int entries = varMap.getNumberOfElements();
 
     this.lastEntry = entries - 1;
@@ -83,9 +103,9 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
     if (VM.VerifyAssertions) VM._assert(entries > 0);
     this.mapEntries = new long[entries];
     ArrayList<Integer> tempOsrMaps = new ArrayList<Integer>();
-    translateMap(tempOsrMaps, varMap.list);
+    translateMap(tempOsrMaps, varMap.list, mcOffsets);
     this.osrMaps = new int[tempOsrMaps.size()];
-    for (int i=0; i < tempOsrMaps.size(); i++) {
+    for (int i = 0; i < tempOsrMaps.size(); i++) {
       this.osrMaps[i] = tempOsrMaps.get(i);
     }
 
@@ -95,23 +115,35 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   }
 
   /**
-   * Encode the given variable map returning the canonical empty map if the map
-   * is empty
+   * Encodes the given variable map as OSRMap.
+   *
+   * @param varMap the variable map to encode
+   * @param mcOffsets machine code offsets for the instructions
+   * @return the canonical empty map if the map
+   * is empty, an encoded osr map otherwise
    */
-  public static EncodedOSRMap makeMap(VariableMap varMap) {
+  public static EncodedOSRMap makeMap(VariableMap varMap, MachineCodeOffsets mcOffsets) {
     if (varMap.getNumberOfElements() > 0) {
-      return new EncodedOSRMap(varMap);
+      return new EncodedOSRMap(varMap, mcOffsets);
     } else {
       return emptyMap;
     }
   }
 
   /**
-   * Translates a list of OSR_MapElement to encoding,
+   * Translates a list of OSR_MapElement to encoding.
+   * <p>
    * we can not trust the osrlist is in the increasing order of
    * machine code offset. Sort it first.
+   *
+   * @param tempOsrMaps an empty list that will hold temporary
+   *  OSR map information
+   * @param osrlist information about instructions and variables
+   * @param mcOffsets machine code offsets for the
+   *  instructions
    */
-  private void translateMap(ArrayList<Integer> tempOsrMaps, LinkedList<VariableMapElement> osrlist) {
+  private void translateMap(ArrayList<Integer> tempOsrMaps,
+      LinkedList<VariableMapElement> osrlist, final MachineCodeOffsets mcOffsets) {
 
     /* sort the list, use the mc offset of the index instruction
      * as the key.
@@ -134,7 +166,8 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
         new Comparator<VariableMapElement>() {
           @Override
           public int compare(VariableMapElement a, VariableMapElement b) {
-            return a.osr.getmcOffset() - b.osr.getmcOffset();
+            return mcOffsets.getMachineCodeOffset(a.osr) -
+                mcOffsets.getMachineCodeOffset(b.osr);
           }
         });
     }
@@ -160,7 +193,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
       int osrMapIndex = generateOsrMaps(tempOsrMaps, mVarList);
 
       // use this offset, and adjust on extractState
-      int mcOffset = instr.getmcOffset();
+      int mcOffset = mcOffsets.getMachineCodeOffset(instr);
       setMCOffset(i, mcOffset);
       setOSRMapIndex(i, osrMapIndex);
       setBCIndex(i, instr.getBytecodeIndex());
@@ -185,12 +218,17 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
    * available.
    * <p>
    * The MSB of mpc indicates if the next is a valid pair
+   *
+   * @param tempOsrMaps temporary OSR map information. This method will
+   *  fill this data structure.
+   * @param mVarList information about variables
+   * @return the index of the first integer in the map
    */
   private int generateOsrMaps(ArrayList<Integer> tempOsrMaps, LinkedList<MethodVariables> mVarList) {
 
     int regmap = (!mVarList.isEmpty()) ? NEXT_BIT : 0;
     tempOsrMaps.add(regmap);
-    int mapIndex = tempOsrMaps.size()-1;
+    int mapIndex = tempOsrMaps.size() - 1;
 
     // from inner to outer
     for (int i = 0, m = mVarList.size(); i < m; i++) {
@@ -206,7 +244,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
    * @param tempOsrMaps the maps under construction
    * @param regMapIndex used to patch the register map
    * @param mVar the method variables
-   * @param lastMid
+   * @param lastMid whether this is the last method in the inlined chain
    */
   private void _generateMapForOneMethodVariable(ArrayList<Integer> tempOsrMaps, int regMapIndex, MethodVariables mVar, boolean lastMid) {
     // Is this the last method in the inlined chain?
@@ -235,10 +273,11 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   }
 
   /**
-   * Process on 32-bit tuple.
-   * <p>
-   * tuple, maps the local to register, spill
-   * isLast, indicates to set NEXT_BIT
+   * Process a 32-bit tuple.
+
+   * @param tempOsrMaps the temporary osr maps
+   * @param tuple mapping of the local to register
+   * @param isLast whether to set {@link OSRConstants#NEXT_BIT}
    */
   private void processTuple(ArrayList<Integer> tempOsrMaps, LocalRegPair tuple, boolean isLast) {
 
@@ -310,7 +349,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
         first |= (RET_ADDR << TCODE_SHIFT);
         break;
       case WordTypeCode:
-        if (VM.BuildFor64Addr && (tuple.valueType == ICONST)) {//KV:TODO
+        if (VM.BuildFor64Addr && (tuple.valueType == ICONST)) { //KV:TODO
           //split in two integer parts for OSR map
           // process the first half part,
           // it is not the last. */
@@ -346,20 +385,25 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   ////////////////////////////////////
   // INTERFACE
   ///////////////////////////////////
+
   /**
-   * Does the OSR map exist for a machine instruction offset
+   * @param mcOffset the machine instruction offset
+   * @return whether there's an OSR map exist for
+   *  the machine instruction offset
    */
   public boolean hasOSRMap(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     return (entry != NO_OSR_ENTRY);
   }
 
-  /* WARNING:
-   * It is the caller's reposibility to make sure there are OSR
-   * entry exist for a machine instruction offset.
-   */
   /**
    * Get bytecode index for a given instruction offset in bytes.
+   * <p>
+   * NOTE: It is the caller's reponsibility to make sure there are OSR
+   * entry exist for a machine instruction offset.
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return the bytecode index
    */
   public int getBytecodeIndexForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
@@ -374,7 +418,10 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   }
 
   /**
-   * get register's reference map for the machine instruction offset
+   * Gets register's reference map for the machine instruction offset
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return the desired OSR map
    */
   public int getRegisterMapForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
@@ -385,8 +432,12 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   /**
    * given a MC offset, return an iterator over the
    * elements of this map.
+   * <p>
    * NOTE: the map index is gotten from 'findOSRMapIndex'.
    * This has to be changed....
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return an iterator
    */
   public OSRMapIterator getOsrMapIteratorForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
@@ -399,7 +450,10 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   ////////////////////////////////
   /**
    * Do a binary search, find the entry for the machine code offset.
-   * Return -1 if no entry was found.
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return {@link OSRConstants#NO_OSR_ENTRY} if no entry was found, the
+   *  entry otherwise
    */
   private int findOSREntry(Offset mcOffset) {
 

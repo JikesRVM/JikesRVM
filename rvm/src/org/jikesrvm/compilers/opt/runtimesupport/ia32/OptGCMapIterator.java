@@ -12,13 +12,19 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.FPU_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
-import org.jikesrvm.ia32.StackframeLayoutConstants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.unboxed.AddressArray;
 
 /**
  * An instance of this class provides iteration across the references
@@ -29,11 +35,11 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for IA32.
  */
 @Uninterruptible
-public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements SizeConstants {
+public final class OptGCMapIterator extends OptGenericGCMapIterator {
 
   private static final boolean DEBUG = false;
 
-  public OptGCMapIterator(WordArray registerLocations) {
+  public OptGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
   }
 
@@ -85,7 +91,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
         for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = NONVOLATILE_GPRS[i].value();
-          registerLocations.set(registerIndex, location.toWord());
+          registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -100,12 +106,12 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the nonVol area
-        Address location = nonVolArea.plus(4 * NUM_VOLATILE_GPRS);
+        Address location = nonVolArea.plus(BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS);
 
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = VOLATILE_GPRS[i].value();
-          registerLocations.set(registerIndex, location.toWord());
+          registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -130,7 +136,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    */
   @Override
   public Address getFirstSpillLoc() {
-    return framePtr.minus(-StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
+    return framePtr.plus(STACKFRAME_BODY_OFFSET);
   }
 
   /**
@@ -140,12 +146,12 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
   @Override
   public Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
-      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
+      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - BYTES_IN_ADDRESS - SAVE_VOL_SIZE);
     } else {
-      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4);
+      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - BYTES_IN_ADDRESS);
     }
   }
 
-  static final int VOL_SIZE = 4 * NUM_VOLATILE_GPRS;
-  static final int SAVE_VOL_SIZE = VOL_SIZE + StackframeLayoutConstants.FPU_STATE_SIZE;
+  static final int VOL_SIZE = BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS;
+  static final int SAVE_VOL_SIZE = VOL_SIZE + FPU_STATE_SIZE;
 }

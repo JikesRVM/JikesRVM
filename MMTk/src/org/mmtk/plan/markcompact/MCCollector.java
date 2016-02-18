@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
  * (through <code>trace</code> and the <code>collectionPhase</code>
  * method), and collection-time allocation.<p>
  *
- * @see MC for an overview of the mark-compact algorithm.<p>
+ * @see MC for an overview of the mark-compact algorithm
  * @see MCMutator
  * @see StopTheWorldCollector
  * @see CollectorContext

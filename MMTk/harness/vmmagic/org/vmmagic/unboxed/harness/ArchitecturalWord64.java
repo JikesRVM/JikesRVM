@@ -15,7 +15,7 @@ package org.vmmagic.unboxed.harness;
 public final class ArchitecturalWord64 extends ArchitecturalWord {
 
   private final long value;
-  private static final long SIGN_BIT = 1L<<63;
+  private static final long SIGN_BIT = 1L << 63;
 
   ArchitecturalWord64(long value) {
     assert getModel() == Architecture.BITS64;
@@ -59,7 +59,7 @@ public final class ArchitecturalWord64 extends ArchitecturalWord {
 
   @Override
   public ArchitecturalWord minus(long offset) {
-    return fromLong(value-offset);
+    return fromLong(value - offset);
   }
 
   @Override
@@ -121,7 +121,7 @@ public final class ArchitecturalWord64 extends ArchitecturalWord {
     long v = value;
     chars[0] = '0';
     chars[1] = 'x';
-    for(int x = 17; x > 1; x--) {
+    for (int x = 17; x > 1; x--) {
       long thisValue = v & 0x0FL;
       if (thisValue > 9) {
         chars[x] = (char)('A' + thisValue - 10);
@@ -131,6 +131,28 @@ public final class ArchitecturalWord64 extends ArchitecturalWord {
       v >>>= 4;
     }
     return new String(chars);
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (int) (value ^ (value >>> 32));
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!super.equals(obj))
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    ArchitecturalWord64 other = (ArchitecturalWord64) obj;
+    if (value != other.value)
+      return false;
+    return true;
   }
 
 }

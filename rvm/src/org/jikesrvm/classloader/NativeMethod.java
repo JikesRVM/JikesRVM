@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -34,8 +36,8 @@ public final class NativeMethod extends RVMMethod {
 
   /**
    * the TOC of the native procedure.
-   * Only used if VM.BuildForPowerOpenABI.
-   * TODO: Consider making a PowerOpen subclass of NativeMethod
+   * Only used if the VM is built for the PowerPC 64 Bit ELF ABI.
+   * TODO: Consider making a subclass of NativeMethod for this ABI
    *       and pushing this field down to it.  For now, just bloat up
    *       all native methods by 1 slot.
    */
@@ -88,27 +90,18 @@ public final class NativeMethod extends RVMMethod {
     }
   }
 
-  /**
-   * Get the native IP for this method
-   */
   public Address getNativeIP() {
     return nativeIP;
   }
 
-  /**
-   * get the native TOC for this method
-   */
   public Address getNativeTOC() {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       return nativeTOC;
     } else {
       return Address.zero();
     }
   }
 
-  /**
-   * replace a character in a string with a string
-   */
   @Pure
   private String replaceCharWithString(String originalString, char targetChar, String replaceString) {
     int first = originalString.indexOf(targetChar);
@@ -130,7 +123,10 @@ public final class NativeMethod extends RVMMethod {
   }
 
   /**
-   * Compute the mangled name of the native routine: Java_Class_Method_Sig
+   * Computes the mangled name of the native routine: Java_Class_Method_Sig
+   *
+   * @param sig whether the sig name should be appended
+   * @return the mangled name
    */
   @Pure
   private String getMangledName(boolean sig) {
@@ -184,7 +180,7 @@ public final class NativeMethod extends RVMMethod {
       // native procedure not found in library
       return false;
     } else {
-      if (VM.BuildForPowerOpenABI) {
+      if (VM.BuildForPower64ELF_ABI) {
         nativeIP = symbolAddress.loadAddress();
         nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
       } else {
@@ -195,11 +191,11 @@ public final class NativeMethod extends RVMMethod {
   }
 
   /**
-   * Registers a native method
+   * Registers a native method.
    * @param symbolAddress address of native function that implements the method
    */
   public synchronized void registerNativeSymbol(Address symbolAddress) {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       nativeIP = symbolAddress.loadAddress();
       nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
     } else {
@@ -208,11 +204,8 @@ public final class NativeMethod extends RVMMethod {
     replaceCompiledMethod(null);
   }
 
-  /**
-   * Unregisters a native method
-   */
   public synchronized void unregisterNativeSymbol() {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       nativeIP = Address.zero();
       nativeTOC = Address.zero();
     } else {

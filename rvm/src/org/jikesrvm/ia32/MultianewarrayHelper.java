@@ -12,11 +12,14 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -39,7 +42,10 @@ public abstract class MultianewarrayHelper {
    * be allocated for each dimension.
    *
    * See also: bytecode 0xc5 ("multianewarray") in BaselineCompilerImpl
+   *
+   * @return newly allocated multidimensional array
    */
+  @Entrypoint
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     if (numDimensions == 2) {
@@ -47,9 +53,9 @@ public abstract class MultianewarrayHelper {
       // fetch number of elements to be allocated for each array dimension
       VM.disableGC();
       Address argp = Magic.getFramePointer().plus(argOffset);
-      argp = argp.minus(4);
+      argp = argp.minus(BYTES_IN_WORD);
       dim0 = argp.loadInt();
-      argp = argp.minus(4);
+      argp = argp.minus(BYTES_IN_WORD);
       dim1 = argp.loadInt();
       VM.enableGC();
       // validate arguments
@@ -64,11 +70,7 @@ public abstract class MultianewarrayHelper {
       VM.disableGC();
       Address argp = Magic.getFramePointer().plus(argOffset);
       for (int i = 0; i < numDimensions; ++i) {
-        if (VM.BuildFor32Addr) {
-          argp = argp.minus(4);
-        } else {
-          argp = argp.minus(8);
-        }
+        argp = argp.minus(BYTES_IN_WORD);
         numElements[i] = argp.loadInt();
       }
       VM.enableGC();

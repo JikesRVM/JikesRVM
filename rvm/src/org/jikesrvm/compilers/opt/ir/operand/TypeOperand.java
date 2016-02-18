@@ -38,17 +38,11 @@ public final class TypeOperand extends Operand {
    */
   private final TypeReference typeRef;
 
-  /**
-   * Create a new type operand with the specified type.
-   */
   public TypeOperand(RVMType typ) {
     type = typ;
     typeRef = type.getTypeRef();
   }
 
-  /**
-   * Create a new type operand with the specified type reference
-   */
   public TypeOperand(TypeReference tr) {
     type = tr.peekType();
     typeRef = tr;

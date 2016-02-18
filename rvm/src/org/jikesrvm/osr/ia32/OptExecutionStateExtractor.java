@@ -12,20 +12,42 @@
  */
 package org.jikesrvm.osr.ia32;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.FIRST_DOUBLE;
+import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.osr.OSRConstants.ACONST;
+import static org.jikesrvm.osr.OSRConstants.DOUBLE;
+import static org.jikesrvm.osr.OSRConstants.FLOAT;
+import static org.jikesrvm.osr.OSRConstants.HIGH_64BIT;
+import static org.jikesrvm.osr.OSRConstants.ICONST;
+import static org.jikesrvm.osr.OSRConstants.INT;
+import static org.jikesrvm.osr.OSRConstants.LCONST;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
+import static org.jikesrvm.osr.OSRConstants.LONG;
+import static org.jikesrvm.osr.OSRConstants.PHYREG;
+import static org.jikesrvm.osr.OSRConstants.REF;
+import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
+import static org.jikesrvm.osr.OSRConstants.SPILL;
+import static org.jikesrvm.osr.OSRConstants.WORD;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
-import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.osr.OSRConstants;
+import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.osr.EncodedOSRMap;
-import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.ExecutionState;
+import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.OSRMapIterator;
 import org.jikesrvm.osr.VariableElement;
 import org.jikesrvm.runtime.Magic;
@@ -40,8 +62,7 @@ import org.vmmagic.unboxed.WordArray;
  * OptExecutionStateExtractor is a subclass of ExecutionStateExtractor.
  * It extracts the execution state from an optimized activation.
  */
-public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
-    implements Constants, ArchConstants, OSRConstants, PhysicalRegisterConstants {
+public final class OptExecutionStateExtractor extends ExecutionStateExtractor {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
@@ -66,7 +87,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     byte[] stack = thread.getStack();
 
     // get registers for the caller ( real method )
-    TempRegisters registers = new TempRegisters(thread.contextRegisters);
+    TempRegisters registers = new TempRegisters(thread.getContextRegisters());
 
     if (VM.VerifyAssertions) {
       int foocmid = Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
@@ -254,7 +275,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     if (VM.VerifyAssertions) VM._assert(iterator != null);
 
     ExecutionState state = new ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
-    MethodReference mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+    MethodReference mref = MemberReference.getMethodRef(iterator.getMethodId());
     state.setMethod((NormalMethod) mref.peekResolvedMethod());
     // this is not caller, but the callee, reverse it when outside
     // of this function.
@@ -268,7 +289,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
 
       if (iterator.getMethodId() != state.meth.getId()) {
         ExecutionState newstate = new ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
-        mref = MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
+        mref = MemberReference.getMethodRef(iterator.getMethodId());
         newstate.setMethod((NormalMethod) mref.peekResolvedMethod());
         // this is not caller, but the callee, reverse it when outside
         // of this function.
@@ -348,7 +369,13 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
           break;
         }
         case WORD: { //KV:TODO
-          if (VM.BuildFor64Addr) VM._assert(VM.NOT_REACHED);
+          if (VM.BuildFor64Addr) {
+            if (VM.VerifyAssertions) {
+              VM._assert(VM.NOT_REACHED);
+            } else {
+              VM.sysFail("Case not yet implemented for 64-bit addresssing.");
+            }
+          }
           int word = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
 
           state.add(new VariableElement(kind, num, tcode, word));
@@ -369,7 +396,6 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     return state;
   }
 
-  /** auxillary functions to get value from different places. */
   private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {

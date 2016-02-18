@@ -1,0 +1,5 @@
+t3GT3_0.1 {
+  global :
+	 Java_t3GT3_nativeBlocking;
+  local : *;
+};

@@ -43,19 +43,26 @@ public abstract class Listener {
   public abstract void report();
 
   /**
-   * Is the listener currently active (interested in getting "update" calls)
+   * @return whether the listener is currently active (interested
+   *  in getting "update" calls)
    */
-  public final boolean isActive() { return active; }
+  public final boolean isActive() {
+    return active;
+  }
 
   /**
    * Transition listener to active state
    */
-  public final void activate() { active = true; }
+  public final void activate() {
+    active = true;
+  }
 
   /**
    * Transition listener to passive state
    */
-  public final void passivate() { active = false; }
+  public final void passivate() {
+    active = false;
+  }
 
   /**
    * Reset the listeners data structures in preparation of a new sampling
@@ -64,9 +71,6 @@ public abstract class Listener {
    */
   public abstract void reset();
 
-  /**
-   * Organizer associated with this listener.
-   */
   public final void setOrganizer(Organizer organizer) {
     this.organizer = organizer;
   }

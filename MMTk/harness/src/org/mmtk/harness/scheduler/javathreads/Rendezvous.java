@@ -55,7 +55,7 @@ final class Rendezvous {
             where,cur.where));
       }
       assert expected == cur.expected :
-        "At barrier "+where+", expected="+expected+", but existing barrier expects "+cur.expected;
+        "At barrier " + where + ", expected=" + expected + ", but existing barrier expects " + cur.expected;
     }
     return cur;
   }
@@ -123,6 +123,6 @@ final class Rendezvous {
    * @return
    */
   static int rendezvous(String where, int expected) {
-    return current("Barrier-"+where,expected).rendezvous();
+    return current("Barrier-" + where,expected).rendezvous();
   }
 }

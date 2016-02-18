@@ -12,11 +12,12 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.HeaderByte;
 
 import org.mmtk.vm.VM;
@@ -31,8 +32,7 @@ import org.vmmagic.pragma.*;
  * actually collect.  This class does not hold any state, all methods
  * are static.
  */
-@Uninterruptible public final class ImmortalSpace extends Space
-  implements Constants {
+@Uninterruptible public final class ImmortalSpace extends Space {
 
   /****************************************************************************
    *
@@ -92,7 +92,9 @@ import org.vmmagic.pragma.*;
 
   /** @return the current mark state */
   @Inline
-  public Word getMarkState() { return Word.fromIntZeroExtend(markState); }
+  public Word getMarkState() {
+    return Word.fromIntZeroExtend(markState);
+  }
 
   /****************************************************************************
    *
@@ -113,8 +115,11 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Used to mark boot image objects during a parallel scan of objects during GC
-   * Returns {@code true} if marking was done.
+   * Used to mark boot image objects during a parallel scan of objects during GC.
+   *
+   * @param object the object to mark
+   * @param value the mark value
+   * @return {@code true} if marking was done.
    */
   @Inline
   private static boolean testAndMark(ObjectReference object, byte value) {

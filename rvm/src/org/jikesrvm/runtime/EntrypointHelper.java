@@ -22,6 +22,7 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Helper class for retrieving entrypoints. Entrypoints are fields and
@@ -52,9 +53,11 @@ public class EntrypointHelper {
 
       RVMMember member;
       if ((member = cls.findDeclaredField(memName, memDescriptor)) != null) {
+        verifyPresenceOfEntrypointAnnotation(member);
         return member;
       }
       if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null) {
+        verifyPresenceOfEntrypointAnnotation(member);
         return member;
       }
     } catch (Exception e) {
@@ -72,7 +75,15 @@ public class EntrypointHelper {
                 memberDescriptor +
                 "\n");
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null; // placate jikes
+    return null;
+  }
+
+  private static void verifyPresenceOfEntrypointAnnotation(RVMMember member) {
+    if (VM.VerifyAssertions && !(member.isAnnotationPresent(Entrypoint.class))) {
+      String msg = "WARNING: MISSING @Entrypoint ANNOTATION: " + member +
+          " is missing an @Entrypoint annotation!";
+        VM.sysWriteln(msg);
+    }
   }
 
   public static NormalMethod getMethod(String klass, String member, String descriptor, final boolean runtimeServiceMethod) {
@@ -111,7 +122,7 @@ public class EntrypointHelper {
         if (method != null) {
           return method;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getMethod: can't resolve class=" +
             klass + " member=" + member + " desc=" + makeDescriptor(argTypes), t);
       }
@@ -159,7 +170,7 @@ public class EntrypointHelper {
         if (field != null) {
           return field;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getField: can't resolve class=" +
             klass + " member=" + member + " desc=" + type, t);
       }
@@ -189,7 +200,7 @@ public class EntrypointHelper {
         if (field != null) {
           return field;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getField: can't resolve class=" +
             klass + " member=" + member + " desc=" + type, t);
       }
@@ -220,7 +231,7 @@ public class EntrypointHelper {
           m.setRuntimeServiceMethod(true);
           return m;
         }
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         throw new Error("Entrypoints.getField: can't resolve class=" +
             klass + " member=" + member + " desc=" + descriptor, t);
       }

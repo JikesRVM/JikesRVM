@@ -12,28 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.OperationNotImplementedException;
-import org.jikesrvm.compilers.opt.ir.ALoad;
-import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.BBend;
-import org.jikesrvm.compilers.opt.ir.GetField;
-import org.jikesrvm.compilers.opt.ir.GetStatic;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.Label;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT_opcode;
@@ -90,6 +68,29 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.OperationNotImplementedException;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.BBend;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
@@ -108,7 +109,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
  * <a href="http://www.research.ibm.com/jalapeno/publication.html#sas00">
  *  Unified Analysis of Arrays and Object References in Strongly Typed
  *  Languages </a> for an overview of Array SSA form.  More implementation
- *  details are documented in {@link SSA <code> SSA.java </code>}.
+ *  details are documented in {@link SSA}.
  *
  * @see SSA
  */
@@ -158,7 +159,7 @@ public final class SSADictionary {
    * This structure holds the next number to assign when creating
    * a new heap variable name for a given type
    */
-  private HashMap<Object, Integer> nextNumber = new HashMap<Object, Integer>();
+  private final HashMap<Object, Integer> nextNumber = new HashMap<Object, Integer>();
 
   /**
    * A mapping from <code> BasicBlock </code> to <code> ArrayList
@@ -244,6 +245,9 @@ public final class SSADictionary {
    *                  if null, create all heap arrays
    * @param uphi Should we use uphi functions? (ie. loads create a new
    *                             name for heap arrays)
+   * @param insertPEIDeps whether to model PEIs and stores to the heap
+   *  via an explicit exception state heap variable
+   * @param ir pointer back to the IR
    */
   SSADictionary(Set<Object> heapTypes, boolean uphi, boolean insertPEIDeps, IR ir) {
     this.heapTypes = heapTypes;
@@ -278,7 +282,7 @@ public final class SSADictionary {
    */
   boolean defsHeapVariable(Instruction s) {
     // special case code for Phi instructions
-    if (s.operator == PHI) {
+    if (s.operator() == PHI) {
       Operand result = Phi.getResult(s);
       return (result instanceof HeapOperand);
     }
@@ -293,7 +297,7 @@ public final class SSADictionary {
    * @return an array of the heap operands this instruction uses
    */
   public HeapOperand<Object>[] getHeapUses(Instruction s) {
-    if (s.operator == PHI) {
+    if (s.operator() == PHI) {
       if (!usesHeapVariable(s)) return null;
       HeapOperand<Object>[] result = new HeapOperand[Phi.getNumberOfValues(s)];
       for (int i = 0; i < result.length; i++) {
@@ -312,7 +316,7 @@ public final class SSADictionary {
    * @return an array of the heap operands this instruction defs
    */
   public HeapOperand<Object>[] getHeapDefs(Instruction s) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     return defs.get(s);
   }
 
@@ -563,9 +567,10 @@ public final class SSADictionary {
   }
 
   /**
-   * Is heap variable H exposed on procedure exit?
+   * Checks whether a heap variable is exposed on procedure exit.
    *
-   * @return true or false as appropriate
+   * @param H the heap variable
+   * @return {@code true} or {@code false} as appropriate
    */
   boolean isExposedOnExit(HeapVariable<Object> H) {
     for (Iterator<HeapOperand<Object>> i = iterateHeapUses(H); i.hasNext();) {
@@ -680,7 +685,7 @@ public final class SSADictionary {
    * @param H the set of heap operands which s uses
    */
   void replaceUses(Instruction s, HeapOperand<Object>[] H) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     uses.put(s, H);
     for (HeapOperand<Object> aH : H) {
       aH.setInstruction(s);
@@ -733,7 +738,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   void registerUnknown(Instruction s, BasicBlock b) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // setup an array of all heap variables
     // TODO: for efficiency, cache a copy of 'all'
     Iterator vars = heapVariables.values().iterator();
@@ -766,8 +771,8 @@ public final class SSADictionary {
           (s.isPEI() ||
            Label.conforms(s) ||
            BBend.conforms(s) ||
-           s.operator.opcode == UNINT_BEGIN_opcode ||
-           s.operator.opcode == UNINT_END_opcode))) {
+           s.getOpcode() == UNINT_BEGIN_opcode ||
+           s.getOpcode() == UNINT_END_opcode))) {
       return;
     }
     // handled by registerUnknown
@@ -874,7 +879,7 @@ public final class SSADictionary {
         phiHelper(s, b);
         break;
       default:
-        if (!Operators.helper.isHandledByRegisterUnknown(s.getOpcode()) && !s.isPEI()) {
+        if (!isHandledByRegisterUnknown(s.getOpcode()) && !s.isPEI()) {
           System.out.println("SSA dictionary failed on " + s.toString());
           throw new OperationNotImplementedException("SSADictionary: Unsupported opcode " + s);
         }
@@ -882,6 +887,25 @@ public final class SSADictionary {
     if (insertPEIDeps) {
       if (s.isImplicitStore()) addExceptionStateToUses(s);
       if (s.isPEI()) addExceptionStateToDefs(s, b);
+    }
+  }
+
+  private boolean isHandledByRegisterUnknown(char opcode) {
+    if (VM.BuildForIA32) {
+      return opcode == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PREFETCH_opcode;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      switch (opcode) {
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBST_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBT_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBTST_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZ_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBZL_opcode:
+        case org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.ICBI_opcode:
+        return true;
+      default:
+        return false;
+      }
     }
   }
 
@@ -1175,7 +1199,7 @@ public final class SSADictionary {
    * @param t the type of the heap variable the instruction modifies
    */
   private void registerDef(Instruction s, BasicBlock b, TypeReference t) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1200,7 +1224,7 @@ public final class SSADictionary {
    * @param fr the field heap variable the instruction uses
    */
   private void registerUse(Instruction s, FieldReference fr) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
     if (f == null) {
@@ -1234,7 +1258,7 @@ public final class SSADictionary {
    * @param fr the field heap variable the instruction modifies
    */
   private void registerDef(Instruction s, BasicBlock b, FieldReference fr) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
     if (f == null) {
@@ -1269,7 +1293,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   private void registerUse(Instruction s, String a) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1295,7 +1319,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   private void registerDef(Instruction s, BasicBlock b, String a) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1316,6 +1340,9 @@ public final class SSADictionary {
    * Returns a copy of H with an additional free slot at position 0
    *
    * @param H the array of HeapOperands to be extended.
+   * @return an array with the same contents as the given array and an
+   *  additional free slot at 0. If the array is null, an empty array
+   *  with length 1 will be returned.
    */
   @SuppressWarnings("unchecked")
   private static HeapOperand<Object>[] extendHArray(HeapOperand<Object>[] H) {
@@ -1340,7 +1367,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   void addExceptionStateToDefs(Instruction s, BasicBlock b) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     HeapVariable<Object> H = findOrCreateHeapVariable(exceptionState);
     H.registerDef(b);
     HeapOperand<Object>[] Hprime = extendHArray(defs.get(s));
@@ -1356,7 +1383,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   void addExceptionStateToUses(Instruction s) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     HeapVariable<Object> H = findOrCreateHeapVariable(exceptionState);
     HeapOperand<Object>[] Hprime = extendHArray(uses.get(s));
     Hprime[0] = new HeapOperand<Object>(H);
@@ -1533,6 +1560,7 @@ public final class SSADictionary {
      * explicit in the IR, for a given basic block
      *
      * @param     bb the basic block whose instructions this enumerates
+     * @param dict the Heap Array SSA information
      */
     AllInstructionEnumeration(BasicBlock bb, SSADictionary dict) {
       explicitInstructions = bb.forwardInstrEnumerator();

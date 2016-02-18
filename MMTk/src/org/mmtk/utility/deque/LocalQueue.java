@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.*;
 
 import org.mmtk.vm.VM;
 
@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
  * arity) are packed to the low end of the buffer.  Thus buffer
  * underflows will always arise when then cursor is buffer-size aligned.
  */
-@Uninterruptible class LocalQueue extends LocalSSB implements Constants {
+@Uninterruptible class LocalQueue extends LocalSSB {
 
   /**
    * Constructor
@@ -74,6 +74,7 @@ import org.vmmagic.unboxed.*;
    *
    * @param arity The arity of the values stored in this queue: the
    * buffer must contain enough space for this many words.
+   * @return whether there are values available for a dequeue
    */
   @Inline
   protected final boolean checkDequeue(int arity) {
@@ -93,7 +94,7 @@ import org.vmmagic.unboxed.*;
    * @return The first entry on the queue.
    */
   @Inline
-  protected final Address uncheckedDequeue(){
+  protected final Address uncheckedDequeue() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.minus(BYTES_IN_ADDRESS);
     return head.loadAddress();

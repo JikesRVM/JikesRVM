@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Offset;
  * GC uses the methods provided here
  */
 @Uninterruptible
-public final class ReferenceMaps implements BaselineConstants {
+public final class ReferenceMaps {
 
   public static final byte JSR_MASK = -128;     // byte = x'80'
   public static final byte JSR_INDEX_MASK = 0x7F;
@@ -36,7 +36,7 @@ public final class ReferenceMaps implements BaselineConstants {
   public static final int STARTINDEX = 0;
   public static final int NOMORE = 0;
   /** Kinds of merge operation when merging delta maps into table maps */
-  private static enum MergeOperation {
+  private enum MergeOperation {
     OR, NAND, COPY
   }
 
@@ -52,9 +52,11 @@ public final class ReferenceMaps implements BaselineConstants {
   /** Number of maps */
   private int mapCount;
   private JSRInfo jsrInfo;
+  /** identify which block a byte is part of */
+  final short[] byteToBlockMap;
 
   /**
-   * size of individual maps
+   * @return size of individual maps
    */
   private int bytesPerMap() {
     return ((bitsPerMap + 7) / 8) + 1;
@@ -80,8 +82,8 @@ public final class ReferenceMaps implements BaselineConstants {
     }
 
     // define the basic blocks
-    BuildBB buildBB = new BuildBB();
-    buildBB.determineTheBasicBlocks(method);
+    BuildBB buildBB = new BuildBB(method);
+    byteToBlockMap = buildBB.byteToBlockMap;
 
     BuildReferenceMaps buildRefMaps = new BuildReferenceMaps();
     buildRefMaps.buildReferenceMaps(method, stackHeights, localTypes, this, buildBB);
@@ -106,10 +108,14 @@ public final class ReferenceMaps implements BaselineConstants {
    *
    * If the located site is within the scope of a jsr subroutine
    *  the index value returned is a negative number.
+   *
+   * @param machCodeOffset offset into machine code (see above for constraints)
+   * @param method the method that contains the gc point
+   * @return index of the appropriate stack map
    */
   public int locateGCPoint(Offset machCodeOffset, RVMMethod method) {
 
-    machCodeOffset = machCodeOffset.minus(1 << LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
+    machCodeOffset = machCodeOffset.minus(1 << ArchConstants.getLogInstructionWidth());  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
 
     if (VM.TraceStkMaps) {
@@ -190,8 +196,8 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * @param index offset in the reference stack frame,
    * @param siteindex index that indicates the callsite (siteindex),
-   * @return return the offset where the next reference can be found.
-   * @return NOMORE when no more pointers can be found
+   * @return return the offset where the next reference can be found,
+   *  {@link #NOMORE} when no more pointers can be found
    */
   public int getNextRefIndex(int index, int siteindex) {
     if (VM.TraceStkMaps) {
@@ -376,10 +382,6 @@ public final class ReferenceMaps implements BaselineConstants {
     }
   }
 
-  /**
-   * For debugging (used with CheckRefMaps)
-   *  Note: all maps are the same size
-   */
   public int getStackDepth(int mapid) {
     return bytesPerMap();
   }
@@ -395,9 +397,6 @@ public final class ReferenceMaps implements BaselineConstants {
     return size;
   }
 
-  /**
-   * start setting up the reference maps for this method.
-   */
   @Interruptible
   public void startNewMaps(int gcPointCount, int jsrCount, int parameterWords) {
     //  normal map information
@@ -731,6 +730,7 @@ public final class ReferenceMaps implements BaselineConstants {
    * and referencemap array if necessary
    *
    * @param jsrSiteMap   unusualMap to be added to array
+   * @return number of the added map in the array
    */
   @Interruptible
   private int addUnusualMap(UnusualMaps jsrSiteMap) {
@@ -785,6 +785,8 @@ public final class ReferenceMaps implements BaselineConstants {
    *
    * @param mapid             Index of map of instruction where map is required
    *                          ( this value was returned by locateGCpoint)
+   *
+   * @return the index of the JSR invoker
    */
   public int setupJSRSubroutineMap(int mapid) {
 
@@ -885,21 +887,23 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * After code is generated, translate the bytecode indices
    * recorded in MCSites array into real machine code offsets.
+   *
+   * @param b2m map of byte code index to machine code offsets
    */
   public void translateByte2Machine(int[] b2m) {
     for (int i = 0; i < MCSites.length; i++) {
-      MCSites[i] = b2m[MCSites[i]] << LG_INSTRUCTION_WIDTH;
+      MCSites[i] = b2m[MCSites[i]] << ArchConstants.getLogInstructionWidth();
     }
   }
 
   /**
-   * convert a portion of an array word of Bytes into a bitmap of references
-   * i.e. given a byte array,
-   *    a starting offset in the array,
-   *    the length to scan,
-   *    and the type of byte to scan for
-   *   ... convert the area in the array to a
-   *        word of bits ... max length is 31 i.e. BITS_PER_MAP_ELEMENT
+   * Convert a portion of an array word of Bytes into a bitmap of references.
+   *
+   * @param curBBMap a byte array that describes the contents of the local variables and the java stack
+   * @param offset a starting offset in the array
+   * @param len length of the scan, max is {@link #BITS_PER_MAP_ELEMENT}
+   * @param reftype the type of byte to scan for
+   * @return a bitword
    */
   private byte convertMapElement(byte[] curBBMap, int offset, int len, byte reftype) {
     byte bitmap = 0;
@@ -914,7 +918,7 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * get Next free word in referencemaps for GC call sites
+   * @return next free word in referencemaps for GC call sites
    */
   @Interruptible
   private int getNextMapElement() {
@@ -1100,7 +1104,7 @@ public final class ReferenceMaps implements BaselineConstants {
 
   /**
    * Makes a deep copy of {@code from} into {@code jsrInfo.extraUnusualMap}
-   * @param from
+   * @param from the map to copy from
    */
   private void unusualMapcopy(UnusualMaps from) {
     jsrInfo.extraUnusualMap.setReturnAddressIndex(from.getReturnAddressIndex());
@@ -1361,9 +1365,8 @@ public final class ReferenceMaps implements BaselineConstants {
       VM.sysWrite("\n");
 
       VM.sysWrite("              -jsr base map  = ");
-      for (i = 0; i < bytesPerMap(); i++)
-      // ORIGINAL VM.sysWrite( jsrInfo.unusualReferenceMaps[jsrBaseMapIndex + i]);
-      {
+      for (i = 0; i < bytesPerMap(); i++) {
+        // ORIGINAL VM.sysWrite( jsrInfo.unusualReferenceMaps[jsrBaseMapIndex + i]);
         VM.sysWrite(referenceMaps[jsrBaseMapIndex + i]);
       }
       VM.sysWrite("\n");
@@ -1451,6 +1454,8 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * Show the basic information for a single map. This is for testing
    * use.
+   *
+   * @param MCSiteIndex index of the machine code site
    */
   public void showAMap(int MCSiteIndex) {
     VM.sysWriteln("show the map for MCSite index= ", MCSiteIndex);

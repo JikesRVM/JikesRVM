@@ -14,64 +14,95 @@ package org.jikesrvm.util;
 
 import java.io.InputStream;
 import java.io.IOException;
+
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Extent;
 
 /**
  * Access raw memory region as an input stream.
  */
 public final class AddressInputStream extends InputStream {
-  /** Address of memory region to be read */
-  private final Address location;
+  /** Start address of memory region to be read */
+  private final Address startAddress;
   /** Length of the memory region */
-  private final Offset length;
-  /** Offset to be read */
-  private Offset offset;
-  /** Mark offset */
-  private Offset markOffset;
+  private final Extent length;
+  /** Offset to be read. Uses an Extent because the offset is always non-negative. */
+  private Extent offset;
+  /** Mark offset.  Uses an Extent because the offset is always non-negative. */
+  private Extent markOffset;
 
-  /** Constructor */
-  public AddressInputStream(Address location, Offset length) {
-    this.location = location;
+  /**
+   *
+   * @param startAddress start address of the memory region
+   * @param length length of the region in bytes
+   */
+  public AddressInputStream(Address startAddress, Extent length) {
+    this.startAddress = startAddress;
     this.length = length;
-    offset = Offset.zero();
-    markOffset = Offset.zero();
+
+    offset = Extent.zero();
+    markOffset = Extent.zero();
   }
 
   /** @return number of bytes that can be read */
   @Override
   public int available() {
-    return length.minus(offset).toInt();
+    int available = length.minus(offset).toInt();
+    available = (available > 0) ? available : 0;
+    return available;
   }
-  /** Mark location */
+
+  /**
+   * Closing an AddressInputStream has no effect.
+   */
+  @Override
+  public void close() throws IOException {
+  }
+
+  /** Marks location. Read limit has no effect. */
   @Override
   public void mark(int readLimit) {
     markOffset = offset;
   }
+
   /** Is mark/reset supported */
   @Override
   public boolean markSupported() {
     return true;
   }
-  /** Read a byte */
+
+  /** Reads a byte */
   @Override
-  public int read() throws IOException {
-    if (offset.sGE(length)) {
-      throw new IOException("Read beyond end of memory region");
+  public int read() {
+    if (offset.GE(length)) {
+      return -1;
     }
-    byte result = location.loadByte(offset);
+
+    Address readLocation = startAddress.plus(offset);
+    byte result = readLocation.loadByte();
     offset = offset.plus(1);
     return result & 0xFF;
   }
-  /** Reset to mark */
+
+  /** Resets to mark */
   @Override
   public void reset() {
     offset = markOffset;
   }
-  /** Skip bytes */
+
+  /** Skips bytes (at most @code{Integer.MAX_VALUE} bytes) */
   @Override
   public long skip(long n) {
-    offset = offset.plus((int)n);
-    return ((int)n);
+    if (n < 0) {
+      return 0;
+    }
+
+    long maxInt = Integer.MAX_VALUE;
+    int skipAmount = (n > maxInt) ? Integer.MAX_VALUE : (int) n;
+    int available = available();
+    skipAmount = (skipAmount > available) ? available : skipAmount;
+
+    offset = offset.plus(skipAmount);
+    return skipAmount;
   }
 }

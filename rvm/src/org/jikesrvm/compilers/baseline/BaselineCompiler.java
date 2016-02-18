@@ -12,25 +12,51 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
-import org.jikesrvm.ArchitectureSpecific.MachineCode;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_caload;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_getfield;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifeq;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifge;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifgt;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifle;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_iflt;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifne;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_nop;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.osr.BytecodeTraverser;
+import org.jikesrvm.runtime.MagicNames;
 import org.jikesrvm.runtime.Time;
+import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * Baseline compiler - platform independent code.
+ * <p>
  * Platform dependent versions extend this class and define
  * the host of abstract methods defined by TemplateCompilerFramework to complete
- * the implementation of a baseline compiler for a particular target,
+ * the implementation of a baseline compiler for a particular target.
+ * <p>
+ * In addition to the framework provided by TemplateCompilerFramework, this compiler
+ * also provides hooks for bytecode merging for some common bytecode combinations.
+ * By default, bytecode merging is active but has no effect. Subclasses that want to
+ * implement the merging need to override the hook methods.
  */
 public abstract class BaselineCompiler extends TemplateCompilerFramework {
+
+  /**
+   * Merge commonly adjacent bytecodes?
+   */
+  private static final boolean mergeBytecodes = true;
 
   private static long gcMapNanos;
   private static long osrSetupNanos;
@@ -47,6 +73,55 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
    */
   protected int edgeCounterIdx;
 
+  /**
+   * Reference maps for method being compiled
+   */
+  ReferenceMaps refMaps;
+
+
+  public abstract byte getLastFixedStackRegister();
+  public abstract byte getLastFloatStackRegister();
+
+  @Uninterruptible
+  static short getGeneralLocalLocation(int localIndex, short[] localFixedLocations, NormalMethod method) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, method);
+    }
+  }
+
+  @Uninterruptible
+  static short getFloatLocalLocation(int localIndex, short[] localFixedLocations, NormalMethod method) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFixedLocations, method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFixedLocations, method);
+    }
+  }
+
+  @Uninterruptible
+  static short getEmptyStackOffset(NormalMethod m) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getEmptyStackOffset(m);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getEmptyStackOffset(m);
+    }
+  }
+
+  @Uninterruptible
+  public static short offsetToLocation(int offset) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.offsetToLocation(offset);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.offsetToLocation(offset);
+    }
+  }
+
   protected final Offset getEdgeCounterOffset() {
     return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);
   }
@@ -57,17 +132,17 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
 
   /**
    * The types that locals can take.
-   * There are two types of locals. First the parameters of the method, they only have one type
-   * Second, the other locals, numbers get reused when stack shrinks and grows again.
-   * Therefore, these can have more than one type assigned.
-   * The compiler can use this information to assign registers to locals
+   * There are two types of locals:
+   * <ul>
+   *  <li> the parameters of the method. They only have one type.</li>
+   *  <li> the other locals. Numbers get reused when stack shrinks and grows
+   *   again. Therefore, these can have more than one type assigned.
+   * </ul>
+   * The compiler can use this information to assign registers to locals.
    * See the BaselineCompilerImpl constructor.
    */
   protected final byte[] localTypes;
 
-  /**
-   * Construct a BaselineCompilerImpl
-   */
   protected BaselineCompiler(BaselineCompiledMethod cm) {
     super(cm);
     shouldPrint =
@@ -75,14 +150,30 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
          (options.PRINT_MACHINECODE) &&
          (!options.hasMETHOD_TO_PRINT() || options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
-    if (shouldPrint && VM.runningVM && !fullyBootedVM) {
+    if (shouldPrint && VM.runningVM && !VM.fullyBooted) {
       shouldPrint = false;
       if (options.PRINT_METHOD) {
         VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
       }
     }
-    asm = new Assembler(bcodes.length(), shouldPrint, (BaselineCompilerImpl) this);
     localTypes = new byte[method.getLocalWords()];
+  }
+
+  /**
+   * Indicate if specified Magic method causes a frame to be created on the runtime stack.
+   * @param methodToBeCalled RVMMethod of the magic method being called
+   * @return true if method causes a stackframe to be created
+   */
+  public static boolean checkForActualCall(MethodReference methodToBeCalled) {
+    Atom methodName = methodToBeCalled.getName();
+    return methodName == MagicNames.invokeClassInitializer ||
+      methodName == MagicNames.invokeMethodReturningVoid ||
+      methodName == MagicNames.invokeMethodReturningInt ||
+      methodName == MagicNames.invokeMethodReturningLong ||
+      methodName == MagicNames.invokeMethodReturningFloat ||
+      methodName == MagicNames.invokeMethodReturningDouble ||
+      methodName == MagicNames.invokeMethodReturningObject ||
+      methodName == MagicNames.addressArrayCreate;
   }
 
   /**
@@ -105,18 +196,17 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
-    fullyBootedVM = true;
   }
 
   /**
    * Process a command line argument
-   * @param prefix
+   * @param prefix the argument's prefix
    * @param arg     Command line argument with prefix stripped off
    */
   public static void processCommandLineArg(String prefix, String arg) {
     if (!options.processAsOption(prefix, arg)) {
       VM.sysWrite("BaselineCompiler: Unrecognized argument \"" + arg + "\"\n");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 
@@ -185,7 +275,6 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
 
     // Phase 1: GC map computation
     long start = 0;
-    ReferenceMaps refMaps;
     try {
       if (VM.MeasureCompilationPhases) {
         start = Time.nanoTime();
@@ -313,4 +402,262 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
   protected String getCompilerName() {
     return "baseline";
   }
+
+  /**
+   * @return whether the current bytecode is on the boundary of a basic block
+   */
+  private boolean basicBlockBoundary() {
+    int index = biStart;
+    short currentBlock = refMaps.byteToBlockMap[index];
+    index--;
+    while (index >= 0) {
+      short prevBlock = refMaps.byteToBlockMap[index];
+      if (prevBlock == currentBlock) {
+        return false;
+      } else if (prevBlock != BasicBlock.NOTBLOCK) {
+        return true;
+      }
+      index--;
+    }
+    return true;
+  }
+
+  /**
+   * Emits code to load an int local variable
+   * @param index the local index to load
+   */
+  @Override
+  protected final void emit_iload(int index) {
+    if (!mergeBytecodes || basicBlockBoundary()) {
+      emit_regular_iload(index);
+    } else {
+      int nextBC = bcodes.peekNextOpcode();
+      switch (nextBC) {
+      case JBC_caload:
+        if (shouldPrint) getAssembler().noteBytecode(biStart, "caload");
+        bytecodeMap[bcodes.index()] = getAssembler().getMachineCodeIndex();
+        bcodes.nextInstruction(); // skip opcode
+        emit_iload_caload(index);
+        break;
+      default:
+        emit_regular_iload(index);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Emits code to load an int local variable
+   * @param index the local index to load
+   */
+  protected abstract void emit_regular_iload(int index);
+
+  /**
+   * Emits code to load an int local variable and then load from a character array.
+   * <p>
+   * By default, this method emits code for iload and then for caload.
+   * Subclasses that want to implement bytecode merging for this pattern
+   * must override this method.
+   *
+   * @param index the local index to load
+   */
+  protected void emit_iload_caload(int index) {
+    emit_regular_iload(index);
+    emit_caload();
+  }
+
+  /**
+   * Emits code to load a reference local variable
+   * @param index the local index to load
+   */
+  @Override
+  protected final void emit_aload(int index) {
+    if (!mergeBytecodes || basicBlockBoundary()) {
+      emit_regular_aload(index);
+    } else {
+      int nextBC = JBC_nop; // bcodes.peekNextOpcode();
+      switch (nextBC) {
+      case JBC_getfield: {
+        int gfIndex = bcodes.index();
+        bcodes.nextInstruction(); // skip opcode
+        FieldReference fieldRef = bcodes.getFieldReference();
+        if (fieldRef.needsDynamicLink(method)) {
+          bcodes.reset(gfIndex);
+          emit_regular_aload(index);
+        } else {
+          bytecodeMap[gfIndex] = getAssembler().getMachineCodeIndex();
+          if (shouldPrint) getAssembler().noteBytecode(biStart, "getfield", fieldRef);
+          emit_aload_resolved_getfield(index, fieldRef);
+        }
+        break;
+      }
+      default:
+        emit_regular_aload(index);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Emits code to load a reference local variable
+   * @param index the local index to load
+   */
+  protected abstract void emit_regular_aload(int index);
+
+  /**
+   * Emits code to load a reference local variable and then perform a field load
+   * <p>
+   * By default, this method emits code for aload and then for resolved_getfield.
+   * Subclasses that want to implement bytecode merging for this pattern
+   * must override this method.
+   *
+   * @param index the local index to load
+   * @param fieldRef the referenced field
+   */
+  protected void emit_aload_resolved_getfield(int index, FieldReference fieldRef) {
+    emit_regular_aload(index);
+    emit_resolved_getfield(fieldRef);
+  }
+
+  @Override
+  protected final void emit_lcmp() {
+    if (!mergeBytecodes || basicBlockBoundary()) {
+      emit_regular_lcmp();
+    } else {
+      int nextBC = bcodes.peekNextOpcode();
+      switch (nextBC) {
+        case JBC_ifeq:
+          do_lcmp_if(BranchCondition.EQ);
+          break;
+        case JBC_ifne:
+          do_lcmp_if(BranchCondition.NE);
+          break;
+        case JBC_iflt:
+          do_lcmp_if(BranchCondition.LT);
+          break;
+        case JBC_ifge:
+          do_lcmp_if(BranchCondition.GE);
+          break;
+        case JBC_ifgt:
+          do_lcmp_if(BranchCondition.GT);
+          break;
+        case JBC_ifle:
+          do_lcmp_if(BranchCondition.LE);
+          break;
+        default:
+          emit_regular_lcmp();
+          break;
+      }
+    }
+  }
+
+  /**
+   * Handles the bytecode pattern {@code lcmp; if..}
+   * @param bc branch condition
+   */
+  private void do_lcmp_if(BranchCondition bc) {
+    final boolean shouldPrint = this.shouldPrint;
+    int biStart = bcodes.index();  // start of if bytecode
+    bytecodeMap[biStart] = getAssembler().getMachineCodeIndex();
+    bcodes.nextInstruction(); // skip opcode
+    int offset = bcodes.getBranchOffset();
+    int bTarget = biStart + offset;
+    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
+    emit_lcmp_if(bTarget, bc);
+  }
+
+  /**
+   * Emits code to implement the lcmp bytecode
+   */
+  protected abstract void emit_regular_lcmp();
+
+  /**
+   * Emits code to perform an lcmp followed by ifeq.
+   * <p>
+   * By default, this method emits code for lcmp and then for ifeq.
+   * Subclasses that want to implement bytecode merging for this pattern
+   * must override this method.
+   * @param bTarget target bytecode of the branch
+   * @param bc branch condition
+   */
+  protected void emit_lcmp_if(int bTarget, BranchCondition bc) {
+    emit_regular_lcmp();
+    emit_if(bTarget, bc);
+  }
+
+  @Override
+  protected final void emit_DFcmpGL(boolean single, boolean unorderedGT) {
+    if (!mergeBytecodes || basicBlockBoundary()) {
+      emit_regular_DFcmpGL(single, unorderedGT);
+    } else {
+      int nextBC = bcodes.peekNextOpcode();
+      switch (nextBC) {
+      case JBC_ifeq:
+        do_DFcmpGL_if(single, unorderedGT, BranchCondition.EQ);
+        break;
+      case JBC_ifne:
+        do_DFcmpGL_if(single, unorderedGT, BranchCondition.NE);
+        break;
+      case JBC_iflt:
+        do_DFcmpGL_if(single, unorderedGT, BranchCondition.LT);
+        break;
+      case JBC_ifge:
+        do_DFcmpGL_if(single, unorderedGT, BranchCondition.GE);
+        break;
+      case JBC_ifgt:
+        do_DFcmpGL_if(single, unorderedGT, BranchCondition.GT);
+        break;
+      case JBC_ifle:
+        do_DFcmpGL_if(single, unorderedGT, BranchCondition.LE);
+        break;
+      default:
+        emit_regular_DFcmpGL(single, unorderedGT);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Handles the bytecode pattern {@code DFcmpGL; if..}
+   * @param single {@code true} for float [f], {@code false} for double [d]
+   * @param unorderedGT {@code true} for [g], {@code false} for [l]
+   * @param bc branch condition
+   */
+  private void do_DFcmpGL_if(boolean single, boolean unorderedGT, BranchCondition bc) {
+    final boolean shouldPrint = this.shouldPrint;
+    int biStart = bcodes.index();  // start of if bytecode
+    bytecodeMap[biStart] = getAssembler().getMachineCodeIndex();
+    bcodes.nextInstruction(); // skip opcode
+    int offset = bcodes.getBranchOffset();
+    int bTarget = biStart + offset;
+    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
+    emit_DFcmpGL_if(single, unorderedGT, bTarget, bc);
+  }
+
+  /**
+   * Emits code to implement the [df]cmp[gl] bytecodes
+   * @param single {@code true} for float [f], {@code false} for double [d]
+   * @param unorderedGT {@code true} for [g], {@code false} for [l]
+   */
+  protected abstract void emit_regular_DFcmpGL(boolean single, boolean unorderedGT);
+
+  /**
+   * Emits code to perform an [df]cmp[gl] followed by ifeq
+   * <p>
+   * By default, this method emits code for [df]cmp[gl] and then for ifeq.
+   * Subclasses that want to implement bytecode merging for this pattern
+   * must override this method.
+
+   * @param single {@code true} for float [f], {@code false} for double [d]
+   * @param unorderedGT {@code true} for [g], {@code false} for [l]
+   * @param bTarget target bytecode of the branch
+   * @param bc branch condition
+   */
+  protected void emit_DFcmpGL_if(boolean single, boolean unorderedGT, int bTarget, BranchCondition bc) {
+    emit_regular_DFcmpGL(single, unorderedGT);
+    emit_if(bTarget, bc);
+  }
+
 }

@@ -14,7 +14,6 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -29,7 +28,7 @@ import org.vmmagic.unboxed.*;
  * in the instance methods of MarkSweepLocal.
  */
 @Uninterruptible
-public final class ExplicitFreeListSpace extends SegregatedFreeListSpace implements Constants {
+public final class ExplicitFreeListSpace extends SegregatedFreeListSpace {
 
   /****************************************************************************
    *

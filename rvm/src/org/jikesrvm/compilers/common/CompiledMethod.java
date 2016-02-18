@@ -12,10 +12,8 @@
  */
 package org.jikesrvm.compilers.common;
 
-import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
+import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.DynamicLink;
@@ -34,7 +32,7 @@ import org.vmmagic.unboxed.Word;
 /**
  * A method that has been compiled into machine code by one of our compilers.
  */
-public abstract class CompiledMethod implements SizeConstants {
+public abstract class CompiledMethod {
 
   /*
    * constants for compiler types
@@ -44,6 +42,9 @@ public abstract class CompiledMethod implements SizeConstants {
   public static final int OPT = 3; // opt code
   public static final int JNI = 4; // java to Native C transition frame
   public static final int NUM_COMPILER_TYPES = 4;
+
+  /** Line number for native methods defined by the constructor of java.lang.StackTraceElement */
+  public static final int NATIVE_METHOD_LINE_NUMBER = -2;
 
   /*
    * constants for flags
@@ -122,7 +123,8 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Set the cmid and method fields
+   * @param id the compiled method id
+   * @param m the method that this compiled method belongs to
    */
   public CompiledMethod(int id, RVMMethod m) {
     cmid = id;
@@ -133,7 +135,7 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Return the compiled method id for this compiled method
+   * @return the compiled method id for this compiled method
    */
   @Uninterruptible
   public final int getId() {
@@ -141,7 +143,7 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Return the RVMMethod associated with this compiled method
+   * @return the RVMMethod associated with this compiled method
    */
   @Uninterruptible
   public final RVMMethod getMethod() {
@@ -149,8 +151,8 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Does this method have a bridge from native annotation, important when
-   * walking the stack
+   * @return whether this method has a bridge from native annotation (important when
+   * walking the stack)
    */
   @Uninterruptible
   public final boolean hasBridgeFromNativeAnnotation() {
@@ -202,7 +204,7 @@ public abstract class CompiledMethod implements SizeConstants {
       return Offset.zero();
     } else {
       Offset offset = ip.diff(Magic.objectAsAddress(instructions));
-      int max = (instructions.length() + 1) << ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
+      int max = (instructions.length() + 1) << ArchConstants.getLogInstructionWidth();
       if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
         if (RVMThread.isTrampolineIP(ip)) {
           ip = RVMThread.getCurrentThread().getTrampolineHijackedReturnAddress();
@@ -268,7 +270,7 @@ public abstract class CompiledMethod implements SizeConstants {
   @Uninterruptible
   public final boolean containsReturnAddress(Address ip) {
     Address beg = Magic.objectAsAddress(instructions);
-    Address end = beg.plus(instructions.length() << ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH);
+    Address end = beg.plus(instructions.length() << ArchConstants.getLogInstructionWidth());
 
     // note that "ip" points to a return site (not a call site)
     // so the range check here must be "ip <= beg || ip >  end"
@@ -278,7 +280,9 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Record that the compilation is complete.
+   * Records that the compilation is complete.
+   *
+   * @param code the method's code
    */
   public final void compileComplete(CodeArray code) {
     instructions = code;
@@ -321,8 +325,7 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Check if the compiled method is marked as outdated,
-   * called by Thread
+   * @return {@code true} if the compiled method is marked as outdated
    */
   @Uninterruptible
   public final boolean isOutdated() {
@@ -330,7 +333,7 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Has compilation completed?
+   * @return {@code true} if compilation has completed
    */
   @Uninterruptible
   public final boolean isCompiled() {
@@ -338,7 +341,7 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Is the compiled code invalid?
+   * @return {@code true} if the compiled code is invalid
    */
   @Uninterruptible
   public final boolean isInvalid() {
@@ -346,7 +349,7 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Is the compiled code obsolete?
+   * @return {@code true} if the compiled code is obsolete
    */
   @Uninterruptible
   public final boolean isObsolete() {
@@ -358,9 +361,13 @@ public abstract class CompiledMethod implements SizeConstants {
     return (flags & ACTIVE_ON_STACK) != 0;
   }
 
-  public final double getCompilationTime() { return compilationTime; }
+  public final double getCompilationTime() {
+    return compilationTime;
+  }
 
-  public final void setCompilationTime(double ct) { compilationTime = (float) ct; }
+  public final void setCompilationTime(double ct) {
+    compilationTime = (float) ct;
+  }
 
   /**
    * Identify the compiler that produced this compiled method.
@@ -393,7 +400,7 @@ public abstract class CompiledMethod implements SizeConstants {
   public abstract String getCompilerName();
 
   /**
-   * Get handler to deal with stack unwinding and exception delivery for this
+   * @return a handler to deal with stack unwinding and exception delivery for this
    * compiled method's stackframes.
    */
   @Uninterruptible
@@ -427,7 +434,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * @param instructionOffset offset of machine instruction from start of this method, in bytes
    * @param exceptionType type of exception being thrown - something like "NullPointerException"
    * @return offset of machine instruction for catch block
-   * (-1 --> no catch block)
+   * (-1 --&gt; no catch block)
    */
   @Unpreemptible
   public abstract int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType);
@@ -452,7 +459,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * <li> The implementation must not cause any allocations,
    * because it executes with
    * GC disabled when called by GCMapIterator.
-   * <ul>
+   * </ul>
    *
    * @param dynamicLink place to put return information
    * @param instructionOffset offset of machine instruction from start of
@@ -481,7 +488,7 @@ public abstract class CompiledMethod implements SizeConstants {
    *
    * @param instructionOffset of machine instruction from start of this method, in bytes
    * @return source line number
-   * (0 == no line info available, 1 == first line of source file)
+   * (0 == no line info available, 1 == first line of source file, -2 == native method))
    *
    */
   @Uninterruptible
@@ -504,23 +511,33 @@ public abstract class CompiledMethod implements SizeConstants {
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintLN to print the stack trace to.
    */
-  public abstract void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out);
+  public abstract void printStackTrace(Offset instructionOffset, org.jikesrvm.util.PrintLN out);
 
   /**
-   * Set the stack browser to the innermost logical stack frame of this method
+   * Set the stack browser to the innermost logical stack frame of this method.
+   *
+   * @param browser the browser
+   * @param instr the offset of the instruction
    */
   public abstract void set(StackBrowser browser, Offset instr);
 
   /**
    * Advance the StackBrowser up one internal stack frame, if possible
+   *
+   * @param browser the browser to advance
+   * @return whether the browser advanced a frame
    */
-  public boolean up(StackBrowser browser) { return false; }
+  public boolean up(StackBrowser browser) {
+    return false;
+  }
 
   /**
-   * Return the number of bytes used to encode the compiler-specific mapping
+   * @return the number of bytes used to encode the compiler-specific mapping
    * information for this compiled method.
    * Used to gather statistics on the space costs of mapping schemes.
    */
-  public int size() { return 0; }
+  public int size() {
+    return 0;
+  }
 
 }

@@ -48,10 +48,11 @@ import org.vmmagic.unboxed.Word;
  *     perform synchronization without depending on RVM thread subsystem functionality.
  *     However, most of the time, you should use the methods that inform
  *     the thread system that you are blocking.  Methods that have the
- *     "Nicely" suffix will inform the thread system if you are blocked,
+ *     "WithHandshake" suffix will inform the thread system if you are blocked,
  *     while methods that do not have the suffix will either not block
- *     (as is the case with unlock and broadcast) or will block without
- *     letting anyone know (like lock and wait).  Not letting the threading
+ *     (as is the case with {@link #unlock()} and {@link #broadcast()})
+ *     or will block without letting anyone know (like {@link #lockNoHandshake()}
+ *     and {@link #waitNoHandshake()}). Not letting the threading
  *     system know that you are blocked may cause things like GC to stall
  *     until you unblock.</li>
  * </ul>
@@ -60,17 +61,27 @@ import org.vmmagic.unboxed.Word;
 @NonMoving
 public class Monitor {
   Word monitor;
-  int holderSlot=-1; // use the slot so that we're even more GC safe
+  int holderSlot = -1; // use the slot so that we're even more GC safe
   int recCount;
   public int acquireCount;
   /**
    * Allocate a heavy condition variable and lock.  This involves
-   * allocating stuff in C that never gets deallocated.  Thus, don't
-   * instantiate too many of these.
+   * allocating stuff in C that gets deallocated only when the finalizer
+   * is run. Thus, don't instantiate too many of these.
    */
   public Monitor() {
     monitor = sysCall.sysMonitorCreate();
   }
+
+  /**
+   * Frees the data structures that were allocated in C code
+   * when the object was created.
+   */
+  @Override
+  protected void finalize() throws Throwable {
+    sysCall.sysMonitorDestroy(monitor);
+  }
+
   /**
    * Wait until it is possible to acquire the lock and then acquire it.
    * There is no bound on how long you might wait, if someone else is
@@ -84,7 +95,7 @@ public class Monitor {
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * lockNicely instead.
+   * {@link #lockWithHandshake()} instead.
    */
   @NoInline
   @NoOptCompile
@@ -92,24 +103,26 @@ public class Monitor {
     int mySlot = RVMThread.getCurrentThreadSlot();
     if (mySlot != holderSlot) {
       sysCall.sysMonitorEnter(monitor);
-      if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-      if (VM.VerifyAssertions) VM._assert(recCount==0);
+      if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+      if (VM.VerifyAssertions) VM._assert(recCount == 0);
       holderSlot = mySlot;
     }
     recCount++;
     acquireCount++;
   }
   /**
-   * Relock the mutex after using unlockCompletely.
+   * Relocks the mutex after using {@link #unlockCompletely()}.
+   *
+   * @param recCount the recursion count
    */
   @NoInline
   @NoOptCompile
   public void relockNoHandshake(int recCount) {
     sysCall.sysMonitorEnter(monitor);
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    holderSlot=RVMThread.getCurrentThreadSlot();
-    this.recCount=recCount;
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    holderSlot = RVMThread.getCurrentThreadSlot();
+    this.recCount = recCount;
     acquireCount++;
   }
   /**
@@ -132,8 +145,9 @@ public class Monitor {
    * requested you to block needs to acquire the lock you were trying to
    * acquire when the blocking request came.
    * <p>
-   * It is usually not necessary to call this method instead of lock(),
-   * since most VM locks are held for short periods of time.
+   * It is usually not necessary to call this method instead of
+   * {@link #lockNoHandshake()} since most VM locks are held for short
+   * periods of time.
    */
   @Unpreemptible("If the lock cannot be acquired, this method will allow the thread to be asynchronously blocked")
   @NoInline
@@ -142,8 +156,8 @@ public class Monitor {
     int mySlot = RVMThread.getCurrentThreadSlot();
     if (mySlot != holderSlot) {
       lockWithHandshakeNoRec();
-      if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-      if (VM.VerifyAssertions) VM._assert(recCount==0);
+      if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+      if (VM.VerifyAssertions) VM._assert(recCount == 0);
       holderSlot = mySlot;
     }
     recCount++;
@@ -173,7 +187,10 @@ public class Monitor {
     }
   }
   /**
-   * Relock the mutex after using unlockCompletely, but do so "nicely".
+   * Relocks the mutex after using {@link #unlockCompletely()} and notify
+   * the threading subsystem.
+   *
+   * @param recCount the recursion count
    */
   @NoInline
   @NoOptCompile
@@ -197,10 +214,10 @@ public class Monitor {
         RVMThread.leaveNative();
       }
     }
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    holderSlot=RVMThread.getCurrentThreadSlot();
-    this.recCount=recCount;
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    holderSlot = RVMThread.getCurrentThreadSlot();
+    this.recCount = recCount;
   }
   /**
    * Release the lock.  This method should (in principle) be non-blocking,
@@ -210,91 +227,101 @@ public class Monitor {
   @NoInline
   @NoOptCompile
   public void unlock() {
-    if (--recCount==0) {
-      holderSlot=-1;
+    if (--recCount == 0) {
+      holderSlot = -1;
       sysCall.sysMonitorExit(monitor);
     }
   }
+
   /**
-   * Completely release the lock, ignoring recursion.  Returns the
-   * recursion count.
+   * Completely releases the lock, ignoring recursion.
+   *
+   * @return the recursion count
    */
   @NoInline
   @NoOptCompile
   public int unlockCompletely() {
-    int result=recCount;
-    recCount=0;
-    holderSlot=-1;
+    int result = recCount;
+    recCount = 0;
+    holderSlot = -1;
     sysCall.sysMonitorExit(monitor);
     return result;
   }
   /**
-   * Wait until someone calls broadcast.
+   * Wait until someone calls {@link #broadcast()}.
    * <p>
    * This blocking method method does not notify the threading subsystem
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * waitNicely instead.
+   * {@link #waitWithHandshake()} instead.
    */
   @NoInline
   @NoOptCompile
   public void waitNoHandshake() {
-    int recCount=this.recCount;
-    this.recCount=0;
-    holderSlot=-1;
+    int recCount = this.recCount;
+    this.recCount = 0;
+    holderSlot = -1;
     sysCall.sysMonitorWait(monitor);
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    this.recCount=recCount;
-    holderSlot=RVMThread.getCurrentThreadSlot();
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    this.recCount = recCount;
+    holderSlot = RVMThread.getCurrentThreadSlot();
   }
   /**
-   * Wait until someone calls broadcast, or until the clock reaches the
-   * given time.
+   * Wait until someone calls {@link #broadcast()}, or until the clock
+   * reaches the given time.
    * <p>
    * This blocking method method does not notify the threading subsystem
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * timedWaitAbsoluteNicely instead.
+   * {@link #timedWaitAbsoluteWithHandshake(long)} instead.
+   *
+   * @param whenWakeupNanos the absolute time point that must be reached
+   *  before the wait is over when no call to {@link #broadcast()} occurs
+   *  in the meantime
    */
   @NoInline
   @NoOptCompile
   public void timedWaitAbsoluteNoHandshake(long whenWakeupNanos) {
-    int recCount=this.recCount;
-    this.recCount=0;
-    holderSlot=-1;
+    int recCount = this.recCount;
+    this.recCount = 0;
+    holderSlot = -1;
     sysCall.sysMonitorTimedWaitAbsolute(monitor, whenWakeupNanos);
-    if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
-    if (VM.VerifyAssertions) VM._assert(this.recCount==0);
-    this.recCount=recCount;
-    holderSlot=RVMThread.getCurrentThreadSlot();
+    if (VM.VerifyAssertions) VM._assert(holderSlot == -1);
+    if (VM.VerifyAssertions) VM._assert(this.recCount == 0);
+    this.recCount = recCount;
+    holderSlot = RVMThread.getCurrentThreadSlot();
   }
   /**
-   * Wait until someone calls broadcast, or until at least the given
-   * number of nanoseconds pass.
+   * Wait until someone calls {@link #broadcast()}, or until at least
+   * the given number of nanoseconds pass.
    * <p>
    * This blocking method method does not notify the threading subsystem
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * timedWaitRelativeNicely instead.
+   * {@link #timedWaitRelativeWithHandshake(long)} instead.
+   *
+   * @param delayNanos the number of nanoseconds that need to pass
+   *  from the call of this method until the wait is over when no call
+   *  to {@link #broadcast()} occurs in the meantime
    */
   @NoInline
   @NoOptCompile
   public void timedWaitRelativeNoHandshake(long delayNanos) {
-    long now=sysCall.sysNanoTime();
-    timedWaitAbsoluteNoHandshake(now+delayNanos);
+    long now = sysCall.sysNanoTime();
+    timedWaitAbsoluteNoHandshake(now + delayNanos);
   }
   /**
-   * Wait until someone calls broadcast.
+   * Wait until someone calls {@link #broadcast()}.
    * <p>
    * This blocking method notifies the threading subsystem that it
-   * is blocking.  Thus, it is generally safer than calling wait.  But,
-   * its reliance on threading subsystem accounting methods may mean that
-   * it cannot be used in certain contexts (say, the threading subsystem
-   * itself).
+   * is blocking.  Thus, it is generally safer than calling
+   * {@link #waitNoHandshake()}.  But, its reliance on threading subsystem
+   * accounting methods may mean that it cannot be used in certain contexts
+   * (say, the threading subsystem itself).
    * <p>
    * This method will ensure that if it blocks, it does so with the
    * mutex not held.  This is useful for cases where the subsystem that
@@ -315,24 +342,28 @@ public class Monitor {
   private void waitWithHandshakeImpl() {
     RVMThread.enterNative();
     waitNoHandshake();
-    int recCount=unlockCompletely();
+    int recCount = unlockCompletely();
     RVMThread.leaveNative();
     relockWithHandshakeImpl(recCount);
   }
   /**
-   * Wait until someone calls broadcast, or until the clock reaches the
-   * given time.
+   * Wait until someone calls {@link #broadcast()}, or until the clock
+   * reaches the given time.
    * <p>
    * This blocking method method notifies the threading subsystem that it
    * is blocking.  Thus, it is generally safer than calling
-   * timedWaitAbsolute.  But, its reliance on threading subsystem accounting
-   * methods may mean that it cannot be used in certain contexts (say, the
-   * threading subsystem itself).
+   * {@link #timedWaitAbsoluteNoHandshake(long)}. But, its reliance on
+   * threading subsystem accounting methods may mean that it cannot be
+   * used in certain contexts (say, the threading subsystem itself).
    * <p>
    * This method will ensure that if it blocks, it does so with the
    * mutex not held.  This is useful for cases where the subsystem that
    * requested you to block needs to acquire the lock you were trying to
    * acquire when the blocking request came.
+   *
+   * @param whenWakeupNanos the absolute time point that must be reached
+   *  before the wait is over when no call to {@link #broadcast()} occurs
+   *  in the meantime
    */
   @NoInline
   @NoOptCompile
@@ -348,24 +379,28 @@ public class Monitor {
   private void timedWaitAbsoluteWithHandshakeImpl(long whenWakeupNanos) {
     RVMThread.enterNative();
     timedWaitAbsoluteNoHandshake(whenWakeupNanos);
-    int recCount=unlockCompletely();
+    int recCount = unlockCompletely();
     RVMThread.leaveNative();
     relockWithHandshakeImpl(recCount);
   }
   /**
-   * Wait until someone calls broadcast, or until at least the given
+   * Wait until someone calls {@link #broadcast()}, or until at least the given
    * number of nanoseconds pass.
    * <p>
    * This blocking method method notifies the threading subsystem that it
    * is blocking.  Thus, it is generally safer than calling
-   * timedWaitRelative.  But, its reliance on threading subsystem accounting
-   * methods may mean that it cannot be used in certain contexts (say, the
-   * threading subsystem itself).
+   * {@link #timedWaitRelativeWithHandshake(long)}.  But, its reliance on
+   * threading subsystem accounting methods may mean that it cannot be used
+   * in certain contexts (say, the threading subsystem itself).
    * <p>
    * This method will ensure that if it blocks, it does so with the
    * mutex not held.  This is useful for cases where the subsystem that
    * requested you to block needs to acquire the lock you were trying to
    * acquire when the blocking request came.
+   *
+   * @param delayNanos the number of nanoseconds that need to pass
+   *  from the call of this method until the wait is over when no call
+   *  to {@link #broadcast()} occurs in the meantime
    */
   @NoInline
   @NoOptCompile
@@ -381,7 +416,7 @@ public class Monitor {
   private void timedWaitRelativeWithHandshakeImpl(long delayNanos) {
     RVMThread.enterNative();
     timedWaitRelativeNoHandshake(delayNanos);
-    int recCount=unlockCompletely();
+    int recCount = unlockCompletely();
     RVMThread.leaveNative();
     relockWithHandshakeImpl(recCount);
   }
@@ -402,7 +437,7 @@ public class Monitor {
    * after sending the broadcast.  In most cases where you want to send
    * a broadcast but you don't need to acquire the lock to set the
    * condition that the other thread(s) are waiting on, you want to call
-   * this method instead of <code>broadcast</code>.
+   * this method instead of {@link #broadcast()}.
    */
   @NoInline
   @NoOptCompile
@@ -414,7 +449,7 @@ public class Monitor {
 
   @NoInline
   public static boolean lockNoHandshake(Monitor l) {
-    if (l==null) {
+    if (l == null) {
       return false;
     } else {
       l.lockNoHandshake();

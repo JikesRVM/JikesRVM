@@ -12,14 +12,28 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.GOTO_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP2_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LOOKUPSWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -123,14 +137,12 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements Constants, Operators, OptConstants {
+public final class Instruction {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.
    * NB: OI_INVALID must be default value!
    */
-  @SuppressWarnings("unused")
-  // FIXME use it or lose it!
   private static final byte OI_INVALID = 0x00;
   /** BITFIELD used to encode {@link #operatorInfo}. */
   private static final byte OI_PEI_VALID = 0x01;
@@ -140,12 +152,10 @@ public final class Instruction implements Constants, Operators, OptConstants {
   private static final byte OI_GC_VALID = 0x04;
   /** BITFIELD used to encode {@link #operatorInfo}. */
   private static final byte OI_GC = 0x08;
-  /** BITFIELD used to encode {@link #operatorInfo}. */
-  private static final byte MARK1 = 0x20;
-  /** BITFIELD used to encode {@link #operatorInfo}. */
-  private static final byte MARK2 = 0x40;
+
   /*
-   * NOTE: There are currently two free bits: 0x10 and 0x80.
+   * NOTE: There are currently several free bits: 0x10, 0x20,
+   * 0x40 and 0x80.
    */
 
   /**
@@ -170,42 +180,10 @@ public final class Instruction implements Constants, Operators, OptConstants {
   public InlineSequence position;
 
   /**
-   * A scratch word to be used as needed by analyses/optimizations to store
-   * information during an optimization.<p>
-   * Cannot be used to communicate information between compiler phases since
-   * any phase is allowed to mutate it.<p>
-   * Cannot safely be assumed to have a particular value at the start of
-   * a phase.<p>
-   * Typical uses:
-   * <ul>
-   *   <li>scratch bits to encode true/false or numbering
-   *   <li>store an index into a lookaside array of other information.
-   * </ul>
-   */
-  public int scratch;
-
-  /**
-   * A scratch object to be used as needed by analyses/optimizations to store
-   * information during an optimization.<p>
-   * Cannot be used to communicate information between compiler phases since
-   * any phase is allowed to mutate it.<p>
-   * Cannot safely be assumed to have a particular value at the start of
-   * a phase.<p>
-   * To be used when more than one word of information is needed and
-   * lookaside arrays are not desirable.<p>
-   * Typical uses:  attribute objects or links to shared data
-   */
-  public Object scratchObject;
-
-  /**
    * The operator for this instruction.<p>
-   * The preferred idiom is to use the {@link #operator()} accessor method
-   * instead of accessing this field directly, but we are still in the process
-   * of updating old code.<p>
-   * The same operator object can be shared by many instruction objects.<p>
-   * TODO: finish conversion and make this field private.
+   * The same operator object can be shared by many instruction objects.
    */
-  public Operator operator;
+  private Operator operator;
 
   /**
    * The next instruction in the intra-basic-block list of instructions,
@@ -224,7 +202,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * information.
    * @see Operator
    */
-  private byte operatorInfo;
+  private byte operatorInfo = OI_INVALID;
 
   /**
    * The operands of this instruction.
@@ -235,14 +213,19 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * INTERNAL IR USE ONLY: create a new instruction with the specified number
    * of operands.<p>
    *
-   * For internal use only -- general clients must use the appropriate
+   * <strong>For internal use only -- general clients MUST use the appropriate
    * InstructionFormat class's create and mutate methods to create
-   * instruction objects!!!
+   * instruction objects!!!</strong>
    *
    * @param op operator
    * @param size number of operands
+   * @return the created instruction
    */
-  Instruction(Operator op, int size) {
+  public static Instruction create(Operator op, int size) {
+    return new Instruction(op, size);
+  }
+
+  private Instruction(Operator op, int size) {
     operator = op;
     ops = new Operand[size];
   }
@@ -310,7 +293,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
 
     // print implicit defs
-    result.append(PhysicalDefUse.getString(operator.implicitDefs));
+    result.append(GenericPhysicalDefUse.getString(operator.implicitDefs));
     defsPrinted += operator.getNumberOfImplicitDefs();
 
     // print separator
@@ -337,7 +320,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
 
     // print implicit defs
-    result.append(PhysicalDefUse.getString(operator.implicitUses));
+    result.append(GenericPhysicalDefUse.getString(operator.implicitUses));
     usesPrinted += operator.getNumberOfImplicitUses();
 
     return result.toString();
@@ -393,12 +376,15 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Get the basic block that contains this instruction.
+   * Gets the basic block that contains this instruction.
+   * <p>
    * Note: this instruction takes O(1) time for LABEL and BBEND
    * instructions, but will take O(# of instrs in the block)
    * for all other instructions. Therefore, although it can be used
    * on any instruction, care must be taken when using it to avoid
    * doing silly O(N^2) work for what could be done in O(N) work.
+   *
+   * @return basic block that contains the instruction
    */
   public BasicBlock getBasicBlock() {
     if (isBbFirst()) {
@@ -444,36 +430,16 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Get the offset into the machine code array (in bytes) that
-   * corresponds to the first byte after this instruction.<p>
-   * This method only returns a valid value after it has been set as a
-   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.<p>
-   * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
-   *
-   * @return the offset (in bytes) of the machinecode instruction
-   *         generated for this IR instruction in the final machinecode
-   */
-  public int getmcOffset() {
-    return scratch;
-  }
-
-  /**
-   * Only for use by {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode}; sets the machine
-   * code offset of the instruction as described in {@link #getmcOffset}.
-   *
-   * @param mcOffset the offset (in bytes) for this instruction.
-   */
-  public void setmcOffset(int mcOffset) {
-    scratch = mcOffset;
-  }
-
-  /**
    * Return the instruction's operator.
    *
    * @return the operator
    */
   public Operator operator() {
     return operator;
+  }
+
+  public void changeOperatorTo(Operator newlySetOperator) {
+    operator = newlySetOperator;
   }
 
   /**
@@ -681,7 +647,8 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Does this instruction hold any memory or stack location operands?
+   * @return {@code true} if this instruction holds any memory or
+   *  stack location operands
    */
   public boolean hasMemoryOperand() {
     for (int i = 0; i < ops.length; i++) {
@@ -838,8 +805,11 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * outcomes (taken or not taken).
    */
   public boolean isTwoWayBranch() {
-    // Is there a cleaner way to answer this question?
-    return (isConditionalBranch() && !IfCmp2.conforms(this) && !MIR_CondBranch2.conforms(this));
+    return isConditionalBranch() && !IfCmp2.conforms(this) &&
+        !(VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.conforms(this)) &&
+        !(VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.conforms(this));
   }
 
   /**
@@ -1079,7 +1049,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Is the instruction a compare (val,val) => condition?
+   * Is the instruction a compare (val,val) =&gt; condition?
    *
    * @return <code>true</code> if the instruction is a compare
    *         or <code>false</code> if it is not.
@@ -1159,13 +1129,21 @@ public final class Instruction implements Constants, Operators, OptConstants {
     operatorInfo |= OI_PEI_VALID;
   }
 
+  private char getMIR_START_opcode() {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_START_opcode;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.MIR_START_opcode;
+    }
+  }
   /**
    * NOTE: ONLY FOR USE ON MIR INSTRUCTIONS!!!!
    * Record that this instruction is a PEI.
    * Note that marking as a PEI implies marking as GCpoint.
    */
   public void markAsPEI() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo |= (OI_PEI_VALID | OI_PEI | OI_GC_VALID | OI_GC);
   }
 
@@ -1175,7 +1153,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Leave exception state (if any) unchanged.
    */
   public void markAsNonGCPoint() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo &= ~OI_GC;
     operatorInfo |= OI_GC_VALID;
   }
@@ -1186,7 +1164,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Leave PEI status (if any) unchanged.
    */
   public void markAsGCPoint() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo |= (OI_GC_VALID | OI_GC);
   }
 
@@ -1195,57 +1173,9 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Mark this instruction as being neither an exception or GC point.
    */
   public void markAsNonPEINonGCPoint() {
-    if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
+    if (VM.VerifyAssertions) VM._assert(getOpcode() > getMIR_START_opcode());
     operatorInfo &= ~(OI_PEI | OI_GC);
     operatorInfo |= (OI_PEI_VALID | OI_GC_VALID);
-  }
-
-  /**
-   * Is the first mark bit of the instruction set?
-   *
-   * @return <code>true</code> if the first mark bit is set
-   *         or <code>false</code> if it is not.
-   */
-  boolean isMarked1() {
-    return (operatorInfo & MARK1) != 0;
-  }
-
-  /**
-   * Is the second mark bit of the instruction set?
-   *
-   * @return <code>true</code> if the first mark bit is set
-   *         or <code>false</code> if it is not.
-   */
-  boolean isMarked2() {
-    return (operatorInfo & MARK2) != 0;
-  }
-
-  /**
-   * Set the first mark bit of the instruction.
-   */
-  void setMark1() {
-    operatorInfo |= MARK1;
-  }
-
-  /**
-   * Set the second mark bit of the instruction.
-   */
-  void setMark2() {
-    operatorInfo |= MARK2;
-  }
-
-  /**
-   * Clear the first mark bit of the instruction.
-   */
-  void clearMark1() {
-    operatorInfo &= ~MARK1;
-  }
-
-  /**
-   * Clear the second mark bit of the instruction.
-   */
-  void clearMark2() {
-    operatorInfo &= ~MARK2;
   }
 
   /**
@@ -1304,16 +1234,22 @@ public final class Instruction implements Constants, Operators, OptConstants {
         return InlineGuard.getTarget(this).target.getBasicBlock();
 
       default:
-        if (MIR_Branch.conforms(this)) {
-          return MIR_Branch.getTarget(this).target.getBasicBlock();
-        } else if (MIR_CondBranch.conforms(this)) {
-          return MIR_CondBranch.getTarget(this).target.getBasicBlock();
+        if (VM.BuildForIA32) {
+          if (org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(this)) {
+            return org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.getTarget(this).target.getBasicBlock();
+          } else if (org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.conforms(this)) {
+            return org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.getTarget(this).target.getBasicBlock();
+          }
         } else {
-          throw new OptimizingCompilerException("getBranchTarget()",
-                                                    "operator not implemented",
-                                                    operator.toString());
+        if (org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(this)) {
+          return org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.getTarget(this).target.getBasicBlock();
+        } else if (org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.conforms(this)) {
+          return org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.getTarget(this).target.getBasicBlock();
         }
-
+      }
+      throw new OptimizingCompilerException("getBranchTarget()",
+                    "operator not implemented",
+                    operator.toString());
     }
   }
 
@@ -1374,19 +1310,37 @@ public final class Instruction implements Constants, Operators, OptConstants {
         break;
 
       default:
-        if (MIR_Branch.conforms(this)) {
-          e.addElement(MIR_Branch.getTarget(this).target.getBasicBlock());
-        } else if (MIR_CondBranch.conforms(this)) {
-          e.addElement(MIR_CondBranch.getTarget(this).target.getBasicBlock());
-        } else if (MIR_CondBranch2.conforms(this)) {
-          e.addElement(MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
-          e.addPossiblyDuplicateElement(MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
-        } else if (VM.BuildForIA32 && MIR_LowTableSwitch.conforms(this)) {
-          for (int i = 0; i < MIR_LowTableSwitch.getNumberOfTargets(this); i++) {
-            e.addPossiblyDuplicateElement(MIR_LowTableSwitch.getTarget(this, i).
+
+        if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch.getTarget(this).target.getBasicBlock());
+        } else if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
+          e.addPossiblyDuplicateElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
+        } else if (VM.BuildForPowerPC &&
+            org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.conforms(this)) {
+          e.addElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
+          e.addPossiblyDuplicateElement(org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
+        } else if (VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch.conforms(this)) {
+          for (int i = 0; i < org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch.getNumberOfTargets(this); i++) {
+            e.addPossiblyDuplicateElement(org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch.getTarget(this, i).
                 target.getBasicBlock());
           }
-        } else if (MIR_CondBranch2.conforms(this)) {
+        } else if ((VM.BuildForIA32 &&
+            org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch2.conforms(this)) ||
+            (VM.BuildForPowerPC &&
+             org.jikesrvm.compilers.opt.ir.ppc.MIR_CondBranch2.conforms(this))) {
           throw new OptimizingCompilerException("getBranchTargets()",
                                                     "operator not implemented",
                                                     operator().toString());
@@ -1484,7 +1438,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   /**
    * Insertion: Insert newInstr immediately before this in the
    * instruction stream.
-   * Can't insert before a LABEL instruction, since it must be the last
+   * Can't insert before a LABEL instruction, since it must be the first
    * instruction in its basic block.
    *
    * @param newInstr the instruction to insert, must not be in
@@ -1513,7 +1467,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * Replacement: Replace this with newInstr.
-   * We could allow replacement of first & last instrs in the basic block,
+   * We could allow replacement of first &amp; last instrs in the basic block,
    * but it would be a fair amount of work to update everything, and probably
    * isn't useful, so we'll simply disallow it for now.
    *
@@ -1551,7 +1505,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *  CFG data structure.....right now we just assume the caller knows what
    *  they are doing and takes care of it.
    *  <p>
-   *  NB: execution of this method nulls out the prev & next fields of this
+   *  NB: execution of this method nulls out the prev &amp; next fields of this
    *
    * @return the previous instruction in the instruction stream
    */
@@ -1575,6 +1529,13 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Invocations to these functions are guarded by IR.PARANOID and thus
    * the calls to VM.Assert don't need to be guarded by VM.VerifyAssertions.
    */
+
+  // Our Checkstyle assertion plugin does not handle this case because that
+  // would require tracking all calls. Therefore, switch off checkstyle for
+  // the affected methods.
+
+  //CHECKSTYLE:OFF
+
   private void isLinked() {
     VM._assert(prev.next == this, "is_linked: failure (1)");
     VM._assert(next.prev == this, "is_linked: failure (2)");
@@ -1596,6 +1557,8 @@ public final class Instruction implements Constants, Operators, OptConstants {
     VM._assert(prev == null && next == null, "is_not_linked: failure (1)");
   }
 
+  //CHECKSTYLE:ON
+
   /*
   * Implementation: Operand enumeration classes
   */
@@ -1615,14 +1578,18 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
 
     @Override
-    public final boolean hasMoreElements() { return nextElem != null; }
+    public final boolean hasMoreElements() {
+      return nextElem != null;
+    }
 
     @Override
     public final Operand nextElement() {
       Operand temp = nextElem;
       if (temp == null) fail();
       advance();
-      if (DEBUG) { System.out.println(" next() returning: " + temp); }
+      if (DEBUG) {
+        System.out.println(" next() returning: " + temp);
+      }
       return temp;
     }
 
@@ -1639,7 +1606,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
     private final int defEnd;
     private Operand deferredMOReg;
 
-    public OE(Instruction instr, int start, int end, int defEnd) {
+    OE(Instruction instr, int start, int end, int defEnd) {
       super(instr, start, end);
       this.defEnd = defEnd;
       if (DEBUG) {
@@ -1695,7 +1662,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * operands, since the contained operands of a MO are uses).
    */
   private static final class OEDefsOnly extends BASE_OE {
-    public OEDefsOnly(Instruction instr, int start, int end) {
+    OEDefsOnly(Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
         System.out.println(" --> OEDefsOnly called with inst\n" + instr + "\n start: " + start + ", end: " + end);
@@ -1721,7 +1688,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /** Enumerate the memory operands of an instruction */
   private static final class MOE extends BASE_OE {
-    public MOE(Instruction instr, int start, int end) {
+    MOE(Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
         System.out.println(" --> MOE called with inst\n" + instr + "\n start: " + start + ", end: " + end);
@@ -1747,7 +1714,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /** Enumerate the root operands of an instruction */
   private static final class ROE extends BASE_OE {
-    public ROE(Instruction instr, int start, int end) {
+    ROE(Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
         System.out.println(" --> ROE called with inst\n" + instr + "\n start: " + start + ", end: " + end);
@@ -1855,7 +1822,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @param newSize the new minimum number of operands.
    */
-  void resizeNumberOfOperands(int newSize) {
+  public void resizeNumberOfOperands(int newSize) {
     int oldSize = ops.length;
     if (oldSize != newSize) {
       Operand[] newOps = new Operand[newSize];
@@ -1967,6 +1934,8 @@ public final class Instruction implements Constants, Operators, OptConstants {
   /**
    * Allow BURS a back door into linkWithNext. This method should only be called
    * within BURS.
+   *
+   * @param other the next instruction
    */
   public void BURS_backdoor_linkWithNext(Instruction other) {
     linkWithNext(other);
@@ -1986,4 +1955,5 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
     return false;
   }
+
 }

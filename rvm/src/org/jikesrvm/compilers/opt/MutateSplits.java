@@ -58,7 +58,7 @@ public final class MutateSplits extends CompilerPhase {
   public void perform(IR ir) {
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      if (s.operator == SPLIT) {
+      if (s.operator() == SPLIT) {
         RegisterOperand lhs = Unary.getResult(s);
         Operator mv = IRTools.getMoveOp(lhs.getType());
         Operand rhs = Unary.getVal(s);

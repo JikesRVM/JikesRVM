@@ -12,8 +12,6 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -22,8 +20,7 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
  */
-@Uninterruptible public class AddressDeque extends LocalDeque
-  implements Constants {
+@Uninterruptible public class AddressDeque extends LocalDeque {
 
   /****************************************************************************
    *
@@ -38,6 +35,7 @@ import org.vmmagic.pragma.*;
   /**
    * Constructor
    *
+   * @param n the human-readable name of this queue
    * @param queue The shared queue to which this queue will append
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.

@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
 public class UsePrimitiveWriteBarriersMutator extends SSMutator {
 
   /**
-   * Write an Address. Take appropriate write barrier actions.<p>
+   * Write an Address. Take appropriate write barrier actions.
    */
   @Override
   public void addressWrite(ObjectReference src, Address slot, Address value, Word metaDataA, Word metaDataB, int mode) {
@@ -44,7 +44,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a boolean. Take appropriate write barrier actions.<p>
+   * Write a boolean. Take appropriate write barrier actions.
    */
   @Override
   public void booleanWrite(ObjectReference src, Address slot, boolean value, Word metaDataA, Word metaDataB, int mode) {
@@ -57,7 +57,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a byte. Take appropriate write barrier actions.<p>
+   * Write a byte. Take appropriate write barrier actions.
    */
   @Override
   public void byteWrite(ObjectReference src, Address slot, byte value, Word metaDataA, Word metaDataB, int mode) {
@@ -70,7 +70,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a char. Take appropriate write barrier actions.<p>
+   * Write a char. Take appropriate write barrier actions.
    */
   @Override
   public void charWrite(ObjectReference src, Address slot, char value, Word metaDataA, Word metaDataB, int mode) {
@@ -83,7 +83,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a double. Take appropriate write barrier actions.<p>
+   * Write a double. Take appropriate write barrier actions.
    */
   @Override
   public void doubleWrite(ObjectReference src, Address slot, double value, Word metaDataA, Word metaDataB, int mode) {
@@ -96,7 +96,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write an Extent. Take appropriate write barrier actions.<p>
+   * Write an Extent. Take appropriate write barrier actions.
    */
   @Override
   public void extentWrite(ObjectReference src, Address slot, Extent value, Word metaDataA, Word metaDataB, int mode) {
@@ -104,7 +104,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a float. Take appropriate write barrier actions.<p>
+   * Write a float. Take appropriate write barrier actions.
    */
   @Override
   public void floatWrite(ObjectReference src, Address slot, float value, Word metaDataA, Word metaDataB, int mode) {
@@ -117,7 +117,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a int. Take appropriate write barrier actions.<p>
+   * Write a int. Take appropriate write barrier actions.
    */
   @Override
   public void intWrite(ObjectReference src, Address slot, int value, Word metaDataA, Word metaDataB, int mode) {
@@ -135,7 +135,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a long. Take appropriate write barrier actions.<p>
+   * Write a long. Take appropriate write barrier actions.
    */
   @Override
   public void longWrite(ObjectReference src, Address slot, long value, Word metaDataA, Word metaDataB, int mode) {
@@ -153,7 +153,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write an Offset. Take appropriate write barrier actions.<p>
+   * Write an Offset. Take appropriate write barrier actions.
    */
   @Override
   public void offsetWrite(ObjectReference src, Address slot, Offset value, Word metaDataA, Word metaDataB, int mode) {
@@ -161,7 +161,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a short. Take appropriate write barrier actions.<p>
+   * Write a short. Take appropriate write barrier actions.
    */
   @Override
   public void shortWrite(ObjectReference src, Address slot, short value, Word metaDataA, Word metaDataB, int mode) {
@@ -174,7 +174,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
   }
 
   /**
-   * Write a Word. Take appropriate write barrier actions.<p>
+   * Write a Word. Take appropriate write barrier actions.
    */
   @Override
   public void wordWrite(ObjectReference src, Address slot, Word value, Word metaDataA, Word metaDataB, int mode) {

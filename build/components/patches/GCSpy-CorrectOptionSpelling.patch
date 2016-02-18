@@ -1,0 +1,24 @@
+diff --git src/src/c/GNUmakefile src/src/c/GNUmakefile
+--- src/src/c/GNUmakefile
++++ src/src/c/GNUmakefile
+@@ -42,7 +42,7 @@
+ endif
+ 
+ CC_FLAGS = $(EXTRA_CC_FLAGS)
+-LD_FLAGS = -L$(LIB_DIR) $(EXTRA_LD_FLAGS) -lgcspy -levmgcspy -lhsgcspy -mt
++LD_FLAGS = -L$(LIB_DIR) $(EXTRA_LD_FLAGS) -lgcspy -levmgcspy -lhsgcspy -MT
+ 
+ OBJ_DIR = obj
+ BIN_DIR = bin
+diff --git src/src/cpp/GNUmakefile src/src/cpp/GNUmakefile
+--- src/src/cpp/GNUmakefile
++++ src/src/cpp/GNUmakefile
+@@ -37,7 +37,7 @@
+ endif
+ 
+ CC_FLAGS = $(EXTRA_CC_FLAGS)
+-LD_FLAGS = -L$(LIB_DIR) $(EXTRA_LD_FLAGS) -lgcspy -lhsgcspy -mt
++LD_FLAGS = -L$(LIB_DIR) $(EXTRA_LD_FLAGS) -lgcspy -lhsgcspy -MT
+ 
+ OBJ_DIR = obj
+ BIN_DIR = bin

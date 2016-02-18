@@ -1,0 +1,7 @@
+Test strings for sed expressions
+src="userguide0x.png"
+href="userguidech1.html#x2-10001"
+href="/relative/userguidech1.html#x2-10001"
+href="http://jikesrvm.sourceforge.net/apidocs/latest/"
+href="http://example.com/index.html"
+href="http://example.com/index.html#paragraphx"

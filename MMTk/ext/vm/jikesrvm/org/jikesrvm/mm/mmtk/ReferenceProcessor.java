@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.options.Options;
 
@@ -126,7 +125,8 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Create a reference processor for a given semantics
    *
-   * @param semantics
+   * @param semantics the semantics this processor should use
+   *  (i.e. the types of references that it will process)
    */
   private ReferenceProcessor(Semantics semantics) {
     this.semantics = semantics;
@@ -134,8 +134,10 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Factory method.
    * Creates an instance of the appropriate reference type processor.
+   *
+   * @param semantics the semantics that the reference processor should
+   *  use (i.e. the type of references that it will process)
    * @return the reference processor
    */
   @Interruptible
@@ -153,6 +155,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference at the end of the table
    * @param ref The reference to add
+   * @param referent the object pointed to by the reference
    */
   private void addReference(Reference<?> ref, ObjectReference referent) {
     ObjectReference reference = ObjectReference.fromObject(ref);
@@ -187,18 +190,20 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Grow the reference table by GROWTH_FACTOR.
    *
-   * <p>Logically Uninterruptible because it can GC when it allocates, but
+   * <p>Marked as UninterruptibleNoWarn because it can GC when it allocates, but
    * the rest of the code can't tolerate GC.
    *
    * <p>This method is called without the reference processor lock held,
    * but with the flag <code>growingTable</code> set.
+   *
+   * @return the start address of the new reference table
    */
   @UninterruptibleNoWarn
   private AddressArray growReferenceTable() {
     int newLength = STRESS ? references.length() + 1 : (int)(references.length() * GROWTH_FACTOR);
     if (TRACE) VM.sysWriteln("Expanding reference type table ",semanticsStr," to ",newLength);
     AddressArray newReferences = AddressArray.create(newLength);
-    for (int i=0; i < references.length(); i++)
+    for (int i = 0; i < references.length(); i++)
       newReferences.set(i,references.get(i));
     return newReferences;
   }
@@ -283,7 +288,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       VM.sysWriteln("unforwardedReferences is ",
           Magic.objectAsAddress(unforwardedReferences));
     }
-    for (int i=0; i < maxIndex; i++) {
+    for (int i = 0; i < maxIndex; i++) {
       if (TRACE_DETAIL) VM.sysWrite("slot ",i,": ");
       ObjectReference reference = unforwardedReferences.get(i).toObjectReference();
       if (TRACE_DETAIL) VM.sysWriteln("forwarding ",reference);
@@ -313,34 +318,41 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param nursery Scan only the newly created references
    */
   @Override
-  public void scan(TraceLocal trace, boolean nursery) {
+  public void scan(TraceLocal trace, boolean nursery, boolean retain) {
     unforwardedReferences = references;
 
     if (TRACE) VM.sysWriteln("Starting ReferenceGlue.scan(",semanticsStr,")");
     int toIndex = nursery ? nurseryIndex : 0;
 
     if (TRACE_DETAIL) VM.sysWriteln(semanticsStr," Reference table is ",Magic.objectAsAddress(references));
-    for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
-      ObjectReference reference = getReference(fromIndex);
-
-      /* Determine liveness (and forward if necessary) the reference */
-      ObjectReference newReference = processReference(trace,reference);
-      if (!newReference.isNull()) {
-        setReference(toIndex++,newReference);
-        if (TRACE_DETAIL) {
-          int index = toIndex-1;
-          VM.sysWrite("SCANNED ",index);
-          VM.sysWrite(" ",references.get(index));
-          VM.sysWrite(" -> ");
-          VM.sysWriteln(getReferent(references.get(index).toObjectReference()));
+    if (retain) {
+      for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
+          ObjectReference reference = getReference(fromIndex);
+          retainReferent(trace, reference);
         }
+    } else {
+      for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
+        ObjectReference reference = getReference(fromIndex);
+
+        /* Determine liveness (and forward if necessary) the reference */
+        ObjectReference newReference = processReference(trace,reference);
+        if (!newReference.isNull()) {
+          setReference(toIndex++,newReference);
+          if (TRACE_DETAIL) {
+            int index = toIndex - 1;
+            VM.sysWrite("SCANNED ",index);
+            VM.sysWrite(" ",references.get(index));
+            VM.sysWrite(" -> ");
+            VM.sysWriteln(getReferent(references.get(index).toObjectReference()));
+          }
+               }
+             }
+      if (Options.verbose.getValue() >= 3) {
+        VM.sysWrite(semanticsStr);
+        VM.sysWriteln(" references: ",maxIndex," -> ",toIndex);
       }
+      nurseryIndex = maxIndex = toIndex;
     }
-    if (Options.verbose.getValue() >= 3) {
-      VM.sysWrite(semanticsStr);
-      VM.sysWriteln(" references: ",maxIndex," -> ",toIndex);
-    }
-    nurseryIndex = maxIndex = toIndex;
 
     /* flush out any remset entries generated during the above activities */
     Selected.Mutator.get().flushRememberedSets();
@@ -348,26 +360,55 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
+   * This method deals only with soft references. It retains the referent
+   * if the reference is definitely reachable.
+   * @param reference the address of the reference. This may or may not
+   * be the address of a heap object, depending on the VM.
+   * @param trace the thread local trace element.
+   */
+  protected void retainReferent(TraceLocal trace, ObjectReference reference) {
+    if (VM.VerifyAssertions) VM._assert(!reference.isNull());
+    if (VM.VerifyAssertions) VM._assert(semantics == Semantics.SOFT);
+
+    if (TRACE_DETAIL) {
+      VM.sysWrite("Processing reference: ",reference);
+    }
+
+    if (!trace.isLive(reference)) {
+      /*
+       * Reference is currently unreachable but may get reachable by the
+       * following trace. We postpone the decision.
+       */
+      return;
+    }
+
+    /*
+     * Reference is definitely reachable.  Retain the referent.
+     */
+    ObjectReference referent = getReferent(reference);
+    if (!referent.isNull())
+      trace.retainReferent(referent);
+    if (TRACE_DETAIL) {
+      VM.sysWriteln(" ~> ", referent.toAddress(), " (retained)");
+    }
+  }
+
+  /**
    * Put this Reference object on its ReferenceQueue (if it has one)
    * when its referent is no longer sufficiently reachable. The
    * definition of "reachable" is defined by the semantics of the
-   * particular subclass of Reference. The implementation of this
-   * routine is determined by the the implementation of
-   * java.lang.ref.ReferenceQueue in GNU classpath. It is in this
-   * class rather than the public Reference class to ensure that Jikes
-   * has a safe way of enqueueing the object, one that cannot be
-   * overridden by the application program.
-   *
-   * ************************ TODO *********************************
-   * Change this so that we don't call reference.enqueue directly
-   * as this can be overridden by the user.
-   * ***************************************************************
+   * particular subclass of Reference.
+   * <p>
+   * The implementation of this routine is determined by the the
+   * implementation of java.lang.ref.ReferenceQueue in the class library.
+   * It is in this class rather than the public Reference class to
+   * ensure that Jikes has a safe way of enqueueing the object,
+   * one that cannot be overridden by the application program.
    *
    * @see java.lang.ref.ReferenceQueue
    * @param addr the address of the Reference object
    * @return <code>true</code> if the reference was enqueued
    */
-  @Unpreemptible
   public boolean enqueueReference(ObjectReference addr) {
     Reference<?> reference = (Reference<?>)addr.toObject();
     return reference.enqueueInternal();
@@ -376,6 +417,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference to the list of soft references.
    * @param ref the SoftReference to add
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addSoftCandidate(SoftReference<?> ref, ObjectReference referent) {
@@ -385,6 +427,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference to the list of weak references.
    * @param ref the WeakReference to add
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addWeakCandidate(WeakReference<?> ref, ObjectReference referent) {
@@ -394,6 +437,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference to the list of phantom references.
    * @param ref the PhantomReference to add
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addPhantomCandidate(PhantomReference<?> ref, ObjectReference referent) {
@@ -407,12 +451,19 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    */
 
   /**
-   * Process a reference with the current semantics.
+   * Processes a reference with the current semantics.
+   * <p>
+   * This method deals with  a soft reference as if it were a weak reference, i.e.
+   * it does not retain the referent. To retain the referent, use
+   * {@link #retainReferent(TraceLocal, ObjectReference)} followed by a transitive
+   * closure phase.
+   *
    * @param reference the address of the reference. This may or may not
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
+   * @return an updated reference (e.g. with a new address) if the reference
+   *  is still live, {@code ObjectReference.nullReference()} otherwise
    */
-  @UninterruptibleNoWarn("Call out to ReferenceQueue API")
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 
@@ -425,7 +476,9 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
      */
     if (!trace.isLive(reference)) {
       clearReferent(reference);                   // Too much paranoia ...
-      if (TRACE_UNREACHABLE) { VM.sysWriteln(" UNREACHABLE reference:  ",reference); }
+      if (TRACE_UNREACHABLE) {
+        VM.sysWriteln(" UNREACHABLE reference:  ",reference);
+      }
       if (TRACE_DETAIL) {
         VM.sysWriteln(" (unreachable)");
       }
@@ -452,24 +505,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
 
     if (TRACE_DETAIL)  VM.sysWrite(" => ",newReference);
-
-    if (semantics == Semantics.SOFT) {
-      /*
-       * Unless we've completely run out of memory, we keep
-       * softly reachable objects alive.
-       */
-      if (!Plan.isEmergencyCollection()) {
-        if (TRACE_DETAIL) VM.sysWrite(" (soft) ");
-        trace.retainReferent(oldReferent);
-      }
-    } else if (semantics == Semantics.PHANTOM) {
-      /*
-       * The spec says we should forward the reference.  Without unsafe uses of
-       * reflection, the application can't tell the difference whether we do or not,
-       * so we don't forward the reference.
-       */
-//    trace.retainReferent(oldReferent);
-    }
 
     if (trace.isLive(oldReferent)) {
       if (VM.VerifyAssertions) {
@@ -522,9 +557,12 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Weak and soft references always clear the referent
    * before enqueueing. We don't actually call
-   * Reference.clear() as the user could have overridden the
+   * {@code Reference.clear()} as the user could have overridden the
    * implementation and we don't want any side-effects to
    * occur.
+   *
+   * @param newReference the reference whose referent is to
+   *  be cleared
    */
   protected void clearReferent(ObjectReference newReference) {
     setReferent(newReference, ObjectReference.nullReference());

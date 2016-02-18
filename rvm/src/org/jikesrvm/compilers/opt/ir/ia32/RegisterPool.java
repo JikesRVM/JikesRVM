@@ -12,12 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
@@ -30,14 +29,14 @@ import org.vmmagic.unboxed.Address;
  *
  * @see org.jikesrvm.compilers.opt.ir.Register
  */
-public abstract class RegisterPool extends GenericRegisterPool implements Operators {
+public final class RegisterPool extends GenericRegisterPool {
 
   /**
    * Initializes a new register pool for the method meth.
    *
    * @param meth the RVMMethod of the outermost method
    */
-  protected RegisterPool(RVMMethod meth) {
+  public RegisterPool(RVMMethod meth) {
     super(meth);
   }
 
@@ -48,12 +47,17 @@ public abstract class RegisterPool extends GenericRegisterPool implements Operat
    *       but that causes rippling changes in BURS that are larger
    *       than we want to deal with right now.
    *
-   * @param  ir  the containing IR
-   * @param s    the instruction to insert the load operand before
-   * @return a register operand that holds the JTOC
+   * @return an operand that holds the JTOC
    */
-  public Operand makeJTOCOp(IR ir, Instruction s) {
+  @Override
+  public Operand makeJTOCOp() {
     Address jtoc = Magic.getTocPointer();
-    return new IntConstantOperand(jtoc.toInt());
+    return VM.BuildFor32Addr ? new IntConstantOperand(jtoc.toInt()) :
+      new LongConstantOperand(jtoc.toLong());
+  }
+
+  @Override
+  public Operand makeTocOp() {
+    return makeJTOCOp();
   }
 }

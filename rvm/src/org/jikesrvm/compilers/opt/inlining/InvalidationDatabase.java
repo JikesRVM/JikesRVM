@@ -75,8 +75,11 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * Record that if a particular RVMMethod method is ever overridden, then
+   * Records that if a particular RVMMethod method is ever overridden, then
    * the CompiledMethod encoded by the cmid must be invalidated.
+   *
+   * @param source a method
+   * @param dependent_cmid id of the method that must be invalidated
    */
   public void addNotOverriddenDependency(RVMMethod source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(nonOverriddenHash, source);
@@ -84,8 +87,11 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * Delete a NotOverriddenDependency.
+   * Deletes a NotOverriddenDependency.
    * No effect if the dependency doesn't exist..
+   *
+   * @param source a method
+   * @param dependent_cmid id of the method that must be invalidated
    */
   public void removeNotOverriddenDependency(RVMMethod source, int dependent_cmid) {
     MethodSet s = nonOverriddenHash.get(source);
@@ -96,6 +102,8 @@ public final class InvalidationDatabase {
 
   /**
    * Delete all NotOverridden dependencies on the argument RVMMethod
+   *
+   * @param source a method
    */
   public void removeNotOverriddenDependency(RVMMethod source) {
     nonOverriddenHash.remove(source);
@@ -122,8 +130,11 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * Record that if a particular RVMClass ever has a subclass, then
+   * Records that if a particular RVMClass ever has a subclass, then
    * the CompiledMethod encoded by the cmid must be invalidated.
+   *
+   * @param source a class
+   * @param dependent_cmid id of the method that must be invalidated
    */
   public void addNoSubclassDependency(RVMClass source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(noSubclassHash, source);
@@ -131,7 +142,10 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * Delete a NoSubclassDependency. No effect if the dependency doesn't exist..
+   * Delete as NoSubclassDependency. No effect if the dependency doesn't exist..
+   *
+   * @param source a class
+   * @param dependent_cmid id of the method that must be invalidated
    */
   public void removeNoSubclassDependency(RVMClass source, int dependent_cmid) {
     MethodSet s = noSubclassHash.get(source);
@@ -141,15 +155,21 @@ public final class InvalidationDatabase {
   }
 
   /**
-   * Delete all NoSubclass dependencies on the argument RVMClass
+   * Deletes all NoSubclass dependencies on the argument RVMClass.
+   *
+   * @param source class whose dependencies are to be removed
    */
   public void removeNoSubclassDependency(RVMClass source) {
     noSubclassHash.remove(source);
   }
 
   /**
-   * Look up the MethodSet corresponding to a given key in the database.
-   * If none found, create one.
+   * Looks up the MethodSet corresponding to a given key in the database.
+   *
+   * @param <T> type of the key in the database
+   * @param hash the database
+   * @param key the key
+   * @return the method set for the given key
    */
   private <T> MethodSet findOrCreateMethodSet(HashMapRVM<T, MethodSet> hash, T key) {
     MethodSet result = hash.get(key);

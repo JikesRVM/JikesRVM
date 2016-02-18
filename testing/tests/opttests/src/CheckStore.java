@@ -33,7 +33,6 @@ class CheckStore {
 
 
   static void run1(Object input) {
-
     Object[] n = new Integer[1];
     n[0] = new Integer(0);
     n[0] = input;
@@ -42,7 +41,6 @@ class CheckStore {
   static Object[] global = new Object[2];
 
   static void run3(Object input) {
-
     Object[] n = new Object[1];
     n[0] = input;
     global[0] = new Integer(0);

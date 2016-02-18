@@ -48,7 +48,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
   @Override
   @Unpreemptible
   public void run() {
-    while(true) {
+    while (true) {
       park();
       if (Plan.concurrentWorkers.isMember(this)) {
         concurrentCollect();
@@ -103,7 +103,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
         VM.assertions._assert(!Plan.gcInProgress());
       }
       TraceLocal trace = getCurrentTrace();
-      while(!trace.incrementalTrace(100)) {
+      while (!trace.incrementalTrace(100)) {
         if (group.isAborted()) {
           trace.flush();
           break;
@@ -136,7 +136,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
   }
 
   /**
-   * Has all work been completed?
+   * @return whether all work has been completed
    */
   protected abstract boolean concurrentTraceComplete();
 

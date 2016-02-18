@@ -65,6 +65,8 @@
   <target name="test" depends="compile">
     <startResults/>
 
+    <successMessageTest tag="TestOffset" class="test.org.jikesrvm.basic.core.intrinsics.TestOffset"/>
+
     <runCompareTest tag="TestClassHierarchy" class="test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy"/>
     <runCompareTest tag="TestArithmetic" class="test.org.jikesrvm.basic.core.bytecode.TestArithmetic"/>
     <runCompareTest tag="TestArrayAccess" class="test.org.jikesrvm.basic.core.bytecode.TestArrayAccess"/>
@@ -95,6 +97,8 @@
                     class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInstanceof"
                     rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
 
+    <runCompareTest tag="TestNullChecks" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks"/>
+
     <runCompareTest tag="tClass" class="test.org.jikesrvm.basic.core.reflect.tClass"/>
     <runCompareTest tag="tArray" class="test.org.jikesrvm.basic.core.reflect.tArray"/>
     <runCompareTest tag="TestFieldReflection" class="test.org.jikesrvm.basic.core.reflect.TestFieldReflection"/>
@@ -113,7 +117,14 @@
     <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
     <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend"/>
     <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
-    <runCompareTest tag="TestVolatiles" class="test.org.jikesrvm.basic.core.threads.TestVolatiles"/>
+    <runCompareTest tag="TestVolatileStaticLongs" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticLongs"/>
+    <runCompareTest tag="TestVolatileStaticLongsUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticLongsUnresolved"/>
+    <runCompareTest tag="TestVolatileStaticDoubles" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticDoubles"/>
+    <runCompareTest tag="TestVolatileStaticDoublesUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticDoublesUnresolved"/>
+    <runCompareTest tag="TestVolatileLongs" class="test.org.jikesrvm.basic.core.threads.TestVolatileLongs"/>
+    <runCompareTest tag="TestVolatileLongsUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileLongsUnresolved"/>
+    <runCompareTest tag="TestVolatileDoubles" class="test.org.jikesrvm.basic.core.threads.TestVolatileDoubles"/>
+    <runCompareTest tag="TestVolatileDoublesUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileDoublesUnresolved"/>
 
     <runCompareTest tag="TestShutdownHook" class="test.org.jikesrvm.basic.core.threads.TestShutdownHook" timeLimit="20"/>
     <runCompareTest tag="TestShutdownHookAfterExit" class="test.org.jikesrvm.basic.core.threads.TestShutdownHookAfterExit"/>
@@ -126,6 +137,7 @@
     <runCompareTest tag="TestLoadingWithoutName" class="test.org.jikesrvm.basic.core.classloading.TestLoadingWithoutName"/>
 
     <runCompareTest tag="TestMath" class="test.org.jikesrvm.basic.java.lang.TestMath"/>
+    <runCompareTest tag="TestSystem" class="test.org.jikesrvm.basic.java.lang.TestSystem"/>
     <runCompareTest tag="TestFileChannel" class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
 
     <runCompareTest tag="TestAgent" class="test.org.jikesrvm.basic.core.instrument.TestAgent"
@@ -151,8 +163,11 @@
     <runCompareTest tag="RVM_550" class="test.org.jikesrvm.basic.bugs.RVM_550"/>
     <runCompareTest tag="RVM_703" class="test.org.jikesrvm.basic.bugs.RVM_703"/>
     <runCompareTest tag="RVM_708" class="test.org.jikesrvm.basic.bugs.RVM_708"/>
+    <runCompareTest tag="RVM_853" class="test.org.jikesrvm.basic.bugs.RVM_853"/>
+    <runCompareTest tag="RVM_868" class="test.org.jikesrvm.basic.bugs.RVM_868"/>
     <runCompareTest tag="RVM_914" class="test.org.jikesrvm.basic.bugs.RVM_914"/>
     <runCompareTest tag="RVM_915" class="test.org.jikesrvm.basic.bugs.RVM_915"/>
+    <runCompareTest tag="RVM_966" class="test.org.jikesrvm.basic.bugs.RVM_966" exitCode="113"/>
     <finishResults/>
   </target>
 

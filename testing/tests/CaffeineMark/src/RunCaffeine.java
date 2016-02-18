@@ -62,7 +62,7 @@ class RunCaffeine {
 
   static void runTest(BenchmarkUnit benchmark) {
     try {
-      System.out.println(run + " " + benchmark.testName()+" score:\t"+benchmark.testScore());
+      System.out.println(run + " " + benchmark.testName() + " score:\t" + benchmark.testScore());
     } catch (Throwable x) {
       x.printStackTrace(System.err);
     }

@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_fstore;
 
 /**
  * BC_FloatStore: {@code fstore}, {@code fstore_<i>}
@@ -19,7 +20,7 @@ package org.jikesrvm.osr.bytecodes;
 public class FloatStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;
-  private int lnum;
+  private final int lnum;
 
   public FloatStore(int local) {
     this.lnum = local;

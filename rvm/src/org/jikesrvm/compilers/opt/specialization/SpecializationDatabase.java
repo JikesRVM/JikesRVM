@@ -72,9 +72,9 @@ public final class SpecializationDatabase {
   }
 
   /**
-   * Return an iteration of SpecializedMethods that represents
-   * specialized compiled versions of the method pointed by RVMMethod
-   * @return null if no specialized versions
+   * @param m the method whose specialized methods are queried
+   * @return an iteration of specialized compiled versions, {@code null}
+   *  if no specialized versions
    */
   static synchronized Iterator<SpecializedMethod> getSpecialVersions(RVMMethod m) {
     MethodSet<RVMMethod> s = specialVersionsHash.get(m);
@@ -97,9 +97,11 @@ public final class SpecializationDatabase {
   }
 
   /**
-   * Record a new specialized method in this database.
+   * Records a new specialized method in this database.
    * Also remember that this method will need to be compiled later,
    * at the next call to <code> doDeferredSpecializations() </code>
+   *
+   * @param spMethod the method to register
    */
   static synchronized void registerSpecialVersion(SpecializedMethod spMethod) {
     RVMMethod source = spMethod.getMethod();
@@ -109,8 +111,12 @@ public final class SpecializationDatabase {
   }
 
   /**
-   * Look up the MethodSet corresponding to a given key in the database
-   * If none found, create one.
+   * Looks up the MethodSet corresponding to a given key in the database.
+   *
+   * @param <T> type of the key in the database
+   * @param hash the database
+   * @param key the key
+   * @return the method set for the given key
    */
   private static <T> MethodSet<T> findOrCreateMethodSet(ImmutableEntryHashMapRVM<T, MethodSet<T>> hash, T key) {
     MethodSet<T> result = hash.get(key);

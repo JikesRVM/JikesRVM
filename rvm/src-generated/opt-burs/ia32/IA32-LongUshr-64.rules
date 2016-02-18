@@ -1,0 +1,45 @@
+#####
+# LONG_USHR
+#####
+szpr:	LONG_USHR(rlv, LONG_AND(r, LONG_CONSTANT))
+VRR(p) == 63 ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PR(p))))); \\
+EMIT_NonCommutative(IA32_SHR, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), new RegisterOperand(getECX(), TypeReference.Int));
+
+szpr:	LONG_USHR(rlv, riv)
+23
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal2(P(p))))); \\
+EMIT_NonCommutative(IA32_SHR, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), new RegisterOperand(getECX(), TypeReference.Int));
+
+szpr:	LONG_USHR(rlv, LONG_CONSTANT)
+13
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 63); \\
+EMIT_NonCommutative(IA32_SHR, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+### Memory operands ###
+stm:	LONG_STORE(LONG_USHR(LONG_LOAD(riv,riv),LONG_AND(r,LONG_CONSTANT)),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), VLRR(p) == 63 ? 27 : INFINITE)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PLR(p))))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), QW), new RegisterOperand(getECX(), TypeReference.Int)));
+
+stm:	LONG_STORE(LONG_USHR(LONG_LOAD(riv,riv), LONG_CONSTANT),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 63); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), QW), Binary.getVal2(PL(p))));
+
+stm:	LONG_ASTORE(LONG_USHR(LONG_ALOAD(riv,riv),LONG_AND(r, LONG_CONSTANT)),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLRR(p) == 63 ? 27 : INFINITE)
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getECX(), TypeReference.Int), Binary.getVal1(PLR(p)))); \\
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), QW_S, QW), new RegisterOperand(getECX(), TypeReference.Int)));
+
+stm:	LONG_ASTORE(LONG_USHR(LONG_ALOAD(riv,riv), LONG_CONSTANT),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLR(p) == 63 ? 17 : INFINITE)
+EMIT_INSTRUCTION
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), QW_S, QW), Binary.getVal2(PL(p))));
+

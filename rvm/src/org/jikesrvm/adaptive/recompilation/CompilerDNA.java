@@ -12,12 +12,13 @@
  */
 package org.jikesrvm.adaptive.recompilation;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.StringTokenizer;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.classloader.NormalMethod;
@@ -39,7 +40,7 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
  * The PowerPC data was gathered on piccolo.watson.ibm.com (JS21, machine type 8884; ppc64-aix).
  * The IA32 data was gathered on lyric.watson.ibm.com (LS41, machine type 7972; x86_64-linux).
  */
-public class CompilerDNA implements Constants {
+public class CompilerDNA {
 
   private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
   public static final int BASELINE = 0;
@@ -109,8 +110,8 @@ public class CompilerDNA implements Constants {
 
   /**
    * This method returns the expected speedup from going from compiler1 to compiler2
-   * @param compiler1
-   * @param compiler2
+   * @param compiler1 old compiler
+   * @param compiler2 new compiler
    * @return the benefit ratio (speedup) of moving from compiler1 to compiler2
    */
   public static double getBenefitRatio(int compiler1, int compiler2) {
@@ -238,6 +239,7 @@ public class CompilerDNA implements Constants {
    *  @param in the LineNumberReader object
    *  @param title the title string to look for
    *  @param valueHolder the array to hold the read values
+   *  @throws IOException when there's a failure during processing of the file
    */
   private static void processOneLine(LineNumberReader in, String title, double[] valueHolder) throws IOException {
 
@@ -258,7 +260,7 @@ public class CompilerDNA implements Constants {
       token = parser.nextToken();
 
       // convert token to a double
-      valueHolder[i] = Double.valueOf(token);
+      valueHolder[i] = Double.parseDouble(token);
     }
   }
 
@@ -293,7 +295,7 @@ public class CompilerDNA implements Constants {
 
   /**
    * maps a compiler constant to a string
-   * @param compiler
+   * @param compiler the constant for the compiler
    * @return the string that represents the passed compiler constant
    */
   public static String getCompilerString(int compiler) {

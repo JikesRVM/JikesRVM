@@ -42,4 +42,3 @@ class t3GTWorker2 extends Thread {
 
   }
 }
-

@@ -26,6 +26,8 @@
 
   <property name="test.class.path" value="${build.classes}"/>
 
+  <import file="../../../build.xml"/>
+  
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                            Macro to run the tests                        * -->
@@ -38,14 +40,14 @@
       <javah classpath="${build.classes}" outputFile="${build.native}/@{class}.h">
         <class name="@{class}"/>
       </javah>
-      <exec executable="${c.exe}" failonerror="true">
-        <arg line="${shld.args}"/>
-        <arg value="-I${build.native}"/>
-        <arg value="-I${jikesrvm.dir}/include"/>
-        <arg value="-o"/>
-        <arg value="${build.tests.dir}/${target.dll-prefix}@{class}${target.jni-suffix}"/>
-        <arg value="${main.java}/@{class}.c"/>
-      </exec>
+      <CompileCtoObj cfile="${main.java}/@{class}.c"
+                     objfile="${build.tests.dir}/${target.obj-prefix}@{class}${target.obj-ext}"
+                     cargs="-I${build.native} -I${jikesrvm.dir}/include ${c.args}"/>
+      <CreateDLL outdir="${build.tests.dir}" dllname="@{class}" srcdir="${main.java}">
+        <ObjectFiles>
+          <arg value="${build.tests.dir}/${target.obj-prefix}@{class}${target.obj-ext}"/>
+        </ObjectFiles>
+      </CreateDLL>
       <rvm tag="@{class}" class="@{class}" args="-quiet" rvmArgs="-Djava.library.path=${build.tests.dir}"/>
       <findStatistic tag="@{class}" pattern="PASS:" key="pass"/>
       <outputResults tag="@{class}"/>

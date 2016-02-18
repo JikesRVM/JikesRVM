@@ -43,8 +43,9 @@ public class EnumOption extends Option {
   }
 
   /**
-   * Search for a string in the enumeration.
+   * Searches for a string in the enumeration.
    *
+   * @param string the string to search for
    * @return The index of the passed string.
    */
   private int findValue(String string) {

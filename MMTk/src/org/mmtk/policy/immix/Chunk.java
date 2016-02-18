@@ -14,8 +14,8 @@ package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.Space.BYTES_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.*;
+import static org.mmtk.utility.Constants.*;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.vm.VM;
@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 
 @Uninterruptible
-public class Chunk implements Constants {
+public class Chunk {
 
   public static Address align(Address ptr) {
     return ptr.toWord().and(CHUNK_MASK.not()).toAddress();
@@ -40,7 +40,7 @@ public class Chunk implements Constants {
   }
 
   /**
-   * Return the number of pages of metadata required per chunk.
+   * @return the number of pages of metadata required per chunk
    */
   static int getRequiredMetaDataPages() {
     Extent bytes = Extent.fromIntZeroExtend(ROUNDED_METADATA_BYTES_PER_CHUNK);
@@ -52,7 +52,7 @@ public class Chunk implements Constants {
     Address start = getFirstUsableBlock(chunk);
     Address cursor = Block.getBlockMarkStateAddress(start);
     for (int index = FIRST_USABLE_BLOCK_INDEX; index < BLOCKS_IN_CHUNK; index++) {
-      Address block = chunk.plus(index<<LOG_BYTES_IN_BLOCK);
+      Address block = chunk.plus(index << LOG_BYTES_IN_BLOCK);
       if (block.GT(end)) break;
       final boolean defragSource = space.inImmixDefragCollection() && Block.isDefragSource(block);
       short marked = Block.sweepOneBlock(block, markHistogram, markValue, resetMarks);
@@ -146,9 +146,9 @@ public class Chunk implements Constants {
   }
 
   private static final int LOG_BYTES_IN_HIGHWATER_ENTRY = LOG_BYTES_IN_ADDRESS;
-  private static final int HIGHWATER_BYTES = 1<<LOG_BYTES_IN_HIGHWATER_ENTRY;
+  private static final int HIGHWATER_BYTES = 1 << LOG_BYTES_IN_HIGHWATER_ENTRY;
   private static final int LOG_BYTES_IN_MAP_ENTRY = LOG_BYTES_IN_INT;
-  private static final int MAP_BYTES = 1<<LOG_BYTES_IN_MAP_ENTRY;
+  private static final int MAP_BYTES = 1 << LOG_BYTES_IN_MAP_ENTRY;
 
   /* byte offsets for each type of metadata */
   static final int LINE_MARK_TABLE_OFFSET = 0;
@@ -159,8 +159,8 @@ public class Chunk implements Constants {
   static final int METADATA_BYTES_PER_CHUNK = MAP_OFFSET + MAP_BYTES;
 
   /* FIXME we round the metadata up to block sizes just to ensure the underlying allocator gives us aligned requests */
-  private static final int BLOCK_MASK = (1<<LOG_BYTES_IN_BLOCK) - 1;
+  private static final int BLOCK_MASK = (1 << LOG_BYTES_IN_BLOCK) - 1;
   static final int ROUNDED_METADATA_BYTES_PER_CHUNK = (METADATA_BYTES_PER_CHUNK + BLOCK_MASK) & ~BLOCK_MASK;
-  static final int ROUNDED_METADATA_PAGES_PER_CHUNK = ROUNDED_METADATA_BYTES_PER_CHUNK>>LOG_BYTES_IN_PAGE;
-  public static final int FIRST_USABLE_BLOCK_INDEX = ROUNDED_METADATA_BYTES_PER_CHUNK>>LOG_BYTES_IN_BLOCK;
+  static final int ROUNDED_METADATA_PAGES_PER_CHUNK = ROUNDED_METADATA_BYTES_PER_CHUNK >> LOG_BYTES_IN_PAGE;
+  public static final int FIRST_USABLE_BLOCK_INDEX = ROUNDED_METADATA_BYTES_PER_CHUNK >> LOG_BYTES_IN_BLOCK;
 }

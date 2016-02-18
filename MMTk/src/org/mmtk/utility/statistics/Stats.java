@@ -23,7 +23,10 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements basic statistics functionality
+ * This class implements basic statistics functionality.
+ * <p>
+ * In general, statistics are only available if gathering has been enabled.
+ * The sole exception is the count of collections which is always available.
  */
 @Uninterruptible
 public class Stats {
@@ -192,7 +195,7 @@ public class Stats {
   public static void printTotals() {
     Log.writeln("============================ MMTk Statistics Totals ============================");
     printColumnNames();
-    Log.write(phase/2); Log.write("\t");
+    Log.write(phase / 2); Log.write("\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
         counter[c].printTotal(); Log.write("\t");
@@ -215,13 +218,13 @@ public class Stats {
     Log.writeln("--------------------- MMTk Statistics Per GC/Mutator Phase ---------------------");
     printColumnNames();
     for (int p = 0; p <= phase; p += 2) {
-      Log.write((p/2)+1); Log.write("\t");
+      Log.write((p / 2) + 1); Log.write("\t");
       for (int c = 0; c < counters; c++) {
         if (counter[c].mergePhases()) {
           counter[c].printCount(p); Log.write("\t");
         } else {
           counter[c].printCount(p); Log.write("\t");
-          counter[c].printCount(p+1); Log.write("\t");
+          counter[c].printCount(p + 1); Log.write("\t");
         }
       }
       Log.writeln();
@@ -287,7 +290,9 @@ public class Stats {
       this.name = name;
     }
     @Override
-    public String toString() { return name; }
+    public String toString() {
+      return name;
+    }
   }
 
   /**
@@ -296,7 +301,7 @@ public class Stats {
   @Interruptible
   public static void printTotalsXml() {
     Xml.openTag("mmtk-stats-totals");
-    Xml.singleValue("gc", phase/2);
+    Xml.singleValue("gc", phase / 2);
     for (int c = 0; c < counters; c++) {
      if (!counter[c].isComplex())
       if (counter[c].mergePhases()) {
@@ -365,7 +370,7 @@ public class Stats {
     Xml.openTag("mmtk-stats-per-gc");
     for (int p = 0; p <= phase; p += 2) {
       Xml.openTag("phase",false);
-      Xml.attribute("gc",(p/2)+1);
+      Xml.attribute("gc",(p / 2) + 1);
       Xml.closeMinorTag();
       for (int c = 0; c < counters; c++) {
        if (!counter[c].isComplex())
@@ -381,9 +386,20 @@ public class Stats {
     Xml.closeTag("mmtk-stats-per-gc");
   }
 
-  /** @return The GC count (inclusive of any in-progress GC) */
-  public static int gcCount() { return gcCount; }
+  /**
+   * Returns the total count of collections.
+   * <p>
+   * Note: This count is available even when gathering of statistics
+   * is disabled.
+   *
+   * @return The GC count (inclusive of any in-progress GC)
+   */
+  public static int gcCount() {
+    return gcCount;
+  }
 
   /** @return {@code true} if currently gathering stats */
-  public static boolean gatheringStats() { return gatheringStats; }
+  public static boolean gatheringStats() {
+    return gatheringStats;
+  }
 }

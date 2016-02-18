@@ -1,0 +1,167 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="Jikes RVM Checkstyle plugins">
+
+  <property name="plugins.java.version" value="1.6"/>
+  <property name="plugins.basedir" value="${jikesrvm.dir}/tools/checkstyle-plugins"/>
+  <property name="plugins.build.dir" location="${build.dir}/checkstyle-plugins"/>
+  <property name="plugins.classes" location="${plugins.build.dir}/classes"/>
+  <property name="plugins.package-config" value="${plugins.basedir}/checkstyle_packages.xml"/>
+  <property name="plugins.src" value="${plugins.basedir}/src"/>
+
+  <property name="plugin.assertion.classes" location="${plugins.build.dir}/assertion-classes"/>
+  <property name="plugin.assertion.jar.dir" location="${plugins.build.dir}/plugin-assertion-jar"/>
+  <property name="plugin.assertion.jar" value="${plugin.assertion.jar.dir}/jikes-rvm-assertion-style-checkstyle-plugin.jar"/>
+  <property name="plugin.assertion.test.output.xml" value="${plugins.build.dir}/checkstyle-report-for-assertion-plugin-testfile.xml"/>
+  <property name="plugin.assertion.test.output.txt" value="${plugins.build.dir}/checkstyle-report-for-assertion-plugin-testfile.txt"/>
+  <property name="plugin.assertion.test.expected" value="${plugins.basedir}/test-file/AssertionStyleTest.expected"/>
+  <property name="plugin.assertion.src-file" value="**/JikesRVMAssertionStyle.java"/>
+
+  <property name="plugin.architecture-import-restrictions.classes" location="${plugins.build.dir}/architecture-import-restrictions-classes"/>
+  <property name="plugin.architecture-import-restrictions.jar.dir" location="${plugins.build.dir}/plugin-architecture-import-restrictions-jar"/>
+  <property name="plugin.architecture-import-restrictions.jar" value="${plugin.architecture-import-restrictions.jar.dir}/jikes-rvm-architecture-import-restrictions-checkstyle-plugin.jar"/>
+  <property name="plugin.architecture-import-restrictions.test.output.xml" value="${plugins.build.dir}/checkstyle-report-for-architecture-import-restrictions-plugin-testfile.xml"/>
+  <property name="plugin.architecture-import-restrictions.test.output.txt" value="${plugins.build.dir}/checkstyle-report-for-architecture-import-restrictions-plugin-testfile.txt"/>
+  <property name="plugin.architecture-import-restrictions.test.expected" value="${plugins.basedir}/test-file/ArchitectureImportRestrictionsTest.expected"/>
+  <property name="plugin.architecture-import-restrictions.src-file" value="**/JikesRVMArchitectureImportRestrictions.java"/>
+
+  <property name="checkstyle.plugin.combined.classes" value="${plugins.build.dir}/all-checkstyle-plugins/"/>
+  <property name="checkstyle.plugin.combined.jar" value="${checkstyle.plugin.combined.classes}/all-checkstyle-plugins.jar"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *        Build and test the Checkstyle plugins                             * -->
+  <!-- *        Do each plugin separately to make debugging easier                * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile-checkstyle-assertion-plugin">
+    <mkdir dir="${plugin.assertion.classes}"/>
+    <mkdir dir="${plugin.assertion.jar.dir}"/>
+    <javac srcdir="${plugins.src}" destdir="${plugin.assertion.classes}" debug="true"
+      classpath="${checkstyle.jar}" source="${plugins.java.version}" target="${plugins.java.version}"
+      includeantruntime="false"
+      excludes="${plugin.architecture-import-restrictions.src-file}"/>
+    <!-- Configure packages so that we can use a simple name instead of the fully-qualified one -->
+    <copy file="${plugins.package-config}" todir="${plugin.assertion.classes}"/>
+    <jar destfile="${plugin.assertion.jar}" basedir="${plugin.assertion.classes}"/>
+  </target>
+
+  <target name="test-checkstyle-assertion-plugin" depends="compile-checkstyle-assertion-plugin">
+    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${plugin.assertion.jar}"/>
+
+    <checkstyle config="build/checkstyle/reduced-set-for-jikes-rvm-assertion-style-check-test.xml" failOnViolation="false">
+      <formatter type="xml" tofile="${plugin.assertion.test.output.xml}"/>
+      <fileset dir="tools" includes="**/AssertionStyleTest.java"/>
+    </checkstyle>
+
+    <xslt in="${plugin.assertion.test.output.xml}"
+           out="${plugin.assertion.test.output.txt}"
+           style="build/checkstyle/text-output-without-file-assertions.xsl"/>
+
+    <checksum file="${plugin.assertion.test.expected}" property="plugin.assertion.test.expected.checksum"/>
+    <checksum file="${plugin.assertion.test.output.txt}" property="plugin.assertion.test.output.checksum"/>
+
+    <!-- Intended for debugging
+    <echo message="Checksum for expected is ${plugin.assertion.test.expected.checksum}"/>
+    <echo message="Checksum for output is   ${plugin.assertion.test.output.checksum}"/>
+    -->
+
+    <!-- Intended for debugging
+    <loadfile property="checkstyle-plugin-test.output" srcFile="${plugin.assertion.test.output.txt}"/>
+    <echo message="${checkstyle-plugin-test.output}"/>
+    -->
+
+    <checksum file="${plugin.assertion.test.expected}" property="${plugin.assertion.test.expected.checksum}" verifyproperty="plugin.assertion.test.ok"/>
+
+    <fail message="Tests for the Checkstyle Jikes RVM assertion style plugin failed (checksum mismatch)!">
+      <condition>
+        <not>
+          <istrue value="${plugin.assertion.test.ok}"/>
+        </not>
+      </condition>
+    </fail>
+  </target>
+
+  <target name="compile-checkstyle-architecture-restrictions-plugin">
+    <mkdir dir="${plugin.architecture-import-restrictions.classes}"/>
+    <mkdir dir="${plugin.architecture-import-restrictions.jar.dir}"/>
+    <javac srcdir="${plugins.src}" destdir="${plugin.architecture-import-restrictions.classes}" debug="true"
+      classpath="${checkstyle.jar}" source="${plugins.java.version}" target="${plugins.java.version}"
+      includeantruntime="false"
+      excludes="${plugin.assertion.src-file}"/>
+    <!-- Configure packages so that we can use a simple name instead of the fully-qualified one -->
+    <copy file="${plugins.package-config}" todir="${plugin.architecture-import-restrictions.classes}"/>
+    <jar destfile="${plugin.architecture-import-restrictions.jar}" basedir="${plugin.architecture-import-restrictions.classes}"/>
+  </target>
+
+  <target name="test-checkstyle-architecture-restrictions-plugin" depends="compile-checkstyle-architecture-restrictions-plugin">
+    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${plugin.architecture-import-restrictions.jar}"/>
+    <!-- Note that the output of this won't be very useful in case of failures because
+      the report won't contain file names. To change this, change the checkstyle config,
+      which should already have commented out code for file names. -->
+    <checkstyle config="build/checkstyle/reduced-set-for-jikes-rvm-architecture-import-check-test.xml" failOnViolation="false">
+      <property key="checkstyle.known.archs" value="bar,foo"/>
+      <property key="checkstyle.target.arch" value="bar"/>
+      <formatter type="xml" tofile="${plugin.architecture-import-restrictions.test.output.xml}"/>
+      <fileset dir="tools" includes="**/ArchitectureImportRestrictions*.java"/>
+    </checkstyle>
+
+    <xslt in="${plugin.architecture-import-restrictions.test.output.xml}"
+          out="${plugin.architecture-import-restrictions.test.output.txt}"
+          style="build/checkstyle/text-output-without-file-architecture-import-restrictions.xsl"/>
+
+    <checksum file="${plugin.architecture-import-restrictions.test.expected}" property="plugin.architecture-import-restrictions.test.expected.checksum"/>
+    <checksum file="${plugin.architecture-import-restrictions.test.output.txt}" property="plugin.architecture-import-restrictions.test.output.checksum"/>
+
+    <!-- Intended for debugging
+    <echo message="Checksum for expected is ${plugin.architecture-import-restrictions.test.expected.checksum}"/>
+    <echo message="Checksum for output is   ${plugin.architecture-import-restrictions.test.output.checksum}"/>
+    -->
+
+    <!-- Intended for debugging
+    <loadfile property="checkstyle-plugin-test.output" srcFile="${plugin.architecture-import-restrictions.test.output.txt}"/>
+    <echo message="${checkstyle-plugin-test.output}"/>
+    -->
+
+    <checksum file="${plugin.architecture-import-restrictions.test.output.txt}" property="${plugin.architecture-import-restrictions.test.expected.checksum}" verifyproperty="plugin.architecture-import-restrictions.test.ok"/>
+
+    <fail message="Tests for the Checkstyle Jikes RVM architecture import restrictions plugin failed (checksum mismatch)!">
+      <condition>
+        <not>
+          <istrue value="${plugin.architecture-import-restrictions.test.ok}"/>
+        </not>
+      </condition>
+    </fail>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *        Combine the results from the separate plugins                     * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test-checkstyle-plugins" depends="test-checkstyle-assertion-plugin, test-checkstyle-architecture-restrictions-plugin"/>
+
+  <target name="compile-plugins-into-single-jar" depends="test-checkstyle-plugins">
+    <mkdir dir="${checkstyle.plugin.combined.classes}"/>
+    <javac srcdir="${plugins.src}" destdir="${checkstyle.plugin.combined.classes}" debug="true"
+      classpath="${checkstyle.jar}" source="${plugins.java.version}" target="${plugins.java.version}"
+      includeantruntime="false"/>
+    <!-- Configure packages so that we can use a simple name instead of the fully-qualified one -->
+    <copy file="${plugins.package-config}" todir="${checkstyle.plugin.combined.classes}"/>
+    <jar destfile="${checkstyle.plugin.combined.jar}" basedir="${checkstyle.plugin.combined.classes}"
+      excludes="**/*.jar"/>
+  </target>
+
+</project>

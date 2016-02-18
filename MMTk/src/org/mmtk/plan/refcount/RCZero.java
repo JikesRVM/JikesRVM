@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class is the fundamental mechanism for performing a
- * transitive closure over an object graph.<p>
+ * transitive closure over an object graph.
  *
  * @see org.mmtk.plan.TraceLocal
  */

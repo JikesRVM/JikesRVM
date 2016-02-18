@@ -23,9 +23,6 @@ public final class FixedNursery extends org.vmutil.options.PagesOption {
   // values
   BoundedNursery boundedNursery;
 
-  /**
-   * Create the option
-   */
   public FixedNursery(BoundedNursery boundedNursery) {
     super(Options.set, "Fixed Nursery",
         "Fix the minimum and maximum size of the nursery to this value",

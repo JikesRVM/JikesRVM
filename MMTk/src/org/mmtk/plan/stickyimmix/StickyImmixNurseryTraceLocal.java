@@ -20,7 +20,6 @@ import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -42,9 +41,6 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
    */
  private final ObjectReferenceDeque modBuffer;
 
-  /**
-   * Constructor
-   */
   public StickyImmixNurseryTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
     super(StickyImmix.SCAN_NURSERY, trace);
     this.modBuffer = modBuffer;
@@ -63,7 +59,6 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
     if (object.isNull()) return false;
     if (Space.isInSpace(StickyImmix.IMMIX, object))
       return PREFER_COPY_ON_NURSERY_GC ? StickyImmix.immixSpace.copyNurseryIsLive(object) : StickyImmix.immixSpace.fastIsLive(object);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
     return true;
   }
 
@@ -82,7 +77,7 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
    * collection (i.e. this object is definitely not an unforwarded
    * object).
    *
-   * @param object
+   * @param object the object that might move
    * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */

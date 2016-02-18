@@ -12,11 +12,17 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.compilers.baseline.BBConstants.ADDRESS_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.DOUBLE_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.FLOAT_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.INT_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.LONG_TYPE;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
@@ -33,7 +39,7 @@ import org.jikesrvm.classloader.TypeReference;
  * java operand stack or a C-like stack?; when processing java bytecodes it
  * seemed best to use "stack" for java operand stack.)
  */
-final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstants, BBConstants {
+final class BuildReferenceMaps {
 
   /**
    * The entry in the reference map contains a value that is not a reference.
@@ -60,7 +66,7 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
    */
   static final byte SET_TO_NONREFERENCE = 3;
 
-  private static enum PrimitiveSize {
+  private enum PrimitiveSize {
     ONEWORD, DOUBLEWORD
   };
 
@@ -73,6 +79,17 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
    * After the analysis of the blocks of a method, examine the byte codes again, to
    * determine the reference maps for the gc points. Record the maps with
    * referenceMaps.
+   *
+   * @param method the method whose bytecodes are to be examined again
+   * @param stackHeights height of the expression stack at each bytecode
+   * @param localTypes the types that the locals can take
+   * @param referenceMaps the reference map. NB: the map's constructor is still running
+   *  while this method is called!
+   * @param buildBB the buildBB instance that contains the results from the
+   *  previous analysis
+   *
+   * @see BaselineCompiler#localTypes
+   * @see TemplateCompilerFramework#stackHeights
    */
   public void buildReferenceMaps(NormalMethod method, int[] stackHeights, byte[] localTypes,
                                  ReferenceMaps referenceMaps, BuildBB buildBB) {
@@ -92,7 +109,7 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
     byte[] currBBMap;           // The current map, used during processing thru a block
     int currBBStkTop;          // Stack top for the current map
 
-    int currBBStkEmpty;        // Level when stack is empty - value depends on number of locals
+    final int currBBStkEmpty;  // Level when stack is empty - value depends on number of locals
     int paramCount;            // Number of parameters to the method being processed
 
     // Variables for processing JSR instructions, RET instructions and JSR subroutines
@@ -149,7 +166,7 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
     paramCount = method.getParameterWords();
     if (!method.isStatic()) paramCount++;
 
-    currBBStkEmpty = method.getLocalWords() - 1;   // -1 to locate the last "local" index
+    currBBStkEmpty = TemplateCompilerFramework.stackHeightForEmptyBasicBlock(method);
 
     if (debug) VM.sysWrite("getLocalWords() : " + method.getLocalWords() + "\n");
 
@@ -301,6 +318,22 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
             }
           }
         }
+        if (currPendingRET == null) {
+          int[] preds = basicBlocks[currBBNum].getPredecessors();
+          for (int i = 0; i < preds.length; i++) {
+            int predBB = preds[i];
+            if (bbPendingRETs[predBB] != null) {
+              currPendingRET = bbPendingRETs[predBB];
+              break;
+            }
+          }
+        }
+        if (VM.VerifyAssertions) {
+          if (currPendingRET == null) {
+            String msg = "No pending return found in block " + currBBNum;
+            VM._assert(VM.NOT_REACHED, msg);
+          }
+        }
       } else {
         currPendingRET = null;
       }
@@ -363,6 +396,14 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
         int biStart = bcodes.index();
         int opcode = bcodes.nextInstruction();
         if (stackHeights != null) {
+          if (VM.VerifyAssertions) {
+            if (currBBStkTop < currBBStkEmpty) {
+              String msg = "Stack height for current basic block is " +
+                  currBBStkTop + " which is less than the stack height for " +
+                  "an empty block (" + currBBStkEmpty + ").";
+              VM._assert(VM.NOT_REACHED, msg);
+            }
+          }
           stackHeights[biStart] = currBBStkTop;
         }
 
@@ -2086,7 +2127,7 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
     boolean popParams = true;
 
     if (target.getType().isMagicType()) {
-      boolean producesCall = BaselineCompilerImpl.checkForActualCall(target);
+      boolean producesCall = BaselineCompiler.checkForActualCall(target);
       if (producesCall) {
         // register a map, but do NOT include any of the parameters to the call.
         // Chances are what appear to be parameters are not parameters to

@@ -1,0 +1,171 @@
+Index: gnu/java/lang/CPStringBuilder.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/java/lang/CPStringBuilder.java,v
+retrieving revision 1.10
+diff -u -r1.10 CPStringBuilder.java
+--- gnu/java/lang/CPStringBuilder.java	15 Jun 2008 21:33:57 -0000	1.10
++++ gnu/java/lang/CPStringBuilder.java	12 Feb 2009 22:49:21 -0000
+@@ -199,7 +199,7 @@
+   public void setLength(int newLength)
+   {
+     if (newLength < 0)
+-      throw new StringIndexOutOfBoundsException(newLength);
++      raiseStringIndexOutOfBoundsException(newLength);
+ 
+     int valueLength = value.length;
+ 
+@@ -237,7 +237,7 @@
+   public char charAt(int index)
+   {
+     if (index < 0 || index >= count)
+-      throw new StringIndexOutOfBoundsException(index);
++      raiseStringIndexOutOfBoundsException(index);
+     return value[index];
+   }
+ 
+@@ -270,7 +270,7 @@
+     // Character.codePointBefore() doesn't perform this check.  We
+     // could use the CharSequence overload, but this is just as easy.
+     if (index >= count)
+-      throw new IndexOutOfBoundsException();
++      raiseIndexOutOfBoundsException();
+     return Character.codePointBefore(value, index, 1);
+   }
+ 
+@@ -293,7 +293,7 @@
+                        char[] dst, int dstOffset)
+   {
+     if (srcOffset < 0 || srcEnd > count || srcEnd < srcOffset)
+-      throw new StringIndexOutOfBoundsException();
++      raiseStringIndexOutOfBoundsException();
+     System.arraycopy(value, srcOffset, dst, dstOffset, srcEnd - srcOffset);
+   }
+ 
+@@ -308,7 +308,7 @@
+   public void setCharAt(int index, char ch)
+   {
+     if (index < 0 || index >= count)
+-      throw new StringIndexOutOfBoundsException(index);
++      raiseStringIndexOutOfBoundsException(index);
+     // Call ensureCapacity to enforce copy-on-write.
+     ensureCapacity(count);
+     value[index] = ch;
+@@ -402,7 +402,7 @@
+   public CPStringBuilder append(char[] data, int offset, int count)
+   {
+     if (offset < 0 || count < 0 || offset > data.length - count)
+-      throw new StringIndexOutOfBoundsException();
++      raiseStringIndexOutOfBoundsException();
+     ensureCapacity(this.count + count);
+     System.arraycopy(data, offset, value, this.count, count);
+     this.count += count;
+@@ -563,7 +563,7 @@
+   public CPStringBuilder delete(int start, int end)
+   {
+     if (start < 0 || start > count || start > end)
+-      throw new StringIndexOutOfBoundsException(start);
++      raiseStringIndexOutOfBoundsException(start);
+     if (end > count)
+       end = count;
+     ensureCapacity(count);
+@@ -603,7 +603,7 @@
+   public CPStringBuilder replace(int start, int end, String str)
+   {
+     if (start < 0 || start > count || start > end)
+-      throw new StringIndexOutOfBoundsException(start);
++      raiseStringIndexOutOfBoundsException(start);
+ 
+     int len = str.length();
+     // Calculate the difference in 'count' after the replace.
+@@ -635,7 +635,7 @@
+   {
+     if (offset < 0 || offset > count || len < 0
+         || str_offset < 0 || str_offset > str.length - len)
+-      throw new StringIndexOutOfBoundsException();
++      raiseStringIndexOutOfBoundsException();
+     ensureCapacity(count + len);
+     System.arraycopy(value, offset, value, offset + len, count - offset);
+     System.arraycopy(str, str_offset, value, offset, len);
+@@ -672,7 +672,7 @@
+   public CPStringBuilder insert(int offset, String str)
+   {
+     if (offset < 0 || offset > count)
+-      throw new StringIndexOutOfBoundsException(offset);
++      raiseStringIndexOutOfBoundsException(offset);
+     if (str == null)
+       str = "null";
+     int len = str.length();
+@@ -720,7 +720,7 @@
+     if (sequence == null)
+       sequence = "null";
+     if (start < 0 || end < 0 || start > end || end > sequence.length())
+-      throw new IndexOutOfBoundsException();
++      raiseIndexOutOfBoundsException();
+     int len = end - start;
+     ensureCapacity(count + len);
+     System.arraycopy(value, offset, value, offset + len, count - offset);
+@@ -773,7 +773,7 @@
+   public CPStringBuilder insert(int offset, char ch)
+   {
+     if (offset < 0 || offset > count)
+-      throw new StringIndexOutOfBoundsException(offset);
++      raiseStringIndexOutOfBoundsException(offset);
+     ensureCapacity(count + 1);
+     System.arraycopy(value, offset, value, offset + 1, count - offset);
+     value[offset] = ch;
+@@ -974,7 +974,7 @@
+   public int codePointCount(int start, int end)
+   {
+     if (start < 0 || end >= count || start > end)
+-      throw new StringIndexOutOfBoundsException();
++      raiseStringIndexOutOfBoundsException();
+ 
+     int count = 0;
+     while (start < end)
+@@ -1136,7 +1136,7 @@
+   public String substring(int beginIndex, int endIndex)
+   {
+     if (beginIndex < 0 || endIndex > count || endIndex < beginIndex)
+-      throw new StringIndexOutOfBoundsException();
++      raiseStringIndexOutOfBoundsException();
+     int len = endIndex - beginIndex;
+     if (len == 0)
+       return "";
+@@ -1158,4 +1158,37 @@
+     return VMCPStringBuilder.toString(value, 0, count);
+   }
+ 
++  private static void raiseStringIndexOutOfBoundsException()
++  {
++    // Implementation note: put in a separate method to make the JITs job easier
++    // (separate common from uncommon code at method boundaries when trivial to
++    // do so).
++    // Implementation note: make this a static method so that we won't pass
++    // the CPStringBuilder object to it (as the 'this' pointer).
++    // Passing this to a noninlined method is likely to block scalar replacement.
++    throw new StringIndexOutOfBoundsException();
++  }
++
++  private static void raiseStringIndexOutOfBoundsException(int len)
++  {
++    // Implementation note: put in a separate method to make the JITs job easier
++    // (separate common from uncommon code at method boundaries when trivial to
++    // do so).
++    // Implementation note: make this a static method so that we won't pass
++    // the CPStringBuilder object to it (as the 'this' pointer).
++    // Passing this to a noninlined method is likely to block scalar replacement.
++    throw new StringIndexOutOfBoundsException(len);
++  }
++
++  private static void raiseIndexOutOfBoundsException()
++  {
++    // Implementation note: put in a separate method to make the JITs job easier
++    // (separate common from uncommon code at method boundaries when trivial to
++    // do so).
++    // Implementation note: make this a static method so that we won't pass
++    // the CPStringBuilder object to it (as the 'this' pointer).
++    // Passing this to a noninlined method is likely to block scalar replacement.
++    throw new IndexOutOfBoundsException();
++  }
++
+ }

@@ -1,0 +1,31 @@
+##################################
+# LCMP_CMOV
+##################################
+r: LCMP_CMOV(r, OTHER_OPERAND(rlv, any))
+(13 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP,  CondMove.getVal1(P(p)), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: LCMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, any))
+VRL(p) == 0 && CMP_TO_TEST(CondMove.getCond(P(p))) ? (11 + 30):INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, CondMove.getVal1(P(p)), CondMove.getVal1(P(p)).copy()))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: LCMP_CMOV(load64, OTHER_OPERAND(rlv, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: LCMP_CMOV(rlv, OTHER_OPERAND(load64, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal1(P(p))))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).flipOperands(), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+

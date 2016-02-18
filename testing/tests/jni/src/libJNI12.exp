@@ -1,0 +1,11 @@
+JNI12_0.1 {
+  global :
+	 Java_JNI12_setVerboseOff;
+	 Java_JNI12_testReflectedMethods;
+	 Java_JNI12_testGlobalCreationAndReturn;
+	 Java_JNI12_testWeakCreationAndReturn;
+	 Java_JNI12_testGlobalPersistenceAndDestruction;
+	 Java_JNI12_testWeakPersistenceAndDestruction;
+	 Java_JNI12_testReflectedFields;
+  local : *;
+};

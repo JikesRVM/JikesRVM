@@ -1,19 +1,8 @@
 --- java/util/AbstractMap.java	2010-04-27 16:31:20.000000000 +1000
 +++ java/util/AbstractMap.java	2010-05-02 23:01:48.000000000 +1000
-@@ -71,16 +71,16 @@
-  */
- public abstract class AbstractMap<K, V> implements Map<K, V>
- {
--  /** 
-+  /** 
-    * A class containing an immutable key and value.  The
-    * implementation of {@link Entry#setValue(V)} for this class
-    * simply throws an {@link UnsupportedOperationException},
-    * thus preventing changes being made.  This is useful when
-    * a static thread-safe view of a map is required.
+@@ -80,7 +80,7 @@
     *
--   * @since 1.6 
-+   * @since 1.6 
+    * @since 1.6
     */
 -  public static class SimpleImmutableEntry<K, V>
 +  public static class SimpleImmutableEntry<K, V> extends SimpleEntry<K,V>

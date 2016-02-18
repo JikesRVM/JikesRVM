@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
@@ -25,8 +24,7 @@ import org.vmmagic.pragma.*;
  * A concurrent phase runs concurrently with mutator activity.
  */
 @Uninterruptible
-public final class ConcurrentPhase extends Phase
-  implements Constants {
+public final class ConcurrentPhase extends Phase {
 
   /****************************************************************************
    * Instance fields

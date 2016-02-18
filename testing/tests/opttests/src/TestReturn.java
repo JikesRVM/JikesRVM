@@ -92,16 +92,51 @@ class TestReturn {
     return testSuccess;
   }
 
-  static void     void_f()            {                           return  ; } // return
-  static boolean  boolean_f()         { boolean x   = true;       return x; } // ireturn
-  static byte     byte_f()            { byte    x   = 2;          return x; } // ireturn
-  static char     char_f()            { char    x   = 0x41;       return x; } // ireturn
-  static short    short_f()           { short   x   = 4;          return x; } // ireturn
-  static int      int_f()             { int     x   = 5;          return x; } // ireturn
-  static long     long_f()            { long    x   = 6;          return x; } // lreturn
-  static float    float_f()           { float   x   = 7;          return x; } // freturn
-  static double   double_f()          { double  x   = 8;          return x; } // dreturn
-  static Object   object_f()          { Object  x   = null;       return x; } // areturn
-  static int[]    primitive_array_f() { int[]   x = null;       return x; } // areturn
-  static Object[] object_array_f()    { Object[]  x = null;       return x; } // areturn
+  static void void_f() {
+    return;
+  } // return
+  static boolean boolean_f() {
+    boolean x = true;
+    return x;
+  } // ireturn
+  static byte byte_f() {
+    byte x = 2;
+    return x;
+  } // ireturn
+  static char char_f() {
+    char x = 0x41;
+    return x;
+  } // ireturn
+  static short short_f() {
+    short x = 4;
+  return x;
+  } // ireturn
+  static int int_f() {
+    int x = 5;
+    return x;
+  } // ireturn
+  static long long_f() {
+    long x = 6;
+    return x;
+  } // lreturn
+  static float float_f() {
+    float x = 7;
+    return x;
+  } // freturn
+  static double double_f() {
+    double x = 8;
+    return x;
+  } // dreturn
+  static Object object_f() {
+    Object x = null;
+    return x;
+  } // areturn
+  static int[] primitive_array_f() {
+    int[] x = null;
+    return x;
+  } // areturn
+  static Object[] object_array_f() {
+    Object[] x = null;
+    return x;
+  } // areturn
 }

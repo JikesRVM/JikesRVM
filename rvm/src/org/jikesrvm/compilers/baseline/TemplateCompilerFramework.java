@@ -12,29 +12,32 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.ArchitectureSpecific.MachineCode;
-import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Services;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.ClassLoaderConstants;
-import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.Services;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
 
@@ -44,13 +47,7 @@ import org.vmmagic.unboxed.Offset;
  * one that generates code as each bytecode in the class file is
  * seen. It is the common base class of the base compiler.
  */
-public abstract class TemplateCompilerFramework
-    implements BytecodeConstants, ClassLoaderConstants, SizeConstants, StackframeLayoutConstants {
-
-  /**
-   * has fullyBootedVM been called by VM.boot?
-   */
-  protected static boolean fullyBootedVM = false;
+public abstract class TemplateCompilerFramework {
 
   /**
    * The method being compiled
@@ -76,11 +73,6 @@ public abstract class TemplateCompilerFramework
    * bi at the start of a bytecode
    */
   protected int biStart;
-
-  /**
-   * The Assembler being used for this compilation
-   */
-  public Assembler asm;
 
   /**
    * The compiledMethod assigned to this compilation of method
@@ -118,14 +110,32 @@ public abstract class TemplateCompilerFramework
    */
   protected final boolean isUninterruptible;
 
+  public static class MachineCode {
+    private final CodeArray instructions;
+    private int[] bcMap;
+    MachineCode(CodeArray i, int[] bcm) {
+      instructions = i;
+      bcMap = bcm;
+    }
+    public CodeArray getInstructions() {
+      return instructions;
+    }
+    public int[] getBytecodeMap() {
+      return bcMap;
+    }
+    public void setBytecodeMap(int[] newmap) {
+      bcMap = newmap;
+    }
+  }
   /**
    * Is the method currently being compiled unpreemptible?
    */
   protected final boolean isUnpreemptible;
 
-  /**
-   * Construct a BaselineCompilerImpl
-   */
+  public enum BranchCondition {
+    EQ, NE, LT, GE, GT, LE
+  }
+
   protected TemplateCompilerFramework(CompiledMethod cm) {
     compiledMethod = cm;
     method = (NormalMethod) cm.getMethod();
@@ -154,10 +164,26 @@ public abstract class TemplateCompilerFramework
     // uninterruptible
     // TODO: remove logically uninterruptible annotations (see RVM-115).
     if (VM.VerifyAssertions && method.hasLogicallyUninterruptibleAnnotation()) {
-      VM._assert(isUninterruptible, "LogicallyUninterruptible but not Uninterruptible method: ",
-        method.toString());
+      if (!isUninterruptible) {
+        String msg = "LogicallyUninterruptible but not Uninterruptible method: " +
+            method.toString();
+        VM._assert(VM.NOT_REACHED, msg);
+      }
     }
   }
+
+  /**
+   * @param method the method that contains the bytecode that produces an
+   *  empty basic block
+   * @return the stack height for a basic block with an empty stack. In a
+   *  basic with an empty stack, space for local variables still needs to
+   *  be reserved.
+   */
+  public static final int stackHeightForEmptyBasicBlock(NormalMethod method) {
+    return method.getLocalWords() - 1;   // -1 to locate the last "local" index
+  }
+
+  protected abstract AbstractAssembler getAssembler();
 
   final int[] getBytecodeMap() {
     return bytecodeMap;
@@ -165,7 +191,7 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Print a message to mark the start of machine code printing for a method
-   * @param method
+   * @param method the method that will be compiled
    */
   protected final void printStartHeader(RVMMethod method) {
     VM.sysWrite(getCompilerName());
@@ -180,7 +206,7 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Print a message to mark the end of machine code printing for a method
-   * @param method
+   * @param method the method that was compiled
    */
   protected final void printEndHeader(RVMMethod method) {
     VM.sysWrite(getCompilerName());
@@ -216,8 +242,11 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Main code generation loop.
+   *
+   * @return generated machine code
    */
   protected final MachineCode genCode() {
+    AbstractAssembler asm = getAssembler();
 
     emit_prologue();
     while (bcodes.hasMoreBytecodes()) {
@@ -1148,133 +1177,85 @@ public abstract class TemplateCompilerFramework
 
         case JBC_fcmpl: {
           if (shouldPrint) asm.noteBytecode(biStart, "fcmpl");
-          emit_fcmpl();
+          emit_DFcmpGL(true, false);
           break;
         }
 
         case JBC_fcmpg: {
           if (shouldPrint) asm.noteBytecode(biStart, "fcmpg");
-          emit_fcmpg();
+          emit_DFcmpGL(true, true);
           break;
         }
 
         case JBC_dcmpl: {
           if (shouldPrint) asm.noteBytecode(biStart, "dcmpl");
-          emit_dcmpl();
+          emit_DFcmpGL(false, false);
           break;
         }
 
         case JBC_dcmpg: {
           if (shouldPrint) asm.noteBytecode(biStart, "dcmpg");
-          emit_dcmpg();
+          emit_DFcmpGL(false, true);
           break;
         }
 
         case JBC_ifeq: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifeq", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifeq(bTarget);
+          do_if(biStart, BranchCondition.EQ);
           break;
         }
 
         case JBC_ifne: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifne", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifne(bTarget);
+          do_if(biStart, BranchCondition.NE);
           break;
         }
 
         case JBC_iflt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "iflt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_iflt(bTarget);
+          do_if(biStart, BranchCondition.LT);
           break;
         }
 
         case JBC_ifge: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifge", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifge(bTarget);
+          do_if(biStart, BranchCondition.GE);
           break;
         }
 
         case JBC_ifgt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifgt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifgt(bTarget);
+          do_if(biStart, BranchCondition.GT);
           break;
         }
 
         case JBC_ifle: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifle", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_ifle(bTarget);
+          do_if(biStart, BranchCondition.LE);
           break;
         }
 
         case JBC_if_icmpeq: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpeq", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpeq(bTarget);
+          do_if_icmp(biStart, BranchCondition.EQ);
           break;
         }
 
         case JBC_if_icmpne: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpne", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpne(bTarget);
+          do_if_icmp(biStart, BranchCondition.NE);
           break;
         }
 
         case JBC_if_icmplt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmplt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmplt(bTarget);
+          do_if_icmp(biStart, BranchCondition.LT);
           break;
         }
 
         case JBC_if_icmpge: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpge", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpge(bTarget);
+          do_if_icmp(biStart, BranchCondition.GE);
           break;
         }
 
         case JBC_if_icmpgt: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpgt", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmpgt(bTarget);
+          do_if_icmp(biStart, BranchCondition.GT);
           break;
         }
 
         case JBC_if_icmple: {
-          int offset = bcodes.getBranchOffset();
-          int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmple", offset, bTarget);
-          if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
-          emit_if_icmple(bTarget);
+          do_if_icmp(biStart, BranchCondition.LE);
           break;
         }
 
@@ -1576,7 +1557,7 @@ public abstract class TemplateCompilerFramework
           break;
         }
 
-        case JBC_xxxunusedxxx: {
+        case JBC_invokedynamic: {
           if (shouldPrint) asm.noteBytecode(biStart, "unused");
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
@@ -1620,13 +1601,9 @@ public abstract class TemplateCompilerFramework
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("anewarray ", arrayRef, bcodes.index());
 
           if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
-            VM._assert(VM.NOT_REACHED,
-                       "During compilation of " +
-                       method +
-                       " found an anewarray of " +
-                       elementTypeRef +
-                       "\n" +
-                       "You must use the 'create' function to create an array of this type");
+            String msg = "During compilation of " + method + " found an anewarray of " +
+             elementTypeRef + "\n" + "You must use the 'create' function to create an array of this type";
+            VM._assert(VM.NOT_REACHED, msg);
           }
 
           RVMArray array = (RVMArray) arrayRef.peekType();
@@ -2000,7 +1977,7 @@ public abstract class TemplateCompilerFramework
               }
               default:
                 if (VM.TraceOnStackReplacement) {
-                  VM.sysWrite("Unexpected PSEUDO code " + VM.intAsHexString(pseudo_opcode) + "\n");
+                  VM.sysWrite("Unexpected PSEUDO code " + Services.intAsHexString(pseudo_opcode) + "\n");
                 }
                 if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
                 break;
@@ -2018,8 +1995,39 @@ public abstract class TemplateCompilerFramework
       ending_bytecode();
     }
     bytecodeMap[bcodes.length()] = asm.getMachineCodeIndex();
-    return asm.finalizeMachineCode(bytecodeMap);
+    return new MachineCode(getAssembler().getMachineCodes(),bytecodeMap);
   }
+
+  /**
+   * Handle if.. bytecodes
+   * @param biStart offset of bytecode
+   * @param bc branch condition
+   */
+  @Inline
+  private void do_if(int biStart, BranchCondition bc) {
+    final boolean shouldPrint = this.shouldPrint;
+    int offset = bcodes.getBranchOffset();
+    int bTarget = biStart + offset;
+    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
+    emit_if(bTarget, bc);
+  }
+
+  /**
+   * Handle if_icmp.. bytecodes
+   * @param biStart offset of bytecode
+   * @param bc branch condition
+   */
+  @Inline
+  private void do_if_icmp(int biStart, BranchCondition bc) {
+    final boolean shouldPrint = this.shouldPrint;
+    int offset = bcodes.getBranchOffset();
+    int bTarget = biStart + offset;
+    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if_icmp" + bc, offset, bTarget);
+    if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
+    emit_if_icmp(bTarget, bc);
+  }
+
 
   /* for invoke compiled method, we have to fool GC map,
   * InvokeCompiledMethod has two parameters compiledMethodID
@@ -2075,8 +2083,8 @@ public abstract class TemplateCompilerFramework
       if (method.hasUnpreemptibleNoWarnAnnotation()) return;
     }
     // NB generate as a single string to avoid threads splitting output
-    VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-    "\n   Uninterruptible methods may not contain the following forbidden bytecode\n   " + msg);
+    VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+    ". Uninterruptible methods may not contain the following forbidden bytecode: " + msg);
   }
 
   /**
@@ -2094,13 +2102,13 @@ public abstract class TemplateCompilerFramework
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-      "\n   Uninterruptible method calls non-uninterruptible method " + target + "\n");
+      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+      ". Uninterruptible method calls non-uninterruptible method " + target + "\n");
     }
     if (isUnpreemptible && target.isInterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-          "\n   Unpreemptible method calls interruptible method " + target + "\n");
+      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+          ". Unpreemptible method calls interruptible method " + target + "\n");
     }
   }
 
@@ -2139,8 +2147,10 @@ public abstract class TemplateCompilerFramework
   protected abstract void emit_deferred_prologue();
 
   /**
-   * Emit the code to implement the spcified magic.
+   * Emits the code to implement the spcified magic.
    * @param magicMethod desired magic
+   *
+   * @return {@code true} if code was emitted
    */
   protected abstract boolean emit_Magic(MethodReference magicMethod);
 
@@ -2701,100 +2711,30 @@ public abstract class TemplateCompilerFramework
   protected abstract void emit_lcmp();
 
   /**
-   * Emit code to implement the fcmpl bytecode
+   * Emits code to handle all [df]cmp[gl] cases
+   *
+   * @param single {@code true} for float [f], {@code false} for double [d]
+   * @param unorderedGT {@code true} for [g], {@code false} for [l]
    */
-  protected abstract void emit_fcmpl();
-
-  /**
-   * Emit code to implement the fcmpg bytecode
-   */
-  protected abstract void emit_fcmpg();
-
-  /**
-   * Emit code to implement the dcmpl bytecode
-   */
-  protected abstract void emit_dcmpl();
-
-  /**
-   * Emit code to implement the dcmpg bytecode
-   */
-  protected abstract void emit_dcmpg();
+  protected abstract void emit_DFcmpGL(boolean single, boolean unorderedGT);
 
   /*
   * branching
   */
 
   /**
-   * Emit code to implement the ifeg bytecode
+   * Emits code to implement the if.. bytecode
    * @param bTarget target bytecode of the branch
+   * @param bc branch condition
    */
-  protected abstract void emit_ifeq(int bTarget);
+  protected abstract void emit_if(int bTarget, BranchCondition bc);
 
   /**
-   * Emit code to implement the ifne bytecode
+   * Emits code to implement the if_icmp.. bytecode
    * @param bTarget target bytecode of the branch
+   * @param bc branch condition
    */
-  protected abstract void emit_ifne(int bTarget);
-
-  /**
-   * Emit code to implement the iflt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_iflt(int bTarget);
-
-  /**
-   * Emit code to implement the ifge bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_ifge(int bTarget);
-
-  /**
-   * Emit code to implement the ifgt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_ifgt(int bTarget);
-
-  /**
-   * Emit code to implement the ifle bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_ifle(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpeq bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpeq(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpne bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpne(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmplt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmplt(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpge bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpge(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmpgt bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmpgt(int bTarget);
-
-  /**
-   * Emit code to implement the if_icmple bytecode
-   * @param bTarget target bytecode of the branch
-   */
-  protected abstract void emit_if_icmple(int bTarget);
+  protected abstract void emit_if_icmp(int bTarget, BranchCondition bc);
 
   /**
    * Emit code to implement the if_acmpeq bytecode
@@ -3005,7 +2945,7 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Emit code to dynamically link and allocate a scalar object
-   * @param typeRef   {@link TypeReference} to dynamically link & instantiate
+   * @param typeRef   {@link TypeReference} to dynamically link &amp; instantiate
    */
   protected abstract void emit_unresolved_new(TypeReference typeRef);
 
@@ -3017,13 +2957,13 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Emit code to dynamically link the element class and allocate an array
-   * @param typeRef typeReference to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link &amp; instantiate
    */
   protected abstract void emit_unresolved_newarray(TypeReference typeRef);
 
   /**
    * Emit code to allocate a multi-dimensional array
-   * @param typeRef typeReference to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link &amp; instantiate
    * @param dimensions the number of dimensions
    */
   protected abstract void emit_multianewarray(TypeReference typeRef, int dimensions);

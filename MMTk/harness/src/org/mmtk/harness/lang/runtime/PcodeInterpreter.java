@@ -19,7 +19,16 @@ import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.pcode.CallNormalOp;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.pcode.ReturnOp;
+import org.vmmagic.unboxed.harness.Clock;
 
+/**
+ * Interprets the p-code that is the compilation target of the
+ * MMTk Harness scripting language.  Each instance of this class executes
+ * one thread to completion.
+ * <p>
+ * p-ops are interpreted by calling the operator's exec method.
+ * The interpreter then performs control-flow adjustments.
+ */
 public final class PcodeInterpreter {
 
   /** The environment (stack and associated structures) for this thread. */
@@ -37,9 +46,9 @@ public final class PcodeInterpreter {
   /**
    * Create a pcode interpreter for a given environment/method pair.  This will
    * in general be a thread of execution within a script, either <code>main()</code>
-   * or a spawned process.
-   * @param env
-   * @param method
+   * or a spawned thread.
+   * @param env Thread-local environment for the running thread
+   * @param method Method to execute in this instance of the interpreter
    */
   public PcodeInterpreter(Env env, CompiledMethod method) {
     this.env = env;
@@ -49,17 +58,21 @@ public final class PcodeInterpreter {
 
   /**
    * Execute the method, with given values for its parameters.
-   * @param params
+   * @param params Method parameters
    */
   public void exec(Value...params) {
     setActualParams(params);
     while (true) {
       PseudoOp op = code[pc++];
+      Clock.stop();
+      Trace.trace(Item.EVAL,"depth=%-4d pc=%4d: %s",nesting,pc - 1,op);
+      Clock.start();
       try {
-        Trace.trace(Item.EVAL,"%-4d %4d: %s",nesting,pc,op);
+        if (op.mayTriggerGc() || op.affectsControlFlow()) {
+          gcSafePoint(op, true);
+        }
         op.exec(env);
         if (op.affectsControlFlow()) {
-          env.gcSafePoint();
           if (op.isBranch()) {
             /*
              * Branch
@@ -84,6 +97,13 @@ public final class PcodeInterpreter {
         stackTrace(op);
         throw e;
       }
+    }
+  }
+
+  private void gcSafePoint(PseudoOp op, boolean unconditional) {
+    if (unconditional || env.gcRequested()) {
+      saveContext(op,env.top());
+      env.gcSafePoint();
     }
   }
 
@@ -124,7 +144,7 @@ public final class PcodeInterpreter {
    * @param callee
    */
   private void pushFrame(CompiledMethod callee) {
-    env.push(callee.formatStackFrame());
+    env.pushFrame(callee);
   }
 
   /**
@@ -149,7 +169,7 @@ public final class PcodeInterpreter {
    */
   private void setActualParams(Value[] actuals) {
     StackFrame calleeFrame = env.top();
-    for (int i=0; i < actuals.length; i++) {
+    for (int i = 0; i < actuals.length; i++) {
       calleeFrame.set(i,actuals[i]);
     }
   }
@@ -160,8 +180,8 @@ public final class PcodeInterpreter {
    */
   private void stackTrace(PseudoOp op) {
     saveContext(op,env.top());
-    for (StackFrame frame : env.stack()) {
-      op = frame.getSavedMethod()[frame.getSavedPc()-1];
+    for (StackFrame frame : env.iterator()) {
+      op = frame.getSavedMethod()[frame.getSavedPc() - 1];
       System.err.println(op.getSourceLocation("at "));
     }
   }

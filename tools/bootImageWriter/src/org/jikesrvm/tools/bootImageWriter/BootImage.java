@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE_LIMIT;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE_LIMIT;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -20,7 +30,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel.MapMode;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -38,7 +47,7 @@ import org.vmmagic.unboxed.Word;
  * "booted".
  */
 public class BootImage extends BootImageWriterMessages
-  implements BootImageWriterConstants, BootImageInterface, SizeConstants {
+  implements BootImageInterface {
 
   /**
    * Talk while we work?
@@ -154,9 +163,9 @@ public class BootImage extends BootImageWriterMessages
     if (trace) {
       say((numObjects / 1024)   + "k objects");
       say((numAddresses / 1024) + "k non-null object references");
-      say(numNulledReferences + " references nulled because they are "+
+      say(numNulledReferences + " references nulled because they are " +
           "non-jdk fields or point to non-bootimage objects");
-      say(((Statics.getNumberOfReferenceSlots()+ Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
+      say(((Statics.getNumberOfReferenceSlots() + Statics.getNumberOfNumericSlots()) / 1024) + "k jtoc slots");
       say((getDataSize() / 1024) + "k data in image");
       say((getCodeSize() / 1024) + "k code in image");
       say("writing " + imageDataFileName);
@@ -185,14 +194,14 @@ public class BootImage extends BootImageWriterMessages
     /* Now we generate a compressed reference map.  Typically we get 4 bits/address, but
        we'll create the in-memory array assuming worst case 1:1 compression.  Only the
        used portion of the array actually gets written into the image. */
-    bootImageRMap = new byte[referenceMapReferences<<LOG_BYTES_IN_WORD];
+    bootImageRMap = new byte[referenceMapReferences << LOG_BYTES_IN_WORD];
     rMapSize = ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
     FileOutputStream rmapOut = new FileOutputStream(imageRMapFileName);
     rmapOut.write(bootImageRMap, 0, rMapSize);
     rmapOut.flush();
     rmapOut.close();
     if (trace) {
-      say("total refs: "+ referenceMapReferences);
+      say("total refs: " + referenceMapReferences);
     }
     ScanBootImage.encodingStats();
   }
@@ -259,7 +268,7 @@ public class BootImage extends BootImageWriterMessages
    * @param numElements number of elements
    * @param needsIdentityHash needs an identity hash value
    * @param identityHashValue the value for the identity hash
-   * @param alignment special alignment value
+   * @param align special alignment value
    * @param alignCode Alignment-encoded value (AlignmentEncoding.ALIGN_CODE_NONE for none)
    * @return address of object within bootimage
    */
@@ -288,13 +297,15 @@ public class BootImage extends BootImageWriterMessages
     Offset unalignedOffset = freeDataOffset;
     freeDataOffset = MemoryManager.alignAllocation(freeDataOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeDataOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero());
+      VM._assert(freeDataOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align - 1)).isZero());
       VM._assert(freeDataOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeDataOffset;
     freeDataOffset = freeDataOffset.plus(size);
-    if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
-      fail("bootimage full (need at least " + size + " more bytes for data)");
+    if (!VM.AllowOversizedImages && freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE_LIMIT)))
+      fail("bootimage full (need at least " + size + " more bytes for data). " +
+           "To ignore this, add config.allowOversizedImage=true to the configuration you are using " +
+           "or increase BOOT_IMAGE_DATA_SIZE_LIMIT in HeapLayoutConstants.template .");
 
     ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());
@@ -314,13 +325,15 @@ public class BootImage extends BootImageWriterMessages
     Offset unalignedOffset = freeCodeOffset;
     freeCodeOffset = MemoryManager.alignAllocation(freeCodeOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeCodeOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero());
+      VM._assert(freeCodeOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align - 1)).isZero());
       VM._assert(freeCodeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeCodeOffset;
     freeCodeOffset = freeCodeOffset.plus(size);
-    if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
-      fail("bootimage full (need at least " + size + " more bytes for code)");
+    if (!VM.AllowOversizedImages && freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE_LIMIT)))
+      fail("bootimage full (need at least " + size + " more bytes for code). " +
+          "To ignore this, add config.allowOversizedImage=true to the configuration you are using " +
+          "or increase BOOT_IMAGE_CODE_SIZE_LIMIT in HeapLayoutConstants.template .");
 
     ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());
@@ -363,7 +376,7 @@ public class BootImage extends BootImageWriterMessages
    * address.
    */
   private void markReferenceMap(Address address) {
-    int referenceIndex = address.diff(BOOT_IMAGE_DATA_START).toInt()>>LOG_BYTES_IN_ADDRESS;
+    int referenceIndex = address.diff(BOOT_IMAGE_DATA_START).toInt() >> LOG_BYTES_IN_ADDRESS;
     if (referenceMap[referenceIndex] == 0) {
       referenceMap[referenceIndex] = 1;
       referenceMapReferences++;

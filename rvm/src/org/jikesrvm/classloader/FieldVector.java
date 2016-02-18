@@ -15,19 +15,18 @@ package org.jikesrvm.classloader;
 import java.util.WeakHashMap;
 
 /**
- *  Lightweight implementation of a vector of Fields.
+ *  Lightweight implementation of a vector of Fields. This class is intended
+ *  to be used by a single thread and is therefore not thread-safe.
  */
 final class FieldVector {
   //-----------//
   // interface //
   //-----------//
 
-  public FieldVector() {
+  FieldVector() {
     array = new RVMField[10];
   }
 
-  // Add item.
-  //
   void addElement(RVMField item) {
     if (cnt == array.length) {
       adjustLength(cnt << 1); // double size of array
@@ -35,51 +34,31 @@ final class FieldVector {
     array[cnt++] = item;
   }
 
-  // Add item if it is not already in the Vector.
-  //
-  public void addUniqueElement(RVMField item) {
-    for (int i = 0; i < cnt; i++) {
-      if (array[i] == item) return;
-    }
-    addElement(item);
-  }
-
-  // Get item.
-  //
-  RVMField elementAt(int index) {
-    return array[index];
-  }
-
-  // Set item.
-  //
-  void setElementAt(RVMField item, int index) {
-    array[index] = item;
-  }
-
-  // Get number of items added so far.
-  //
-  public int size() {
-    return cnt;
-  }
-
-  // Get array, trimmed to size.
-  //
+  /**
+   * @return an array of fields, trimmed to size. The returned array
+   *  is canonical: Adding the same set of fields in the same order
+   *  to different newly-created vectors {@code v1} and {@code v2}
+   *  will lead to the same array being returned for both {@code v1}
+   *  and {@code v2} when this method is called.
+   */
   public RVMField[] finish() {
-    RVMField[] result = popularFVs.get(this);
-    if (result != null) {
-      array = result;
-      return result;
-    } else {
-      adjustLength(cnt);
-      popularFVs.put(this, array);
-      return array;
+    synchronized (RVMField.class) {
+      RVMField[] result = popularFVs.get(this);
+      if (result != null) {
+        array = result;
+        return result;
+      } else {
+        adjustLength(cnt);
+        popularFVs.put(this, array);
+        return array;
+      }
     }
   }
 
   @Override
   public int hashCode() {
     int val = 0;
-    for (int i=cnt-1; i >= 0; i--) {
+    for (int i = cnt - 1; i >= 0; i--) {
       val ^= array[i].hashCode();
     }
     return val;
@@ -90,7 +69,7 @@ final class FieldVector {
     if (obj instanceof FieldVector) {
       FieldVector that = (FieldVector)obj;
       if (cnt != that.cnt) return false;
-      for(int i=cnt-1; i>=0; i--) {
+      for (int i = cnt - 1; i >= 0; i--) {
         if (array[i] != that.array[i]) return false;
       }
       return true;

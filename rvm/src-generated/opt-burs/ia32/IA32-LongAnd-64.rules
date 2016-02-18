@@ -1,0 +1,84 @@
+#####
+# LONG_AND
+#####
+szpr:	LONG_AND(r, rlv)
+13
+EMIT_INSTRUCTION
+if (Binary.getVal2(P(p)).isLongConstant()) { \\
+Register tmp = regpool.getLong(); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getVal2(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), new RegisterOperand(tmp, TypeReference.Long)); \\
+}else{\\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \\
+}
+
+#
+# has int parameter
+#
+szpr:    LONG_AND(r,r)
+9
+EMIT_INSTRUCTION
+if (Binary.getVal1(P(p)).asRegister().getRegister().isInteger()) { \\
+RegisterOperand tmp = regpool.makeTempLong(); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp, Binary.getVal1(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), tmp, Binary.getVal2(P(p))); \\
+} else if (Binary.getVal2(P(p)).asRegister().getRegister().isInteger()) { \\
+RegisterOperand tmp = regpool.makeTempLong(); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp, Binary.getVal2(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), tmp); \\
+} else { \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \\
+}
+
+szp:	LONG_AND(r, rlv)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, Binary.getVal1(P(p)), Binary.getVal2(P(p))));
+
+### Memory operands ###
+szpr:	LONG_AND(rlv, load64)
+15
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+szpr:	LONG_AND(load64, rlv)
+15
+EMIT_INSTRUCTION
+if (Binary.getVal2(P(p)).isLongConstant()) { \\
+Register tmp = regpool.getLong(); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getVal2(P(p))))); \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), new RegisterOperand(tmp, TypeReference.Long), consumeMO()); \\
+} else { \\
+EMIT_Commutative(IA32_AND, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO()); \\
+}
+
+szp:	LONG_AND(load8_16_32_64, rlv)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal2(P(p))));
+
+szp:	LONG_AND(r, load8_16_32_64)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_TEST, consumeMO(), Binary.getVal1(P(p))));
+
+stm:	LONG_STORE(LONG_AND(LONG_LOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal2(PL(p)) );
+
+stm:	LONG_STORE(LONG_AND(r,LONG_LOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
+ADDRESS_EQUAL(P(p), PLR(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal1(PL(p)) );
+
+stm:	LONG_ASTORE(LONG_AND(LONG_ALOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal2(PL(p)) );
+
+stm:	LONG_ASTORE(LONG_AND(r,LONG_ALOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
+ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_AND, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal1(PL(p)) );
+

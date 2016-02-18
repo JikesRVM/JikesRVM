@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_ALLOCATED;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -25,8 +27,7 @@ import org.vmmagic.unboxed.Address;
  * Correlate objects in host JDK with corresponding objects in target RVM
  * bootimage.
  */
-public class BootImageMap extends BootImageWriterMessages
-  implements BootImageWriterConstants {
+public class BootImageMap extends BootImageWriterMessages {
   /**
    * Key->Entry map
    */
@@ -81,14 +82,18 @@ public class BootImageMap extends BootImageWriterMessages
      * Constructor.
      * @param jdkObject the object to associate with the key
      */
-    public Key(Object jdkObject) { this.jdkObject = jdkObject; }
+    Key(Object jdkObject) {
+      this.jdkObject = jdkObject;
+    }
 
     /**
      * Returns a hash code value for the key.
      * @return a hash code value for this key
      */
     @Override
-    public int hashCode() { return jdkObject.hashCode(); }
+    public int hashCode() {
+      return jdkObject.hashCode();
+    }
 
     /**
      * Indicates whether some other key is "equal to" this one.

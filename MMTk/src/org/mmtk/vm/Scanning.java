@@ -14,16 +14,16 @@ package org.mmtk.vm;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
-@Uninterruptible public abstract class Scanning implements Constants {
+@Uninterruptible public abstract class Scanning {
   /**
    * Delegated scanning of a object, processing each pointer field
    * encountered.
    *
+   * @param trace the trace to use for scanning
    * @param object The object to be scanned.
    */
   public abstract void scanObject(TransitiveClosure trace, ObjectReference object);
@@ -51,8 +51,10 @@ import org.vmmagic.unboxed.*;
    * Called the first time during a collection that thread's stacks
    * have been scanned. This can be used (for example) to clean up
    * obsolete compiled methods that are no longer being executed.
+   *
+   * @param partialScan whether the scan was partial or full-heap
    */
-  public abstract void notifyInitialThreadScanComplete();
+  public abstract void notifyInitialThreadScanComplete(boolean partialScan);
 
   /**
    * Computes static roots.  This method establishes all such roots for
@@ -90,7 +92,9 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Computes roots pointed to by threads, their associated registers
-   * and stacks.  This method places these roots in the root values,
+   * and stacks.<p>
+   *
+   * This method places these roots in the root values,
    * root locations and interior root locations queues.  This method
    * should not have side effects (such as copying or forwarding of
    * objects).  There are a number of important preconditions:
@@ -107,6 +111,28 @@ import org.vmmagic.unboxed.*;
   public abstract void computeThreadRoots(TraceLocal trace);
 
   /**
+   * Computes new roots pointed to by threads, their associated registers
+   * and stacks.   This method is only required to return roots that are
+   * new since the last stack scan (if possible, the implementation will
+   * optimize the scanning to only scan new portions of the stacks).<p>
+   *
+   * This method places these roots in the root values,
+   * root locations and interior root locations queues.  This method
+   * should not have side effects (such as copying or forwarding of
+   * objects).  There are a number of important preconditions:
+   *
+   * <ul>
+   * <li> All objects used in the course of GC (such as the GC thread
+   * objects) need to be "pre-copied" prior to calling this method.
+   * <li> The <code>threadCounter</code> must be reset so that load
+   * balancing parallel GC can share the work of scanning threads.
+   * </ul>
+   *
+   * @param trace The trace to use for computing roots.
+   */
+  public abstract void computeNewThreadRoots(TraceLocal trace);
+
+  /**
    * Compute all roots out of the VM's boot image (if any).  This method is a no-op
    * in the case where the VM does not maintain an MMTk-visible Java space.   However,
    * when the VM does maintain a space (such as a boot image) which is visible to MMTk,
@@ -119,4 +145,9 @@ import org.vmmagic.unboxed.*;
    * @param trace The trace object to use to report root locations.
    */
   public abstract void computeBootImageRoots(TraceLocal trace);
+
+  /**
+   * @return true if the runtime supports a return barrier
+   */
+  public abstract boolean supportsReturnBarrier();
 }

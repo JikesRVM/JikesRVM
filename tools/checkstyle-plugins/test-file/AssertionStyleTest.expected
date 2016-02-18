@@ -1,0 +1,27 @@
+
+Checkstyle Results for Checkstyle assertion plugin test case
+============================================================
+ at line 30,5 : The assert keyword must not be used.
+ at line 35,15 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 41,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 47,17 : Use VM.NOT_REACHED instead of false when writing assertions that fail when executed.
+ at line 50,17 : Use VM.NOT_REACHED instead of false when writing assertions that fail when executed.
+ at line 57,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 60,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 63,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 66,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 73,17 : Message for assert must be a string literal or a variable: String concatenation is not allowed in asserts.
+ at line 76,17 : Message for assert must be a string literal or a variable: String concatenation is not allowed in asserts.
+ at line 82,15 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 88,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 94,17 : Use VM.NOT_REACHED instead of false when writing assertions that fail when executed.
+ at line 97,17 : Use VM.NOT_REACHED instead of false when writing assertions that fail when executed.
+ at line 104,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 107,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 110,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 113,17 : All uses of VM._assert or opt_assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 120,17 : Message for assert must be a string literal or a variable: String concatenation is not allowed in asserts.
+ at line 123,17 : Message for assert must be a string literal or a variable: String concatenation is not allowed in asserts.
+ at line 129,45 : The method opt_assert must always be used with static imports (i.e. opt_assert(..) instead of OptimizingCompilerException.opt_assert(..)
+
+Found 22 errors in 1 of 1 files.

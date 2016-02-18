@@ -15,7 +15,7 @@
  * Allocate a single object and collect.  Allocate a second one and collect.
  * Delete the second one, then the first one.
  *
- * Then do it in the reveres order.
+ * Then do it in the reverse order.
  */
 void main() {
   one_first();
@@ -25,20 +25,27 @@ void main() {
 }
 
 void one_first() {
-  object o = alloc(1,1);
+  object o_first = alloc(1,1);
+  o_first.int[0] = 10101;
   gc();
+  assert (o_first.int[0] == 10101, "Object payload mutated by GC");
   two();
   gc();
+  assert (o_first.int[0] == 10101, "Object payload mutated by GC");
 }
 
 void one_second() {
   two();
-  object o = alloc(1,1);
+  object o_second = alloc(1,1);
+  o_second.int[0] = 20202;
   gc();
+  assert (o_second.int[0] == 20202, "Object payload mutated by GC");
 }
 
 void two() {
-  object o = alloc(2,2);
+  object o_two = alloc(2,2);
+  o_two.int[0] = 30303;
   gc();
+  assert (o_two.int[0] == 30303, "Object payload mutated by GC");
 }
 

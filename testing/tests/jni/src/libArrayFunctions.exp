@@ -1,0 +1,33 @@
+ArrayFunctions_0.1 {
+  global :
+	 Java_ArrayFunctions_setVerboseOff;
+	 Java_ArrayFunctions_testArrayLength;
+	 Java_ArrayFunctions_accessNewIntArray;
+	 Java_ArrayFunctions_accessNewBooleanArray;
+	 Java_ArrayFunctions_accessNewShortArray;
+	 Java_ArrayFunctions_accessNewByteArray;
+	 Java_ArrayFunctions_accessNewCharArray;
+	 Java_ArrayFunctions_accessNewLongArray;
+	 Java_ArrayFunctions_accessNewDoubleArray;
+	 Java_ArrayFunctions_accessNewFloatArray;
+	 Java_ArrayFunctions_accessNewObjectArray;
+	 Java_ArrayFunctions_testIntArrayRegion;
+	 Java_ArrayFunctions_testBooleanArrayRegion;
+	 Java_ArrayFunctions_testShortArrayRegion;
+	 Java_ArrayFunctions_testByteArrayRegion;
+	 Java_ArrayFunctions_testCharArrayRegion;
+	 Java_ArrayFunctions_testLongArrayRegion;
+	 Java_ArrayFunctions_testDoubleArrayRegion;
+	 Java_ArrayFunctions_testFloatArrayRegion;
+	 Java_ArrayFunctions_lastGetArrayElementsWasCopy;
+	 Java_ArrayFunctions_testIntArrayElements;
+	 Java_ArrayFunctions_testBooleanArrayElements;
+	 Java_ArrayFunctions_testByteArrayElements;
+	 Java_ArrayFunctions_testShortArrayElements;
+	 Java_ArrayFunctions_testCharArrayElements;
+	 Java_ArrayFunctions_testLongArrayElements;
+	 Java_ArrayFunctions_testDoubleArrayElements;
+	 Java_ArrayFunctions_testFloatArrayElements;
+	 Java_ArrayFunctions_testObjectArrayElement;
+  local : *;
+};

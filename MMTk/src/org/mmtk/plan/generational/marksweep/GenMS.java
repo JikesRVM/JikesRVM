@@ -35,11 +35,11 @@ import org.vmmagic.unboxed.*;
  * nursery size has dropped to a statically defined threshold,
  * <code>NURSERY_THRESHOLD</code><p>
  *
- * See the Jones & Lins GC book, chapter 7 for a detailed discussion
+ * See the Jones &amp; Lins GC book, chapter 7 for a detailed discussion
  * of generational collection and section 7.3 for an overview of the
  * flexible nursery behavior ("The Standard ML of New Jersey
  * collector"), or go to Appel's paper "Simple generational garbage
- * collection and fast allocation." SP&E 19(2):171--183, 1989.<p>
+ * collection and fast allocation." SP&amp;E 19(2):171--183, 1989.<p>
  *
  *
  * For general comments about the global/local distinction among classes refer
@@ -54,7 +54,7 @@ public class GenMS extends Gen {
    */
 
   /** The mature space, which for GenMS uses a mark sweep collection policy. */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.discontiguous());
 
   public static final int MS = msSpace.getDescriptor();
 
@@ -116,7 +116,7 @@ public class GenMS extends Gen {
 
   @Override
   public int getMaturePhysicalPagesAvail() {
-    return (int) (msSpace.availablePhysicalPages()/MarkSweepSpace.WORST_CASE_FRAGMENTATION);
+    return (int) (msSpace.availablePhysicalPages() / MarkSweepSpace.WORST_CASE_FRAGMENTATION);
   }
 
   /*****************************************************************************

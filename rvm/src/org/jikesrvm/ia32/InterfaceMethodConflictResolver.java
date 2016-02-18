@@ -12,19 +12,23 @@
  */
 package org.jikesrvm.ia32;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LT;
+import static org.jikesrvm.ia32.RegisterConstants.EAX;
+import static org.jikesrvm.ia32.RegisterConstants.ECX;
+import static org.jikesrvm.ia32.RegisterConstants.THREAD_REGISTER;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
-import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * An interface conflict resolution stub uses a hidden parameter to
  * distinguish among multiple interface methods of a class that map to
- * the same slot in the class's IMT. </p>
+ * the same slot in the class's IMT.
  *
  * <p><STRONG>Assumption:</STRONG>
  * Register EAX contains the "this" parameter of the
@@ -33,14 +37,14 @@ import org.vmmagic.unboxed.Offset;
  * <p><STRONG>Assumption:</STRONG>
  * Register ECX is available as a scratch register (we need one!)
  */
-public abstract class InterfaceMethodConflictResolver implements RegisterConstants {
+public abstract class InterfaceMethodConflictResolver {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   //
-  public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
+  public static CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
     int numEntries = sigIds.length;
     // (1) Create an assembler.
-    Assembler asm = new ArchitectureSpecific.Assembler(numEntries);
+    Assembler asm = new Assembler(numEntries);
 
     // (2) signatures must be in ascending order (to build binary search tree).
     if (VM.VerifyAssertions) {
@@ -84,7 +88,7 @@ public abstract class InterfaceMethodConflictResolver implements RegisterConstan
   // factor out to reduce code space in each call.
   //
   private static void insertStubPrologue(Assembler asm) {
-    ObjectModel.baselineEmitLoadTIB((ArchitectureSpecific.Assembler) asm, ECX.value(), EAX.value());
+    asm.baselineEmitLoadTIB(ECX, EAX);
   }
 
   // Generate a subtree covering from low to high inclusive.
@@ -96,23 +100,23 @@ public abstract class InterfaceMethodConflictResolver implements RegisterConstan
       // a leaf case; can simply invoke the method directly.
       RVMMethod target = targets[middle];
       if (target.isStatic()) { // an error case...
-        asm.emitJMP_Abs(Magic.getTocPointer().plus(target.getOffset()));
+        asm.generateJTOCjmp(target.getOffset());
       } else {
         asm.emitJMP_RegDisp(ECX, target.getOffset());
       }
     } else {
       Offset disp = ArchEntrypoints.hiddenSignatureIdField.getOffset();
-      ThreadLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
+      asm.emitCMP_RegDisp_Imm(THREAD_REGISTER, disp, sigIds[middle]);
       if (low < middle) {
-        asm.emitJCC_Cond_Label(Assembler.LT, bcIndices[(low + middle - 1) / 2]);
+        asm.emitJCC_Cond_Label(LT, bcIndices[(low + middle - 1) / 2]);
       }
       if (middle < high) {
-        asm.emitJCC_Cond_Label(Assembler.GT, bcIndices[(middle + 1 + high) / 2]);
+        asm.emitJCC_Cond_Label(GT, bcIndices[(middle + 1 + high) / 2]);
       }
       // invoke the method for middle.
       RVMMethod target = targets[middle];
       if (target.isStatic()) { // an error case...
-        asm.emitJMP_Abs(Magic.getTocPointer().plus(target.getOffset()));
+        asm.generateJTOCjmp(target.getOffset());
       } else {
         asm.emitJMP_RegDisp(ECX, target.getOffset());
       }

@@ -53,7 +53,9 @@ public class InsertMethodInvocationCounter extends CompilerPhase {
   }
 
   @Override
-  public final String getName() { return "InsertMethodInvocationCounters"; }
+  public final String getName() {
+    return "InsertMethodInvocationCounters";
+  }
 
   /**
    * Insert basic block counters

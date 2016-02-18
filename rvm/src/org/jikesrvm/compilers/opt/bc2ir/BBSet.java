@@ -12,6 +12,18 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_BB;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_BBSET;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_CFG;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_EX;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_FLATTEN;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_INLINE_JSR;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_LOCAL;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_REGEN;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_STACK;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.MAX_RETURN_ADDRESSES;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RECTIFY_BCI;
+
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
@@ -32,14 +44,14 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 
 /**
- * A somewhat complex subtask of IR generation is to discover and maintain
- * the set of basic blocks that are being generated.
- * This class encapsulates that functionality.
+ * Encapsulates the discovery and maintenance of the set of basic blocks that
+ * are being generated during construction of the IR.
+ * <p>
  * The backing data store is a red/black tree, but there are a number of
  * very specialized operations that are performed during search/insertion
  * so we roll our own instead of using one from the standard library.
  */
-final class BBSet implements IRGenOptions {
+final class BBSet {
   /** root of the backing red/black tree*/
   private BasicBlockLE root;
 
@@ -92,18 +104,21 @@ final class BBSet implements IRGenOptions {
     entry.copyIntoLocalState(localState);
   }
 
-  /** return the entry BBLE */
-  BasicBlockLE getEntry() { return entry; }
+  BasicBlockLE getEntry() {
+    return entry;
+  }
 
   /**
    * Notify the BBSet that BC2IR has encountered a JSR bytecode.
    * This enables more complex logic in getOrCreateBlock to drive
    * the basic block specialization that is the key to JSR inlining.
    */
-  void seenJSR() { noJSR = false; }
+  void seenJSR() {
+    noJSR = false;
+  }
 
   /**
-   * Return a enumeration of the BasicBlockLE's currently in the BBSet.
+   * @return a enumeration of the BasicBlockLE's currently in the BBSet
    */
   Enumeration<BasicBlockLE> contents() {
     return TreeEnumerator.enumFromRoot(root);
@@ -112,9 +127,11 @@ final class BBSet implements IRGenOptions {
   /**
    * Gets the bytecode index of the block in the set which has the
    * next-higher bytecode index.
-   * Returns bcodes.length() if x is currently the block with the highest
-   * starting bytecode index.
+   *
    * @param x basic block to start at.
+   * @return the bytecode index of the block in the set with the
+   *  next-higher bytecode index. If {@code x} is currently the block with
+   *  the highest starting bytecode index, return {@code bcodes.length()}.
    */
   int getNextBlockBytecodeIndex(BasicBlockLE x) {
     BasicBlockLE nextBBLE = getSuccessor(x, x.low);
@@ -124,8 +141,10 @@ final class BBSet implements IRGenOptions {
   /**
    * Finds the next ungenerated block, starting at the argument
    * block and searching forward, wrapping around to the beginning.
-   * If all blocks are generated, it returns null.
+   *
    * @param start the basic block at which to start looking.
+   * @return {@code null} if all blocks are generated, the next
+   *  ungenerated block otherwise
    */
   BasicBlockLE getNextEmptyBlock(BasicBlockLE start) {
     if (DBG_BBSET) db("getting the next empty block after " + start);
@@ -164,16 +183,17 @@ final class BBSet implements IRGenOptions {
 
   /**
    * Get or create a block at the specified target.
-   * If simStack is non-null, rectifies stack state with target stack state.
-   * If simLocals is non-null, rectifies local state with target local state.
+   * If simStack is non-{@code null}, rectifies stack state with target stack state.
+   * If simLocals is non-{@code null}, rectifies local state with target local state.
    * Any instructions needed to rectify stack/local state are appended to
    * from.
    *
    * @param target target index
    * @param from the block from which control is being transfered
    *                  and to which rectification instructions are added.
-   * @param simStack stack state to rectify, or null
-   * @param simLocals local state to rectify, or null
+   * @param simStack stack state to rectify, or {@code null}
+   * @param simLocals local state to rectify, or {@code null}
+   * @return a block, never {@code null}
    */
   BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, Operand[] simLocals) {
     if (DBG_BB || BC2IR.DBG_SELECTED) {
@@ -194,6 +214,8 @@ final class BBSet implements IRGenOptions {
    * (1) avoids generating lots of blocks when a CFG predecessor has a
    * pending regeneration and (2) avoids the scan through all blocks when
    * there are no more blocks left to generate.
+   *
+   * @param p the block to mark for regeneration
    */
   private void markBlockForRegeneration(BasicBlockLE p) {
     if (DBG_REGEN) db("marking " + p + " for regeneration");
@@ -258,7 +280,7 @@ final class BBSet implements IRGenOptions {
         db("First stack rectifiction for " + p + "(" + p.block + ") simply saving");
       }
       if (VM.VerifyAssertions) VM._assert(p.stackState == null);
-      p.stackState = new OperandStack(stack.getCapacity());
+      p.stackState = stack.createEmptyOperandStackWithSameCapacity();
       for (int i = stack.getSize() - 1; i >= 0; i--) {
         Operand op = stack.getFromTop(i);
         if (op == BC2IR.DUMMY) {
@@ -266,12 +288,12 @@ final class BBSet implements IRGenOptions {
         } else if (op instanceof RegisterOperand) {
           RegisterOperand rop = op.asRegister();
           if (rop.getRegister().isLocal()) {
-            RegisterOperand temp = gc.temps.makeTemp(rop);
+            RegisterOperand temp = gc.getTemps().makeTemp(rop);
             temp.setInheritableFlags(rop);
-            BC2IR.setGuard(temp, BC2IR.getGuard(rop));
+            BC2IR.setGuardForRegOp(temp, BC2IR.copyGuardFromOperand(rop));
             Instruction move = Move.create(IRTools.getMoveOp(rop.getType()), temp, rop.copyRO());
-            move.bcIndex = BC2IR.RECTIFY_BCI;
-            move.position = gc.inlineSequence;
+            move.bcIndex = RECTIFY_BCI;
+            move.position = gc.getInlineSequence();
             block.appendInstructionRespectingTerminalBranch(move);
             p.stackState.push(temp.copy());
             if (DBG_STACK || BC2IR.DBG_SELECTED) {
@@ -298,7 +320,7 @@ final class BBSet implements IRGenOptions {
         System.err.println("stack size " + stack.getSize());
         System.err.println(stack);
         System.err.println(p.stackState);
-        System.err.println(gc.method.toString());
+        System.err.println(gc.getMethod().toString());
         block.printExtended();
         p.block.printExtended();
         throw e;
@@ -317,7 +339,7 @@ final class BBSet implements IRGenOptions {
           if (mop.isConstant()) {
             // Insert move instructions in all predecessor
             // blocks except 'block' to move mop into a register.
-            RegisterOperand mopTmp = gc.temps.makeTemp(mop);
+            RegisterOperand mopTmp = gc.getTemps().makeTemp(mop);
             if (DBG_STACK || BC2IR.DBG_SELECTED) db("Merged stack has constant operand " + mop);
             for (Enumeration<BasicBlock> preds = p.block.getIn(); preds.hasMoreElements();) {
               BasicBlock pred = preds.nextElement();
@@ -338,7 +360,7 @@ final class BBSet implements IRGenOptions {
           }
           if (sop.isConstant()) {
             // Insert move instruction into block.
-            RegisterOperand sopTmp = gc.temps.makeTemp(sop);
+            RegisterOperand sopTmp = gc.getTemps().makeTemp(sop);
             if (DBG_STACK || BC2IR.DBG_SELECTED) db("incoming stack has constant operand " + sop);
             injectMove(block, sopTmp, sop);
             sop = sopTmp.copyRO();
@@ -375,8 +397,8 @@ final class BBSet implements IRGenOptions {
 
   private void injectMove(BasicBlock block, RegisterOperand res, Operand val) {
     Instruction move = Move.create(IRTools.getMoveOp(res.getType()), res, val);
-    move.bcIndex = BC2IR.RECTIFY_BCI;
-    move.position = gc.inlineSequence;
+    move.bcIndex = RECTIFY_BCI;
+    move.position = gc.getInlineSequence();
     block.appendInstructionRespectingTerminalBranch(move);
     if (DBG_STACK || BC2IR.DBG_SELECTED) {
       db("Inserted " + move + " into " + block);
@@ -435,14 +457,16 @@ final class BBSet implements IRGenOptions {
   /**
    * Do a final pass over the generated basic blocks to create
    * the initial code ordering. All blocks generated for the method
-   * will be inserted after gc.prologue.<p>
-   *
+   * will be inserted after gc.prologue.
+   * <p>
    * NOTE: Only some CFG edges are created here.....
    * we're mainly just patching together a code linearization.
+   *
+   * @param inlinedSomething was a normal method (i.e. non-magic) inlined?
    */
   void finalPass(boolean inlinedSomething) {
     BBSet.TreeEnumerator e = TreeEnumerator.enumFromRoot(root);
-    BasicBlock cop = gc.prologue;
+    BasicBlock cop = gc.getPrologue();
     BasicBlockLE curr = getEntry();
     BasicBlockLE next = null;
     top:
@@ -451,22 +475,22 @@ final class BBSet implements IRGenOptions {
       // inject synthetic entry block too.
       if (curr instanceof HandlerBlockLE) {
         // tell our caller that we actually put a handler in the final CFG.
-        gc.generatedExceptionHandlers = true;
+        gc.markExceptionHandlersAsGenerated();
         HandlerBlockLE hcurr = (HandlerBlockLE) curr;
         if (DBG_FLATTEN) {
           db("injecting handler entry block " + hcurr.entryBlock + " before " + hcurr);
         }
-        gc.cfg.insertAfterInCodeOrder(cop, hcurr.entryBlock);
+        gc.getCfg().insertAfterInCodeOrder(cop, hcurr.entryBlock);
         cop = hcurr.entryBlock;
       }
       // Step 1: Insert curr in the code order (after cop, updating cop).
       if (DBG_FLATTEN) db("flattening: " + curr + " (" + curr.block + ")");
       curr.setInCodeOrder();
-      gc.cfg.insertAfterInCodeOrder(cop, curr.block);
+      gc.getCfg().insertAfterInCodeOrder(cop, curr.block);
       cop = curr.block;
       if (DBG_FLATTEN) {
-        db("Current Code order for " + gc.method + "\n");
-        for (BasicBlock bb = gc.prologue; bb != null; bb = (BasicBlock) bb.getNext()) {
+        db("Current Code order for " + gc.getMethod() + "\n");
+        for (BasicBlock bb = gc.getPrologue(); bb != null; bb = (BasicBlock) bb.getNext()) {
           VM.sysWrite(bb + "\n");
         }
       }
@@ -516,11 +540,11 @@ final class BBSet implements IRGenOptions {
       if (curr.fallThrough != null && curr.fallThrough instanceof InliningBlockLE) {
         InliningBlockLE icurr = (InliningBlockLE) curr.fallThrough;
         BasicBlock forw = cop.nextBasicBlockInCodeOrder();
-        BasicBlock calleeEntry = icurr.gc.cfg.firstInCodeOrder();
-        BasicBlock calleeExit = icurr.gc.cfg.lastInCodeOrder();
-        gc.cfg.breakCodeOrder(cop, forw);
-        gc.cfg.linkInCodeOrder(cop, icurr.gc.cfg.firstInCodeOrder());
-        gc.cfg.linkInCodeOrder(icurr.gc.cfg.lastInCodeOrder(), forw);
+        BasicBlock calleeEntry = icurr.gc.getCfg().firstInCodeOrder();
+        BasicBlock calleeExit = icurr.gc.getCfg().lastInCodeOrder();
+        gc.getCfg().breakCodeOrder(cop, forw);
+        gc.getCfg().linkInCodeOrder(cop, icurr.gc.getCfg().firstInCodeOrder());
+        gc.getCfg().linkInCodeOrder(icurr.gc.getCfg().lastInCodeOrder(), forw);
         if (DBG_CFG || BC2IR.DBG_SELECTED) {
           db("Added CFG edge from " + cop + " to " + calleeEntry);
         }
@@ -529,7 +553,7 @@ final class BBSet implements IRGenOptions {
             db("injected " + icurr + " between " + curr + " and " + icurr.epilogueBBLE.fallThrough);
           }
           if (VM.VerifyAssertions) {
-            VM._assert(icurr.epilogueBBLE.block == icurr.gc.cfg.lastInCodeOrder());
+            VM._assert(icurr.epilogueBBLE.block == icurr.gc.getCfg().lastInCodeOrder());
           }
           curr = icurr.epilogueBBLE;
           cop = curr.block;
@@ -581,40 +605,40 @@ final class BBSet implements IRGenOptions {
     // If the epilogue was unreachable, remove it from the code order and cfg
     // and set gc.epilogue to null.
     boolean removedSomethingFromCodeOrdering = inlinedSomething;
-    if (gc.epilogue.hasZeroIn()) {
+    if (gc.getEpilogue().hasZeroIn()) {
       if (DBG_FLATTEN || DBG_CFG) {
-        db("Deleting unreachable epilogue " + gc.epilogue);
+        db("Deleting unreachable epilogue " + gc.getEpilogue());
       }
-      gc.cfg.removeFromCodeOrder(gc.epilogue);
+      gc.getCfg().removeFromCodeOrder(gc.getEpilogue());
       removedSomethingFromCodeOrdering = true;
 
       // remove the node from the graph AND adjust its edge info
-      gc.epilogue.remove();
-      gc.epilogue.deleteIn();
-      gc.epilogue.deleteOut();
-      if (VM.VerifyAssertions) VM._assert(gc.epilogue.hasZeroOut());
-      gc.epilogue = null;
+      gc.getEpilogue().remove();
+      gc.getEpilogue().deleteIn();
+      gc.getEpilogue().deleteOut();
+      if (VM.VerifyAssertions) VM._assert(gc.getEpilogue().hasZeroOut());
+      gc.setEpilogue(null);
     }
     // if gc has an unlockAndRethrow block that was not used, then remove it
-    if (gc.unlockAndRethrow != null && gc.unlockAndRethrow.hasZeroIn()) {
-      gc.cfg.removeFromCFGAndCodeOrder(gc.unlockAndRethrow);
+    if (gc.getUnlockAndRethrow() != null && gc.getUnlockAndRethrow().hasZeroIn()) {
+      gc.getCfg().removeFromCFGAndCodeOrder(gc.getUnlockAndRethrow());
       removedSomethingFromCodeOrdering = true;
-      gc.enclosingHandlers.remove(gc.unlockAndRethrow);
+      gc.getEnclosingHandlers().remove(gc.getUnlockAndRethrow());
     }
     // if we removed a basic block then we should compact the node numbering
     if (removedSomethingFromCodeOrdering) {
-      gc.cfg.compactNodeNumbering();
+      gc.getCfg().compactNodeNumbering();
     }
 
     if (DBG_FLATTEN) {
-      db("Current Code order for " + gc.method + "\n");
-      for (BasicBlock bb = gc.prologue; bb != null; bb = (BasicBlock) bb.getNext()) {
+      db("Current Code order for " + gc.getMethod() + "\n");
+      for (BasicBlock bb = gc.getPrologue(); bb != null; bb = (BasicBlock) bb.getNext()) {
         bb.printExtended();
       }
     }
     if (DBG_FLATTEN) {
-      db("Final CFG for " + gc.method + "\n");
-      gc.cfg.printDepthFirst();
+      db("Final CFG for " + gc.getMethod() + "\n");
+      gc.getCfg().printDepthFirst();
     }
   }
 
@@ -627,15 +651,15 @@ final class BBSet implements IRGenOptions {
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.method.getName() + ":" + val + "\n");
+    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.getMethod().getName() + ":" + val + "\n");
   }
 
   /**
-   * Initialize the global exception handler arrays for the method.<p>
+   * Initializes the global exception handler arrays for the method.
    */
   private void parseExceptionTables() {
-    ExceptionHandlerMap eMap = gc.method.getExceptionHandlerMap();
-    if (DBG_EX) db("\texception handlers for " + gc.method + ": " + eMap);
+    ExceptionHandlerMap eMap = gc.getMethod().getExceptionHandlerMap();
+    if (DBG_EX) db("\texception handlers for " + gc.getMethod() + ": " + eMap);
     if (eMap == null) return;  // method has no exception handling ranges.
     startPCs = eMap.getStartPC();
     endPCs = eMap.getEndPC();
@@ -656,6 +680,9 @@ final class BBSet implements IRGenOptions {
    * set to reflect the invariant that a basic block is in exactly one
    * "handler range."<p>
    * Also initializes bble.block.exceptionHandlers.
+   *
+   * @param bble the block whose handlers are to be initialized
+   * @param simLocals local variables
    */
   private void initializeExceptionHandlers(BasicBlockLE bble, Operand[] simLocals) {
     if (startPCs != null) {
@@ -676,9 +703,9 @@ final class BBSet implements IRGenOptions {
       for (int i = 0; i < bble.handlers.length; i++) {
         ehbbs[i] = bble.handlers[i].entryBlock;
       }
-      bble.block.exceptionHandlers = new ExceptionHandlerBasicBlockBag(ehbbs, gc.enclosingHandlers);
+      bble.block.exceptionHandlers = new ExceptionHandlerBasicBlockBag(ehbbs, gc.getEnclosingHandlers());
     } else {
-      bble.block.exceptionHandlers = gc.enclosingHandlers;
+      bble.block.exceptionHandlers = gc.getEnclosingHandlers();
     }
   }
 
@@ -686,6 +713,8 @@ final class BBSet implements IRGenOptions {
    * Given a starting bytecode index, find the greatest bcIndex that
    * is still has the same inscope exception handlers.
    * @param bcIndex the start bytecode index
+   * @return greatest bytecode index with the same in scope exception
+   *  handlers
    */
   private int exceptionEndRange(int bcIndex) {
     int max = bcodes.length();
@@ -723,6 +752,8 @@ final class BBSet implements IRGenOptions {
    * @param simStack  The expression stack to match
    * @param simLocals The local variables to match
    * @param candBBLE  The candidate BaseicBlockLE
+   * @return {@code true} if and only if a matching JSR context (see above)
+   *  was found
    */
   private boolean matchingJSRcontext(OperandStack simStack, Operand[] simLocals, BasicBlockLE candBBLE) {
     if (DBG_INLINE_JSR) {
@@ -774,8 +805,8 @@ final class BBSet implements IRGenOptions {
 
   /**
    * Get or create a block at the specified target.
-   * If simStack is non-null, rectifies stack state with target stack state.
-   * If simLocals is non-null, rectifies local state with target local state.
+   * If simStack is non-{@code null}, rectifies stack state with target stack state.
+   * If simLocals is non-{@code null}, rectifies local state with target local state.
    * Any instructions needed to rectify stack/local state are appended to
    * from.
    * As blocks are created, they are added to the red/black tree below x.
@@ -787,6 +818,7 @@ final class BBSet implements IRGenOptions {
    *                  and to which rectification instructions are added.
    * @param simStack stack state to rectify, or {@code null}
    * @param simLocals local state to rectify, or {@code null}
+   * @return a new block, never {@code null}
    */
   private BasicBlockLE getOrCreateBlock(BasicBlockLE x, boolean shouldCreate, int target, BasicBlockLE from,
                                         OperandStack simStack, Operand[] simLocals) {
@@ -903,6 +935,7 @@ final class BBSet implements IRGenOptions {
    *                  return addresses when creating a handler block).
    * @param parent parent in Red/Black tree
    * @param left are we creating a left child of parent?
+   * @return a new BBLE
    */
   private BasicBlockLE _createBBLE(int bcIndex, Operand[] simLocals, BasicBlockLE parent, boolean left) {
     BasicBlockLE newBBLE = null;
@@ -912,13 +945,13 @@ final class BBSet implements IRGenOptions {
           if (newBBLE == null) {
             newBBLE =
                 new HandlerBlockLE(bcIndex,
-                                   gc.inlineSequence,
+                                   gc.getInlineSequence(),
                                    exceptionTypes[i],
-                                   gc.temps,
-                                   gc.method.getOperandWords(),
-                                   gc.cfg);
+                                   gc.getTemps(),
+                                   gc.getMethod().getOperandWords(),
+                                   gc.getCfg());
             ((HandlerBlockLE) newBBLE).entryBlock.firstRealInstruction().
-                position = gc.inlineSequence;
+                position = gc.getInlineSequence();
           } else {
             ((HandlerBlockLE) newBBLE).addCaughtException(exceptionTypes[i]);
           }
@@ -926,7 +959,7 @@ final class BBSet implements IRGenOptions {
       }
     }
     if (newBBLE == null) {
-      newBBLE = new BasicBlockLE(bcIndex, gc.inlineSequence, gc.cfg);
+      newBBLE = new BasicBlockLE(bcIndex, gc.getInlineSequence(), gc.getCfg());
     }
 
     // Set newBBLE.max to encode exception ranges
@@ -946,11 +979,13 @@ final class BBSet implements IRGenOptions {
   }
 
   /**
-   * Returns the basic block which has the next-higher bytecode index.
-   * Returns {@code null} if x is the highest block.
+   * Returns the basic block's sucessor in bytecode sequence.
+   *
    * @param x basic block at which to start the search for a higher block
    * @param value the contents of x.low (makes tail call elim work better
    *              if we avoid the obvious 1 argument wrapper function)
+   * @return {@code null} if x is the block with the highest bytecode index,
+   *  the block with the next-higher bytecode index otherwise.
    */
   private BasicBlockLE getSuccessor(BasicBlockLE x, int value) {
     if (x.right != null) return minimumBB(x.right, value);

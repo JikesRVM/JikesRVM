@@ -16,8 +16,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.Assert;
 import org.mmtk.harness.Harness;
-import org.mmtk.harness.lang.Env;
-import org.mmtk.harness.scheduler.Schedulable;
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
@@ -31,28 +31,13 @@ public class ObjectReferenceDequeTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    /*
-     * Setting options here can be handy for running in Eclipse.  Otherwise
-     * allow the harness to pick up the defaults so we can set them using
-     * properties from ant.
-     */
-    Harness.init("collectors=0"
-//        ,"scheduler=JAVA"
-//        ,"scheduler=DETERMINISTIC"
-
-//        ,"schedulerPolicy=FIXED"
-//        ,"yieldInterval=1"
-
-//        ,"schedulerPolicy=RANDOM"
-//        ,"randomPolicyLength=20"
-//        ,"randomPolicyMin=1"
-//        ,"randomPolicyMax=2"
-//        ,"randomPolicySeed=1"
-//        ,"policyStats=true"
-        );
-
-    /* The deques rely on being run during GC. */
-    Plan.setGCStatus(Plan.GC_PROPER);
+    Harness.initOnce();
+    Trace.enable(Item.SCHEDULER);
+    Scheduler.setThreadModel(Scheduler.Model.DETERMINISTIC);
+    Harness.policy.setValue("FIXED");
+    Harness.yieldInterval.setValue(1);
+    /* Must call this after switching scheduler */
+    org.mmtk.harness.scheduler.Scheduler.initCollectors();
   }
 
   /**
@@ -70,7 +55,7 @@ public class ObjectReferenceDequeTest {
    */
   private void runTest(final CollectorContext... items) {
     for (CollectorContext item : items) {
-      Scheduler.scheduleCollector(item);
+      Scheduler.scheduleCollectorContext(item);
     }
     Scheduler.scheduleGcThreads();
   }
@@ -80,6 +65,7 @@ public class ObjectReferenceDequeTest {
     runTest(new CollectorContext() {
       @Override
       public void run() {
+        Trace.trace(Item.SCHEDULER, "testPushPop: in");
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -87,6 +73,7 @@ public class ObjectReferenceDequeTest {
         deque.push(o(1));
         Assert.assertEquals(deque.pop(),o(1));
         Assert.assertTrue(deque.isEmpty());
+        Trace.trace(Item.SCHEDULER, "testPushPop: out");
       }
     });
   }
@@ -216,17 +203,17 @@ public class ObjectReferenceDequeTest {
         ObjectReferenceDeque[] deques = new ObjectReferenceDeque[NDEQUES];
 
         shared.prepareNonBlocking();
-        for (int d=0; d < NDEQUES; d++) {
+        for (int d = 0; d < NDEQUES; d++) {
           deques[d] = new ObjectReferenceDeque("deque+d",shared);
-          for (int i=0; i < ENTRIES; i++) {
-            deques[d].push(o(d*100000+i+1));
+          for (int i = 0; i < ENTRIES; i++) {
+            deques[d].push(o(d * 100000 + i + 1));
           }
           deques[d].flushLocal();
         }
-        for (int i=0; i < ENTRIES * NDEQUES; i++) {
+        for (int i = 0; i < ENTRIES * NDEQUES; i++) {
           Assert.assertFalse(deques[0].pop().isNull());
         }
-        for (int d=0; d < NDEQUES; d++) {
+        for (int d = 0; d < NDEQUES; d++) {
           Assert.assertTrue(deques[d].isEmpty());
         }
         shared.reset();
@@ -243,10 +230,10 @@ public class ObjectReferenceDequeTest {
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
         shared.prepareNonBlocking();
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque.push(o(i));
         }
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque.push(o(i));
           Assert.assertFalse(deque.pop().isNull());
           Assert.assertFalse(deque.pop().isNull());
@@ -265,14 +252,14 @@ public class ObjectReferenceDequeTest {
       public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque1 = new ObjectReferenceDeque("deque1",shared);
-        ObjectReferenceDeque deque2= new ObjectReferenceDeque("deque2",shared);
+        ObjectReferenceDeque deque2 = new ObjectReferenceDeque("deque2",shared);
 
         shared.prepareNonBlocking();
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque1.push(o(i));
           deque2.push(o(i));
         }
-        for (int i=1; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
           deque1.push(o(i));
           Assert.assertFalse(deque1.pop().isNull());
           Assert.assertFalse(deque1.pop().isNull());
@@ -307,26 +294,30 @@ public class ObjectReferenceDequeTest {
     private final int ins;
     protected final ObjectReferenceDeque deque;
 
-    public AddRemoveThread(SharedDeque shared, int n, int ordinal, int ins) {
+    AddRemoveThread(SharedDeque shared, int n, int ordinal, int ins) {
       this.shared = shared;
       this.n = n;
       this.ordinal = ordinal;
       this.ins = ins;
-      this.deque = new ObjectReferenceDeque("deque"+ordinal,shared);
+      this.deque = new ObjectReferenceDeque("deque" + ordinal,shared);
     }
 
     @Override
     public void run() {
-      for (int i=0; i < ins; i++) {
-        add(o(1+i*n+ordinal));
+      for (int i = 0; i < ins; i++) {
+        add(o(1 + i * n + ordinal));
       }
       deque.flushLocal();
-      synchronized(shared) { counter += ins; }
-      int d=0;
+      synchronized (shared) {
+        counter += ins;
+      }
+      int d = 0;
       while (!deque.isEmpty()) {
         d++;
         Assert.assertFalse(deque.pop().isNull());
-        synchronized(shared) { counter--; }
+        synchronized (shared) {
+          counter--;
+        }
       }
       //System.out.printf("Thread %d pushed %d items, popped %d%n",ordinal,ins,d);
     }
@@ -341,7 +332,7 @@ public class ObjectReferenceDequeTest {
    */
   private class PushThread extends AddRemoveThread {
 
-    public PushThread(SharedDeque shared, int n, int ordinal, int ins) {
+    PushThread(SharedDeque shared, int n, int ordinal, int ins) {
       super(shared, n, ordinal, ins);
     }
 
@@ -356,7 +347,7 @@ public class ObjectReferenceDequeTest {
    */
   private class InsertThread extends AddRemoveThread {
 
-    public InsertThread(SharedDeque shared, int n, int ordinal, int ins) {
+    InsertThread(SharedDeque shared, int n, int ordinal, int ins) {
       super(shared, n, ordinal, ins);
     }
 

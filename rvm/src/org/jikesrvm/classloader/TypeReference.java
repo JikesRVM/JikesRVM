@@ -12,16 +12,13 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
-// TODO: The following is due to a bug in checkstyle 4.3
-// CHECKSTYLE:OFF
 import org.vmmagic.pragma.Uninterruptible;
-// CHECKSTYLE:ON
 
 /**
  * A class to represent the reference in a class file to some
@@ -72,11 +69,11 @@ public final class TypeReference {
   /**
    * Mask to ascertain row from id number
    */
-  private static final int ROW_MASK = (1 << LOG_ROW_SIZE)-1;
+  private static final int ROW_MASK = (1 << LOG_ROW_SIZE) - 1;
   /**
    * Dictionary of all TypeReference instances.
    */
-  private static TypeReference[][] types = new TypeReference[3][1<<LOG_ROW_SIZE];
+  private static TypeReference[][] types = new TypeReference[3][1 << LOG_ROW_SIZE];
 
   /**
    * Used to assign Ids.  Id 0 is not used. Ids are compressed and
@@ -108,15 +105,14 @@ public final class TypeReference {
   public static final TypeReference ObjectReference = findOrCreate(org.vmmagic.unboxed.ObjectReference.class);
   public static final TypeReference Offset = findOrCreate(org.vmmagic.unboxed.Offset.class);
   public static final TypeReference Extent = findOrCreate(org.vmmagic.unboxed.Extent.class);
-  public static final TypeReference Code =
-      findOrCreate(VM.BuildForIA32 ? "Lorg/jikesrvm/ia32/Code;" : "Lorg/jikesrvm/ppc/Code;");
+  public static final TypeReference Code = findOrCreate(org.jikesrvm.compilers.common.Code.class);
   public static final TypeReference WordArray = findOrCreate(org.vmmagic.unboxed.WordArray.class);
   public static final TypeReference AddressArray = findOrCreate(org.vmmagic.unboxed.AddressArray.class);
   public static final TypeReference ObjectReferenceArray =
       findOrCreate(org.vmmagic.unboxed.ObjectReferenceArray.class);
   public static final TypeReference OffsetArray = findOrCreate(org.vmmagic.unboxed.OffsetArray.class);
   public static final TypeReference ExtentArray = findOrCreate(org.vmmagic.unboxed.ExtentArray.class);
-  public static final TypeReference CodeArray = findOrCreate(org.jikesrvm.ArchitectureSpecific.CodeArray.class);
+  public static final TypeReference CodeArray = findOrCreate(org.jikesrvm.compilers.common.CodeArray.class);
   public static final TypeReference Magic = findOrCreate(org.jikesrvm.runtime.Magic.class);
   public static final TypeReference SysCall = findOrCreate(org.vmmagic.pragma.SysCallNative.class);
   public static final TypeReference TIB = findOrCreate(org.jikesrvm.objectmodel.TIB.class);
@@ -225,7 +221,7 @@ public final class TypeReference {
    *
    * @param cl the classloader (defining/initiating depending on usage)
    * @param tn the name of the type
-   *
+   * @return the canonical type reference
    * @throws IllegalArgumentException Needs to throw some kind of error in
    *  the case of a Atom that does not represent a type name.
    */
@@ -261,6 +257,7 @@ public final class TypeReference {
   /**
    * Shorthand for doing a find or create for a type reference that should
    * be created using the bootstrap classloader.
+   * @return the canonical type reference
    * @param tn type name
    */
   public static TypeReference findOrCreate(String tn) {
@@ -271,6 +268,7 @@ public final class TypeReference {
    * Convert a java.lang.Class into a type reference the slow way. For
    * use in boot image writing
    * @param klass java.lang.Class to convert to type reference
+   * @return the canonical type reference
    */
   public static TypeReference findOrCreate(Class<?> klass) {
     if (VM.runningVM) {
@@ -317,6 +315,7 @@ public final class TypeReference {
    *
    * @param cl the classloader (defining/initiating depending on usage)
    * @param tn the name of the type
+   * @return the canonical type reference
    */
   public static synchronized TypeReference findOrCreateInternal(ClassLoader cl, Atom tn) {
     // Next actually findOrCreate the type reference using the proper classloader.
@@ -329,8 +328,8 @@ public final class TypeReference {
       int column = val.id >> LOG_ROW_SIZE;
       if (column == types.length) {
         // Grow the array of types if necessary
-        TypeReference[][] tmp = new TypeReference[column+1][];
-        for (int i=0; i < column; i++) {
+        TypeReference[][] tmp = new TypeReference[column + 1][];
+        for (int i = 0; i < column; i++) {
           tmp[i] = types[i];
         }
         types = tmp;
@@ -344,10 +343,11 @@ public final class TypeReference {
   private static void canonicalizeCL(ClassLoader cl) {
     clDict.add(cl);
   }
-  public static ImmutableEntryHashSetRVM<ClassLoader> getCLDict() { return clDict; }
+  public static ImmutableEntryHashSetRVM<ClassLoader> getCLDict() {
+    return clDict;
+  }
 
   /**
-   * Constructor
    * @param cl the classloader
    * @param tn the type name
    * @param id the numeric identifier
@@ -386,7 +386,7 @@ public final class TypeReference {
   }
 
   /**
-   * Get the element type of for this array type
+   * @return the element type of for this array type
    */
   public TypeReference getArrayElementType() {
     if (VM.VerifyAssertions) VM._assert(isArrayType());
@@ -414,7 +414,7 @@ public final class TypeReference {
   }
 
   /**
-   * Get array type corresponding to "this" array element type.
+   * @return array type corresponding to "this" array element type
    */
   public TypeReference getArrayTypeForElementType() {
     Atom arrayDescriptor = name.arrayDescriptorFromElementDescriptor();
@@ -422,7 +422,7 @@ public final class TypeReference {
   }
 
   /**
-   * Return the dimensionality of the type.
+   * @return the dimensionality of the type.
    * By convention, class types have dimensionality 0,
    * primitives -1, and arrays the number of [ in their descriptor.
    */
@@ -447,7 +447,7 @@ public final class TypeReference {
   }
 
   /**
-   * Return the innermost element type reference for an array
+   * @return the innermost element type reference for an array
    */
   public TypeReference getInnermostElementType() {
     TypeReference elem = getArrayElementType();
@@ -462,7 +462,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to a class?
+   * @return {@code true} if 'this' refers to a class
    */
   @Uninterruptible
   public boolean isClassType() {
@@ -470,7 +470,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to an array?
+   * @return {@code true} if 'this' refers to an array
    */
   @Uninterruptible
   public boolean isArrayType() {
@@ -478,7 +478,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to a primitive type
+   * @return {@code true} if 'this' refers to a primitive type
    */
   @Uninterruptible
   public boolean isPrimitiveType() {
@@ -486,7 +486,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to a reference type
+   * @return {@code true} if 'this' refers to a reference type
    */
   @Uninterruptible
   public boolean isReferenceType() {
@@ -494,7 +494,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to Word, Address, Offset or Extent
+   * @return {@code true} if 'this' refers to Word, Address, Offset or Extent
    */
   @Uninterruptible
   public boolean isWordLikeType() {
@@ -502,7 +502,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to Word
+   * @return {@code true} if 'this' refers to Word
    */
   @Uninterruptible
   public boolean isWordType() {
@@ -510,7 +510,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to Address
+   * @return {@code true} if 'this' refers to Address
    */
   @Uninterruptible
   public boolean isAddressType() {
@@ -518,7 +518,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to Offset
+   * @return {@code true} if 'this' refers to Offset
    */
   @Uninterruptible
   public boolean isOffsetType() {
@@ -526,7 +526,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to Extent
+   * @return {@code true} if 'this' refers to Extent
    */
   @Uninterruptible
   public boolean isExtentType() {
@@ -534,7 +534,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to an unboxed type.
+   * @return {@code true} if 'this' refers to an unboxed type.
    */
   @Uninterruptible
   public boolean isUnboxedType() {
@@ -542,7 +542,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to Code
+   * @return {@code true} if 'this' refers to Code
    */
   @Uninterruptible
   public boolean isCodeType() {
@@ -550,7 +550,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
+   * @return {@code true} if  'this' refers to WordArray, AddressArray, OffsetArray or ExtentArray
    */
   @Uninterruptible
   public boolean isWordArrayType() {
@@ -561,7 +561,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
+   * @return {@code true} if 'this' refers to WordArray, AddressArray, OffsetArray or ExtentArray
    */
   @Uninterruptible
   public boolean isUnboxedArrayType() {
@@ -569,7 +569,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to a runtime table type?
+   * @return {@code true} if 'this' refers to a runtime table type
    */
   @Uninterruptible
   public boolean isRuntimeTable() {
@@ -578,7 +578,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to CodeArray
+   * @return {@code true} if 'this' refers to CodeArray
    */
   @Uninterruptible
   public boolean isCodeArrayType() {
@@ -586,7 +586,7 @@ public final class TypeReference {
   }
 
   /**
-   * Does 'this' refer to Magic?
+   * @return {@code true} if 'this' refers to Magic
    */
   @Uninterruptible
   public boolean isMagicType() {
@@ -594,7 +594,7 @@ public final class TypeReference {
   }
 
   /**
-   * How many java stack/local words do value of this type take?
+   * @return number of java stack/local words that values of this type take
    */
   @Uninterruptible
   public int getStackWords() {
@@ -608,7 +608,7 @@ public final class TypeReference {
   }
 
   /**
-   * How many bytes do values of this type take?
+   * @return number of bytes that values of this type take
    */
   @Uninterruptible
   public int getMemoryBytes() {
@@ -630,7 +630,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the void primitive type?
+   * @return {@code true} if this is the type reference for the void primitive type
    */
   @Uninterruptible
   public boolean isVoidType() {
@@ -638,7 +638,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the boolean primitive type?
+   * @return {@code true} if this is the type reference for the boolean primitive type
    */
   @Uninterruptible
   public boolean isBooleanType() {
@@ -646,7 +646,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the byte primitive type?
+   * @return {@code true} if this is the type reference for the byte primitive type
    */
   @Uninterruptible
   public boolean isByteType() {
@@ -654,7 +654,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the short primitive type?
+   * @return {@code true} if this is the type reference for the short primitive type
    */
   @Uninterruptible
   public boolean isShortType() {
@@ -662,7 +662,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the char primitive type?
+   * @return {@code true} if this is the type reference for the char primitive type
    */
   @Uninterruptible
   public boolean isCharType() {
@@ -670,7 +670,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the int primitive type?
+   * @return {@code true} if this is the type reference for the int primitive type
    */
   @Uninterruptible
   public boolean isIntType() {
@@ -678,7 +678,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the long primitive type?
+   * @return {@code true} if this is the type reference for the long primitive type
    */
   @Uninterruptible
   public boolean isLongType() {
@@ -686,7 +686,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the float primitive type?
+   * @return {@code true} if this is the type reference for the float primitive type
    */
   @Uninterruptible
   public boolean isFloatType() {
@@ -694,7 +694,7 @@ public final class TypeReference {
   }
 
   /**
-   * Is this the type reference for the double primitive type?
+   * @return {@code true} if this is the type reference for the double primitive type
    */
   @Uninterruptible
   public boolean isDoubleType() {
@@ -702,8 +702,8 @@ public final class TypeReference {
   }
 
   /**
-   * Is <code>this</code> the type reference for an
-   * int-like (1, 8, 16, or 32 bit integral) primitive type?
+   * @return {@code true} if {@code this} is the type reference for an
+   * int-like (1, 8, 16, or 32 bit integral) primitive type
    */
   @Uninterruptible
   public boolean isIntLikeType() {
@@ -712,6 +712,11 @@ public final class TypeReference {
 
   /**
    * Do this and that definitely refer to the different types?
+   *
+   * @param that other type
+   * @return {@code true} if this and the other type are definitely
+   *  different, {@code false} if it's not known (e.g. because a
+   *  type reference is not yet resolved)
    */
   public boolean definitelyDifferent(TypeReference that) {
     if (this == that) return false;
@@ -724,6 +729,11 @@ public final class TypeReference {
 
   /**
    * Do {@code this} and that definitely refer to the same type?
+   *
+   * @param that other type
+   * @return {@code true} if this and the other type are definitely
+   *  the same, {@code false} if it's not known (e.g. because a
+   *  type reference is not yet resolved)
    */
   public boolean definitelySame(TypeReference that) {
     if (VM.VerifyAssertions) VM._assert(that != null);
@@ -736,7 +746,7 @@ public final class TypeReference {
   }
 
   /**
-   * Return true if the type for type reference has been loaded.
+   * @return {@code true} if the type for type reference has been loaded.
    */
   @Uninterruptible
   public boolean isLoaded() {
@@ -744,7 +754,8 @@ public final class TypeReference {
   }
 
   /**
-   * Return true if the type for type reference has been loaded and it is resolved.
+   * @return {@code true} if the type for type reference has been loaded and
+   *  it is resolved.
    */
   @Uninterruptible
   public boolean isResolved() {
@@ -759,9 +770,6 @@ public final class TypeReference {
     return type;
   }
 
-  /*
-   * for use by RVMClassLoader.defineClassInternal
-   */
   void setType(RVMType rt) {
     type = rt;
     if (type.isClassType()) {

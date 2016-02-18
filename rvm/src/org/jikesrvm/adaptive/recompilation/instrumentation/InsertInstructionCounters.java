@@ -56,7 +56,9 @@ public class InsertInstructionCounters extends CompilerPhase {
   }
 
   @Override
-  public final String getName() { return "InsertInstructionCounters"; }
+  public final String getName() {
+    return "InsertInstructionCounters";
+  }
 
   /**
    * Insert a counter on every instruction, and group counts by

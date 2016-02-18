@@ -12,40 +12,36 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.PrintContainer;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.PrintContainer;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * A ExecutionStateExtractor extracts a runtime state (VM scope descriptor)
  * of a method activation. The implementation depends on compilers and
- * hardware architectures
- * @see org.jikesrvm.ArchitectureSpecificOpt.BaselineExecutionStateExtractor
- * @see org.jikesrvm.ArchitectureSpecificOpt.OptExecutionStateExtractor
+ * hardware architectures.<p>
  *
  * It returns a compiler and architecture neutered runtime state
  * ExecutionState.
  */
-
-public abstract class ExecutionStateExtractor implements Constants {
+public abstract class ExecutionStateExtractor {
   /**
-   * Returns a VM scope descriptor (ExecutionState) for a compiled method
-   * on the top of a thread stack, (or a list of descriptors for an inlined
-   * method).
-   *
    * @param thread a suspended RVM thread
    * @param tsFromFPoff the frame pointer offset of the threadSwitchFrom method
    * @param ypTakenFPoff the frame pointer offset of the real method where
    *                      yield point was taken. tsFrom is the callee of ypTaken
    * @param cmid the compiled method id of ypTaken
+   *
+   * @return a VM scope descriptor (ExecutionState) for a compiled method
+   * on the top of a thread stack, (or a list of descriptors for an inlined
+   * method).
    */
   public abstract ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset ypTakenFPoff, int cmid);
 
@@ -56,10 +52,10 @@ public abstract class ExecutionStateExtractor implements Constants {
     Address fp = Magic.objectAsAddress(stack).plus(osrFPoff);
     Address ip = Magic.getReturnAddressUnchecked(fp);
     fp = Magic.getCallerFramePointer(fp);
-    while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+    while (Magic.getCallerFramePointer(fp).NE(StackFrameLayout.getStackFrameSentinelFP())) {
       int cmid = Magic.getCompiledMethodID(fp);
 
-      if (cmid == ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
+      if (cmid == StackFrameLayout.getInvisibleMethodID()) {
         VM.sysWriteln(" invisible method ");
       } else {
         CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);

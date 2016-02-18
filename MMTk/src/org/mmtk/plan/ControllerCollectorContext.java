@@ -27,7 +27,7 @@ public class ControllerCollectorContext extends CollectorContext {
   private Monitor lock;
 
   /** The set of worker threads to use */
-  private ParallelCollectorGroup workers;
+  private final ParallelCollectorGroup workers;
 
   /** Flag used to control the 'race to request' */
   private boolean requestFlag;
@@ -63,7 +63,7 @@ public class ControllerCollectorContext extends CollectorContext {
   @Override
   @Unpreemptible
   public void run() {
-    while(true) {
+    while (true) {
       // Wait for a collection request.
       if (Options.verbose.getValue() >= 5) Log.writeln("[STWController: Waiting for request...]");
       waitForRequest();

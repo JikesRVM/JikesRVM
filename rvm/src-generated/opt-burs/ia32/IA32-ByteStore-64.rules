@@ -1,0 +1,34 @@
+#####
+# BYTE_STORE
+#####
+stm:    BYTE_STORE(riv, OTHER_OPERAND(rlv, rlv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), Store.getValue(P(p))));
+
+# Can avoid sign/zero extension when we are just doing a transfer of bits
+# from one memory location to another.
+stm:    BYTE_STORE(load8, OTHER_OPERAND(rlv, rlv))
+25
+EMIT_INSTRUCTION
+Register tmp = regpool.getInteger(); \\
+EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Int), consumeMO()))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), new RegisterOperand(tmp, TypeReference.Int)));
+
+#####
+# BYTE_ASTORE
+#####
+stm:    BYTE_ASTORE(riv, OTHER_OPERAND(rlv, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), AStore.getValue(P(p))));
+
+# Can avoid sign/zero extension when we are just doing a transfer of bits
+# from one memory location to another.
+stm:    BYTE_ASTORE(load8, OTHER_OPERAND(rlv, riv))
+25
+EMIT_INSTRUCTION
+Register tmp = regpool.getInteger(); \\
+EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Int), consumeMO()))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), new RegisterOperand(tmp, TypeReference.Int)));
+

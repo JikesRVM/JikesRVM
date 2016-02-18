@@ -13,7 +13,6 @@
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.SegregatedFreeListSpace;
-import org.mmtk.utility.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -22,7 +21,7 @@ import org.vmmagic.unboxed.*;
  * This abstract class implements the fast past for a segregated free list.
  */
 @Uninterruptible
-public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> extends Allocator implements Constants {
+public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> extends Allocator {
 
   /****************************************************************************
    *
@@ -93,6 +92,8 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
    *
    * NOTE: For optimal performance this call must be implemented in a way
    * it can be inlined and optimized within the allocation sequence.
+   *
+   * @return the number of distinct size classes
    */
   @Inline
   private int sizeClassCount() {

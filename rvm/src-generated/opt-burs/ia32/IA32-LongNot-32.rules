@@ -1,0 +1,19 @@
+#####
+# LONG_NOT
+#####
+r:	LONG_NOT(r)
+26
+EMIT_INSTRUCTION
+EMIT_LongUnary(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), false);
+
+### Memory operands ###
+stm:	LONG_STORE(LONG_NOT(LONG_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 34)
+EMIT_INSTRUCTION
+EMIT_LongUnary(P(p), MO_S(P(p), QW), MO_S(P(p), QW), false);
+
+stm:	LONG_ASTORE(LONG_NOT(LONG_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
+ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 34)
+EMIT_INSTRUCTION
+EMIT_LongUnary(P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), false);
+

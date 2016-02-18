@@ -12,29 +12,31 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
+import org.jikesrvm.architecture.AbstractRegisters;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.mm.mminterface.GCMapIteratorGroup;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.ArchitectureSpecific.Registers;
 
 /**
  * Class that supports scanning thread stacks for references during
@@ -75,9 +77,9 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
  * things must occur: first the pointed to object must be kept alive,
  * and second, if the pointed to object is moved by a copying
  * collector, the pointer into the object must be adjusted so it now
- * points into the newly copied object.<p>
+ * points into the newly copied object
  */
-@Uninterruptible public final class ScanThread implements Constants {
+@Uninterruptible public final class ScanThread {
 
   /***********************************************************************
    *
@@ -116,6 +118,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
   private CompiledMethod compiledMethod;
   private int compiledMethodType;
   private boolean failed;
+  private boolean reinstallReturnBarrier;
 
   /***********************************************************************
    *
@@ -128,28 +131,33 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * @param thread The thread to be scanned
    * @param trace The trace instance to use for reporting references.
    * @param processCodeLocations Should code locations be processed?
+   * @param newRootsSufficient Is a partial stack scan sufficient, or must we do a full scan?
    */
   public static void scanThread(RVMThread thread, TraceLocal trace,
-                                boolean processCodeLocations) {
-    if (DEFAULT_VERBOSITY>=1) {
+                                boolean processCodeLocations, boolean newRootsSufficient) {
+    if (DEFAULT_VERBOSITY >= 1) {
       VM.sysWriteln("scanning ",thread.getThreadSlot());
     }
 
     /* get the gprs associated with this thread */
-    Registers regs=thread.getContextRegisters();
-    Address gprs = Magic.objectAsAddress(regs.gprs);
+    AbstractRegisters regs = thread.getContextRegisters();
+    Address gprs = Magic.objectAsAddress(regs.getGPRs());
 
-    Address ip=regs.getInnermostInstructionAddress();
-    Address fp=regs.getInnermostFramePointer();
+    Address ip = regs.getInnermostInstructionAddress();
+    Address fp = regs.getInnermostFramePointer();
     regs.clear();
     regs.setInnermost(ip,fp);
 
-    scanThread(thread, trace, processCodeLocations, gprs, Address.zero());
+    scanThread(thread, trace, processCodeLocations, gprs, Address.zero(), newRootsSufficient);
   }
 
   /**
    * Wrapper for {@link TraceLocal#reportDelayedRootEdge(Address)} that allows
    * sanity checking of the address.
+   *
+   * @param trace the trace on which {@link TraceLocal#reportDelayedRootEdge(Address)}
+   *  will be called
+   * @param addr see JavaDoc of {@link TraceLocal#reportDelayedRootEdge(Address)}
    */
   private static void reportDelayedRootEdge(TraceLocal trace, Address addr) {
     if (VALIDATE_REFS) checkReference(addr);
@@ -168,12 +176,13 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * stack being scanned (normally extracted from the thread).
    * @param topFrame The top frame of the stack being scanned, or zero
    * if this is to be inferred from the thread (normally the case).
+   * @param newRootsSufficent Is a partial stack scan sufficient, or must we do a full scan?
    */
   private static void scanThread(RVMThread thread, TraceLocal trace,
                                  boolean processCodeLocations,
-                                 Address gprs, Address topFrame) {
+                                 Address gprs, Address topFrame, boolean newRootsSufficent) {
     // figure out if the thread should be scanned at all; if not, exit
-    if (thread.getExecStatus()==RVMThread.NEW || thread.getIsAboutToTerminate()) {
+    if (thread.getExecStatus() == RVMThread.NEW || thread.getIsAboutToTerminate()) {
       return;
     }
     /* establish ip and fp for the stack to be scanned */
@@ -191,8 +200,16 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     /* Grab the ScanThread instance associated with this thread */
     ScanThread scanner = RVMThread.getCurrentThread().getCollectorThread().getThreadScanner();
 
+    /* Expicitly establish the stopping point for this scan (not necessarily the bottom of stack) */
+    Address sentinalFp = newRootsSufficent && Options.useShortStackScans.getValue() ? thread.getNextUnencounteredFrame() : StackFrameLayout.getStackFrameSentinelFP();
+
+    /* stack trampoline will be freshly reinstalled at end of thread scan */
+    if (Options.useReturnBarrier.getValue() || Options.useShortStackScans.getValue()) {
+      thread.deInstallStackTrampoline();
+    }
+
     /* scan the stack */
-    scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
+    scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame, sentinalFp);
   }
 
   /**
@@ -206,6 +223,8 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * instance variables of this type, which are initialized here.
    *
    * @param trace The trace instance to use for reporting locations.
+   * @param processCodeLocations whether to process parts of the thread
+   *  that could point to code (e.g. exception registers).
    * @param thread Thread for the thread whose stack is being scanned
    * @param gprs The general purpose registers associated with the
    * stack being scanned (normally extracted from the thread).
@@ -213,11 +232,17 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * we're about to scan.
    * @param fp The frame pointer for the top frame of the stack we're
    * about to scan.
+   * @param initialIPLoc the address of the initial location of the instruction
+   *  pointer
+   * @param topFrame The top frame of the stack being scanned, or zero
+   * if this is to be inferred from the thread (normally the case).
+   * @param sentinelFp The frame pointer at which the stack scan should stop.
    */
   private void startScan(TraceLocal trace,
                          boolean processCodeLocations,
                          RVMThread thread, Address gprs, Address ip,
-                         Address fp, Address initialIPLoc, Address topFrame) {
+                         Address fp, Address initialIPLoc, Address topFrame,
+                         Address sentinelFp) {
     this.trace = trace;
     this.processCodeLocations = processCodeLocations;
     this.thread = thread;
@@ -226,13 +251,13 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     this.fp = fp;
     this.initialIPLoc = initialIPLoc;
     this.topFrame = topFrame;
-    scanThreadInternal(gprs, DEFAULT_VERBOSITY);
+    scanThreadInternal(gprs, DEFAULT_VERBOSITY, sentinelFp);
     if (failed) {
-       /* reinitialize and rescan verbosly on failure */
+       /* reinitialize and rescan verbosely on failure */
       this.ip = ip;
       this.fp = fp;
       this.topFrame = topFrame;
-      scanThreadInternal(gprs, FAILURE_VERBOSITY);
+      scanThreadInternal(gprs, FAILURE_VERBOSITY, sentinelFp);
       VM.sysFail("Error encountered while scanning stack");
     }
   }
@@ -246,8 +271,9 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * stack being scanned (normally extracted from the thread).
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
+   * @param sentinelFp the frame pointer at which the stack scan should stop
    */
-  private void scanThreadInternal(Address gprs, int verbosity) {
+  private void scanThreadInternal(Address gprs, int verbosity, Address sentinelFp) {
     if (false) {
       VM.sysWriteln("Scanning thread ",thread.getThreadSlot()," from thread ",RVMThread.getCurrentThreadSlot());
     }
@@ -267,12 +293,13 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     if (verbosity >= 2) dumpTopFrameInfo(verbosity);
 
     /* scan each frame if a non-empty stack */
-    if (fp.NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+    if (fp.NE(StackFrameLayout.getStackFrameSentinelFP())) {
       prevFp = Address.zero();
+      reinstallReturnBarrier = Options.useReturnBarrier.getValue() || Options.useShortStackScans.getValue();
       /* At start of loop:
          fp -> frame for method invocation being processed
          ip -> instruction pointer in the method (normally a call site) */
-      while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+      while (Magic.getCallerFramePointer(fp).NE(sentinelFp)) {
         if (false) {
           VM.sysWriteln("Thread ",RVMThread.getCurrentThreadSlot()," at fp = ",fp);
         }
@@ -283,7 +310,8 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     }
 
     /* If a thread started via createVM or attachVM, base may need scaning */
-    checkJNIBase();
+    // TODO implement this if necessary. It was previously only implemented for
+    // AIX which is no longer supported.
 
     if (verbosity >= 2) Log.writeln("--- End Of Stack Scan ---\n");
   }
@@ -294,19 +322,18 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * registers for code pointers.  If the codeLocations deque is null,
    * then scanning for code pointers is not required, so we don't need
    * to do anything. (SB: Why only code pointers?).
-   *
+   * <p>
    * Dave G:  The contents of the GPRs of the exceptionRegisters
    * are handled during normal stack scanning
    * (@see org.jikesrvm.runtime.compilers.common.HardwareTrapCompiledMethod.
    * It looks to me like the main goal of this method is to ensure that the
    * method in which the trap happened isn't treated as dead code and collected
    * (if it's been marked as obsolete, we are setting its activeOnStackFlag below).
-   *
    */
   private void getHWExceptionRegisters() {
-    ArchitectureSpecific.Registers exReg = thread.getExceptionRegisters();
-    if (processCodeLocations && exReg.inuse) {
-      Address ip = exReg.ip;
+    AbstractRegisters exReg = thread.getExceptionRegisters();
+    if (processCodeLocations && exReg.getInUse()) {
+      Address ip = exReg.getIP();
       CompiledMethod compiledMethod = CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) {
         VM._assert(compiledMethod != null);
@@ -315,7 +342,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
       compiledMethod.setActiveOnStack();
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
       Address ipLoc = exReg.getIPLocation();
-      if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
+      if (VM.VerifyAssertions) VM._assert(ip.EQ(ipLoc.loadAddress()));
       processCodeLocation(code, ipLoc);
     }
   }
@@ -361,6 +388,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    *
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
+   * @return the frame pointer of the frame that was just scanned
    */
   private Address scanFrame(int verbosity) {
     /* set up iterators etc, and skip the frame if appropriate */
@@ -375,11 +403,18 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
 
     iterator.cleanupPointers();
 
-    /* skip preceeding native frames if this frame is a native bridge */
-    if (compiledMethodType != CompiledMethod.TRAP &&
-        compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
-      fp = RuntimeEntrypoints.unwindNativeStackFrameForGC(fp);
-      if (verbosity >= 2) Log.write("scanFrame skipping native C frames\n");
+    if (compiledMethodType != CompiledMethod.TRAP) {
+      /* skip preceding native frames if this frame is a native bridge */
+      if (compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+        fp = RuntimeEntrypoints.unwindNativeStackFrameForGC(fp);
+        if (verbosity >= 2) Log.write("scanFrame skipping native C frames\n");
+      }
+
+      /* reinstall the return barrier if necessary (and verbosity indicates that this is a regular scan) */
+      if (reinstallReturnBarrier && verbosity == DEFAULT_VERBOSITY) {
+        thread.installStackTrampolineBridge(fp);
+        reinstallReturnBarrier = false;
+      }
     }
     return fp;
   }
@@ -400,7 +435,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     int compiledMethodId = Magic.getCompiledMethodID(fp);
 
     /* skip "invisible" transition frames generated by reflection and JNI) */
-    if (compiledMethodId == ArchitectureSpecific.ArchConstants.INVISIBLE_METHOD_ID) {
+    if (compiledMethodId == StackFrameLayout.getInvisibleMethodID()) {
       if (verbosity >= 2) Log.writeln("\n--- METHOD <invisible method>");
       return false;
     }
@@ -501,6 +536,8 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * the stack scanning process, which enables interior pointer
    * offsets to be correctly computed.
    *
+   * @param code start address of the machine code array associated
+   *  with the method
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
    */
@@ -508,7 +545,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     if (prevFp.isZero()) {  /* top of stack: IP in thread state */
       if (verbosity >= 3) {
         Log.write(" t.contextRegisters.ip    = ");
-        Log.writeln(thread.getContextRegisters().ip);
+        Log.writeln(thread.getContextRegisters().getIP());
         Log.write("*t.contextRegisters.iploc = ");
         Log.writeln(thread.getContextRegisters().getIPLocation().loadAddress());
       }
@@ -546,35 +583,6 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
       processCodeLocation(code, retaddrLoc);
   }
 
-
-  /**
-   * AIX-specific code.<p>
-   *
-   * If we are scanning the stack of a thread that entered the VM via
-   * a createVM or attachVM then the "bottom" of the stack had native
-   * C frames instead of the usual java frames.  The JNIEnv for the
-   * thread may still contain jniRefs that have been returned to the
-   * native C code, but have not been reported for GC.  calling
-   * getNextReferenceAddress without first calling setup... will
-   * report the remaining jniRefs in the current "frame" of the
-   * jniRefs stack.  (this should be the bottom frame)<p>
-   *
-   * FIXME: SB: Why is this AIX specific?  Why depend on the
-   * preprocessor?
-   *
-   */
-  private void checkJNIBase() {
-    if (VM.BuildForAix) {
-      GCMapIterator iterator = iteratorGroup.getJniIterator();
-      Address refaddr =  iterator.getNextReferenceAddress();
-      while(!refaddr.isZero()) {
-        reportDelayedRootEdge(trace, refaddr);
-        refaddr = iterator.getNextReferenceAddress();
-      }
-    }
-  }
-
-
   /***********************************************************************
    *
    * Debugging etc
@@ -589,19 +597,25 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * RVM did allow the GC system to move thread stacks, and called a
    * special fixup routine, thread.fixupMovedStack to adjust all of
    * the special interior pointers (SP, FP).  If we implement split C
-   * & Java stacks then we could allow the Java stacks to be moved,
+   * &amp; Java stacks then we could allow the Java stacks to be moved,
    * but we can't move the native stack.
    */
   private void assertImmovableInCurrentCollection() {
+    // This method is guarded by VM.VerifyAssertions. Our Checkstyle assertion
+    // plugin does not recognize this because it does not track calls. Therefore,
+    // switch off Checkstyle for this method.
+
+    //CHECKSTYLE:OFF
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread)));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
     VM._assert(thread.getJNIEnv() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getJNIEnv())));
     VM._assert(thread.getJNIEnv() == null || thread.getJNIEnv().refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getJNIEnv().refsArray())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters().gprs)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters().getGPRs())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters().gprs)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters().getGPRs())));
+    //CHECKSTYLE:ON
   }
 
   /**
@@ -615,7 +629,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     Log.write("   topFrame = "); Log.writeln(topFrame);
     Log.write("         ip = "); Log.writeln(ip);
     Log.write("         fp = "); Log.writeln(fp);
-    Log.write("  registers.ip = "); Log.writeln(thread.getContextRegisters().ip);
+    Log.write("  registers.ip = "); Log.writeln(thread.getContextRegisters().getIP());
     if (verbosity >= 3 && thread.getJNIEnv() != null)
       thread.getJNIEnv().dumpJniRefsStack();
   }
@@ -663,7 +677,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
       Offset offset = compiledMethod.getInstructionOffset(ip);
       iterator = iteratorGroup.selectIterator(compiledMethod);
       iterator.setupIterator(compiledMethod, offset, fp);
-      int i=0;
+      int i = 0;
       for (Address addr = iterator.getNextReferenceAddress();
            !addr.isZero();
            addr = iterator.getNextReferenceAddress()) {
@@ -746,7 +760,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     Address start,end;
     if (VM.BuildForIA32) {
       if (prevFp.isZero()) {
-        start = fp.minus(20*BYTES_IN_ADDRESS);
+        start = fp.minus(20 * BYTES_IN_ADDRESS);
         Log.writeln("--- 20 words of stack frame with fp = ", fp);
       } else {
         start = prevFp;    // start at callee fp

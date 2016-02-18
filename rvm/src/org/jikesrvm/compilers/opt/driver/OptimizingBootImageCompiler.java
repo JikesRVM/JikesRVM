@@ -12,14 +12,15 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_OPT_COMPILER_FAILED;
+
 import java.util.Vector;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.recompilation.CompilerDNA;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
@@ -28,6 +29,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.runtime.Callbacks;
 
 /**
  * Use optimizing compiler to build virtual machine boot image.
@@ -86,7 +88,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
       if (e.isFatal) {
         // An unexpected error when building the opt boot image should be fatal
         e.printStackTrace();
-        System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
+        System.exit(EXIT_STATUS_OPT_COMPILER_FAILED);
       } else {
         VM.sysWrite(msg);
       }
@@ -121,13 +123,15 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
       } catch (OptimizingCompilerException e) {
         if (e.isFatal) {
           // An unexpected error when building the opt boot image should be fatal
-          VM.sysWriteln("Error compiling method: "+method);
+          VM.sysWriteln("Error compiling method: " + method);
           e.printStackTrace();
-          System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
+          System.exit(EXIT_STATUS_OPT_COMPILER_FAILED);
         } else {
           boolean printMsg = true;
+          boolean expected = false;
           if (e instanceof MagicNotImplementedException) {
             printMsg = !((MagicNotImplementedException) e).isExpected;
+            expected = ((MagicNotImplementedException) e).isExpected;
           }
           if (e == escape) {
             printMsg = false;
@@ -140,6 +144,10 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
               String msg = "BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n";
               VM.sysWrite(msg);
             }
+          } else if (!expected && e != escape) {
+            // Treat any unexpected OptimizingCompilerException that occur
+            // when compiling the boot image as fatal.
+            throw new Error(e);
           }
         }
         return baselineCompile(method);
@@ -172,9 +180,9 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
       OptimizationPlanElement[] optimizationPlan;
       OptOptions cloneOptions = masterOptions.dup();
       optimizationPlan = OptimizationPlanner.createOptimizationPlan(cloneOptions);
-      optimizationPlans.addElement(optimizationPlan);
-      optimizationPlanLocks.addElement(Boolean.TRUE);
-      options.addElement(cloneOptions);
+      optimizationPlans.add(optimizationPlan);
+      optimizationPlanLocks.add(Boolean.TRUE);
+      options.add(cloneOptions);
       return optimizationPlanLocks.size() - 1;
     }
   }

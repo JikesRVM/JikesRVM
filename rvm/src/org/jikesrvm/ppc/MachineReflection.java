@@ -12,8 +12,18 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.LOG_BYTES_IN_STACKSLOT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.runtime.Reflection.REFLECTION_FPRS_BITS;
+import static org.jikesrvm.runtime.Reflection.REFLECTION_GPRS_BITS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Memory;
@@ -24,7 +34,7 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * Machine dependent portion of Reflective method invoker.
  */
-public abstract class MachineReflection implements ArchConstants {
+public abstract class MachineReflection {
 
   /**
    * Determine number/type of registers/spills required to call specified method.
@@ -34,10 +44,10 @@ public abstract class MachineReflection implements ArchConstants {
     int GPRs = 0;
     int FPRs = 0;
     int Spills = 0;
-    int gp = FIRST_VOLATILE_GPR;
-    int fp = FIRST_VOLATILE_FPR;
+    int gp = FIRST_VOLATILE_GPR.value();
+    int fp = FIRST_VOLATILE_FPR.value();
     if (!method.isStatic()) {
-      if (gp > LAST_VOLATILE_GPR) {
+      if (gp > LAST_VOLATILE_GPR.value()) {
         Spills++;
       } else {
         GPRs++;
@@ -47,19 +57,19 @@ public abstract class MachineReflection implements ArchConstants {
     for (TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
         if (VM.BuildFor64Addr) {
-          if (gp > LAST_VOLATILE_GPR) {
+          if (gp > LAST_VOLATILE_GPR.value()) {
             Spills++;
           } else {
             GPRs++;
             gp++;
           }
         } else {
-          if (gp > LAST_VOLATILE_GPR) {
+          if (gp > LAST_VOLATILE_GPR.value()) {
             Spills += 2;
           } else {
             GPRs++;
             gp++;
-            if (gp > LAST_VOLATILE_GPR) {
+            if (gp > LAST_VOLATILE_GPR.value()) {
               Spills++;
             } else {
               GPRs++;
@@ -68,21 +78,21 @@ public abstract class MachineReflection implements ArchConstants {
           }
         }
       } else if (t.isFloatType()) {
-        if (fp > LAST_VOLATILE_FPR) {
+        if (fp > LAST_VOLATILE_FPR.value()) {
           Spills++;
         } else {
           FPRs++;
           fp++;
         }
       } else if (t.isDoubleType()) {
-        if (fp > LAST_VOLATILE_FPR) {
+        if (fp > LAST_VOLATILE_FPR.value()) {
           Spills += VM.BuildFor64Addr ? 1 : 2;
         } else {
           FPRs++;
           fp++;
         }
       } else { // t is object, int, short, char, byte, or boolean
-        if (gp > LAST_VOLATILE_GPR) {
+        if (gp > LAST_VOLATILE_GPR.value()) {
           Spills++;
         } else {
           GPRs++;
@@ -99,8 +109,8 @@ public abstract class MachineReflection implements ArchConstants {
     }
 
     // hack to return triple
-    return (Spills << (Constants.REFLECTION_FPRS_BITS + Constants.REFLECTION_GPRS_BITS)) |
-           (FPRs << Constants.REFLECTION_GPRS_BITS) |
+    return (Spills << (REFLECTION_FPRS_BITS + REFLECTION_GPRS_BITS)) |
+           (FPRs << REFLECTION_GPRS_BITS) |
            GPRs;
   }
 
@@ -112,10 +122,10 @@ public abstract class MachineReflection implements ArchConstants {
     int GPR = GPRs.length();
     int FPR = FPRs.length;
     int Spill = Spills.length();
-    int gp = FIRST_VOLATILE_GPR;
-    int fp = FIRST_VOLATILE_FPR;
+    int gp = FIRST_VOLATILE_GPR.value();
+    int fp = FIRST_VOLATILE_FPR.value();
     if (!method.isStatic()) {
-      if (gp > LAST_VOLATILE_GPR) {
+      if (gp > LAST_VOLATILE_GPR.value()) {
         Spills.set(--Spill, Reflection.unwrapObject(thisArg).toWord());
       } else {
         gp++;
@@ -128,7 +138,7 @@ public abstract class MachineReflection implements ArchConstants {
       if (t.isLongType()) {
         long l = Reflection.unwrapLong(otherArgs[i]);
         if (VM.BuildFor64Addr) {
-          if (gp > LAST_VOLATILE_GPR) {
+          if (gp > LAST_VOLATILE_GPR.value()) {
             Spills.set(--Spill, Word.fromLong(l));
           } else {
             gp++;
@@ -137,13 +147,13 @@ public abstract class MachineReflection implements ArchConstants {
         } else {
           Word hi = Word.fromIntZeroExtend((int) (l >>> 32));
           Word lo = Word.fromIntZeroExtend((int) l);
-          if (gp > LAST_VOLATILE_GPR) {
+          if (gp > LAST_VOLATILE_GPR.value()) {
             Spills.set(--Spill, hi);
             Spills.set(--Spill, lo);
           } else {
             gp++;
             GPRs.set(--GPR, hi);
-            if (gp > LAST_VOLATILE_GPR) {
+            if (gp > LAST_VOLATILE_GPR.value()) {
               Spills.set(--Spill, lo);
             } else {
               gp++;
@@ -153,14 +163,14 @@ public abstract class MachineReflection implements ArchConstants {
         }
       } else if (t.isFloatType()) {
         float f = Reflection.unwrapFloat(otherArgs[i]);
-        if (fp > LAST_VOLATILE_FPR) {
+        if (fp > LAST_VOLATILE_FPR.value()) {
           Spills.set(--Spill, Word.fromIntZeroExtend(Float.floatToIntBits(f)));
         } else {
           fp++;
           FPRs[--FPR] = f;
         }
       } else if (t.isDoubleType()) {
-        if (fp > LAST_VOLATILE_FPR) {
+        if (fp > LAST_VOLATILE_FPR.value()) {
           double d = Reflection.unwrapDouble(otherArgs[i]);
           long l = Double.doubleToLongBits(d);
           if (VM.BuildFor64Addr) {
@@ -175,7 +185,7 @@ public abstract class MachineReflection implements ArchConstants {
         }
       } else if (t.isBooleanType()) {
         Word val = Word.fromIntZeroExtend(Reflection.unwrapBooleanAsInt(otherArgs[i]));
-        if (gp > LAST_VOLATILE_GPR) {
+        if (gp > LAST_VOLATILE_GPR.value()) {
           Spills.set(--Spill, val);
         } else {
           gp++;
@@ -183,7 +193,7 @@ public abstract class MachineReflection implements ArchConstants {
         }
       } else if (t.isByteType()) {
         Word val = Word.fromIntZeroExtend(Reflection.unwrapByte(otherArgs[i]));
-        if (gp > LAST_VOLATILE_GPR) {
+        if (gp > LAST_VOLATILE_GPR.value()) {
           Spills.set(--Spill, val);
         } else {
           gp++;
@@ -191,7 +201,7 @@ public abstract class MachineReflection implements ArchConstants {
         }
       } else if (t.isCharType()) {
         Word val = Word.fromIntZeroExtend(Reflection.unwrapChar(otherArgs[i]));
-        if (gp > LAST_VOLATILE_GPR) {
+        if (gp > LAST_VOLATILE_GPR.value()) {
           Spills.set(--Spill, val);
         } else {
           gp++;
@@ -199,7 +209,7 @@ public abstract class MachineReflection implements ArchConstants {
         }
       } else if (t.isShortType()) {
         Word val = Word.fromIntZeroExtend(Reflection.unwrapShort(otherArgs[i]));
-        if (gp > LAST_VOLATILE_GPR) {
+        if (gp > LAST_VOLATILE_GPR.value()) {
           Spills.set(--Spill, val);
         } else {
           gp++;
@@ -207,7 +217,7 @@ public abstract class MachineReflection implements ArchConstants {
         }
       } else if (t.isIntType()) {
         Word val = Word.fromIntZeroExtend(Reflection.unwrapInt(otherArgs[i]));
-        if (gp > LAST_VOLATILE_GPR) {
+        if (gp > LAST_VOLATILE_GPR.value()) {
           Spills.set(--Spill, val);
         } else {
           gp++;
@@ -215,14 +225,14 @@ public abstract class MachineReflection implements ArchConstants {
         }
       } else if (!t.isPrimitiveType()) {
         Word val = Reflection.unwrapObject(otherArgs[i]).toWord();
-        if (gp > LAST_VOLATILE_GPR) {
+        if (gp > LAST_VOLATILE_GPR.value()) {
           Spills.set(--Spill, val);
         } else {
           gp++;
           GPRs.set(--GPR, val);
         }
       } else {
-        if (VM.VerifyAssertions) VM._assert(Constants.NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
     }
   }

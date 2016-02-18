@@ -110,10 +110,11 @@ public abstract class AbstractDriver {
   }
 
   /**
-   * Create a subspace for this space.
+   * Creates a subspace for this space.
    * Subspace provide useful facilities for contiguous spaces, even if
    * a space contains only one.
    * @param mmtkSpace The MMTk space
+   * @return the created subspace
    */
   @Interruptible
   protected Subspace createSubspace(Space mmtkSpace) {
@@ -127,6 +128,7 @@ public abstract class AbstractDriver {
    * @param spaceName The name of this driver.
    * @param maxTileNum the maximum number of tiles in this space.
    * @param mainSpace Is this the main space?
+   * @return the created server space
    */
   @Interruptible
   protected ServerSpace createServerSpace(ServerInterpreter server,
@@ -135,7 +137,7 @@ public abstract class AbstractDriver {
                   boolean mainSpace) {
     // Set the block label
     String tmp = "Block Size: " + ((blockSize < 1024) ?
-                     blockSize + " bytes\n":
+                     blockSize + " bytes\n" :
                      (blockSize / 1024) + " Kbytes\n");
 
     // Create a single GCspy Space
@@ -167,7 +169,9 @@ public abstract class AbstractDriver {
    * The GCspy space managed by this driver.
    * @return the GCspy server space.
    */
-  public ServerSpace getServerSpace() { return serverSpace; }
+  public ServerSpace getServerSpace() {
+    return serverSpace;
+  }
 
   /**
    * Add a stream to the driver. This also sets the stream's id
@@ -181,14 +185,17 @@ public abstract class AbstractDriver {
     while (id < MAX_STREAMS) {
       if (streams[id] == null) {
         streams[id] = stream;
-        if (DEBUG) { Log.write("Adding stream with id="); Log.writeln(id); }
+        if (DEBUG) {
+          Log.write("Adding stream with id=");
+          Log.writeln(id);
+        }
         Address stream_ = serverSpace.addStream(id);
         stream.setStream(id, stream_);
         return;
       }
       id++;
     }
-    throw new IndexOutOfBoundsException("Too many streams added to driver "+name);
+    throw new IndexOutOfBoundsException("Too many streams added to driver " + name);
   }
 
   /**
@@ -273,8 +280,8 @@ public abstract class AbstractDriver {
   }
 
   /**
-   * Is the server connected to a GCspy client?
    * @param event The current event
+   * @return whether the server is connected to a GCspy client
    */
   public boolean isConnected(int event) {
     return server.isConnected(event);
@@ -284,7 +291,9 @@ public abstract class AbstractDriver {
    * Reset the statistics for a space.
    * In this base driver, we simply note that the data has changed.
    */
-  protected void resetData() { changed = true; }
+  protected void resetData() {
+    changed = true;
+  }
 
   /**
    * Scan an object found at a location.
@@ -302,7 +311,9 @@ public abstract class AbstractDriver {
    * The driver will accumulate values found.
    * @param obj the reference to the object found
    */
-  public void scan(ObjectReference obj) { scan(obj, true); }
+  public void scan(ObjectReference obj) {
+    scan(obj, true);
+  }
 
   /**
    * Scan an object found at a location.
@@ -411,6 +422,7 @@ public abstract class AbstractDriver {
   }
 
   /** Set the control
+   * @param index the index of the tile
    * @param value The value to set
    */
   protected void setControl(int index, byte value) {
@@ -450,7 +462,7 @@ public abstract class AbstractDriver {
       Log.writeln(" to ", start + len);
     }
     changed = true;
-    for (int i = start; i < (start+len); ++i) {
+    for (int i = start; i < (start + len); ++i) {
       // Cannot be both USED and UNUSED or BACKGROUND
       if (controlIsBackground(tag) || controlIsUnused(tag))
         setControl(i, (byte)~CONTROL_USED);
@@ -477,6 +489,7 @@ public abstract class AbstractDriver {
    *      <pre>send(event, numTiles);</pre>
    *      Note that AbstractDriver.send takes care of sending the information
    *      for all streams (including control data).
+   * </ol>
    *
    * @param event The event
    */

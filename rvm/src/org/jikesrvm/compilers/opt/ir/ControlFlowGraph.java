@@ -60,9 +60,13 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
  * nodes in the doubly linked list ({@link SpaceEffGraphNode#next} and
  * {@link SpaceEffGraphNode#prev}) and the functions
  * ({@link #firstInCodeOrder()}, {@link #lastInCodeOrder()})
- * of <code>ControlFlowGraph<code>.
+ * of <code>ControlFlowGraph</code>.
  * Utility functions are provided here and in {@link SpaceEffGraphNode}
  * to manipulate these orderings.
+ * <p>
+ * Note: Clients that add or remove nodes must call {@link #compactNodeNumbering()}
+ * after they are done with the modifications to ensure that subsequent compiler phases
+ * can use the node numbering to index lookaside data structures for basic blocks.
  *
  * @see BasicBlock
  * @see IR
@@ -139,8 +143,14 @@ public final class ControlFlowGraph extends SpaceEffGraph {
   }
 
   /**
-   * Densely number (0...n) all nodes in the FCFG.
-   * Override {@link SpaceEffGraph#compactNodeNumbering()} to also
+   * Densely numbers (0...n) all nodes in the FCFG.
+   * <p>
+   * Note: clients must call this method after they are done with adding
+   * or removing nodes. This allows subsequent phases to save additional
+   * information about BasicBlocks in arrays by using the node number
+   * as index.
+   * <p>
+   * This method overrides {@link SpaceEffGraph#compactNodeNumbering()} to also
    * number the exit node.
    */
   @Override
@@ -365,15 +375,17 @@ public final class ControlFlowGraph extends SpaceEffGraph {
   // the caller wants.
   private static final class NodeEnumeration<T> implements Enumeration<T> {
     private SpaceEffGraphNode _node;
-    private SpaceEffGraphNode _end;
+    private final SpaceEffGraphNode _end;
 
-    public NodeEnumeration(ControlFlowGraph cfg) {
+    NodeEnumeration(ControlFlowGraph cfg) {
       _node = cfg.entry();
       _end = cfg.exit();
     }
 
     @Override
-    public boolean hasMoreElements() { return _node != null; }
+    public boolean hasMoreElements() {
+      return _node != null;
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -388,5 +400,7 @@ public final class ControlFlowGraph extends SpaceEffGraph {
     }
   }
 
-  public Enumeration<BasicBlock> basicBlocks() { return new NodeEnumeration<BasicBlock>(this); }
+  public Enumeration<BasicBlock> basicBlocks() {
+    return new NodeEnumeration<BasicBlock>(this);
+  }
 }

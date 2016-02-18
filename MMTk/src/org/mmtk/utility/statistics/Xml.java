@@ -36,7 +36,9 @@ public class Xml {
   }
 
   /**
-   * Close the innermost XML tag and pop it from the stack.
+   * Closes the innermost XML tag and pops it from the stack.
+   *
+   * @param name the tag's name
    */
   public static void closeTag(String name) {
     Log.write("</"); Log.write(name); Log.writeln(">");
@@ -60,7 +62,9 @@ public class Xml {
    *
    * @param name Name of the entity
    */
-  static void openTag(String name) { openTag(name,true); }
+  static void openTag(String name) {
+    openTag(name,true);
+  }
 
   /**
    * Output a "stat" entity, with a given name, <code>double</code>value and optionally, units.
@@ -235,7 +239,7 @@ public class Xml {
   /**
    * End a tag, optionally closing it (if it is a simple entity)
    *
-   * @param close If true, close the tag with "/>" rather than ">"
+   * @param close If true, close the tag with "/&gt;" rather than "&gt;"
    */
   public static void closeTag(boolean close) {
     closeTag(close,true);
@@ -245,7 +249,7 @@ public class Xml {
    * End a tag, optionally closing it (if it is a simple entity),
    * and optionally printing end-of-line
    *
-   * @param close If true, close the tag with "/>" rather than ">"
+   * @param close If true, close the tag with "/&gt;" rather than "&gt;"
    * @param endLine If true end the current line.
    */
   public static void closeTag(boolean close, boolean endLine) {
@@ -255,7 +259,7 @@ public class Xml {
   }
 
   /**
-   * Close a tag with a "/>"
+   * Close a tag with a "/&gt;"
    */
   public static void closeMinorTag() {
     closeTag(true,true);

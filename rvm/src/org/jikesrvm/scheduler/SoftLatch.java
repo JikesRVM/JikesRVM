@@ -31,7 +31,10 @@ public class SoftLatch {
 
   private boolean open;
 
-  /** Create a new latch, with the given open/closed state. */
+  /**
+   * Creates a new latch, with the given open/closed state.
+   * @param open whether the latch is open at the beginning
+   */
   public SoftLatch(boolean open) {
     this.open = open;
   }
@@ -42,7 +45,7 @@ public class SoftLatch {
    * as that thread awakes further threads will be blocked.
    */
   public synchronized void open() {
-    open=true;
+    open = true;
     notifyAll();
   }
 
@@ -51,7 +54,7 @@ public class SoftLatch {
    * to block.
    */
   public synchronized void close() {
-    open=false;
+    open = false;
   }
 
   /**
@@ -81,6 +84,6 @@ public class SoftLatch {
         throw new Error(e);
       }
     }
-    open=false;
+    open = false;
   }
 }

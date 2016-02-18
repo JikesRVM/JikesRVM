@@ -25,10 +25,10 @@ final class BasicBlock {
 
   // ------------------- Static Class Fields -----------------
 
-  public static final int NOTBLOCK = 0;
-  public static final int EXITBLOCK = 1;
-  public static final int STARTPREDSIZE = 4;
-  public static final int STARTBBNUMBER = 2;
+  static final int NOTBLOCK = 0;
+  static final int EXITBLOCK = 1;
+  static final int STARTPREDSIZE = 4;
+  static final int STARTBBNUMBER = 2;
 
   static final byte JSRENTRY = 1;
   static final byte JSREXIT = 2;
@@ -59,7 +59,12 @@ final class BasicBlock {
 
   // --------------- Constructor --------------------------------
 
-  /** This should be called only from the factory. */
+  /**
+   * This should be called only from the factory.
+   *
+   * @param startval byte index where block starts
+   * @param bn the block's number
+   *  */
   BasicBlock(int startval, int bn) {
     blockNumber = bn;
     start = startval;
@@ -68,6 +73,10 @@ final class BasicBlock {
   /**
    * This should be used when building the EXIT block EXIT is likely to have
    * several predecessors.
+   *
+   * @param startval byte index where block starts
+   * @param endval byte index where block starts
+   * @param blockNumber the block's number
    */
   BasicBlock(int startval, int endval, int blockNumber) {
     start = startval;
@@ -78,8 +87,7 @@ final class BasicBlock {
 
   // ------------------ Static Methods -------------------------
 
-  /** transfer predecessor blocks from one block to another */
-  public static void transferPredecessors(BasicBlock fromBB,
+  static void transferPredecessors(BasicBlock fromBB,
       BasicBlock toBB) {
     toBB.predcount = fromBB.predcount;
     toBB.pred1 = fromBB.pred1;
@@ -104,51 +112,51 @@ final class BasicBlock {
     state |= stateval;
   }
 
-  public int getStart() {
+  int getStart() {
     return start;
   }
 
-  public int getEnd() {
+  int getEnd() {
     return end;
   }
 
-  public int getBlockNumber() {
+  int getBlockNumber() {
     return blockNumber;
   }
 
-  public byte getState() {
+  byte getState() {
     return state;
   }
 
-  public boolean isJSRExit() {
+  boolean isJSRExit() {
     return ((state & JSREXIT) == JSREXIT);
   }
 
-  public boolean isJSREntry() {
+  boolean isJSREntry() {
     return ((state & JSRENTRY) == JSRENTRY);
   }
 
-  public boolean isInJSR() {
+  boolean isInJSR() {
     return ((state & INJSR) == INJSR);
   }
 
-  public boolean isMethodEntry() {
+  boolean isMethodEntry() {
     return ((state & METHODENTRY) == METHODENTRY);
   }
 
-  public boolean isTryStart() {
+  boolean isTryStart() {
     return ((state & TRYSTART) == TRYSTART);
   }
 
-  public boolean isTryBlock() {
+  boolean isTryBlock() {
     return ((state & TRYBLOCK) == TRYBLOCK);
   }
 
-  public boolean isTryHandlerStart() {
+  boolean isTryHandlerStart() {
     return ((state & TRYHANDLERSTART) == TRYHANDLERSTART);
   }
 
-  public void addPredecessor(BasicBlock predbb) {
+  void addPredecessor(BasicBlock predbb) {
     predcount++;
     if (predcount == 1) {
       pred1 = (short) predbb.getBlockNumber();
@@ -175,8 +183,10 @@ final class BasicBlock {
   /**
    * This method first checks if a block is already on the predecessor list.
    * Used with try blocks being added to their catch block as predecessors.
+   *
+   * @param predbb block to add as predecessor
    */
-  public void addUniquePredecessor(BasicBlock predbb) {
+  void addUniquePredecessor(BasicBlock predbb) {
     boolean dupFound = false, checkMade = false;
     short predbbNum = (short) predbb.getBlockNumber();
 
@@ -234,7 +244,7 @@ final class BasicBlock {
     }
   }
 
-  public int[] getPredecessors() {
+  int[] getPredecessors() {
     int[] preds;
     preds = new int[predcount];
     if (predcount >= 1) {

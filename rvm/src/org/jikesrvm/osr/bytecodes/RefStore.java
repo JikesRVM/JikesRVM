@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_astore;
 
 /**
  * BC_RefStore: {@code astore}, {@code astore_<i>}
@@ -19,7 +20,7 @@ package org.jikesrvm.osr.bytecodes;
 public class RefStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;
-  private int lnum;
+  private final int lnum;
 
   public RefStore(int local) {
     this.lnum = local;

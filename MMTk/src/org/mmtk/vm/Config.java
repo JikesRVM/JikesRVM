@@ -22,15 +22,20 @@ public class Config {
   /** Mark bit in the header or on the side ? */
   public final boolean HEADER_MARK_BITS;
 
+  /** Zero pages on release? */
+  public final boolean ZERO_PAGES_ON_RELEASE;
+
   Config(BuildTimeConfig config) {
     ACTIVE_PLAN            = config.getPlanName();
     HEADER_MARK_BITS        = config.getBooleanProperty("mmtk.headerMarkBit",true);
+    ZERO_PAGES_ON_RELEASE  = config.getBooleanProperty("mmtk.zeroPagesOnRelease",false);
   }
 
   public void printConfig() {
     Log.writeln("================ MMTk Configuration ================");
     Log.write("plan = "); Log.writeln(ACTIVE_PLAN);
     Log.write("HEADER_MARK_BITS = ");  Log.writeln(HEADER_MARK_BITS);
+    Log.write("ZERO_PAGES_ON_RELEASE = ");  Log.writeln(ZERO_PAGES_ON_RELEASE);
     Log.writeln("====================================================");
   }
 
@@ -38,6 +43,7 @@ public class Config {
     Log.writeln("<config>");
     Xml.configItem("plan",ACTIVE_PLAN);
     Xml.configItem("header-mark-bit",HEADER_MARK_BITS);
+    Xml.configItem("zero-pages-on-release",ZERO_PAGES_ON_RELEASE);
     Log.writeln("</config>");
   }
 }

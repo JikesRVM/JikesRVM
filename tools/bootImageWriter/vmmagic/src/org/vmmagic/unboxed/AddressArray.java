@@ -34,7 +34,7 @@ public final class AddressArray implements RuntimeTable<Address> {
   private AddressArray(int size) {
     data = new Address[size];
     Address zero = Address.zero();
-    for (int i=0; i<size; i++) {
+    for (int i = 0 ; i < size; i++) {
       data[i] = zero;
     }
   }

@@ -15,32 +15,37 @@ package org.jikesrvm.compilers.opt.depgraph;
 /**
  * Constants used in the dependence graph
  */
-public interface DepGraphConstants {
+public final class DepGraphConstants {
 
   // The dependence kind info is one of the above types
   // WARNING: it can use only the lower 28 bits
   // (see SpaceEffGraphEdge.java)
-  int REG_TRUE = 0x00001;
-  int REG_ANTI = 0x00002;
-  int REG_OUTPUT = 0x00004;
-  int MEM_TRUE = 0x00008;
-  int MEM_ANTI = 0x00010;
-  int MEM_OUTPUT = 0x00020;
-  int CONTROL = 0x00040;
-  int EXCEPTION_E = 0x00080;
-  int EXCEPTION_MS = 0x00100;
-  int EXCEPTION_ML = 0x00200;
-  int EXCEPTION_R = 0x00400;
-  int SEQ = 0x00800;
-  int GUARD_TRUE = 0x01000;
-  int GUARD_ANTI = 0x02000;
-  int GUARD_OUTPUT = 0x04000;
-  int MEM_READS_KILL = 0x08000;
-  int REG_MAY_DEF = 0x10000;
+  public static final int REG_TRUE = 0x00001;
+  public static final int REG_ANTI = 0x00002;
+  public static final int REG_OUTPUT = 0x00004;
+  public static final int MEM_TRUE = 0x00008;
+  public static final int MEM_ANTI = 0x00010;
+  public static final int MEM_OUTPUT = 0x00020;
+  public static final int CONTROL = 0x00040;
+  public static final int EXCEPTION_E = 0x00080;
+  public static final int EXCEPTION_MS = 0x00100;
+  public static final int EXCEPTION_ML = 0x00200;
+  public static final int EXCEPTION_R = 0x00400;
+  public static final int SEQ = 0x00800;
+  public static final int GUARD_TRUE = 0x01000;
+  public static final int GUARD_ANTI = 0x02000;
+  public static final int GUARD_OUTPUT = 0x04000;
+  public static final int MEM_READS_KILL = 0x08000;
+  public static final int REG_MAY_DEF = 0x10000;
 
   /**
    * Compact redundant edges?
    * Set to {@code false} if redundant edges are desired.
    */
-  boolean COMPACT = true;
+  public static final boolean COMPACT = true;
+
+  private DepGraphConstants() {
+    // prevent instantiation
+  }
+
 }

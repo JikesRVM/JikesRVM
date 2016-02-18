@@ -13,7 +13,6 @@
 <project name="jsr166-tck" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="jsr166-tck.version" value="2006-12-22"/>
   <property name="jsr166-tck.description" value="jsr166 TCK"/>

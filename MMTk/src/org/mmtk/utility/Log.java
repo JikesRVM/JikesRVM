@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -21,7 +23,7 @@ import org.vmmagic.pragma.*;
  * Error and trace logging.
  */
 @Uninterruptible
-public class Log implements Constants {
+public class Log {
 
   /****************************************************************************
    *
@@ -88,7 +90,7 @@ public class Log implements Constants {
    */
 
   /** buffer to store written message until flushing */
-  private char [] buffer = new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
+  private final char [] buffer = new char[MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE];
 
   /** location of next character to be written */
   private int bufferIndex = 0;
@@ -104,7 +106,7 @@ public class Log implements Constants {
   private boolean threadIdFlag = false;
 
   /** buffer for building string representations of longs */
-  private char[] tempBuffer = new char[TEMP_BUFFER_SIZE];
+  private final char[] tempBuffer = new char[TEMP_BUFFER_SIZE];
 
   /** constructor */
   public Log() {
@@ -176,7 +178,9 @@ public class Log implements Constants {
    *
    * @param d the double to be logged
    */
-  public static void write(double d) { write(d, 2); }
+  public static void write(double d) {
+    write(d, 2);
+  }
 
   /**
    * writes a <code>double</code>.  The number of digits after the
@@ -184,7 +188,7 @@ public class Log implements Constants {
    * The value is not padded and not thousands separator is used. If
    * the value is negative a leading hyphen-minus (-) is logged.  The
    * decimal point is a full stop (.) and is logged even if
-   * <postDecimcalDigits</code> is zero. If <code>d</code> is greater
+   * <code>postDecimcalDigits</code> is zero. If <code>d</code> is greater
    * than the largest representable value of type <code>int</code>, it
    * is logged as "TooBig".  Similarly, if it is less than
    * the negative of the largest representable value, it is logged as
@@ -369,7 +373,9 @@ public class Log implements Constants {
    *
    * @param b boolean value to be logged.
    */
-  public static void writeln(boolean b) { writeln(b, true); }
+  public static void writeln(boolean b) {
+    writeln(b, true);
+  }
 
   /**
    * writes a character and a new-line, then flushes the buffer.
@@ -377,7 +383,9 @@ public class Log implements Constants {
    *
    * @param c character to be logged
    */
-  public static void writeln(char c)    { writeln(c, true); }
+  public static void writeln(char c) {
+    writeln(c, true);
+  }
 
   /**
    * writes a long, in decimal, and a new-line, then flushes the buffer.
@@ -385,7 +393,9 @@ public class Log implements Constants {
    *
    * @param l long value to be logged
    */
-  public static void writeln(long l)    { writeln(l, true); }
+  public static void writeln(long l) {
+    writeln(l, true);
+  }
 
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
@@ -393,16 +403,22 @@ public class Log implements Constants {
    *
    * @param d the double to be logged
    */
-  public static void writeln(double d)  { writeln(d, true); }
+  public static void writeln(double d) {
+    writeln(d, true);
+  }
 
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
    * @see #write(double, int)
    *
    * @param d the double to be logged
+   * @param postDecimalDigits the number of digits to be logged after
+   * the decimal point.  If less than or equal to zero no digits are
+   * logged, but the decimal point is.
    */
   public static void writeln(double d, int postDecimalDigits) {
-    writeln(d, postDecimalDigits, true); }
+    writeln(d, postDecimalDigits, true);
+  }
 
   /**
    * writes an array of characters and a new-line, then flushes the buffer.
@@ -410,7 +426,9 @@ public class Log implements Constants {
    *
    * @param ca the array of characters to be logged
    */
-  public static void writeln(char [] ca) { writeln(ca, true); }
+  public static void writeln(char [] ca) {
+    writeln(ca, true);
+  }
 
   /**
    * writes the start of an array of characters and a new-line, then
@@ -421,7 +439,9 @@ public class Log implements Constants {
    * @param len the number of characters to be logged, starting with
    * the first character
    */
-  public static void writeln(char [] ca, int len) { writeln(ca, len, true); }
+  public static void writeln(char [] ca, int len) {
+    writeln(ca, len, true);
+  }
 
   /**
    * writes an array of bytes and a new-line, then
@@ -430,14 +450,18 @@ public class Log implements Constants {
    *
    * @param b the array of bytes to be logged
    */
-  public static void writeln(byte [] b) { writeln(b, true); }
+  public static void writeln(byte [] b) {
+    writeln(b, true);
+  }
 
   /**
    * writes a string and a new-line, then flushes the buffer.
    *
    * @param s the string to be logged
    */
-  public static void writeln(String s)  { writeln(s, true); }
+  public static void writeln(String s) {
+    writeln(s, true);
+  }
 
   /**
    * writes a word, in hexadecimal, and a new-line, then flushes the buffer.
@@ -445,7 +469,9 @@ public class Log implements Constants {
    *
    * @param w the word to be logged
    */
-  public static void writeln(Word w) { writeln(w, true); }
+  public static void writeln(Word w) {
+    writeln(w, true);
+  }
 
   /**
    * writes an address, in hexadecimal, and a new-line, then flushes
@@ -454,7 +480,9 @@ public class Log implements Constants {
    *
    * @param a the address to be logged
    */
-  public static void writeln(Address a) { writeln(a, true); }
+  public static void writeln(Address a) {
+    writeln(a, true);
+  }
 
   /**
    * writes an object reference, in hexadecimal, and a new-line, then
@@ -463,7 +491,9 @@ public class Log implements Constants {
    *
    * @param o the object reference to be logged
    */
-  public static void writeln(ObjectReference o) { writeln(o, true); }
+  public static void writeln(ObjectReference o) {
+    writeln(o, true);
+  }
 
   /**
    * writes an offset, in hexadecimal, and a new-line, then flushes the buffer.
@@ -471,7 +501,9 @@ public class Log implements Constants {
    *
    * @param o the offset to be logged
    */
-  public static void writeln(Offset o) { writeln(o, true); }
+  public static void writeln(Offset o) {
+    writeln(o, true);
+  }
 
   /**
    * writes an extent, in hexadecimal, and a new-line, then flushes the buffer.
@@ -479,7 +511,9 @@ public class Log implements Constants {
    *
    * @param e the extent to be logged
    */
-  public static void writeln(Extent e) { writeln(e, true); }
+  public static void writeln(Extent e) {
+    writeln(e, true);
+  }
 
   /**
    * writes a new-line without flushing the buffer
@@ -545,6 +579,9 @@ public class Log implements Constants {
    * @see #write(double, int)
    *
    * @param d the double to be logged
+   * @param postDecimalDigits the number of digits to be logged after
+   * the decimal point.  If less than or equal to zero no digits are
+   * logged, but the decimal point is.
    * @param flush if <code>true</code> then flushes the buffer
    */
   public static void writeln(double d, int postDecimalDigits, boolean flush) {
@@ -822,7 +859,7 @@ public class Log implements Constants {
   }
 
   /**
-   * gets the buffer for building string representations of integers.
+   * @return the buffer for building string representations of integers.
    * There is one of these buffers for each Log instance.
    */
   private static char[] getIntBuffer() {
@@ -830,7 +867,7 @@ public class Log implements Constants {
   }
 
   /**
-   * gets the buffer for building string representations of integers.
+   * @return the buffer for building string representations of integers
    */
   private char[] getTempBuffer() {
     return tempBuffer;

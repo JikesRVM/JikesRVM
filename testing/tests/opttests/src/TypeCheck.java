@@ -49,7 +49,7 @@ class TypeCheck {
     // checkcast
     Object obj = new Integer(1);
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cc1; ++i) {
+    for (int i = 0; i < num_cc1; ++i) {
       field1 = (Integer)obj;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -58,7 +58,7 @@ class TypeCheck {
     // TEST 2
     field2 = new Integer(2);
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cc2; ++i) {
+    for (int i = 0; i < num_cc2; ++i) {
       field1 = (Integer)field2;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -68,7 +68,7 @@ class TypeCheck {
     obj = new NoSuchMethodError();
     field3 = (Throwable)obj;
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cc3; ++i) {
+    for (int i = 0; i < num_cc3; ++i) {
       field3 = (Throwable)obj;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -77,7 +77,7 @@ class TypeCheck {
     // TEST 4
     field2 = new NoSuchMethodError();
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cc4; ++i) {
+    for (int i = 0; i < num_cc4; ++i) {
       field3 = (Throwable)field2;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -90,7 +90,7 @@ class TypeCheck {
     field2 = field3 = new java.io.IOException("");
     field4 = (java.io.Serializable)field2;
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cc5; ++i) {
+    for (int i = 0; i < num_cc5; ++i) {
       field4 = (java.io.Serializable)field2;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -101,7 +101,7 @@ class TypeCheck {
     // instanceof
     int sum = 0;
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_io1; ++i) {
+    for (int i = 0; i < num_io1; ++i) {
       if (field2 instanceof NoSuchMethodError) ++sum;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -110,7 +110,7 @@ class TypeCheck {
     // TEST 7
     field2 = new Integer(sum);
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_io2; ++i) {
+    for (int i = 0; i < num_io2; ++i) {
       if (field2 instanceof Integer) ++sum;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -118,7 +118,7 @@ class TypeCheck {
 
     // TEST 8
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_io3; ++i) {
+    for (int i = 0; i < num_io3; ++i) {
       if (field2 instanceof NoSuchMethodError) ++sum;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -129,7 +129,7 @@ class TypeCheck {
     field2 = new Integer(sum);
     a1 = new Integer[num_cs];
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cs; ++i) {
+    for (int i = 0; i < num_cs; ++i) {
       a1[i] = field1;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -138,7 +138,7 @@ class TypeCheck {
     // TEST 10
     Object[] b = a1;
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cs; ++i) {
+    for (int i = 0; i < num_cs; ++i) {
       b[i] = field2;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -147,7 +147,7 @@ class TypeCheck {
     // TEST 11
     a2 = new Object[num_cs];
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cs; ++i) {
+    for (int i = 0; i < num_cs; ++i) {
       a2[i] = field3;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -156,7 +156,7 @@ class TypeCheck {
     // TEST 12
     a3 = new Exception[num_cs];
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cs; ++i) {
+    for (int i = 0; i < num_cs; ++i) {
       a3[i] = field3;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -165,7 +165,7 @@ class TypeCheck {
     // TEST 13
     // checkcast + checkstore
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_cc_cs; ++i) {
+    for (int i = 0; i < num_cc_cs; ++i) {
       a1[i] = (Integer)field2;
     }
     t1 = System.currentTimeMillis() - t1;
@@ -175,7 +175,7 @@ class TypeCheck {
     // instanceof + checkcast + checkstore
     a3[0] = (Exception)a2[0];
     t1 = System.currentTimeMillis();
-    for (int i=0; i<num_io_cc_cs; ++i) {
+    for (int i = 0; i < num_io_cc_cs; ++i) {
       Object foo = a2[i];
       if (foo instanceof Integer) {
         //      System.err.println("bug in type checking");
@@ -236,7 +236,7 @@ class TypeCheck {
   static void report(long val) {
 
     if (PRINT)
-      System.out.println(" Type Test #"+(++testNum)+"\tTime in ms: "+val);
+      System.out.println(" Type Test #" + (++testNum) + "\tTime in ms: " + val);
   }
   static boolean PRINT = false;
 

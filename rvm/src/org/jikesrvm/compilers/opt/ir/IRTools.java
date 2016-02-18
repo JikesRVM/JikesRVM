@@ -12,22 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import java.util.Enumeration;
-import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
-import org.jikesrvm.Configuration;
-import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
-import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.NullConstantOperand;
-import org.jikesrvm.compilers.opt.ir.operand.Operand;
-import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
-
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_COND_MOVE;
@@ -57,6 +41,23 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+
+import java.util.Enumeration;
+
+import org.jikesrvm.Configuration;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
+import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -153,7 +154,7 @@ public abstract class IRTools {
    * Create an address constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., AC(Address.zero()) ...
+   *    ...&lt;op&gt;.create(...., AC(Address.zero()) ...
    * </pre>
    *
    * @param value    The address constant
@@ -171,7 +172,7 @@ public abstract class IRTools {
    * Create an integer constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., IC(0) ...
+   *    ...&lt;op&gt;.create(...., IC(0) ...
    * </pre>
    *
    * @param value   The int constant
@@ -185,7 +186,7 @@ public abstract class IRTools {
    * Create a long constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., LC(0L) ...
+   *    ...&lt;op&gt;.create(...., LC(0L) ...
    * </pre>
    *
    * @param value the long value
@@ -199,7 +200,7 @@ public abstract class IRTools {
    * Create a long constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., FC(0L) ...
+   *    ...&lt;op&gt;.create(...., FC(0L) ...
    * </pre>
    *
    * @param value the float value
@@ -213,7 +214,7 @@ public abstract class IRTools {
    * Create a long constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., DC(0L) ...
+   *    ...&lt;op&gt;.create(...., DC(0L) ...
    * </pre>
    *
    * @param value the double value
@@ -227,13 +228,28 @@ public abstract class IRTools {
    * Create a new TrueGuardOperand.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., TG() ...
+   *    ...&lt;op&gt;.create(...., TG() ...
    * </pre>
    *
    * @return true guard operand
    */
   public static TrueGuardOperand TG() {
     return new TrueGuardOperand();
+  }
+
+  /**
+   * Generates appropriately sized constant operand for a given Offset.
+   *
+   * @param o an offset
+   * @return an instance of {@link IntConstantOperand} (32-bit)
+   *  or {@link LongConstantOperand} (64-bit)
+   */
+  public static Operand offsetOperand(Offset o) {
+    if (VM.BuildFor64Addr) {
+      return new LongConstantOperand(o.toLong());
+    } else {
+      return new IntConstantOperand(o.toInt());
+    }
   }
 
   /**
@@ -387,7 +403,7 @@ public abstract class IRTools {
    * @param op operand to copy to a register
    * @return register operand that we copied into
    */
-  public static RegisterOperand moveIntoRegister(RegisterPool pool, Instruction s, Operand op) {
+  public static RegisterOperand moveIntoRegister(GenericRegisterPool pool, Instruction s, Operand op) {
     if (op instanceof RegisterOperand) {
       return (RegisterOperand) op;
     }
@@ -407,7 +423,7 @@ public abstract class IRTools {
    * @param op operand to copy to a register
    * @return last use register operand that we copied into
    */
-  public static RegisterOperand moveIntoRegister(TypeReference type, Operator move_op, RegisterPool pool,
+  public static RegisterOperand moveIntoRegister(TypeReference type, Operator move_op, GenericRegisterPool pool,
                                                      Instruction s, Operand op) {
     RegisterOperand rop = pool.makeTemp(type);
     s.insertBefore(Move.create(move_op, rop, op));
@@ -450,10 +466,10 @@ public abstract class IRTools {
    *
    * This routine will create the control struture
    * <pre>
-   * in -> bb -> out.
+   * in -&gt; bb -&gt; out.
    * </pre>
    * <em> Precondition </em>: There is an edge in the control flow graph
-   * from * in -> out.
+   * from * in -&gt; out.
    *
    * @param in the source of the control flow edge
    * @param out the sink of the control flow edge
@@ -583,6 +599,10 @@ public abstract class IRTools {
    * the caller to avoid having to call this function.  Not going
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
+   *
+   * @param u the operand that's a use
+   * @param s the instruction that u is a use in
+   * @return {@code true} if the operand is both a use and a def
    */
   public static boolean useDoublesAsDef(Operand u, Instruction s) {
     for (Enumeration<Operand> d = s.getDefs(); d.hasMoreElements();) {
@@ -595,7 +615,7 @@ public abstract class IRTools {
   }
 
   /**
-   * Is the operand d, which is a def in instruction s, also a def
+   * Is the operand d, which is a def in instruction s, also a use
    * in instruction s?  That is, is this operand defined as a DU operand
    * in InstructionFormatList.dat.
    * <p>
@@ -605,6 +625,11 @@ public abstract class IRTools {
    * the caller to avoid having to call this function.  Not going
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
+   *
+   * @param d the operand that's a def
+   * @param s the instruction that d is a def in
+   * @return {@code true} if the operand is both a use and a def
+
    */
   public static boolean defDoublesAsUse(Operand d, Instruction s) {
     for (Enumeration<Operand> u = s.getUses(); u.hasMoreElements();) {
@@ -616,9 +641,6 @@ public abstract class IRTools {
     return false;
   }
 
-  /**
-   * Does instruction s define register r?
-   */
   public static boolean definedIn(Register r, Instruction s) {
     for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
       Operand op = e.nextElement();
@@ -631,9 +653,6 @@ public abstract class IRTools {
     return false;
   }
 
-  /**
-   * Does instruction s use register r?
-   */
   public static boolean usedIn(Register r, Instruction s) {
     for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
       Operand op = e.nextElement();

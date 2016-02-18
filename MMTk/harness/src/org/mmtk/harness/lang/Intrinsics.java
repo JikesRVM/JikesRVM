@@ -19,11 +19,14 @@ import org.mmtk.harness.lang.runtime.PhantomReferenceValue;
 import org.mmtk.harness.lang.runtime.SoftReferenceValue;
 import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.scheduler.Scheduler;
+import org.mmtk.harness.vm.Collection;
+import org.mmtk.plan.Plan;
 
 /**
- *
  * "built in" intrinsic functions
- *
+ * <p>
+ * The language interface to these functions is defined in
+ * org.mmtk.harness.lang.parser.GlobalDefs
  */
 public class Intrinsics {
   /**
@@ -31,7 +34,15 @@ public class Intrinsics {
    * @param env Thread-local environment (language-dependent mutator context)
    */
   public static void gc(Env env) {
-//    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+    Plan.handleUserCollectionRequest();
+  }
+
+  /**
+   * @return the count of GCs since start of the running script
+   * @param env Thread-local environment (language-dependent mutator context)
+   */
+  public static int gcCount(Env env) {
+    return Collection.getGcCount();
   }
 
   /**
@@ -70,7 +81,7 @@ public class Intrinsics {
    * @return A random integer in the closed interval [low..high]
    */
   public static int random(Env env, int low, int high) {
-    return env.random().nextInt(high-low+1) + low;
+    return env.random().nextInt(high - low + 1) + low;
   }
 
   /**
@@ -160,16 +171,16 @@ public class Intrinsics {
    */
   public static void setOption(Env env, String option) {
     if (!Harness.options.process(option)) {
-      System.err.println("Error processing option "+option);
+      System.err.println("Error processing option " + option);
     }
   }
 
   /**
    * A synchronization barrier for script-language threads
-   * @param env
-   * @param name
-   * @param threadCount
-   * @return
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param name The name of the barrier
+   * @param threadCount The number of threads required to complete the barrier wait
+   * @return The order in which the current thread arrived at the barrier (from zero)
    */
   public static int barrierWait(Env env, String name, int threadCount) {
     return Scheduler.mutatorRendezvous(name, threadCount);

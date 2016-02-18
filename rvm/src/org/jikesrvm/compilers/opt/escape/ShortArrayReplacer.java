@@ -12,32 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.escape;
 
-import java.util.HashSet;
-import java.util.Set;
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.ClassLoaderProxy;
-import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.ALoad;
-import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.BoundsCheck;
-import org.jikesrvm.compilers.opt.ir.CondMove;
-import org.jikesrvm.compilers.opt.ir.GuardedUnary;
-import org.jikesrvm.compilers.opt.ir.InstanceOf;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.NewArray;
-import org.jikesrvm.compilers.opt.ir.NullCheck;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Trap;
-import org.jikesrvm.compilers.opt.ir.TrapIf;
-import org.jikesrvm.compilers.opt.ir.TypeCheck;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.IRTools.IC;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
@@ -75,7 +51,34 @@ import static org.jikesrvm.compilers.opt.ir.Operators.TRAP;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.ClassLoaderProxy;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.ALoad;
+import org.jikesrvm.compilers.opt.ir.AStore;
+import org.jikesrvm.compilers.opt.ir.BoundsCheck;
+import org.jikesrvm.compilers.opt.ir.CondMove;
+import org.jikesrvm.compilers.opt.ir.GuardedUnary;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.InstanceOf;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.NewArray;
+import org.jikesrvm.compilers.opt.ir.NullCheck;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.Trap;
+import org.jikesrvm.compilers.opt.ir.TrapIf;
+import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -118,15 +121,15 @@ final class ShortArrayReplacer implements AggregateReplacer {
   }
 
   /**
-   * Return an object representing this transformation for a given
-   * allocation site
+   * Returns an object representing this transformation for a given
+   * allocation site.
    *
    * @param inst the allocation site
-   * @param ir
-   * @return the object, or null if illegal
+   * @param ir the governing IR
+   * @return the object, or {@code null} if illegal
    */
   public static ShortArrayReplacer getReplacer(Instruction inst, IR ir) {
-    if (inst.operator != NEWARRAY) {
+    if (inst.operator() != NEWARRAY) {
       return null;
     }
     Operand size = NewArray.getSize(inst);
@@ -183,6 +186,8 @@ final class ShortArrayReplacer implements AggregateReplacer {
    * @param use the use to replace
    * @param scalars an array of scalar register operands to replace
    *                  the array with
+   * @param visited TODO currently useless. Is this parameter
+   *  necessary or should it be removed?
    */
   private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, Set<Register> visited) {
     Instruction inst = use.instruction;
@@ -310,12 +315,12 @@ final class ShortArrayReplacer implements AggregateReplacer {
         // We cannot handle removing the checkcast if the result of the
         // checkcast test is unknown
         TypeReference lhsType = TypeCheck.getType(inst).getTypeRef();
-        if (ClassLoaderProxy.includesType(lhsType, vmArray.getTypeRef()) == OptConstants.YES) {
+        if (ClassLoaderProxy.includesType(lhsType, vmArray.getTypeRef()) == YES) {
           if (visited == null) {
             visited = new HashSet<Register>();
           }
           Register copy = TypeCheck.getResult(inst).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
             transform2(copy, inst, scalars);
             // NB will remove inst
@@ -335,7 +340,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
         // instanceof test is unknown
         TypeReference lhsType = InstanceOf.getType(inst).getTypeRef();
         Instruction i2;
-        if (ClassLoaderProxy.includesType(lhsType, vmArray.getTypeRef()) == OptConstants.YES) {
+        if (ClassLoaderProxy.includesType(lhsType, vmArray.getTypeRef()) == YES) {
           i2 = Move.create(INT_MOVE, InstanceOf.getClearResult(inst), IC(1));
         } else {
           i2 = Move.create(INT_MOVE, InstanceOf.getClearResult(inst), IC(0));
@@ -353,7 +358,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
           visited = new HashSet<Register>();
         }
         Register copy = Move.getResult(inst).getRegister();
-        if(!visited.contains(copy)) {
+        if (!visited.contains(copy)) {
           visited.add(copy);
           transform2(copy, inst, scalars);
           // NB will remove inst
@@ -373,6 +378,9 @@ final class ShortArrayReplacer implements AggregateReplacer {
    * @param ir the governing IR
    * @param reg the register in question
    * @param size the size of the array to scalar replace.
+   * @param vmArray the array to replace
+   * @param visited the registers that were already visited
+   * @return whether the IR contains an unsupported use
    */
   private static boolean containsUnsupportedUse(IR ir, Register reg, int size, RVMArray vmArray, Set<Register> visited) {
     // If an array is accessed by a non-constant integer, what's the maximum size of support array?
@@ -398,17 +406,17 @@ final class ShortArrayReplacer implements AggregateReplacer {
           // checkcast test is unknown
           TypeReference lhsType = TypeCheck.getType(use.instruction).getTypeRef();
           byte ans = ClassLoaderProxy.includesType(lhsType, vmArray.getTypeRef());
-          if (ans == OptConstants.MAYBE) {
+          if (ans == MAYBE) {
             return true;
-          } else if (ans == OptConstants.YES) {
+          } else if (ans == YES) {
             // handle as a move
             if (visited == null) {
               visited = new HashSet<Register>();
             }
             Register copy = TypeCheck.getResult(use.instruction).getRegister();
-            if(!visited.contains(copy)) {
+            if (!visited.contains(copy)) {
               visited.add(copy);
-              if(containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
+              if (containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
                 return true;
               }
             }
@@ -421,7 +429,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
           // We cannot handle removing the instanceof if the result of the
           // instanceof test is unknown
           TypeReference lhsType = InstanceOf.getType(use.instruction).getTypeRef();
-          if (ClassLoaderProxy.includesType(lhsType, vmArray.getTypeRef()) == OptConstants.MAYBE) {
+          if (ClassLoaderProxy.includesType(lhsType, vmArray.getTypeRef()) == MAYBE) {
             return true;
           }
         }
@@ -459,9 +467,9 @@ final class ShortArrayReplacer implements AggregateReplacer {
             visited = new HashSet<Register>();
           }
           Register copy = Move.getResult(use.instruction).getRegister();
-          if(!visited.contains(copy)) {
+          if (!visited.contains(copy)) {
             visited.add(copy);
-            if(containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
+            if (containsUnsupportedUse(ir, copy, size, vmArray, visited)) {
               return true;
             }
           }

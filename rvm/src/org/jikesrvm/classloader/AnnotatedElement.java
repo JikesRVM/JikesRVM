@@ -57,14 +57,6 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
     }
   }
 
-  /**
-   * Read annotations from a class file and package in an array
-   * @param constantPool the constantPool of the RVMClass object
-   * that's being constructed
-   * @param input the DataInputStream to read the method's attributes
-   * from
-   * @return an array of read annotations
-   */
   protected static RVMAnnotation[] readAnnotations(int[] constantPool, DataInputStream input,
                                                    ClassLoader classLoader) throws IOException {
     try {
@@ -109,9 +101,6 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
     return declaredAnnotations;
   }
 
-  /**
-   * Copy array of annotations so can be safely returned to user.
-   */
   private Annotation[] cloneAnnotations(final Annotation[] internal) {
     if (internal.length == 0) {
       return emptyAnnotationArray;
@@ -171,13 +160,16 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if annotation present.
-   *
+   * Checks if an annotation is declared.
+   * <p>
    * This is provided as an alternative to isAnnotationPresent() as isAnnotationPresent()
    * may require classloading and instantiation of annotations. Classloading would mean
    * that it would not be @Uninterruptible. Instantiation is not desirable as checking
    * of annotations occurs prior to the bootimage compiler being ready to instantiate
    * objects.
+   *
+   * @param annotationTypeRef the annotation to check for
+   * @return {@code true} if annotation present.
    */
   @Uninterruptible
   final boolean isAnnotationDeclared(final TypeReference annotationTypeRef) {
@@ -197,7 +189,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Does the element have any annotations?
+   * @return {@code true} if the element has at least one annotation
    */
   @Uninterruptible
   public final boolean hasAnnotations() {
@@ -205,7 +197,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a Interruptible annotation.
+   * @return {@code true} if this element has a Interruptible annotation.
    * @see org.vmmagic.pragma.Interruptible
    */
   public final boolean hasInterruptibleAnnotation() {
@@ -213,7 +205,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a LogicallyUninterruptible annotation.
+   * @return {@code true} if this element has a LogicallyUninterruptible annotation.
    * @see org.vmmagic.pragma.LogicallyUninterruptible
    */
   public final boolean hasLogicallyUninterruptibleAnnotation() {
@@ -221,7 +213,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a Preemptible annotation.
+   * @return {@code true} if this element has a Preemptible annotation.
    * @see org.vmmagic.pragma.Preemptible
    */
   public final boolean hasPreemptibleAnnotation() {
@@ -229,7 +221,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a UninterruptibleNoWarn annotation.
+   * @return {@code true} if this element has a UninterruptibleNoWarn annotation.
    * @see org.vmmagic.pragma.UninterruptibleNoWarn
    */
   public final boolean hasUninterruptibleNoWarnAnnotation() {
@@ -237,7 +229,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a UninterruptibleNoWarn annotation.
+   * @return {@code true} if this element has a UninterruptibleNoWarn annotation.
    * @see org.vmmagic.pragma.UninterruptibleNoWarn
    */
   public final boolean hasUnpreemptibleNoWarnAnnotation() {
@@ -245,14 +237,14 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a Uninterruptible annotation.
+   * @return {@code true} if this element has a Uninterruptible annotation.
    * @see org.vmmagic.pragma.Uninterruptible
    */
   public final boolean hasUninterruptibleAnnotation() {
     return isAnnotationDeclared(TypeReference.Uninterruptible);
   }
   /**
-   * Return true if this element has a NoCheckStore annotation.
+   * @return {@code true} if this element has a NoCheckStore annotation.
    * @see org.vmmagic.pragma.NoCheckStore
    */
   public final boolean hasNoCheckStoreAnnotation() {
@@ -260,7 +252,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a Unpreemptible annotation.
+   * @return {@code true} if this element has a Unpreemptible annotation.
    * @see org.vmmagic.pragma.Unpreemptible
    */
   public final boolean hasUnpreemptibleAnnotation() {
@@ -268,7 +260,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NoOptCompile annotation.
+   * @return {@code true} if this element has a NoOptCompile annotation.
    * @see org.vmmagic.pragma.NoOptCompile
    */
   public final boolean hasNoOptCompileAnnotation() {
@@ -276,7 +268,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a Inline annotation.
+   * @return {@code true} if this element has a Inline annotation.
    * @see org.vmmagic.pragma.Inline
    */
   public final boolean hasInlineAnnotation() {
@@ -284,7 +276,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NoInline annotation.
+   * @return {@code true} if this element has a NoInline annotation.
    * @see org.vmmagic.pragma.NoInline
    */
   public final boolean hasNoInlineAnnotation() {
@@ -292,7 +284,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a BaselineNoRegisters annotation.
+   * @return {@code true} if this element has a BaselineNoRegisters annotation.
    * @see org.vmmagic.pragma.BaselineNoRegisters
    */
   public final boolean hasBaselineNoRegistersAnnotation() {
@@ -300,7 +292,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a BaselineSaveLSRegisters annotation.
+   * @return {@code true} if this element has a BaselineSaveLSRegisters annotation.
    * @see org.vmmagic.pragma.BaselineSaveLSRegisters
    */
   @Uninterruptible
@@ -309,7 +301,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a Pure annotation.
+   * @return {@code true} if this element has a Pure annotation.
    * @see org.vmmagic.pragma.Pure
    */
   public final boolean hasPureAnnotation() {
@@ -317,7 +309,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a RuntimePure annotation.
+   * @return {@code true} if this element has a RuntimePure annotation.
    * @see org.vmmagic.pragma.RuntimePure
    */
   public final boolean hasRuntimePureAnnotation() {
@@ -325,7 +317,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NoNullCheck annotation.
+   * @return {@code true} if this element has a NoNullCheck annotation.
    * @see org.vmmagic.pragma.NoNullCheck
    */
   public final boolean hasNoNullCheckAnnotation() {
@@ -333,7 +325,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NoBoundsCheck annotation.
+   * @return {@code true} if this element has a NoBoundsCheck annotation.
    * @see org.vmmagic.pragma.NoBoundsCheck
    */
   public final boolean hasNoBoundsCheckAnnotation() {
@@ -341,7 +333,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a RuntimeFinal annotation.
+   * @return {@code true} if this element has a RuntimeFinal annotation.
    * @see org.vmmagic.pragma.RuntimeFinal
    */
   public final boolean hasRuntimeFinalAnnotation() {
@@ -349,7 +341,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NoEscapes annotation.
+   * @return {@code true} if this element has a NoEscapes annotation.
    * @see org.vmmagic.pragma.NoEscapes
    */
   public final boolean hasNoEscapesAnnotation() {
@@ -357,7 +349,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a Untraced annotation.
+   * @return {@code true} if this element has a Untraced annotation.
    * @see org.vmmagic.pragma.Untraced
    */
   @Uninterruptible
@@ -366,7 +358,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NonMoving annotation.
+   * @return {@code true} if this element has a NonMoving annotation.
    * @see org.vmmagic.pragma.NonMoving
    */
   public final boolean hasNonMovingAnnotation() {
@@ -374,7 +366,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * Return true if this element has a NonMovingAllocation annotation.
+   * @return {@code true} if this element has a NonMovingAllocation annotation.
    * @see org.vmmagic.pragma.NonMovingAllocation
    */
   public final boolean hasNonMovingAllocationAnnotation() {

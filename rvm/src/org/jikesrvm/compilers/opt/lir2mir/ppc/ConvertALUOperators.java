@@ -15,12 +15,11 @@ package org.jikesrvm.compilers.opt.lir2mir.ppc;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Operators;
 
 /**
  * Nothing to do on PowerPC.
  */
-public abstract class ConvertALUOperators extends CompilerPhase implements Operators {
+public final class ConvertALUOperators extends CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -34,15 +33,17 @@ public abstract class ConvertALUOperators extends CompilerPhase implements Opera
   }
 
   @Override
-  public final String getName() { return "ConvertALUOps"; }
+  public String getName() {
+    return "ConvertALUOps";
+  }
 
   @Override
-  public final boolean printingEnabled(OptOptions options, boolean before) {
+  public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
   @Override
-  public final void perform(IR ir) {
+  public void perform(IR ir) {
     // Nothing to do on PPC
   }
 }

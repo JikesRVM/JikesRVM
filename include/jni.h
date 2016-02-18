@@ -18,6 +18,7 @@
 #include <stdarg.h> /* For va_list */
 
 #define JNIEXPORT
+#define JNIIMPORT
 #define JNICALL
 
 #ifdef __cplusplus
@@ -683,24 +684,23 @@ typedef struct JDK1_1InitArgs {
 
 } JDK1_1InitArgs;
 
-
 typedef struct JDK1_1AttachArgs {
     void * __padding; /* C compilers don't allow empty structures. */
 } JDK1_1AttachArgs;
-
 
 /* 1.2 args */
 typedef struct JavaVMOption {
     char *optionString;
     void *extraInfo;
 } JavaVMOption;
+
 typedef struct JavaVMInitArgs {
     jint version;
-
     jint nOptions;
     JavaVMOption *options;
     jboolean ignoreUnrecognized;
 } JavaVMInitArgs;
+
 typedef struct {
     jint version;
     char *name;
@@ -717,6 +717,7 @@ struct JNIInvokeInterface_ {
     jint (PJNICALL GetEnv)(JavaVM *vm, void **penv, jint version);
     jint (PJNICALL AttachCurrentThreadAsDaemon)(JavaVM *vm, /* JNIEnv */ void  **penv, void *args);
 };
+
 struct JavaVM_ {
     const struct JNIInvokeInterface_ *functions;
     void *reserved0;

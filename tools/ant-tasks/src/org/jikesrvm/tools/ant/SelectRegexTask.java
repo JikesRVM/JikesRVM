@@ -33,9 +33,17 @@ public class SelectRegexTask
   private String property;
   private File file;
 
-  public void setProperty(final String property) { this.property = property; }
-  public void setSelect(final String select) { this.select = select; }
-  public void setFile(final File file) { this.file = file; }
+  public void setProperty(final String property) {
+    this.property = property;
+  }
+
+  public void setSelect(final String select) {
+    this.select = select;
+  }
+
+  public void setFile(final File file) {
+    this.file = file;
+  }
 
   public void setPattern(final String pattern) {
     this.pattern = new RegularExpression();
@@ -62,13 +70,13 @@ public class SelectRegexTask
       input = new BufferedReader(new FileReader(file));
       String[] lines = new String[patternLines];
       String sep = System.getProperty("line.separator");
-      for(int i=0; i < lines.length; i++) {
+      for (int i = 0; i < lines.length; i++) {
         lines[i] = "";
       }
       int nextLine = 0;
-      while((lines[nextLine] = input.readLine()) != null) {
+      while ((lines[nextLine] = input.readLine()) != null) {
         StringBuilder sb = new StringBuilder();
-        for(int i=nextLine+1; i <= nextLine + lines.length ; i++) {
+        for (int i = nextLine + 1; i <= nextLine + lines.length ; i++) {
           String line = lines[i % lines.length];
           sb.append(line);
           sb.append(sep);

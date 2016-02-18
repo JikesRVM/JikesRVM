@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.adaptive.controller;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import java.io.PrintStream;
 import java.util.LinkedList;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -26,7 +27,7 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  *  controller plans, which contain compilation plans and other goodies,
  *  and allows searching for previous decisions
  */
-public final class ControllerMemory implements Constants {
+public final class ControllerMemory {
 
   /**
    *  This is a hashtable of controller plans indexed by RVMMethod.
@@ -55,45 +56,85 @@ public final class ControllerMemory implements Constants {
   private static int numOpt3 = 0;
   private static int numOpt4 = 0;
 
-  public static int getNumAwoken() { return awoken; }
+  public static int getNumAwoken() {
+    return awoken;
+  }
 
-  public static int getNumDidNothing() { return didNothing; }
+  public static int getNumDidNothing() {
+    return didNothing;
+  }
 
-  public static int getNumMethodsConsidered() { return numMethodsConsidered; }
+  public static int getNumMethodsConsidered() {
+    return numMethodsConsidered;
+  }
 
-  public static int getNumMethodsScheduledForRecomp() { return numMethodsScheduledForRecomp; }
+  public static int getNumMethodsScheduledForRecomp() {
+    return numMethodsScheduledForRecomp;
+  }
 
-  public static int getNumBase() { return numBase; }
+  public static int getNumBase() {
+    return numBase;
+  }
 
-  public static int getNumOpt0() { return numOpt0; }
+  public static int getNumOpt0() {
+    return numOpt0;
+  }
 
-  public static int getNumOpt1() { return numOpt1; }
+  public static int getNumOpt1() {
+    return numOpt1;
+  }
 
-  public static int getNumOpt2() { return numOpt2; }
+  public static int getNumOpt2() {
+    return numOpt2;
+  }
 
-  public static int getNumOpt3() { return numOpt3; }
+  public static int getNumOpt3() {
+    return numOpt3;
+  }
 
-  static int getNumOpt4() { return numOpt4; }
+  static int getNumOpt4() {
+    return numOpt4;
+  }
 
-  static void incrementNumAwoken() { awoken++; }
+  static void incrementNumAwoken() {
+    awoken++;
+  }
 
-  static void incrementNumDidNothing() { didNothing++; }
+  static void incrementNumDidNothing() {
+    didNothing++;
+  }
 
-  static void incrementNumMethodsConsidered() { numMethodsConsidered++; }
+  static void incrementNumMethodsConsidered() {
+    numMethodsConsidered++;
+  }
 
-  static void incrementNumMethodsScheduledForRecomp() { numMethodsScheduledForRecomp++; }
+  static void incrementNumMethodsScheduledForRecomp() {
+    numMethodsScheduledForRecomp++;
+  }
 
-  public static void incrementNumBase() { numBase++; }
+  public static void incrementNumBase() {
+    numBase++;
+  }
 
-  static void incrementNumOpt0() { numOpt0++; }
+  static void incrementNumOpt0() {
+    numOpt0++;
+  }
 
-  static void incrementNumOpt1() { numOpt1++; }
+  static void incrementNumOpt1() {
+    numOpt1++;
+  }
 
-  static void incrementNumOpt2() { numOpt2++; }
+  static void incrementNumOpt2() {
+    numOpt2++;
+  }
 
-  static void incrementNumOpt3() { numOpt3++; }
+  static void incrementNumOpt3() {
+    numOpt3++;
+  }
 
-  static void incrementNumOpt4() { numOpt4++; }
+  static void incrementNumOpt4() {
+    numOpt4++;
+  }
 
   /**
    *  Inserts a controller plan keyed on the underlying method
@@ -240,8 +281,10 @@ public final class ControllerMemory implements Constants {
   }
 
   /**
-   * Return {@code true} iff there is a plan to transition from Base to Opt for a
-   * given CMID.
+   * @return {@code true} iff there is a plan to transition from Base to Opt for a
+   * given CMID
+   *
+   * @param cmid the compiled method's ID
    */
   public static synchronized boolean requestedOSR(int cmid) {
     CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
@@ -379,9 +422,10 @@ public final class ControllerMemory implements Constants {
   }
 
   /**
-   *  set the optLevel bit in the passed bitPattern and return the result
-   *  @param bitPattern
-   *  @param optLevel
+   *  Sets the optLevel bit in the passed bitPattern and return the result
+   *  @param bitPattern the given bit pattern
+   *  @param optLevel the new opt level
+   *  @return the new bit pattern
    */
   static int setBitPattern(int bitPattern, int optLevel) {
     int newPattern = 1;
@@ -390,9 +434,9 @@ public final class ControllerMemory implements Constants {
   }
 
   /**
-   * check if the bit position defined by the 2nd parm is set in the first parm
-   * @param bitPattern
-   * @param optLevel
+   * Checks if the bit position defined by the 2nd parm is set in the first parm
+   * @param bitPattern a bit pattern
+   * @param optLevel the opt level to check for
    * @return whether the passed bit is set
    */
   static boolean bitIsSet(int bitPattern, int optLevel) {

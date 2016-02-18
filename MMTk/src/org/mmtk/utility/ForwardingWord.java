@@ -39,6 +39,11 @@ public class ForwardingWord {
    *  3.       FORWARDED: Forwarded
    */
 
+  /**
+   * If this bit pattern is set, the forwarding of this object has not been
+   * triggered yet.
+   */
+  private static final byte FORWARDING_NOT_TRIGGERED_YET = 0; // ...00
   /** If this bit is set, then forwarding of this object is incomplete */
   private static final byte BEING_FORWARDED = 2; // ...10
   /** If this bit is set, then forwarding of this object has commenced */
@@ -63,7 +68,7 @@ public class ForwardingWord {
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
-      if ((byte) (oldValue.toInt() & FORWARDING_MASK) == FORWARDED)
+      if ((byte) (oldValue.toInt() & FORWARDING_MASK) != FORWARDING_NOT_TRIGGERED_YET)
         return oldValue;
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                   oldValue.or(Word.fromIntZeroExtend(BEING_FORWARDED))));

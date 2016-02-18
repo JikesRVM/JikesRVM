@@ -12,95 +12,97 @@
  */
 package org.jikesrvm.tools.header_gen;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.ppc.BaselineConstants;
-import org.jikesrvm.ppc.RegisterConstants;
-import org.jikesrvm.ppc.StackframeLayoutConstants;
-import org.jikesrvm.ppc.TrapConstants;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FRAME_POINTER;
+import static org.jikesrvm.ppc.RegisterConstants.JTOC_POINTER;
+import static org.jikesrvm.ppc.RegisterConstants.THREAD_REGISTER;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.ppc.TrapConstants.ARRAY_INDEX_MASK;
+import static org.jikesrvm.ppc.TrapConstants.ARRAY_INDEX_REG_MASK;
+import static org.jikesrvm.ppc.TrapConstants.ARRAY_INDEX_REG_SHIFT;
+import static org.jikesrvm.ppc.TrapConstants.ARRAY_INDEX_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.CHECKCAST_MASK;
+import static org.jikesrvm.ppc.TrapConstants.CHECKCAST_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.CONSTANT_ARRAY_INDEX_INFO;
+import static org.jikesrvm.ppc.TrapConstants.CONSTANT_ARRAY_INDEX_MASK;
+import static org.jikesrvm.ppc.TrapConstants.CONSTANT_ARRAY_INDEX_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.DIVIDE_BY_ZERO_MASK;
+import static org.jikesrvm.ppc.TrapConstants.DIVIDE_BY_ZERO_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.JNI_STACK_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.JNI_STACK_TRAP_MASK;
+import static org.jikesrvm.ppc.TrapConstants.MUST_IMPLEMENT_MASK;
+import static org.jikesrvm.ppc.TrapConstants.MUST_IMPLEMENT_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.NULLCHECK_MASK;
+import static org.jikesrvm.ppc.TrapConstants.NULLCHECK_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.REGENERATE_MASK;
+import static org.jikesrvm.ppc.TrapConstants.REGENERATE_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.STACK_OVERFLOW_HAVE_FRAME_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.STACK_OVERFLOW_MASK;
+import static org.jikesrvm.ppc.TrapConstants.STACK_OVERFLOW_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.STACK_OVERFLOW_TRAP_INFO_SET_HAVE_FRAME;
+import static org.jikesrvm.ppc.TrapConstants.STORE_CHECK_MASK;
+import static org.jikesrvm.ppc.TrapConstants.STORE_CHECK_TRAP;
+import static org.jikesrvm.ppc.TrapConstants.WRITE_BUFFER_OVERFLOW_MASK;
+import static org.jikesrvm.ppc.TrapConstants.WRITE_BUFFER_OVERFLOW_TRAP;
+
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * Emit the architecture-specific part of a header file containing declarations
- * required to access VM data structures from C++.
- * Posix version: AIX PPC, Linux PPC, Linux IA32
+ * required to access VM data structures from C.
  */
 final class GenArch_ppc extends GenArch {
+
+  static void pln(String s, GPR gp) {
+    out.print("#define " + s + " 0x" + Integer.toHexString(gp.value()) + "\n");
+  }
+
   @Override
   public void emitArchVirtualMachineDeclarations() {
     Offset offset;
     offset = ArchEntrypoints.registersLRField.getOffset();
-    pln("Registers_lr_offset = ", offset);
+    pln("Registers_lr_offset", offset);
 
-    p("static const int Constants_JTOC_POINTER               = " + RegisterConstants.JTOC_POINTER + ";\n");
-    p("static const int Constants_FRAME_POINTER              = " + RegisterConstants.FRAME_POINTER + ";\n");
-    p("static const int Constants_THREAD_REGISTER            = " + RegisterConstants.THREAD_REGISTER + ";\n");
-    p("static const int Constants_FIRST_VOLATILE_GPR         = " + RegisterConstants.FIRST_VOLATILE_GPR + ";\n");
-    p("static const int Constants_DIVIDE_BY_ZERO_MASK        = " + TrapConstants.DIVIDE_BY_ZERO_MASK + ";\n");
-    p("static const int Constants_DIVIDE_BY_ZERO_TRAP        = " + TrapConstants.DIVIDE_BY_ZERO_TRAP + ";\n");
-    p("static const int Constants_MUST_IMPLEMENT_MASK        = " + TrapConstants.MUST_IMPLEMENT_MASK + ";\n");
-    p("static const int Constants_MUST_IMPLEMENT_TRAP        = " + TrapConstants.MUST_IMPLEMENT_TRAP + ";\n");
-    p("static const int Constants_STORE_CHECK_MASK           = " + TrapConstants.STORE_CHECK_MASK + ";\n");
-    p("static const int Constants_STORE_CHECK_TRAP           = " + TrapConstants.STORE_CHECK_TRAP + ";\n");
-    p("static const int Constants_ARRAY_INDEX_MASK           = " + TrapConstants.ARRAY_INDEX_MASK + ";\n");
-    p("static const int Constants_ARRAY_INDEX_TRAP           = " + TrapConstants.ARRAY_INDEX_TRAP + ";\n");
-    p("static const int Constants_ARRAY_INDEX_REG_MASK       = " + TrapConstants.ARRAY_INDEX_REG_MASK + ";\n");
-    p("static const int Constants_ARRAY_INDEX_REG_SHIFT      = " + TrapConstants.ARRAY_INDEX_REG_SHIFT + ";\n");
-    p("static const int Constants_CONSTANT_ARRAY_INDEX_MASK  = " +
-      TrapConstants.CONSTANT_ARRAY_INDEX_MASK + ";\n");
-    p("static const int Constants_CONSTANT_ARRAY_INDEX_TRAP  = " +
-      TrapConstants.CONSTANT_ARRAY_INDEX_TRAP + ";\n");
-    p("static const int Constants_CONSTANT_ARRAY_INDEX_INFO  = " +
-      TrapConstants.CONSTANT_ARRAY_INDEX_INFO + ";\n");
-    p("static const int Constants_WRITE_BUFFER_OVERFLOW_MASK = " +
-      TrapConstants.WRITE_BUFFER_OVERFLOW_MASK + ";\n");
-    p("static const int Constants_WRITE_BUFFER_OVERFLOW_TRAP = " +
-      TrapConstants.WRITE_BUFFER_OVERFLOW_TRAP + ";\n");
-    p("static const int Constants_STACK_OVERFLOW_MASK        = " + TrapConstants.STACK_OVERFLOW_MASK + ";\n");
-    p("static const int Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP = " +
-      TrapConstants.STACK_OVERFLOW_HAVE_FRAME_TRAP + ";\n");
-    p("static const int Constants_STACK_OVERFLOW_TRAP        = " + TrapConstants.STACK_OVERFLOW_TRAP + ";\n");
-    p("static const int Constants_CHECKCAST_MASK             = " + TrapConstants.CHECKCAST_MASK + ";\n");
-    p("static const int Constants_CHECKCAST_TRAP             = " + TrapConstants.CHECKCAST_TRAP + ";\n");
-    p("static const int Constants_REGENERATE_MASK            = " + TrapConstants.REGENERATE_MASK + ";\n");
-    p("static const int Constants_REGENERATE_TRAP            = " + TrapConstants.REGENERATE_TRAP + ";\n");
-    p("static const int Constants_NULLCHECK_MASK             = " + TrapConstants.NULLCHECK_MASK + ";\n");
-    p("static const int Constants_NULLCHECK_TRAP             = " + TrapConstants.NULLCHECK_TRAP + ";\n");
-    p("static const int Constants_JNI_STACK_TRAP_MASK             = " +
-      TrapConstants.JNI_STACK_TRAP_MASK + ";\n");
-    p("static const int Constants_JNI_STACK_TRAP             = " + TrapConstants.JNI_STACK_TRAP + ";\n");
-    p("static const int Constants_STACKFRAME_RETURN_ADDRESS_OFFSET = " +
-      StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET + ";\n");
-    p("static const int Constants_STACKFRAME_ALIGNMENT = " +
-      StackframeLayoutConstants.STACKFRAME_ALIGNMENT + " ;\n");
+    pln("Constants_JTOC_POINTER", JTOC_POINTER);
+    pln("Constants_FRAME_POINTER", FRAME_POINTER);
+    pln("Constants_THREAD_REGISTER", THREAD_REGISTER);
+    pln("Constants_FIRST_VOLATILE_GPR", FIRST_VOLATILE_GPR);
+    pln("Constants_DIVIDE_BY_ZERO_MASK", DIVIDE_BY_ZERO_MASK);
+    pln("Constants_DIVIDE_BY_ZERO_TRAP", DIVIDE_BY_ZERO_TRAP);
+    pln("Constants_MUST_IMPLEMENT_MASK", MUST_IMPLEMENT_MASK);
+    pln("Constants_MUST_IMPLEMENT_TRAP", MUST_IMPLEMENT_TRAP);
+    pln("Constants_STORE_CHECK_MASK", STORE_CHECK_MASK);
+    pln("Constants_STORE_CHECK_TRAP", STORE_CHECK_TRAP);
+    pln("Constants_ARRAY_INDEX_MASK", ARRAY_INDEX_MASK);
+    pln("Constants_ARRAY_INDEX_TRAP", ARRAY_INDEX_TRAP);
+    pln("Constants_ARRAY_INDEX_REG_MASK", ARRAY_INDEX_REG_MASK);
+    pln("Constants_ARRAY_INDEX_REG_SHIFT", ARRAY_INDEX_REG_SHIFT);
+    pln("Constants_CONSTANT_ARRAY_INDEX_MASK", CONSTANT_ARRAY_INDEX_MASK);
+    pln("Constants_CONSTANT_ARRAY_INDEX_TRAP", CONSTANT_ARRAY_INDEX_TRAP);
+    pln("Constants_CONSTANT_ARRAY_INDEX_INFO", CONSTANT_ARRAY_INDEX_INFO);
+    pln("Constants_WRITE_BUFFER_OVERFLOW_MASK", WRITE_BUFFER_OVERFLOW_MASK);
+    pln("Constants_WRITE_BUFFER_OVERFLOW_TRAP", WRITE_BUFFER_OVERFLOW_TRAP);
+    pln("Constants_STACK_OVERFLOW_MASK", STACK_OVERFLOW_MASK);
+    pln("Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP", STACK_OVERFLOW_HAVE_FRAME_TRAP);
+    pln("Constants_STACK_OVERFLOW_TRAP", STACK_OVERFLOW_TRAP);
+    pln("Constants_STACK_OVERFLOW_TRAP_INFO_SET_HAVE_FRAME", STACK_OVERFLOW_TRAP_INFO_SET_HAVE_FRAME);
+    pln("Constants_CHECKCAST_MASK", CHECKCAST_MASK);
+    pln("Constants_CHECKCAST_TRAP", CHECKCAST_TRAP);
+    pln("Constants_REGENERATE_MASK", REGENERATE_MASK);
+    pln("Constants_REGENERATE_TRAP", REGENERATE_TRAP);
+    pln("Constants_NULLCHECK_MASK", NULLCHECK_MASK);
+    pln("Constants_NULLCHECK_TRAP", NULLCHECK_TRAP);
+    pln("Constants_JNI_STACK_TRAP_MASK", JNI_STACK_TRAP_MASK);
+    pln("Constants_JNI_STACK_TRAP", JNI_STACK_TRAP);
+    pln("Constants_STACKFRAME_RETURN_ADDRESS_OFFSET", STACKFRAME_RETURN_ADDRESS_OFFSET);
+    pln("Constants_STACKFRAME_ALIGNMENT", STACKFRAME_ALIGNMENT);
   }
 
   @Override
   public void emitArchAssemblerDeclarations() {
-    if (VM.BuildForOsx) {
-      pln("#define FP r" + BaselineConstants.FP);
-      pln("#define JTOC r" + BaselineConstants.JTOC);
-      pln("#define THREAD_REGISTER r" + BaselineConstants.THREAD_REGISTER);
-      pln("#define S0 r" + BaselineConstants.S0);
-      pln("#define T0 r" + BaselineConstants.T0);
-      pln("#define T1 r" + BaselineConstants.T1);
-      pln("#define T2 r" + BaselineConstants.T2);
-      pln("#define T3 r" + BaselineConstants.T3);
-      pln("#define STACKFRAME_RETURN_ADDRESS_OFFSET " +
-          StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-    } else {
-      pln(".set FP," + BaselineConstants.FP);
-      pln(".set JTOC," + BaselineConstants.JTOC);
-      pln(".set THREAD_REGISTER," + BaselineConstants.THREAD_REGISTER);
-      pln(".set S0," + BaselineConstants.S0);
-      pln(".set T0," + BaselineConstants.T0);
-      pln(".set T1," + BaselineConstants.T1);
-      pln(".set T2," + BaselineConstants.T2);
-      pln(".set T3," + BaselineConstants.T3);
-      pln(".set STACKFRAME_RETURN_ADDRESS_OFFSET," + StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
-      if (!VM.BuildForAix) {
-        pln(".set T4," + (BaselineConstants.T3 + 1));
-      }
-    }
+    // Nothing to do
   }
 }

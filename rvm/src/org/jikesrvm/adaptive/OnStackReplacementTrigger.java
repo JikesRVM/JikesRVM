@@ -26,9 +26,6 @@ import org.vmmagic.unboxed.Offset;
  */
 public class OnStackReplacementTrigger {
 
-  /**
-   * Trigger an OSR from a running thread.
-   */
   @NoInline
   @Unpreemptible
   public static void trigger(int ypTakenInCMID, Offset tsFromFPoff, Offset ypTakenFPoff, int whereFrom) {
@@ -56,7 +53,7 @@ public class OnStackReplacementTrigger {
     while (!thread.osr_done) {
       thread.monitor().waitWithHandshake();
     }
-    thread.osr_done=false;
+    thread.osr_done = false;
     thread.monitor().unlock();
   }
 }

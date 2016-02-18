@@ -19,10 +19,10 @@ import java.io.LineNumberReader;
 import java.io.PrintStream;
 import java.util.StringTokenizer;
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Entrypoint;
 
@@ -54,7 +54,9 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
   private static int[][] data;
 
   @Override
-  public void notifyExit(int value) { dumpCounts(); }
+  public void notifyExit(int value) {
+    dumpCounts();
+  }
 
   /**
    * Attempt to use edge counts from an input file.  If the source
@@ -75,9 +77,13 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
         }
       }
       /* then read in the provided counts */
-      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("Loading edge count file: ", inputFileName, " "); }
+      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) {
+        VM.sysWrite("Loading edge count file: ", inputFileName, " ");
+      }
       readCounts(inputFileName);
-      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWriteln(); }
+      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) {
+        VM.sysWriteln();
+      }
     }
   }
 
@@ -138,7 +144,7 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
     for (int i = 0; i < data.length; i++) {
       if (data[i] != null) {
         NormalMethod m =
-            (NormalMethod) MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
+            (NormalMethod) MemberReference.getMethodRef(i).peekResolvedMethod();
         if (m != null) {
           new BranchProfiles(m, data[i]).print(f);
         }
@@ -168,7 +174,9 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
           allocateCounters(id, numCounts);
           cur = data[id];
           curIdx = 0;
-          if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("M"); }
+          if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) {
+            VM.sysWrite("M");
+          }
         } else {
           String type = parser.nextToken(); // discard bytecode index, we don't care.
           if (type.equals("switch")) {
@@ -176,13 +184,17 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
             for (String nt = parser.nextToken(); !nt.equals(">"); nt = parser.nextToken()) {
               cur[curIdx++] = Integer.parseInt(nt);
             }
-            if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("S"); }
+            if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) {
+              VM.sysWrite("S");
+            }
           } else if (type.equals("forwbranch") || type.equals("backbranch")) {
             parser.nextToken(); // discard '<'
             cur[curIdx + TAKEN] = Integer.parseInt(parser.nextToken());
             cur[curIdx + NOT_TAKEN] = Integer.parseInt(parser.nextToken());
             curIdx += 2;
-            if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("B"); }
+            if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) {
+              VM.sysWrite("B");
+            }
           } else {
             VM.sysFail("Format error in edge counter input file");
           }

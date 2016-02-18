@@ -74,7 +74,7 @@ class IndexPropagationSystem extends DF_System {
    * Set up the system of dataflow equations.
    * @param _ir the IR
    */
-  public IndexPropagationSystem(IR _ir) {
+  IndexPropagationSystem(IR _ir) {
     ir = _ir;
     ssa = ir.HIRInfo.dictionary;
     valueNumbers = ir.HIRInfo.valueNumbers;
@@ -193,11 +193,11 @@ class IndexPropagationSystem extends DF_System {
           processCall(s);
         } else if (Phi.conforms(s)) {
           processPhi(s);
-        } else if (s.operator == READ_CEILING) {
+        } else if (s.operator() == READ_CEILING) {
           processCall(s);
-        } else if (s.operator == WRITE_FLOOR) {
+        } else if (s.operator() == WRITE_FLOOR) {
           processCall(s);
-        } else if (s.operator == FENCE) {
+        } else if (s.operator() == FENCE) {
           processCall(s);
         }
       }
@@ -433,7 +433,7 @@ class IndexPropagationSystem extends DF_System {
   /**
    * Add an equation to the system of the form
    * <pre>
-   * L(A1) = updateDef(L(A2), <VALNUM(array),VALNUM(index)>)
+   * L(A1) = updateDef(L(A2), &lt;VALNUM(array),VALNUM(index)&gt;)
    * </pre>
    *
    * @param A1 variable in the equation
@@ -453,7 +453,7 @@ class IndexPropagationSystem extends DF_System {
   /**
    * Add an equation to the system of the form
    * <pre>
-   * L(A1) = updateUse(L(A2), <VALNUM(array),VALNUM(index)>)
+   * L(A1) = updateUse(L(A2), &lt;VALNUM(array),VALNUM(index)&gt;)
    * </pre>
    *
    * @param A1 variable in the equation
@@ -479,7 +479,9 @@ class IndexPropagationSystem extends DF_System {
      * @return "MEET"
      */
     @Override
-    public String toString() { return "MEET"; }
+    public String toString() {
+      return "MEET";
+    }
 
     /**
      * Evaluate a dataflow equation with the MEET operator
@@ -655,12 +657,10 @@ class IndexPropagationSystem extends DF_System {
      * @return a String representation
      */
     @Override
-    public String toString() { return "UPDATE-DEF<" + valueNumber + ">"; }
+    public String toString() {
+      return "UPDATE-DEF<" + valueNumber + ">";
+    }
 
-    /**
-     * Create an operator with a given value number
-     * @param     valueNumber
-     */
     UpdateDefObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
     }
@@ -722,12 +722,10 @@ class IndexPropagationSystem extends DF_System {
      * @return "UPDATE-USE"
      */
     @Override
-    public String toString() { return "UPDATE-USE<" + valueNumber + ">"; }
+    public String toString() {
+      return "UPDATE-USE<" + valueNumber + ">";
+    }
 
-    /**
-     * Create an operator with a given value number
-     * @param     valueNumber
-     */
     UpdateUseObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
     }
@@ -774,7 +772,7 @@ class IndexPropagationSystem extends DF_System {
    * Represents an UPDATE_DEF function over two ArrayCells.
    * Given two value numbers v1, v2, this function updates a heap variable
    * lattice cell to indicate that element for array v1 at address v2 is
-   * available, but kills any available indices that are not DD from <v1,v2>
+   * available, but kills any available indices that are not DD from &lt;v1,v2&gt;
    */
   class UpdateDefArrayOperator extends DF_Operator {
     /**
@@ -786,7 +784,9 @@ class IndexPropagationSystem extends DF_System {
      * @return "UPDATE-DEF"
      */
     @Override
-    public String toString() { return "UPDATE-DEF<" + v + ">"; }
+    public String toString() {
+      return "UPDATE-DEF<" + v + ">";
+    }
 
     /**
      * Create an operator with a given value number pair
@@ -857,7 +857,9 @@ class IndexPropagationSystem extends DF_System {
      * @return "UPDATE-USE"
      */
     @Override
-    public String toString() { return "UPDATE-USE<" + v + ">"; }
+    public String toString() {
+      return "UPDATE-USE<" + v + ">";
+    }
 
     /**
      * Create an operator with a given value number pair

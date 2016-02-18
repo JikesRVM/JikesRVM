@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.BootRecord;
@@ -27,16 +28,16 @@ import org.vmmagic.pragma.*;
 /**
  * Scan the boot image for references using the boot image reference map
  */
-public class ScanBootImage implements Constants {
+public class ScanBootImage {
 
   private static final boolean DEBUG = false;
   private static final boolean FILTER = true;
 
   private static final int LOG_CHUNK_BYTES = 12;
-  private static final int CHUNK_BYTES = 1<<LOG_CHUNK_BYTES;
+  private static final int CHUNK_BYTES = 1 << LOG_CHUNK_BYTES;
   private static final int LONGENCODING_MASK = 0x1;
   private static final int RUN_MASK = 0x2;
-  private static final int MAX_RUN = (1<<BITS_IN_BYTE)-1;
+  private static final int MAX_RUN = (1 << BITS_IN_BYTE) - 1;
   private static final int LONGENCODING_OFFSET_BYTES = 4;
   private static final int GUARD_REGION = LONGENCODING_OFFSET_BYTES + 1; /* long offset + run encoding */
 
@@ -66,8 +67,8 @@ public class ScanBootImage implements Constants {
 
     /* figure out striding */
     CollectorContext collector = RVMThread.getCurrentThread().getCollectorContext();
-    int stride = collector.parallelWorkerCount()<<LOG_CHUNK_BYTES;
-    int start = collector.parallelWorkerOrdinal()<<LOG_CHUNK_BYTES;
+    int stride = collector.parallelWorkerCount() << LOG_CHUNK_BYTES;
+    int start = collector.parallelWorkerOrdinal() << LOG_CHUNK_BYTES;
     Address cursor = mapStart.plus(start);
 
     /* statistics */
@@ -175,7 +176,7 @@ public class ScanBootImage implements Constants {
    */
   @Uninterruptible
   private static boolean isAddressAligned(Offset offset) {
-    return (offset.toLong()>>LOG_BYTES_IN_ADDRESS)<<LOG_BYTES_IN_ADDRESS == offset.toLong();
+    return (offset.toLong() >> LOG_BYTES_IN_ADDRESS) << LOG_BYTES_IN_ADDRESS == offset.toLong();
   }
 
   /**
@@ -185,7 +186,7 @@ public class ScanBootImage implements Constants {
    */
   @Uninterruptible
   private static boolean isAddressAligned(Address address) {
-    return (address.toLong()>>LOG_BYTES_IN_ADDRESS)<<LOG_BYTES_IN_ADDRESS == address.toLong();
+    return (address.toLong() >> LOG_BYTES_IN_ADDRESS) << LOG_BYTES_IN_ADDRESS == address.toLong();
   }
 
   /****************************************************************************
@@ -208,12 +209,19 @@ public class ScanBootImage implements Constants {
    * Take a bytemap encoding of all references in the boot image, and
    * produce an encoded byte array.  Return the total length of the
    * encoding.
+   *
+   * @param bootImageRMap space for the compressed reference map. The map
+   *  is initially empty and will be filled during execution of this method.
+   * @param referenceMap the (uncompressed) reference map for the bootimage
+   * @param referenceMapLimit the highest index in the referenceMap that
+   *  contains a reference
+   * @return the total length of the encoding
    */
   public static int encodeRMap(byte[] bootImageRMap, byte[] referenceMap,
       int referenceMapLimit) {
     for (int index = 0; index <= referenceMapLimit; index++) {
       if (referenceMap[index] == 1) {
-        addOffset(bootImageRMap, index<<LOG_BYTES_IN_ADDRESS);
+        addOffset(bootImageRMap, index << LOG_BYTES_IN_ADDRESS);
       }
     }
     return codeIndex + 1;
@@ -268,7 +276,7 @@ public class ScanBootImage implements Constants {
       } else {
         if (currentrun != 0) codeIndex++;
         oldIndex = codeIndex;
-        if (delta < 1<<BITS_IN_BYTE) {
+        if (delta < 1 << BITS_IN_BYTE) {
           /* common case: single byte encoding */
           code[codeIndex++] = (byte) (delta & 0xff);
           if (DEBUG) shortRefs++;
@@ -287,10 +295,10 @@ public class ScanBootImage implements Constants {
       Log.write("index: "); Log.writeln(oldIndex & (CHUNK_BYTES - 1));
       Log.writeln();
       Log.write("1: "); Log.writeln(code[oldIndex]);
-      Log.write("2: "); Log.writeln(code[oldIndex+1]);
-      Log.write("3: "); Log.writeln(code[oldIndex+2]);
-      Log.write("4: "); Log.writeln(code[oldIndex+3]);
-      Log.write("5: "); Log.writeln(code[oldIndex+4]);
+      Log.write("2: "); Log.writeln(code[oldIndex + 1]);
+      Log.write("3: "); Log.writeln(code[oldIndex + 2]);
+      Log.write("4: "); Log.writeln(code[oldIndex + 3]);
+      Log.write("5: "); Log.writeln(code[oldIndex + 4]);
       if (VM.VerifyAssertions)
         VM._assert(offset == getOffset(code, oldIndex, lastOffset));
     }
@@ -319,7 +327,7 @@ public class ScanBootImage implements Constants {
       return lastOffset + BYTES_IN_WORD;
     } else {
       if (((index & (CHUNK_BYTES - 1)) == 0) ||
-          ((code[index] &LONGENCODING_MASK) == LONGENCODING_MASK)) {
+          ((code[index] & LONGENCODING_MASK) == LONGENCODING_MASK)) {
         return decodeLongEncoding(code, index);
       } else {
         return lastOffset + ((code[index]) & 0xff);
@@ -339,9 +347,9 @@ public class ScanBootImage implements Constants {
   private static Offset decodeLongEncoding(Address cursor) {
     int value;
     value  = (cursor.loadByte())                                              & 0x000000fc;
-    value |= (cursor.loadByte(Offset.fromIntSignExtend(1))<<BITS_IN_BYTE)     & 0x0000ff00;
-    value |= (cursor.loadByte(Offset.fromIntSignExtend(2))<<(2*BITS_IN_BYTE)) & 0x00ff0000;
-    value |= (cursor.loadByte(Offset.fromIntSignExtend(3))<<(3*BITS_IN_BYTE)) & 0xff000000;
+    value |= (cursor.loadByte(Offset.fromIntSignExtend(1)) << BITS_IN_BYTE)     & 0x0000ff00;
+    value |= (cursor.loadByte(Offset.fromIntSignExtend(2)) << (2 * BITS_IN_BYTE)) & 0x00ff0000;
+    value |= (cursor.loadByte(Offset.fromIntSignExtend(3)) << (3 * BITS_IN_BYTE)) & 0xff000000;
     return Offset.fromIntSignExtend(value);
   }
 
@@ -359,9 +367,9 @@ public class ScanBootImage implements Constants {
   private static int decodeLongEncoding(byte[] code, int index) {
     int value;
     value  = (code[index])                     & 0x000000fc;
-    value |= (code[index+1]<<BITS_IN_BYTE)     & 0x0000ff00;
-    value |= (code[index+2]<<(2*BITS_IN_BYTE)) & 0x00ff0000;
-    value |= (code[index+3]<<(3*BITS_IN_BYTE)) & 0xff000000;
+    value |= (code[index + 1] << BITS_IN_BYTE)     & 0x0000ff00;
+    value |= (code[index + 2] << (2 * BITS_IN_BYTE)) & 0x00ff0000;
+    value |= (code[index + 3] << (3 * BITS_IN_BYTE)) & 0xff000000;
     return value;
   }
 

@@ -12,14 +12,48 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.ppc.BaselineConstants.FP;
+import static org.jikesrvm.ppc.BaselineConstants.S0;
+import static org.jikesrvm.ppc.BaselineConstants.S1;
+import static org.jikesrvm.ppc.BaselineConstants.T0;
+import static org.jikesrvm.ppc.BaselineConstants.T1;
+import static org.jikesrvm.ppc.BaselineConstants.T2;
+import static org.jikesrvm.ppc.BaselineConstants.T3;
+import static org.jikesrvm.ppc.BaselineConstants.T4;
+import static org.jikesrvm.ppc.BaselineConstants.VOLATILE_FPRS;
+import static org.jikesrvm.ppc.BaselineConstants.VOLATILE_GPRS;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_FPR;
+import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
+import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+import static org.jikesrvm.ppc.RegisterConstants.NUM_FPRS;
+import static org.jikesrvm.ppc.RegisterConstants.REGISTER_ZERO;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
-import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.ppc.RegisterConstants.FPR;
+import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -35,8 +69,8 @@ import org.vmmagic.unboxed.Offset;
  * These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsMethod).
  */
-public abstract class OutOfLineMachineCode
-    implements BaselineConstants, JNIStackframeLayoutConstants, AssemblerConstants {
+public abstract class OutOfLineMachineCode {
+
   public static void init() {
     reflectiveMethodInvokerInstructions = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
@@ -47,22 +81,22 @@ public abstract class OutOfLineMachineCode
   }
 
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
-  private static ArchitectureSpecific.CodeArray reflectiveMethodInvokerInstructions;
+  @Entrypoint
+  private static CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
-  private static ArchitectureSpecific.CodeArray saveThreadStateInstructions;
+  @Entrypoint
+  private static CodeArray saveThreadStateInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
-  private static ArchitectureSpecific.CodeArray threadSwitchInstructions;
+  @Entrypoint
+  private static CodeArray threadSwitchInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
-  private static ArchitectureSpecific.CodeArray restoreHardwareExceptionStateInstructions;
+  @Entrypoint
+  private static CodeArray restoreHardwareExceptionStateInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
-  private static ArchitectureSpecific.CodeArray saveVolatilesInstructions;
-  // Accessed via EntryPoints
-  private static ArchitectureSpecific.CodeArray restoreVolatilesInstructions;
+  @Entrypoint
+  private static CodeArray saveVolatilesInstructions;
+  @Entrypoint
+  private static CodeArray restoreVolatilesInstructions;
 
   /** Machine code for reflective method invocation.
    * See also: "Compiler.generateMethodInvocation".
@@ -82,14 +116,14 @@ public abstract class OutOfLineMachineCode
    *   R0, volatile, and scratch registers destroyed
    * </pre>
    */
-  private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+  private static CodeArray generateReflectiveMethodInvokerInstructions() {
+    Assembler asm = new Assembler(0);
 
     //
     // free registers: 0, S0
     //
-    asm.emitMFLR(0);                                         // save...
-    asm.emitSTAddr(0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP); // ...return address
+    asm.emitMFLR(GPR.R0);                                         // save...
+    asm.emitSTAddr(GPR.R0, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt(), FP); // ...return address
 
     asm.emitMTCTR(T0);                          // CTR := start of method code
 
@@ -105,14 +139,14 @@ public abstract class OutOfLineMachineCode
     int spillLoopLabel = asm.getMachineCodeIndex();
     asm.emitADDICr(T0, T0, -1);                  // T0 -= 1 (and set CR)
     ForwardReference fr1 = asm.emitForwardBC(LT); // if T0 < 0 then break
-    asm.emitLAddrU(0, BYTES_IN_ADDRESS, T4);                  // R0 := *(T4 += 4)
-    asm.emitSTAddrU(0, -BYTES_IN_ADDRESS, FP);                  // put one word of spill area
+    asm.emitLAddrU(GPR.R0, BYTES_IN_ADDRESS, T4);                  // R0 := *(T4 += 4)
+    asm.emitSTAddrU(GPR.R0, -BYTES_IN_ADDRESS, FP);                  // put one word of spill area
     asm.emitB(spillLoopLabel); // goto spillLoop:
     fr1.resolve(asm);
 
     asm.emitSTAddrU(S0, -STACKFRAME_HEADER_SIZE, FP);     // allocate frame header and save old fp
     asm.emitLVAL(T0, INVISIBLE_METHOD_ID);
-    asm.emitSTWoffset(T0, FP, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)); // set method id
+    asm.emitSTWoffset(T0, FP, STACKFRAME_METHOD_ID_OFFSET); // set method id
 
     //
     // free registers: 0, S0, T0, T4
@@ -122,8 +156,8 @@ public abstract class OutOfLineMachineCode
     //
     ForwardReference setupFPRLoader = asm.emitForwardBL();
 
-    for (int i = LAST_VOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i) {
-      asm.emitLFDU(i, BYTES_IN_DOUBLE, T2);                 // FPRi := fprs[i]
+    for (int i = LAST_VOLATILE_FPR.value(); i >= FIRST_VOLATILE_FPR.value(); --i) {
+      asm.emitLFDU(FPR.lookup(i), BYTES_IN_DOUBLE, T2);                 // FPRi := fprs[i]
     }
 
     //
@@ -134,8 +168,8 @@ public abstract class OutOfLineMachineCode
     //
     ForwardReference setupGPRLoader = asm.emitForwardBL();
 
-    for (int i = LAST_VOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
-      asm.emitLAddrU(i, BYTES_IN_ADDRESS, S0);                 // GPRi := gprs[i]
+    for (int i = LAST_VOLATILE_GPR.value(); i >= FIRST_VOLATILE_GPR.value(); --i) {
+      asm.emitLAddrU(GPR.lookup(i), BYTES_IN_ADDRESS, S0);                 // GPRi := gprs[i]
     }
 
     //
@@ -149,7 +183,7 @@ public abstract class OutOfLineMachineCode
     // emit method epilog
     //
     asm.emitLAddr(FP, 0, FP);                                    // restore caller's frame
-    asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);   // pick up return address
+    asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET.toInt(), FP);   // pick up return address
     asm.emitMTLR(S0);                                            //
     asm.emitBCLR();                                                // return to caller
 
@@ -177,7 +211,7 @@ public abstract class OutOfLineMachineCode
     asm.emitADDI(S0, -BYTES_IN_ADDRESS, T1);   // predecrement gpr index (to prepare for update instruction)
     asm.emitBCLR();                            // branch to gpr loading instructions
 
-    return asm.makeMachineCode().getInstructions();
+    return asm.getMachineCodes();
   }
 
   /** Machine code to implement "Magic.saveThreadState()".
@@ -193,8 +227,8 @@ public abstract class OutOfLineMachineCode
    *   T1 destroyed
    * </pre>
    */
-  private static ArchitectureSpecific.CodeArray generateSaveThreadStateInstructions() {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+  private static CodeArray generateSaveThreadStateInstructions() {
+    Assembler asm = new Assembler(0);
 
     // save return address
     //
@@ -204,26 +238,26 @@ public abstract class OutOfLineMachineCode
     // save non-volatile fprs
     //
     asm.emitLAddrOffset(T1, T0, ArchEntrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
-    for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i) {
-      asm.emitSTFD(i, i << LOG_BYTES_IN_DOUBLE, T1);
+    for (int i = FIRST_NONVOLATILE_FPR.value(); i <= LAST_NONVOLATILE_FPR.value(); ++i) {
+      asm.emitSTFD(FPR.lookup(i), i << LOG_BYTES_IN_DOUBLE, T1);
     }
 
     // save non-volatile gprs
     //
     asm.emitLAddrOffset(T1, T0, ArchEntrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
-    for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i) {
-      asm.emitSTAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
+    for (int i = FIRST_NONVOLATILE_GPR.value(); i <= LAST_NONVOLATILE_GPR.value(); ++i) {
+      asm.emitSTAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, T1);
     }
 
     // save fp
     //
-    asm.emitSTAddr(FP, FP << LOG_BYTES_IN_ADDRESS, T1);
+    asm.emitSTAddr(FP, FP.value() << LOG_BYTES_IN_ADDRESS, T1);
 
     // return to caller
     //
     asm.emitBCLR();
 
-    return asm.makeMachineCode().getInstructions();
+    return asm.getMachineCodes();
   }
 
   /**
@@ -246,8 +280,8 @@ public abstract class OutOfLineMachineCode
    *    execution resumes at address specificed by restored thread's Registers ip field
    * </pre>
    */
-  private static ArchitectureSpecific.CodeArray generateThreadSwitchInstructions() {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+  private static CodeArray generateThreadSwitchInstructions() {
+    Assembler asm = new Assembler(0);
 
     Offset ipOffset = ArchEntrypoints.registersIPField.getOffset();
     Offset fprsOffset = ArchEntrypoints.registersFPRsField.getOffset();
@@ -262,42 +296,42 @@ public abstract class OutOfLineMachineCode
 
     // save non-volatile fprs
     asm.emitLAddrOffset(T3, T2, fprsOffset); // T3 := T0.contextRegisters.fprs[]
-    for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i) {
-      asm.emitSTFD(i, i << LOG_BYTES_IN_DOUBLE, T3);
+    for (int i = FIRST_NONVOLATILE_FPR.value(); i <= LAST_NONVOLATILE_FPR.value(); ++i) {
+      asm.emitSTFD(FPR.lookup(i), i << LOG_BYTES_IN_DOUBLE, T3);
     }
 
     // save non-volatile gprs
     asm.emitLAddrOffset(T3, T2, gprsOffset); // T3 := registers.gprs[]
-    for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i) {
-      asm.emitSTAddr(i, i << LOG_BYTES_IN_ADDRESS, T3);
+    for (int i = FIRST_NONVOLATILE_GPR.value(); i <= LAST_NONVOLATILE_GPR.value(); ++i) {
+      asm.emitSTAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, T3);
     }
 
     // save fp
-    asm.emitSTAddr(FP, FP << LOG_BYTES_IN_ADDRESS, T3);
+    asm.emitSTAddr(FP, FP.value() << LOG_BYTES_IN_ADDRESS, T3);
 
     // (2) Restore nonvolatile hardware state of new thread.
 
     // restore non-volatile fprs
     asm.emitLAddrOffset(T0, T1, fprsOffset); // T0 := T1.fprs[]
-    for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i) {
-      asm.emitLFD(i, i << LOG_BYTES_IN_DOUBLE, T0);
+    for (int i = FIRST_NONVOLATILE_FPR.value(); i <= LAST_NONVOLATILE_FPR.value(); ++i) {
+      asm.emitLFD(FPR.lookup(i), i << LOG_BYTES_IN_DOUBLE, T0);
     }
 
     // restore non-volatile gprs
     asm.emitLAddrOffset(T0, T1, gprsOffset); // T0 := T1.gprs[]
-    for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i) {
-      asm.emitLAddr(i, i << LOG_BYTES_IN_ADDRESS, T0);
+    for (int i = FIRST_NONVOLATILE_GPR.value(); i <= LAST_NONVOLATILE_GPR.value(); ++i) {
+      asm.emitLAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, T0);
     }
 
     // restore fp
-    asm.emitLAddr(FP, FP << LOG_BYTES_IN_ADDRESS, T0);
+    asm.emitLAddr(FP, FP.value() << LOG_BYTES_IN_ADDRESS, T0);
 
     // resume execution at saved ip (T1.ipOffset)
     asm.emitLAddrOffset(T0, T1, ipOffset);
     asm.emitMTLR(T0);
     asm.emitBCLR();
 
-    return asm.makeMachineCode().getInstructions();
+    return asm.getMachineCodes();
   }
 
   /** Machine code to implement "Magic.restoreHardwareExceptionState()".
@@ -313,8 +347,8 @@ public abstract class OutOfLineMachineCode
    *   JTOC_POINTER, and THREAD_REGISTER with execution resuming at "registers.ip"
    * </pre>
    */
-  private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+  private static CodeArray generateRestoreHardwareExceptionStateInstructions() {
+    Assembler asm = new Assembler(0);
 
     // restore LR
     //
@@ -330,39 +364,39 @@ public abstract class OutOfLineMachineCode
     //
     asm.emitLAddrOffset(T1, T0, ArchEntrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
     for (int i = 0; i < NUM_FPRS; ++i) {
-      asm.emitLFD(i, i << LOG_BYTES_IN_DOUBLE, T1);
+      asm.emitLFD(FPR.lookup(i), i << LOG_BYTES_IN_DOUBLE, T1);
     }
 
     // restore gprs
     //
     asm.emitLAddrOffset(T1, T0, ArchEntrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
 
-    for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i) {
-      asm.emitLAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
+    for (int i = FIRST_NONVOLATILE_GPR.value(); i <= LAST_NONVOLATILE_GPR.value(); ++i) {
+      asm.emitLAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, T1);
     }
 
-    for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; ++i) {
-      asm.emitLAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
+    for (int i = FIRST_SCRATCH_GPR.value(); i <= LAST_SCRATCH_GPR.value(); ++i) {
+      asm.emitLAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, T1);
     }
 
-    for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; ++i) {
-      if (i != T1) asm.emitLAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
+    for (int i = FIRST_VOLATILE_GPR.value(); i <= LAST_VOLATILE_GPR.value(); ++i) {
+      if (i != T1.value()) asm.emitLAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, T1);
     }
 
     // restore specials
     //
-    asm.emitLAddr(REGISTER_ZERO, REGISTER_ZERO << LOG_BYTES_IN_ADDRESS, T1);
-    asm.emitLAddr(FP, FP << LOG_BYTES_IN_ADDRESS, T1);
+    asm.emitLAddr(REGISTER_ZERO, REGISTER_ZERO.value() << LOG_BYTES_IN_ADDRESS, T1);
+    asm.emitLAddr(FP, FP.value() << LOG_BYTES_IN_ADDRESS, T1);
 
     // restore last gpr
     //
-    asm.emitLAddr(T1, T1 << LOG_BYTES_IN_ADDRESS, T1);
+    asm.emitLAddr(T1, T1.value() << LOG_BYTES_IN_ADDRESS, T1);
 
     // resume execution at IP
     //
     asm.emitBCCTR();
 
-    return asm.makeMachineCode().getInstructions();
+    return asm.getMachineCodes();
   }
 
   // Machine code used to save volatile registers.
@@ -376,28 +410,28 @@ public abstract class OutOfLineMachineCode
   // Side effects at runtime:
   //   S1 destroyed
   //
-  private static ArchitectureSpecific.CodeArray generateSaveVolatilesInstructions() {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+  private static CodeArray generateSaveVolatilesInstructions() {
+    Assembler asm = new Assembler(0);
 
     // save volatile fprs
     //
     asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersFPRsField.getOffset()); // S1 := registers.fprs[]
-    for (int i = FIRST_VOLATILE_FPR; i <= LAST_VOLATILE_FPR; ++i) {
-      asm.emitSTFD(i, i << LOG_BYTES_IN_DOUBLE, S1);
+    for (int i = FIRST_VOLATILE_FPR.value(); i <= LAST_VOLATILE_FPR.value(); ++i) {
+      asm.emitSTFD(FPR.lookup(i), i << LOG_BYTES_IN_DOUBLE, S1);
     }
 
     // save non-volatile gprs
     //
     asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersGPRsField.getOffset()); // S1 := registers.gprs[]
-    for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; ++i) {
-      asm.emitSTAddr(i, i << LOG_BYTES_IN_ADDRESS, S1);
+    for (int i = FIRST_VOLATILE_GPR.value(); i <= LAST_VOLATILE_GPR.value(); ++i) {
+      asm.emitSTAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, S1);
     }
 
     // return to caller
     //
     asm.emitBCLR();
 
-    return asm.makeMachineCode().getInstructions();
+    return asm.getMachineCodes();
   }
 
   /**
@@ -413,28 +447,28 @@ public abstract class OutOfLineMachineCode
    *   S1 destroyed
    * </pre>
    */
-  private static ArchitectureSpecific.CodeArray generateRestoreVolatilesInstructions() {
-    Assembler asm = new ArchitectureSpecific.Assembler(0);
+  private static CodeArray generateRestoreVolatilesInstructions() {
+    Assembler asm = new Assembler(0);
 
     // save volatile fprs
     //
     asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersFPRsField.getOffset()); // S1 := registers.fprs[]
-    for (int i = FIRST_VOLATILE_FPR; i <= LAST_VOLATILE_FPR; ++i) {
-      asm.emitLFD(i, i << LOG_BYTES_IN_DOUBLE, S1);
+    for (int i = FIRST_VOLATILE_FPR.value(); i <= LAST_VOLATILE_FPR.value(); ++i) {
+      asm.emitLFD(FPR.lookup(i), i << LOG_BYTES_IN_DOUBLE, S1);
     }
 
     // save non-volatile gprs
     //
     asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersGPRsField.getOffset()); // S1 := registers.gprs[]
-    for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; ++i) {
-      asm.emitLAddr(i, i << LOG_BYTES_IN_ADDRESS, S1);
+    for (int i = FIRST_VOLATILE_GPR.value(); i <= LAST_VOLATILE_GPR.value(); ++i) {
+      asm.emitLAddr(GPR.lookup(i), i << LOG_BYTES_IN_ADDRESS, S1);
     }
 
     // return to caller
     //
     asm.emitBCLR();
 
-    return asm.makeMachineCode().getInstructions();
+    return asm.getMachineCodes();
   }
 }
 

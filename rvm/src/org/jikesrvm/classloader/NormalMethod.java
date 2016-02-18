@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -23,7 +26,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A method of a java class that has bytecodes.
  */
-public final class NormalMethod extends RVMMethod implements BytecodeConstants {
+public final class NormalMethod extends RVMMethod {
 
   /* As we read the bytecodes for the method, we compute
    * a simple summary of some interesting properties of the method.
@@ -105,17 +108,17 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   private short operandWords;
 
   /**
-   * bytecodes for this method ({@code null} --> none)
+   * bytecodes for this method ({@code null} --&gt; none)
    */
   private final byte[] bytecodes;
 
   /**
-   * try/catch/finally blocks for this method ({@code null} --> none)
+   * try/catch/finally blocks for this method ({@code null} --&gt; none)
    */
   private final ExceptionHandlerMap exceptionHandlerMap;
 
   /**
-   * pc to source-line info ({@code null} --> none)
+   * pc to source-line info ({@code null} --&gt; none)
    * Each entry contains both the line number (upper 16 bits)
    * and corresponding start PC (lower 16 bits).
    */
@@ -182,7 +185,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   }
 
   /**
-   * Space required by this method for its local variables, in words.
+   * @return space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
   @Uninterruptible
@@ -191,7 +194,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   }
 
   /**
-   * Space required by this method for its operand stack, in words.
+   * @return space required by this method for its operand stack, in words.
    */
   @Uninterruptible
   public int getOperandWords() {
@@ -217,23 +220,20 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
     if (VM.VerifyAssertions) {
-      VM._assert((BytecodeConstants.JBC_invokevirtual <= bytecode) &&
-                 (bytecode <= BytecodeConstants.JBC_invokeinterface));
+      VM._assert((JBC_invokevirtual <= bytecode) &&
+                 (bytecode <= JBC_invokeinterface));
     }
     int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << BITS_IN_BYTE) | (bytecodes[bcIndex + 2] & 0xFF);
     dynamicLink.set(getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);
   }
 
-  /**
-   * Size of bytecodes for this method
-   */
   public int getBytecodeLength() {
     return bytecodes.length;
   }
 
   /**
    * Exceptions caught by this method.
-   * @return info (null --> method doesn't catch any exceptions)
+   * @return info (null --&gt; method doesn't catch any exceptions)
    */
   @Uninterruptible
   public ExceptionHandlerMap getExceptionHandlerMap() {
@@ -242,6 +242,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
 
   /**
    * Return the line number information for the argument bytecode index.
+   * @param bci bytecode index
    * @return The line number, a positive integer.  Zero means unable to find.
    */
   @Uninterruptible
@@ -270,7 +271,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    * @return {@code true}, if it is (with prologue)
    */
   public boolean isForOsrSpecialization() {
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       return synthesizedBytecodes.get(this) != null;
     }
   }
@@ -295,13 +296,13 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
     System.arraycopy(prologue, 0, newBytecodes, 0, prologue.length);
     System.arraycopy(bytecodes, 0, newBytecodes, prologue.length, bytecodes.length);
 
-    synchronized(osrPrologues) {
+    synchronized (osrPrologues) {
       osrPrologues.put(this, prologue);
     }
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       synthesizedBytecodes.put(this, newBytecodes);
     }
-    synchronized(savedOperandWords) {
+    synchronized (savedOperandWords) {
       savedOperandWords.put(this, Integer.valueOf(operandWords));
     }
     if (newStackHeight > operandWords) {
@@ -318,13 +319,13 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
         VM._assert(synthesizedBytecodes.get(this) != null);
       }
     }
-    synchronized(osrPrologues) {
+    synchronized (osrPrologues) {
       osrPrologues.remove(this);
     }
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       synthesizedBytecodes.remove(this);
     }
-    synchronized(savedOperandWords) {
+    synchronized (savedOperandWords) {
       this.operandWords = (short)(savedOperandWords.get(this).intValue());
       savedOperandWords.remove(this);
     }
@@ -336,8 +337,8 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    *         0 otherwise.
    */
   public int getOsrPrologueLength() {
-    if(isForOsrSpecialization()) {
-      synchronized(osrPrologues) {
+    if (isForOsrSpecialization()) {
+      synchronized (osrPrologues) {
         return osrPrologues.get(this).length;
       }
     } else {
@@ -356,7 +357,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
       }
     }
     byte[] osrPrologue;
-    synchronized(osrPrologues) {
+    synchronized (osrPrologues) {
       osrPrologue = osrPrologues.get(this);
     }
     return new BytecodeStream(this, osrPrologue);
@@ -368,7 +369,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    */
   public BytecodeStream getOsrSynthesizedBytecodes() {
     byte[] bytecodes;
-    synchronized(synthesizedBytecodes) {
+    synchronized (synthesizedBytecodes) {
       bytecodes = synthesizedBytecodes.get(this);
       if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     }
@@ -519,6 +520,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
 
   /**
    * For use by {@link RVMClass#allBootImageTypesResolved()} only.
+   * @param constantPool the constant pool
    */
   void recomputeSummary(int[] constantPool) {
     if (hasFieldRead()) {
@@ -532,6 +534,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   /**
    * This method computes a summary of interesting method characteristics
    * and stores an encoding of the summary as an int.
+   * @param constantPool the constant pool
    */
   private void computeSummary(int[] constantPool) {
     int calleeSize = 0;
@@ -707,7 +710,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
           FieldReference fldRef = bcodes.getFieldReference(constantPool);
           if (fldRef.getFieldContentsType().isPrimitiveType()) {
             RVMField fld = fldRef.peekResolvedField();
-            if (fld == null || !fld.isFinal()){
+            if (fld == null || !fld.isFinal()) {
               calleeSize += SIMPLE_OPERATION_COST;
             }
           } else {
@@ -740,7 +743,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
           calleeSize += CALL_COST;
           break;
 
-        case JBC_xxxunusedxxx:
+        case JBC_invokedynamic:
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
 

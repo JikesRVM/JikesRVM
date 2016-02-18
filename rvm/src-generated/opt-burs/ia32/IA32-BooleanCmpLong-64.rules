@@ -1,0 +1,88 @@
+#####
+# BOOLEAN_CMP_LONG
+#####
+r:	BOOLEAN_CMP_LONG(r,rlv)
+39
+EMIT_INSTRUCTION
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), \\
+   BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)), \\
+   BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP_LONG(r,rlv)
+13
+EMIT_INSTRUCTION
+ConditionOperand cond = BooleanCmp.getCond(P(p)); \\
+pushCOND(cond); \\
+EMIT_Compare(P(p), cond, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)));
+
+r:	BOOLEAN_CMP_LONG(r,LONG_CONSTANT)
+(LV(BooleanCmp.getVal2(P(p))) == 0) && CMP_TO_TEST(BooleanCmp.getCond(P(p))) ? 37:INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p),MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())));\\
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP_LONG(r,LONG_CONSTANT)
+(LV(BooleanCmp.getVal2(P(p))) == 0) && CMP_TO_TEST(BooleanCmp.getCond(P(p))) ? 11:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \\
+EMIT(CPOS(P(p),MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())));
+
+# Special case where a boolean_cmp can become a shift
+r:	BOOLEAN_CMP_LONG(r,LONG_CONSTANT)
+(LV(BooleanCmp.getVal2(P(p))) == 0) && BooleanCmp.getCond(P(p)).isLESS() ? 11 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SHR, P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getVal1(P(p)), IC(63));
+
+r:	BOOLEAN_CMP_LONG(load64,LONG_CONSTANT)
+(LV(BooleanCmp.getVal2(P(p))) == 0) && BooleanCmp.getCond(P(p)).isLESS() ? 16 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SHR, P(p), BooleanCmp.getResult(P(p)), consumeMO(), IC(63));
+
+r:	BOOLEAN_CMP_LONG(r,LONG_CONSTANT)
+(LV(BooleanCmp.getVal2(P(p))) == 0) && BooleanCmp.getCond(P(p)).isGREATER_EQUAL() ? 22 : INFINITE
+EMIT_INSTRUCTION
+RegisterOperand result = BooleanCmp.getResult(P(p)); \\
+EMIT_Commutative(IA32_SHR, P(p), result, BooleanCmp.getVal1(P(p)), IC(63)); \\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_XOR, result.copyRO(), IC(1))));
+
+r:	BOOLEAN_CMP_LONG(load64,LONG_CONSTANT)
+(LV(BooleanCmp.getVal2(P(p))) == 0) && BooleanCmp.getCond(P(p)).isGREATER_EQUAL() ? 27 : INFINITE
+EMIT_INSTRUCTION
+RegisterOperand result = BooleanCmp.getResult(P(p)); \\
+EMIT_Commutative(IA32_SHR, P(p), result, consumeMO(), IC(63)); \\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_XOR, result.copyRO(), IC(1))));
+
+r:	BOOLEAN_CMP_LONG(cz, LONG_CONSTANT)
+(LV(BooleanCmp.getVal2(P(p))) == 0) ? 26 : INFINITE
+EMIT_INSTRUCTION
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+
+### Memory operands ###
+r:	BOOLEAN_CMP_LONG(load64,rlv)
+41
+EMIT_INSTRUCTION
+BOOLEAN_CMP_INT(PL(p), BooleanCmp.getResult(P(p)), \\
+            consumeMO(), BooleanCmp.getVal2(P(p)), \\
+	    BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP_LONG(load64,rlv)
+15
+EMIT_INSTRUCTION
+ConditionOperand cond = BooleanCmp.getCond(P(p)); \\
+pushCOND(cond); \\
+EMIT_Compare(P(p), cond, consumeMO(), BooleanCmp.getVal2(P(p)));
+
+r:	BOOLEAN_CMP_LONG(r,load64)
+41
+EMIT_INSTRUCTION
+BOOLEAN_CMP_INT(PR(p), BooleanCmp.getResult(P(p)), \\
+            BooleanCmp.getVal1(P(p)), consumeMO(), \\
+	    BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP_LONG(rlv,load64)
+15
+EMIT_INSTRUCTION
+ConditionOperand cond = BooleanCmp.getCond(P(p)); \\
+pushCOND(cond); \\
+EMIT_Compare(P(p), cond, BooleanCmp.getVal1(P(p)), consumeMO());
+

@@ -12,17 +12,17 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.ArchitectureSpecific.InterfaceMethodConflictResolver;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.objectmodel.ITableArray;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -37,7 +37,7 @@ import org.vmmagic.pragma.Entrypoint;
  *   ITable-based (searched at dispatch time with 1 entry move-to-front cache)
   * </pre>
  */
-public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
+public class InterfaceInvocation {
 
   /*
    * PART I: runtime routines to implement the invokeinterface bytecode.
@@ -186,6 +186,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
    *       we don't have to worry about making it space efficient.
    *
    * @param klass the RVMClass whose IMT we are going to build.
+   * @param interfaces the interfaces that the class implements
    * @return an IMTDict that describes the IMT we need to build for the class.
    */
   private static IMTDict buildIMTDict(RVMClass klass, RVMClass[] interfaces) {
@@ -211,9 +212,6 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
     return d;
   }
 
-  /**
-   * Populate an indirect IMT for C using the IMTDict d
-   */
   private static void populateIMT(RVMClass klass, IMTDict d) {
     TIB tib = klass.getTypeInformationBlock();
     IMT IMT = MemoryManager.newIMT();
@@ -222,10 +220,6 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
     tib.setImt(IMT);
   }
 
-  /**
-   * Build and install an iTable for the given class interface pair
-   * (used for iTable miss on searched iTables).
-   */
   private static void installITable(RVMClass C, RVMClass I) {
     TIB tib = C.getTypeInformationBlock();
     ITableArray iTables = tib.getITableArray();
@@ -234,13 +228,13 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
       iTables = MemoryManager.newITableArray(2);
       tib.setITableArray(iTables);
     } else {
-      for(int i=0; i < iTables.length(); i++) {
+      for (int i = 0; i < iTables.length(); i++) {
         if (iTables.get(i).isFor(I)) {
           return; // some other thread just built the iTable
         }
       }
       ITableArray tmp = MemoryManager.newITableArray(iTables.length() + 1);
-      for(int i=0; i < iTables.length(); i++) {
+      for (int i = 0; i < iTables.length(); i++) {
         tmp.set(i, iTables.get(i));
       }
       iTables = tmp;
@@ -254,9 +248,6 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
     iTables.set(0, iTable);
   }
 
-  /**
-   * Build a single ITable for the pair of class C and interface I
-   */
   private static ITable buildITable(RVMClass C, RVMClass I) {
     RVMMethod[] interfaceMethods = I.getDeclaredMethods();
     TIB tib = C.getTypeInformationBlock();
@@ -289,7 +280,10 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
   */
 
   /**
-   * Return the index of the interface method m in the itable
+   * @param klass the interface class
+   * @param mname method name
+   * @param mdesc method descriptor
+   * @return the index of the interface method m in the itable or -1 if none found
    */
   public static int getITableIndex(RVMClass klass, Atom mname, Atom mdesc) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForITableInterfaceInvocation);
@@ -329,7 +323,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
         ITableArray iTables = tib.getITableArray();
         Atom name = m.getName();
         Atom desc = m.getDescriptor();
-        for (int i=0; i< iTables.length(); i++) {
+        for (int i = 0; i < iTables.length(); i++) {
           ITable iTable = iTables.get(i);
           if (iTable != null) {
             RVMClass I = iTable.getInterfaceClass();
@@ -424,7 +418,14 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
             targets[idx] = p.method;
             sigIds[idx] = p.signature.getId();
           }
-          CodeArray conflictResolutionStub = InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          CodeArray conflictResolutionStub;
+          if (VM.BuildForIA32) {
+            conflictResolutionStub = org.jikesrvm.ia32.InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+            conflictResolutionStub = org.jikesrvm.ppc.InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          }
+
           klass.addCachedObject(Magic.codeArrayAsObject(conflictResolutionStub));
           set(tib, imt, slot, conflictResolutionStub);
         }

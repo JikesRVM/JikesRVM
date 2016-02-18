@@ -29,13 +29,23 @@ import org.vmmagic.pragma.*;
 public class CopyMSConstraints extends StopTheWorldConstraints {
 
   @Override
-  public int gcHeaderBits() { return CopySpace.LOCAL_GC_BITS_REQUIRED; }
+  public int gcHeaderBits() {
+    return CopySpace.LOCAL_GC_BITS_REQUIRED;
+  }
   @Override
-  public int gcHeaderWords() { return CopySpace.GC_HEADER_WORDS_REQUIRED; }
+  public int gcHeaderWords() {
+    return CopySpace.GC_HEADER_WORDS_REQUIRED;
+  }
   @Override
-  public int numSpecializedScans() { return 1; }
+  public int numSpecializedScans() {
+    return 1;
+  }
   @Override
-  public boolean movesObjects() { return true; }
+  public boolean movesObjects() {
+    return true;
+  }
   @Override
-  public int maxNonLOSCopyBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;}
+  public int maxNonLOSCopyBytes() {
+    return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;
+  }
 }

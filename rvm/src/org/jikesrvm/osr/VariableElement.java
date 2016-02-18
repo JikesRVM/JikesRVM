@@ -12,8 +12,18 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.osr.OSRConstants.DOUBLE;
+import static org.jikesrvm.osr.OSRConstants.FLOAT;
+import static org.jikesrvm.osr.OSRConstants.INT;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
+import static org.jikesrvm.osr.OSRConstants.LONG;
+import static org.jikesrvm.osr.OSRConstants.REF;
+import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
+import static org.jikesrvm.osr.OSRConstants.WORD;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -21,7 +31,7 @@ import org.vmmagic.unboxed.Word;
  * (local or stack element).  It is used to generate prologue to
  * recover the runtime state.  It refers to VM architecture.
  */
-public class VariableElement implements OSRConstants {
+public class VariableElement {
 
   //////////////////////////////////
   // instance fields
@@ -94,7 +104,14 @@ public class VariableElement implements OSRConstants {
   // Initializer
   /////////////////////////////////////
 
-  /** Constructor for 32-bit value */
+  /**
+   * Constructor for 32-bit value.
+   *
+   * @param what_kind {@link OSRConstants#LOCAL} or {@link OSRConstants#STACK}
+   * @param which_num the variable's number
+   * @param type the variable's type code
+   * @param ibits the variable's value
+   */
   public VariableElement(boolean what_kind, int which_num, byte type, int ibits) {
     if (VM.VerifyAssertions) {
       VM._assert(isIBitsType(type));
@@ -108,7 +125,14 @@ public class VariableElement implements OSRConstants {
     this.ref = null;
   }
 
-  /** Constructor for 64-bit value */
+  /**
+   * Constructor for 64-bit value.
+   *
+   * @param what_kind {@link OSRConstants#LOCAL} or {@link OSRConstants#STACK}
+   * @param which_num the variable's number
+   * @param type the variable's type code
+   * @param lbits the variable's value
+   */
   public VariableElement(boolean what_kind, int which_num, byte type, long lbits) {
     if (VM.VerifyAssertions) {
       VM._assert(isLBitsType(type));
@@ -122,7 +146,14 @@ public class VariableElement implements OSRConstants {
     this.ref = null;
   }
 
-  /** Constructor for reference type */
+  /**
+   * Constructor for reference type.
+   *
+   * @param what_kind {@link OSRConstants#LOCAL} or {@link OSRConstants#STACK}
+   * @param which_num the variable's number
+   * @param type the variable's type code
+   * @param ref the reference
+   */
   public VariableElement(boolean what_kind, int which_num, byte type, Object ref) {
     if (VM.VerifyAssertions) {
       VM._assert(isRefType(type));
@@ -136,7 +167,14 @@ public class VariableElement implements OSRConstants {
     this.ref = ref;
   }
 
-  /** Constructor for word type */
+  /**
+   * Constructor for word type.
+   *
+   * @param what_kind {@link OSRConstants#LOCAL} or {@link OSRConstants#STACK}
+   * @param which_num the variable's number
+   * @param type the variable's type code
+   * @param word the word
+   */
   public VariableElement(boolean what_kind, int which_num, byte type, Word word) {
     if (VM.VerifyAssertions) {
       VM._assert(isWordType(type));
@@ -158,12 +196,11 @@ public class VariableElement implements OSRConstants {
   // instance method
   ////////////////////////////////
 
-  /** local or stack element */
+  /** @return whether this is a local or stack element */
   boolean isLocal() {
     return kind == LOCAL;
   }
 
-  /** get type code */
   byte getTypeCode() {
     return tcode;
   }
@@ -172,7 +209,6 @@ public class VariableElement implements OSRConstants {
     return num;
   }
 
-  /** is reference type */
   boolean isRefType() {
     return (this.tcode == REF);
   }
@@ -181,7 +217,6 @@ public class VariableElement implements OSRConstants {
     return ref;
   }
 
-  /** is word type */
   boolean isWordType() {
     return (this.tcode == WORD);
   }
@@ -190,7 +225,6 @@ public class VariableElement implements OSRConstants {
     return (VM.BuildFor32Addr) ? Word.fromIntSignExtend((int) value) : Word.fromLong(value);
   }
 
-  /* for numerical */
   int getIntBits() {
     return (int) (value & 0x0FFFFFFFF);
   }
@@ -199,7 +233,6 @@ public class VariableElement implements OSRConstants {
     return value;
   }
 
-  /* to string */
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("(");
@@ -246,7 +279,7 @@ public class VariableElement implements OSRConstants {
         if (ref == null) {
           buf.append("null");
         } else {
-          buf.append(VM.addressAsHexString(Magic.objectAsAddress(ref)));
+          buf.append(Services.addressAsHexString(Magic.objectAsAddress(ref)));
           buf.append(" ");
 //      buf.append(ref.toString());
         }

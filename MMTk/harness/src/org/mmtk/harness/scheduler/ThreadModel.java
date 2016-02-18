@@ -118,7 +118,7 @@ public abstract class ThreadModel {
   protected void setState(State state) {
     Trace.trace(Item.SCHEDULER,"State changing from %s to %s",ThreadModel.state,state);
     assert validTransitions.get(ThreadModel.state).contains(state) :
-      "Illegal state transition, from "+ThreadModel.state+" to "+state;
+      "Illegal state transition, from " + ThreadModel.state + " to " + state;
     ThreadModel.state = state;
   }
 

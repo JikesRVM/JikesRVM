@@ -1,0 +1,26 @@
+JVM_0.1 {
+  global :
+    SysTraceFile;
+    SysErrorFile;
+    JavaArgc;
+    JavaArgs;
+    Me;
+    verbose;
+    verboseBoot;
+    verboseSignalHandling;
+    sysJavaVM;
+    initialHeapSize;
+    maximumHeapSize;
+    pageSize;
+    determinePageSize;
+    findMappable;
+    parse_memory_size;
+    checkMalloc;
+    bootCodeFilename;
+    bootDataFilename;
+    bootRMapFilename;
+    createVM;
+    sysExit;
+    JNI_CreateJavaVM;
+  local : *;
+};

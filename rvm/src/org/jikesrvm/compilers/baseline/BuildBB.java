@@ -12,10 +12,12 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 
 /**
@@ -23,12 +25,12 @@ import org.jikesrvm.classloader.NormalMethod;
  * basic blocks. Used for building the reference maps for a
  * method.
  */
-final class BuildBB implements BytecodeConstants, BBConstants {
+final class BuildBB {
 
   // ---------------- Static Class Fields --------------------
 
   /** Types of Instructions */
-  private static enum InstructionType {
+  private enum InstructionType {
     NONBRANCH, CONDITIONAL_BRANCH, BRANCH
   };
 
@@ -44,39 +46,41 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   /**
    * basic blocks of the byte code
    */
-  public BasicBlockFactory bbf;
-  public BasicBlock[] basicBlocks;
+  final BasicBlockFactory bbf;
+  BasicBlock[] basicBlocks;
 
   /**
    * identify which block a byte is part of
    */
-  public short[] byteToBlockMap;
+  short[] byteToBlockMap;
 
   /**
    * Number of unique jsr targets processed
    */
-  public int numJsrs;
+  int numJsrs;
 
   /**
    * Number of GC points found
    */
-  public int gcPointCount;
+  int gcPointCount;
 
   // This variable is used in multiple methods of this class, make it accessible
   int bytelength;
 
   /**
-   * Analyze the bytecodes and build the basic blocks with their predecessors.
+   * Analyzes the bytecodes and builds the basic blocks with their predecessors.
    * The results will be used by BuildReferenceMaps
+   *
+   * @param method the method whose bytecodes will be analyzed
    */
-  public void determineTheBasicBlocks(NormalMethod method) {
+  BuildBB(NormalMethod method) {
     ExceptionHandlerMap exceptions;   // Used to get a hold of the try Start, End and Handler lists
     int[] retList;    // List of basic block numbers that end with a "ret" instruction.
     BytecodeStream bcodes;        // The bytecodes being analyzed.
     BasicBlock currentBB;         // current basic block being processed
     InstructionType lastInstrType;// type of the last instruction
     int lastInstrStart;// byte index where last instruction started
-
+    boolean hasMagic = false; // are there magic operations in this method (VM.VerifyAssertions only)
     //
     //  Initialization
     //
@@ -353,6 +357,17 @@ final class BuildBB implements BytecodeConstants, BBConstants {
           break;
         }
 
+        case JBC_invokestatic:
+        case JBC_invokevirtual: {
+          if (VM.VerifyAssertions && !hasMagic) {
+            MethodReference methodRef = bcodes.getMethodReference();
+            hasMagic = methodRef.getType().isMagicType();
+            byteToBlockMap[lastInstrStart] = (short) currentBB.getBlockNumber();
+            gcPointCount = gcPointCount + 1;
+            break;
+          }
+        }
+
         case JBC_aaload:
         case JBC_iaload:
         case JBC_faload:
@@ -377,9 +392,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
         case JBC_idiv:
         case JBC_lrem:
         case JBC_ldiv:
-        case JBC_invokevirtual:
         case JBC_invokespecial:
-        case JBC_invokestatic:
         case JBC_invokeinterface:
         case JBC_instanceof:
         case JBC_checkcast:
@@ -419,7 +432,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
     }
 
     // can not support jsrs with unboxed types at the moment
-    if (VM.VerifyAssertions && !VM.BuildForHarmony) VM._assert(VM.runningVM || numJsrs == 0);
+    if (VM.VerifyAssertions && !VM.BuildForHarmony) VM._assert(VM.runningVM || numJsrs == 0 || !hasMagic);
   }
 
   /********************************/
@@ -438,6 +451,9 @@ final class BuildBB implements BytecodeConstants, BBConstants {
    * marked in byte code beyond "index"). If the basic block is already set up and
    * this is a backward branch then we must check if the block needs splitting,
    * branching to the middle of a block is not allowed.
+   *
+   * @param index the byte index of the branch instruction
+   * @param branchtarget the target byte index
    */
   private void processBranchTarget(int index, int branchtarget) {
 
@@ -465,6 +481,9 @@ final class BuildBB implements BytecodeConstants, BBConstants {
    * branchtarget location is the start of a block (and if not, then split the
    * existing block into two) Need to register the block that ends at "index"
    * as a predecessor of the block that starts at branchtarget.
+   *
+   * @param index the byte index of the branch instruction
+   * @param branchtarget the target byte index
    */
   private void processBackwardBranch(int index, int branchtarget) {
     BasicBlock existingBB, currentBB, newBB;
@@ -486,7 +505,9 @@ final class BuildBB implements BytecodeConstants, BBConstants {
       // Find the last instruction prior to the branch target;
       //  that's the end of the new block
       //
-      for (i = branchtarget - 1; byteToBlockMap[i] == BasicBlock.NOTBLOCK; i--) {}
+      for (i = branchtarget - 1; byteToBlockMap[i] == BasicBlock.NOTBLOCK; i--) {
+        // count as described in the comment above the loop header
+      }
 
       newBlockEnd = i;
       newBB.setEnd(i);
@@ -524,6 +545,10 @@ final class BuildBB implements BytecodeConstants, BBConstants {
 
   /**
    * process the effect of the ret instructions on the precedance table
+   *
+   * @param retList a list of basic blocks with return instructions. Each block
+   *  is represented by its basic block number.
+   * @param nextRetList maximum index in the list
    */
   private void processRetList(int[] retList, int nextRetList) {
     // block 0 not used
@@ -538,7 +563,13 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   }
 
   /**
-   * scan back from ret instruction to jsr call sites
+   * Scans back from ret instruction to jsr call sites.
+   *
+   * @param pred the basic block number of the predecessor block
+   * @param retBB the basic block that contains the return
+   * @param otherRetCount the number of other returns (i.e. non-matching)
+   *  returns that were found on the path
+   * @param seenAlready list of blocks that have already been seen
    */
   private void findAndSetJSRCallSite(int pred, BasicBlock retBB, int otherRetCount, boolean[] seenAlready) {
     seenAlready[pred] = true;
@@ -567,7 +598,10 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   }
 
   /**
-   * setup jsr call site
+   * Does the setup for a jsr call site.
+   *
+   * @param entryBB a basic block with a jsr entry
+   * @param retBB a basic block with a matching return
    */
   private void setupJSRCallSite(BasicBlock entryBB, BasicBlock retBB) {
     int newBB;
@@ -591,6 +625,8 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   /**
    * For every handler, make a block that starts with the handler PC
    * Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void setupHandlerBBs(ExceptionHandlerMap exceptions) {
     int[] tryHandlerPC = exceptions.getHandlerPC();
@@ -608,6 +644,8 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   /**
    * For every try start, make a block that starts with the Try start,
    * mark it as a try start. Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void setupTryStartBBs(ExceptionHandlerMap exceptions) {
     int[] tryStartPC = exceptions.getStartPC();
@@ -625,6 +663,8 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   /**
    * For every handler, mark the blocks in its try block as its predecessors.
    * Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void processExceptionHandlers(ExceptionHandlerMap exceptions) {
     int[] tryStartPC = exceptions.getStartPC();
@@ -651,6 +691,8 @@ final class BuildBB implements BytecodeConstants, BBConstants {
    * Mark all the blocks within try range as being Try blocks
    * used for determining the stack maps for Handler blocks
    * Only called when exceptions is not null.
+   *
+   * @param exceptions exception handler information
    */
   private void markTryBlocks(ExceptionHandlerMap exceptions) {
     int[] tryStartPC = exceptions.getStartPC();
@@ -674,6 +716,9 @@ final class BuildBB implements BytecodeConstants, BBConstants {
    * block as their predecessor; which is registered in "processExceptionHandlers"
    * Otherwise, the athrow acts as a branch to the exit and that should be marked
    * here. Note exceptions may be null.
+   *
+   * @param exceptions exception handler information
+   * @param athrowIndex byte index of the athrow
    */
   private void processAthrow(ExceptionHandlerMap exceptions, int athrowIndex) {
     if (exceptions != null) {
@@ -699,7 +744,9 @@ final class BuildBB implements BytecodeConstants, BBConstants {
   /********************************/
 
   /**
-   * add a basic block to the list
+   * Adds a basic block.
+   *
+   * @param newBB the block to add
    */
   private void addBasicBlock(BasicBlock newBB) {
     // Check whether basicBlock array must be grown.

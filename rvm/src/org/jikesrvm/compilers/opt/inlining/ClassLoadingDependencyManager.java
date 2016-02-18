@@ -68,6 +68,9 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
   /**
    * Record that the code currently being compiled (cm) must be
    * invalidated if source is overridden.
+   *
+   * @param source the method whose overriding will cause invalidation
+   * @param cm the method to invalidate
    */
   public synchronized void addNotOverriddenDependency(RVMMethod source, CompiledMethod cm) {
     int cmid = cm.getId();
@@ -80,6 +83,9 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
   /**
    * Record that the code currently being compiled (cm) must be
    * invalidated if source ever has a subclass.
+   *
+   * @param source the class whose subclassing will cause invalidation
+   * @param cm the method to invalidate
    */
   public synchronized void addNoSubclassDependency(RVMClass source, CompiledMethod cm) {
     int cmid = cm.getId();
@@ -94,7 +100,7 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
   ////////////////////////
 
   /**
-   * Take action when a method is overridden.
+   * Takes action when a method is overridden.
    * @param c a class that has just been loaded.
    */
   private void handleOverriddenMethods(RVMClass c) {
@@ -148,9 +154,6 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
     }
   }
 
-  /**
-   * helper method to invalidate a particular compiled method
-   */
   private void invalidate(CompiledMethod cm) {
     RVMMethod m = cm.getMethod();
     if (TRACE || DEBUG) {

@@ -88,13 +88,19 @@ public final class JNICompiledMethod extends CompiledMethod {
   }
 
   @Override
+  @Uninterruptible
+  public int findLineNumberForInstruction(Offset instructionOffset) {
+    return NATIVE_METHOD_LINE_NUMBER;
+  }
+
+  @Override
   @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     return -1;
   }
 
   @Override
-  public void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out) {
+  public void printStackTrace(Offset instructionOffset, org.jikesrvm.util.PrintLN out) {
     if (method != null) {
       // print name of native method
       out.print("\tat ");

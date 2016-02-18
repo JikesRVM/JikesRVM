@@ -61,6 +61,6 @@ public class Source {
    */
   public String getLine(int line) {
     initialize();
-    return lines.get(line-1);
+    return lines.get(line - 1);
   }
 }

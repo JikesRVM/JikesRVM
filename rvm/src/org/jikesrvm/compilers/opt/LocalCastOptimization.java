@@ -138,6 +138,7 @@ public final class LocalCastOptimization extends CompilerPhase {
    * Where legal, move a type check below an if instruction.
    * @param s the potential typecheck instruction
    * @param ir the governing IR
+   * @return {@code true} if and only if a type check was moved
    */
   private boolean pushTypeCheckBelowIf(Instruction s, IR ir) {
     if (s.operator() == CHECKCAST) {

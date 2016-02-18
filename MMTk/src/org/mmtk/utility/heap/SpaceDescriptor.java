@@ -12,8 +12,9 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.BITS_IN_INT;
+
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -35,7 +36,7 @@ import org.vmmagic.unboxed.*;
  * compiler can perform this decoding at compile time and produce
  * optimal code for the test.
  */
-@Uninterruptible public class SpaceDescriptor implements Constants {
+@Uninterruptible public class SpaceDescriptor {
 
   /****************************************************************************
    *
@@ -61,7 +62,7 @@ import org.vmmagic.unboxed.*;
   private static final int BASE_EXPONENT = BITS_IN_INT - MANTISSA_BITS;
 
   private static int discontiguousSpaceIndex = 0;
-  private static final int DISCONTIG_INDEX_INCREMENT = 1<<TYPE_BITS;
+  private static final int DISCONTIG_INDEX_INCREMENT = 1 << TYPE_BITS;
 
   /****************************************************************************
    *
@@ -91,8 +92,8 @@ import org.vmmagic.unboxed.*;
     int mantissa = tmp.toInt();
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(tmp.lsh(BASE_EXPONENT + exponent).EQ(start.toWord()));
-    return (mantissa<<MANTISSA_SHIFT) |
-           (exponent<<EXPONENT_SHIFT) |
+    return (mantissa << MANTISSA_SHIFT) |
+           (exponent << EXPONENT_SHIFT) |
            (chunks << SIZE_SHIFT) |
            ((top) ? TYPE_CONTIGUOUS_HI : TYPE_CONTIGUOUS);
   }
@@ -116,9 +117,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Return true if this descriptor describes a contiguous space
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return {@code true} if this descriptor describes a contiguous space
    */
   @Inline
@@ -127,10 +126,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return true if this descriptor describes a contiguous space that
-   * is at the top of the virtual address space
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return {@code true} if this descriptor describes a contiguous space that
    * is at the top of the virtual address space
    */
@@ -140,9 +136,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return the start of this region of memory encoded in this descriptor
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return The start of this region of memory encoded in this descriptor
    */
   @Inline
@@ -154,10 +148,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return the size of the region of memory encoded in this
-   * descriptor, in chunks
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return The size of the region of memory encoded in this
    * descriptor, in chunks
    */

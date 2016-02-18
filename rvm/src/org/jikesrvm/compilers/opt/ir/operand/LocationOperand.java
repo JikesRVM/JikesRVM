@@ -12,12 +12,15 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -25,7 +28,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see Operand
  */
-public final class LocationOperand extends Operand implements org.jikesrvm.compilers.opt.driver.OptConstants {
+public final class LocationOperand extends Operand {
 
   /*
    * TODO: Now that we don't pay a large penalty for dynamic type checks
@@ -129,6 +132,8 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
 
   /**
    * Constructs a new location operand with the given JTOC offset
+   *
+   * @param jtocOffset JTOC offset
    */
   public LocationOperand(Offset jtocOffset) {
     type = JTOC_ACCESS;
@@ -137,6 +142,8 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
 
   /**
    * Constructs a new location operand with the given spill offset.
+   *
+   * @param index spill offset
    */
   public LocationOperand(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= 0);
@@ -160,41 +167,75 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
     throw new OptimizingCompilerException("Getting the type for this operand has no defined meaning");
   }
 
-  public LocationOperand asFieldAccess() { return this; }
+  public LocationOperand asFieldAccess() {
+    return this;
+  }
 
-  public LocationOperand asArrayAccess() { return this; }
+  public LocationOperand asArrayAccess() {
+    return this;
+  }
 
-  public LocationOperand asJTOCAccess() { return this; }
+  public LocationOperand asJTOCAccess() {
+    return this;
+  }
 
-  public LocationOperand asSpillAccess() { return this; }
+  public LocationOperand asSpillAccess() {
+    return this;
+  }
 
-  public LocationOperand asALengthAccess() { return this; }
+  public LocationOperand asALengthAccess() {
+    return this;
+  }
 
-  public LocationOperand asMethodAccess() { return this; }
+  public LocationOperand asMethodAccess() {
+    return this;
+  }
 
-  public FieldReference getFieldRef() { return fieldRef; }
+  public FieldReference getFieldRef() {
+    return fieldRef;
+  }
 
-  public TypeReference getElementType() { return arrayElementType; }
+  public TypeReference getElementType() {
+    return arrayElementType;
+  }
 
-  //public final int getIndex() { return JTOCoffset; }
-  public Offset getJTOCoffset() { return JTOCoffset; }
+  public Offset getJTOCoffset() {
+    return JTOCoffset;
+  }
 
-  public int getOffset() { return spillOffset; }
+  public int getOffset() {
+    return spillOffset;
+  }
 
-  public boolean isFieldAccess() { return type == FIELD_ACCESS; }
+  public boolean isFieldAccess() {
+    return type == FIELD_ACCESS;
+  }
 
-  public boolean isArrayAccess() { return type == ARRAY_ACCESS; }
+  public boolean isArrayAccess() {
+    return type == ARRAY_ACCESS;
+  }
 
-  public boolean isJTOCAccess() { return type == JTOC_ACCESS; }
+  public boolean isJTOCAccess() {
+    return type == JTOC_ACCESS;
+  }
 
-  public boolean isSpillAccess() { return type == SPILL_ACCESS; }
+  public boolean isSpillAccess() {
+    return type == SPILL_ACCESS;
+  }
 
-  public boolean isALengthAccess() { return type == ALENGTH_ACCESS; }
+  public boolean isALengthAccess() {
+    return type == ALENGTH_ACCESS;
+  }
 
-  public boolean isMethodAccess() { return type == METHOD_ACCESS; }
+  public boolean isMethodAccess() {
+    return type == METHOD_ACCESS;
+  }
 
   /**
    * Is the accessed location possibly volatile?
+   *
+   * @return {@code true} if it's possible that the location is volatile,
+   *  {@code false} if the location cannot possibly be volatile
    */
   public boolean mayBeVolatile() {
     if (!isFieldAccess()) return false;
@@ -279,7 +320,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
       case ARRAY_ACCESS:
         return "<mem loc: array " + arrayElementType + "[]>";
       case JTOC_ACCESS:
-        return "<mem loc: JTOC @" + VM.addressAsHexString(JTOCoffset.toWord().toAddress()) + ">";
+        return "<mem loc: JTOC @" + Services.addressAsHexString(JTOCoffset.toWord().toAddress()) + ">";
       case SPILL_ACCESS:
         return "<mem loc: spill FP " + spillOffset + ">";
       case ALENGTH_ACCESS:

@@ -69,9 +69,6 @@ public final class AOSLogging {
    */
   private PrintStream log;
 
-  /**
-   * Returns the log object
-   */
   public PrintStream getLog() {
     return log;
   }
@@ -85,7 +82,6 @@ public final class AOSLogging {
   private boolean booted = false;
 
   /**
-   * Return whether AOS logging has booted.
    * @return whether AOS logging has booted
    */
   public boolean booted() {
@@ -93,7 +89,7 @@ public final class AOSLogging {
   }
 
   /**
-   * Helper routine to produce the current time as a string
+   * @return the current time as a string
    */
   private String getTime() {
     return Controller.controllerClock + ":" + Time.nanoTime();
@@ -371,6 +367,8 @@ public final class AOSLogging {
    * this method logs the event when the controller discovers a method that has
    * been recompiled and the previous version is still regarded as hot,
    * i.e., still on the stack and significant.
+   *
+   * @param hme the hot method event of the method that was recompiled
    */
   public void oldVersionStillHot(HotMethodEvent hme) {
     if (Controller.options.LOGGING_LEVEL >= 2) {

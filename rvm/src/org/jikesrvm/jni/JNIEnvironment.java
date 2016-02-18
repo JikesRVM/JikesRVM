@@ -12,11 +12,14 @@
  */
 package org.jikesrvm.jni;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -37,7 +40,7 @@ import org.vmmagic.unboxed.Offset;
  * A JNIEnvironment is created for each Java thread.
  */
 @NonMoving
-public final class JNIEnvironment implements SizeConstants {
+public final class JNIEnvironment {
 
   /**
    * initial size for JNI refs, later grow as needed
@@ -57,14 +60,15 @@ public final class JNIEnvironment implements SizeConstants {
    * This is the shared JNI function table used by native code
    * to invoke methods in @link{JNIFunctions}.
    */
+  @Untraced // because bootloader code must be able to access it
   public static FunctionTable JNIFunctions;
 
   /**
-   * For the PowerOpenABI we need a linkage triple instead of just
+   * For the 64-bit PowerPC ELF ABI we need a linkage triple instead of just
    * a function pointer.
    * This is an array of such triples that matches JNIFunctions.
    */
-  public static LinkageTripletTable LinkageTriplets;
+  public static LinkageTripletTable linkageTriplets;
 
   /**
    * This is the pointer to the shared JNIFunction table.
@@ -78,7 +82,7 @@ public final class JNIEnvironment implements SizeConstants {
   // used by native code
   @Entrypoint
   private final Address externalJNIFunctions =
-      VM.BuildForPowerOpenABI ? Magic.objectAsAddress(LinkageTriplets) : Magic.objectAsAddress(JNIFunctions);
+      VM.BuildForPower64ELF_ABI ? Magic.objectAsAddress(linkageTriplets) : Magic.objectAsAddress(JNIFunctions);
 
   /**
    * For saving processor register on entry to native,
@@ -127,7 +131,7 @@ public final class JNIEnvironment implements SizeConstants {
    * true if the bottom stack frame is native,
    * such as thread for CreateJVM or AttachCurrentThread
    */
-  private  boolean alwaysHasNativeFrame;
+  private final  boolean alwaysHasNativeFrame;
 
   /**
    * references passed to native code
@@ -204,8 +208,10 @@ public final class JNIEnvironment implements SizeConstants {
   @Uninterruptible("May be called from uninterruptible code")
   @NoInline
   private void checkPush(Object ref, boolean canGrow) {
-    final boolean debug=true;
-    VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
+    final boolean debug = true;
+    if (VM.VerifyAssertions) {
+      VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
+    }
     if (JNIRefsTop < 0) {
       if (debug) {
         VM.sysWriteln("JNIRefsTop=", JNIRefsTop);
@@ -221,7 +227,7 @@ public final class JNIEnvironment implements SizeConstants {
       VM.sysFail("unchecked pushes exceeded fudge length!");
     }
     if (!canGrow) {
-      if ((JNIRefsTop+BYTES_IN_ADDRESS) >= JNIRefsMax) {
+      if ((JNIRefsTop + BYTES_IN_ADDRESS) >= JNIRefsMax) {
         if (debug) {
           VM.sysWriteln("JNIRefsTop=", JNIRefsTop);
           VM.sysWriteln("JNIRefsMax=", JNIRefsMax);
@@ -254,7 +260,9 @@ public final class JNIEnvironment implements SizeConstants {
   }
 
   /**
-   * Atomically copy and install a new JNIRefArray
+   * Atomically copies and installs a new JNIRefArray.
+   *
+   * @param newrefs the new JNIRefArray
    */
   @Uninterruptible
   private void replaceJNIRefs(AddressArray newrefs) {
@@ -269,6 +277,8 @@ public final class JNIEnvironment implements SizeConstants {
    * NB only used for Intel
    * @param ref reference to place on stack or value of saved frame pointer
    * @param isRef false if the reference isn't a frame pointer
+   * @return new offset of current top in JNIRefs array or 0 if
+   *  the reference is zero and a framepointer
    */
   @Uninterruptible("Encoding arguments on stack that won't be seen by GC")
   @Inline
@@ -280,7 +290,7 @@ public final class JNIEnvironment implements SizeConstants {
       // we count all slots so that releasing them is straight forward
       JNIRefsTop += BYTES_IN_ADDRESS;
       // ensure null is always seen as slot zero
-      JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
+      JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, ref);
       return JNIRefsTop;
     }
   }
@@ -306,7 +316,7 @@ public final class JNIEnvironment implements SizeConstants {
     JNITopJavaFP = callersFP;
 
     if (VM.traceJNI) {
-      RVMMethod m=
+      RVMMethod m =
         CompiledMethods.getCompiledMethod(
           Magic.getCompiledMethodID(callersFP)).getMethod();
       VM.sysWrite("calling JNI from ");
@@ -325,7 +335,7 @@ public final class JNIEnvironment implements SizeConstants {
 
     // Convert arguments on stack from objects to JNI references
     Address fp = Magic.getFramePointer();
-    Offset argOffset = Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS);
+    Offset argOffset = Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS);
     fp.store(uninterruptiblePushJNIRef(fp.loadAddress(argOffset),true), argOffset);
     while (encodedReferenceOffsets != 0) {
       argOffset = argOffset.plus(BYTES_IN_ADDRESS);
@@ -383,18 +393,24 @@ public final class JNIEnvironment implements SizeConstants {
    * @return reference at that offset
    */
   public Object getJNIRef(int offset) {
-    if (offset > JNIRefsTop) {
-      VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
-      VM.sysWrite(offset);
-      VM.sysWrite("(top is ");
-      VM.sysWrite(JNIRefsTop);
-      VM.sysWrite(")\n");
-      RVMThread.dumpStack();
+    if (offset == 0) {
       return null;
-    }
-    if (offset < 0) {
+    } else if (offset < 0) {
       return JNIGlobalRefTable.ref(offset);
     } else {
+      if (offset > JNIRefsTop) {
+        VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
+        VM.sysWrite(offset);
+        VM.sysWrite("(top is ");
+        VM.sysWrite(JNIRefsTop);
+        VM.sysWrite(")\n");
+        if (VM.VerifyAssertions) {
+          VM.sysFail("getJNIRef called with illegal offset > TOP (see above)");
+        } else {
+          RVMThread.dumpStack();
+        }
+        return null;
+      }
       return Magic.addressAsObject(JNIRefs.get(offset >> LOG_BYTES_IN_ADDRESS));
     }
   }
@@ -479,14 +495,17 @@ public final class JNIEnvironment implements SizeConstants {
   /**
    * Initialize the array of JNI functions.
    * This function is called during bootimage writing.
+   *
+   * @param functions the function table to initialize
    */
   public static void initFunctionTable(FunctionTable functions) {
     JNIFunctions = functions;
-    if (VM.BuildForPowerOpenABI) {
+    BootRecord.the_boot_record.JNIFunctions = functions;
+    if (VM.BuildForPower64ELF_ABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
-      LinkageTriplets = LinkageTripletTable.allocate(functions.length());
+      linkageTriplets = LinkageTripletTable.allocate(functions.length());
       for (int i = 0; i < functions.length(); i++) {
-        LinkageTriplets.set(i, AddressArray.create(3));
+        linkageTriplets.set(i, AddressArray.create(3));
       }
     }
   }
@@ -496,10 +515,10 @@ public final class JNIEnvironment implements SizeConstants {
    * we are on a platform that needs linkage triplets.
    */
   public static void boot() {
-    if (VM.BuildForPowerOpenABI) {
+    if (VM.BuildForPower64ELF_ABI) {
       // fill in the TOC and IP entries for each linkage triplet
       for (int i = 0; i < JNIFunctions.length(); i++) {
-        AddressArray triplet = LinkageTriplets.get(i);
+        AddressArray triplet = linkageTriplets.get(i);
         triplet.set(1, Magic.getTocPointer());
         triplet.set(0, Magic.objectAsAddress(JNIFunctions.get(i)));
       }

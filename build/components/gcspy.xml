@@ -13,14 +13,13 @@
 <project name="gcspy" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
   <property name="gcspy.version" value="1_012"/>
   <property name="gcspy.description" value="GCSpy Heap Visualisation Framework"/>
 
   <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
   <property name="gcspy.package.dir" value="${gcspy.component.dir}/${gcspy.version}"/>
-  <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy"/>
+  <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy${gcspy.version}"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -98,7 +97,10 @@
   </target>
 
   <target name="build" depends="build-gcspy-client" description="Download GCSpy and build.">
-    <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
+    <patch patchfile="${components.patch.dir}/GCSpy-CorrectOptionSpelling.patch"
+           dir="${gcspy.dir}" strip="0"/>
+
+      <exec executable="${make.exe}" failonerror="true" dir="${gcspy.dir}/src/src/c">
       <arg value="clean"/>
       <arg value="all"/>
       <arg value="install"/>

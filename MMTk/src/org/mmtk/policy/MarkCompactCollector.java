@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements unsynchronized (local) per-collector-thread elements of a
- * sliding mark-compact collector.<p>
+ * sliding mark-compact collector.
  *<p>
  * Specifically, this class provides the methods that
  * <ul>
@@ -107,7 +107,7 @@ public final class MarkCompactCollector {
     /**
      * @param name The name of the region - for debugging messages.
      */
-    public RegionCursor(String name) {
+    RegionCursor(String name) {
       this.name = name;
     }
 
@@ -233,7 +233,7 @@ public final class MarkCompactCollector {
    */
   @Uninterruptible
   private static final class FromCursor extends RegionCursor {
-    public FromCursor() {
+    FromCursor() {
       super("from");
     }
 
@@ -264,7 +264,9 @@ public final class MarkCompactCollector {
     }
 
     /**
-     * Advance the cursor to the end of the given object.
+     * Advances the cursor to the end of the given object.
+     *
+     * @param current the object's reference
      */
     @Inline
     void advanceToObjectEnd(ObjectReference current) {
@@ -275,7 +277,7 @@ public final class MarkCompactCollector {
     /**
      * Advance the cursor either to the next region in the list,
      * or to a new region allocated from the global list.
-     * @param space
+     * @param space the space that acts as the global list
      */
     void advanceToNextForwardableRegion(MarkCompactSpace space) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(get().EQ(getLimit()));
@@ -318,7 +320,7 @@ public final class MarkCompactCollector {
    */
   @Uninterruptible
   private static final class ToCursor extends RegionCursor {
-    public ToCursor() {
+    ToCursor() {
       super("to");
     }
 

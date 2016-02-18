@@ -12,20 +12,22 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_ID_MASK;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_ID_SHIFT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Callbacks;
-import org.jikesrvm.Constants;
-import org.jikesrvm.Services;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.objectmodel.ThinLockConstants;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.util.Services;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.unboxed.Word;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  Lock provides RVM support for monitors and Java level
@@ -39,7 +41,6 @@ import org.vmmagic.unboxed.Offset;
  <LI> management of heavy weight locks, and
  <LI> debugging and performance tuning support.
  </OL>
- </p>
 
  <p><STRONG>Requirement 1:</STRONG>
  It must be possible to lock an object when allocations are not
@@ -48,9 +49,7 @@ import org.vmmagic.unboxed.Offset;
 
  <p><STRONG>Requirement 2:</STRONG>
  After a lock has been obtained, the code of this class must return
- without allowing a thread switch.  (The {@link
-org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer#unwindStackFrame(org.jikesrvm.compilers.common.CompiledMethod, org.jikesrvm.ArchitectureSpecific.Registers)
- exception handler}
+ without allowing a thread switch. The exception handler
  of the baseline compiler assumes that until lock() returns the lock
  has not been obtained.)
  </p>
@@ -59,7 +58,7 @@ org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer#unwindStackFrame(or
  support for {@link java.lang.Object#notify}, {@link
 java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  When these methods are called, the indicated object must be locked
- by the current thread.  <p>
+ by the current thread.  </p>
 
  <p><STRONG>Section 2:</STRONG>
  has two sections.  <EM>Section 2a:</EM> locks (and unlocking)
@@ -79,7 +78,7 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
 
  <p>
  The following performance tuning issues have not yet been addressed
- adaquately:
+ adaquately:</p>
  <OL>
  <LI> <EM>What to do if the attempt to lock an object fails?</EM>  There
  are three choices: try again (busy-wait), yield and then try again,
@@ -102,6 +101,7 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  <LI> <EM>Is there any advantage to using the {@link SpinLock#tryLock}
  method?</EM>
  </OL>
+ <p>
  Once these questions, and the issue of using MCS locking in {@link SpinLock},
  have been investigated, then a larger performance issue
  comes into view.  A number of different light-weight locking schemes have
@@ -115,7 +115,7 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  */
 
 @Uninterruptible
-public final class Lock implements Constants {
+public final class Lock {
   /****************************************************************************
    * Constants
    */
@@ -226,8 +226,13 @@ public final class Lock implements Constants {
     }
     return lockHeavyLocked(o);
   }
-  /** Complete the task of acquiring the heavy lock, assuming that the mutex
-      is already acquired (locked). */
+
+  /**
+   * Completes the task of acquiring the heavy lock, assuming that the mutex
+      is already acquired (locked).
+   * @param o the object whose lock is to be acquired
+   * @return whether locking succeeded
+   */
   @Unpreemptible
   public boolean lockHeavyLocked(Object o) {
     if (lockedObject != o) { // lock disappeared before we got here
@@ -303,6 +308,7 @@ public final class Lock implements Constants {
    * the mutex for this lock is held when deflate is called.
    *
    * @param o the object from which this lock is to be disassociated
+   * @param lockOffset the lock's offset from the object
    */
   private void deflate(Object o, Offset lockOffset) {
     if (VM.VerifyAssertions) {
@@ -326,7 +332,7 @@ public final class Lock implements Constants {
   }
 
   /**
-   * Get the thread id of the current owner of the lock.
+   * @return the thread id of the current owner of the lock.
    */
   public int getOwnerId() {
     return ownerId;
@@ -334,13 +340,15 @@ public final class Lock implements Constants {
 
   /**
    * Update the lock's recursion count.
+   *
+   * @param c new recursion count
    */
   public void setRecursionCount(int c) {
     recursionCount = c;
   }
 
   /**
-   * Get the lock's recursion count.
+   * @return the lock's recursion count.
    */
   public int getRecursionCount() {
     return recursionCount;
@@ -348,13 +356,15 @@ public final class Lock implements Constants {
 
   /**
    * Set the object that this lock is referring to.
+   *
+   * @param o the new locked object
    */
   public void setLockedObject(Object o) {
     lockedObject = o;
   }
 
   /**
-   * Get the object that this lock is referring to.
+   * @return the object that this lock is referring to.
    */
   public Object getLockedObject() {
     return lockedObject;
@@ -396,7 +406,7 @@ public final class Lock implements Constants {
     VM.sysWrite(" ownerId: ");
     VM.sysWriteInt(ownerId);
     VM.sysWrite(" (");
-    VM.sysWriteInt(ownerId >>> ThinLockConstants.TL_THREAD_ID_SHIFT);
+    VM.sysWriteInt(ownerId >>> TL_THREAD_ID_SHIFT);
     VM.sysWrite(") recursionCount: ");
     VM.sysWriteInt(recursionCount);
     VM.sysWriteln();
@@ -413,14 +423,16 @@ public final class Lock implements Constants {
   }
 
   /**
-   * Is this lock blocking thread t?
+   * @param t a thread
+   * @return whether this lock is blocking the given thread
    */
   protected boolean isBlocked(RVMThread t) {
     return entering.isQueued(t);
   }
 
   /**
-   * Is this thread t waiting on this lock?
+   * @param t a thread
+   * @return whether the thread is waiting on this lock
    */
   protected boolean isWaiting(RVMThread t) {
     return waiting.isQueued(t);
@@ -437,15 +449,15 @@ public final class Lock implements Constants {
   public static void init() {
     nextLockIndex = 1;
     locks = new Lock[LOCK_SPINE_SIZE][];
-    for (int i=0; i < INITIAL_CHUNKS; i++) {
+    for (int i = 0; i < INITIAL_CHUNKS; i++) {
       chunksAllocated++;
       locks[i] = new Lock[LOCK_CHUNK_SIZE];
     }
     if (VM.VerifyAssertions) {
       // check that each potential lock is addressable
       VM._assert(((MAX_LOCKS - 1) <=
-                  ThinLockConstants.TL_LOCK_ID_MASK.rshl(ThinLockConstants.TL_LOCK_ID_SHIFT).toInt()) ||
-                  ThinLockConstants.TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
+                  TL_LOCK_ID_MASK.rshl(TL_LOCK_ID_SHIFT).toInt()) ||
+                  TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
     }
   }
 
@@ -460,7 +472,7 @@ public final class Lock implements Constants {
    */
   @UnpreemptibleNoWarn("The caller is prepared to lose control when it allocates a lock")
   static Lock allocate() {
-    RVMThread me=RVMThread.getCurrentThread();
+    RVMThread me = RVMThread.getCurrentThread();
     if (me.cachedFreeLock != null) {
       Lock l = me.cachedFreeLock;
       me.cachedFreeLock = null;
@@ -468,6 +480,7 @@ public final class Lock implements Constants {
         VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
                       ", a cached free lock from Thread #",me.getThreadSlot());
       }
+      l.active = true;
       return l;
     }
 
@@ -483,7 +496,7 @@ public final class Lock implements Constants {
           globalFreeLocks--;
         }
         lockAllocationMutex.unlock();
-        if (trace && l!=null) {
+        if (trace && l != null) {
           VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
                         " from the global freelist for Thread #",me.getThreadSlot());
         }
@@ -513,7 +526,7 @@ public final class Lock implements Constants {
            * Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen */
           Magic.sync();
         }
-        if (trace && l!=null) {
+        if (trace && l != null) {
           VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
                         ", a freshly allocated lock for Thread #",
                         me.getThreadSlot());
@@ -527,6 +540,8 @@ public final class Lock implements Constants {
    * Recycles an unused heavy-weight lock.  Locks are deallocated
    * to processor specific lists, so normally no synchronization
    * is required to obtain or release a lock.
+   *
+   * @param l the unused lock
    */
   protected static void free(Lock l) {
     l.active = false;
@@ -563,6 +578,8 @@ public final class Lock implements Constants {
 
   /**
    * Grow the locks table by allocating a new spine chunk.
+   *
+   * @param id the lock's index in the table
    */
   @UnpreemptibleNoWarn("The caller is prepared to lose control when it allocates a lock")
   static void growLocks(int id) {
@@ -570,7 +587,7 @@ public final class Lock implements Constants {
     if (spineId >= LOCK_SPINE_SIZE) {
       VM.sysFail("Cannot grow lock array greater than maximum possible index");
     }
-    for(int i=chunksAllocated; i <= spineId; i++) {
+    for (int i = chunksAllocated; i <= spineId; i++) {
       if (locks[i] != null) {
         /* We were beaten to it */
         continue;
@@ -590,7 +607,7 @@ public final class Lock implements Constants {
   }
 
   /**
-   * Return the number of lock slots that have been allocated. This provides
+   * @return the number of lock slots that have been allocated. This provides
    * the range of valid lock ids.
    */
   public static int numLocks() {
@@ -646,7 +663,7 @@ public final class Lock implements Constants {
    * @return number of locks held
    */
   public static int countLocksHeldByThread(int id) {
-    int count=0;
+    int count = 0;
     for (int i = 0; i < numLocks(); i++) {
       Lock l = getLock(i);
       if (l != null && l.active && l.ownerId == id && l.recursionCount > 0) {
@@ -658,6 +675,8 @@ public final class Lock implements Constants {
 
   /**
    * scan lock queues for thread and report its state
+   * @param t the thread whose state is of interest
+   * @return the thread state in human readable form
    */
   @Interruptible
   public static String getThreadState(RVMThread t) {

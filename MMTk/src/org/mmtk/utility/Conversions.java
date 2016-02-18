@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.utility.heap.*;
 
 import org.mmtk.vm.VM;
@@ -23,7 +25,7 @@ import org.vmmagic.pragma.*;
  import org.jikesrvm.Offset;
  * Conversions between different units.
  */
-@Uninterruptible public class Conversions implements Constants {
+@Uninterruptible public class Conversions {
 
   // public static Address roundDownVM(Address addr) {
   //   return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_REGION).toAddress();
@@ -104,24 +106,8 @@ import org.vmmagic.pragma.*;
     return pages << (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_KBYTE);
   }
 
-  /**
-    @deprecated : use int bytesToPagesUp(Extent bytes) if possible
-   */
-  @Deprecated
-  public static int bytesToPagesUp(int bytes) {
-    return bytesToPagesUp(Extent.fromIntZeroExtend(bytes));
-  }
-
-  /**
-    @deprecated : use int bytesToPagesUp(Extent bytes) if possible
-   */
-  @Deprecated
-  public static int bytesToPages(int bytes) {
-    return bytesToPages(Extent.fromIntZeroExtend(bytes));
-  }
-
   public static int bytesToPagesUp(Extent bytes) {
-    return bytes.plus(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(BYTES_IN_PAGE - 1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }
 
   public static int bytesToPages(Extent bytes) {
@@ -150,7 +136,7 @@ import org.vmmagic.pragma.*;
   }
 
   public static int pageAlign(int value) {
-    return (value>>LOG_BYTES_IN_PAGE)<<LOG_BYTES_IN_PAGE;
+    return (value >> LOG_BYTES_IN_PAGE) << LOG_BYTES_IN_PAGE;
   }
 
   public static boolean isPageAligned(Address address) {

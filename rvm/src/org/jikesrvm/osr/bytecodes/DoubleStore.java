@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_dstore;
 
 /**
  * BC_DoubleStore: {@code dstore}, {@code dstore_<i>}
@@ -20,7 +21,7 @@ package org.jikesrvm.osr.bytecodes;
 public class DoubleStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;
-  private int lnum;
+  private final int lnum;
 
   public DoubleStore(int local) {
     this.lnum = local;

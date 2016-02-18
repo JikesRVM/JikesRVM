@@ -46,7 +46,11 @@ class TestDispatch {
     void performTask() {
       for (int i = 0; i < 4; ++i) {
         XThread.say("sleeping");
-        try { sleep(1000); } catch (InterruptedException e) {}
+        try {
+          sleep(1000);
+        } catch (InterruptedException e) {
+          // ignore
+        }
         XThread.say("running");
         System.gc();
         XThread.say("gc completed");

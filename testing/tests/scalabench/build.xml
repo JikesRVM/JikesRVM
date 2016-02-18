@@ -1,0 +1,72 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="scalabench" default="test" basedir=".">
+
+  <import file="../../../build/tests.xml"/>
+  <ant antfile="../../../build/components/scalabench.xml" target="ensure" inheritall="false" inheritrefs="false"/>
+  <property file="${components.file}"/>
+
+  <property name="test.class.path" value="${scalabench.jar}"/>
+
+  <target name="scalabench-init" depends="init">
+    <test-file name="scalabench.jar" location="${jikesrvm.dir}/.ant.properties"/>
+    <property name="projectTag" value="${ant.project.name}"/>
+  </target>
+
+  <macrodef name="scalabench">
+    <attribute name="name"/>
+    <attribute name="timeLimit" default=""/>
+    <attribute name="heapsize" default=""/>
+    <attribute name="requires-display" default="false"/>
+    <attribute name="bootclasspath" default=""/>
+    <sequential>
+      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}" bootclasspath="@{bootclasspath}"/>
+      <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo 0.1.0-SNAPSHOT @{name} PASSED in (.*) msec ====="/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="scalabench-init,execution-time-test"/>
+
+  <target name="execution-time-test" depends="scalabench-init">
+    <startResults/>
+
+    <!-- Heapsize set to 6x minimum heap size with production (= FastAdaptiveGenImmix). Note:
+       The minimum heap sizes are not particularly reliable. You will want to measure yourself
+       if you need heap sizes for an evaluation. -->
+
+    <!-- known to work -->
+    <scalabench name="actors" heapsize="270"/>
+    <scalabench name="apparat" heapsize="270"/>
+    <scalabench name="factorie" heapsize="576"/>
+    <scalabench name="kiama" heapsize="222"/>
+    <scalabench name="scalac" heapsize="468"/>
+    <scalabench name="scaladoc" heapsize="456"/>
+    <scalabench name="scalap" heapsize="228"/>
+    <scalabench name="scalariform" heapsize="180"/>
+    <scalabench name="tmt" heapsize="372"/>
+
+    <!-- the following benchmarks don't run on the Jikes RVM as of 2015-04-08
+    <scalabench name="scalatest" heapsize="1000"/> output validation fails
+    <scalabench name="scalaxb" heapsize="1000"/> files aren't found
+    -->
+
+    <finishResults/>
+  </target>
+
+</project>

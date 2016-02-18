@@ -12,20 +12,22 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.jikesrvm.Callbacks;
-import org.jikesrvm.CommandLineArgs;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Callbacks;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Reflection;
 import org.vmmagic.pragma.Entrypoint;
 
@@ -63,7 +65,7 @@ public final class MainThread extends Thread {
           instrumenter = (Instrumentation)Class.forName("gnu.java.lang.JikesRVMSupport")
             .getMethod("createInstrumentation").invoke(null);
           java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
       }
       for (String agent : agents) {
@@ -98,16 +100,16 @@ public final class MainThread extends Thread {
       mf = jf.getManifest();
     } catch (Exception e) {
       VM.sysWriteln("vm: IO Exception opening JAR file ", agentJar, ": ", e.getMessage());
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (mf == null) {
       VM.sysWriteln("The jar file is missing the manifest: ", agentJar);
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     String agentClassName = mf.getMainAttributes().getValue("Premain-Class");
     if (agentClassName == null) {
       VM.sysWriteln("The jar file is missing the Premain-Class manifest entry for the agent class: ", agentJar);
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     //TODO: By this stage all agent jars and classes they reference via their manifest
     try {
@@ -156,7 +158,7 @@ public final class MainThread extends Thread {
     // load class specified by args[0]
     RVMClass cls = null;
     try {
-      Atom mainAtom = Atom.findOrCreateUnicodeAtom(args[0].replace('.', '/'));
+      Atom mainAtom = Atom.findOrCreateUnicodeAtom(args[0]);
       TypeReference mainClass = TypeReference.findOrCreate(cl, mainAtom.descriptorFromClassName());
       cls = mainClass.resolve().asClass();
       cls.resolve();

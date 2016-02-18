@@ -13,7 +13,6 @@
 package org.jikesrvm.compilers.opt.runtimesupport;
 
 import java.util.List;
-import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
 import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
@@ -45,7 +44,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *  </ul>
  */
 @Uninterruptible
-public final class OptGCMap implements OptGCMapIteratorConstants {
+public final class OptGCMap {
   public static final int NO_MAP_ENTRY = -1;
   public static final int ERROR = -2;
 
@@ -74,6 +73,20 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
 
   public static final boolean DEBUG = false;
 
+  public static final int FIRST_GCMAP_REG;
+  public static final int LAST_GCMAP_REG;
+
+  static {
+    if (VM.BuildForIA32) {
+      FIRST_GCMAP_REG = org.jikesrvm.compilers.opt.runtimesupport.ia32.OptGCMapIteratorConstants.FIRST_GCMAP_REG;
+      LAST_GCMAP_REG = org.jikesrvm.compilers.opt.runtimesupport.ia32.OptGCMapIteratorConstants.LAST_GCMAP_REG;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      FIRST_GCMAP_REG = org.jikesrvm.compilers.opt.runtimesupport.ppc.OptGCMapIteratorConstants.FIRST_GCMAP_REG;
+      LAST_GCMAP_REG = org.jikesrvm.compilers.opt.runtimesupport.ppc.OptGCMapIteratorConstants.LAST_GCMAP_REG;
+    }
+  }
+
   /**
    * Constructor, called during compilation
    */
@@ -83,7 +96,9 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * Called to complete the encoding and return the final int[]
+   * Completes the encoding of the map.
+   *
+   * @return the final GC map
    */
   @Interruptible
   public int[] finish() {
@@ -168,22 +183,12 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   ////////////////////////////////////////////
   // Methods called at GC time
   ////////////////////////////////////////////
-  /**
-   * Returns the GC map information for the GC map information entry passed
-   * @param  entry     map entry
-   * @param  gcMap     the gc map
-   */
-  public static int gcMapInformation(int entry, int[] gcMap) {
+
+  public static int gcMapInformation(int mapEntry, int[] gcMap) {
     // before returning remember to clear the MSB.
-    return gcMap[entry] & ~NEXT_BIT;
+    return gcMap[mapEntry] & ~NEXT_BIT;
   }
 
-  /**
-   * Determines if the register map information for the entry passed is true
-   * @param  entry            map entry
-   * @param  registerNumber   the register number
-   * @param  gcMap            the encoded GCMap
-   */
   public static boolean registerIsSet(int entry, int registerNumber, int[] gcMap) {
     if (VM.VerifyAssertions) {
       VM._assert(registerNumber >= FIRST_GCMAP_REG && registerNumber <= LAST_GCMAP_REG, "Bad registerNumber");
@@ -198,7 +203,8 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * @param  gcMap            the encoded GCMap
+   * @param currentIndex the index of the current location
+   * @param gcMap the encoded GCMap
    * @return the next (relative) location or -1 for no more locations
    */
   public static int nextLocation(int currentIndex, int[] gcMap) {
@@ -211,10 +217,6 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
     }
   }
 
-  /**
-   *  This method maps a register number to its bit position
-   *  @param registerNumber the register number of interest
-   */
   private static int getRegBitPosition(int registerNumber) {
     //  Because we can't use bit position 0 (that is the next bit), we
     // adjust depending on the value of FIRST_GCMAP_REG
@@ -333,7 +335,8 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   private void addSpillLocation(int spill) {
     // make sure the value doesn't overflow the maximum spill location
     if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
-      VM._assert(VM.NOT_REACHED, "Unexpected spill passed:" + spill);
+      String msg = "Unexpected spill passed:" + spill;
+      VM._assert(VM.NOT_REACHED, msg);
     }
     // get the next entry (with the NEXT bit set) ...
     int entry = getNextMapEntry();

@@ -22,9 +22,11 @@ import java.lang.annotation.ElementType;
  * memory management system. This means that barriers are not triggered and
  * the reference is also not traced by the garbage collector.<p>
  *
- * As annotations are loaded at class resolution time, fields marked with this
- * annotation must be private so that no unresolved accesses are compiled to them with
- * barriers.
+ * In order to guarantee that the constraints described above are honored by the compiler,
+ * all accesses to untraced fields must be made when the field is resolved. If the field
+ * were not resolved at the time when the code for the access was being compiled, the
+ * Untraced annotation wouldn't be available (annotations are loaded at resolution
+ * time).
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

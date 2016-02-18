@@ -157,13 +157,17 @@ public abstract class Counter {
    * Return the name of this counter
    * @return The name of this counter
    */
-  String getName() { return name; }
+  String getName() {
+    return name;
+  }
 
   /**
    * Return the (option) suffix to be used when reporting this counter
    * @return The suffix
    */
-  String getColumnSuffix() { return ""; }
+  String getColumnSuffix() {
+    return "";
+  }
 
   /**
    * Return {@code true} if this counter is implicitly started when
@@ -171,13 +175,19 @@ public abstract class Counter {
    * @return {@code true} if this counter is implicitly started when
    *         <code>startAll()</code> is called.
    */
-  boolean getStart() { return start; }
+  boolean getStart() {
+    return start;
+  }
 
   /**
    * Return true if this counter will merge stats for GC and mutator phases.
    * @return True if this counter will merge stats for GC and mutator phases.
    */
-  boolean mergePhases() { return mergephases; }
+  boolean mergePhases() {
+    return mergephases;
+  }
 
-  boolean isComplex() { return complex; }
+  boolean isComplex() {
+    return complex;
+  }
 }

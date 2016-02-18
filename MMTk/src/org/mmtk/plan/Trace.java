@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.policy.RawPageSpace;
 
@@ -24,14 +23,15 @@ import org.vmmagic.pragma.*;
  * and its super-classes handle per-thread state.
  */
 @Uninterruptible
-public class Trace implements Constants {
+public class Trace {
 
   // Global pools for load-balancing deques
   final SharedDeque valuePool;
   final SharedDeque rootLocationPool;
 
   /**
-   * Constructor
+   * @param metaDataSpace the space to use for allocation for this
+   *  instance
    */
   public Trace(RawPageSpace metaDataSpace) {
     valuePool = new SharedDeque("valuePool",metaDataSpace, 1);
@@ -64,7 +64,8 @@ public class Trace implements Constants {
   }
 
   /**
-   * Is there any work outstanding in this trace. That is are there any pages in the pools.
+   * @return whether there is any work outstanding in this trace.
+   *  That is are there any pages in the pools.
    */
   public boolean hasWork() {
     return (valuePool.enqueuedPages() + rootLocationPool.enqueuedPages()) > 0;

@@ -13,10 +13,6 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.ArchitectureSpecificOpt.BaselineExecutionStateExtractor;
-import org.jikesrvm.ArchitectureSpecificOpt.CodeInstaller;
-import org.jikesrvm.ArchitectureSpecificOpt.OptExecutionStateExtractor;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
 import org.jikesrvm.adaptive.util.AOSLogging;
@@ -40,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
  * The execution of this plan compiles the method, installs the new
  * code, and reschedule the thread.
  */
-public class OnStackReplacementPlan implements Constants {
+public class OnStackReplacementPlan {
   private final int CMID;
   private final Offset tsFromFPoff;
   private final Offset ypTakenFPoff;
@@ -68,13 +64,21 @@ public class OnStackReplacementPlan implements Constants {
     this.status = ControllerPlan.UNINITIALIZED;
   }
 
-  public int getTimeInitiated() { return timeInitiated; }
+  public int getTimeInitiated() {
+    return timeInitiated;
+  }
 
-  public void setTimeInitiated(int t) { timeInitiated = t; }
+  public void setTimeInitiated(int t) {
+    timeInitiated = t;
+  }
 
-  public int getTimeCompleted() { return timeCompleted; }
+  public int getTimeCompleted() {
+    return timeCompleted;
+  }
 
-  public void setTimeCompleted(int t) { timeCompleted = t; }
+  public void setTimeCompleted(int t) {
+    timeCompleted = t;
+  }
 
   public void setStatus(byte newStatus) {
     status = newStatus;
@@ -97,11 +101,21 @@ public class OnStackReplacementPlan implements Constants {
 
       boolean invalidate = true;
       if (cm.getCompilerType() == CompiledMethod.BASELINE) {
-        extractor = new BaselineExecutionStateExtractor();
+        if (VM.BuildForIA32) {
+          extractor = new org.jikesrvm.osr.ia32.BaselineExecutionStateExtractor();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          extractor = new org.jikesrvm.osr.ppc.BaselineExecutionStateExtractor();
+        }
         // don't need to invalidate when transitioning from baseline
         invalidate = false;
       } else if (cm.getCompilerType() == CompiledMethod.OPT) {
-        extractor = new OptExecutionStateExtractor();
+        if (VM.BuildForIA32) {
+          extractor = new org.jikesrvm.osr.ia32.OptExecutionStateExtractor();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          extractor = new org.jikesrvm.osr.ppc.OptExecutionStateExtractor();
+        }
       } else {
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         return;
@@ -128,13 +142,17 @@ public class OnStackReplacementPlan implements Constants {
         setStatus(ControllerPlan.COMPLETED);
         // now let CodeInstaller generate a code stub,
         // and PostThreadSwitch will install the stub to run.
-        CodeInstaller.install(state, newCM);
+        if (VM.BuildForIA32) {
+          org.jikesrvm.osr.ia32.CodeInstaller.install(state, newCM);
+        } else {
+          org.jikesrvm.osr.ppc.CodeInstaller.install(state, newCM);
+        }
         AOSLogging.logger.logOsrEvent("OSR compilation succeeded! " + compPlan.method);
       }
     }
 
     suspendedThread.monitor().lockNoHandshake();
-    suspendedThread.osr_done=true;
+    suspendedThread.osr_done = true;
     suspendedThread.monitor().broadcast();
     suspendedThread.monitor().unlock();
   }

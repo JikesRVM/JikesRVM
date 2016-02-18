@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
@@ -16,18 +16,33 @@ FILENAME=$1
 
 cat $2 > $FILENAME
 
+# Function to correctly escape strings for JavaDoc
+function escapeStringForJavaDoc() {
+  toBeEscaped=$1
+  if [ $toBeEscaped == "&" ]; then
+    escapedString="&amp;"
+  elif [ $toBeEscaped == "<->" ]; then
+    escapedString="&lt;-&gt;"
+  elif [ $toBeEscaped == "<<" ]; then
+    escapedString="&lt;&lt;"
+  else
+    escapedString=$toBeEscaped
+  fi
+}
+
 # Function to emit _Reg assembler routines
 function emitBinaryReg() {
-  acronym=$1
-  opStr=$2
-  rmrCode=$3
-  rrmCode=$4
-  sizeOrPrefix=$5
-  ext=
-  code=
-  prefix="// no group 1 to 4 prefix byte"
-  twobyteop="// single byte opcode"
-  rex_w=false
+  local acronym=$1
+  escapeStringForJavaDoc $2
+  local opStr=$escapedString
+  local rmrCode=$3
+  local rrmCode=$4
+  local sizeOrPrefix=$5
+  local ext=
+  local code=
+  local prefix="// no group 1 to 4 prefix byte"
+  local twobyteop="// single byte opcode"
+  local rex_w=false
   if [ x$sizeOrPrefix = xbyte ]; then
     ext=_Byte
     code=" (byte) "
@@ -73,7 +88,7 @@ function emitBinaryReg() {
   /**
    * Generate a register-offset--register ${acronym}. That is,
    * <PRE>
-   * [dstReg<<dstScale + dstDisp] ${opStr}= ${code} srcReg
+   * [dstReg&lt;&lt;dstScale + dstDisp] ${opStr}= ${code} srcReg
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -115,7 +130,7 @@ function emitBinaryReg() {
   /**
    * Generate a register-index--register ${acronym}. That is,
    * <PRE>
-   * [dstBase + dstIndex<<dstScale + dstDisp] ${opStr}= $code srcReg
+   * [dstBase + dstIndex&lt;&lt;dstScale + dstDisp] ${opStr}= $code srcReg
    * </PRE>
    *
    * @param dstBase the base register
@@ -203,7 +218,7 @@ EOF
   /**
    * Generate a register--register-offset ${acronym}. That is,
    * <PRE>
-   * dstReg ${opStr}= $code [srcIndex<<srcScale + srcDisp]
+   * dstReg ${opStr}= $code [srcIndex&lt;&lt;srcScale + srcDisp]
    * </PRE>
    *
    * @param dstReg the destination register
@@ -245,7 +260,7 @@ EOF
   /**
    * Generate a register--register-offset ${acronym}. That is,
    * <PRE>
-   * dstReg ${opStr}= $code [srcBase + srcIndex<<srcScale + srcDisp]
+   * dstReg ${opStr}= $code [srcBase + srcIndex&lt;&lt;srcScale + srcDisp]
    * </PRE>
    *
    * @param dstReg the destination register
@@ -289,10 +304,300 @@ EOF
     fi
 }
 
+# Function to emit _Reg..._Byte assembler routines (that operate on r8 registers
+# al, bl, cl, dl, ah, bh, ch, dh - note we don't allow the ah, bh, ch and dh as
+# valid registers)
+function emitBinaryRegByte() {
+  acronym=$1
+  opStr=$2
+  escapeStringForJavaDoc $opStr
+  opStr=$escapedString
+  rmrCode=$3
+  rrmCode=$4
+  sizeOrPrefix=$5
+  ext=
+  code=
+  prefix="// no group 1 to 4 prefix byte"
+  twobyteop="// single byte opcode"
+  rex_w=false
+  if [ x$sizeOrPrefix = xbyte ]; then
+    ext=_Byte
+    code=" (byte) "
+  elif [ x$sizeOrPrefix = xword ]; then
+    ext=_Word
+    code=" (word) "
+    prefix="setMachineCodes(mi++, (byte) 0x66);"
+  elif [ x$sizeOrPrefix = xquad ]; then
+    ext=_Quad
+    code=" (quad) "
+    rex_w=true
+  elif [ x$sizeOrPrefix = x0x0Fquad ]; then
+    ext=_Quad
+    code=" (quad) "
+    rex_w=true
+    twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
+  elif [ x$sizeOrPrefix = x0x0F ]; then
+    twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
+  elif [ x$sizeOrPrefix != x ]; then
+    prefix="setMachineCodes(mi++, (byte) $sizeOrPrefix);"
+  fi
+  cat >> $FILENAME <<EOF
+  /**
+   * Generate a register(indirect)--register ${acronym}. That is,
+   * <PRE>
+   * [dstBase] ${opStr}= ${code} srcReg
+   * </PRE>
+   *
+   * @param dstBase the destination base
+   * @param srcReg the source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emit${acronym}_RegInd_Reg${ext}(GPR dstBase, GPR srcReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(srcReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, srcReg, null, dstBase);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rmrCode});
+    emitRegIndirectRegOperands(dstBase, srcReg);
+    if (lister != null) lister.RNR(miStart, "${acronym}", dstBase, srcReg);
+  }
+
+  /**
+   * Generate a register-offset--register ${acronym}. That is,
+   * <PRE>
+   * [dstReg&lt;&lt;dstScale + dstDisp] ${opStr}= ${code} srcReg
+   * </PRE>
+   *
+   * @param dstIndex the destination index register
+   * @param dstScale the destination shift amount
+   * @param dstDisp the destination displacement
+   * @param srcReg the source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,4})
+  public final void emit${acronym}_RegOff_Reg${ext}(GPR dstIndex, short dstScale, Offset dstDisp, GPR srcReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(srcReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, srcReg, dstIndex, null);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rmrCode});
+    emitRegOffRegOperands(dstIndex, dstScale, dstDisp, srcReg);
+    if (lister != null) lister.RFDR(miStart, "${acronym}", dstIndex, dstScale, dstDisp, srcReg);
+  }
+
+  /**
+   * Generate a absolute--register ${acronym}. That is,
+   * <PRE>
+   * [dstDisp] ${opStr}= ${code} srcReg
+   * </PRE>
+   *
+   * @param dstDisp the destination address
+   * @param srcReg the source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
+  public final void emit${acronym}_Abs_Reg${ext}(Address dstDisp, GPR srcReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(srcReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, srcReg, null, null);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rmrCode});
+    emitAbsRegOperands(dstDisp, srcReg);
+    if (lister != null) lister.RAR(miStart, "${acronym}", dstDisp, srcReg);
+  }
+
+  /**
+   * Generate a register-index--register ${acronym}. That is,
+   * <PRE>
+   * [dstBase + dstIndex&lt;&lt;dstScale + dstDisp] ${opStr}= $code srcReg
+   * </PRE>
+   *
+   * @param dstBase the base register
+   * @param dstIndex the destination index register
+   * @param dstScale the destination shift amount
+   * @param dstDisp the destination displacement
+   * @param srcReg the source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,5})
+  public final void emit${acronym}_RegIdx_Reg${ext}(GPR dstBase, GPR dstIndex, short dstScale, Offset dstDisp, GPR srcReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(srcReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, srcReg, dstIndex, dstBase);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rmrCode});
+    emitSIBRegOperands(dstBase, dstIndex, dstScale, dstDisp, srcReg);
+    if (lister != null) lister.RXDR(miStart, "${acronym}", dstBase, dstIndex, dstScale, dstDisp, srcReg);
+  }
+
+  /**
+   * Generate a register-displacement--register ${acronym}. That is,
+   * <PRE>
+   * [dstBase + dstDisp] ${opStr}= $code srcReg
+   * </PRE>
+   *
+   * @param dstBase the base register
+   * @param dstDisp the destination displacement
+   * @param srcReg the source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,3})
+  public final void emit${acronym}_RegDisp_Reg${ext}(GPR dstBase, Offset dstDisp, GPR srcReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(srcReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, srcReg, null, dstBase);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rmrCode});
+    emitRegDispRegOperands(dstBase, dstDisp, srcReg);
+    if (lister != null) lister.RDR(miStart, "${acronym}", dstBase, dstDisp, srcReg);
+  }
+
+  /**
+   * Generate a register--register ${acronym}. That is,
+   * <PRE>
+   * dstReg ${opStr}= $code srcReg
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcReg the source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emit${acronym}_Reg_Reg${ext}(GPR dstReg, GPR srcReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
+    if (VM.VerifyAssertions) VM._assert(srcReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, srcReg, null, dstReg);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rmrCode});
+    emitRegRegOperands(dstReg, srcReg);
+    if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
+  }
+
+EOF
+    if [ x$rrmCode != xnone ]; then
+    cat >> $FILENAME <<EOF
+  /**
+   * Generate a register--register-displacement ${acronym}. That is,
+   * <PRE>
+   * dstReg ${opStr}= $code [srcReg + srcDisp]
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcBase the source register
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emit${acronym}_Reg_RegDisp${ext}(GPR dstReg, GPR srcBase, Offset srcDisp) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, dstReg, null, srcBase);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rrmCode});
+    emitRegDispRegOperands(srcBase, srcDisp, dstReg);
+    if (lister != null) lister.RRD(miStart, "${acronym}", dstReg, srcBase, srcDisp);
+  }
+
+  /**
+   * Generate a register--register-offset ${acronym}. That is,
+   * <PRE>
+   * dstReg ${opStr}= $code [srcIndex&lt;&lt;srcScale + srcDisp]
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcIndex the source index register
+   * @param srcScale the source shift amount
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emit${acronym}_Reg_RegOff${ext}(GPR dstReg, GPR srcIndex, short srcScale, Offset srcDisp) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, dstReg, srcIndex, null);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rrmCode});
+    emitRegOffRegOperands(srcIndex, srcScale, srcDisp, dstReg);
+    if (lister != null) lister.RRFD(miStart, "${acronym}", dstReg, srcIndex, srcScale, srcDisp);
+  }
+
+  /**
+   * Generate a register--register-offset ${acronym}. That is,
+   * <PRE>
+   * dstReg ${opStr}= $code [srcDisp]
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  public final void emit${acronym}_Reg_Abs${ext}(GPR dstReg, Address srcDisp) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, dstReg, null, null);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rrmCode});
+    emitAbsRegOperands(srcDisp, dstReg);
+    if (lister != null) lister.RRA(miStart, "${acronym}", dstReg, srcDisp);
+  }
+
+  /**
+   * Generate a register--register-offset ${acronym}. That is,
+   * <PRE>
+   * dstReg ${opStr}= $code [srcBase + srcIndex&lt;&lt;srcScale + srcDisp]
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcBase the source base register
+   * @param srcIndex the source index register
+   * @param srcScale the source shift amount
+   * @param srcDisp the source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,3})
+  public final void emit${acronym}_Reg_RegIdx${ext}(GPR dstReg, GPR srcBase, GPR srcIndex, short srcScale, Offset srcDisp) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, dstReg, srcIndex, srcBase);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rrmCode});
+    emitSIBRegOperands(srcBase, srcIndex, srcScale, srcDisp, dstReg);
+    if (lister != null) lister.RRXD(miStart, "${acronym}", dstReg, srcBase, srcIndex, srcScale, srcDisp);
+  }
+
+  /**
+   * Generate a register--register(indirect) ${acronym}. That is,
+   * <PRE>
+   * dstReg ${opStr}= $code [srcBase]
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcBase the source base register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
+  public final void emit${acronym}_Reg_RegInd${ext}(GPR dstReg, GPR srcBase) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
+    ${prefix}
+    generateREXprefix(${rex_w}, dstReg, null, srcBase);
+    ${twobyteop}
+    setMachineCodes(mi++, (byte) ${rrmCode});
+    emitRegIndirectRegOperands(srcBase, dstReg);
+    if (lister != null) lister.RRN(miStart, "${acronym}", dstReg, srcBase);
+  }
+
+EOF
+    fi
+}
+
 # Function to emit _Imm assembler routines for 16/32 bit immediates
 function emitBinaryImmWordOrDouble() {
   acronym=$1
-  opStr=$2
+  escapeStringForJavaDoc $2
+  opStr=$escapedString
   eaxOpcode=$3
   imm8Code=$4
   imm32Code=$5
@@ -314,6 +619,11 @@ function emitBinaryImmWordOrDouble() {
     code=" (quad) "
     rex_w=true
   elif [ x$sizeOrPrefix = x0x0F ]; then
+    twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
+  elif [ x$sizeOrPrefix = x0x0Fquad ]; then
+    ext=_Quad
+    code=" (quad) "
+    rex_w=true
     twobyteop="setMachineCodes(mi++, (byte) 0x0F);"
   elif [ x$sizeOrPrefix != x ]; then
     prefix="setMachineCodes(mi++, (byte) $sizeOrPrefix);"
@@ -428,7 +738,7 @@ EOF
   /**
    * Generate a register-offset--immediate ${acronym}. That is,
    * <PRE>
-   * [dstIndex<<dstScale + dstDisp] ${opStr}= ${code} imm
+   * [dstIndex&lt;&lt;dstScale + dstDisp] ${opStr}= ${code} imm
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -527,7 +837,7 @@ EOF
   /**
    * Generate a register-index--immediate ${acronym}. That is,
    * <PRE>
-   * [dstBase + dstIndex<<dstScale + dstDisp] ${opStr}= ${code} imm
+   * [dstBase + dstIndex&lt;&lt;dstScale + dstDisp] ${opStr}= ${code} imm
    * </PRE>
    *
    * @param dstBase the destination base register
@@ -632,11 +942,12 @@ EOF
 function emitBinaryImmByte() {
   acronym=$1
   opStr=$2
-  eaxOpcode=$3
+  escapeStringForJavaDoc $opStr
+  opStr=$escapedString
+  alOpcode=$3
   imm8Code=$4
-  imm32Code=$5
-  immExtOp=$6
-  size=$7
+  immExtOp=$5
+  size=$6
   ext=
   code=
   cat >> $FILENAME <<EOF
@@ -653,11 +964,12 @@ function emitBinaryImmByte() {
   public final void emit${acronym}_Reg_Imm_Byte(GPR dstReg, int imm) {
     int miStart = mi;
     if (dstReg == EAX) {
-      setMachineCodes(mi++, (byte) $eaxOpcode);
+      setMachineCodes(mi++, (byte) $alOpcode);
       emitImm8(imm);
     } else {
+      if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
       generateREXprefix(false, null, null, dstReg);
-      setMachineCodes(mi++, (byte) ${imm32Code});
+      setMachineCodes(mi++, (byte) ${imm8Code});
       // "register ${immExtOp}" is really part of the opcode
       emitRegRegOperands(dstReg, GPR.getForOpcode(${immExtOp}));
       emitImm8(imm);
@@ -679,7 +991,7 @@ function emitBinaryImmByte() {
   public final void emit${acronym}_RegDisp_Imm_Byte(GPR dstBase, Offset dstDisp, int imm) {
     int miStart = mi;
     generateREXprefix(false, null, null, dstBase);
-    setMachineCodes(mi++, (byte) ${imm32Code});
+    setMachineCodes(mi++, (byte) ${imm8Code});
     // "register ${immExtOp}" is really part of the opcode
     emitRegDispRegOperands(dstBase, dstDisp, GPR.getForOpcode(${immExtOp}));
     emitImm8(imm);
@@ -689,7 +1001,7 @@ function emitBinaryImmByte() {
   /**
    * Generate a register-index--immediate ${acronym}. That is,
    * <PRE>
-   * [dstBase + dstIndex<<scale + dstDisp] ${opStr}= (byte) imm
+   * [dstBase + dstIndex&lt;&lt;scale + dstDisp] ${opStr}= (byte) imm
    * </PRE>
    *
    * @param dstBase the destination base register
@@ -702,7 +1014,7 @@ function emitBinaryImmByte() {
   public final void emit${acronym}_RegIdx_Imm_Byte(GPR dstBase, GPR dstIndex, short dstScale, Offset dstDisp, int imm) {
     int miStart = mi;
     generateREXprefix(false, null, dstIndex, dstBase);
-    setMachineCodes(mi++, (byte) ${imm32Code});
+    setMachineCodes(mi++, (byte) ${imm8Code});
     // "register ${immExtOp}" is really part of the opcode
     emitSIBRegOperands(dstBase, dstIndex, dstScale, dstDisp, GPR.getForOpcode(${immExtOp}));
     emitImm8(imm);
@@ -712,7 +1024,7 @@ function emitBinaryImmByte() {
   /**
    * Generate a register-offset--immediate ${acronym}. That is,
    * <PRE>
-   * [dstIndex<<dstScale + dstDisp] ${opStr}= (byte) imm
+   * [dstIndex&lt;&lt;dstScale + dstDisp] ${opStr}= (byte) imm
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -724,7 +1036,7 @@ function emitBinaryImmByte() {
   public final void emit${acronym}_RegOff_Imm_Byte(GPR dstIndex, short dstScale, Offset dstDisp, int imm) {
     int miStart = mi;
     generateREXprefix(false, null, dstIndex, null);
-    setMachineCodes(mi++, (byte) ${imm32Code});
+    setMachineCodes(mi++, (byte) ${imm8Code});
     // "register ${immExtOp}" is really part of the opcode
     emitRegOffRegOperands(dstIndex, dstScale, dstDisp, GPR.getForOpcode(${immExtOp}));
     emitImm8(imm);
@@ -743,7 +1055,7 @@ function emitBinaryImmByte() {
   public final void emit${acronym}_Abs_Imm_Byte(Address dstDisp, int imm) {
     int miStart = mi;
     generateREXprefix(false, null, null, null);
-    setMachineCodes(mi++, (byte) ${imm32Code});
+    setMachineCodes(mi++, (byte) ${imm8Code});
     // "register ${immExtOp}" is really part of the opcode
     emitAbsRegOperands(dstDisp, GPR.getForOpcode(${immExtOp}));
     emitImm8(imm);
@@ -763,7 +1075,7 @@ function emitBinaryImmByte() {
   public final void emit${acronym}_RegInd_Imm_Byte(GPR dstBase, int imm) {
     int miStart = mi;
     generateREXprefix(false, null, null, dstBase);
-    setMachineCodes(mi++, (byte) ${imm32Code});
+    setMachineCodes(mi++, (byte) ${imm8Code});
     // "register ${immExtOp}" is really part of the opcode
     emitRegIndirectRegOperands(dstBase, GPR.getForOpcode(${immExtOp}));
     emitImm8(imm);
@@ -776,25 +1088,25 @@ EOF
 # Emit _Reg, _Reg_Word, _Reg_Byte, _Imm, _Imm_Word and _Imm_Byte suffixes
 # $1 = acronym
 # $2 = opStr
-# $3 = eaxOpcode (_Imm, _Imm_Word)
-# $4 = imm8code
-# $5 = imm32code
-# $6 = immExtOp
-# $7 = rmrCode
-# $8 = rrmCode
-# $9 = eaxOpcode (_Imm_Byte)
-# ${10} = imm32code (_Imm_Byte)
-# ${11} = rmrCode
-# ${12} = rrmCode
+# $3 = eaxOpcode (_Imm, _Imm_Word) - byte for an EAX opcode
+# $4 = imm8code                    - byte for a r32, imm8 opcode
+# $5 = imm32code                   - byte for a r32, imm32 opcode
+# $6 = immExtOp                    - 3bits for extended opcode, stored in modrm byte for immediate operations
+# $7 = rmrCode                     - byte for a r/m32, r32 opcode
+# $8 = rrmCode                     - byte for a r32, r/m32 opcode
+# $9 = alOpcode (_Imm_Byte)        - byte for a AL, imm8 opcode
+# ${10} = imm8code (_Imm_Byte)     - byte for a r/m8, imm8 opcode
+# ${11} = rmrCode                  - byte for a r/m8, r8 opcode
+# ${12} = rrmCode                  - byte for a r8, r/m8 opcode
 function emitBinaryAcc () {
   emitBinaryReg $1 $2 $7 $8
   emitBinaryReg $1 $2 $7 $8 word
   emitBinaryReg $1 $2 $7 $8 quad
-  emitBinaryReg $1 $2 ${11} ${12} byte
+  emitBinaryRegByte $1 $2 ${11} ${12} byte
   emitBinaryImmWordOrDouble $1 $2 $3 $4 $5 $6
   emitBinaryImmWordOrDouble $1 $2 $3 $4 $5 $6 word
   emitBinaryImmWordOrDouble $1 $2 $3 $4 $5 $6 quad
-  emitBinaryImmByte $1 $2 $9 none ${10} $6
+  emitBinaryImmByte $1 $2 $9 ${10} $6
 }
 #             1   2   3    4    5    6   7    8    9    10   11   12
 emitBinaryAcc ADC +CF 0x15 0x83 0x81 0x2 0x11 0x13 0x14 0x80 0x10 0x12
@@ -808,14 +1120,17 @@ emitBinaryAcc TEST \& 0xA9 none 0xF7 0x0 0x85 none 0xA8 0xF6 0x84 none
 emitBinaryAcc XOR \~  0x35 0x83 0x81 0x6 0x31 0x33 0x34 0x80 0x30 0x32
 
 function emitBT() {
-  acronym=$1
-  opStr=$2
-  rmrCode=$3
-  immExtOp=$4
-  prefix=0x0F
-  immCode=0xBA
+  local acronym=$1
+  local opStr=$2
+  local rmrCode=$3
+  local immExtOp=$4
+  local prefix=0x0F
+  local prefixQuad=0x0Fquad
+  local immCode=0xBA
   emitBinaryReg $acronym $opStr $rmrCode none $prefix
-  emitBinaryImmWordOrDouble $acronym $opStr none $immCode none $immExtOp 0x0F
+  emitBinaryReg $acronym $opStr $rmrCode none $prefixQuad
+  emitBinaryImmWordOrDouble $acronym $opStr none $immCode none $immExtOp $prefix
+  emitBinaryImmWordOrDouble $acronym $opStr none $immCode none $immExtOp $prefixQuad
 }
 
 emitBT BT BT 0xA3 0x4
@@ -980,7 +1295,7 @@ EOF
   /**
    * Generate a ${acronym} to register offset. That is,
    * <PRE>
-   * pc = [dstIndex<<dstScale + dstDisp]
+   * pc = [dstIndex&lt;&lt;dstScale + dstDisp]
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -1016,7 +1331,7 @@ EOF
   /**
    * Generate a ${acronym} to register offset. That is,
    * <PRE>
-   * pc = [dstBase + dstIndex<<dstScale + dstDisp]
+   * pc = [dstBase + dstIndex&lt;&lt;dstScale + dstDisp]
    * </PRE>
    *
    * @param dstBase the destination base register
@@ -1077,6 +1392,13 @@ emitUnaryAcc() {
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public void emit${acronym}_Reg${ext}(GPR reg) {
     int miStart = mi;
+EOF
+    if [ x$size = xbyte ]; then
+      cat >> $FILENAME <<EOF
+    if (VM.VerifyAssertions) VM._assert(reg.isValidAs8bitRegister());
+EOF
+    fi
+    cat >> $FILENAME <<EOF
     $prefix
     generateREXprefix(${rex_w}, null, null, reg);
     if (!VM.buildFor32Addr()) {
@@ -1152,7 +1474,7 @@ EOF
   /**
    * Generate a ${acronym} to register offset. That is,
    * <PRE>
-   * $opStr ${code} [index<<scale + disp]
+   * $opStr ${code} [index&lt;&lt;scale + disp]
    * </PRE>
    *
    * @param index the destination index register
@@ -1191,7 +1513,7 @@ EOF
   /**
    * Generate a ${acronym} to register offset. That is,
    * <PRE>
-   * $opStr ${code} [base + index<<scale + disp]
+   * $opStr ${code} [base + index&lt;&lt;scale + disp]
    * </PRE>
    *
    * @param base the destination base register
@@ -1306,7 +1628,7 @@ cat >> $FILENAME<<EOF
   /**
    * Generate a ${acronym} by register indexed. That is,
    * <PRE>
-   * EAX:EDX = EAX $opStr [srcBase + srcIndex<<srcScale + srcDisp]
+   * EAX:EDX = EAX $opStr [srcBase + srcIndex&lt;&lt;srcScale + srcDisp]
    * </PRE>
    *
    * @param dstReg must always be EAX/R0
@@ -1328,7 +1650,7 @@ cat >> $FILENAME<<EOF
   /**
    * Generate a ${acronym} by register offseted. That is,
    * <PRE>
-   * EAX:EDX = EAX $opStr [srcIndex<<srcScale + srcDisp]
+   * EAX:EDX = EAX $opStr [srcIndex&lt;&lt;srcScale + srcDisp]
    * </PRE>
    *
    * @param dstReg must always be EAX/R0
@@ -1441,7 +1763,7 @@ emitMoveImms() {
   /**
    * Generate a register-index--immediate MOV. That is,
    * <PRE>
-   * [dstBase + dstIndex<<scale + dstDisp] MOV = imm
+   * [dstBase + dstIndex&lt;&lt;scale + dstDisp] MOV = imm
    * </PRE>
    *
    * @param dstBase the destination base register
@@ -1464,7 +1786,7 @@ emitMoveImms() {
   /**
    * Generate a register-index--immediate MOV. That is,
    * <PRE>
-   * [dstIndex<<scale + dstDisp] MOV = imm
+   * [dstIndex&lt;&lt;scale + dstDisp] MOV = imm
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -1539,6 +1861,7 @@ cat >> $FILENAME <<EOF
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emit${acronym}_Reg_Reg_Byte(GPR dstReg, GPR srcReg) {
     int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(srcReg.isValidAs8bitRegister());
     generateREXprefix(${rex_w}, dstReg, null, srcReg);
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) $rm8code);
@@ -1588,7 +1911,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a move ${desc} from register offset. That is,
    * <PRE>
-   * dstReg := (byte) [srcIndex<<srcScale + srcDisp] ($desc)
+   * dstReg := (byte) [srcIndex&lt;&lt;srcScale + srcDisp] ($desc)
    * </PRE>
    *
    * @param dstReg the destination register
@@ -1628,7 +1951,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a move ${desc} by register indexed. That is,
    * <PRE>
-   * dstReg := (byte) [srcBase + srcIndex<<srcScale + srcDisp] ($desc)
+   * dstReg := (byte) [srcBase + srcIndex&lt;&lt;srcScale + srcDisp] ($desc)
    * </PRE>
    *
    * @param dstReg the destination register
@@ -1708,7 +2031,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a move ${desc} from register offset. That is,
    * <PRE>
-   * dstReg := (word) [srcIndex<<srcScale + srcDisp] ($desc)
+   * dstReg := (word) [srcIndex&lt;&lt;srcScale + srcDisp] ($desc)
    * </PRE>
    *
    * @param dstReg the destination register
@@ -1748,7 +2071,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a move ${desc} by register indexed. That is,
    * <PRE>
-   * dstReg := (word) [srcBase + srcIndex<<srcScale + srcDisp] ($desc)
+   * dstReg := (word) [srcBase + srcIndex&lt;&lt;srcScale + srcDisp] ($desc)
    * </PRE>
    *
    * @param dstReg the destination register
@@ -1885,7 +2208,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a register-offset--immediate ${acronym}. That is,
    * <PRE>
-   * $descr of [dstIndex<<dstScale + dstDisp] by imm
+   * $descr of [dstIndex&lt;&lt;dstScale + dstDisp] by imm
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -1938,7 +2261,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a register-index--immediate ${acronym}. That is,
    * <PRE>
-   * $descr of [dstBase + dstIndex<<dstScale + dstDisp] by imm
+   * $descr of [dstBase + dstIndex&lt;&lt;dstScale + dstDisp] by imm
    * </PRE>
    *
    * @param dstBase the destination base register
@@ -1976,6 +2299,13 @@ cat >> $FILENAME <<EOF
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emit${acronym}_Reg_Reg${ext}(GPR dstReg, GPR srcReg) {
     int miStart = mi;
+EOF
+  if [ x$size = xbyte ]; then
+    cat >> $FILENAME <<EOF
+    if (VM.VerifyAssertions) VM._assert(dstReg.isValidAs8bitRegister());
+EOF
+  fi
+  cat >> $FILENAME <<EOF
     if (VM.VerifyAssertions) VM._assert(srcReg == ECX);
     ${prefix}
     generateREXprefix(${rex_w}, null, null, dstReg);
@@ -2028,7 +2358,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a register-offset--register ${acronym}. That is,
    * <PRE>
-   * $descr of [dstIndex<<dstScale + dstDisp] by srcReg
+   * $descr of [dstIndex&lt;&lt;dstScale + dstDisp] by srcReg
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -2070,7 +2400,7 @@ cat >> $FILENAME <<EOF
   /**
    * Generate a register-displacement--register ${acronym}. That is,
    * <PRE>
-   * $descr of [dstBase + dstIndex<<dstScale + dstDisp] by srcReg
+   * $descr of [dstBase + dstIndex&lt;&lt;dstScale + dstDisp] by srcReg
    * </PRE>
    *
    * @param dstBase the destination base register
@@ -2136,6 +2466,8 @@ emitShift SAR "arithemetic shift right" 0xD1 0xD3 0xC1 0x7 quad
 emitShiftDouble() {
     acronym=$1
     opStr=$2
+    escapeStringForJavaDoc $opStr
+    opStr=$escapedString
     immOp=$3
     regOp=$4
     size=$5
@@ -2213,7 +2545,7 @@ emitShiftDouble() {
   /**
    * Generate a register-index--register--immediate ${acronym}. That is,
    * <PRE>
-   * [leftBase + leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
+   * [leftBase + leftIndex&lt;&lt;scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
    * </PRE>
    *
    * @param leftBase the destination base register
@@ -2237,7 +2569,7 @@ emitShiftDouble() {
   /**
    * Generate a register-offset--register--immediate ${acronym}. That is,
    * <PRE>
-   * [leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
+   * [leftIndex&lt;&lt;scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
    * </PRE>
    *
    * @param leftIndex the destination index register
@@ -2345,7 +2677,7 @@ emitShiftDouble() {
   /**
    * Generate a register-index--register--register ${acronym}. That is,
    * <PRE>
-   * [leftBase + leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
+   * [leftBase + leftIndex&lt;&lt;scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
    * </PRE>
    *
    * @param leftBase the destination base register
@@ -2369,7 +2701,7 @@ emitShiftDouble() {
   /**
    * Generate a register-index--register--register ${acronym}. That is,
    * <PRE>
-   * [leftIndex<<scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
+   * [leftIndex&lt;&lt;scale + disp] ${opStr}= shiftBy (with bits from right shifted in)
    * </PRE>
    *
    * @param leftIndex the destination index register
@@ -2482,7 +2814,7 @@ emitStackOp() {
   /**
    * Generate a register-index ${acronym}. That is,
    * <PRE>
-   * $op1 [base + index<<scale + disp], SP $op2 4
+   * $op1 [base + index&lt;&lt;scale + disp], SP $op2 4
    * </PRE>
    *
    * @param base the base register
@@ -2502,7 +2834,7 @@ emitStackOp() {
   /**
    * Generate a register-offset ${acronym}. That is,
    * <PRE>
-   * $op1 [index<<scale + disp], SP $op2 4
+   * $op1 [index&lt;&lt;scale + disp], SP $op2 4
    * </PRE>
    *
    * @param index the index register
@@ -2665,7 +2997,7 @@ emitSSE2Op() {
   /**
    * Generate a register--register-offset ${acronym}. That is,
    * <PRE>
-   * dstReg ${opStr}= $code [srcIndex<<srcScale + srcDisp]
+   * dstReg ${opStr}= $code [srcIndex&lt;&lt;srcScale + srcDisp]
    * </PRE>
    *
    * @param dstReg destination register
@@ -2714,7 +3046,7 @@ emitSSE2Op() {
    * @param srcScale the source scale
    * @param srcDisp the source displacement
    */
-  // dstReg ${opStr}= $code [srcBase + srcIndex<<scale + srcDisp]
+  // dstReg ${opStr}= $code [srcBase + srcIndex&lt;&lt;scale + srcDisp]
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,3})
   public final void emit${acronym}_Reg_RegIdx${ext}($toRegType dstReg, GPR srcBase, GPR srcIndex, short srcScale, Offset srcDisp) {
     int miStart = mi;$prefix1Line
@@ -2796,7 +3128,7 @@ EOF
   /**
    * Generate a register-offset--register ${acronym}. That is,
    * <PRE>
-   * [dstReg<<dstScale + dstDisp] ${opStr}= ${code} srcReg
+   * [dstReg&lt;&lt;dstScale + dstDisp] ${opStr}= ${code} srcReg
    * </PRE>
    *
    * @param dstIndex the destination index register
@@ -2836,7 +3168,7 @@ EOF
   /**
    * Generate a register-index--register ${acronym}. That is,
    * <PRE>
-   * [dstBase + dstIndex<<dstScale + dstDisp] ${opStr}= $code srcReg
+   * [dstBase + dstIndex&lt;&lt;dstScale + dstDisp] ${opStr}= $code srcReg
    * </PRE>
    *
    * @param dstBase the destination base register
@@ -2886,6 +3218,7 @@ emitSSE2Op 0xF3 none MULSS 0x59 none
 emitSSE2Op 0xF3 none DIVSS 0x5E none
 emitSSE2Op 0xF3 0xF3 MOVSS 0x10 0x11
 emitSSE2Op none none MOVLPS 0x12 0x13
+emitSSE2Op none none MOVAPS 0x28 0x29
 emitSSE2Op 0xF3 none SQRTSS 0x51 none
 emitSSE2Op 0xF3 none CVTSS2SD 0x5A none
 emitSSE2Op 0xF3 none CVTSI2SS 0x2A none none GPR XMM
@@ -2922,6 +3255,7 @@ emitSSE2Op 0xF2 none MULSD 0x59 none
 emitSSE2Op 0xF2 none DIVSD 0x5E none
 emitSSE2Op 0xF2 0xF2 MOVSD 0x10 0x11
 emitSSE2Op 0x66 0x66 MOVLPD 0x12 0x13
+emitSSE2Op 0x66 0x66 MOVAPD 0x28 0x29
 emitSSE2Op 0xF2 none SQRTSD 0x51 none
 emitSSE2Op 0xF2 none CVTSI2SD 0x2A none none GPR XMM
 emitSSE2Op 0xF2 none CVTSD2SS 0x5A none
@@ -3015,7 +3349,7 @@ emitFloatMemAcc() {
   /**
    * Perform ${op} on dstReg. That is,
    * <PRE>
-   * dstReg ${op}= (${size}) [srcBase + srcIndex<<srcScale + srcDisp]
+   * dstReg ${op}= (${size}) [srcBase + srcIndex&lt;&lt;srcScale + srcDisp]
    * </PRE>
    *
    * @param dstReg destination register, must be FP0
@@ -3038,7 +3372,7 @@ emitFloatMemAcc() {
   /**
    * Perform ${op} on FP0. That is,
    * <PRE>
-   * dstReg ${op}= (${size}) [srcIndex<<srcScale + srcDisp]
+   * dstReg ${op}= (${size}) [srcIndex&lt;&lt;srcScale + srcDisp]
    * </PRE>
    *
    * @param dstReg destination register, must be FP0
@@ -3170,7 +3504,13 @@ emitFloatMem() {
       postArg=", FPR dummy"
     fi
     cat >> $FILENAME <<EOF
-  /** top of stack ${op} (${size:-double word}) [reg + disp] */
+  /** 
+   * top of stack ${op} (${size:-double word}) [reg + disp] 
+   * 
+   * @param reg register
+   * @param disp displacement
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emit${acronym}${pre}_RegDisp${ext}(${preArg}GPR reg, Offset disp${postArg}) {
     int miStart = mi;
@@ -3180,7 +3520,12 @@ emitFloatMem() {
     if (lister != null) lister.RD(miStart, "${acronym}", reg, disp);
   }
 
-  /** top of stack ${op} (${size:-double word}) [reg] */
+  /**
+   * top of stack ${op} (${size:-double word}) [reg]
+   * 
+   * @param reg register
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emit${acronym}${pre}_RegInd${ext}(${preArg}GPR reg${postArg}) {
     int miStart = mi;
@@ -3190,7 +3535,15 @@ emitFloatMem() {
     if (lister != null) lister.RN(miStart, "${acronym}", reg);
   }
 
-  /** top of stack ${op} (${size:-double word}) [baseReg + idxReg<<scale + disp] */
+  /**
+   * top of stack ${op} (${size:-double word}) [baseReg + idxReg&lt;&lt;scale + disp]
+   * 
+   * @param baseReg base register
+   * @param idxReg index register
+   * @param scale scale for index register
+   * @param disp displacemnet
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emit${acronym}${pre}_RegIdx${ext}(${preArg}GPR baseReg, GPR idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
@@ -3200,7 +3553,14 @@ emitFloatMem() {
     if (lister != null) lister.RXD(miStart, "${acronym}", baseReg, idxReg, scale, disp);
   }
 
-  /** top of stack ${op} (${size:-double word}) [idxReg<<scale + disp] */
+  /**
+   * top of stack ${op} (${size:-double word}) [idxReg&lt;&lt;scale + disp]
+   *
+   * @param idxReg index register
+   * @param scale scale for index register
+   * @param disp displacemnet
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emit${acronym}${pre}_RegOff${ext}(${preArg}GPR idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
@@ -3210,7 +3570,12 @@ emitFloatMem() {
     if (lister != null) lister.RFD(miStart, "${acronym}", idxReg, scale, disp);
   }
 
-  /** top of stack ${op} (${size:-double word}) [disp] */
+  /** 
+   * top of stack ${op} (${size:-double word}) [disp]
+   * 
+   * @param disp displacemnet
+   * @param dummy must always be {@code FP0}
+   */
   public final void emit${acronym}${pre}_Abs${ext}(${preArg}Address disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
@@ -3271,11 +3636,32 @@ emitFSTATE() {
   opcode=$3
   opExt=$4
   pre=$5
+  axOpcode1=$6
+  axOpcode2=$7  
   local prefix="// no prefix byte"
-  if [ x$pre != x ]; then
+  if [[ x$pre != x ]] && [[ x$pre != xnone ]]; then
      prefix="setMachineCodes(mi++, (byte) ${pre});"
   fi
 
+  if [ x$axOpcode1 != x ]; then
+cat >> $FILENAME <<EOF
+  /**
+   * ${comment} - register
+   *
+   * @param dstReg destination register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
+  public final void emit${acronym}_Reg (GPR dstReg) {
+    int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dstReg == EAX);
+    $prefix
+    setMachineCodes(mi++, (byte) ${axOpcode1});
+    setMachineCodes(mi++, (byte) ${axOpcode2});
+    if (lister != null) lister.R(miStart, "${acronym}", dstReg);
+  }
+
+EOF
+   fi
 cat >> $FILENAME <<EOF
   /**
    * ${comment} - register displacement
@@ -3361,7 +3747,8 @@ emitFSTATE FRSTOR "restore FPU state" 0xDD 4
 emitFSTATE FLDCW "load FPU control word" 0xD9 5
 emitFSTATE FSTCW "store FPU control word, checking for exceptions" 0xD9 7 0x9B
 emitFSTATE FNSTCW "store FPU control word, ignoring exceptions" 0xD9 7
-
+emitFSTATE FSTSW "store FPU status word, checking for exceptions" 0xDD 7 0x9B 0xDF 0xE0
+emitFSTATE FNSTSW "store FPU status word, ignoring exceptions" 0xDD 7 none 0xDF 0xE0
 
 emitFCONST() {
 opcode=$1

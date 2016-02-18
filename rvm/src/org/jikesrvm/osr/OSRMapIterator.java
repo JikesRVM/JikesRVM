@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.osr.OSRConstants.KIND_MASK;
+import static org.jikesrvm.osr.OSRConstants.KIND_SHIFT;
+import static org.jikesrvm.osr.OSRConstants.NEXT_BIT;
+import static org.jikesrvm.osr.OSRConstants.NUM_MASK;
+import static org.jikesrvm.osr.OSRConstants.NUM_SHIFT;
+import static org.jikesrvm.osr.OSRConstants.TCODE_MASK;
+import static org.jikesrvm.osr.OSRConstants.TCODE_SHIFT;
+import static org.jikesrvm.osr.OSRConstants.VTYPE_MASK;
+import static org.jikesrvm.osr.OSRConstants.VTYPE_SHIFT;
+
 import org.jikesrvm.VM;
 
 /**
@@ -30,7 +40,7 @@ import org.jikesrvm.VM;
  *</pre>
  */
 
-public class OSRMapIterator implements OSRConstants {
+public class OSRMapIterator {
   private int curidx;
   private final int[] maps;
   private int curmid;
@@ -76,12 +86,12 @@ public class OSRMapIterator implements OSRConstants {
     }
   }
 
-  /** has next method id to iterate? */
+  /** @return whether another method id is available */
   private boolean hasMoreMethodId() {
     return this.moreMethId;
   }
 
-  /** has next element of this method id to iterate? */
+  /** @return whether there's more elements for the current method id */
   private boolean hasMoreElements() {
     return this.moreElemnt;
   }
@@ -103,37 +113,31 @@ public class OSRMapIterator implements OSRConstants {
 
   /* for the current element, provide a list of queries. */
 
-  /** what kind. */
   public boolean getKind() {
     return (maps[curidx] & KIND_MASK) >> KIND_SHIFT != 0;
   }
 
-  /** type code. */
   public byte getTypeCode() {
     return (byte)((maps[curidx] & TCODE_MASK) >> TCODE_SHIFT);
   }
 
-  /** number */
   public char getNumber() {
     return (char)((maps[curidx] & NUM_MASK) >> NUM_SHIFT);
   }
 
-  /** value type */
   public byte getValueType() {
     return (byte)((maps[curidx] & VTYPE_MASK) >> VTYPE_SHIFT);
   }
 
-  /** value */
   public int getValue() {
     return maps[curidx + 1];
   }
 
-  /** current mid */
   public int getMethodId() {
     return this.curmid;
   }
 
-  /** current pc */
+  /** @return the current program counter */
   public int getBcIndex() {
     return this.curmpc;
   }

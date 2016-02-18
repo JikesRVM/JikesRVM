@@ -12,25 +12,97 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDNPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDNPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_BT_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPEQSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPEQSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLTSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPNLTSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPORDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPORDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPUNORDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPUNORDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSD2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSD2SS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSI2SD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSI2SS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSS2SD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSS2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTTSD2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTTSS2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_DIVSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_DIVSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCLEAR;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCMOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCOMIP_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCOMI_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FNINIT;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_IMUL2_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXQ__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXQ__W_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSX__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSX__W_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZXQ__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZXQ__W_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZX__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZX__W_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MULSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MULSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ORPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ORPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PREFETCHNTA_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SET__B_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SHLD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SHRD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SQRTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SQRTSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SUBSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SUBSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_UCOMISD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_UCOMISS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IMMQ_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_LOWTABLESWITCH_opcode;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_FPRS;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
-import org.jikesrvm.compilers.opt.ir.MIR_CacheOp;
-import org.jikesrvm.compilers.opt.ir.MIR_Compare;
-import org.jikesrvm.compilers.opt.ir.MIR_CondMove;
-import org.jikesrvm.compilers.opt.ir.MIR_DoubleShift;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Set;
-import org.jikesrvm.compilers.opt.ir.MIR_Test;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_BinaryAcc;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_CacheOp;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Compare;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_CondMove;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_DoubleShift;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Set;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Test;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
+import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -42,18 +114,14 @@ import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
  * An instance of this class encapsulates restrictions on register
  * assignment.
  */
-public class RegisterRestrictions extends GenericRegisterRestrictions
-    implements Operators, PhysicalRegisterConstants {
+public final class RegisterRestrictions extends GenericRegisterRestrictions {
 
   /**
    * Allow scratch registers in PEIs?
    */
   public static final boolean SCRATCH_IN_PEI = true;
 
-  /**
-   * Default Constructor
-   */
-  protected RegisterRestrictions(PhysicalRegisterSet phys) {
+  public RegisterRestrictions(GenericPhysicalRegisterSet phys) {
     super(phys);
   }
 
@@ -67,7 +135,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     // restriction for better code.
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
-      if (s.isPEI() && s.operator != IR_PROLOGUE) {
+      if (s.isPEI() && s.operator() != IR_PROLOGUE) {
         if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
           for (Enumeration<Operand> e = s.getOperands(); e.hasMoreElements();) {
             Operand op = e.nextElement();
@@ -89,7 +157,9 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
         }
         break;
         case IA32_MOVZX__B_opcode:
-        case IA32_MOVSX__B_opcode: {
+        case IA32_MOVSX__B_opcode:
+        case IA32_MOVZXQ__B_opcode:
+        case IA32_MOVSXQ__B_opcode: {
           if (MIR_Unary.getVal(s).isRegister()) {
             RegisterOperand val = MIR_Unary.getVal(s).asRegister();
             restrictTo8Bits(val.getRegister());
@@ -111,20 +181,20 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     }
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
-      if (s.operator == IA32_FNINIT) {
+      if (s.operator() == IA32_FNINIT) {
         // No floating point register survives across an FNINIT
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, s.scratch)) {
-              addRestrictions(symb.getRegister(), phys.getFPRs());
+            if (contains(symb, regAllocState.getDFN(s))) {
+              addRestrictions(symb.getRegister(), phys.asIA32().getFPRs());
             }
           }
         }
-      } else if (s.operator == IA32_FCLEAR) {
+      } else if (s.operator() == IA32_FCLEAR) {
         // Only some FPRs survive across an FCLEAR
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, s.scratch)) {
+            if (contains(symb, regAllocState.getDFN(s))) {
               int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
               for (int i = nSave; i < NUM_FPRS; i++) {
                 addRestriction(symb.getRegister(), phys.getFPR(i));
@@ -137,9 +207,10 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   }
 
   /**
-   * Does instruction s contain an 8-bit memory operand?
+   * @param s the instruction to check
+   * @return {@code true} if and only if the instruction contains an 8-bit memory operand
    */
-  final boolean has8BitMemoryOperand(Instruction s) {
+  boolean has8BitMemoryOperand(Instruction s) {
     for (Enumeration<Operand> me = s.getMemoryOperands(); me.hasMoreElements();) {
       MemoryOperand mop = (MemoryOperand) me.nextElement();
       if (mop.size == 1) {
@@ -154,7 +225,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
    * all of its register operands are in 8 bit registers.
    * @param s the instruction to restrict
    */
-  final void handle8BitRestrictions(Instruction s) {
+  void handle8BitRestrictions(Instruction s) {
     for (Enumeration<Operand> me = s.getMemoryOperands(); me.hasMoreElements();) {
       MemoryOperand mop = (MemoryOperand) me.nextElement();
       if (mop.size == 1) {
@@ -169,10 +240,13 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   }
 
   /**
-   * Ensure that a particular register is only assigned to AL, BL, CL, or
+   * Ensures that a particular register is only assigned to AL, BL, CL, or
    * DL, since these are the only 8-bit registers we normally address.
+   *
+   * @param r the register that needs to be restricted to 8 bits
    */
-  final void restrictTo8Bits(Register r) {
+  void restrictTo8Bits(Register r) {
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)this.phys;
     Register ESP = phys.getESP();
     Register EBP = phys.getEBP();
     Register ESI = phys.getESI();
@@ -186,12 +260,18 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   /**
    * Given symbolic register r that appears in instruction s, does the
    * architecture demand that r be assigned to a physical register in s?
+   *
+   * @param r a symbolic register
+   * @param s instruction where the register appears
+   *
+   * @return {@code true} if the symbolic register r must use a physical
+   *  register in the instruction, {@code false} if we can use a spill location
    */
   public static boolean mustBeInRegister(Register r, Instruction s) {
     switch (s.getOpcode()) {
       case IA32_PREFETCHNTA_opcode: {
         RegisterOperand op = MIR_CacheOp.getAddress(s).asRegister();
-        if (op.register == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
 
@@ -220,6 +300,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       case IA32_ANDNPD_opcode:
       case IA32_ORPD_opcode:
       case IA32_XORPD_opcode:
+      case IMMQ_MOV_opcode:
         return true;
 
       case IA32_ADDSS_opcode:
@@ -311,13 +392,17 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       }
       break;
       case IA32_MOVZX__B_opcode:
-      case IA32_MOVSX__B_opcode: {
+      case IA32_MOVSX__B_opcode:
+      case IA32_MOVZXQ__B_opcode:
+      case IA32_MOVSXQ__B_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
         if (op.getRegister() == r) return true;
       }
       break;
       case IA32_MOVZX__W_opcode:
-      case IA32_MOVSX__W_opcode: {
+      case IA32_MOVSX__W_opcode:
+      case IA32_MOVZXQ__W_opcode:
+      case IA32_MOVSXQ__W_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
         if (op.getRegister() == r) return true;
       }
@@ -357,9 +442,11 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   }
 
   /**
-   * Can physical register r hold an 8-bit value?
+   * @param r the register to check
+   * @return {@code true} if the physical register r hold an 8-bit value?
    */
   private boolean okFor8(Register r) {
+    PhysicalRegisterSet phys = (PhysicalRegisterSet)this.phys;
     Register ESP = phys.getESP();
     Register EBP = phys.getEBP();
     Register ESI = phys.getESI();
@@ -371,9 +458,11 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   public boolean isForbidden(Register symb, Register r, Instruction s) {
 
     // Look at 8-bit restrictions.
-    switch (s.operator.opcode) {
+    switch (s.getOpcode()) {
       case IA32_MOVZX__B_opcode:
-      case IA32_MOVSX__B_opcode: {
+      case IA32_MOVSX__B_opcode:
+      case IA32_MOVZXQ__B_opcode:
+      case IA32_MOVSXQ__B_opcode: {
         if (MIR_Unary.getVal(s).isRegister()) {
           RegisterOperand val = MIR_Unary.getVal(s).asRegister();
           if (val.getRegister() == symb) {

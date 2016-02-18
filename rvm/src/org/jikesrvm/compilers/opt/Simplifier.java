@@ -12,22 +12,23 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
-import static org.jikesrvm.SizeConstants.BITS_IN_INT;
-import static org.jikesrvm.SizeConstants.BITS_IN_LONG;
-import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_LONG;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
+import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -46,7 +47,6 @@ import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.OperatorNames;
 import org.jikesrvm.compilers.opt.ir.StoreCheck;
 import org.jikesrvm.compilers.opt.ir.Trap;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
@@ -517,19 +517,21 @@ public abstract class Simplifier extends IRTools {
       switch (result) {
         case MOVE_FOLDED:
           // Check move has constant RHS
-          VM._assert(Move.conforms(s) && (Move.getVal(s) instanceof ConstantOperand),
-                     "RHS of move " +
-                     s +
-                     " should be constant during simplification of " +
-                     OperatorNames.operatorName[opcode]);
+          boolean moveHasConstantRHS = Move.conforms(s) && (Move.getVal(s) instanceof ConstantOperand);
+          if (!moveHasConstantRHS) {
+            String msg = "RHS of move " + s + " should be constant during simplification of " +
+                s.operator();
+            VM._assert(VM.NOT_REACHED, msg);
+          }
           break;
         case MOVE_REDUCED:
           // Check move has non-constant RHS
-          VM._assert(Move.conforms(s) && !(Move.getVal(s) instanceof ConstantOperand),
-                     "RHS of move " +
-                     s +
-                     " shouldn't be constant during simplification of " +
-                     OperatorNames.operatorName[opcode]);
+          boolean moveHasNonConstantRHS = Move.conforms(s) && !(Move.getVal(s) instanceof ConstantOperand);
+          if (!moveHasNonConstantRHS) {
+            String msg = "RHS of move " + s + " shouldn't be constant during simplification of " +
+                s.operator();
+            VM._assert(moveHasNonConstantRHS, msg);
+          }
           break;
         default:
           // Nothing to check
@@ -648,13 +650,13 @@ public abstract class Simplifier extends IRTools {
       else
         return DefUseEffect.MOVE_REDUCED;
     } else if (ref.isConstant()) {
-      s.operator = CHECKCAST_NOTNULL;
+      s.changeOperatorTo(CHECKCAST_NOTNULL);
       return checkcastNotNull(s, opts);
     } else {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
         if (ref.isConstant())
           return DefUseEffect.MOVE_FOLDED;
@@ -672,13 +674,13 @@ public abstract class Simplifier extends IRTools {
     TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
     TypeReference rhsType = ref.getType();
     byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-    if (ans == OptConstants.YES) {
+    if (ans == YES) {
       Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
       if (ref.isConstant())
         return DefUseEffect.MOVE_FOLDED;
       else
         return DefUseEffect.MOVE_REDUCED;
-    } else if (ans == OptConstants.NO) {
+    } else if (ans == NO) {
       RVMType rType = rhsType.peekType();
       if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
         // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -697,14 +699,14 @@ public abstract class Simplifier extends IRTools {
       Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
       return DefUseEffect.MOVE_FOLDED;
     } else if (ref.isConstant()) {
-      s.operator = INSTANCEOF_NOTNULL;
+      s.changeOperatorTo(INSTANCEOF_NOTNULL);
       return instanceOfNotNull(s, opts);
     } else {
       TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
       // NOTE: Constants.YES doesn't help because ref may be null and null instanceof T is false
-      if (ans == OptConstants.NO) {
+      if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -725,10 +727,10 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(1));
         return DefUseEffect.MOVE_FOLDED;
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -775,11 +777,11 @@ public abstract class Simplifier extends IRTools {
       if (refIsPrecise && valIsPrecise) {
         // writing a known type of value into a known type of array
         byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-        if (ans == OptConstants.YES) {
+        if (ans == YES) {
           // all stores should succeed
           Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
           return DefUseEffect.MOVE_REDUCED;
-        } else if (ans == OptConstants.NO) {
+        } else if (ans == NO) {
           // all stores will fail
           Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
           return DefUseEffect.TRAP_REDUCED;
@@ -819,11 +821,11 @@ public abstract class Simplifier extends IRTools {
     if (refIsPrecise && valIsPrecise) {
       // writing a known type of value into a known type of array
       byte ans = ClassLoaderProxy.includesType(arrayTypeRef.getArrayElementType(), val.getType());
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         // all stores should succeed
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
         return DefUseEffect.MOVE_REDUCED;
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         // all stores will fail
         Trap.mutate(s, TRAP, StoreCheck.getClearGuardResult(s), TrapCodeOperand.StoreCheck());
         return DefUseEffect.TRAP_REDUCED;
@@ -843,7 +845,7 @@ public abstract class Simplifier extends IRTools {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
       TypeReference rhsType = ref.getType();                     // our type
       byte ans = ClassLoaderProxy.includesType(lhsType, rhsType);
-      if (ans == OptConstants.YES) {
+      if (ans == YES) {
         RVMType rType = rhsType.peekType();
         if (rType != null) {
           if (rType.isClassType() && rType.asClass().isInterface()) {
@@ -858,7 +860,7 @@ public abstract class Simplifier extends IRTools {
         } else {
           return DefUseEffect.UNCHANGED;
         }
-      } else if (ans == OptConstants.NO) {
+      } else if (ans == NO) {
         RVMType rType = rhsType.peekType();
         if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
           // only final (or precise) rhs types can be optimized since rhsType may be conservative
@@ -1303,7 +1305,7 @@ public abstract class Simplifier extends IRTools {
               Instruction sign = Binary.create(INT_SHR, tempInt1, GuardedBinary.getVal1(s).copy(), IC(31));
               sign.copyPosition(s);
               s.insertBefore(sign);
-              Instruction masked = Binary.create(INT_AND, tempInt2, tempInt1.copyRO(), IC((1 << power)-1));
+              Instruction masked = Binary.create(INT_AND, tempInt2, tempInt1.copyRO(), IC((1 << power) - 1));
               masked.copyPosition(s);
               s.insertBefore(masked);
               Instruction adjusted = Binary.create(INT_ADD, tempInt3, tempInt2.copyRO(), GuardedBinary.getClearVal1(s));
@@ -1405,7 +1407,7 @@ public abstract class Simplifier extends IRTools {
               lastShiftWasShort = true;
             } else {
               // need separate shift and add
-              cost+=2;
+              cost += 2;
               lastShiftWasShort = false;
             }
             lastShift = i;
@@ -1415,7 +1417,7 @@ public abstract class Simplifier extends IRTools {
         for (int i = 1; i < BITS_IN_ADDRESS; i++) {
           if ((val2 & (1L << i)) != 0) {
             // each 1 requires a shift and add
-            cost+=2;
+            cost += 2;
           }
         }
         for (int i = BITS_IN_ADDRESS; i < numBits; i++) {
@@ -1429,7 +1431,7 @@ public abstract class Simplifier extends IRTools {
         for (int i = 1; i < numBits; i++) {
           if ((val2 & (1L << i)) != 0) {
             // each 1 requires a shift and add
-            cost+=2;
+            cost += 2;
           }
         }
       }
@@ -1461,9 +1463,9 @@ public abstract class Simplifier extends IRTools {
             Instruction shift;
             RegisterOperand shiftResult = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
             if (VM.BuildForIA32 && numBits <= BITS_IN_ADDRESS &&
-                lastShiftResult != null && ((i-lastShift) <= 3) && (i > 3) && !lastShiftWasShort) {
+                lastShiftResult != null && ((i - lastShift) <= 3) && (i > 3) && !lastShiftWasShort) {
               // We can produce a short shift (1, 2 or 3) using the result of the last shift
-              shift = Binary.create(shiftLeftOperator, shiftResult, lastShiftResult.copyRO(), IC(i-lastShift));
+              shift = Binary.create(shiftLeftOperator, shiftResult, lastShiftResult.copyRO(), IC(i - lastShift));
               lastShiftWasShort = true;
             } else {
               shift = Binary.create(shiftLeftOperator, shiftResult, val1Operand.copyRO(), IC(i));
@@ -2301,7 +2303,7 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-          if ((val2 == 1L)||(val2 == -1L)) {                 // x % 1L == 0
+          if ((val2 == 1L) || (val2 == -1L)) {                 // x % 1L == 0
             Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
@@ -2498,9 +2500,14 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_FOLDED;
         }
         if (val2 == 0.0f) {
-          // x + 0.0 is x (even is x is a Nan).
+          // x + 0.0 is x (even is x is a NaN).
           Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
+        }
+        if (Float.isNaN(val2)) {
+          // x + NaN is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
+          return DefUseEffect.MOVE_FOLDED;
         }
       }
     }
@@ -2508,16 +2515,29 @@ public abstract class Simplifier extends IRTools {
   }
 
   private static DefUseEffect floatCmpg(Instruction s, OptOptions opts) {
-    if (opts.SIMPLIFY_INTEGER_OPS) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        float val2 = op2.asFloatConstant().value;
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
-          float val2 = op2.asFloatConstant().value;
           int result = (val1 < val2) ? -1 : ((val1 == val2) ? 0 : 1);
           Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(result));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Float.isNaN(val2)) {
+          // result is unordered => 1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(1));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isFloatConstant()) {
+        float val1 = op1.asFloatConstant().value;
+        if (Float.isNaN(val1)) {
+          // result is unordered => 1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(1));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2526,16 +2546,29 @@ public abstract class Simplifier extends IRTools {
   }
 
   private static DefUseEffect floatCmpl(Instruction s, OptOptions opts) {
-    if (opts.SIMPLIFY_INTEGER_OPS) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        float val2 = op2.asFloatConstant().value;
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
-          float val2 = op2.asFloatConstant().value;
           int result = (val1 > val2) ? 1 : ((val1 == val2) ? 0 : -1);
           Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(result));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Float.isNaN(val2)) {
+          // result is unordered => -1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(-1));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isFloatConstant()) {
+        float val1 = op1.asFloatConstant().value;
+        if (Float.isNaN(val1)) {
+          // result is unordered => -1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(-1));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2545,14 +2578,27 @@ public abstract class Simplifier extends IRTools {
 
   private static DefUseEffect floatDiv(Instruction s, OptOptions opts) {
     if (opts.SIMPLIFY_FLOAT_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        float val2 = op2.asFloatConstant().value;
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
-          float val2 = op2.asFloatConstant().value;
           Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(val1 / val2));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Float.isNaN(val2)) {
+          // x / NaN is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isFloatConstant()) {
+        float val1 = op1.asFloatConstant().value;
+        if (Float.isNaN(val1)) {
+          // NaN / x is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2578,6 +2624,11 @@ public abstract class Simplifier extends IRTools {
           Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
+        if (Float.isNaN(val2)) {
+          // x * NaN is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -2598,14 +2649,27 @@ public abstract class Simplifier extends IRTools {
 
   private static DefUseEffect floatRem(Instruction s, OptOptions opts) {
     if (opts.SIMPLIFY_FLOAT_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        float val2 = op2.asFloatConstant().value;
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
-          float val2 = op2.asFloatConstant().value;
           Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(val1 % val2));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Float.isNaN(val2)) {
+          // x % NaN is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isFloatConstant()) {
+        float val1 = op1.asFloatConstant().value;
+        if (Float.isNaN(val1)) {
+          // NaN % x is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2630,9 +2694,24 @@ public abstract class Simplifier extends IRTools {
           Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
-      } else if (op1.isFloatConstant() && (op1.asFloatConstant().value == 0.0f)) {
-        Unary.mutate(s, FLOAT_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
-        return DefUseEffect.REDUCED;
+        if (Float.isNaN(val2)) {
+          // x - NaN is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isFloatConstant()) {
+        float val1 = op1.asFloatConstant().value;
+        if (val1 == 0.0f) {
+          // 0.0 - x is -x
+          Unary.mutate(s, FLOAT_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
+          return DefUseEffect.REDUCED;
+        }
+        if (Float.isNaN(val1)) {
+          // x - NaN is NaN
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(Float.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -2669,22 +2748,40 @@ public abstract class Simplifier extends IRTools {
           Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
+        if (Double.isNaN(val2)) {
+          // x + NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
   }
 
   private static DefUseEffect doubleCmpg(Instruction s, OptOptions opts) {
-    if (opts.SIMPLIFY_INTEGER_OPS) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        double val2 = op2.asDoubleConstant().value;
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
-          double val2 = op2.asDoubleConstant().value;
           int result = (val1 < val2) ? -1 : ((val1 == val2) ? 0 : 1);
           Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(result));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Double.isNaN(val2)) {
+          // result is unordered => 1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(1));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isDoubleConstant()) {
+        double val1 = op1.asDoubleConstant().value;
+        if (Double.isNaN(val1)) {
+          // result is unordered => 1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(1));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2693,16 +2790,29 @@ public abstract class Simplifier extends IRTools {
   }
 
   private static DefUseEffect doubleCmpl(Instruction s, OptOptions opts) {
-    if (opts.SIMPLIFY_INTEGER_OPS) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        double val2 = op2.asDoubleConstant().value;
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
-          double val2 = op2.asDoubleConstant().value;
           int result = (val1 > val2) ? 1 : ((val1 == val2) ? 0 : -1);
           Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), IC(result));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Double.isNaN(val2)) {
+          // result is unordered => -1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(-1));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isDoubleConstant()) {
+        double val1 = op1.asDoubleConstant().value;
+        if (Double.isNaN(val1)) {
+          // result is unordered => -1
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(-1));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2712,14 +2822,27 @@ public abstract class Simplifier extends IRTools {
 
   private static DefUseEffect doubleDiv(Instruction s, OptOptions opts) {
     if (opts.SIMPLIFY_DOUBLE_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        double val2 = op2.asDoubleConstant().value;
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
-          double val2 = op2.asDoubleConstant().value;
           Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(val1 / val2));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Double.isNaN(val2)) {
+          // x / NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isDoubleConstant()) {
+        double val1 = op1.asDoubleConstant().value;
+        if (Double.isNaN(val1)) {
+          // x / NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2745,6 +2868,11 @@ public abstract class Simplifier extends IRTools {
           Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
+        if (Double.isNaN(val2)) {
+          // x * NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -2763,16 +2891,30 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
+
   private static DefUseEffect doubleRem(Instruction s, OptOptions opts) {
     if (opts.SIMPLIFY_DOUBLE_OPS) {
+      Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
-        Operand op1 = Binary.getVal1(s);
+        double val2 = op2.asDoubleConstant().value;
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
-          double val2 = op2.asDoubleConstant().value;
           Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(val1 % val2));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+        if (Double.isNaN(val2)) {
+          // x % NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isDoubleConstant()) {
+        double val1 = op1.asDoubleConstant().value;
+        if (Double.isNaN(val1)) {
+          // x % NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2797,9 +2939,24 @@ public abstract class Simplifier extends IRTools {
           Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
-      } else if (op1.isDoubleConstant() && (op1.asDoubleConstant().value == 0.0)) {
-        Unary.mutate(s, DOUBLE_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
-        return DefUseEffect.REDUCED;
+        if (Double.isNaN(val2)) {
+          // x - NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
+      if (op1.isDoubleConstant()) {
+        double val1 = op1.asDoubleConstant().value;
+        if (val1 == 0.0) {
+          // 0.0 - x is -x
+          Unary.mutate(s, DOUBLE_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
+          return DefUseEffect.REDUCED;
+        }
+        if (Double.isNaN(val1)) {
+          // x - NaN is NaN
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(Double.NaN));
+          return DefUseEffect.MOVE_FOLDED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -3244,7 +3401,7 @@ public abstract class Simplifier extends IRTools {
         // Look for a precise method call to a pure method with all constant arguments
         RVMMethod method = methOp.getTarget();
         int n = Call.getNumberOfParams(s);
-        for(int i=0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
           Operand param = Call.getParam(s,i);
           if (!param.isConstant() || param.isNullConstant()) {
             return DefUseEffect.UNCHANGED;
@@ -3259,12 +3416,12 @@ public abstract class Simplifier extends IRTools {
           thisArg = boxConstantOperand((ConstantOperand)Call.getParam(s,0), method.getDeclaringClass().getTypeRef());
           n--;
           otherArgs = new Object[n];
-          for(int i=0; i < n; i++) {
-            otherArgs[i] = boxConstantOperand((ConstantOperand)Call.getParam(s,i+1),paramTypes[i]);
+          for (int i = 0; i < n; i++) {
+            otherArgs[i] = boxConstantOperand((ConstantOperand)Call.getParam(s,i + 1),paramTypes[i]);
           }
         } else {
           otherArgs = new Object[n];
-          for(int i=0; i < n; i++) {
+          for (int i = 0; i < n; i++) {
             otherArgs[i] = boxConstantOperand((ConstantOperand)Call.getParam(s,i),paramTypes[i]);
           }
         }
@@ -3275,19 +3432,21 @@ public abstract class Simplifier extends IRTools {
             result = Reflection.invoke(method, null, thisArg, otherArgs, false);
           } else {
             Class<?>[] argTypes = new Class<?>[n];
-            for(int i=0; i < n; i++) {
+            for (int i = 0; i < n; i++) {
               argTypes[i] = Call.getParam(s,i).getType().resolve().getClassForType();
             }
             m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
             result = m.invoke(thisArg, otherArgs);
           }
-        } catch (Throwable e) { t = e;}
+        } catch (Throwable e) {
+          t = e;
+        }
         if (t != null) {
           // Call threw exception so leave in to generate at execution time
           return DefUseEffect.UNCHANGED;
         }
         if (result == null) throw new OptimizingCompilerException("Method " + m + "/" + method + " returned null");
-        if(method.getReturnType().isVoidType()) {
+        if (method.getReturnType().isVoidType()) {
           Empty.mutate(s, NOP);
           return DefUseEffect.REDUCED;
         } else {
@@ -3307,7 +3466,7 @@ public abstract class Simplifier extends IRTools {
    * @param t the type of the object (needed to differentiate primitive from numeric types..)
    * @return the object
    */
-  private static Object boxConstantOperand(ConstantOperand op, TypeReference t){
+  private static Object boxConstantOperand(ConstantOperand op, TypeReference t) {
     if (op.isObjectConstant()) {
       return op.asObjectConstant().value;
     } else if (op.isLongConstant()) {
@@ -3327,9 +3486,9 @@ public abstract class Simplifier extends IRTools {
     } else if (t.isShortType()) {
       return (short)op.asIntConstant().value;
     } else {
-      throw new OptimizingCompilerException("Trying to box an VM magic unboxed type ("+op+
-                                            ")for a pure method call is not possible:\n"+op.instruction+
-                                            "\n at "+op.instruction.position);
+      throw new OptimizingCompilerException("Trying to box an VM magic unboxed type (" + op +
+                                            ")for a pure method call is not possible:\n" + op.instruction +
+                                            "\n at " + op.instruction.position);
     }
   }
   /**
@@ -3338,7 +3497,7 @@ public abstract class Simplifier extends IRTools {
    * @param t the type of the object (needed to differentiate primitive from numeric types..)
    * @return the constant operand
    */
-  private static ConstantOperand boxConstantObjectAsOperand(Object x, TypeReference t){
+  private static ConstantOperand boxConstantObjectAsOperand(Object x, TypeReference t) {
     if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
     if (x == null) {
       throw new Error("Field of type: " + t + " is null");
@@ -3559,27 +3718,26 @@ public abstract class Simplifier extends IRTools {
   }
 
   /**
-   * To reduce the number of conditions to consider, we
-   * transform all commutative
+   * To reduce the number of conditions to consider, we transform all commutative
    * operators to a canoncial form.  The following forms are considered
    * canonical:
    * <ul>
-   * <li> <code> Reg = Reg <op> Reg </code>
-   * <li> <code> Reg = Reg <op> Constant </code>
-   * <li> <code> Reg = Constant <op> Constant </code>
+   * <li> <code> Reg = Reg &lt;op&gt; Reg </code>
+   * <li> <code> Reg = Reg &lt;op&gt; Constant </code>
+   * <li> <code> Reg = Constant &lt;op&gt; Constant </code>
    * </ul>
+   * For object constant operands we treat movable objects like registers.
+   * @param instr the instruction to consider
    */
   private static void canonicalizeCommutativeOperator(Instruction instr) {
-    if (Binary.getVal1(instr).isConstant()) {
+    Operand op1 = Binary.getVal1(instr);
+    if (op1.isConstant() && !op1.isMovableObjectConstant()) {
       Operand tmp = Binary.getClearVal1(instr);
       Binary.setVal1(instr, Binary.getClearVal2(instr));
       Binary.setVal2(instr, tmp);
     }
   }
 
-  /**
-   * Compute 2 raised to the power v, 0 <= v <= 31
-   */
   private static int PowerOf2(int v) {
     int i = 31;
     int power = -1;
@@ -3596,7 +3754,10 @@ public abstract class Simplifier extends IRTools {
   }
 
   /**
-   * Turn the given operand encoding an address constant into an Address
+   * Turns the given operand encoding an address constant into an Address.
+   *
+   * @param op the operand
+   * @return the address that was extracted from the operand
    */
   private static Address getAddressValue(Operand op) {
     if (op instanceof NullConstantOperand) {

@@ -1,0 +1,2295 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>14 Core Runtime Services</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 14</span><br /><a 
+ id="x17-16900014"></a>Core Runtime Services</h2>
+<!--l. 5--><p class="noindent" >The Jikes RVM runtime environment implements a variety of services which a Java
+application relies upon for correct execution. The services include:
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><a 
+href="#x17-17000014.1">Object Model</a>: The way objects are represented in storage.
+     </li>
+     <li class="itemize"><a 
+href="#x17-17400014.2">Class   and   Code   Management</a>:   The   mechanism   for   loading,   and
+     representing  classes  from  class  ﬁles.  The  mechanism  that  triggers
+     compilation and linking of methods and subsequent storage of generated
+     code.
+     </li>
+     <li class="itemize"><a 
+href="#x17-18300014.3">Thread      Management</a>:      thread      creation,      scheduling      and
+     synchronization/exclusion
+     </li>
+     <li class="itemize"><a 
+href="#x17-18800014.4">JNI</a>: Native interface for writing native methods and invoking the virtual
+     machine from native code.
+     </li>
+     <li class="itemize"><a 
+href="#x17-20100014.7">Calling  Conventions</a>:  calling  conventions  used  for  invoking  methods  in
+     Jikes RVM
+     </li>
+     <li class="itemize"><a 
+href="#x17-19500014.5">Exception  Management</a>:  hardware  exception  trapping  and  software
+     exception delivery.
+     </li>
+     <li class="itemize"><a 
+href="#x17-19600014.6">Bootstrap</a>: getting an initial Java application running in a fully functional
+     Java execution environment</li></ul>
+<!--l. 17--><p class="noindent" >The requirement for many of these runtime services is clearly visible in language
+primitives such as <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">new()</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">throw()</span></span></span> and in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">java.lang</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">java.io</span></span></span> APIs such as
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Thread.run()</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">System.println()</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">File.open()</span></span></span> etc. Unlike conventional Java APIs
+which merely modify the state of Java objects created by the Java application,
+implementation of these primitives requires interaction with and modiﬁcation of the
+platform (hardware and system software) on which the Java application is being
+executed.
+</p><!--l. 19--><p class="noindent" >In addition to the services described above, Jikes RVM also provides some services
+that are speciﬁc to its purpose as a research tool: </p>
+     <ul class="itemize1">
+     <li class="itemize"><a 
+href="#x17-20800014.8">VM Callbacks</a>: Notﬁcations about potentially interesting events in the
+     VM.</li></ul>
+<h3 class="sectionHead"><span class="titlemark">14.1   </span> <a 
+ id="x17-17000014.1"></a>Object Model</h3>
+<!--l. 5--><p class="noindent" >An object model dictates how to represent objects in storage; the best object model
+will maximize eﬃciency of frequent language operations while minimizing storage
+overhead. Jikes RVM&#x2019;s object model is deﬁned by ObjectModel.
+                                                                  
+
+                                                                  
+</p><!--l. 7--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.1.1   </span> <a 
+ id="x17-17100014.1.1"></a>Overview</h4>
+<!--l. 9--><p class="noindent" >Values in the Java<span 
+class="tcrm-1000">™ </span>programming language are either <span 
+class="cmti-10">primitive </span>(e.g. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">double</span></span></span>,
+etc.) or they are <span 
+class="cmti-10">references </span>(that is, pointers) to objects. Objects are either <span 
+class="cmti-10">arrays</span>
+having elements or <span 
+class="cmti-10">scalar </span>objects having ﬁelds. Objects are logically composed of two
+primary sections: an object header (described in more detail below) and the object&#x2019;s
+instance ﬁelds (or array elements).
+</p><!--l. 11--><p class="noindent" >The following non-functional requirements govern the Jikes RVM object model:
+</p>
+     <ul class="itemize1">
+     <li class="itemize">instance ﬁeld and array accesses should be as fast as possible,
+     </li>
+     <li class="itemize">null-pointer checks should be performed by the hardware if possible,
+     </li>
+     <li class="itemize">method dispatch and other frequent runtime services should be fast,
+     </li>
+     <li class="itemize">other (less frequent) Java operations should not be prohibitively slow, and
+     </li>
+     <li class="itemize">per-object storage overhead (ie object header size) should be as small as
+     possible.</li></ul>
+<!--l. 20--><p class="noindent" >Assuming the reference to an object resides in a register, compiled code can access
+the object&#x2019;s ﬁelds at a ﬁxed displacement in a single instruction. To facilitate
+array access, the reference to an array points to the ﬁrst (zeroth) element
+of an array and the remaining elements are laid out in ascending order.
+The number of elements in an array, its <span 
+class="cmti-10">length</span>, resides just before its ﬁrst
+element. Thus, compiled code can access array elements via base + scaled index
+addressing.
+</p><!--l. 22--><p class="noindent" >The Java programming language requires that an attempt to access an object
+through a null object reference generates a <span 
+class="cmtt-10">NullPointerException</span>. In Jikes RVM,
+references are machine addresses, and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">null</span></span></span> is represented by address 0. On Linux,
+accesses to both very low and very high memory can be trapped by the hardware,
+thus all null checks can be made implicit.
+</p><!--l. 26--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.1.2   </span> <a 
+ id="x17-17200014.1.2"></a>Object Header</h4>
+<!--l. 28--><p class="noindent" >Logically, every object header contains the following components: </p>
+     <ul class="itemize1">
+     <li class="itemize">textbfTIB Pointer: The TIB (Type Information Block) holds information
+     that applies to all objects of a type. The structure of the TIB is deﬁned by
+     <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TIBLayoutConstants</span></span></span>. A TIB includes the virtual method table, a pointer
+                                                                  
+
+                                                                  
+     to an object representing the type, and pointers to a few data structures
+     to facilitate eﬃcient interface invocation and dynamic type checking.
+     </li>
+     <li class="itemize">textbfHash  Code:  Each  Java  object  has  an  identity  hash  code.  This
+     can  be  read  by  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Object.hashCode()</span></span></span> or  in  the  case  that  this  method
+     was overridden, by <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">System.identityHashCode</span></span></span>. The default hash code is
+     usually the location in memory of the object, however, with some garbage
+     collectors objects can move. So the hash code remains the same, space in
+     the object header may be used to hold the original hash code value.
+     </li>
+     <li class="itemize">textbfLock: Each Java object has an associated lock state. This could be
+     a pointer to a lock object or a direct representation of the lock.
+     </li>
+     <li class="itemize">textbfArray  Length:  Every  array  object  provides  a  length  ﬁeld  that
+     contains the length (number of elements) of the array.
+     </li>
+     <li class="itemize">textbfGarbage Collection Information: Each Java object has associated
+     information  used  by  the  memory  management  system.  Usually  this
+     consists  of  one  or  two  mark  bits,  but  this  could  also  include  some
+     combination of a reference count, forwarding pointer, etc.
+     </li>
+     <li class="itemize">textbfMisc Fields: In experimental conﬁgurations, the object header can
+     be expanded to add additional ﬁelds to every object, typically to support
+     proﬁling.</li></ul>
+<!--l. 38--><p class="noindent" >An implementation of this abstract header is deﬁned by two ﬁles: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">JavaHeader</span></span></span>, which supports TIB access, default hash codes, and locking.
+     It also provides a few bits for use by the memory management subsystem.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MiscHeader</span></span></span>, which supports adding additional ﬁelds to all objects.</li></ul>
+<!--l. 44--><p class="noindent" >Information that is speciﬁc to garbage collection uses the available bits from the Java
+header. Depending on the chosen garbage collector, the available bits can be accessed
+via an appropriate class, e.g.: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">HeaderByte</span></span></span> which provides access to methods for logging and unlogging
+     for various collectors
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RCHeader</span></span></span> for reference counting garbage collectors
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ForwardingWord</span></span></span> which provides methods for object forwarding which is
+     used by some copying collectors</li></ul>
+                                                                  
+
+                                                                  
+<!--l. 53--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.1.3   </span> <a 
+ id="x17-17300014.1.3"></a>Field Layout</h4>
+<!--l. 55--><p class="noindent" >Fields tend to be recorded in the Java class ﬁle in the order they are declared in the
+Java source ﬁle. We lay out ﬁelds in the order they are declared with some exceptions
+to improve alignment and pack the ﬁelds in the object.
+</p><!--l. 57--><p class="noindent" >Fields of type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">double</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">long</span></span></span> beneﬁt from being 8 byte aligned. Every
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMClass</span></span></span> records the preferred alignment of the object as a whole. We lay out
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">double</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">long</span></span></span> ﬁelds ﬁrst (and object references if these are 8 bytes long) so
+that we can avoid making holes in the ﬁeld layout for alignment. We don&#x2019;t
+do this for smaller ﬁelds as all objects need to be a multiple of 4 bytes in
+size.
+</p><!--l. 59--><p class="noindent" >When we lay out ﬁelds we may create holes to improve alignment. For example, an
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span> following a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">byte</span></span></span>, we&#x2019;ll create a 3 byte hole following the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">byte</span></span></span> to keep the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span> 4
+byte aligned. Holes in the ﬁeld layout can be 1, 2 or 4 bytes in size. As ﬁelds are laid
+out, holes are used to avoid increasing the size of the object. Sub-classes inherit the
+hole information of their parent, so holes in the parent object can be reused by their
+children.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">14.2   </span> <a 
+ id="x17-17400014.2"></a>Class and Code Management</h3>
+<!--l. 5--><p class="noindent" >The runtime maintains a database of Java instances which identiﬁes the currently
+loaded class and method base. The classloader class base enables the runtime to
+identify and dynamically load undeﬁned classes as they required during execution.
+All the classes, methods and compiled code arrays required to enable the runtime to
+operate are pre-installed in the initial boot image. Other runtime classes and
+application classes are loaded dynamically as they are needed during execution and
+have their methods compiled lazily. The runtime can also identify the latest compiled
+code array (and, on occasions, previously generated versions of compiled code) of any
+given method via this classbase and recompile it dynamically should it wish to do
+so.
+</p><!--l. 7--><p class="noindent" >Lazy method compilation postpones compilation of a dynamically loaded class&#x2019;
+methods at load-time, enabling partial loading of the class base to occur. Immediate
+compilation of all methods would require loading of all classes mentioned in the
+bytecode in order to verify that they were being used correctly. Immediate
+compilation of these class&#x2019; methods would require yet more loading and so on until
+the whole classbase was installed. Lazy compilation delays this recursive
+class loading process by postponing compilation of a method until it is ﬁrst
+called.
+</p><!--l. 9--><p class="noindent" >Lazy compilation works by generating a stub for each of a class&#x2019; methods when the
+class is loaded. If the method is an instance method this stub is installed in the
+appropriate TIB slot. If the method is static it is placed in a linker table located in
+the JTOC (linker table slots are allocated for each static method when a class is
+dynamically loaded). When the stub is invoked it calls the compiler to compile the
+method for real and then jumps into the relevant code to complete the call. The
+compiler ensures that the relevant TIB slot/linker table slot is updated with
+the new compiled code array. It also handles any race conditions caused by
+                                                                  
+
+                                                                  
+concurrent calls to the dummy method code ensuring that only one caller
+proceeds with the compilation and other callers wait for the resulting compiled
+code.
+</p><!--l. 11--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.2.1   </span> <a 
+ id="x17-17500014.2.1"></a>Class Loading</h4>
+<!--l. 13--><p class="noindent" >Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM implements the Java<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> programming language&#x2019;s dynamic class
+loading. While a class is being loaded it can be in one of seven states. These are:
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmbx-10">vacant</span>: The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMClass</span></span></span> object for this class has been created and registered
+     and is in the process of being loaded.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">loaded</span>: The class&#x2019;s bytecode ﬁle has been read and parsed successfully.
+     The  modiﬁers  and  attributes  for  the  ﬁelds  have  been  loaded  and  the
+     constant pool has been constructed. The class&#x2019;s superclass (if any) and
+     superinterfaces have been loaded as well.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">resolved</span>:  The  superclass  and  superinterfaces  of  this  class  has  been
+     resolved. The oﬀsets (whether in the object itself, the JTOC, or the class&#x2019;s
+     TIB) of its ﬁelds and methods have been calculated.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">instantiated</span>: The superclass has been instantiated and pointers to the
+     compiled methods or lazy compilation stubs have been inserted into the
+     JTOC (for static methods) and the TIB (for virtual methods).
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">initializing</span>: The superclass has been initialized and the class initializer
+     is being run.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">initialized</span>: The superclass has been initialized and the class initializer
+     has been run.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">class initializer has failed</span>: There was an exception during execution of
+     the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;clinit&#x003E;</span></span></span> method so the class cannot be initialized successfully.</li></ul>
+<!--l. 26--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.2.2   </span> <a 
+ id="x17-17600014.2.2"></a>Code Management</h4>
+<!--l. 28--><p class="noindent" >A compiled method body is an array of machine instructions (stored as ints on
+PowerPC<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> and bytes on x86-32). The Jikes RVM Table of Contents(JTOC), stores
+pointers to static ﬁelds and methods. However, pointers for instance ﬁelds and
+                                                                  
+
+                                                                  
+instance methods are stored in the receiver class&#x2019;s <a 
+href="#x17-17000014.1">TIB</a>. Consequently, the dispatch
+mechanism diﬀers between static methods and instance methods.
+</p><!--l. 30--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-17700014.2.2"></a>The JTOC</h5>
+<!--l. 32--><p class="noindent" >The JTOC holds pointers to each of Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM&#x2019;s global data structures, as well
+as literals, numeric constants and references to String constants. The JTOC
+also contains references to the TIB for each class in the system. Since these
+structures can have many types and the JTOC is declared to be an array
+of ints, Jikes RVM uses a descriptor array, co-indexed with the JTOC, to
+identify the entries containing references. The JTOC is depicted in the ﬁgure
+below.
+</p>
+<hr class="figure" /><div class="figure" 
+>
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+
+<!--l. 36--><p class="noindent" ><img 
+src="images/ClassAndCodeManagement-JTOC.png" alt="PIC"  
+ />
+                                                                  
+
+                                                                  
+</p>
+</div><hr class="endfigure" />
+<h5 class="subsubsectionHead"><a 
+ id="x17-17800014.2.2"></a>Virtual Methods</h5>
+<!--l. 43--><p class="noindent" >A TIB contains pointers to the compiled method bodies (executable code)
+for the virtual methods and other instance methods of its class. Thus, the
+TIB serves as Jikes RVM&#x2019;s virtual method table. A virtual method dispatch
+entails loading the TIB pointer from the object reference, loading the address
+of the method body at a given oﬀset oﬀ the TIB pointer, and making an
+indirect branch and link to it. A virtual method is dispatched to with the
+invokevirtual bytecode; other instance methods are invoked by the invokespecial
+bytecode.
+</p><!--l. 47--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-17900014.2.2"></a>Static Fields and Methods</h5>
+<!--l. 49--><p class="noindent" >Static ﬁelds and pointers to static method bodies are stored in the JTOC. Static
+method dispatch is simpler than virtual dispatch, since a well-known JTOC entry
+method holds the address of the compiled method body.
+</p><!--l. 53--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-18000014.2.2"></a>Instance Initialization Methods</h5>
+<!--l. 55--><p class="noindent" >Pointers to the bodies of instance initialization methods, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">&#x003C;init&#x003E;</span></span></span>, are stored in the
+JTOC. (They are always dispatched to with the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">invokespecial</span></span></span> bytecode.)
+</p><!--l. 59--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-18100014.2.2"></a>Lazy Method Compilation</h5>
+<!--l. 61--><p class="noindent" >Method slots in a TIB or the JTOC may hold either a pointer to the compiled code,
+or a pointer to the compiled code of the <span 
+class="cmti-10">lazy method invocation stub</span>. When invoked,
+the lazy method invocation stub compiles the method, installs a pointer to the
+compiled code in the appropriate TIB or the JTOC slot, then jumps to the start of
+the compiled code.
+</p><!--l. 65--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-18200014.2.2"></a>Interface Methods</h5>
+<!--l. 67--><p class="noindent" >Regardless of whether or not a virtual method is overridden, virtual method dispatch
+is still simple since the method will occupy the same TIB oﬀset its deﬁning class and
+in every sub-class. However, a method invoked through an <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">invokeinterface</span></span></span> call
+rather than an <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">invokevirtual</span></span></span> call, will not occupy the same TIB oﬀset
+in every class that implements its interface. This complicates dispatch for
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">invokeinterface</span></span></span>.
+                                                                  
+
+                                                                  
+</p><!--l. 69--><p class="noindent" >The simplest, and least eﬃcient way, of locating an interface method is to search all
+the virtual method entries in the TIB ﬁnding a match. Instead, Jikes RVM uses an
+<span 
+class="cmti-10">Interface Method Table (IMT) </span>which resembles a virtual method table for
+interface methods. Any method that could be an interface method has a ﬁxed
+oﬀset into the IMT just as with the TIB. However, unlike in the TIB, two
+diﬀerent methods may share the same oﬀset into the IMT. In this case, a
+<span 
+class="cmti-10">conﬂict resolution stub </span>is inserted in the IMT. Conﬂict resolution stubs are
+custom-generated machine code sequences that test the value of a hidden
+parameter to dispatch to the desired interface method. For more details, see
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">InterfaceInvocation</span></span></span>.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">14.3   </span> <a 
+ id="x17-18300014.3"></a>Thread Management</h3>
+<!--l. 5--><p class="noindent" >This section provides some explanation of how Java<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> threads are scheduled and
+synchronized by Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM.
+</p><!--l. 7--><p class="noindent" >All Java threads (application threads, garbage collector threads, etc.) derive from
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread</span></span></span>. Each <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread</span></span></span> maps directly to one native thread, which may be
+implemented using whichever C/C++ threading library is in use (currently either
+pthreads or Harmony threads). Unless <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:availableProcessors</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:gc:threads</span></span></span>
+is used, native threads are allowed to be arbitrarily scheduled by the OS using
+whatever processor resources are available; Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM does not attempt to
+control the thread-processor mapping at all.
+</p><!--l. 9--><p class="noindent" >Using native threading gives Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM better compatibility for existing JNI
+code, as well as improved performance, and greater infrastructure simplicity.
+Scheduling is oﬄoaded entirely to the operating system; this is both what
+native code would expect and what maximizes the OS scheduler&#x2019;s ability to
+optimally schedule Java<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> threads. As well, the resulting VM infrastructure
+is both simpler and more robust, since instead of focusing on scheduling
+decisions it can take a ”hands-oﬀ” approach except when Java threads have
+to be preempted for sampling, on-stack-replacement, garbage collection,
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Thread.suspend()</span></span></span>, or locking. The main task of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread</span></span></span> and other code in
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.jikesrvm.scheduler</span></span></span> is thus to override OS scheduling decisions when the VM
+demands it.
+</p><!--l. 11--><p class="noindent" >The remainder of this section is organized as follows. The management of a thread&#x2019;s
+state is discussed in detail. Mechanisms for blocking and handshaking threads are
+described. The VM&#x2019;s internal locking mechanism, the Monitor, is described. Finally,
+the locking implementation is discussed.
+</p><!--l. 13--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.3.1   </span> <a 
+ id="x17-18400014.3.1"></a>Tracking the Thread State</h4>
+<!--l. 15--><p class="noindent" >The state of a thread is broken down into two elements: </p>
+     <ul class="itemize1">
+     <li class="itemize">Should the thread yield at a safe point?
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize">Is the thread running Java code right now?</li></ul>
+<!--l. 21--><p class="noindent" >The ﬁrst mechanism is provided by the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread.takeYieldpoint</span></span></span> ﬁeld, which is <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">0</span></span></span>
+if the thread should not yield, or non-zero if it should yield at the next safe point.
+Negative versus positive values indicate the type of safe point to yield at
+(epilogue/prologue, or any, respectively).
+</p><!--l. 23--><p class="noindent" >But this alone is insuﬃcient to manage threads, as it relies on all threads
+being able to reach a safe point in a timely fashion. New Java threads may
+be started at any time, including at the exact moment that the garbage
+collector is starting; a starting-but-not-yet-started thread may not reach a safe
+point if the thread that was starting it is already blocked. Java threads may
+terminate at any time; terminated threads will never again reach a safe point.
+Any Java thread may call into arbitrary JNI code, which is outside of the
+VM&#x2019;s control, and may run for an arbitrary amount of time without reaching
+a Java safe point. As well, other mechanisms of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread</span></span></span> may cause a
+thread to block, thereby making it incapable of reaching a safe point in a
+timely fashion. However, in each of these cases, the Java thread is ”eﬀectively
+safe” - it is not running Java code that would interfere with the garbage
+collector, on-stack-replacement, locking, or any other Java runtime mechanism.
+Thus, a state management system is needed that would notify these runtime
+services when a thread is ”eﬀectively safe” and does not need to be waited
+on.
+</p><!--l. 25--><p class="noindent" >RVMThread provides for the following thread states, which describe to other runtime
+services the state of a Java thread. These states are designed with extreme care to
+support the following features: </p>
+     <ul class="itemize1">
+     <li class="itemize">Allow Java threads to either execute Java code, which periodically reaches
+     safe points, and native code which is ”eﬀectively safe” by virtue of not
+     having access to VM services.
+     </li>
+     <li class="itemize">Allow   other   threads   (either   Java   threads   or   VM   threads)   to
+     asynchronously request a Java thread to block. This overlaps with the
+     takeYieldpoint mechanism, but adds the following feature: a thread that
+     is ”eﬀectively safe” does not have to block.
+     </li>
+     <li class="itemize">Prevent race conditions on state changes. In particular, if a thread running
+     native code transitions back to running Java code while some other thread
+     expects it to be either ”eﬀectively safe” or blocked at a safe point, then
+     it should block. As well, if we are waiting on some Java thread to reach a
+     safe point but it instead escapes into running native code, then we would
+     like to be notiﬁed that even though it is not at a safe point, it is now
+     eﬀectively safe, and thus, we do not have to wait for it anymore.</li></ul>
+<!--l. 33--><p class="noindent" >The states used to put these features into eﬀect are listed below. </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NEW</span></span></span>. This means that the thread has been created but is not started, and
+     hence is not yet running. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NEW</span></span></span> threads are always eﬀectively safe, provided
+     that they do not transition to any of the other states.
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>. The thread is running Java code. This almost always corresponds
+     to the OS ”runnable” state - i.e. the thread has no reason to be blocked, is
+     on the runnable queue, and if a processor becomes available it will execute,
+     if it is not already executing. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> thread will periodically reach safe
+     points at which the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">takeYieldpoint</span></span></span> ﬁeld will be tested. Hence, setting
+     this ﬁeld will ensure that the thread will yield in a timely fashion, unless
+     it transitions into one of the other states in the meantime.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span>. The thread is running either native C code, or internal VM
+     code (which, by virtue of Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM&#x2019;s metacircularity, may be written
+     in Java). <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> threads are ”eﬀectively safe” in that they will not do
+     anything that interferes with runtime services, at least until they transition
+     into some other state. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> state is most often used to denote
+     threads that are blocked, for example on a lock.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span>.  The  thread  has  called  into  JNI  code.  This  is  identical  to
+     the  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> state  in  all  ways  except  one:  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span> threads  have
+     a  JNIEnvironment  that  stores  more  information  about  the  thread&#x2019;s
+     execution state (stack information, etc), while <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> threads save
+     only the minimum set of information required for the GC to perform stack
+     scanning.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span>. This represents a thread that is running Java code,
+     as  in  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>,  but  has  been  requested  to  yield.  In  most  cases,  when
+     you set <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">takeYieldpoint</span></span></span> to non-zero, you will also change the state of
+     the thread from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span>. If you don&#x2019;t intend on
+     waiting for the thread (for example, in the case of sampling, where you&#x2019;re
+     opportunistically requesting a yield), then this step may be omitted; but
+     in the cases of locking and garbage collection, when a thread is requested
+     to yield using <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">takeYieldpoint</span></span></span>, its state will also be changed.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span>. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span> is to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> as <br 
+class="newline" /><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span> is to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>. When requesting a thread to yield, we
+     check its state; if it&#x2019;s <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span>, we set it to be <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span>.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_JNI</span></span></span>. Same as <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span>, but for <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span>.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TERMINATED</span></span></span>. The thread has died. It is ”eﬀectively safe”, but will never
+     again reach a safe point.</li></ul>
+<!--l. 45--><p class="noindent" >The states are stored in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread.execStatus</span></span></span>, an integer ﬁeld that may be rapidly
+manipulated using compare-and-swap. This ﬁeld uses a hybrid synchronization
+protocol, which includes both compare-and-swap and conventional locking (using the
+thread&#x2019;s Monitor, accessible via the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread.monitor()</span></span></span> method). The rules are as
+follows:
+                                                                  
+
+                                                                  
+</p>
+     <ul class="itemize1">
+     <li class="itemize">All state changes except for <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span>, and <br 
+class="newline" /><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span> back to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>, must be done while holding the
+     lock.
+     </li>
+     <li class="itemize">Only the thread itself can change its own state without holding the lock.
+     </li>
+     <li class="itemize">The only asynchronous state changes (changes to the state not done by the
+     thread that owns it) that are allowed are <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span>,
+     <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span>, and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span> TO <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_JNI</span></span></span>.</li></ul>
+<!--l. 53--><p class="noindent" >The typical algorithm for requesting a thread to block looks as follows:
+</p>
+<!--l. 55-->
+<div class="lstlisting" id="listing-114"><span class="label"><a 
+ id="x17-184001r1"></a></span>thread.monitor().lockNoHandshake(); <br /><span class="label"><a 
+ id="x17-184002r2"></a></span><span 
+class="cmbx-10">if</span> (thread is running) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x17-184003r3"></a></span>   thread.takeYieldpoint=1; <br /><span class="label"><a 
+ id="x17-184004r4"></a></span> <br /><span class="label"><a 
+ id="x17-184005r5"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">transitions</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">IN</span><span 
+class="cmti-10">_JAVA</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">-</span><span 
+class="cmmi-10">&#x003E;</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">IN</span><span 
+class="cmti-10">_JAVA</span><span 
+class="cmti-10">_TO</span><span 
+class="cmti-10">_BLOCK</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">IN</span><span 
+class="cmti-10">_NATIVE</span><span 
+class="cmti-10">-</span><span 
+class="cmmi-10">&#x003E;</span><span 
+class="cmti-10">BLOCKED</span><span 
+class="cmti-10">_IN</span><span 
+class="cmti-10">_NATIVE</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">etc</span><span 
+class="cmti-10">.</span> <br /><span class="label"><a 
+ id="x17-184006r6"></a></span>   thread.setBlockedExecStatus(); <br /><span class="label"><a 
+ id="x17-184007r7"></a></span> <br /><span class="label"><a 
+ id="x17-184008r8"></a></span>   <span 
+class="cmbx-10">if</span> (thread.isInJava()) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x17-184009r9"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Thread</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">will</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">reach</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">safe</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">point</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">soon</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">or</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">else</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">notify</span> <br /><span class="label"><a 
+ id="x17-184010r10"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">us</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">that</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">it</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">left</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">native</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">code</span><span 
+class="cmti-10">.</span> <br /><span class="label"><a 
+ id="x17-184011r11"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">In</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">either</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">case</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">since</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">we</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">are</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">holding</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">lock</span><span 
+class="cmti-10">,</span> <br /><span class="label"><a 
+ id="x17-184012r12"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">thread</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">will</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">effectively</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">block</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">on</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">either</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">safe</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">point</span> <br /><span class="label"><a 
+ id="x17-184013r13"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">or</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">on</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">attempt</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">go</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">native</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">code</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">since</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">performing</span> <br /><span class="label"><a 
+ id="x17-184014r14"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">either</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">state</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">transition</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">requires</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">acquiring</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">lock</span><span 
+class="cmti-10">,</span> <br /><span class="label"><a 
+ id="x17-184015r15"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">which</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">we</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">are</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">now</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">holding</span><span 
+class="cmti-10">.</span> <br /><span class="label"><a 
+ id="x17-184016r16"></a></span>   <span 
+class="cmsy-10">}</span> <span 
+class="cmbx-10">else</span> <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x17-184017r17"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Thread</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">is</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">in</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">native</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">code</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">and</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">thus</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">is</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">”</span><span 
+class="cmti-10">effectively</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">safe</span><span 
+class="cmti-10">”,</span> <br /><span class="label"><a 
+ id="x17-184018r18"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">and</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">cannot</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">go</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">back</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">running</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Java</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">code</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">so</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">long</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">as</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">we</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">hold</span> <br /><span class="label"><a 
+ id="x17-184019r19"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">lock</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">since</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">that</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">state</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">transition</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">requires</span> <br /><span class="label"><a 
+ id="x17-184020r20"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">acquiring</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">lock</span><span 
+class="cmti-10">.</span> <br /><span class="label"><a 
+ id="x17-184021r21"></a></span>   <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x17-184022r22"></a></span><span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x17-184023r23"></a></span>thread.monitor().unlock();
+</div>
+<!--l. 81--><p class="noindent" >Most of the time, you do not have to write such code, as the cases of blocking threads
+are already implemented. For examples of how to utilize these mechanisms,
+see <span 
+class="cmtt-10">RVMThread.block()</span>, <span 
+class="cmtt-10">RVMThread.hardHandshakeSuspend()</span>, and
+<span 
+class="cmtt-10">RVMThread.softHandshake()</span>. A discussion of how to use these methods follows in
+the section below.
+</p><!--l. 83--><p class="noindent" >Finally, the valid state transitions are as follows. </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NEW</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>: occurs when the thread is actually started. At this point
+     it is safe to expect that the thread will reach a safe point in some bounded
+     amount of time, at which point it will have a complete execution context,
+     and this will be able to have its stack traces by GC.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span>: occurs when an asynchronous request is
+     made, for example to stop for GC, do a mutator ﬂush, or do an isync on
+     PPC.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span>: occurs when the code opts to run in privileged
+     mode,  without  synchronizing  with  GC.  This  state  transition  is  only
+     performed by Monitor, in cases where the thread is about to go idle while
+     waiting  for  notiﬁcations  (such  as  in  the  case  of  park,  wait,  or  sleep),
+     and by org.jikesrvm.runtime.FileSystem, as an optimization to allow I/O
+     operations to be performed without a full JNI transition.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span>: occurs in response to a JNI downcall, or return from
+     a JNI upcall.
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span>: occurs when a thread that
+     had been asked to perform an async activity decides to go to privileged
+     mode instead. This state always corresponds to a notiﬁcation being sent
+     to other threads, letting them know that this thread is idle. When the
+     thread is idle, any asynchronous requests (such as mutator ﬂushes) can
+     instead be performed on behalf of this thread by other threads, since this
+     thread is guaranteed not to be running any user Java code, and will not
+     be able to return to running Java code without ﬁrst blocking, and waiting
+     to be unblocked (see <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> transition.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_JNI</span></span></span>: occurs when a thread that had
+     been asked to perform an async activity decides to make a JNI downcall,
+     or return from a JNI upcall, instead. In all other regards, this is identical
+     to the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA_TO_BLOCK</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span> transition.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> to  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>:  occurs  when  a  thread  returns  from  idling  or
+     running privileged code to running Java code.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>: occurs when a thread that had been
+     asked to perform an async activity while running privileged code or idling
+     decides to go back to running Java code. The actual transition is preceded
+     by the thread ﬁrst performing any requested actions (such as mutator
+     ﬂushes) and waiting for a notiﬁcation that it is safe to continue running
+     (for example, the thread may wait until GC is ﬁnished).
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>: occurs when a thread returns from a JNI downcall,
+     or makes a JNI upcall.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_JNI</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>: same as <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BLOCKED_IN_NATIVE</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>,
+     except that this occurs in response to a return from a JNI downcall, or as
+     the thread makes a JNI upcall.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TERMINATED</span></span></span>: the thread has terminated, and will never reach
+     any more safe points, and thus will not be able to respond to any more
+     requests for async activities.</li></ul>
+<!--l. 100--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.3.2   </span> <a 
+ id="x17-18500014.3.2"></a>Blocking and Handshaking</h4>
+<!--l. 102--><p class="noindent" >Various VM services, such as the garbage collector and locking, may wish to request
+a thread to block. In some cases, we want to block all threads except for the thread
+that makes the request. As well, some VM services may only wish for a ”soft
+handshake”, where we wait for each non-collector thread to perform some action
+                                                                  
+
+                                                                  
+exactly once and then continue (in this case, the only thread that blocks is the
+thread requesting the soft handshake, but all other non-collector threads must
+”yield” in order to perform the requested action; in most cases that action is
+non-blocking). A uniﬁed facility for performing all of these requests is provided by
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread</span></span></span>.
+</p><!--l. 104--><p class="noindent" >Four types of thread blocking and handshaking are supported: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread.block()</span></span></span>.  This  is  a  low-level  facility  for  requesting  that  a
+     particular thread blocks. It is inherently unsafe to use this facility directly
+     - for example, if thread <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">A</span></span></span> calls <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">B.block()</span></span></span> while thread <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">B</span></span></span> calls <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">A.block()</span></span></span>,
+     the two threads may mutually deadlock.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread.beginPairHandshake()</span></span></span>.
+     This implements a safe pair-handshaking mechanism, in which two threads
+     become bound to each other for a short time. The thread requesting the
+     pair handshake waits until the other thread is at a safe point or else is
+     ”eﬀectively safe”, and prevents it from going back to executing Java code.
+     Note that at this point, neither thread will respond to any other handshake
+     requests until <span 
+class="cmtt-10">RVMThread.endPairHandshake() </span>is called. This is useful
+     for implementing biased locking, but it has general utility anytime one
+     thread needs to manipulate something another thread&#x2019;s execution state.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread.softHandshake()</span></span></span>.  This  implements  soft  handshakes.  In
+     a  soft  handshake,  the  requesting  thread  waits  for  all  non-collector
+     threads  to  perform  some  action  exactly  once,  and  then  returns.  If
+     any  of  those  threads  are  eﬀectively  safe,  then  the  requesting  thread
+     performs  the  action  on  their  behalf.  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">softHandshake()</span></span></span> is  invoked
+     with  a  <span 
+class="cmtt-10">SoftHandshakeVisitor </span>that  determines  which  threads  are
+     to  be  aﬀected,  and  what  the  requested  action  is.  An  example  of
+     how  this  is  used  is  found  in  <span 
+class="cmtt-10">org.jikesrvm.mm.mmtk.Collection </span>and
+     <span 
+class="cmtt-10">org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod</span>.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread.hardHandshakeSuspend()</span></span></span>. This stops all threads except for
+     the  garbage  collector  threads  and  the  thread  making  the  request.
+     It   returns   once   all   Java   threads   are   stopped.   This   is   used   by
+     the  garbage  collector  itself,  but  may  be  of  utility  elsewhere  (for
+     example,  dynamic  software  updating).  To  resume  all  stopped  threads,
+     call <span 
+class="cmtt-10">RVMThread.hardHandshakeResume()</span>. Note that this mechanism is
+     carefully designed so that even after the world is stopped, it is safe to
+     request a garbage collection (in that case, the garbage collector will itself
+     call a variant of <span 
+class="cmtt-10">hardHandshakeSuspend()</span>, but it will only aﬀect the one
+     remaining running Java thread).</li></ul>
+<!--l. 114--><p class="noindent" >
+</p>
+                                                                  
+
+                                                                  
+<h4 class="subsectionHead"><span class="titlemark">14.3.3   </span> <a 
+ id="x17-18600014.3.3"></a>The Monitor API</h4>
+<!--l. 116--><p class="noindent" >The VM internally uses an OS-based locking implementation, augmented with
+support for safe lock recursion and awareness of handshakes. The Monitor API
+provides locking and notiﬁcation, similar to a Java lock, and may be implemented
+using either a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">pthread_mutex</span></span></span> and a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">pthread_cond</span></span></span>, or using Harmony&#x2019;s monitor
+API.
+</p><!--l. 118--><p class="noindent" >Acquiring a Monitor lock, or awaiting notiﬁcation, may cause the calling <span 
+class="cmtt-10">RVMThread</span>
+to block. This prevents the calling thread from acknowledging handshakes
+until the blocking call returns. In some cases, this is desirable. For example:
+</p>
+     <ul class="itemize1">
+     <li class="itemize">In the implementation of handshakes, the code already takes special care
+     to use the <span 
+class="cmtt-10">RVMThread </span>state machine to notify other threads that the caller
+     may block. As such, acquiring a lock or waiting for a notiﬁcation is safe.
+     </li>
+     <li class="itemize">If acquiring a lock that may only be held for a short, guaranteed-bounded
+     length of time, the fact that the thread will ignore handshake requests
+     while blocking is safe - the lock acquisition request will return in bounded
+     time, allowing the thread to acknowledge any pending handshake requests.</li></ul>
+<!--l. 124--><p class="noindent" >But in all other cases, the calling thread must ensure that the handshake mechanism
+is notiﬁed that thread will block. Hence, all blocking <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Monitor</span></span></span> methods have both
+a ”NoHandshake” and ”WithHandshake” version. Consider the following
+code:
+</p>
+<!--l. 126-->
+<div class="lstlisting" id="listing-115"><span class="label"><a 
+ id="x17-186001r1"></a></span>someMonitor.lockNoHandshake(); <br /><span class="label"><a 
+ id="x17-186002r2"></a></span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">perform</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">fast</span><span 
+class="cmti-10">,</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">bounded</span><span 
+class="cmti-10">-</span><span 
+class="cmti-10">time</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">critical</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">section</span> <br /><span class="label"><a 
+ id="x17-186003r3"></a></span>someMonitor.unlock(); <span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">non</span><span 
+class="cmti-10">-</span><span 
+class="cmti-10">blocking</span>
+</div>
+<!--l. 132--><p class="noindent" >In this code, lock acquisition is done without notifying handshakes. This makes the
+acquisition faster. In this case, it is safe because the critical section is bounded-time.
+As well, we require that in this case, any other critical sections protected by
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">someMonitor</span></span></span> are bounded-time as well. If, on the other hand, the critical section was
+not bounded-time, we would do:
+</p>
+<!--l. 134-->
+<div class="lstlisting" id="listing-116"><span class="label"><a 
+ id="x17-186004r1"></a></span>someMonitor.lockWithHandshake(); <br /><span class="label"><a 
+ id="x17-186005r2"></a></span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">perform</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">potentially</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">long</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">critical</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">section</span> <br /><span class="label"><a 
+ id="x17-186006r3"></a></span>someMonitor.unlock();
+</div>
+<!--l. 140--><p class="noindent" >In this case, the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">lockWithHandshake()</span></span></span> operation will transition the calling thread to
+the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_NATIVE</span></span></span> state before acquiring the lock, and then transition it back to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span>
+once the lock is acquired. This may cause the thread to block, if a handshake is in
+progress. As an added safety provision, if the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">lockWithHandshake()</span></span></span> operation blocks
+due to a handshake, it will ensure that it does so without holding the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">someMonitor</span></span></span>
+lock.
+</p><!--l. 142--><p class="noindent" >A special <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Monitor</span></span></span> is provided with each thread. This monitor is of the type
+<span 
+class="cmtt-10">NoYieldpointsMonitor </span>and will also ensure that yieldpoints (safe points) are
+                                                                  
+
+                                                                  
+disabled while the lock is held. This is necessary because any safe point may release
+the <span 
+class="cmtt-10">Monitor </span>lock by waiting on it, thereby breaking atomicity of the critical section.
+The <span 
+class="cmtt-10">NoYieldpointsMonitor </span>for any <span 
+class="cmtt-10">RVMThread </span>may be accessed using the
+<span 
+class="cmtt-10">RVMThread.monitor() </span>method.
+</p><!--l. 144--><p class="noindent" >Additional information about how to use this API is found in the following section,
+which discusses the implementation of Java locking.
+</p><!--l. 148--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.3.4   </span> <a 
+ id="x17-18700014.3.4"></a>Thin and Biased Locking</h4>
+<!--l. 150--><p class="noindent" >Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM uses a hybrid thin/biased locking implementation that is designed for
+very high performance under any of the following loads: </p>
+     <ul class="itemize1">
+     <li class="itemize">Locks only ever acquired by one thread. In this case, biased locking is
+     used, an no atomic operations (like compare-and-swap) need to be used
+     to acquire and release locks.
+     </li>
+     <li class="itemize">Locks acquired by multiple threads but rarely under contention. In this
+     case, thin locking is used; acquiring and releasing the lock involves a fast
+     inlined compare-and-swap operation. It is not as fast as biased locking on
+     most architectures.
+     </li>
+     <li class="itemize">Contended locks. Under sustained contention, the lock is ”inﬂated” - the
+     lock will now consist of data structures used to implement a fast barging
+     FIFO  mutex.  A  barging  FIFO  mutex  allows  threads  to  immediately
+     acquire the lock as soon as it is available, or otherwise enqueue themselves
+     on a FIFO and await its availability.</li></ul>
+<!--l. 157--><p class="noindent" >Thin locking has a relatively simple implementation; roughly 20 bits in the object
+header are used to represent the current lock state, and compare-and-swap is used to
+manipulate it. Biased locking and contended locking are more complicated, and are
+described below.
+</p><!--l. 159--><p class="noindent" >Biased locking makes the optimistic assumption that only one thread will ever want
+to acquire the lock. So long as this assumption holds, acquisition of the lock is a
+simple non-atomic increment/decrement. However, if the assumption is violated (a
+thread other than the one to which the lock is biased attempts to acquire the lock), a
+fallback mechanism is used to turn the lock into either a thin or contended lock. This
+works by using <span 
+class="cmtt-10">RVMThread.beginPairHandshake() </span>to bring both the thread that is
+requesting the lock and the thread to which the lock is biased to a safe point. No
+other threads are aﬀected; hence this system is very scalable. Once the pair
+handshake begins, the thread requesting the lock changes the lock into either
+a thin or contended lock, and then ends the pair handshake, allowing the
+thread to which the lock was biased to resume execution, while the thread
+requesting the lock may now contend on it using normal thin/contended
+mechanisms.
+</p><!--l. 161--><p class="noindent" >Contended locks, or ”fat locks”, consist of three mechanisms:
+                                                                  
+
+                                                                  
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x17-187002x1">A spin lock to protect the data structures.
+     </li>
+     <li 
+  class="enumerate" id="x17-187004x2">A queue of threads blocked on the lock.
+     </li>
+     <li 
+  class="enumerate" id="x17-187006x3">A mechanism for blocked threads to go to sleep until awoken by being
+     dequeued.</li></ol>
+<!--l. 168--><p class="noindent" >The spin lock is a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.jikesrvm.scheduler.SpinLock</span></span></span>. The queue is implemented in
+<span 
+class="cmtt-10">org.jikesrvm.scheduler.ThreadQueue</span>. And the blocking/unblocking mechanism
+leverages <span 
+class="cmtt-10">org.jikesrvm.scheduler.Monitor</span>; in particular, it uses the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Monitor</span></span></span> that
+is attached to each thread, accessible via <span 
+class="cmtt-10">RVMThread.monitor()</span>. The basic algorithm
+for lock acquisition is: </p><!--l. 169-->
+<div class="lstlisting" id="listing-117"><span class="label"><a 
+ id="x17-187007r1"></a></span>spinLock.lock(); <br /><span class="label"><a 
+ id="x17-187008r2"></a></span><span 
+class="cmbx-10">while</span> (<span 
+class="cmbx-10">true</span>) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x17-187009r3"></a></span>   <span 
+class="cmbx-10">if</span> (lock available) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x17-187010r4"></a></span>      acquire the lock; <br /><span class="label"><a 
+ id="x17-187011r5"></a></span>      <span 
+class="cmbx-10">break</span>; <br /><span class="label"><a 
+ id="x17-187012r6"></a></span>   <span 
+class="cmsy-10">}</span> <span 
+class="cmbx-10">else</span> <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x17-187013r7"></a></span>      queue.enqueue(me); <br /><span class="label"><a 
+ id="x17-187014r8"></a></span>      spinLock.unlock(); <br /><span class="label"><a 
+ id="x17-187015r9"></a></span> <br /><span class="label"><a 
+ id="x17-187016r10"></a></span>      me.monitor().lockNoHandshake(); <br /><span class="label"><a 
+ id="x17-187017r11"></a></span>      <span 
+class="cmbx-10">while</span> (queue.isQueued(me)) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x17-187018r12"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">put</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">this</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">thread</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">sleep</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">waiting</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">be</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">dequeued</span><span 
+class="cmti-10">,</span> <br /><span class="label"><a 
+ id="x17-187019r13"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">and</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">do</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">so</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">while</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">thread</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">is</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">IN</span><span 
+class="cmti-10">_NATIVE</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">ensure</span> <br /><span class="label"><a 
+ id="x17-187020r14"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">that</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">other</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">threads</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">don</span><span 
+class="cmti-10">&#x2019;</span><span 
+class="cmti-10">t</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">wait</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">on</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">this</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">one</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">for</span> <br /><span class="label"><a 
+ id="x17-187021r15"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">handshakes</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">while</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">we</span><span 
+class="cmti-10">&#x2019;</span><span 
+class="cmti-10">re</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">blocked</span><span 
+class="cmti-10">.</span> <br /><span class="label"><a 
+ id="x17-187022r16"></a></span>         me.monitor().waitWithHandshake(); <br /><span class="label"><a 
+ id="x17-187023r17"></a></span>      <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x17-187024r18"></a></span>      me.monitor().unlock(); <br /><span class="label"><a 
+ id="x17-187025r19"></a></span>      spinLock.lock(); <br /><span class="label"><a 
+ id="x17-187026r20"></a></span>   <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x17-187027r21"></a></span><span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x17-187028r22"></a></span>spinLock.unlock();
+</div>
+<!--l. 194--><p class="noindent" >The algorithm for unlocking dequeues the thread at the head of the queue (if there is
+one) and notiﬁes its <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Monitor</span></span></span> using the <span 
+class="cmtt-10">lockedBroadcastNoHandshake() </span>method. Note
+that these algorithms span multiple methods in <span 
+class="cmtt-10">org.jikesrvm.scheduler.ThinLock</span>
+and <span 
+class="cmtt-10">org.jikesrvm.scheduler.Lock</span>; in particular, <span 
+class="cmtt-10">lockHeavy()</span>, <span 
+class="cmtt-10">lockHeavyLocked()</span>,
+<span 
+class="cmtt-10">unlockHeavy()</span>, <span 
+class="cmtt-10">lock()</span>, and <span 
+class="cmtt-10">unlock()</span>.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">14.4   </span> <a 
+ id="x17-18800014.4"></a>JNI</h3>
+<!--l. 5--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.4.1   </span> <a 
+ id="x17-18900014.4.1"></a>Overview</h4>
+<!--l. 7--><p class="noindent" >This section describes how Jikes RVM interfaces to native code. There are three
+major aspects of this support: </p>
+     <ul class="itemize1">
+     <li class="itemize">JNI  Functions:  This  is  the  mechanism  for  transitioning  from  native
+     code  into  Java  code.  Jikes  RVM  implements  the  1.1  through  1.4  JNI
+     speciﬁcations.
+     </li>
+     <li class="itemize">Native methods: This is the mechanism for transitioning from Java code to
+     native code. In addition to the normal mechanism used to invoke a native
+     method, Jikes RVM also supports a more restricted syscall mechanism
+     that is used internally by low-level VM code to invoke native code.
+     </li>
+     <li class="itemize">Integration with threading: JNI may be freely used from any Java method.
+     The mechanisms required to make this work are discussed in great detail
+     in <a 
+href="#x17-18300014.3">Thread Management</a>, and to some extent in the sections that follow.</li></ul>
+                                                                  
+
+                                                                  
+<!--l. 16--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.4.2   </span> <a 
+ id="x17-19000014.4.2"></a>JNI Functions</h4>
+<!--l. 18--><p class="noindent" >All of the 1.1 through 1.4 JNIEnv interface functions are implemented.
+</p><!--l. 20--><p class="noindent" >The functions are deﬁned in the class <span 
+class="cmtt-10">JNIFunctions</span>. Methods of this class are
+compiled with special prologues/epilogues that translate from native calling
+conventions to Java calling conventions and handle other details of the transition
+related to threading. Currently the optimizing compiler does not support these
+specialized prologue/epilogue sequences so all methods in this class are baseline
+compiled. The prologue/epilogue sequences are actually generated by the
+platform-speciﬁc <span 
+class="cmtt-10">JNICompiler</span>.
+</p><!--l. 22--><p class="noindent" >Calling a JNI function results in the thread attempting to transition from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JNI</span></span></span> to
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IN_JAVA</span></span></span> using a compare-and-swap; if this fails, the thread may block to
+acknowledge a handshake. See <a 
+href="#x17-18300014.3">Thread Management</a> for more details.
+</p><!--l. 26--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.4.3   </span> <a 
+ id="x17-19100014.4.3"></a>Invoking Native Methods</h4>
+<!--l. 28--><p class="noindent" >There are two mechanisms whereby RVM may transition from Java code to native
+code.
+</p><!--l. 30--><p class="noindent" >The ﬁrst mechanism is when RVM calls a method of the class <span 
+class="cmtt-10">SysCall</span>. The native
+methods thus invoked are deﬁned in one of the C and C++ ﬁles of the JikesRVM
+executable. These native methods are non-blocking system calls or C library
+services. To implement a syscall, Jikes RVM compilers generate a call sequence
+consistent with the platform&#x2019;s underlying calling convention. A syscall is not a
+GC-safe point, so syscalls may modify the Java heap (eg. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">memcpy()</span></span></span>). For more
+details on the mechanics of adding a new syscall to the system, see the header
+comments of <span 
+class="cmtt-10">SysCall.java</span>. Note again that the syscall methods are NOT JNI
+methods, but an independent (more eﬃcient) interface that is speciﬁc to Jikes
+RVM.
+</p><!--l. 32--><p class="noindent" >The second mechanism is JNI. Naturally, the user writes JNI code using the JNI
+interface. RVM implements a call to a native method by using the platform-speciﬁc
+<span 
+class="cmtt-10">JNICompiler </span>to generate a stub routine that manages the transition between Java
+bytecode and native code. A JNI call is a GC-safe point, since JNI code cannot freely
+modify the Java heap.
+</p><!--l. 36--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.4.4   </span> <a 
+ id="x17-19200014.4.4"></a>Interactions with Threading</h4>
+<!--l. 38--><p class="noindent" >See the <a 
+href="#x17-18300014.3">Thread Management</a> subsection for more details on the thread system in
+Jikes RVM.
+</p><!--l. 40--><p class="noindent" >There are two ways to execute native code: syscalls and JNI. A Java thread that calls
+native code by either mechanism will never be preempted by Jikes RVM, but in the
+case of JNI, all of the VM&#x2019;s services will know that the thread is ”eﬀectively safe”
+and thus may be ignored for most purposes. Additionally, threads executing JNI code
+                                                                  
+
+                                                                  
+may have handshake actions performed by other threads on their behalf, for example
+in the case of GC stack scanning. This is not the case with syscalls. As far as
+Jikes RVM is concerned, a Java thread that enters syscall native code is
+still executing Java code, but will appear to not reach a safe point until
+after it emerges from the syscall. This issue may be side-stepped by using
+the <span 
+class="cmtt-10">RVMThread enterNative() </span>and <span 
+class="cmtt-10">leaveNative </span>methods, as shown in
+<span 
+class="cmtt-10">org.jikesrvm.runtime.FileSystem</span>.
+</p><!--l. 44--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.4.5   </span> <a 
+ id="x17-19300014.4.5"></a>Missing Features</h4>
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmbx-10">Native Libraries: </span>JNI 1.2 requires that the VM specially treat native
+     libraries that contain exported functions named <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">JNI_OnLoad</span></span></span> and <br 
+class="newline" /><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">JNI_OnUnload</span></span></span>. Only <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">JNI_OnLoad</span></span></span> is currently implemented.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10">JNICompiler</span><span 
+class="cmbx-10">: </span>The  only  known  deﬁciency  in  <span 
+class="cmtt-10">JNICompiler </span>is  that  the
+     prologue and epilogues only handle passing local references to functions
+     that expect a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">jobject</span></span></span>; they will not properly handle a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">jweak</span></span></span> or a regular
+     global reference. This would be fairly easy to implement.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">JavaVM interface: </span>The JavaVM interface has <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">GetEnv</span></span></span> fully implemented
+     and  <span 
+class="cmtt-10">AttachCurrentThread </span>partly  implemented,  but  <span 
+class="cmtt-10">DestroyJavaVM</span>,
+     <span 
+class="cmtt-10">DetachCurrentThread</span>,  and  <span 
+class="cmtt-10">AttachCurrentThreadAsDaemon </span>are  just
+     stubbed  out  and  return  error  codes.  There  is  no  good  reason  why
+     <span 
+class="cmtt-10">AttachCurrentThread </span>and friends cannot be implemented; it just hasn&#x2019;t
+     been done yet, mostly because there was no easy way to support them
+     prior to the introduction of native threads.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">Directly-Exported Invocation Interface Functions: </span>These functions
+     (<span 
+class="cmtt-10">GetDefaultJavaVMInitArgs  </span>and    <span 
+class="cmtt-10">JNI</span><span 
+class="cmtt-10">_CreateJavaVM  </span>are    partly
+     implemented but <span 
+class="cmtt-10">JNI</span><span 
+class="cmtt-10">_GetCreatedJavaVMs</span>) is not implemented. This is
+     because we do not provide a virtual machine library that can be linked
+     against, nor do we support native applications that launch and use an
+     embedded Java VM. There is no inherent reason why this could not be
+     done, but we have not done so yet.</li></ul>
+<!--l. 55--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.4.6   </span> <a 
+ id="x17-19400014.4.6"></a>Things JNI Can&#x2019;t Handle</h4>
+                                                                  
+
+                                                                  
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmbx-10">atexit routines: </span>Calling JNI code via a routine run at exit time means
+     calling back into a VM that has been shutdown. This will cause the Jikes
+     RVM to freeze on Intel architectures.</li></ul>
+<!--l. 61--><p class="noindent" >Contributions of any of the missing functionality (and/or associated tests) would be
+greatly appreciated.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">14.5   </span> <a 
+ id="x17-19500014.5"></a>Exception Management</h3>
+<!--l. 5--><p class="noindent" >The runtime has to deal with the relatively small number of hardware signals which
+can be generated during Java execution. On operating systems other than AIX, an
+attempt to dereference a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">null</span></span></span> value (an access to a null value manifests
+as a read to a small negative address outside the mapped virtual memory
+address space) will generate a a segmentation fault. This means that the Jikes
+RVM does not need to generate explicit tests guarding against dereferencing
+null values and this results in faster code generationg for non-excepting
+code.
+</p><!--l. 7--><p class="noindent" >The Jikes RVM handles the signal and reenters Java so that a suitable Java exception
+handler can be identiﬁed, the stack can be unwound (if necessary) and the handler
+entered in order to deal with the exception. Failing location of a handler, the
+associated Java thread must be cleanly terminated.
+</p><!--l. 9--><p class="noindent" >The Jikes RVM actually employs software traps to generate hardware exceptions in a
+small number of other cases, for example to trap array bounds exceptions.
+Once again a software only solution would be feasible. However, since a
+mechanism is already in place to catch hardware exceptions and restore control
+to a suitable Java handler the use of software traps is relatively simple to
+support.
+</p><!--l. 11--><p class="noindent" >Use of a hardware handler enables the register state at the point of exception to be
+saved by the hardware exception catching routine. If a Java handler is registered in
+the call frame which generated the exception this register state can be restored before
+reentry, avoiding the need for the compiler to save register state around potentially
+excepting instructions. Register state for handlers in frames below the exception
+frame is automatically saved by the compiler before making a call and so can
+always be restored to the state at the point of call by the exception delivery
+code.
+</p><!--l. 13--><p class="noindent" >The bootloader registers signal handlers which catch <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SEGV</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TRAP</span></span></span> signals. These
+handlers save the current register state on the stack, create a special handler frame
+above the saved register state and return into this handler frame executing
+<span 
+class="cmtt-10">RuntimeEntrypoints.deliverHardwareException()</span>. This method searches the
+stack from the excepting frame (or from the last Java frame if the exception occurs
+inside native code) looking for a suitable handler and unwinding frames which do not
+contain one. At each unwind the saved register state is reset to the state associated
+with the next frame. When a handler is found the delivery code installs the saved
+register state and returns into the handler frame at the start of the handler
+block.
+</p><!--l. 15--><p class="noindent" >The Jikes RVM employs some of the same code used by the hardware exception
+                                                                  
+
+                                                                  
+handler to implement the language primitive <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">throw()</span></span></span>. This primitive requires
+a handler to be located and the stack to be unwound so that the handler
+can be entered. A <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">throw</span></span></span> operation is always translated into a call to
+<span 
+class="cmtt-10">RuntimeEntrypoints.athrow() </span>so the unwind can never happens in the
+handler frame. Hence the register state at the point of re-entry is always
+saved by the call mechanism and there is no need to generate a hardware
+exception.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">14.6   </span> <a 
+ id="x17-19600014.6"></a>Bootstrap</h3>
+<!--l. 5--><p class="noindent" >Jikes RVM is started up by a boot program written in C, the bootloader. The
+bootloader is responsible for </p>
+     <ul class="itemize1">
+     <li class="itemize">registering signal handlers to deal with the hardware errors generated by
+     Jikes RVM
+     </li>
+     <li class="itemize">establishing the initial virtual memory map employed by Jikes RVM
+     </li>
+     <li class="itemize">mapping the Jikes RVM image ﬁles
+     </li>
+     <li class="itemize">installing the addresses of the C wrapper functions which are invoked by
+     the runtime to interact with the underlying operating system into the boot
+     record of at the start of Jikes RVM image area
+     </li>
+     <li class="itemize">setting up the JTOC and TR registers for its RVMThread/pthread
+     </li>
+     <li class="itemize">switching the pthread into the bootstrap Java stack running the bootstrap
+     Java method in the bootstrap Java thread</li></ul>
+<!--l. 15--><p class="noindent" >At this point all further initialization of Jikes RVM is done either in Java or by
+employing the wrapper callbacks located in the boot record.
+</p><!--l. 17--><p class="noindent" >The initial bootstrap routine is <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">VM.boot()</span></span></span>. It sets up the initial thread environment
+so that it looks like any other thread created by a call to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Thread.start()</span></span></span> then
+performs a variety of Java boot operations, including initialising the memory
+manager subsystem, the runtime compiler, the system classloader and the time
+classes.
+</p><!--l. 19--><p class="noindent" >The bootstrap routine needs to rerun class initializers for a variety of the runtime
+and runtime library classes which are already loaded and compiled into the image
+ﬁle. This is necessary because some of the data generated by these initialization
+routines will not be valid in the JIkes RVM runtime. The data may be invalid as the
+host environment that generated the boot image may diﬀer from the current
+environment.
+                                                                  
+
+                                                                  
+</p><!--l. 21--><p class="noindent" >The boot process the enables the Java scheduler and locking system, setting up the
+data structures necessary to launch additional threads. The scheduler also starts the
+<span 
+class="cmtt-10">FinalizerThread </span>and multiple garbage collector threads (i.e. multiple instances of
+<span 
+class="cmtt-10">CollectorThread</span>).
+</p><!--l. 23--><p class="noindent" >Next, the boot routine boots the the JNI subsystem which enables calls to native
+code to be compiled and executed then re-initialises a few more classes whose init
+methods require a functional JNI (i.e. <span 
+class="cmtt-10">java.io.FileDescriptor</span>).
+</p><!--l. 25--><p class="noindent" >Finally, the boot routine loads the boot application class supplied on the rvm
+command line, creates and schedules a Java main thread to execute this class&#x2019;s main
+method, then exits, switching execution to the main thread. Execution continues
+until the application thread and all non-daemon threads have exited. Once there are
+no runnable threads (other than system threads such as the idle threads, collector
+threads etc) execution of the RVM runtime terminates and the rvm process
+exits.
+</p><!--l. 27--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.6.1   </span> <a 
+ id="x17-19700014.6.1"></a>Memory Map</h4>
+<!--l. 29--><p class="noindent" >Jikes RVM divides its available virtual memory space into various segments
+containing either code, or data or a combination of the two. The basic map is as
+follows: </p><!--l. 33-->
+<div class="lstlisting" id="listing-118"><span class="label"><a 
+ id="x17-197001r1"></a></span><span 
+class="cmtt-8x-x-87"> </span><br /><span class="label"><a 
+ id="x17-197002r2"></a></span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">+--&#x003E;</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">BOOT_IMAGE_START</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">MAX_MAPPABLE_ADDRESS</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">&#x003C;--+</span><span 
+class="cmtt-8x-x-87"> </span><br /><span class="label"><a 
+ id="x17-197003r3"></a></span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">|&#x003C;-</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">SEGMENT_SIZE</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">-&#x003E;</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><br /><span class="label"><a 
+ id="x17-197004r4"></a></span><span 
+class="cmtt-8x-x-87">+-------------------------------------------------------------------------+</span><span 
+class="cmtt-8x-x-87"> </span><br /><span class="label"><a 
+ id="x17-197005r5"></a></span><span 
+class="cmtt-8x-x-87">+</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">Platform</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">specific</span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">RVM</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">Image</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">RVM</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">Heap</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">Plat</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">+</span><span 
+class="cmtt-8x-x-87"> </span><br /><span class="label"><a 
+ id="x17-197006r6"></a></span><span 
+class="cmtt-8x-x-87">+</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">(</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">booter</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">code</span><span 
+class="cmtt-8x-x-87">/</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">)</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">(</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">initial</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">code</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">)</span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">(</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">meta</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">data</span><span 
+class="cmtt-8x-x-87">,</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">immortal</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">data</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">)</span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">spec</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">+</span><span 
+class="cmtt-8x-x-87"> </span><br /><span class="label"><a 
+ id="x17-197007r7"></a></span><span 
+class="cmtt-8x-x-87">+</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">(</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">data</span><span 
+class="cmtt-8x-x-87">,</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">shlibs</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">)</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">(</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">&#x0026;</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">data</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">)</span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">(</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">large</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">&#x0026;</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">small</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">objects</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">)</span><span 
+class="cmtt-8x-x-87">|</span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87"> </span><span 
+class="cmtt-8x-x-87">+</span><span 
+class="cmtt-8x-x-87"> </span><br /><span class="label"><a 
+ id="x17-197008r8"></a></span><span 
+class="cmtt-8x-x-87">+-------------------------------------------------------------------------+</span>
+</div>
+<!--l. 44--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-19800014.6.1"></a>Boot Segment</h5>
+<!--l. 46--><p class="noindent" >The bottom segment of the address space is left for the underlying platform to locate
+the boot program (including statically linked library code) and any dynamically
+allocated data and library code.
+</p><!--l. 50--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-19900014.6.1"></a>Jikes RVM Image Segment</h5>
+<!--l. 52--><p class="noindent" >The next area is the one initialized by the boot program to contain the all
+the initial static data, instance data and compiled method code required in
+order for the runtime to be able to function. The required memory data is
+loaded from an image ﬁle created by an oﬀ line Java program, the boot image
+writer.
+</p><!--l. 54--><p class="noindent" >This image ﬁle is carefully constructed to contain data which, when loaded at the
+correct address, will populate the runtime data area with a memory image
+containing:
+</p>
+                                                                  
+
+                                                                  
+     <ul class="itemize1">
+     <li class="itemize">a JTOC
+     </li>
+     <li class="itemize">all  the  TIBs,  static  method  code  arrays  and  static  ﬁeld  data  directly
+     referenced from the JTOC
+     </li>
+     <li class="itemize">all the dynamic method code arrays indirectly referenced from the TIBS
+     </li>
+     <li class="itemize">all  the  classloader&#x2019;s  internal  class  and  method  instances  indirectly
+     referenced via the TIBS
+     </li>
+     <li class="itemize">ancillary structures attached to these class and method instances such as
+     class bytecode arrays, compilation records, garbage collection maps etc
+     </li>
+     <li class="itemize">a  single  bootstrap  Java  thread  instance  in  which  Java  execution
+     commences
+     </li>
+     <li class="itemize">a single bootstrap thread stack used by the bootstrap thread.
+     </li>
+     <li class="itemize">a master boot record located at the start of the image load area containing
+     references to all the other key objects in the image (such as the JTOC,
+     the bootstrap thread etc) plus linkage slots in which the booter writes the
+     addresses of its C callback functions.</li></ul>
+<!--l. 69--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-20000014.6.1"></a>Jikes RVM Heap Segment</h5>
+<!--l. 71--><p class="noindent" >The Jikes RVM heap segment is used to provide storage for code and data
+created during Java execution. Jikes RVM can be conﬁgured to employ various
+diﬀerent allocation managers taken from the MMTk memory management
+toolkit.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">14.7   </span> <a 
+ id="x17-20100014.7"></a>Calling Conventions</h3>
+<!--l. 5--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.7.1   </span> <a 
+ id="x17-20200014.7.1"></a>Architecture-independent concepts</h4>
+                                                                  
+
+                                                                  
+<!--l. 7--><p class="noindent" >Stackframe layout and calling conventions may evolve as our understanding of Jikes
+RVM&#x2019;s performance improves. Where possible, API&#x2019;s should be used to protect code
+against such changes.
+</p><!--l. 9--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-20300014.7.1"></a>Register conventions</h5>
+<!--l. 11--><p class="noindent" >Registers (general purpose, gp, and ﬂoating point, fp) can be roughly categorized into
+four types: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmbx-10">Scratch: </span>Needed for method prologue/epilogue. Can be used by compiler
+     between calls.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">Dedicated: </span>Reserved registers with known contents:
+         <ul class="itemize2">
+         <li class="itemize"><span 
+class="cmbx-10">JTOC </span>- Jikes RVM Table Of Contents. Globally accessible data:
+         constants, static ﬁelds and methods.
+         </li>
+         <li class="itemize"><span 
+class="cmbx-10">FP </span>- Frame Pointer Current stack frame (thread speciﬁc).
+         </li>
+         <li class="itemize"><span 
+class="cmbx-10">TR </span>- Thread register. An object representing the current <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMThread</span></span></span>
+         instance (the one executing on the CPU containing these registers).</li></ul>
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">Volatile (”caller save”, or ”parameter”): </span>Like scratch registers,
+     these can be used by the compiler as temporaries, but they are not
+     preserved across calls. Volatile registers diﬀer from scratch registers in that
+     volatiles can be used to pass parameters and result(s) to and from
+     methods.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">Nonvolatile (”callee save”, or ”preserved”): </span>These can be used (and are
+     preserved across calls), but they must be saved on method entry and
+     restored at method exit. Highest numbered registers are to be used
+     ﬁrst. (At least initially, nonvolatile registers will not be used to pass
+     parameters.)</li></ul>
+<!--l. 26--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-20400014.7.1"></a>Stack conventions</h5>
+<!--l. 28--><p class="noindent" >Stacks grow from high memory to low memory.
+                                                                  
+
+                                                                  
+</p><!--l. 32--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-20500014.7.1"></a>Method prologue responsibilities</h5>
+<!--l. 34--><p class="noindent" >(some of these can be omitted for leaf methods):
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x17-205002x1">Execute a stackoverﬂow check, and grow the thread stack if necessary.
+     </li>
+     <li 
+  class="enumerate" id="x17-205004x2">Save the caller&#x2019;s next instruction pointer (callee&#x2019;s return address)
+     </li>
+     <li 
+  class="enumerate" id="x17-205006x3">Save any nonvolatile ﬂoating-point registers used by callee.
+     </li>
+     <li 
+  class="enumerate" id="x17-205008x4">Save any nonvolatile general-purpose registers used by callee.
+     </li>
+     <li 
+  class="enumerate" id="x17-205010x5">Store and update the frame pointer FP.
+     </li>
+     <li 
+  class="enumerate" id="x17-205012x6">Store callee&#x2019;s compiled method ID
+     </li>
+     <li 
+  class="enumerate" id="x17-205014x7">Check to see if the Java<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> thread must yield the Processor (and yield if
+     threadswitch was requested).</li></ol>
+<!--l. 47--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x17-20600014.7.1"></a>Method epilogue responsibilities</h5>
+<!--l. 49--><p class="noindent" >(some of these can be ommitted for leaf methods):
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x17-206002x1">Restore FP to point to caller&#x2019;s stack frame.
+     </li>
+     <li 
+  class="enumerate" id="x17-206004x2">Restore any nonvolatile general-purpose registers used by callee.
+     </li>
+     <li 
+  class="enumerate" id="x17-206006x3">Restore any nonvolatile ﬂoating-point registers used by callee.
+     </li>
+     <li 
+  class="enumerate" id="x17-206008x4">Branch to the return address in caller.</li></ol>
+<!--l. 61--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.7.2   </span> <a 
+ id="x17-20700014.7.2"></a>Architecture-speciﬁc calling conventions</h4>
+<!--l. 63--><p class="noindent" >The following architecture-speciﬁc classes are of interest for calling conventions:
+</p>
+                                                                  
+
+                                                                  
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">StackframeLayoutConstants</span></span></span> for layout of the stack frame
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">JNICompiler</span></span></span> for transition to native code
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RegisterConstants</span></span></span> for register deﬁnitions
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BaselineConstants</span></span></span> for register usage by the baseline compiler
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CallingConventions</span></span></span> which  expands  the  calling  conventions  shortly
+     before register allocation in the optimizing compiler</li></ul>
+<!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">14.8   </span> <a 
+ id="x17-20800014.8"></a>VM Callbacks</h3>
+<!--l. 5--><p class="noindent" >Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM provides callbacks for many runtime events of interest to the Jikes
+RVM programmer, such as classloading, VM boot image creation, and VM exit.
+The callbacks allow arbitrary code to be executed on any of the supported
+events.
+</p><!--l. 7--><p class="noindent" >The callbacks are accessed through the nested interfaces deﬁned in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Callbacks</span></span></span> class.
+There is one interface per event type. To be notiﬁed of an event, register an instance
+of a class that implements the corresponding interface with <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Callbacks</span></span></span> by calling the
+corresponding <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">add...()</span></span></span> method. For example, to be notiﬁed when a class is
+instantiated, ﬁrst implement the <span 
+class="cmtt-10">Callbacks.ClassInstantiatedMonitor </span>interface,
+and then call <span 
+class="cmtt-10">Callbacks.addClassInstantiatedMonitor() </span>with an instance of your
+class. When any class is instantiated, the <span 
+class="cmtt-10">notifyClassInstantiated </span>method in your
+instance will be invoked.
+</p><!--l. 9--><p class="noindent" >The appropriate interface names can be obtained by appending ”Monitor” to the
+event names (e.g. the interface to implement for the MethodOverride event is
+<span 
+class="cmtt-10">Callbacks.MethodOverrideMonitor</span>). Likewise, the method to register the callback
+is ”add”, followed by the name of the interface (e.g. the register method for the above
+interface is <span 
+class="cmtt-10">Callbacks.addMethodOverrideMonitor()</span>).
+</p><!--l. 11--><p class="noindent" >Since the events for which callbacks are available are internal to the VM, there are
+limitations on the behavior of the callback code. For example, as soon as the exit
+callback is invoked, all threads are considered daemon threads (i.e. the VM will not
+wait for any new threads created in the callbacks to complete before exiting). Thus,
+if the exit callback creates any threads, it has to join() with them before
+returning. These limitations may also produce some unexpected behavior.
+For example, while there is an elementary safeguard on any classloading
+callback that prevents recursive invocation (i.e. if the callback code itself
+causes classloading), there is no such safeguard across events, so, if there are
+callbacks registered for both ClassLoaded and ClassInstantiated events, and the
+ClassInstantiated callback code causes dynamic class loading, the ClassLoaded
+callback will be invoked for the new class, but not the ClassInstantiated
+callback.
+                                                                  
+
+                                                                  
+</p><!--l. 13--><p class="noindent" >Examples of callback use can be seen in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Controller</span></span></span> class in the adaptive
+system.
+</p><!--l. 15--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.8.1   </span> <a 
+ id="x17-20900014.8.1"></a>An Example: Modifying SPECjvm98 to Report the End of a Run</h4>
+<!--l. 17--><p class="noindent" >The SPECjvm®98 benchmark suite is conﬁgured to run one or more benchmarks a
+particular number of times. For example, the following runs the compress benchmark
+for 5 iterations: </p><!--l. 18-->
+<div class="lstlisting" id="listing-119"><span class="label"><a 
+ id="x17-209001r1"></a></span>rvm SpecApplication -m5 -M5 -s100 -a _201_compress
+</div>
+<!--l. 22--><p class="noindent" >It is sometimes useful to have the VM notiﬁed when the application has completed
+an iteration of the benchmark. This can be performed by using the Callbacks
+interface. The speciﬁcs are speciﬁed below:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x17-209003x1">Modify <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">spec/harness/ProgramRunner.java</span></span></span>:
+         <ol  class="enumerate2" >
+         <li 
+  class="enumerate" id="x17-209005x1">add an import statement for the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Callbacks</span></span></span> class: <!--l. 27-->
+         <div class="lstlisting" id="listing-120"><span class="label"><a 
+ id="x17-209006r1"></a></span><span 
+class="cmbx-10">import</span> org.jikesrvm.Callbacks;
+         
+         </div>
+         </li>
+         <li 
+  class="enumerate" id="x17-209008x2">before the call to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">runOnce</span></span></span> add the following: <!--l. 31-->
+         <div class="lstlisting" id="listing-121"><span class="label"><a 
+ id="x17-209009r1"></a></span>Callbacks.notifyAppRunStart(className, run);
+         
+         </div>
+         </li>
+         <li 
+  class="enumerate" id="x17-209011x3">after the call to runOnce add the following: <!--l. 35-->
+         <div class="lstlisting" id="listing-122"><span class="label"><a 
+ id="x17-209012r1"></a></span>Callbacks.notifyAppRunComplete(className, run);
+         
+         </div>
+         </li></ol>
+     </li>
+     <li 
+  class="enumerate" id="x17-209014x2">Recompile the modiﬁed ﬁle: <!--l. 40-->
+     <div class="lstlisting" id="listing-123"><span class="label"><a 
+ id="x17-209015r1"></a></span>javac -classpath .:<span 
+class="tcrm-1000">$</span>RVM_BUILD/RVM.classes:<span 
+class="tcrm-1000">$</span>RVM_BUILD/RVM.classes/rvmrt.jar spec/harness/ProgramRunner.java
+     
+     </div>
+     <!--l. 43--><p class="noindent" >or create a stub version of Callbacks.java and place it the appropriate directory
+     structure with your modiﬁed ﬁle, i.e., <br 
+class="newline" /><span 
+class="cmtt-10">org/jikesrvm/Callbacks.java</span>
+                                                                  
+
+                                                                  
+     </p></li>
+     <li 
+  class="enumerate" id="x17-209017x3">Run Jikes RVM as you normally would using the SPECjvm98 benchmarks.</li></ol>
+<!--l. 47--><p class="noindent" >In the current system the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Controller</span></span></span> class will gain control when these callbacks are
+made and print a message into the AOS log ﬁle (by default, placed in Jikes RVM&#x2019;s
+current working directory and called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">AOSLog.txt</span></span></span>).
+</p><!--l. 51--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">14.8.2   </span> <a 
+ id="x17-21000014.8.2"></a>Another Example: Directing a Recompilation of All Methods During the
+Application&#x2019;s Execution</h4>
+<!--l. 53--><p class="noindent" >Another callback of interest allows an application to direct the VM to recompile all
+executed methods at a certain point of the application&#x2019;s execution by calling
+the <span 
+class="cmtt-10">recompileAllDynamicallyLoadedMethods </span>method in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Callbacks</span></span></span>
+class. This functionality can be useful to experiment with the performance
+eﬀects of when compilation occurs. This VM functionality can be disabled
+using the <span 
+class="cmtt-10">DISABLE</span><span 
+class="cmtt-10">_RECOMPILE</span><span 
+class="cmtt-10">_ALL</span><span 
+class="cmtt-10">_METHODS </span>boolean ﬂag to the adaptive
+system.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailCoreRuntimeServices.html"></a></p> 
+</body></html> 

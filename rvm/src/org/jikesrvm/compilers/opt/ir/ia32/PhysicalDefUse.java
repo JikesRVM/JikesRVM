@@ -51,7 +51,7 @@ public abstract class PhysicalDefUse {
   /** The processor register is used/defined */
   public static final int maskTR = 0x0400;
   /** The ESP register is used/defined */
-  public static final int maskESP= 0x0800;
+  public static final int maskESP = 0x0800;
   /* Meta mask for the enumeration. */
   /** First mask bit */
   private static final int maskHIGH = 0x0800;
@@ -72,27 +72,20 @@ public abstract class PhysicalDefUse {
   /** Definitions mask used by dependence graph to show a yield point */
   public static final int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskTR | maskESP;
 
-  /**
-   * @return whether or not an Operator uses the EFLAGS
-   */
   public static boolean usesEFLAGS(Operator op) {
     return (op.implicitUses & maskAF_CF_OF_PF_SF_ZF) != 0;
   }
 
-  /**
-   * @return whether or not an Operator uses the EFLAGS
-   */
   public static boolean definesEFLAGS(Operator op) {
     return (op.implicitDefs & maskAF_CF_OF_PF_SF_ZF) != 0;
   }
 
-  /**
-   * @return whether or not an Operator implicitly uses or defines ESP
-   */
   public static boolean usesOrDefinesESP(Operator op) {
     return ((op.implicitUses & maskESP) != 0) || ((op.implicitDefs & maskESP) != 0);
   }
+
   /**
+   * @param code the encoding of physical registers
    * @return a string representation of the physical registers encoded by
    * an integer
    */
@@ -140,10 +133,10 @@ public abstract class PhysicalDefUse {
   public static final class PDUEnumeration implements Enumeration<Register> {
     private int code;
     private int curMask;
-    private PhysicalRegisterSet phys;
+    private final PhysicalRegisterSet phys;
 
     PDUEnumeration(int c, IR ir) {
-      phys = ir.regpool.getPhysicalRegisterSet();
+      phys = (PhysicalRegisterSet)ir.regpool.getPhysicalRegisterSet();
       code = c;
       curMask = maskHIGH;
     }

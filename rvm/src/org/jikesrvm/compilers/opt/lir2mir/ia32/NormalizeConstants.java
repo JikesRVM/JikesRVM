@@ -12,13 +12,16 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.IA32_REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MATERIALIZE_FP_CONSTANT;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.CodeConstantOperand;
@@ -26,6 +29,7 @@ import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.NullConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -35,12 +39,13 @@ import org.jikesrvm.compilers.opt.ir.operand.TIBConstantOperand;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Normalize the use of constants in the LIR
  * to match the patterns supported in LIR2MIR.rules
  */
-public abstract class NormalizeConstants implements Operators {
+public abstract class NormalizeConstants {
 
   /**
    * Only thing we do for IA32 is to restrict the usage of
@@ -64,9 +69,9 @@ public abstract class NormalizeConstants implements Operators {
           if (use != null) {
             if (use instanceof ObjectConstantOperand) {
               ObjectConstantOperand oc = (ObjectConstantOperand) use;
-              if(oc.isMovableObjectConstant()) {
+              if (oc.isMovableObjectConstant()) {
                 RegisterOperand rop = ir.regpool.makeTemp(use.getType());
-                Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+                Operand jtoc = ir.regpool.makeJTOCOp();
                 Offset offset = oc.offset;
                 if (offset.isZero()) {
                   if (use instanceof StringConstantOperand) {
@@ -77,16 +82,16 @@ public abstract class NormalizeConstants implements Operators {
                   offset = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(oc.value));
                 }
                 LocationOperand loc = new LocationOperand(offset);
-                s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
+                s.insertBefore(Load.create(IA32_REF_LOAD, rop, jtoc, wordOperandForReference(offset.toWord()), loc));
                 s.putOperand(idx, rop.copyD2U());
               } else {
                 // Ensure object is in JTOC to keep it alive
                 Statics.findOrCreateObjectLiteral(oc.value);
-                s.putOperand(idx, new IntConstantOperand(Magic.objectAsAddress(oc.value).toInt()));
+                s.putOperand(idx, wordOperandForReference(Magic.objectAsAddress(oc.value).toWord()));
               }
             } else if (use instanceof DoubleConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Double);
-              Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              Operand jtoc = ir.regpool.makeJTOCOp();
               DoubleConstantOperand dc = (DoubleConstantOperand) use.copy();
               if (dc.offset.isZero()) {
                 dc.offset =
@@ -96,7 +101,7 @@ public abstract class NormalizeConstants implements Operators {
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof FloatConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Float);
-              Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              Operand jtoc = ir.regpool.makeJTOCOp();
               FloatConstantOperand fc = (FloatConstantOperand) use.copy();
               if (fc.offset.isZero()) {
                 fc.offset =
@@ -105,23 +110,22 @@ public abstract class NormalizeConstants implements Operators {
               s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof NullConstantOperand) {
-              s.putOperand(idx, new IntConstantOperand(0));
+              s.putOperand(idx, wordOperandForReference(Word.zero()));
             } else if (use instanceof AddressConstantOperand) {
-              int v = ((AddressConstantOperand) use).value.toInt();
-              s.putOperand(idx, new IntConstantOperand(v));
+              s.putOperand(idx, wordOperandForReference(((AddressConstantOperand) use).value.toWord()));
             } else if (use instanceof TIBConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.TIB);
-              Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              Operand jtoc = ir.regpool.makeJTOCOp();
               Offset offset = ((TIBConstantOperand) use).value.getTibOffset();
               LocationOperand loc = new LocationOperand(offset);
-              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
+              s.insertBefore(Load.create(IA32_REF_LOAD, rop, jtoc, wordOperandForReference(offset.toWord()), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof CodeConstantOperand) {
               RegisterOperand rop = ir.regpool.makeTemp(TypeReference.CodeArray);
-              Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+              Operand jtoc = ir.regpool.makeJTOCOp();
               Offset offset = ((CodeConstantOperand) use).value.findOrCreateJtocOffset();
               LocationOperand loc = new LocationOperand(offset);
-              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new IntConstantOperand(offset.toInt()), loc));
+              s.insertBefore(Load.create(IA32_REF_LOAD, rop, jtoc, wordOperandForReference(offset.toWord()), loc));
               s.putOperand(idx, rop.copyD2U());
             }
           }
@@ -130,11 +134,12 @@ public abstract class NormalizeConstants implements Operators {
     }
   }
 
-  /**
-   * IA32 supports 32 bit int immediates, so nothing to do.
-   */
-  static Operand asImmediateOrReg(Operand addr, Instruction s, IR ir) {
-    return addr;
+  private static Operand wordOperandForReference(Word w) {
+    if (VM.BuildFor64Addr) {
+      return new LongConstantOperand(w.toLong(), true);
+    } else {
+      return new IntConstantOperand(w.toInt());
+    }
   }
 
 }

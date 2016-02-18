@@ -12,21 +12,23 @@
  */
 package org.mmtk.policy.immix;
 
+import static org.mmtk.utility.Constants.BYTES_IN_PAGE;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_ADDRESS;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 
 @Uninterruptible
-public final class ChunkList implements Constants {
+public final class ChunkList {
   private static final int LOG_PAGES_IN_CHUNK_MAP_BLOCK = 0;
-  private static final int ENTRIES_IN_CHUNK_MAP_BLOCK = (BYTES_IN_PAGE<<LOG_PAGES_IN_CHUNK_MAP_BLOCK)>>LOG_BYTES_IN_ADDRESS;
-  private static final int CHUNK_MAP_BLOCKS = 1<<4;
+  private static final int ENTRIES_IN_CHUNK_MAP_BLOCK = (BYTES_IN_PAGE << LOG_PAGES_IN_CHUNK_MAP_BLOCK) >> LOG_BYTES_IN_ADDRESS;
+  private static final int CHUNK_MAP_BLOCKS = 1 << 4;
   private static final int MAX_ENTRIES_IN_CHUNK_MAP = ENTRIES_IN_CHUNK_MAP_BLOCK * CHUNK_MAP_BLOCKS;
-  private AddressArray chunkMap =  AddressArray.create(CHUNK_MAP_BLOCKS);
+  private final AddressArray chunkMap =  AddressArray.create(CHUNK_MAP_BLOCKS);
   private int chunkMapLimit = -1;
   private int chunkMapCursor = -1;
 
@@ -60,14 +62,14 @@ public final class ChunkList implements Constants {
       VM.assertions.fail("Overflow of chunk map!");
     }
     if (chunkMap.get(map).isZero()) {
-      Address tmp = Plan.metaDataSpace.acquire(1<<LOG_PAGES_IN_CHUNK_MAP_BLOCK);
+      Address tmp = Plan.metaDataSpace.acquire(1 << LOG_PAGES_IN_CHUNK_MAP_BLOCK);
       if (tmp.isZero()) {
         Space.printUsageMB();
         VM.assertions.fail("Failed to allocate space for chunk map.  Is metadata virtual memory exhausted?");
       }
       chunkMap.set(map, tmp);
     }
-    Address entry = chunkMap.get(map).plus(index<<LOG_BYTES_IN_ADDRESS);
+    Address entry = chunkMap.get(map).plus(index << LOG_BYTES_IN_ADDRESS);
     entry.store(chunk);
     Chunk.setMap(chunk, chunkMapCursor);
     if (VM.VERIFY_ASSERTIONS) checkMap();
@@ -81,15 +83,20 @@ public final class ChunkList implements Constants {
     if (VM.VERIFY_ASSERTIONS) checkMap();
   }
 
-  private int getChunkIndex(int entry) { return entry & (ENTRIES_IN_CHUNK_MAP_BLOCK - 1);}
-  private int getChunkMap(int entry) {return entry & ~(ENTRIES_IN_CHUNK_MAP_BLOCK - 1);}
+  private int getChunkIndex(int entry) {
+    return entry & (ENTRIES_IN_CHUNK_MAP_BLOCK - 1);
+  }
+
+  private int getChunkMap(int entry) {
+    return entry & ~(ENTRIES_IN_CHUNK_MAP_BLOCK - 1);
+  }
 
   private Address getMapAddress(int entry) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(entry >= 0);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(entry <= chunkMapCursor);
     int index = getChunkIndex(entry);
     int map = getChunkMap(entry);
-    return chunkMap.get(map).plus(index<<LOG_BYTES_IN_ADDRESS);
+    return chunkMap.get(map).plus(index << LOG_BYTES_IN_ADDRESS);
   }
 
   /**
@@ -143,7 +150,9 @@ public final class ChunkList implements Constants {
     Address chunk;
     do {
       entry += stride;
-      if (entry > chunkMapLimit) { entry = entry % stride; }
+      if (entry > chunkMapLimit) {
+        entry = entry % stride;
+      }
       chunk = getMapAddress(entry).loadAddress();
     } while (chunk.isZero() && entry != start);
     return entry == start ? Address.zero() : chunk;

@@ -191,31 +191,41 @@ import org.vmmagic.pragma.*;
    * Get the start of the subspace
    * @return The start of this subspace
    */
-  public Address getStart() { return start_; }
+  public Address getStart() {
+    return start_;
+  }
 
   /**
    * Get the end of this subspace
    * @return The address of the end of this subspace
    */
-  public Address getEnd() { return end_; }
+  public Address getEnd() {
+    return end_;
+  }
 
   /**
    * Get the first index of subspace
    * @return the firstIndex of this subspace
    */
-  public int getFirstIndex() { return firstIndex_; }
+  public int getFirstIndex() {
+    return firstIndex_;
+  }
 
   /**
    * Get the blocksize for this subspace
    * @return The size of a tile
    */
-  public int getBlockSize() { return blockSize_; }
+  public int getBlockSize() {
+    return blockSize_;
+  }
 
   /**
    * Get the number of tiles in this subspace
    * @return The number of tiles in this subspace
    */
-  public int getBlockNum() { return blockNum_; }
+  public int getBlockNum() {
+    return blockNum_;
+  }
 
   /**
    * Calculate the space remaining in a block after this address

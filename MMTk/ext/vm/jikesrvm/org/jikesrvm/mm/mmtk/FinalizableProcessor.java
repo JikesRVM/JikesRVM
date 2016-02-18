@@ -12,15 +12,22 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.Services;
+import org.jikesrvm.util.Services;
 import org.mmtk.plan.TraceLocal;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.UnpreemptibleNoWarn;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class manages the processing of finalizable objects.
@@ -28,7 +35,7 @@ import org.mmtk.plan.TraceLocal;
  * TODO can this be a linked list?
  */
 @Uninterruptible
-public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor implements SizeConstants {
+public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor {
 
   /********************************************************************
    * Class fields
@@ -80,53 +87,55 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    * Allocate an entry in the table. This should be called from an unpreemptible
    * context so that the entry can be filled. This method is responsible for growing
    * the table if necessary.
+   *
+   * @param object the object to add to the table of candidates
    */
   @NoInline
   @UnpreemptibleNoWarn("Non-preemptible but yield when table needs to be grown")
   public void add(Object object) {
     lock.acquire();
-    while (maxIndex>=table.length() || maxIndex >= freeReady()) {
-      int newTableSize=-1;
-      int newReadyForFinalizeSize=-1;
-      AddressArray newTable=null;
-      Object[] newReadyForFinalize=null;
+    while (maxIndex >= table.length() || maxIndex >= freeReady()) {
+      int newTableSize = -1;
+      int newReadyForFinalizeSize = -1;
+      AddressArray newTable = null;
+      Object[] newReadyForFinalize = null;
 
-      if (maxIndex>=table.length()) {
-        newTableSize=STRESS ? table.length() + 1 : (int)(table.length() * GROWTH_FACTOR);
+      if (maxIndex >= table.length()) {
+        newTableSize = STRESS ? table.length() + 1 : (int)(table.length() * GROWTH_FACTOR);
       }
 
-      if (maxIndex>=freeReady()) {
-        newReadyForFinalizeSize=table.length() + countReady();
-        if (newReadyForFinalizeSize<=readyForFinalize.length) {
-          newReadyForFinalizeSize=-1;
+      if (maxIndex >= freeReady()) {
+        newReadyForFinalizeSize = table.length() + countReady();
+        if (newReadyForFinalizeSize <= readyForFinalize.length) {
+          newReadyForFinalizeSize = -1;
         }
       }
 
       {
         lock.release();
-        if (newTableSize>=0) {
-          newTable=AddressArray.create(newTableSize);
+        if (newTableSize >= 0) {
+          newTable = AddressArray.create(newTableSize);
         }
-        if (newReadyForFinalizeSize>=0) {
-          newReadyForFinalize=new Object[newReadyForFinalizeSize];
+        if (newReadyForFinalizeSize >= 0) {
+          newReadyForFinalize = new Object[newReadyForFinalizeSize];
         }
         lock.acquire();
       }
 
-      if (maxIndex>=table.length() && newTable!=null) {
-        for (int i=0; i < table.length(); i++) {
+      if (maxIndex >= table.length() && newTable != null) {
+        for (int i = 0; i < table.length(); i++) {
           newTable.set(i, table.get(i));
         }
         table = newTable;
       }
 
-      if (maxIndex>=freeReady() && newReadyForFinalize!=null) {
+      if (maxIndex >= freeReady() && newReadyForFinalize != null) {
         int j = 0;
-        for(int i=nextReadyIndex; i < lastReadyIndex && i < readyForFinalize.length; i++) {
+        for (int i = nextReadyIndex; i < lastReadyIndex && i < readyForFinalize.length; i++) {
           newReadyForFinalize[j++] = readyForFinalize[i];
         }
         if (lastReadyIndex < nextReadyIndex) {
-          for(int i=0; i < lastReadyIndex; i++) {
+          for (int i = 0; i < lastReadyIndex; i++) {
             newReadyForFinalize[j++] = readyForFinalize[i];
           }
         }
@@ -156,7 +165,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    */
   @Override
   public void forward(TraceLocal trace, boolean nursery) {
-    for (int i=0 ; i < maxIndex; i++) {
+    for (int i = 0 ; i < maxIndex; i++) {
       ObjectReference ref = table.get(i).toObjectReference();
       table.set(i, trace.getForwardedFinalizable(ref).toAddress());
     }
@@ -226,21 +235,21 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    */
 
   /**
-   * The number of entries in the table.
+   * @return the number of entries in the table.
    */
   public int count() {
     return maxIndex;
   }
 
   /**
-   * The number of entries ready to be finalized.
+   * @return the number of entries ready to be finalized.
    */
   public int countReady() {
     return ((lastReadyIndex - nextReadyIndex) + readyForFinalize.length) % readyForFinalize.length;
   }
 
   /**
-   * The number of entries ready to be finalized.
+   * @return the number of entries ready to be finalized.
    */
   public int freeReady() {
     return readyForFinalize.length - countReady();
@@ -250,7 +259,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    * Static methods.
    */
 
-  /** Get the singleton */
+  /** @return the processor singleton */
   public static FinalizableProcessor getProcessor() {
     return finalizableProcessor;
   }
@@ -265,7 +274,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   }
 
   /**
-   * Get an object to call the finalize() method on it.
+   * @return an object to call the finalize() method on it
    */
   @Unpreemptible("Non-preemptible but may pause if table is being grown")
   public static Object getForFinalize() {
@@ -273,7 +282,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   }
 
   /**
-   * The number of objects waiting for finalize() calls.
+   * @return the number of objects waiting for finalize() calls.
    */
   public static int countReadyForFinalize() {
     return finalizableProcessor.countReady();

@@ -27,12 +27,12 @@ class RecompileOptChoice extends RecompilationChoice {
   /**
    * The opt level associated with this recompilation choice
    */
-  private int thisChoiceOptLevel;
+  private final int thisChoiceOptLevel;
 
   /**
    * The "compiler" (see CompilerDNA) that is associated with this choice
    */
-  private int thisChoiceCompiler;
+  private final int thisChoiceCompiler;
 
   /**
    * Constructor

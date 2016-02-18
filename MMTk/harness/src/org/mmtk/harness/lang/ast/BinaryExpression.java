@@ -14,6 +14,7 @@ package org.mmtk.harness.lang.ast;
 
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * A binary expression.
@@ -26,6 +27,9 @@ public class BinaryExpression extends AbstractAST implements Expression {
   /** The operator */
   private final Operator op;
 
+  /** The type of the result - calculated by the type checker pass */
+  private Type type;
+
   /**
    * Create a binary expression.
    */
@@ -36,12 +40,28 @@ public class BinaryExpression extends AbstractAST implements Expression {
     this.rhs = rhs;
   }
 
-  public Expression getLhs() { return lhs; }
-  public Expression getRhs() { return rhs; }
-  public Operator getOperator() { return op; }
+  public Expression getLhs() {
+    return lhs;
+  }
+
+  public Expression getRhs() {
+    return rhs;
+  }
+
+  public Operator getOperator() {
+    return op;
+  }
 
   @Override
   public Object accept(Visitor v) {
     return v.visit(this);
+  }
+
+  public Type getType() {
+    return type;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
   }
 }

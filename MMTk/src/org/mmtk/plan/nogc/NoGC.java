@@ -34,7 +34,7 @@ public class NoGC extends Plan {
   /**
    *
    */
-  public static final ImmortalSpace noGCSpace = new ImmortalSpace("default", VMRequest.create());
+  public static final ImmortalSpace noGCSpace = new ImmortalSpace("default", VMRequest.discontiguous());
   public static final int NOGC = noGCSpace.getDescriptor();
 
 

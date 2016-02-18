@@ -21,10 +21,14 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 public final class ReturnAddressOperand extends Operand {
   final int retIndex;
 
-  ReturnAddressOperand(int ri) { retIndex = ri; }
+  ReturnAddressOperand(int ri) {
+    retIndex = ri;
+  }
 
   @Override
-  public Operand copy() { return this; }
+  public Operand copy() {
+    return this;
+  }
 
   @Override
   public boolean similar(Operand op) {

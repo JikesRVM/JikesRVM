@@ -42,7 +42,7 @@ class StackResize {
 
     // call another native method
     boolean resizeDidNotOccur = expectNoResize(currentStackSize);
-    if (resizeDidNotOccur==false) {
+    if (resizeDidNotOccur == false) {
       if (verbose)
         VM.sysWrite("> Unexpected stack resize with native frame present\n");
       return false;
@@ -60,7 +60,7 @@ class StackResize {
       VM.sysWrite(currentStackSize); VM.sysWrite("\n");
     }
 
-    return !currentStackSize==previousStackSize;
+    return !(currentStackSize == previousStackSize);
   }
 
 
@@ -80,7 +80,7 @@ class StackResize {
     // VM.sysWrite("filling: left ");
     // VM.sysWrite(spaceLeft); VM.sysWrite("\n");
     // recursion to fill stack up to 3 words left
-    if ((spaceLeft) > (500*4)) {
+    if ((spaceLeft) > (500 * 4)) {
       // VM.enableGC();
       return nativeWithStackAlmostFull();
     } else {
@@ -104,7 +104,7 @@ class StackResize {
 
     System.loadLibrary("StackResize");
 
-    if (args.length!=0) {
+    if (args.length != 0) {
       if (args[0].equals("-quiet")) {
         verbose = false;
         // for verbose native, have to edit the flag in StackResize.c
@@ -118,7 +118,7 @@ class StackResize {
     // required for native call
     Thread th = Thread.getCurrentThread();
     int currentStackSpace = Magic.getArrayLength(th.stack);
-    if (currentStackSpace>VM.STACK_SIZE_JNINATIVE) {
+    if (currentStackSpace > VM.STACK_SIZE_JNINATIVE) {
       if (verbose)
         VM.sysWrite("StackResize:  normal stack size already exceeds native requirement, stack will not get resized.\n  Set up the system configuration for smaller normal stack:  StackFrameLayoutConstants.java\n");
       VM.sysWrite("FAIL: StackResize\n");
@@ -147,7 +147,7 @@ class StackResize {
  }
 
   static void checkTest(int returnValue, boolean postCheck, String testName) {
-    if (returnValue==0 && postCheck) {
+    if (returnValue == 0 && postCheck) {
       printVerbose("PASS: " + testName);
     } else {
       allTestPass = false;

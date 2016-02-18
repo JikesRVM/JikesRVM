@@ -13,6 +13,7 @@
 package org.mmtk.plan.refcount;
 
 import org.mmtk.plan.Phase;
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.StopTheWorldCollector;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
@@ -62,12 +63,12 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
   }
 
   /**
-   * Get the modified processor to use.
+   * @return the modified processor to use.
    */
   protected abstract TransitiveClosure getModifiedProcessor();
 
   /**
-   * Get the root trace to use.
+   * @return the root trace to use.
    */
   protected abstract TraceLocal getRootTrace();
 
@@ -93,6 +94,15 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
       return;
     }
 
+    if (phaseId == RCBase.ROOTS) {
+      VM.scanning.computeGlobalRoots(getCurrentTrace());
+      VM.scanning.computeStaticRoots(getCurrentTrace());
+      if (Plan.SCAN_BOOT_IMAGE && RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        VM.scanning.computeBootImageRoots(getCurrentTrace());
+      }
+      return;
+    }
+
     if (phaseId == RCBase.CLOSURE) {
       getRootTrace().completeTrace();
       newRootBuffer.flushLocal();
@@ -109,7 +119,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
     if (phaseId == RCBase.PROCESS_OLDROOTBUFFER) {
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) return;
       ObjectReference current;
-      while(!(current = oldRootBuffer.pop()).isNull()) {
+      while ((!(current = oldRootBuffer.pop()).isNull())) {
         decBuffer.push(current);
       }
       return;
@@ -118,7 +128,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
     if (phaseId == RCBase.PROCESS_NEWROOTBUFFER) {
       ObjectReference current;
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
-        while(!(current = newRootBuffer.pop()).isNull()) {
+        while (!(current = newRootBuffer.pop()).isNull()) {
           if (RCHeader.testAndMark(current)) {
             if (RCBase.BUILD_FOR_GENRC) {
               RCHeader.initRC(current);
@@ -141,7 +151,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
         if (!RCBase.BUILD_FOR_GENRC) modBuffer.flushLocal();
         return;
       }
-      while(!(current = newRootBuffer.pop()).isNull()) {
+      while (!(current = newRootBuffer.pop()).isNull()) {
         if (RCBase.BUILD_FOR_GENRC) {
           RCHeader.incRC(current);
         } else {
@@ -158,7 +168,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
 
     if (phaseId == RCBase.PROCESS_MODBUFFER) {
       ObjectReference current;
-      while(!(current = modBuffer.pop()).isNull()) {
+      while (!(current = modBuffer.pop()).isNull()) {
         RCHeader.makeUnlogged(current);
         if (!RCBase.BUILD_FOR_GENRC) {
           if (Space.isInSpace(RCBase.REF_COUNT, current)) {
@@ -174,7 +184,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
       ObjectReference current;
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
         if (!RCBase.BUILD_FOR_GENRC) {
-          while(!(current = decBuffer.pop()).isNull()) {
+          while (!(current = decBuffer.pop()).isNull()) {
             if (RCHeader.isNew(current)) {
               if (Space.isInSpace(RCBase.REF_COUNT, current)) {
                 RCBase.rcSpace.free(current);
@@ -188,7 +198,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
         }
         return;
       }
-      while(!(current = decBuffer.pop()).isNull()) {
+      while (!(current = decBuffer.pop()).isNull()) {
         if (RCBase.BUILD_FOR_GENRC) {
           if (RCHeader.decRC(current) == RCHeader.DEC_KILL) {
             decBuffer.processChildren(current);

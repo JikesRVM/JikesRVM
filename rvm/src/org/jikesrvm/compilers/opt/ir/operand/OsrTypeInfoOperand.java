@@ -25,9 +25,6 @@ public final class OsrTypeInfoOperand extends Operand {
   public byte[] localTypeCodes;
   public byte[] stackTypeCodes;
 
-  /**
-   * Create a new type operand with the specified data type.
-   */
   public OsrTypeInfoOperand(byte[] ltcodes, byte[] stcodes) {
     this.localTypeCodes = ltcodes;
     this.stackTypeCodes = stcodes;

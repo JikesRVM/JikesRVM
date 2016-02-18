@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.deque;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.RawPageSpace;
 
 import org.mmtk.vm.VM;
@@ -39,9 +41,9 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Constructor
-   *
-   * @param rps The space from which the instance should obtain buffers.
+   * @param name human-readable name of ther queue
+   * @param rps The space from which the instance should obtain buffers
+   * @param arity the queue's arity (number of words per entry)
    */
   public SortSharedDeque(String name, RawPageSpace rps, int arity) {
     super(name, rps, arity);
@@ -167,9 +169,9 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Partition the slots in an address range based on the value in
-   * a particular bit. Place the start & end addresses of the two
-   * partitions & a bitmask per partition (which indicates the highest
-   * bit position at which the max & min of a partition differ) on the
+   * a particular bit. Place the start &amp; end addresses of the two
+   * partitions &amp; a bitmask per partition (which indicates the highest
+   * bit position at which the max &amp; min of a partition differ) on the
    * stack. This works just like the partition in quick sort, except
    * that a bit value is being compared here
    *
@@ -288,7 +290,7 @@ import org.vmmagic.unboxed.*;
    *
    */
   private int stackLoc;
-  private AddressArray stackBase;
+  private final AddressArray stackBase;
 
   /*
    * Allocate memory for the stack and initialize it with the first range

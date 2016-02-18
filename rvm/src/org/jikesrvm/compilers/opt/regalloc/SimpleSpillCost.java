@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
  * An object that returns an estimate of the relative cost of spilling a
  * symbolic register.
  */
-class SimpleSpillCost extends SpillCostEstimator {
+final class SimpleSpillCost extends SpillCostEstimator {
 
   SimpleSpillCost(IR ir) {
     calculate(ir);
@@ -82,6 +82,10 @@ class SimpleSpillCost extends SpillCostEstimator {
    *
    * NOTE: This is pretty intel-specific.
    * TODO Refactor to arch/ tree.
+   *
+   * @param s the instruction to examine
+   * @return {@code true} if and only if the instruction has such a memory
+   *   operand
    */
   static boolean hasBadSizeMemoryOperand(Instruction s) {
     for (Enumeration<Operand> e = s.getMemoryOperands(); e.hasMoreElements();) {

@@ -109,8 +109,22 @@ void thread(object list, int threads, int rounds) {
 
 void decorate(object list) {
   while (list != null) {
+    wasteTime();
     object s = list.object[1];
     s.object[0] = alloc(0,0);
     list = list.object[0];
   }
+}
+
+//
+// Waste time (and potentially generate scheduler yield points)
+// by updating the heap a few times.
+//
+void wasteTime() {
+  object local = alloc(1,0);
+  int i = 37;
+  while (i > 0) {
+    local.object[0] = alloc(0,0);
+    i = i - 1;
+  } 
 }
