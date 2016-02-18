@@ -5,6 +5,110 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+* Jikes RVM 3.1.4 (February 18, 2016)
+
+Release Notes - JikesRVM - Version 3.1.4
+
+** New Feature
+    * [RVM-95] - Switch to building Classpath with javac (stop download of ecj?)
+    * [RVM-122] - restructure sys.C into multiple source files.
+    * [RVM-153] - Make org.mmtk.utility.heap.PageResource#ZERO_ON_RELEASE configurable and set to true in stress test-run
+    * [RVM-1110] - Visualization of opt compiler CFGs using dot output format
+
+** Improvement
+    * [RVM-134] - Make register operand register and type fields private
+    * [RVM-174] - Reduce/remove use of ArchitectureSpecific
+    * [RVM-262] - Improving typing of PPC Assembler registers
+    * [RVM-268] - Update JikesRVM copies of classes (e.g. Constructor) to match the 1.5/current Classpath API
+    * [RVM-463] - Replace calls to StringBuffer with CPStringBuilder where appropriate
+    * [RVM-584] - Automate calculation of compilerDNA from compiler-dna test run Report.xml
+    * [RVM-773] - Upgrade to Classpath 0.99
+    * [RVM-829] - Assertions on invalid 8bit assembler operations
+    * [RVM-999] - Increase robustness of RVMThread.dumpStack
+    * [RVM-1013] - MMTk Harness Improvements Jan 2013
+    * [RVM-1033] - Compiler-DNA test run based on freely available benchmark
+    * [RVM-1048] - Upgrade to ECJ 4.2.2
+    * [RVM-1057] - Automatic checking of assertion coding style
+    * [RVM-1059] - Test for org.jikesrvm.tools.oth.OptTestHarness
+    * [RVM-1079] - Convert non-ArchitectureSpecific constant interfaces to constant classes
+    * [RVM-1081] - Convert remaining constant interfaces to constant classes
+    * [RVM-1083] - Remove scratch fields from the optimizing compiler IR
+    * [RVM-1087] - Move static nested classes out of LinearScan
+    * [RVM-1088] - Remove outdated and broken PPC-specific instruction scheduler
+    * [RVM-1090] - Improve documentation of register allocator data structures with respect to contracts of equals(), hashCode() and compareTo()
+    * [RVM-1097] - Parameterize HeapLayoutConstants to be in sync with address changes in .properties files
+    * [RVM-1115] - [change from MRP] Refactor build system to improve support for building C code on other platforms
+    * [RVM-1133] - Automatic checking of imports in architecture packages
+
+** Bug
+    * [RVM-629] - Incorrect usage of @Untraced?
+    * [RVM-692] - Classpath Thread operations not supported because VMThreadMXBeanImpl is not implemented
+    * [RVM-781] - GNU Classpath 0.98 causes performance regression in luindex
+    * [RVM-837] - ExtremeAssertions builds fail on ppc using IBM Java6 SR4 and SR5
+    * [RVM-853] - Protocol handlers do not work with Jikes RVM
+    * [RVM-857] - Changes to Strings made via JNI do not propagate back
+    * [RVM-867] - Incomplete comment for alignAllocation in Allocator.java
+    * [RVM-868] - Method resolution code unable to resolve methods in some cases
+    * [RVM-873] - "NullPointerException within uninterruptible region" when executing RVM in x86_64 debian
+    * [RVM-875] - Intermittent ClassFormatError whilst running Xalan
+    * [RVM-876] - Unnecessary CAS with multiple collector threads attempting to forward
+    * [RVM-942] - GNU Classpath does not build on x86-64_linux under Debian Squeeze anymore
+    * [RVM-953] - Immix fails with unclear error message in builds without assertions when hardcoded thread limit is exceeded
+    * [RVM-957] - Optimizing compiler (at O1+) produces incorrect code for scalac benchmark due to bug in SImpleEscape
+    * [RVM-959] - Incorrect rvm.lib library name on OS X
+    * [RVM-966] - VM death due to OutOfMemoryError does not always return non-zero exit status
+    * [RVM-988] - AddressInputStream does not follow API specification
+    * [RVM-1002] - Parameters for "deliverHardwareException" are not pushed in right way
+    * [RVM-1016] - PowerPC optimizing compiler generates wrong code for the PPC_ORC and PPC_ORCr operators
+    * [RVM-1018] - Code patching caused by classloading can cause deadlock on PPC in dacapo 2006-MR-2 eclipse
+    * [RVM-1020] - Wrong path in GCSpy component build file
+    * [RVM-1022] - MMTk signals out of memory after a successful emergency collection
+    * [RVM-1025] - Nursery is created for non-generational garbage collectors
+    * [RVM-1026] - Address conflict caused by overlapping of normal spaces with nursery
+    * [RVM-1027] - Crash when bootimage runner uses longjmp
+    * [RVM-1028] - VMProcess should use notfiyAll() instead of notify()
+    * [RVM-1031] - Assertion failure in GenNurseryTraceLocal.isLive when finalizing objects marked with @NonMoving
+    * [RVM-1035] - Test-runs must use extra.rvm.args instead of extra.args in almost all cases
+    * [RVM-1036] - Optimizing compiler never inserts checkstore checks in inlined code
+    * [RVM-1040] - Add an Ant target to run unit tests on an existing RVM image
+    * [RVM-1050] - Memory.memcopy(Address, Address, Extent) can corrupt memory when memory areas overlap
+    * [RVM-1053] - GenerationContext.resync() deletes all null check guards
+    * [RVM-1066] - Parsing of -Xbootclasspath command line arguments leads to different results for different argument positions
+    * [RVM-1067] - Overly eager clearing of Soft references
+    * [RVM-1075] - Undefined behaviour during thread termination in sysThreadStartup
+    * [RVM-1076] - Miscompilation of write barriers for unboxed types on PPC64 causes ExtremeAssertionsBaseBaseUsePrimitiveWriteBarriers to segfault during RVMThread.boot()
+    * [RVM-1078] - SplitBasicBlock does not correctly count instructions when splitting basic blocks
+    * [RVM-1080] - Fixes for invalid operations on unboxed types
+    * [RVM-1082] - Assertion failure in org.jikesrvm.mm.mmtk.Lock on PPC64
+    * [RVM-1086] - Memory leak during thread creation in bootimage runner
+    * [RVM-1106] - Assertion failure in AssemblerOpt when emitting CMPXCHG8B
+    * [RVM-1108] - Correct implementation of full memory fences in the compilers
+    * [RVM-1109] - Jikes RVM doesn't update TIBs of array classes for recompiled java.lang.Object methods
+    * [RVM-1116] - [bugfix from MRP] JNI compiler fails to pass > 1 FP arg if not using SSE2
+    * [RVM-1120] - Assertion failures in IA32 assembler during baseline compilation when running Jython on x64
+    * [RVM-1124] - IR for Magic generated by the optimizing compiler can be non-canonical
+    * [RVM-1127] - bootloader build fails under OSX
+    * [RVM-1128] - User Guide - Quick Start Guide needs updating
+
+** Task
+    * [RVM-888] - Process MMTk patch subbmitted via SF tracker
+    * [RVM-1107] - Remove support for AIX from the code base
+    * [RVM-1111] - Remove support for Mac OS on PowerPC
+    * [RVM-1130] - Add -X:verboseSignalHandling command line option to mimic behaviour of -X:verbose before the bootloader changes
+
+** Sub-task
+    * [RVM-126] - Implement VM interfaces of the simplest beans (Runtime, ClassLoading, Compilation)
+    * [RVM-750] - Implement Thread.setPriority
+    * [RVM-1043] - Apply compatibility changes from MRP and Da Feng in preparation for x64 support
+    * [RVM-1104] - Enable WhitespaceAround Checkstyle check and fix revealed failures
+
+** Test
+    * [RVM-1041] - Unit test for org.jikesrvm.compilers.opt.bc2ir.GenerationContext
+    * [RVM-1072] - Unit test for org.jikesrvm.compilers.opt.bc2ir.OperandStack
+    * [RVM-1077] - Unit test for org.jikesrvm.compilers.opt.regalloc.ScratchMap
+    * [RVM-1098] - Add test that uses the benchmarking suite from the Scala Benchmarking Project
+
+
 * Jikes RVM 3.1.3 (February 12, 2013)
 
 ** Improvement
