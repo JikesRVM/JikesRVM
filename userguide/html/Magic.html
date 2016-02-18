@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>15 Magic</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 15</span><br /><a 
+ id="x18-21100015"></a>Magic</h2>
+<!--l. 5--><p class="noindent" >Most Java runtimes rely upon the foreign language APIs of the underlying
+platform operating system to implement runtime behaviour which involves
+interaction with the underlying platform. Runtimes also occasionally employ small
+segments of machine code to provide access to platform hardware state. Note
+that this is expedient rather than mandatory. With a suitably smart Java
+bytecode compiler it would be quite possible to implement a full Java-in-Java
+runtime i.e. one comprising only compiled Java code (the JNode project is an
+attempt to implement a runtime along these lines; the Xerox, MIT, Lambda
+and TI Explorer Lisp machine implementations and the Xerox Smalltalk
+implementation were highly successful attemtps at fully compiled language
+runtimes).
+</p><!--l. 7--><p class="noindent" >This section provides information on <span id="textcolor1"><span 
+class="msam-10">⋆</span></span> magic <span id="textcolor2"><span 
+class="msam-10">⋆</span></span> which is an escape hatch that
+Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM provides to implement functionality that is not possible using the pure
+Java<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> programming language. For example, the Jikes RVM garbage collectors
+and runtime system must, on occasion, access memory or perform unsafe
+casts. The compiler will also translate a call to Magic.threadSwitch() into a
+sequence of machine code that swaps out old thread registers and swaps in new
+ones, switching execution to the new thread&#x2019;s stack resumed at its saved
+PC
+</p><!--l. 9--><p class="noindent" >There are three mechanisms via which the Jikes RVM <span id="textcolor3"><span 
+class="msam-10">⋆</span></span> magic <span id="textcolor4"><span 
+class="msam-10">⋆</span></span> is implemented:
+</p>
+     <ul class="itemize1">
+     <li class="itemize">Compiler  Intrinsics:  Most  methods  are  within  class  librarys  but  some
+     functions are built in (that is, intrinsic) to the compiler. These are referred
+     to as intrinsic functions or intrinsics.
+     </li>
+     <li class="itemize">Compiler Pragmas: Some intrinsics are do not provide any behaviour but
+     instead provide information to the compiler that modiﬁes optimizations,
+     calling  conventions  and  activation  frame  layout.  We  rever  to  these
+     mechanisms as compiler pragmas.
+     </li>
+     <li class="itemize">Unboxed Types: Besides the primitive types, all Java values are boxed
+     types. Conceptually, they are represented by a pointer to a heap object.
+     However, an unboxed type is represented by the value itself. All methods
+     on an unboxed type must be Compiler Intrinsics.</li></ul>
+<!--l. 16--><p class="noindent" >The mechanisms are used to implement the following functionality: </p>
+     <ul class="itemize1">
+     <li class="itemize"><a 
+href="#x18-21600015.3">RawMemoryAccess</a>: Unfetted access to memory.
+     </li>
+     <li class="itemize"><a 
+href="#x18-21700015.4">Uninterruptible Code</a>: Declaring code to be uninterruptible.
+     </li>
+     <li class="itemize">Alternative Calling Conventions: Declaring diﬀerent calling conventions
+     and  activation  frame  layout.  This  is  done  via  annotations,  see  the
+     <span 
+class="cmtt-10">org.vmmagic.pragma </span>package.</li></ul>
+                                                                  
+
+                                                                  
+<h3 class="sectionHead"><span class="titlemark">15.1   </span> <a 
+ id="x18-21200015.1"></a>Compiler Intrinsics</h3>
+<!--l. 5--><p class="noindent" >A compiler intrinsic will usually generate a speciﬁc code sequence. The code sequence
+will usually be inlined and optimized as part of compilation phase of the optimizing
+compiler.
+</p><!--l. 7--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x18-21300015.1"></a>Magic</h5>
+<!--l. 9--><p class="noindent" >All the methods in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Magic</span></span></span> are compiler intrinsics. Because these methods access raw
+memory or other machine state, perform unsafe casts, or are operating system calls,
+they cannot be implemented in Java code.
+</p><!--l. 11--><p class="noindent" >A Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM implementor must be <span 
+class="cmti-10">extremely careful </span>when writing code that uses
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Magic</span></span></span> to circumvent the Java type system. The use of <span 
+class="cmtt-10">Magic.objectAsAddress </span>to
+perform various forms of pointer arithmetic is especially hazardous, since it can result
+in pointers being ”lost” during garbage collection. All such uses of magic must either
+occur in uninterruptible methods or be guarded by calls to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">VM.disableGC</span></span></span> and
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">VM.enableGC</span></span></span>. The optimizing compiler performs aggressive inlining and code motion,
+so not explicitly marking such dangerous regions in one of these two manners will
+lead to disaster.
+</p><!--l. 13--><p class="noindent" >Since magic is inexpressible in the Java programming language , it is unsurprising
+that the bodies of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Magic</span></span></span> methods are undeﬁned. Instead, for each of these methods,
+the Java instructions to generate the code is stored in <span 
+class="cmtt-10">GenerateMagic </span>and
+<span 
+class="cmtt-10">GenerateMachineSpecificMagic </span>(to generate HIR) and the baseline compilers (to
+generate assembly code) (Note: The optimizing compiler always uses the set of
+instructions that generate HIR; the instructions that generate assembly code are only
+invoked by the baseline compiler.). Whenever the compiler encounters a call to one of
+these magic methods, it inlines appropriate code for the magic method into the caller
+method.
+</p><!--l. 17--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x18-21400015.1"></a>sun.misc.Unsafe</h5>
+<!--l. 19--><p class="noindent" >The methods of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sun.misc.Unsafe</span></span></span> are not treated specially by the compilers. The
+Jikes RVM ships a custom <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">sun.misc.Unsafe</span></span></span> implementation that implements the
+operations with Jikes RVM magics and internal helper routines.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">15.2   </span> <a 
+ id="x18-21500015.2"></a>Unboxed Types</h3>
+<!--l. 5--><p class="noindent" >If a type is boxed then it means that values of that type are represented by a pointer
+to a heap object. An unboxed type is represented by the value itself such as <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span>,
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">double</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">float</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">byte</span></span></span> etc.
+</p><!--l. 7--><p class="noindent" >In the Jikes RVM terminology, an unboxed type is a custom unboxed type. Normal
+Java primitives such as <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span> are never referred to as unboxed types.
+                                                                  
+
+                                                                  
+</p><!--l. 9--><p class="noindent" >The Jikes RVM also deﬁnes a number of unboxed types. Due to a limitation of the
+way the compiler generates code the Jikes RVM must deﬁne an unboxed array type
+for each unboxed type. The unboxed types are: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.unboxed.Address</span></span></span>
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.unboxed.Extent</span></span></span>
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.unboxed.ObjectReference</span></span></span>
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.unboxed.Offset</span></span></span>
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.unboxed.Word</span></span></span>
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.jikesrvm.ArchitectureSpecific.Code</span></span></span></li></ul>
+<!--l. 19--><p class="noindent" >Values of unboxed types appear only in the virtual machine&#x2019;s stack, registers, or as
+ﬁelds/elements of class/array instances.
+</p><!--l. 21--><p class="noindent" >Unboxed types may inherit from Object but they are not objects. As such there are
+some restrictions on the use of unboxed types: </p>
+     <ul class="itemize1">
+     <li class="itemize">A unboxed type instance must not be passed where an <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Object</span></span></span> is expected.
+     This will type-check, but it is not what you want. A corollary is to avoid
+     overloading a method where the two overloaded versions of the method
+     can only be distinguished by operating on an Object versus an unboxed
+     type. The optimizing compiler can detect <span 
+class="cmti-10">some </span>invalid uses of unboxed
+     types.
+     </li>
+     <li class="itemize">An unboxed type must not be synchronized on.
+     </li>
+     <li class="itemize">They have no virtual methods.
+     </li>
+     <li class="itemize">They do not support lock operations, generating hashcodes or any other
+     method inherited from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Object</span></span></span>.
+     </li>
+     <li class="itemize">All methods must be compiler intrinsics.
+     </li>
+     <li class="itemize">Avoid  making  an  array  of  an  unboxed  type.  Instead  represent  it  by
+     the array version of unboxed type. i.e. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.unboxed.Address[]</span></span></span>
+     should   be   replaced   with   <span 
+class="cmtt-10">org.vmmagic.unboxed.AddressArray  </span>but
+     <span 
+class="cmtt-10">org.vmmagic.unboxed.AddressArray[] </span>is ﬁne.</li></ul>
+                                                                  
+
+                                                                  
+<!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">15.3   </span> <a 
+ id="x18-21600015.3"></a>Raw Memory Access</h3>
+<!--l. 5--><p class="noindent" >The type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.Address</span></span></span> is used to represent a machine-dependent address
+type. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.Address</span></span></span> is an <a 
+href="#x18-21500015.2">unboxed type</a>. In the past, the base type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span> was
+used to represent addresses but this approach had several shortcomings. First, the
+lack of abstraction makes porting nightmarish. Equally important is that Java type
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span> is signed whereas addresses are more appropriately considered unsigned. The
+diﬀerence is problematic since an unsigned comparison on <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span> is inexpressible in the
+Java programming language.
+</p><!--l. 7--><p class="noindent" >To overcome these problems, instances of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.vmmagic.Address</span></span></span> are used to
+represent addresses. The class supports the expected well-typed methods like adding
+an integer oﬀset to an address to obtain another address, computing the
+diﬀerence of two addresses, and comparing addresses. Other operations that
+make sense on <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">int</span></span></span> but not on addresses are excluded like multiplication of
+addresses. Two methods deserve special attention: converting an address
+into an integer and the inverse. These methods should be avoided where
+possible.
+</p><!--l. 9--><p class="noindent" >Without special intervention, using a Java object to represent an address would be at
+best abysmally ineﬃcient. Instead, when the Jikes RVM compiler encounters creation
+of an address object, it will return the primitive value that represents an address for
+that platform. Currently, the address type maps to either a 32-bit or 64-bit unsigned
+integer. Since an address is an unboxed type it must obey the rules outlined in
+<a 
+href="#x18-21500015.2">Unboxed Types</a>.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">15.4   </span> <a 
+ id="x18-21700015.4"></a>Uninterruptible Code</h3>
+<!--l. 5--><p class="noindent" >Declaring a method uninterruptible enables a Jikes RVM developer to prevent the
+Jikes RVM compilers from inserting ”hidden” thread switch points in the compiled
+code for the method. As a result, the code can be written assuming that it cannot
+involuntarily ”lose control” while executing due to a timer-driven thread switch. In
+particular, neither yield points nor stack overﬂow checks will be generated for
+uninterruptible methods. When writing uninterruptible code, the programmer is
+restricted to a subset of the Java language. The following are the restrictions on
+uninterruptible code.
+</p>
+     <ul class="itemize1">
+     <li class="itemize">Because a stack overﬂow check represents a potential yield point (if GC is
+     triggered when the stack is grown), stack overﬂow checks are omitted from
+     the prologues of uninterruptible code. As a result, all uninterruptible code
+     must be able to execute in the stack space available to them when the ﬁrst
+     uninterruptible method on the call stack is invoked. This is typically about
+     8K for uninterruptible regions called from mutator code. The collector
+     threads must preallocate enough stack space, since all collector code is
+     uninterruptible. As a result, using recursive methods in the GC subsystem
+                                                                  
+
+                                                                  
+     is a bad idea.
+     </li>
+     <li class="itemize">Since no yield points are inserted in uninterruptible code, there will be
+     no timer-driven thread switches while executing it. So, if possible, one
+     should avoid ”long running” uninterruptible methods outside of the GC
+     subsystem.
+     </li>
+     <li class="itemize">Certain bytecodes are forbidden in uninterruptible code, because Jikes RVM
+     cannot implement them in a manner that ensures uninterruptibility. The
+     forbidden bytecodes are:
+         <ul class="itemize2">
+         <li class="itemize"><span 
+class="cmti-10">aastore</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">invokeinterface</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">new</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">newarray</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">anewarray</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">athrow</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">checkcast </span>and <span 
+class="cmti-10">instanceof  </span>unless the LHS type is a ﬁnal class
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">monitorenter</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">monitorexit</span>
+         </li>
+         <li class="itemize"><span 
+class="cmti-10">multianewarray</span></li></ul>
+     </li>
+     <li class="itemize">Uninterruptible code cannot cause class loading and thus must not contain
+     unresolved <span 
+class="cmti-10">getstatic</span>, <span 
+class="cmti-10">putstatic</span>, <span 
+class="cmti-10">getﬁeld</span>, <span 
+class="cmti-10">putﬁeld</span>, <span 
+class="cmti-10">invokevirtual</span>, or <span 
+class="cmti-10">invokestatic</span>
+     bytecodes.
+     </li>
+     <li class="itemize">Uninterruptible code cannot contain calls to interruptible code. As a
+     consequence, it is illegal to override an uninterruptible virtual method with an
+     interruptible method.
+     </li>
+     <li class="itemize">Uninterruptible methods cannot be <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">synchronized</span></span></span>. If you need synchronization
+     in an uninterruptible method, you must use one of the internal locks or
+     synchronization primitives.</li></ul>
+                                                                  
+
+                                                                  
+<!--l. 29--><p class="noindent" >We have augmented the baseline compiler to print a warning message when one of
+these restrictions is violated. The optimizing compiler currently does not check for
+uninterruptibility violations. Consequently, it is a good idea to compile a boot image
+with the baseline compiler (e.g. using prototype-opt) after modifying uninterruptible
+code.
+</p><!--l. 31--><p class="noindent" >If uninterruptible code were to raise a runtime exception such as <span 
+class="cmtt-10">NullPointerException</span>,
+<span 
+class="cmtt-10">ArrayIndexOutOfBoundsException</span>, or <span 
+class="cmtt-10">ClassCastException</span>, then it could be
+interrupted. We assume that such conditions are a programming error (or VM bug)
+and do not ﬂag bytecodes that might result in one of these exceptions being raised as
+a violation of uninterruptibility.
+</p><!--l. 33--><p class="noindent" >In a few cases it is necessary to modify the conditions of checking for uninterruptibility
+to avoid spurious warning messages. This should be done with extreme care. The
+checking conditions for a particular method can be modiﬁed by using one of the
+following annotations: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmtt-10">org.vmmagic.pragma.UninterruptibleNoWarn </span>-  disables  checking  for
+     uninterruptibility                                                             violations
+     but behaves like <span 
+class="cmtt-10">org.vmmagic.pragma.Uninterruptible </span>otherwise. Used
+     for methods that need to be uninterruptible but are <span 
+class="cmbx-10">only </span>executed when
+     writing the boot image.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10">org.vmmagic.pragma.Unpreemptible </span>-  instructs  the  JVM  to  avoid
+     inserting  operations  that  could  trigger  garbage  collection  or  thread
+     switching but does not disallow them. Calls to preemptible code will cause
+     warnings.  This  is  used  for  code  that  is  involved  in  thread  scheduling,
+     locking or the creation of exception objects.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10">org.vmmagic.pragma.UnpreemptibleNoWarn </span>-  used  for  unpreemptible
+     code that calls interruptible code.</li></ul>
+<!--l. 40--><p class="noindent" >Do not use the annotation <span 
+class="cmtt-10">org.vmmagic.pragma.LogicallyUninterruptible</span>. Its
+usage is being <a 
+href="https://xtenlang.atlassian.net/browse/RVM-115" >phased out</a>.
+</p><!--l. 42--><p class="noindent" >The following rules determine whether or not a method is uninterruptible.
+</p>
+     <ul class="itemize1">
+     <li class="itemize">All class initializers are interruptible, since they can only be invoked during
+     class loading.
+     </li>
+     <li class="itemize">All object constructors are interruptible, since they an only be invoked as
+     part of the implementation of the new bytecode.
+     </li>
+     <li class="itemize">If a method is annotated with <span 
+class="cmtt-10">org.vmmagic.pragma.Interruptible </span>then
+     it is interruptible.
+     </li>
+     <li class="itemize">If  none  of  the  above  rules  apply  and  a  method  is  annotated  with
+     <span 
+class="cmtt-10">org.vmmagic.pragma.Uninterruptible</span>, then it is uninterruptible.
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize">If none of the above rules apply and the declaring class is annotated with
+     <span 
+class="cmtt-10">org.vmmagic.pragma.Uninterruptible </span>then it is uninterruptible.</li></ul>
+<!--l. 51--><p class="noindent" >Whether to annotate a class or a method with <span 
+class="cmtt-10">org.vmmagic.pragma.Uninterruptible</span>
+is a matter of taste and mainly depends on the ratio of interruptible to
+uninterruptible methods in a class. If most methods of the class should be
+uninterruptible, then annotating the class is preferred.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailMagic.html"></a></p> 
+</body></html> 

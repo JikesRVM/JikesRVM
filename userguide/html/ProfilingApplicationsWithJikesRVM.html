@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>8 Proﬁling Applications with Jikes RVM</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 8</span><br /><a 
+ id="x10-970008"></a>Proﬁling Applications with Jikes RVM</h2>
+<!--l. 5--><p class="noindent" >The Jikes RVM adaptive system can also be used as a tool for gathering proﬁle data
+to ﬁnd application/VM hotspots. In particular, the same low-overhead time-based
+sampling mechanism that is used to drive recompilation decisions can also be used
+to produce an aggregate proﬁle of the execution of an application. Here&#x2019;s
+how.
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x10-97002x1">Build an adaptive conﬁguration of Jikes RVM. For the most accurate
+     proﬁle, use the production conﬁguration.
+     </li>
+     <li 
+  class="enumerate" id="x10-97004x2">Run  the  application  normally,  but  with  the  additional  command  line
+     argument <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:aos:gather_profile_data=true</span></span></span>
+     </li>
+     <li 
+  class="enumerate" id="x10-97006x3">When the application terminates, data on which methods and call graph
+     edges were sampled during execution will be printed to stdout (you may
+     want to redirect execution to a ﬁle for analysis).</li></ol>
+<!--l. 13--><p class="noindent" >The sampled methods represent compiled versions of methods, so as methods are
+recompiled and old versions are replaced some of the methods sampled earlier in the
+run may be OBSOLETE by the time the proﬁle data is printed at the end of the
+run.
+</p><!--l. 15--><p class="noindent" >In addition to the sampling-based mechanisms, the baseline compiler can inject code
+to gather branch probabilites on all executed conditional branches. This proﬁling is
+enabled by default in adaptive conﬁgurations of Jikes RVM and can be enabled via
+the command line in non-adaptive conﬁgurations (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:base:edge_counters=true</span></span></span>).
+In an adaptive conﬁguration, use <br 
+class="newline" /><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:aos:final_report_level=2</span></span></span> to cause the edge counter data to be dumped to a
+ﬁle. In non-adaptive conﬁgurations, enabling edge counters implies that
+the ﬁle should be generated (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:base:edge_counters=true</span></span></span> is suﬃcient).
+The default name of the ﬁle is EdgeCounters, which can be changed with
+<br 
+class="newline" /><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:base:edge_counter_file=&#x003C;file_name&#x003E;</span></span></span>. Note that the proﬁling is only injected
+in baseline compiled code, so in a normal adaptive conﬁguration, the gathered
+probabilities only represent a subset of program execution (branches in opt-compiled
+code are not proﬁled). Note that unless the bootimage is (a) baseline compiled and
+(b) edge counters were enabled at bootimage writing time, edge counter data will not
+be gathered for bootimage code.
+</p>
+<h3 class="sectionHead"><span class="titlemark">8.1   </span> <a 
+ id="x10-980008.1"></a>Instrumented Event Counters</h3>
+<!--l. 19--><p class="noindent" >This section describes how the Jikes RVM optimizing compiler can be used to insert
+counters in the optimized code to count the frequency of speciﬁc events.
+Infrastructure for counting events is in place that hides many of the implementation
+details of the counters, so that (hopefully) adding new code to count events should be
+easy. All of the instrumentation phases described below require an adaptive boot
+image (any one should work). The code regarding instrumentation lives in the
+                                                                  
+
+                                                                  
+org.jikesrvm.aos package.
+</p><!--l. 21--><p class="noindent" >To instrument all dynamically compiled code, use the following command line arguments
+to force all dynamically compiled methods to be compiled by the optimizing
+compiler: <span 
+class="cmtt-10">-X:aos:enable</span><span 
+class="cmtt-10">_recompilation=false -X:aos:initial</span><span 
+class="cmtt-10">_compiler=opt</span>
+</p><!--l. 23--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">8.1.1   </span> <a 
+ id="x10-990008.1.1"></a>Existing Instrumentation Phases</h4>
+<!--l. 25--><p class="noindent" >There are several existing instrumentation phases that can be enabled by giving the
+adaptive optimization system command line arguments. These counters
+are not synchronized (as discussed later), so they should not be considered
+precise.
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmbx-10">Method Invocation Counters </span>Inserts a counter in each opt compiled
+     method  prologue.  Prints  counters  to  stderr  at  end.  Enabled  by  the
+     command line argument <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:aos:insert_method_counters_opt=true</span></span></span>
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">Yieldpoint Counters </span>Inserts a counter after each yieldpoint instruction.
+     Maintains  a  separate  counter  for  backedge  and  prologue  yieldpoints.
+     Enabled by <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:aos:insert_yieldpoint_counters=true</span></span></span>
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">Instruction Counters </span>Inserts a counters on each instruction. A separate
+     count is maintained for each opcode, and results are dumped to stderr at end of
+     run. The results look something like: <!--l. 31-->
+     <div class="lstlisting" id="listing-69"><span class="label"><a 
+ id="x10-99001r1"></a></span>Printing Instruction Counters: <br /><span class="label"><a 
+ id="x10-99002r2"></a></span>------------------------------ <br /><span class="label"><a 
+ id="x10-99003r3"></a></span>109.0 call <br /><span class="label"><a 
+ id="x10-99004r4"></a></span>0.0 int_ifcmp <br /><span class="label"><a 
+ id="x10-99005r5"></a></span>30415.0 getfield <br /><span class="label"><a 
+ id="x10-99006r6"></a></span>20039.0 getstatic <br /><span class="label"><a 
+ id="x10-99007r7"></a></span>63.0 putfield <br /><span class="label"><a 
+ id="x10-99008r8"></a></span>20013.0 putstatic <br /><span class="label"><a 
+ id="x10-99009r9"></a></span>Total: 302933
+     
+     </div>
+     <!--l. 42--><p class="noindent" >This is useful for debugging or assessing the eﬀectiveness of an optimization
+     because you can see a dynamic execution count, rather than relying on
+     timing.
+     </p><!--l. 44--><p class="noindent" >NOTE: Currently the counters are inserted at the end of HIR, so the counts
+     <span 
+class="cmti-10">will </span>capture the eﬀect of HIR optimizations, and will not capture optimization
+     that occurs in LIR or later.
+     </p></li>
+     <li class="itemize"><span 
+class="cmbx-10">Debugging Counters </span>This ﬂag does not produce observable behavior by
+     itself, but is designed to allow debugging counters to be inserted easily in
+     opt-compiler to help debugging of opt-compiler transformations. If you would like
+     to know the dynamic frequency of a particular event, simply turn on this ﬂag,
+     and you can easily count dynamic frequencies of events by calling the method
+     <span 
+class="cmtt-10">AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(String</span>
+     <span 
+class="cmtt-10">eventName)</span>. This method returns an Instruction that can be inserted into the
+     code. The instruction will increment a counter associated with the String
+                                                                  
+
+                                                                  
+     name ”eventName”, and the counter will be printed at the end of
+     execution.</li></ul>
+<!--l. 48--><p class="noindent" >For an example, see <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Inliner.java</span></span></span>. Look for the code guarded by the ﬂag
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">COUNT_FAILED_METHOD_GUARDS</span></span></span>. Enabled by <span 
+class="cmtt-10">-X:aos:insert</span><span 
+class="cmtt-10">_debugging</span><span 
+class="cmtt-10">_counters=true</span>
+</p><!--l. 52--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">8.1.2   </span> <a 
+ id="x10-1000008.1.2"></a>Writing new instrumentation phases</h4>
+<!--l. 54--><p class="noindent" >This section describes the event counting infrastructure. It is not a step-by-step
+for writing new phases, but instead is a description of the main ideas of
+the counter infrastructure. This description, in combination with the above
+examples, should be enough to allow new users to write new instrumentation
+phases.
+</p><!--l. 56--><p class="noindent" ><span 
+class="cmbx-10">Counter Managers: </span>Counters are created and inserted into the code using the
+<span 
+class="cmtt-10">InstrumentedEventCounterManager </span>interface. The purpose of the counter
+manager interface is to abstract away the implementation details of the
+counters, making instrumentation phases simpler and allowing the counter
+implementation to be changed easily (new counter managers can be used without
+changing any of the instrumentation phases). Currently there exists only one
+counter manager, <span 
+class="cmtt-10">CounterArrayManager</span>, which implements unsynchronized
+counters. When instrumentation options are turned on in the adaptive system,
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Instrumentation.boot()</span></span></span> creates an instance of a <span 
+class="cmtt-10">CounterArrayManager</span>.
+</p><!--l. 58--><p class="noindent" ><span 
+class="cmbx-10">Managed Data: </span>The class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ManagedCounterData</span></span></span> is used to keep track of counter
+data that is managed using a counter manager. This purpose of the data
+object is to maintain the mapping between the counters themselves (which
+are indexed by number) and the events that they represent. For example,
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">StringEventCounterData</span></span></span> is used record the fact that counter #1 maps to the event
+named ”FooBar”. Depending on what you are counting, there may be one
+data object for the whole program (such as <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">YieldpointCounterData</span></span></span> and
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MethodInvocationCounterData</span></span></span>), or one per method. There is also a generic data
+object called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">StringEventCounterData</span></span></span> that allows events to be give string names
+(see Debugging Counters above).
+</p><!--l. 61--><p class="noindent" ><span 
+class="cmbx-10">Instrumentation Phases: </span>The instrumentation itself is inserted by a compiler
+phase. (see <span 
+class="cmtt-10">InsertInstructionCounters.java</span>, <span 
+class="cmtt-10">InsertYieldpointCounters.java</span>,
+<span 
+class="cmtt-10">InsertMethodInvocationCounter.java</span>). The instrumentation phase inserts high
+level ”count event” instructions (which are obtained by asking the counter manager)
+into the code. It also updates the instrumented counter to remember which counters
+correspond to which events.
+</p><!--l. 63--><p class="noindent" ><span 
+class="cmbx-10">Lower Instrumentation Phase: </span>This phase converts the high level ”count event”
+instruction into the actual counter code by using the counter manager. It currently
+occurs at the end of LIR, so instrumentation can not be inserted using this
+mechanism after LIR. This phase does not need to be modiﬁed if you add a
+new phase, except that the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">shouldPerform()</span></span></span> method needs to have your
+instrumentation listed, so this phase is run when your instrumentation is turned
+on.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailProfilingApplicationsWithJikesRVM.html"></a></p> 
+</body></html> 

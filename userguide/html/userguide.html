@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head> <title>Jikes RVM User Guide</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<div class="maketitle">
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+
+<h2 class="titleHead">Jikes RVM User Guide</h2>
+<div class="author" ><span 
+class="cmr-12">Jikes RVM Contributors and Core Team</span></div><br />
+<div class="date" ><span 
+class="cmr-12">2016-02-18</span></div>
+                                                                  
+
+                                                                  
+</div>
+<!--l. 57--><p class="noindent" >The User Guide provides Jikes<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> RVM information that is not typically covered in
+<a 
+href="http://www.jikesrvm.org/Resources/Publications/" >published papers</a>. For high-level overviews, algorithms, and structures, you will ﬁnd
+the published papers to be the best starting place. The User Guide supplements these
+Jikes RVM papers, focusing on implementation details of how to build, run, and add
+functionality to the system.
+</p><!--l. 59--><p class="noindent" >You may ﬁnd sections of the User Guide missing, incomplete or otherwise confusing.
+We intend this document to live as a continual work-in-progress, hopefully growing
+and maturing as community members edit and add to the guide. Please accept this
+invitation to contribute.
+</p><!--l. 61--><p class="noindent" >Please send feedback, bug ﬁxes, and text contributions to the <a 
+href="http://www.jikesrvm.org/MailingLists/" >core mailing list</a> or
+open a pull request on <a 
+href="https://github.com/JikesRVM/jikesrvm.github.io/" >GitHub</a>. Constructive criticism will be cheerfully
+accepted.
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><a 
+href="userguidepa1.html#x2-1000I">Care and Feeding</a>: The guide to practical aspects of building, testing,
+     debugging and evaluating Jikes RVM.
+     </li>
+     <li class="itemize"><a 
+href="userguidepa2.html#x14-146000II">Architecture</a>: The guide to the major architectural decisions of Jikes RVM.
+     </li>
+     <li class="itemize"><a 
+href="UsingGCSpyc.html#x20-249000III">MMTk Tutorial</a>: A simple tutorial to building a collector with MMTk.</li></ul>
+                                                                  
+
+                                                                  
+<!--l. 69--><p class="noindent" >
+                                                                  
+
+                                                                  
+</p>
+<div class="tableofcontents">
+<span class="partToc" >I  <a 
+href="userguidepa1.html#x2-1000I" id="QQ2-2-1">Care and Feeding</a></span>
+<br /><span class="chapterToc" >1 <a 
+href="QuickStartGuide.html#x3-20001" id="QQ2-3-2">Quick Start Guide</a></span>
+<br /><span class="chapterToc" >2 <a 
+href="GetTheSource.html#x4-30002" id="QQ2-4-3">Get the Source</a></span>
+<br /> <span class="sectionToc" >2.1 <a 
+href="GetTheSource.html#x4-40002.1" id="QQ2-4-4">Download a Release</a></span>
+<br /> <span class="sectionToc" >2.2 <a 
+href="GetTheSource.html#x4-50002.2" id="QQ2-4-5">Use Git</a></span>
+<br /><span class="chapterToc" >3 <a 
+href="BuildingJikesRVM.html#x5-60003" id="QQ2-5-6">Building Jikes RVM</a></span>
+<br /> <span class="sectionToc" >3.1 <a 
+href="BuildingJikesRVM.html#x5-70003.1" id="QQ2-5-7">Overview</a></span>
+<br /> <span class="sectionToc" >3.2 <a 
+href="BuildingJikesRVM.html#x5-120003.2" id="QQ2-5-12">Target Requirements</a></span>
+<br /> <span class="sectionToc" >3.3 <a 
+href="BuildingJikesRVM.html#x5-160003.3" id="QQ2-5-17">Tool Requirements</a></span>
+<br /> <span class="sectionToc" >3.4 <a 
+href="BuildingJikesRVM.html#x5-240003.4" id="QQ2-5-25">Instructions</a></span>
+<br /> <span class="sectionToc" >3.5 <a 
+href="BuildingJikesRVM.html#x5-300003.5" id="QQ2-5-32">Building Patched Versions</a></span>
+<br /> <span class="sectionToc" >3.6 <a 
+href="BuildingJikesRVM.html#x5-310003.6" id="QQ2-5-33">Cross-Platform Building</a></span>
+<br /> <span class="sectionToc" >3.7 <a 
+href="BuildingJikesRVM.html#x5-330003.7" id="QQ2-5-35">Primordial Class List</a></span>
+<br /> <span class="sectionToc" >3.8 <a 
+href="BuildingJikesRVM.html#x5-340003.8" id="QQ2-5-36">Using buildit</a></span>
+<br /><span class="chapterToc" >4 <a 
+href="ConfiguringJikesRVM.html#x6-430004" id="QQ2-6-45">Conﬁguring Jikes RVM</a></span>
+<br /> <span class="sectionToc" >4.1 <a 
+href="ConfiguringJikesRVM.html#x6-440004.1" id="QQ2-6-47">Jikes RVM Conﬁgurations</a></span>
+<br /><span class="chapterToc" >5 <a 
+href="DebuggingJikesRVM.html#x7-470005" id="QQ2-7-52">Debugging Jikes RVM</a></span>
+<br /> <span class="sectionToc" >5.1 <a 
+href="DebuggingJikesRVM.html#x7-480005.1" id="QQ2-7-53">General debugging tips</a></span>
+<br /> <span class="sectionToc" >5.2 <a 
+href="DebuggingJikesRVM.html#x7-540005.2" id="QQ2-7-59">Tools</a></span>
+<br /> <span class="sectionToc" >5.3 <a 
+href="DebuggingJikesRVM.html#x7-580005.3" id="QQ2-7-63">Debugging Optimizing Compiler Problems</a></span>
+<br /> <span class="sectionToc" >5.4 <a 
+href="DebuggingJikesRVM.html#x7-610005.4" id="QQ2-7-66">GDB Stack Walking</a></span>
+<br /><span class="chapterToc" >6 <a 
+href="ExperimentalGuidelines.html#x8-620006" id="QQ2-8-67">Experimental Guidelines</a></span>
+<br /> <span class="sectionToc" >6.1 <a 
+href="ExperimentalGuidelines.html#x8-630006.1" id="QQ2-8-68">Which boot image should I use?</a></span>
+<br /> <span class="sectionToc" >6.2 <a 
+href="ExperimentalGuidelines.html#x8-640006.2" id="QQ2-8-69">Compiler Replay</a></span>
+<br /> <span class="sectionToc" >6.3 <a 
+href="ExperimentalGuidelines.html#x8-680006.3" id="QQ2-8-73">Measuring GC performance</a></span>
+<br /> <span class="sectionToc" >6.4 <a 
+href="ExperimentalGuidelines.html#x8-690006.4" id="QQ2-8-74">Jikes RVM is really slow! What am I doing wrong?</a></span>
+<br /> <span class="sectionToc" >6.5 <a 
+href="ExperimentalGuidelines.html#x8-700006.5" id="QQ2-8-75">Stability of Jikes RVM</a></span>
+<br /><span class="chapterToc" >7 <a 
+href="ModifyingJikesRVM.html#x9-710007" id="QQ2-9-76">Modifying Jikes RVM</a></span>
+<br /> <span class="sectionToc" >7.1 <a 
+href="ModifyingJikesRVM.html#x9-720007.1" id="QQ2-9-77">Adding command line options</a></span>
+<br /> <span class="sectionToc" >7.2 <a 
+href="ModifyingJikesRVM.html#x9-760007.2" id="QQ2-9-81">Adding a new garbage collector</a></span>
+<br /> <span class="sectionToc" >7.3 <a 
+href="ModifyingJikesRVM.html#x9-830007.3" id="QQ2-9-88">Coding Conventions</a></span>
+<br /> <span class="sectionToc" >7.4 <a 
+href="ModifyingJikesRVM.html#x9-880007.4" id="QQ2-9-93">Coding Style</a></span>
+<br /> <span class="sectionToc" >7.5 <a 
+href="ModifyingJikesRVM.html#x9-920007.5" id="QQ2-9-97">Compiler DNA</a></span>
+<br /> <span class="sectionToc" >7.6 <a 
+href="ModifyingJikesRVM.html#x9-930007.6" id="QQ2-9-98">Editing Jikes RVM in an IDE</a></span>
+<br /><span class="chapterToc" >8 <a 
+href="ProfilingApplicationsWithJikesRVM.html#x10-970008" id="QQ2-10-102">Proﬁling Applications with Jikes RVM</a></span>
+<br /> <span class="sectionToc" >8.1 <a 
+href="ProfilingApplicationsWithJikesRVM.html#x10-980008.1" id="QQ2-10-103">Instrumented Event Counters</a></span>
+<br /><span class="chapterToc" >9 <a 
+href="RunningJikesRVM.html#x11-1010009" id="QQ2-11-106">Running Jikes RVM</a></span>
+<br /> <span class="sectionToc" >9.1 <a 
+href="RunningJikesRVM.html#x11-1020009.1" id="QQ2-11-107">Standard Command-Line Options</a></span>
+<br /> <span class="sectionToc" >9.2 <a 
+href="RunningJikesRVM.html#x11-1030009.2" id="QQ2-11-108">Non-Standard Command-Line Options</a></span>
+<br /> <span class="sectionToc" >9.3 <a 
+href="RunningJikesRVM.html#x11-1070009.3" id="QQ2-11-112">Running Jikes RVM with Valgrind</a></span>
+<br /><span class="chapterToc" >10 <a 
+href="TestingJikesRVM.html#x12-10800010" id="QQ2-12-113">Testing Jikes RVM</a></span>
+<br /> <span class="sectionToc" >10.1 <a 
+href="TestingJikesRVM.html#x12-10900010.1" id="QQ2-12-114">Unit Tests</a></span>
+<br /> <span class="sectionToc" >10.2 <a 
+href="TestingJikesRVM.html#x12-11000010.2" id="QQ2-12-115">Functional and Performance Tests</a></span>
+<br /> <span class="sectionToc" >10.3 <a 
+href="TestingJikesRVM.html#x12-11600010.3" id="QQ2-12-124">External Test Resources</a></span>
+<br /> <span class="sectionToc" >10.4 <a 
+href="TestingJikesRVM.html#x12-13000010.4" id="QQ2-12-138">Test Run Descriptions</a></span>
+<br /><span class="chapterToc" >11 <a 
+href="TheMMTkTestHarness.html#x13-13600011" id="QQ2-13-144">The MMTk Test Harness</a></span>
+<br /> <span class="sectionToc" >11.1 <a 
+href="TheMMTkTestHarness.html#x13-13700011.1" id="QQ2-13-145">Overview</a></span>
+<br /> <span class="sectionToc" >11.2 <a 
+href="TheMMTkTestHarness.html#x13-13800011.2" id="QQ2-13-146">Standalone</a></span>
+                                                                  
+
+                                                                  
+<br /> <span class="sectionToc" >11.3 <a 
+href="TheMMTkTestHarness.html#x13-13900011.3" id="QQ2-13-147">In Eclipse</a></span>
+<br /> <span class="sectionToc" >11.4 <a 
+href="TheMMTkTestHarness.html#x13-14000011.4" id="QQ2-13-148">Test harness options</a></span>
+<br /> <span class="sectionToc" >11.5 <a 
+href="TheMMTkTestHarness.html#x13-14100011.5" id="QQ2-13-149">Scripts</a></span>
+<br /> <span class="sectionToc" >11.6 <a 
+href="TheMMTkTestHarness.html#x13-14200011.6" id="QQ2-13-150">Scripting language</a></span>
+<br /> <span class="sectionToc" >11.7 <a 
+href="TheMMTkTestHarness.html#x13-14500011.7" id="QQ2-13-153">MMTk Unit Tests</a></span>
+<br /><span class="partToc" >II  <a 
+href="userguidepa2.html#x14-146000II" id="QQ2-14-154">Architecture</a></span>
+<br /><span class="chapterToc" >12 <a 
+href="AdaptiveOptimizationSystem.html#x15-14700012" id="QQ2-15-155">Adaptive Optimization System</a></span>
+<br /> <span class="sectionToc" >12.1 <a 
+href="AdaptiveOptimizationSystem.html#x15-15000012.1" id="QQ2-15-158">AOS Controller</a></span>
+<br /> <span class="sectionToc" >12.2 <a 
+href="AdaptiveOptimizationSystem.html#x15-15100012.2" id="QQ2-15-159">Cost Beneﬁt Model</a></span>
+<br /> <span class="sectionToc" >12.3 <a 
+href="AdaptiveOptimizationSystem.html#x15-15200012.3" id="QQ2-15-160">Jikes RVM&#x2019;s compilers</a></span>
+<br /> <span class="sectionToc" >12.4 <a 
+href="AdaptiveOptimizationSystem.html#x15-15300012.4" id="QQ2-15-161">Life Cycle of a Compiled Method</a></span>
+<br /> <span class="sectionToc" >12.5 <a 
+href="AdaptiveOptimizationSystem.html#x15-15400012.5" id="QQ2-15-163">Logging and Debugging</a></span>
+<br /> <span class="sectionToc" >12.6 <a 
+href="AdaptiveOptimizationSystem.html#x15-15500012.6" id="QQ2-15-164">Threading and Yieldpoints</a></span>
+<br /><span class="chapterToc" >13 <a 
+href="Compilers.html#x16-15600013" id="QQ2-16-165">Compilers</a></span>
+<br /> <span class="sectionToc" >13.1 <a 
+href="Compilers.html#x16-15700013.1" id="QQ2-16-166">Baseline Compiler</a></span>
+<br /> <span class="sectionToc" >13.2 <a 
+href="Compilers.html#x16-16000013.2" id="QQ2-16-169">Optimizing Compiler</a></span>
+<br /><span class="chapterToc" >14 <a 
+href="CoreRuntimeServices.html#x17-16900014" id="QQ2-17-179">Core Runtime Services</a></span>
+<br /> <span class="sectionToc" >14.1 <a 
+href="CoreRuntimeServices.html#x17-17000014.1" id="QQ2-17-180">Object Model</a></span>
+<br /> <span class="sectionToc" >14.2 <a 
+href="CoreRuntimeServices.html#x17-17400014.2" id="QQ2-17-184">Class and Code Management</a></span>
+<br /> <span class="sectionToc" >14.3 <a 
+href="CoreRuntimeServices.html#x17-18300014.3" id="QQ2-17-193">Thread Management</a></span>
+<br /> <span class="sectionToc" >14.4 <a 
+href="CoreRuntimeServices.html#x17-18800014.4" id="QQ2-17-198">JNI</a></span>
+<br /> <span class="sectionToc" >14.5 <a 
+href="CoreRuntimeServices.html#x17-19500014.5" id="QQ2-17-205">Exception Management</a></span>
+<br /> <span class="sectionToc" >14.6 <a 
+href="CoreRuntimeServices.html#x17-19600014.6" id="QQ2-17-206">Bootstrap</a></span>
+<br /> <span class="sectionToc" >14.7 <a 
+href="CoreRuntimeServices.html#x17-20100014.7" id="QQ2-17-211">Calling Conventions</a></span>
+<br /> <span class="sectionToc" >14.8 <a 
+href="CoreRuntimeServices.html#x17-20800014.8" id="QQ2-17-218">VM Callbacks</a></span>
+<br /><span class="chapterToc" >15 <a 
+href="Magic.html#x18-21100015" id="QQ2-18-221">Magic</a></span>
+<br /> <span class="sectionToc" >15.1 <a 
+href="Magic.html#x18-21200015.1" id="QQ2-18-222">Compiler Intrinsics</a></span>
+<br /> <span class="sectionToc" >15.2 <a 
+href="Magic.html#x18-21500015.2" id="QQ2-18-225">Unboxed Types</a></span>
+<br /> <span class="sectionToc" >15.3 <a 
+href="Magic.html#x18-21600015.3" id="QQ2-18-226">Raw Memory Access</a></span>
+<br /> <span class="sectionToc" >15.4 <a 
+href="Magic.html#x18-21700015.4" id="QQ2-18-227">Uninterruptible Code</a></span>
+<br /><span class="chapterToc" >16 <a 
+href="MMTk.html#x19-21800016" id="QQ2-19-228">MMTk</a></span>
+<br /> <span class="sectionToc" >16.1 <a 
+href="MMTk.html#x19-21900016.1" id="QQ2-19-229">Anatomy of a Garbage Collector</a></span>
+<br /> <span class="sectionToc" >16.2 <a 
+href="MMTk.html#x19-22800016.2" id="QQ2-19-238">Memory Allocation in Jikes RVM</a></span>
+<br /> <span class="sectionToc" >16.3 <a 
+href="MMTk.html#x19-23300016.3" id="QQ2-19-243">Scanning Objects in Jikes RVM</a></span>
+<br /> <span class="sectionToc" >16.4 <a 
+href="MMTk.html#x19-23700016.4" id="QQ2-19-247">Using GCSpy</a></span>
+<br /><span class="partToc" >III  <a 
+href="UsingGCSpyc.html#x20-249000III" id="QQ2-20-259">MMTk Tutorial</a></span>
+<br /><span class="chapterToc" >17 <a 
+href="Preliminaries.html#x21-25000017" id="QQ2-21-260">Preliminaries</a></span>
+<br /> <span class="sectionToc" >17.1 <a 
+href="Preliminaries.html#x21-25100017.1" id="QQ2-21-261">Getting MMTk and Jikes RVM and Eclipse working</a></span>
+<br /> <span class="sectionToc" >17.2 <a 
+href="Preliminaries.html#x21-25200017.2" id="QQ2-21-262">Creating The Base Tutorial Collector</a></span>
+<br /><span class="chapterToc" >18 <a 
+href="BuildingAMarkSweepCollector.html#x22-25300018" id="QQ2-22-263">Building a Mark-sweep Collector</a></span>
+<br /> <span class="sectionToc" >18.1 <a 
+href="BuildingAMarkSweepCollector.html#x22-25400018.1" id="QQ2-22-264">Free-list Allocation</a></span>
+<br /> <span class="sectionToc" >18.2 <a 
+href="BuildingAMarkSweepCollector.html#x22-25500018.2" id="QQ2-22-265">Mark-Sweep Collection</a></span>
+<br /> <span class="sectionToc" >18.3 <a 
+href="BuildingAMarkSweepCollector.html#x22-25600018.3" id="QQ2-22-266">Optimized Mark-sweep Collection</a></span>
+<br /><span class="chapterToc" >19 <a 
+href="BuildingAHybridCollector.html#x23-25700019" id="QQ2-23-267">Building a Hybrid Collector</a></span>
+<br /> <span class="sectionToc" >19.1 <a 
+href="BuildingAHybridCollector.html#x23-25800019.1" id="QQ2-23-268">Add a Copying Nursery</a></span>
+<br /> <span class="sectionToc" >19.2 <a 
+href="BuildingAHybridCollector.html#x23-25900019.2" id="QQ2-23-269">Add nursery allocation</a></span>
+<br /> <span class="sectionToc" >19.3 <a 
+href="BuildingAHybridCollector.html#x23-26000019.3" id="QQ2-23-270">Add copying to the collector</a></span>
+<br /> <span class="sectionToc" >19.4 <a 
+href="BuildingAHybridCollector.html#x23-26100019.4" id="QQ2-23-271">Make necessary changes to TutorialTraceLocal</a></span>
+</div>
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+ 
+</body></html> 
+
+                                                                  
+
+

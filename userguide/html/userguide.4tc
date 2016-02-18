@@ -1,0 +1,272 @@
+\expandafter\ifx\csname doTocEntry\endcsname\relax \expandafter\endinput\fi
+\doTocEntry\tocpart{I}{\csname a:TocLink\endcsname{2}{x2-1000I}{QQ2-2-1}{Care and Feeding}}{5}\relax 
+\doTocEntry\tocchapter{1}{\csname a:TocLink\endcsname{3}{x3-20001}{QQ2-3-2}{Quick Start Guide}}{7}\relax 
+\doTocEntry\tocchapter{2}{\csname a:TocLink\endcsname{4}{x4-30002}{QQ2-4-3}{Get the Source}}{9}\relax 
+\doTocEntry\tocsection{2.1}{\csname a:TocLink\endcsname{4}{x4-40002.1}{QQ2-4-4}{Download a Release}}{9}\relax 
+\doTocEntry\tocsection{2.2}{\csname a:TocLink\endcsname{4}{x4-50002.2}{QQ2-4-5}{Use Git}}{9}\relax 
+\doTocEntry\tocchapter{3}{\csname a:TocLink\endcsname{5}{x5-60003}{QQ2-5-6}{Building Jikes RVM}}{12}\relax 
+\doTocEntry\tocsection{3.1}{\csname a:TocLink\endcsname{5}{x5-70003.1}{QQ2-5-7}{Overview}}{12}\relax 
+\doTocEntry\tocsubsection{3.1.1}{\csname a:TocLink\endcsname{5}{x5-80003.1.1}{QQ2-5-8}{Compiling the source code}}{12}\relax 
+\doTocEntry\tocsubsection{3.1.2}{\csname a:TocLink\endcsname{5}{x5-90003.1.2}{QQ2-5-9}{Generating source code}}{12}\relax 
+\doTocEntry\tocsubsection{3.1.3}{\csname a:TocLink\endcsname{5}{x5-100003.1.3}{QQ2-5-10}{Bootstrapping Jikes RVM}}{12}\relax 
+\doTocEntry\tocsubsection{3.1.4}{\csname a:TocLink\endcsname{5}{x5-110003.1.4}{QQ2-5-11}{Class libraries}}{13}\relax 
+\doTocEntry\tocsection{3.2}{\csname a:TocLink\endcsname{5}{x5-120003.2}{QQ2-5-12}{Target Requirements}}{13}\relax 
+\doTocEntry\tocsubsection{3.2.1}{\csname a:TocLink\endcsname{5}{x5-130003.2.1}{QQ2-5-13}{Architectures}}{13}\relax 
+\doTocEntry\tocsubsection{3.2.2}{\csname a:TocLink\endcsname{5}{x5-140003.2.2}{QQ2-5-14}{Operating Systems}}{14}\relax 
+\doTocEntry\tocsubsection{3.2.3}{\csname a:TocLink\endcsname{5}{x5-150003.2.3}{QQ2-5-15}{Support Matrix}}{14}\relax 
+\doTocEntry\toclot{3.1}{\csname a:TocLink\endcsname{5}{x5-15001r1}{}{\ignorespaces platform support matrix}}{table}\relax 
+\doTocEntry\tocsection{3.3}{\csname a:TocLink\endcsname{5}{x5-160003.3}{QQ2-5-17}{Tool Requirements}}{17}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{5}{x5-170003.3}{QQ2-5-18}{Java Virtual Machine}}{17}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{5}{x5-180003.3}{QQ2-5-19}{Ant}}{17}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{5}{x5-190003.3}{QQ2-5-20}{C compilers}}{17}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{5}{x5-200003.3}{QQ2-5-21}{Bison}}{17}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{5}{x5-210003.3}{QQ2-5-22}{Perl}}{18}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{5}{x5-220003.3}{QQ2-5-23}{Awk}}{18}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{5}{x5-230003.3}{QQ2-5-24}{Extra tools recommended for Solaris}}{18}\relax 
+\doTocEntry\tocsection{3.4}{\csname a:TocLink\endcsname{5}{x5-240003.4}{QQ2-5-25}{Instructions}}{18}\relax 
+\doTocEntry\tocsubsection{3.4.1}{\csname a:TocLink\endcsname{5}{x5-250003.4.1}{QQ2-5-26}{Defining Ant properties}}{18}\relax 
+\doTocEntry\toclot{3.2}{\csname a:TocLink\endcsname{5}{x5-25001r2}{}{\ignorespaces Commonly used Ant properties for Jikes RVM}}{table}\relax 
+\doTocEntry\tocsubsection{3.4.2}{\csname a:TocLink\endcsname{5}{x5-260003.4.2}{QQ2-5-28}{Selecting a Configuration}}{23}\relax 
+\doTocEntry\tocsubsection{3.4.3}{\csname a:TocLink\endcsname{5}{x5-270003.4.3}{QQ2-5-29}{Fetching Dependencies}}{23}\relax 
+\doTocEntry\tocsubsection{3.4.4}{\csname a:TocLink\endcsname{5}{x5-280003.4.4}{QQ2-5-30}{Building Jikes RVM}}{24}\relax 
+\doTocEntry\tocsubsection{3.4.5}{\csname a:TocLink\endcsname{5}{x5-290003.4.5}{QQ2-5-31}{Running Jikes RVM}}{24}\relax 
+\doTocEntry\tocsection{3.5}{\csname a:TocLink\endcsname{5}{x5-300003.5}{QQ2-5-32}{Building Patched Versions}}{24}\relax 
+\doTocEntry\tocsection{3.6}{\csname a:TocLink\endcsname{5}{x5-310003.6}{QQ2-5-33}{Cross-Platform Building}}{25}\relax 
+\doTocEntry\toclikesubsection{}{\csname a:TocLink\endcsname{5}{x5-320003.6}{QQ2-5-34}{Dependencies}}{25}\relax 
+\doTocEntry\tocsection{3.7}{\csname a:TocLink\endcsname{5}{x5-330003.7}{QQ2-5-35}{Primordial Class List}}{26}\relax 
+\doTocEntry\tocsection{3.8}{\csname a:TocLink\endcsname{5}{x5-340003.8}{QQ2-5-36}{Using buildit}}{27}\relax 
+\doTocEntry\tocsubsection{3.8.1}{\csname a:TocLink\endcsname{5}{x5-350003.8.1}{QQ2-5-37}{Examples}}{27}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{5}{x5-360003.8.1}{QQ2-5-38}{Simple Builds}}{27}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{5}{x5-370003.8.1}{QQ2-5-39}{Cross Platform Building}}{28}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{5}{x5-380003.8.1}{QQ2-5-40}{Full Build Specification}}{28}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{5}{x5-390003.8.1}{QQ2-5-41}{Profiled Builds}}{29}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{5}{x5-400003.8.1}{QQ2-5-42}{Testing}}{29}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{5}{x5-410003.8.1}{QQ2-5-43}{Running a test run}}{29}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{5}{x5-420003.8.1}{QQ2-5-44}{Running a test}}{29}\relax 
+\doTocEntry\tocchapter{4}{\csname a:TocLink\endcsname{6}{x6-430004}{QQ2-6-45}{Configuring Jikes RVM}}{32}\relax 
+\doTocEntry\toclot{4.1}{\csname a:TocLink\endcsname{6}{x6-43001r1}{}{\ignorespaces Parameters for build configurations}}{table}\relax 
+\doTocEntry\tocsection{4.1}{\csname a:TocLink\endcsname{6}{x6-440004.1}{QQ2-6-47}{Jikes RVM Configurations}}{35}\relax 
+\doTocEntry\tocsubsection{4.1.1}{\csname a:TocLink\endcsname{6}{x6-450004.1.1}{QQ2-6-48}{Logical Configurations}}{35}\relax 
+\doTocEntry\tocsubsection{4.1.2}{\csname a:TocLink\endcsname{6}{x6-460004.1.2}{QQ2-6-49}{Configurations in Depth}}{36}\relax 
+\doTocEntry\toclot{4.2}{\csname a:TocLink\endcsname{6}{x6-46008r2}{}{\ignorespaces Example configurations and their uses}}{table}\relax 
+\doTocEntry\toclot{4.3}{\csname a:TocLink\endcsname{6}{x6-46009r3}{}{\ignorespaces Mapping of logical configurations to actual configurations in Jikes RVM 3.1.3}}{table}\relax 
+\doTocEntry\tocchapter{5}{\csname a:TocLink\endcsname{7}{x7-470005}{QQ2-7-52}{Debugging Jikes RVM}}{45}\relax 
+\doTocEntry\tocsection{5.1}{\csname a:TocLink\endcsname{7}{x7-480005.1}{QQ2-7-53}{General debugging tips}}{45}\relax 
+\doTocEntry\tocsubsection{5.1.1}{\csname a:TocLink\endcsname{7}{x7-490005.1.1}{QQ2-7-54}{Assertions}}{45}\relax 
+\doTocEntry\tocsubsection{5.1.2}{\csname a:TocLink\endcsname{7}{x7-500005.1.2}{QQ2-7-55}{Options}}{45}\relax 
+\doTocEntry\tocsubsection{5.1.3}{\csname a:TocLink\endcsname{7}{x7-510005.1.3}{QQ2-7-56}{Debugger Thread}}{45}\relax 
+\doTocEntry\tocsubsection{5.1.4}{\csname a:TocLink\endcsname{7}{x7-520005.1.4}{QQ2-7-57}{Shutdown hooks}}{46}\relax 
+\doTocEntry\tocsubsection{5.1.5}{\csname a:TocLink\endcsname{7}{x7-530005.1.5}{QQ2-7-58}{Tests}}{46}\relax 
+\doTocEntry\tocsection{5.2}{\csname a:TocLink\endcsname{7}{x7-540005.2}{QQ2-7-59}{Tools}}{46}\relax 
+\doTocEntry\tocsubsection{5.2.1}{\csname a:TocLink\endcsname{7}{x7-550005.2.1}{QQ2-7-60}{GDB}}{46}\relax 
+\doTocEntry\tocsubsection{5.2.2}{\csname a:TocLink\endcsname{7}{x7-560005.2.2}{QQ2-7-61}{rdb}}{46}\relax 
+\doTocEntry\tocsubsection{5.2.3}{\csname a:TocLink\endcsname{7}{x7-570005.2.3}{QQ2-7-62}{Other Tools}}{47}\relax 
+\doTocEntry\tocsection{5.3}{\csname a:TocLink\endcsname{7}{x7-580005.3}{QQ2-7-63}{Debugging Optimizing Compiler Problems}}{47}\relax 
+\doTocEntry\tocsubsection{5.3.1}{\csname a:TocLink\endcsname{7}{x7-590005.3.1}{QQ2-7-64}{Deadlocks}}{48}\relax 
+\doTocEntry\tocsubsection{5.3.2}{\csname a:TocLink\endcsname{7}{x7-600005.3.2}{QQ2-7-65}{Excluding Garbage Collection problems}}{48}\relax 
+\doTocEntry\tocsection{5.4}{\csname a:TocLink\endcsname{7}{x7-610005.4}{QQ2-7-66}{GDB Stack Walking}}{48}\relax 
+\doTocEntry\tocchapter{6}{\csname a:TocLink\endcsname{8}{x8-620006}{QQ2-8-67}{Experimental Guidelines}}{52}\relax 
+\doTocEntry\tocsection{6.1}{\csname a:TocLink\endcsname{8}{x8-630006.1}{QQ2-8-68}{Which boot image should I use?}}{52}\relax 
+\doTocEntry\tocsection{6.2}{\csname a:TocLink\endcsname{8}{x8-640006.2}{QQ2-8-69}{Compiler Replay}}{52}\relax 
+\doTocEntry\tocsubsection{6.2.1}{\csname a:TocLink\endcsname{8}{x8-650006.2.1}{QQ2-8-70}{Generate Advice}}{52}\relax 
+\doTocEntry\tocsubsection{6.2.2}{\csname a:TocLink\endcsname{8}{x8-660006.2.2}{QQ2-8-71}{Executing with advice}}{54}\relax 
+\doTocEntry\tocsubsection{6.2.3}{\csname a:TocLink\endcsname{8}{x8-670006.2.3}{QQ2-8-72}{Verbosity}}{54}\relax 
+\doTocEntry\tocsection{6.3}{\csname a:TocLink\endcsname{8}{x8-680006.3}{QQ2-8-73}{Measuring GC performance}}{55}\relax 
+\doTocEntry\tocsection{6.4}{\csname a:TocLink\endcsname{8}{x8-690006.4}{QQ2-8-74}{Jikes RVM is really slow! What am I doing wrong?}}{58}\relax 
+\doTocEntry\tocsection{6.5}{\csname a:TocLink\endcsname{8}{x8-700006.5}{QQ2-8-75}{Stability of Jikes RVM}}{59}\relax 
+\doTocEntry\tocchapter{7}{\csname a:TocLink\endcsname{9}{x9-710007}{QQ2-9-76}{Modifying Jikes RVM}}{61}\relax 
+\doTocEntry\tocsection{7.1}{\csname a:TocLink\endcsname{9}{x9-720007.1}{QQ2-9-77}{Adding command line options}}{61}\relax 
+\doTocEntry\tocsubsection{7.1.1}{\csname a:TocLink\endcsname{9}{x9-730007.1.1}{QQ2-9-78}{MMTk options}}{61}\relax 
+\doTocEntry\tocsubsection{7.1.2}{\csname a:TocLink\endcsname{9}{x9-740007.1.2}{QQ2-9-79}{VM subsystem options}}{62}\relax 
+\doTocEntry\tocsubsection{7.1.3}{\csname a:TocLink\endcsname{9}{x9-750007.1.3}{QQ2-9-80}{Core VM options}}{63}\relax 
+\doTocEntry\tocsection{7.2}{\csname a:TocLink\endcsname{9}{x9-760007.2}{QQ2-9-81}{Adding a new garbage collector}}{65}\relax 
+\doTocEntry\tocsubsection{7.2.1}{\csname a:TocLink\endcsname{9}{x9-770007.2.1}{QQ2-9-82}{Overview}}{65}\relax 
+\doTocEntry\tocsubsection{7.2.2}{\csname a:TocLink\endcsname{9}{x9-780007.2.2}{QQ2-9-83}{Prerequisites}}{65}\relax 
+\doTocEntry\tocsubsection{7.2.3}{\csname a:TocLink\endcsname{9}{x9-790007.2.3}{QQ2-9-84}{Cloning the MarkSweep GC}}{65}\relax 
+\doTocEntry\tocsubsection{7.2.4}{\csname a:TocLink\endcsname{9}{x9-800007.2.4}{QQ2-9-85}{Making it Prettier}}{67}\relax 
+\doTocEntry\tocsubsection{7.2.5}{\csname a:TocLink\endcsname{9}{x9-810007.2.5}{QQ2-9-86}{Beyond BaseBaseMyGC}}{68}\relax 
+\doTocEntry\tocsubsection{7.2.6}{\csname a:TocLink\endcsname{9}{x9-820007.2.6}{QQ2-9-87}{What Next?}}{68}\relax 
+\doTocEntry\tocsection{7.3}{\csname a:TocLink\endcsname{9}{x9-830007.3}{QQ2-9-88}{Coding Conventions}}{68}\relax 
+\doTocEntry\tocsubsection{7.3.1}{\csname a:TocLink\endcsname{9}{x9-840007.3.1}{QQ2-9-89}{Assertions in Jikes RVM and MMTk}}{68}\relax 
+\doTocEntry\tocsubsection{7.3.2}{\csname a:TocLink\endcsname{9}{x9-850007.3.2}{QQ2-9-90}{Assertions in the MMTk Test Harness}}{69}\relax 
+\doTocEntry\tocsubsection{7.3.3}{\csname a:TocLink\endcsname{9}{x9-860007.3.3}{QQ2-9-91}{Error Handling}}{69}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{9}{x9-870007.3.3}{QQ2-9-92}{Examples}}{69}\relax 
+\doTocEntry\tocsection{7.4}{\csname a:TocLink\endcsname{9}{x9-880007.4}{QQ2-9-93}{Coding Style}}{70}\relax 
+\doTocEntry\tocsubsection{7.4.1}{\csname a:TocLink\endcsname{9}{x9-890007.4.1}{QQ2-9-94}{File Headers}}{70}\relax 
+\doTocEntry\tocsubsection{7.4.2}{\csname a:TocLink\endcsname{9}{x9-900007.4.2}{QQ2-9-95}{Coding style description}}{70}\relax 
+\doTocEntry\tocsubsection{7.4.3}{\csname a:TocLink\endcsname{9}{x9-910007.4.3}{QQ2-9-96}{Javadoc requirements}}{71}\relax 
+\doTocEntry\tocsection{7.5}{\csname a:TocLink\endcsname{9}{x9-920007.5}{QQ2-9-97}{Compiler DNA}}{72}\relax 
+\doTocEntry\tocsection{7.6}{\csname a:TocLink\endcsname{9}{x9-930007.6}{QQ2-9-98}{Editing Jikes RVM in an IDE}}{73}\relax 
+\doTocEntry\tocsubsection{7.6.1}{\csname a:TocLink\endcsname{9}{x9-940007.6.1}{QQ2-9-99}{Editing JikesRVM in Eclipse}}{74}\relax 
+\doTocEntry\tocsubsection{7.6.2}{\csname a:TocLink\endcsname{9}{x9-950007.6.2}{QQ2-9-100}{Setup for easier compliance with the Checkstyle rules}}{75}\relax 
+\doTocEntry\tocsubsection{7.6.3}{\csname a:TocLink\endcsname{9}{x9-960007.6.3}{QQ2-9-101}{Editing JikesRVM in NetBeans}}{76}\relax 
+\doTocEntry\tocchapter{8}{\csname a:TocLink\endcsname{10}{x10-970008}{QQ2-10-102}{Profiling Applications with Jikes RVM}}{78}\relax 
+\doTocEntry\tocsection{8.1}{\csname a:TocLink\endcsname{10}{x10-980008.1}{QQ2-10-103}{Instrumented Event Counters}}{78}\relax 
+\doTocEntry\tocsubsection{8.1.1}{\csname a:TocLink\endcsname{10}{x10-990008.1.1}{QQ2-10-104}{Existing Instrumentation Phases}}{79}\relax 
+\doTocEntry\tocsubsection{8.1.2}{\csname a:TocLink\endcsname{10}{x10-1000008.1.2}{QQ2-10-105}{Writing new instrumentation phases}}{80}\relax 
+\doTocEntry\tocchapter{9}{\csname a:TocLink\endcsname{11}{x11-1010009}{QQ2-11-106}{Running Jikes RVM}}{82}\relax 
+\doTocEntry\tocsection{9.1}{\csname a:TocLink\endcsname{11}{x11-1020009.1}{QQ2-11-107}{Standard Command-Line Options}}{82}\relax 
+\doTocEntry\tocsection{9.2}{\csname a:TocLink\endcsname{11}{x11-1030009.2}{QQ2-11-108}{Non-Standard Command-Line Options}}{85}\relax 
+\doTocEntry\tocsubsection{9.2.1}{\csname a:TocLink\endcsname{11}{x11-1040009.2.1}{QQ2-11-109}{Core Non-Standard Command-Line Options}}{85}\relax 
+\doTocEntry\tocsubsection{9.2.2}{\csname a:TocLink\endcsname{11}{x11-1050009.2.2}{QQ2-11-110}{Memory Non-Standard Command-Line Options}}{88}\relax 
+\doTocEntry\tocsubsection{9.2.3}{\csname a:TocLink\endcsname{11}{x11-1060009.2.3}{QQ2-11-111}{Subsystem Non-Standard Command-Line Options}}{91}\relax 
+\doTocEntry\tocsection{9.3}{\csname a:TocLink\endcsname{11}{x11-1070009.3}{QQ2-11-112}{Running Jikes RVM with Valgrind}}{91}\relax 
+\doTocEntry\tocchapter{10}{\csname a:TocLink\endcsname{12}{x12-10800010}{QQ2-12-113}{Testing Jikes RVM}}{94}\relax 
+\doTocEntry\tocsection{10.1}{\csname a:TocLink\endcsname{12}{x12-10900010.1}{QQ2-12-114}{Unit Tests}}{94}\relax 
+\doTocEntry\tocsection{10.2}{\csname a:TocLink\endcsname{12}{x12-11000010.2}{QQ2-12-115}{Functional and Performance Tests}}{94}\relax 
+\doTocEntry\tocsubsection{10.2.1}{\csname a:TocLink\endcsname{12}{x12-11100010.2.1}{QQ2-12-116}{Ant properties}}{95}\relax 
+\doTocEntry\toclot{10.1}{\csname a:TocLink\endcsname{12}{x12-111001r1}{}{\ignorespaces Test properties}}{table}\relax 
+\doTocEntry\tocsubsection{10.2.2}{\csname a:TocLink\endcsname{12}{x12-11200010.2.2}{QQ2-12-118}{Defining a test-run}}{98}\relax 
+\doTocEntry\toclot{10.2}{\csname a:TocLink\endcsname{12}{x12-112001r2}{}{\ignorespaces Test run properties}}{table}\relax 
+\doTocEntry\toclot{10.3}{\csname a:TocLink\endcsname{12}{x12-112008r3}{}{\ignorespaces Test specific parameters}}{table}\relax 
+\doTocEntry\tocsubsection{10.2.3}{\csname a:TocLink\endcsname{12}{x12-11300010.2.3}{QQ2-12-121}{Excluding tests}}{104}\relax 
+\doTocEntry\tocsubsection{10.2.4}{\csname a:TocLink\endcsname{12}{x12-11400010.2.4}{QQ2-12-122}{Executing a test-run}}{104}\relax 
+\doTocEntry\tocsubsection{10.2.5}{\csname a:TocLink\endcsname{12}{x12-11500010.2.5}{QQ2-12-123}{Jenkins integration}}{105}\relax 
+\doTocEntry\tocsection{10.3}{\csname a:TocLink\endcsname{12}{x12-11600010.3}{QQ2-12-124}{External Test Resources}}{105}\relax 
+\doTocEntry\tocsubsection{10.3.1}{\csname a:TocLink\endcsname{12}{x12-11700010.3.1}{QQ2-12-125}{Open Source Benchmarks}}{105}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-11800010.3.1}{QQ2-12-126}{Dacapo}}{106}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-11900010.3.1}{QQ2-12-127}{jBYTEmark}}{106}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12000010.3.1}{QQ2-12-128}{CaffeineMark}}{106}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12100010.3.1}{QQ2-12-129}{xerces}}{107}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12200010.3.1}{QQ2-12-130}{Soot}}{107}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12300010.3.1}{QQ2-12-131}{Java Grande Forum Sequential Benchmarks}}{107}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12400010.3.1}{QQ2-12-132}{Java Grande Forum Multi-threaded Benchmarks}}{107}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12500010.3.1}{QQ2-12-133}{JLex Benchmark}}{108}\relax 
+\doTocEntry\tocsubsection{10.3.2}{\csname a:TocLink\endcsname{12}{x12-12600010.3.2}{QQ2-12-134}{Proprietary Benchmarks}}{108}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12700010.3.2}{QQ2-12-135}{SPECjbb2005}}{108}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12800010.3.2}{QQ2-12-136}{SPECjbb2000}}{109}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{12}{x12-12900010.3.2}{QQ2-12-137}{SPEC JVM98 Benchmarks}}{109}\relax 
+\doTocEntry\tocsection{10.4}{\csname a:TocLink\endcsname{12}{x12-13000010.4}{QQ2-12-138}{Test Run Descriptions}}{109}\relax 
+\doTocEntry\tocsubsection{10.4.1}{\csname a:TocLink\endcsname{12}{x12-13100010.4.1}{QQ2-12-139}{pre-commit}}{110}\relax 
+\doTocEntry\tocsubsection{10.4.2}{\csname a:TocLink\endcsname{12}{x12-13200010.4.2}{QQ2-12-140}{core}}{110}\relax 
+\doTocEntry\tocsubsection{10.4.3}{\csname a:TocLink\endcsname{12}{x12-13300010.4.3}{QQ2-12-141}{sanity}}{110}\relax 
+\doTocEntry\tocsubsection{10.4.4}{\csname a:TocLink\endcsname{12}{x12-13400010.4.4}{QQ2-12-142}{Other test runs}}{110}\relax 
+\doTocEntry\tocsubsection{10.4.5}{\csname a:TocLink\endcsname{12}{x12-13500010.4.5}{QQ2-12-143}{Summary}}{111}\relax 
+\doTocEntry\tocchapter{11}{\csname a:TocLink\endcsname{13}{x13-13600011}{QQ2-13-144}{The MMTk Test Harness}}{113}\relax 
+\doTocEntry\tocsection{11.1}{\csname a:TocLink\endcsname{13}{x13-13700011.1}{QQ2-13-145}{Overview}}{113}\relax 
+\doTocEntry\tocsection{11.2}{\csname a:TocLink\endcsname{13}{x13-13800011.2}{QQ2-13-146}{Standalone}}{113}\relax 
+\doTocEntry\tocsection{11.3}{\csname a:TocLink\endcsname{13}{x13-13900011.3}{QQ2-13-147}{In Eclipse}}{113}\relax 
+\doTocEntry\tocsection{11.4}{\csname a:TocLink\endcsname{13}{x13-14000011.4}{QQ2-13-148}{Test harness options}}{123}\relax 
+\doTocEntry\tocsection{11.5}{\csname a:TocLink\endcsname{13}{x13-14100011.5}{QQ2-13-149}{Scripts}}{126}\relax 
+\doTocEntry\tocsection{11.6}{\csname a:TocLink\endcsname{13}{x13-14200011.6}{QQ2-13-150}{Scripting language}}{129}\relax 
+\doTocEntry\tocsubsection{11.6.1}{\csname a:TocLink\endcsname{13}{x13-14300011.6.1}{QQ2-13-151}{Basics}}{129}\relax 
+\doTocEntry\tocsubsection{11.6.2}{\csname a:TocLink\endcsname{13}{x13-14400011.6.2}{QQ2-13-152}{Syntax}}{129}\relax 
+\doTocEntry\tocsection{11.7}{\csname a:TocLink\endcsname{13}{x13-14500011.7}{QQ2-13-153}{MMTk Unit Tests}}{130}\relax 
+\doTocEntry\tocpart{II}{\csname a:TocLink\endcsname{14}{x14-146000II}{QQ2-14-154}{Architecture}}{134}\relax 
+\doTocEntry\tocchapter{12}{\csname a:TocLink\endcsname{15}{x15-14700012}{QQ2-15-155}{Adaptive Optimization System}}{135}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{15}{x15-14800012}{QQ2-15-156}{Selective Optimization}}{136}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{15}{x15-14900012}{QQ2-15-157}{Profile-Directed Inlining}}{137}\relax 
+\doTocEntry\tocsection{12.1}{\csname a:TocLink\endcsname{15}{x15-15000012.1}{QQ2-15-158}{AOS Controller}}{137}\relax 
+\doTocEntry\tocsection{12.2}{\csname a:TocLink\endcsname{15}{x15-15100012.2}{QQ2-15-159}{Cost Benefit Model}}{138}\relax 
+\doTocEntry\tocsection{12.3}{\csname a:TocLink\endcsname{15}{x15-15200012.3}{QQ2-15-160}{Jikes RVM's compilers}}{140}\relax 
+\doTocEntry\tocsection{12.4}{\csname a:TocLink\endcsname{15}{x15-15300012.4}{QQ2-15-161}{Life Cycle of a Compiled Method}}{142}\relax 
+\doTocEntry\toclof{12.1}{\csname a:TocLink\endcsname{15}{x15-153001r1}{}{\ignorespaces life cycle of a compiled method}}{figure}\relax 
+\doTocEntry\tocsection{12.5}{\csname a:TocLink\endcsname{15}{x15-15400012.5}{QQ2-15-163}{Logging and Debugging}}{145}\relax 
+\doTocEntry\tocsection{12.6}{\csname a:TocLink\endcsname{15}{x15-15500012.6}{QQ2-15-164}{Threading and Yieldpoints}}{146}\relax 
+\doTocEntry\tocchapter{13}{\csname a:TocLink\endcsname{16}{x16-15600013}{QQ2-16-165}{Compilers}}{149}\relax 
+\doTocEntry\tocsection{13.1}{\csname a:TocLink\endcsname{16}{x16-15700013.1}{QQ2-16-166}{Baseline Compiler}}{149}\relax 
+\doTocEntry\tocsubsection{13.1.1}{\csname a:TocLink\endcsname{16}{x16-15800013.1.1}{QQ2-16-167}{General Architecture}}{149}\relax 
+\doTocEntry\tocsubsection{13.1.2}{\csname a:TocLink\endcsname{16}{x16-15900013.1.2}{QQ2-16-168}{GC Maps}}{149}\relax 
+\doTocEntry\tocsection{13.2}{\csname a:TocLink\endcsname{16}{x16-16000013.2}{QQ2-16-169}{Optimizing Compiler}}{150}\relax 
+\doTocEntry\tocsubsection{13.2.1}{\csname a:TocLink\endcsname{16}{x16-16100013.2.1}{QQ2-16-170}{Method Compilation}}{150}\relax 
+\doTocEntry\tocsubsection{13.2.2}{\csname a:TocLink\endcsname{16}{x16-16200013.2.2}{QQ2-16-171}{IR}}{152}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{16}{x16-16300013.2.2}{QQ2-16-172}{IR Operators}}{152}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{16}{x16-16400013.2.2}{QQ2-16-173}{Instruction Format}}{153}\relax 
+\doTocEntry\tocsubsection{13.2.3}{\csname a:TocLink\endcsname{16}{x16-16500013.2.3}{QQ2-16-174}{BURS}}{155}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{16}{x16-16600013.2.3}{QQ2-16-175}{Future directions}}{157}\relax 
+\doTocEntry\tocsubsection{13.2.4}{\csname a:TocLink\endcsname{16}{x16-16700013.2.4}{QQ2-16-176}{OptTestHarness}}{158}\relax 
+\doTocEntry\toclot{13.1}{\csname a:TocLink\endcsname{16}{x16-167001r1}{}{\ignorespaces OptTestHarness command line options}}{table}\relax 
+\doTocEntry\tocparagraph{}{\csname a:TocLink\endcsname{16}{x16-16800013.2.4}{QQ2-16-178}{Examples}}{161}\relax 
+\doTocEntry\tocchapter{14}{\csname a:TocLink\endcsname{17}{x17-16900014}{QQ2-17-179}{Core Runtime Services}}{163}\relax 
+\doTocEntry\tocsection{14.1}{\csname a:TocLink\endcsname{17}{x17-17000014.1}{QQ2-17-180}{Object Model}}{163}\relax 
+\doTocEntry\tocsubsection{14.1.1}{\csname a:TocLink\endcsname{17}{x17-17100014.1.1}{QQ2-17-181}{Overview}}{164}\relax 
+\doTocEntry\tocsubsection{14.1.2}{\csname a:TocLink\endcsname{17}{x17-17200014.1.2}{QQ2-17-182}{Object Header}}{164}\relax 
+\doTocEntry\tocsubsection{14.1.3}{\csname a:TocLink\endcsname{17}{x17-17300014.1.3}{QQ2-17-183}{Field Layout}}{166}\relax 
+\doTocEntry\tocsection{14.2}{\csname a:TocLink\endcsname{17}{x17-17400014.2}{QQ2-17-184}{Class and Code Management}}{166}\relax 
+\doTocEntry\tocsubsection{14.2.1}{\csname a:TocLink\endcsname{17}{x17-17500014.2.1}{QQ2-17-185}{Class Loading}}{167}\relax 
+\doTocEntry\tocsubsection{14.2.2}{\csname a:TocLink\endcsname{17}{x17-17600014.2.2}{QQ2-17-186}{Code Management}}{167}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-17700014.2.2}{QQ2-17-187}{The JTOC}}{168}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-17800014.2.2}{QQ2-17-188}{Virtual Methods}}{171}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-17900014.2.2}{QQ2-17-189}{Static Fields and Methods}}{171}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-18000014.2.2}{QQ2-17-190}{Instance Initialization Methods}}{171}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-18100014.2.2}{QQ2-17-191}{Lazy Method Compilation}}{171}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-18200014.2.2}{QQ2-17-192}{Interface Methods}}{171}\relax 
+\doTocEntry\tocsection{14.3}{\csname a:TocLink\endcsname{17}{x17-18300014.3}{QQ2-17-193}{Thread Management}}{172}\relax 
+\doTocEntry\tocsubsection{14.3.1}{\csname a:TocLink\endcsname{17}{x17-18400014.3.1}{QQ2-17-194}{Tracking the Thread State}}{172}\relax 
+\doTocEntry\tocsubsection{14.3.2}{\csname a:TocLink\endcsname{17}{x17-18500014.3.2}{QQ2-17-195}{Blocking and Handshaking}}{176}\relax 
+\doTocEntry\tocsubsection{14.3.3}{\csname a:TocLink\endcsname{17}{x17-18600014.3.3}{QQ2-17-196}{The Monitor API}}{178}\relax 
+\doTocEntry\tocsubsection{14.3.4}{\csname a:TocLink\endcsname{17}{x17-18700014.3.4}{QQ2-17-197}{Thin and Biased Locking}}{179}\relax 
+\doTocEntry\tocsection{14.4}{\csname a:TocLink\endcsname{17}{x17-18800014.4}{QQ2-17-198}{JNI}}{180}\relax 
+\doTocEntry\tocsubsection{14.4.1}{\csname a:TocLink\endcsname{17}{x17-18900014.4.1}{QQ2-17-199}{Overview}}{180}\relax 
+\doTocEntry\tocsubsection{14.4.2}{\csname a:TocLink\endcsname{17}{x17-19000014.4.2}{QQ2-17-200}{JNI Functions}}{181}\relax 
+\doTocEntry\tocsubsection{14.4.3}{\csname a:TocLink\endcsname{17}{x17-19100014.4.3}{QQ2-17-201}{Invoking Native Methods}}{181}\relax 
+\doTocEntry\tocsubsection{14.4.4}{\csname a:TocLink\endcsname{17}{x17-19200014.4.4}{QQ2-17-202}{Interactions with Threading}}{181}\relax 
+\doTocEntry\tocsubsection{14.4.5}{\csname a:TocLink\endcsname{17}{x17-19300014.4.5}{QQ2-17-203}{Missing Features}}{182}\relax 
+\doTocEntry\tocsubsection{14.4.6}{\csname a:TocLink\endcsname{17}{x17-19400014.4.6}{QQ2-17-204}{Things JNI Can't Handle}}{182}\relax 
+\doTocEntry\tocsection{14.5}{\csname a:TocLink\endcsname{17}{x17-19500014.5}{QQ2-17-205}{Exception Management}}{183}\relax 
+\doTocEntry\tocsection{14.6}{\csname a:TocLink\endcsname{17}{x17-19600014.6}{QQ2-17-206}{Bootstrap}}{184}\relax 
+\doTocEntry\tocsubsection{14.6.1}{\csname a:TocLink\endcsname{17}{x17-19700014.6.1}{QQ2-17-207}{Memory Map}}{185}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-19800014.6.1}{QQ2-17-208}{Boot Segment}}{185}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-19900014.6.1}{QQ2-17-209}{Jikes RVM Image Segment}}{185}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-20000014.6.1}{QQ2-17-210}{Jikes RVM Heap Segment}}{186}\relax 
+\doTocEntry\tocsection{14.7}{\csname a:TocLink\endcsname{17}{x17-20100014.7}{QQ2-17-211}{Calling Conventions}}{186}\relax 
+\doTocEntry\tocsubsection{14.7.1}{\csname a:TocLink\endcsname{17}{x17-20200014.7.1}{QQ2-17-212}{Architecture-independent concepts}}{186}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-20300014.7.1}{QQ2-17-213}{Register conventions}}{187}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-20400014.7.1}{QQ2-17-214}{Stack conventions}}{187}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-20500014.7.1}{QQ2-17-215}{Method prologue responsibilities}}{188}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{17}{x17-20600014.7.1}{QQ2-17-216}{Method epilogue responsibilities}}{188}\relax 
+\doTocEntry\tocsubsection{14.7.2}{\csname a:TocLink\endcsname{17}{x17-20700014.7.2}{QQ2-17-217}{Architecture-specific calling conventions}}{188}\relax 
+\doTocEntry\tocsection{14.8}{\csname a:TocLink\endcsname{17}{x17-20800014.8}{QQ2-17-218}{VM Callbacks}}{189}\relax 
+\doTocEntry\tocsubsection{14.8.1}{\csname a:TocLink\endcsname{17}{x17-20900014.8.1}{QQ2-17-219}{An Example: Modifying SPECjvm98 to Report the End of a Run}}{190}\relax 
+\doTocEntry\tocsubsection{14.8.2}{\csname a:TocLink\endcsname{17}{x17-21000014.8.2}{QQ2-17-220}{Another Example: Directing a Recompilation of All Methods During the Application's Execution}}{191}\relax 
+\doTocEntry\tocchapter{15}{\csname a:TocLink\endcsname{18}{x18-21100015}{QQ2-18-221}{Magic}}{193}\relax 
+\doTocEntry\tocsection{15.1}{\csname a:TocLink\endcsname{18}{x18-21200015.1}{QQ2-18-222}{Compiler Intrinsics}}{194}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{18}{x18-21300015.1}{QQ2-18-223}{Magic}}{194}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{18}{x18-21400015.1}{QQ2-18-224}{sun.misc.Unsafe}}{194}\relax 
+\doTocEntry\tocsection{15.2}{\csname a:TocLink\endcsname{18}{x18-21500015.2}{QQ2-18-225}{Unboxed Types}}{194}\relax 
+\doTocEntry\tocsection{15.3}{\csname a:TocLink\endcsname{18}{x18-21600015.3}{QQ2-18-226}{Raw Memory Access}}{196}\relax 
+\doTocEntry\tocsection{15.4}{\csname a:TocLink\endcsname{18}{x18-21700015.4}{QQ2-18-227}{Uninterruptible Code}}{196}\relax 
+\doTocEntry\tocchapter{16}{\csname a:TocLink\endcsname{19}{x19-21800016}{QQ2-19-228}{MMTk}}{201}\relax 
+\doTocEntry\tocsection{16.1}{\csname a:TocLink\endcsname{19}{x19-21900016.1}{QQ2-19-229}{Anatomy of a Garbage Collector}}{202}\relax 
+\doTocEntry\tocsubsection{16.1.1}{\csname a:TocLink\endcsname{19}{x19-22000016.1.1}{QQ2-19-230}{Structure of a Plan}}{202}\relax 
+\doTocEntry\tocsubsection{16.1.2}{\csname a:TocLink\endcsname{19}{x19-22100016.1.2}{QQ2-19-231}{Policies}}{203}\relax 
+\doTocEntry\tocsubsection{16.1.3}{\csname a:TocLink\endcsname{19}{x19-22200016.1.3}{QQ2-19-232}{Allocation}}{204}\relax 
+\doTocEntry\tocsubsection{16.1.4}{\csname a:TocLink\endcsname{19}{x19-22300016.1.4}{QQ2-19-233}{Collection}}{206}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-22400016.1.4}{QQ2-19-234}{Scheduling}}{206}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-22500016.1.4}{QQ2-19-235}{Initiating}}{206}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-22600016.1.4}{QQ2-19-236}{Collector Phases}}{207}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-22700016.1.4}{QQ2-19-237}{Tracing the heap}}{208}\relax 
+\doTocEntry\tocsection{16.2}{\csname a:TocLink\endcsname{19}{x19-22800016.2}{QQ2-19-238}{Memory Allocation in Jikes RVM}}{209}\relax 
+\doTocEntry\tocsubsection{16.2.1}{\csname a:TocLink\endcsname{19}{x19-22900016.2.1}{QQ2-19-239}{Memory Manager Interface}}{209}\relax 
+\doTocEntry\tocsubsection{16.2.2}{\csname a:TocLink\endcsname{19}{x19-23000016.2.2}{QQ2-19-240}{Compiler integration}}{211}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-23100016.2.2}{QQ2-19-241}{Baseline Compiler}}{211}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-23200016.2.2}{QQ2-19-242}{Optimizing Compiler}}{212}\relax 
+\doTocEntry\tocsection{16.3}{\csname a:TocLink\endcsname{19}{x19-23300016.3}{QQ2-19-243}{Scanning Objects in Jikes RVM}}{212}\relax 
+\doTocEntry\tocsubsection{16.3.1}{\csname a:TocLink\endcsname{19}{x19-23400016.3.1}{QQ2-19-244}{JikesRVM to MMTk Interface}}{212}\relax 
+\doTocEntry\tocsubsection{16.3.2}{\csname a:TocLink\endcsname{19}{x19-23500016.3.2}{QQ2-19-245}{Hand Inlining}}{213}\relax 
+\doTocEntry\tocsubsection{16.3.3}{\csname a:TocLink\endcsname{19}{x19-23600016.3.3}{QQ2-19-246}{Specialized Scanning}}{214}\relax 
+\doTocEntry\tocsection{16.4}{\csname a:TocLink\endcsname{19}{x19-23700016.4}{QQ2-19-247}{Using GCSpy}}{214}\relax 
+\doTocEntry\tocsubsection{16.4.1}{\csname a:TocLink\endcsname{19}{x19-23800016.4.1}{QQ2-19-248}{The GCspy Heap Visualisation Framework}}{214}\relax 
+\doTocEntry\tocsubsection{16.4.2}{\csname a:TocLink\endcsname{19}{x19-23900016.4.2}{QQ2-19-249}{Installation of GCspy with Jikes RVM}}{215}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-24000016.4.2}{QQ2-19-250}{Building GCSpy}}{216}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-24100016.4.2}{QQ2-19-251}{Building Jikes RVM to use GCspy}}{216}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-24200016.4.2}{QQ2-19-252}{Running Jikes RVM with GCspy}}{216}\relax 
+\doTocEntry\tocsubsection{16.4.3}{\csname a:TocLink\endcsname{19}{x19-24300016.4.3}{QQ2-19-253}{Command line arguments}}{217}\relax 
+\doTocEntry\tocsubsection{16.4.4}{\csname a:TocLink\endcsname{19}{x19-24400016.4.4}{QQ2-19-254}{Writing GCspy drivers}}{217}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-24500016.4.4}{QQ2-19-255}{The Plan}}{218}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-24600016.4.4}{QQ2-19-256}{The Collector and Mutator}}{218}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-24700016.4.4}{QQ2-19-257}{The Driver}}{219}\relax 
+\doTocEntry\tocsubsubsection{}{\csname a:TocLink\endcsname{19}{x19-24800016.4.4}{QQ2-19-258}{Subspaces}}{220}\relax 
+\doTocEntry\tocpart{III}{\csname a:TocLink\endcsname{20}{x20-249000III}{QQ2-20-259}{MMTk Tutorial}}{224}\relax 
+\doTocEntry\tocchapter{17}{\csname a:TocLink\endcsname{21}{x21-25000017}{QQ2-21-260}{Preliminaries}}{225}\relax 
+\doTocEntry\tocsection{17.1}{\csname a:TocLink\endcsname{21}{x21-25100017.1}{QQ2-21-261}{Getting MMTk and Jikes RVM and Eclipse working}}{225}\relax 
+\doTocEntry\tocsection{17.2}{\csname a:TocLink\endcsname{21}{x21-25200017.2}{QQ2-21-262}{Creating The Base Tutorial Collector}}{226}\relax 
+\doTocEntry\tocchapter{18}{\csname a:TocLink\endcsname{22}{x22-25300018}{QQ2-22-263}{Building a Mark-sweep Collector}}{228}\relax 
+\doTocEntry\tocsection{18.1}{\csname a:TocLink\endcsname{22}{x22-25400018.1}{QQ2-22-264}{Free-list Allocation}}{228}\relax 
+\doTocEntry\tocsection{18.2}{\csname a:TocLink\endcsname{22}{x22-25500018.2}{QQ2-22-265}{Mark-Sweep Collection}}{229}\relax 
+\doTocEntry\tocsection{18.3}{\csname a:TocLink\endcsname{22}{x22-25600018.3}{QQ2-22-266}{Optimized Mark-sweep Collection}}{233}\relax 
+\doTocEntry\tocchapter{19}{\csname a:TocLink\endcsname{23}{x23-25700019}{QQ2-23-267}{Building a Hybrid Collector}}{236}\relax 
+\doTocEntry\tocsection{19.1}{\csname a:TocLink\endcsname{23}{x23-25800019.1}{QQ2-23-268}{Add a Copying Nursery}}{236}\relax 
+\doTocEntry\tocsection{19.2}{\csname a:TocLink\endcsname{23}{x23-25900019.2}{QQ2-23-269}{Add nursery allocation}}{237}\relax 
+\doTocEntry\tocsection{19.3}{\csname a:TocLink\endcsname{23}{x23-26000019.3}{QQ2-23-270}{Add copying to the collector}}{238}\relax 
+\doTocEntry\tocsection{19.4}{\csname a:TocLink\endcsname{23}{x23-26100019.4}{QQ2-23-271}{Make necessary changes to TutorialTraceLocal}}{239}\relax 

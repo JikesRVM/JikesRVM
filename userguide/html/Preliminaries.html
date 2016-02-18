@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>17 Preliminaries</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 17</span><br /><a 
+ id="x21-25000017"></a>Preliminaries</h2>
+<h3 class="sectionHead"><span class="titlemark">17.1   </span> <a 
+ id="x21-25100017.1"></a>Getting MMTk and Jikes RVM and Eclipse working</h3>
+<!--l. 6--><p class="noindent" >
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x21-251002x1"><a 
+href="GetTheSource.html#x4-30002">Download</a> the latest Jikes RVM release (or use git HEAD)
+     </li>
+     <li 
+  class="enumerate" id="x21-251004x2">Ensure you can <a 
+href="BuildingJikesRVM.html#x5-60003">Build</a> and <a 
+href="RunningJikesRVM.html#x11-1010009">Run Jikes RVM</a>.
+     </li>
+     <li 
+  class="enumerate" id="x21-251006x3">Ensure you can build and run the BaseBaseNoGC conﬁguration (build with:
+     <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">bin/buildit localhost BaseBaseNoGC</span></span></span>, run with something like:
+     <!--l. 10-->
+     <div class="lstlisting" id="listing-150"><span class="label"><a 
+ id="x21-251007r1"></a></span>dist/BaseBaseNoGC_ia32-linux/rvm HelloWorld
+     
+     </div>
+     <!--l. 13--><p class="noindent" >Note that this conﬁguration <span 
+class="cmti-10">does not </span>perform garbage collection so can only
+     run small benchmarks which do not exhaust available memory. This
+     conﬁguration will be used as the basis for the tutorial.
+     </p></li>
+     <li 
+  class="enumerate" id="x21-251009x4">Ensure that your source is <a 
+href="ModifyingJikesRVM.html#x9-930007.6">successfully imported</a> (and editable) within an IDE
+     such as Eclipse.
+     </li>
+     <li 
+  class="enumerate" id="x21-251011x5">Set up an <a 
+href="TheMMTkTestHarness.html#x13-13600011">Eclipse Run conﬁguration</a> for the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NoGC</span></span></span> plan using the MMTk Test
+     Harness.</li></ol>
+                                                                  
+
+                                                                  
+<!--l. 20--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">17.2   </span> <a 
+ id="x21-25200017.2"></a>Creating The Base Tutorial Collector</h3>
+<!--l. 22--><p class="noindent" >
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x21-252002x1">Copy  the  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.mmtk.plan.nogc</span></span></span> package  to  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.mmtk.plan.tutorial</span></span></span>
+     (copy and paste the package in Eclipse).
+     </li>
+     <li 
+  class="enumerate" id="x21-252004x2">Rename the constituent classes from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NoGC*</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Tutorial*</span></span></span> (use Refactor
+     <span 
+class="tcrm-1000">→</span> Rename on each class within the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.mmtk.plan.tutorial</span></span></span> package
+     in Eclipse).
+     </li>
+     <li 
+  class="enumerate" id="x21-252006x3">Edit ﬁle class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.mmtk.harness.PlanSpecificConfig</span></span></span>, and add the following
+     lines <!--l. 26-->
+     <div class="lstlisting" id="listing-151"><span class="label"><a 
+ id="x21-252007r1"></a></span>register(new PlanSpecific(”org.mmtk.plan.tutorial.Tutorial”).addExpectedSpaces(”default”), ”Tutorial”);
+     
+     </div>
+     <!--l. 29--><p class="noindent" >to the static initializer (look for ”NoGC”).
+     </p></li>
+     <li 
+  class="enumerate" id="x21-252009x4">Modify your MMTk Harness Eclipse Run Conﬁguration to use the new Plan
+     (the name of the plan is the second parameter to the ”register” method you
+     inserted above), and click &#x2019;Run&#x2019; to run it.
+     </li>
+     <li 
+  class="enumerate" id="x21-252011x5">Build and run the resulting collector. <br 
+class="newline" />Build with something like: <!--l. 32-->
+     <div class="lstlisting" id="listing-152"><span class="label"><a 
+ id="x21-252012r1"></a></span>bin/buildit localhost BaseBaseTutorial
+     
+     </div>
+     <!--l. 35--><p class="noindent" >run with something like: </p><!--l. 36-->
+     <div class="lstlisting" id="listing-153"><span class="label"><a 
+ id="x21-252013r1"></a></span>dist/BaseBaseTutorial_ia32-linux/rvm HelloWorld
+     
+     </div>
+     </li></ol>
+                                                                  
+
+                                                                  
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailPreliminaries.html"></a></p> 
+</body></html> 

@@ -1,0 +1,1022 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>10 Testing Jikes RVM</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 10</span><br /><a 
+ id="x12-10800010"></a>Testing Jikes RVM</h2>
+<!--l. 5--><p class="noindent" >Jikes RVM includes provisions to run unit tests as well as functional and performance
+tests. It also includes a number of actual tests, both unit and functional
+ones.
+</p>
+<h3 class="sectionHead"><span class="titlemark">10.1   </span> <a 
+ id="x12-10900010.1"></a>Unit Tests</h3>
+<!--l. 9--><p class="noindent" >Jikes RVM makes writing simple unit tests easy. Simply give your JUnit 4 tests a
+name ending in Test and place test sources under <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">rvm/test-src</span></span></span>. The tests will be
+picked up automatically.
+</p><!--l. 11--><p class="noindent" >The tests are then run on the bootstrap VM, i.e. the JVM used to build Jikes RVM.
+You can also <a 
+href="BuildingJikesRVM.html#x5-60003">conﬁgure the build</a> to run unit tests on the newly built Jikes RVM.
+Note that this may signiﬁcantly increase the build times of slow conﬁgurations (e.g.
+prototype and protype-opt).
+</p><!--l. 13--><p class="noindent" >If you are developing new unit tests, it may be helpful to run them on an
+existing Jikes RVM image. This can be done by using the Ant target
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">unit-tests-on-existing-image</span></span></span>. The path for the image is determined by the usual
+properties of the Ant build.
+</p><!--l. 16--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">10.2   </span> <a 
+ id="x12-11000010.2"></a>Functional and Performance Tests</h3>
+<!--l. 18--><p class="noindent" >See <a 
+href="#x12-11600010.3">External Test Resources</a> for details or downloading prerequisites for the
+functional tests. The tests are executed using an Ant build ﬁle and produce
+results that conform to the deﬁnition below. The results are aggregated
+and processed to produce a high level report deﬁning the status of Jikes
+RVM.
+</p><!--l. 20--><p class="noindent" >The testing framework was designed to support continuous and periodical execution
+of tests. A <span 
+class="cmti-10">”test-run” </span>occurs every time the testing framework is invoked. Every
+<span 
+class="cmti-10">”test-run” </span>will execute one or more <span 
+class="cmti-10">”test-conﬁguration”</span>s. A <span 
+class="cmti-10">”test-conﬁguration”</span>
+deﬁnes a particular build <span 
+class="cmti-10">”conﬁguration” </span>(See <a 
+href="ConfiguringJikesRVM.html#x6-430004">Conﬁguring Jikes RVM</a> for details)
+combined with a set of parameters that are passed to Jikes RVM during the
+execution of the tests. i.e. a particular <span 
+class="cmti-10">”test-conﬁguration” </span>may pass parameters such
+as <span 
+class="cmtt-10">-X:aos:enable</span><span 
+class="cmtt-10">_recompilation=false -X:aos:initial</span><span 
+class="cmtt-10">_compiler=opt</span>
+<span 
+class="cmtt-10">-X:irc:O1 </span>to test the Level 1 Opt compiler optimizations.
+</p><!--l. 22--><p class="noindent" >Every <span 
+class="cmti-10">”test-conﬁguration” </span>will execute one or more <span 
+class="cmti-10">”group”</span>s of tests. Every
+<span 
+class="cmti-10">”group” </span>is deﬁned by a Ant build.xml ﬁle in a separate sub-directory of
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">$RVM_ROOT/testing/tests</span></span></span>. Each <span 
+class="cmti-10">”test” </span>has a number of input parameters such as
+the classname to execute, the parameters to pass to Jikes RVM or to the program.
+The <span 
+class="cmti-10">”test” </span>records a number of values such as execution time, exit code, result,
+standard output etc. and may also record a number of statistics if it is a performance
+test.
+</p><!--l. 24--><p class="noindent" >The project includes several diﬀerent types of test runs and the description of each
+the test runs and their purpose is given in <a 
+href="#x12-13000010.4">Test Run Descriptions</a>.
+                                                                  
+
+                                                                  
+</p><!--l. 26--><p class="noindent" >Note that the <a 
+href="BuildingJikesRVM.html#x5-340003.8">buildit script</a> provides a fast and easy way to build and the
+system. The script is simply a wrapper around the mechanisms described
+below.
+</p><!--l. 28--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.2.1   </span> <a 
+ id="x12-11100010.2.1"></a>Ant properties</h4>
+<!--l. 30--><p class="noindent" >There is a number of ant properties that control the test process. Besides the
+properties that are already deﬁned in <a 
+href="BuildingJikesRVM.html#x5-60003">Building Jikes RVM</a>, special test properties
+may also be speciﬁed.
+</p>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 33--><p class="noindent" ><a 
+ id="x12-111001r1"></a></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-11" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-11-1g"><col 
+id="TBL-11-1" /><col 
+id="TBL-11-2" /><col 
+id="TBL-11-3" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-11-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-1-1"  
+class="td11"><!--l. 36--><p class="noindent" >Property         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-1-2"  
+class="td11"><!--l. 36--><p class="noindent" >Description                                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-1-3"  
+class="td11"><!--l. 36--><p class="noindent" >Default                     </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-2-1"  
+class="td11"><!--l. 37--><p class="noindent" >test-run.name    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-2-2"  
+class="td11"><!--l. 37--><p class="noindent" >The  name  of  the  test-run.  The  name
+should match one of the ﬁles located in
+the build/test-runs/ directory minus the
+&#x2019;.properties&#x2019; extension.                      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-2-3"  
+class="td11"><!--l. 37--><p class="noindent" >pre-commit                </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-3-1"  
+class="td11"><!--l. 38--><p class="noindent" >results.dir         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-3-2"  
+class="td11"><!--l. 38--><p class="noindent" >The  directory  where  Ant  stores  the
+results of the test run.                      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-3-3"  
+class="td11"><!--l. 38--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>jikesrvm.dir<span 
+class="cmsy-10">}</span>/<br 
+class="newline" />results                       </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-4-1"  
+class="td11"><!--l. 39--><p class="noindent" >results.archive   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-4-2"  
+class="td11"><!--l. 39--><p class="noindent" >The  directory  where  Ant  gzips  and
+archives a copy of test run results and
+reports.                                          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-4-3"  
+class="td11"><!--l. 39--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>results.dir<span 
+class="cmsy-10">}</span>/<br 
+class="newline" />archive                      </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-5-1"  
+class="td11"><!--l. 40--><p class="noindent" >send.reports      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-5-2"  
+class="td11"><!--l. 40--><p class="noindent" >Deﬁne this property to send reports via
+email.                                            </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-5-3"  
+class="td11"><!--l. 40--><p class="noindent" >(Undeﬁned)               </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-6-1"  
+class="td11"><!--l. 41--><p class="noindent" >mail.from         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-6-2"  
+class="td11"><!--l. 41--><p class="noindent" >The from address used when emailing
+report.                                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-6-3"  
+class="td11"><!--l. 41--><p class="noindent" >jikesrvm-core@<br 
+class="newline" />lists.sourceforge.<br 
+class="newline" />net                           </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-7-1"  
+class="td11"><!--l. 42--><p class="noindent" >mail.to             </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-7-2"  
+class="td11"><!--l. 42--><p class="noindent" >The  to  address  used  when  emailing
+report.                                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-7-3"  
+class="td11"><!--l. 42--><p class="noindent" >jikesrvm-<br 
+class="newline" />regression@<br 
+class="newline" />lists.sourceforge.<br 
+class="newline" />net                           </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-8-1"  
+class="td11"><!--l. 43--><p class="noindent" >mail.host          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-8-2"  
+class="td11"><!--l. 43--><p class="noindent" >The  host  to  connect  to  when  sending
+mail.                                             </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-8-3"  
+class="td11"><!--l. 43--><p class="noindent" >localhost                   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-9-1"  
+class="td11"><!--l. 44--><p class="noindent" >mail.port          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-9-2"  
+class="td11"><!--l. 44--><p class="noindent" >The port to connect to when sending
+mail.                                             </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-9-3"  
+class="td11"><!--l. 44--><p class="noindent" >25                            </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-10-1"  
+class="td11"><!--l. 45--><p class="noindent" ><span 
+class="cmmi-10">&#x003C;</span>conﬁguration<span 
+class="cmmi-10">&#x003E;</span>.<br 
+class="newline" />built                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-10-2"  
+class="td11"><!--l. 45--><p class="noindent" >If  set  to  true,  the  test  process  will
+skip   the   build   step   for   speciﬁed
+conﬁgurations. For the test process to
+work the build must already be present.</p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-10-3"  
+class="td11"><!--l. 45--><p class="noindent" >(Undeﬁned)               </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-11-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-11-1"  
+class="td11"><!--l. 46--><p class="noindent" >skip.build         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-11-2"  
+class="td11"><!--l. 46--><p class="noindent" >If deﬁned the test process will skip the
+build step for all conﬁgurations and the
+javadoc  generation  step.  For  the  test
+process to work the build must already
+be present.                                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-11-3"  
+class="td11"><!--l. 46--><p class="noindent" >(Undeﬁned)               </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-12-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-12-1"  
+class="td11"><!--l. 47--><p class="noindent" >skip.javadoc      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-12-2"  
+class="td11"><!--l. 47--><p class="noindent" >If deﬁned the test process will skip the
+javadoc generation step.                    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-11-12-3"  
+class="td11"><!--l. 47--><p class="noindent" >(Undeﬁned)               </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-11-13-"><td  style="white-space:wrap; text-align:left;" id="TBL-11-13-1"  
+class="td11">              </td></tr></table></div>
+<br /> <div class="caption" 
+><span class="id">Table 10.1: </span><span  
+class="content">Test properties</span></div><!--tex4ht:label?: x12-111001r1 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<h4 class="subsectionHead"><span class="titlemark">10.2.2   </span> <a 
+ id="x12-11200010.2.2"></a>Deﬁning a test-run</h4>
+<!--l. 56--><p class="noindent" >A <span 
+class="cmti-10">test-run </span>is deﬁned by a number of properties located in a property ﬁle located in
+the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">build/test-runs/</span></span></span> directory.
+</p><!--l. 58--><p class="noindent" >The property test.conﬁgs is a whitespace separated list of test-conﬁguration
+”tags”. Every tag uniquely identiﬁes a particular test-conﬁguration. Every
+test-conﬁguration is deﬁned by a number of properties in the property ﬁle that are
+preﬁxed with test.conﬁg.<span 
+class="cmmi-10">&#x003C;</span>tag<span 
+class="cmmi-10">&#x003E;</span>. See the test run property table for the possible
+properties.
+</p>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 60--><p class="noindent" ><a 
+ id="x12-112001r2"></a></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-12" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-12-1g"><col 
+id="TBL-12-1" /><col 
+id="TBL-12-2" /><col 
+id="TBL-12-3" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-12-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-1-1"  
+class="td11"><!--l. 63--><p class="noindent" >Property         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-1-2"  
+class="td11"><!--l. 63--><p class="noindent" >Description                                               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-1-3"  
+class="td11"><!--l. 63--><p class="noindent" >Default           </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-12-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-2-1"  
+class="td11"><!--l. 64--><p class="noindent" >tests                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-2-2"  
+class="td11"><!--l. 64--><p class="noindent" >The names of the test groups to execute.        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-2-3"  
+class="td11"><!--l. 64--><p class="noindent" >None              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-12-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-3-1"  
+class="td11"><!--l. 65--><p class="noindent" >name               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-3-2"  
+class="td11"><!--l. 65--><p class="noindent" >The unique identiﬁer for test-conﬁguration.     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-3-3"  
+class="td11"><!--l. 65--><p class="noindent" >””                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-12-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-4-1"  
+class="td11"><!--l. 66--><p class="noindent" >conﬁguration     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-4-2"  
+class="td11"><!--l. 66--><p class="noindent" >The name of the Jikes RVM build conﬁguration
+to test.                                                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-4-3"  
+class="td11"><!--l. 66--><p class="noindent" ><span 
+class="cmmi-10">&#x003C;</span>tag<span 
+class="cmmi-10">&#x003E;</span>          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-12-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-5-1"  
+class="td11"><!--l. 67--><p class="noindent" >target              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-5-2"  
+class="td11"><!--l. 67--><p class="noindent" >The name of the Jikes RVM build target. This
+can be used to trigger compilation of a proﬁled
+image                                                      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-5-3"  
+class="td11"><!--l. 67--><p class="noindent" >”main”           </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-12-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-6-1"  
+class="td11"><!--l. 68--><p class="noindent" >mode               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-6-2"  
+class="td11"><!--l. 68--><p class="noindent" >The test mode. May modify the way test groups
+execute. See individual groups for details.       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-6-3"  
+class="td11"><!--l. 68--><p class="noindent" >””                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-12-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-7-1"  
+class="td11"><!--l. 69--><p class="noindent" >extra.rvm.args   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-7-2"  
+class="td11"><!--l. 69--><p class="noindent" >Extra arguments that are passed to the Jikes
+RVM. These may be varied for diﬀerent runs
+using the same image.                                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-12-7-3"  
+class="td11"><!--l. 69--><p class="noindent" >””                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-12-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-12-8-1"  
+class="td11">              </td></tr></table></div>
+<br /> <div class="caption" 
+><span class="id">Table 10.2: </span><span  
+class="content">Test run properties</span></div><!--tex4ht:label?: x12-112001r2 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<!--l. 74--><p class="noindent" >The order of the test-conﬁgurations in <span 
+class="cmti-10">test.conﬁgs </span>is the order that the
+test-conﬁgurations are tested. The order of the groups in <span 
+class="cmti-10">test.conﬁg.</span><span 
+class="cmmi-10">&#x003C;</span><span 
+class="cmti-10">tag</span><span 
+class="cmmi-10">&#x003E;</span><span 
+class="cmti-10">.test </span>is the
+order that the tests are executed.
+</p><!--l. 76--><p class="noindent" >The simplest test-run is deﬁned in the following ﬁgure. It will use the build
+conﬁguration <span 
+class="cmti-10">”prototype” </span>and execute tests in the <span 
+class="cmti-10">”basic” </span>group.
+</p>
+<!--l. 78-->
+<br />
+    <div class="caption" 
+><span class="id">13cAp1x12-11200010.2.2:
+    </span><span  
+class="content">build/test-runs/simple.properties</span></div><!--tex4ht:label?: x12-11200010.2 --><div class="lstlisting" id="listing-78"><span class="label"><a 
+ id="x12-112002r1"></a></span>test.configs=prototype <br /><span class="label"><a 
+ id="x12-112003r2"></a></span>test.config.prototype.tests=basic
+</div>
+<!--l. 83--><p class="noindent" >The test process also expands properties in the property ﬁle so it is possible to deﬁne
+a set of tests once but use them in multiple test-conﬁgurations as occurs in the
+following ﬁgure. The groups basic, optests and dacapo are executed in both the
+prototype and prototype-opt test conﬁgurations.
+</p>
+<!--l. 85-->
+<br />
+    <div class="caption" 
+><span class="id">13cAp2x12-11200010.2.2:
+    </span><span  
+class="content">build/test-runs/property-expansion.properties</span></div><!--tex4ht:label?: x12-11200010.2 --><div class="lstlisting" id="listing-79"><span class="label"><a 
+ id="x12-112004r1"></a></span>test.set=basic optests dacapo <br /><span class="label"><a 
+ id="x12-112005r2"></a></span>test.configs=prototype prototype-opt <br /><span class="label"><a 
+ id="x12-112006r3"></a></span>test.config.prototype.tests=<span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.set<span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x12-112007r4"></a></span>test.config.prototype-opt.tests=<span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.set<span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 92--><p class="noindent" >Each test can have additional parameters speciﬁed that will be used by the
+test infrastructure when starting the Jikes RVM instance to execute the
+test. These additional parameters are described in table for test speciﬁc
+parameters.
+</p>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 94--><p class="noindent" ><a 
+ id="x12-112008r3"></a></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-13" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-13-1g"><col 
+id="TBL-13-1" /><col 
+id="TBL-13-2" /><col 
+id="TBL-13-3" /><col 
+id="TBL-13-4" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-13-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-1-1"  
+class="td11"><!--l. 97--><p class="noindent" >Parameter       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-1-2"  
+class="td11"><!--l. 97--><p class="noindent" >Description      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-1-3"  
+class="td11"><!--l. 97--><p class="noindent" >Default Property         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-1-4"  
+class="td11"><!--l. 97--><p class="noindent" >Default Value             </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-2-1"  
+class="td11"><!--l. 98--><p class="noindent" >initial.heapsize  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-2-2"  
+class="td11"><!--l. 98--><p class="noindent" >The  initial  size
+of the heap.     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-2-3"  
+class="td11"><!--l. 98--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.initial.heapsize<span 
+class="cmsy-10">}</span> </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-2-4"  
+class="td11"><!--l. 98--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>conﬁg.default-heapsize.initial<span 
+class="cmsy-10">}</span> </p> </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-3-1"  
+class="td11"><!--l. 99--><p class="noindent" >max.heapsize    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-3-2"  
+class="td11"><!--l. 99--><p class="noindent" >The  initial  size
+of the heap.     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-3-3"  
+class="td11"><!--l. 99--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.max.heapsize<span 
+class="cmsy-10">}</span>  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-3-4"  
+class="td11"><!--l. 99--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>conﬁg.default-heapsize.maximum<span 
+class="cmsy-10">}</span> </p> </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-4-1"  
+class="td11"><!--l. 100--><p class="noindent" >max.opt.level    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-4-2"  
+class="td11"><!--l. 100--><p class="noindent" >The   maximum
+optimization
+level
+for the tests or
+an empty string
+to use the Jikes
+RVM default.   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-4-3"  
+class="td11"><!--l. 100--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.max.opt.level<span 
+class="cmsy-10">}</span>  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-4-4"  
+class="td11"><!--l. 100--><p class="noindent" >“”                            </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-5-1"  
+class="td11"><!--l. 101--><p class="noindent" >processors        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-5-2"  
+class="td11"><!--l. 101--><p class="noindent" >The      number
+of processors to
+use for garbage
+collection     for
+the test or &#x2019;all&#x2019;
+to
+use all available
+processors.       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-5-3"  
+class="td11"><!--l. 101--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.processors<span 
+class="cmsy-10">}</span>   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-5-4"  
+class="td11"><!--l. 101--><p class="noindent" >all                            </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-6-1"  
+class="td11"><!--l. 102--><p class="noindent" >time.limit         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-6-2"  
+class="td11"><!--l. 102--><p class="noindent" >The  time  limit
+for  the  test  in
+seconds.   After
+the  time  limit
+expires
+the  Jikes  RVM
+instance will be
+forcefully
+terminated.      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-6-3"  
+class="td11"><!--l. 102--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.time.limit<span 
+class="cmsy-10">}</span>    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-6-4"  
+class="td11"><!--l. 102--><p class="noindent" >1000                         </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-7-1"  
+class="td11"><!--l. 103--><p class="noindent" >class.path         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-7-2"  
+class="td11"><!--l. 103--><p class="noindent" >The  class  path
+for the test.     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-7-3"  
+class="td11"><!--l. 103--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.class.path<span 
+class="cmsy-10">}</span>   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-7-4"  
+class="td11"><!--l. 104--><p class="noindent" >                    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-8-1"  
+class="td11"><!--l. 104--><p class="noindent" >extra.args         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-8-2"  
+class="td11"><!--l. 104--><p class="noindent" >Extra
+arguments  that
+are   passed   to
+Jikes RVM.      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-8-3"  
+class="td11"><!--l. 104--><p class="noindent" ><span 
+class="tcrm-1000">$</span><span 
+class="cmsy-10">{</span>test.rvm.extra.args<span 
+class="cmsy-10">}</span> </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-8-4"  
+class="td11"><!--l. 104--><p class="noindent" >“”                            </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-9-1"  
+class="td11"><!--l. 105--><p class="noindent" >exclude            </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-9-2"  
+class="td11"><!--l. 105--><p class="noindent" >If
+set to true, the
+test will be not
+be executed.    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-9-3"  
+class="td11"><!--l. 105--><p class="noindent" >                    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-13-9-4"  
+class="td11"><!--l. 105--><p class="noindent" >“”                            </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-13-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-13-10-1"  
+class="td11">              </td></tr></table></div>
+<br /> <div class="caption" 
+><span class="id">Table 10.3: </span><span  
+class="content">Test speciﬁc parameters</span></div><!--tex4ht:label?: x12-112008r3 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<!--l. 111--><p class="noindent" >To determine the value of a test speciﬁc parameters, the following mechanism is
+used:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x12-112010x1">Search for one of the the following ant properties, in order.
+         <ol  class="enumerate2" >
+         <li 
+  class="enumerate" id="x12-112012x1">test.conﬁg.<span 
+class="cmmi-10">&#x003C;</span>build-conﬁguration<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>group<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>test<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>parameter<span 
+class="cmmi-10">&#x003E;</span>
+         </li>
+         <li 
+  class="enumerate" id="x12-112014x2">test.conﬁg.<span 
+class="cmmi-10">&#x003C;</span>build-conﬁguration<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>group<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>parameter<span 
+class="cmmi-10">&#x003E;</span>
+         </li>
+         <li 
+  class="enumerate" id="x12-112016x3">test.conﬁg.<span 
+class="cmmi-10">&#x003C;</span>build-conﬁguration<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>parameter<span 
+class="cmmi-10">&#x003E;</span>
+         </li>
+         <li 
+  class="enumerate" id="x12-112018x4">test.conﬁg.<span 
+class="cmmi-10">&#x003C;</span>build-conﬁguration<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>group<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>test<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>parameter<span 
+class="cmmi-10">&#x003E;</span>
+         </li>
+         <li 
+  class="enumerate" id="x12-112020x5">test.conﬁg.<span 
+class="cmmi-10">&#x003C;</span>build-conﬁguration<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>group<span 
+class="cmmi-10">&#x003E;</span>.<span 
+class="cmmi-10">&#x003C;</span>parameter<span 
+class="cmmi-10">&#x003E;</span></li></ol>
+     </li>
+     <li 
+  class="enumerate" id="x12-112022x2">If none of the above properties are deﬁned then use the parameter that was
+     passed to the <span 
+class="cmmi-10">&#x003C;</span>rvm<span 
+class="cmmi-10">&#x003E;</span> macro in the ant build ﬁle.
+     </li>
+     <li 
+  class="enumerate" id="x12-112024x3">If no parameter was passed to the <span 
+class="cmmi-10">&#x003C;</span>rvm<span 
+class="cmmi-10">&#x003E;</span> macro then use the default value
+     which is stored in the ”Default Property” as speciﬁed in the above table. By
+     default the value of the ”Default Property” is speciﬁed as the ”Default Value”
+     in the above table, however a particular build ﬁle may specify a diﬀerent
+     ”Default Value”.</li></ol>
+<h4 class="subsectionHead"><span class="titlemark">10.2.3   </span> <a 
+ id="x12-11300010.2.3"></a>Excluding tests</h4>
+<!--l. 130--><p class="noindent" >Sometimes it is desirable to exclude tests. The test exclusion may occur as the test is
+known to fail on a particular target platform, build conﬁguration or maybe
+it just takes too long. To exclude a test, you must deﬁne the test speciﬁc
+parameter ”exclude” to true either in .ant.properties or in the test-run properties
+ﬁle.
+</p><!--l. 132--><p class="noindent" >For example, at the time of writing the Jikes RVM does not fully support volatile
+ﬁelds and as a result the test named ”TestVolatile” in the ”basic” group will always
+fail. Rather than being notiﬁed of this failure we can disable the test by adding a
+property such as ”test.conﬁg.basic.TestVolatile.exclude=true” into test-run properties
+ﬁle.
+</p><!--l. 136--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.2.4   </span> <a 
+ id="x12-11400010.2.4"></a>Executing a test-run</h4>
+                                                                  
+
+                                                                  
+<!--l. 138--><p class="noindent" >The tests are executed by the Ant driver script <span 
+class="cmti-10">test.xml</span>. The <span 
+class="cmti-10">test-run.name </span>property
+deﬁnes the particular test-run to execute and if not set defaults to <span 
+class="cmti-10">”sanity”</span>. The
+command <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ant -f test.xml -Dtest-run.name=simple</span></span></span> executes the test-run deﬁned
+in <span 
+class="cmti-10">build/test-runs/simple.properties</span>. When this command completes you can point
+your browser at <br 
+class="newline" /><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">${results.dir}/tests/${test-run.name}/Report.html</span></span></span> to get an overview on test
+run or at <br 
+class="newline" /><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">${results.dir}/tests/${test-run.name}/Report.xml</span></span></span> for an XML document
+describing test results.
+</p><!--l. 142--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.2.5   </span> <a 
+ id="x12-11500010.2.5"></a>Jenkins integration</h4>
+<!--l. 144--><p class="noindent" >Executing a test-run on a recent version of Jikes RVM (later than 3.1.3) also
+produces a ﬁle called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MinimalReport-JUnitFormat.xml</span></span></span>. This ﬁle contains the test
+results in a format that&#x2019;s suitable for processing as JUnit results in Jenkins. To use
+this ﬁle in Jenkins, select the appropriate job and add a post-build step to publish
+JUnit test result reports. Ensure that the box ”Retain long standard output/error” is
+<span 
+class="cmti-10">not checked</span>. If long standard output/error is retained, you will likely run into
+<span 
+class="cmtt-10">OutOfMemoryErrors </span>when Jenkins parses the results of larger test runs. For example,
+parsing results from the sanity test run (which contains <span 
+class="cmmi-10">&#x003E;</span>3000 test cases) exhausts 5
+GB heaps.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">10.3   </span> <a 
+ id="x12-11600010.3"></a>External Test Resources</h3>
+<!--l. 5--><p class="noindent" >The tests included in the source tree are designed to test the correctness and
+performance of the Jikes RVM. This document gives a step by step instructions for
+setting up the external dependencies for these tests.
+</p><!--l. 7--><p class="noindent" >The ﬁrst step is selecting the base directory where all the external code is to be
+located. The property <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">external.lib.dir</span></span></span> needs to be set to this location.
+i.e.
+</p>
+<!--l. 9-->
+<div class="lstlisting" id="listing-80"><span class="label"><a 
+ id="x12-116001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> echo ”external.lib.dir=/home/peter/Research/External” <span 
+class="cmmi-10">&#x003E;&#x003E;</span> .ant.properties <br /><span class="label"><a 
+ id="x12-116002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p /home/peter/Research/External
+</div>
+<!--l. 14--><p class="noindent" >Then you need to follow the instructions below for the desired benchmarks. The
+instructions assume that the environment variable <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BENCHMARK_ROOT</span></span></span> is set to the
+same location as the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">external.lib.dir</span></span></span> property.
+</p><!--l. 16--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.3.1   </span> <a 
+ id="x12-11700010.3.1"></a>Open Source Benchmarks</h4>
+                                                                  
+
+                                                                  
+<!--l. 18--><p class="noindent" >In the future other benchmarks such as BigInteger, <a 
+href="http://www.sable.mcgill.ca/ashes/" >Ashes</a> or <a 
+href="http://www.volano.com/benchmarks.html" >Volano</a> may be
+included.
+</p><!--l. 20--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-11800010.3.1"></a>Dacapo</h5>
+<!--l. 22--><p class="noindent" ><a 
+href="http://dacapobench.org" >Dacapo</a> describes itself as ”This benchmark suite is intended as a tool for Java
+benchmarking by the programming language, memory management and
+computer architecture communities. It consists of a set of open source, real world
+applications with non-trivial memory loads. The suite is the culmination of
+over ﬁve years work at eight institutions, as part of the DaCapo research
+project, which was funded by a National Science Foundation ITR Grant,
+CCR-0085792.”
+</p><!--l. 24--><p class="noindent" >The release needs to be downloaded and placed in the <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/dacapo/
+directory. i.e.
+</p>
+<!--l. 26-->
+<div class="lstlisting" id="listing-81"><span class="label"><a 
+ id="x12-118001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/dacapo/ <br /><span class="label"><a 
+ id="x12-118002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/dacapo/ <br /><span class="label"><a 
+ id="x12-118003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://sourceforge.net/projects/dacapobench/files/archive/2006-10/dacapo-2006-10.jar/download?use_mirror=autoselect”
+</div>
+<!--l. 34--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-11900010.3.1"></a>jBYTEmark</h5>
+<!--l. 36--><p class="noindent" >jBYTEmark was a benchmark developed by Byte.com a long time ago.
+</p>
+<!--l. 38-->
+<div class="lstlisting" id="listing-82"><span class="label"><a 
+ id="x12-119001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/jBYTEmark-0.9 <br /><span class="label"><a 
+ id="x12-119002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/jBYTEmark-0.9 <br /><span class="label"><a 
+ id="x12-119003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://img.byte.com/byte/bmark/jbyte.zip <br /><span class="label"><a 
+ id="x12-119004r4"></a></span><span 
+class="cmmi-10">&#x003E;</span> unzip -jo jbyte.zip &#x2019;app/class/<span 
+class="tcrm-1000">*</span>&#x2019; <br /><span class="label"><a 
+ id="x12-119005r5"></a></span><span 
+class="cmmi-10">&#x003E;</span> unzip -jo jbyte.zip &#x2019;app/src/jBYTEmark.java&#x2019; <br /><span class="label"><a 
+ id="x12-119006r6"></a></span><span 
+class="cmmi-10">&#x003E;</span> ... Edit jBYTEmark.java to delete ”while (true) <span 
+class="cmsy-10">{}</span>” at the end of main. ... <br /><span class="label"><a 
+ id="x12-119007r7"></a></span><span 
+class="cmmi-10">&#x003E;</span> javac jBYTEmark.java <br /><span class="label"><a 
+ id="x12-119008r8"></a></span><span 
+class="cmmi-10">&#x003E;</span> jar cf jBYTEmark-0.9.jar <span 
+class="tcrm-1000">*</span>.class <br /><span class="label"><a 
+ id="x12-119009r9"></a></span><span 
+class="cmmi-10">&#x003E;</span> rm -f <span 
+class="tcrm-1000">*</span>.class jBYTEmark.java
+</div>
+<!--l. 52--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12000010.3.1"></a>CaﬀeineMark</h5>
+<!--l. 54--><p class="noindent" ><a 
+href="http://www.benchmarkhq.ru/cm30/info.html" >CaﬀeineMark</a> describes itself as ”The CaﬀeineMark is a series of tests that measure
+the speed of Java programs running in various hardware and software conﬁgurations.
+CaﬀeineMark scores roughly correlate with the number of Java instructions
+executed per second, and do not depend signiﬁcantly on the the amount of
+memory in the system or on the speed of a computers disk drives or internet
+connection.”
+</p>
+<!--l. 56-->
+<div class="lstlisting" id="listing-83"><span class="label"><a 
+ id="x12-120001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/CaffeineMark-3.0 <br /><span class="label"><a 
+ id="x12-120002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/CaffeineMark-3.0 <br /><span class="label"><a 
+ id="x12-120003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www.benchmarkhq.ru/cm30/cmkit.zip <br /><span class="label"><a 
+ id="x12-120004r4"></a></span><span 
+class="cmmi-10">&#x003E;</span> unzip cmkit.zip
+                                                                  
+
+                                                                  
+</div>
+<!--l. 65--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12100010.3.1"></a>xerces</h5>
+<!--l. 67--><p class="noindent" >Process some large documents using xerces XML parser.
+</p>
+<!--l. 69-->
+<div class="lstlisting" id="listing-84"><span class="label"><a 
+ id="x12-121001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT <br /><span class="label"><a 
+ id="x12-121002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://archive.apache.org/dist/xml/xerces-j/Xerces-J-bin.2.8.1.tar.gz <br /><span class="label"><a 
+ id="x12-121003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> tar xzf Xerces-J-bin.2.8.1.tar.gz <br /><span class="label"><a 
+ id="x12-121004r4"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/xmlFiles <br /><span class="label"><a 
+ id="x12-121005r5"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/xmlFiles <br /><span class="label"><a 
+ id="x12-121006r6"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www.ibiblio.org/pub/sun-info/standards/xml/eg/shakespeare.1.10.xml.zip <br /><span class="label"><a 
+ id="x12-121007r7"></a></span><span 
+class="cmmi-10">&#x003E;</span> unzip shakespeare.1.10.xml.zip
+</div>
+<!--l. 80--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12200010.3.1"></a>Soot</h5>
+<!--l. 82--><p class="noindent" ><a 
+href="http://sable.github.io/soot/" >Soot</a> describes itself as ”Originally, Soot started oﬀ as a Java optimization
+framework. By now, researchers and practitioners from around the world
+use Soot to analyze, instrument, optimize and visualize Java and Android
+applications.”
+</p>
+<!--l. 84-->
+<div class="lstlisting" id="listing-85"><span class="label"><a 
+ id="x12-122001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/soot-2.2.3 <br /><span class="label"><a 
+ id="x12-122002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/soot-2.2.3 <br /><span class="label"><a 
+ id="x12-122003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www.sable.mcgill.ca/software/sootclasses-2.2.3.jar <br /><span class="label"><a 
+ id="x12-122004r4"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www.sable.mcgill.ca/software/jasminclasses-2.2.3.jar
+</div>
+<!--l. 93--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12300010.3.1"></a>Java Grande Forum Sequential Benchmarks</h5>
+<!--l. 95--><p class="noindent" >Java Grande Forum Sequential Benchmarks is a benchmark suite designed for single
+processor execution.
+</p>
+<!--l. 97-->
+<div class="lstlisting" id="listing-86"><span class="label"><a 
+ id="x12-123001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/JavaGrandeForum <br /><span class="label"><a 
+ id="x12-123002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/JavaGrandeForum <br /><span class="label"><a 
+ id="x12-123003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www2.epcc.ed.ac.uk/javagrande/seq/jgf_v2.tar.gz <br /><span class="label"><a 
+ id="x12-123004r4"></a></span><span 
+class="cmmi-10">&#x003E;</span> tar xzf jgf_v2.tar.gz
+</div>
+<!--l. 106--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12400010.3.1"></a>Java Grande Forum Multi-threaded Benchmarks</h5>
+<!--l. 108--><p class="noindent" >Java Grande Forum Multi-threaded Benchmarks is a benchmark suite designed for
+parallel execution on shared memory multiprocessors.
+</p>
+<!--l. 110-->
+                                                                  
+
+                                                                  
+<div class="lstlisting" id="listing-87"><span class="label"><a 
+ id="x12-124001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/JavaGrandeForum <br /><span class="label"><a 
+ id="x12-124002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/JavaGrandeForum <br /><span class="label"><a 
+ id="x12-124003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www2.epcc.ed.ac.uk/javagrande/threads/jgf_threadv1.0.tar.gz <br /><span class="label"><a 
+ id="x12-124004r4"></a></span><span 
+class="cmmi-10">&#x003E;</span> tar xzf jgf_threadv1.0.tar.gz
+</div>
+<!--l. 119--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12500010.3.1"></a>JLex Benchmark</h5>
+<!--l. 121--><p class="noindent" ><a 
+href="http://www.cs.princeton.edu/~appel/modern/java/JLex/" >JLex</a> is a lexical analyzer generator, written for Java, in Java.
+</p>
+<!--l. 123-->
+<div class="lstlisting" id="listing-88"><span class="label"><a 
+ id="x12-125001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/JLex-1.2.6/classes/JLex <br /><span class="label"><a 
+ id="x12-125002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/JLex-1.2.6/classes/JLex <br /><span class="label"><a 
+ id="x12-125003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www.cs.princeton.edu/˜appel/modern/java/JLex/Archive/1.2.6/Main.java <br /><span class="label"><a 
+ id="x12-125004r4"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/QBJC <br /><span class="label"><a 
+ id="x12-125005r5"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/QBJC <br /><span class="label"><a 
+ id="x12-125006r6"></a></span><span 
+class="cmmi-10">&#x003E;</span> wget http://www.ocf.berkeley.edu/˜horie/qbjlex.txt <br /><span class="label"><a 
+ id="x12-125007r7"></a></span><span 
+class="cmmi-10">&#x003E;</span> mv qbjlex.txt qb1.lex
+</div>
+<!--l. 137--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.3.2   </span> <a 
+ id="x12-12600010.3.2"></a>Proprietary Benchmarks</h4>
+<!--l. 139--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12700010.3.2"></a>SPECjbb2005</h5>
+<!--l. 141--><p class="noindent" ><a 
+href="http://www.spec.org/jbb2005/" >SPECjbb2005</a> describes itself as ”SPECjbb2005 (Java Server Benchmark) is SPEC&#x2019;s
+benchmark for evaluating the performance of server side Java. Like its predecessor,
+SPECjbb2000, SPECjbb2005 evaluates the performance of server side Java by
+emulating a three-tier client/server system (with emphasis on the middle tier). The
+benchmark exercises the implementations of the JVM (Java Virtual Machine), JIT
+(Just-In-Time) compiler, garbage collection, threads and some aspects of the
+operating system. It also measures the performance of CPUs, caches, memory
+hierarchy and the scalability of shared memory processors (SMPs). SPECjbb2005
+provides a new enhanced workload, implemented in a more object-oriented manner to
+reﬂect how real-world applications are designed and introduces new features such as
+XML processing and BigDecimal computations to make the benchmark a more
+realistic reﬂection of today&#x2019;s applications.” SPECjbb2005 requires a license to
+download and use.
+</p><!--l. 143--><p class="noindent" >SPECjbb2005 can be run on command line via:
+</p>
+<!--l. 145-->
+<div class="lstlisting" id="listing-89"><span class="label"><a 
+ id="x12-127001r1"></a></span><span 
+class="tcrm-1000">$</span>RVM_ROOT/rvm -X:processors=1 -Xms400m -Xmx600m -classpath jbb.jar:check.jar spec.jbb.JBBmain -propfile SPECjbb.props
+</div>
+<!--l. 149--><p class="noindent" >SPECjbb2005 may also be run as part regression tests.
+</p>
+<!--l. 151-->
+                                                                  
+
+                                                                  
+<div class="lstlisting" id="listing-90"><span class="label"><a 
+ id="x12-127002r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/SPECjbb2005 <br /><span class="label"><a 
+ id="x12-127003r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/SPECjbb2005 <br /><span class="label"><a 
+ id="x12-127004r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> ...Extract package here???...
+</div>
+<!--l. 159--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12800010.3.2"></a>SPECjbb2000</h5>
+<!--l. 161--><p class="noindent" ><a 
+href="http://www.spec.org/jbb2000/" >SPECjbb2000</a> describes itself as ”SPECjbb2000 (Java Business Benchmark) is
+SPEC&#x2019;s ﬁrst benchmark for evaluating the performance of server-side Java. Joining
+the client-side SPECjvm98, SPECjbb2000 continues the SPEC tradition of giving
+Java users the most objective and representative benchmark for measuring a system&#x2019;s
+ability to run Java applications.” SPECjbb2000 requires a license to download and
+use. Benchmarks should no longer be performed using SPECjbb2000 as the
+benchmarks have very diﬀerent characteristics.
+</p>
+<!--l. 163-->
+<div class="lstlisting" id="listing-91"><span class="label"><a 
+ id="x12-128001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/SPECjbb2000 <br /><span class="label"><a 
+ id="x12-128002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/SPECjbb2000 <br /><span class="label"><a 
+ id="x12-128003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> ...Extract package here???...
+</div>
+<!--l. 171--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x12-12900010.3.2"></a>SPEC JVM98 Benchmarks</h5>
+<!--l. 173--><p class="noindent" ><a 
+href="http://www.spec.org/jvm98/" >JVM98</a> features: ”Measures performance of Java Virtual Machines. Applicable to
+networked and standalone Java client computers, either with disk (e.g., PC,
+workstation) or without disk (e.g., network computer) executing programs in an
+ordinary Java platform environment. Requires Java Virtual Machine compatible with
+JDK 1.1 API, or later.” SPEC JVM98 Benchmarks require a license to download and
+use.
+</p>
+<!--l. 175-->
+<div class="lstlisting" id="listing-92"><span class="label"><a 
+ id="x12-129001r1"></a></span><span 
+class="cmmi-10">&#x003E;</span> mkdir -p <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/SPECjvm98 <br /><span class="label"><a 
+ id="x12-129002r2"></a></span><span 
+class="cmmi-10">&#x003E;</span> cd <span 
+class="tcrm-1000">$</span>BENCHMARK_ROOT/SPECjvm98 <br /><span class="label"><a 
+ id="x12-129003r3"></a></span><span 
+class="cmmi-10">&#x003E;</span> ...Extract package here???...
+</div>
+<!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">10.4   </span> <a 
+ id="x12-13000010.4"></a>Test Run Descriptions</h3>
+<!--l. 5--><p class="noindent" >The Jikes RVM project contains several diﬀerent test runs with diﬀerent
+purposes. This document attempts to capture the purpose of each diﬀerent test
+run.
+                                                                  
+
+                                                                  
+</p><!--l. 7--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.4.1   </span> <a 
+ id="x12-13100010.4.1"></a>pre-commit</h4>
+<!--l. 9--><p class="noindent" >This test run MUST be run prior to committing code. It is relatively short and is
+designed to capture as many potential bugs in the shortest possible time. It is
+expected that the pre-commit test run will take 7-15 minutes on modern intel
+architecture.
+</p><!--l. 13--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.4.2   </span> <a 
+ id="x12-13200010.4.2"></a>core</h4>
+<!--l. 15--><p class="noindent" >There is a set of workloads we consider important (i.e. dacapo and SPEC*). There is
+a set of build conﬁgurations we consider important (ie prototype, development,
+production). We as a group wish to guarantee that all important workloads will will
+run correctly on all important build conﬁgurations, i.e. We should NEVER
+regress. The core test run is designed to identify as early as possible any
+failures in this matrix of build conﬁguration x workload. It is run continuously
+24 hours a day (or at least every time a change is made). It is expected
+that the core test run will take 2-6 hours to complete depending on the
+environment.
+</p><!--l. 17--><p class="noindent" >The best way to identify the failures is to stress test the system by forcing frequent
+garbage collections and compilation at speciﬁc optimization levels (and perhaps
+frequent thread switching and frequent OSR events in the future). It is critical that
+we have a stable research base so intermittent failures are NOT acceptable. If we can
+not pass a stress test then there is no guarantee that we have a stable research
+base.
+</p><!--l. 21--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.4.3   </span> <a 
+ id="x12-13300010.4.3"></a>sanity</h4>
+<!--l. 23--><p class="noindent" >The sanity test runs cover a larger number of build conﬁgurations and workloads.
+They may not always pass and may test many of the less frequently used
+conﬁgurations (gctrace, gcspy, and individual stress tests) and less important
+workloads. Performance tests are also included in this test run. Something we use to
+gauge the health of the project as a whole and to track regressions. These are run
+once a day on major platforms. These time to complete can vary but expected to
+take several hours at the least.
+</p><!--l. 27--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.4.4   </span> <a 
+ id="x12-13400010.4.4"></a>Other test runs</h4>
+<!--l. 29--><p class="noindent" >A set of test runs that are used for testing speciﬁc aspects of the system from
+performance, gcmap bug ﬁnding, io hammering etc. There may also be a set of
+personal/site-speciﬁc test runs included in this set that are not checked into Git
+repository.
+                                                                  
+
+                                                                  
+</p><!--l. 33--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">10.4.5   </span> <a 
+ id="x12-13500010.4.5"></a>Summary</h4>
+<!--l. 35--><p class="noindent" >We must NEVER regress in the core test run. The pre-commit test run attempts to
+ensure no core regressions this while keeping running time reasonable. The sanity test
+run gives us an overall picture on the health of the code base. While the other test
+runs are used at diﬀerent times for diﬀerent purposes.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailTestingJikesRVM.html"></a></p> 
+</body></html> 

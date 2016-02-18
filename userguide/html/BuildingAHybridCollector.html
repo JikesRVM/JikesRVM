@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>19 Building a Hybrid Collector</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 19</span><br /><a 
+ id="x23-25700019"></a>Building a Hybrid Collector</h2>
+<!--l. 5--><p class="noindent" >Extend the Tutorial plan to create a ”copy-MS” collector, which allocates into a
+copying nursery and at collection time, copies nursery survivors into a mark-sweep
+space. This plan does not require a write barrier (it is not strictly generational, as it
+will collect the whole heap each time the heap is full). Later we will extended
+it with a write barrier, allowing the nursery to be collected in isolation.
+Such a collector would be a generational mark-sweep collector, similar to
+GenMS.
+</p>
+<h3 class="sectionHead"><span class="titlemark">19.1   </span> <a 
+ id="x23-25800019.1"></a>Add a Copying Nursery</h3>
+<!--l. 9--><p class="noindent" >This step will change your simple collector from using a bump pointer to a free list
+(but still without any garbage collection).
+</p><!--l. 11--><p class="noindent" >
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x23-258002x1">In <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TutorialConstraints</span></span></span>, make the following changes:
+         <ol  class="enumerate2" >
+         <li 
+  class="enumerate" id="x23-258004x1">Override the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">movesObjects()</span></span></span> method to return <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">true</span></span></span>, reﬂecting that we
+         are now building a copying collector: <!--l. 15-->
+         <div class="lstlisting" id="listing-175"><span class="label"><a 
+ id="x23-258005r1"></a></span>@Override <br /><span class="label"><a 
+ id="x23-258006r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">boolean</span> movesObjects() <span 
+class="cmsy-10">{</span> <span 
+class="cmbx-10">return</span> <span 
+class="cmbx-10">true</span>; <span 
+class="cmsy-10">}</span>
+         
+         </div>
+         </li>
+         <li 
+  class="enumerate" id="x23-258008x2">Remove the restriction on default alloc bytes (since default allocation will
+         now go to a bump-pointed space). To do this, remove the override of
+         <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">maxNonLOSDefaultAllocBytes()</span></span></span>.
+         </li>
+         <li 
+  class="enumerate" id="x23-258010x3">Add a restriction on the maximum size that may be copied into the
+         (default) non-LOS mature space: <!--l. 21-->
+         <div class="lstlisting" id="listing-176"><span class="label"><a 
+ id="x23-258011r1"></a></span>@Override <br /><span class="label"><a 
+ id="x23-258012r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">int</span> maxNonLOSCopyBytes() <span 
+class="cmsy-10">{</span> <span 
+class="cmbx-10">return</span> SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;<span 
+class="cmsy-10">}</span>
+         
+         </div>
+         </li></ol>
+     </li>
+     <li 
+  class="enumerate" id="x23-258014x2">In <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Tutorial</span></span></span>, add a nursery space:
+         <ol  class="enumerate2" >
+         <li 
+  class="enumerate" id="x23-258016x1">Create a new space, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nurserySpace</span></span></span>, of type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CopySpace</span></span></span>. The new space
+         will initially be a from-space, so provide <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">false</span></span></span> as the third argument.
+         Initialize the space with a contiguous virtual memory region consuming
+         0.15 of the heap by passing ”0.15” and ”true” as arguments to the
+         constructor of VMRequest(more on this later). Create and initialize a
+         new integer constant to hold the descriptor for this new space:
+         <!--l. 29-->
+                                                                  
+
+                                                                  
+         <div class="lstlisting" id="listing-177"><span class="label"><a 
+ id="x23-258017r1"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> CopySpace nurserySpace = <span 
+class="cmbx-10">new</span> CopySpace(”nursery”, <span 
+class="cmbx-10">false</span>, VMRequest.highFraction(0.15f)); <br /><span class="label"><a 
+ id="x23-258018r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">static</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">int</span> NURSERY = nurserySpace.getDescriptor();
+         
+         </div>
+         </li>
+         <li 
+  class="enumerate" id="x23-258020x2">Add the necessary import statements
+         </li>
+         <li 
+  class="enumerate" id="x23-258022x3">Add <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nurserySpace</span></span></span> to the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PREPARE</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RELEASE</span></span></span> phases of
+         <span 
+class="cmtt-10">collectionPhase()</span>, prior to the existing calls to msTrace. Pass true to
+         nurserySpace.prepare() indicating that the nursery is a <span 
+class="cmti-10">from-space </span>during
+         collection.
+         </li>
+         <li 
+  class="enumerate" id="x23-258024x4">Fix accounting so that <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Tutorial</span></span></span> accounts for space consumed by
+         <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nurserySpace</span></span></span>:
+             <ol  class="enumerate3" >
+             <li 
+  class="enumerate" id="x23-258026x1">Add <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nurserySpace</span></span></span> to the equation in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">getPagesUsed()</span></span></span></li></ol>
+         </li>
+         <li 
+  class="enumerate" id="x23-258028x5">Since initial allocation will be into a copying space, we need to account for
+         copy reserve:
+             <ol  class="enumerate3" >
+             <li 
+  class="enumerate" id="x23-258030x1">Add  a  method  to  override  <span 
+class="cmtt-10">getCollectionReserve() </span>which
+             returns                           <span 
+class="cmtt-10">nurserySpace.reservedPages() +</span>
+             <span 
+class="cmtt-10">super.getCollectionReserve()</span>
+             </li>
+             <li 
+  class="enumerate" id="x23-258032x2">Add   a   method   to   override   <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">getPagesAvail()</span></span></span>,   returning
+             <span 
+class="cmtt-10">getTotalPages() - getPagesReserved()) &#x003E;&#x003E; 1</span>;</li></ol>
+         </li></ol>
+     </li></ol>
+<!--l. 49--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">19.2   </span> <a 
+ id="x23-25900019.2"></a>Add nursery allocation</h3>
+<!--l. 51--><p class="noindent" >In <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TutorialMutator</span></span></span>, replace the free-list allocator (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MarkSweepLocal</span></span></span>) with a nursery
+allocator: Use an instance of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CopyLocal</span></span></span>, calling it <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nursery</span></span></span>. The constructor
+argument should be <span 
+class="cmtt-10">Tutorial.nurserySpace</span>:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x23-259002x1">change <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">alloc()</span></span></span> to use <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nursery.alloc()</span></span></span> rather than <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ms.alloc()</span></span></span>.
+     </li>
+     <li 
+  class="enumerate" id="x23-259004x2">remove the call to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">msSpace.postAlloc()</span></span></span> from <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">postAlloc()</span></span></span> since there
+     is no special post-allocation work necessary for the new copy space. The
+     call to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">super.postAlloc()</span></span></span> should remain conditional on <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">allocator !=</span>
+     <span 
+class="cmtt-10">Tutorial.ALLOC_DEFAULT</span></span></span>.
+                                                                  
+
+                                                                  
+     </li>
+     <li 
+  class="enumerate" id="x23-259006x3">change  the  check  within  <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">getAllocatorFromSpace()</span></span></span> to  check  against
+     <span 
+class="cmtt-10">Tutorial.nurserySpace </span>and to return <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nursery</span></span></span>.
+     </li>
+     <li 
+  class="enumerate" id="x23-259008x4">adjust <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">collectionPhase</span></span></span>
+         <ol  class="enumerate2" >
+         <li 
+  class="enumerate" id="x23-259010x1">replace call to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ms.prepare()</span></span></span> with <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nursery.reset()</span></span></span>
+         </li>
+         <li 
+  class="enumerate" id="x23-259012x2">remove call to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ms.release()</span></span></span> since there are no actions necessary for
+         the nursery allocator upon release.</li></ol>
+     </li></ol>
+<!--l. 64--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">19.3   </span> <a 
+ id="x23-26000019.3"></a>Add copying to the collector</h3>
+<!--l. 66--><p class="noindent" >In <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TutorialCollector</span></span></span> add the capacity for the collector to allocate (copy), since our
+new hybrid collector will perform copying.
+</p><!--l. 68--><p class="noindent" >
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x23-260002x1">Add local allocators for both large object space and the mature space:
+     <!--l. 70-->
+     <div class="lstlisting" id="listing-178"><span class="label"><a 
+ id="x23-260003r1"></a></span><span 
+class="cmbx-10">private</span> <span 
+class="cmbx-10">final</span> LargeObjectLocal los = <span 
+class="cmbx-10">new</span> LargeObjectLocal(Plan.loSpace); <br /><span class="label"><a 
+ id="x23-260004r2"></a></span><span 
+class="cmbx-10">private</span> <span 
+class="cmbx-10">final</span> MarkSweepLocal mature = <span 
+class="cmbx-10">new</span> MarkSweepLocal(Tutorial.msSpace);
+     
+     </div>
+     </li>
+     <li 
+  class="enumerate" id="x23-260006x2">Add an <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">allocCopy()</span></span></span> method that conditionally allocates to the LOS or mature
+     space: <!--l. 75-->
+     <div class="lstlisting" id="listing-179"><span class="label"><a 
+ id="x23-260007r1"></a></span>@Override <br /><span class="label"><a 
+ id="x23-260008r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">final</span> Address allocCopy(ObjectReference original, <span 
+class="cmbx-10">int</span> bytes, <br /><span class="label"><a 
+ id="x23-260009r3"></a></span>                               <span 
+class="cmbx-10">int</span> align, <span 
+class="cmbx-10">int</span> offset, <span 
+class="cmbx-10">int</span> allocator) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x23-260010r4"></a></span>  <span 
+class="cmbx-10">if</span> (allocator == Plan.ALLOC_LOS) <br /><span class="label"><a 
+ id="x23-260011r5"></a></span>    <span 
+class="cmbx-10">return</span> los.alloc(bytes, align, offset); <br /><span class="label"><a 
+ id="x23-260012r6"></a></span>  <span 
+class="cmbx-10">else</span> <br /><span class="label"><a 
+ id="x23-260013r7"></a></span>    <span 
+class="cmbx-10">return</span> mature.alloc(bytes, align, offset); <br /><span class="label"><a 
+ id="x23-260014r8"></a></span><span 
+class="cmsy-10">}</span>
+     
+     </div>
+     </li>
+     <li 
+  class="enumerate" id="x23-260016x3">Add a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">postCopy()</span></span></span> method that conditionally calls LOS or mature space
+     post-copy actions: <!--l. 86-->
+     <div class="lstlisting" id="listing-180"><span class="label"><a 
+ id="x23-260017r1"></a></span>@Override <br /><span class="label"><a 
+ id="x23-260018r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">final</span> <span 
+class="cmbx-10">void</span> postCopy(ObjectReference object, ObjectReference typeRef, <br /><span class="label"><a 
+ id="x23-260019r3"></a></span>                           <span 
+class="cmbx-10">int</span> bytes, <span 
+class="cmbx-10">int</span> allocator) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x23-260020r4"></a></span><span 
+class="cmbx-10">if</span> (allocator == Plan.ALLOC_LOS) <br /><span class="label"><a 
+ id="x23-260021r5"></a></span>  Plan.loSpace.initializeHeader(object, <span 
+class="cmbx-10">false</span>); <br /><span class="label"><a 
+ id="x23-260022r6"></a></span><span 
+class="cmbx-10">else</span> <br /><span class="label"><a 
+ id="x23-260023r7"></a></span>  Tutorial.msSpace.postCopy(object, <span 
+class="cmbx-10">true</span>); <br /><span class="label"><a 
+ id="x23-260024r8"></a></span><span 
+class="cmsy-10">}</span>
+     
+     </div>
+     </li></ol>
+                                                                  
+
+                                                                  
+<!--l. 100--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">19.4   </span> <a 
+ id="x23-26100019.4"></a>Make necessary changes to TutorialTraceLocal</h3>
+<!--l. 102--><p class="noindent" >
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x23-261002x1">Add nurserySpace clauses to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">isLive()</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">traceObject()</span></span></span>:
+         <ol  class="enumerate2" >
+         <li 
+  class="enumerate" id="x23-261004x1">Add the following to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">isLive()</span></span></span>: <!--l. 106-->
+         <div class="lstlisting" id="listing-181"><span class="label"><a 
+ id="x23-261005r1"></a></span><span 
+class="cmbx-10">if</span> (Space.isInSpace(Tutorial.NURSERY, object)) <br /><span class="label"><a 
+ id="x23-261006r2"></a></span>  <span 
+class="cmbx-10">return</span> Tutorial.nurserySpace.isLive(object);
+         
+         </div>
+         </li>
+         <li 
+  class="enumerate" id="x23-261008x2">Add the following to traceObject(): <!--l. 111-->
+         <div class="lstlisting" id="listing-182"><span class="label"><a 
+ id="x23-261009r1"></a></span><span 
+class="cmbx-10">if</span> (Space.isInSpace(Tutorial.NURSERY, object)) <br /><span class="label"><a 
+ id="x23-261010r2"></a></span>  <span 
+class="cmbx-10">return</span> Tutorial.nurserySpace.traceObject(<span 
+class="cmbx-10">this</span>, object, Tutorial.ALLOC_DEFAULT);
+         
+         </div>
+         </li></ol>
+     </li>
+     <li 
+  class="enumerate" id="x23-261012x2">Add a new <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">willNotMoveInCurrentCollection()</span></span></span> method, which identiﬁes
+     those objects which do not move (necessary for copying collectors):
+     <!--l. 117-->
+     <div class="lstlisting" id="listing-183"><span class="label"><a 
+ id="x23-261013r1"></a></span>@Override <br /><span class="label"><a 
+ id="x23-261014r2"></a></span><span 
+class="cmbx-10">public</span> <span 
+class="cmbx-10">boolean</span> willNotMoveInCurrentCollection(ObjectReference object) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x23-261015r3"></a></span>  <span 
+class="cmbx-10">return</span> !Space.isInSpace(Tutorial.NURSERY, object); <br /><span class="label"><a 
+ id="x23-261016r4"></a></span><span 
+class="cmsy-10">}</span>
+     
+     </div>
+     </li>
+     <li 
+  class="enumerate" id="x23-261018x3">Modify <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PlanSpecificConfig</span></span></span> to add the new <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">nursery</span></span></span> space: <!--l. 124-->
+     <div class="lstlisting" id="listing-184"><span class="label"><a 
+ id="x23-261019r1"></a></span><span 
+class="cmbx-10">new</span> PlanSpecific(”org.mmtk.plan.tutorial.Tutorial”).addExpectedSpaces(”ms”, ”nursery”), ”Tutorial”);
+     
+     </div>
+     </li></ol>
+<!--l. 129--><p class="noindent" >With these changes, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Tutorial</span></span></span> should now work. You should be able to again build a
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BaseBaseTutorial</span></span></span> image and test it against any benchmark. Again, if you use
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:gc:verbose=3</span></span></span> you can see the movement of data among the spaces at each
+garbage collection.
+</p>
+<!--l. 142--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 142--><p class="noindent" ><a 
+ id="tailBuildingAHybridCollector.html"></a></p> 
+</body></html> 

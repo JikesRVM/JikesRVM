@@ -1,0 +1,780 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>12 Adaptive Optimization System</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 12</span><br /><a 
+ id="x15-14700012"></a>Adaptive Optimization System</h2>
+<!--l. 5--><p class="noindent" >A comprehensive discussion of the design and implementation of the original Jikes
+RVM adaptive optimization system is given in the OOPSLA 2000 paper by Arnold,
+Fink, Grove, Hind and Sweeney. A number of aspects of the system have been
+changed since 2000, so a better resource is a technical report <a 
+href="http://domino.research.ibm.com/library/cyberdig.nsf/1e4115aea78b6e7c85256b360066f0d4/30c2b5bb5352443885256f550066b5c1%21OpenDocument" >Nov. 2004 technical
+report</a> that describes the architecture and implementation in some detail.
+This section of the userguide is based on section 5 of the 2004 technical
+report.
+</p><!--l. 7--><p class="noindent" >The implementation of the Jikes RVM adaptive optimization system uses a number
+of Java threads: several organizer threads in the runtime measurements component,
+the controller thread, and the compilation thread. The various threads are loosely
+coupled, communicating with each other through shared queues and/or the
+other in memory data structures. All queues in the system are blocking
+priority queues; if a consumer thread performs a dequeue operation when the
+queue is empty, it suspends until a producer thread performs an enqueue
+operation.
+                                                                  
+
+                                                                  
+</p><!--l. 9--><p class="noindent" >The adaptive optimization system performs two primary tasks: selective optimization
+and proﬁle-directed inlining.
+</p>
+<!--l. 11--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x15-14800012"></a><span 
+class="cmbx-10">Selective Optimization</span></span>
+The goal of selective optimization is to identify regions of code in which the
+application spends signiﬁcant execution time (often called “hot spots”), determine if
+overall application performance is likely to be improved by further optimizing one or
+more hot spots, and if so to invoke the optimizing compiler and install the resulting
+optimized code in the virtual machine.
+</p><!--l. 15--><p class="noindent" >In Jikes RVM, the unit of optimization is a method. Thus, to perform selective
+optimization, ﬁrst the runtime measurements component must identify candidate
+methods (“hot methods”) for the controller to consider. To this end, it installs a
+listener that periodically samples the currently executing method at every taken
+yieldpoint. When it is time to take a sample, the listener inspects the thread&#x2019;s call
+stack and records a single compiled method id into a buﬀer. If the yieldpoint occurs
+in the prologue of a method, then the listener additionally records the compiled
+method id of the current activation&#x2019;s caller. If the taken yieldpoint occurs on a loop
+backedge or method epilogue, then the listener records the compiled method id of the
+current method.
+</p><!--l. 17--><p class="noindent" >When the buﬀer of samples is full, the sampling window ends. The listener then
+unregisters itself (stops taking samples) and wakes the sleeping Hot Method
+Organizer. The Hot Method Organizer processes the buﬀer of compiled method ids
+by updating the Method Sample Data. This data structure maintains, for every
+compiled method, the total number of times that it has been sampled. Careful design
+of this data structure (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MethodCountData.java</span></span></span>) was critical to achieving low proﬁling
+overhead. In addition to supporting lookups and updates by compiled method id, it
+must also eﬃciently enumerate all methods that have been sampled more times
+than a (varying) threshold value. After updating the Method Sample Data,
+the Hot Method Organizer creates an event for each method that has been
+sampled in this window and adds it to the controller&#x2019;s priority queue, using the
+sample value as its priority. The event contains the compiled method and the
+<span 
+class="cmti-10">total </span>number of times it has been sampled since the beginning of execution.
+After enqueuing the last event, the Hot Method Organizer re-registers the
+method listener and then sleeps until the next buﬀer of samples is ready to be
+processed.
+</p><!--l. 19--><p class="noindent" >When the priority queue delivers an event to the controller, the controller dequeues
+the event and applies the model-driven recompilation policy to determine what
+action (if any) to take for the indicated method. If the controller decides to recompile
+the method, it creates a recompilation event that describes the method to be
+compiled and the optimization plan to use and places it on the recompilation
+queue. The recompilation queue prioritizes events based on the cost-beneﬁt
+computation.
+</p><!--l. 21--><p class="noindent" >When an event is available on the recompilation queue, the recompilation thread
+removes it and performs the compilation activity speciﬁed by the event. It invokes
+the optimizing compiler at the speciﬁed optimization level and installs the resulting
+compiled method into the VM.
+</p><!--l. 23--><p class="noindent" >Although the overall structure of selective optimization in Jikes RVM is similar to
+that originally described in Arnold et al&#x2019;s OOPSLA 2000 paper, we have made
+several changes and improvements based on further experience with the system. The
+most signiﬁcant change is that in the previous system, the method sample organizer
+                                                                  
+
+                                                                  
+attempted to ﬁlter the set of methods it presented to the controller. The
+organizer passed along to the controller only methods considered ”hot”. The
+organizer deemed a method ”hot” if the percentage of samples attributed
+to the method exceeded a dynamically adjusted threshold value. Method
+samples were periodically decayed to give more weight to recent samples.
+The controller dynamically adjusted this threshold value and the size of the
+sampling window in an attempt to reduce the overhead of processing the
+samples.
+</p><!--l. 25--><p class="noindent" >Later, signiﬁcant algorithmic improvements in key data structures and additional
+performance tuning of the listeners, organizers, and controller reduced AOS overhead
+by two orders of magnitude. These overhead reductions obviate the need
+to ﬁlter events passed to the controller. This resulted in a more eﬀective
+system with fewer parameters to tune and a sounder theoretical basis. In
+general, as we gained experience with the adaptive system implementation, we
+strove to reduce the number of tuning parameters. We believe that the closer
+the implementation matches the basic theoretical cost-beneﬁt model, the
+more likely it will perform well and make reasonable and understandable
+decisions.
+</p>
+<!--l. 31--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x15-14900012"></a><span 
+class="cmbx-10">Proﬁle-Directed Inlining</span></span>
+Proﬁle-directed inlining attempts to identify frequently traversed call graph edges,
+which represent caller-callee relationships, and determine whether it is beneﬁcial to
+recompile the caller methods to allow inlining of the callee methods. In Jikes RVM,
+proﬁle-directed inlining augments a number of static inlining heuristics. The
+role of proﬁle-directed inlining is to identify high cost-high beneﬁt inlining
+opportunities that evade the static heuristics and to predict the likely target(s) of
+invokevirtual and invokeinterface calls that could not be statically bound at compile
+time.
+</p><!--l. 37--><p class="noindent" >To accomplish this goal, the system takes a statistical sample of the method calls in
+the running application and maintains an approximation of the dynamic call graph
+based on this data. The system installs a listener that samples call edges whenever
+a yieldpoint is taken in the prologue or epilogue of a method. To sample
+the call edge, it records the compiled method id of the caller and callee
+methods and the oﬀset of the call instruction in the caller&#x2019;s machine code into
+a buﬀer. When the buﬀer of samples is full, the sampling window ends.
+The listener then unregisters itself (stops taking samples) and wakes an
+organizer to update the dynamic call graph with the new proﬁle data. The
+optimizing compiler&#x2019;s Inline Oracle uses the dynamic call graph to guide it&#x2019;s inline
+decisions.
+</p><!--l. 40--><p class="noindent" >The system currently used is based on Arnold &#x0026; Grove&#x2019;s CGO 2005 paper. More
+details of the sampling scheme and the inlining oracle can be found there, or in the
+source code.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">12.1   </span> <a 
+ id="x15-15000012.1"></a>AOS Controller</h3>
+                                                                  
+
+                                                                  
+<!--l. 5--><p class="noindent" >A primary design goal for the adaptive optimization system is to enable research in
+online feedback-directed optimization. Therefore, we require the controller
+implementation to be ﬂexible and extensible. As we gained experience with the
+system, the controller component went through several major redesigns to better
+support our goals.
+</p><!--l. 7--><p class="noindent" >The controller is a single Java thread that runs an inﬁnite event loop. After
+initializing AOS, the controller enters the event loop and attempts to dequeue an
+event. If no event is available, the dequeue operation blocks (suspending the
+controller thread) until an event is available. All controller events implement an
+interface with a single method: process. Thus, after successfully dequeuing an event
+the controller thread simply invokes its process method and then, the work for that
+event having been completed, returns to the top of the event loop and attempts to
+dequeue another event. This design makes it easy to add new kinds of events to the
+system (and thus, extend the controller&#x2019;s behavior), as all of the logic to process an
+event is deﬁned by the event&#x2019;s process method, not in the code of the controller
+thread.
+</p><!--l. 9--><p class="noindent" >A further level of abstraction is accomplished by representing the recompilation
+strategy as an abstract class with several subclasses. The process method of a hot
+method event invokes methods of the recompilation strategy to determine whether or
+not a method should be recompiled, and if so at what optimization level. The
+cost-beneﬁt model itself is also reiﬁed in a class hierarchy of models to enable
+extension and variation. This set of abstractions enable a single controller
+implementation to execute a variety of strategies.
+</p><!--l. 11--><p class="noindent" >Another useful mechanism for experimentation is the ability to easily change the
+input parameters to AOS that deﬁne the expected compilation rates and
+execution speed of compiled code for the various compilers. By varying these
+parameters, one can easily cause the default multi-level cost-beneﬁt model to
+simulate a single-level model (by deﬁning all but one optimization level to be
+unproﬁtable). One can also explore other aspects of the system, for example the
+sensitivity of the model to the accuracy of these parameters. We found this
+capability to be so useful that the system supports a command line argument
+(<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:aos:dna=&#x003C;filename&#x003E;</span></span></span>) that causes it to optionally read these parameters from a
+ﬁle.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">12.2   </span> <a 
+ id="x15-15100012.2"></a>Cost Beneﬁt Model</h3>
+<!--l. 3--><p class="noindent" >The Jikes RVM Adaptive Optimization System attempts to evaluate the break-even
+point for each action using an online competitive algorithm. It relies on an analytic
+model to estimate the costs and beneﬁts of each selective recompilation
+action, and evaluates the best actions according to the model predictions
+online.
+</p><!--l. 5--><p class="noindent" >A key advantage of this approach is that it allows a designer to extend the simple
+”break-even” cost-beneﬁt model to account for more sophisticated adaptive policies,
+such as selective compilation with multiple optimization levels, on-stack-replacement,
+and long-running analyses.
+</p><!--l. 7--><p class="noindent" >In general, each potential action will incur some cost and may confer some beneﬁt.
+For example, recompiling a method will certainly consume some CPU cycles, but
+                                                                  
+
+                                                                  
+could speed up the program execution by generating better code. In this
+discussion we focus on costs and beneﬁts deﬁned in terms of time (CPU
+cycles). However, in general, the controller could consider other measures of
+cost and beneﬁt, such as memory footprint, garbage allocated, or locality
+disrupted.
+</p><!--l. 9--><p class="noindent" >The controller will take some action when it estimates the beneﬁt to exceed the cost.
+More precisely, when the controller wakes at time <span 
+class="cmmi-10">t</span>, it considers a set of <span 
+class="cmmi-10">n </span>available
+actions, the set <span 
+class="cmmi-10">A </span>= <span 
+class="cmsy-10">{</span><span 
+class="cmmi-10">A</span><sub><span 
+class="cmr-7">1</span></sub><span 
+class="cmmi-10">,A</span><sub><span 
+class="cmr-7">2</span></sub><span 
+class="cmmi-10">,...,A</span><sub><span 
+class="cmmi-7">n</span></sub><span 
+class="cmsy-10">}</span>. For any subset <span 
+class="cmmi-10">S </span>in <span 
+class="cmmi-10">P</span>(<span 
+class="cmmi-10">A</span>), the controller can
+estimate the cost <span 
+class="cmmi-10">C</span>(<span 
+class="cmmi-10">S</span>) and beneﬁt <span 
+class="cmmi-10">B</span>(<span 
+class="cmmi-10">S</span>) of performing all actions <span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">i</span></sub> in <span 
+class="cmmi-10">S</span>. The
+controller will attempt to choose the subset <span 
+class="cmmi-10">S </span>that maximizes <span 
+class="cmmi-10">B</span>(<span 
+class="cmmi-10">S</span>) <span 
+class="cmsy-10">− </span><span 
+class="cmmi-10">C</span>(<span 
+class="cmmi-10">S</span>).
+Obviously <span 
+class="cmmi-10">S </span>= <span 
+class="cmsy-10">{} </span>has <span 
+class="cmmi-10">B</span>(<span 
+class="cmmi-10">S</span>) = <span 
+class="cmmi-10">C</span>(<span 
+class="cmmi-10">S</span>) = 0; the controller takes no action if it cannot
+ﬁnd a proﬁtable course.
+</p><!--l. 11--><p class="noindent" >In practice, the precise cost and beneﬁt of each action cannot be known; so, the
+controller must rely on estimates to make decisions.
+</p><!--l. 13--><p class="noindent" >The basic model the controller uses to decide which method to recompile, at which
+optimization level, and at what time is as follows.
+</p><!--l. 15--><p class="noindent" >Suppose that when the controller wakes at time <span 
+class="cmmi-10">t</span>, and each method <span 
+class="cmmi-10">m </span>is currently
+optimized at optimization level <span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">i</span></sub><span 
+class="cmmi-10">,</span>0 <span 
+class="cmsy-10">≤ </span><span 
+class="cmmi-10">i </span><span 
+class="cmsy-10">≤ </span><span 
+class="cmmi-10">k</span>. Let <span 
+class="cmmi-10">M </span>be the set of loaded methods in
+the program. Let <span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub> be the action ”recompile method m at optimization level <span 
+class="cmmi-10">j</span>, or
+do nothing if <span 
+class="cmmi-10">j </span>= <span 
+class="cmmi-10">i</span>.”
+</p><!--l. 17--><p class="noindent" >The controller must choose an action for each <span 
+class="cmmi-10">m </span>in <span 
+class="cmmi-10">M</span>. The set of available actions is
+<span 
+class="cmmi-10">Actions </span>= <span 
+class="cmsy-10">{</span><span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub><span 
+class="cmsy-10">|</span>0 <span 
+class="cmsy-10">≤ </span><span 
+class="cmmi-10">j </span><span 
+class="cmsy-10">≤ </span><span 
+class="cmmi-10">k,m </span><span 
+class="cmsy-10">∈ </span><span 
+class="cmmi-10">M</span><span 
+class="cmsy-10">}</span>.
+</p><!--l. 19--><p class="noindent" >Each action has an estimated cost and beneﬁt: <span 
+class="cmmi-10">C</span>(<span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub>), the cost of taking action
+<span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub>, for 0 <span 
+class="cmsy-10">≤ </span><span 
+class="cmmi-10">j </span><span 
+class="cmsy-10">≤ </span><span 
+class="cmmi-10">k </span>and <span 
+class="cmmi-10">T</span>(<span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub>), the expected time the program will spend executing
+method <span 
+class="cmmi-10">m </span>in the future, if the controller takes action <span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub>.
+</p><!--l. 21--><p class="noindent" >For <span 
+class="cmmi-10">S </span>in <span 
+class="cmmi-10">Actions</span>, deﬁne <span 
+class="cmmi-10">C</span>(<span 
+class="cmmi-10">S</span>) = <span 
+class="cmex-10">∑</span>
+  <sub><span 
+class="cmmi-7">s</span><span 
+class="cmsy-7">∈</span><span 
+class="cmmi-7">S</span></sub><span 
+class="cmmi-10">C</span>(<span 
+class="cmmi-10">s</span>). Given <span 
+class="cmmi-10">S</span>, for each <span 
+class="cmmi-10">m </span>in <span 
+class="cmmi-10">M</span>,
+deﬁne <span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">min</span><sub><span 
+class="cmmi-5">m</span></sub></sub> to be the action <span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub> in <span 
+class="cmmi-10">S </span>that minimizes <span 
+class="cmmi-10">T</span>(<span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub>). Then deﬁne
+<span 
+class="cmmi-10">T</span>(<span 
+class="cmmi-10">S</span>) = <span 
+class="cmex-10">∑</span>
+  <sub><span 
+class="cmmi-7">m</span><span 
+class="cmsy-7">∈</span><span 
+class="cmmi-7">M</span></sub><span 
+class="cmmi-10">T</span>(<span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">min</span><sub><span 
+class="cmmi-5">m</span></sub></sub>).
+</p><!--l. 23--><p class="noindent" >Using these estimated values, the controller chooses the set <span 
+class="cmmi-10">S </span>that minimizes
+<span 
+class="cmmi-10">C</span>(<span 
+class="cmmi-10">S</span>) + <span 
+class="cmmi-10">T</span>(<span 
+class="cmmi-10">S</span>). Intuitively, for each method <span 
+class="cmmi-10">m</span>, the controller chooses the recompilation
+level <span 
+class="cmmi-10">j </span>that minimizes the expected future compilation time and running time of
+<span 
+class="cmmi-10">m</span>.
+</p><!--l. 25--><p class="noindent" >It remains to deﬁne the functions <span 
+class="cmmi-10">C </span>and <span 
+class="cmmi-10">T </span>for each recompilation action. The basic
+model models the cost <span 
+class="cmmi-10">C </span>of compiling a method <span 
+class="cmmi-10">m </span>at level <span 
+class="cmmi-10">j </span>as a linear function of
+the size of <span 
+class="cmmi-10">m</span>. The linear function is determined by an oﬄine experiment to ﬁt
+constants to the model.
+</p><!--l. 27--><p class="noindent" >The basic model estimates that the speedup for any optimization level <span 
+class="cmmi-10">j </span>is constant.
+The implementation determines the constant speedup factor for each optimization
+level oﬄine, and uses the speedup to compute <span 
+class="cmmi-10">T </span>for each method and optimization
+level.
+</p><!--l. 29--><p class="noindent" >We assume that if the program has run for time <span 
+class="cmmi-10">t</span>, then the program will run for
+another <span 
+class="cmmi-10">t </span>units, and then terminate. We further assume program behavior in the
+future will resemble program behavior in the past. Therefore, for each method we
+estimate that if no optimization action is performed <span 
+class="cmmi-10">T</span>(<span 
+class="cmmi-10">A</span><sub><span 
+class="cmmi-7">jm</span></sub>) is equal to the time
+spent executing method <span 
+class="cmmi-10">m </span>so far.
+</p><!--l. 31--><p class="noindent" >Let <span 
+class="cmmi-10">M </span>= (<span 
+class="cmmi-10">m</span><sub><span 
+class="cmr-7">1</span></sub><span 
+class="cmmi-10">,...,m</span><sub><span 
+class="cmmi-7">k</span></sub>) be the <span 
+class="cmmi-10">k </span>compiled methods. When the controller wakes at time
+<span 
+class="cmmi-10">t</span>, each compiled method <span 
+class="cmmi-10">m </span>has been sampled <span 
+class="cmex-10">∑</span>
+  <span 
+class="cmmi-10">m </span>times. Let <span 
+class="cmmi-10">δ </span>be the sampling
+interval, measured in seconds. The controller estimates that method <span 
+class="cmmi-10">m </span>has executed
+<span 
+class="cmmi-10">δ</span> <span 
+class="cmex-10">∑</span>
+  <span 
+class="cmmi-10">m </span>seconds so far, and will execute for another <span 
+class="cmmi-10">δ</span> <span 
+class="cmex-10">∑</span>
+  <span 
+class="cmmi-10">m </span>seconds in the
+future.
+                                                                  
+
+                                                                  
+</p><!--l. 33--><p class="noindent" >When driving recompilation based on sampling, the controller can limit its attention
+to the set of methods that were sampled in the previous sampling interval. This
+optimization does not lose precision; if the number of samples associated with a
+method has not changed, then the controller&#x2019;s estimate of the method&#x2019;s future
+execution time will not change. This implies that if the controller were to consider a
+method that does not appear in the previous sampling interval, the controller would
+make exactly the same decision it did the last time it considered the method. This
+optimization, limiting the number of methods the controller must examine in each
+sampling interval, greatly reduces the amount of work performed by the
+controller.
+</p><!--l. 36--><p class="noindent" >Suppose the controller recompiles method m from optimization level <span 
+class="cmmi-10">i </span>to
+optimization level <span 
+class="cmmi-10">j </span>after having seen <span 
+class="cmex-10">∑</span>
+  <span 
+class="cmmi-10">m </span>samples. Let <span 
+class="cmmi-10">S</span><sub><span 
+class="cmmi-7">i</span></sub> and <span 
+class="cmmi-10">S</span><sub><span 
+class="cmmi-7">j</span></sub>be the speedup
+ratios for optimization levels <span 
+class="cmmi-10">i </span>and <span 
+class="cmmi-10">j</span>, respectively. After optimizing at level <span 
+class="cmmi-10">j</span>, we
+adjust the sample data to represent the system state as if it had executed
+method <span 
+class="cmmi-10">m </span>at optimization level <span 
+class="cmmi-10">j </span>since program startup. So, we set the new
+number of samples for <span 
+class="cmmi-10">m </span>to be <span 
+class="cmex-10">∑</span>
+  <span 
+class="cmmi-10">m </span><span 
+class="cmsy-10">⋅ </span>(<span 
+class="cmmi-10">S</span><sub><span 
+class="cmmi-7">i</span></sub><span 
+class="cmmi-10">∕S</span><sub><span 
+class="cmmi-7">j</span></sub>). Thus to compute the time spent
+in <span 
+class="cmmi-10">m</span>, we need know only one number, the ”eﬀective” number of samples.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">12.3   </span> <a 
+ id="x15-15200012.3"></a>Jikes RVM&#x2019;s compilers</h3>
+<!--l. 5--><p class="noindent" >Jikes RVM invokes a compiler for one of three reasons. First, when the executing
+code reaches an unresolved reference, causing a new class to be loaded, the
+class loader invokes a compiler to compile the class initializer (if one exists).
+Second, the system compiles each method the ﬁrst time it is invoked. In these
+ﬁrst two scenarios, the initiating application thread stalls until compilation
+completes.
+</p><!--l. 8--><p class="noindent" >In the third scenario, the adaptive optimization system can invoke a compiler when
+proﬁling data suggests that <span 
+class="cmti-10">recompiling </span>a method with additional optimizations may
+be beneﬁcial. The system supports both background and foreground recompilation.
+With background recompilation (the default), a dedicated thread asynchronously
+performs all recompilations. With foreground conﬁguration, the system invalidates a
+compiled method, thus, forcing recompilation at the desired optimization
+level at the next invocation (stalling the invoking thread until compilation
+completes).
+</p><!--l. 10--><p class="noindent" >The system includes two compilers with diﬀerent tradeoﬀs between compilation
+overhead and code quality. </p>
+     <ul class="itemize1">
+     <li class="itemize">The  goal  of  the  <span 
+class="cmti-10">baseline  </span>compiler  is  to  generate  correct  code  quickly.
+     For  example,  the  IA32  baseline  compiler  translates  bytecodes  directly
+     into native code by simulating Java&#x2019;s operand stack. It does not build
+     an intermediate representation and does not perform register allocation,
+     resulting in native code that executes only somewhat faster than bytecode
+     interpretation. However, it does achieve its goal of producing this code
+     quickly, which signiﬁcantly reduces the initial overhead associated with
+                                                                  
+
+                                                                  
+     dynamic compilation.
+     </li>
+     <li class="itemize">The <span 
+class="cmti-10">optimizing </span>compiler translates bytecodes into an intermediate
+     representation, upon which it performs a variety of optimizations. All
+     optimization levels include linear scan register allocation and BURS-based
+     instruction selection. The compiler&#x2019;s optimizations are grouped into several
+     levels:
+         <ul class="itemize2">
+         <li class="itemize"><span 
+class="cmbx-10">Level 0 </span>consists of a set of ﬂow-sensitive optimizations performed
+         on-the-ﬂy during the translation from bytecodes to the intermediate
+         representation  and  some  additional  optimizations  that  are  either
+         highly eﬀective or have negligible compilation costs. The compiler
+         performs the following optimizations during IR generation: constant,
+         type, non-null, and copy propagation, constant folding and arithmetic
+         simpliﬁcation, branch optimizations, ﬁeld analysis, unreachable code
+         elimination,  inlining  of  trivial  methods  (A  trivial  method  is  one
+         whose  body  is  estimated  to  take  less  code  space  than  2  times
+         the size of a calling sequence and that can be inlined without an
+         explicit guard.), elimination of redundant nullchecks, checkcasts, and
+         array  store  checks.  As  these  optimizations  reduce  the  size  of  the
+         generated IR, performing them tends to reduce overall compilation
+         time.  Level  0  includes  a  number  of  cheap  local  (The  scope  of  a
+         local optimization is one extended basic block.) optimizations such
+         as local redundancy elimination (common subexpression elimination,
+         loads, and exception checks), copy propagation, constant propagation
+         and folding. Level 0 also includes simple control ﬂow optimizations
+         such as static basic block splitting, peephole branch optimization,
+         and tail recursion elimination. Finally, Level 0 performs simple code
+         reordering, scalar replacement of aggregates and short arrays, and one
+         pass of intraprocedural ﬂow-insensitive copy propagation, constant
+         propagation, and dead assignment elimination.
+         </li>
+         <li class="itemize"><span 
+class="cmbx-10">Level   1  </span>resembles   Level   0,   but   signiﬁcantly   increases   the
+         aggressiveness  of  inlining  heuristics.  The  compiler  performs  both
+         unguarded  inlining  of  ﬁnal  and  static  methods  and  (speculative)
+         guarded   inlining   of   non-ﬁnal   virtual   and   interface   methods.
+         Speculative inlining is driven both by class hierarchy analysis and
+         online proﬁle data gathered by the adaptive system. In addition, the
+         compiler exploits “preexistence” to safely perform unguarded inlining
+         of some invocations of non-ﬁnal virtual methods <span 
+class="cmti-10">without </span>requiring
+         stack frame rewriting on invalidation. It also runs multiple passes of
+         some of the Level 0 optimizations and uses a more sophisticated code
+         reordering algorithm due to Pettis and Hansen.
+         </li>
+         <li class="itemize"><span 
+class="cmbx-10">Level   2   </span>augments   level   1   with   loop   optimizations   such
+         as  normalization  and  unrolling;  scalar  SSA-based  ﬂow-sensitive
+         optimizations  based  on  dataﬂow,  global  value  numbering,  global
+         common  subexpression  elimination,  redundant  and  conditional
+                                                                  
+
+                                                                  
+         branch elimination; and heap array SSA-based optimizations, such as
+         load/store elimination, and global code placement. <span 
+class="cmbx-10">NOTE: many</span>
+         <span 
+class="cmbx-10">of the O2 optimizations are disabled by default by deﬁning</span>
+         <span 
+class="cmbx-10">them as O3 optimizations because they are believed to be</span>
+         <span 
+class="cmbx-10">somewhat buggy.</span></li></ul>
+     </li></ul>
+<!--l. 21--><p class="noindent" >The adaptive system uses information about average compilation rate and relative
+speed of compiled code produced by each compiler/optimization level to make its
+decisions. These characteristics of the compilers are the key inputs to enable selective
+optimization to be eﬀective. It allows one to employ a quick executing compiler for
+infrequently executed methods and an optimizing compiler for the most critical
+methods. See <span 
+class="cmtt-10">org.jikesrvm.adaptive.recompilation.CompilerDNA </span>for the
+current values of these input parameters to the adaptive systems cost/beneﬁt
+model.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">12.4   </span> <a 
+ id="x15-15300012.4"></a>Life Cycle of a Compiled Method</h3>
+<!--l. 4--><p class="noindent" >In early implementations of Jikes RVM&#x2019;s adaptive system, compilation required
+holding a global lock that serialized compilation and also prevented classloading from
+occurring concurrently with compilation. This bottleneck was removed in version
+2.1.0 by switching to a ﬁner-grained locking discipline to coordinate compilation,
+speculative optimization, and class loading. Since no published description of this
+locking protocol exists outside of the source code, we brieﬂy summarize the life cycle
+of a compiled method here.
+</p><!--l. 6--><p class="noindent" >When Jikes RVM compiles a method, it creates a compiled method object to
+represent this particular compilation of the source method. A compiled method has a
+unique id, and stores the compiled code and associated compiler meta-data. After a
+brief initialization phase, the compiled method transitions from uncompiled to
+compiling when compilation begins. During compilation, the optimizing
+compiler may perform speculative optimizations that can be invalidated
+by future class loading. Each time the compiler so speculates, it records a
+relevant entry in an invalidation database. Upon ﬁnishing compilation, the
+system checks to ensure that the current compilation has not already been
+invalidated by concurrent classloading. If it has not, then the system installs the
+compiled code, and subsequent invocations will branch to the newly created
+code.
+</p><!--l. 8--><p class="noindent" >Each time a class is loaded, the system checks the invalidation database
+to identify the set of compiled methods to mark as obsolete, because this
+classloading action invalidates speculative optimizations previously applied to that
+method. A method may transition from either compiling or installed to obsolete
+due to a classloading-induced invalidation. A method can also transition
+from installed to obsolete when the adaptive system selects a method for
+optimizing recompilation and a new compiled method is installed to replace
+it.
+</p>
+<hr class="figure" /><div class="figure" 
+>
+                                                                  
+
+                                                                  
+<a 
+ id="x15-153001r1"></a>
+                                                                  
+
+                                                                  
+<!--l. 13--><p class="noindent" ><img 
+src="userguide0x.png" alt="PIC" class="graphics" /><!--tex4ht:graphics  
+name="userguide0x.png" src="images/93224965.eps"  
+-->
+<br /> </p><div class="caption" 
+><span class="id">Figure 12.1: </span><span  
+class="content">life cycle of a compiled method</span></div><!--tex4ht:label?: x15-153001r1 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfigure" />
+<!--l. 17--><p class="noindent" >Once a method is marked obsolete, it will never be invoked again. However, before
+the generated code for the compiled method can be garbage collected, all existing
+invocations of the compiled method must be complete. A compiled method
+transitions from obsolete to dead when no invocations of it exist on any thread
+stack. Jikes RVM detects this as part of the stack scanning phase of garbage
+collection; as stack frames are scanned, their compiled methods are marked
+as active. Any obsolete method that is not marked as active when stack
+scanning completes is marked as dead and the reference to it is removed from
+the compiled method table. It will then be freed during the next garbage
+collection.
+</p>
+<h3 class="sectionHead"><span class="titlemark">12.5   </span> <a 
+ id="x15-15400012.5"></a>Logging and Debugging</h3>
+<!--l. 5--><p class="noindent" >Complex non-deterministic systems such as the Jikes RVM adaptive system present
+challenges for system understanding and debugging. Virtually all of the
+proﬁling data collected by the runtime measurements component results from
+non-deterministic timer-based sampling at taken yieldpoints. The exact timing of
+these interrupts, and thus, the proﬁle data that drives recompilation decisions,
+diﬀers somewhat each time an application executes. Furthermore, many
+of the optimizations in the optimizing compiler rely on online proﬁles of
+conditional branch probabilities, i.e., the probabilities at the point in an
+execution when the recompilation occurs. Thus, because recompilations can
+occur at diﬀerent times during each execution, a method compiled at the
+same optimization level could be compiled slightly diﬀerently on diﬀerent
+runs.
+</p><!--l. 7--><p class="noindent" >The primary mechanism we use to manage this complexity is a record-replay facility
+for the adaptive system, where online proﬁle data is gathered during one run and
+used in a subsequent run. More speciﬁcally, as methods are dynamically compiled,
+the system can record this information into a log ﬁle. At the end of the run, the
+system can optionally dump the branch probabilities of all instrumented conditional
+branches, the proﬁle-derived call graph, and the proﬁle-directed inlining decisions.
+This log of methods and the ﬁles of proﬁle data can then be provided as inputs to a
+driver program (<span 
+class="cmtt-10">org.jikesrvm.tools.opt.OptTestHarness</span>) that can replay
+the series of compilation actions, and then optionally execute the program.
+Usually a fairly rapid binary search of methods being compiled and/or the
+supporting proﬁle data suﬃces to narrow the cause of a crash to a small set of
+actions taken by the optimizing compiler. Although this does not enable a
+perfectly accurate replay of a previous run, in practice, we have found that it
+suﬃces to reproduce almost all crashes caused by bugs in the optimizing
+compiler.
+</p><!--l. 9--><p class="noindent" >In addition to this record-replay mechanism, which mainly helps debugging the
+optimizing compiler, the adaptive system can generate a log ﬁle that contains
+detailed information about the actions of its organizer and controller threads. A
+sample is shown below:
+</p>
+<!--l. 11-->
+                                                                  
+
+                                                                  
+<div class="lstlisting" id="listing-100"><span class="label"><a 
+ id="x15-154001r1"></a></span>30:..7047728888 Compiled read with baseline compiler in 0.20 ms <br /><span class="label"><a 
+ id="x15-154002r2"></a></span>90:..7136817287 Controller notified that read(14402) has 4.0 samples <br /><span class="label"><a 
+ id="x15-154003r3"></a></span>92:..7139813016  Doing nothing cost (leaving at baseline) to read is 40.0 <br /><span class="label"><a 
+ id="x15-154004r4"></a></span>92:..7139830219  Compiling read cost at O0=40.42, future time=49.81 <br /><span class="label"><a 
+ id="x15-154005r5"></a></span>92:..7139842466  Compiling read cost at O1=65.99, future time=72.58 <br /><span class="label"><a 
+ id="x15-154006r6"></a></span>92:..7139854029  Compiling read cost at O2=207.44, future time=213.49 <br /><span class="label"><a 
+ id="x15-154007r7"></a></span>110:..7166901172 Controller notified that read(14402) has 9.0 samples <br /><span class="label"><a 
+ id="x15-154008r8"></a></span>111:..7168378722  Doing nothing cost (leaving at baseline) to read=90.0 <br /><span class="label"><a 
+ id="x15-154009r9"></a></span>111:..7168396493  Compiling read cost at O0=40.42, future time=61.54 <br /><span class="label"><a 
+ id="x15-154010r10"></a></span>111:..7168409562  Compiling read cost at O1=65.99, future time=80.81 <br /><span class="label"><a 
+ id="x15-154011r11"></a></span>111:..7168421097  Compiling read cost at O2=207.44, future time=221.06 <br /><span class="label"><a 
+ id="x15-154012r12"></a></span>111:..7168435937 Scheduling level 0 recompilation of read (priority=28.46) <br /><span class="label"><a 
+ id="x15-154013r13"></a></span>112:..7169879779 Recompiling (at level 0) read <br /><span class="label"><a 
+ id="x15-154014r14"></a></span>114:..7173293360  Recompiled (at level 0) read <br /><span class="label"><a 
+ id="x15-154015r15"></a></span>150:..7227058078 Controller notified that read(14612) has 5.11 samples <br /><span class="label"><a 
+ id="x15-154016r16"></a></span>151:..7228691160  Doing nothing cost (leaving at O0) to read=51.12 <br /><span class="label"><a 
+ id="x15-154017r17"></a></span>151:..7228705466  Compiling read cost at O1=66.26, future time=102.14 <br /><span class="label"><a 
+ id="x15-154018r18"></a></span>151:..7228717124  Compiling read cost at O2=208.29, future time=241.24 <br /><span class="label"><a 
+ id="x15-154019r19"></a></span> <br /><span class="label"><a 
+ id="x15-154020r20"></a></span><span 
+class="cmmi-10">&#x003C;</span>....many similar entries....<span 
+class="cmmi-10">&#x003E;</span> <br /><span class="label"><a 
+ id="x15-154021r21"></a></span> <br /><span class="label"><a 
+ id="x15-154022r22"></a></span>998:..8599006259 Controller notified that read(14612) has 19.11 samples <br /><span class="label"><a 
+ id="x15-154023r23"></a></span>999:..8599561634  Doing nothing cost (leaving at O0) to read=191.13 <br /><span class="label"><a 
+ id="x15-154024r24"></a></span>999:..8599576368  Compiling read cost at O1=54.38, future time=188.52 <br /><span class="label"><a 
+ id="x15-154025r25"></a></span>999:..8599587767  Compiling read cost at O2=170.97, future time=294.14 <br /><span class="label"><a 
+ id="x15-154026r26"></a></span>999:..8599603986 Scheduling level 1 recompilation of read (priority=2.61) <br /><span class="label"><a 
+ id="x15-154027r27"></a></span>1000:..8601308856 Recompiling (at level 1) read <br /><span class="label"><a 
+ id="x15-154028r28"></a></span>1002:..8604580406  Recompiled (at level 1) read <br /><span class="label"><a 
+ id="x15-154029r29"></a></span>1018:..8628022176 Controller notified that read(15312) has 18.41 samples <br /><span class="label"><a 
+ id="x15-154030r30"></a></span>1019:..8629548221  Doing nothing cost (leaving at O1) to read=184.14 <br /><span class="label"><a 
+ id="x15-154031r31"></a></span>1019:..8629563130  Compiling read cost at O2=170.97, future time=340.06
+</div>
+<!--l. 45--><p class="noindent" >This sample shows an abbreviated subset of the log entries associated with the
+method read of the class <span 
+class="cmtt-10">spec.benchmarks.</span><span 
+class="cmtt-10">_213</span><span 
+class="cmtt-10">_javac.ScannerInputStream</span>, one
+of the hotter methods of the SPECjvm98 benchmark <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">_213_javac</span></span></span>. The ﬁrst pair of
+numbers are the controller clock (number of timer interrupts since execution
+began) and the value of the hardware cycle counter (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Time.cycles()</span></span></span>) for the
+log entry. These log entries show the cost-beneﬁt values computed by the
+controller for various possible optimization actions and the progression of the
+method from baseline compilation through two recompilations (level 0 and
+then at level 1). For example, at time 92, we see four entries that give the
+estimated total future time (the sum of the compilation cost and the total future
+execution time in a method) for performing no recompilation and for each
+optimization level. Because the total future time for not recompiling (40)
+is less than the other alternatives (49<span 
+class="cmmi-10">.</span>81, 72<span 
+class="cmmi-10">.</span>58, and 213<span 
+class="cmmi-10">.</span>49), the method
+is not scheduled for recompilation. However, at time 110, the method has
+been sampled more often. Thus, the total future time estimate is updated,
+resulting in two recompilation actions (level 0 and level 1) that are more
+attractive than taking no recompilation action. Because level 0 gives the
+least future time, this decision is chosen by placing a recompilation event in
+the recompilation priority queue. The priority for the event is the expected
+improvement of performing this recompilation, i.e., the diﬀerence between
+the future time for the new level and the future time for current execution
+(90 <span 
+class="cmsy-10">− </span>61<span 
+class="cmmi-10">.</span>54 = 28<span 
+class="cmmi-10">.</span>46).
+</p><!--l. 47--><p class="noindent" >At clock time 150 a similar pattern occurs when considering whether to recompile
+this method at level 1 or 2; initially recompiling at higher levels is not chosen (clock
+time 151) until suﬃcient samples of the method have occurred (clock time
+999).
+</p><!--l. 49--><p class="noindent" >The ﬁgure also illustrates how samples of a method at lower optimization
+level are incorporated into the total samples for a method that has been
+recompiled. The samples at the lower level are scaled by the relative speed
+of the two levels as deﬁned by the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilerDNA</span></span></span>, and used as the initial
+number of samples for the higher level. For example, at clock time 100, the
+baseline compiled version of the method has 9 samples. When the method is
+recompiled at level 0, these methods are scaled down by 4<span 
+class="cmmi-10">.</span>26, which is the
+expected speedup deﬁned by the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilerDNA</span></span></span> for going from baseline to
+level 0, resulting in a value of 2<span 
+class="cmmi-10">.</span>11. At clock time 160, the level 0 version
+of method has 5<span 
+class="cmmi-10">.</span>11 samples, i.e, 3 additional samples of the method have
+occurred.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">12.6   </span> <a 
+ id="x15-15500012.6"></a>Threading and Yieldpoints</h3>
+<!--l. 5--><p class="noindent" >Jikes RVM creates a native thread for each Java thread that is started. Each
+compiler generates yield points, which are program points where the running thread
+checks to determine if it should yield to another thread. The compilers insert yield
+                                                                  
+
+                                                                  
+points in method prologues, method epilogues, and on loop backedges.
+</p><!--l. 7--><p class="noindent" >The adaptive optimization system piggybacks on this yieldpoint mechanism to gather
+proﬁle data. The thread scheduler provides an extension point by which the
+runtime measurments component can install listeners that execute each time a
+yieldpoint is taken. Such listeners primarily serve to sample program execution to
+identify frequently-executed methods and call edges. Because these samples
+occur at well-known locations (prologues, epilogues, and loop backedges), the
+listener can easily attribute each sample to the appropriate Java source
+method.
+</p><!--l. 10--><p class="noindent" >The Jikes RVM implementation introduces a weakness with this mechanism, in that
+samples can only occur in regions of code that have yieldpoints. Some low-level Jikes
+RVM subsystems, such as the thread scheduler and the garbage collector, elide
+yieldpoints because those regions of code rely on delicate state invariants
+that preclude thread switching. These uninterruptible regions can distort
+sampling accuracy by artiﬁcially inﬂating the probability of sampling the ﬁrst
+yieldpoint executed after the program leaves an uninterruptible region of
+code.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailAdaptiveOptimizationSystem.html"></a></p> 
+</body></html> 

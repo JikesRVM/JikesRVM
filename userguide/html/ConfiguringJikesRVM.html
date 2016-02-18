@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>4 Conﬁguring Jikes RVM</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 4</span><br /><a 
+ id="x6-430004"></a>Conﬁguring Jikes RVM</h2>
+<!--l. 5--><p class="noindent" >The build process requires a number of build time parameters that specify the
+features and components for a Jikes RVM build. Typically the build parameters are
+deﬁned within a property ﬁle located in the build/conﬁgs directory. The following
+table deﬁnes the parameters for the build conﬁguration.
+</p>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 8--><p class="noindent" ><a 
+ id="x6-43001r1"></a></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-4" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-4-1g"><col 
+id="TBL-4-1" /><col 
+id="TBL-4-2" /><col 
+id="TBL-4-3" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-4-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-1-1"  
+class="td11"><!--l. 10--><p class="noindent" >Property              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-1-2"  
+class="td11"><!--l. 10--><p class="noindent" >Description                                               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-1-3"  
+class="td11"><!--l. 10--><p class="noindent" >Default      </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-2-1"  
+class="td11"><!--l. 11--><p class="noindent" >conﬁg.name           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-2-2"  
+class="td11"><!--l. 11--><p class="noindent" >A unique name that identiﬁes the set of build
+parameters.                                               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-2-3"  
+class="td11"><!--l. 11--><p class="noindent" >None         </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-3-1"  
+class="td11"><!--l. 12--><p class="noindent" >conﬁg.bootimage.<br 
+class="newline" />compiler                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-3-2"  
+class="td11"><!--l. 12--><p class="noindent" >Parameter  selects  the  compiler  used  when
+creating the bootimage. Must be either opt or
+base.                                                        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-3-3"  
+class="td11"><!--l. 12--><p class="noindent" >base          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-4-1"  
+class="td11"><!--l. 13--><p class="noindent" >conﬁg.bootimage.<br 
+class="newline" />compiler.args          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-4-2"  
+class="td11"><!--l. 13--><p class="noindent" >Parameter  speciﬁes  any  extra  args  that  are
+passed to the bootimage compiler.                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-4-3"  
+class="td11"><!--l. 13--><p class="noindent" >””             </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-5-1"  
+class="td11"><!--l. 14--><p class="noindent" >conﬁg.bootimage.<br 
+class="newline" />writer.args             </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-5-2"  
+class="td11"><!--l. 14--><p class="noindent" >Parameter  speciﬁes  any  extra  args  that  are
+passed to the bootimage writer.                    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-5-3"  
+class="td11"><!--l. 14--><p class="noindent" >””             </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-6-1"  
+class="td11"><!--l. 15--><p class="noindent" >conﬁg.runtime.<br 
+class="newline" />compiler                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-6-2"  
+class="td11"><!--l. 15--><p class="noindent" >Parameter selects the compiler used at runtime.
+Must be either opt or base.                          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-6-3"  
+class="td11"><!--l. 15--><p class="noindent" >base          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-7-1"  
+class="td11"><!--l. 16--><p class="noindent" >conﬁg.include.<br 
+class="newline" />aos                       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-7-2"  
+class="td11"><!--l. 16--><p class="noindent" >Include                   the                   adaptive
+system if set to true. Parameter will be ignored
+if conﬁg.runtime.compiler is not opt.              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-7-3"  
+class="td11"><!--l. 16--><p class="noindent" >false          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-8-1"  
+class="td11"><!--l. 17--><p class="noindent" >conﬁg.mmtk           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-8-2"  
+class="td11"><!--l. 17--><p class="noindent" >The  MMTk  properties  ﬁle  to  use.  MMTk
+property  ﬁles  are  located  in  the  build/mmtk
+directory.                                                  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-8-3"  
+class="td11"><!--l. 17--><p class="noindent" >default      </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-9-1"  
+class="td11"><!--l. 18--><p class="noindent" >conﬁg.mmtk.plan    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-9-2"  
+class="td11"><!--l. 18--><p class="noindent" >The name of the GC plan to use for the build.
+See MMTk for more details.                         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-9-3"  
+class="td11"><!--l. 18--><p class="noindent" >None         </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-10-1"  
+class="td11"><!--l. 19--><p class="noindent" >conﬁg.default-heapsize.initial </p> </td><td  style="white-space:wrap; text-align:left;" id="TBL-4-10-2"  
+class="td11"><!--l. 19--><p class="noindent" >Parameter  specifying  the  default  initial  heap
+size in MB.                                               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-10-3"  
+class="td11"><!--l. 19--><p class="noindent" >20             </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-11-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-11-1"  
+class="td11"><!--l. 20--><p class="noindent" >conﬁg.default-heapsize.maximum </p> </td><td  style="white-space:wrap; text-align:left;" id="TBL-4-11-2"  
+class="td11"><!--l. 20--><p class="noindent" >Parameter  specifying  the  default  maximum
+heap size in MB.                                        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-11-3"  
+class="td11"><!--l. 20--><p class="noindent" >100           </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-12-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-12-1"  
+class="td11"><!--l. 21--><p class="noindent" >conﬁg.assertions      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-12-2"  
+class="td11"><!--l. 21--><p class="noindent" >Parameter speciﬁes the level of assertions in the
+code base. Must be one of extreme, normal or
+none.                                                       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-12-3"  
+class="td11"><!--l. 21--><p class="noindent" >normal      </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-13-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-13-1"  
+class="td11"><!--l. 22--><p class="noindent" >conﬁg.stress-gc-interval </p> </td><td  style="white-space:wrap; text-align:left;" id="TBL-4-13-2"  
+class="td11"><!--l. 22--><p class="noindent" >The  build  will  stress  test  the  gc  subsytem  if
+set to a positive value. The value indicates the
+number of allocations between collections        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-13-3"  
+class="td11"><!--l. 22--><p class="noindent" >0              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-14-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-14-1"  
+class="td11"><!--l. 23--><p class="noindent" >conﬁg.include.<br 
+class="newline" />perfevent               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-14-2"  
+class="td11"><!--l. 23--><p class="noindent" >Set to true to build Jikes RVM with support for
+performance counters.                                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-14-3"  
+class="td11"><!--l. 23--><p class="noindent" >false          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-15-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-15-1"  
+class="td11"><!--l. 24--><p class="noindent" >conﬁg.include.gcspy </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-15-2"  
+class="td11"><!--l. 24--><p class="noindent" >Set  to  true  to  build  Jikes  RVM  with  GCSpy
+support. See Using GCSpy for more details.     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-15-3"  
+class="td11"><!--l. 24--><p class="noindent" >false          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-16-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-16-1"  
+class="td11"><!--l. 25--><p class="noindent" >conﬁg.include.gcspy-client </p> </td><td  style="white-space:wrap; text-align:left;" id="TBL-4-16-2"  
+class="td11"><!--l. 25--><p class="noindent" >Set to true to bundle the GCSpy client with the
+Jikes RVM build. Parameter will be ignored if
+conﬁg.include.gcspy is not true.                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-16-3"  
+class="td11"><!--l. 25--><p class="noindent" >false          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-17-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-17-1"  
+class="td11"><!--l. 26--><p class="noindent" >conﬁg.include.gcspy-stub </p> </td><td  style="white-space:wrap; text-align:left;" id="TBL-4-17-2"  
+class="td11"><!--l. 26--><p class="noindent" >Set to true to use the GCSpy stub rather than
+the real GCSpy component. Parameter will be
+ignored if conﬁg.include.gcspy is not true.       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-17-3"  
+class="td11"><!--l. 26--><p class="noindent" >false          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-18-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-18-1"  
+class="td11"><!--l. 27--><p class="noindent" >conﬁg.include.all-classes </p> </td><td  style="white-space:wrap; text-align:left;" id="TBL-4-18-2"  
+class="td11"><!--l. 27--><p class="noindent" >Include  all  the  Jikes  RVM  classes  in  the
+bootimage if set to true.                              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-4-18-3"  
+class="td11"><!--l. 27--><p class="noindent" >false          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-4-19-"><td  style="white-space:wrap; text-align:left;" id="TBL-4-19-1"  
+class="td11">                 </td></tr></table></div>
+<br /> <div class="caption" 
+><span class="id">Table 4.1: </span><span  
+class="content">Parameters for build conﬁgurations</span></div><!--tex4ht:label?: x6-43001r1 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<h3 class="sectionHead"><span class="titlemark">4.1   </span> <a 
+ id="x6-440004.1"></a>Jikes RVM Conﬁgurations</h3>
+<!--l. 34--><p class="noindent" >A typical user will use one of the existing build conﬁgurations and thus the build
+system only requires that the user specify the conﬁg.name property. The name should
+match one of the ﬁles located in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">build/configs/</span></span></span> directory minus the
+&#x2019;.properties&#x2019; extension.
+</p><!--l. 36--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">4.1.1   </span> <a 
+ id="x6-450004.1.1"></a>Logical Conﬁgurations</h4>
+<!--l. 38--><p class="noindent" >There are many possible Jikes RVM conﬁgurations. Therefore, we deﬁne four
+”logical” conﬁgurations that are most suitable for casual or novice users of the
+system. The four conﬁgurations are:
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmbx-10">prototype: </span>A simple, fast to build, but low performance conﬁguration of
+     Jikes RVM. This conﬁguration does not include the optimizing compiler
+     or adaptive system. Most useful for rapid prototyping of the core virtual
+     machine.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">prototype-opt</span>:   A   simple,   fast   to   build,   but   low   performance
+     conﬁguration  of  Jikes  RVM.  Unlike  prototype,  this  conﬁguration  does
+     include the optimizing compiler and adaptive system. Most useful for rapid
+     prototyping of the core virtual machine, adaptive system, and optimizing
+     compiler.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">development:  </span>A  fully  functional  conﬁguration  of  Jikes  RVM  with
+     reasonable performance that includes the adaptive system and optimizing
+     compiler. This conﬁguration takes longer to build than the two prototype
+     conﬁgurations.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">production:  </span>The  same  as  the  development  conﬁguration,  except  all
+     assertions are disabled. This is the highest performance conﬁguration of
+     Jikes  RVM  and  is  the  one  to  use  for  benchmarking  and  performance
+     analysis. Build times are similar to the development conﬁguration.</li></ul>
+<!--l. 47--><p class="noindent" >The mapping of logical to actual conﬁgurations may vary from release to release. In
+particular, it is expected that the choice of garbage collector for these logical
+conﬁgurations may be diﬀerent as MMTk evolves.
+</p><!--l. 49--><p class="noindent" >Logical conﬁgurations that are not mentioned here are not recommended for novice
+users of the system.
+                                                                  
+
+                                                                  
+</p><!--l. 53--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">4.1.2   </span> <a 
+ id="x6-460004.1.2"></a>Conﬁgurations in Depth</h4>
+<!--l. 55--><p class="noindent" >Most standard Jikes RVM conﬁguration ﬁles follow the following naming
+scheme:
+</p><!--l. 57--><p class="noindent" ><span 
+class="cmti-10">[ExtremeAssertions] </span><span 
+class="cmbx-10">(Base </span><span 
+class="cmbsy-10">|</span><span 
+class="cmbx-10"> Full </span><span 
+class="cmbsy-10">|</span><span 
+class="cmbx-10"> Fast) </span>(Base <span 
+class="cmsy-10">|</span> Adaptive) <span 
+class="cmmi-10">&#x003C;</span><span 
+class="cmti-10">garbage collector</span><span 
+class="cmmi-10">&#x003E;</span>
+where </p>
+     <ul class="itemize1">
+     <li class="itemize"><span 
+class="cmti-10">ExtremeAssertions   </span>is   optional.   Its   presence   indicates   that   the
+     <span 
+class="cmtt-10">config.assertions </span>conﬁguration parameter is set to <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">extreme</span></span></span>. This turns
+     on a number of expensive assertions.
+     </li>
+     <li class="itemize"><span 
+class="cmbx-10">Base  </span><span 
+class="cmbsy-10">|</span><span 
+class="cmbx-10"> Full  </span><span 
+class="cmbsy-10">|</span><span 
+class="cmbx-10"> Fast  </span>determines  the  performance  of  the  Jikes  RVM
+     boot  image.  <span 
+class="cmbx-10">Base  </span>denotes  baseline  compiler  and  enabled  assertions,
+     <span 
+class="cmbx-10">Full </span>denotes optimizing compiler and enabled assertions, <span 
+class="cmbx-10">Fast </span>denotes
+     optimizing compiler and disabled assertions. Note that <span 
+class="cmbx-10">Fast </span>is exclusive
+     with  <span 
+class="cmti-10">ExtremeAssertions  </span>and  that  <span 
+class="cmbx-10">Full </span>and  <span 
+class="cmbx-10">Fast </span>imply  that  adaptive
+     system and optimizing compiler are included in the image.
+     </li>
+     <li class="itemize">Base  <span 
+class="cmsy-10">|</span> Adaptive  denotes  whether  or  not  the  adaptive  system  and
+     optimizing compiler are included in the build.
+     </li>
+     <li class="itemize">the <span 
+class="cmmi-10">&#x003C;</span><span 
+class="cmti-10">garbage collector</span><span 
+class="cmmi-10">&#x003E; </span>is the garbage collection scheme used.</li></ul>
+<!--l. 66--><p class="noindent" >Each version of Jikes RVM provides several garbage collector choices. For a deﬁnitive
+list of garbage collector choices, please refer to the conﬁgurations that are shipped
+with your version of Jikes RVM. If you need a conﬁguration that is not available
+by default, you can just deﬁne your own based on the existing ones (it&#x2019;s
+easy!).
+</p><!--l. 68--><p class="noindent" >Some garbage collector suﬃxes that may be available are: </p>
+     <ul class="itemize1">
+     <li class="itemize">”NoGC” no garbage collection is performed.
+     </li>
+     <li class="itemize">”SemiSpace” a copying semi-space collector
+     </li>
+     <li class="itemize">”MarkSweep” a mark-and-sweep (non copying) collector
+     </li>
+     <li class="itemize">”GenCopy” a classic copying generational collector with a copying higher
+     generation
+     </li>
+     <li class="itemize">”GenMS”   a   copying   generational   collector   with   a   non-copying
+     mark-and-sweep mature space
+                                                                  
+
+                                                                  
+     </li>
+     <li class="itemize">”CopyMS” a hybrid non-generational collector with a copying space (into
+     which all allocation goes), and a non-copying space into which survivors
+     go
+     </li>
+     <li class="itemize">”RefCount”    a    reference    counting    collector    with    synchronous
+     (non-concurrent) cycle collection</li></ul>
+<!--l. 79--><p class="noindent" >For example, to specify a Jikes RVM conﬁguration:
+     </p><ol  class="enumerate1" >
+     <li 
+  class="enumerate" id="x6-46002x1">with a baseline-compiled boot image,
+     </li>
+     <li 
+  class="enumerate" id="x6-46004x2">that will compile classes loaded at runtime using the baseline compiler
+     and
+     </li>
+     <li 
+  class="enumerate" id="x6-46006x3">that uses a non-generational semi-space copying garbage collector,</li></ol>
+<!--l. 86--><p class="noindent" >use the name <span 
+class="cmbx-10">”BaseBaseSemiSpace”</span>.
+</p><!--l. 88--><p class="noindent" >In conﬁgurations that include the adaptive system (denoted by <span 
+class="cmbx-10">”Adaptive” </span>in their
+name), methods are initially compiled by one compiler (by default the baseline
+compiler) and then online proﬁling is used to automatically select hot methods for
+recompilation by the optimizing compiler at an appropriate optimization
+level.
+</p><!--l. 90--><p class="noindent" >For example, to a build for an adaptive conﬁguration with assertions, where the
+optimizing compiler is used to compile the boot image and the semi-space garbage
+collector is used, use the following command:
+</p>
+<!--l. 92-->
+<div class="lstlisting" id="listing-27"><span class="label"><a 
+ id="x6-46007r1"></a></span>% ant -Dconfig.name=FullAdaptiveSemiSpace
+</div>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 97--><p class="noindent" ><a 
+ id="x6-46008r2"></a></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-5" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-5-1g"><col 
+id="TBL-5-1" /><col 
+id="TBL-5-2" /><col 
+id="TBL-5-3" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-5-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-1-1"  
+class="td11"><!--l. 99--><p class="noindent" >Conﬁguration             </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-1-2"  
+class="td11"><!--l. 99--><p class="noindent" >Description                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-1-3"  
+class="td11"><!--l. 99--><p class="noindent" >Potential uses                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-2-1"  
+class="td11"><!--l. 100--><p class="noindent" >BaseBaseSomeGC        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-2-2"  
+class="td11"><!--l. 100--><p class="noindent" >baseline              compiled
+bootimage  with  assertions,
+baseline      compiler      at
+runtime                          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-2-3"  
+class="td11"><!--l. 100--><p class="noindent" >prototyping;  debugging  of
+garbage  collector  SomeGC
+without                 having
+to worry about complexities
+introduced    by    compiler
+optimizations;  checking  for
+problems      related      to
+uninterruptible code          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-3-1"  
+class="td11"><!--l. 101--><p class="noindent" >BaseAdaptiveSomeGC  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-3-2"  
+class="td11"><!--l. 101--><p class="noindent" >baseline              compiled
+bootimage  with  assertions,
+baseline compiler, adaptive
+system    and    optimizing
+compiler at runtime          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-3-3"  
+class="td11"><!--l. 101--><p class="noindent" >prototyping  that  includes
+optimizing   compiler   and
+adaptive system; debugging
+of    optimizing    compiler
+problems
+with compiler advice; sanity
+checks  with  comparatively
+short benchmarks; checking
+for   problems   related   to
+uninterruptible code          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-4-1"  
+class="td11"><!--l. 102--><p class="noindent" >FullAdaptiveSomeGC    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-4-2"  
+class="td11"><!--l. 102--><p class="noindent" >bootimage   compiled   with
+optimizing           compiler
+and  assertions;  everything
+available at runtime          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-4-3"  
+class="td11"><!--l. 102--><p class="noindent" >extensive  testing  including
+long-running   benchmarks;
+checking for incorrect usage
+of unboxed types              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-5-1"  
+class="td11"><!--l. 103--><p class="noindent" >ExtremeAssertions*      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-5-2"  
+class="td11"><!--l. 103--><p class="noindent" >enables all generally useful
+assertions,   including   very
+expensive ones                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-5-3"  
+class="td11"><!--l. 103--><p class="noindent" >debugging  and  testing  in
+special cases                    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-6-1"  
+class="td11"><!--l. 104--><p class="noindent" >FastAdaptiveSomeGC   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-6-2"  
+class="td11"><!--l. 104--><p class="noindent" >bootimage           compiled
+with  optimizing  compiler;
+assertions            disabled;
+everything    available    at
+runtime                          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-6-3"  
+class="td11"><!--l. 104--><p class="noindent" >benchmarking                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-7-1"  
+class="td11"><!--l. 105--><p class="noindent" >FullBase*                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-7-2"  
+class="td11"><!--l. 105--><p class="noindent" >INVALID   -   Full   implies
+Adaptive                        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-7-3"  
+class="td11"><!--l. 106--><p class="noindent" >                       </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-8-1"  
+class="td11"><!--l. 106--><p class="noindent" >FastBase*                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-8-2"  
+class="td11"><!--l. 106--><p class="noindent" >INVALID   -   Fast   implies
+Adaptive                        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-8-3"  
+class="td11"><!--l. 107--><p class="noindent" >                       </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-9-1"  
+class="td11"><!--l. 107--><p class="noindent" >ExtremeAssertionsFast*</p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-9-2"  
+class="td11"><!--l. 107--><p class="noindent" >INVALID                      -
+ExtremeAssertions          is
+incompatible with Fast      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-5-9-3"  
+class="td11"><!--l. 108--><p class="noindent" >                       </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-5-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-5-10-1"  
+class="td11">                    </td></tr></table></div>
+<br /> <div class="caption" 
+><span class="id">Table 4.2: </span><span  
+class="content">Example conﬁgurations and their uses</span></div><!--tex4ht:label?: x6-46008r2 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 113--><p class="noindent" ><a 
+ id="x6-46009r3"></a></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-6" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-6-1g"><col 
+id="TBL-6-1" /><col 
+id="TBL-6-2" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-6-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-6-1-1"  
+class="td11"><!--l. 115--><p class="noindent" >LogicalConﬁguration    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-6-1-2"  
+class="td11"><!--l. 115--><p class="noindent" >Actual conﬁguration    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-6-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-6-2-1"  
+class="td11"><!--l. 116--><p class="noindent" >prototype                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-6-2-2"  
+class="td11"><!--l. 116--><p class="noindent" >BaseBaseGenImmix     </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-6-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-6-3-1"  
+class="td11"><!--l. 117--><p class="noindent" >prototype-opt              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-6-3-2"  
+class="td11"><!--l. 117--><p class="noindent" >BaseAdaptiveGenImmix </p> </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-6-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-6-4-1"  
+class="td11"><!--l. 118--><p class="noindent" >development                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-6-4-2"  
+class="td11"><!--l. 118--><p class="noindent" >FullAdaptiveGenImmix</p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-6-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-6-5-1"  
+class="td11"><!--l. 119--><p class="noindent" >production                  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-6-5-2"  
+class="td11"><!--l. 119--><p class="noindent" >FastAdaptiveGenImmix </p> </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-6-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-6-6-1"  
+class="td11">                    </td></tr></table></div>
+<br /> <div class="caption" 
+><span class="id">Table 4.3: </span><span  
+class="content">Mapping of logical conﬁgurations to actual conﬁgurations in Jikes
+RVM 3.1.3</span></div><!--tex4ht:label?: x6-46009r3 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+                                                                  
+
+                                                                  
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailConfiguringJikesRVM.html"></a></p> 
+</body></html> 
