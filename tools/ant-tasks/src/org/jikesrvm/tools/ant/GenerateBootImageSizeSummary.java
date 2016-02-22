@@ -156,7 +156,7 @@ public class GenerateBootImageSizeSummary extends Task {
     writeCSVFile(imageNameToTotalImageSize);
   }
 
-  /**al
+  /**
    * Accepts only files that match the (hard-coded) known image names.
    */
   private static class ImageNameFilter implements FilenameFilter {
