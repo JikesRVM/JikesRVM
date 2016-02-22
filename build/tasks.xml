@@ -47,6 +47,8 @@
     <taskdef name="lineFilter" classname="org.jikesrvm.tools.ant.LineFilterTask" classpath="${tasks.classes}"/>
     <!-- Split instruction formats -->
     <taskdef name="SplitInstructionFormats" classname="org.jikesrvm.tools.ant.SplitInstructionFormats" classpath="${tasks.classes}"/>
+    <!-- Generate a summary about all the bootimage sizes in a directory -->
+    <taskdef name="GenerateBootImageSizeSummary" classname="org.jikesrvm.tools.ant.GenerateBootImageSizeSummary" classpath="${tasks.classes}"/>
   </target>
 
 </project>

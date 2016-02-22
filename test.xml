@@ -39,6 +39,8 @@
   <property name="test.report.dna.xml" value="${test.results.dir}/CompilerDNA.xml"/>
   <property name="temp.aggregate.file" value="${test.results.dir}/Aggregate.xml"/>
 
+  <property name="test.boot-image-size-summary.file" value="${test.results.dir}/bootImageSizeSummary.csv"/>
+
   <property name="test.scripts.dir" value="${jikesrvm.dir}/testing/tests"/>
 
   <property name="results.archive" location="${results.dir}/archive"/>
@@ -375,13 +377,18 @@
     </xslt>
   </target>
 
+  <target name="generate-bootimage-size-summary" depends="test">
+    <GenerateBootImageSizeSummary summaryFile="${test.boot-image-size-summary.file}"
+      imageDir="${dist.dir}"/>
+  </target>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                  Targets for archiving results and report                * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="archive" depends="gen-xml-report">
+  <target name="archive" depends="gen-xml-report,generate-bootimage-size-summary">
     <mkdir dir="${results.archive}"/>
     <property name="archive.filename" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${git.revision}_${target.name}_Report.xml"/>
     <gzip src="${test.report.file}" destfile="${results.archive}/${archive.filename}.gz"/>
