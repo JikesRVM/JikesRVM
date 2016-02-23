@@ -21,19 +21,10 @@ import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/*
- import org.jikesrvm.Offset;
+/**
  * Conversions between different units.
  */
 @Uninterruptible public class Conversions {
-
-  // public static Address roundDownVM(Address addr) {
-  //   return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_REGION).toAddress();
-  // }
-
-  // public static Extent roundDownVM(Extent bytes) {
-  //   return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_REGION).toExtent();
-  // }
 
   public static Address roundDownMB(Address addr) {
     return roundDown(addr.toWord(), LOG_BYTES_IN_MBYTE).toAddress();
