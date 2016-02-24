@@ -121,11 +121,11 @@ public final class RVMClass extends RVMType {
   private final Atom sourceName;
   /**
    * The signature is a string representing the generic type for this
-   * class declaration, may be null
+   * class declaration, may be {@code null}
    */
   private final Atom signature;
   /**
-   * Class initializer method, null if no method or if class is
+   * Class initializer method, {@code null} if no method or if class is
    * initialized (ie class initializer method has been run)
    */
   private RVMMethod classInitializerMethod;
@@ -204,7 +204,7 @@ public final class RVMClass extends RVMType {
   /** Set of objects that are cached here to ensure they are not collected by GC **/
   private Object[] objectCache;
 
-  /** The imt for this class **/
+  /** The interface method table for this class **/
   @SuppressWarnings("unused")
   private IMT imt;
 
@@ -339,7 +339,8 @@ public final class RVMClass extends RVMType {
     return ((declaringClass != null) && ((modifiers & ACC_STATIC) == 0));
   }
   /**
-   * @return {@code true} if this an object of this class could be assigned to Throwable
+   * @return {@code true} if an object of this class could be assigned to
+   *  Throwable
    */
   public boolean isAssignableToThrowable() {
     return (getTypeRef() == TypeReference.JavaLangThrowable) ||
@@ -363,9 +364,10 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * @return Name of source file from which class was compiled -
+   * @return Name of source file from which class was compiled, e.g.
    * something like "c:\java\src\java\lang\Object.java".
-   * ({@code null} --&gt; "unknown - wasn't recorded by compiler").
+   * {@code null} means that the source file is unknown because it
+   * wasn't recorded in the class file.
    */
   public Atom getSourceName() {
     return sourceName;
@@ -373,7 +375,7 @@ public final class RVMClass extends RVMType {
 
   /**
    * @return superclass of this class ({@code null} means "no superclass",
-   * i.e. class is "java/lang/Object").
+   * i.e. class is {@code java.lang.Object}).
    */
   @Uninterruptible
   public RVMClass getSuperClass() {
@@ -406,7 +408,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Does this class directly define a final instance field (has implications for JMM).
+   * Does this class directly define a final instance field (has implications for JMM)?
    *
    * @return {@code true} if this class declares a final instance field
    */
@@ -674,8 +676,8 @@ public final class RVMClass extends RVMType {
 
   /**
    * The methods of this class are only called from native code,
-   * they are compiled with
-   * a special prolog to interface with the native stack frame.
+   * they are compiled with a special prolog to interface with
+   * the native stack frame.
    *
    * @return {@code true} if the methods of this class can only
    *  be called from native code
@@ -686,11 +688,11 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Should the methods of this class save incoming registers ?
-   * @see org.vmmagic.pragma.SaveVolatile
+   * Should the methods of this class save incoming registers?
    *
    * @return {@code true} if all volatile registers need to be saved
    *  when methods of this class are called
+   * @see org.vmmagic.pragma.SaveVolatile
    */
   public boolean hasSaveVolatileAnnotation() {
     return isAnnotationDeclared(TypeReference.SaveVolatile);
@@ -1764,8 +1766,8 @@ public final class RVMClass extends RVMType {
 
   /**
    * Classes used as Interfaces get assigned an interface id.
-   *   If the class is not an interface, attempting to use this
-   *   id will cause an IncompatibleClassChangeError to be thrown
+   * If the class is not an interface, attempting to use this
+   * id will cause an IncompatibleClassChangeError to be thrown
    *
    * @return interface id (a non-negative number)
    */
