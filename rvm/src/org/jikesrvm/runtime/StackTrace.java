@@ -591,7 +591,7 @@ public class StackTrace {
             (compiledMethod != null) &&
             (compiledMethod.getMethod().getDeclaringClass().getClassForType() != cause.getClass()) &&
             compiledMethod.getMethod().isObjectInitializer() &&
-            compiledMethod.getMethod().getDeclaringClass().isThrowable()) {
+            compiledMethod.getMethod().getDeclaringClass().isAssignableToThrowable()) {
         element++;
         compiledMethod = getCompiledMethod(element);
       }

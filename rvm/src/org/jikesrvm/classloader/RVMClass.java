@@ -341,7 +341,7 @@ public final class RVMClass extends RVMType {
   /**
    * @return {@code true} if this an object of this class could be assigned to Throwable
    */
-  public boolean isThrowable() {
+  public boolean isAssignableToThrowable() {
     return (getTypeRef() == TypeReference.JavaLangThrowable) ||
     RuntimeEntrypoints.isAssignableWith(TypeReference.JavaLangThrowable.resolve(), this);
   }
