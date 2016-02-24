@@ -101,6 +101,9 @@ public class GenerateBootImageSizeSummary extends Task {
   private SortedMap<String, String> computeTotalImageSizes() {
     SortedMap<String, String> imageNameToTotalImageSize = new TreeMap<String,String>();
     File[] subDirectories = imageDir.listFiles();
+    if (subDirectories == null) {
+      throw new BuildException("Image directory " + imageDir + " doesn't exist!");
+    }
     for (File dir : subDirectories) {
       if (!dir.isDirectory()) {
         continue;
