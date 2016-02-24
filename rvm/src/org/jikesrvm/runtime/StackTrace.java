@@ -606,7 +606,16 @@ public class StackTrace {
         element++;
         compiledMethod = getCompiledMethod(element);
       }
-      // (6) remove possible hardware exception deliverer frames
+      // (6) remove possible RuntimeEntrypoints.raise* methods used by
+      // PPC opt compiler. Note: only one of the methods can be present at
+      // a time!
+      if ((element < compiledMethods.length) &&
+        (compiledMethod != null) &&
+        Entrypoints.isInvisibleRaiseMethod(compiledMethod.getMethod())) {
+        element++;
+        compiledMethod = getCompiledMethod(element);
+      }
+      // (7) remove possible hardware exception deliverer frames
       if (element < compiledMethods.length - 2) {
         compiledMethod = getCompiledMethod(element + 1);
         if ((compiledMethod != null) &&

@@ -81,6 +81,14 @@ public class Entrypoints {
 
   public static final NormalMethod unexpectedAbstractMethodCallMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unexpectedAbstractMethodCall", "()V");
+  public static final NormalMethod deliverHardwareExceptionMethod =
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "deliverHardwareException", "(ILorg/vmmagic/unboxed/Word;)V");
+  public static final NormalMethod unlockAndThrowMethod =
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+
+  // Special methods for raising exceptions. Note that these methods need special
+  // treatment to remove them from stack traces. Removing them is necessary to get
+  // stack traces that are consistent across all of our architectures and compilers.
   public static final NormalMethod raiseNullPointerException =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseNullPointerException", "()V");
   public static final NormalMethod raiseArrayBoundsException =
@@ -91,10 +99,7 @@ public class Entrypoints {
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseAbstractMethodError", "()V");
   public static final NormalMethod raiseIllegalAccessError =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
-  public static final NormalMethod deliverHardwareExceptionMethod =
-      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "deliverHardwareException", "(ILorg/vmmagic/unboxed/Word;)V");
-  public static final NormalMethod unlockAndThrowMethod =
-      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+
 
   public static final RVMField gcLockField = getField("Ljava/lang/VMCommonLibrarySupport$GCLock;", "gcLock", int.class);
 
@@ -525,6 +530,27 @@ public class Entrypoints {
 
   public static final RVMField classLoaderDefinedPackages =
     getField(java.lang.ClassLoader.class, "definedPackages", java.util.HashMap.class);
+
+  /**
+   * Is this a special exception-raising method that must be invisible in stack traces?
+   * <p>
+   * In some configurations, the optimizing compiler may insert calls to special exception
+   * raising methods in RuntimeEntrypoints if it recognizes that code throws unconditional
+   * exceptions. Those calls must not appear in the stack trace.
+   *
+   * @param m a method
+   * @return {@code true} when the given me is a special exception-raising method that
+   *  must be invisible in stack traces, {@code false} otherwise
+   */
+  public static final boolean isInvisibleRaiseMethod(RVMMethod m) {
+    if (!m.isRuntimeServiceMethod()) {
+      return false;
+    }
+    NormalMethod nm = (NormalMethod) m;
+    return nm == raiseAbstractMethodError || nm == raiseArithmeticException ||
+        nm == raiseArithmeticException || nm == raiseNullPointerException ||
+        nm == raiseIllegalAccessError;
+  }
 
   public static final RVMField luni1;
   public static final RVMField luni2;

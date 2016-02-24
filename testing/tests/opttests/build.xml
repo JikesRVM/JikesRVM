@@ -61,6 +61,9 @@
                     args="fibo tak_int tak_long tak_fp tak_db table TestLookupSwitch DeBruijn hello virtual sieve hanoi logic unresolved stPutGet virtUnPutGet virtUnresolved interf CheckStore TypeCheck TestArithmetic TestArrayAccess TestCall TestCompare TestConstants TestConversions TestFieldAccess TestInterfaceCall TestMath TestReturn TestSpecialCall TestStackAccess TestSwitch TestUnresolved TestInstanceOf TestExceptionThrow TestFinally inlineDeep inlineExcept"/>
     <runCompareTest tag="RVM_957_Testcase" class="test.org.jikesrvm.opttests.bugs.RVM_957_Testcase"/>
     <runCompareTest tag="RVM_1016_Testcase" class="test.org.jikesrvm.opttests.bugs.RVM_1016_Testcase"/>
+    <runCompareTest tag="RVM_1129_A" class="test.org.jikesrvm.opttests.bugs.RVM_1129_A" exitCode="113"/>
+    <runCompareTest tag="RVM_1129_B" class="test.org.jikesrvm.opttests.bugs.RVM_1129_B" exitCode="113"/>
+    <runCompareTest tag="RVM_1129_C" class="test.org.jikesrvm.opttests.bugs.RVM_1129_C" exitCode="113"/>
     <runCompareTest tag="BURSPatterns" class="test.org.jikesrvm.opttests.burs.BURSPatterns"/>
 
     <successMessageTest tag="FloatingPoint_NaN" class="test.org.jikesrvm.opttests.optimizations.FloatingPoint_NaN"/>

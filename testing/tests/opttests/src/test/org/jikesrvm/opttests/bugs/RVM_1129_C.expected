@@ -1,0 +1,3 @@
+Exception in thread "MainThread" java.lang.RuntimeException
+   at test.org.jikesrvm.opttests.bugs.RVM_1129_C$UncreatableException.<init>(RVM_1129_C.java:27)
+   at test.org.jikesrvm.opttests.bugs.RVM_1129_C.main(RVM_1129_C.java:32)
