@@ -24,10 +24,9 @@ import org.junit.runners.model.InitializationError;
  * This is a custom JUnit runner that will run all test methods annotated with
  * {@link RequiresJikesRVM} or {@link RequiresBootstrapVM} whether the test is run
  * on Jikes RVM or the Bootstrap VM. Since there are some classes that don't
- * run on the Bootstrap VM (like InlineSequence) and tools like Mockito are not interpreted
- * correctly by Jikes RVM, this Custom Test Runner needed to be created.
+ * run on the Bootstrap VM (like InlineSequence) and tools like Mockito are not
+ * working correctly with Jikes RVM, this custom test runner needed to be created.
  */
-
 public class VMRequirements extends BlockJUnit4ClassRunner {
 
   public VMRequirements(Class<?> klass) throws InitializationError {
@@ -61,7 +60,6 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
   }
 
   private boolean requiresVM(FrameworkMethod method, Class<?> category) {
-
     boolean methodRequiresVM = false;
     boolean classRequiresVM = false;
 
@@ -75,7 +73,6 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
   }
 
   private boolean checkAnnotation(Category annotation, Class<?> category) {
-
     if (annotation == null) return false;
 
     Class<?>[] categories = annotation.value();
