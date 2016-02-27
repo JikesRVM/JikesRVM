@@ -14,8 +14,6 @@ package org.jikesrvm.tools.oth;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsBuildForOptCompiler;
-import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsNotBuildForOptCompiler;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -32,6 +30,8 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
+import org.jikesrvm.junit.runners.RequiresLackOfOptCompiler;
+import org.jikesrvm.junit.runners.RequiresOptCompiler;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.TestingTools;
 import org.junit.Ignore;
@@ -74,8 +74,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresLackOfOptCompiler.class)
   public void doesNotCrashWhenNoOptCompilerIsAvailable() throws InvocationTargetException, IllegalAccessException {
-    assumeThatVMIsNotBuildForOptCompiler();
     String[] emptyArgs = {};
     executeOptTestHarness(emptyArgs);
   }
@@ -184,8 +184,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void knownArgumentsAreProcessedEvenIfUnknownArgumentsAppear() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     String unknownArgument = "-foo";
     String[] arguments = {unknownArgument, "+baseline"};
     OptTestHarness oth = executeOptTestHarness(arguments);
@@ -292,8 +292,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void methodsAreOptCompiledByDefault() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD};
     executeOptTestHarness(compileClass);
 
@@ -330,16 +330,16 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void methodsAreBaselineCompiledIfRequested() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"+baseline", "-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD};
     executeOptTestHarness(compileClass);
     assertThatBothMethodsOfTestClass2HaveBeenBaselineCompiled();
   }
 
   @Test
+  @Category(RequiresLackOfOptCompiler.class)
   public void defaultCompilerIsBaselineWhenVMIsBuildWithoutOptCompiler() throws Exception {
-    assumeThatVMIsNotBuildForOptCompiler();
     String[] compileClass = {"-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD};
     executeOptTestHarness(compileClass);
     assertThatBothMethodsOfTestClass2HaveBeenBaselineCompiled();
@@ -371,8 +371,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void methodsAreOptCompiledByDefaultWhenSingleMethodIsCompiled() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"-method", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -387,8 +387,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void methodsWillBeBaselineCompiledIfRequested() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"-methodBase", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -403,8 +403,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void methodsWillOptCompiledIfRequested() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"+baseline", "-methodOpt", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -419,8 +419,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresLackOfOptCompiler.class)
   public void defaultCompilerForMethodsIsBaselineWhenVMIsBuildWithoutOptCompiler() throws Exception {
-    assumeThatVMIsNotBuildForOptCompiler();
     String[] compileClass = {"-method", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -712,8 +712,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void commandLineArgumentFileSupportsComments() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     fileAccess = new TestFileAccess();
     String fileName = "commandLineArgsForLongCommandLineTestWithComments";
     String fileContent = "-baseline\n" + "#" + "+baseline\n";
@@ -748,8 +748,8 @@ public class OptTestHarnessTest {
   }
 
   @Test // Note: this test will break when the bootimage options change
+  @Category(RequiresOptCompiler.class)
   public void usesSameOptionsAsBootimageCompilerWhenRequested() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
     String[] useBootimageCompilerOptions = {"-useBootOptions"};
     output = new TestOutput();
     OptOptions optOptions = new OptOptions();
@@ -793,9 +793,8 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  @Category(RequiresOptCompiler.class)
   public void argumentsAreEagerlyEvaluatedFromLeftToRight() throws Exception {
-    assumeThatVMIsBuildForOptCompiler();
-
     String[] args = { "-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "+baseline" };
     OptTestHarness oth = executeOptTestHarness(args);
     assertThatNoAdditionalErrorsHaveOccurred();

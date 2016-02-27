@@ -112,4 +112,30 @@ public abstract class Configuration {
    * run Jikes with only one processor.
    */
   public static final boolean AlignmentChecking = @_RVM_WITH_ALIGNMENT_CHECKING_@;
+
+  /**
+   * Sets properties for the Jikes RVM Junit test runner.
+   * <p>
+   * In order to run unit tests on Jikes RVM, we need to be able to determine
+   * if we're running on the bootstrap VM or Jikes RVM. Jikes RVM can't build
+   * itself right now (Feb 2016), so our custom JUnit test runner checks
+   * properties that are specific to Jikes RVM.
+   */
+  public static void setupPropertiesForUnitTesting() {
+    String targetArch;
+    if (BuildForIA32) {
+      targetArch = "ia32";
+    } else if (BuildForPowerPC) {
+      targetArch = "ppc";
+    } else {
+      // Can't use assertions because that would require importing VM, which
+      // is a subclass of this class
+      throw new InternalError("Unknown architecture");
+    }
+    System.setProperty("jikesrvm.target.arch", targetArch);
+
+    if (BuildForOptCompiler) {
+      System.setProperty("jikesrvm.include.opt", "true");
+    }
+  }
 }

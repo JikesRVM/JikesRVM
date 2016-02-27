@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
-import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsBuildForOptCompiler;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
@@ -27,6 +26,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MIRInfo;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
+import org.jikesrvm.junit.runners.RequiresOptCompiler;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.MethodsForTests;
 import org.jikesrvm.tests.util.TestingTools;
@@ -35,7 +35,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresBuiltJikesRVM.class)
+@Category({RequiresBuiltJikesRVM.class, RequiresOptCompiler.class})
 public class ActiveSetTest {
 
   //TODO tests for the most important methods are still missing:
@@ -58,9 +58,6 @@ public class ActiveSetTest {
 
   private ActiveSet createActiveSetFromRegisterAllocatorState(
       RegisterAllocatorState state) throws Exception {
-    // IR creation will fail for builds without the optimizing compiler
-    assumeThatVMIsBuildForOptCompiler();
-
     NormalMethod nm = TestingTools.getNormalMethod(MethodsForTests.class, "emptyStaticMethodWithoutAnnotations");
     OptOptions opts = new OptOptions();
     IR ir = new IR(nm, null, opts);
@@ -215,9 +212,6 @@ public class ActiveSetTest {
 
   @Test
   public void findAvailableRegisterIgnoresInfrequentIntervalsWhenDesired() throws Exception {
-    // IR creation will fail for builds without the optimizing compiler
-    assumeThatVMIsBuildForOptCompiler();
-
     NormalMethod nm = TestingTools.getNormalMethod(MethodsForTests.class, "emptyStaticMethodWithoutAnnotations");
     OptOptions opts = new OptOptions();
     opts.FREQ_FOCUS_EFFORT = true;

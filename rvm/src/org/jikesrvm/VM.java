@@ -513,6 +513,9 @@ public class VM extends Properties {
 
     Time.boot();
 
+    // Set up properties for our custom JUnit test runner.
+    Configuration.setupPropertiesForUnitTesting();
+
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
