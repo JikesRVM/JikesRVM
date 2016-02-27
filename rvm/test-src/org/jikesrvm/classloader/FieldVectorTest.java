@@ -18,7 +18,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.TestingTools;
 import org.junit.Before;
@@ -27,7 +27,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 public class FieldVectorTest {
 
   public int firstFieldForTesting;

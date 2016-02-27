@@ -21,11 +21,20 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 /**
- * This is a custom JUnit runner that will run all test methods annotated with
- * {@link RequiresJikesRVM} or {@link RequiresBootstrapVM} whether the test is run
- * on Jikes RVM or the Bootstrap VM. Since there are some classes that don't
- * run on the Bootstrap VM (like InlineSequence) and tools like Mockito are not
- * working correctly with Jikes RVM, this custom test runner needed to be created.
+ * This is a custom JUnit runner that allows to determine the set of tests to be
+ * run based on the VM that is used for running the tests. It also supports
+ * examination of VM features if the VM is Jikes RVM.
+ * <p>
+ * For example, some tests can only be run on Jikes RVM (e.g. because they use
+ * Magic or other Jikes RVM features) and some tests can only be run on a "normal"
+ * VM (e.g. HotSpot) because they use libraries such as Mockito that don't support
+ * GNU Classpath or Jikes RVM. Note that the bootstrap VM can never by Jikes RVM
+ * because Jikes RVM isn't able to build itself right now (Feb 2016). This makes
+ * the implementation of the runner easy because it can just assume that the
+ * bootstrap VM supports the full set of Java features and libraries.
+ * <p>
+ * The set of tests to run is determined via classes for JUnit categories,
+ * e.g. {@link RequiresBuiltJikesRVM} or {@link RequiresBootstrapVM}.
  */
 public class VMRequirements extends BlockJUnit4ClassRunner {
 
@@ -37,12 +46,12 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
   protected void runChild(FrameworkMethod method, RunNotifier notifier) {
     Description description = describeChild(method);
 
-    if (!isRunningOnJikesRVM() && requiresVM(method, RequiresJikesRVM.class)) {
+    if (isRunningOnBootstrapVM() && requiresVM(method, RequiresBuiltJikesRVM.class)) {
       ignoreTest(method, notifier, description);
       return;
     }
 
-    if (isRunningOnJikesRVM() && requiresVM(method, RequiresBootstrapVM.class)) {
+    if (isRunningOnBuiltJikesRVM() && requiresVM(method, RequiresBootstrapVM.class)) {
       ignoreTest(method, notifier, description);
       return;
     }
@@ -50,8 +59,12 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
     super.runChild(method, notifier);
   }
 
-  public static boolean isRunningOnJikesRVM() {
-    return System.getProperty("java.vm.vendor").equals("Jikes RVM Project");
+  public static boolean isRunningOnBootstrapVM() {
+    return System.getProperty("jikesrvm.junit.runner.vm").equals("bootstrap");
+  }
+
+  public static boolean isRunningOnBuiltJikesRVM() {
+    return System.getProperty("jikesrvm.junit.runner.vm").equals("built-jikes-rvm");
   }
 
   private void ignoreTest(FrameworkMethod method, RunNotifier notifier, Description description) {

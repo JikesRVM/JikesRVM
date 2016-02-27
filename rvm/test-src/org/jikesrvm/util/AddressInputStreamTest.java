@@ -17,7 +17,7 @@ import static org.hamcrest.CoreMatchers.*;
 
 import java.io.IOException;
 
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.runtime.Magic;
 import org.junit.After;
@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 @RunWith(VMRequirements.class)
 public class AddressInputStreamTest {
 

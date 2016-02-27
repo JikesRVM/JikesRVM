@@ -19,7 +19,7 @@ import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
 import static org.junit.Assert.fail;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.vmmagic.unboxed.Address;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 public class MemoryTest {
 
   private static int nativeThreshold;

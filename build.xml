@@ -1438,6 +1438,7 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${junit.reports.bootstrap}"/>
     
     <junit haltonfailure="yes" printsummary="true" showoutput="true">
+      <sysproperty key="jikesrvm.junit.runner.vm" value="bootstrap"/>
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.test-classes}"/>
@@ -1461,6 +1462,7 @@ Check to make sure all required properties are specified. This includes properti
       <mkdir dir="${junit.reports.rvm}"/>
 
       <junit jvm="${dist.base}/rvm" haltonfailure="yes" printsummary="true" showoutput="true" >
+        <sysproperty key="jikesrvm.junit.runner.vm" value="built-jikes-rvm"/>
         <jvmarg value="-Xbootclasspath/a:${build.test-classes}:${junit.jar}:${hamcrest.jar}"/>
         <classpath>
           <!-- Technically unnecessary as ${junit.jar} is on the boot classpath,

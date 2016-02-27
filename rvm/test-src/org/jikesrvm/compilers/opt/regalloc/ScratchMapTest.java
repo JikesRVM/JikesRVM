@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +50,7 @@ public class ScratchMapTest {
     assertThat(scratchMap.isEmpty(), is(true));
   }
 
-  @Category(RequiresJikesRVM.class) // because of TypeReference
+  @Category(RequiresBuiltJikesRVM.class) // because of TypeReference
   @Test
   public void markDirtyMarksRegistersAsDirty() {
     Register resultReg = createRegister(0);
@@ -65,7 +65,7 @@ public class ScratchMapTest {
     assertThat(scratchMap.isDirty(add, op2Reg), is(true));
   }
 
-  @Category(RequiresJikesRVM.class) // because of TypeReference
+  @Category(RequiresBuiltJikesRVM.class) // because of TypeReference
   @Test
   public void markingRegistersAsDirtyMoreThanOnceIsHarmless() {
     Register resultReg = createRegister(0);

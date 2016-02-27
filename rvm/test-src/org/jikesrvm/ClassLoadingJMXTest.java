@@ -19,7 +19,7 @@ import static org.junit.Assert.assertTrue;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
 
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 public class ClassLoadingJMXTest {
 
   /** based on a prototype image, with hefty safety margin */

@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.junit.runners;
 
-public final class RequiresJikesRVM {
+public final class RequiresBuiltJikesRVM {
 
-  private RequiresJikesRVM() { }
+  private RequiresBuiltJikesRVM() { }
 }

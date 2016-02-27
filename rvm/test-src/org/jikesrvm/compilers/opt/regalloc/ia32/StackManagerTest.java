@@ -29,7 +29,7 @@ import org.jikesrvm.compilers.opt.ir.ia32.MIR_CacheOp;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 public class StackManagerTest {
 
   private StackManager stackManager;

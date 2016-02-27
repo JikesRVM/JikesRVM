@@ -82,7 +82,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.util.GraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode.OutEdgeEnumeration;
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Statics;
@@ -96,7 +96,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 public class GenerationContextTest {
 
   private int currentRegisterNumber = -1;
