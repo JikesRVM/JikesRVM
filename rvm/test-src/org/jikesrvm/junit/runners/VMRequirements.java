@@ -38,6 +38,15 @@ import org.junit.runners.model.InitializationError;
  */
 public class VMRequirements extends BlockJUnit4ClassRunner {
 
+  private static final boolean RUNNING_ON_BOOTSTRAP_VM;
+  private static final boolean RUNNING_ON_BUILT_JIKES_RVM;
+
+  static {
+    String runnerVM = System.getProperty("jikesrvm.junit.runner.vm");
+    RUNNING_ON_BOOTSTRAP_VM = runnerVM.equals("bootstrap");
+    RUNNING_ON_BUILT_JIKES_RVM = runnerVM.equals("built-jikes-rvm");
+  }
+
   public VMRequirements(Class<?> klass) throws InitializationError {
     super(klass);
   }
@@ -60,11 +69,11 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
   }
 
   public static boolean isRunningOnBootstrapVM() {
-    return System.getProperty("jikesrvm.junit.runner.vm").equals("bootstrap");
+    return RUNNING_ON_BOOTSTRAP_VM;
   }
 
   public static boolean isRunningOnBuiltJikesRVM() {
-    return System.getProperty("jikesrvm.junit.runner.vm").equals("built-jikes-rvm");
+    return RUNNING_ON_BUILT_JIKES_RVM;
   }
 
   private void ignoreTest(FrameworkMethod method, RunNotifier notifier, Description description) {
