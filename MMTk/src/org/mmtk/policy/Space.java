@@ -22,6 +22,7 @@ import org.mmtk.utility.heap.PageResource;
 import org.mmtk.utility.heap.SpaceDescriptor;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
@@ -493,7 +494,7 @@ public abstract class Space {
    * @return The number of chunks needed to satisfy the request
    */
   public static int requiredChunks(int pages) {
-    Extent extent = chunkAlign(Extent.fromIntZeroExtend(pages << LOG_BYTES_IN_PAGE), false);
+    Extent extent = chunkAlign(Conversions.pagesToBytes(pages), false);
     return extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
   }
 

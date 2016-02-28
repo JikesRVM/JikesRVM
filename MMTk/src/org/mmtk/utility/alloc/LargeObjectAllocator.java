@@ -12,10 +12,8 @@
  */
 package org.mmtk.utility.alloc;
 
-import static org.mmtk.utility.Constants.*;
-
 import org.mmtk.policy.BaseLargeObjectSpace;
-
+import org.mmtk.utility.Conversions;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -98,7 +96,7 @@ public abstract class LargeObjectAllocator extends Allocator {
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
     int header = space.getHeaderSize();
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
-    int pages = (maxbytes + BYTES_IN_PAGE - 1) >> LOG_BYTES_IN_PAGE;
+    int pages = Conversions.bytesToPagesUp(Extent.fromIntZeroExtend(maxbytes));
     Address sp = space.acquire(pages);
     if (sp.isZero()) return sp;
     Address cell = sp.plus(header);
