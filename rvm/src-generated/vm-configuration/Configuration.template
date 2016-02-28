@@ -116,10 +116,12 @@ public abstract class Configuration {
   /**
    * Sets properties for the Jikes RVM Junit test runner.
    * <p>
-   * In order to run unit tests on Jikes RVM, we need to be able to determine
-   * if we're running on the bootstrap VM or Jikes RVM. Jikes RVM can't build
-   * itself right now (Feb 2016), so our custom JUnit test runner checks
-   * properties that are specific to Jikes RVM.
+   * In order to skip certain unit tests based on the configuration of the VM
+   * that the test runner is running in, we need to be able to do basic
+   * introspection of Jikes RVM specific features. That is implemented by
+   * setting properties that the test runner can then query. This approach
+   * avoids linking with Jikes RVM code (which would make the test runner
+   * fragile and annoying to compile).
    */
   public static void setupPropertiesForUnitTesting() {
     String targetArch;
