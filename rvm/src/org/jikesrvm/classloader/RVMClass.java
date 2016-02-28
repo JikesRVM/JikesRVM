@@ -1567,14 +1567,8 @@ public final class RVMClass extends RVMType {
         state = CLASS_INITIALIZER_FAILED;
         throw e;
       } catch (Throwable t) {
-        ExceptionInInitializerError eieio = new ExceptionInInitializerError("While initializing " + this);
-        eieio.initCause(t);
+        ExceptionInInitializerError eieio = new ExceptionInInitializerError(t);
         state = CLASS_INITIALIZER_FAILED;
-        if (VM.verboseClassLoading) {
-          VM.sysWriteln("[Exception in initializer error caused by:");
-          t.printStackTrace();
-          VM.sysWriteln("]");
-        }
         throw eieio;
       }
 

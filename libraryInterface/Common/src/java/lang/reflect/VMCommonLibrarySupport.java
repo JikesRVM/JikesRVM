@@ -309,9 +309,7 @@ final class VMCommonLibrarySupport {
     try {
       RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
     } catch (Throwable e) {
-      ExceptionInInitializerError ex = new ExceptionInInitializerError();
-      ex.initCause(e);
-      throw ex;
+      throw new ExceptionInInitializerError(e);
     }
   }
 
