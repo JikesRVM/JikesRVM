@@ -12,13 +12,19 @@
  */
 package org.jikesrvm.junit.runners;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.junit.BeforeClass;
 import org.junit.experimental.categories.Category;
 import org.junit.internal.runners.model.EachTestNotifier;
+import org.junit.internal.runners.statements.RunBefores;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
 
 /**
  * This is a custom JUnit runner that allows to determine the set of tests to be
@@ -36,7 +42,7 @@ import org.junit.runners.model.InitializationError;
  * The set of tests to run is determined via classes for JUnit categories,
  * e.g. {@link RequiresBuiltJikesRVM} or {@link RequiresBootstrapVM}.
  */
-public class VMRequirements extends BlockJUnit4ClassRunner {
+public final class VMRequirements extends BlockJUnit4ClassRunner {
 
   private static final boolean RUNNING_ON_BOOTSTRAP_VM;
   private static final boolean RUNNING_ON_BUILT_JIKES_RVM;
@@ -61,6 +67,27 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
     }
   }
 
+  /**
+   * By default, JUnit always runs methods annotated with {@code @BeforeClass},
+   * even if all the tests in the test case are skipped. This is not desirable
+   * for Jikes RVM tests because test setup code might (have to) rely on Jikes
+   * RVM internals. This method skips execution of methods annotated with
+   * {@code @BeforeClass} if necessary.
+   */
+  @Override
+  protected Statement withBeforeClasses(Statement statement) {
+    List<FrameworkMethod> befores = getTestClass().getAnnotatedMethods(BeforeClass.class);
+    LinkedList<FrameworkMethod> newBefores = new LinkedList<FrameworkMethod>();
+    for (FrameworkMethod method : befores) {
+      if (methodIsNotSuitableForExecutionInCurrentVMEnvironment(method)) {
+        // skip the method
+      } else {
+        newBefores.addLast(method);
+      }
+    }
+    return new RunBefores(statement, newBefores, null);
+  }
+
   public VMRequirements(Class<?> klass) throws InitializationError {
     super(klass);
   }
@@ -70,18 +97,23 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
     Description description = describeChild(method);
 
     boolean ignoreTest =
-        isRunningOnBootstrapVM() && annotatedWith(method, RequiresBuiltJikesRVM.class) ||
-        isRunningOnBuiltJikesRVM() && annotatedWith(method, RequiresBootstrapVM.class) ||
-        !VM_HAS_OPT_COMPILER && annotatedWith(method, RequiresOptCompiler.class) ||
-        VM_HAS_OPT_COMPILER && (annotatedWith(method, RequiresLackOfOptCompiler.class)) ||
-        RUNNING_ON_IA32 && annotatedWith(method, RequiresPowerPC.class) ||
-        RUNNING_ON_POWERPC && annotatedWith(method, RequiresIA32.class);
+        methodIsNotSuitableForExecutionInCurrentVMEnvironment(method);
     if (ignoreTest) {
       ignoreTest(method, notifier, description);
       return;
     }
 
     super.runChild(method, notifier);
+  }
+
+  private boolean methodIsNotSuitableForExecutionInCurrentVMEnvironment(
+      FrameworkMethod method) {
+    return isRunningOnBootstrapVM() && annotatedWith(method, RequiresBuiltJikesRVM.class) ||
+    isRunningOnBuiltJikesRVM() && annotatedWith(method, RequiresBootstrapVM.class) ||
+    !VM_HAS_OPT_COMPILER && annotatedWith(method, RequiresOptCompiler.class) ||
+    VM_HAS_OPT_COMPILER && (annotatedWith(method, RequiresLackOfOptCompiler.class)) ||
+    RUNNING_ON_IA32 && annotatedWith(method, RequiresPowerPC.class) ||
+    RUNNING_ON_POWERPC && annotatedWith(method, RequiresIA32.class);
   }
 
   public static boolean isRunningOnBootstrapVM() {
