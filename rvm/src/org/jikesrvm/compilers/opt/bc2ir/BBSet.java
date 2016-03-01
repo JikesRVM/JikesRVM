@@ -510,7 +510,7 @@ final class BBSet {
             if (DBG_EX || DBG_FLATTEN) {
               db("No (local) handlers were actually reachable for " + curr + "; setting to caller");
             }
-            curr.block.exceptionHandlers = curr.block.exceptionHandlers.getCaller();
+            curr.block.setExceptionHandlers(curr.block.exceptionHandlers().getCaller());
           } else {
             ExceptionHandlerBasicBlock[] nlh =
                 new ExceptionHandlerBasicBlock[curr.handlers.length - notGenerated];
@@ -523,8 +523,7 @@ final class BBSet {
                 }
               }
             }
-            curr.block.exceptionHandlers =
-                new ExceptionHandlerBasicBlockBag(nlh, curr.block.exceptionHandlers.getCaller());
+            curr.block.setExceptionHandlers(new ExceptionHandlerBasicBlockBag(nlh, curr.block.exceptionHandlers().getCaller()));
           }
         }
       }
@@ -701,9 +700,9 @@ final class BBSet {
       for (int i = 0; i < bble.handlers.length; i++) {
         ehbbs[i] = bble.handlers[i].entryBlock;
       }
-      bble.block.exceptionHandlers = new ExceptionHandlerBasicBlockBag(ehbbs, gc.getEnclosingHandlers());
+      bble.block.setExceptionHandlers(new ExceptionHandlerBasicBlockBag(ehbbs, gc.getEnclosingHandlers()));
     } else {
-      bble.block.exceptionHandlers = gc.getEnclosingHandlers();
+      bble.block.setExceptionHandlers(gc.getEnclosingHandlers());
     }
   }
 

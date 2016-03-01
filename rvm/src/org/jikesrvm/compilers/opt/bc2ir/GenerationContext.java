@@ -384,9 +384,9 @@ public final class GenerationContext {
     // Initialize the child CFG, prologue, and epilogue blocks
     child.cfg = new ControlFlowGraph(this.cfg.numberOfNodes());
     child.prologue = new BasicBlock(PROLOGUE_BCI, child.inlineSequence, child.cfg);
-    child.prologue.exceptionHandlers = ebag;
+    child.prologue.setExceptionHandlers(ebag);
     child.epilogue = new BasicBlock(EPILOGUE_BCI, child.inlineSequence, child.cfg);
-    child.epilogue.exceptionHandlers = ebag;
+    child.epilogue.setExceptionHandlers(ebag);
     child.cfg.addLastInCodeOrder(child.prologue);
     child.cfg.addLastInCodeOrder(child.epilogue);
 
@@ -487,9 +487,9 @@ public final class GenerationContext {
     // and epilogue don't disappear, it was correct to have the
     // parent's position. -- Matt
     child.prologue = new BasicBlock(PROLOGUE_BCI, parent.inlineSequence, parent.cfg);
-    child.prologue.exceptionHandlers = ebag;
+    child.prologue.setExceptionHandlers(ebag);
     child.epilogue = new BasicBlock(EPILOGUE_BCI, parent.inlineSequence, parent.cfg);
-    child.epilogue.exceptionHandlers = ebag;
+    child.epilogue.setExceptionHandlers(ebag);
     child.cfg.addLastInCodeOrder(child.prologue);
     child.cfg.addLastInCodeOrder(child.epilogue);
 
@@ -796,7 +796,7 @@ public final class GenerationContext {
                                              inlineSequence,
                                              new TypeOperand(RVMType.JavaLangThrowableType),
                                              cfg);
-      rethrow.exceptionHandlers = enclosingHandlers;
+      rethrow.setExceptionHandlers(enclosingHandlers);
       RegisterOperand ceo = temps.makeTemp(TypeReference.JavaLangThrowable);
       Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);

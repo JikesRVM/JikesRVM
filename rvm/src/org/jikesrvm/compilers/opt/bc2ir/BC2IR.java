@@ -4697,7 +4697,7 @@ public final class BC2IR {
     // prevent the opt compiler from inlining a method that contains an
     // unimplemented magic.
     GenerationContext inlinedContext =
-        Inliner.execute(inlDec, gc, currentBBLE.block.exceptionHandlers, callSite);
+        Inliner.execute(inlDec, gc, currentBBLE.block.exceptionHandlers(), callSite);
 
     inlinedSomething = true;
     // TODO: We're currently not keeping track if any of the

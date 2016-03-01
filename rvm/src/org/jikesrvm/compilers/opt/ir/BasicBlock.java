@@ -120,7 +120,7 @@ public class BasicBlock extends SortedGraphNode {
    * May be shared if multiple blocks have exactly the same chain
    * of exception handlers.
    */
-  public ExceptionHandlerBasicBlockBag exceptionHandlers;
+  private ExceptionHandlerBasicBlockBag exceptionHandlers;
 
   /**
    * First instruction of the basic block (LABEL).
@@ -2033,5 +2033,13 @@ public class BasicBlock extends SortedGraphNode {
     start.getNext().setPrev(null);
     end.getPrev().setNext(null);
     start.linkWithNext(end);
+  }
+
+  public ExceptionHandlerBasicBlockBag exceptionHandlers() {
+    return exceptionHandlers;
+  }
+
+  public void setExceptionHandlers(ExceptionHandlerBasicBlockBag exceptionHandlers) {
+    this.exceptionHandlers = exceptionHandlers;
   }
 }

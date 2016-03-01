@@ -1068,11 +1068,11 @@ public class GenerationContextTest {
     assertThat(child.getPrologue().firstInstruction().getBytecodeIndex(), is(PROLOGUE_BCI));
     assertThat(child.getPrologue().firstInstruction().position(), is(child.getInlineSequence()));
     assertThat(child.getPrologue().getNumber(), is(nodeNumber));
-    assertThat(child.getPrologue().exceptionHandlers, is(ebag));
+    assertThat(child.getPrologue().exceptionHandlers(), is(ebag));
     assertThat(child.getEpilogue().firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
     assertThat(child.getEpilogue().firstInstruction().position(), is(child.getInlineSequence()));
     assertThat(child.getEpilogue().getNumber(), is(nodeNumber + 1));
-    assertThat(child.getEpilogue().exceptionHandlers, is(ebag));
+    assertThat(child.getEpilogue().exceptionHandlers(), is(ebag));
     int newNodeNumber = nodeNumber + 2;
     assertThat(child.getCfg().numberOfNodes(), is(newNodeNumber));
     assertThat(child.getCfg().firstInCodeOrder(), is(child.getPrologue()));
@@ -1495,7 +1495,7 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ehbb = childContext.getEnclosingHandlers();
     Enumeration<BasicBlock> enumerator = ehbb.enumerator();
 
-    assertThat(childContext.getUnlockAndRethrow().exceptionHandlers, is(parentContext.getEnclosingHandlers()));
+    assertThat(childContext.getUnlockAndRethrow().exceptionHandlers(), is(parentContext.getEnclosingHandlers()));
 
     ExceptionHandlerBasicBlock rethrow = (ExceptionHandlerBasicBlock) enumerator.nextElement();
     assertSame(rethrow, childContext.getUnlockAndRethrow());
@@ -1708,11 +1708,11 @@ public class GenerationContextTest {
     assertThat(synthethicContext.getPrologue().firstInstruction().getBytecodeIndex(), is(PROLOGUE_BCI));
     assertThat(synthethicContext.getPrologue().firstInstruction().position(), is(gc.getInlineSequence()));
     assertThat(synthethicContext.getPrologue().getNumber(), is(parentCfgNodeNumber));
-    assertThat(synthethicContext.getPrologue().exceptionHandlers, is(mockEbag));
+    assertThat(synthethicContext.getPrologue().exceptionHandlers(), is(mockEbag));
     assertThat(synthethicContext.getEpilogue().firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
     assertThat(synthethicContext.getEpilogue().firstInstruction().position(), is(gc.getInlineSequence()));
     assertThat(synthethicContext.getEpilogue().getNumber(), is(parentCfgNodeNumber + 1));
-    assertThat(synthethicContext.getEpilogue().exceptionHandlers, is(mockEbag));
+    assertThat(synthethicContext.getEpilogue().exceptionHandlers(), is(mockEbag));
     assertThat(gc.getCfg().numberOfNodes(), is(4));
     assertThat(synthethicContext.getCfg().numberOfNodes(), is(synthethicNodeNumber));
     assertThat(synthethicContext.getCfg().firstInCodeOrder(), is(synthethicContext.getPrologue()));

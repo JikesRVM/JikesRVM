@@ -182,7 +182,7 @@ public class Inliner {
       // Step 4: Create a block to contain a copy of the original call or an OSR_Yieldpoint
       //         to cover the case that all predictions fail.
       BasicBlock testFailed = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
-      testFailed.exceptionHandlers = ebag;
+      testFailed.setExceptionHandlers(ebag);
 
       if (COUNT_FAILED_GUARDS && Controller.options.INSERT_DEBUGGING_COUNTERS) {
         // Get a dynamic count of how many times guards fail at runtime.
@@ -270,7 +270,7 @@ public class Inliner {
       // "logical" test and to share test insertion for interfaces/virtuals.
       for (int i = children.length - 1; i >= 0; i--, testFailed = firstIfBlock) {
         firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
-        firstIfBlock.exceptionHandlers = ebag;
+        firstIfBlock.setExceptionHandlers(ebag);
         BasicBlock lastIfBlock = firstIfBlock;
         RVMMethod target = children[i].getMethod();
         Instruction tmp;
@@ -317,7 +317,7 @@ public class Inliner {
               VM.sysWrite("\t\tRequired additional instanceof " + callDeclClass + " test\n");
             }
             firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
-            firstIfBlock.exceptionHandlers = ebag;
+            firstIfBlock.setExceptionHandlers(ebag);
 
             RegisterOperand instanceOfResult = parent.getTemps().makeTempInt();
             tmp =
