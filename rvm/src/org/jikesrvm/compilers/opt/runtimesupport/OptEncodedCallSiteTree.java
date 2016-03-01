@@ -81,7 +81,7 @@ public abstract class OptEncodedCallSiteTree {
     int j = i;
     while (x != null) {
       x.encodedOffset = j;
-      int byteCodeIndex = x.callSite.bcIndex;
+      int byteCodeIndex = x.callSite.getBcIndex();
       encoding[j++] = (byteCodeIndex >= 0) ? byteCodeIndex : -1;
       encoding[j++] = x.callSite.getMethod().getId();
       x = (CallSiteTreeNode) x.getRightSibling();

@@ -63,7 +63,7 @@ public class AdjustBCIndexes extends CompilerPhase {
         InlineSequence caller = s.position().caller;
         if ((caller != null) && (caller.method == ir.method)) {
           // adjust the call site's bcIndex
-          s.position().bcIndex -= offset;
+          s.position().adjustBcIndex(-offset);
         }
         continue;
       }
