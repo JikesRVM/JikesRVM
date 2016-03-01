@@ -147,7 +147,7 @@ public class OsrPointConstructor extends CompilerPhase {
       // Step 1: collect barriers put before inlined method
       //         in the order of from inner to outer
       {
-        GenerationContext gc = ir.gc;
+        GenerationContext gc = ir.getGc();
         Instruction bar = gc.getOSRBarrierFromInst(osr);
 
         if (osr.position() == null) osr.setPosition(bar.position());
@@ -296,7 +296,7 @@ public class OsrPointConstructor extends CompilerPhase {
     for (Instruction inst : osrBarriers) {
       inst.remove();
     }
-    ir.gc.discardOSRBarrierInformation();
+    ir.getGc().discardOSRBarrierInformation();
   }
 
   @SuppressWarnings("unused")

@@ -190,7 +190,7 @@ public final class IR {
    * The root {@link GenerationContext generation context}
    * for the current compilation.
    */
-  public GenerationContext gc;
+  private GenerationContext gc;
 
   /**
    * The {@link InlineOracle inlining oracle} to be used for the
@@ -333,6 +333,22 @@ public final class IR {
     inlinePlan = cp.inlinePlan;
     instrumentationPlan = cp.instrumentationPlan;
     compiledMethod = (OptCompiledMethod) CompiledMethods.createCompiledMethod(method, CompiledMethod.OPT);
+  }
+
+  /**
+   * Transfers HIR and misc state from a generation context to
+   * this IR.
+   * @param gc the context to transfer from
+   */
+  public void initializeStateForHIR(GenerationContext gc) {
+    this.gc = gc;
+    this.cfg = gc.getCfg();
+    this.regpool = gc.getTemps();
+    if (gc.requiresStackFrame()) {
+      this.stackManager.forceFrameAllocation();
+    }
+    this.IRStage = IR.HIR;
+    this.HIRInfo = new HIRInfo(this);
   }
 
   /**
@@ -1478,6 +1494,10 @@ public final class IR {
     CompilerPhase.dumpIR(this, "Verify: " + where + ": " + method, true);
     VM.sysWriteln("VERIFY: " + where + " " + msg);
     throw new OptimizingCompilerException("VERIFY: " + where, msg);
+  }
+
+  public GenerationContext getGc() {
+    return gc;
   }
 
 }

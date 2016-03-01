@@ -144,7 +144,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
    */
   @Override
   public void perform(IR ir) {
-    ir.gc.resync(); // resync generation context -- yuck...
+    ir.getGc().resync(); // resync generation context -- yuck...
 
     for (Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst = next) {
       next = inst.nextInstructionInCodeOrder();
@@ -608,7 +608,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
       _os.perform(ir);
     }
     // signal that we do not intend to use the gc in other phases anymore.
-    ir.gc.close();
+    ir.getGc().close();
   }
 
   private void replaceInstructionWithBarrier(Instruction orig, Instruction barrier) {

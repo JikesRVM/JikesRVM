@@ -98,7 +98,7 @@ public class Inliner {
     ExceptionHandlerBasicBlockBag bag = new ExceptionHandlerBasicBlockBag(catchBlocks, null);
 
     // Execute the inlining decision, updating ir.gc's state.
-    GenerationContext childgc = execute(inlDec, ir.gc, bag, callSite);
+    GenerationContext childgc = execute(inlDec, ir.getGc(), bag, callSite);
     // Splice the callee into the caller's code order
     ir.cfg.removeFromCFGAndCodeOrder(bb);
     ir.cfg.breakCodeOrder(in, out);
