@@ -447,8 +447,7 @@ public final class Simple extends CompilerPhase {
             if (((IntConstantOperand) indexOp).value <= size) {
               Instruction s =
                   Move.create(GUARD_MOVE, BoundsCheck.getGuardResult(i).copyD2D(), new TrueGuardOperand());
-              s.position = i.position;
-              s.bcIndex = i.bcIndex;
+              s.copySourcePositionFrom(i);
               i.insertAfter(s);
               DefUse.updateDUForNewInstruction(s);
               DefUse.removeInstructionAndUpdateDU(i);
@@ -458,8 +457,7 @@ public final class Simple extends CompilerPhase {
           Operand newSizeOp = sizeOp.copy();
           RegisterOperand result = (RegisterOperand) GuardedUnary.getResult(i).copy();
           Instruction s = Move.create(INT_MOVE, result, newSizeOp);
-          s.position = i.position;
-          s.bcIndex = i.bcIndex;
+          s.copySourcePositionFrom(i);
           i.insertAfter(s);
           DefUse.updateDUForNewInstruction(s);
           DefUse.removeInstructionAndUpdateDU(i);

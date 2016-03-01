@@ -90,7 +90,7 @@ public final class InlineSequence {
     this.method = method;
     this.caller = caller;
     this.callSite = callsite;
-    this.bcIndex = callsite.bcIndex;
+    this.bcIndex = callsite.getBytecodeIndex();
   }
 
   public Instruction getCallSite() {

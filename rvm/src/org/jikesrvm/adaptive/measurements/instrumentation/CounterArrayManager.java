@@ -40,9 +40,6 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.vmmagic.unboxed.Offset;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.*;
-import static org.jikesrvm.compilers.opt.driver.OptConstants.*;
-
 /**
  * An implementation of a InstrumentedEventCounterManager .  It
  * uses an unsynchronized two dimensional array of doubles to allocate
@@ -123,7 +120,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager {
                                    new IntConstantOperand(handle),
                                    new IntConstantOperand(index),
                                    new DoubleConstantOperand(incrementValue, Offset.zero()));
-    c.bcIndex = INSTRUMENTATION_BCI;
+    c.setBytecodeIndex(INSTRUMENTATION_BCI);
 
     return c;
   }

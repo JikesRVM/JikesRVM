@@ -68,10 +68,10 @@ public class AdjustBCIndexes extends CompilerPhase {
         continue;
       }
 
-      if (s.bcIndex >= offset) {
-        s.bcIndex -= offset;
-      } else if (s.bcIndex >= 0) {
-        s.bcIndex = OSR_PROLOGUE;
+      if (s.getBytecodeIndex() >= offset) {
+        s.adjustBytecodeIndex(-offset);
+      } else if (s.getBytecodeIndex() >= 0) {
+        s.setBytecodeIndex(OSR_PROLOGUE);
       }
     }
   }

@@ -426,8 +426,7 @@ public final class GenerationContext {
         OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
       }
       Instruction s = Move.create(REF_MOVE, local, receiver);
-      s.bcIndex = PROLOGUE_BCI;
-      s.position = callSite.position;
+      s.setSourcePosition(PROLOGUE_BCI, callSite.position);
       child.prologue.appendInstruction(s);
     }
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++, argIdx++) {
@@ -452,8 +451,7 @@ public final class GenerationContext {
         localNum++;
       }
       Instruction s = Move.create(IRTools.getMoveOp(argType), formal, actual);
-      s.bcIndex = PROLOGUE_BCI;
-      s.position = callSite.position;
+      s.setSourcePosition(PROLOGUE_BCI, callSite.position);
       child.prologue.appendInstruction(s);
       if (argType.isLongType() || argType.isDoubleType()) {
         localNum++; // longs and doubles take two local words
@@ -857,8 +855,7 @@ public final class GenerationContext {
   }
 
   private void appendInstruction(BasicBlock b, Instruction s, int bcIndex) {
-    s.position = inlineSequence;
-    s.bcIndex = bcIndex;
+    s.setSourcePosition(bcIndex, inlineSequence);
     b.appendInstruction(s);
   }
 

@@ -908,8 +908,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                            MethodOperand.STATIC(target),
                            Call.getParam(v, 0).asRegister().copyU2U(),
                            IC(methOp.getMemberRef().getId()));
-          vp.position = v.position;
-          vp.bcIndex = RUNTIME_SERVICES_BCI;
+          vp.setSourcePosition(RUNTIME_SERVICES_BCI, v.position);
           v.insertBefore(vp);
           callHelper(vp, ir);
           Call.setAddress(v, realAddrReg.copyD2U());
@@ -928,8 +927,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                            MethodOperand.STATIC(target),
                            RHStib,
                            IC(methOp.getTarget().getDeclaringClass().getInterfaceId()));
-          fi.position = v.position;
-          fi.bcIndex = RUNTIME_SERVICES_BCI;
+          fi.setSourcePosition(RUNTIME_SERVICES_BCI, v.position);
           v.insertBefore(fi);
           callHelper(fi, ir);
           RegisterOperand address =
@@ -966,8 +964,8 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     BranchProfileOperand bp = BranchProfileOperand.never();
     BasicBlock predBB = s.getBasicBlock();
     BasicBlock succBB = predBB.splitNodeAt(s.prevInstructionInCodeOrder(), ir);
-    BasicBlock testBB = predBB.createSubBlock(s.bcIndex, ir, 1f - bp.takenProbability);
-    BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
+    BasicBlock testBB = predBB.createSubBlock(s.getBytecodeIndex(), ir, 1f - bp.takenProbability);
+    BasicBlock resolveBB = predBB.createSubBlock(s.getBytecodeIndex(), ir, bp.takenProbability);
     s.remove();
 
     // Get the offset from the appropriate RVMClassLoader array

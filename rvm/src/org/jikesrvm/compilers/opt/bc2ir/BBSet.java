@@ -292,8 +292,7 @@ final class BBSet {
             temp.setInheritableFlags(rop);
             BC2IR.setGuardForRegOp(temp, BC2IR.copyGuardFromOperand(rop));
             Instruction move = Move.create(IRTools.getMoveOp(rop.getType()), temp, rop.copyRO());
-            move.bcIndex = RECTIFY_BCI;
-            move.position = gc.getInlineSequence();
+            move.setSourcePosition(RECTIFY_BCI, gc.getInlineSequence());
             block.appendInstructionRespectingTerminalBranch(move);
             p.stackState.push(temp.copy());
             if (DBG_STACK || BC2IR.DBG_SELECTED) {
@@ -397,8 +396,7 @@ final class BBSet {
 
   private void injectMove(BasicBlock block, RegisterOperand res, Operand val) {
     Instruction move = Move.create(IRTools.getMoveOp(res.getType()), res, val);
-    move.bcIndex = RECTIFY_BCI;
-    move.position = gc.getInlineSequence();
+    move.setSourcePosition(RECTIFY_BCI, gc.getInlineSequence());
     block.appendInstructionRespectingTerminalBranch(move);
     if (DBG_STACK || BC2IR.DBG_SELECTED) {
       db("Inserted " + move + " into " + block);

@@ -327,7 +327,7 @@ public final class OptMachineCodeMap {
     for (GCIRMapElement irMapElem : irMap) {
       numEntries++;
       Instruction instr = irMapElem.getInstruction();
-      if (instr.position == null && instr.bcIndex != INSTRUMENTATION_BCI) {
+      if (instr.position == null && instr.getBytecodeIndex() != INSTRUMENTATION_BCI) {
         if ((VM.BuildForIA32 &&
             org.jikesrvm.compilers.opt.ir.ia32.MIR_Call.conforms(instr) &&
             org.jikesrvm.compilers.opt.ir.ia32.MIR_Call.hasMethod(instr)) ||
@@ -361,7 +361,7 @@ public final class OptMachineCodeMap {
         VM.sysWrite("Negative machine code MCOffset found:" + mco);
         Instruction i = irMapElem.getInstruction();
         int machineCodeOffsetForI = mcOffsets.getMachineCodeOffset(i);
-        VM.sysWrite(i.bcIndex + ", " + i + ", " + machineCodeOffsetForI + "\n");
+        VM.sysWrite(i.getBytecodeIndex() + ", " + i + ", " + machineCodeOffsetForI + "\n");
         throw new OptimizingCompilerException("Negative machine code MCOffset found");
       }
       // create GC map and get GCI

@@ -185,9 +185,7 @@ public abstract class FinalMIRExpansion extends IRTools {
           Register zero = phys.getGPR(0);
           Register JTOC = phys.getJTOC();
           Register CTR = phys.getCTR();
-          if (VM.VerifyAssertions) {
-            VM._assert(p.bcIndex >= 0 && p.position != null);
-          }
+          if (VM.VerifyAssertions) VM._assert(p.getBytecodeIndex() >= 0 && p.position != null);
           Offset offset = Entrypoints.optResolveMethod.getOffset();
           if (fits(offset, 16)) {
             p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(PPCMaskLower16(offset))));

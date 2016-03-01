@@ -341,7 +341,7 @@ public final class IR {
   public void printInstructions() {
     for (Enumeration<Instruction> e = forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction i = e.nextElement();
-      System.out.print(i.bcIndex + "\t" + i);
+      System.out.print(i.getBytecodeIndex() + "\t" + i);
 
       // Print block frequency with the label instruction
       if (i.operator() == LABEL) {

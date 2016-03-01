@@ -164,7 +164,7 @@ public final class Instruction {
    * uniquely identifies the source position of the bytecode that
    * this instruction came from.
    */
-  public int bcIndex = UNKNOWN_BCI;
+  private int bcIndex = UNKNOWN_BCI;
 
   /**
    * A description of the tree of inlined methods that contains the bytecode
@@ -1954,6 +1954,20 @@ public final class Instruction {
       return LocationCarrier.getLocation(this).mayBeVolatile();
     }
     return false;
+  }
+
+  public void copySourcePositionFrom(Instruction other) {
+    this.bcIndex = other.bcIndex;
+    this.position = other.position;
+  }
+
+  public void setSourcePosition(int bcIndex, InlineSequence position) {
+    this.bcIndex = bcIndex;
+    this.position = position;
+  }
+
+  public void adjustBytecodeIndex(int delta) {
+    bcIndex += delta;
   }
 
 }

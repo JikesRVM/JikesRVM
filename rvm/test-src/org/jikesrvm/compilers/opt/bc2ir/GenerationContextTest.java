@@ -902,7 +902,7 @@ public class GenerationContextTest {
       Operator moveOperator, RegisterOperand formal, RegisterOperand actual, Instruction move) {
     assertSame(call.position, move.position);
     assertThat(move.operator(), is(moveOperator));
-    assertThat(move.bcIndex, is(PROLOGUE_BCI));
+    assertThat(move.getBytecodeIndex(), is(PROLOGUE_BCI));
     RegisterOperand moveResult = Move.getResult(move);
     assertTrue(moveResult.sameRegisterPropertiesAs(formal));
     RegisterOperand moveValue = Move.getVal(move).asRegister();
@@ -1065,11 +1065,11 @@ public class GenerationContextTest {
   private void assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(
       ExceptionHandlerBasicBlockBag ebag, int nodeNumber,
       GenerationContext child) {
-    assertThat(child.getPrologue().firstInstruction().bcIndex, is(PROLOGUE_BCI));
+    assertThat(child.getPrologue().firstInstruction().getBytecodeIndex(), is(PROLOGUE_BCI));
     assertThat(child.getPrologue().firstInstruction().position, is(child.getInlineSequence()));
     assertThat(child.getPrologue().getNumber(), is(nodeNumber));
     assertThat(child.getPrologue().exceptionHandlers, is(ebag));
-    assertThat(child.getEpilogue().firstInstruction().bcIndex, is(EPILOGUE_BCI));
+    assertThat(child.getEpilogue().firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
     assertThat(child.getEpilogue().firstInstruction().position, is(child.getInlineSequence()));
     assertThat(child.getEpilogue().getNumber(), is(nodeNumber + 1));
     assertThat(child.getEpilogue().exceptionHandlers, is(ebag));
@@ -1262,7 +1262,7 @@ public class GenerationContextTest {
     Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     Instruction guardMove = prologueRealInstr.nextElement();
     assertThat(guardMove.operator(), is(GUARD_MOVE));
-    assertThat(guardMove.bcIndex, is(UNKNOWN_BCI));
+    assertThat(guardMove.getBytecodeIndex(), is(UNKNOWN_BCI));
     RegisterOperand guardMoveResult = Move.getResult(guardMove);
     assertTrue(guardMoveResult.sameRegisterPropertiesAs(expectedNullCheckGuard));
     Operand moveValue = Move.getVal(guardMove);
@@ -1274,7 +1274,7 @@ public class GenerationContextTest {
     //TODO definite non-nullness of constant operand is not being verified
     assertSame(callInstr.position, receiverMove.position);
     assertThat(receiverMove.operator(), is(REF_MOVE));
-    assertThat(receiverMove.bcIndex, is(PROLOGUE_BCI));
+    assertThat(receiverMove.getBytecodeIndex(), is(PROLOGUE_BCI));
     RegisterOperand receiverMoveResult = Move.getResult(receiverMove);
     assertTrue(receiverMoveResult.sameRegisterPropertiesAsExceptForGuardWhichIsSimilar(expectedLocalForReceiverParam));
     Operand receiverMoveValue = Move.getVal(receiverMove);
@@ -1705,11 +1705,11 @@ public class GenerationContextTest {
 
     int synthethicNodeNumber = -100000;
     assertThat(synthethicContext.getCfg().numberOfNodes(), is(synthethicNodeNumber));
-    assertThat(synthethicContext.getPrologue().firstInstruction().bcIndex, is(PROLOGUE_BCI));
+    assertThat(synthethicContext.getPrologue().firstInstruction().getBytecodeIndex(), is(PROLOGUE_BCI));
     assertThat(synthethicContext.getPrologue().firstInstruction().position, is(gc.getInlineSequence()));
     assertThat(synthethicContext.getPrologue().getNumber(), is(parentCfgNodeNumber));
     assertThat(synthethicContext.getPrologue().exceptionHandlers, is(mockEbag));
-    assertThat(synthethicContext.getEpilogue().firstInstruction().bcIndex, is(EPILOGUE_BCI));
+    assertThat(synthethicContext.getEpilogue().firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
     assertThat(synthethicContext.getEpilogue().firstInstruction().position, is(gc.getInlineSequence()));
     assertThat(synthethicContext.getEpilogue().getNumber(), is(parentCfgNodeNumber + 1));
     assertThat(synthethicContext.getEpilogue().exceptionHandlers, is(mockEbag));

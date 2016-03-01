@@ -652,8 +652,7 @@ public class LeaveSSA extends CompilerPhase {
           if (op instanceof TrueGuardOperand) {
             BasicBlock bb = Phi.getPred(inst, i).block;
             Instruction move = Move.create(GUARD_MOVE, res.asRegister().copyD2D(), new TrueGuardOperand());
-            move.position = ir.gc.getInlineSequence();
-            move.bcIndex = SSA_SYNTH_BCI;
+            move.setSourcePosition(SSA_SYNTH_BCI, ir.gc.getInlineSequence());
             bb.appendInstructionRespectingTerminalBranchOrPEI(move);
           } else if (op instanceof UnreachableOperand) {
             // do nothing

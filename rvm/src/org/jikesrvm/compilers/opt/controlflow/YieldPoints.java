@@ -102,7 +102,7 @@ public class YieldPoints extends CompilerPhase {
     }
     Instruction dest = n.header.firstInstruction();
     if (dest.position.getMethod().isInterruptible()) {
-      prependYield(n.header, YIELDPOINT_BACKEDGE, dest.bcIndex, dest.position);
+      prependYield(n.header, YIELDPOINT_BACKEDGE, dest.getBytecodeIndex(), dest.position);
     }
   }
 
@@ -137,8 +137,7 @@ public class YieldPoints extends CompilerPhase {
 
     Instruction s = Empty.create(yp);
     insertionPoint.insertBefore(s);
-    s.position = position;
-    s.bcIndex = bcIndex;
+    s.setSourcePosition(bcIndex, position);
   }
 }
 

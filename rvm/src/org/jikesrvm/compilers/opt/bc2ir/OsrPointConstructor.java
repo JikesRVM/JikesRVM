@@ -203,7 +203,7 @@ public class OsrPointConstructor extends CompilerPhase {
 
         Instruction bar = barriers.get(barIdx);
         methodids[barIdx] = bar.position.method.getId();
-        bcindexes[barIdx] = bar.bcIndex;
+        bcindexes[barIdx] = bar.getBytecodeIndex();
 
         OsrTypeInfoOperand typeInfo = OsrBarrier.getTypeInfo(bar);
         localTypeCodes[barIdx] = typeInfo.localTypeCodes;
@@ -288,7 +288,7 @@ public class OsrPointConstructor extends CompilerPhase {
   private void adjustBCIndex(Instruction barrier) {
     NormalMethod source = barrier.position.method;
     if (source.isForOsrSpecialization()) {
-      barrier.bcIndex -= source.getOsrPrologueLength();
+      barrier.adjustBytecodeIndex(-source.getOsrPrologueLength());
     }
   }
 

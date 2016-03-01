@@ -1310,7 +1310,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       }
 
       BasicBlock myBlock = s.getBasicBlock();
-      BasicBlock test2Block = myBlock.createSubBlock(s.bcIndex, ir, 0.25f);
+      BasicBlock test2Block = myBlock.createSubBlock(s.getBytecodeIndex(), ir, 0.25f);
       BasicBlock falseBlock = myBlock.splitNodeAt(s, ir);
       BasicBlock trueBlock = IfCmp.getTarget(s).target.getBasicBlock();
 

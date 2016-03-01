@@ -2053,7 +2053,7 @@ public final class BC2IR {
             }
 
             appendInstruction(callCheck);
-            callCheck.bcIndex = RUNTIME_SERVICES_BCI;
+            callCheck.setBytecodeIndex(RUNTIME_SERVICES_BCI);
 
             requiresImplementsTest = false; // the above call subsumes the test
             rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
@@ -2609,7 +2609,7 @@ public final class BC2IR {
 
               // adjust the bcindex of s to the original bytecode's index
               // it should be able to give the correct exception handling
-              s.bcIndex = origBCIdx + bciAdjustment;
+              s.adjustBytecodeIndex(bciAdjustment);
 
               rectifyStateWithExceptionHandlers();
               break;
@@ -2762,12 +2762,15 @@ public final class BC2IR {
     }
   }
 
+  private void setSourcePosition(Instruction s) {
+    s.setSourcePosition(instrIndex, gc.getInlineSequence());
+  }
+
   Instruction _moveHelper(Operator operator, Operand val, TypeReference type) {
     RegisterOperand t = gc.getTemps().makeTemp(type);
     push(t.copyD2U());
     Instruction s = Move.create(operator, t, val);
-    s.position = gc.getInlineSequence();
-    s.bcIndex = instrIndex;
+    setSourcePosition(s);
     return s;
   }
 
@@ -2775,8 +2778,7 @@ public final class BC2IR {
     RegisterOperand t = gc.getTemps().makeTemp(type);
     pushDual(t.copyD2U());
     Instruction s = Move.create(operator, t, val);
-    s.position = gc.getInlineSequence();
-    s.bcIndex = instrIndex;
+    setSourcePosition(s);
     return s;
   }
 
@@ -2826,11 +2828,7 @@ public final class BC2IR {
     }
     Call.setMethod(s, methOp);
 
-    // need to set it up early because the inlining oracle use it
-    s.position = gc.getInlineSequence();
-    // no longer used by the inline oracle as it is incorrectly adjusted by OSR,
-    // can't adjust it here as it will effect the exception handler maps
-    s.bcIndex = instrIndex;
+    setSourcePosition(s);
 
     TypeReference rtype = meth.getReturnType();
     if (rtype.isVoidType()) {
@@ -2895,10 +2893,9 @@ public final class BC2IR {
    */
   public void appendInstruction(Instruction s) {
     currentBBLE.block.appendInstruction(s);
-    s.position = gc.getInlineSequence();
-    s.bcIndex = instrIndex;
+    setSourcePosition(s);
     lastInstr = s;
-    if (DBG_INSTR || DBG_SELECTED) db("-> " + s.bcIndex + ":\t" + s);
+    if (DBG_INSTR || DBG_SELECTED) db("-> " + s.getBytecodeIndex() + ":\t" + s);
   }
 
   //// MAKE A FIELD REFERENCE.
@@ -3100,8 +3097,7 @@ public final class BC2IR {
         setLocal(index, op0);
       }
       Instruction s = Move.create(INT_MOVE, op0, val);
-      s.position = gc.getInlineSequence();
-      s.bcIndex = instrIndex;
+      setSourcePosition(s);
       return s;
     }
     setLocal(index, op0);
@@ -3158,8 +3154,7 @@ public final class BC2IR {
       setLocal(index, set);
     }
     Instruction s = Move.create(IRTools.getMoveOp(type), op0, op1);
-    s.position = gc.getInlineSequence();
-    s.bcIndex = instrIndex;
+    setSourcePosition(s);
     return s;
   }
 
@@ -3222,8 +3217,7 @@ public final class BC2IR {
       setLocal(index, op0);
     }
     Instruction s = Move.create(REF_MOVE, op0, op1);
-    s.position = gc.getInlineSequence();
-    s.bcIndex = instrIndex;
+    setSourcePosition(s);
     return s;
   }
 
@@ -4448,8 +4442,7 @@ public final class BC2IR {
         RegisterOperand t = gc.getTemps().makeTemp(lop);
         Instruction s = Move.create(IRTools.getMoveOp(t.getType()), t, op);
         stack.replaceFromTop(i, t.copyD2U());
-        s.position = gc.getInlineSequence();
-        s.bcIndex = instrIndex;
+        setSourcePosition(s);
         if (DBG_LOCAL || DBG_SELECTED) {
           db("replacing local " + index + " at " + i + " from tos with " + t);
         }
@@ -4878,11 +4871,7 @@ public final class BC2IR {
 
     OsrBarrier.setTypeInfo(barrier, typeinfo);
 
-    /* if the current method is for specialization, the bcIndex
-     * has to be adjusted at "OsrPointConstructor".
-     */
-    barrier.position = gc.getInlineSequence();
-    barrier.bcIndex = instrIndex;
+    setSourcePosition(barrier);
 
     return barrier;
   }

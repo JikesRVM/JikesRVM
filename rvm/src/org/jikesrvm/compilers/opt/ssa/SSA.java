@@ -146,7 +146,7 @@ class SSA {
       // print the explicit instructions for basic block bb
       for (Enumeration<Instruction> e = dictionary.getAllInstructions(bb); e.hasMoreElements();) {
         Instruction s = e.nextElement();
-        System.out.print(s.bcIndex + "\t" + s);
+        System.out.print(s.getBytecodeIndex() + "\t" + s);
         if (dictionary.defsHeapVariable(s) && s.operator() != PHI) {
           System.out.print("  (Implicit Defs: ");
           HeapOperand<?>[] defs = dictionary.getHeapDefs(s);
@@ -185,8 +185,7 @@ class SSA {
     RegisterOperand o1 = new RegisterOperand(r1, t);
     RegisterOperand o2 = new RegisterOperand(r2, t);
     Instruction s = Move.create(mv, o1, o2);
-    s.position = ir.gc.getInlineSequence();
-    s.bcIndex = SSA_SYNTH_BCI;
+    s.setSourcePosition(SSA_SYNTH_BCI, ir.gc.getInlineSequence());
     return s;
   }
 
@@ -205,8 +204,7 @@ class SSA {
     RegisterOperand o1 = new RegisterOperand(r1, c.getType());
     Operand o2 = c.copy();
     Instruction s = Move.create(mv, o1, o2);
-    s.position = ir.gc.getInlineSequence();
-    s.bcIndex = SSA_SYNTH_BCI;
+    s.setSourcePosition(SSA_SYNTH_BCI, ir.gc.getInlineSequence());
     return s;
   }
 

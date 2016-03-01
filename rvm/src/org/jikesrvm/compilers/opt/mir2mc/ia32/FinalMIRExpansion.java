@@ -173,7 +173,7 @@ public class FinalMIRExpansion extends IRTools {
         case IA32_TRAPIF_opcode: {
           // split the basic block right before the IA32_TRAPIF
           BasicBlock thisBlock = p.getBasicBlock();
-          BasicBlock trap = thisBlock.createSubBlock(p.bcIndex, ir, 0f);
+          BasicBlock trap = thisBlock.createSubBlock(p.getBytecodeIndex(), ir, 0f);
           thisBlock.insertOut(trap);
           BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p, ir);
           thisBlock.insertOut(trap);
@@ -534,7 +534,7 @@ public class FinalMIRExpansion extends IRTools {
     // remove the yieldpoint (to prepare to out it in the new block at the end)
     BasicBlock thisBlock = s.getBasicBlock();
     BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s, ir);
-    BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir, 0);
+    BasicBlock yieldpoint = thisBlock.createSubBlock(s.getBytecodeIndex(), ir, 0);
     thisBlock.insertOut(yieldpoint);
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
@@ -572,7 +572,7 @@ public class FinalMIRExpansion extends IRTools {
     // remove the yieldpoint (to prepare to out it in the new block at the end)
     BasicBlock thisBlock = s.getBasicBlock();
     BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s, ir);
-    BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir);
+    BasicBlock yieldpoint = thisBlock.createSubBlock(s.getBytecodeIndex(), ir);
     thisBlock.insertOut(yieldpoint);
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);

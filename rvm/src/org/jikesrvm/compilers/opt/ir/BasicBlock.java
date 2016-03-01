@@ -167,7 +167,7 @@ public class BasicBlock extends SortedGraphNode {
   protected BasicBlock(int i, InlineSequence position, int num) {
     setNumber(num);
     start = Label.create(LABEL, new BasicBlockOperand(this));
-    start.bcIndex = i;
+    start.setBytecodeIndex(i);
 
     start.position = position;
     end = BBend.create(BBEND, new BasicBlockOperand(this));
@@ -176,7 +176,7 @@ public class BasicBlock extends SortedGraphNode {
     // In fact, the block may end in a different method entirely,
     // so setting its position to the same as start may silently
     // get us into all kinds of trouble. --dave.
-    end.bcIndex = UNKNOWN_BCI;
+    end.setBytecodeIndex(UNKNOWN_BCI);
     start.linkWithNext(end);
     initInOutSets();
   }
@@ -288,10 +288,10 @@ public class BasicBlock extends SortedGraphNode {
       VM.sysWrite("\tInstructions:\n");
       Instruction inst = start;
       while (inst != end) {
-        VM.sysWrite(inst.bcIndex + ":\t" + inst + "\n");
+        VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
         inst = inst.getNext();
       }
-      VM.sysWrite(inst.bcIndex + ":\t" + inst + "\n");
+      VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
     }
     VM.sysWrite("\n");
   }
@@ -1210,7 +1210,7 @@ public class BasicBlock extends SortedGraphNode {
     if (IR.PARANOID) VM._assert(this == last_instr_BB1.getBasicBlock());
 
     BasicBlock BB1 = this;
-    BasicBlock BB2 = new BasicBlock(last_instr_BB1.bcIndex, last_instr_BB1.position, ir.cfg);
+    BasicBlock BB2 = new BasicBlock(last_instr_BB1.getBytecodeIndex(), last_instr_BB1.position, ir.cfg);
     BasicBlock BB3 = (BasicBlock) BB1.next;
 
     // move last_instr_BB1 ... BB1.end.prev into BB2
@@ -1305,7 +1305,7 @@ public class BasicBlock extends SortedGraphNode {
     // Make the label instruction of the new block have the same
     // bc info as the label of the original block.
     if (firstInstruction() != null) {
-      bytecodeIndex = firstInstruction().bcIndex;
+      bytecodeIndex = firstInstruction().getBytecodeIndex();
     }
 
     BasicBlock newBlock = createSubBlock(bytecodeIndex, ir, 1f);

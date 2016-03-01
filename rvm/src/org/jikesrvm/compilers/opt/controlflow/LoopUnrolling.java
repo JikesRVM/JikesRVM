@@ -467,14 +467,14 @@ public class LoopUnrolling extends CompilerPhase {
     BasicBlock mainExit = handles[1];
 
     // test block for well formed bounds
-    BasicBlock guardBlock0 = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    BasicBlock guardBlock0 = header.createSubBlock(header.firstInstruction().getBytecodeIndex(), ir);
     predBlock.redirectOuts(header, guardBlock0, ir);
 
     // test block for iteration alignemnt
-    BasicBlock guardBlock1 = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    BasicBlock guardBlock1 = header.createSubBlock(header.firstInstruction().getBytecodeIndex(), ir);
 
     // landing pad for orig loop
-    BasicBlock olp = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    BasicBlock olp = header.createSubBlock(header.firstInstruction().getBytecodeIndex(), ir);
     olp.setLandingPad();
 
     BasicBlock predSucc = predBlock.nextBasicBlockInCodeOrder();
@@ -487,10 +487,10 @@ public class LoopUnrolling extends CompilerPhase {
     ir.cfg.linkInCodeOrder(guardBlock1, olp);
 
     // guard block for main loop
-    BasicBlock guardBlock2 = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    BasicBlock guardBlock2 = header.createSubBlock(header.firstInstruction().getBytecodeIndex(), ir);
 
     // landing pad for main loop
-    BasicBlock landingPad = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    BasicBlock landingPad = header.createSubBlock(header.firstInstruction().getBytecodeIndex(), ir);
     landingPad.setLandingPad();
 
     BasicBlock mainLoop = exitBlock.nextBasicBlockInCodeOrder();
