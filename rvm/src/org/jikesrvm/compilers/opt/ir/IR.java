@@ -231,7 +231,7 @@ public final class IR {
    * increases from {@link #UNFORMED} to {@link #HIR}
    * to {@link #LIR} to {@link #MIR}.
    */
-  public byte IRStage = UNFORMED;
+  private byte IRStage = UNFORMED;
 
   /**
    *  Was liveness for handlers computed?
@@ -351,6 +351,16 @@ public final class IR {
     this.HIRInfo = new HIRInfo(this);
   }
 
+  public void initializeStateForLIR() {
+    this.IRStage = IR.LIR;
+    this.LIRInfo = new LIRInfo(this);
+  }
+
+  public void initializeStateForMIR() {
+    this.IRStage = IR.MIR;
+    this.MIRInfo = new MIRInfo(this);
+  }
+
   /**
    * Print the instructions in this IR to System.out.
    */
@@ -367,6 +377,48 @@ public final class IR {
 
       System.out.println();
     }
+  }
+
+  /**
+   * @return {@code true} if the IR is a high-level intermediate
+   *  representation, {@code false} otherwise.
+   *
+   *  @see #IRStage
+   */
+  public boolean isHIR() {
+    return IRStage == IR.HIR;
+  }
+
+  /**
+   * @return {@code true} if the IR is a low-level intermediate
+   *  representation, {@code false} otherwise.
+   *
+   *  @see #IRStage
+   */
+  public boolean isLIR() {
+    return IRStage == IR.LIR;
+  }
+
+  /**
+   * @return {@code true} if the IR is in a stage lather than the
+   *  the high-level intermediate representation, {@code false}
+   *  otherwise
+   *
+   *  @see #IRStage
+   */
+  public boolean isNotHIR() {
+    return IRStage != IR.HIR;
+  }
+
+  /**
+   * @return {@code true} if the IR is in a stage earlier than the
+   *  the machine-dependent intermediate representation, {@code false}
+   *  otherwise
+   *
+   *  @see #IRStage
+   */
+  public boolean isNotMIR() {
+    return IRStage < IR.MIR;
   }
 
   /**

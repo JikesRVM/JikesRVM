@@ -451,10 +451,11 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     if (ir.options.ADAPTIVE_PROCESSOR_SPECIFIC_COUNTER) {
       // Use one CBS counter per processor (better for multi threaded apps)
 
-      if (ir.IRStage == IR.HIR) {
-        // NOT IMPLEMENTED
+      if (ir.isHIR()) {
+        VM.sysFail("Not implemented yet.");
       } else {
         // Phase is being used in LIR
+        if (VM.VerifyAssertions) VM._assert(ir.isLIR());
         // Insert the load instruction.
         load =
             Load.create(INT_LOAD,
@@ -467,7 +468,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       }
     } else {
       // Use global counter
-      if (ir.IRStage == IR.HIR) {
+      if (ir.isHIR()) {
         Operand offsetOp = new AddressConstantOperand(AosEntrypoints.globalCBSField.getOffset());
         load =
             GetStatic.create(GETSTATIC,
@@ -514,7 +515,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
       bb.prependInstruction(store);
     } else {
-      if (ir.IRStage == IR.HIR) {
+      if (ir.isHIR()) {
         store =
             PutStatic.create(PUTSTATIC,
                              cbsReg.copyRO(),
@@ -568,7 +569,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     Instruction load = null;
     Instruction store = null;
 
-    if (ir.IRStage == IR.HIR) {
+    if (ir.isHIR()) {
       // Not tested
       Operand offsetOp = new AddressConstantOperand(AosEntrypoints.cbsResetValueField.getOffset());
       load =
@@ -585,6 +586,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       bb.prependInstruction(load);
     } else {
       // LIR
+      if (VM.VerifyAssertions) VM._assert(ir.isLIR());
       Instruction dummy = Load.create(INT_LOAD, null, null, null, null);
       bb.prependInstruction(dummy);
       // Load the reset value

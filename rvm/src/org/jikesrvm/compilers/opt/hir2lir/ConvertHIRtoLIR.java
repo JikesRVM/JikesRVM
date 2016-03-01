@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.hir2lir;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphStats;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.LIRInfo;
 
 /**
  * Convert an IR object from HIR to LIR
@@ -41,9 +40,7 @@ public final class ConvertHIRtoLIR extends CompilerPhase {
       // Print summary statistics (critpath, etc.) for all basic blocks
       DepGraphStats.printBasicBlockStatistics(ir);
     }
-    // Do the conversion from HIR to LIR.
-    ir.IRStage = IR.LIR;
-    ir.LIRInfo = new LIRInfo(ir);
+    ir.initializeStateForLIR();
     ConvertToLowLevelIR.convert(ir, ir.options);
   }
 }

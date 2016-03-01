@@ -163,7 +163,7 @@ public class LICM extends CompilerPhase {
       return false;
     }
 
-    if (ir.IRStage != IR.HIR &&
+    if (ir.isNotHIR() &&
         ((inst.isPEI()) || inst.isThrow() || inst.isImplicitLoad() || inst.isImplicitStore())) {
       return false;
     }
@@ -338,7 +338,7 @@ public class LICM extends CompilerPhase {
     if (VM.VerifyAssertions) VM._assert(_earlyPos != null);
 
     // memory dependencies
-    if (ir.IRStage == IR.HIR) {
+    if (ir.isHIR()) {
       _earlyPos = scheduleHeapDefsEarly(ssad.getHeapUses(inst), _earlyPos, inst);
       if (VM.VerifyAssertions) VM._assert(_earlyPos != null);
     }
@@ -386,7 +386,7 @@ public class LICM extends CompilerPhase {
     if (DEBUG) VM.sysWrite("lateBlock1: " + lateBlock + " for " + inst + "\n");
 
     // dependencies via heap operands
-    if (ir.IRStage == IR.HIR) {
+    if (ir.isHIR()) {
       lateBlock = scheduleHeapUsesLate(inst, lateBlock);
       if (DEBUG) VM.sysWrite("lateBlock2: " + lateBlock + " for " + inst + "\n");
     }
@@ -753,10 +753,10 @@ public class LICM extends CompilerPhase {
     }
 
     if (DEBUG && moved.add(inst.operator())) {
-      VM.sysWrite("m(" + (ir.IRStage == IR.LIR ? "l" : "h") + ") " + inst.operator() + "\n");
+      VM.sysWrite("m(" + (ir.isLIR() ? "l" : "h") + ") " + inst.operator() + "\n");
     }
     if (VERBOSE) {
-      VM.sysWrite(ir.IRStage == IR.LIR ? "%" : "#");
+      VM.sysWrite(ir.isLIR() ? "%" : "#");
       VM.sysWrite(" moving " + inst + " from " + _origBlock + " to " + to + "\n" + "behind  " + cand + "\n");
 
     }
@@ -877,7 +877,7 @@ public class LICM extends CompilerPhase {
         setState(inst, initial);
       }
     }
-    if (ir.IRStage == IR.HIR) {
+    if (ir.isHIR()) {
       e = ir.getBasicBlocks();
       while (e.hasMoreElements()) {
         BasicBlock b = e.nextElement();

@@ -105,7 +105,7 @@ public class LocalConstantProp extends CompilerPhase {
               }
             }
             if (didSomething) {
-              Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, ir.options, s);
+              Simplifier.simplify(ir.isHIR(), ir.regpool, ir.options, s);
             }
           }
 
