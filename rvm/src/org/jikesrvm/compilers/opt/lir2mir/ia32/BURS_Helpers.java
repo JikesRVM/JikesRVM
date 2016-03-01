@@ -3652,7 +3652,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     if (VM.VerifyAssertions) {
       if (typeInfo == null) {
         VM.sysWriteln("OsrPoint " + s + " has a <null> type info:");
-        VM.sysWriteln("  position :" + s.getBytecodeIndex() + "@" + s.position.method);
+        VM.sysWriteln("  position :" + s.getBytecodeIndex() + "@" + s.position().method);
       }
       opt_assert(typeInfo != null);
     }

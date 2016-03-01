@@ -150,7 +150,7 @@ public class OsrPointConstructor extends CompilerPhase {
         GenerationContext gc = ir.gc;
         Instruction bar = gc.getOSRBarrierFromInst(osr);
 
-        if (osr.position == null) osr.position = bar.position;
+        if (osr.position() == null) osr.setPosition(bar.position());
 
         adjustBCIndex(osr);
 
@@ -166,7 +166,7 @@ public class OsrPointConstructor extends CompilerPhase {
             VM._assert(isBarrierClean(bar));
           }
 
-          Instruction callsite = bar.position.getCallSite();
+          Instruction callsite = bar.position().getCallSite();
           if (callsite != null) {
             bar = gc.getOSRBarrierFromInst(callsite);
 
@@ -202,7 +202,7 @@ public class OsrPointConstructor extends CompilerPhase {
       for (int barIdx = 0, barSize = barriers.size(); barIdx < barSize; barIdx++) {
 
         Instruction bar = barriers.get(barIdx);
-        methodids[barIdx] = bar.position.method.getId();
+        methodids[barIdx] = bar.position().method.getId();
         bcindexes[barIdx] = bar.getBytecodeIndex();
 
         OsrTypeInfoOperand typeInfo = OsrBarrier.getTypeInfo(bar);
@@ -262,12 +262,12 @@ public class OsrPointConstructor extends CompilerPhase {
       // the last OsrBarrier should in the current method
       if (VM.VerifyAssertions) {
         Instruction lastBar = barriers.getLast();
-        if (ir.method != lastBar.position.method) {
+        if (ir.method != lastBar.position().method) {
           VM.sysWriteln("The last barrier is not in the same method as osr:");
-          VM.sysWriteln(lastBar + "@" + lastBar.position.method);
+          VM.sysWriteln(lastBar + "@" + lastBar.position().method);
           VM.sysWriteln("current method @" + ir.method);
         }
-        VM._assert(ir.method == lastBar.position.method);
+        VM._assert(ir.method == lastBar.position().method);
 
         if (opIndex != totalOperands) {
           VM.sysWriteln("opIndex and totalOperands do not match:");
@@ -286,7 +286,7 @@ public class OsrPointConstructor extends CompilerPhase {
    * @param barrier the OSR barrier instruction
    */
   private void adjustBCIndex(Instruction barrier) {
-    NormalMethod source = barrier.position.method;
+    NormalMethod source = barrier.position().method;
     if (source.isForOsrSpecialization()) {
       barrier.adjustBytecodeIndex(-source.getOsrPrologueLength());
     }

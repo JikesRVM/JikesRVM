@@ -365,7 +365,7 @@ public final class IR {
    */
   public static boolean strictFP(Instruction... is) {
     for (Instruction i : is) {
-      if (i.position.method.isStrictFP()) {
+      if (i.position().method.isStrictFP()) {
         return true;
       }
     }

@@ -149,7 +149,7 @@ public class Inliner {
         if (parent.getOptions().PRINT_INLINE_REPORT) {
           String guard = guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST ? " (class test) " : " (method test) ";
           VM.sysWrite("\tGuarded inline" + guard + " " + callee +
-                      " into " + callSite.position.getMethod() +
+                      " into " + callSite.position().getMethod() +
                       " at bytecode " + callSite.getBytecodeIndex() + "\n");
         }
         // (b)
@@ -181,7 +181,7 @@ public class Inliner {
 
       // Step 4: Create a block to contain a copy of the original call or an OSR_Yieldpoint
       //         to cover the case that all predictions fail.
-      BasicBlock testFailed = new BasicBlock(callSite.getBytecodeIndex(), callSite.position, parent.getCfg());
+      BasicBlock testFailed = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
       testFailed.exceptionHandlers = ebag;
 
       if (COUNT_FAILED_GUARDS && Controller.options.INSERT_DEBUGGING_COUNTERS) {
@@ -190,7 +190,7 @@ public class Inliner {
         // separate counter for each method by using the method name
         // as the event name.  You could also have used just the string
         // "Guarded inline failed" to keep only one counter.
-        String eventName = "Guarded inline failed: " + callSite.position.getMethod().toString();
+        String eventName = "Guarded inline failed: " + callSite.position().getMethod().toString();
         // Create instruction that will increment the counter
         // corresponding to the named event.
         Instruction counterInst = AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
@@ -269,7 +269,7 @@ public class Inliner {
       // to allow us to have multiple if blocks for a single
       // "logical" test and to share test insertion for interfaces/virtuals.
       for (int i = children.length - 1; i >= 0; i--, testFailed = firstIfBlock) {
-        firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position, parent.getCfg());
+        firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
         firstIfBlock.exceptionHandlers = ebag;
         BasicBlock lastIfBlock = firstIfBlock;
         RVMMethod target = children[i].getMethod();
@@ -316,7 +316,7 @@ public class Inliner {
             if (parent.getOptions().PRINT_INLINE_REPORT) {
               VM.sysWrite("\t\tRequired additional instanceof " + callDeclClass + " test\n");
             }
-            firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position, parent.getCfg());
+            firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
             firstIfBlock.exceptionHandlers = ebag;
 
             RegisterOperand instanceOfResult = parent.getTemps().makeTempInt();
@@ -379,7 +379,7 @@ public class Inliner {
             cmp.copyPosition(callSite);
             lastIfBlock.appendInstruction(cmp);
 
-            BasicBlock subclassTest = new BasicBlock(callSite.getBytecodeIndex(), callSite.position, parent.getCfg());
+            BasicBlock subclassTest = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
 
             lastIfBlock.insertOut(testFailed);
             lastIfBlock.insertOut(subclassTest);
@@ -426,7 +426,7 @@ public class Inliner {
       NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
       if (parent.getOptions().PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " + callee +
-                    " into " + callSite.position.getMethod() +
+                    " into " + callSite.position().getMethod() +
                     " at bytecode " + callSite.getBytecodeIndex() + "\n");
       }
       GenerationContext child = parent.createChildContext(ebag, callee, callSite);

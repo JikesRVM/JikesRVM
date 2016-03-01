@@ -327,7 +327,7 @@ public final class OptMachineCodeMap {
     for (GCIRMapElement irMapElem : irMap) {
       numEntries++;
       Instruction instr = irMapElem.getInstruction();
-      if (instr.position == null && instr.getBytecodeIndex() != INSTRUMENTATION_BCI) {
+      if (instr.position() == null && instr.getBytecodeIndex() != INSTRUMENTATION_BCI) {
         if ((VM.BuildForIA32 &&
             org.jikesrvm.compilers.opt.ir.ia32.MIR_Call.conforms(instr) &&
             org.jikesrvm.compilers.opt.ir.ia32.MIR_Call.hasMethod(instr)) ||
@@ -337,7 +337,7 @@ public final class OptMachineCodeMap {
           throw new OptimizingCompilerException("position required for all call instructions " + instr);
         }
       } else {
-        inliningMap.addLocation(instr.position);
+        inliningMap.addLocation(instr.position());
       }
     }
 
@@ -382,8 +382,8 @@ public final class OptMachineCodeMap {
       }
       // get index into inline encoding
       int iei = -1;
-      if (instr.position != null) {
-        iei = inliningMap.find(instr.position).encodedOffset;
+      if (instr.position() != null) {
+        iei = inliningMap.find(instr.position()).encodedOffset;
       }
       // set the call info
       int cm = 0;

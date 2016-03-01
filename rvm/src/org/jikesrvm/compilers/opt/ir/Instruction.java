@@ -177,7 +177,7 @@ public final class Instruction {
    * @see InlineSequence
    * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
    */
-  public InlineSequence position;
+  private InlineSequence position;
 
   /**
    * The operator for this instruction.<p>
@@ -1968,6 +1968,14 @@ public final class Instruction {
 
   public void adjustBytecodeIndex(int delta) {
     bcIndex += delta;
+  }
+
+  public InlineSequence position() {
+    return position;
+  }
+
+  public void setPosition(InlineSequence position) {
+    this.position = position;
   }
 
 }

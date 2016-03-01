@@ -175,8 +175,8 @@ public final class EncodedOSRMap {
     for (int i = 0; i < n; i++) {
       Instruction instr = osrarray[i].osr;
       // add lining element, move sanity later
-      if (instr.position != null) {
-        inliningTree.addLocation(instr.position);
+      if (instr.position() != null) {
+        inliningTree.addLocation(instr.position());
       }
     }
 
@@ -185,7 +185,7 @@ public final class EncodedOSRMap {
       VariableMapElement elm = osrarray[i];
       Instruction instr = elm.osr;
 
-      int iei = inliningTree.find(instr.position).encodedOffset;
+      int iei = inliningTree.find(instr.position()).encodedOffset;
       setIEIndex(i, iei);
 
       // get osr map

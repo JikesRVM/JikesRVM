@@ -67,7 +67,7 @@ public final class CompilationState {
    * @return the depth of inlining so far.
    */
   public int getInlineDepth() {
-    return call.position.getInlineDepth();
+    return call.position().getInlineDepth();
   }
 
   /**
@@ -112,14 +112,14 @@ public final class CompilationState {
    * @return the root method of the compilation
    */
   public NormalMethod getRootMethod() {
-    return call.position.getRootMethod();
+    return call.position().getRootMethod();
   }
 
   /**
    * @return the method being compiled
    */
   public NormalMethod getMethod() {
-    return call.position.getMethod();
+    return call.position().getMethod();
   }
 
   /**
@@ -133,7 +133,7 @@ public final class CompilationState {
    * @return the inlining sequence
    */
   public InlineSequence getSequence() {
-    return call.position;
+    return call.position();
   }
 
   /**

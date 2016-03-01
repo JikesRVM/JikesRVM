@@ -369,7 +369,7 @@ public final class GenerationContext {
     child.inlinePlan = this.inlinePlan;
 
     // Now inherit state based on callSite
-    child.inlineSequence = new InlineSequence(child.method, callSite.position, callSite);
+    child.inlineSequence = new InlineSequence(child.method, callSite.position(), callSite);
     child.enclosingHandlers = ebag;
     child.arguments = new Operand[Call.getNumberOfParams(callSite)];
     for (int i = 0; i < child.arguments.length; i++) {
@@ -426,7 +426,7 @@ public final class GenerationContext {
         OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
       }
       Instruction s = Move.create(REF_MOVE, local, receiver);
-      s.setSourcePosition(PROLOGUE_BCI, callSite.position);
+      s.setSourcePosition(PROLOGUE_BCI, callSite.position());
       child.prologue.appendInstruction(s);
     }
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++, argIdx++) {
@@ -451,7 +451,7 @@ public final class GenerationContext {
         localNum++;
       }
       Instruction s = Move.create(IRTools.getMoveOp(argType), formal, actual);
-      s.setSourcePosition(PROLOGUE_BCI, callSite.position);
+      s.setSourcePosition(PROLOGUE_BCI, callSite.position());
       child.prologue.appendInstruction(s);
       if (argType.isLongType() || argType.isDoubleType()) {
         localNum++; // longs and doubles take two local words

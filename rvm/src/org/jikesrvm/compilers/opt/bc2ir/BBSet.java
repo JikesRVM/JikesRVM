@@ -948,8 +948,7 @@ final class BBSet {
                                    gc.getTemps(),
                                    gc.getMethod().getOperandWords(),
                                    gc.getCfg());
-            ((HandlerBlockLE) newBBLE).entryBlock.firstRealInstruction().
-                position = gc.getInlineSequence();
+            ((HandlerBlockLE) newBBLE).entryBlock.firstRealInstruction().setPosition(gc.getInlineSequence());
           } else {
             ((HandlerBlockLE) newBBLE).addCaughtException(exceptionTypes[i]);
           }

@@ -3369,7 +3369,7 @@ public abstract class Simplifier extends IRTools {
           Operand frameOp = Call.getParam(s, 0);
           if (frameOp.isIntConstant()) {
             int frame = frameOp.asIntConstant().value;
-            InlineSequence currentFrame = s.position;
+            InlineSequence currentFrame = s.position();
             while (frame > 0 && currentFrame != null) {
               currentFrame = currentFrame.caller;
               frame--;
@@ -3488,7 +3488,7 @@ public abstract class Simplifier extends IRTools {
     } else {
       throw new OptimizingCompilerException("Trying to box an VM magic unboxed type (" + op +
                                             ")for a pure method call is not possible:\n" + op.instruction +
-                                            "\n at " + op.instruction.position);
+                                            "\n at " + op.instruction.position());
     }
   }
   /**

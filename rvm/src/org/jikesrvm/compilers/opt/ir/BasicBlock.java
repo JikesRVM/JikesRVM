@@ -169,7 +169,7 @@ public class BasicBlock extends SortedGraphNode {
     start = Label.create(LABEL, new BasicBlockOperand(this));
     start.setBytecodeIndex(i);
 
-    start.position = position;
+    start.setPosition(position);
     end = BBend.create(BBEND, new BasicBlockOperand(this));
     // NOTE: we have no idea where this block will end so it
     // makes no sense to set its bcIndex or position.
@@ -1210,7 +1210,7 @@ public class BasicBlock extends SortedGraphNode {
     if (IR.PARANOID) VM._assert(this == last_instr_BB1.getBasicBlock());
 
     BasicBlock BB1 = this;
-    BasicBlock BB2 = new BasicBlock(last_instr_BB1.getBytecodeIndex(), last_instr_BB1.position, ir.cfg);
+    BasicBlock BB2 = new BasicBlock(last_instr_BB1.getBytecodeIndex(), last_instr_BB1.position(), ir.cfg);
     BasicBlock BB3 = (BasicBlock) BB1.next;
 
     // move last_instr_BB1 ... BB1.end.prev into BB2
@@ -1487,7 +1487,7 @@ public class BasicBlock extends SortedGraphNode {
     // TODO: This won't always work. (In fact, in the presence of inlining
     //       it will be wrong quite often). --dave
     //       We really have to pass the position in if we except this to work.
-    BasicBlock temp = new BasicBlock(bc, firstInstruction().position, ir.cfg);
+    BasicBlock temp = new BasicBlock(bc, firstInstruction().position(), ir.cfg);
 
     // Conservatively transfer all exception handling behavior of the
     // parent block  (this) to the new child block (temp)

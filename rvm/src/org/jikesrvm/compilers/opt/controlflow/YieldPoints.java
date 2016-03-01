@@ -101,8 +101,8 @@ public class YieldPoints extends CompilerPhase {
       processLoopNest(e.nextElement());
     }
     Instruction dest = n.header.firstInstruction();
-    if (dest.position.getMethod().isInterruptible()) {
-      prependYield(n.header, YIELDPOINT_BACKEDGE, dest.getBytecodeIndex(), dest.position);
+    if (dest.position().getMethod().isInterruptible()) {
+      prependYield(n.header, YIELDPOINT_BACKEDGE, dest.getBytecodeIndex(), dest.position());
     }
   }
 

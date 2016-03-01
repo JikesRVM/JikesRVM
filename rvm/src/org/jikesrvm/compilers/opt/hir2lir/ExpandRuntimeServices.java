@@ -156,7 +156,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           TypeOperand Type = New.getClearType(inst);
           RVMClass cls = (RVMClass) Type.getVMType();
           IntConstantOperand hasFinalizer = IRTools.IC(cls.hasFinalizer() ? 1 : 0);
-          RVMMethod callSite = inst.position.getMethod();
+          RVMMethod callSite = inst.position().getMethod();
           IntConstantOperand allocator = IRTools.IC(MemoryManager.pickAllocator(cls, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(cls));
           IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(cls, false));
@@ -213,7 +213,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           boolean inline = numberElements instanceof IntConstantOperand;
           Operand width = IRTools.IC(array.getLogElementSize());
           Operand headerSize = IRTools.IC(ObjectModel.computeArrayHeaderSize(array));
-          RVMMethod callSite = inst.position.getMethod();
+          RVMMethod callSite = inst.position().getMethod();
           IntConstantOperand allocator = IRTools.IC(MemoryManager.pickAllocator(array, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(array));
           IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(array, false));
@@ -268,7 +268,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
         case NEWOBJMULTIARRAY_opcode: {
           int dimensions = Multianewarray.getNumberOfDimensions(inst);
-          RVMMethod callSite = inst.position.getMethod();
+          RVMMethod callSite = inst.position().getMethod();
           int typeRefId = Multianewarray.getType(inst).getTypeRef().getId();
           if (dimensions == 2) {
             RVMMethod target = Entrypoints.optNew2DArrayMethod;
@@ -612,7 +612,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
   }
 
   private void replaceInstructionWithBarrier(Instruction orig, Instruction barrier) {
-    barrier.setSourcePosition(RUNTIME_SERVICES_BCI, orig.position);
+    barrier.setSourcePosition(RUNTIME_SERVICES_BCI, orig.position());
     orig.replace(barrier);
     next = barrier.prevInstructionInCodeOrder();
   }

@@ -908,7 +908,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                            MethodOperand.STATIC(target),
                            Call.getParam(v, 0).asRegister().copyU2U(),
                            IC(methOp.getMemberRef().getId()));
-          vp.setSourcePosition(RUNTIME_SERVICES_BCI, v.position);
+          vp.setSourcePosition(RUNTIME_SERVICES_BCI, v.position());
           v.insertBefore(vp);
           callHelper(vp, ir);
           Call.setAddress(v, realAddrReg.copyD2U());
@@ -927,7 +927,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
                            MethodOperand.STATIC(target),
                            RHStib,
                            IC(methOp.getTarget().getDeclaringClass().getInterfaceId()));
-          fi.setSourcePosition(RUNTIME_SERVICES_BCI, v.position);
+          fi.setSourcePosition(RUNTIME_SERVICES_BCI, v.position());
           v.insertBefore(fi);
           callHelper(fi, ir);
           RegisterOperand address =
