@@ -58,11 +58,123 @@ public final class Unsafe {
     return theUnsafe;
   }
 
+  // Manual memory management
+
+  @Inline
+  public long allocateMemory(long bytes) {
+    Address result = SysCall.sysCall.sysMalloc((int)bytes);
+    if (result.isZero()) {
+      throw new OutOfMemoryError("Unable to satisfy malloc of " + bytes);
+    }
+    return result.toLong();
+  }
+
+  @Inline
+  public void freeMemory(long address) {
+    SysCall.sysCall.sysFree(Address.fromLong(address));
+  }
+
+  // Access to underlying platform
+
+  @Inline
+  public int pageSize() {
+    return Memory.getPagesize();
+  }
+
+  // Reflection
+
+  /**
+   * Ensure the given class has been initialized. This is often
+   * needed in conjunction with obtaining the static field base of a
+   * class.
+   */
+  @Inline
+  public void ensureClassInitialized(Class<?> c){
+    // TODO implement
+  }
+
+  @Inline
+  public Class<?> defineClass(String name, byte[] bytes, int off, int len, final ClassLoader parentClassLoader, ProtectionDomain protectionDomain) {
+    if (parentClassLoader != null) {
+      return RVMClassLoader.defineClassInternal(name, bytes, off,len, parentClassLoader).getClassForType();
+    } else{
+      ClassLoader callingClassloader = null;
+//      ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
+      VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
+          "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
+          "Classpath namespace");
+      return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
+    }
+  }
+
+  @Inline
+  public Class<?> defineClass(String name, byte[] bytes, int off, int len) {
+    ClassLoader callingClassloader = null;
+//  ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
+    VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
+      "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
+      "Classpath namespace");
+    return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
+  }
+
   @Inline
   public long objectFieldOffset(Field field) {
     RVMField vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     return vmfield.getOffset().toLong();
   }
+
+  @Inline
+  public int arrayBaseOffset(Class<?> arrayClass) {
+    // TODO should we get this via ObjectModel?
+    return 0;
+  }
+
+  @Inline
+  public int arrayIndexScale(Class<?> arrayClass) {
+    RVMType arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
+    if (!arrayType.isArrayType()) {
+      return 0;
+    } else {
+      return 1 << arrayType.asArray().getLogElementSize();
+    }
+  }
+
+  @Inline
+  public void throwException(Throwable ex) {
+    RuntimeEntrypoints.athrow(ex);
+  }
+
+  // Direct memory access
+
+  @Inline
+  public void setMemory(long address, long bytes, byte value) {
+    for (long i = 0; i < bytes; i++) {
+      Address.fromLong(address + i).store(value);
+    }
+  }
+
+  @Inline
+  public void copyMemory(long srcAddress, long destAddress, long bytes) {
+    Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), (int)bytes);
+  }
+
+  @Inline
+  public void unpark(Object thread) {
+    RVMThread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
+    if (vmthread != null) {
+      vmthread.unpark();
+    }
+  }
+
+  @Inline
+  public void park(boolean isAbsolute,long time) throws Throwable  {
+    RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
+    if (vmthread != null) {
+      vmthread.park(isAbsolute, time);
+    }
+  }
+
+  // Synchronization primitives
 
   @Inline
   public boolean compareAndSwapInt(Object obj, long offset, int expect, int update) {
@@ -75,6 +187,8 @@ public final class Unsafe {
     Offset off = Offset.fromLong(offset);
     return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
+
+  // Reading and writing of Java data types
 
   @Inline
   public boolean compareAndSwapObject(Object obj, long offset, Object expect, Object update) {
@@ -238,6 +352,11 @@ public final class Unsafe {
   }
 
   @Inline
+  public int getInt(long address) {
+    return Address.fromLong(address).loadInt();
+  }
+
+  @Inline
   public int getInt(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     return Magic.getIntAtOffset(obj,off);
@@ -252,15 +371,8 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putIntVolatile(Object obj, long offset, int value) {
-    Magic.storeStoreBarrier();
-    Offset off = Offset.fromLong(offset);
-    if (NEEDS_INT_PUTFIELD_BARRIER) {
-      intFieldWrite(obj, value, off, 0);
-    } else {
-      Magic.setIntAtOffset(obj,off,value);
-    }
-    Magic.fence();
+  public void putInt(long address, int x) {
+    Address.fromLong(address).store(x);
   }
 
   @Inline
@@ -274,18 +386,15 @@ public final class Unsafe {
   }
 
   @Inline
-  public  int getInt(long address) {
-    return Address.fromLong(address).loadInt();
-  }
-
-  @Inline
-  public void putInt(long address, int x) {
-    Address.fromLong(address).store(x);
-  }
-
-  @Inline
-  public long getLong(long address) {
-    return Address.fromLong(address).loadLong();
+  public void putIntVolatile(Object obj, long offset, int value) {
+    Magic.storeStoreBarrier();
+    Offset off = Offset.fromLong(offset);
+    if (NEEDS_INT_PUTFIELD_BARRIER) {
+      intFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setIntAtOffset(obj,off,value);
+    }
+    Magic.fence();
   }
 
   @Inline
@@ -309,20 +418,27 @@ public final class Unsafe {
   }
 
   @Inline
-  public int pageSize() {
-    return Memory.getPagesize();
+  public long getLong(long address) {
+    return Address.fromLong(address).loadLong();
   }
 
   @Inline
-  public void putLongVolatile(Object obj, long offset, long value) {
-    Magic.storeStoreBarrier();
+  public long getLong(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
-    if (NEEDS_LONG_PUTFIELD_BARRIER) {
-      longFieldWrite(obj, value, off, 0);
-    } else {
-      Magic.setLongAtOffset(obj,off,value);
-    }
-    Magic.fence();
+    return Magic.getLongAtOffset(obj,off);
+  }
+
+  @Inline
+  public long getLongVolatile(Object obj, long offset) {
+    Offset off = Offset.fromLong(offset);
+    long result = Magic.getLongAtOffset(obj,off);
+    Magic.combinedLoadBarrier();
+    return result;
+  }
+
+  @Inline
+  public void putLong(long address, long x) {
+    Address.fromLong(address).store(x);
   }
 
   @Inline
@@ -336,58 +452,15 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putLong(long address, long x) {
-    Address.fromLong(address).store(x);
-  }
-
-  @Inline
-  public long getLongVolatile(Object obj, long offset) {
-    Offset off = Offset.fromLong(offset);
-    long result = Magic.getLongAtOffset(obj,off);
-    Magic.combinedLoadBarrier();
-    return result;
-  }
-
-  @Inline
-  public long getLong(Object obj, long offset) {
-    Offset off = Offset.fromLong(offset);
-    return Magic.getLongAtOffset(obj,off);
-  }
-
-  @Inline
-  public long allocateMemory(long bytes) {
-    Address result = SysCall.sysCall.sysMalloc((int)bytes);
-    if (result.isZero()) {
-      throw new OutOfMemoryError("Unable to satisfy malloc of " + bytes);
-    }
-    return result.toLong();
-  }
-
-  @Inline
-  public void freeMemory(long address) {
-    SysCall.sysCall.sysFree(Address.fromLong(address));
-  }
-
-  @Inline
-  public void putObjectVolatile(Object obj, long offset, Object value) {
-    Offset off = Offset.fromLong(offset);
+  public void putLongVolatile(Object obj, long offset, long value) {
     Magic.storeStoreBarrier();
-    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
-      objectFieldWrite(obj, value, off, 0);
+    Offset off = Offset.fromLong(offset);
+    if (NEEDS_LONG_PUTFIELD_BARRIER) {
+      longFieldWrite(obj, value, off, 0);
     } else {
-      Magic.setObjectAtOffset(obj,off,value);
+      Magic.setLongAtOffset(obj,off,value);
     }
     Magic.fence();
-  }
-
-  @Inline
-  public void putObject(Object obj, long offset, Object value) {
-    Offset off = Offset.fromLong(offset);
-    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
-      objectFieldWrite(obj, value, off, 0);
-    } else {
-      Magic.setObjectAtOffset(obj,off,value);
-    }
   }
 
   @Inline
@@ -406,61 +479,28 @@ public final class Unsafe {
   }
 
   @Inline
-  public int arrayBaseOffset(Class<?> arrayClass) {
-    // TODO should we get this via ObjectModel?
-    return 0;
-  }
-
-  /**
-   * Ensure the given class has been initialized. This is often
-   * needed in conjunction with obtaining the static field base of a
-   * class.
-   */
-  public void ensureClassInitialized(Class<?> c){
-    // TODO implement
-  }
-
-  @Inline
-  public int arrayIndexScale(Class<?> arrayClass) {
-    RVMType arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
-    if (!arrayType.isArrayType()) {
-      return 0;
+  public void putObject(Object obj, long offset, Object value) {
+    Offset off = Offset.fromLong(offset);
+    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      objectFieldWrite(obj, value, off, 0);
     } else {
-      return 1 << arrayType.asArray().getLogElementSize();
+      Magic.setObjectAtOffset(obj,off,value);
     }
   }
 
   @Inline
-  public void unpark(Object thread) {
-    RVMThread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
-    if (vmthread != null) {
-      vmthread.unpark();
+  public void putObjectVolatile(Object obj, long offset, Object value) {
+    Offset off = Offset.fromLong(offset);
+    Magic.storeStoreBarrier();
+    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      objectFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setObjectAtOffset(obj,off,value);
     }
+    Magic.fence();
   }
 
-  @Inline
-  public void park(boolean isAbsolute,long time) throws Throwable  {
-    RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
-    if (vmthread != null) {
-      vmthread.park(isAbsolute, time);
-    }
-  }
-
-  public void throwException(Throwable ex) {
-    RuntimeEntrypoints.athrow(ex);
-  }
-
-  @Inline
-  public void setMemory(long address, long bytes, byte value) {
-    for (long i = 0; i < bytes; i++) {
-      Address.fromLong(address + i).store(value);
-    }
-  }
-
-  @Inline
-  public void copyMemory(long srcAddress, long destAddress, long bytes) {
-    Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), (int)bytes);
-  }
+  // Memory Barriers
 
   @Inline
   public void loadFence() {
@@ -475,30 +515,6 @@ public final class Unsafe {
   @Inline
   public void fullFence() {
     Magic.fence();
-  }
-
-  @Inline
-  public Class<?> defineClass(String name, byte[] bytes, int off, int len, final ClassLoader parentClassLoader, ProtectionDomain protectionDomain) {
-    if (parentClassLoader != null) {
-      return RVMClassLoader.defineClassInternal(name, bytes, off,len, parentClassLoader).getClassForType();
-    } else{
-      ClassLoader callingClassloader = null;
-//      ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
-      VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
-          "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
-          "Classpath namespace");
-      return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
-    }
-  }
-
-  @Inline
-  public Class<?> defineClass(String name, byte[] bytes, int off, int len) {
-    ClassLoader callingClassloader = null;
-//  ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
-  VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
-      "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
-      "Classpath namespace");
-    return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
   }
 
 }
