@@ -369,7 +369,7 @@ public final class GenerationContext {
     child.inlinePlan = this.inlinePlan;
 
     // Now inherit state based on callSite
-    child.inlineSequence = new InlineSequence(child.method, callSite.position, callSite);
+    child.inlineSequence = new InlineSequence(child.method, callSite.position(), callSite);
     child.enclosingHandlers = ebag;
     child.arguments = new Operand[Call.getNumberOfParams(callSite)];
     for (int i = 0; i < child.arguments.length; i++) {
@@ -384,9 +384,9 @@ public final class GenerationContext {
     // Initialize the child CFG, prologue, and epilogue blocks
     child.cfg = new ControlFlowGraph(this.cfg.numberOfNodes());
     child.prologue = new BasicBlock(PROLOGUE_BCI, child.inlineSequence, child.cfg);
-    child.prologue.exceptionHandlers = ebag;
+    child.prologue.setExceptionHandlers(ebag);
     child.epilogue = new BasicBlock(EPILOGUE_BCI, child.inlineSequence, child.cfg);
-    child.epilogue.exceptionHandlers = ebag;
+    child.epilogue.setExceptionHandlers(ebag);
     child.cfg.addLastInCodeOrder(child.prologue);
     child.cfg.addLastInCodeOrder(child.epilogue);
 
@@ -426,8 +426,7 @@ public final class GenerationContext {
         OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
       }
       Instruction s = Move.create(REF_MOVE, local, receiver);
-      s.bcIndex = PROLOGUE_BCI;
-      s.position = callSite.position;
+      s.setSourcePosition(PROLOGUE_BCI, callSite.position());
       child.prologue.appendInstruction(s);
     }
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++, argIdx++) {
@@ -452,8 +451,7 @@ public final class GenerationContext {
         localNum++;
       }
       Instruction s = Move.create(IRTools.getMoveOp(argType), formal, actual);
-      s.bcIndex = PROLOGUE_BCI;
-      s.position = callSite.position;
+      s.setSourcePosition(PROLOGUE_BCI, callSite.position());
       child.prologue.appendInstruction(s);
       if (argType.isLongType() || argType.isDoubleType()) {
         localNum++; // longs and doubles take two local words
@@ -489,9 +487,9 @@ public final class GenerationContext {
     // and epilogue don't disappear, it was correct to have the
     // parent's position. -- Matt
     child.prologue = new BasicBlock(PROLOGUE_BCI, parent.inlineSequence, parent.cfg);
-    child.prologue.exceptionHandlers = ebag;
+    child.prologue.setExceptionHandlers(ebag);
     child.epilogue = new BasicBlock(EPILOGUE_BCI, parent.inlineSequence, parent.cfg);
-    child.epilogue.exceptionHandlers = ebag;
+    child.epilogue.setExceptionHandlers(ebag);
     child.cfg.addLastInCodeOrder(child.prologue);
     child.cfg.addLastInCodeOrder(child.epilogue);
 
@@ -798,7 +796,7 @@ public final class GenerationContext {
                                              inlineSequence,
                                              new TypeOperand(RVMType.JavaLangThrowableType),
                                              cfg);
-      rethrow.exceptionHandlers = enclosingHandlers;
+      rethrow.setExceptionHandlers(enclosingHandlers);
       RegisterOperand ceo = temps.makeTemp(TypeReference.JavaLangThrowable);
       Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
@@ -857,8 +855,7 @@ public final class GenerationContext {
   }
 
   private void appendInstruction(BasicBlock b, Instruction s, int bcIndex) {
-    s.position = inlineSequence;
-    s.bcIndex = bcIndex;
+    s.setSourcePosition(bcIndex, inlineSequence);
     b.appendInstruction(s);
   }
 

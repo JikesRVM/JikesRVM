@@ -70,14 +70,14 @@ public class YieldPoints extends CompilerPhase {
     //     As part of prologue/epilogue insertion we'll remove
     //     the yieldpoints in trivial methods that otherwise wouldn't need
     //     a stackframe.
-    prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.getInlineSequence());
+    prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.getGc().getInlineSequence());
 
     // (2) If using epilogue yieldpoints scan basic blocks, looking for returns or throws
     if (VM.UseEpilogueYieldPoints) {
       for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
         BasicBlock block = e.nextElement();
         if (block.hasReturn() || block.hasAthrowInst()) {
-          prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.getInlineSequence());
+          prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.getGc().getInlineSequence());
         }
       }
     }
@@ -101,8 +101,8 @@ public class YieldPoints extends CompilerPhase {
       processLoopNest(e.nextElement());
     }
     Instruction dest = n.header.firstInstruction();
-    if (dest.position.getMethod().isInterruptible()) {
-      prependYield(n.header, YIELDPOINT_BACKEDGE, dest.bcIndex, dest.position);
+    if (dest.position().getMethod().isInterruptible()) {
+      prependYield(n.header, YIELDPOINT_BACKEDGE, dest.getBytecodeIndex(), dest.position());
     }
   }
 
@@ -137,8 +137,7 @@ public class YieldPoints extends CompilerPhase {
 
     Instruction s = Empty.create(yp);
     insertionPoint.insertBefore(s);
-    s.position = position;
-    s.bcIndex = bcIndex;
+    s.setSourcePosition(bcIndex, position);
   }
 }
 

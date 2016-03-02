@@ -342,8 +342,7 @@ public final class PiNodes extends CompilerPhase {
             lval.setType(TypeCheck.getType(instr).getTypeRef());
           }
           Instruction s = GuardedUnary.create(PI, lval, obj.copy(), null);
-          s.position = instr.position;
-          s.bcIndex = instr.bcIndex;
+          s.copySourcePositionFrom(instr);
           Operand iGuard = TypeCheck.getGuard(instr);
           if (iGuard != null) {
             Operand sGuard = iGuard.copy();

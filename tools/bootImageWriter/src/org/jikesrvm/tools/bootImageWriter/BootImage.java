@@ -14,8 +14,10 @@ package org.jikesrvm.tools.bootImageWriter;
 
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE_LIMIT;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE_LIMIT;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
@@ -300,8 +302,10 @@ public class BootImage extends BootImageWriterMessages
     }
     Offset lowAddr = freeDataOffset;
     freeDataOffset = freeDataOffset.plus(size);
-    if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
-      fail("bootimage full (need at least " + size + " more bytes for data)");
+    if (!VM.AllowOversizedImages && freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE_LIMIT)))
+      fail("bootimage full (need at least " + size + " more bytes for data). " +
+           "To ignore this, add config.allowOversizedImage=true to the configuration you are using " +
+           "or increase BOOT_IMAGE_DATA_SIZE_LIMIT in HeapLayoutConstants.template .");
 
     ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());
@@ -326,8 +330,10 @@ public class BootImage extends BootImageWriterMessages
     }
     Offset lowAddr = freeCodeOffset;
     freeCodeOffset = freeCodeOffset.plus(size);
-    if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
-      fail("bootimage full (need at least " + size + " more bytes for code)");
+    if (!VM.AllowOversizedImages && freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE_LIMIT)))
+      fail("bootimage full (need at least " + size + " more bytes for code). " +
+          "To ignore this, add config.allowOversizedImage=true to the configuration you are using " +
+          "or increase BOOT_IMAGE_CODE_SIZE_LIMIT in HeapLayoutConstants.template .");
 
     ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());

@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>11 The MMTk Test Harness</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 11</span><br /><a 
+ id="x13-13600011"></a>The MMTk Test Harness</h2>
+<h3 class="sectionHead"><span class="titlemark">11.1   </span> <a 
+ id="x13-13700011.1"></a>Overview</h3>
+<!--l. 7--><p class="noindent" >The MMTk harness is a debugging tool. It allows you to run MMTk with a simple
+client - a simple Java-like scripting language - which can explicitly allocate objects,
+create and delete references, etc. This allows MMTk to be run and debugged
+stand-alone, without the entire VM, greatly simplifying initial debugging and
+reducing the edit-debug turnaround time. This is all accessible through the command
+line or an IDE such as eclipse.
+</p><!--l. 9--><p class="noindent" >The harness can be run standalone or via Eclipse (or other IDE).
+</p><!--l. 13--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">11.2   </span> <a 
+ id="x13-13800011.2"></a>Standalone</h3>
+<!--l. 15-->
+<div class="lstlisting" id="listing-93"><span class="label"><a 
+ id="x13-138001r1"></a></span>ant mmtk-harness <br /><span class="label"><a 
+ id="x13-138002r2"></a></span>java -jar target/mmtk/mmtk-harness.jar <span 
+class="cmmi-10">&#x003C;</span>script-file<span 
+class="cmmi-10">&#x003E;</span> [options...]
+</div>
+<!--l. 20--><p class="noindent" >There is a collection of sample scripts in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MMTk/harness/test-scripts</span></span></span> directory.
+There is a simple wrapper script that runs all the available scripts against all the
+collectors,
+</p>
+<!--l. 22-->
+<div class="lstlisting" id="listing-94"><span class="label"><a 
+ id="x13-138003r1"></a></span>bin/test-mmtk [options...]
+</div>
+<!--l. 26--><p class="noindent" >This script prints a PASS/FAIL line as it goes, nd puts detailed output in
+results/mmtk.
+</p><!--l. 30--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">11.3   </span> <a 
+ id="x13-13900011.3"></a>In Eclipse</h3>
+<!--l. 32-->
+<div class="lstlisting" id="listing-95"><span class="label"><a 
+ id="x13-139001r1"></a></span>bin/buildit localhost --mmtk-eclipse
+</div>
+<!--l. 36--><p class="noindent" >Or in versions before 3.1.1
+</p>
+<!--l. 38-->
+<div class="lstlisting" id="listing-96"><span class="label"><a 
+ id="x13-139002r1"></a></span>ant mmtk-harness &#x0026;&#x0026; ant mmtk-harness-eclipse-project
+                                                                  
+
+                                                                  
+</div>
+<!--l. 42--><p class="noindent" >Refresh the project (or import it into eclipse), and then run &#x2019;Project <span 
+class="tcrm-1000">→</span> Clean&#x2019;.
+</p><!--l. 44--><p class="noindent" >Deﬁne a new run conﬁguration with main class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.mmtk.harness.Main</span></span></span>.
+</p><!--l. 46--><p class="noindent" >Click Run (actually the down-arrow next to the the green button), choose &#x2019;Run
+Conﬁgurations...&#x2019; </p><hr class="figure" /><div class="figure" 
+>
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+
+<!--l. 49--><p class="noindent" ><img 
+src="images/TheMMTkTestHarness-RunConfigurations.png" alt="PIC"  
+ />
+                                                                  
+
+                                                                  
+</p>
+</div><hr class="endfigure" />
+<!--l. 52--><p class="noindent" >Select ”Java Application” from the left-hand panel, and click the ”new” icon (top
+left).
+</p><!--l. 54--><p class="noindent" >Fill out the Main tab as below
+</p>
+<hr class="figure" /><div class="figure" 
+>
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+
+<!--l. 58--><p class="noindent" ><img 
+src="images/TheMMTkTestHarness-MainTab.png" alt="PIC"  
+ />
+                                                                  
+
+                                                                  
+</p>
+</div><hr class="endfigure" />
+<!--l. 61--><p class="noindent" >Fill out the Arguments tab as below
+</p>
+<hr class="figure" /><div class="figure" 
+>
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+
+<!--l. 65--><p class="noindent" ><img 
+src="images/TheMMTkTestHarness-ArgumentsTab.png" alt="PIC"  
+ />
+                                                                  
+
+                                                                  
+</p>
+</div><hr class="endfigure" />
+<!--l. 68--><p class="noindent" >The harness makes extensive use of the java &#x2019;assert&#x2019; keyword, so you should run the
+harness with &#x2019;-ea&#x2019; in the VM options.
+</p><!--l. 70--><p class="noindent" >Click &#x2019;Apply&#x2019; and then &#x2019;Run&#x2019; to test the conﬁguration. Eclipse will prompt for a
+value for the &#x2019;script&#x2019; variable - enter the name of one of the available test scripts,
+such as &#x2019;Lists&#x2019;, and click OK. The scripts provided with MMTk are in the directory
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MMTk/harness/test-scripts</span></span></span>.
+</p><!--l. 72--><p class="noindent" >You can conﬁgure eclipse to display vmmagic values (Address/ObjectReference/etc)
+using their toString method through the Eclipse <span 
+class="tcrm-1000">→</span> Preferences... <span 
+class="tcrm-1000">→</span> Java <span 
+class="tcrm-1000">→</span> Debug
+<span 
+class="tcrm-1000">→</span> Detail Formatters menu. The simplest option is to check the box to use toString
+&#x2019;As the label for all variables&#x2019;.
+</p>
+<h3 class="sectionHead"><span class="titlemark">11.4   </span> <a 
+ id="x13-14000011.4"></a>Test harness options</h3>
+<!--l. 78--><p class="noindent" >Options are passed to the test harness as &#x2019;keyword=value&#x2019; pairs. The standard
+MMTk options that are available through JikesRVM are accepted (leave oﬀ the
+”-X:gc:”), as well as the following harness-speciﬁc options:
+</p>
+<div class="center" 
+>
+<!--l. 80--><p class="noindent" >
+<a 
+ id="x13-140001r1"></a></p><!--l. 82--><div class="longtable"> <table id="TBL-14" class="longtable" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-14-1g"><col 
+id="TBL-14-1" /><col 
+id="TBL-14-2" /></colgroup>
+<tr  
+ style="vertical-align:baseline;" id="TBL-14-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-1-1"  
+class="td11">
+<!--l. 82--><p class="noindent" >Option                      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-1-2"  
+class="td11">
+<!--l. 82--><p class="noindent" >Meaning                                                   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-2-1"  
+class="td11">
+<!--l. 83--><p class="noindent" >plan                         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-2-2"  
+class="td11">
+<!--l. 83--><p class="noindent" >The    MMTk    plan    class.    Defaults    to
+org.mmtk.plan.marksweep.MS                      </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-3-1"  
+class="td11">
+<!--l. 84--><p class="noindent" >initHeap                    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-3-2"  
+class="td11">
+<!--l. 84--><p class="noindent" >Initial heap size. It is also a good idea to use
+&#x2019;variableSizeHeap=false&#x2019;, since the heap growth
+manager uses elapsed time to make its decisions,
+and  time  is  seriously  dilated  by  the  MMTk
+Harness.                                                   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-4-1"  
+class="td11">
+<!--l. 85--><p class="noindent" >maxHeap                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-4-2"  
+class="td11">
+<!--l. 85--><p class="noindent" >Maximum heap size (default: 64 pages)           </p></td>
+                                                                  
+
+                                                                  
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-5-1"  
+class="td11">
+<!--l. 86--><p class="noindent" >trace                         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-5-2"  
+class="td11">
+<!--l. 86--><p class="noindent" >Debugging messages from the MMTk Harness.
+Useful trace options include </p>
+       <ul class="itemize1">
+       <li class="itemize">ALLOC - trace object allocation
+       </li>
+       <li class="itemize">AVBYTE  -  Mutations  of  the  &#x2019;available
+       byte&#x2019; in each object header
+       </li>
+       <li class="itemize">COLLECT - Detailed information during
+       GC
+       </li>
+       <li class="itemize">HASH - Hash code operations
+       </li>
+       <li class="itemize">MEMORY     -     page-level     memory
+       operations (map, unmap, zero)
+       </li>
+       <li class="itemize">OBJECT - trace object mutation events
+       </li>
+       <li class="itemize">REFERENCES     -     Reference     type
+       processing
+       </li>
+       <li class="itemize">REMSET - Remembered set processing
+       </li>
+       <li class="itemize">SANITY  -  Gives  detailed  information
+       during Harness sanity checking
+       </li>
+       <li class="itemize">TRACEOBJECT  -  Traces  every  call  to
+       traceObject during GC (requires MMTk
+       support)</li></ul>
+<!--l. 99--><p class="noindent" >See the class org.mmtk.harness.lang.Trace for more
+details and trace options - most of the remaining
+options are only of interest to maintainers of the
+Harness itself.                                            </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-6-1"  
+class="td11">
+<!--l. 100--><p class="noindent" >watchAddress             </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-6-2"  
+class="td11">
+<!--l. 100--><p class="noindent" >Set   a   watchpoint   on   a   given   address   or
+comma-separated list of addresses. The harness
+will display every load and store to that address.</p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-7-1"  
+class="td11">
+<!--l. 101--><p class="noindent" >watchObject              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-7-2"  
+class="td11">
+<!--l. 101--><p class="noindent" >Watch  modiﬁcations  to  a  given  object  or
+comma-separated list of objects, identiﬁed by
+object ID (sequence number).                       </p></td>
+                                                                  
+
+                                                                  
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-8-1"  
+class="td11">
+<!--l. 102--><p class="noindent" >gcEvery                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-8-2"  
+class="td11">
+<!--l. 102--><p class="noindent" >Force frequent GCs. Options are </p>
+       <ul class="itemize1">
+       <li class="itemize">ALLOC - GC after every object allocation
+       </li>
+       <li class="itemize">SAFEPOINT - GC at every GC safepoint</li></ul>
+<!--l. 107--><p class="noindent" >                                                              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-9-1"  
+class="td11">
+<!--l. 107--><p class="noindent" >scheduler                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-9-2"  
+class="td11">
+<!--l. 107--><p class="noindent" >Optionally use the deterministic scheduler. Options
+are </p>
+       <ul class="itemize1">
+       <li class="itemize">JAVA (default) - Threads in the script are
+       Java threads, scheduled by the host JVM
+       </li>
+       <li class="itemize">DETERMINISTIC
+       - Threads are scheduled deterministically,
+       with yield points at every memory access.</li></ul>
+<!--l. 112--><p class="noindent" >                                                              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-10-1"  
+class="td11">
+<!--l. 112--><p class="noindent" >schedulerPolicy           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-10-2"  
+class="td11">
+<!--l. 112--><p class="noindent" >Select from several scheduling policies, </p>
+       <ul class="itemize1">
+       <li class="itemize">FIXED - Threads yield every &#x2019;nth&#x2019; yield
+       point
+       </li>
+       <li class="itemize">RANDOM - Threads yield according to a
+       pseudo-random policy
+       </li>
+       <li class="itemize">NEVER    -    Threads    only    yield    at
+       mandatory yieldpoints</li></ul>
+<!--l. 118--><p class="noindent" >                                                              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-11-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-11-1"  
+class="td11">
+<!--l. 118--><p class="noindent" >yieldInterval               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-11-2"  
+class="td11">
+<!--l. 118--><p class="noindent" >For  the  FIXED  scheduling  policy,  the  yield
+frequency.                                                 </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-12-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-12-1"  
+class="td11">
+<!--l. 119--><p class="noindent" >randomPolicyLength <br 
+class="newline" />randomPolicySeed <br 
+class="newline" />randomPolicyMin <br 
+class="newline" />randomPolicyMax       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-12-2"  
+class="td11">
+<!--l. 119--><p class="noindent" >Parameters for the RANDOM scheduler policy.
+Whenever  a  thread  is  created,  the  scheduler
+ﬁxes a yield pattern of &#x2019;length&#x2019; integers between
+&#x2019;min&#x2019;  and  &#x2019;max&#x2019;.  These  numbers  are  used  as
+yield intervals in a circular manner.               </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-13-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-13-1"  
+class="td11">
+<!--l. 120--><p class="noindent" >policyStats                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-13-2"  
+class="td11">
+<!--l. 120--><p class="noindent" >Dump statistics for the deterministic scheduler&#x2019;s
+yield policy.                                              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-14-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-14-1"  
+class="td11">
+<!--l. 121--><p class="noindent" >bits=32<span 
+class="cmsy-10">|</span>64                 </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-14-2"  
+class="td11">
+<!--l. 121--><p class="noindent" >Select between 32 and 64-bit memory models.  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-15-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-15-1"  
+class="td11">
+<!--l. 122--><p class="noindent" >dumpPcode                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-15-2"  
+class="td11">
+<!--l. 122--><p class="noindent" >Dump the pseudo-code generated by the harness
+interpreter                                                </p></td>
+                                                                  
+
+                                                                  
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-16-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-16-1"  
+class="td11">
+<!--l. 123--><p class="noindent" >timeout                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-14-16-2"  
+class="td11">
+<!--l. 123--><p class="noindent" >Abort collection if a GC takes longer than this
+value (seconds). Defaults to 30.                     </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-17-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-17-1"  
+class="td11">                    </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-18-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-18-1"  
+class="td11">                    </td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-19-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-19-1"  
+class="td11">
+<!--l. 124--><p class="noindent" >                    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-20-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-20-1"  
+class="td11">
+<!--l. 124--><p class="noindent" >                    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-14-21-"><td  style="white-space:wrap; text-align:left;" id="TBL-14-21-1"  
+class="td11">                    </td><td  style="white-space:wrap; text-align:left;" id="TBL-14-21-2"  
+class="td11"></td></tr>
+</table></div>
+</div>
+<!--l. 129--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">11.5   </span> <a 
+ id="x13-14100011.5"></a>Scripts</h3>
+<!--l. 131--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">MMTk/harness/test-scripts</span></span></span> directory contains several test scripts.
+</p>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 134--><p class="noindent" ></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-15" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-15-1g"><col 
+id="TBL-15-1" /><col 
+id="TBL-15-2" /><col 
+id="TBL-15-3" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-15-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-1-1"  
+class="td11"><!--l. 136--><p class="noindent" >Script               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-1-2"  
+class="td11"><!--l. 136--><p class="noindent" >Purpose                    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-1-3"  
+class="td11"><!--l. 136--><p class="noindent" >Description                        </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-2-1"  
+class="td11"><!--l. 137--><p class="noindent" >Alignment          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-2-2"  
+class="td11"><!--l. 137--><p class="noindent" >Test              allocator
+alignment behaviour    </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-2-3"  
+class="td11"><!--l. 137--><p class="noindent" >Tests  alignment  by  creating
+a list of objects aligned to a
+mixture of 4-byte and 8-byte
+boundaries.                        </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-3-1"  
+class="td11"><!--l. 138--><p class="noindent" >CyclicGarbage     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-3-2"  
+class="td11"><!--l. 138--><p class="noindent" >Test    cycle    detector
+in  Reference  Counting
+collectors                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-3-3"  
+class="td11"><!--l. 138--><p class="noindent" >Creates   large   amounts   of
+cyclic garbage in the form of
+circular linked lists.              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-4-1"  
+class="td11"><!--l. 139--><p class="noindent" >FixedLive           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-4-2"  
+class="td11"><!--l. 139--><p class="noindent" >General collection test  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-4-3"  
+class="td11"><!--l. 139--><p class="noindent" >Harness
+version  of  the  FixedLive  GC
+micro-benchmark.  Creates  a
+binary   tree,   then   allocates
+short-lived  objects  to  force
+garbage collections.              </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-5-1"  
+class="td11"><!--l. 140--><p class="noindent" >HashCode          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-5-2"  
+class="td11"><!--l. 140--><p class="noindent" >Hash code test.           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-5-3"  
+class="td11"><!--l. 140--><p class="noindent" >Creates
+objects and veriﬁes that their
+hashcode is unchanged after a
+GC.                                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-6-1"  
+class="td11"><!--l. 141--><p class="noindent" >LargeObject       </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-6-2"  
+class="td11"><!--l. 141--><p class="noindent" >Large  object  allocator
+test                          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-6-3"  
+class="td11"><!--l. 141--><p class="noindent" >Creates   objects   with   sizes
+ranging from 2 to 32 pages (8k
+to 128k bytes).                    </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-7-1"  
+class="td11"><!--l. 142--><p class="noindent" >Lists                  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-7-2"  
+class="td11"><!--l. 142--><p class="noindent" >Generational   collector
+stress test                  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-7-3"  
+class="td11"><!--l. 142--><p class="noindent" >Creates a set of lists of varying
+lengths, and then allocates to
+force collections. Ensures that
+there   are   Mature<span 
+class="tcrm-1000">→</span>Nursery,
+Nursery<span 
+class="tcrm-1000">→</span>Mature            and
+Stack<span 
+class="tcrm-1000">→</span>Nursery
+and  Stack<span 
+class="tcrm-1000">→</span>Mature  pointers
+at  every  GC.  Remsets  get  a
+serious workout.                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-8-1"  
+class="td11"><!--l. 143--><p class="noindent" >OutOfMemory     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-8-2"  
+class="td11"><!--l. 143--><p class="noindent" >Tests     out-of-memory
+handling.                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-8-3"  
+class="td11"><!--l. 143--><p class="noindent" >Allocates  a  linked  list  that
+grows until the heap ﬁlls up.  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-9-1"  
+class="td11"><!--l. 144--><p class="noindent" >Quicksort           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-9-2"  
+class="td11"><!--l. 144--><p class="noindent" >General collection test  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-9-3"  
+class="td11"><!--l. 144--><p class="noindent" >Implements     a     list-based
+quicksort.                           </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-10-1"  
+class="td11"><!--l. 145--><p class="noindent" >ReferenceTypes   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-10-2"  
+class="td11"><!--l. 145--><p class="noindent" >Reference type test      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-10-3"  
+class="td11"><!--l. 145--><p class="noindent" >Creates                      Weak
+references,  forces  collections
+and  ensures  that  they  are
+correctly handled.                </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-11-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-11-1"  
+class="td11"><!--l. 146--><p class="noindent" >Spawn               </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-11-2"  
+class="td11"><!--l. 146--><p class="noindent" >Concurrency test         </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-11-3"  
+class="td11"><!--l. 146--><p class="noindent" >Creates lots of threads which
+allocate objects.                  </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-12-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-12-1"  
+class="td11"><!--l. 147--><p class="noindent" >SpreadAlloc        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-12-2"  
+class="td11"><!--l. 147--><p class="noindent" >Free-list allocator test  </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-12-3"  
+class="td11"><!--l. 147--><p class="noindent" >Creates      large      numbers
+of  objects  with  random  size
+distributions,     keeping     a
+fraction of the objects alive.   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-13-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-13-1"  
+class="td11"><!--l. 148--><p class="noindent" >SpreadAlloc16     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-13-2"  
+class="td11"><!--l. 148--><p class="noindent" >Concurrent       free-list
+allocator test              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-15-13-3"  
+class="td11"><!--l. 148--><p class="noindent" >A  multithreaded  version  of
+SpreadAlloc.                       </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-15-14-"><td  style="white-space:wrap; text-align:left;" id="TBL-15-14-1"  
+class="td11">               </td></tr></table></div>
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<h3 class="sectionHead"><span class="titlemark">11.6   </span> <a 
+ id="x13-14200011.6"></a>Scripting language</h3>
+<!--l. 156--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">11.6.1   </span> <a 
+ id="x13-14300011.6.1"></a>Basics</h4>
+<!--l. 158--><p class="noindent" >The language has three types: integer, object and user-deﬁned. The object type
+behaves essentially like a double array of pointers and integers (odd, I know, but the
+scripting language is basically concerned with ﬁlling up the heap with objects of a
+certain size and reachability). User-deﬁned types are like Java objects without
+methods, &#x2019;C&#x2019; structs, Pascal record types etc.
+</p><!--l. 160--><p class="noindent" >Objects and user-deﬁned types are allocated with the &#x2019;alloc&#x2019; statement: alloc(p,n,align)
+allocates an object with &#x2019;p&#x2019; pointers, &#x2019;n&#x2019; integers and the given alignment; alloc(type)
+allocates an object of the given type. Variables are declared &#x2019;c&#x2019; style, and are
+optionally initialized at declaration.
+</p><!--l. 162--><p class="noindent" >User-deﬁned types are declared as follows:
+</p>
+<!--l. 164-->
+<div class="lstlisting" id="listing-97"><span class="label"><a 
+ id="x13-143001r1"></a></span>type list <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x13-143002r2"></a></span>  int value; <br /><span class="label"><a 
+ id="x13-143003r3"></a></span>  list next; <br /><span class="label"><a 
+ id="x13-143004r4"></a></span><span 
+class="cmsy-10">}</span>
+</div>
+<!--l. 171--><p class="noindent" >and ﬁelds are accessed using java-style ”dot” notation, eg </p><!--l. 172-->
+<div class="lstlisting" id="listing-98"><span class="label"><a 
+ id="x13-143005r1"></a></span>  list l = alloc(list); <br /><span class="label"><a 
+ id="x13-143006r2"></a></span>  l.value = 0; <br /><span class="label"><a 
+ id="x13-143007r3"></a></span>  l.next = null;
+</div>
+<!--l. 178--><p class="noindent" >At this stage, ﬁelds can only be dereferenced to one level, eg <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">l.next.next</span></span></span> is
+not valid syntax - you need to introduce a temporary variable to achieve
+this.
+</p><!--l. 180--><p class="noindent" >Object ﬁelds are referenced using syntax like <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">tmp.int[5]</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">tmp.object[i*3]</span></span></span>, ie
+like a struct of arrays of the appropriate types.
+</p><!--l. 185--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">11.6.2   </span> <a 
+ id="x13-14400011.6.2"></a>Syntax</h4>
+<!--l. 187-->
+<div class="lstlisting" id="listing-99"><span class="label"><a 
+ id="x13-144001r1"></a></span>script ::= (method<span 
+class="cmsy-10">|</span>type)... <br /><span class="label"><a 
+ id="x13-144002r2"></a></span> <br /><span class="label"><a 
+ id="x13-144003r3"></a></span>method ::= ident ”(” <span 
+class="cmsy-10">{</span> type ident <span 
+class="cmsy-10">{</span> ”,” type ident<span 
+class="cmsy-10">}</span>...  ”)” <br /><span class="label"><a 
+ id="x13-144004r4"></a></span>           ( ”<span 
+class="cmsy-10">{</span>” statement... ”<span 
+class="cmsy-10">}</span>” <br /><span class="label"><a 
+ id="x13-144005r5"></a></span>           <span 
+class="cmsy-10">|</span> ”intrinsic” ”class” name ”method” name ”signature” ”(” java-class <span 
+class="cmsy-10">{</span>, java class<span 
+class="cmsy-10">}</span> ”)” <br /><span class="label"><a 
+ id="x13-144006r6"></a></span> <br /><span class="label"><a 
+ id="x13-144007r7"></a></span>type ::= ”type” ident ”<span 
+class="cmsy-10">{</span>” field... ”<span 
+class="cmsy-10">}</span>” <br /><span class="label"><a 
+ id="x13-144008r8"></a></span>field ::= type ident ”;” <br /><span class="label"><a 
+ id="x13-144009r9"></a></span> <br /><span class="label"><a 
+ id="x13-144010r10"></a></span>statement ::= <br /><span class="label"><a 
+ id="x13-144011r11"></a></span>          ”if” ”(” expr ”)” block <span 
+class="cmsy-10">{</span> ”elif” ”(” expr ”)” block <span 
+class="cmsy-10">}</span> [ ”else” block ] <br /><span class="label"><a 
+ id="x13-144012r12"></a></span>        <span 
+class="cmsy-10">|</span> ”while ”(” expr ”)” block <br /><span class="label"><a 
+ id="x13-144013r13"></a></span>        <span 
+class="cmsy-10">|</span> [ [ type ] ident ”=” ] ”alloc” ”(” expr ”,” expr [ ”,” expr ] ”)” ”;” <br /><span class="label"><a 
+ id="x13-144014r14"></a></span>        <span 
+class="cmsy-10">|</span> [ ident ”=” ] ”hash” ”(” expr ”)” ”;” <br /><span class="label"><a 
+ id="x13-144015r15"></a></span>        <span 
+class="cmsy-10">|</span> ”gc” ”(” ”)” <br /><span class="label"><a 
+ id="x13-144016r16"></a></span>        <span 
+class="cmsy-10">|</span> ”spawn” ”(” ident [ ”,” expr ]... ”)” ”;” <br /><span class="label"><a 
+ id="x13-144017r17"></a></span>        <span 
+class="cmsy-10">|</span> type ident [ ”=” expr ] ”;” <br /><span class="label"><a 
+ id="x13-144018r18"></a></span>        <span 
+class="cmsy-10">|</span> lvalue ”=” expr ”;” <br /><span class="label"><a 
+ id="x13-144019r19"></a></span> <br /><span class="label"><a 
+ id="x13-144020r20"></a></span>lvalue ::= ident ”=” expr ”;” <br /><span class="label"><a 
+ id="x13-144021r21"></a></span>        <span 
+class="cmsy-10">|</span> ident ”.” type ”[” expr ”]” <br /><span class="label"><a 
+ id="x13-144022r22"></a></span> <br /><span class="label"><a 
+ id="x13-144023r23"></a></span>type ::= ”int” <span 
+class="cmsy-10">|</span> ”object” <span 
+class="cmsy-10">|</span> ident <br /><span class="label"><a 
+ id="x13-144024r24"></a></span> <br /><span class="label"><a 
+ id="x13-144025r25"></a></span>expr ::= expr binop expr <br /><span class="label"><a 
+ id="x13-144026r26"></a></span>                <span 
+class="cmsy-10">|</span> unop expr <br /><span class="label"><a 
+ id="x13-144027r27"></a></span>                <span 
+class="cmsy-10">|</span> ”(” expr ”)” <br /><span class="label"><a 
+ id="x13-144028r28"></a></span>                <span 
+class="cmsy-10">|</span> ident <br /><span class="label"><a 
+ id="x13-144029r29"></a></span>                <span 
+class="cmsy-10">|</span> ident ”.” type ”[” expr ”]” <br /><span class="label"><a 
+ id="x13-144030r30"></a></span>                <span 
+class="cmsy-10">|</span> ident ”.” ident <br /><span class="label"><a 
+ id="x13-144031r31"></a></span>                <span 
+class="cmsy-10">|</span> int-const <br /><span class="label"><a 
+ id="x13-144032r32"></a></span>                <span 
+class="cmsy-10">|</span> intrinsic <br /><span class="label"><a 
+ id="x13-144033r33"></a></span> <br /><span class="label"><a 
+ id="x13-144034r34"></a></span>intrinsic ::= ”alloc” ( ”(” expr ”,” expr [”,” expr] ”) <br /><span class="label"><a 
+ id="x13-144035r35"></a></span>                      <span 
+class="cmsy-10">|</span> type <br /><span class="label"><a 
+ id="x13-144036r36"></a></span>                      ) <br /><span class="label"><a 
+ id="x13-144037r37"></a></span>            <span 
+class="cmsy-10">|</span> ”(” expr ”)” <br /><span class="label"><a 
+ id="x13-144038r38"></a></span>            <span 
+class="cmsy-10">|</span> ”gc ” ”(” ”)” <br /><span class="label"><a 
+ id="x13-144039r39"></a></span> <br /><span class="label"><a 
+ id="x13-144040r40"></a></span>binop ::= ”+” <span 
+class="cmsy-10">|</span> ”-” <span 
+class="cmsy-10">|</span> ”<span 
+class="tcrm-1000">*</span>” <span 
+class="cmsy-10">|</span> ”/” <span 
+class="cmsy-10">|</span> ”%” <span 
+class="cmsy-10">|</span> ”&#x0026;&#x0026;” <span 
+class="cmsy-10">|</span> ”<span 
+class="cmsy-10">||</span>” <span 
+class="cmsy-10">|</span> ”==” <span 
+class="cmsy-10">|</span> ”!=” <br /><span class="label"><a 
+ id="x13-144041r41"></a></span> <br /><span class="label"><a 
+ id="x13-144042r42"></a></span>unop ::= ”!” <span 
+class="cmsy-10">|</span> ”-”
+</div>
+                                                                  
+
+                                                                  
+<!--l. 236--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">11.7   </span> <a 
+ id="x13-14500011.7"></a>MMTk Unit Tests</h3>
+<!--l. 238--><p class="noindent" >There is a small set of unit tests available for MMTk, using the harness as
+scaﬀolding. These tests can be run in the standard test infrastructure using the
+&#x2019;mmtk-unit-tests&#x2019; test set, or the shell script &#x2019;bin/unit-test-mmtk&#x2019;. Possibly more
+usefully, they can be run from Eclipse.
+</p><!--l. 240--><p class="noindent" >To run the unit tests in Eclipse, build the mmtk harness project (see above), and add
+the directory <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">testing/tests/mmtk/src</span></span></span> to your build path (navigate to the directory
+in the package explorer pane in eclipse, right-click <span 
+class="tcrm-1000">→</span> build-path <span 
+class="tcrm-1000">→</span> Use as Source
+Folder). Either open one of the test classes, or highlight it in the package explorer
+and press the &#x2019;run&#x2019; button.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 98--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 98--><p class="noindent" ><a 
+ id="tailTheMMTkTestHarness.html"></a></p> 
+</body></html> 

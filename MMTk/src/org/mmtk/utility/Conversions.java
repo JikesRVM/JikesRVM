@@ -21,19 +21,10 @@ import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/*
- import org.jikesrvm.Offset;
+/**
  * Conversions between different units.
  */
 @Uninterruptible public class Conversions {
-
-  // public static Address roundDownVM(Address addr) {
-  //   return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_REGION).toAddress();
-  // }
-
-  // public static Extent roundDownVM(Extent bytes) {
-  //   return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_REGION).toExtent();
-  // }
 
   public static Address roundDownMB(Address addr) {
     return roundDown(addr.toWord(), LOG_BYTES_IN_MBYTE).toAddress();
@@ -112,7 +103,17 @@ import org.vmmagic.pragma.*;
 
   public static int bytesToPages(Extent bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
+    if (VM.VERIFY_ASSERTIONS) {
+      Extent computedExtent = pagesToAddress(pages).toWord().toExtent();
+      boolean bytesMatchPages = computedExtent.EQ(bytes);
+      if (!bytesMatchPages) {
+        Log.writeln("ERROR: number of bytes computed from pages must match original byte amount!");
+        Log.write("       bytes = "); Log.writeln(bytes);
+        Log.write("       pages = "); Log.writeln(pages);
+        Log.write("       bytes computed from pages = "); Log.writeln(computedExtent);
+        VM.assertions._assert(false);
+      }
+    }
     return pages;
   }
 

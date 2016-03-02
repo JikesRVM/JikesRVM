@@ -144,7 +144,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
    */
   @Override
   public void perform(IR ir) {
-    ir.gc.resync(); // resync generation context -- yuck...
+    ir.getGc().resync(); // resync generation context -- yuck...
 
     for (Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst = next) {
       next = inst.nextInstructionInCodeOrder();
@@ -156,7 +156,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           TypeOperand Type = New.getClearType(inst);
           RVMClass cls = (RVMClass) Type.getVMType();
           IntConstantOperand hasFinalizer = IRTools.IC(cls.hasFinalizer() ? 1 : 0);
-          RVMMethod callSite = inst.position.getMethod();
+          RVMMethod callSite = inst.position().getMethod();
           IntConstantOperand allocator = IRTools.IC(MemoryManager.pickAllocator(cls, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(cls));
           IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(cls, false));
@@ -213,7 +213,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           boolean inline = numberElements instanceof IntConstantOperand;
           Operand width = IRTools.IC(array.getLogElementSize());
           Operand headerSize = IRTools.IC(ObjectModel.computeArrayHeaderSize(array));
-          RVMMethod callSite = inst.position.getMethod();
+          RVMMethod callSite = inst.position().getMethod();
           IntConstantOperand allocator = IRTools.IC(MemoryManager.pickAllocator(array, callSite));
           IntConstantOperand align = IRTools.IC(ObjectModel.getAlignment(array));
           IntConstantOperand offset = IRTools.IC(ObjectModel.getOffsetForAlignment(array, false));
@@ -268,7 +268,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
         case NEWOBJMULTIARRAY_opcode: {
           int dimensions = Multianewarray.getNumberOfDimensions(inst);
-          RVMMethod callSite = inst.position.getMethod();
+          RVMMethod callSite = inst.position().getMethod();
           int typeRefId = Multianewarray.getType(inst).getTypeRef().getId();
           if (dimensions == 2) {
             RVMMethod target = Entrypoints.optNew2DArrayMethod;
@@ -396,10 +396,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                              AStore.getArray(inst).copy(),
                              AStore.getIndex(inst).copy(),
                              AStore.getValue(inst).copy());
-            wb.bcIndex = RUNTIME_SERVICES_BCI;
-            wb.position = inst.position;
-            inst.replace(wb);
-            next = wb.prevInstructionInCodeOrder();
+            replaceInstructionWithBarrier(inst, wb);
             if (ir.options.H2L_INLINE_WRITE_BARRIER) {
               inline(wb, ir, true);
             }
@@ -464,10 +461,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                            ALoad.getClearGuard(inst),
                            ALoad.getArray(inst).copy(),
                            ALoad.getIndex(inst).copy());
-            rb.bcIndex = RUNTIME_SERVICES_BCI;
-            rb.position = inst.position;
-            inst.replace(rb);
-            next = rb.prevInstructionInCodeOrder();
+            replaceInstructionWithBarrier(inst, rb);
             inline(rb, ir, true);
           }
         }
@@ -492,10 +486,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                  PutField.getValue(inst).copy(),
                                  PutField.getOffset(inst).copy(),
                                  IRTools.IC(fieldRef.getId()));
-                wb.bcIndex = RUNTIME_SERVICES_BCI;
-                wb.position = inst.position;
-                inst.replace(wb);
-                next = wb.prevInstructionInCodeOrder();
+                replaceInstructionWithBarrier(inst, wb);
                 if (ir.options.H2L_INLINE_WRITE_BARRIER) {
                   inline(wb, ir, true);
                 }
@@ -549,10 +540,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                GetField.getRef(inst).copy(),
                                GetField.getOffset(inst).copy(),
                                IRTools.IC(fieldRef.getId()));
-                rb.bcIndex = RUNTIME_SERVICES_BCI;
-                rb.position = inst.position;
-                inst.replace(rb);
-                next = rb.prevInstructionInCodeOrder();
+                replaceInstructionWithBarrier(inst, rb);
                 inline(rb, ir, true);
               }
             }
@@ -574,10 +562,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                PutStatic.getValue(inst).copy(),
                                PutStatic.getOffset(inst).copy(),
                                IRTools.IC(field.getId()));
-              wb.bcIndex = RUNTIME_SERVICES_BCI;
-              wb.position = inst.position;
-              inst.replace(wb);
-              next = wb.prevInstructionInCodeOrder();
+              replaceInstructionWithBarrier(inst, wb);
               if (ir.options.H2L_INLINE_WRITE_BARRIER) {
                 inline(wb, ir, true);
               }
@@ -599,10 +584,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                MethodOperand.STATIC(target),
                                GetStatic.getOffset(inst).copy(),
                                IRTools.IC(field.getId()));
-              rb.bcIndex = RUNTIME_SERVICES_BCI;
-              rb.position = inst.position;
-              inst.replace(rb);
-              next = rb.prevInstructionInCodeOrder();
+              replaceInstructionWithBarrier(inst, rb);
               inline(rb, ir, true);
             }
           }
@@ -626,7 +608,13 @@ public final class ExpandRuntimeServices extends CompilerPhase {
       _os.perform(ir);
     }
     // signal that we do not intend to use the gc in other phases anymore.
-    ir.gc.close();
+    ir.getGc().close();
+  }
+
+  private void replaceInstructionWithBarrier(Instruction orig, Instruction barrier) {
+    barrier.setSourcePosition(RUNTIME_SERVICES_BCI, orig.position());
+    orig.replace(barrier);
+    next = barrier.prevInstructionInCodeOrder();
   }
 
   private void inline(Instruction inst, IR ir) {
@@ -672,10 +660,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                    AStore.getArray(inst).copy(),
                    AStore.getIndex(inst).copy(),
                    AStore.getValue(inst).copy());
-    wb.bcIndex = RUNTIME_SERVICES_BCI;
-    wb.position = inst.position;
-    inst.replace(wb);
-    next = wb.prevInstructionInCodeOrder();
+    replaceInstructionWithBarrier(inst, wb);
     if (ir.options.H2L_INLINE_WRITE_BARRIER) {
       inline(wb, ir, true);
     }
@@ -699,10 +684,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                    PutField.getValue(inst).copy(),
                    PutField.getOffset(inst).copy(),
                    IRTools.IC(fieldRef.getId()));
-    wb.bcIndex = RUNTIME_SERVICES_BCI;
-    wb.position = inst.position;
-    inst.replace(wb);
-    next = wb.prevInstructionInCodeOrder();
+    replaceInstructionWithBarrier(inst, wb);
     if (ir.options.H2L_INLINE_PRIMITIVE_WRITE_BARRIER) {
       inline(wb, ir, true);
     }

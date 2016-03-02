@@ -735,7 +735,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     // instructions.
     BranchProfileOperand profile = IfCmp.getBranchProfile(cb);
     if ((Math.abs(profile.takenProbability - 0.5) >= ir.options.CONTROL_WELL_PREDICTED_CUTOFF) &&
-        !(cb.position != null && cb.position.method.getName() == ABS && cond.isFLOATINGPOINT())) {
+        !(cb.position() != null && cb.position().method.getName() == ABS && cond.isFLOATINGPOINT())) {
       if (VERBOSE)
         System.out.println("CondMove: fail - branch could be well predicted by branch predictor: " +
             profile.takenProbability);

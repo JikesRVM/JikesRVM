@@ -150,7 +150,7 @@ public class CFGVisualization {
       String s = formatInstruction(inst);
       s = s.replaceAll("\n", " ");
       s = s.replaceAll("\"", "\\\\\"");
-      InlineSequence position = inst.position;
+      InlineSequence position = inst.position();
       int bytecodeIndex = inst.getBytecodeIndex();
       if (position != null) {
         lineNumber = position.getMethod().getLineNumberForBCIndex(bytecodeIndex);

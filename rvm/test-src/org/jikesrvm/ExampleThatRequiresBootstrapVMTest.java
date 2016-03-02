@@ -13,11 +13,12 @@
 package org.jikesrvm;
 
 import static org.junit.Assert.*;
-import static org.jikesrvm.junit.runners.VMRequirements.isRunningOnJikesRVM;
+import static org.jikesrvm.junit.runners.VMRequirements.isRunningOnBuiltJikesRVM;
 
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.junit.runners.RequiresBootstrapVM;
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -26,8 +27,19 @@ import org.junit.runner.RunWith;
 @Category(RequiresBootstrapVM.class)
 public class ExampleThatRequiresBootstrapVMTest {
 
+  @BeforeClass
+  public static void sanityCheck() {
+    // Our custom JUnit test runner is supposed to
+    // skip methods annotated with @BeforeClass
+    // if the VM environment doesn't match.
+    // Validate this by failing hard if it doesn't.
+    if (!"bootstrap".equals(System.getProperty("jikesrvm.junit.runner.vm"))) {
+      throw new Error("This method shouldn't have been executed!");
+    }
+  }
+
   @Test
-  @Category(RequiresJikesRVM.class)
+  @Category(RequiresBuiltJikesRVM.class)
   public void testThatRequiresJikesRVM() {
     fail();
   }
@@ -35,11 +47,11 @@ public class ExampleThatRequiresBootstrapVMTest {
   @Test
   @Category(RequiresBootstrapVM.class)
   public void testThatRequiresBootstrapVM() {
-    assertFalse(isRunningOnJikesRVM());
+    assertFalse(isRunningOnBuiltJikesRVM());
   }
 
   @Test
   public void testWithNoRequirements() {
-    assertFalse(isRunningOnJikesRVM());
+    assertFalse(isRunningOnBuiltJikesRVM());
   }
 }

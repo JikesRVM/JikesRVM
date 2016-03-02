@@ -12,7 +12,7 @@
  -->
 <project name="JikesRVM" default="main" basedir=".">
 
-  <property name="rvm.version" value="3.1.3+git"/>
+  <property name="rvm.version" value="3.1.4+git"/>
   <!-- <property name="git.revision" value="XXX"/> -->
 
   <property name="jikesrvm.dir" location="${basedir}"/>
@@ -20,10 +20,7 @@
   <import file="build/tasks.xml"/>
   <import file="build/checkstyle-plugins.xml"/>
 
-  <property name="config.mmtk" value="default"/>
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
-  <property name="mmtk.properties" location="${jikesrvm.dir}/build/mmtk/${config.mmtk}.properties"/>
-  <property name="default.mmtk.properties" location="${jikesrvm.dir}/build/mmtk/default.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>
@@ -234,6 +231,10 @@
   </target>
 
   <target name="check-mmtk-properties"  depends="check-host-name">
+    <property name="config.mmtk" value="default"/>
+    <property name="mmtk.properties" location="${jikesrvm.dir}/build/mmtk/${config.mmtk}.properties"/>
+    <property name="default.mmtk.properties" location="${jikesrvm.dir}/build/mmtk/default.properties"/>
+
     <available property="mmtk_properties_present" file="${mmtk.properties}"/>
     <fail unless="mmtk_properties_present">
       MMTk properties file ${mmtk.properties} not present. Please set mmtk.properties to the name of file in ${jikesrvm.dir}/build/mmtk directory without the .properties suffix.
@@ -389,6 +390,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="include.ppc" value="true">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
+    <condition property="include.32bit" value="true">
+      <equals arg1="${target.address.size}" arg2="32"/>
+    </condition>
     <condition property="include.aos" value="true">
       <and>
         <equals arg1="${config.include.aos}" arg2="true"/>
@@ -475,7 +479,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
-           source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false">
+           source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false" deprecation="yes">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.options.classes}"/>
@@ -1059,6 +1063,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER" value="true" else="false">
       <equals arg1="${config.bootimage.compiler}" arg2="base"/>
     </condition>
+    <condition property="pp_RVM_OVERSIZED_IMAGE" value="true" else="false">
+      <equals arg1="${config.allowOversizedImage}" arg2="true"/>
+    </condition>
     <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
     </condition>
@@ -1092,6 +1099,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${config.include.aos}"/>
         <filter token="_RVM_WITH_OPT_COMPILER_" value="${pp_RVM_WITH_OPT_COMPILER}"/>
         <filter token="_RVM_WITH_BASE_BOOTIMAGE_COMPILER_" value="${pp_RVM_WITH_BASE_BOOTIMAGE_COMPILER}"/>
+        <filter token="_RVM_OVERSIZED_IMAGE_" value="${pp_RVM_OVERSIZED_IMAGE}"/>
         <filter token="_RVM_MMTK_PLAN_" value="${config.mmtk.plan}"/>
         <filter token="_RVM_WITH_GCSPY_" value="${config.include.gcspy}"/>
         <filter token="_RVM_STRESSGC_INTERVAL_" value="${config.stress-gc-interval}"/>
@@ -1509,6 +1517,7 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${junit.reports.bootstrap}"/>
     
     <junit haltonfailure="yes" printsummary="true" showoutput="true">
+      <sysproperty key="jikesrvm.junit.runner.vm" value="bootstrap"/>
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.test-classes}"/>
@@ -1532,6 +1541,7 @@ Check to make sure all required properties are specified. This includes properti
       <mkdir dir="${junit.reports.rvm}"/>
 
       <junit jvm="${dist.base}/rvm" haltonfailure="yes" printsummary="true" showoutput="true" >
+        <sysproperty key="jikesrvm.junit.runner.vm" value="built-jikes-rvm"/>
         <jvmarg value="-Xbootclasspath/a:${build.test-classes}:${junit.jar}:${hamcrest.jar}"/>
         <classpath>
           <!-- Technically unnecessary as ${junit.jar} is on the boot classpath,
@@ -1675,13 +1685,17 @@ Check to make sure all required properties are specified. This includes properti
       <include name="org/**/*.class" />
       <include name="com/ibm/tuningfork/**/*.class" />
       <exclude name="**/ppc/*.class" unless="include.ppc"/>
+      <exclude name="**/ppc_*/*.class" unless="include.ppc"/>
       <exclude name="**/ia32/*.class" if="include.ppc"/>
+      <exclude name="**/ia32_*/*.class" if="include.ppc"/>
       <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
       <exclude name="org/jikesrvm/compilers/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/ArchitectureSpecificOpt$*.class" unless="include.opt"/>
+      <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_32/**/*.class" unless="include.32bit"/>
+      <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_64/**/*.class" if="include.32bit"/>
       <include name="**/JikesRVMSupport.class"/>
       <include name="java/**/VM*.class" />
       <include name="gnu/**/VM*.class" />
@@ -1798,6 +1812,17 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
     </condition>
 
+    <if>
+      <conditions>
+        <not>
+         <isset property="config.bootimage.writer.args"/>
+        </not>
+      </conditions>
+      <sequential>
+        <property name="config.bootimage.writer.args" value=""/>
+      </sequential>
+    </if>
+
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
     <echo message="MMTk properties = ${mmtk.properties}"/>
     <java classname="org.jikesrvm.tools.bootImageWriter.BootImageWriter"
@@ -1831,6 +1856,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-demographics"/>
       <arg value="-m"/>
       <arg path="${build.base}/RVM.map"/>
+      <arg line="${config.bootimage.writer.args}"/>
       <!-- <arg value="-trace"/> -->
       <!-- <arg value="-detailed"/> -->
       <!-- <arg value="-X:bc:verbose=true"/> -->

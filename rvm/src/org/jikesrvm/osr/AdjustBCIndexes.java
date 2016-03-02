@@ -58,20 +58,20 @@ public class AdjustBCIndexes extends CompilerPhase {
     for (Enumeration<Instruction> ie = ir.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
 
-      if ((s.position != null) && (s.position.method != ir.method)) {
+      if ((s.position() != null) && (s.position().method != ir.method)) {
         // also adjust InlineSequence of the direct callee
-        InlineSequence caller = s.position.caller;
+        InlineSequence caller = s.position().caller;
         if ((caller != null) && (caller.method == ir.method)) {
           // adjust the call site's bcIndex
-          s.position.bcIndex -= offset;
+          s.position().adjustBcIndex(-offset);
         }
         continue;
       }
 
-      if (s.bcIndex >= offset) {
-        s.bcIndex -= offset;
-      } else if (s.bcIndex >= 0) {
-        s.bcIndex = OSR_PROLOGUE;
+      if (s.getBytecodeIndex() >= offset) {
+        s.adjustBytecodeIndex(-offset);
+      } else if (s.getBytecodeIndex() >= 0) {
+        s.setBytecodeIndex(OSR_PROLOGUE);
       }
     }
   }

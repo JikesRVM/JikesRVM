@@ -15,14 +15,14 @@ package org.jikesrvm.compilers.opt.inlining;
 import static org.junit.Assert.*;
 import static org.jikesrvm.tests.util.TestingTools.*;
 
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 public class CallSiteTreeTest {
 
   public class Methods {

@@ -77,7 +77,7 @@ final class HandlerBlockLE extends BasicBlockLE {
     // exception object to exceptionObject.
     Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, exceptionObject.copyD2D());
     entryBlock.appendInstruction(s);
-    s.bcIndex = SYNTH_CATCH_BCI;
+    s.setBytecodeIndex(SYNTH_CATCH_BCI);
     entryBlock.insertOut(block);
   }
 

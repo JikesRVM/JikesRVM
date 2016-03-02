@@ -13,7 +13,6 @@
 package org.jikesrvm.compilers.opt.bc2ir;
 
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
-import org.jikesrvm.compilers.opt.ir.HIRInfo;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
@@ -36,16 +35,7 @@ public final class ConvertBCtoHIR extends CompilerPhase {
     // Generate the cfg into gc
     GenerationContext gc = new GenerationContext(ir.method, ir.params, ir.compiledMethod, ir.options, ir.inlinePlan);
     BC2IR.generateHIR(gc);
-    // Transfer HIR and misc state from gc to the ir object
-    ir.gc = gc;
-    ir.cfg = gc.getCfg();
-    ir.regpool = gc.getTemps();
-    if (gc.requiresStackFrame()) {
-      ir.stackManager.forceFrameAllocation();
-    }
-
-    ir.IRStage = IR.HIR;
-    ir.HIRInfo = new HIRInfo(ir);
+    ir.initializeStateForHIR(gc);
   }
 
   // This phase contains no instance fields.

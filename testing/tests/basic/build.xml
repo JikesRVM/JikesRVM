@@ -65,6 +65,7 @@
   <target name="test" depends="compile">
     <startResults/>
 
+    <successMessageTest tag="TestExtent" class="test.org.jikesrvm.basic.core.intrinsics.TestExtent"/>
     <successMessageTest tag="TestOffset" class="test.org.jikesrvm.basic.core.intrinsics.TestOffset"/>
 
     <runCompareTest tag="TestClassHierarchy" class="test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy"/>

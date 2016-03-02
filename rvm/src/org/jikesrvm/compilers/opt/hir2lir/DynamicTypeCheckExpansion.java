@@ -142,7 +142,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       BasicBlock instanceOfBlock = s.getBasicBlock().segregateInstruction(s, ir);
       BasicBlock prevBB = instanceOfBlock.prevBasicBlockInCodeOrder();
       BasicBlock nextBB = instanceOfBlock.nextBasicBlockInCodeOrder();
-      BasicBlock nullCaseBB = instanceOfBlock.createSubBlock(s.bcIndex, ir, .01f);
+      BasicBlock nullCaseBB = instanceOfBlock.createSubBlock(s.getBytecodeIndex(), ir, .01f);
       prevBB.appendInstruction(IfCmp.create(REF_IFCMP,
                                             guard,
                                             ref.copy(),
@@ -248,7 +248,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                      new BranchProfileOperand());
     s.insertBefore(nullCond);
     BasicBlock myBlock = s.getBasicBlock();
-    BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
+    BasicBlock failBlock = myBlock.createSubBlock(s.getBytecodeIndex(), ir, .0001f);
     BasicBlock instanceOfBlock = myBlock.splitNodeAt(nullCond, ir);
     BasicBlock succBlock = instanceOfBlock.splitNodeAt(s, ir);
     succBlock.firstInstruction().insertAfter(Move.create(REF_MOVE, TypeCheck.getClearResult(s), ref.copy()));
@@ -289,7 +289,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     TypeReference LHStype = TypeCheck.getType(s).getTypeRef();
     Operand guard = TypeCheck.getClearGuard(s);
     BasicBlock myBlock = s.getBasicBlock();
-    BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
+    BasicBlock failBlock = myBlock.createSubBlock(s.getBytecodeIndex(), ir, .0001f);
     BasicBlock succBlock = myBlock.splitNodeAt(s, ir);
     succBlock.firstInstruction().insertAfter(Move.create(REF_MOVE, TypeCheck.getClearResult(s), ref.copy()));
     myBlock.insertOut(failBlock);
@@ -329,7 +329,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     int interfaceMask = LHSClass.getDoesImplementBitMask();
     Operand guard = TypeCheck.getClearGuard(s);
     BasicBlock myBlock = s.getBasicBlock();
-    BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
+    BasicBlock failBlock = myBlock.createSubBlock(s.getBytecodeIndex(), ir, .0001f);
     BasicBlock succBlock = myBlock.splitNodeAt(s, ir);
     succBlock.firstInstruction().insertAfter(Move.create(REF_MOVE, TypeCheck.getClearResult(s), ref.copy()));
     myBlock.insertOut(failBlock);
@@ -400,7 +400,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
     }
     BasicBlock myBlock = s.getBasicBlock();
     BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
-    BasicBlock trapBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
+    BasicBlock trapBlock = myBlock.createSubBlock(s.getBytecodeIndex(), ir, .0001f);
     BasicBlock curBlock = myBlock;
     Move.mutate(s, GUARD_MOVE, guardResult, new TrueGuardOperand());
 
@@ -427,7 +427,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                               contBlock.makeJumpTarget(),
                                               new BranchProfileOperand()));
       curBlock.insertOut(contBlock);
-      curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+      curBlock = advanceBlock(s.getBytecodeIndex(), curBlock, ir);
     }
 
     // Find out what we think the compile time type of the lhs is.
@@ -484,7 +484,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                                 contBlock.makeJumpTarget(),
                                                 new BranchProfileOperand()));
         curBlock.insertOut(contBlock);
-        curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+        curBlock = advanceBlock(s.getBytecodeIndex(), curBlock, ir);
       }
 
       // On our way to doing (3) from above attempt another short-circuit.
@@ -504,7 +504,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                               contBlock.makeJumpTarget(),
                                               new BranchProfileOperand()));
       curBlock.insertOut(contBlock);
-      curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+      curBlock = advanceBlock(s.getBytecodeIndex(), curBlock, ir);
 
       // Optionally (3) from above
       if (compType.getDimensionality() == 1) {
@@ -539,7 +539,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                                   trapBlock.makeJumpTarget(),
                                                   BranchProfileOperand.never()));
           curBlock.insertOut(trapBlock);
-          curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+          curBlock = advanceBlock(s.getBytecodeIndex(), curBlock, ir);
 
           RegisterOperand lhsElemId =
               getField(curBlock.lastInstruction(), ir, lhsElemType.copyD2U(), Entrypoints.idField, TG());
@@ -786,8 +786,9 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                                              RegisterOperand result) {
     BasicBlock myBlock = s.getBasicBlock();
     BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
-    BasicBlock trueBlock = myBlock.createSubBlock(s.bcIndex, ir);
-    BasicBlock falseBlock = myBlock.createSubBlock(s.bcIndex, ir);
+    int subBlockStart = s.getBytecodeIndex();
+    BasicBlock trueBlock = myBlock.createSubBlock(subBlockStart, ir);
+    BasicBlock falseBlock = myBlock.createSubBlock(subBlockStart, ir);
     myBlock.insertOut(trueBlock);
     myBlock.insertOut(falseBlock);
     trueBlock.insertOut(contBlock);

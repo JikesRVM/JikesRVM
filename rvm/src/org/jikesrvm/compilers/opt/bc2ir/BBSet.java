@@ -292,8 +292,7 @@ final class BBSet {
             temp.setInheritableFlags(rop);
             BC2IR.setGuardForRegOp(temp, BC2IR.copyGuardFromOperand(rop));
             Instruction move = Move.create(IRTools.getMoveOp(rop.getType()), temp, rop.copyRO());
-            move.bcIndex = RECTIFY_BCI;
-            move.position = gc.getInlineSequence();
+            move.setSourcePosition(RECTIFY_BCI, gc.getInlineSequence());
             block.appendInstructionRespectingTerminalBranch(move);
             p.stackState.push(temp.copy());
             if (DBG_STACK || BC2IR.DBG_SELECTED) {
@@ -397,8 +396,7 @@ final class BBSet {
 
   private void injectMove(BasicBlock block, RegisterOperand res, Operand val) {
     Instruction move = Move.create(IRTools.getMoveOp(res.getType()), res, val);
-    move.bcIndex = RECTIFY_BCI;
-    move.position = gc.getInlineSequence();
+    move.setSourcePosition(RECTIFY_BCI, gc.getInlineSequence());
     block.appendInstructionRespectingTerminalBranch(move);
     if (DBG_STACK || BC2IR.DBG_SELECTED) {
       db("Inserted " + move + " into " + block);
@@ -512,7 +510,7 @@ final class BBSet {
             if (DBG_EX || DBG_FLATTEN) {
               db("No (local) handlers were actually reachable for " + curr + "; setting to caller");
             }
-            curr.block.exceptionHandlers = curr.block.exceptionHandlers.getCaller();
+            curr.block.setExceptionHandlers(curr.block.exceptionHandlers().getCaller());
           } else {
             ExceptionHandlerBasicBlock[] nlh =
                 new ExceptionHandlerBasicBlock[curr.handlers.length - notGenerated];
@@ -525,8 +523,7 @@ final class BBSet {
                 }
               }
             }
-            curr.block.exceptionHandlers =
-                new ExceptionHandlerBasicBlockBag(nlh, curr.block.exceptionHandlers.getCaller());
+            curr.block.setExceptionHandlers(new ExceptionHandlerBasicBlockBag(nlh, curr.block.exceptionHandlers().getCaller()));
           }
         }
       }
@@ -703,9 +700,9 @@ final class BBSet {
       for (int i = 0; i < bble.handlers.length; i++) {
         ehbbs[i] = bble.handlers[i].entryBlock;
       }
-      bble.block.exceptionHandlers = new ExceptionHandlerBasicBlockBag(ehbbs, gc.getEnclosingHandlers());
+      bble.block.setExceptionHandlers(new ExceptionHandlerBasicBlockBag(ehbbs, gc.getEnclosingHandlers()));
     } else {
-      bble.block.exceptionHandlers = gc.getEnclosingHandlers();
+      bble.block.setExceptionHandlers(gc.getEnclosingHandlers());
     }
   }
 
@@ -950,8 +947,7 @@ final class BBSet {
                                    gc.getTemps(),
                                    gc.getMethod().getOperandWords(),
                                    gc.getCfg());
-            ((HandlerBlockLE) newBBLE).entryBlock.firstRealInstruction().
-                position = gc.getInlineSequence();
+            ((HandlerBlockLE) newBBLE).entryBlock.firstRealInstruction().setPosition(gc.getInlineSequence());
           } else {
             ((HandlerBlockLE) newBBLE).addCaughtException(exceptionTypes[i]);
           }

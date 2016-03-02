@@ -478,7 +478,7 @@ public abstract class IRTools {
    */
   public static BasicBlock makeBlockOnEdge(BasicBlock in, BasicBlock out, IR ir) {
     // 1. Create the new basic block
-    BasicBlock bb = in.createSubBlock(out.firstInstruction().bcIndex, ir);
+    BasicBlock bb = in.createSubBlock(out.firstInstruction().getBytecodeIndex(), ir);
 
     // 2. Splice the new basic block into the code order
     BasicBlock next = in.nextBasicBlockInCodeOrder();

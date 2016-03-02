@@ -120,7 +120,7 @@ public class BasicBlock extends SortedGraphNode {
    * May be shared if multiple blocks have exactly the same chain
    * of exception handlers.
    */
-  public ExceptionHandlerBasicBlockBag exceptionHandlers;
+  private ExceptionHandlerBasicBlockBag exceptionHandlers;
 
   /**
    * First instruction of the basic block (LABEL).
@@ -167,16 +167,16 @@ public class BasicBlock extends SortedGraphNode {
   protected BasicBlock(int i, InlineSequence position, int num) {
     setNumber(num);
     start = Label.create(LABEL, new BasicBlockOperand(this));
-    start.bcIndex = i;
+    start.setBytecodeIndex(i);
 
-    start.position = position;
+    start.setPosition(position);
     end = BBend.create(BBEND, new BasicBlockOperand(this));
     // NOTE: we have no idea where this block will end so it
     // makes no sense to set its bcIndex or position.
     // In fact, the block may end in a different method entirely,
     // so setting its position to the same as start may silently
     // get us into all kinds of trouble. --dave.
-    end.bcIndex = UNKNOWN_BCI;
+    end.setBytecodeIndex(UNKNOWN_BCI);
     start.linkWithNext(end);
     initInOutSets();
   }
@@ -288,10 +288,10 @@ public class BasicBlock extends SortedGraphNode {
       VM.sysWrite("\tInstructions:\n");
       Instruction inst = start;
       while (inst != end) {
-        VM.sysWrite(inst.bcIndex + ":\t" + inst + "\n");
+        VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
         inst = inst.getNext();
       }
-      VM.sysWrite(inst.bcIndex + ":\t" + inst + "\n");
+      VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
     }
     VM.sysWrite("\n");
   }
@@ -1210,7 +1210,7 @@ public class BasicBlock extends SortedGraphNode {
     if (IR.PARANOID) VM._assert(this == last_instr_BB1.getBasicBlock());
 
     BasicBlock BB1 = this;
-    BasicBlock BB2 = new BasicBlock(last_instr_BB1.bcIndex, last_instr_BB1.position, ir.cfg);
+    BasicBlock BB2 = new BasicBlock(last_instr_BB1.getBytecodeIndex(), last_instr_BB1.position(), ir.cfg);
     BasicBlock BB3 = (BasicBlock) BB1.next;
 
     // move last_instr_BB1 ... BB1.end.prev into BB2
@@ -1305,7 +1305,7 @@ public class BasicBlock extends SortedGraphNode {
     // Make the label instruction of the new block have the same
     // bc info as the label of the original block.
     if (firstInstruction() != null) {
-      bytecodeIndex = firstInstruction().bcIndex;
+      bytecodeIndex = firstInstruction().getBytecodeIndex();
     }
 
     BasicBlock newBlock = createSubBlock(bytecodeIndex, ir, 1f);
@@ -1487,7 +1487,7 @@ public class BasicBlock extends SortedGraphNode {
     // TODO: This won't always work. (In fact, in the presence of inlining
     //       it will be wrong quite often). --dave
     //       We really have to pass the position in if we except this to work.
-    BasicBlock temp = new BasicBlock(bc, firstInstruction().position, ir.cfg);
+    BasicBlock temp = new BasicBlock(bc, firstInstruction().position(), ir.cfg);
 
     // Conservatively transfer all exception handling behavior of the
     // parent block  (this) to the new child block (temp)
@@ -2033,5 +2033,13 @@ public class BasicBlock extends SortedGraphNode {
     start.getNext().setPrev(null);
     end.getPrev().setNext(null);
     start.linkWithNext(end);
+  }
+
+  public ExceptionHandlerBasicBlockBag exceptionHandlers() {
+    return exceptionHandlers;
+  }
+
+  public void setExceptionHandlers(ExceptionHandlerBasicBlockBag exceptionHandlers) {
+    this.exceptionHandlers = exceptionHandlers;
   }
 }

@@ -159,7 +159,7 @@ public class CFGTransformations extends CompilerPhase {
       frequency += edgeFrequency(bb, n.header);
     }
     BasicBlock newPred;
-    newPred = n.header.createSubBlock(n.header.firstInstruction().bcIndex, ir, 1f);
+    newPred = n.header.createSubBlock(n.header.firstInstruction().getBytecodeIndex(), ir, 1f);
     newPred.setLandingPad();
     newPred.setExecutionFrequency(frequency);
 
@@ -363,7 +363,7 @@ public class CFGTransformations extends CompilerPhase {
         // create a new block as landing pad
         BasicBlock landingPad;
         Instruction firstInB = b.firstInstruction();
-        int bcIndex = firstInB != null ? firstInB.bcIndex : -1;
+        int bcIndex = firstInB != null ? firstInB.getBytecodeIndex() : -1;
         landingPad = b.createSubBlock(bcIndex, ir);
         landingPad.setLandingPad();
         landingPad.setExecutionFrequency(edgeFrequency(a, b));

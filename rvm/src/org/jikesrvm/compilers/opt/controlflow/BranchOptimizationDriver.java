@@ -119,7 +119,7 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
 
     ir.cfg.compactNodeNumbering();
 
-    if (ir.IRStage < IR.MIR) {
+    if (ir.isNotMIR()) {
       ir.pruneExceptionalOut();
     }
   }

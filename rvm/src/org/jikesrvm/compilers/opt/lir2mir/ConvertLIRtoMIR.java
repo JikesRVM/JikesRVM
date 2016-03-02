@@ -58,7 +58,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
-import org.jikesrvm.compilers.opt.ir.MIRInfo;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
@@ -111,9 +110,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
           @Override
           public void perform(IR ir) {
             super.perform(ir);
-            // ir now contains well formed MIR.
-            ir.IRStage = IR.MIR;
-            ir.MIRInfo = new MIRInfo(ir);
+            ir.initializeStateForMIR();
           }
         }),
         new OptimizationPlanAtomicElement(new InsertIMMQ_MOVForX64())});

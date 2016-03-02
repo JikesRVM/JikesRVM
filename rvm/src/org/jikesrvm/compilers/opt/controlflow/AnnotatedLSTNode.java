@@ -485,7 +485,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    */
   static String instructionToString(IR ir, Instruction instr) {
     StringBuilder sb = new StringBuilder();
-    sb.append(instr.bcIndex).append("\t").append(instr.isPEI() ? "E" : " ").append(instr.isGCPoint() ? "G " : "  ");
+    sb.append(instr.getBytecodeIndex()).append("\t").append(instr.isPEI() ? "E" : " ").append(instr.isGCPoint() ? "G " : "  ");
     if (instr.operator() == LABEL) {
       sb.append("LABEL").append(Label.getBlock(instr).block.getNumber());
       if (Label.getBlock(instr).block.getInfrequent()) {

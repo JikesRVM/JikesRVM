@@ -49,35 +49,37 @@
   </xsl:template>
 
   <xsl:template match="test-configuration">
-    <xsl:variable name="testConfigTotalTests" select="count(group/test)"/>
-    <xsl:variable name="testConfigSkippedTests" select="count(group/test/test-execution/result/text()[.='EXCLUDED'])"/>
-    <xsl:variable name="testConfigFailedTests" select="count(group/test/test-execution/result/text()[.='FAILURE'])"/>
-
-    <xsl:variable name="testConfigTimeInMilliSeconds" select="sum(group/test/test-execution/duration/text())"/>
-    <xsl:variable name="testConfigTimeInSeconds" select="number($testConfigTimeInMilliSeconds) div 1000"/>
-
     <xsl:variable name="buildConfig" select="build-configuration/text()"/>
     <xsl:variable name="testConfigName" select="name/text()"/>
-    <xsl:variable name="groupName" select="group/name/text()"/>
+
+    <xsl:for-each select="group">
+      <xsl:call-template name="produceTestsuiteElements">
+        <xsl:with-param name="buildConfig" select="$buildConfig"/>
+        <xsl:with-param name="testConfigName" select="$testConfigName"/>
+      </xsl:call-template>
+    </xsl:for-each>
+  </xsl:template>
+
+  <xsl:template name="produceTestsuiteElements">
+    <xsl:param name="buildConfig"/>
+    <xsl:param name="testConfigName"/>
+    <xsl:variable name="groupName" select="name/text()"/>
     <xsl:variable name="testsuiteName" select="concat($buildConfig,' - ',$testConfigName,' -- Tests: ',$groupName)"/>
-  
+
+    <xsl:variable name="testConfigTotalTests" select="count(test)"/>
+    <xsl:variable name="testConfigSkippedTests" select="count(test/test-execution/result/text()[.='EXCLUDED'])"/>
+    <xsl:variable name="testConfigFailedTests" select="count(test/test-execution/result/text()[.='FAILURE'])"/>
+
+    <xsl:variable name="testConfigTimeInMilliSeconds" select="sum(test/test-execution/duration/text())"/>
+    <xsl:variable name="testConfigTimeInSeconds" select="number($testConfigTimeInMilliSeconds) div 1000"/>
+
     <testsuite errors="0" failures="{$testConfigFailedTests}" name="{$testsuiteName}" skipped="{$testConfigSkippedTests}" tests="{$testConfigTotalTests}" time="{$testConfigTimeInSeconds}">
-      <xsl:apply-templates select="group/test">
+      <xsl:apply-templates select="test">
         <xsl:with-param name="testsuiteInformation" select="$testsuiteName"/>
       </xsl:apply-templates>
 
-      <system-err>
-<xsl:text>--- PARAMETERS ---</xsl:text>
-<xsl:text>&#xa;</xsl:text>
-        <xsl:for-each select="parameters/parameter">
-          <xsl:variable name="testSuiteParamKey" select="@key"/>
-          <xsl:variable name="testSuiteParamValue" select="@value"/>
-<xsl:value-of select="$testSuiteParamKey"/>: <xsl:value-of select="$testSuiteParamValue"/>
-<xsl:text>&#xa;</xsl:text>
-        </xsl:for-each>
-      </system-err>
-      
     </testsuite>
+
   </xsl:template>
 
   <xsl:template match="test">
@@ -88,7 +90,7 @@
 
     <xsl:variable name="testResult" select="test-execution/result/text()"/>
     <xsl:variable name="resultExplanation" select="test-execution/result-explanation/text()"/>
-    
+
     <xsl:variable name="exitCode" select="test-execution/exit-code/text()"/>
     <xsl:variable name="commandLine" select="command/text()"/>
     <xsl:variable name="nameSuffix" select="concat(' (',$testsuiteInformation,')')"/>
@@ -112,7 +114,7 @@
 COMMAND LINE: <xsl:value-of select="$commandLine"/>
 EXIT CODE: <xsl:value-of select="$exitCode"/>
 <xsl:text>&#xa;</xsl:text>
-<xsl:text>--- PARAMETERS ---</xsl:text>
+<xsl:text>--- TEST PARAMETERS ---</xsl:text>
 <xsl:text>&#xa;</xsl:text>
           <xsl:for-each select="parameters/parameter">
             <xsl:variable name="paramKey" select="@key"/>
@@ -120,10 +122,20 @@ EXIT CODE: <xsl:value-of select="$exitCode"/>
 <xsl:value-of select="$paramKey"/>: <xsl:value-of select="$paramValue"/>
 <xsl:text>&#xa;</xsl:text>
           </xsl:for-each>
+
+          <xsl:text>--- TEST SUITE PARAMETERS ---</xsl:text>
+<xsl:text>&#xa;</xsl:text>
+        <xsl:for-each select="ancestor::test-configuration[1]/parameters/parameter">
+          <xsl:variable name="testSuiteParamKey" select="@key"/>
+          <xsl:variable name="testSuiteParamValue" select="@value"/>
+          <xsl:value-of select="$testSuiteParamKey"/>: <xsl:value-of select="$testSuiteParamValue"/>
+<xsl:text>&#xa;</xsl:text>
+        </xsl:for-each>
+
         </system-err>
       </testcase>
     </xsl:if>
-    
+
     <!--  Statistics node (e.g. as in compiler dna report) -->
     <xsl:if test="not(test-execution/duration)">
       <testcase classname="{$className}" name="Statistics" >

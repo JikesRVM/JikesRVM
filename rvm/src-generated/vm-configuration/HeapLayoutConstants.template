@@ -35,11 +35,27 @@ public final class HeapLayoutConstants {
   public static final Address MAXIMUM_MAPPABLE =
     Address.@_ADDRESS_METHOD_@( @_MAXIMUM_MAPPABLE_ADDRESS_@ );
 
-  /** The maximum boot image data size */
+  /** The current boot image data size */
   public static final int BOOT_IMAGE_DATA_SIZE = (BOOT_IMAGE_CODE_START.diff(BOOT_IMAGE_DATA_START).toInt());
 
-  /** The maximum boot image code size */
+  /** The current boot image code size */
   public static final int BOOT_IMAGE_CODE_SIZE = (BOOT_IMAGE_RMAP_START.diff(BOOT_IMAGE_CODE_START).toInt());
+
+  /**
+   * Limit for boot image data size: fail the build if
+   * {@link org.jikesrvm.Configuration#AllowOversizedImages VM.AllowOversizedImages}
+   * is not set and the boot image data size is greater than or equal to this amount
+   * of bytes.
+   */
+  public static final int BOOT_IMAGE_DATA_SIZE_LIMIT = 56 << 20;
+
+  /**
+   * Limit for boot image code size: fail the build if
+   * {@link org.jikesrvm.Configuration#AllowOversizedImages VM.AllowOversizedImages}
+   * is not set and the boot image code size is greater than or equal to this amount
+   * of bytes.
+   */
+  public static final int BOOT_IMAGE_CODE_SIZE_LIMIT = 24 << 20;
 
   /* Typical compression ratio is about 1/20 */
   public static final int BAD_MAP_COMPRESSION = 5;  // conservative heuristic

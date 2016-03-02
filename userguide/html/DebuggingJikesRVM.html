@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>5 Debugging Jikes RVM</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 5</span><br /><a 
+ id="x7-470005"></a>Debugging Jikes RVM</h2>
+<!--l. 5--><p class="noindent" >This page contains some debugging hints for Jikes RVM. It is assumed that you are
+familiar with debugging techniques. If you aren&#x2019;t, it is advisable to read a book about
+the subject.
+</p>
+<h3 class="sectionHead"><span class="titlemark">5.1   </span> <a 
+ id="x7-480005.1"></a>General debugging tips</h3>
+<!--l. 9--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.1.1   </span> <a 
+ id="x7-490005.1.1"></a>Assertions</h4>
+<!--l. 11--><p class="noindent" >All debugging should be done with assertion-enabled builds if possible. You can also
+try using ExtremeAssertion builds.
+</p><!--l. 15--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.1.2   </span> <a 
+ id="x7-500005.1.2"></a>Options</h4>
+<!--l. 17--><p class="noindent" >The Jikes RVM and MMTk provide several options to print out debugging
+information.
+</p><!--l. 19--><p class="noindent" >If you&#x2019;re debugging a problem in the optimizing compiler, you can also print out the
+IR.
+</p><!--l. 21--><p class="noindent" >You can also use the options to change the behaviour in various ways (e.g. switch
+oﬀ certain optimizations) if you have a suspicion about the causes of the
+problem.
+</p><!--l. 25--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.1.3   </span> <a 
+ id="x7-510005.1.3"></a>Debugger Thread</h4>
+<!--l. 27--><p class="noindent" >Jikes has an interactive debugger that you can invoke by sending SIGQUIT to Jikes
+while it&#x2019;s running:
+</p>
+<!--l. 29-->
+<div class="lstlisting" id="listing-28"><span class="label"><a 
+ id="x7-51001r1"></a></span>pkill -SIGQUIT JikesRVM
+</div>
+<!--l. 33--><p class="noindent" >In previous versions of Jikes, that stopped all threads and provided an interactive
+prompt, but currently it just dumps the state of the VM and continues immediately
+(that&#x2019;s a known issue: <a 
+href="https://xtenlang.atlassian.net/browse/RVM-570" >RVM-570</a>). Debug ﬁelds in classes
+</p><!--l. 36--><p class="noindent" >Several classes in the code base provide static boolean ﬁelds like DEBUG or
+VERBOSE which can be set to get more debugging information.
+                                                                  
+
+                                                                  
+</p><!--l. 40--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.1.4   </span> <a 
+ id="x7-520005.1.4"></a>Shutdown hooks</h4>
+<!--l. 42--><p class="noindent" >You can write custom shutdown hooks to dump gathered information when the VM
+terminates. Note that shutdown hooks won&#x2019;t be run if the VM is terminated via a
+signal (see <a 
+href="https://xtenlang.atlassian.net/browse/RVM-555" >RVM-555</a>)
+</p><!--l. 44--><p class="noindent" >Do not use the ExitMonitor from the Callbacks class because it&#x2019;s less reliable.
+</p><!--l. 48--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.1.5   </span> <a 
+ id="x7-530005.1.5"></a>Tests</h4>
+<!--l. 50--><p class="noindent" >The test coverage is poor at the moment. Nevertheless, if you&#x2019;re very lucky, one of
+the smaller test cases will fail. See <a 
+href="TestingJikesRVM.html#x12-10800010">Testing Jikes RVM</a> for details on how to run the
+tests and deﬁne your own.
+</p><!--l. 56--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">5.2   </span> <a 
+ id="x7-540005.2"></a>Tools</h3>
+<!--l. 58--><p class="noindent" >There are diﬀerent tools for debugging Jikes RVM:
+</p><!--l. 60--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.2.1   </span> <a 
+ id="x7-550005.2.1"></a>GDB</h4>
+<!--l. 62--><p class="noindent" >There is a limited amount of C code used to start Jikes RVM. The rvm script will
+start Jikes RVM using GDB (the GNU debugger) if the ﬁrst argument is -gdb. Break
+points can be set in the C code, variables, registers can be expected in the C
+code.
+</p>
+<!--l. 64-->
+<div class="lstlisting" id="listing-29"><span class="label"><a 
+ id="x7-55001r1"></a></span>rvm -gdb <span 
+class="cmmi-10">&#x003C;</span>RVM args<span 
+class="cmmi-10">&#x003E;</span> <span 
+class="cmmi-10">&#x003C;</span>name of Java application<span 
+class="cmmi-10">&#x003E;</span> <span 
+class="cmmi-10">&#x003C;</span>application args<span 
+class="cmmi-10">&#x003E;</span>
+</div>
+<!--l. 68--><p class="noindent" >The dynamically created Java code doesn&#x2019;t provide GDB with the necessary symbol
+information for debugging. As some of the Java code is created in the boot image, it
+is possible to ﬁnd the location of some Java methods and to break upon them. To
+build with debug symbols, you&#x2019;ll need to set the appropriate property as described in
+<a 
+href="BuildingJikesRVM.html#x5-60003">Building Jikes RVM</a>.
+</p><!--l. 70--><p class="noindent" >Details of how to manually walk the stack in GDB can be found <a 
+href="#x7-610005.4">here</a>.
+</p><!--l. 73--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.2.2   </span> <a 
+ id="x7-560005.2.2"></a>rdb</h4>
+                                                                  
+
+                                                                  
+<!--l. 75--><p class="noindent" ><a 
+href="http://sape.inf.usi.ch/rdb" >rdb</a> is a debugger that was developed speciﬁcally for Jikes RVM. It allows you to
+inspect the bootimage. If you&#x2019;re running Mac OS, you can also use it to debug a
+running Jikes RVM.
+</p><!--l. 78--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.2.3   </span> <a 
+ id="x7-570005.2.3"></a>Other Tools</h4>
+<!--l. 80--><p class="noindent" >Other tools, such as valgrind, are occasionally useful in debugging or understanding
+the behaviour of JikesRVM. The rvm script facilitates using these tools with the
+&#x2019;-wrap&#x2019; argument.
+</p>
+<!--l. 82-->
+<div class="lstlisting" id="listing-30"><span class="label"><a 
+ id="x7-57001r1"></a></span>rvm -wrap ”<span 
+class="cmmi-10">&#x003C;</span>wrapper-script-and-args<span 
+class="cmmi-10">&#x003E;</span>” <span 
+class="cmmi-10">&#x003C;</span>rest of command line<span 
+class="cmmi-10">&#x003E;</span>
+</div>
+<!--l. 86--><p class="noindent" >For example, cachegrind can be invoked by
+</p>
+<!--l. 88-->
+<div class="lstlisting" id="listing-31"><span class="label"><a 
+ id="x7-57002r1"></a></span>rvm -wrap ”/path/to/valgrind --tool=cachegrind” <span 
+class="cmmi-10">&#x003C;</span>java-command-line<span 
+class="cmmi-10">&#x003E;</span>
+</div>
+<!--l. 92--><p class="noindent" >The command and arguments immediately after the -wrap argument will be inserted
+into the script on the command line that invokes the boot image runner. One useful
+variant is
+</p>
+<!--l. 94-->
+<div class="lstlisting" id="listing-32"><span class="label"><a 
+ id="x7-57003r1"></a></span>rvm -wrap echo <span 
+class="cmmi-10">&#x003C;</span>rest of command line<span 
+class="cmmi-10">&#x003E;</span>
+</div>
+<!--l. 102--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">5.3   </span> <a 
+ id="x7-580005.3"></a>Debugging Optimizing Compiler Problems</h3>
+<!--l. 104--><p class="noindent" >To debug problems in the optimizing compiler, use a conﬁguration whose bootimage
+is compiled with the baseline compiler and which contains the AOS (prototype-opt,
+BaseAdaptive*). Faster conﬁgurations (such as development) have the drawback of a
+longer bootimage compilation time which won&#x2019;t be amortized unless the problem
+occurs late.
+</p><!--l. 106--><p class="noindent" >It is advisable to use <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">-X:vm:errorsFatal=true</span></span></span> when debugging optimizing compiler
+problems. This will prevent the optimizing compiler from reverting to the baseline
+compiler for certain kinds of errors.
+                                                                  
+
+                                                                  
+</p><!--l. 108--><p class="noindent" >It is strongly recommended to run with advice ﬁle generation (see <a 
+href="ExperimentalGuidelines.html#x8-620006">Experimental
+Guidelines</a>). The produced advice ﬁles can then be used to try to reproduce the bug.
+If this step is successful, the advice ﬁles should be minimized to determine the set of
+methods that cause the failures. This can be done automatically (e.g. via delta
+debugging) or by hand.
+</p><!--l. 110--><p class="noindent" >You can also switch on paranoid IR veriﬁcation in IR.java. Note that this is
+not well tested at the moment because we don&#x2019;t run any regression tests
+with it. Use a BaseAdaptive* conﬁguration if you switch this on (bootimage
+builds with the optimizing compiler and paranoid IR fail at the time of this
+writing).
+</p><!--l. 112--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.3.1   </span> <a 
+ id="x7-590005.3.1"></a>Deadlocks</h4>
+<!--l. 114--><p class="noindent" >To debug a deadlock, run the VM under a time limit and send SIGQUIT (to force a
+thread dump) a few seconds before killing the VM. On Linux, you can use the
+timelimit program (should be available in the repositories for Debian-based
+distributions).
+</p><!--l. 117--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">5.3.2   </span> <a 
+ id="x7-600005.3.2"></a>Excluding Garbage Collection problems</h4>
+<!--l. 119--><p class="noindent" >The garbage collectors that are included with the Jikes RVM are generally stable.
+Therefore, if you see a problem that does not occur during the collection
+itself, it is likely not a garbage collection problem. You can exclude problems
+related to garbage collection by building with other collectors. For example,
+you can choose a collector that doesn&#x2019;t move objects (e.g. MarkSweep) or a
+collector that doesn&#x2019;t require write barriers (e.g. Immix instead of GenImmix).
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">5.4   </span> <a 
+ id="x7-610005.4"></a>GDB Stack Walking</h3>
+<!--l. 7--><p class="noindent" >Sometimes it is desirable to examine the state of the Java stack whilst using GDB to
+step instructions, break on addresses or watch particular variables. These instructions
+are based on an email sent by Martin Hirzel to the rvm-devel list around 15th
+September 2003. The instructions have been updated by Laurence Hellyer to deal
+with native threading and renamed RVM classes.
+</p><!--l. 9--><p class="noindent" >1) To learn about the stack frame layout on IA32, look at
+rvm/src/org/jikesrvm/ia32/StackframeLayoutConstants.java
+</p><!--l. 11--><p class="noindent" >Currently (2009/10/23) the layout is: </p><!--l. 12-->
+<div class="lstlisting" id="listing-33"><span class="label"><a 
+ id="x7-61001r1"></a></span>+4: return address <br /><span class="label"><a 
+ id="x7-61002r2"></a></span>fp -<span 
+class="cmmi-10">&#x003E;</span> 0: caller&#x2019;s fp <br /><span class="label"><a 
+ id="x7-61003r3"></a></span>-4: method id <br /><span class="label"><a 
+ id="x7-61004r4"></a></span>(remember stack grows from high to low)
+                                                                  
+
+                                                                  
+</div>
+<!--l. 19--><p class="noindent" >2) To learn how to get the current frame pointer and other
+context information, look at the genPrologue() method in
+rvm/src/org/jikesrvm/compilers/baseline/ia32/BaselineCompilerImpl.java. It ﬁrst
+retrieves the thread register (esi on IA32), which points to an instance of
+RVMThread, and then retrieve ﬁelds from that instance.
+</p><!--l. 21--><p class="noindent" >3) To ﬁnd the oﬀset of ﬁeld RVMThread.framePointer, add the following lines to the
+end of BootImageWriter.main(String[]):
+</p>
+<!--l. 23-->
+<div class="lstlisting" id="listing-34"><span class="label"><a 
+ id="x7-61005r1"></a></span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">added</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">get</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">framePointer</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">offset</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">from</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">RVMThread</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">to</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">manually</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">walk</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">stacks</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">in</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">GDB</span> <br /><span class="label"><a 
+ id="x7-61006r2"></a></span>    say(”offset_of_RVMThread.framePointer==_” + ArchEntrypoints.framePointerField.getOffset());
+</div>
+<!--l. 28--><p class="noindent" >Do a build to print this info. On my conﬁg I got +148, but this can change between
+versions
+</p><!--l. 30--><p class="noindent" >4) To get started, let&#x2019;s examine an example stack that contains methods whose
+code is in the boot image. We pick one that is likely to be invoked even in a
+simple hello-world program. In my RVM.map, 0x351eae9c is the address of
+org.jikesrvm.mm.mmtk.ReferenceProcessor.growReferenceTable();
+</p><!--l. 32--><p class="noindent" >5) Setting a break point on this address
+</p>
+<!--l. 34-->
+<div class="lstlisting" id="listing-35"><span class="label"><a 
+ id="x7-61007r1"></a></span>(gdb) break <span 
+class="tcrm-1000">*</span>0x351eae9c <br /><span class="label"><a 
+ id="x7-61008r2"></a></span>Breakpoint 2 at 0x351eae9c
+</div>
+<!--l. 39--><p class="noindent" >And run the program to the break point
+</p>
+<!--l. 41-->
+<div class="lstlisting" id="listing-36"><span class="label"><a 
+ id="x7-61009r1"></a></span>Breakpoint 2, 0x351eae9c in ?? ()
+</div>
+<!--l. 45--><p class="noindent" >Step some instructions into the method and then dump the registers
+</p>
+<!--l. 47-->
+<div class="lstlisting" id="listing-37"><span class="label"><a 
+ id="x7-61010r1"></a></span>(gdb) stepi 30 <br /><span class="label"><a 
+ id="x7-61011r2"></a></span>0x351eaf03 in ?? () <br /><span class="label"><a 
+ id="x7-61012r3"></a></span>(gdb) info registers <br /><span class="label"><a 
+ id="x7-61013r4"></a></span>eax            0x200  512 <br /><span class="label"><a 
+ id="x7-61014r5"></a></span>ecx            0x0    0 <br /><span class="label"><a 
+ id="x7-61015r6"></a></span>edx            0x0    0 <br /><span class="label"><a 
+ id="x7-61016r7"></a></span>ebx            0x7431  29745 <br /><span class="label"><a 
+ id="x7-61017r8"></a></span>esp            0x420e1934      0x420e1934 <br /><span class="label"><a 
+ id="x7-61018r9"></a></span>ebp            0xb0206ed0      0xb0206ed0 <br /><span class="label"><a 
+ id="x7-61019r10"></a></span>esi            0x4100758c      1090549132 <br /><span class="label"><a 
+ id="x7-61020r11"></a></span>edi            0x19c54105556 <br /><span class="label"><a 
+ id="x7-61021r12"></a></span>eip            0x351eaf03      0x351eaf03 <br /><span class="label"><a 
+ id="x7-61022r13"></a></span>eflags         0x202  514 <br /><span class="label"><a 
+ id="x7-61023r14"></a></span>cs             0x17    23 <br /><span class="label"><a 
+ id="x7-61024r15"></a></span>ss             0x1f    31 <br /><span class="label"><a 
+ id="x7-61025r16"></a></span>ds             0x1f    31 <br /><span class="label"><a 
+ id="x7-61026r17"></a></span>es             0x1f    31 <br /><span class="label"><a 
+ id="x7-61027r18"></a></span>fs             0x1f    31 <br /><span class="label"><a 
+ id="x7-61028r19"></a></span>gs             0x37    55
+</div>
+<!--l. 69--><p class="noindent" >The current FP is stored in RVMThread.framePointer which we found out in 3) is at
+oﬀset +148. ESI points to the current RVMThread object so we can access the FP
+value like so:
+</p>
+<!--l. 71-->
+<div class="lstlisting" id="listing-38"><span class="label"><a 
+ id="x7-61029r1"></a></span>(gdb) x (<span 
+class="tcrm-1000">$</span>esi+148) <br /><span class="label"><a 
+ id="x7-61030r2"></a></span>0x41007620:    0x420e1954
+                                                                  
+
+                                                                  
+</div>
+<!--l. 76--><p class="noindent" >Note that the FP is at a higher address than ESP which is what we would
+expect
+</p><!--l. 78--><p class="noindent" >The return address is at FP+4 so to get the return address we can do:
+</p>
+<!--l. 80-->
+<div class="lstlisting" id="listing-39"><span class="label"><a 
+ id="x7-61031r1"></a></span>(gdb) x (<span 
+class="tcrm-1000">*</span>(<span 
+class="tcrm-1000">$</span>esi+148))+4 <br /><span class="label"><a 
+ id="x7-61032r2"></a></span>0x420e1958:    0x351eadde
+</div>
+<!--l. 85--><p class="noindent" >We can look in RVM.map for the largest method address smaller than 0x351eadde which
+is org.jikesrvm.mm.mmtk.ReferenceProcessor.addCandidate(java.lang.ref.Reference,
+org.vmmagic.unboxed.ObjectReference). Examining ReferenceProcessor.java we
+ﬁnd that this is the only method that calls growReferenceTable so this is
+correct
+</p><!--l. 87--><p class="noindent" >Get the return address from the next frame
+</p>
+<!--l. 89-->
+<div class="lstlisting" id="listing-40"><span class="label"><a 
+ id="x7-61033r1"></a></span>(gdb) x <span 
+class="tcrm-1000">*</span>(<span 
+class="tcrm-1000">*</span>(<span 
+class="tcrm-1000">$</span>esi+148))+4 <br /><span class="label"><a 
+ id="x7-61034r2"></a></span>0x420e1980:    0x352ebd1e
+</div>
+<!--l. 94--><p class="noindent" >Which corresponds to org.jikesrvm.mm.mmtk.ReferenceProcessor.addSoftCandidate(java.lang.ref.SoftReference,
+org.vmmagic.unboxed.ObjectReference) which is a caller of addCandidate.
+</p><!--l. 96--><p class="noindent" >We can follow the stack back up to the top where we will read a FP of 0
+(look in rvm/src/org/jikesrvm/ia32/StackframeLayoutConstants.java for
+details)
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailDebuggingJikesRVM.html"></a></p> 
+</body></html> 

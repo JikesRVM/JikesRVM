@@ -35,7 +35,7 @@ public final class InlineSequence {
   /**
    * bytecode index (in caller) of call site
    */
-  public int bcIndex;
+  private int bcIndex;
 
   /**
    * We need more detailed information of call site than bcIndex.
@@ -90,7 +90,7 @@ public final class InlineSequence {
     this.method = method;
     this.caller = caller;
     this.callSite = callsite;
-    this.bcIndex = callsite.bcIndex;
+    this.bcIndex = callsite.getBytecodeIndex();
   }
 
   public Instruction getCallSite() {
@@ -203,6 +203,14 @@ public final class InlineSequence {
     } else if (!method.equals(other.method))
       return false;
     return true;
+  }
+
+  public int getBcIndex() {
+    return bcIndex;
+  }
+
+  public void adjustBcIndex(int delta) {
+    this.bcIndex += delta;
   }
 
 }

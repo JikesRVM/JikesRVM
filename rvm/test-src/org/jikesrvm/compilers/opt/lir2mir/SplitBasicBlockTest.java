@@ -16,7 +16,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
-import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsBuildForOptCompiler;
 import static org.junit.Assert.assertThat;
 
 import java.util.Enumeration;
@@ -28,7 +27,8 @@ import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
+import org.jikesrvm.junit.runners.RequiresOptCompiler;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.TestingTools;
 import org.junit.Before;
@@ -37,7 +37,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category({RequiresBuiltJikesRVM.class, RequiresOptCompiler.class})
 public class SplitBasicBlockTest {
 
   private SplitBasicBlock splitPhase;
@@ -87,10 +87,6 @@ public class SplitBasicBlockTest {
   }
 
   private IR createIRWithEmptyCFG(int maxInstPerBlock) {
-    // The IR constructor will fail if the optimizing compiler isn't available
-    // and assertions are enabled
-    assumeThatVMIsBuildForOptCompiler();
-
     OptOptions opts = new OptOptions();
     IR ir = new IR(null, null, opts);
     opts.L2M_MAX_BLOCK_SIZE = maxInstPerBlock;

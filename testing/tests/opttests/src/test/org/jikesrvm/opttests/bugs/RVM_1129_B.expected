@@ -1,0 +1,2 @@
+Exception in thread "MainThread" java.lang.RuntimeException
+   at test.org.jikesrvm.opttests.bugs.RVM_1129_B.main(RVM_1129_B.java:22)

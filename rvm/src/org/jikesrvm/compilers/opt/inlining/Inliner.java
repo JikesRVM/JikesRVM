@@ -98,7 +98,7 @@ public class Inliner {
     ExceptionHandlerBasicBlockBag bag = new ExceptionHandlerBasicBlockBag(catchBlocks, null);
 
     // Execute the inlining decision, updating ir.gc's state.
-    GenerationContext childgc = execute(inlDec, ir.gc, bag, callSite);
+    GenerationContext childgc = execute(inlDec, ir.getGc(), bag, callSite);
     // Splice the callee into the caller's code order
     ir.cfg.removeFromCFGAndCodeOrder(bb);
     ir.cfg.breakCodeOrder(in, out);
@@ -149,8 +149,8 @@ public class Inliner {
         if (parent.getOptions().PRINT_INLINE_REPORT) {
           String guard = guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST ? " (class test) " : " (method test) ";
           VM.sysWrite("\tGuarded inline" + guard + " " + callee +
-                      " into " + callSite.position.getMethod() +
-                      " at bytecode " + callSite.bcIndex + "\n");
+                      " into " + callSite.position().getMethod() +
+                      " at bytecode " + callSite.getBytecodeIndex() + "\n");
         }
         // (b)
         children[i] = parent.createChildContext(ebag, callee, callSite);
@@ -181,8 +181,8 @@ public class Inliner {
 
       // Step 4: Create a block to contain a copy of the original call or an OSR_Yieldpoint
       //         to cover the case that all predictions fail.
-      BasicBlock testFailed = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
-      testFailed.exceptionHandlers = ebag;
+      BasicBlock testFailed = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
+      testFailed.setExceptionHandlers(ebag);
 
       if (COUNT_FAILED_GUARDS && Controller.options.INSERT_DEBUGGING_COUNTERS) {
         // Get a dynamic count of how many times guards fail at runtime.
@@ -190,7 +190,7 @@ public class Inliner {
         // separate counter for each method by using the method name
         // as the event name.  You could also have used just the string
         // "Guarded inline failed" to keep only one counter.
-        String eventName = "Guarded inline failed: " + callSite.position.getMethod().toString();
+        String eventName = "Guarded inline failed: " + callSite.position().getMethod().toString();
         // Create instruction that will increment the counter
         // corresponding to the named event.
         Instruction counterInst = AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
@@ -201,15 +201,13 @@ public class Inliner {
         // note where we're storing the osr barrier instruction
         Instruction lastOsrBarrier = parent.getOSRBarrierFromInst(callSite);
         Instruction s = BC2IR._osrHelper(lastOsrBarrier, parent);
-        s.position = callSite.position;
-        s.bcIndex = callSite.bcIndex;
+        s.copySourcePositionFrom(callSite);
         testFailed.appendInstruction(s);
         testFailed.insertOut(parent.getExit());
       } else {
         Instruction call = callSite.copyWithoutLinks();
         Call.getMethod(call).setIsGuardedInlineOffBranch(true);
-        call.bcIndex = callSite.bcIndex;
-        call.position = callSite.position;
+        call.copySourcePositionFrom(callSite);
         testFailed.appendInstruction(call);
         testFailed.insertOut(container.getEpilogue());
         // This is ugly....since we didn't call BC2IR to generate the
@@ -271,8 +269,8 @@ public class Inliner {
       // to allow us to have multiple if blocks for a single
       // "logical" test and to share test insertion for interfaces/virtuals.
       for (int i = children.length - 1; i >= 0; i--, testFailed = firstIfBlock) {
-        firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
-        firstIfBlock.exceptionHandlers = ebag;
+        firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
+        firstIfBlock.setExceptionHandlers(ebag);
         BasicBlock lastIfBlock = firstIfBlock;
         RVMMethod target = children[i].getMethod();
         Instruction tmp;
@@ -318,8 +316,8 @@ public class Inliner {
             if (parent.getOptions().PRINT_INLINE_REPORT) {
               VM.sysWrite("\t\tRequired additional instanceof " + callDeclClass + " test\n");
             }
-            firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
-            firstIfBlock.exceptionHandlers = ebag;
+            firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
+            firstIfBlock.setExceptionHandlers(ebag);
 
             RegisterOperand instanceOfResult = parent.getTemps().makeTempInt();
             tmp =
@@ -381,7 +379,7 @@ public class Inliner {
             cmp.copyPosition(callSite);
             lastIfBlock.appendInstruction(cmp);
 
-            BasicBlock subclassTest = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
+            BasicBlock subclassTest = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
 
             lastIfBlock.insertOut(testFailed);
             lastIfBlock.insertOut(subclassTest);
@@ -428,8 +426,8 @@ public class Inliner {
       NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
       if (parent.getOptions().PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " + callee +
-                    " into " + callSite.position.getMethod() +
-                    " at bytecode " + callSite.bcIndex + "\n");
+                    " into " + callSite.position().getMethod() +
+                    " at bytecode " + callSite.getBytecodeIndex() + "\n");
       }
       GenerationContext child = parent.createChildContext(ebag, callee, callSite);
       BC2IR.generateHIR(child);

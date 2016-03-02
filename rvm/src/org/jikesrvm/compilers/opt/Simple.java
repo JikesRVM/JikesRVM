@@ -447,8 +447,7 @@ public final class Simple extends CompilerPhase {
             if (((IntConstantOperand) indexOp).value <= size) {
               Instruction s =
                   Move.create(GUARD_MOVE, BoundsCheck.getGuardResult(i).copyD2D(), new TrueGuardOperand());
-              s.position = i.position;
-              s.bcIndex = i.bcIndex;
+              s.copySourcePositionFrom(i);
               i.insertAfter(s);
               DefUse.updateDUForNewInstruction(s);
               DefUse.removeInstructionAndUpdateDU(i);
@@ -458,8 +457,7 @@ public final class Simple extends CompilerPhase {
           Operand newSizeOp = sizeOp.copy();
           RegisterOperand result = (RegisterOperand) GuardedUnary.getResult(i).copy();
           Instruction s = Move.create(INT_MOVE, result, newSizeOp);
-          s.position = i.position;
-          s.bcIndex = i.bcIndex;
+          s.copySourcePositionFrom(i);
           i.insertAfter(s);
           DefUse.updateDUForNewInstruction(s);
           DefUse.removeInstructionAndUpdateDU(i);
@@ -603,7 +601,7 @@ public final class Simple extends CompilerPhase {
   void foldConstants(IR ir) {
     boolean recomputeRegList = false;
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
-      Simplifier.DefUseEffect code = Simplifier.simplify(ir.IRStage == IR.HIR, ir.regpool, ir.options, s);
+      Simplifier.DefUseEffect code = Simplifier.simplify(ir.isHIR(), ir.regpool, ir.options, s);
       // If something was reduced (as opposed to folded) then its uses may
       // be different. This happens so infrequently that it's cheaper to
       // handle it by  recomputing the DU from

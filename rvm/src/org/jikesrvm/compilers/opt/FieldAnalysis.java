@@ -139,7 +139,7 @@ public final class FieldAnalysis extends CompilerPhase {
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information,
         // gleaned from context, does not hold everywhere
-        if (s.position.getMethod() != ir.method) {
+        if (s.position().getMethod() != ir.method) {
           continue;
         }
         Operand value = PutField.getValue(s);
@@ -159,7 +159,7 @@ public final class FieldAnalysis extends CompilerPhase {
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information,
         // gleaned from context, does not hold everywhere
-        if (s.position.getMethod() != ir.method) {
+        if (s.position().getMethod() != ir.method) {
           continue;
         }
         Operand value = PutStatic.getValue(s);

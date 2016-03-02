@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
@@ -132,7 +133,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
       }
       ir.desiredSSAOptions = new SSAOptions();
       // register in the IR the SSA properties we need for GCP
-      if (ir.IRStage == IR.LIR) {
+      if (ir.isLIR()) {
         ir.desiredSSAOptions.setScalarsOnly(true);
         ir.desiredSSAOptions.setBackwards(false);
         ir.desiredSSAOptions.setInsertUsePhis(false);
@@ -140,6 +141,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setHeapTypes(null);
       } else {
         // HIR options
+        if (VM.VerifyAssertions) VM._assert(ir.isHIR());
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
         ir.desiredSSAOptions.setInsertUsePhis(true);
@@ -189,7 +191,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
       //VM.sysWrite("< " + ir.method + "\n");
       // register in the IR the SSA properties GCP preserves
       if (!GCP.tooBig(ir) && !ir.hasReachableExceptionHandlers() && ir.actualSSAOptions != null) {
-        if (ir.IRStage == IR.LIR) {
+        if (ir.isLIR()) {
           ir.actualSSAOptions.setScalarsOnly(true);
           ir.actualSSAOptions.setBackwards(false);
           ir.actualSSAOptions.setInsertUsePhis(false);
@@ -197,6 +199,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
           ir.actualSSAOptions.setHeapTypes(null);
         } else {
           // HIR options
+          if (VM.VerifyAssertions) VM._assert(ir.isHIR());
           ir.actualSSAOptions.setScalarsOnly(false);
           ir.actualSSAOptions.setBackwards(true);
           ir.actualSSAOptions.setInsertUsePhis(true);

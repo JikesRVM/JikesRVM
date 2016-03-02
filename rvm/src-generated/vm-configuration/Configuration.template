@@ -81,6 +81,9 @@ public abstract class Configuration {
   /** build with Base boot image compiler? */
   public static final boolean BuildWithBaseBootImageCompiler = @_RVM_WITH_BASE_BOOTIMAGE_COMPILER_@;
 
+  /** allow bootimage writer to build oversized images? */
+  public static final boolean AllowOversizedImages = @_RVM_OVERSIZED_IMAGE_@;
+
   // Interface method dispatch strategy.
   // We either use IMT's (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA 2001)
   // or searched ITables. See also the research archive for the variants on these
@@ -110,4 +113,32 @@ public abstract class Configuration {
    * run Jikes with only one processor.
    */
   public static final boolean AlignmentChecking = @_RVM_WITH_ALIGNMENT_CHECKING_@;
+
+  /**
+   * Sets properties for the Jikes RVM Junit test runner.
+   * <p>
+   * In order to skip certain unit tests based on the configuration of the VM
+   * that the test runner is running in, we need to be able to do basic
+   * introspection of Jikes RVM specific features. That is implemented by
+   * setting properties that the test runner can then query. This approach
+   * avoids linking with Jikes RVM code (which would make the test runner
+   * fragile and annoying to compile).
+   */
+  public static void setupPropertiesForUnitTesting() {
+    String targetArch;
+    if (BuildForIA32) {
+      targetArch = "ia32";
+    } else if (BuildForPowerPC) {
+      targetArch = "ppc";
+    } else {
+      // Can't use assertions because that would require importing VM, which
+      // is a subclass of this class
+      throw new InternalError("Unknown architecture");
+    }
+    System.setProperty("jikesrvm.target.arch", targetArch);
+
+    if (BuildForOptCompiler) {
+      System.setProperty("jikesrvm.include.opt", "true");
+    }
+  }
 }

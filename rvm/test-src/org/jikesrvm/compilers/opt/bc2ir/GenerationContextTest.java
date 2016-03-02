@@ -82,7 +82,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.util.GraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode.OutEdgeEnumeration;
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
+import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Statics;
@@ -96,7 +96,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresJikesRVM.class)
+@Category(RequiresBuiltJikesRVM.class)
 public class GenerationContextTest {
 
   private int currentRegisterNumber = -1;
@@ -176,13 +176,13 @@ public class GenerationContextTest {
       InlineSequence inlineSequence, BasicBlock epilogue) {
     assertThat(gc.getCfg().lastInCodeOrder(), is(epilogue));
     assertThat(epilogue.firstInstruction().getBytecodeIndex(), is(EPILOGUE_BLOCK_BCI));
-    assertTrue(epilogue.firstInstruction().position.equals(inlineSequence));
+    assertTrue(epilogue.firstInstruction().position().equals(inlineSequence));
   }
 
   private void assertThatFirstInstructionInPrologueIsPrologue(
       InlineSequence inlineSequence, BasicBlock prologue) {
     assertThat(prologue.firstRealInstruction().getBytecodeIndex(),is(PROLOGUE_BCI));
-    assertTrue(prologue.firstRealInstruction().position.equals(inlineSequence));
+    assertTrue(prologue.firstRealInstruction().position().equals(inlineSequence));
     assertThat(prologue.firstRealInstruction().operator(),is(IR_PROLOGUE));
   }
 
@@ -190,7 +190,7 @@ public class GenerationContextTest {
       InlineSequence inlineSequence, BasicBlock prologue) {
     assertThat(gc.getCfg().firstInCodeOrder(), is(prologue));
     assertThat(prologue.firstInstruction().getBytecodeIndex(), is(PROLOGUE_BLOCK_BCI));
-    assertTrue(prologue.firstInstruction().position.equals(inlineSequence));
+    assertTrue(prologue.firstInstruction().position().equals(inlineSequence));
   }
 
   private void assertThatInlineSequenceWasSetCorrectly(GenerationContext gc,
@@ -703,7 +703,7 @@ public class GenerationContextTest {
       InlineSequence inlineSequence, BasicBlock epilogue) {
     Instruction firstEpilogueInstruction = epilogue.firstRealInstruction();
     assertThat(firstEpilogueInstruction.getBytecodeIndex(),is(SYNCHRONIZED_MONITOREXIT_BCI));
-    assertTrue(firstEpilogueInstruction.position.equals(inlineSequence));
+    assertTrue(firstEpilogueInstruction.position().equals(inlineSequence));
     assertThat(firstEpilogueInstruction.operator(),is(MONITOREXIT));
   }
 
@@ -736,7 +736,7 @@ public class GenerationContextTest {
   private void assertInstructionIsMonitorEnterInPrologue(
       Instruction secondInstruction, InlineSequence inlineSequence) {
     assertThat(secondInstruction.operator(),is(MONITORENTER));
-    assertTrue(secondInstruction.position.equals(inlineSequence));
+    assertTrue(secondInstruction.position().equals(inlineSequence));
     assertThat(secondInstruction.getBytecodeIndex(),is(SYNCHRONIZED_MONITORENTER_BCI));
   }
 
@@ -861,7 +861,7 @@ public class GenerationContextTest {
     Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
     RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 0, objectParam);
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
@@ -872,7 +872,7 @@ public class GenerationContextTest {
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
-    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
+    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position(), callInstr);
     assertEquals(expectedInlineSequence, child.getInlineSequence());
     RegisterOperand firstArg = child.getArguments()[0].asRegister();
     assertTrue(firstArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
@@ -900,9 +900,9 @@ public class GenerationContextTest {
 
   private void assertMoveOperationIsCorrect(Instruction call,
       Operator moveOperator, RegisterOperand formal, RegisterOperand actual, Instruction move) {
-    assertSame(call.position, move.position);
+    assertSame(call.position(), move.position());
     assertThat(move.operator(), is(moveOperator));
-    assertThat(move.bcIndex, is(PROLOGUE_BCI));
+    assertThat(move.getBytecodeIndex(), is(PROLOGUE_BCI));
     RegisterOperand moveResult = Move.getResult(move);
     assertTrue(moveResult.sameRegisterPropertiesAs(formal));
     RegisterOperand moveValue = Move.getVal(move).asRegister();
@@ -964,7 +964,7 @@ public class GenerationContextTest {
     RegisterOperand intParam = prepareCallWithIntParam(callInstr);
     RegisterOperand longParam = prepareCallWithLongParam(callInstr);
 
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
@@ -1001,7 +1001,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForLongParam = child.makeLocal(5, fourthArg);
     assertTrue(fourthArg.sameRegisterPropertiesAs(expectedLocalForLongParam));
 
-    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
+    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position(), callInstr);
     assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
@@ -1050,7 +1050,7 @@ public class GenerationContextTest {
       BasicBlock epilogue) {
     assertThat(child.getCfg().lastInCodeOrder(), is(epilogue));
     assertThat(epilogue.firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
-    assertTrue(epilogue.firstInstruction().position.equals(inlineSequence));
+    assertTrue(epilogue.firstInstruction().position().equals(inlineSequence));
   }
 
   private void assertThatNoRethrowBlockExists(GenerationContext child) {
@@ -1065,14 +1065,14 @@ public class GenerationContextTest {
   private void assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(
       ExceptionHandlerBasicBlockBag ebag, int nodeNumber,
       GenerationContext child) {
-    assertThat(child.getPrologue().firstInstruction().bcIndex, is(PROLOGUE_BCI));
-    assertThat(child.getPrologue().firstInstruction().position, is(child.getInlineSequence()));
+    assertThat(child.getPrologue().firstInstruction().getBytecodeIndex(), is(PROLOGUE_BCI));
+    assertThat(child.getPrologue().firstInstruction().position(), is(child.getInlineSequence()));
     assertThat(child.getPrologue().getNumber(), is(nodeNumber));
-    assertThat(child.getPrologue().exceptionHandlers, is(ebag));
-    assertThat(child.getEpilogue().firstInstruction().bcIndex, is(EPILOGUE_BCI));
-    assertThat(child.getEpilogue().firstInstruction().position, is(child.getInlineSequence()));
+    assertThat(child.getPrologue().exceptionHandlers(), is(ebag));
+    assertThat(child.getEpilogue().firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
+    assertThat(child.getEpilogue().firstInstruction().position(), is(child.getInlineSequence()));
     assertThat(child.getEpilogue().getNumber(), is(nodeNumber + 1));
-    assertThat(child.getEpilogue().exceptionHandlers, is(ebag));
+    assertThat(child.getEpilogue().exceptionHandlers(), is(ebag));
     int newNodeNumber = nodeNumber + 2;
     assertThat(child.getCfg().numberOfNodes(), is(newNodeNumber));
     assertThat(child.getCfg().firstInCodeOrder(), is(child.getPrologue()));
@@ -1104,7 +1104,7 @@ public class GenerationContextTest {
     RegisterOperand intParam = prepareCallWithIntParam(callInstr);
     RegisterOperand longParam = prepareCallWithLongParam(callInstr);
 
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
@@ -1139,7 +1139,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForLongParam = child.makeLocal(5, fourthArg);
     assertTrue(fourthArg.sameRegisterPropertiesAs(expectedLocalForLongParam));
 
-    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
+    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position(), callInstr);
     assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
@@ -1218,7 +1218,7 @@ public class GenerationContextTest {
     RegisterOperand intParam = prepareCallWithIntParam(callInstr);
     RegisterOperand longParam = prepareCallWithLongParam(callInstr);
 
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
@@ -1254,7 +1254,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForLongParam = child.makeLocal(5, fourthArg);
     assertTrue(fourthArg.sameRegisterPropertiesAs(expectedLocalForLongParam));
 
-    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
+    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position(), callInstr);
     assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
@@ -1262,19 +1262,19 @@ public class GenerationContextTest {
     Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     Instruction guardMove = prologueRealInstr.nextElement();
     assertThat(guardMove.operator(), is(GUARD_MOVE));
-    assertThat(guardMove.bcIndex, is(UNKNOWN_BCI));
+    assertThat(guardMove.getBytecodeIndex(), is(UNKNOWN_BCI));
     RegisterOperand guardMoveResult = Move.getResult(guardMove);
     assertTrue(guardMoveResult.sameRegisterPropertiesAs(expectedNullCheckGuard));
     Operand moveValue = Move.getVal(guardMove);
     assertTrue(moveValue.isTrueGuard());
-    assertNull(guardMove.position);
+    assertNull(guardMove.position());
 
     Instruction receiverMove = prologueRealInstr.nextElement();
     Operand expectedReceiver = receiver.copy();
     //TODO definite non-nullness of constant operand is not being verified
-    assertSame(callInstr.position, receiverMove.position);
+    assertSame(callInstr.position(), receiverMove.position());
     assertThat(receiverMove.operator(), is(REF_MOVE));
-    assertThat(receiverMove.bcIndex, is(PROLOGUE_BCI));
+    assertThat(receiverMove.getBytecodeIndex(), is(PROLOGUE_BCI));
     RegisterOperand receiverMoveResult = Move.getResult(receiverMove);
     assertTrue(receiverMoveResult.sameRegisterPropertiesAsExceptForGuardWhichIsSimilar(expectedLocalForReceiverParam));
     Operand receiverMoveValue = Move.getVal(receiverMove);
@@ -1329,7 +1329,7 @@ public class GenerationContextTest {
 
     Operand receiver = new InvalidReceiverOperand();
     Call.setParam(callInstr, 0, receiver);
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     gc.createChildContext(ebag, callee, callInstr);
@@ -1369,7 +1369,7 @@ public class GenerationContextTest {
     Call.setParam(callInstr, 0, objectParam);
     RegisterOperand objectParamCopy = objectParam.copy().asRegister();
 
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
@@ -1388,7 +1388,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForObjectParam = child.makeLocal(0, objectParamArg);
     assertTrue(objectParamArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
 
-    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
+    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position(), callInstr);
     assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
@@ -1461,7 +1461,7 @@ public class GenerationContextTest {
       NormalMethod callee, NormalMethod caller) {
     MethodOperand methOp = MethodOperand.STATIC(callee);
     Instruction callInstr = Call.create(CALL, null, null, methOp, 0);
-    callInstr.position = new InlineSequence(caller);
+    callInstr.setPosition(new InlineSequence(caller));
 
     return callInstr;
   }
@@ -1495,7 +1495,7 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ehbb = childContext.getEnclosingHandlers();
     Enumeration<BasicBlock> enumerator = ehbb.enumerator();
 
-    assertThat(childContext.getUnlockAndRethrow().exceptionHandlers, is(parentContext.getEnclosingHandlers()));
+    assertThat(childContext.getUnlockAndRethrow().exceptionHandlers(), is(parentContext.getEnclosingHandlers()));
 
     ExceptionHandlerBasicBlock rethrow = (ExceptionHandlerBasicBlock) enumerator.nextElement();
     assertSame(rethrow, childContext.getUnlockAndRethrow());
@@ -1550,7 +1550,7 @@ public class GenerationContextTest {
 
     assertThat(firstInstructionInRethrow.operator(),  is(GET_CAUGHT_EXCEPTION));
     assertThat(firstInstructionInRethrow.getBytecodeIndex(), is(SYNTH_CATCH_BCI));
-    assertTrue(firstInstructionInRethrow.position.equals(inlineSequence));
+    assertTrue(firstInstructionInRethrow.position().equals(inlineSequence));
     RegisterOperand catchExceptionObject = Nullary.getResult(firstInstructionInRethrow);
     assertThat(catchExceptionObject.getType(), is(TypeReference.JavaLangThrowable));
 
@@ -1595,7 +1595,7 @@ public class GenerationContextTest {
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
-    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
+    InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position(), callInstr);
     assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
@@ -1705,14 +1705,14 @@ public class GenerationContextTest {
 
     int synthethicNodeNumber = -100000;
     assertThat(synthethicContext.getCfg().numberOfNodes(), is(synthethicNodeNumber));
-    assertThat(synthethicContext.getPrologue().firstInstruction().bcIndex, is(PROLOGUE_BCI));
-    assertThat(synthethicContext.getPrologue().firstInstruction().position, is(gc.getInlineSequence()));
+    assertThat(synthethicContext.getPrologue().firstInstruction().getBytecodeIndex(), is(PROLOGUE_BCI));
+    assertThat(synthethicContext.getPrologue().firstInstruction().position(), is(gc.getInlineSequence()));
     assertThat(synthethicContext.getPrologue().getNumber(), is(parentCfgNodeNumber));
-    assertThat(synthethicContext.getPrologue().exceptionHandlers, is(mockEbag));
-    assertThat(synthethicContext.getEpilogue().firstInstruction().bcIndex, is(EPILOGUE_BCI));
-    assertThat(synthethicContext.getEpilogue().firstInstruction().position, is(gc.getInlineSequence()));
+    assertThat(synthethicContext.getPrologue().exceptionHandlers(), is(mockEbag));
+    assertThat(synthethicContext.getEpilogue().firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
+    assertThat(synthethicContext.getEpilogue().firstInstruction().position(), is(gc.getInlineSequence()));
     assertThat(synthethicContext.getEpilogue().getNumber(), is(parentCfgNodeNumber + 1));
-    assertThat(synthethicContext.getEpilogue().exceptionHandlers, is(mockEbag));
+    assertThat(synthethicContext.getEpilogue().exceptionHandlers(), is(mockEbag));
     assertThat(gc.getCfg().numberOfNodes(), is(4));
     assertThat(synthethicContext.getCfg().numberOfNodes(), is(synthethicNodeNumber));
     assertThat(synthethicContext.getCfg().firstInCodeOrder(), is(synthethicContext.getPrologue()));
@@ -2065,7 +2065,7 @@ public class GenerationContextTest {
     Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
     RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 0, objectParam);
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);
@@ -2097,7 +2097,7 @@ public class GenerationContextTest {
     Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
     RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 0, objectParam);
-    callInstr.position = new InlineSequence(nm);
+    callInstr.setPosition(new InlineSequence(nm));
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);

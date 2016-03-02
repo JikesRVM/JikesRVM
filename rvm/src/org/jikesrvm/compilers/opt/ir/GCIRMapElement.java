@@ -120,7 +120,7 @@ public final class GCIRMapElement {
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder();
-    buf.append(" Instruction: ").append(inst.bcIndex).append(", ").append(inst);
+    buf.append(" Instruction: ").append(inst.getBytecodeIndex()).append(", ").append(inst);
     for (RegSpillListElement elem : regSpillList) {
       buf.append(elem).append("  ");
     }

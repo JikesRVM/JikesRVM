@@ -196,7 +196,7 @@ public final class FreeListPageResource extends PageResource {
     int pageOffset = Conversions.bytesToPages(first.diff(start));
 
     int pages = freeList.size(pageOffset);
-    if (ZERO_ON_RELEASE)
+    if (VM.config.ZERO_PAGES_ON_RELEASE)
       VM.memory.zero(false, first, Conversions.pagesToBytes(pages));
     /* Can't use protect here because of the chunk sizes involved!
     if (protectOnRelease.getValue())

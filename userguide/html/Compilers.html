@@ -1,0 +1,857 @@
+<?xml version="1.0" encoding="utf8" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>13 Compilers</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<!-- xhtml,charset=utf8,2,html --> 
+<meta name="src" content="userguide.tex" /> 
+<meta name="date" content="2016-02-18 10:15:00" /> 
+<link rel="stylesheet" type="text/css" href="userguide.css" /> 
+</head><body 
+>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<h2 class="chapterHead"><span class="titlemark">Chapter 13</span><br /><a 
+ id="x16-15600013"></a>Compilers</h2>
+     <ul class="itemize1">
+     <li class="itemize"><a 
+href="#x16-15700013.1">Baseline Compiler</a>
+     </li>
+     <li class="itemize">JNI Compiler: the JNI compiler ”compiles” native methods by generating
+     code to transition from Jikes RVM internal calling/register conventions to
+     the native platforms ABI. It is almost completely platform-dependent.
+     </li>
+     <li class="itemize"><a 
+href="#x16-16000013.2">Optimizing Compiler</a></li></ul>
+<h3 class="sectionHead"><span class="titlemark">13.1   </span> <a 
+ id="x16-15700013.1"></a>Baseline Compiler</h3>
+<!--l. 5--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">13.1.1   </span> <a 
+ id="x16-15800013.1.1"></a>General Architecture</h4>
+<!--l. 7--><p class="noindent" >The goal of the baseline compiler is to eﬃciently generate code that is ”obviously
+correct.” It also needs to be easy to port to a new platform and self contained (the
+entire baseline compiler must be included in all Jikes RVM boot images to support
+dynamically loading other compilers).
+</p><!--l. 9--><p class="noindent" >Roughly two thirds of the baseline compiler is machine-independent. The main ﬁle is
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BaselineCompiler</span></span></span> and its parent <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TemplateCompilerFramework</span></span></span>. The main
+platform-dependent ﬁle is <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BaselineCompilerImpl</span></span></span>.
+</p><!--l. 11--><p class="noindent" >Baseline compilation consists of two main steps: GC map computation (discussed
+below) and code generation. The code generation in the baseline compilers is mostly
+straightforward, consisting of a single pass through the bytecodes of the method
+being compiled.
+</p><!--l. 13--><p class="noindent" >Diﬀerences in the hardware architectures lead to slightly diﬀerent implementation
+strategies for the baseline compilers. For example, the IA32 baseline compiler does
+not try to optimize register usage, instead the bytecode operand stack is held in
+memory. This leads to bytecodes that push a constant onto the stack, creating a
+memory write in the generated machine code. The number of memory accesses in the
+IA32 baseline compiler corresponds directly to the number of bytecodes. In contrast
+to this, the PPC baseline compiler does some register allocation of local variables
+(and should probably do even more register allocation to properly exploit the register
+set).
+</p><!--l. 15--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TemplateCompilerFramework</span></span></span> contains the main code generation switch statement
+that invokes the appropriate <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">emit&#x003C;bytecode&#x003E;_</span></span></span> method of <span 
+class="cmtt-10">BaselineCompilerImpl</span>.
+</p><!--l. 19--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">13.1.2   </span> <a 
+ id="x16-15900013.1.2"></a>GC Maps</h4>
+                                                                  
+
+                                                                  
+<!--l. 21--><p class="noindent" >The baseline compiler computes GC maps by abstractly interpreting the bytecodes to
+determine which expression stack slots and local variables contain references at the
+start of each bytecode. There are additional compilations to handle JSRs; see the
+source code for details. This strategy of computing a single GC map that applies to
+all the internal GC points for each bytecode slightly constrains code generation. The
+code generator must ensure that the GC map remains valid at all GC points
+(including implicit GC points introduced by null pointer exceptions). It also forces
+the baseline compiler to report reference parameters for the various invoke
+bytecodes as live in the GC map for the call (because the GC map also
+needs to cover the various internal GC points that happen before the call is
+actually performed). Note that this is not an issue for the optimizing compiler
+which computes GC maps for each machine code instruction that is a GC
+point.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h3 class="sectionHead"><span class="titlemark">13.2   </span> <a 
+ id="x16-16000013.2"></a>Optimizing Compiler</h3>
+<!--l. 5--><p class="noindent" >The documentation for the optimizing compiler is organized into the following
+sections.
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><a 
+href="#x16-16100013.2.1">Method Compilation</a>: The fundamental unit for compilation in Jikes RVM
+     is a single method.
+     </li>
+     <li class="itemize"><a 
+href="#x16-16200013.2.2">IR</a>: The intermediate representation used by the optimizing compiler.
+     </li>
+     <li class="itemize"><a 
+href="#x16-16500013.2.3">BURS</a>: The Bottom-Up Rewrite System (BURS) is used by the optimizing
+     compiler for instruction selection.
+     </li>
+     <li class="itemize"><a 
+href="#x16-16700013.2.4">OptTestHarness</a>: A test harness for compilation parameters for speciﬁc
+     classes and methods.</li></ul>
+<!--l. 2--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">13.2.1   </span> <a 
+ id="x16-16100013.2.1"></a>Method Compilation</h4>
+<!--l. 5--><p class="noindent" >The fundamental unit for optimization in Jikes RVM is a single method. The
+optimization of a method consists of a series of compiler phases performed on the
+method. These phases transform the IR (intermediate representation) from bytecodes
+through HIR (high-level intermediate representation), LIR (low-level intermediate
+representation), and MIR (machine intermediate representation) and ﬁnally into
+machine code. Various optimizing transformations are performed at each level of
+IR.
+                                                                  
+
+                                                                  
+</p><!--l. 7--><p class="noindent" >An object of the class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilationPlan</span></span></span> contains all the information necessary to
+generate machine code for a method. An instance of this class includes, among other
+ﬁelds, the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RVMMethod</span></span></span> to be compiled and the array of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OptimizationPlanElements</span></span></span>
+which deﬁne the compilation steps. The execute method of an <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilationPlan</span></span></span>
+invokes the optimizing compiler to generate machine code for the method, executing
+the compiler phases as listed in the plan&#x2019;s <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OptimizationPlanElements</span></span></span>.
+</p><!--l. 9--><p class="noindent" >The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OptimizationPlanner</span></span></span> class deﬁnes the standard phases used in a compilation.
+This class contains a static ﬁeld, called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">masterPlan</span></span></span>, which contains all possible
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OptimizationPlanElements</span></span></span>. The structure of the master plan is a tree. Any element
+may either be an atomic element (a leaf of the tree), or an aggregate element (an
+internal node of the tree). The master plan has the following general structure:
+</p>
+     <ul class="itemize1">
+     <li class="itemize">elements which convert bytecodes to HIR
+     </li>
+     <li class="itemize">elements which perform optimization transformations on the HIR
+         <ul class="itemize2">
+         <li class="itemize">elements  which  perform  optimization  transformations  using  SSA
+         form</li></ul>
+     </li>
+     <li class="itemize">elements which convert HIR to LIR
+     </li>
+     <li class="itemize">elements which perform optimization transformations on the LIR
+         <ul class="itemize2">
+         <li class="itemize">elements  which  perform  optimization  transformations  using  SSA
+         form</li></ul>
+     </li>
+     <li class="itemize">elements which convert LIR to MIR
+     </li>
+     <li class="itemize">elements which perform optimization transformations on MIR
+     </li>
+     <li class="itemize">elements which convert MIR to machine code</li></ul>
+<!--l. 26--><p class="noindent" >A client (compiler driver) constructs a speciﬁc optimization plan by including all the
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OptimizationPlanElements</span></span></span> contained in the master plan which are appropriate for
+this compilation instance. Whether or not an element should be part of a compilation
+plan is determined by its <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">shouldPerform</span></span></span> method. For each atomic element, the
+values in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OptOptions</span></span></span> object are generally used to determine whether
+the element should be included in the compilation plan. Each aggregate
+element must be included when any of its component elements must be
+included.
+</p><!--l. 28--><p class="noindent" >Each element must have a perform method deﬁned which takes the IR as a
+parameter. It is expected, but not required, that the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">perform</span></span></span> method will modify the
+IR. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">perform</span></span></span> method of an aggregate element will invoke the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">perform</span></span></span> methods of
+its elements.
+                                                                  
+
+                                                                  
+</p><!--l. 30--><p class="noindent" >Each atomic element is an object of the ﬁnal class <span 
+class="cmtt-10">OptimizationPlanAtomicElement</span>.
+The main work of this class is performed by its phase, an object of type
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilerPhase</span></span></span>. The <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilerPhase</span></span></span> class is not ﬁnal; each phase overrides this
+class, in particular it overrides the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">perform</span></span></span> method, which is invoked by its enclosing
+element&#x2019;s <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">perform</span></span></span> method. All the state associated with the element is contained in
+the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilerPhase</span></span></span>; no state is in the element.
+</p><!--l. 32--><p class="noindent" >Every optimization plan consists of a selection of elements from the master plan; thus
+two optimization plans associated with diﬀerent methods will share the same
+component element objects. Clearly, it is undesirable to share state associated with a
+particular compilation phase between two diﬀerent method compilations. In order
+to prevent this, the perform method of an atomic element creates a new
+instance of its phase immediately before calling the phase&#x2019;s perform method. In
+the case where the phase contains no state the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">newExecution</span></span></span> method of
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">CompilerPhase</span></span></span> can be overridden to return the phase itself rather than a clone of
+the phase.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">13.2.2   </span> <a 
+ id="x16-16200013.2.2"></a>IR</h4>
+<!--l. 5--><p class="noindent" >The optimizing compiler intermediate representation (IR) is held in an object of type
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IR</span></span></span> and includes a list of instructions. Every instruction is classiﬁed into one of the
+pre-deﬁned instruction formats. Each instruction includes an operator and zero or
+more operands. Instructions are grouped into basic blocks; basic blocks are
+constrained to having control-ﬂow instructions at their end. Basic blocks fall-through
+to other basic blocks or contain branch instructions that have a destination basic
+block label. The graph of basic blocks is held in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">cfg</span></span></span> (control-ﬂow graph) ﬁeld of
+IR.
+</p><!--l. 7--><p class="noindent" >This section documents basic information about the intermediate represenation. For
+a tutorial based introduction to the material it is highly recommended that you
+read the presentation <a 
+href="http://www.jikesrvm.org/Resources/Presentations/" >Jikes RVM Optimizing Compiler Intermediate Code
+Representation</a>.
+</p><!--l. 9--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x16-16300013.2.2"></a>IR Operators</h5>
+<!--l. 11--><p class="noindent" >The IR operators are deﬁned by the class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Operators</span></span></span>, which in turn is
+automatically generated from a template by a driver. The input to the driver
+are two ﬁles, both called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OperatorList.dat</span></span></span>. One input ﬁle resides in
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">$RVM_ROOT/rvm/src-generated/opt-ir</span></span></span> and deﬁnes machine-independent operators.
+The other resides in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">$RVM_ROOT/rvm/src-generated/opt-ir/$\{arch\}</span></span></span> and deﬁnes
+machine-dependent operators, where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">$\{arch\}</span></span></span> is the speciﬁc instruction
+architecture of interest.
+</p><!--l. 15--><p class="noindent" >Each operator in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OperatorList.dat</span></span></span> is deﬁned by a ﬁve-line record, consisting
+of:
+</p>
+                                                                  
+
+                                                                  
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SYMBOL</span></span></span>: a static symbol to identify the operator
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INSTRUCTION_FORMAT</span></span></span>:  the  instruction  format  class  that  accepts  this
+     operator.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TRAITS</span></span></span>: a set of characteristics of the operator, composed with a bit-wise
+     or (<span 
+class="cmsy-10">|</span>) operator. See Operator.java for a list of valid traits.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IMPLDEFS</span></span></span>:  set  of  registers  implicitly  deﬁned  by  this  operator;  usually
+     applies only to machine-dependent operators
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IMPLUSES</span></span></span>: set of registers implicitly used by this operator; usually applies
+     only to machine-dependent operators</li></ul>
+<!--l. 25--><p class="noindent" >For example, the entry in <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OperatorList.dat</span></span></span> that deﬁnes the integer addition
+operator is </p><!--l. 26-->
+<div class="lstlisting" id="listing-101"><span class="label"><a 
+ id="x16-163001r1"></a></span>INT_ADD <br /><span class="label"><a 
+ id="x16-163002r2"></a></span>Binary <br /><span class="label"><a 
+ id="x16-163003r3"></a></span>none <br /><span class="label"><a 
+ id="x16-163004r4"></a></span><span 
+class="cmmi-10">&#x003C;</span>blank line<span 
+class="cmmi-10">&#x003E;</span> <br /><span class="label"><a 
+ id="x16-163005r5"></a></span><span 
+class="cmmi-10">&#x003C;</span>blank line<span 
+class="cmmi-10">&#x003E;</span>
+</div>
+<!--l. 34--><p class="noindent" >The operator for a conditional branch based on values of two references is deﬁned by
+</p><!--l. 35-->
+<div class="lstlisting" id="listing-102"><span class="label"><a 
+ id="x16-163006r1"></a></span>REF_IFCOMP <br /><span class="label"><a 
+ id="x16-163007r2"></a></span>IntIfCmp <br /><span class="label"><a 
+ id="x16-163008r3"></a></span>branch <span 
+class="cmsy-10">|</span> conditional <br /><span class="label"><a 
+ id="x16-163009r4"></a></span><span 
+class="cmmi-10">&#x003C;</span>blank line<span 
+class="cmmi-10">&#x003E;</span> <br /><span class="label"><a 
+ id="x16-163010r5"></a></span><span 
+class="cmmi-10">&#x003C;</span>blank line<span 
+class="cmmi-10">&#x003E;</span>
+</div>
+<!--l. 42--><p class="noindent" >Additionally, the machine-speciﬁc <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OperatorList.dat</span></span></span> ﬁle contains another line of
+information for use by the assembler. See the ﬁle for details.
+</p><!--l. 47--><p class="noindent" >
+</p>
+<h5 class="subsubsectionHead"><a 
+ id="x16-16400013.2.2"></a>Instruction Format</h5>
+<!--l. 49--><p class="noindent" >Every IR instruction ﬁts one of the pre-deﬁned <span 
+class="cmti-10">Instruction Formats</span>. The Java package
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">org.jikesrvm.compilers.opt.ir</span></span></span> deﬁnes roughly 75 architecture-independent
+instruction formats. For each instruction format, the package includes a class that
+deﬁnes a set of static methods by which optimizing compiler code can access an
+instruction of that format.
+</p><!--l. 51--><p class="noindent" >For example, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INT_MOVE</span></span></span> instructions conform to the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Move</span></span></span> instruction format. The
+following code fragment shows code that uses the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Operators</span></span></span> interface and the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Move</span></span></span>
+instruction format:
+</p>
+<!--l. 53-->
+<div class="lstlisting" id="listing-103"><span class="label"><a 
+ id="x16-164001r1"></a></span><span 
+class="cmbx-10">import</span> org.jikesrvm.compilers.opt.ir.<span 
+class="tcrm-1000">*</span>; <br /><span class="label"><a 
+ id="x16-164002r2"></a></span><span 
+class="cmbx-10">class</span> X <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x16-164003r3"></a></span>  <span 
+class="cmbx-10">void</span> foo(Instruction s) <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x16-164004r4"></a></span>    <span 
+class="cmbx-10">if</span> (Move.conforms(s)) <span 
+class="cmsy-10">{</span> <span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">//</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">if</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">this</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">instruction</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">fits</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">the</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">Move</span><span 
+class="cmti-10"> </span><span 
+class="cmti-10">format</span> <br /><span class="label"><a 
+ id="x16-164005r5"></a></span>      RegisterOperand r1 = Move.getResult(s); <br /><span class="label"><a 
+ id="x16-164006r6"></a></span>      Operand r2 = Move.getVal(s); <br /><span class="label"><a 
+ id="x16-164007r7"></a></span>      System.out.println(”Found_a_move_instruction:_” + r1 + ”_:=_” + r2); <br /><span class="label"><a 
+ id="x16-164008r8"></a></span>    <span 
+class="cmsy-10">}</span> <span 
+class="cmbx-10">else</span> <span 
+class="cmsy-10">{</span> <br /><span class="label"><a 
+ id="x16-164009r9"></a></span>      System.out.println(s + ”_is_not_a_MOVE”); <br /><span class="label"><a 
+ id="x16-164010r10"></a></span>    <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x16-164011r11"></a></span>  <span 
+class="cmsy-10">}</span> <br /><span class="label"><a 
+ id="x16-164012r12"></a></span><span 
+class="cmsy-10">}</span>
+                                                                  
+
+                                                                  
+</div>
+<!--l. 68--><p class="noindent" >This example shows just a subset of the access functions deﬁned for the Move format.
+Other static access functions can set each operand (in this case, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Result</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Val</span></span></span>),
+query each operand for nullness, clear operands, create Move instructions, mutate
+other instructions into Move instructions, and check the index of a particular operand
+ﬁeld in the instruction. See the Javadoc<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> reference for a complete description of the
+API.
+</p><!--l. 70--><p class="noindent" >Each ﬁxed-length instruction format is deﬁned in the text ﬁle
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">$RVM_ROOT/rvm/src-generated/opt-ir/InstructionFormatList.dat</span></span></span>. Each record
+in this ﬁle has four lines:
+</p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NAME</span></span></span>: the name of the instruction format
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SIZES</span></span></span>: the number of operands deﬁned, deﬁned and used, and used
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">SIZES</span></span></span>: the number of operands deﬁned, deﬁned and used, and used
+         <ul class="itemize2">
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">D/DU/U</span></span></span>: Is this operand a def, use, or both?
+         </li>
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NAME</span></span></span>: the unique name to identify the operand
+         </li>
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TYPE</span></span></span>: the type of the operand (a subclass of Operand)
+         </li>
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">[opt]</span></span></span>: is this operand optional?</li></ul>
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">VARSIG</span></span></span>: a description of repeating operands, used for variable-length
+     instructions.</li></ul>
+<!--l. 85--><p class="noindent" >So for example, the record that deﬁnes the Move instruction format is
+</p>
+<!--l. 87-->
+<div class="lstlisting" id="listing-104"><span class="label"><a 
+ id="x16-164013r1"></a></span>Move <br /><span class="label"><a 
+ id="x16-164014r2"></a></span>1 0 1 <br /><span class="label"><a 
+ id="x16-164015r3"></a></span>”D Result RegisterOperand” ”U Val Operand” <br /><span class="label"><a 
+ id="x16-164016r4"></a></span><span 
+class="cmmi-10">&#x003C;</span>blank line<span 
+class="cmmi-10">&#x003E;</span>
+</div>
+<!--l. 94--><p class="noindent" >This speciﬁes that the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Move</span></span></span> format has two operands, one def and one use. The def is
+called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Result</span></span></span> and must be of type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RegisterOperand</span></span></span>. The use is called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Val</span></span></span> and must
+be of type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Operand</span></span></span>.
+</p><!--l. 96--><p class="noindent" >A few instruction formats have variable number of operands. The format for these
+records is given at the top of <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">InstructionFormatList.dat</span></span></span>. For example, the record
+for the variable-length <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Call</span></span></span> instruction format is:
+</p>
+<!--l. 98-->
+                                                                  
+
+                                                                  
+<div class="lstlisting" id="listing-105"><span class="label"><a 
+ id="x16-164017r1"></a></span>Call <br /><span class="label"><a 
+ id="x16-164018r2"></a></span>1 0 3 1 U 4 <br /><span class="label"><a 
+ id="x16-164019r3"></a></span>”D Result RegisterOperand” <span 
+class="cmsy-10">∖</span> <br /><span class="label"><a 
+ id="x16-164020r4"></a></span>”U Address Operand” ”U Method MethodOperand” ”U Guard Operand opt” <br /><span class="label"><a 
+ id="x16-164021r5"></a></span>”Param Operand”
+</div>
+<!--l. 106--><p class="noindent" >This record deﬁnes the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Call</span></span></span> instruction format. The second line indicates that this
+format always has at least 4 operands (1 def and 3 uses), plus a variable number of
+uses of one other type. The trailing 4 on line 2 tells the template generator to
+generate special constructors for cases of having 1, 2, 3, or 4 of the extra operands.
+Finally, the record names the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Call</span></span></span> instruction operands and constrains the types.
+The ﬁnal line speciﬁes the name and types of the variable-numbered operands. In this
+case, a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Call</span></span></span> instruction has a variable number of (use) operands called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Param</span></span></span>. Client
+code can access the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ith</span></span></span> parameter operand of a Call instruction <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">s</span></span></span> by calling
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Call.getParam(s,i)</span></span></span>.
+</p><!--l. 108--><p class="noindent" >A number of instruction formats share operands of the same semantic meaning and
+name. For convenience in accessing like instruction formats, the template generator
+supports four common operand access types: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ResultCarrier</span></span></span>: provides access to an operand of type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RegisterOperand</span></span></span>
+     named <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Result</span></span></span>.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">GuardResultCarrier</span></span></span>:   provides   access   to   an   operand   of   type
+     <span 
+class="cmtt-10">RegisterOperand </span>named <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">GuardResult</span></span></span>.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">LocationCarrier</span></span></span>:    provides    access    to    an    operand    of    type
+     <span 
+class="cmtt-10">LocationOperand </span>named <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Location</span></span></span>.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">GuardCarrier</span></span></span>: provides access to an operand of type <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Operand</span></span></span> named
+     <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Guard</span></span></span>.</li></ul>
+<!--l. 116--><p class="noindent" >For example, for any instruction <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">s</span></span></span> that carries a <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Result</span></span></span> operand (eg. <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Move</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Binary</span></span></span>,
+and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Unary</span></span></span> formats), client code can call <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ResultCarrier.conforms(s)</span></span></span> and
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ResultCarrier.getResult(s)</span></span></span> to access the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Result</span></span></span> operand.
+</p><!--l. 118--><p class="noindent" >Finally, a note on rationale. Religious object-oriented philosophers will cringe at the
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">InstructionFormats</span></span></span>. Instead, all this functionality could be implemented more
+cleanly with a hierarchy of instruction types exploiting (multiple) inheritance. We
+rejected the class hierarchy approach due to eﬃciency concerns of frequent
+virtual/interface method dispatch and type checks. Recent improvements in our
+interface invocation sequence and dynamic type checking algorithms may alleviate
+some of this concern.
+</p><!--l. 2--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">13.2.3   </span> <a 
+ id="x16-16500013.2.3"></a>BURS</h4>
+<!--l. 5--><p class="noindent" >The optimizing compiler uses the Bottom-Up Rewrite System (BURS) for
+instruction selection. BURS is essentially a tree pattern matching system
+derived from <a 
+href="https://github.com/drh/iburg" >Iburg</a> by David R. Hanson. (See ”Engineering a Simple, Eﬃcient
+Code-Generator Generator” by Fraser, Hanson, and Proebsting, LOPLAS 1(3),
+                                                                  
+
+                                                                  
+Sept. 1992, doi: <a 
+href="http://dx.doi.org/10.1145/151640.151642" >10.1145/151640.151642</a>). The instruction selection rules
+for each architecture are speciﬁed in an architecture-speciﬁc ﬁle located in
+<span 
+class="tctt-1000">$</span><span 
+class="cmtt-10">RVM</span><span 
+class="cmtt-10">_ROOT/rvm/src-generated/opt-burs/</span><span 
+class="tctt-1000">$</span><span 
+class="cmsy-10">{</span><span 
+class="cmtt-10">arch</span><span 
+class="cmsy-10">}</span>, where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">${arch}</span></span></span> is the speciﬁc
+instruction architecture of interest. The rules are used in generating a parser, which
+transforms the IR.
+</p><!--l. 7--><p class="noindent" >Each rule is deﬁned by a four-line record, consisting of: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PRODUCTION</span></span></span>: the tree pattern to be matched. The format of each pattern
+     is explained below.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">COST</span></span></span>: the cost of matching the pattern as opposed to skipping it. It is a
+     Java<sup class="textsuperscript"><span 
+class="cmr-9">TM</span></sup> expression that evaluates to an integer.
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">FLAGS</span></span></span>: The ﬂags for the operation:
+         <ul class="itemize2">
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">NOFLAGS</span></span></span>: this production performs no operation
+         </li>
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">EMIT_INSTRUCTION</span></span></span>: this production will emit instructions
+         </li>
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">LEFT_CHILD_FIRST</span></span></span>: visit child on left-and side of production ﬁrst
+         </li>
+         <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">RIGHT_CHILD_FIRST</span></span></span>: visit child on right-hand side of production ﬁrst</li></ul>
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">TEMPLATE</span></span></span>: Java code to emit</li></ul>
+<!--l. 21--><p class="noindent" >Each production has a <span 
+class="cmti-10">non-terminal</span>, which denotes a value, followed by a colon (”:”),
+followed by a dependence tree that produces that value. For example, the rule
+resulting in memory add on the Intel IA32 architecture is expressed in the following
+way:
+</p>
+<!--l. 23-->
+<div class="lstlisting" id="listing-106"><span class="label"><a 
+ id="x16-165001r1"></a></span>stm:    INT_STORE(INT_ADD_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv)) <br /><span class="label"><a 
+ id="x16-165002r2"></a></span>ADDRESS_EQUAL(P(p), PLL(p), 17) <br /><span class="label"><a 
+ id="x16-165003r3"></a></span>EMIT_INSTRUCTION <br /><span class="label"><a 
+ id="x16-165004r4"></a></span>EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
+</div>
+<!--l. 30--><p class="noindent" >The production in this rule represents the following tree: </p><!--l. 31-->
+<div class="lstlisting" id="listing-107"><span class="label"><a 
+ id="x16-165005r1"></a></span>         r     riv <br /><span class="label"><a 
+ id="x16-165006r2"></a></span>          <span 
+class="cmsy-10">∖</span>    / <br /><span class="label"><a 
+ id="x16-165007r3"></a></span>         INT_LOAD  riv <br /><span class="label"><a 
+ id="x16-165008r4"></a></span>             <span 
+class="cmsy-10">∖</span>     / <br /><span class="label"><a 
+ id="x16-165009r5"></a></span>           INT_ADD_ACC  r  riv <br /><span class="label"><a 
+ id="x16-165010r6"></a></span>                    <span 
+class="cmsy-10">∖</span>   <span 
+class="cmsy-10">|</span>  / <br /><span class="label"><a 
+ id="x16-165011r7"></a></span>                   INT_STORE
+</div>
+<!--l. 41--><p class="noindent" >where <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">r</span></span></span> is a non-terminal that represents a register or a tree producing a register,
+riv is a non-terminal that represents a register (or a tree producing one)
+or an immediate value, and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INT_LOAD</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INT_ADD_ACC</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INT_STORE</span></span></span> are
+operators (terminals). <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OTHER_OPERAND</span></span></span> is just an abstraction to make the tree
+binary.
+                                                                  
+
+                                                                  
+</p><!--l. 43--><p class="noindent" >There are multiple helper functions that can be used in Java code (both cost
+expressions and generation templates). In all code sequences the name <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">p</span></span></span> is reserved
+for the current tree node. Some of the helper methods are shortcuts for accessing
+properties of tree nodes: </p>
+     <ul class="itemize1">
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">P(p)</span></span></span> is used to access the instruction associated with the current (root)
+     node,
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PL(p)</span></span></span> is used to access the instruction associated with the left child of the
+     current (root) node (provided it exists),
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PR(p)</span></span></span> is used to access the instruction associated with the right child of
+     the current (root) node (provided it exists), similarly, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PLL(p)</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PLR(p)</span></span></span>,
+     <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PRL(p)</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">PRR(p)</span></span></span> are used to access the instruction associated with the
+     left child of the left child, right child of the left child, left child of the right
+     child and right child of the right child, respectively, of the current (root)
+     node (provided they exist).
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">VL(p)</span></span></span> is used to access the integer constant value associated with the left
+     child of the current (root) node
+     </li>
+     <li class="itemize"><span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">VR(p)</span></span></span> is used to access the integer constant value associated with the right
+     child of the current (root) node
+     </li>
+     <li class="itemize">See <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BURS_Common_Helpers</span></span></span> class for deﬁnitions of the helper methods</li></ul>
+<!--l. 54--><p class="noindent" >How the above rule basically reads is as follows: If a tree shown above is seen,
+evaluate the cost expression (which, in this case, calls a helper function to test
+whether the addresses in the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">STORE (P(p))</span></span></span> and the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">LOAD (PLL(p))</span></span></span> instructions are
+equal. The function returns 17 if they are, and a special value <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">INFINITE</span></span></span> if not), and
+if the cost is acceptable, emit the <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">STORE</span></span></span> instruction <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">(P(p))</span></span></span> mutated in place into a
+machine-dependent add-accumulate instruction (<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">IA32_ADD</span></span></span>) that adds a given value
+to the contents of a given memory location.
+</p><!--l. 57--><p class="noindent" >The rules ﬁle is used to generate a ﬁle called ir.brg, which, in turn, is used to produce
+a ﬁle called <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BURS_STATE</span></span></span>.java. Note that if the BURS rules are changed, it is
+necessary to run <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">ant real-clean</span></span></span> in order to recreate the auto-generated Java source
+code for the BURS rules.
+</p><!--l. 59--><p class="noindent" >For more information on helper functions look at <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BURS_Helpers.java</span></span></span>. For more
+information on the BURS algorithm see <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">BURS.java</span></span></span>.
+</p>
+<!--l. 61--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x16-16600013.2.3"></a><span 
+class="cmbx-10">Future directions</span></span>
+Whilst jburg allows us to do good instruction selection there are a number of areas
+where it is lacking, e.g. vector operations.
+                                                                  
+
+                                                                  
+</p><!--l. 65--><p class="noindent" >We can&#x2019;t write productions for vector operations unless we match an entire tree of
+operations. For example, it would be nice to write a rule of the form:
+</p>
+<!--l. 67-->
+<div class="lstlisting" id="listing-108"><span class="label"><a 
+ id="x16-166001r1"></a></span>(r, r): ADD(r,r), ADD(r,r)
+</div>
+<!--l. 71--><p class="noindent" >if say the architecture supported a vector add operation (ie SIMD). Unfortunately we
+can&#x2019;t have tuples on the LHS of expressions and the comma represents that matching
+two coverings is necessary. <a 
+href="http://doi.acm.org/10.1145/343647.343679" >Leupers</a> has shown how to achieve this result with a
+modiﬁed BURS system. Their syntax is:
+</p>
+<!--l. 73-->
+<div class="lstlisting" id="listing-109"><span class="label"><a 
+ id="x16-166002r1"></a></span>r: ADD(r,r) <br /><span class="label"><a 
+ id="x16-166003r2"></a></span>r: ADD(r,r)
+</div>
+<!--l. 2--><p class="noindent" >
+</p>
+<h4 class="subsectionHead"><span class="titlemark">13.2.4   </span> <a 
+ id="x16-16700013.2.4"></a>OptTestHarness</h4>
+<!--l. 5--><p class="noindent" >For optimizing compiler development, it is sometimes useful to exercise careful
+control over which classes are compiled, and with which optimization level. In many
+cases, a prototype-opt image will suit this process using the command line option
+<span 
+class="cmtt-10">-X:aos:initial</span><span 
+class="cmtt-10">_compiler=opt </span>combined with <span 
+class="cmtt-10">-X:aos:enable</span><span 
+class="cmtt-10">_recompilation=false</span>.
+This conﬁguration invokes the optimizing compiler on each method run.The
+<span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">OptTestHarness</span></span></span> provides even more control over the optimizing compiler. This
+driver program allows you to invoke the optimizing compiler as an ”application”
+running on top of the VM.
+</p>
+<div class="table">
+                                                                  
+
+                                                                  
+<!--l. 8--><p class="noindent" ><a 
+ id="x16-167001r1"></a></p><hr class="float" /><div class="float" 
+>
+                                                                  
+
+                                                                  
+<div class="tabular"> <table id="TBL-16" class="tabular" 
+cellspacing="0" cellpadding="0"  
+><colgroup id="TBL-16-1g"><col 
+id="TBL-16-1" /><col 
+id="TBL-16-2" /></colgroup><tr  
+ style="vertical-align:baseline;" id="TBL-16-1-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-1-1"  
+class="td11"><!--l. 9--><p class="noindent" >-useBootOptions                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-1-2"  
+class="td11"><!--l. 9--><p class="noindent" >Use  the  same  OptOptions  as  the
+bootimage compiler.                      </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-2-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-2-1"  
+class="td11"><!--l. 10--><p class="noindent" >-longcommandline <span 
+class="cmmi-10">&#x003C;</span>ﬁlename<span 
+class="cmmi-10">&#x003E;</span>        </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-2-2"  
+class="td11"><!--l. 10--><p class="noindent" >Read commands (one per line) from
+a ﬁle                                          </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-3-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-3-1"  
+class="td11"><!--l. 11--><p class="noindent" >+baseline                                     </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-3-2"  
+class="td11"><!--l. 11--><p class="noindent" >Switch default compiler to baseline   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-4-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-4-1"  
+class="td11"><!--l. 12--><p class="noindent" >-baseline                                      </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-4-2"  
+class="td11"><!--l. 12--><p class="noindent" >Switch default compiler to optimizing</p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-5-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-5-1"  
+class="td11"><!--l. 13--><p class="noindent" >-load <span 
+class="cmmi-10">&#x003C;</span>class<span 
+class="cmmi-10">&#x003E;</span>                           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-5-2"  
+class="td11"><!--l. 13--><p class="noindent" >Load a class                                 </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-6-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-6-1"  
+class="td11"><!--l. 14--><p class="noindent" >-class <span 
+class="cmmi-10">&#x003C;</span>class<span 
+class="cmmi-10">&#x003E;</span>                          </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-6-2"  
+class="td11"><!--l. 14--><p class="noindent" >Load  a  class  and  compile  all  its
+methods                                      </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-7-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-7-1"  
+class="td11"><!--l. 15--><p class="noindent" >-method    <span 
+class="cmmi-10">&#x003C;</span>class<span 
+class="cmmi-10">&#x003E;&#x003C;</span>method<span 
+class="cmmi-10">&#x003E;</span>[-    or
+<span 
+class="cmmi-10">&#x003C;</span>descrip<span 
+class="cmmi-10">&#x003E;</span>]                                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-7-2"  
+class="td11"><!--l. 15--><p class="noindent" >Compile    method    with    default
+compiler                                     </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-8-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-8-1"  
+class="td11"><!--l. 16--><p class="noindent" >-methodOpt <span 
+class="cmmi-10">&#x003C;</span>class<span 
+class="cmmi-10">&#x003E;&#x003C;</span>method<span 
+class="cmmi-10">&#x003E;</span>[- or
+<span 
+class="cmmi-10">&#x003C;</span>descrip<span 
+class="cmmi-10">&#x003E;</span>]                                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-8-2"  
+class="td11"><!--l. 16--><p class="noindent" >Compile method with opt compiler   </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-9-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-9-1"  
+class="td11"><!--l. 17--><p class="noindent" >-methodBase <span 
+class="cmmi-10">&#x003C;</span>class<span 
+class="cmmi-10">&#x003E;&#x003C;</span>method<span 
+class="cmmi-10">&#x003E;</span>[- or
+<span 
+class="cmmi-10">&#x003C;</span>descrip<span 
+class="cmmi-10">&#x003E;</span>]                                   </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-9-2"  
+class="td11"><!--l. 17--><p class="noindent" >Compile method with base compiler </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-10-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-10-1"  
+class="td11"><!--l. 18--><p class="noindent" >-er        <span 
+class="cmmi-10">&#x003C;</span>class<span 
+class="cmmi-10">&#x003E;&#x003C;</span>method<span 
+class="cmmi-10">&#x003E;</span>[-        or
+<span 
+class="cmmi-10">&#x003C;</span>descrip<span 
+class="cmmi-10">&#x003E;</span>] <span 
+class="cmsy-10">{</span>args<span 
+class="cmsy-10">}</span>           </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-10-2"  
+class="td11"><!--l. 18--><p class="noindent" >Compile  with  default  compiler  and
+execute a method                         </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-11-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-11-1"  
+class="td11"><!--l. 19--><p class="noindent" >-performance                                </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-11-2"  
+class="td11"><!--l. 19--><p class="noindent" >Show performance results               </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-12-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-12-1"  
+class="td11"><!--l. 20--><p class="noindent" >-oc                                              </p></td><td  style="white-space:wrap; text-align:left;" id="TBL-16-12-2"  
+class="td11"><!--l. 20--><p class="noindent" >pass  an  option  to  the  optimizing
+compiler                                     </p></td>
+</tr><tr  
+ style="vertical-align:baseline;" id="TBL-16-13-"><td  style="white-space:wrap; text-align:left;" id="TBL-16-13-1"  
+class="td11">                                </td></tr></table></div>
+<br /> <div class="caption" 
+><span class="id">Table 13.1: </span><span  
+class="content">OptTestHarness command line options</span></div><!--tex4ht:label?: x16-167001r1 -->
+                                                                  
+
+                                                                  
+</div><hr class="endfloat" />
+</div>
+<!--l. 25--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x16-16800013.2.4"></a><span 
+class="cmbx-10">Examples</span></span>
+To use the OptTestHarness program:
+</p>
+<!--l. 29-->
+<div class="lstlisting" id="listing-110"><span class="label"><a 
+ id="x16-168001r1"></a></span>rvm org.jikesrvm.tools.oth.OptTestHarness -class Foo
+</div>
+<!--l. 33--><p class="noindent" >will invoke the optimizing compiler on all methods of class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Foo</span></span></span>.
+</p>
+<!--l. 35-->
+<div class="lstlisting" id="listing-111"><span class="label"><a 
+ id="x16-168002r1"></a></span>rvm org.jikesrvm.tools.oth.OptTestHarness -method Foo bar -
+</div>
+<!--l. 39--><p class="noindent" >will invoke the optimizing compiler on the ﬁrst method bar of class <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Foo</span></span></span> it
+loads.
+</p>
+<!--l. 41-->
+<div class="lstlisting" id="listing-112"><span class="label"><a 
+ id="x16-168003r1"></a></span>rvm org.jikesrvm.tools.oth.OptTestHarness -method Foo bar &#x2019;(I)V;&#x2019;
+</div>
+<!--l. 45--><p class="noindent" >will invoke the optimizing compiler on method <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Foo.bar(I)V;</span></span></span>. You can specify any
+number of -method and -class options on the command line. Any arguments passed
+to OptTestHarness via -oc will be passed on directly to the optimizing compiler.
+So:
+</p>
+<!--l. 48-->
+<div class="lstlisting" id="listing-113"><span class="label"><a 
+ id="x16-168004r1"></a></span>rvm org.jikesrvm.tools.oth.OptTestHarness -oc:O1 -oc:print_final_hir=true -method Foo bar -
+</div>
+<!--l. 52--><p class="noindent" >will compile <span class="obeylines-h"><span class="verb"><span 
+class="cmtt-10">Foo.bar</span></span></span> at optimization level O1 and print the ﬁnal HIR.
+                                                                  
+
+                                                                  
+</p>
+<!--l. 2--><div class="crosslinks"><p class="noindent"></p></div>
+<!--l. 2--><p class="noindent" ><a 
+ id="tailCompilers.html"></a></p> 
+</body></html> 

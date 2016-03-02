@@ -12,23 +12,81 @@
  */
 package org.jikesrvm.junit.runners;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.junit.BeforeClass;
 import org.junit.experimental.categories.Category;
 import org.junit.internal.runners.model.EachTestNotifier;
+import org.junit.internal.runners.statements.RunBefores;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
 
 /**
- * This is a custom JUnit runner that will run all test methods annotated with
- * {@link RequiresJikesRVM} or {@link RequiresBootstrapVM} whether the test is run
- * on Jikes RVM or the Bootstrap VM. Since there are some classes that don't
- * run on the Bootstrap VM (like InlineSequence) and tools like Mockito are not interpreted
- * correctly by Jikes RVM, this Custom Test Runner needed to be created.
+ * This is a custom JUnit runner that allows to determine the set of tests to be
+ * run based on the VM that is used for running the tests. It also supports
+ * examination of VM features if the VM is Jikes RVM.
+ * <p>
+ * For example, some tests can only be run on Jikes RVM (e.g. because they use
+ * Magic or other Jikes RVM features) and some tests can only be run on a "normal"
+ * VM (e.g. HotSpot) because they use libraries such as Mockito that don't support
+ * GNU Classpath or Jikes RVM. Note that the bootstrap VM can never by Jikes RVM
+ * because Jikes RVM isn't able to build itself right now (Feb 2016). This makes
+ * the implementation of the runner easy because it can just assume that the
+ * bootstrap VM supports the full set of Java features and libraries.
+ * <p>
+ * The set of tests to run is determined via classes for JUnit categories,
+ * e.g. {@link RequiresBuiltJikesRVM} or {@link RequiresBootstrapVM}.
  */
+public final class VMRequirements extends BlockJUnit4ClassRunner {
 
-public class VMRequirements extends BlockJUnit4ClassRunner {
+  private static final boolean RUNNING_ON_BOOTSTRAP_VM;
+  private static final boolean RUNNING_ON_BUILT_JIKES_RVM;
+  private static final boolean RUNNING_ON_IA32;
+  private static final boolean RUNNING_ON_POWERPC;
+  private static final boolean VM_HAS_OPT_COMPILER;
+
+  static {
+    String runnerVM = System.getProperty("jikesrvm.junit.runner.vm");
+    RUNNING_ON_BOOTSTRAP_VM = runnerVM.equals("bootstrap");
+    RUNNING_ON_BUILT_JIKES_RVM = runnerVM.equals("built-jikes-rvm");
+    if (RUNNING_ON_BUILT_JIKES_RVM) {
+      String arch = System.getProperty("jikesrvm.target.arch");
+      RUNNING_ON_IA32 = arch.equals("ia32");
+      RUNNING_ON_POWERPC = arch.equals("ppc");
+      String opt = System.getProperty("jikesrvm.include.opt");
+      VM_HAS_OPT_COMPILER = "true".equals(opt);
+    } else {
+      RUNNING_ON_IA32 = false;
+      RUNNING_ON_POWERPC = false;
+      VM_HAS_OPT_COMPILER = false;
+    }
+  }
+
+  /**
+   * By default, JUnit always runs methods annotated with {@code @BeforeClass},
+   * even if all the tests in the test case are skipped. This is not desirable
+   * for Jikes RVM tests because test setup code might (have to) rely on Jikes
+   * RVM internals. This method skips execution of methods annotated with
+   * {@code @BeforeClass} if necessary.
+   */
+  @Override
+  protected Statement withBeforeClasses(Statement statement) {
+    List<FrameworkMethod> befores = getTestClass().getAnnotatedMethods(BeforeClass.class);
+    LinkedList<FrameworkMethod> newBefores = new LinkedList<FrameworkMethod>();
+    for (FrameworkMethod method : befores) {
+      if (methodIsNotSuitableForExecutionInCurrentVMEnvironment(method)) {
+        // skip the method
+      } else {
+        newBefores.addLast(method);
+      }
+    }
+    return new RunBefores(statement, newBefores, null);
+  }
 
   public VMRequirements(Class<?> klass) throws InitializationError {
     super(klass);
@@ -38,12 +96,9 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
   protected void runChild(FrameworkMethod method, RunNotifier notifier) {
     Description description = describeChild(method);
 
-    if (!isRunningOnJikesRVM() && requiresVM(method, RequiresJikesRVM.class)) {
-      ignoreTest(method, notifier, description);
-      return;
-    }
-
-    if (isRunningOnJikesRVM() && requiresVM(method, RequiresBootstrapVM.class)) {
+    boolean ignoreTest =
+        methodIsNotSuitableForExecutionInCurrentVMEnvironment(method);
+    if (ignoreTest) {
       ignoreTest(method, notifier, description);
       return;
     }
@@ -51,8 +106,22 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
     super.runChild(method, notifier);
   }
 
-  public static boolean isRunningOnJikesRVM() {
-    return System.getProperty("java.vm.vendor").equals("Jikes RVM Project");
+  private boolean methodIsNotSuitableForExecutionInCurrentVMEnvironment(
+      FrameworkMethod method) {
+    return isRunningOnBootstrapVM() && annotatedWith(method, RequiresBuiltJikesRVM.class) ||
+    isRunningOnBuiltJikesRVM() && annotatedWith(method, RequiresBootstrapVM.class) ||
+    !VM_HAS_OPT_COMPILER && annotatedWith(method, RequiresOptCompiler.class) ||
+    VM_HAS_OPT_COMPILER && (annotatedWith(method, RequiresLackOfOptCompiler.class)) ||
+    RUNNING_ON_IA32 && annotatedWith(method, RequiresPowerPC.class) ||
+    RUNNING_ON_POWERPC && annotatedWith(method, RequiresIA32.class);
+  }
+
+  public static boolean isRunningOnBootstrapVM() {
+    return RUNNING_ON_BOOTSTRAP_VM;
+  }
+
+  public static boolean isRunningOnBuiltJikesRVM() {
+    return RUNNING_ON_BUILT_JIKES_RVM;
   }
 
   private void ignoreTest(FrameworkMethod method, RunNotifier notifier, Description description) {
@@ -60,8 +129,7 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
     eachTestNotifier.fireTestIgnored();
   }
 
-  private boolean requiresVM(FrameworkMethod method, Class<?> category) {
-
+  private boolean annotatedWith(FrameworkMethod method, Class<?> category) {
     boolean methodRequiresVM = false;
     boolean classRequiresVM = false;
 
@@ -75,7 +143,6 @@ public class VMRequirements extends BlockJUnit4ClassRunner {
   }
 
   private boolean checkAnnotation(Category annotation, Class<?> category) {
-
     if (annotation == null) return false;
 
     Class<?>[] categories = annotation.value();
