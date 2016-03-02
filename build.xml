@@ -179,7 +179,7 @@
 	<and>
           <isset property="harmony.classlib"/>
           <isset property="classpath.classlib"/>
-	  <isset property="openjdk.classlib"/>
+          <isset property="openjdk.classlib"/>
 	</and>
       </condition>
     </fail>      
@@ -189,7 +189,7 @@
           <or>
             <equals arg1="${classlib.provider}" arg2="Harmony"/>
             <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
-	    <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
+            <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
           </or>
 	</not>
       </condition>
@@ -200,7 +200,7 @@
           <or>
             <isset property="harmony.classlib"/>
             <isset property="classpath.classlib"/>
-	    <isset property="openjdk.classlib"/>
+            <isset property="openjdk.classlib"/>
           </or>
 	</not>
       </condition>
@@ -1299,13 +1299,12 @@ Check to make sure all required properties are specified. This includes properti
       </sequential>
     </if>
 
-    <!--added by Xi Yang-->
     <if>
       <conditions>
-	<equals arg1="${classlib.provider}" arg2="OpenJDK"/>
+        <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
-	<property name="classlib.library-interface.cpl.java" location="libraryInterface/OpenJDK/EPL/src"/>
+        <property name="classlib.library-interface.cpl.java" location="libraryInterface/OpenJDK/EPL/src"/>
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/OpenJDK/ASF/src"/>
         <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/OpenJDK/GPL/src"/>
       </sequential>
@@ -1414,7 +1413,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <if>
       <conditions>
-	<equals arg1="${classlib.provider}" arg2="OpenJDK"/>
+        <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>       
         <javac destdir="${build.classes}"
@@ -1618,7 +1617,7 @@ Check to make sure all required properties are specified. This includes properti
       </fileset>
       <fileset dir="${build.vmmagic-stub.classes}">
         <include name="org/vmmagic/pragma/**"/>
-	<include name="org/vmmagic/*"/>
+        <include name="org/vmmagic/*"/>
       </fileset>
       <fileset dir="${build.vmmagic.classes}"/>
       <fileset dir="${build.options.classes}"/>
@@ -2359,7 +2358,7 @@ target.jni-suffix=${target.jni-suffix}
     </if>
     <copy todir="${dist.base}">
       <fileset dir="${openjdk.lib.dir}/i386">
-	<include name="*${target.dll-ext}"/>
+        <include name="*${target.dll-ext}"/>
       </fileset>
       <globmapper from="*${target.dll-ext}" to="*${target.jni-suffix}"/>
     </copy>

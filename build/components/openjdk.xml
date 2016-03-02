@@ -52,11 +52,11 @@
 	</not>
       </conditions>
       <sequential>
-	<mkdir dir="${openjdk.package.dir}"/>	
-	<cachedGet key="${openjdk.tar}"
+        <mkdir dir="${openjdk.package.dir}"/>
+        <cachedGet key="${openjdk.tar}"
                    src="${openjdk.url}"
                    dest="${openjdk.package.dir}/${openjdk.tar}"/>
-	<untar compression="${openjdk.compression}"
+        <untar compression="${openjdk.compression}"
                src="${openjdk.package.dir}/${openjdk.tar}"
                dest="${openjdk.package.dir}"/>
         <move

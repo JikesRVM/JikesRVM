@@ -723,7 +723,7 @@ if ($ok) {
       $defs .= "-Dclasslib.provider=Harmony ";
     }
     if ($openjdk ne "") {
-	$defs .= "-Dclasslib.provider=OpenJDK ";
+      $defs .= "-Dclasslib.provider=OpenJDK ";
     }
     if ($with_perfevent ne "") {
       $defs .= "-Dconfig.include.perfevent=true ";
