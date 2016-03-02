@@ -51,6 +51,7 @@ global.components.cache.dir=.buildit_components_cache
 # Default JAVA_HOME values
 global.javahome.ppc32-linux=/opt/ibm-java2-ppc-50
 global.javahome.ppc64-linux=/opt/ibm-java2-ppc-50
+global.javahome.ppc64le-linux=/usr/lib/jvm/java-8-openjdk
 global.javahome.ia32-linux=/usr/lib/jvm/java-7-openjdk-amd64
 global.javahome.x86_64-linux=/usr/lib/jvm/java-7-openjdk-amd64
 global.javahome.x86_64_m64-linux=/usr/lib/jvm/java-7-openjdk-amd64
@@ -61,8 +62,9 @@ global.javahome.x86_64-osx=/System/Library/Frameworks/JavaVM.framework/Home
 global.arch.i686=ia32
 global.arch.x86_64=x86_64
 global.arch.ppc=ppc32
-global.arch.ppc64=ppc32
+global.arch.ppc64=ppc64
 global.arch.i386=ia32
+global.arch.ppc64le=ppc64le
 
 global.wordsize.x86_64.32=x86_64
 global.wordsize.x86_64.64=x86_64_m64
@@ -70,6 +72,7 @@ global.wordsize.x86_64_m64.32=x86_64
 global.wordsize.x86_64_m64.64=x86_64_m64
 global.wordsize.ppc64.32=ppc32
 global.wordsize.ppc64.64=ppc64
+global.wordsize.ppc64le.64=ppc64le
 global.wordsize.ppc32.32=ppc32
 global.wordsize.ppc32.64=ppc64
 
