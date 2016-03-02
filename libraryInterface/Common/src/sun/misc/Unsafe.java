@@ -19,6 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
@@ -62,6 +63,8 @@ public final class Unsafe {
 
   @Inline
   public long allocateMemory(long bytes) {
+    // TODO sysMalloc needs to be changed to Extent because the C
+    // prototype uses size_t
     Address result = SysCall.sysCall.sysMalloc((int)bytes);
     if (result.isZero()) {
       throw new OutOfMemoryError("Unable to satisfy malloc of " + bytes);
@@ -90,7 +93,18 @@ public final class Unsafe {
    */
   @Inline
   public void ensureClassInitialized(Class<?> c){
-    // TODO implement
+    RVMType type = JikesRVMSupport.getTypeForClass(c);
+    if (!type.isInitialized()) {
+      if (type.isClassType()) {
+        RuntimeEntrypoints.initializeClassForDynamicLink(type.asClass());
+      } else {
+        // TODO these 3 methods appear a few times in the code base together.
+        // Consider refactoring this
+        type.resolve();
+        type.instantiate();
+        type.initialize();
+      }
+    }
   }
 
   @Inline
@@ -125,8 +139,7 @@ public final class Unsafe {
 
   @Inline
   public int arrayBaseOffset(Class<?> arrayClass) {
-    // TODO should we get this via ObjectModel?
-    return 0;
+    return ObjectModel.getArrayBaseOffset().toInt();
   }
 
   @Inline
@@ -155,7 +168,7 @@ public final class Unsafe {
 
   @Inline
   public void copyMemory(long srcAddress, long destAddress, long bytes) {
-    Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), (int)bytes);
+    Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), Offset.fromLong(bytes).toWord().toExtent());
   }
 
   @Inline
