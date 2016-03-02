@@ -59,25 +59,25 @@ public final class Unsafe {
   }
 
   @Inline
-  public boolean compareAndSwapInt(Object obj,long offset,int expect,int update) {
+  public boolean compareAndSwapInt(Object obj, long offset, int expect, int update) {
     Offset off = Offset.fromLong(offset);
     return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
   @Inline
-  public boolean compareAndSwapLong(Object obj,long offset,long expect,long update) {
+  public boolean compareAndSwapLong(Object obj, long offset, long expect, long update) {
     Offset off = Offset.fromLong(offset);
     return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
   @Inline
-  public boolean compareAndSwapObject(Object obj,long offset,Object expect,Object update) {
+  public boolean compareAndSwapObject(Object obj, long offset, Object expect, Object update) {
     Offset off = Offset.fromLong(offset);
     return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
   @Inline
-  public void putOrderedInt(Object obj,long offset,int value) {
+  public void putOrderedInt(Object obj, long offset, int value) {
     Offset off = Offset.fromLong(offset);
     Magic.storeStoreBarrier();
     if (NEEDS_INT_PUTFIELD_BARRIER) {
@@ -88,7 +88,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putOrderedLong(Object obj,long offset,long value) {
+  public void putOrderedLong(Object obj, long offset, long value) {
     Offset off = Offset.fromLong(offset);
     Magic.storeStoreBarrier();
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
@@ -99,7 +99,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putOrderedObject(Object obj,long offset,Object value) {
+  public void putOrderedObject(Object obj, long offset, Object value) {
     Offset off = Offset.fromLong(offset);
     Magic.storeStoreBarrier();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
@@ -152,13 +152,13 @@ public final class Unsafe {
   }
 
   @Inline
-  public int getInt(Object obj,long offset) {
+  public int getInt(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     return Magic.getIntAtOffset(obj,off);
   }
 
   @Inline
-  public int getIntVolatile(Object obj,long offset) {
+  public int getIntVolatile(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     int result = Magic.getIntAtOffset(obj,off);
     Magic.combinedLoadBarrier();
@@ -166,7 +166,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putIntVolatile(Object obj,long offset,int value) {
+  public void putIntVolatile(Object obj, long offset, int value) {
     Magic.storeStoreBarrier();
     Offset off = Offset.fromLong(offset);
     if (NEEDS_INT_PUTFIELD_BARRIER) {
@@ -178,7 +178,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putInt(Object obj,long offset,int value) {
+  public void putInt(Object obj, long offset, int value) {
     Offset off = Offset.fromLong(offset);
     if (NEEDS_INT_PUTFIELD_BARRIER) {
       intFieldWrite(obj, value, off, 0);
@@ -213,7 +213,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putLongVolatile(Object obj,long offset,long value) {
+  public void putLongVolatile(Object obj, long offset, long value) {
     Magic.storeStoreBarrier();
     Offset off = Offset.fromLong(offset);
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
@@ -225,7 +225,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putLong(Object obj,long offset,long value) {
+  public void putLong(Object obj, long offset, long value) {
     Offset off = Offset.fromLong(offset);
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
       longFieldWrite(obj, value, off, 0);
@@ -240,7 +240,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public long getLongVolatile(Object obj,long offset) {
+  public long getLongVolatile(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     long result = Magic.getLongAtOffset(obj,off);
     Magic.combinedLoadBarrier();
@@ -248,7 +248,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public long getLong(Object obj,long offset) {
+  public long getLong(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     return Magic.getLongAtOffset(obj,off);
   }
@@ -268,7 +268,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putObjectVolatile(Object obj,long offset,Object value) {
+  public void putObjectVolatile(Object obj, long offset, Object value) {
     Offset off = Offset.fromLong(offset);
     Magic.storeStoreBarrier();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
@@ -280,7 +280,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putObject(Object obj,long offset,Object value) {
+  public void putObject(Object obj, long offset, Object value) {
     Offset off = Offset.fromLong(offset);
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
       objectFieldWrite(obj, value, off, 0);
@@ -297,7 +297,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public Object getObjectVolatile(Object obj,long offset) {
+  public Object getObjectVolatile(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     Object result = Magic.getObjectAtOffset(obj,off);
     Magic.combinedLoadBarrier();
