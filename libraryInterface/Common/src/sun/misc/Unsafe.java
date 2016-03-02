@@ -13,7 +13,10 @@
 package sun.misc;
 
 import java.lang.reflect.Field;
+import java.security.ProtectionDomain;
 
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.Magic;
@@ -23,6 +26,7 @@ import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
+
 import org.vmmagic.unboxed.Address;
 
 import static org.jikesrvm.mm.mminterface.Barriers.*;
@@ -41,6 +45,8 @@ public final class Unsafe {
 
   /** use name that Doug Lea's Fork-Join framework appears to expect from class libs */
   private static final Unsafe theUnsafe = new Unsafe();
+
+  public static final int INVALID_FIELD_OFFSET = -1;
 
   private Unsafe() {}
 
@@ -107,7 +113,32 @@ public final class Unsafe {
     } else {
       Magic.setObjectAtOffset(obj, off, value);
     }
-   }
+  }
+
+  @Inline
+  public boolean getBoolean(long address) {
+    return Address.fromLong(address).loadByte() == 0;
+  }
+
+  @Inline
+  public boolean getBoolean(Object obj, int offset) {
+    return Magic.getByteAtOffset(obj, Offset.fromIntSignExtend(offset)) == 0;
+  }
+
+  @Inline
+  public boolean getBoolean(Object obj, long offset) {
+    return Magic.getByteAtOffset(obj, Offset.fromLong(offset)) == 0;
+  }
+
+  @Inline
+  public void putBoolean(Object obj, long offset, boolean value) {
+    Magic.setBooleanAtOffset(obj, Offset.fromLong(offset), value);
+  }
+
+  @Inline
+  public void putBoolean(long address, boolean x) {
+    Address.fromLong(address).store(x) ;
+  }
 
   @Inline
   public byte getByte(Object obj, int offset) {
@@ -127,8 +158,18 @@ public final class Unsafe {
   }
 
   @Inline
+  public void putByte(Object obj,long offset, byte value) {
+    Magic.setByteAtOffset(obj, Offset.fromLong(offset), value);
+  }
+
+  @Inline
   public void putByte(long address, byte x) {
     Address.fromLong(address).store(x);
+  }
+
+  @Inline
+  public char getChar(Object obj, long offset) {
+    return Magic.getCharAtOffset(obj, Offset.fromLong(offset));
   }
 
   @Inline
@@ -137,18 +178,63 @@ public final class Unsafe {
   }
 
   @Inline
+  public void putChar(Object obj,long offset,char value) {
+    Magic.setCharAtOffset(obj, Offset.fromLong(offset), value);
+  }
+
+  @Inline
   public void putChar(long address, char x) {
     Address.fromLong(address).store(x);
   }
 
   @Inline
-  public short getShort(long address) {
-    return Address.fromLong(address).loadShort();
+  public double getDouble(long address) {
+    return Address.fromLong(address).loadDouble();
   }
 
   @Inline
-  public void putShort(long address, short x) {
-    Address.fromLong(address).store(x);
+  public double getDouble(Object obj, int offset) {
+    return Magic.getDoubleAtOffset(obj, Offset.fromIntSignExtend(offset));
+  }
+
+  @Inline
+  public double getDouble(Object obj, long offset) {
+    return Magic.getDoubleAtOffset(obj, Offset.fromLong(offset));
+  }
+
+  @Inline
+  public void putDouble(Object obj,long offset,double value) {
+    Magic.setDoubleAtOffset(obj, Offset.fromLong(offset), value);
+  }
+
+  @Inline
+  public void putDouble(long address, double x) {
+    Address.fromLong(address).store(x) ;
+  }
+
+  @Inline
+  public float getFloat(long address) {
+    return Address.fromLong(address).loadFloat();
+  }
+
+  @Inline
+  public float getFloat(Object obj, int offset) {
+    return Magic.getFloatAtOffset(obj, Offset.fromIntSignExtend(offset));
+  }
+
+  @Inline
+  public float getFloat(Object obj, long offset) {
+    return Magic.getFloatAtOffset(obj, Offset.fromLong(offset));
+  }
+
+  @Inline
+  public void putFloat(Object obj, long offset, float value) {
+    Magic.setFloatAtOffset(obj, Offset.fromLong(offset), value);
+  }
+
+  @Inline
+  public void putFloat(long address, float x){
+    Address.fromLong(address).store(x) ;
   }
 
   @Inline
@@ -200,6 +286,21 @@ public final class Unsafe {
   @Inline
   public long getLong(long address) {
     return Address.fromLong(address).loadLong();
+  }
+
+  @Inline
+  public short getShort(long address) {
+    return Address.fromLong(address).loadShort();
+  }
+
+  @Inline
+  public void putShort(Object obj, long offset, short value) {
+    Magic.setShortAtOffset(obj, Offset.fromLong(offset), value);
+  }
+
+  @Inline
+  public void putShort(long address, short x) {
+    Address.fromLong(address).store(x);
   }
 
   @Inline
@@ -374,6 +475,30 @@ public final class Unsafe {
   @Inline
   public void fullFence() {
     Magic.fence();
+  }
+
+  @Inline
+  public Class<?> defineClass(String name, byte[] bytes, int off, int len, final ClassLoader parentClassLoader, ProtectionDomain protectionDomain) {
+    if (parentClassLoader != null) {
+      return RVMClassLoader.defineClassInternal(name, bytes, off,len, parentClassLoader).getClassForType();
+    } else{
+      ClassLoader callingClassloader = null;
+//      ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
+      VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
+          "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
+          "Classpath namespace");
+      return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
+    }
+  }
+
+  @Inline
+  public Class<?> defineClass(String name, byte[] bytes, int off, int len) {
+    ClassLoader callingClassloader = null;
+//  ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
+  VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
+      "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
+      "Classpath namespace");
+    return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
   }
 
 }
