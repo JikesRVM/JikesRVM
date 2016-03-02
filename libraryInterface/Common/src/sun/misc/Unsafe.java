@@ -100,7 +100,7 @@ public final class Unsafe {
    * class.
    */
   @Inline
-  public void ensureClassInitialized(Class<?> c){
+  public void ensureClassInitialized(Class<?> c) {
     RVMType type = JikesRVMSupport.getTypeForClass(c);
     if (!type.isInitialized()) {
       if (type.isClassType()) {
@@ -119,10 +119,10 @@ public final class Unsafe {
   public Class<?> defineClass(String name, byte[] bytes, int off, int len, final ClassLoader parentClassLoader, ProtectionDomain protectionDomain) {
     if (parentClassLoader != null) {
       return RVMClassLoader.defineClassInternal(name, bytes, off,len, parentClassLoader).getClassForType();
-    } else{
+    } else {
       ClassLoader callingClassloader = null;
 //      ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
-      VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
+      VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code " +
           "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
           "Classpath namespace");
       return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
@@ -133,7 +133,7 @@ public final class Unsafe {
   public Class<?> defineClass(String name, byte[] bytes, int off, int len) {
     ClassLoader callingClassloader = null;
 //  ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
-    VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code "+
+    VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code " +
       "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
       "Classpath namespace");
     return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
@@ -436,7 +436,7 @@ public final class Unsafe {
   }
 
   @Inline
-  public void putFloat(long address, float x){
+  public void putFloat(long address, float x) {
     Address.fromLong(address).store(x) ;
   }
 
