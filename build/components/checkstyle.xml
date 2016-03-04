@@ -36,7 +36,7 @@
     <property name="checkstyle.web-archive" value="checkstyle-${checkstyle.version}-bin.tar.gz"/>
     <mkdir dir="${checkstyle.package.dir}"/>
     <cachedGet key="${checkstyle.web-archive}"
-         src="http://downloads.sourceforge.net/project/checkstyle/checkstyle/6.14.1/checkstyle-6.14.1-bin.tar.gz"
+         src="http://downloads.sourceforge.net/project/checkstyle/checkstyle/${checkstyle.version}/${checkstyle.web-archive}"
          dest="${checkstyle.package.dir}/${checkstyle.web-archive}"/>
     <untar src="${checkstyle.package.dir}/${checkstyle.web-archive}" compression="gzip" dest="${checkstyle.package.dir}"/>
     <writeComponentConstants dir="${checkstyle.package.dir}"/>

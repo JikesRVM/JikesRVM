@@ -35,7 +35,7 @@
     <property name="pmd.web-archive" value="pmd-bin-${pmd.version}.zip"/>
     <mkdir dir="${pmd.package.dir}"/>
     <cachedGet key="${pmd.web-archive}"
-         src="http://nchc.dl.sourceforge.net/sourceforge/pmd/${pmd.web-archive}"
+         src="http://downloads.sourceforge.net/sourceforge/pmd/pmd/${pmd.version}/${pmd.web-archive}"
          dest="${pmd.package.dir}/${pmd.web-archive}"/>
     <unzip src="${pmd.package.dir}/${pmd.web-archive}" dest="${pmd.package.dir}"/>
     <writeComponentConstants dir="${pmd.dir}"/>

@@ -35,7 +35,7 @@
     <property name="junit.web-archive" value="junit${junit.version}.zip"/>
     <mkdir dir="${junit.package.dir}"/>
     <cachedGet key="${junit.web-archive}"
-         src="http://downloads.sourceforge.net/project/junit/junit/4.10/junit4.10.zip"
+         src="http://downloads.sourceforge.net/project/junit/junit/${junit.version}/${junit.web-archive}"
          dest="${junit.package.dir}/${junit.web-archive}"/>
     <unzip src="${junit.package.dir}/${junit.web-archive}" dest="${junit.package.dir}"/>
     <writeComponentConstants dir="${junit.dir}"/>
