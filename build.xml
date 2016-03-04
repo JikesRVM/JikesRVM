@@ -329,6 +329,14 @@
         <ant antfile="build/components/checkstyle.xml" target="ensure"/>
       </sequential>
     </if>
+    <if>
+      <conditions>
+        <equals arg1="${require.pmd}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/pmd.xml" target="ensure"/>
+      </sequential>
+    </if>
     <property file="${components.file}"/>
   </target>
 
@@ -2412,9 +2420,11 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="pmd" depends="prepare-source,prepare-config-source,choose-classlib">
-    <ant antfile="build/components/pmd.xml" target="ensure"/>
+  <target name="set-pmd-as-required">
+    <property name="require.pmd" value="true"/>
+  </target>
 
+  <target name="pmd" depends="set-pmd-as-required,prepare-source,prepare-config-source,choose-classlib">
     <taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask">
       <classpath>
         <fileset dir="${pmd.dir}/lib">
