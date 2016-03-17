@@ -16,6 +16,7 @@ import static org.mmtk.utility.Constants.*;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.options.Options;
 
@@ -42,14 +43,22 @@ public final class MonotonePageResource extends PageResource {
    * Instance variables
    */
 
-  /**
-   *
-   */
+  /** Pointer to the next block to be allocated. */
   private Address cursor;
+
+  /** The limit of the currently allocated address space. */
   private Address sentinel;
+
+  /** Number of pages to reserve at the start of every allocation */
   private final int metaDataPagesPerRegion;
-  private Address currentChunk = Address.zero();
+
+  /** Base address of the current chunk of addresses */
+  private Address currentChunk;
+
+  /** Current frontier of zeroing, in a separate zeroing thread */
   private volatile Address zeroingCursor;
+
+  /** Current limit of zeroing.  If zeroingCursor < zeroingSentinel, zeroing is still happening. */
   private Address zeroingSentinel;
 
   /**
@@ -67,6 +76,7 @@ public final class MonotonePageResource extends PageResource {
   public MonotonePageResource(Space space, Address start, Extent bytes, int metaDataPagesPerRegion) {
     super(space, start);
     this.cursor = start;
+    this.currentChunk = Space.chunkAlign(start, true);
     this.sentinel = start.plus(bytes);
     this.zeroingCursor = this.sentinel;
     this.zeroingSentinel = start;
@@ -87,6 +97,7 @@ public final class MonotonePageResource extends PageResource {
   public MonotonePageResource(Space space, int metaDataPagesPerRegion) {
     super(space);
     this.cursor = Address.zero();
+    this.currentChunk = Address.zero();
     this.sentinel = Address.zero();
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
   }
@@ -116,13 +127,23 @@ public final class MonotonePageResource extends PageResource {
   @Override
   @Inline
   protected Address allocPages(int reservedPages, int requiredPages, boolean zeroed) {
+    if (VM.VERIFY_ASSERTIONS) {
+      /*
+       * Cursor should always be zero, or somewhere in the current chunk.  If we have just
+       * allocated exactly enough pages to exhaust the current chunk, then cursor can point
+       * to the next chunk.
+       */
+      if (currentChunk.GT(cursor) || (Space.chunkAlign(cursor, true).NE(currentChunk) && Space.chunkAlign(cursor, true).NE(currentChunk.plus(Space.BYTES_IN_CHUNK)))) {
+        logChunkFields("MonotonePageResource.allocPages:fail");
+      }
+      VM.assertions._assert(currentChunk.LE(cursor));
+      VM.assertions._assert(cursor.isZero() ||
+          Space.chunkAlign(cursor, true).EQ(currentChunk) ||
+          Space.chunkAlign(cursor, true).EQ(currentChunk.plus(Space.BYTES_IN_CHUNK)));
+    }
     boolean newChunk = false;
     lock();
     Address rtn = cursor;
-    if (Space.chunkAlign(rtn, true).NE(currentChunk)) {
-      newChunk = true;
-      currentChunk = Space.chunkAlign(rtn, true);
-    }
 
     if (metaDataPagesPerRegion != 0) {
       /* adjust allocation for metadata */
@@ -140,9 +161,9 @@ public final class MonotonePageResource extends PageResource {
     if (!contiguous && tmp.GT(sentinel)) {
       /* we're out of virtual memory within our discontiguous region, so ask for more */
       int requiredChunks = Space.requiredChunks(requiredPages);
-      Address chunk = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
-      cursor = chunk;
-      sentinel = cursor.plus(chunk.isZero() ? 0 : requiredChunks << Space.LOG_BYTES_IN_CHUNK);
+      currentChunk = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
+      cursor = currentChunk;
+      sentinel = cursor.plus(currentChunk.isZero() ? 0 : requiredChunks << Space.LOG_BYTES_IN_CHUNK);
       rtn = cursor;
       tmp = cursor.plus(bytes);
       newChunk = true;
@@ -155,6 +176,11 @@ public final class MonotonePageResource extends PageResource {
     } else {
       Address old = cursor;
       cursor = tmp;
+
+      /* In a contiguous space we can bump along into the next chunk, so preserve the currentChunk invariant */
+      if (contiguous && Space.chunkAlign(cursor, true).NE(currentChunk)) {
+        currentChunk = Space.chunkAlign(cursor, true);
+      }
       commitPages(reservedPages, requiredPages);
       space.growSpace(old, bytes, newChunk);
       unlock();
@@ -263,6 +289,7 @@ public final class MonotonePageResource extends PageResource {
       }
       zeroingCursor = start;
       cursor = start;
+      currentChunk = Space.chunkAlign(start, true);
     } else { /* Not contiguous */
       if (!cursor.isZero()) {
         do {
@@ -331,4 +358,19 @@ public final class MonotonePageResource extends PageResource {
     }
     zeroingCursor = sentinel;
   }
+
+
+  private void logChunkFields(String site) {
+    Log.write("[");
+    Log.write(space.getName());
+    Log.write("]");
+    Log.write(site);
+    Log.write(": cursor=");
+    Log.write(cursor);
+    Log.write(", currentChunk=");
+    Log.write(currentChunk);
+    Log.write(", delta=");
+    Log.writeln(cursor.diff(currentChunk));
+  }
 }
+
