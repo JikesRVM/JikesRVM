@@ -44,7 +44,6 @@ import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.NoEscapes;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.RuntimePure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -160,11 +159,6 @@ public final class AnnotationAdder {
   private static void setup() {
     try {
       if (classLibrary.toLowerCase().equals("gnu classpath")) {
-        // java.lang.Throwable
-        for (Constructor c : Throwable.class.getConstructors()) {
-          addToAdapt(NoEscapes.class, c);
-        }
-
         // java.nio.Buffer
         addToAdapt(Inline.class,
                    "java/nio/Buffer",

@@ -341,14 +341,6 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   }
 
   /**
-   * @return {@code true} if this element has a NoEscapes annotation.
-   * @see org.vmmagic.pragma.NoEscapes
-   */
-  public final boolean hasNoEscapesAnnotation() {
-    return isAnnotationPresent(org.vmmagic.pragma.NoEscapes.class);
-  }
-
-  /**
    * @return {@code true} if this element has a Untraced annotation.
    * @see org.vmmagic.pragma.Untraced
    */

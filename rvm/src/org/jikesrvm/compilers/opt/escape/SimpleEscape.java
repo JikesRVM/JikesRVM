@@ -621,12 +621,19 @@ class SimpleEscape extends CompilerPhase {
         // a return instruction causes an object to escape this method.
         return true;
       case CALL_opcode: {
-        // A call instruction causes an object to escape this method
-        // except when the target is to Throwable.<init> (which we never inline)
+        // A call instruction causes an object to escape this method.
+        // However, when the target of the call is a no-argument Throwable
+        // constructor, we know the constructor would only fill in the stack trace.
+        // If the stack trace is unnecessary, we can replace the call to the Throwable
+        // constructor.
         MethodOperand mop = Call.getMethod(inst);
         if (mop != null && mop.hasPreciseTarget()) {
           RVMMethod target = mop.getTarget();
-          if (target.hasNoEscapesAnnotation()) {
+          boolean isThrowableConstructor = target.getDeclaringClass().isJavaLangThrowableType() &&
+              target.isObjectInitializer();
+          boolean isNoArgThrowableConstructor = isThrowableConstructor &&
+              target.getParameterTypes().length == 0;
+          if (isNoArgThrowableConstructor) {
             return false;
           }
         }
