@@ -127,6 +127,10 @@ public final class MonotonePageResource extends PageResource {
   @Override
   @Inline
   protected Address allocPages(int reservedPages, int requiredPages, boolean zeroed) {
+    boolean newChunk = false;
+    lock();
+    Address rtn = cursor;
+
     if (VM.VERIFY_ASSERTIONS) {
       /*
        * Cursor should always be zero, or somewhere in the current chunk.  If we have just
@@ -141,9 +145,6 @@ public final class MonotonePageResource extends PageResource {
           Space.chunkAlign(cursor, true).EQ(currentChunk) ||
           Space.chunkAlign(cursor, true).EQ(currentChunk.plus(Space.BYTES_IN_CHUNK)));
     }
-    boolean newChunk = false;
-    lock();
-    Address rtn = cursor;
 
     if (metaDataPagesPerRegion != 0) {
       /* adjust allocation for metadata */
