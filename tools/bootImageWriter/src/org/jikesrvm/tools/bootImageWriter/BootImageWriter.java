@@ -26,7 +26,13 @@ import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.FIRST_
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_ALLOCATION_DEFERRED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_ALLOCATED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_PRESENT;
-import static org.jikesrvm.tools.bootImageWriter.Verbosity.*;
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.fail;
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.say;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.ADDRESSES;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.DETAILED;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.NONE;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.SUMMARY;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.TYPE_NAMES;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -120,7 +126,7 @@ import org.vmmagic.unboxed.Word;
  *
  * </pre>
  */
-public class BootImageWriter extends BootImageWriterMessages {
+public class BootImageWriter {
 
   /**
    * The name of the class library, used when performing oracle operations of

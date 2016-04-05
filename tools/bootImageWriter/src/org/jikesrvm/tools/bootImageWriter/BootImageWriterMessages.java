@@ -13,16 +13,20 @@
 
 package org.jikesrvm.tools.bootImageWriter;
 
-public class BootImageWriterMessages {
+public final class BootImageWriterMessages {
 
-  protected static void say(String...messages) {
+  private BootImageWriterMessages() {
+    // prevent instantiation
+  }
+
+  public static void say(String...messages) {
     System.out.print("BootImageWriter: ");
     for (String message : messages)
       System.out.print(message);
     System.out.println();
-}
+  }
 
-  protected static void fail(String message) throws Error {
+  public static void fail(String message) throws Error {
     throw new Error("\nBootImageWriter: " + message);
   }
 }

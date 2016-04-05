@@ -13,6 +13,7 @@
 package org.jikesrvm.tools.bootImageWriter;
 
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_ALLOCATED;
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.fail;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -27,7 +28,7 @@ import org.vmmagic.unboxed.Address;
  * Correlate objects in host JDK with corresponding objects in target RVM
  * bootimage.
  */
-public class BootImageMap extends BootImageWriterMessages {
+public class BootImageMap {
   /**
    * Key->Entry map
    */
