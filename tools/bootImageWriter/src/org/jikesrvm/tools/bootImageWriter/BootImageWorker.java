@@ -19,7 +19,7 @@ import org.jikesrvm.classloader.RVMType;
 /**
  * Worker for parallel compilation during bootimage writing.
  */
-public class BootImageWorker implements Runnable {
+public final class BootImageWorker implements Runnable {
 
   public static final boolean verbose = false;
   public static boolean instantiationFailed = false;

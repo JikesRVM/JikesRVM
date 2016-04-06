@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Address;
  * Correlate objects in host JDK with corresponding objects in target RVM
  * bootimage.
  */
-public class BootImageMap {
+public final class BootImageMap {
   /**
    * Key->Entry map
    */
