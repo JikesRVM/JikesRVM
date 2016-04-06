@@ -79,6 +79,6 @@ final class BURS_IntConstantTreeNode extends AbstractBURS_TreeNode {
 
   @Override
   public int readPacked(int word, int shift, int mask) {
-    return readPacked(word, shift, mask);
+    return delegate.readPacked(word, shift, mask);
   }
 }
