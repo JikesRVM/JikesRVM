@@ -15,12 +15,21 @@ package org.jikesrvm.tools.bootImageWriter;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_RMAP_START;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_CHAR;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.FIRST_TYPE_DICTIONARY_INDEX;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_ALLOCATION_DEFERRED;
@@ -3065,7 +3074,7 @@ public class BootImageWriter {
       // recursively traverse object
       //
       if (jdkType.isArray()) {
-        size += 4; // length
+        size += BYTES_IN_INT; // length is int
         int arrayCount       = Array.getLength(jdkObject);
         //
         // traverse array elements
@@ -3075,26 +3084,26 @@ public class BootImageWriter {
         if (jdkElementType.isPrimitive()) {
           // array element is logical or numeric type
           if (jdkElementType == Boolean.TYPE) {
-            size += arrayCount * 4;
+            size += arrayCount * BYTES_IN_BOOLEAN;
           } else if (jdkElementType == Byte.TYPE) {
-            size += arrayCount * 1;
+            size += arrayCount * BYTES_IN_BYTE;
           } else if (jdkElementType == Character.TYPE) {
-            size += arrayCount * 2;
+            size += arrayCount * BYTES_IN_CHAR;
           } else if (jdkElementType == Short.TYPE) {
-            size += arrayCount * 2;
+            size += arrayCount * BYTES_IN_SHORT;
           } else if (jdkElementType == Integer.TYPE) {
-            size += arrayCount * 4;
+            size += arrayCount * BYTES_IN_INT;
           } else if (jdkElementType == Long.TYPE) {
-            size += arrayCount * 8;
+            size += arrayCount * BYTES_IN_LONG;
           } else if (jdkElementType == Float.TYPE) {
-            size += arrayCount * 4;
+            size += arrayCount * BYTES_IN_FLOAT;
           } else if (jdkElementType == Double.TYPE) {
-            size += arrayCount * 8;
+            size += arrayCount * BYTES_IN_DOUBLE;
           } else
             fail("unexpected array type: " + jdkType);
         } else {
           // array element is reference type
-          size += arrayCount * 4;
+          size += arrayCount * BYTES_IN_ADDRESS;
           Object[] values = (Object []) jdkObject;
           for (int i = 0; i < arrayCount; ++i) {
             if (values[i] != null) {
@@ -3133,26 +3142,26 @@ public class BootImageWriter {
             if (jdkFieldType.isPrimitive()) {
               // field is logical or numeric type
               if (jdkFieldType == Boolean.TYPE)
-                size += 1;
+                size += BYTES_IN_BOOLEAN;
               else if (jdkFieldType == Byte.TYPE)
-                size += 1;
+                size += BYTES_IN_BYTE;
               else if (jdkFieldType == Character.TYPE)
-                size += 2;
+                size += BYTES_IN_CHAR;
               else if (jdkFieldType == Short.TYPE)
-                size += 2;
+                size += BYTES_IN_SHORT;
               else if (jdkFieldType == Integer.TYPE)
-                size += 4;
+                size += BYTES_IN_INT;
               else if (jdkFieldType == Long.TYPE)
-                size += 8;
+                size += BYTES_IN_LONG;
               else if (jdkFieldType == Float.TYPE)
-                size += 4;
+                size += BYTES_IN_FLOAT;
               else if (jdkFieldType == Double.TYPE)
-                size += 8;
+                size += BYTES_IN_DOUBLE;
               else
                 fail("unexpected field type: " + jdkFieldType);
             } else {
               // field is reference type
-              size += 4;
+              size += BYTES_IN_ADDRESS;
               Object value = jdkField.get(jdkObject);
               if (value != null) {
                 if (verbosity.isAtLeast(DETAILED)) traceContext.push(value.getClass().getName(),
