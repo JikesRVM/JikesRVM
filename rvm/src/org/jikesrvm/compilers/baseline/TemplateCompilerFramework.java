@@ -1582,7 +1582,14 @@ public abstract class TemplateCompilerFramework {
         case JBC_newarray: {
           int atype = bcodes.getArrayElementType();
           RVMArray array = RVMArray.getPrimitiveArrayType(atype);
-          if (VM.VerifyAssertions) VM._assert(array.isResolved());
+          if (VM.VerifyAssertions) {
+            boolean resolved = array.isResolved();
+            if (!resolved) {
+              String msg = "Found reference to unresolved array type " + array +
+                  " while compiling newarray bytecode in method " + method;
+              VM._assert(VM.NOT_REACHED, msg);
+            }
+          }
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
           if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
