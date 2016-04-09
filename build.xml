@@ -103,8 +103,9 @@
   <property name="junit.reports.bootstrap" location="${build.base}/test-reports-bootstrap"/>
   <property name="junit.reports.rvm" location="${build.base}/test-reports-rvm"/>
 
-  <!-- Permit parallelisation of the bootimage build -->
-  <property name="bootimage.threads" value="1"/>
+  <!-- Number of threads to create for the paralllel part of bootimage building -->
+  <!-- A thread count of 0 maps to a thread count of (Runtime.getAvailableProcessors() + 1) -->
+  <property name="bootimage.threads" value="0"/>
 
   <!-- Source versions -->
   <property name="mmtk.java.version" value="1.6"/>

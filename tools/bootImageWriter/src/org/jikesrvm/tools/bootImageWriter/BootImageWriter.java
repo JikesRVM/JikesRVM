@@ -814,10 +814,15 @@ public class BootImageWriter {
       }
       // numThreads
       if (args[i].startsWith("-numThreads=")) {
-        numThreads = Integer.parseInt(args[i].substring(12));
-        if (numThreads < 1) {
-          fail("numThreads must be a positive number, value supplied:  " + numThreads);
+        int desiredThreadCount = Integer.parseInt(args[i].substring(12));
+        if (desiredThreadCount < 0) {
+          fail("numThreads must be a non-negative number, value supplied:  " + desiredThreadCount);
         }
+        // thread count 0 means "use everything that's available". The default
+        // already does this so there's nothing to do here.
+        if (desiredThreadCount == 0) continue;
+        // use the explicit value provided by the user
+        numThreads = desiredThreadCount;
         continue;
       }
       // profile
@@ -1465,10 +1470,23 @@ public class BootImageWriter {
       if (profile) startTime = System.currentTimeMillis();
       if (verbosity.isAtLeast(SUMMARY)) say("instantiating");
 
+      if (verbosity.isAtLeast(SUMMARY)) say("setting up compilation infrastructure and pre-compiling easy cases");
+      CompilationOrder order = new CompilationOrder(typeCount, numThreads);
+      for (RVMType type: bootImageTypes.values()) {
+        order.addType(type);
+      }
+      order.fixUpMissingSuperClasses();
+
       if (verbosity.isAtLeast(SUMMARY)) say(" compiling with " + numThreads + " threads");
       ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
-      for (RVMType type: bootImageTypes.values()) {
-        threadPool.execute(new BootImageWorker(type));
+      int runnableCount = order.getCountOfNeededWorkers();
+      while (runnableCount > 0) {
+        try {
+          threadPool.execute(order.getNextRunnable());
+          runnableCount--;
+        } catch (InterruptedException e) {
+          throw new Error("Build interrupted", e);
+        }
       }
       threadPool.shutdown();
       try {

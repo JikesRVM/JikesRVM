@@ -25,15 +25,15 @@ public final class BootImageWorker implements Runnable {
   public static boolean instantiationFailed = false;
   private static final AtomicLong count = new AtomicLong();
   private final RVMType type;
+  private final CompilationOrder order;
 
-  BootImageWorker(RVMType type) {
+  BootImageWorker(RVMType type, CompilationOrder order) {
     this.type = type;
+    this.order = order;
   }
 
   @Override
   public void run() {
-    if (type == null)
-      return;
     try {
       long startTime = 0;
       long myCount = 0;
@@ -43,6 +43,7 @@ public final class BootImageWorker implements Runnable {
         BootImageWriterMessages.say(startTime + ": " + myCount + " starting " + type);
       }
       type.instantiate();
+      order.instantiationComplete(type);
       if (verbose) {
         long stopTime = System.currentTimeMillis();
         BootImageWriterMessages.say(stopTime + ": " + myCount + " finish " + type +
