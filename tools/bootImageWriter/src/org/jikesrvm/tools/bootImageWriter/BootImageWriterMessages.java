@@ -29,5 +29,9 @@ public final class BootImageWriterMessages {
   public static void fail(String message) throws Error {
     throw new Error("\nBootImageWriter: " + message);
   }
+
+  public static void printStackTrace(Throwable t) {
+    t.printStackTrace(System.out);
+  }
 }
 

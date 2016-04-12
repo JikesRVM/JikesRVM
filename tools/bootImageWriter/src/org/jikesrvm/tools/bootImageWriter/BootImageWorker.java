@@ -51,7 +51,7 @@ public final class BootImageWorker implements Runnable {
       }
     } catch (Throwable t) {
       instantiationFailed = true;
-      t.printStackTrace();
+      BootImageWriterMessages.printStackTrace(t);
       BootImageWriterMessages.fail("Failure during instantiation of " + type);
     }
   }
