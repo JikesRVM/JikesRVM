@@ -31,7 +31,7 @@ import org.jikesrvm.classloader.RVMType;
 public class CompilationOrder {
 
   /** Print out messages about compilation progress for debugging */
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
 
   // TODO estimates aren't based on any data.
   private static final int OBJECT_SUBCLASS_COUNT_ESTIMATE = 512;
