@@ -930,8 +930,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (!type.isClassType()) throwNoSuchMethodException(name, parameterTypes);
 
     if (name == null) {
-      throwNoSuchMethodException(name, parameterTypes);
+      throw new NullPointerException("Method name parameter must not be null (but was)!");
     }
+
     Atom aName = Atom.findOrCreateUnicodeAtom(name);
     if (aName == RVMClassLoader.StandardClassInitializerMethodName ||
         aName == RVMClassLoader.StandardObjectInitializerMethodName) {
