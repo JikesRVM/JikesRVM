@@ -1707,8 +1707,13 @@ Check to make sure all required properties are specified. This includes properti
       </sequential>
     </if>
 
+    <condition property="readableThreadCount" value="(Runtime.getAvailableProcessors() + 1)" else="${bootimage.threads}">
+      <equals arg1="${bootimage.threads}" arg2="0"/>
+    </condition>
+
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
     <echo message="MMTk properties = ${mmtk.properties}"/>
+    <echo message="Number of threads for compilation = ${readableThreadCount}"/>
     <java classname="org.jikesrvm.tools.bootImageWriter.BootImageWriter"
           fork="yes"
           maxmemory="500M"
