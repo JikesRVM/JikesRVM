@@ -105,7 +105,7 @@
 
   <!-- Number of threads to create for the paralllel part of bootimage building -->
   <!-- A thread count of 0 maps to a thread count of (Runtime.getAvailableProcessors() + 1) -->
-  <property name="bootimage.threads" value="0"/>
+  <property name="bootimage.threads" value="1"/>
 
   <!-- Source versions -->
   <property name="mmtk.java.version" value="1.6"/>
