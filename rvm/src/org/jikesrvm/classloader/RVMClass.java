@@ -450,6 +450,10 @@ public final class RVMClass extends RVMType {
     return enclosingClass;
   }
 
+  public MethodReference getEnclosingMethod() {
+    return enclosingMethod;
+  }
+
   /**
    * Sets the resolvedMember in all declared members.
    */

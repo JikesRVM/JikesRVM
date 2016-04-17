@@ -37,6 +37,7 @@ import java.util.ArrayList;
 
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
@@ -652,7 +653,16 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Method getEnclosingMethod() {
-    throw new UnimplementedError();
+    if (!(isAnonymousClass() || isLocalClass())) {
+      return null;
+    }
+
+    MethodReference enclosingMethodRef = type.asClass().getEnclosingMethod();
+    if (enclosingMethodRef == null) {
+      return null;
+    } else {
+      return JikesRVMSupport.createMethod(enclosingMethodRef.resolve());
+    }
   }
 
   // --- Enumeration support ---
