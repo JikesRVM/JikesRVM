@@ -14,7 +14,7 @@ package test.org.jikesrvm.opttests.bugs;
 
 /**
  * Testcase for elision of constructors of subclasses of Throwable
- * in stack traces. This test case makes sure that UnreachableException
+ * in stack traces. This test case makes sure that UncreatableException
  * isn't incorrectly elided from the stack trace.
  */
 public class RVM_1129_C {
