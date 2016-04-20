@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.mmtk.harness.options.BaseHeap;
+import org.mmtk.harness.options.BaseHeap64;
 import org.mmtk.harness.options.Bits;
 import org.mmtk.harness.options.DumpPcode;
 import org.mmtk.harness.options.GcEvery;
@@ -76,13 +77,19 @@ public class Harness {
   /** Scalable heap size specification */
   public static final BaseHeap baseHeap = new BaseHeap();
 
+  /** 
+   * Scalable heap size specification in a 64-bit heap, for benchmarks
+   * with pointer-heavy data structures. 
+   */
+  public static final BaseHeap64 baseHeap64 = new BaseHeap64();
+
   /** Option for the initial heap size */
   public static final InitHeap initHeap = new InitHeap();
 
   /** Option for the maximum heap size */
   public static final MaxHeap maxHeap = new MaxHeap();
 
-  /** Option for the maximum heap size */
+  /** Option to dump pseudo-code (for debugging the Harness compiler) */
   public static final DumpPcode dumpPcode = new DumpPcode();
 
   /** Trace options */
@@ -170,7 +177,7 @@ public class Harness {
     }
 
     /* If we're using the baseHeap mechanism, override initHeap and maxheap */
-    if (baseHeap.getPages() != 0 && initHeap.getPages() == initHeap.getDefaultPages()) {
+    if (baseHeapSize() != 0 && initHeap.getPages() == initHeap.getDefaultPages()) {
       applyHeapScaling();
     }
 
@@ -254,14 +261,25 @@ public class Harness {
   }
 
   /**
+   * Extract the base heap size for the current pointer model.
+   * @return
+   */
+  public static int baseHeapSize() {
+    if (bits.getValue() == 64 && baseHeap64.getPages() != 0) {
+      return baseHeap64.getPages();
+    }
+    return baseHeap.getPages();
+  }
+
+  /**
    * Apply the plan-specific heap scaling used when the "heap" option
    * is used.
    */
   private static void applyHeapScaling() {
     double heapFactor = PlanSpecificConfig.heapFactor(plan.getValue());
-    int scaledHeap = (int)Math.ceil(baseHeap.getPages() * heapFactor);
-    System.out.printf("heapFactor=%4.2f, baseHeap=%dK, initHeap=%dK%n",
-        heapFactor, baseHeap.getPages() * BYTES_IN_PAGE / 1024,
+    int scaledHeap = (int)Math.ceil(baseHeapSize() * heapFactor);
+    System.out.printf("[Harness] heapFactor=%4.2f, baseHeap=%dK, initHeap=%dK%n",
+        heapFactor, baseHeapSize() * BYTES_IN_PAGE / 1024,
         scaledHeap * BYTES_IN_PAGE / 1024);
     initHeap.setPages(scaledHeap);
     maxHeap.setPages(scaledHeap);

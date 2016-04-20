@@ -12,6 +12,7 @@
  */
 
 option baseHeap "10240k";
+option baseHeap64 "17408m";
 
 /*
  * MMTk script that mimics the behaviour of the FixedLive benchmark

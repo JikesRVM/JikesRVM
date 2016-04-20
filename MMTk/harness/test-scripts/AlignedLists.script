@@ -12,6 +12,7 @@
  */
 
 option baseHeap "3m";
+option baseHeap64 "4400k";
 
 /*
  * This script is designed to work-out the write barriers in a generational 
