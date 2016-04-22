@@ -986,9 +986,9 @@ public final class RVMClass extends RVMType {
    * @param declaredFields fields of the class
    * @param declaredMethods methods of the class
    * @param declaredClasses declared inner classes
+   * @param declaringClass outer class if an inner class
    * @param enclosingClass the class that this class is declared in (for inner classes)
    * @param enclosingMethod the method that this class is declared in (for anonymous classes)
-   * @param declaringClass outer class if an inner class
    * @param sourceName source file name
    * @param classInitializerMethod handle to class initializer method
    * @param signature the generic type name for this class
