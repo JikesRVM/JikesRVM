@@ -61,7 +61,7 @@ public class RVMClassTest {
     RVMField[] declaredFields = new RVMField[0];
     RVMMethod[] declaredMethods = new RVMMethod[0];
     RVMClass klass =
-        new RVMClass(tRef, constantPool, modifiers,
+        new RVMClass(tRef, constantPool, modifiers, modifiers,
             superClass,
             declaredInterfaces,
             declaredFields, declaredMethods,

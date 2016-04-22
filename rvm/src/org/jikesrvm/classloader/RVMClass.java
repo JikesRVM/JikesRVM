@@ -21,7 +21,7 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_PUBLIC;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_STATIC;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_SUPER;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_SYNTHETIC;
-import static org.jikesrvm.classloader.ClassLoaderConstants.APPLICABLE_TO_CLASSES;
+import static org.jikesrvm.classloader.ClassLoaderConstants.APPLICABLE_FOR_CLASS_GET_MODIFIERS;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INITIALIZED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INITIALIZER_FAILED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INITIALIZING;
@@ -94,8 +94,16 @@ public final class RVMClass extends RVMType {
    * </ul>
    */
   private final int[] constantPool;
-  /** {@link ClassLoaderConstants} */
+  /**
+   * the transformed modifiers, i.e. the modifiers that the JVM uses (e.g.
+   * for access control)
+   */
   private final short modifiers;
+  /**
+   * the original modifiers from the source (required to support
+   * {@link java.lang.Class#getModifiers()})
+   */
+  private final short originalModifiers;
   /** Super class of this class */
   private final RVMClass superClass;
   /**
@@ -346,14 +354,23 @@ public final class RVMClass extends RVMType {
     return (getTypeRef() == TypeReference.JavaLangThrowable) ||
     RuntimeEntrypoints.isAssignableWith(TypeReference.JavaLangThrowable.resolve(), this);
   }
+
   /**
-   * Get the modifiers associated with this class {@link
-   * ClassLoaderConstants}.
+   * Gets the modifiers associated with this class in the
+   * form required by {@link java.lang.Class#getModifiers()},
+   * i.e. the modifiers as present in the Java source file.
+   * Those are distinct from the transformed modifiers that
+   * the JVM uses internally (e.g. for access control).
    *
-   * @return the modifiers of "this"
+   * @return the modifiers of "this" in the form required
+   *  by {@link java.lang.Class#getModifiers()}
+   *
+   * @see ClassLoaderConstants
+   * @see <a href="http://bugs.java.com/view_bug.do?bug_id=4109635">
+   *  bug report about getModifiers() in the Java bug tracker</a>
    */
-  public int getModifiers() {
-    return modifiers & APPLICABLE_TO_CLASSES;
+  public int getOriginalModifiers() {
+    return originalModifiers & APPLICABLE_FOR_CLASS_GET_MODIFIERS;
   }
 
   /**
@@ -976,11 +993,12 @@ public final class RVMClass extends RVMType {
   //--------------------------------------------------------------------//
 
   /**
-   * Construct a class from its constituent loaded parts
+   * Constructs a class from its constituent loaded parts
    *
    * @param typeRef the type reference that was resolved to this class
    * @param constantPool array of ints encoding constant value
-   * @param modifiers {@link org.jikesrvm.classloader.ClassLoaderConstants}
+   * @param modifiers the transformed modifiers for use by the VM. See {@link org.jikesrvm.classloader.ClassLoaderConstants}
+   * @param originalModifiers the original modifiers from the source
    * @param superClass parent of this class
    * @param declaredInterfaces array of interfaces this class implements
    * @param declaredFields fields of the class
@@ -994,7 +1012,7 @@ public final class RVMClass extends RVMType {
    * @param signature the generic type name for this class
    * @param annotations array of runtime visible annotations
    */
-  RVMClass(TypeReference typeRef, int[] constantPool, short modifiers, RVMClass superClass,
+  RVMClass(TypeReference typeRef, int[] constantPool, short modifiers, short originalModifiers, RVMClass superClass,
            RVMClass[] declaredInterfaces, RVMField[] declaredFields, RVMMethod[] declaredMethods,
            TypeReference[] declaredClasses, TypeReference declaringClass, TypeReference enclosingClass,
            MethodReference enclosingMethod, Atom sourceName, RVMMethod classInitializerMethod,
@@ -1006,6 +1024,7 @@ public final class RVMClass extends RVMType {
     // final fields
     this.constantPool = constantPool;
     this.modifiers = modifiers;
+    this.originalModifiers = originalModifiers;
     this.superClass = superClass;
     this.declaredInterfaces = declaredInterfaces;
     this.declaredFields = declaredFields;
@@ -1980,8 +1999,9 @@ public final class RVMClass extends RVMType {
       RVMMethod[] reflectionMethods = new RVMMethod[]{
           methodToCall.createReflectionMethod(reflectionClass, constantPool, reflectionMethodRef),
           RVMMethod.createDefaultConstructor(reflectionClass, constructorMethodRef)};
+      final short modifiers = (short) (ACC_SYNTHETIC | ACC_PUBLIC | ACC_FINAL);
       klass =
-        new RVMClass(reflectionClass, constantPool, (short) (ACC_SYNTHETIC | ACC_PUBLIC | ACC_FINAL), // modifiers
+        new RVMClass(reflectionClass, constantPool, modifiers, modifiers, // modifiers
             TypeReference.baseReflectionClass.resolve().asClass(), // superClass
             emptyVMClass, // declaredInterfaces
             emptyVMField, reflectionMethods,

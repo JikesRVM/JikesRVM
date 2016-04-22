@@ -65,6 +65,7 @@ public final class ClassLoaderConstants {
   public static final short APPLICABLE_TO_CLASSES =
       (ACC_PUBLIC |
        ACC_PRIVATE |
+       ACC_PROTECTED |
        ACC_STATIC |
        ACC_FINAL |
        ACC_SUPER |
@@ -73,6 +74,20 @@ public final class ClassLoaderConstants {
        ACC_SYNTHETIC |
        ACC_ANNOTATION |
        ACC_ENUM);
+
+  /**
+   * The modifiers that can appear in the return value of
+   * {@link java.lang.Class#getModifiers()} according to
+   * the Java API specification.
+   */
+  public static final short APPLICABLE_FOR_CLASS_GET_MODIFIERS =
+      (ACC_PUBLIC |
+       ACC_PRIVATE |
+       ACC_PROTECTED |
+       ACC_STATIC |
+       ACC_FINAL |
+       ACC_INTERFACE |
+       ACC_ABSTRACT);
 
   /* Possible states of a class description. */
   /** nothing present yet */

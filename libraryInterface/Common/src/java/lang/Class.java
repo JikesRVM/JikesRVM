@@ -119,12 +119,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   @Pure
   public int getModifiers() {
     if (type.isClassType()) {
-      return type.asClass().getModifiers();
+      return type.asClass().getOriginalModifiers();
     } else if (type.isArrayType()) {
       RVMType innermostElementType = type.asArray().getInnermostElementType();
       int result = Modifier.FINAL;
       if (innermostElementType.isClassType()) {
-        int component = innermostElementType.asClass().getModifiers();
+        int component = innermostElementType.asClass().getOriginalModifiers();
         result |= (component & (Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE));
       } else {
         result |= Modifier.PUBLIC; // primitive
