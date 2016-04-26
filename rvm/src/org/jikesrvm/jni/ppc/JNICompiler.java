@@ -586,10 +586,8 @@ public abstract class JNICompiler {
     // and pass offset in JNIRefs array in r4 (as second arg to called native code)
     GPR SECOND_OS_PARAMETER_GPR = GPR.lookup(FIRST_OS_PARAMETER_GPR.value() + 1);
     if (method.isStatic()) {
-      klass.getClassForType();     // ensure the Java class object is created
       // ASSMPTION: JTOC saved above in JNIEnv is still valid,
       // used by following emitLAddrToc
-      asm.emitLAddrToc(SECOND_OS_PARAMETER_GPR, klass.getTibOffset());  // r4 <= TIB
       Offset klassOffset = Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(klass.getClassForType()));
       asm.emitLAddrToc(SECOND_OS_PARAMETER_GPR, klassOffset);
       asm.emitSTAddrU(SECOND_OS_PARAMETER_GPR,

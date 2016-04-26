@@ -76,6 +76,7 @@ import static org.jikesrvm.ppc.BaselineConstants.T3;
 import static org.jikesrvm.ppc.BaselineConstants.T4;
 import static org.jikesrvm.ppc.BaselineConstants.T5;
 import static org.jikesrvm.ppc.BaselineConstants.T6;
+import static org.jikesrvm.ppc.BaselineConstants.T7;
 import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
 import static org.jikesrvm.ppc.RegisterConstants.FIRST_OS_PARAMETER_FPR;
 import static org.jikesrvm.ppc.RegisterConstants.FIRST_OS_PARAMETER_GPR;
@@ -207,7 +208,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     localFloatLocations = floatLocLoc;
     use_nonvolatile_registers = USE_NONVOLATILE_REGISTERS && !method.hasBaselineNoRegistersAnnotation();
 
-    if (VM.VerifyAssertions) VM._assert(T6.value() <= LAST_VOLATILE_GPR.value());           // need 4 gp temps
+    if (VM.VerifyAssertions) VM._assert(T7.value() <= LAST_VOLATILE_GPR.value());           // need 8 gp temps
     if (VM.VerifyAssertions) VM._assert(F3.value() <= LAST_VOLATILE_FPR.value());           // need 4 fp temps
     if (VM.VerifyAssertions) VM._assert(S0.value() < S1.value() && S1.value() <= LAST_SCRATCH_GPR.value()); // need 2 scratch
     stackHeights = new int[bcodes.length()];
@@ -2128,7 +2129,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     TypeReference fieldType = fieldRef.getFieldContentsType();
     if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType()) {
-      Barriers.compileGetstaticBarrier(this, fieldType.getId());
+      Barriers.compileGetstaticBarrier(this, fieldRef.getId());
       pushAddr(T0);
     } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntX(T1, T0, JTOC);
@@ -2155,7 +2156,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     Offset fieldOffset = field.getOffset();
     TypeReference fieldType = fieldRef.getFieldContentsType();
     if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
-      Barriers.compileGetstaticBarrierImm(this, fieldOffset, fieldType.getId());
+      Barriers.compileGetstaticBarrierImm(this, fieldOffset, fieldRef.getId());
       pushAddr(T0);
     } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntToc(T0, fieldOffset);
@@ -2248,7 +2249,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     // T1 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T1, fieldRef, true);
     if (NEEDS_OBJECT_GETFIELD_BARRIER && fieldType.isReferenceType()) {
-      Barriers.compileGetfieldBarrier(this, fieldType.getId());
+      Barriers.compileGetfieldBarrier(this, fieldRef.getId());
       discardSlots(1);
       pushAddr(T0);
     } else {
@@ -2298,7 +2299,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = field.getOffset();
     if (NEEDS_OBJECT_GETFIELD_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
-      Barriers.compileGetfieldBarrierImm(this, fieldOffset, fieldType.getId());
+      Barriers.compileGetfieldBarrierImm(this, fieldOffset, fieldRef.getId());
       discardSlots(1);
       pushAddr(T0);
     } else {
@@ -2700,9 +2701,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     asm.emitLAddrToc(T1, tibOffset);
     asm.emitLVAL(T2, typeRef.hasFinalizer() ? 1 : 0);
     asm.emitLVAL(T3, whichAllocator);
-    asm.emitLVAL(T4, site);
     asm.emitLVAL(T4, align);
     asm.emitLVAL(T5, offset);
+    asm.emitLVAL(T6, site);
     asm.emitBCCTRL();
     pushAddr(T0);
   }
@@ -2730,13 +2731,13 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     asm.emitLAddrToc(T0, Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0, 0);                    // T0 := number of elements
-    asm.emitLVAL(T5, site);           // T4 := site
     asm.emitLVAL(T1, width);         // T1 := log element size
     asm.emitLVAL(T2, headerSize);    // T2 := header bytes
     asm.emitLAddrToc(T3, tibOffset);  // T3 := tib
     asm.emitLVAL(T4, whichAllocator);// T4 := allocator
     asm.emitLVAL(T5, align);
     asm.emitLVAL(T6, offset);
+    asm.emitLVAL(T7, site);           // T7 := site
     asm.emitBCCTRL();
     pokeAddr(T0, 0);
   }
