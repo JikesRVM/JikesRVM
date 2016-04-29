@@ -48,11 +48,11 @@ class TestVolatileDoublesUnresolved extends XThread {
 
   TestVolatileDoublesUnresolved(double d, int threadNumber, Object monitor) {
     super("VDU" + threadNumber);
-    this.vdf = vdf;
     this.d = d;
     this.monitor = monitor;
   }
 
+  @Override
   void performTask() {
     synchronized (monitor) {
       try {

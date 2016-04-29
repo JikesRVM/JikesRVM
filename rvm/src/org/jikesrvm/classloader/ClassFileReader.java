@@ -342,6 +342,7 @@ public class ClassFileReader {
 
     int[] constantPool = readConstantPool(typeRef, input);
     short modifiers = input.readShort();
+    short originalModifiers = modifiers;
     int myTypeIndex = readTypeRef(typeRef, input, constantPool);
     RVMClass superClass = readSuperClass(input, constantPool, modifiers);
     RVMClass[] declaredInterfaces = readDeclaredInterfaces(input, constantPool);
@@ -396,6 +397,7 @@ public class ClassFileReader {
               modifiers &= ~(ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED);
             }
             modifiers |= innerClassAccessFlags;
+            originalModifiers = (short) innerClassAccessFlags;
           }
         }
       } else if (attName == RVMClassLoader.syntheticAttributeName) {
@@ -428,6 +430,7 @@ public class ClassFileReader {
     return new RVMClass(typeRef,
                         constantPool,
                         modifiers,
+                        originalModifiers,
                         superClass,
                         declaredInterfaces,
                         declaredFields,

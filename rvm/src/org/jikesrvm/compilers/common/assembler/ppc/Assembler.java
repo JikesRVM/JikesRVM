@@ -1285,6 +1285,14 @@ public final class Assembler extends AbstractAssembler {
 
   /* macro instructions */
 
+  /**
+   * Emits a no-op.
+   * <p>
+   * In terms of the Power ISA, this is an optimized no-op
+   * that consumes minimal processor resources (in contrast
+   * to the executed form of a no-op which is designed to
+   * consume as much resources as a real instruction).
+   */
   public void emitNOP() {
     int mi = 24 << 26; //ORI 0,0,0
     appendInstruction(mi);

@@ -21,6 +21,8 @@ import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE_LIMIT;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.fail;
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.say;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,8 +48,7 @@ import org.vmmagic.unboxed.Word;
  * Memory image of virtual machine that will be written to disk file and later
  * "booted".
  */
-public class BootImage extends BootImageWriterMessages
-  implements BootImageInterface {
+public class BootImage implements BootImageInterface {
 
   /**
    * Talk while we work?

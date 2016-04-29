@@ -19,21 +19,21 @@ import org.jikesrvm.classloader.RVMType;
 /**
  * Worker for parallel compilation during bootimage writing.
  */
-public class BootImageWorker implements Runnable {
+public final class BootImageWorker implements Runnable {
 
   public static final boolean verbose = false;
   public static boolean instantiationFailed = false;
   private static final AtomicLong count = new AtomicLong();
   private final RVMType type;
+  private final CompilationOrder order;
 
-  BootImageWorker(RVMType type) {
+  BootImageWorker(RVMType type, CompilationOrder order) {
     this.type = type;
+    this.order = order;
   }
 
   @Override
   public void run() {
-    if (type == null)
-      return;
     try {
       long startTime = 0;
       long myCount = 0;
@@ -43,6 +43,7 @@ public class BootImageWorker implements Runnable {
         BootImageWriterMessages.say(startTime + ": " + myCount + " starting " + type);
       }
       type.instantiate();
+      order.instantiationComplete(type);
       if (verbose) {
         long stopTime = System.currentTimeMillis();
         BootImageWriterMessages.say(stopTime + ": " + myCount + " finish " + type +
@@ -50,7 +51,7 @@ public class BootImageWorker implements Runnable {
       }
     } catch (Throwable t) {
       instantiationFailed = true;
-      t.printStackTrace();
+      BootImageWriterMessages.printStackTrace(t);
       BootImageWriterMessages.fail("Failure during instantiation of " + type);
     }
   }

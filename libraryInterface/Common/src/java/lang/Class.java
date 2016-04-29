@@ -39,6 +39,7 @@ import java.util.HashMap;
 
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
@@ -132,12 +133,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   @Pure
   public int getModifiers() {
     if (type.isClassType()) {
-      return type.asClass().getModifiers();
+      return type.asClass().getOriginalModifiers();
     } else if (type.isArrayType()) {
       RVMType innermostElementType = type.asArray().getInnermostElementType();
       int result = Modifier.FINAL;
       if (innermostElementType.isClassType()) {
-        int component = innermostElementType.asClass().getModifiers();
+        int component = innermostElementType.asClass().getOriginalModifiers();
         result |= (component & (Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE));
       } else {
         result |= Modifier.PUBLIC; // primitive
@@ -171,6 +172,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public URL getResource(String resName) {
+    if (resName == null) return null;
     ClassLoader loader = type.getClassLoader();
     if (loader == BootstrapClassLoader.getBootstrapClassLoader())
       return ClassLoader.getSystemResource(toResourceName(resName));
@@ -668,7 +670,16 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Method getEnclosingMethod() {
-    throw new UnimplementedError();
+    if (!(isAnonymousClass() || isLocalClass())) {
+      return null;
+    }
+
+    MethodReference enclosingMethodRef = type.asClass().getEnclosingMethod();
+    if (enclosingMethodRef == null) {
+      return null;
+    } else {
+      return JikesRVMSupport.createMethod(enclosingMethodRef.resolve());
+    }
   }
 
   // --- Enumeration support ---
@@ -850,6 +861,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   private static Class<?> forNameInternal(String className, boolean initialize, ClassLoader classLoader)
       throws ClassNotFoundException, LinkageError, ExceptionInInitializerError {
+    if (className == null) {
+      throw new ClassNotFoundException("Cannot load a class with a name of null");
+    }
+
     try {
       if (className.startsWith("[")) {
         if (!validArrayDescriptor(className)) {
@@ -965,13 +980,12 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Method getMethod(String name, Class<?>... parameterTypes) throws NoSuchMethodException, SecurityException {
+    throwNPEWhenNameIsNull(name);
+
     checkMemberAccess(Member.PUBLIC);
 
     if (!type.isClassType()) throwNoSuchMethodException(name, parameterTypes);
 
-    if (name == null) {
-      throwNoSuchMethodException(name, parameterTypes);
-    }
     Atom aName = Atom.findOrCreateUnicodeAtom(name);
     if (aName == RVMClassLoader.StandardClassInitializerMethodName ||
         aName == RVMClassLoader.StandardObjectInitializerMethodName) {
@@ -993,8 +1007,16 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return JikesRVMSupport.createMethod(answer);
   }
 
+  private static void throwNPEWhenNameIsNull(String name) {
+    if (name == null) {
+      throw new NullPointerException("Name parameter must not be null (but was)!");
+    }
+  }
+
   public Method getDeclaredMethod(String name, Class<?>... parameterTypes)
   throws NoSuchMethodException, SecurityException {
+    throwNPEWhenNameIsNull(name);
+
     checkMemberAccess(Member.DECLARED);
 
     if (!type.isClassType()) throwNoSuchMethodException(name, parameterTypes);
@@ -1092,6 +1114,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Field getField(String name) throws NoSuchFieldException, SecurityException {
+    throwNPEWhenNameIsNull(name);
+
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchFieldException();
 
@@ -1108,6 +1132,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   public Field getDeclaredField(String name)
     throws NoSuchFieldException, SecurityException {
+    throwNPEWhenNameIsNull(name);
+
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType() || name == null) throwNoSuchFieldException(name);
 

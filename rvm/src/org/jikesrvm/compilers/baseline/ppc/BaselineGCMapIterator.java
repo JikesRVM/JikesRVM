@@ -265,15 +265,6 @@ public final class BaselineGCMapIterator extends GCMapIterator {
           VM.sysWriteln();
         }
 
-        Address nextCallerAddress;
-        if (BaselineCompilerImpl.isRegister(location)) {
-          nextCallerAddress = registerLocations.get(location);
-        } else {
-          nextCallerAddress =
-              framePtr.plus(BaselineCompilerImpl.locationToOffset(location) -
-                            BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
-        }
-        nextCallerAddress = nextCallerAddress.loadAddress();
         if (BaselineCompilerImpl.isRegister(location)) {
           return registerLocations.get(location);
         } else {
@@ -403,15 +394,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
       VM.sysWrite(location);
       VM.sysWrite(".\n");
     }
-    Address nextCallerAddress;
-    if (BaselineCompilerImpl.isRegister(location)) {
-      nextCallerAddress = registerLocations.get(location);
-    } else {
-      nextCallerAddress =
-          framePtr.plus(BaselineCompilerImpl.locationToOffset(location) -
-                        BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
-    }
-    nextCallerAddress = nextCallerAddress.loadAddress();
+
     if (BaselineCompilerImpl.isRegister(location)) {
       return registerLocations.get(location);
     } else {

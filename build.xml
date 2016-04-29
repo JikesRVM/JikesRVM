@@ -109,7 +109,8 @@
   <property name="junit.reports.bootstrap" location="${build.base}/test-reports-bootstrap"/>
   <property name="junit.reports.rvm" location="${build.base}/test-reports-rvm"/>
 
-  <!-- Permit parallelisation of the bootimage build -->
+  <!-- Number of threads to create for the paralllel part of bootimage building -->
+  <!-- A thread count of 0 maps to a thread count of (Runtime.getAvailableProcessors() + 1) -->
   <property name="bootimage.threads" value="1"/>
 
   <!-- Source versions -->
@@ -1830,8 +1831,13 @@ Check to make sure all required properties are specified. This includes properti
       </sequential>
     </if>
 
+    <condition property="readableThreadCount" value="(Runtime.getAvailableProcessors() + 1)" else="${bootimage.threads}">
+      <equals arg1="${bootimage.threads}" arg2="0"/>
+    </condition>
+
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
     <echo message="MMTk properties = ${mmtk.properties}"/>
+    <echo message="Number of threads for compilation = ${readableThreadCount}"/>
     <java classname="org.jikesrvm.tools.bootImageWriter.BootImageWriter"
           fork="yes"
           maxmemory="500M"

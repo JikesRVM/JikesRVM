@@ -15,18 +15,33 @@ package org.jikesrvm.tools.bootImageWriter;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_RMAP_START;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_CHAR;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.FIRST_TYPE_DICTIONARY_INDEX;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_ALLOCATION_DEFERRED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_ALLOCATED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_PRESENT;
-import static org.jikesrvm.tools.bootImageWriter.Verbosity.*;
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.fail;
+import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.say;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.ADDRESSES;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.DETAILED;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.NONE;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.SUMMARY;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.TYPE_NAMES;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -121,7 +136,7 @@ import org.vmmagic.unboxed.Word;
  *
  * </pre>
  */
-public class BootImageWriter extends BootImageWriterMessages {
+public class BootImageWriter {
 
   /**
    * The name of the class library, used when performing oracle operations of
@@ -802,10 +817,15 @@ public class BootImageWriter extends BootImageWriterMessages {
       }
       // numThreads
       if (args[i].startsWith("-numThreads=")) {
-        numThreads = Integer.parseInt(args[i].substring(12));
-        if (numThreads < 1) {
-          fail("numThreads must be a positive number, value supplied:  " + numThreads);
+        int desiredThreadCount = Integer.parseInt(args[i].substring(12));
+        if (desiredThreadCount < 0) {
+          fail("numThreads must be a non-negative number, value supplied:  " + desiredThreadCount);
         }
+        // thread count 0 means "use everything that's available". The default
+        // already does this so there's nothing to do here.
+        if (desiredThreadCount == 0) continue;
+        // use the explicit value provided by the user
+        numThreads = desiredThreadCount;
         continue;
       }
       // profile
@@ -1456,10 +1476,23 @@ public class BootImageWriter extends BootImageWriterMessages {
       if (profile) startTime = System.currentTimeMillis();
       if (verbosity.isAtLeast(SUMMARY)) say("instantiating");
 
+      if (verbosity.isAtLeast(SUMMARY)) say("setting up compilation infrastructure and pre-compiling easy cases");
+      CompilationOrder order = new CompilationOrder(typeCount, numThreads);
+      for (RVMType type: bootImageTypes.values()) {
+        order.addType(type);
+      }
+      order.fixUpMissingSuperClasses();
+
       if (verbosity.isAtLeast(SUMMARY)) say(" compiling with " + numThreads + " threads");
       ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
-      for (RVMType type: bootImageTypes.values()) {
-        threadPool.execute(new BootImageWorker(type));
+      int runnableCount = order.getCountOfNeededWorkers();
+      while (runnableCount > 0) {
+        try {
+          threadPool.execute(order.getNextRunnable());
+          runnableCount--;
+        } catch (InterruptedException e) {
+          throw new Error("Build interrupted", e);
+        }
       }
       threadPool.shutdown();
       try {
@@ -3080,7 +3113,7 @@ public class BootImageWriter extends BootImageWriterMessages {
       // recursively traverse object
       //
       if (jdkType.isArray()) {
-        size += 4; // length
+        size += BYTES_IN_INT; // length is int
         int arrayCount       = Array.getLength(jdkObject);
         //
         // traverse array elements
@@ -3090,26 +3123,26 @@ public class BootImageWriter extends BootImageWriterMessages {
         if (jdkElementType.isPrimitive()) {
           // array element is logical or numeric type
           if (jdkElementType == Boolean.TYPE) {
-            size += arrayCount * 4;
+            size += arrayCount * BYTES_IN_BOOLEAN;
           } else if (jdkElementType == Byte.TYPE) {
-            size += arrayCount * 1;
+            size += arrayCount * BYTES_IN_BYTE;
           } else if (jdkElementType == Character.TYPE) {
-            size += arrayCount * 2;
+            size += arrayCount * BYTES_IN_CHAR;
           } else if (jdkElementType == Short.TYPE) {
-            size += arrayCount * 2;
+            size += arrayCount * BYTES_IN_SHORT;
           } else if (jdkElementType == Integer.TYPE) {
-            size += arrayCount * 4;
+            size += arrayCount * BYTES_IN_INT;
           } else if (jdkElementType == Long.TYPE) {
-            size += arrayCount * 8;
+            size += arrayCount * BYTES_IN_LONG;
           } else if (jdkElementType == Float.TYPE) {
-            size += arrayCount * 4;
+            size += arrayCount * BYTES_IN_FLOAT;
           } else if (jdkElementType == Double.TYPE) {
-            size += arrayCount * 8;
+            size += arrayCount * BYTES_IN_DOUBLE;
           } else
             fail("unexpected array type: " + jdkType);
         } else {
           // array element is reference type
-          size += arrayCount * 4;
+          size += arrayCount * BYTES_IN_ADDRESS;
           Object[] values = (Object []) jdkObject;
           for (int i = 0; i < arrayCount; ++i) {
             if (values[i] != null) {
@@ -3148,26 +3181,26 @@ public class BootImageWriter extends BootImageWriterMessages {
             if (jdkFieldType.isPrimitive()) {
               // field is logical or numeric type
               if (jdkFieldType == Boolean.TYPE)
-                size += 1;
+                size += BYTES_IN_BOOLEAN;
               else if (jdkFieldType == Byte.TYPE)
-                size += 1;
+                size += BYTES_IN_BYTE;
               else if (jdkFieldType == Character.TYPE)
-                size += 2;
+                size += BYTES_IN_CHAR;
               else if (jdkFieldType == Short.TYPE)
-                size += 2;
+                size += BYTES_IN_SHORT;
               else if (jdkFieldType == Integer.TYPE)
-                size += 4;
+                size += BYTES_IN_INT;
               else if (jdkFieldType == Long.TYPE)
-                size += 8;
+                size += BYTES_IN_LONG;
               else if (jdkFieldType == Float.TYPE)
-                size += 4;
+                size += BYTES_IN_FLOAT;
               else if (jdkFieldType == Double.TYPE)
-                size += 8;
+                size += BYTES_IN_DOUBLE;
               else
                 fail("unexpected field type: " + jdkFieldType);
             } else {
               // field is reference type
-              size += 4;
+              size += BYTES_IN_ADDRESS;
               Object value = jdkField.get(jdkObject);
               if (value != null) {
                 if (verbosity.isAtLeast(DETAILED)) traceContext.push(value.getClass().getName(),

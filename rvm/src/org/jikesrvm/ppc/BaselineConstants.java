@@ -48,6 +48,7 @@ public final class BaselineConstants {
   public static final GPR T4 = GPR.lookup(FIRST_VOLATILE_GPR.value() + 4);
   public static final GPR T5 = GPR.lookup(FIRST_VOLATILE_GPR.value() + 5);
   public static final GPR T6 = GPR.lookup(FIRST_VOLATILE_GPR.value() + 6);
+  public static final GPR T7 = GPR.lookup(FIRST_VOLATILE_GPR.value() + 7);
 
   // Temporary floating-point registers;
   public static final FPR F0 = FIRST_VOLATILE_FPR;

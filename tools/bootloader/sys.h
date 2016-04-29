@@ -115,7 +115,7 @@ extern Extent pageSize;
 #define TRACE_PRINTF(...) if (TRACE) fprintf(SysTraceFile, __VA_ARGS__)
 
 /** Conditional printouts for verbose signal handling */
-#define VERBOSE_SIGNALS_PRINTF(...) if (verboseSignalHandling) fprintf(SysTraceFile, __VA_ARGS__)
+#define VERBOSE_SIGNALS_PRINTF(...) if (verboseSignalHandling) fprintf(SysErrorFile, __VA_ARGS__)
 
 /* String utilities */
 #define STREQUAL(s1, s2) (strcmp(s1, s2) == 0)
