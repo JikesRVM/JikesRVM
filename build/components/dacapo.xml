@@ -39,7 +39,7 @@
   <target name="fetch" depends="init-dacapo-properties" if="dacapo.from-web">
     <mkdir dir="${dacapo.dir}"/>
     <cachedGet key="dacapo-${dacapo.version}.jar"
-         src="http://sourceforge.net/projects/dacapobench/files/archive/${dacapo.version}/dacapo-${dacapo.version}.jar/download?use_mirror=autoselect"
+         src="http://downloads.sourceforge.net/project/dacapobench/archive/${dacapo.version}/dacapo-${dacapo.version}.jar"
          dest="${dacapo.dir}/dacapo.jar"/>
     <writeComponentConstants dir="${dacapo.dir}"/>
   </target>
