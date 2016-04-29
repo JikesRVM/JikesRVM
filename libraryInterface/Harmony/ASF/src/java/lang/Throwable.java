@@ -26,8 +26,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.StackTrace;
 import org.jikesrvm.scheduler.RVMThread;
 
-import org.vmmagic.pragma.NoEscapes;
-
 /**
  * This class must be implemented by the VM vendor, or the reference
  * implementation can be used if the documented natives are implemented.
@@ -71,7 +69,6 @@ public class Throwable implements java.io.Serializable {
     /**
      * Constructs a new instance of this class with its walkback filled in.
      */
-    @NoEscapes
     public Throwable() {
         super();
         fillInStackTrace();
