@@ -25,6 +25,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
@@ -666,12 +667,24 @@ public final class MemoryManager {
 
   /**
    * Allocate a stack
-   * @param bytes    The number of bytes to allocate
+   * @param bytes the number of bytes to allocate. Must be greater than
+   *  0.
    * @return The stack
    */
   @NoInline
   @Unpreemptible
   public static byte[] newStack(int bytes) {
+    if (bytes <= 0) {
+      if (VM.VerifyAssertions) {
+        VM.sysWrite("Invalid stack size: ");
+        VM.sysWrite(bytes);
+        VM.sysWriteln("!");
+        VM._assert(VM.NOT_REACHED, "Attempted to create stack with size (in bytes) of 0 or smaller!");
+      } else {
+        bytes = StackFrameLayout.getStackSizeNormal();
+      }
+    }
+
     if (!VM.runningVM) {
       return new byte[bytes];
     } else {

@@ -1754,13 +1754,13 @@ public final class RVMThread extends ThreadContext {
    * isn't set.
    *
    * @param thread the associated Java thread
-   * @param stacksize stack size in bytes
+   * @param stacksize desired stack size in bytes, must be positive
    * @param name human-readable name
    * @param daemon whether the thread is a daemon
    * @param priority the priority for the thread
    */
-  public RVMThread(Thread thread, long stacksize, String name, boolean daemon, int priority) {
-    this(MemoryManager.newStack((stacksize <= 0) ? StackFrameLayout.getStackSizeNormal() : (int) stacksize), thread, name, daemon, null, priority);
+  public RVMThread(Thread thread, int stacksize, String name, boolean daemon, int priority) {
+    this(MemoryManager.newStack(stacksize), thread, name, daemon, null, priority);
   }
 
   /**

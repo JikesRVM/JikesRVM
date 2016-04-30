@@ -12,6 +12,8 @@
  */
 package java.lang;
 
+import static java.lang.VMCommonLibrarySupport.stackSizeFromAPIToJikesRVM;
+
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -29,11 +31,14 @@ final class VMThread {
   VMThread(RVMThread vmdata) {
     this.vmdata = vmdata;
   }
+
   /**
-   * Create the VM thread, set this in the parent Thread and start its execution
+   * Creates the VM thread, sets this in the parent Thread and starts its
+   * execution.
    */
   static void create(Thread parent, long stacksize) {
-    RVMThread vmd = new RVMThread(parent, stacksize,  parent.name, parent.daemon, parent.priority);
+    int boundedStackSize = stackSizeFromAPIToJikesRVM(stacksize);
+    RVMThread vmd = new RVMThread(parent, boundedStackSize,  parent.name, parent.daemon, parent.priority);
     parent.vmThread = new VMThread(vmd);
     vmd.start();
   }
