@@ -19,6 +19,7 @@ import java.util.WeakHashMap;
  *  to be used by a single thread and is therefore not thread-safe.
  */
 final class MethodVector {
+
   //-----------//
   // interface //
   //-----------//
@@ -36,13 +37,18 @@ final class MethodVector {
 
   /**
    * Adds an item if it is not already in the vector. The test
-   * for the item uses object identity.
+   * for the item uses the method descriptor and the method
+   * name.
    *
    * @param item method to be added
    */
   public void addUniqueElement(RVMMethod item) {
     for (int i = 0; i < cnt; i++) {
-      if (array[i] == item) return;
+      RVMMethod currentMethod = array[i];
+      if (item.getDescriptor() == currentMethod.getDescriptor() &&
+          item.getName() == currentMethod.getName()) {
+        return;
+      }
     }
     addElement(item);
   }
