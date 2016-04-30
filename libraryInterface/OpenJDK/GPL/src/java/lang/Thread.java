@@ -25,6 +25,8 @@
 
 package java.lang;
 
+import static java.lang.VMCommonLibrarySupport.stackSizeFromAPIToJikesRVM;
+
 import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.security.PrivilegedAction;
@@ -354,7 +356,8 @@ class Thread implements Runnable {
         SecurityManager security = System.getSecurityManager();
 
 	if (vmt == null) {
-	  vmThread = new org.jikesrvm.scheduler.RVMThread(this, stackSize,  name, false, NORM_PRIORITY);
+          int boundedStackSize = stackSizeFromAPIToJikesRVM(stackSize);
+	  vmThread = new org.jikesrvm.scheduler.RVMThread(this, boundedStackSize,  name, false, NORM_PRIORITY);
 	} else {
 	  vmThread = vmt;
 	}

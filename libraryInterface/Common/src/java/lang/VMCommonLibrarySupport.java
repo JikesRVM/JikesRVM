@@ -15,6 +15,7 @@ package java.lang;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -180,5 +181,38 @@ final class VMCommonLibrarySupport {
       sysCall.sysGetenv(nameBytes, buf, len);
     }
     return new String(buf, 0, len);
+  }
+
+  /**
+   * Converts from {@link java.lang.Thread} stack size to Jikes
+   * RVM internal stack size.
+   * <p>
+   * Note that Jikes RVM currently restricts the stack size to be an integer.
+   * This is consistent with the API specification of the java.lang.Thread
+   * constructors. The spec says that the VM is free to treat the stack size
+   * from java.lang.Thread as a suggestion.
+   *
+   * @param stacksize the stack size coming from java.lang.Thread.
+   *  0 means that the VM should use the values that should use the values
+   *  that it would use if stack size weren't specified.
+   * @return the actual stack size to use
+   */
+  public static int stackSizeFromAPIToJikesRVM(long stacksize) {
+    if (stacksize > Integer.MAX_VALUE) {
+      return Integer.MAX_VALUE;
+    } else if (stacksize == 0) {
+      // According to the JavaDoc of the java.lang.Thread constructors,
+      // a stack size of 0 means that the VM should use the values that
+      // it would use if stack size weren't specified.
+      return StackFrameLayout.getNormalStackSize();
+    } else if (stacksize < 0) {
+      if (VM.VerifyAssertions) {
+        String failingStackSize = "Received invalid stack size " + stacksize +
+            " from java.lang.Thread!";
+        VM._assert(VM.NOT_REACHED, failingStackSize);
+      }
+      return StackFrameLayout.getNormalStackSize();
+    }
+    return (int) stacksize;
   }
 }
