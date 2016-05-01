@@ -12,7 +12,11 @@
  */
 package org.jikesrvm;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
@@ -94,6 +98,39 @@ public class JavaLangClassTest {
   @Test(expected = NullPointerException.class)
   public void isAssignalbleFrom_nullClassLeadsToNPE() throws NoSuchMethodException {
     getClass().isAssignableFrom(null);
+  }
+
+  @Test
+  public void getMethodsForAbstractClassesDoesntReturnDuplicateImplementationmethods() throws NoSuchMethodException {
+    Method[] methods = AbstractSubClass.class.getMethods();
+    Method m = AbstractSubClass.class.getMethod("m");
+    String methodName = m.getName();
+    Class<?>[] methodParameters = m.getParameterTypes();
+    HashSet<Method> foundMethods = new HashSet<Method>();
+    for (Method method : methods) {
+      if (methodName.equals(method.getName()) &&
+      Arrays.equals(methodParameters, method.getParameterTypes())) {
+        foundMethods.add(method);
+      }
+    }
+    assertTrue(foundMethods.toString(), foundMethods.size() == 1);
+  }
+
+  private interface M1 {
+    void m();
+  }
+
+  private interface M2 {
+    void m();
+  }
+
+  private abstract static class AbstractSuperclass implements M2, M1 {
+    @Override
+    public void m() {
+    }
+  }
+
+  private abstract static class AbstractSubClass extends AbstractSuperclass implements M2, M1 {
   }
 
 }

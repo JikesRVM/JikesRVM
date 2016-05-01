@@ -34,6 +34,8 @@ import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
@@ -1031,7 +1033,8 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     RVMMethod[] static_methods = type.getStaticMethods();
     RVMMethod[] virtual_methods = type.getVirtualMethods();
-    ArrayList<Method> coll = new ArrayList<Method>(static_methods.length + virtual_methods.length);
+    HashSet<Method> coll = new HashSet<Method>(static_methods.length +
+        virtual_methods.length);
     for (RVMMethod meth : static_methods) {
       if (meth.isPublic()) {
         coll.add(JikesRVMSupport.createMethod(meth));
@@ -1042,7 +1045,47 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
         coll.add(JikesRVMSupport.createMethod(meth));
       }
     }
+    // The Java API says that duplicate versions are returned if multiple
+    // versions of a method are defined by a class. This only applies to
+    // abstract classes and interfaces because normal classes always have
+    // exactly one definition for a given signature-name pair.
+    RVMClass thisClass = type.asClass();
+    boolean isAbstract = thisClass.isAbstract();
+    if (isInterface() || isAbstract) {
+      // For each virtual method , search all superinterfaces
+      // to find all declarations that aren't shadowed by superinterfaces and
+      // add those to the set of methods.
+      HashSet<Method> methods = new HashSet<Method>();
+      for (RVMMethod m : virtual_methods) {
+        Atom name = m.getName();
+        Atom desc = m.getDescriptor();
+        if (isAbstract && !m.getDeclaringClass().isInterface()) {
+          // If the method is declared by a class (and not an interface),
+          // only that declaration is relevant. Declarations that may come
+          // from interfaces are overridden by the class' definition. That
+          // definition is already in the virtual methods. Therefore, it's
+          // unnecessary to search for additional declarations for that
+          // method.
+          continue;
+        }
+        collectDeclarations(thisClass, name, desc, methods);
+      }
+      coll.addAll(methods);
+    }
+
     return coll.toArray(new Method[coll.size()]);
+  }
+
+  private static void collectDeclarations(RVMClass i, Atom name, Atom desc, Set<Method> methods) {
+    for (RVMMethod declared : i.getDeclaredMethods()) {
+      if (declared.getName() == name && declared.getDescriptor() == desc) {
+        methods.add(JikesRVMSupport.createMethod(declared));
+        return;
+      }
+    }
+    for (RVMClass declardInterface : i.getDeclaredInterfaces()) {
+      collectDeclarations(declardInterface, name, desc, methods);
+    }
   }
 
   // --- Fields ---
