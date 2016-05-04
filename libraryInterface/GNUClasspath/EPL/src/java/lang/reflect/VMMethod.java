@@ -104,7 +104,8 @@ final class VMMethod {
   }
 
   String getSignature() {
-    return method.getSignature().toString();
+    Atom signature = method.getSignature();
+    return (signature == null) ? null : signature.toString();
   }
 
   Annotation[][] getParameterAnnotations() {

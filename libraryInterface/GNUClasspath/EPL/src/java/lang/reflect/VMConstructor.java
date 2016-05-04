@@ -14,6 +14,7 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
@@ -89,7 +90,8 @@ final class VMConstructor {
   }
 
   String getSignature() {
-    return constructor.getSignature().toString();
+    Atom signature = constructor.getSignature();
+    return (signature == null) ? null : signature.toString();
   }
 
   Annotation[][] getParameterAnnotations() {

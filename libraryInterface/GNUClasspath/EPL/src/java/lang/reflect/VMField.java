@@ -14,6 +14,7 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 
@@ -155,6 +156,7 @@ public final class VMField {
   }
 
   String getSignature() {
-    return field.getSignature().toString();
+    Atom signature = field.getSignature();
+    return (signature == null) ? null : signature.toString();
   }
 }
