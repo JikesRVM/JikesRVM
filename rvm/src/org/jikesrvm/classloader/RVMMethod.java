@@ -761,12 +761,19 @@ public abstract class RVMMethod extends RVMMember {
     }
     if (result == null) {
       RVMAnnotation[][] parameterAnnotations = getParameterAnnotations();
-      result = new Annotation[parameterAnnotations.length][];
-      for (int a = 0; a < result.length; ++a) {
-        result[a] = toAnnotations(parameterAnnotations[a]);
-      }
-      synchronized (declaredParameterAnnotations) {
-        declaredParameterAnnotations.put(this, result);
+      if (parameterAnnotations == null) {
+        result = new Annotation[getParameterTypes().length][];
+        for (int a = 0; a  < result.length; a++) {
+          result[a] = new Annotation[0];
+        }
+      } else {
+        result = new Annotation[parameterAnnotations.length][];
+        for (int a = 0; a < result.length; ++a) {
+          result[a] = toAnnotations(parameterAnnotations[a]);
+        }
+        synchronized (declaredParameterAnnotations) {
+          declaredParameterAnnotations.put(this, result);
+        }
       }
     }
     return result;
