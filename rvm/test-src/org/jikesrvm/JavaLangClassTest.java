@@ -133,4 +133,58 @@ public class JavaLangClassTest {
   private abstract static class AbstractSubClass extends AbstractSuperclass implements M2, M1 {
   }
 
+  @Test
+  public void getEnclosingMethodReturnsNullForLocalClassInType() throws NoSuchMethodException {
+    class OuterLocalClass {
+      class InnerLocalClass {}
+
+      void getEnclosingMethodReturnsNullForLocalClassInType() {
+        assertNull(InnerLocalClass.class.getEnclosingMethod());
+      }
+    }
+    OuterLocalClass olc = new OuterLocalClass();
+    olc.getEnclosingMethodReturnsNullForLocalClassInType();
+  }
+
+  private static class OuterClass {
+
+    static {
+      class InnerLocalClass {}
+      assertNull(InnerLocalClass.class.getEnclosingMethod());
+    }
+
+    public void forceInitialization() { }
+  }
+
+  @Test
+  public void getEnclosingMethodReturnsNullForLocalClassInStaticInitializer() throws NoSuchMethodException {
+    OuterClass oc = new OuterClass();
+    oc.forceInitialization();
+  }
+
+  @Test
+  public void getEnclosingMethodReturnsNullForLocalClassInConstructor() throws NoSuchMethodException {
+    class OuterLocalClass {
+      OuterLocalClass() throws NoSuchMethodException {
+        class LocalClassInConstructor {}
+        assertNull(LocalClassInConstructor.class.getEnclosingMethod());
+      }
+    }
+    @SuppressWarnings("unused")
+    OuterLocalClass olc = new OuterLocalClass();
+  }
+
+  @Test
+  public void getEnclosingMethodReturnsEnclosingMethodForLocalClassInMethod() throws NoSuchMethodException {
+    class OuterLocalClass {
+      public void methodWithLocalClass() throws NoSuchMethodException {
+        class LocalClassInMethod {};
+        assertEquals(LocalClassInMethod.class.getEnclosingMethod(),
+            OuterLocalClass.class.getMethod("methodWithLocalClass"));
+      }
+    }
+    OuterLocalClass olc = new OuterLocalClass();
+    olc.methodWithLocalClass();
+  }
+
 }

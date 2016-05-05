@@ -664,7 +664,11 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (enclosingMethodRef == null) {
       return null;
     } else {
-      return JikesRVMSupport.createMethod(enclosingMethodRef.resolve());
+      RVMMethod method = enclosingMethodRef.resolve();
+      if (method.isObjectInitializer() || method.isClassInitializer()) {
+        return null;
+      }
+      return JikesRVMSupport.createMethod(method);
     }
   }
 
