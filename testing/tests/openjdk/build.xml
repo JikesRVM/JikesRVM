@@ -46,6 +46,20 @@
 
 <target name="test" depends="init">
 
+  <!-- Deactivated tests -->
+
+  <!-- Test is HotSpot-specific: We don't have a thread with the name "Reference Handler"
+  <hotspotTest classname="NullQueue" package="openJDKtests.lang.ref" outdir="${expected.dir}/lang/ref"/>
+  <runCompareTest tag="NullQueue" class="openJDKtests.lang.ref.NullQueue" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
+  -->
+
+  <!-- Test isn't actually contained in the jar that we use and we don't care that our
+   class not found message is different from HotSpot
+   <hotspotTest classname="EnclosingConstructorTests" package="openJDKtests.lang.Class.getEnclosingConstructor" outdir="${expected.dir}/lang/Class/getEnclosingConstructor"/>
+   <runCompareTest tag="EnclosingConstructorTests" class="openJDKtests.lang.Class.getEnclosingConstructor.EnclosingConstructorTests" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
+  -->
+
+
   <!-- running the tests with HotSpot -->
 
 <hotspotTest classname="StackTraceSerialization" package="openJDKtests.lang.Throwable" outdir="${expected.dir}/lang/Throwable"/>
@@ -106,7 +120,6 @@
 <hotspotTest classname="Cause" package="openJDKtests.lang.AssertionError" outdir="${expected.dir}/lang/AssertionError"/>
 <hotspotTest classname="Sanity" package="openJDKtests.lang.Class.getClasses" outdir="${expected.dir}/lang/Class/getClasses"/>
 <hotspotTest classname="Cast" package="openJDKtests.lang.Class" outdir="${expected.dir}/lang/Class"/>
-<hotspotTest classname="EnclosingConstructorTests" package="openJDKtests.lang.Class.getEnclosingConstructor" outdir="${expected.dir}/lang/Class/getEnclosingConstructor"/>
 <hotspotTest classname="IsSynthetic" package="openJDKtests.lang.Class" outdir="${expected.dir}/lang/Class"/>
 <hotspotTest classname="Exceptions" package="openJDKtests.lang.Class.getMethod" outdir="${expected.dir}/lang/Class/getMethod"/>
 <hotspotTest classname="NullInParamList" package="openJDKtests.lang.Class.getMethod" outdir="${expected.dir}/lang/Class/getMethod"/>
@@ -155,7 +168,6 @@
 <hotspotTest classname="Split" package="openJDKtests.lang.String" outdir="${expected.dir}/lang/String"/>
 <hotspotTest classname="ContentEquals" package="openJDKtests.lang.String" outdir="${expected.dir}/lang/String"/>
 <hotspotTest classname="IndexOfEmptyInEmpty" package="openJDKtests.lang.String" outdir="${expected.dir}/lang/String"/>
-<hotspotTest classname="NullQueue" package="openJDKtests.lang.ref" outdir="${expected.dir}/lang/ref"/>
 <hotspotTest classname="Bash" package="openJDKtests.lang.ref.SoftReference" outdir="${expected.dir}/lang/ref/SoftReference"/>
 <hotspotTest classname="EnqueueNullRef" package="openJDKtests.lang.ref" outdir="${expected.dir}/lang/ref"/>
 <hotspotTest classname="Insert" package="openJDKtests.lang.StringBuilder" outdir="${expected.dir}/lang/StringBuilder"/>
@@ -297,7 +309,6 @@
 <hotspotTest classname="ComodifiedRemoveAllElements" package="openJDKtests.util.Vector" outdir="${expected.dir}/util/Vector"/>
 <hotspotTest classname="LastIndexOf" package="openJDKtests.util.Vector" outdir="${expected.dir}/util/Vector"/>
 
-
   <!-- Comparison -->
 
   <startResults/>
@@ -361,7 +372,6 @@
 <runCompareTest tag="IsSynthetic" class="openJDKtests.lang.Class.IsSynthetic" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="IsAnnotationType" class="openJDKtests.lang.Class.IsAnnotationType" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="Sanity_Class_getClasses" class="openJDKtests.lang.Class.getClasses.Sanity" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
-<runCompareTest tag="EnclosingConstructorTests" class="openJDKtests.lang.Class.getEnclosingConstructor.EnclosingConstructorTests" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="Exceptions_Class_getMethod" class="openJDKtests.lang.Class.getMethod.Exceptions" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="NullInParamList" class="openJDKtests.lang.Class.getMethod.NullInParamList" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="ForInnerClass" class="openJDKtests.lang.Class.getModifiers.ForInnerClass" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
@@ -408,7 +418,6 @@
 <runCompareTest tag="Split" class="openJDKtests.lang.String.Split" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="ContentEquals" class="openJDKtests.lang.String.ContentEquals" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="IndexOfEmptyInEmpty" class="openJDKtests.lang.String.IndexOfEmptyInEmpty" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
-<runCompareTest tag="NullQueue" class="openJDKtests.lang.ref.NullQueue" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="Bash" class="openJDKtests.lang.ref.SoftReference.Bash" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="EnqueueNullRef" class="openJDKtests.lang.ref.EnqueueNullRef" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
 <runCompareTest tag="Insert" class="openJDKtests.lang.StringBuilder.Insert" classpath="${openjdk.jar.dir}/${openjdk.jar.filename}"/>
