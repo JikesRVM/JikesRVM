@@ -187,4 +187,60 @@ public class JavaLangClassTest {
     olc.methodWithLocalClass();
   }
 
+  @Test
+  public void getEnclosingConstructorReturnsNullForLocalClassInType() throws NoSuchMethodException {
+    class OuterLocalClass {
+      class InnerLocalClass {}
+
+      void getEnclosingConstructorReturnsNullForLocalClassInType() {
+        assertNull(InnerLocalClass.class.getEnclosingConstructor());
+      }
+    }
+    OuterLocalClass olc = new OuterLocalClass();
+    olc.getEnclosingConstructorReturnsNullForLocalClassInType();
+  }
+
+  private static class OuterClassForConstructor {
+
+    static {
+      class InnerLocalClass {}
+      assertNull(InnerLocalClass.class.getEnclosingConstructor());
+    }
+
+    public void forceInitialization() {
+
+    }
+  }
+
+  @Test
+  public void getEnclosingConstructorReturnsNullForLocalClassInStaticInitializer() throws NoSuchMethodException {
+    OuterClassForConstructor oc = new OuterClassForConstructor();
+    oc.forceInitialization();
+  }
+
+  @Test
+  public void getEnclosingConstructorReturnsNullForLocalClassInMethod() {
+    class OuterLocalClass {
+      void methodWithLocalClass() {
+        class LocalClassInMethod {}
+        assertNull(LocalClassInMethod.class.getEnclosingConstructor());
+      }
+    }
+    OuterLocalClass olc = new OuterLocalClass();
+    olc.methodWithLocalClass();
+  }
+
+  @Test
+  public void getEnclosingMethodReturnsConstructorForLocalClassInConstructor() throws NoSuchMethodException {
+    class OuterLocalClass {
+      OuterLocalClass() throws NoSuchMethodException {
+        class LocalClassInconstructor {}
+        assertEquals(LocalClassInconstructor.class.getEnclosingConstructor(),
+            OuterLocalClass.class.getDeclaredConstructor(org.jikesrvm.JavaLangClassTest.class));
+      }
+    }
+    @SuppressWarnings("unused")
+    OuterLocalClass olc = new OuterLocalClass();
+  }
+
 }

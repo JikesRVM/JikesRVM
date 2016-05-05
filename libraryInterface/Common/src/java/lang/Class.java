@@ -50,7 +50,6 @@ import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
-import org.jikesrvm.util.UnimplementedError;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
@@ -652,7 +651,19 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Constructor<?> getEnclosingConstructor() {
-    throw new UnimplementedError();
+    if (!(isAnonymousClass() || isLocalClass())) {
+      return null;
+    }
+
+    MethodReference enclosingMethodRef = type.asClass().getEnclosingMethod();
+    if (enclosingMethodRef == null) {
+      return null;
+    }
+    RVMMethod method = enclosingMethodRef.resolve();
+    if (!method.isObjectInitializer()) {
+      return null;
+    }
+    return JikesRVMSupport.createConstructor(method);
   }
 
   public Method getEnclosingMethod() {
