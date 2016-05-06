@@ -63,8 +63,8 @@ public class AddressOption extends Option {
    *
    * @param value The new value for the option.
    */
-  public void setValue(int value) {
-    this.value = Address.fromIntZeroExtend(value);
+  public void setValue(long value) {
+    this.value = Address.fromLong(value);
     validate();
     set.logChange(this);
   }
