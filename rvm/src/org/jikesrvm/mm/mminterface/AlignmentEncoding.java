@@ -14,6 +14,7 @@ package org.jikesrvm.mm.mminterface;
 
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ALIGNMENT_VALUE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.JavaHeader;
@@ -23,7 +24,6 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.Word;
 
 /**
  * Support for encoding a small amount of metadata in the alignment of
@@ -107,11 +107,14 @@ public class AlignmentEncoding {
       VM.sysWriteln(", requested = ",alignCode);
     }
     while (getTibCodeForRegion(region) != alignCode) {
-      if (VM.runningVM) {
-        // Hack to allow alignment, but no alignment filling during boot
-        region.store(Word.fromIntZeroExtend(ALIGNMENT_VALUE));
+      Address next = region.plus(ALIGNMENT_INCREMENT);
+      // Hack to allow alignment, but no alignment filling during boot
+      while (region.LT(next)) {
+        if (VM.runningVM) {
+          region.store(ALIGNMENT_VALUE);
+        }
+        region = region.plus(BYTES_IN_INT);
       }
-      region = region.plus(ALIGNMENT_INCREMENT);
       if (region.GT(limit)) {
         VM.sysFail("Tib alignment fail");
       }
