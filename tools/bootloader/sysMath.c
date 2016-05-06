@@ -183,6 +183,38 @@ EXTERNAL int sysPrimitiveParseInt(const char * buf)
   return ret;
 }
 
+/**
+ * Used to parse command line arguments that are longs early in
+ * booting before it is safe to call Long.parseLong.
+ *
+ * This is only used in parsing command-line arguments, so we can safely
+ * print error messages that assume the user specified this number as part
+ * of a command-line argument.
+ */
+EXTERNAL long long int sysPrimitiveParseLong(const char * buf)
+{
+  TRACE_PRINTF("%s: sysPrimitiveParseLong %s\n", Me, buf);
+  if (! buf[0] ) {
+    ERROR_PRINTF("%s: Got an empty string as a command-line"
+                 " argument that is supposed to be an integer\n", Me);
+    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+  }
+  char *end;
+  errno = 0;
+  unsigned long long int l = strtoull(buf, &end, 0);
+  if (errno) {
+    ERROR_PRINTF("%s: Trouble while converting the"
+                 " command-line argument \"%s\" to an integer: %s\n",
+                 Me, buf, strerror(errno));
+    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+  }
+  if (*end != '\0') {
+    ERROR_PRINTF("%s: Got a command-line argument that is supposed to be an integer, but isn't: %s\n", Me, buf);
+    exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+  }
+  return l;
+}
+
 // VMMath
 
 EXTERNAL double sysVMMathSin(double a) {

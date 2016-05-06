@@ -192,6 +192,7 @@ EXTERNAL long long sysDoubleToLong(double a);
 EXTERNAL double sysDoubleRemainder(double a, double b);
 EXTERNAL float sysPrimitiveParseFloat(const char * buf);
 EXTERNAL int sysPrimitiveParseInt(const char * buf);
+EXTERNAL long long sysPrimitiveParseLong(const char * buf);
 EXTERNAL double sysVMMathSin(double a);
 EXTERNAL double sysVMMathCos(double a);
 EXTERNAL double sysVMMathTan(double a);

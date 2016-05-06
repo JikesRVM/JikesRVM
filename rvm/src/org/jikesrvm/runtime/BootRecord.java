@@ -304,6 +304,7 @@ public class BootRecord {
   public Address sysDoubleRemainderIP;
   public Address sysPrimitiveParseFloatIP;
   public Address sysPrimitiveParseIntIP;
+  public Address sysPrimitiveParseLongIP;
   public Address sysParseMemorySizeIP;
 
   // time

@@ -297,6 +297,20 @@ public abstract class SysCall {
   public abstract int sysPrimitiveParseInt(byte[] buf);
 
   /**
+   * Used to parse command line arguments that are
+   * (potentially 64-bit) hex values early in booting before it
+   * is safe to call Byte.parseByte or Integer.parseInt.
+   *
+   * This aborts in case of errors, with an appropriate error message.
+   *
+   * @param buf a null terminated byte[] that can be parsed
+   *            by strtol()
+   * @return the int value produced by the call to strtol() on buf.
+   */
+  @SysCallTemplate
+  public abstract long sysPrimitiveParseLong(byte[] buf);
+
+  /**
    * Primitive parsing of memory sizes, with proper error handling,
    * and so on. For all the gory details, see the code in the
    * bootloader.

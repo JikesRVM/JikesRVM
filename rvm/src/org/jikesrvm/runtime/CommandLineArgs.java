@@ -27,6 +27,7 @@ import org.jikesrvm.compilers.baseline.BaselineOptions;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Command line option processing iwth arbitrary prefix support.
@@ -825,6 +826,19 @@ public class CommandLineArgs {
   public static int primitiveParseInt(String arg) {
     byte[] b = stringToBytes("integer or byte", arg);
     return sysCall.sysPrimitiveParseInt(b);
+  }
+
+  /**
+   * Primitive parsing of opaque word-length primitive values.
+   * Done this way to enable us to parse command line arguments
+   * early in VM booting before we are able call
+   * {@code  Byte.parseByte} or {@code Integer.parseInt}.
+   * @param arg the int or byte value to parse
+   * @return value as int
+   */
+  public static long primitiveParseLong(String arg) {
+    byte[] b = stringToBytes("integer or byte", arg);
+    return sysCall.sysPrimitiveParseLong(b);
   }
 
   /**
