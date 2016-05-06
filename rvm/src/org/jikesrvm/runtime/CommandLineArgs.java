@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.baseline.BaselineOptions;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.unboxed.Word;
 
 /**
  * Command line option processing iwth arbitrary prefix support.
