@@ -77,9 +77,9 @@ public class Harness {
   /** Scalable heap size specification */
   public static final BaseHeap baseHeap = new BaseHeap();
 
-  /** 
+  /**
    * Scalable heap size specification in a 64-bit heap, for benchmarks
-   * with pointer-heavy data structures. 
+   * with pointer-heavy data structures.
    */
   public static final BaseHeap64 baseHeap64 = new BaseHeap64();
 

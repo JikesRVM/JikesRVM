@@ -18,7 +18,6 @@ import org.mmtk.vm.Lock;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.utility.options.Options;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;

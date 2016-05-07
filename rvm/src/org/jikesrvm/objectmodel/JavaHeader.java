@@ -31,7 +31,6 @@ import static org.jikesrvm.objectmodel.JavaHeaderConstants.OTHER_HEADER_BYTES;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.STATUS_BYTES;
 import static org.jikesrvm.objectmodel.MiscHeader.REQUESTED_BITS;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
