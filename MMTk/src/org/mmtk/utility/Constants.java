@@ -78,6 +78,11 @@ public final class Constants {
   public static final int CARD_META_PAGES_PER_REGION = SUPPORT_CARD_SCANNING ? (1 << LOG_CARD_META_PAGES) : 0;
   public static final int CARD_MASK = (1 << LOG_CARD_BYTES) - 1;
 
+  /**
+   * Lazy sweeping - controlled from here because PlanConstraints needs to
+   * tell the VM that we need to support linear scan.
+   */
+  public static final boolean LAZY_SWEEP = true;
 
   /****************************************************************************
    *
@@ -103,6 +108,11 @@ public final class Constants {
   public static final int BYTES_IN_INT = 1 << LOG_BYTES_IN_INT;
   public static final byte LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
   public static final int BITS_IN_INT = 1 << LOG_BITS_IN_INT;
+
+  public static final byte LOG_BYTES_IN_LONG = 3;
+  public static final int BYTES_IN_LONG = 1 << LOG_BYTES_IN_LONG;
+  public static final byte LOG_BITS_IN_LONG = LOG_BITS_IN_BYTE + LOG_BYTES_IN_LONG;
+  public static final int BITS_IN_LONG = 1 << LOG_BITS_IN_LONG;
 
   public static final int MAX_INT = 0x7fffffff;
   public static final int MIN_INT = 0x80000000;
@@ -159,9 +169,7 @@ public final class Constants {
   public static final int MAX_BYTES_PADDING = VM.MAX_BYTES_PADDING;
 
   /**
-   * The VM will add at most this value minus BYTES_IN_INT bytes of
-   * padding to the front of an object that it places in a region of
-   * memory. This value must be a power of 2.
+   * A bit-pattern used to fill alignment gaps.
    */
   public static final int ALIGNMENT_VALUE = VM.ALIGNMENT_VALUE;
 }

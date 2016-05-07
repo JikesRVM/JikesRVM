@@ -18,7 +18,7 @@ import org.mmtk.vm.Lock;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-
+import org.mmtk.utility.options.Options;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -113,20 +113,7 @@ public abstract class Allocator {
     Offset delta = negOff.minus(region.toWord()).and(mask).toOffset();
 
     if (fillAlignmentGap && ALIGNMENT_VALUE != 0) {
-      if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_WORD) {
-        // At most a single hole
-        if (delta.toInt() == (BYTES_IN_WORD)) {
-          region.store(Word.fromIntSignExtend(ALIGNMENT_VALUE));
-          region = region.plus(delta);
-        return region;
-        }
-      } else {
-        while (delta.toInt() >= (BYTES_IN_WORD)) {
-          region.store(Word.fromIntSignExtend(ALIGNMENT_VALUE));
-          region = region.plus(BYTES_IN_WORD);
-          delta = delta.minus(BYTES_IN_WORD);
-        }
-      }
+      fillAlignmentGap(region, region.plus(delta));
     }
 
     return region.plus(delta);

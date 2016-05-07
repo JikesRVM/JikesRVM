@@ -348,8 +348,9 @@ public class JavaHeader {
    * @return the object reference for the object
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
-    while ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-      start = start.plus(BYTES_IN_WORD);
+    /* Skip over any alignment fill */
+    while ((start.loadInt()) == ALIGNMENT_VALUE) {
+      start = start.plus(BYTES_IN_INT);
     }
     return start.plus(OBJECT_REF_OFFSET).toObjectReference();
   }

@@ -12,6 +12,8 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
