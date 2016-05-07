@@ -1,0 +1,94 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="icedtea" default="build" basedir=".">
+
+  <!-- TODO: this build file was adapted from the GNU Classpath build file
+    Need to refactor this file and potentially merge its contents into the
+    OpenJDK build file when it's working well.
+   -->
+
+  <import file="base.xml"/>
+
+  <property name="icedtea.base.url" value="http://icedtea.classpath.org/download/source/"/>
+  <property name="icedtea.version" value="6-1.13.11"/>
+  <!-- .tar.xz is also provided by upstream -->
+  <property name="icedtea.archive.type" value=".tar.gz"/>
+  <property name="icedtea.archive" value="icedtea${icedtea.version}${icedtea.archive.type}"/>
+
+  <property name="icedtea.component.dir" location="${components.dir}/icedtea"/>
+  <property name="icedtea.package.dir" value="${icedtea.component.dir}/${icedtea.version}"/>
+  <property name="icedtea.dir" value="${icedtea.package.dir}/icedtea${icedtea.version}"/>
+
+  <target name="download-icedtea-from-web">
+    <test-file name="tar.exe" location="${host.file}"/>
+    <mkdir dir="${icedtea.package.dir}"/>
+    <cachedGet key="${icedtea.archive}"
+         src="${icedtea.base.url}${icedtea.archive}"
+         dest="${icedtea.package.dir}/${icedtea.archive}"/>
+    <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
+    <exec executable="${tar.exe}" failonerror="true" dir="${icedtea.package.dir}">
+      <arg value="xzf"/>
+      <arg value="${icedtea.archive}"/>
+    </exec>
+  </target>
+
+  <target name="fetch" depends="download-icedtea-from-web">
+  </target>
+
+  <target name="patch" depends="fetch">
+    <echo message="Patching IcedTea sources (placeholder)"/>
+    <!-- TODO: rename patch to comply with our naming convention -->
+    <patch patchfile="${components.patch.dir}/icedtea-web-fix-6-1.13.11-build-failure.patch"
+           dir="${icedtea.dir}" strip="1"/>
+  </target>
+
+  <target name="build" depends="patch">
+    <!-- TODO is the build 32-bit when it should be? -->
+    <echo message="Building IcedTea libraries (placeholder)"/>
+    <test-file name="make.exe" location="${host.file}"/>
+
+    <echo>Executing autogen.sh</echo>
+    <exec executable="${icedtea.dir}/autogen.sh" failonerror="true" dir="${icedtea.dir}"/>
+
+    <echo>Executing configure</echo>
+    <mkdir dir="${icedtea.dir}/icedtea-build"/>
+    <exec executable="${icedtea.dir}/configure" failonerror="true" dir="${icedtea.dir}/icedtea-build">
+      <!-- need to pass thru compiler settings so if we are building on
+      64 bit system the libraries are created appropriately -->
+      <env key="CXX" value="${c++.exe} ${c++.args}"/>
+      <env key="CC" value="${c.exe} ${c.args}"/>
+      <arg value="--enable-jamvm"/> <!-- TODO does this really build faster than HotSpot? -->
+      <arg value="--with-parallel-jobs"/>
+      <!-- Don't build documentation because it takes too much time -->
+      <arg value="--disable-docs"/>
+      <arg value="--disable-system-jpeg"/>
+      <arg value="--disable-system-gif"/>
+      <arg value="--disable-system-kerberos"/>
+      <arg value="--enable-system-lcms"/>
+      <arg value="--enable-non-nss-curves"/>
+    </exec>
+
+    <echo>Executing make</echo>
+    <exec executable="${make.exe}" failonerror="true" dir="${icedtea.dir}/icedtea-build">
+    </exec>
+
+    <echo>NYI: setting up for use as class library</echo>
+    <fail message="Using IcedTea is NYI. TODO: Build zip and change build system to be able to use it like the pre-packaged OpenJDK zip."/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <echo message="Ensure OpenJDK libraries (placeholder)"/>
+    <ensureUptodate name="icedtea" dir="${icedtea.package.dir}/${target.name}/lib"/>
+  </target>
+</project>
+

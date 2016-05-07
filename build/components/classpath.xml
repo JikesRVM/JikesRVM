@@ -223,7 +223,6 @@
      <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
    </condition>
 
-
     <condition property="cp.libdirs" value="  --libdir=/usr/lib32 --x-libraries=/usr/lib32" else="">
       <equals arg1="${target.name}" arg2="x86_64-linux"/> 
     </condition>

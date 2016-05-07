@@ -1,0 +1,45 @@
+# Patch by Tiago Stürmer Daitx
+# downloadable via http://icedtea.classpath.org/bugzilla/attachment.cgi?id=1525
+# from http://icedtea.classpath.org/bugzilla/show_bug.cgi?id=2954
+--- a/patches/ecj/override.patch	2016-05-05 18:08:41.413973050 -0500
++++ b/patches/ecj/override.patch	2016-05-05 18:09:08.488891619 -0500
+@@ -362,3 +362,39 @@
+              public Class<?> run() {
+                  try {
+                      ReflectUtil.checkPackageAccess(className);
++--- openjdk-ecj.orig/jdk/src/share/classes/javax/management/remote/rmi/RMIJRMPServerImpl.java	2016-05-05 18:00:08.772655004 -0500
+++++ openjdk-ecj/jdk/src/share/classes/javax/management/remote/rmi/RMIJRMPServerImpl.java	2016-05-05 18:02:26.657501472 -0500
++@@ -227,17 +227,14 @@
++             allowedTypes = credentialsTypes;
++         }
++ 
++-        @Override
++         public String getVersion() throws RemoteException {
++             return impl.getVersion();
++         }
++ 
++-        @Override
++         public RMIConnection newClient(Object credentials) throws IOException {
++             return impl.newClient(credentials);
++         }
++ 
++-        @Override
++         public void check(Method method, ObjectStreamClass descriptor,
++                 int paramIndex, int callID) {
++ 
++@@ -247,7 +244,6 @@
++             }
++         }
++ 
++-        @Override
++         public void checkProxyClass(Method method, String[] ifaces,
++                 int paramIndex, int callID) {
++             if (ifaces != null && ifaces.length > 0) {
++@@ -259,7 +255,6 @@
++             }
++         }
++ 
++-        @Override
++         public void end(int callID) {
++             /* Do nothing */
++         }

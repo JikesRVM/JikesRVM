@@ -302,15 +302,31 @@
         <ant antfile="build/components/harmony.xml" target="ensure"/>
       </sequential>
     </if>
-     <if>
-       <conditions>
-	 <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
-       </conditions>
-       <sequential>
-	 <ant antfile="build/components/openjdk.xml" target="ensure"/>
-       </sequential>
-     </if>
-     <if>
+    <if>
+      <conditions>
+        <and>
+          <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
+          <not>
+            <equals arg1="${classlib.useicedtea}" arg2="true"/>
+          </not>
+        </and>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/openjdk.xml" target="ensure"/>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <and>
+          <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
+          <equals arg1="${classlib.useicedtea}" arg2="true"/>
+        </and>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/icedtea.xml" target="ensure"/>
+      </sequential>
+    </if>
+    <if>
       <conditions>
         <equals arg1="${config.with-profile}" arg2="true"/>
       </conditions>
