@@ -234,7 +234,8 @@ import org.vmmagic.pragma.*;
 
   /** @return {@code true} if this Plan requires linear scanning. */
   public boolean needsLinearScan() {
-    return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;
+    return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING ||
+        org.mmtk.utility.Constants.LAZY_SWEEP;
   }
 
   /** @return {@code true} if this Plan moves objects. */
