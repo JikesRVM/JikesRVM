@@ -1103,7 +1103,8 @@ public final class IR {
         }
         // Perform (4)
         if (Binary.conforms(instruction) && instruction.operator().isCommutative()) {
-          if (Binary.getVal1(instruction).isConstant()) {
+          Operand val1 = Binary.getVal1(instruction);
+          if (val1.isConstant() && !val1.isMovableObjectConstant()) {
             verror(where, "Non-canonical commutative operation " + instruction);
           }
         }
