@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
@@ -23,8 +25,20 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_UNRESOLVED;
 import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION;
+import static org.jikesrvm.compilers.opt.ir.Operators.TRAP;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_ARRAY_BOUNDS;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_CHECKCAST;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_JNI_STACK;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_MUST_IMPLEMENT;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_NULL_POINTER;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_REGENERATE;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_STACK_OVERFLOW;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_STACK_OVERFLOW_FATAL;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_STORE_CHECK;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -45,10 +59,13 @@ import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.Trap;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
+import org.jikesrvm.compilers.opt.util.Stack;
 
 /**
  * Simple flow-insensitive optimizations.
@@ -161,15 +178,23 @@ public final class Simple extends CompilerPhase {
     // Simple dead code elimination.
     // This pass incrementally updates the register list
     eliminateDeadInstructions(ir);
+
     // constant folding
+
     // This pass usually doesn't modify the DU, but
     // if it does it will recompute it.
-    foldConstants(ir);
+    boolean needDeadCodeElimination = foldConstants(ir);
+
     // Simple local expression folding respecting DU
     if (ir.options.LOCAL_EXPRESSION_FOLDING && ExpressionFolding.performLocal(ir)) {
       // constant folding again
-      foldConstants(ir);
+      needDeadCodeElimination |= foldConstants(ir);
     }
+
+    if (needDeadCodeElimination) {
+      eliminateDeadInstructions(ir);
+    }
+
     // Try to remove conditional branches with constant operands
     // If it actually constant folds a branch,
     // this pass will recompute the DU
@@ -506,8 +531,19 @@ public final class Simple extends CompilerPhase {
         prevInstr = null; instr != null; instr = prevInstr) {
       prevInstr = instr.prevInstructionInCodeOrder(); // cache because
       // remove nulls next/prev fields
+
       // if instr is a PEI, store, branch, or call, then it's not dead ...
       if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch() || instr.isNonPureCall()) {
+        if (instr.operator() != TRAP) {
+          continue;
+        }
+        // unconditional traps may make instructions after it unreachable
+        // Those instructions need to be removed because they may have uses
+        // without associated defs (because the def was removed when the instruction
+        // was changed to a trap)
+        if (codeAfterTrapIsUnreachable(instr)) {
+          removeCodeAfterTrapInstruction(instr);
+        }
         continue;
       }
       if (preserveImplicitSSA && (instr.isImplicitLoad() || instr.isAllocation() || instr.operator() == PHI)) {
@@ -593,28 +629,84 @@ public final class Simple extends CompilerPhase {
     }
   }
 
+  private static boolean codeAfterTrapIsUnreachable(
+      Instruction trap) {
+    TrapCodeOperand trapCodeOp = Trap.getTCode(trap);
+    int trapCode = trapCodeOp.getTrapCode();
+    switch (trapCode) {
+      // code in the same basic block after the instruction is unreachable
+      case TRAP_NULL_POINTER:
+      case TRAP_ARRAY_BOUNDS:
+      case TRAP_CHECKCAST:
+      case TRAP_DIVIDE_BY_ZERO:
+      case TRAP_MUST_IMPLEMENT:
+      case TRAP_STORE_CHECK:
+      case TRAP_STACK_OVERFLOW_FATAL:
+        return true;
+      // code in the same basic block after the instruction might be reachable
+      case TRAP_STACK_OVERFLOW:
+      case TRAP_REGENERATE:
+      case TRAP_JNI_STACK:
+      case TRAP_UNKNOWN:
+        return false;
+      default:
+        if (VM.VerifyAssertions) {
+          throw new OptimizingCompilerException("Unhandled trap code in dead code elimination " +
+              trapCode);
+        }
+        return false;
+    }
+  }
+
+  private static void removeCodeAfterTrapInstruction(Instruction trap) {
+    if (VM.VerifyAssertions) opt_assert(Trap.conforms(trap));
+    Stack<Instruction> toRemove = new Stack<Instruction>();
+    Instruction s = trap.nextInstructionInCodeOrder();
+    while (s != null && !(s.operator() == BBEND)) {
+      toRemove.push(s);
+      s = s.nextInstructionInCodeOrder();
+    }
+    while (!toRemove.isEmpty()) {
+      DefUse.removeInstructionAndUpdateDU(toRemove.pop());
+    }
+  }
+
   /**
-   * Perform constant folding.
+   * Performs constant folding.
+   * <p>
+   * Note: It can become necessary to run dead code elimination to clean up.
+   * For example, when a must implement interface check is reduced to a
+   * trap instruction, its definitions will be removed and subsequent instructions
+   * in the same basic block will become unreachable. In order to make sure that
+   * those instructions don't cause trouble with paranoid IR verification (e.g.
+   * because they contain uses of the defs from the reduced instructions), those
+   * instructions need to be removed.
    *
    * @param ir the IR to optimize
+   *
+   * @return whether dead code elimination is necessary to clean up
    */
-  void foldConstants(IR ir) {
+  boolean foldConstants(IR ir) {
     boolean recomputeRegList = false;
+    boolean needDeadCodeElimination = false;
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       Simplifier.DefUseEffect code = Simplifier.simplify(ir.isHIR(), ir.regpool, ir.options, s);
       // If something was reduced (as opposed to folded) then its uses may
       // be different. This happens so infrequently that it's cheaper to
       // handle it by  recomputing the DU from
       // scratch rather than trying to do the incremental bookkeeping.
+      boolean trapReduced = code == Simplifier.DefUseEffect.TRAP_REDUCED;
+      needDeadCodeElimination |= trapReduced;
       recomputeRegList |=
           (code == Simplifier.DefUseEffect.MOVE_REDUCED ||
-           code == Simplifier.DefUseEffect.TRAP_REDUCED ||
+           trapReduced ||
            code == Simplifier.DefUseEffect.REDUCED);
     }
     if (recomputeRegList) {
       DefUse.computeDU(ir);
       DefUse.recomputeSSA(ir);
     }
+    return needDeadCodeElimination;
   }
 
   /**
