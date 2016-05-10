@@ -19,6 +19,7 @@
 
   <import file="base.xml"/>
 
+  <property name="icedtea.description" value="IcedTea"/>
   <property name="icedtea.base.url" value="http://icedtea.classpath.org/download/source/"/>
   <property name="icedtea.version" value="6-1.13.11"/>
   <!-- .tar.xz is also provided by upstream -->
@@ -28,8 +29,10 @@
   <property name="icedtea.component.dir" location="${components.dir}/icedtea"/>
   <property name="icedtea.package.dir" value="${icedtea.component.dir}/${icedtea.version}"/>
   <property name="icedtea.dir" value="${icedtea.package.dir}/icedtea${icedtea.version}"/>
+  <property name="icedtea.jre.location" value="${icedtea.dir}/icedtea-build/openjdk.build/j2sdk-server-image/jre"/>
 
   <target name="download-icedtea-from-web">
+    <echo message="Downloading IcedTea sources"/>
     <test-file name="tar.exe" location="${host.file}"/>
     <mkdir dir="${icedtea.package.dir}"/>
     <cachedGet key="${icedtea.archive}"
@@ -46,7 +49,7 @@
   </target>
 
   <target name="patch" depends="fetch">
-    <echo message="Patching IcedTea sources (placeholder)"/>
+    <echo message="Patching IcedTea sources"/>
     <!-- TODO: rename patch to comply with our naming convention -->
     <patch patchfile="${components.patch.dir}/icedtea-web-fix-6-1.13.11-build-failure.patch"
            dir="${icedtea.dir}" strip="1"/>
@@ -54,7 +57,7 @@
 
   <target name="build" depends="patch">
     <!-- TODO is the build 32-bit when it should be? -->
-    <echo message="Building IcedTea libraries (placeholder)"/>
+    <echo message="Building IcedTea libraries"/>
     <test-file name="make.exe" location="${host.file}"/>
 
     <echo>Executing autogen.sh</echo>
@@ -82,13 +85,14 @@
     <exec executable="${make.exe}" failonerror="true" dir="${icedtea.dir}/icedtea-build">
     </exec>
 
-    <echo>NYI: setting up for use as class library</echo>
-    <fail message="Using IcedTea is NYI. TODO: Build zip and change build system to be able to use it like the pre-packaged OpenJDK zip."/>
+    <echo>Setting up for use as class library</echo>
+    <writeComponentConstants dir="${icedtea.jre.location}/lib"/>
+    <setComponentsConfig key="${target.name}.openjdk.lib.dir" value="${icedtea.jre.location}/lib"/>
   </target>
 
   <target name="ensure" depends="prepare-ant-tasks">
-    <echo message="Ensure OpenJDK libraries (placeholder)"/>
-    <ensureUptodate name="icedtea" dir="${icedtea.package.dir}/${target.name}/lib"/>
+    <echo message="Ensure IcedTea libraries"/>
+    <ensureUptodate name="icedtea" dir="${icedtea.jre.location}/lib"/>
   </target>
-</project>
 
+</project>
