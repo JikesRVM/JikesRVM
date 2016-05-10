@@ -1511,8 +1511,8 @@ public final class Instruction {
    */
   public Instruction remove() {
     if (IR.PARANOID) {
-      isLinked();
       VM._assert(!isBbFirst() && !isBbLast(), "Removal of first/last instructions in block not supported");
+      isLinked();
     }
 
     // Splice this out of instr list
