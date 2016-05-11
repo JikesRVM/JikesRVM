@@ -34,6 +34,10 @@ public final class Extent {
     return new Extent(ArchitecturalWord.fromIntZeroExtend(value));
   }
 
+  public static Extent fromLong(long value) {
+    return new Extent(ArchitecturalWord.fromLong(value));
+  }
+
   public static Extent zero() {
     return fromIntSignExtend(0);
   }
@@ -59,6 +63,10 @@ public final class Extent {
   }
 
   public Extent plus(int byteSize) {
+    return new Extent(value.plus(byteSize));
+  }
+
+  public Extent plus(long byteSize) {
     return new Extent(value.plus(byteSize));
   }
 

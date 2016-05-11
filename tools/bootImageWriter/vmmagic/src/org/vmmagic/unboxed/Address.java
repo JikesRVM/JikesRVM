@@ -247,6 +247,19 @@ public final class Address extends ArchitecturalWord {
   }
 
   /**
+   * Add a long to this {@link Address}, and return the sum.
+   *
+   * @param  v the value to be added to this {@link Address}
+   * @return An {@link Address} instance that reflects the result
+   * of the addition.
+   */
+  @UninterruptibleNoWarn
+  public Address plus(long v) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return new Address(value + v);
+  }
+
+  /**
    * Add an {@link Offset} to this {@link Address}, and
    * return a new {@link Address} which is the sum.
    *
@@ -257,7 +270,7 @@ public final class Address extends ArchitecturalWord {
   @UninterruptibleNoWarn
   public Address plus(Offset offset) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(value + offset.toWord().toAddress().value);
+    return new Address(value + offset.value);
   }
 
   /**
@@ -272,7 +285,7 @@ public final class Address extends ArchitecturalWord {
   @UninterruptibleNoWarn
   public Address plus(Extent extent) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(value + extent.toWord().toAddress().value);
+    return new Address(value + extent.value);
   }
 
   /**
@@ -317,7 +330,7 @@ public final class Address extends ArchitecturalWord {
   @UninterruptibleNoWarn
   public Address minus(Extent extent) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(value - extent.toWord().toAddress().value);
+    return new Address(value - extent.value);
   }
 
   /**

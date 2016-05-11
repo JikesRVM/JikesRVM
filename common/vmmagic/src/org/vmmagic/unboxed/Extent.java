@@ -30,6 +30,10 @@ public final class Extent {
     return null;
   }
 
+  public static Extent fromLong(long bytes) {
+    return null;
+  }
+
   public static Extent zero() {
     return null;
   }
@@ -58,11 +62,19 @@ public final class Extent {
     return null;
   }
 
+  public Extent plus(long byteSize) {
+    return null;
+  }
+
   public Extent plus(Extent byteSize) {
     return null;
   }
 
   public Extent minus(int byteSize) {
+    return null;
+  }
+
+  public Extent minus(long byteSize) {
     return null;
   }
 

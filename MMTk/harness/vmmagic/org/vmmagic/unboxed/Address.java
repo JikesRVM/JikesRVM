@@ -191,6 +191,17 @@ public final class Address {
   }
 
   /**
+   * Add an integer to this <code>Address</code>, and return the sum.
+   *
+   * @param  v the value to be added to this <code>Address</code>
+   * @return An <code>Address</code> instance that reflects the result
+   * of the addition.
+   */
+  public Address plus(long v) {
+    return new Address(value.plus(v));
+  }
+
+  /**
    * Add an <code>Offset</code> to this <code>Address</code>, and
    * return the sum.
    *
@@ -226,6 +237,19 @@ public final class Address {
    */
   public Address minus(int v) {
     return new Address(value.minus(v));// TODO 64-bit
+  }
+
+  /**
+   * Subtract a long from this <code>Address</code>, and return
+   * the result.
+   *
+   * @param v the integer to be subtracted from this
+   * <code>Address</code>.
+   * @return An <code>Address</code> instance that reflects the result
+   * of the subtraction.
+   */
+  public Address minus(long v) {
+    return new Address(value.minus(v));
   }
 
   /**

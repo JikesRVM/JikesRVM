@@ -35,7 +35,10 @@ abstract class ArchitecturalWord {
   }
 
   ArchitecturalWord(long value) {
-    @32MASK@VM.sysFail("Detected use of long constructor for 32-bit word!");
+    @32MASK@if (!(Integer.MIN_VALUE <= value && value <= 0x0ffffffffL)) {
+    @32MASK@  VM.sysWriteln("value ",value," outside 32-bit range");
+    @32MASK@  VM.sysFail("Value too large for 32-bit machine");
+    @32MASK@}
     @32MASK@this.value = (int)value;
     @64MASK@this.value = value;
   }
