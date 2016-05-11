@@ -70,7 +70,8 @@
       64 bit system the libraries are created appropriately -->
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
-      <arg value="--enable-jamvm"/> <!-- TODO does this really build faster than HotSpot? -->
+      <!-- Build only JamVM to get faster build times -->
+      <arg value="--enable-jamvm"/>
       <arg value="--with-parallel-jobs"/>
       <!-- Don't build documentation because it takes too much time -->
       <arg value="--disable-docs"/>
