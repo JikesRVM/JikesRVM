@@ -1162,12 +1162,14 @@ public abstract class GenericStackManager extends IRTools {
                   // replace the register in the target instruction.
                   replaceRegisterWithScratch(s, r, scratch.scratch);
                 } else {
-                  if (s.operator() != YIELDPOINT_OSR) {
-                    if (VM.BuildForIA32) {
-                      // No need to use a scratch register here.
-                      replaceOperandWithSpillLocation(s, op.asRegister());
-                    } else {
-                      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+                  if (VM.BuildForIA32) {
+                    // No need to use a scratch register here.
+                    replaceOperandWithSpillLocation(s, op.asRegister());
+                  } else {
+                    if (VM.VerifyAssertions) {
+                      if (s.operator() != YIELDPOINT_OSR) {
+                        VM._assert(NOT_REACHED);
+                      }
                     }
                   }
                 }
