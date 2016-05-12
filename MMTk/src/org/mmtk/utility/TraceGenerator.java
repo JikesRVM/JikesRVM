@@ -27,8 +27,8 @@ import org.mmtk.plan.ParallelCollector;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.semispace.gctrace.GCTrace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.heap.layout.HeapParameters;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.TraceRate;
 import org.mmtk.vm.VM;
@@ -99,7 +99,7 @@ import org.vmmagic.unboxed.*;
     /* Trace objects */
     tracePool = trace_;
     trace = new TraceBuffer(tracePool);
-    objectLinks = ObjectReferenceArray.create(Space.MAX_SPACES);
+    objectLinks = ObjectReferenceArray.create(HeapParameters.MAX_SPACES);
   }
 
   /**

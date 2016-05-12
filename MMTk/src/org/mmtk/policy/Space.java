@@ -13,14 +13,15 @@
 package org.mmtk.policy;
 
 import static org.mmtk.utility.Constants.*;
+import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.*;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.heap.Map;
-import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.heap.PageResource;
 import org.mmtk.utility.heap.SpaceDescriptor;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
@@ -57,22 +58,6 @@ public abstract class Space {
    *
    */
   private static boolean DEBUG = false;
-
-  // the following is somewhat arbitrary for the 64 bit system at this stage
-  public static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
-  public static final int LOG_BYTES_IN_CHUNK = 22;
-  public static final int BYTES_IN_CHUNK = 1 << LOG_BYTES_IN_CHUNK;
-  public static final int PAGES_IN_CHUNK = 1 << (LOG_BYTES_IN_CHUNK - LOG_BYTES_IN_PAGE);
-  private static final int LOG_MAX_CHUNKS = LOG_ADDRESS_SPACE - LOG_BYTES_IN_CHUNK;
-  public static final int MAX_CHUNKS = 1 << LOG_MAX_CHUNKS;
-  public static final int MAX_SPACES = 20; // quite arbitrary
-
-  public static final Address HEAP_START = chunkAlign(VM.HEAP_START, true);
-  public static final Address AVAILABLE_START = chunkAlign(VM.AVAILABLE_START, false);
-  public static final Address AVAILABLE_END = chunkAlign(VM.AVAILABLE_END, true);
-  public static final Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
-  public static final int AVAILABLE_PAGES = AVAILABLE_BYTES.toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
-  public static final Address HEAP_END = chunkAlign(VM.HEAP_END, false);
 
   private static final boolean FORCE_SLOW_MAP_LOOKUP = false;
 
@@ -157,17 +142,17 @@ public abstract class Space {
       extent = vmRequest.extent;
     }
 
-    if (extent.NE(chunkAlign(extent, false))) {
+    if (extent.NE(Conversions.chunkAlign(extent, false))) {
       VM.assertions.fail(name + " requested non-aligned extent: " + extent.toLong() + " bytes");
     }
 
     if (vmRequest.type == VMRequest.REQUEST_FIXED) {
       start = vmRequest.start;
-      if (start.NE(chunkAlign(start, false))) {
+      if (start.NE(Conversions.chunkAlign(start, false))) {
         VM.assertions.fail(name + " starting on non-aligned boundary: " + start.toLong() + " bytes");
       }
     } else if (vmRequest.top) {
-      if (Map.isFinalized()) VM.assertions.fail("heap is narrowed after regionMap is finalized: " + name);
+      if (HeapLayout.vmMap.isFinalized()) VM.assertions.fail("heap is narrowed after regionMap is finalized: " + name);
       heapLimit = heapLimit.minus(extent);
       start = heapLimit;
     } else {
@@ -190,7 +175,7 @@ public abstract class Space {
     this.descriptor = SpaceDescriptor.createDescriptor(start, start.plus(extent));
 
     VM.memory.setHeapRange(index, start, start.plus(extent));
-    Map.insert(start, extent, descriptor, this);
+    HeapLayout.vmMap.insert(start, extent, descriptor, this);
 
     if (DEBUG) {
       Log.write(name); Log.write(" ");
@@ -312,7 +297,7 @@ public abstract class Space {
    */
   @Inline
   public static boolean isMappedObject(ObjectReference object) {
-    return !object.isNull() && (getSpaceForObject(object) != null) && Mmapper.objectIsMapped(object);
+    return !object.isNull() && (getSpaceForObject(object) != null) && HeapLayout.mmapper.objectIsMapped(object);
   }
 
   /**
@@ -323,7 +308,7 @@ public abstract class Space {
    */
   @Inline
   public static boolean isMappedAddress(Address address) {
-    return Map.getSpaceForAddress(address) != null && Mmapper.addressIsMapped(address);
+    return HeapLayout.vmMap.getSpaceForAddress(address) != null && HeapLayout.mmapper.addressIsMapped(address);
   }
 
   /**
@@ -354,7 +339,7 @@ public abstract class Space {
   public static boolean isInSpace(int descriptor, Address address) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!address.isZero());
     if (FORCE_SLOW_MAP_LOOKUP || !SpaceDescriptor.isContiguous(descriptor)) {
-      return Map.getDescriptorForAddress(address) == descriptor;
+      return HeapLayout.vmMap.getDescriptorForAddress(address) == descriptor;
     } else {
       Address start = SpaceDescriptor.getStart(descriptor);
       if (!VM.VERIFY_ASSERTIONS &&
@@ -377,7 +362,7 @@ public abstract class Space {
   @Inline
   public static Space getSpaceForObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    return Map.getSpaceForAddress(VM.objectModel.refToAddress(object));
+    return HeapLayout.vmMap.getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
 
   /**
@@ -389,7 +374,7 @@ public abstract class Space {
    */
   public static Space getSpaceForAddress(Address addr) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
-    return Map.getSpaceForAddress(addr);
+    return HeapLayout.vmMap.getSpaceForAddress(addr);
   }
 
   /****************************************************************************
@@ -480,7 +465,7 @@ public abstract class Space {
    * @return The address of the new discontiguous space.
    */
   public Address growDiscontiguousSpace(int chunks) {
-    Address newHead = Map.allocateContiguousChunks(descriptor, this, chunks, headDiscontiguousRegion);
+    Address newHead = HeapLayout.vmMap.allocateContiguousChunks(descriptor, this, chunks, headDiscontiguousRegion);
     if (newHead.isZero()) {
       return Address.zero();
     }
@@ -494,7 +479,7 @@ public abstract class Space {
    * @return The number of chunks needed to satisfy the request
    */
   public static int requiredChunks(int pages) {
-    Extent extent = chunkAlign(Conversions.pagesToBytes(pages), false);
+    Extent extent = Conversions.chunkAlign(Conversions.pagesToBytes(pages), false);
     return extent.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
   }
 
@@ -517,11 +502,11 @@ public abstract class Space {
    * @return The number of chunks freed
    */
   public int releaseDiscontiguousChunks(Address chunk) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(Conversions.chunkAlign(chunk, true)));
     if (chunk.EQ(headDiscontiguousRegion)) {
-      headDiscontiguousRegion = Map.getNextContiguousRegion(chunk);
+      headDiscontiguousRegion = HeapLayout.vmMap.getNextContiguousRegion(chunk);
     }
-    return Map.freeContiguousChunks(chunk);
+    return HeapLayout.vmMap.freeContiguousChunks(chunk);
   }
 
   /**
@@ -532,7 +517,7 @@ public abstract class Space {
   }
 
   public void releaseAllChunks() {
-    Map.freeAllChunks(headDiscontiguousRegion);
+    HeapLayout.vmMap.freeAllChunks(headDiscontiguousRegion);
     headDiscontiguousRegion = Address.zero();
   }
 
@@ -576,7 +561,7 @@ public abstract class Space {
   }
 
   /**
-   * Print out a map of virtual memory useage by all spaces
+   * Print out a map of virtual memory usage by all spaces
    */
   public static void printVMMap() {
     Log.writeln("Key: (I)mmortal (N)onmoving (D)iscontiguous (E)xtent (F)raction");
@@ -603,10 +588,10 @@ public abstract class Space {
         Log.writeln();
       } else {
         Log.write("D [");
-        for (Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
+        for (Address a = space.headDiscontiguousRegion; !a.isZero(); a = HeapLayout.vmMap.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
-          Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
-          if (!Map.getNextContiguousRegion(a).isZero())
+          Log.write(a.plus(HeapLayout.vmMap.getContiguousRegionSize(a).minus(1)));
+          if (!HeapLayout.vmMap.getNextContiguousRegion(a).isZero())
             Log.write(", ");
         }
         Log.writeln("]");
@@ -664,7 +649,7 @@ public abstract class Space {
           Log.write("->");
           Log.writeln(space.start.plus(space.extent.minus(1)));
         }
-        Mmapper.ensureMapped(space.start, space.extent.toInt() >> LOG_BYTES_IN_PAGE);
+        HeapLayout.mmapper.ensureMapped(space.start, space.extent.toInt() >> LOG_BYTES_IN_PAGE);
       }
     }
   }
@@ -684,7 +669,7 @@ public abstract class Space {
       Log.write("->");
       Log.writeln(regionEnd.minus(1));
     }
-    Mmapper.ensureMapped(getDiscontigStart(), pages);
+    HeapLayout.mmapper.ensureMapped(getDiscontigStart(), pages);
   }
 
   /**
@@ -763,32 +748,6 @@ public abstract class Space {
   public abstract boolean isLive(ObjectReference object);
 
   /**
-   * Align an address to a space chunk
-   *
-   * @param addr The address to be aligned
-   * @param down If {@code true} the address will be rounded down, otherwise
-   * it will rounded up.
-   * @return The chunk-aligned address
-   */
-  public static Address chunkAlign(Address addr, boolean down) {
-    if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
-    return addr.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toAddress();
-  }
-
-  /**
-   * Align an extent to a space chunk
-   *
-   * @param bytes The extent to be aligned
-   * @param down If {@code true} the extent will be rounded down, otherwise
-   * it will rounded up.
-   * @return The chunk-aligned extent
-   */
-  public static Extent chunkAlign(Extent bytes, boolean down) {
-    if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
-    return bytes.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toExtent();
-  }
-
-  /**
    * Convert a fraction into a number of bytes according to the
    * fraction of available bytes.
    *
@@ -799,7 +758,7 @@ public abstract class Space {
     long bytes = (long) (frac * AVAILABLE_BYTES.toLong());
     Word mb = Word.fromIntSignExtend((int) (bytes >> LOG_BYTES_IN_MBYTE));
     Extent rtn = mb.lsh(LOG_BYTES_IN_MBYTE).toExtent();
-    return chunkAlign(rtn, false);
+    return Conversions.chunkAlign(rtn, false);
   }
 
   /** @return the actual number of spaces in the space array */

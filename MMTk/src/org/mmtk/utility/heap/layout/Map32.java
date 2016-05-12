@@ -10,14 +10,16 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.heap;
+package org.mmtk.utility.heap.layout;
 
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.*;
 import static org.mmtk.utility.Constants.BITS_IN_ADDRESS;
-import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
 
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.options.Options;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
@@ -33,10 +35,10 @@ import org.vmmagic.unboxed.Word;
  *
  */
 @Uninterruptible
-public class Map {
+public final class Map32 extends Map {
 
   /** set the map base address so that we have an unused {@code null} chunk at the bottome of the space for 64 bit */
-  private static final Address MAP_BASE_ADDRESS = BITS_IN_ADDRESS == 32 ? Address.zero() : Space.HEAP_START.minus(Space.BYTES_IN_CHUNK);
+  private static final Address MAP_BASE_ADDRESS = BITS_IN_ADDRESS == 32 ? Address.zero() : VMLayoutConstants.HEAP_START.minus(VMLayoutConstants.BYTES_IN_CHUNK);
 
   /****************************************************************************
    *
@@ -46,19 +48,19 @@ public class Map {
   /**
    *
    */
-  private static final int[] descriptorMap;
-  private static final int[] prevLink;
-  private static final int[] nextLink;
-  private static final Space[] spaceMap;
-  private static final GenericFreeList regionMap;
-  public static final GenericFreeList globalPageMap;
-  private static int sharedDiscontigFLCount = 0;
-  private static final FreeListPageResource[] sharedFLMap;
-  private static int totalAvailableDiscontiguousChunks = 0;
+  private final int[] descriptorMap;
+  private final int[] prevLink;
+  private final int[] nextLink;
+  private final Space[] spaceMap;
+  private final GenericFreeList regionMap;
+  private final GenericFreeList globalPageMap;
+  private int sharedDiscontigFLCount = 0;
+  private final FreeListPageResource[] sharedFLMap;
+  private int totalAvailableDiscontiguousChunks = 0;
 
-  private static boolean finalized = false;
+  private boolean finalized = false;
 
-  private static final Lock lock = VM.newLock("Map lock");
+  private final Lock lock = VM.newLock("Map lock");
 
   /****************************************************************************
    *
@@ -68,17 +70,17 @@ public class Map {
   /**
    * Class initializer. Create our two maps
    */
-  static {
-    descriptorMap = new int[Space.MAX_CHUNKS];
-    prevLink = new int[Space.MAX_CHUNKS];
-    nextLink = new int[Space.MAX_CHUNKS];
-    spaceMap = new Space[Space.MAX_CHUNKS];
-    regionMap = new GenericFreeList(Space.MAX_CHUNKS);
-    globalPageMap = new GenericFreeList(1, 1, Space.MAX_SPACES);
-    sharedFLMap = new FreeListPageResource[Space.MAX_SPACES];
+  public Map32() {
+    descriptorMap = new int[VMLayoutConstants.MAX_CHUNKS];
+    prevLink = new int[VMLayoutConstants.MAX_CHUNKS];
+    nextLink = new int[VMLayoutConstants.MAX_CHUNKS];
+    spaceMap = new Space[VMLayoutConstants.MAX_CHUNKS];
+    regionMap = new GenericFreeList(VMLayoutConstants.MAX_CHUNKS);
+    globalPageMap = new GenericFreeList(1, 1, HeapParameters.MAX_SPACES);
+    sharedFLMap = new FreeListPageResource[HeapParameters.MAX_SPACES];
     if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(BITS_IN_ADDRESS == Space.LOG_ADDRESS_SPACE ||
-            Space.HEAP_END.diff(MAP_BASE_ADDRESS).toWord().rshl(Space.LOG_ADDRESS_SPACE).isZero());
+        VM.assertions._assert(BITS_IN_ADDRESS == LOG_ADDRESS_SPACE ||
+            VMLayoutConstants.HEAP_END.diff(MAP_BASE_ADDRESS).toWord().rshl(LOG_ADDRESS_SPACE).isZero());
   }
 
   /****************************************************************************
@@ -96,7 +98,8 @@ public class Map {
    * @param descriptor The descriptor for this space
    * @param space The space to be associated with this region
    */
-  public static void insert(Address start, Extent extent, int descriptor,
+  @Override
+  public void insert(Address start, Extent extent, int descriptor,
       Space space) {
     Extent e = Extent.zero();
     while (e.LT(extent)) {
@@ -110,8 +113,26 @@ public class Map {
       }
       descriptorMap[index] = descriptor;
       VM.barriers.objectArrayStoreNoGCBarrier(spaceMap, index, space);
-      e = e.plus(Space.BYTES_IN_CHUNK);
+      e = e.plus(VMLayoutConstants.BYTES_IN_CHUNK);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Interruptible
+  public GenericFreeList createFreeList(FreeListPageResource pr) {
+    return new GenericFreeList((GenericFreeList)globalPageMap, getDiscontigFreeListPROrdinal(pr));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Interruptible
+  public GenericFreeList createFreeList(FreeListPageResource pr, int units, int grain) {
+    return new GenericFreeList(units, grain);
   }
 
   /**
@@ -123,7 +144,8 @@ public class Map {
    * @param head The previous contiguous set of chunks for this space (to create a linked list of contiguous regions for each space)
    * @return The address of the assigned memory.  If the request fails we return Address.zero().
    */
-  public static Address allocateContiguousChunks(int descriptor, Space space, int chunks, Address head) {
+  @Override
+  public Address allocateContiguousChunks(int descriptor, Space space, int chunks, Address head) {
     lock.acquire();
     int chunk = regionMap.alloc(chunks);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk != 0);
@@ -132,7 +154,7 @@ public class Map {
         Log.write("Unable to allocate virtual address space for space \"");
         Log.write(space.getName()); Log.write("\" for ");
         Log.write(chunks); Log.write(" chunks (");
-        Log.write(chunks << Space.LOG_BYTES_IN_CHUNK); Log.writeln(" bytes), requesting GC.");
+        Log.write(chunks << VMLayoutConstants.LOG_BYTES_IN_CHUNK); Log.writeln(" bytes), requesting GC.");
         if (Options.verbose.getValue() > 7) {
           Space.printVMMap();
         }
@@ -142,14 +164,14 @@ public class Map {
     }
     totalAvailableDiscontiguousChunks -= chunks;
     Address rtn = addressForChunkIndex(chunk);
-    insert(rtn, Extent.fromIntZeroExtend(chunks << Space.LOG_BYTES_IN_CHUNK), descriptor, space);
+    insert(rtn, Extent.fromIntZeroExtend(chunks << LOG_BYTES_IN_CHUNK), descriptor, space);
     if (head.isZero()) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[chunk] == 0);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[(int)chunk] == 0);
     } else {
-      nextLink[chunk] = getChunkIndex(head);
-      prevLink[getChunkIndex(head)] = chunk;
+      nextLink[(int)chunk] = getChunkIndex(head);
+      prevLink[getChunkIndex(head)] = (int)chunk;
     }
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(prevLink[chunk] == 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(prevLink[(int)chunk] == 0);
     lock.release();
     return rtn;
   }
@@ -160,8 +182,9 @@ public class Map {
    * @param start The current region (return the next region in the list)
    * @return Return the next contiguous region after start in the linked list of regions
    */
-  public static Address getNextContiguousRegion(Address start) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
+  @Override
+  public Address getNextContiguousRegion(Address start) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Conversions.chunkAlign(start, true)));
     int chunk = getChunkIndex(start);
     return (chunk == 0) ? Address.zero() : (nextLink[chunk] == 0) ? Address.zero() : addressForChunkIndex(nextLink[chunk]);
   }
@@ -172,8 +195,9 @@ public class Map {
    * @param start The start address of the region whose size is being requested
    * @return The size of the region in question
    */
-  public static int getContiguousRegionChunks(Address start) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
+  @Override
+  public int getContiguousRegionChunks(Address start) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Conversions.chunkAlign(start, true)));
     int chunk = getChunkIndex(start);
     return regionMap.size(chunk);
   }
@@ -184,8 +208,9 @@ public class Map {
    * @param start The start address of the region whose size is being requested
    * @return The size of the region in question
    */
-  public static Extent getContiguousRegionSize(Address start) {
-    return Word.fromIntSignExtend(getContiguousRegionChunks(start)).lsh(Space.LOG_BYTES_IN_CHUNK).toExtent();
+  @Override
+  public Extent getContiguousRegionSize(Address start) {
+    return Word.fromIntSignExtend(getContiguousRegionChunks(start)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
   }
 
   /**
@@ -194,9 +219,10 @@ public class Map {
    *
    * @param anyChunk Any chunk in the linked list of chunks to be freed
    */
-  public static void freeAllChunks(Address anyChunk) {
+  @Override
+  public void freeAllChunks(Address anyChunk) {
     lock.acquire();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(anyChunk.EQ(Space.chunkAlign(anyChunk, true)));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(anyChunk.EQ(Conversions.chunkAlign(anyChunk, true)));
     if (!anyChunk.isZero()) {
       int chunk = getChunkIndex(anyChunk);
       while (nextLink[chunk] != 0) {
@@ -216,9 +242,10 @@ public class Map {
    * @param start The start address of the first chunk in the series
    * @return The number of chunks which were contiguously allocated
    */
-  public static int freeContiguousChunks(Address start) {
+  @Override
+  public int freeContiguousChunks(Address start) {
     lock.acquire();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Conversions.chunkAlign(start, true)));
     int rtn = freeContiguousChunks(getChunkIndex(start));
     lock.release();
     return rtn;
@@ -230,7 +257,7 @@ public class Map {
    * @param chunk The chunk index of the region to be freed
    * @return The number of chunks freed
    */
-  private static int freeContiguousChunks(int chunk) {
+  private int freeContiguousChunks(int chunk) {
     int chunks = regionMap.free(chunk);
     totalAvailableDiscontiguousChunks += chunks;
     int next = nextLink[chunk];
@@ -250,15 +277,16 @@ public class Map {
    * is nailed down, and then placing the rest into a map to
    * be used by discontiguous spaces.
    */
+  @Override
   @Interruptible
-  public static void finalizeStaticSpaceMap() {
+  public void finalizeStaticSpaceMap() {
     /* establish bounds of discontiguous space */
     Address startAddress = Space.getDiscontigStart();
     int firstChunk = getChunkIndex(startAddress);
     int lastChunk = getChunkIndex(Space.getDiscontigEnd());
     int unavailStartChunk = lastChunk + 1;
-    int trailingChunks = Space.MAX_CHUNKS - unavailStartChunk;
-    int pages = (1 + lastChunk - firstChunk) * Space.PAGES_IN_CHUNK;
+    int trailingChunks = VMLayoutConstants.MAX_CHUNKS - unavailStartChunk;
+    int pages = (1 + lastChunk - firstChunk) * VMLayoutConstants.PAGES_IN_CHUNK;
     globalPageMap.resizeFreeList(pages, pages);
     for (int pr = 0; pr < sharedDiscontigFLCount; pr++)
       sharedFLMap[pr].resizeFreeList(startAddress);
@@ -277,24 +305,37 @@ public class Map {
       totalAvailableDiscontiguousChunks++;
       regionMap.free(chunkIndex);  // put this chunk on the free list
       globalPageMap.setUncoalescable(firstPage);
-      int allocedPages = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
+      int allocedPages = globalPageMap.alloc(VMLayoutConstants.PAGES_IN_CHUNK); // populate the global page map
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocedPages == firstPage);
-      firstPage += Space.PAGES_IN_CHUNK;
+      firstPage += VMLayoutConstants.PAGES_IN_CHUNK;
     }
 
     finalized  = true;
   }
 
-  public static boolean isFinalized() {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isFinalized() {
     return finalized;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Interruptible
+  public void boot() {
+    // Nothing to do in this heap layout
   }
 
   /**
    * @param pr the resource that wants to share the discontiguous region
    * @return The ordinal number for a free list space wishing to share a discontiguous region
    */
+  @Override
   @Interruptible
-  public static int getDiscontigFreeListPROrdinal(FreeListPageResource pr) {
+  public int getDiscontigFreeListPROrdinal(FreeListPageResource pr) {
     sharedFLMap[sharedDiscontigFLCount] = pr;
     sharedDiscontigFLCount++;
     return sharedDiscontigFLCount;
@@ -306,7 +347,8 @@ public class Map {
    *
    * @return The number of available chunks for use by discontiguous spaces.
    */
-  public static int getAvailableDiscontiguousChunks() {
+  @Override
+  public int getAvailableDiscontiguousChunks() {
     return totalAvailableDiscontiguousChunks;
   }
 
@@ -317,7 +359,8 @@ public class Map {
    *
    * @return The total number of clients who may contend for chunks.
    */
-  public static int getChunkConsumerCount() {
+  @Override
+  public int getChunkConsumerCount() {
     return sharedDiscontigFLCount;
   }
 
@@ -327,8 +370,9 @@ public class Map {
    * @param address The address in question
    * @return The space in which the address resides
    */
+  @Override
   @Inline
-  public static Space getSpaceForAddress(Address address) {
+  public Space getSpaceForAddress(Address address) {
     int index = getChunkIndex(address);
     return spaceMap[index];
   }
@@ -341,8 +385,9 @@ public class Map {
    * @return The space descriptor for the space in which the object
    * resides
    */
+  @Override
   @Inline
-  public static int getDescriptorForAddress(Address object) {
+  public int getDescriptorForAddress(Address object) {
     int index = getChunkIndex(object);
     return descriptorMap[index];
   }
@@ -355,22 +400,11 @@ public class Map {
    */
   @Inline
   private static int getChunkIndex(Address address) {
-    if (BYTES_IN_ADDRESS == 8) {
-      if (address.LT(Space.HEAP_START) || address.GE(Space.HEAP_END))
-        return 0;
-      else
-        return address.diff(MAP_BASE_ADDRESS).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
-    } else
-      return address.toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
+    return address.toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
   }
+
   @Inline
   private static Address addressForChunkIndex(int chunk) {
-    if (BYTES_IN_ADDRESS == 8) {
-      if (chunk == 0)
-        return Address.zero();
-      else
-        return MAP_BASE_ADDRESS.plus(Word.fromIntZeroExtend(chunk).lsh(Space.LOG_BYTES_IN_CHUNK).toExtent());
-    } else
-      return Word.fromIntZeroExtend(chunk).lsh(Space.LOG_BYTES_IN_CHUNK).toAddress();
+    return Word.fromIntZeroExtend(chunk).lsh(LOG_BYTES_IN_CHUNK).toAddress();
   }
 }

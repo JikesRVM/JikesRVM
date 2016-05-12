@@ -21,6 +21,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.LineReuseRatio;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.ForwardingWord;
 import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.Log;
@@ -291,8 +292,8 @@ public final class ImmixSpace extends Space {
   public void growSpace(Address start, Extent bytes, boolean newChunk) {
     super.growSpace(start, bytes, newChunk);
      if (newChunk) {
-      Address chunk = chunkAlign(start.plus(bytes), true);
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunkAlign(start.plus(bytes), true).EQ(chunk));
+      Address chunk = Conversions.chunkAlign(start.plus(bytes), true);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Conversions.chunkAlign(start.plus(bytes), true).EQ(chunk));
       Chunk.clearMetaData(chunk);
       chunkMap.addNewChunkToMap(chunk);
     }
@@ -310,7 +311,7 @@ public final class ImmixSpace extends Space {
       rtn = Address.zero();
     else {
       rtn = allocBlockCursor;
-      Address lastAllocChunk = chunkAlign(allocBlockCursor, true);
+      Address lastAllocChunk = Conversions.chunkAlign(allocBlockCursor, true);
       allocBlockCursor = allocBlockCursor.plus(BYTES_IN_RECYCLE_ALLOC_CHUNK);
       if (allocBlockCursor.GT(Chunk.getHighWater(lastAllocChunk)))
         allocBlockCursor = chunkMap.nextChunk(lastAllocChunk);

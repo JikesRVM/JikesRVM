@@ -27,7 +27,7 @@ import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.heap.Mmapper;
+import org.mmtk.utility.heap.layout.HeapLayout;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -160,7 +160,7 @@ public class DebugUtil {
 
   @Uninterruptible
   public static boolean mappedVMRef(ObjectReference ref) {
-    return Space.isMappedObject(ref) && Mmapper.objectIsMapped(ref);
+    return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
   }
 
   @Uninterruptible

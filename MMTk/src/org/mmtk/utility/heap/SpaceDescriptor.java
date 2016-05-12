@@ -14,8 +14,7 @@ package org.mmtk.utility.heap;
 
 import static org.mmtk.utility.Constants.BITS_IN_INT;
 
-import org.mmtk.policy.Space;
-
+import org.mmtk.utility.heap.layout.VMLayoutConstants;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -47,7 +46,7 @@ import org.vmmagic.unboxed.*;
    *
    */
   private static final int TYPE_BITS = 2;
-  private static final int TYPE_SHARED = 0;
+  @SuppressWarnings("unused") private static final int TYPE_SHARED = 0;
   private static final int TYPE_CONTIGUOUS = 1;
   private static final int TYPE_CONTIGUOUS_HI = 3;
   private static final int TYPE_MASK = (1 << TYPE_BITS) - 1;
@@ -78,10 +77,10 @@ import org.vmmagic.unboxed.*;
    * memory occupied by the space
    */
   public static int createDescriptor(Address start, Address end) {
-    int chunks = end.diff(start).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
+    int chunks = end.diff(start).toWord().rshl(VMLayoutConstants.LOG_BYTES_IN_CHUNK).toInt();
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << SIZE_BITS));
-    boolean top = end.EQ(Space.HEAP_END);
+    boolean top = end.EQ(VMLayoutConstants.HEAP_END);
     Word tmp = start.toWord();
     tmp = tmp.rshl(BASE_EXPONENT);
     int exponent = 0;

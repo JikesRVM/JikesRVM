@@ -12,19 +12,21 @@
  */
 package org.mmtk.utility.heap;
 
-import static org.mmtk.utility.Constants.*;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.*;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-
-import static org.mmtk.policy.Space.PAGES_IN_CHUNK;
-import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
+import org.mmtk.utility.alloc.EmbeddedMetaData;
+import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
 
 /**
  * This class manages the allocation of pages for a space.  When a
@@ -34,6 +36,8 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public final class FreeListPageResource extends PageResource {
+
+  private static final boolean VERBOSE = false;
 
   private final GenericFreeList freeList;
   private int highWaterMark = 0;
@@ -53,7 +57,7 @@ public final class FreeListPageResource extends PageResource {
   public FreeListPageResource(Space space, Address start, Extent bytes) {
     super(space, start);
     int pages = Conversions.bytesToPages(bytes);
-    freeList = new GenericFreeList(pages);
+    freeList = HeapLayout.vmMap.createFreeList(this);
     pagesCurrentlyOnFreeList = pages;
     this.metaDataPagesPerRegion = 0;
   }
@@ -74,7 +78,7 @@ public final class FreeListPageResource extends PageResource {
     super(space, start);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
     int pages = Conversions.bytesToPages(bytes);
-    freeList = new GenericFreeList(pages, EmbeddedMetaData.PAGES_IN_REGION);
+    freeList = HeapLayout.vmMap.createFreeList(this, pages, EmbeddedMetaData.PAGES_IN_REGION);
     pagesCurrentlyOnFreeList = pages;
     reserveMetaData(space.getExtent());
   }
@@ -92,8 +96,8 @@ public final class FreeListPageResource extends PageResource {
   public FreeListPageResource(Space space, int metaDataPagesPerRegion) {
     super(space);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
-    this.start = Space.AVAILABLE_START;
-    freeList = new GenericFreeList(Map.globalPageMap, Map.getDiscontigFreeListPROrdinal(this));
+    this.start = AVAILABLE_START;
+    freeList = HeapLayout.vmMap.createFreeList(this);
     pagesCurrentlyOnFreeList = 0;
   }
 
@@ -120,9 +124,9 @@ public final class FreeListPageResource extends PageResource {
   public int getAvailablePhysicalPages() {
     int rtn = pagesCurrentlyOnFreeList;
     if (!contiguous) {
-      int chunks = Map.getAvailableDiscontiguousChunks() - Map.getChunkConsumerCount();
+      int chunks = HeapLayout.vmMap.getAvailableDiscontiguousChunks() - HeapLayout.vmMap.getChunkConsumerCount();
       if (chunks < 0) chunks = 0;
-      rtn += chunks * (Space.PAGES_IN_CHUNK - metaDataPagesPerRegion);
+      rtn += chunks * (PAGES_IN_CHUNK - metaDataPagesPerRegion);
     }
     return rtn;
   }
@@ -172,7 +176,7 @@ public final class FreeListPageResource extends PageResource {
       commitPages(reservedPages, requiredPages);
       space.growSpace(rtn, bytes, newChunk);
       unlock();
-      Mmapper.ensureMapped(rtn, requiredPages);
+      HeapLayout.mmapper.ensureMapped(rtn, requiredPages);
       if (zeroed)
         VM.memory.zero(zeroNT, rtn, bytes);
       VM.events.tracePageAcquired(space, rtn, requiredPages);
@@ -231,7 +235,7 @@ public final class FreeListPageResource extends PageResource {
 
     if (metaDataPagesPerRegion > 0) {       // can only be a single chunk
       if (pagesFreed == (PAGES_IN_CHUNK - metaDataPagesPerRegion)) {
-        freeContiguousChunk(Space.chunkAlign(freedPage, true));
+        freeContiguousChunk(Conversions.chunkAlign(freedPage, true));
       }
     } else {                                // may be multiple chunks
       if (pagesFreed % PAGES_IN_CHUNK == 0) {    // necessary, but not sufficient condition
@@ -268,18 +272,19 @@ public final class FreeListPageResource extends PageResource {
     Address region = space.growDiscontiguousSpace(requiredChunks);
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
-      int regionEnd = regionStart + (requiredChunks * Space.PAGES_IN_CHUNK) - 1;
+      int regionEnd = regionStart + (requiredChunks * PAGES_IN_CHUNK) - 1;
       freeList.setUncoalescable(regionStart);
       freeList.setUncoalescable(regionEnd + 1);
-      for (int p = regionStart; p < regionEnd; p += Space.PAGES_IN_CHUNK) {
+      for (int p = regionStart; p < regionEnd; p += PAGES_IN_CHUNK) {
         int liberated;
         if (p != regionStart)
           freeList.clearUncoalescable(p);
         liberated = freeList.free(p, true); // add chunk to our free list
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == Space.PAGES_IN_CHUNK + (p - regionStart));
-        if (metaDataPagesPerRegion > 1)
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == PAGES_IN_CHUNK + (p - regionStart));
+        if (metaDataPagesPerRegion > 1) {
           freeList.alloc(metaDataPagesPerRegion, p); // carve out space for metadata
-        pagesCurrentlyOnFreeList += Space.PAGES_IN_CHUNK - metaDataPagesPerRegion;
+        }
+        pagesCurrentlyOnFreeList += PAGES_IN_CHUNK - metaDataPagesPerRegion;
       }
       rtn = freeList.alloc(pages); // re-do the request which triggered this call
     }
@@ -294,20 +299,20 @@ public final class FreeListPageResource extends PageResource {
    * @param chunk The chunk to be freed
    */
   private void freeContiguousChunk(Address chunk) {
-    int numChunks = Map.getContiguousRegionChunks(chunk);
+    int numChunks = HeapLayout.vmMap.getContiguousRegionChunks(chunk);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(numChunks == 1 || metaDataPagesPerRegion == 0);
 
     /* nail down all pages associated with the chunk, so it is no longer on our free list */
     int chunkStart = Conversions.bytesToPages(chunk.diff(start));
-    int chunkEnd = chunkStart + (numChunks * Space.PAGES_IN_CHUNK);
+    int chunkEnd = chunkStart + (numChunks * PAGES_IN_CHUNK);
     while (chunkStart < chunkEnd) {
       freeList.setUncoalescable(chunkStart);
       if (metaDataPagesPerRegion > 0)
         freeList.free(chunkStart);  // first free any metadata pages
-      int tmp = freeList.alloc(Space.PAGES_IN_CHUNK, chunkStart); // then alloc the entire chunk
+      int tmp = freeList.alloc(PAGES_IN_CHUNK, chunkStart); // then alloc the entire chunk
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == chunkStart);
-      chunkStart += Space.PAGES_IN_CHUNK;
-      pagesCurrentlyOnFreeList -= (Space.PAGES_IN_CHUNK - metaDataPagesPerRegion);
+      chunkStart += PAGES_IN_CHUNK;
+      pagesCurrentlyOnFreeList -= (PAGES_IN_CHUNK - metaDataPagesPerRegion);
     }
     /* now return the address space associated with the chunk for global reuse */
     space.releaseDiscontiguousChunks(chunk);

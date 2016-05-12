@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.utility.heap;
+package org.mmtk.utility.heap.layout;
 
 import static org.mmtk.utility.Constants.*;
 
@@ -25,7 +25,8 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements mmapping and protection of virtual memory.
  */
-@Uninterruptible public final class Mmapper {
+@Uninterruptible
+public final class ByteMapMmapper extends Mmapper {
 
   /****************************************************************************
    * Constants
@@ -37,10 +38,7 @@ import org.vmmagic.pragma.*;
   public static final byte UNMAPPED = 0;
   public static final byte MAPPED = 1;
   public static final byte PROTECTED = 2; // mapped but not accessible
-  public static final int LOG_MMAP_CHUNK_BYTES = 20;
-  public static final int MMAP_CHUNK_BYTES = 1 << LOG_MMAP_CHUNK_BYTES;   // the granularity VMResource operates at
-  //TODO: 64-bit: this is not OK: value does not fit in int, but should, we do not want to create such big array
-  private static final int MMAP_CHUNK_MASK = MMAP_CHUNK_BYTES - 1;
+
   /**
    * Number of chunks that can be mmapped, 64bit work around allowing 8GB
    * of addressable memory
@@ -57,8 +55,8 @@ import org.vmmagic.pragma.*;
   /**
    *
    */
-  public static final Lock lock = VM.newLock("Mmapper");
-  private static final byte[] mapped;
+  public final Lock lock = VM.newLock("Mmapper");
+  private final byte[] mapped;
 
 
   /****************************************************************************
@@ -69,7 +67,7 @@ import org.vmmagic.pragma.*;
    * Class initializer.  This is executed <i>prior</i> to bootstrap
    * (i.e. at "build" time).
    */
-  static {
+  public ByteMapMmapper() {
     mapped = new byte[MMAP_NUM_CHUNKS];
     for (int c = 0; c < MMAP_NUM_CHUNKS; c++) {
       mapped[c] = UNMAPPED;
@@ -87,7 +85,8 @@ import org.vmmagic.pragma.*;
    * @param spaceMap An address array containing a pairs of start and end
    * addresses for each of the regions to be mappe3d
    */
-  public static void eagerlyMmapAllSpaces(AddressArray spaceMap) {
+  @Override
+  public void eagerlyMmapAllSpaces(AddressArray spaceMap) {
 
     /*for (int i = 0; i < spaceMap.length() / 2; i++) {
       Address regionStart = spaceMap.get(i * 2);
@@ -111,9 +110,10 @@ import org.vmmagic.pragma.*;
    * @param start The start of the range to be marked as mapped
    * @param bytes The size of the range, in bytes.
    */
-  public static void markAsMapped(Address start, int bytes) {
-    int startChunk = Conversions.addressToMmapChunksDown(start);
-    int endChunk = Conversions.addressToMmapChunksUp(start.plus(bytes));
+  @Override
+  public void markAsMapped(Address start, int bytes) {
+    int startChunk = addressToMmapChunksDown(start);
+    int endChunk = addressToMmapChunksUp(start.plus(bytes));
     for (int i = startChunk; i <= endChunk; i++)
       mapped[i] = MAPPED;
   }
@@ -130,12 +130,13 @@ import org.vmmagic.pragma.*;
    * @param start The start of the range to be mapped.
    * @param pages The size of the range to be mapped, in pages
    */
-  public static void ensureMapped(Address start, int pages) {
-    int startChunk = Conversions.addressToMmapChunksDown(start);
-    int endChunk = Conversions.addressToMmapChunksUp(start.plus(Conversions.pagesToBytes(pages)));
+  @Override
+  public void ensureMapped(Address start, int pages) {
+    int startChunk = addressToMmapChunksDown(start);
+    int endChunk = addressToMmapChunksUp(start.plus(Conversions.pagesToBytes(pages)));
     for (int chunk = startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) continue;
-      Address mmapStart = Conversions.mmapChunksToAddress(chunk);
+      Address mmapStart = mmapChunksToAddress(chunk);
       lock.acquire();
 //      Log.writeln(mmapStart);
       // might have become MAPPED here
@@ -177,14 +178,15 @@ import org.vmmagic.pragma.*;
    * @param start The start of the range to be protected.
    * @param pages The size of the range to be protected, in pages
    */
-  public static void protect(Address start, int pages) {
-    int startChunk = Conversions.addressToMmapChunksDown(start);
-    int chunks = Conversions.pagesToMmapChunksUp(pages);
+  @Override
+  public void protect(Address start, int pages) {
+    int startChunk = addressToMmapChunksDown(start);
+    int chunks = pagesToMmapChunksUp(pages);
     int endChunk = startChunk + chunks;
     lock.acquire();
     for (int chunk = startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
-        Address mmapStart = Conversions.mmapChunksToAddress(chunk);
+        Address mmapStart = mmapChunksToAddress(chunk);
         if (!VM.memory.mprotect(mmapStart, MMAP_CHUNK_BYTES)) {
           lock.release();
           VM.assertions.fail("Mmapper.mprotect failed");
@@ -212,9 +214,10 @@ import org.vmmagic.pragma.*;
    * @param addr The address in question.
    * @return {@code true} if the given address has been mmapped
    */
+  @Override
   @Uninterruptible
-  public static boolean addressIsMapped(Address addr) {
-    int chunk = Conversions.addressToMmapChunksDown(addr);
+  public boolean addressIsMapped(Address addr) {
+    int chunk = addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
 
@@ -224,30 +227,35 @@ import org.vmmagic.pragma.*;
    * @param object The object in question.
    * @return {@code true} if the given object has been mmapped
    */
+  @Override
   @Uninterruptible
-  public static boolean objectIsMapped(ObjectReference object) {
+  public boolean objectIsMapped(ObjectReference object) {
     return addressIsMapped(VM.objectModel.refToAddress(object));
   }
 
-  /**
-   * Return a given address rounded up to an mmap chunk size
-   *
-   * @param addr The address to be aligned
-   * @return The given address rounded up to an mmap chunk size
-   */
-  @SuppressWarnings("unused")  // but might be useful someday
-  private static Address chunkAlignUp(Address addr) {
-    return chunkAlignDown(addr.plus(MMAP_CHUNK_MASK));
+  public static int bytesToMmapChunksUp(Extent bytes) {
+    return bytes.plus(MMAP_CHUNK_BYTES - 1).toWord().rshl(LOG_MMAP_CHUNK_BYTES).toInt();
   }
 
-  /**
-   * Return a given address rounded down to an mmap chunk size
-   *
-   * @param addr The address to be aligned
-   * @return The given address rounded down to an mmap chunk size
-   */
-  private static Address chunkAlignDown(Address addr) {
-    return addr.toWord().and(Word.fromIntSignExtend(MMAP_CHUNK_MASK).not()).toAddress();
+  public static int pagesToMmapChunksUp(int pages) {
+    return bytesToMmapChunksUp(Conversions.pagesToBytes(pages));
   }
+
+  public static int addressToMmapChunksDown(Address addr) {
+    Word chunk = addr.toWord().rshl(LOG_MMAP_CHUNK_BYTES);
+    return chunk.toInt();
+  }
+
+  public static Address mmapChunksToAddress(int chunk) {
+    return Word.fromIntZeroExtend(chunk).lsh(LOG_MMAP_CHUNK_BYTES).toAddress();
+  }
+
+  public static int addressToMmapChunksUp(Address addr) {
+    Word chunk = addr.plus(MMAP_CHUNK_BYTES - 1).toWord().rshl(LOG_MMAP_CHUNK_BYTES);
+    return chunk.toInt();
+  }
+
+
+
 }
 

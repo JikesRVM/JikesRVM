@@ -24,8 +24,8 @@ import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
@@ -104,10 +104,6 @@ public abstract class Plan {
   /* Do we support a log bit in the object header?  Some write barriers may use it */
   public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
 
-  /****************************************************************************
-   * Class variables
-   */
-
   /** The space that holds any VM specific objects (e.g. a boot image) */
   public static final Space vmSpace = VM.memory.getVMSpace();
 
@@ -179,7 +175,7 @@ public abstract class Plan {
     Options.useShortStackScans = new UseShortStackScans();
     Options.threads = new Threads();
     Options.cycleTriggerThreshold = new CycleTriggerThreshold();
-    Map.finalizeStaticSpaceMap();
+    HeapLayout.vmMap.finalizeStaticSpaceMap();
     registerSpecializedMethods();
 
     // Determine the default collector context.
@@ -213,6 +209,7 @@ public abstract class Plan {
    */
   @Interruptible
   public void enableAllocation() {
+    HeapLayout.vmMap.boot();
   }
 
   /**

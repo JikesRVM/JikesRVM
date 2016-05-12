@@ -13,9 +13,9 @@
 package org.mmtk.utility;
 
 import static org.mmtk.utility.Constants.*;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.BYTES_IN_CHUNK;
 
-import org.mmtk.utility.heap.*;
-
+import org.mmtk.utility.heap.layout.VMLayoutConstants;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -52,19 +52,6 @@ import org.vmmagic.pragma.*;
       return (megs + ((BYTES_IN_PAGE >>> LOG_BYTES_IN_MBYTE) - 1)) >>> (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_MBYTE);
   }
 
-  public static int bytesToMmapChunksUp(Extent bytes) {
-    return bytes.plus(Mmapper.MMAP_CHUNK_BYTES - 1).toWord().rshl(Mmapper.LOG_MMAP_CHUNK_BYTES).toInt();
-  }
-
-  public static int pagesToMmapChunksUp(int pages) {
-    return bytesToMmapChunksUp(pagesToBytes(pages));
-  }
-
-  public static int addressToMmapChunksDown(Address addr) {
-    Word chunk = addr.toWord().rshl(Mmapper.LOG_MMAP_CHUNK_BYTES);
-    return chunk.toInt();
-  }
-
   public static int addressToPagesDown(Address addr) {
     Word chunk = addr.toWord().rshl(LOG_BYTES_IN_PAGE);
     return chunk.toInt();
@@ -80,13 +67,12 @@ import org.vmmagic.pragma.*;
     return Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toAddress();
   }
 
-  public static int addressToMmapChunksUp(Address addr) {
-    Word chunk = addr.plus(Mmapper.MMAP_CHUNK_BYTES - 1).toWord().rshl(Mmapper.LOG_MMAP_CHUNK_BYTES);
-    return chunk.toInt();
-  }
-
   public static Extent pagesToBytes(int pages) {
     return Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
+  }
+
+  public static Extent pagesToBytes(long pages) {
+    return Word.fromLong(pages).lsh(LOG_BYTES_IN_PAGE).toExtent();
   }
 
   public static int pagesToMBytes(int pages) {
@@ -120,16 +106,12 @@ import org.vmmagic.pragma.*;
   public static int bytesToPages(Offset bytes) {
     if (VM.VERIFY_ASSERTIONS) {
       long val = bytes.toLong();
-      VM.assertions._assert(val >= MIN_INT && val <= MAX_INT);
+      VM.assertions._assert(val >= ((long)MIN_INT) << LOG_BYTES_IN_PAGE && val <= ((long)MAX_INT) << LOG_BYTES_IN_PAGE);
     }
     if (bytes.sGE(Offset.zero()))
-      return bytesToPagesUp(Extent.fromIntSignExtend(bytes.toInt()));
+      return bytesToPagesUp(bytes.toWord().toExtent());
     else
-      return -bytesToPagesUp(Extent.fromIntSignExtend(-bytes.toInt()));
-  }
-
-  public static Address mmapChunksToAddress(int chunk) {
-    return Word.fromIntZeroExtend(chunk).lsh(Mmapper.LOG_MMAP_CHUNK_BYTES).toAddress();
+      return -bytesToPagesUp(Extent.fromLong(-bytes.toLong()));
   }
 
   public static Address pageAlign(Address address) {
@@ -147,4 +129,66 @@ import org.vmmagic.pragma.*;
   public static boolean isPageAligned(int value) {
     return pageAlign(value) == value;
   }
+
+  /**
+   * Align an address to a space chunk
+   *
+   * @param addr The address to be aligned
+   * @param down If {@code true} the address will be rounded down, otherwise
+   * it will rounded up.
+   * @return The chunk-aligned address
+   */
+  public static Address chunkAlign(Address addr, boolean down) {
+    if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
+    return addr.toWord().rshl(VMLayoutConstants.LOG_BYTES_IN_CHUNK).lsh(VMLayoutConstants.LOG_BYTES_IN_CHUNK).toAddress();
+  }
+
+  /**
+   * Align an extent to a space chunk
+   *
+   * @param bytes The extent to be aligned
+   * @param down If {@code true} the extent will be rounded down, otherwise
+   * it will rounded up.
+   * @return The chunk-aligned extent
+   */
+  public static Extent chunkAlign(Extent bytes, boolean down) {
+    return alignWord(bytes.toWord(), VMLayoutConstants.LOG_BYTES_IN_CHUNK, down).toExtent();
+  }
+
+  /**
+   * Align an address to an arbitrary boundary
+   *
+   * @param bytes The extent to be aligned
+   * @param bits The log_2 of the boundary size
+   * @return The aligned address
+   */
+  public static Address alignUp(Address addr, int bits) {
+    return alignWord(addr.toWord(), bits, false).toAddress();
+  }
+
+  /**
+   * Align an address to an arbitrary boundary
+   *
+   * @param bytes The extent to be aligned
+   * @param bits The log_2 of the boundary size
+   * @return The aligned address
+   */
+  public static Address alignDown(Address addr, int bits) {
+    return alignWord(addr.toWord(), bits, true).toAddress();
+  }
+
+  @Inline
+  public static Word alignWord(Word addr, int bits, boolean down) {
+    if (!down) {
+      if (BITS_IN_ADDRESS == 64 && bits >= 32) {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bits < 64);
+        addr = addr.plus(Word.fromLong((1L << bits) - 1));
+      } else {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bits < 32);
+        addr = addr.plus(Word.fromIntZeroExtend((1 << bits) - 1));
+      }
+    }
+    return addr.rshl(bits).lsh(bits);
+  }
+
 }

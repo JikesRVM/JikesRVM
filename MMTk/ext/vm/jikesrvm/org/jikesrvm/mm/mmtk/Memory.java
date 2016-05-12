@@ -27,8 +27,8 @@ import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.heap.layout.VMLayoutConstants;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -99,7 +99,7 @@ import org.vmmagic.unboxed.Offset;
   static {
     Offset bootSegmentBytes = BOOT_IMAGE_END.diff(BOOT_IMAGE_DATA_START);
     BOOT_SEGMENT_MB = org.jikesrvm.runtime.Memory.alignUp(bootSegmentBytes.toInt(),
-        Space.BYTES_IN_CHUNK) >>> LOG_BYTES_IN_MBYTE;
+        VMLayoutConstants.BYTES_IN_CHUNK) >>> LOG_BYTES_IN_MBYTE;
   }
 
   /**
