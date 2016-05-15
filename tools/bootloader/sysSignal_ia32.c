@@ -585,7 +585,7 @@ EXTERNAL int readContextTrapCode(void UNUSED *context, Address threadPtr, int si
  */
 EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
              int trapCode, Word trapInfo,
-             Address instructionPtr,
+             Address instructionPtr UNUSED,
              Address instructionFollowingPtr,
              Address threadPtr, Address jtocPtr,
              Address framePtr, int signo)

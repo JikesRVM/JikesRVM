@@ -15,11 +15,11 @@
  * Implementation of JNI Invocation API for Jikes RVM.
  */
 
-#define NEED_VIRTUAL_MACHINE_DECLARATIONS
-#define NEED_EXIT_STATUS_CODES
 #define NEED_BOOT_RECORD_INITIALIZATION 1
 #include "sys.h"
 #include <stdarg.h>
+#include <unistd.h> // getpagesize
+#include <string.h> // strerror
 
 #include <errno.h> // errno
 #include <sys/mman.h>  // PROT_*
@@ -497,13 +497,13 @@ JNIEXPORT jint JNICALL JNI_CreateJavaVM(JavaVM **mainJavaVM, JNIEnv **mainJNIEnv
   return createVM(0);
 }
 
-JNIEXPORT jint JNICALL JNI_GetDefaultJavaVMInitArgs(void *initArgs)
+JNIEXPORT jint JNICALL JNI_GetDefaultJavaVMInitArgs(void *initArgs UNUSED)
 {
   ERROR_PRINTF("UNIMPLEMENTED JNI call JNI_GetDefaultJavaVMInitArgs\n");
   return JNI_ERR;
 }
 
-JNIEXPORT jint JNICALL JNI_GetCreatedJavaVMs(JavaVM **vmBuf, jsize buflen, jsize *nVMs)
+JNIEXPORT jint JNICALL JNI_GetCreatedJavaVMs(JavaVM **vmBuf UNUSED, jsize buflen UNUSED, jsize *nVMs UNUSED)
 {
   ERROR_PRINTF("UNIMPLEMENTED JNI call JNI_GetCreatedJavaVMs\n");
   return JNI_ERR;

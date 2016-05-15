@@ -19,6 +19,7 @@
 #include <string.h> // memset
 #include <sys/resource.h> // getpriority, setpriority and PRIO_PROCESS
 #include <setjmp.h> // jmp_buf, longjmp, ...
+#include <unistd.h> // pause
 
 #ifdef RVM_FOR_LINUX
 #  include <sys/sysinfo.h> // get_nprocs
@@ -96,7 +97,6 @@ void createThreadLocal(TLS_KEY_TYPE *key) {
 static void createThreadSpecificDataKeys()
 {
   TRACE_PRINTF("%s: createThreadSpecificDataKeys\n", Me);
-  int rc;
 
   // Create a key for thread-specific data so we can associate
   // the id of the Processor object with the pthread it is running on.
@@ -748,7 +748,7 @@ EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNan
   fflush(NULL);
 #endif
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-  int rc = pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
+  pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
 #ifdef DEBUG_THREAD
   TRACE_PRINTF("returned from wait at %lld instead of %lld with res = %d\n",
                sysNanoTime(),whenWakeupNanos,rc);

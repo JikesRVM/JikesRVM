@@ -18,9 +18,11 @@
 #include "sys.h"
 
 /**
- * Transfer execution from C to Java for thread startup
+ * Transfer execution from C to Java for thread startup.
+ *
+ * Note: jtoc is currently unused on IA-32 32-bit.
  */
-void bootThread (void *ip, void *tr, void *sp, void *jtoc)
+void bootThread (void *ip, void *tr, void *sp, void *jtoc UNUSED)
 {
   void *saved_ebp;
   asm volatile (
