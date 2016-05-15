@@ -154,7 +154,7 @@ EXTERNAL void sysExit(int value)
   }
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
-  if (verbose & value != 0) {
+  if (verbose & (value != 0)) {
     TRACE_PRINTF("%s: exit %d\n", Me, value);
   }
 

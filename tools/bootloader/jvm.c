@@ -484,6 +484,8 @@ int createVM(int vmInSeparateThread)
   sysStartMainThread(vmInSeparateThread, bootRecord->ipRegister, bootRecord->spRegister,
                      *(Address *) (bootRecord->tocRegister + bootRecord->bootThreadOffset),
                      bootRecord->tocRegister, &bootRecord->bootCompleted);
+  // should be unreachable but return is necessary to make compiler happy
+  return 1;
 }
 
 JNIEXPORT jint JNICALL JNI_CreateJavaVM(JavaVM **mainJavaVM, JNIEnv **mainJNIEnv, void *initArgs)
