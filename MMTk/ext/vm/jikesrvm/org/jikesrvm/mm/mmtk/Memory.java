@@ -21,14 +21,15 @@ import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 import static org.mmtk.utility.Constants.LOG_BYTES_IN_MBYTE;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.BYTES_IN_CHUNK;
 
+import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.heap.layout.VMLayoutConstants;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -45,42 +46,57 @@ import org.vmmagic.unboxed.Offset;
    */
   private static final int LOG_BYTES_IN_PAGE_LIE = 12;
 
+  /** {@inheritDoc} */
+  @Override
+  protected boolean getHeapLayout32Bit() {
+    return HeapLayoutConstants.HEAP_LAYOUT == HeapLayoutConstants.HEAP_LAYOUT_32BIT;
+  }
+  /** {@inheritDoc} */
   @Override
   protected final Address getHeapStartConstant() {
     return BOOT_IMAGE_DATA_START;
   }
+  /** {@inheritDoc} */
   @Override
   protected final Address getHeapEndConstant() {
     return MAXIMUM_MAPPABLE;
   }
+  /** {@inheritDoc} */
   @Override
   protected final Address getAvailableStartConstant() {
     return BOOT_IMAGE_END;
   }
+  /** {@inheritDoc} */
   @Override
   protected final Address getAvailableEndConstant() {
     return MAXIMUM_MAPPABLE;
   }
+  /** {@inheritDoc} */
   @Override
   protected final byte getLogBytesInAddressConstant() {
     return LOG_BYTES_IN_ADDRESS;
   }
+  /** {@inheritDoc} */
   @Override
   protected final byte getLogBytesInWordConstant() {
     return LOG_BYTES_IN_WORD;
   }
+  /** {@inheritDoc} */
   @Override
   protected final byte getLogBytesInPageConstant() {
     return LOG_BYTES_IN_PAGE_LIE;
   }
+  /** {@inheritDoc} */
   @Override
   protected final byte getLogMinAlignmentConstant() {
     return JavaHeader.LOG_MIN_ALIGNMENT;
   }
+  /** {@inheritDoc} */
   @Override
   protected final int getMaxBytesPaddingConstant() {
     return BYTES_IN_DOUBLE;
   }
+  /** {@inheritDoc} */
   @Override
   protected final int getAlignmentValueConstant() {
     return JavaHeader.ALIGNMENT_VALUE;
@@ -93,14 +109,6 @@ import org.vmmagic.unboxed.Offset;
   }
 
   private static ImmortalSpace bootSpace;
-
-  private static final int BOOT_SEGMENT_MB;
-
-  static {
-    Offset bootSegmentBytes = BOOT_IMAGE_END.diff(BOOT_IMAGE_DATA_START);
-    BOOT_SEGMENT_MB = org.jikesrvm.runtime.Memory.alignUp(bootSegmentBytes.toInt(),
-        VMLayoutConstants.BYTES_IN_CHUNK) >>> LOG_BYTES_IN_MBYTE;
-  }
 
   /**
    * Return the space associated with/reserved for the VM.  In the
@@ -121,33 +129,44 @@ import org.vmmagic.unboxed.Offset;
   @Override
   @Interruptible
   public final ImmortalSpace getVMSpace() {
+    Offset bootSegmentBytes = BOOT_IMAGE_END.diff(BOOT_IMAGE_DATA_START);
+    if (VM.VerifyAssertions) VM._assert(bootSegmentBytes.sGT(Offset.zero()));
+
+    int bootSegmentMb = org.jikesrvm.runtime.Memory.alignUp(bootSegmentBytes.toWord().toAddress(),
+        BYTES_IN_CHUNK).toWord().rshl(LOG_BYTES_IN_MBYTE).toInt();
     if (bootSpace == null) {
-      bootSpace = new ImmortalSpace("boot", VMRequest.fixedSize(BOOT_SEGMENT_MB));
+      bootSpace = new ImmortalSpace("boot", VMRequest.fixedSize(bootSegmentMb));
     }
     return bootSpace;
   }
 
+  /** {@inheritDoc} */
   @Override
   public final void globalPrepareVMSpace() {
     bootSpace.prepare();
   }
 
+  /** {@inheritDoc} */
   @Override
   public final void collectorPrepareVMSpace() {}
 
+  /** {@inheritDoc} */
   @Override
   public final void collectorReleaseVMSpace() {}
 
+  /** {@inheritDoc} */
   @Override
   public final void globalReleaseVMSpace() {
     bootSpace.release();
   }
 
+  /** {@inheritDoc} */
   @Override
   public final void setHeapRange(int id, Address start, Address end) {
     BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
 
+  /** {@inheritDoc} */
   @Override
   public final int dzmmap(Address start, int size) {
     Address result = org.jikesrvm.runtime.Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
@@ -160,12 +179,14 @@ import org.vmmagic.unboxed.Offset;
     return result.toInt();
   }
 
+  /** {@inheritDoc} */
   @Override
   public final boolean mprotect(Address start, int size) {
     return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
                                                    org.jikesrvm.runtime.Memory.PROT_NONE);
   }
 
+  /** {@inheritDoc} */
   @Override
   public final boolean munprotect(Address start, int size) {
     return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
@@ -174,11 +195,13 @@ import org.vmmagic.unboxed.Offset;
                                                    org.jikesrvm.runtime.Memory.PROT_EXEC);
   }
 
+  /** {@inheritDoc} */
   @Override
   public final void zero(boolean useNT, Address start, Extent len) {
     org.jikesrvm.runtime.Memory.zero(useNT, start,len);
   }
 
+  /** {@inheritDoc} */
   @Override
   public final void dumpMemory(Address start, int beforeBytes,
                                 int afterBytes) {
@@ -186,15 +209,17 @@ import org.vmmagic.unboxed.Offset;
   }
 
   /*
-   * Utilities from the VM class
+   * Utilities from the Magic class
    */
 
+  /** {@inheritDoc} */
   @Override
   @Inline
   public final void sync() {
     Magic.sync();
   }
 
+  /** {@inheritDoc} */
   @Override
   @Inline
   public final void isync() {

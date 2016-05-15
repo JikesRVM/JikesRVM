@@ -19,6 +19,19 @@ import org.vmmagic.unboxed.*;
  */
 public final class HeapLayoutConstants {
 
+  /*
+   * Determine the heap layout
+   */
+   
+  /** The traditional 32-bit heap layout */
+  public static final int HEAP_LAYOUT_32BIT = 1;
+
+  /** The 64-bit heap layout that allows heap sizes up to 2^42 bytes */
+  public static final int HEAP_LAYOUT_64BIT = 2;
+
+  /** Choose between the possible heap layout styles */
+  public static final int HEAP_LAYOUT = HEAP_LAYOUT_@_HEAP_LAYOUT_@;
+
   /** The address of the start of the data section of the boot image. */
   public static final Address BOOT_IMAGE_DATA_START =
     Address.@_ADDRESS_METHOD_@( @_BOOTIMAGE_DATA_ADDRESS_@ );

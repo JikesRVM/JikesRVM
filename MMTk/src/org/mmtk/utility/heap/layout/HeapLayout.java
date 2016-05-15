@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility.heap.layout;
 
+import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -28,7 +29,9 @@ public final class HeapLayout {
    * Class variables
    */
 
-  public static final Map vmMap = new Map32();
+  public static final Map vmMap =
+      VM.HEAP_LAYOUT_32BIT ? new Map32() : new Map64();
 
-  public static final Mmapper mmapper = new ByteMapMmapper();
+  public static final Mmapper mmapper =
+      VM.HEAP_LAYOUT_32BIT ? new ByteMapMmapper() : new FragmentedMmapper();
 }

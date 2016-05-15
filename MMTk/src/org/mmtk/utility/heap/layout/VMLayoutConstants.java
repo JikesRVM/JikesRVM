@@ -20,6 +20,7 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Careful not to introduce too many dependencies, because static initialization races are
@@ -34,7 +35,7 @@ public class VMLayoutConstants {
   static final boolean VERBOSE_BUILD = true;
 
   /** log_2 of the addressable virtual space */
-  public static final int LOG_ADDRESS_SPACE = 32;
+  public static final int LOG_ADDRESS_SPACE = VM.HEAP_LAYOUT_32BIT ? 32 : HeapParameters.LOG_SPACE_SIZE_64 + HeapParameters.LOG_MAX_SPACES;
 
   /**
    * log_2 of the coarsest unit of address space allocation.
@@ -62,7 +63,7 @@ public class VMLayoutConstants {
    * An upper bound on the extent of any space in the
    * current memory layout
    */
-  public static final int LOG_SPACE_EXTENT = 31;
+  public static final int LOG_SPACE_EXTENT = VM.HEAP_LAYOUT_64BIT ? HeapParameters.LOG_SPACE_SIZE_64 : 31;
 
   /**
    * An upper bound on the extent of any space in the
@@ -95,6 +96,49 @@ public class VMLayoutConstants {
 
   /** Granularity at which we map and unmap virtual address space in the heap */
   public static final int LOG_MMAP_CHUNK_BYTES = 20;
+
+  /** log_2 of the number of pages in a 64-bit space */
+  public static final int LOG_PAGES_IN_SPACE64 = HeapParameters.LOG_SPACE_SIZE_64 - LOG_BYTES_IN_PAGE;
+
+  /** The number of pages in a 64-bit space */
+  public static final int PAGES_IN_SPACE64 = 1 << LOG_PAGES_IN_SPACE64;
+
+  /*
+   *  The 64-bit VM layout divides address space into LOG_MAX_SPACES (k) fixed size
+   *  regions of size 2^n, aligned at 2^n byte boundaries.  A virtual address can be
+   *  subdivided into fields as follows
+   *
+   *    64                              0
+   *    00...0SSSSSaaaaaaaaaaa...aaaaaaaa
+   *
+   * The field 'S' identifies the space to which the address points.
+   */
+
+  /**
+   * Number of bits to shift a space index into/out of a virtual address.
+   */
+   /* In a 32-bit model, use a dummy value so that the compiler doesn't barf. */
+  public static final int SPACE_SHIFT_64 = VM.HEAP_LAYOUT_64BIT ? HeapParameters.LOG_SPACE_SIZE_64 : 0;
+
+  /**
+   * Bitwise mask to isolate a space index in a virtual address.
+   *
+   * We can't express this constant in a 32-bit environment, hence the
+   * conditional definition.
+   */
+  public static final Word SPACE_MASK_64 = VM.HEAP_LAYOUT_64BIT ?
+      Word.fromLong((1L << HeapParameters.LOG_MAX_SPACES) - 1).lsh(SPACE_SHIFT_64) :
+        Word.zero();
+
+  /**
+   * Size of each space in the 64-bit memory layout
+   *
+   * We can't express this constant in a 32-bit environment, hence the
+   * conditional definition.
+   */
+  public static final Extent SPACE_SIZE_64 = VM.HEAP_LAYOUT_64BIT ?
+      Word.fromLong(1L << HeapParameters.LOG_SPACE_SIZE_64).toExtent() :
+        MAX_SPACE_EXTENT;
 
   static {
     if (VERBOSE_BUILD) {

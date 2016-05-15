@@ -12,7 +12,6 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -91,7 +90,7 @@ import org.vmmagic.pragma.*;
  * the doubly linked list of free blocks.
  */
 @Uninterruptible
-public final class GenericFreeList extends BaseGenericFreeList {
+public abstract class GenericFreeList {
 
   /****************************************************************************
    *
@@ -99,86 +98,272 @@ public final class GenericFreeList extends BaseGenericFreeList {
    */
 
   /**
-   * Constructor
+   * Allocate <code>size</code> units. Return the unit ID
    *
-   * @param units The number of allocatable units for this free list
+   * @param size  The number of units to be allocated
+   * @return The index of the first of the <code>size</code>
+   * contiguous units, or -1 if the request can't be satisfied
    */
-  public GenericFreeList(int units) {
-    this(units, units);
+  public int alloc(int size) {
+    // Note: -1 is both the default return value *and* the start sentinel index
+    int unit = head; // HEAD = -1
+    int s = 0;
+    while (((unit = getNext(unit)) != head) && ((s = getSize(unit)) < size));
+    return (unit == head) ? FAILURE : alloc(size, unit, s);
   }
 
   /**
-   * Constructor
+   * Would an allocation of <code>size</code> units succeed?
    *
-   * @param units The number of allocatable units for this free list
-   * @param grain Units are allocated such that they will never cross this granularity boundary
+   * @param size The number of units to test for
+   * @return True if such a request could be satisfied.
    */
-  public GenericFreeList(int units, int grain) {
-    this(units, grain, 1);
+  public boolean couldAlloc(int size) {
+    // Note: -1 is both the default return value *and* the start sentinel index
+    int unit = head; // HEAD = -1
+    while (((unit = getNext(unit)) != head) && (getSize(unit) < size));
+
+    return (unit != head);
   }
 
   /**
-   * Constructor
+   * Allocate <code>size</code> units. Return the unit ID
    *
-   * @param units The number of allocatable units for this free list
-   * @param grain Units are allocated such that they will never cross this granularity boundary
-   * @param heads The number of free lists which will share this instance
+   * @param size  The number of units to be allocated
+   * @param unit First unit to consider
+   * @return The index of the first of the <code>size</code>
+   * contiguous units, or -1 if the request can't be satisfied
    */
-  public GenericFreeList(int units, int grain, int heads) {
-    this.parent = null;
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS && heads <= MAX_HEADS);
-    this.heads = heads;
-    head = -1;
+  public final int alloc(int size, int unit) {
+    int s = 0;
 
-    // allocate the data structure, including space for top & bottom sentinels
-    table = new int[(units + 1 + heads) << 1];
-    initializeHeap(units, grain);
+    if (getFree(unit) && (s = getSize(unit)) >= size)
+      return alloc(size, unit, s);
+    else
+      return FAILURE;
   }
 
   /**
-   * Resize the free list for a parent free list.
-   * This must not be called dynamically (ie not after bootstrap).
+   * Allocate <code>size</code> units. Return the unit ID
    *
-   * @param units The number of allocatable units for this free list
-   * @param grain Units are allocated such that they will never cross this granularity boundary
+   * @param size  The number of units to be allocated
+   * @param unit TODO needs documentation
+   * @param unitSize TODO needs documentation
+   * @return The index of the first of the <code>size</code>
+   * contiguous units, or -1 if the request can't be satisfied
    */
-  @Interruptible
-  public void resizeFreeList(int units, int grain) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent == null && !Plan.isInitialized());
-    table = new int[(units + 1 + heads) << 1];
-    initializeHeap(units, grain);
+  private int alloc(int size, int unit, int unitSize) {
+    if (unitSize >= size) {
+      if (unitSize > size)
+        split(unit, size);
+      removeFromFree(unit);
+      setFree(unit, false);
+    }
+
+    if (DEBUG) dbgPrintFree();
+
+    return unit;
   }
 
   /**
-   * Resize the free list for a child free list.
-   * This must not be called dynamically (ie not after bootstrap).
+   * Free a previously allocated contiguous lump of units.
+   *
+   * @param unit The index of the first unit.
+   * @return return the size of the unit which was freed.
    */
-  @Interruptible
-  public void resizeFreeList() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent != null && !Plan.isInitialized());
-    table = parent.getTable();
+  public final int free(int unit) {
+    return free(unit, false);
   }
 
   /**
-   * Constructor
+   * Free a previously allocated contiguous lump of units.
    *
-   * @param parent The parent, owning the data structures this instance will share
-   * @param ordinal The ordinal number of this child
+   * @param unit The index of the first unit.
+   * @param returnCoalescedSize if true, return the coalesced size
+   * @return The number of units freed. if returnCoalescedSize is
+   *  false, return the size of the unit which was freed.  Otherwise
+   *   return the size of the unit now available (the coalesced size)
    */
-  public GenericFreeList(GenericFreeList parent, int ordinal) {
-    this.parent = parent;
-    this.table = parent.getTable();
-    this.heads = parent.getHeads();
-    this.head = -(1 + ordinal);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(-this.head <= this.heads);
+  public final int free(int unit, boolean returnCoalescedSize) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!getFree(unit));
+    int freed = getSize(unit);
+    int left = getLeft(unit);
+    int start = isCoalescable(unit) && getFree(left) ? left : unit;
+    int right = getRight(unit);
+    int end = isCoalescable(right) && getFree(right) ? right : unit;
+    if (start != end)
+      coalesce(start, end);
+
+    if (returnCoalescedSize)
+      freed = getSize(start);
+    addToFree(start);
+
+    if (DEBUG) dbgPrintFree();
+    return freed;
   }
 
-  /* Getter */
-  int[] getTable() {
-    return table;
+  /**
+   * Return the size of the specified lump of units
+   *
+   * @param unit The index of the first unit in the lump.
+   * @return The size of the lump, in units.
+   */
+  public final int size(int unit) {
+    return getSize(unit);
   }
-  int getHeads() {
-    return heads;
+
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
+
+  /**
+   * Initialize a new heap.  Fabricate a free list entry containing
+   * everything
+   *
+   * @param units The number of units in the heap
+   */
+  protected final void initializeHeap(int units) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= (1L << 32) - 1);
+    initializeHeap(units, (int)units);
+  }
+
+  /**
+   * Initialize a new heap.  Fabricate a free list entry containing
+   * everything
+   *
+   * @param units The number of units in the heap
+   * @param grain TODO needs documentation
+   */
+  protected final void initializeHeap(int units, int grain) {
+    // Initialize the sentinels
+    for (int i = 1; i <= heads; i++)
+      setSentinel(-i);
+    setSentinel(units);
+
+    // create the free list item
+    int offset = (int)(units % grain);
+    int cursor = units - offset;
+    if (offset > 0) {
+      setSize(cursor, offset);
+      addToFree(cursor);
+    }
+    cursor -= grain;
+    while (cursor >= 0) {
+      setSize(cursor, grain);
+      addToFree(cursor);
+      cursor -= grain;
+    }
+    if (DEBUG) dbgPrintFree();
+  }
+
+  /**
+   * Reduce a lump of units to size, freeing any excess.
+   *
+   * @param unit The index of the first unit
+   * @param size The size of the first part
+   */
+  private void split(int unit, int size) {
+    int basesize = getSize(unit);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(basesize > size);
+    setSize(unit, size);
+    setSize(unit + size, basesize - size);
+    addToFree(unit + size);
+    if (DEBUG) dbgPrintFree();
+  }
+
+  /**
+   * Coalesce two or three contiguous lumps of units, removing start
+   * and end lumps from the free list as necessary.
+   * @param start The index of the start of the first lump
+   * @param end The index of the start of the last lump
+   */
+  private void coalesce(int start, int end) {
+    if (getFree(end))
+      removeFromFree(end);
+    if (getFree(start))
+      removeFromFree(start);
+
+    setSize(start, (int)(end - start + getSize(end)));
+  }
+
+  /**
+   * Add a lump of units to the free list
+   *
+   * @param unit The first unit in the lump of units to be added
+   */
+  protected void addToFree(int unit) {
+    setFree(unit, true);
+    int next = getNext(head);
+    setNext(unit, next);
+    setNext(head, unit);
+    setPrev(unit, head);
+    setPrev(next, unit);
+  }
+
+  /**
+   * Remove a lump of units from the free list
+   *
+   * @param unit The first unit in the lump of units to be removed
+   */
+  private void removeFromFree(int unit) {
+    int next = getNext(unit);
+    int prev = getPrev(unit);
+    setNext(prev, next);
+    setPrev(next, prev);
+    if (DEBUG) dbgPrintFree();
+  }
+
+  /**
+   * Get the lump to the "right" of the current lump (i.e. "below" it)
+   *
+   * @param unit The index of the first unit in the lump in question
+   * @return The index of the first unit in the lump to the
+   * "right"/"below" the lump in question.
+   */
+  private int getRight(int unit) {
+    return unit + getSize(unit);
+  }
+
+
+  /**
+   * Print the free list (for debugging purposes)
+   */
+  public void dbgPrintFree() {
+    Log.write("FL[");
+    int i = head;
+    while ((i = getNext(i)) != head) {
+      boolean f = getFree(i);
+      int s = getSize(i);
+      if (!f)
+        Log.write("->");
+      Log.write(i);
+      if (!f)
+        Log.write("<-");
+      Log.write("(");
+      Log.write(s);
+      Log.write(")");
+      Log.write(" ");
+      Log.flush();
+    }
+    Log.writeln("]FL");
+  }
+
+  /**
+   * Print one entry in the free list (for debugging purposes)
+   */
+  protected void dbgPrintEntry(int i) {
+    boolean multi = isMulti(i);
+    boolean free = isFree(i);
+    boolean coalesc = isCoalescable(i);
+    int prev = getPrev(i);
+    int next = getNext(i);
+    Log.write(i); Log.write("  : ");
+    Log.write(multi ? 'M' : ' ');
+    Log.write(free ? 'F' : 'A');
+    Log.write(coalesc ? 'C' : ' ');
+    Log.write(" <"); Log.write(prev);
+    Log.write("< >"); Log.write(next); Log.writeln(">");
   }
 
   /**
@@ -186,10 +371,9 @@ public final class GenericFreeList extends BaseGenericFreeList {
    *
    * @param unit The unit to be initialized
    */
-  @Override
   protected void setSentinel(int unit) {
-    setLoEntry(unit, NEXT_MASK & unit);
-    setHiEntry(unit, PREV_MASK & unit);
+    setLoEntry(unit, NEXT_MASK & (int)unit);
+    setHiEntry(unit, PREV_MASK & (int)unit);
   }
 
   /**
@@ -198,7 +382,6 @@ public final class GenericFreeList extends BaseGenericFreeList {
    * @param unit The first unit in the lump of units
    * @return The size of the lump of units
    */
-  @Override
   protected int getSize(int unit) {
     if ((getHiEntry(unit) & MULTI_MASK) == MULTI_MASK)
       return (getHiEntry(unit + 1) & SIZE_MASK);
@@ -212,7 +395,6 @@ public final class GenericFreeList extends BaseGenericFreeList {
    * @param unit The first unit in the lump of units
    * @param size The size of the lump of units
    */
-  @Override
   protected void setSize(int unit, int size) {
     if (size > 1) {
       setHiEntry(unit, getHiEntry(unit) | MULTI_MASK);
@@ -222,16 +404,17 @@ public final class GenericFreeList extends BaseGenericFreeList {
       setHiEntry(unit, getHiEntry(unit) & ~MULTI_MASK);
   }
 
+
   /**
    * Establish whether a lump of units is free
    *
    * @param unit The first or last unit in the lump
    * @return {@code true} if the lump is free
    */
-  @Override
   protected boolean getFree(int unit) {
     return ((getLoEntry(unit) & FREE_MASK) == FREE_MASK);
   }
+
 
   /**
    * Set the "free" flag for a lump of units (both the first and last
@@ -240,7 +423,6 @@ public final class GenericFreeList extends BaseGenericFreeList {
    * @param unit The first unit in the lump
    * @param isFree {@code true} if the lump is to be marked as free
    */
-  @Override
   protected void setFree(int unit, boolean isFree) {
     int size;
     if (isFree) {
@@ -254,17 +436,18 @@ public final class GenericFreeList extends BaseGenericFreeList {
     }
   }
 
+
   /**
    * Get the next lump in the doubly linked free list
    *
    * @param unit The index of the first unit in the current lump
    * @return The index of the first unit of the next lump of units in the list
    */
-  @Override
   protected int getNext(int unit) {
     int next = getHiEntry(unit) & NEXT_MASK;
     return (next <= MAX_UNITS) ? next : head;
   }
+
 
   /**
    * Set the next lump in the doubly linked free list
@@ -272,13 +455,13 @@ public final class GenericFreeList extends BaseGenericFreeList {
    * @param unit The index of the first unit in the lump to be set
    * @param next The value to be set.
    */
-  @Override
   protected void setNext(int unit, int next) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= -heads) && (next <= MAX_UNITS));
     int oldValue = getHiEntry(unit);
-    int newValue = (oldValue & ~NEXT_MASK) | (next & NEXT_MASK);
+    int newValue = (oldValue & ~NEXT_MASK) | ((int)next & NEXT_MASK);
     setHiEntry(unit, newValue);
   }
+
 
   /**
    * Get the previous lump in the doubly linked free list
@@ -287,11 +470,11 @@ public final class GenericFreeList extends BaseGenericFreeList {
    * @return The index of the first unit of the previous lump of units
    * in the list
    */
-  @Override
   protected int getPrev(int unit) {
     int prev = getLoEntry(unit) & PREV_MASK;
     return (prev <= MAX_UNITS) ? prev : head;
   }
+
 
   /**
    * Set the previous lump in the doubly linked free list
@@ -299,46 +482,13 @@ public final class GenericFreeList extends BaseGenericFreeList {
    * @param unit The index of the first unit in the lump to be set
    * @param prev The value to be set.
    */
-  @Override
   protected void setPrev(int unit, int prev) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= -heads) && (prev <= MAX_UNITS));
     int oldValue = getLoEntry(unit);
-    int newValue = (oldValue & ~PREV_MASK) | (prev & PREV_MASK);
+    int newValue = (oldValue & ~PREV_MASK) | ((int)prev & PREV_MASK);
     setLoEntry(unit, newValue);
   }
 
-  /**
-   * Set the uncoalescable bit associated with this unit.
-   * This ensures this unit cannot be coalesced with units below
-   * it.
-   *
-   * @param unit The unit whose uncoalescable bit is to be set
-   */
-  public void setUncoalescable(int unit) {
-    setLoEntry(unit, getLoEntry(unit) | COALESC_MASK);
-  }
-
-  /**
-   * Clear the uncoalescable bit associated with this unit.
-   * This allows this unit to be coalesced with units below
-   * it.
-   *
-   * @param unit The unit whose uncoalescable bit is to be cleared
-   */
-  public void clearUncoalescable(int unit) {
-    setLoEntry(unit, getLoEntry(unit) & ~COALESC_MASK);
-  }
-
-  /**
-   * Return true if this unit may be coalesced with the unit below it.
-   *
-   * @param unit The unit in question
-   * @return {@code true} if this unit may be coalesced with the unit below it.
-   */
-  @Override
-  public boolean isCoalescable(int unit) {
-    return (getLoEntry(unit) & COALESC_MASK) == 0;
-  }
 
   /**
    * Get the lump to the "left" of the current lump (i.e. "above" it)
@@ -347,7 +497,6 @@ public final class GenericFreeList extends BaseGenericFreeList {
    * @return The index of the first unit in the lump to the
    * "left"/"above" the lump in question.
    */
-  @Override
   protected int getLeft(int unit) {
     if ((getHiEntry(unit - 1) & MULTI_MASK) == MULTI_MASK)
       return unit - (getHiEntry(unit - 1) & SIZE_MASK);
@@ -357,41 +506,132 @@ public final class GenericFreeList extends BaseGenericFreeList {
 
 
   /**
-   * Get the contents of an entry
+   * Return true if this unit may be coalesced with the unit below it.
+   *
+   * @param unit The unit in question
+   * @return {@code true} if this unit may be coalesced with the unit below it.
+   */
+  public boolean isCoalescable(int unit) {
+    return (getLoEntry(unit) & COALESC_MASK) == 0;
+  }
+
+
+  /**
+   * Clear the Uncoalescable flag associated with a unit.
+   * @param unit The unit in question
+   */
+  public void clearUncoalescable(int unit) {
+    setLoEntry(unit, getLoEntry(unit) & ~COALESC_MASK);
+  }
+
+
+  /**
+   * Mark a unit as uncoalescable
+   * @param unit The unit in question
+   */
+  public void setUncoalescable(int unit) {
+    setLoEntry(unit, getLoEntry(unit) | COALESC_MASK);
+  }
+
+
+  @Interruptible
+  public abstract void resizeFreeList();
+
+  @Interruptible
+  public abstract void resizeFreeList(int units, int heads);
+
+  public abstract void dbgPrintDetail();
+
+  public abstract void dbgPrintSummary();
+
+  protected boolean isMulti(int i) {
+    int hi = getHiEntry(i);
+    boolean multi = (hi & MULTI_MASK) == MULTI_MASK;
+    return multi;
+  }
+
+
+  protected boolean isFree(int i) {
+    int lo = getLoEntry(i);
+    boolean free = (lo & FREE_MASK) == FREE_MASK;
+    return free;
+  }
+
+
+  /**
+   * Fetch the value at the given index into the table.
+   * @param index Index of the value to fetch.  Note this is
+   * a table index, not a unit number.
+   * @return Contents of the given index
+   */
+  protected abstract int getEntry(int index);
+
+  /**
+   * Store the given value at an index into the table
+   * @param index Index of the entry to fetch.  Note this is
+   * a table index, not a unit number.
+   * @param value The value to store.
+   * @return Contents of the given index
+   */
+  protected abstract void setEntry(int index, int value);
+
+  /**
+   * Get the (low) contents of an entry
    *
    * @param unit The index of the unit
    * @return The contents of the unit
    */
-  private int getLoEntry(int unit) {
-    return table[(unit + heads) << 1];
-  }
-  private int getHiEntry(int unit) {
-    return table[((unit + heads) << 1) + 1];
+  protected int getLoEntry(int unit) {
+    return getEntry((unit + heads) << 1);
   }
 
   /**
-   * Set the contents of an entry
+   * Get the (high) contents of an entry
+   *
+   * @param unit The index of the unit
+   * @return The contents of the unit
+   */
+  protected int getHiEntry(int unit) {
+    return getEntry(((unit + heads) << 1) + 1);
+  }
+
+  /**
+   * Set the (low) contents of an entry
    *
    * @param unit The index of the unit
    * @param value The contents of the unit
    */
-  private void setLoEntry(int unit, int value) {
-    table[(unit + heads) << 1] = value;
-  }
-  private void setHiEntry(int unit, int value) {
-    table[((unit + heads) << 1) + 1] = value;
+  protected void setLoEntry(int unit, int value) {
+    setEntry((unit + heads) << 1, value);
   }
 
-  private static final int TOTAL_BITS = 32;
-  private static final int UNIT_BITS = (TOTAL_BITS - 2);
-  public static final int MAX_UNITS = (int) (((((long) 1) << UNIT_BITS) - 1) - MAX_HEADS - 1);
-  private static final int NEXT_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
-  private static final int PREV_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
-  private static final int FREE_MASK = 1 << (TOTAL_BITS - 1);
-  private static final int MULTI_MASK = 1 << (TOTAL_BITS - 1);
-  private static final int COALESC_MASK = 1 << (TOTAL_BITS - 2);
-  private static final int SIZE_MASK = (int) ((((long) 1) << UNIT_BITS) - 1);
+  /**
+   * Set the (high) contents of an entry
+   *
+   * @param unit The index of the unit
+   * @param value The contents of the unit
+   */
+  protected void setHiEntry(int unit, int value) {
+    setEntry(((unit + heads) << 1) + 1, value);
+  }
 
-  private int[] table;
-  private final GenericFreeList parent;
+
+
+  protected static final boolean DEBUG = false;
+  protected static final boolean VERBOSE = DEBUG || false;
+  public static final int FAILURE = -1;
+  protected static final int MAX_HEADS = 128; // somewhat arbitrary
+  protected static final int TOTAL_BITS = 32;
+  protected static final int UNIT_BITS = (TOTAL_BITS - 2);
+  public static final int MAX_UNITS = (int) (((1L << UNIT_BITS) - 1) - MAX_HEADS - 1);
+
+  protected static final int NEXT_MASK = (1 << UNIT_BITS) - 1;
+  protected static final int PREV_MASK = (1 << UNIT_BITS) - 1;
+  protected static final int FREE_MASK = 1 << (TOTAL_BITS - 1);
+  protected static final int MULTI_MASK = 1 << (TOTAL_BITS - 1);
+  protected static final int COALESC_MASK = 1 << (TOTAL_BITS - 2);
+  protected static final int SIZE_MASK = (int) ((1 << UNIT_BITS) - 1);
+
+  protected int heads = 1;
+  protected int head = -1;
 }

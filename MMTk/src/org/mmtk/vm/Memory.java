@@ -141,6 +141,8 @@ import org.vmmagic.pragma.*;
    * class, but are internal to the VM<->MM interface glue, so are never
    * called by MMTk users.
    */
+  /** @return {@code true} if we are using the (traditional) 32-bit heap layout */
+  protected abstract boolean getHeapLayout32Bit();
   /** @return The lowest address in the virtual address space known to MMTk */
   protected abstract Address getHeapStartConstant();
   /** @return The highest address in the virtual address space known to MMTk */
@@ -170,6 +172,9 @@ import org.vmmagic.pragma.*;
    * subclasses. This hack exists only to allow us to declare the respective
    * methods as protected.
    */
+  static boolean heapLayout32BitTrapdoor(Memory m) {
+    return m.getHeapLayout32Bit();
+  }
   static Address heapStartTrapdoor(Memory m) {
     return m.getHeapStartConstant();
   }

@@ -19,6 +19,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.vm.VM;
@@ -79,8 +80,10 @@ public final class FreeListPageResource extends PageResource {
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
     int pages = Conversions.bytesToPages(bytes);
     freeList = HeapLayout.vmMap.createFreeList(this, pages, EmbeddedMetaData.PAGES_IN_REGION);
-    pagesCurrentlyOnFreeList = pages;
-    reserveMetaData(space.getExtent());
+    if (!growable) {
+      pagesCurrentlyOnFreeList = pages;
+      reserveMetaData(space.getExtent());
+    }
   }
 
   /**
@@ -127,6 +130,8 @@ public final class FreeListPageResource extends PageResource {
       int chunks = HeapLayout.vmMap.getAvailableDiscontiguousChunks() - HeapLayout.vmMap.getChunkConsumerCount();
       if (chunks < 0) chunks = 0;
       rtn += chunks * (PAGES_IN_CHUNK - metaDataPagesPerRegion);
+    } else if (growable && VM.HEAP_LAYOUT_64BIT) {
+      rtn = PAGES_IN_SPACE64 - reserved;
     }
     return rtn;
   }
@@ -151,7 +156,7 @@ public final class FreeListPageResource extends PageResource {
     lock();
     boolean newChunk = false;
     int pageOffset = freeList.alloc(requiredPages);
-    if (pageOffset == GenericFreeList.FAILURE && !contiguous) {
+    if (pageOffset == GenericFreeList.FAILURE && growable) {
       pageOffset = allocateContiguousChunks(requiredPages);
       newChunk = true;
     }
@@ -270,6 +275,9 @@ public final class FreeListPageResource extends PageResource {
     int rtn = GenericFreeList.FAILURE;
     int requiredChunks = Space.requiredChunks(pages);
     Address region = space.growDiscontiguousSpace(requiredChunks);
+    if (VERBOSE) {
+      Log.write("flpr.allocateContiguousChunks("); Log.write(pages); Log.write("): region="); Log.writeln(region);
+    }
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
       int regionEnd = regionStart + (requiredChunks * PAGES_IN_CHUNK) - 1;
@@ -280,6 +288,9 @@ public final class FreeListPageResource extends PageResource {
         if (p != regionStart)
           freeList.clearUncoalescable(p);
         liberated = freeList.free(p, true); // add chunk to our free list
+        if (liberated != PAGES_IN_CHUNK + (p - regionStart)) {
+          Log.write("flpr: liberated "); Log.write(liberated); Log.write(" pages, expected "); Log.writeln(PAGES_IN_CHUNK + (p - regionStart));
+        }
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == PAGES_IN_CHUNK + (p - regionStart));
         if (metaDataPagesPerRegion > 1) {
           freeList.alloc(metaDataPagesPerRegion, p); // carve out space for metadata
@@ -353,7 +364,7 @@ public final class FreeListPageResource extends PageResource {
   }
 
   public Address getHighWater() {
-    return start.plus(Extent.fromIntSignExtend(highWaterMark << LOG_BYTES_IN_PAGE));
+    return start.plus(Extent.fromLong(highWaterMark << LOG_BYTES_IN_PAGE));
   }
 
   /**
@@ -383,8 +394,11 @@ public final class FreeListPageResource extends PageResource {
    */
   @Interruptible
   public void resizeFreeList(Address startAddress) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!contiguous && !Plan.isInitialized());
-    start = startAddress;
+    if (VERBOSE) {
+      Log.write("flpr: Start address old: ");Log.write(start); Log.write(", new: "); Log.writeln(startAddress);
+    }
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((VM.HEAP_LAYOUT_64BIT || !contiguous) && !Plan.isInitialized());
+    start = Conversions.alignUp(startAddress,EmbeddedMetaData.LOG_BYTES_IN_REGION);
     freeList.resizeFreeList();
   }
 }

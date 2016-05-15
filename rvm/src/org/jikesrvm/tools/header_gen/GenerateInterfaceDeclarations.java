@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 
+import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMClass;
@@ -101,9 +102,9 @@ public class GenerateInterfaceDeclarations {
   GenerateInterfaceDeclarations() {
   }
 
-  static long bootImageDataAddress = 0;
-  static long bootImageCodeAddress = 0;
-  static long bootImageRMapAddress = 0;
+  static long bootImageDataAddress = HeapLayoutConstants.BOOT_IMAGE_DATA_START.toLong();
+  static long bootImageCodeAddress = HeapLayoutConstants.BOOT_IMAGE_CODE_START.toLong();
+  static long bootImageRMapAddress = HeapLayoutConstants.BOOT_IMAGE_RMAP_START.toLong();
   static String outFileName;
 
   private static long decodeLong(String s) {

@@ -83,9 +83,13 @@ public class GenConstraints extends StopTheWorldConstraints {
      * a contiguous nursery, we can't attempt to nursery-allocate objects larger than the
      * available nursery virtual memory.
      */
+    long fracAvailable = Space.getFracAvailable(Gen.NURSERY_VM_FRACTION).toLong();
+    if (fracAvailable > org.mmtk.utility.Constants.MAX_INT) {
+      fracAvailable = org.mmtk.utility.Constants.MAX_INT;
+    }
     return  Gen.USE_DISCONTIGUOUS_NURSERY ?
         org.mmtk.utility.Constants.MAX_INT :
-        Space.getFracAvailable(Gen.NURSERY_VM_FRACTION).toInt();
+        (int)fracAvailable;
   }
 
 }

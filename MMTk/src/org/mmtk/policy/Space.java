@@ -122,13 +122,13 @@ public abstract class Space {
     this.vmRequest = vmRequest;
     this.index = spaceCount++;
     spaces[index] = this;
+    this.headDiscontiguousRegion = Address.zero();
 
     if (vmRequest.type == VMRequest.REQUEST_DISCONTIGUOUS) {
       this.contiguous = false;
       this.descriptor = SpaceDescriptor.createDescriptor();
       this.start = Address.zero();
       this.extent = Extent.zero();
-      this.headDiscontiguousRegion = Address.zero();
       VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
       return;
     }
@@ -346,7 +346,7 @@ public abstract class Space {
           SpaceDescriptor.isContiguousHi(descriptor))
         return address.GE(start);
       else {
-        Extent size = Word.fromIntSignExtend(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
+        Extent size = SpaceDescriptor.getExtent(descriptor);
         Address end = start.plus(size);
         return address.GE(start) && address.LT(end);
       }

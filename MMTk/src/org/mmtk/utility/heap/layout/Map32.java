@@ -18,6 +18,7 @@ import static org.mmtk.utility.Constants.BITS_IN_ADDRESS;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
+import org.mmtk.utility.IntArrayFreeList;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.options.Options;
@@ -75,8 +76,8 @@ public final class Map32 extends Map {
     prevLink = new int[VMLayoutConstants.MAX_CHUNKS];
     nextLink = new int[VMLayoutConstants.MAX_CHUNKS];
     spaceMap = new Space[VMLayoutConstants.MAX_CHUNKS];
-    regionMap = new GenericFreeList(VMLayoutConstants.MAX_CHUNKS);
-    globalPageMap = new GenericFreeList(1, 1, HeapParameters.MAX_SPACES);
+    regionMap = new IntArrayFreeList(VMLayoutConstants.MAX_CHUNKS);
+    globalPageMap = new IntArrayFreeList(1, 1, HeapParameters.MAX_SPACES);
     sharedFLMap = new FreeListPageResource[HeapParameters.MAX_SPACES];
     if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(BITS_IN_ADDRESS == LOG_ADDRESS_SPACE ||
@@ -123,7 +124,7 @@ public final class Map32 extends Map {
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr) {
-    return new GenericFreeList((GenericFreeList)globalPageMap, getDiscontigFreeListPROrdinal(pr));
+    return new IntArrayFreeList((IntArrayFreeList)globalPageMap, getDiscontigFreeListPROrdinal(pr));
   }
 
   /**
@@ -132,7 +133,7 @@ public final class Map32 extends Map {
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr, int units, int grain) {
-    return new GenericFreeList(units, grain);
+    return new IntArrayFreeList(units, grain);
   }
 
   /**

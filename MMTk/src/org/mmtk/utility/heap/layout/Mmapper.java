@@ -22,27 +22,66 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public abstract class Mmapper {
 
-  public abstract boolean objectIsMapped(ObjectReference object);
+  protected static final int MMAP_CHUNK_BYTES = 1 << VMLayoutConstants.LOG_MMAP_CHUNK_BYTES;   // the granularity VMResource operates at
+  protected static final int MMAP_CHUNK_MASK = MMAP_CHUNK_BYTES - 1;
 
-  public abstract boolean addressIsMapped(Address addr);
+  /****************************************************************************
+   * Generic mmap and protection functionality
+   */
 
-  // TODO: change int to long or Extent
-  public abstract void protect(Address start, int pages);
-
-  // TODO: change int to long or Extent
-  public abstract void ensureMapped(Address start, int pages);
-
-  // TODO: change int to long or Extent
-  public abstract void markAsMapped(Address start, int bytes);
-
+  /**
+   * Given an address array describing the regions of virtual memory to be used
+   * by MMTk, demand zero map all of them if they are not already mapped.
+   *
+   * @param spaceMap An address array containing a pairs of start and end
+   * addresses for each of the regions to be mappe3d
+   */
   public abstract void eagerlyMmapAllSpaces(AddressArray spaceMap);
 
-  /*
-   * Size of an mmap chunk.  We map and unmap chunks in units of this size.
+  /**
+   * Mark a number of pages as mapped, without making any
+   * request to the operating system.  Used to mark pages
+   * that the VM has already mapped.
+   * @param start Address of the first page to be mapped
+   * @param pages Number of pages to ensure mapped
    */
-  static final int LOG_MMAP_CHUNK_BYTES = 20;
-  static final int MMAP_CHUNK_BYTES = 1 << LOG_MMAP_CHUNK_BYTES;   // the granularity VMResource operates at
-  static final int MMAP_CHUNK_MASK = MMAP_CHUNK_BYTES - 1;
+  public abstract void markAsMapped(Address start, int bytes);
+
+  /**
+   * Ensure that a range of pages is mmapped (or equivalent).  If the
+   * pages are not yet mapped, demand-zero map them. Note that mapping
+   * occurs at chunk granularity, not page granularity.<p>
+   *
+   * NOTE: There is a monotonicity assumption so that only updates require lock
+   * acquisition.
+   * TODO: Fix the above to support unmapping.
+   *
+   * @param start The start of the range to be mapped.
+   * @param pages The size of the range to be mapped, in pages
+   */
+  public abstract void ensureMapped(Address start, int pages);
+
+  /**
+   * Is the page occupied by this object mapped ?
+   * @param object Object in question
+   * @return {@code true} if the page occupied by the start of the object
+   * is mapped.
+   */
+  public abstract boolean objectIsMapped(ObjectReference object);
+
+  /**
+   * Is the page pointed to by this address mapped ?
+   * @param addr Address in question
+   * @return {@code true} if the page at the given address is mapped.
+   */
+  public abstract boolean addressIsMapped(Address addr);
+
+  /**
+   * Mark a number of pages as inaccessible.
+   * @param start Address of the first page to be protected
+   * @param pages Number of pages to be protected
+   */
+  public abstract void protect(Address start, int pages);
 
   /**
    * Return a given address rounded up to an mmap chunk size

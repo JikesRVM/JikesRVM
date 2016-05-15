@@ -13,7 +13,11 @@
 package org.mmtk.utility.heap;
 
 import static org.mmtk.utility.Constants.BITS_IN_INT;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.LOG_BYTES_IN_CHUNK;
 
+import org.mmtk.utility.Log;
+import org.mmtk.utility.heap.layout.HeapParameters;
+import org.mmtk.utility.heap.layout.Map64;
 import org.mmtk.utility.heap.layout.VMLayoutConstants;
 import org.mmtk.vm.VM;
 
@@ -60,6 +64,10 @@ import org.vmmagic.unboxed.*;
   private static final int MANTISSA_BITS = 14;
   private static final int BASE_EXPONENT = BITS_IN_INT - MANTISSA_BITS;
 
+  /* 64-bit */
+  private static final int INDEX_MASK = ~TYPE_MASK;
+  private static final int INDEX_SHIFT = TYPE_BITS;
+
   private static int discontiguousSpaceIndex = 0;
   private static final int DISCONTIG_INDEX_INCREMENT = 1 << TYPE_BITS;
 
@@ -77,10 +85,20 @@ import org.vmmagic.unboxed.*;
    * memory occupied by the space
    */
   public static int createDescriptor(Address start, Address end) {
-    int chunks = end.diff(start).toWord().rshl(VMLayoutConstants.LOG_BYTES_IN_CHUNK).toInt();
-    if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << SIZE_BITS));
     boolean top = end.EQ(VMLayoutConstants.HEAP_END);
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return Map64.spaceIndex(start) << INDEX_SHIFT |
+          ((top) ? TYPE_CONTIGUOUS_HI : TYPE_CONTIGUOUS);
+    }
+    int chunks = end.diff(start).toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
+    if (VM.VERIFY_ASSERTIONS) {
+      if (!start.isZero() && (chunks <= 0 || chunks >= (1 << SIZE_BITS))) {
+        Log.write("SpaceDescriptor.createDescriptor("); Log.write(start);
+        Log.write(","); Log.write(end); Log.writeln(")");
+        Log.write("chunks = "); Log.writeln(chunks);
+      }
+      VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << SIZE_BITS));
+    }
     Word tmp = start.toWord();
     tmp = tmp.rshl(BASE_EXPONENT);
     int exponent = 0;
@@ -140,6 +158,9 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public static Address getStart(int descriptor) {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return Word.fromIntZeroExtend(getIndex(descriptor)).lsh(HeapParameters.LOG_SPACE_SIZE_64).toAddress();
+    }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     Word mantissa = Word.fromIntSignExtend(descriptor >>> MANTISSA_SHIFT);
     int exponent = (descriptor & EXPONENT_MASK) >>> EXPONENT_SHIFT;
@@ -148,12 +169,28 @@ import org.vmmagic.unboxed.*;
 
   /**
    * @param descriptor a descriptor for a space
-   * @return The size of the region of memory encoded in this
-   * descriptor, in chunks
+   * @return The size of the region of memory encoded in this descriptor
    */
   @Inline
-  public static int getChunks(int descriptor) {
+  public static Extent getExtent(int descriptor) {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return VMLayoutConstants.SPACE_SIZE_64;
+    }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
-    return (descriptor & SIZE_MASK) >>> SIZE_SHIFT;
+    int chunks = (descriptor & SIZE_MASK) >>> SIZE_SHIFT;
+    Extent size = Word.fromIntSignExtend(chunks).lsh(LOG_BYTES_IN_CHUNK).toExtent();
+    return size;
   }
+
+  /**
+   * @param descriptor a descriptor for a space
+   * @return The index (in 64-bit layout) of the space
+   */
+  @Inline
+  public static int getIndex(int descriptor) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(VM.HEAP_LAYOUT_64BIT);
+    return (descriptor & INDEX_MASK) >> INDEX_SHIFT;
+  }
+
+
 }

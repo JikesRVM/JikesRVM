@@ -25,6 +25,7 @@ import org.mmtk.harness.options.Bits;
 import org.mmtk.harness.options.DumpPcode;
 import org.mmtk.harness.options.GcEvery;
 import org.mmtk.harness.options.HarnessOptionSet;
+import org.mmtk.harness.options.HeapLayout;
 import org.mmtk.harness.options.InitHeap;
 import org.mmtk.harness.options.LockTimeout;
 import org.mmtk.harness.options.MaxHeap;
@@ -73,6 +74,9 @@ public class Harness {
 
   /** Option for the MMTk plan (prefix) to use */
   public static final Plan plan = new Plan();
+
+  /** Option for the MMTk plan (prefix) to use */
+  public static final HeapLayout heapLayout = new HeapLayout();
 
   /** Scalable heap size specification */
   public static final BaseHeap baseHeap = new BaseHeap();

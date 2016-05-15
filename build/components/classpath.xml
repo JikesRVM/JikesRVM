@@ -199,6 +199,7 @@
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
             <equals arg1="${target.name}" arg2="x86_64-linux"/>
             <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
+            <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
           </or>
         </not>
         <or>
@@ -216,11 +217,15 @@
       <or>
         <equals arg1="${target.name}" arg2="x86_64-linux"/>
         <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
+        <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
       </or>
     </condition>
 
    <condition property="cp.cflags" value="-m64" else="">
-     <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
+     <or>
+       <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
+       <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
+     </or>
    </condition>
 
 

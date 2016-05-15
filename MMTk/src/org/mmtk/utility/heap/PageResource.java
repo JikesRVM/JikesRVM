@@ -62,6 +62,7 @@ public abstract class PageResource {
   protected int committed;
 
   protected final boolean contiguous;
+  protected final boolean growable;
   protected final Space space;
 
   /** only for contiguous spaces */
@@ -88,8 +89,9 @@ public abstract class PageResource {
    * @param space The space to which this resource is attached
    * @param contiguous whether the space is contiguous or discontiguous
    */
-  private PageResource(Space space, boolean contiguous) {
+  private PageResource(Space space, boolean contiguous, boolean growable) {
     this.contiguous = contiguous;
+    this.growable = growable;
     this.space = space;
     lock = VM.newLock(space.getName() + ".lock");
   }
@@ -100,7 +102,7 @@ public abstract class PageResource {
    * @param space The space to which this resource is attached
    */
   PageResource(Space space) {
-    this(space, false);
+    this(space, false, true);
   }
 
   /**
@@ -110,7 +112,7 @@ public abstract class PageResource {
    * @param start start address of the space
    */
   PageResource(Space space, Address start) {
-    this(space, true);
+    this(space, true, VM.HEAP_LAYOUT_64BIT);
     this.start = start;
   }
 
@@ -133,7 +135,14 @@ public abstract class PageResource {
    *
    * @return The number of available physical pages for this resource.
    */
-   public abstract int getAvailablePhysicalPages();
+  public abstract int getAvailablePhysicalPages();
+
+  /**
+   * @return The underlying space.
+   */
+  public Space getSpace() {
+    return space;
+  }
 
   /**
    * Reserve pages.<p>

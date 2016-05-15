@@ -12,9 +12,13 @@
  */
 package org.mmtk.utility.heap;
 
-import static org.mmtk.utility.Constants.*;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_MBYTE;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.MAX_SPACE_EXTENT;
 
-import org.vmmagic.unboxed.*;
+import org.mmtk.vm.VM;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class manages the encoding and decoding of virtual memory requests.<p>
@@ -52,23 +56,24 @@ public final class VMRequest {
   }
 
   /**
+   * All spaces in the 64-bit layout are the same: a fixed size
+   * @param top
+   * @return
+   */
+  private static VMRequest common64Bit(boolean top) {
+    return new VMRequest(REQUEST_EXTENT, Address.zero(), MAX_SPACE_EXTENT, 0f, top);
+  }
+
+  /**
    * A request for a discontiguous region of memory
    *
    * @return The request object
    */
   public static VMRequest discontiguous() {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return common64Bit(false);
+    }
     return new VMRequest(REQUEST_DISCONTIGUOUS, Address.zero(), Extent.zero(), 0f, false);
-  }
-
-  /**
-   * A request for an explicit region of memory
-   *
-   * @param start The start of the region
-   * @param extent The size of the region
-   * @return The request object
-   */
-  public static VMRequest fixed(Address start, Extent extent) {
-    return new VMRequest(REQUEST_FIXED, start, extent, 0f, false);
   }
 
   /**
@@ -78,6 +83,9 @@ public final class VMRequest {
    * @return The request object
    */
   public static VMRequest fixedSize(int mb) {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return common64Bit(false);
+    }
     return new VMRequest(REQUEST_EXTENT, Address.zero(), Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), 0f, false);
   }
 
@@ -88,6 +96,9 @@ public final class VMRequest {
    * @return The request object
    */
   public static VMRequest fraction(float frac) {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return common64Bit(false);
+    }
     return new VMRequest(REQUEST_FRACTION, Address.zero(), Extent.zero(), frac, false);
   }
 
@@ -98,6 +109,9 @@ public final class VMRequest {
    * @return The request object
    */
   public static VMRequest highFixedSize(int mb) {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return common64Bit(true);
+    }
     return new VMRequest(REQUEST_EXTENT, Address.zero(), Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), 0f, true);
   }
 
@@ -108,6 +122,9 @@ public final class VMRequest {
    * @return The request object
    */
   public static VMRequest highFraction(float frac) {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return common64Bit(true);
+    }
     return new VMRequest(REQUEST_FRACTION, Address.zero(), Extent.zero(), frac, true);
   }
 
@@ -119,6 +136,9 @@ public final class VMRequest {
    * @return The request object
    */
   public static VMRequest fixedExtent(Extent extent, boolean top) {
+    if (VM.HEAP_LAYOUT_64BIT) {
+      return common64Bit(top);
+    }
     return new VMRequest(REQUEST_EXTENT, Address.zero(), extent, 0f, top);
   }
 }

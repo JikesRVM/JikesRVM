@@ -44,8 +44,8 @@ public final class ByteMapMmapper extends Mmapper {
    * of addressable memory
    */
   private static final int MMAP_NUM_CHUNKS = (LOG_BYTES_IN_ADDRESS_SPACE == 32) ?
-    1 << (LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_BYTES) :
-    1 << (33 - LOG_MMAP_CHUNK_BYTES);
+    1 << (LOG_BYTES_IN_ADDRESS_SPACE - VMLayoutConstants.LOG_MMAP_CHUNK_BYTES) :
+    1 << (33 - VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
   public static final boolean verbose = false;
 
   /****************************************************************************
@@ -233,25 +233,25 @@ public final class ByteMapMmapper extends Mmapper {
     return addressIsMapped(VM.objectModel.refToAddress(object));
   }
 
-  public static int bytesToMmapChunksUp(Extent bytes) {
-    return bytes.plus(MMAP_CHUNK_BYTES - 1).toWord().rshl(LOG_MMAP_CHUNK_BYTES).toInt();
+  private static int bytesToMmapChunksUp(Extent bytes) {
+    return bytes.plus(MMAP_CHUNK_BYTES - 1).toWord().rshl(VMLayoutConstants.LOG_MMAP_CHUNK_BYTES).toInt();
   }
 
-  public static int pagesToMmapChunksUp(int pages) {
+  private static int pagesToMmapChunksUp(int pages) {
     return bytesToMmapChunksUp(Conversions.pagesToBytes(pages));
   }
 
-  public static int addressToMmapChunksDown(Address addr) {
-    Word chunk = addr.toWord().rshl(LOG_MMAP_CHUNK_BYTES);
+  private static int addressToMmapChunksDown(Address addr) {
+    Word chunk = addr.toWord().rshl(VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
     return chunk.toInt();
   }
 
-  public static Address mmapChunksToAddress(int chunk) {
-    return Word.fromIntZeroExtend(chunk).lsh(LOG_MMAP_CHUNK_BYTES).toAddress();
+  private static Address mmapChunksToAddress(int chunk) {
+    return Word.fromIntZeroExtend(chunk).lsh(VMLayoutConstants.LOG_MMAP_CHUNK_BYTES).toAddress();
   }
 
-  public static int addressToMmapChunksUp(Address addr) {
-    Word chunk = addr.plus(MMAP_CHUNK_BYTES - 1).toWord().rshl(LOG_MMAP_CHUNK_BYTES);
+  private static int addressToMmapChunksUp(Address addr) {
+    Word chunk = addr.plus(MMAP_CHUNK_BYTES - 1).toWord().rshl(VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
     return chunk.toInt();
   }
 
