@@ -120,7 +120,7 @@ public final class Map32 extends Map {
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr) {
-    return new GenericFreeList((GenericFreeList)globalPageMap, getDiscontigFreeListPROrdinal(pr));
+    return new GenericFreeList(globalPageMap, getDiscontigFreeListPROrdinal(pr));
   }
 
   @Override
@@ -160,12 +160,12 @@ public final class Map32 extends Map {
     Address rtn = addressForChunkIndex(chunk);
     insert(rtn, Extent.fromIntZeroExtend(chunks << LOG_BYTES_IN_CHUNK), descriptor, space);
     if (head.isZero()) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[(int)chunk] == 0);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[chunk] == 0);
     } else {
-      nextLink[(int)chunk] = getChunkIndex(head);
-      prevLink[getChunkIndex(head)] = (int)chunk;
+      nextLink[chunk] = getChunkIndex(head);
+      prevLink[getChunkIndex(head)] = chunk;
     }
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(prevLink[(int)chunk] == 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(prevLink[chunk] == 0);
     lock.release();
     return rtn;
   }
