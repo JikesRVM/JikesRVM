@@ -276,7 +276,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
     // extract w byte which is necessary to determine operand sizes
     rex_w_byte = (opcode >> 3) & 1;
   }
-#endif __x86_64__
+#endif
 
   /* One-byte opcodes */
   switch (opcode) {

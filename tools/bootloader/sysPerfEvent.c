@@ -103,7 +103,7 @@
     if (ret < 0) {
       err(1, "error reading event: %s", strerror(errno));
     }
-    if (ret != expectedBytes) {
+    if ((size_t) ret != expectedBytes) {
       errx(1, "read of perf event did not return 3 64-bit values");
     }
   }

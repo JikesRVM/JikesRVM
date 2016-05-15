@@ -112,7 +112,7 @@ EXTERNAL jint sysVaArgJint(va_list *ap)
 EXTERNAL jlong sysVaArgJlong(va_list *ap)
 {
   jlong result = va_arg(*ap, jlong);
-  TRACE_PRINTF("%s: sysVaArgJlong %ld\n", Me, result);
+  TRACE_PRINTF("%s: sysVaArgJlong %lld\n", Me, (long long int)result);
   return result;
 }
 
@@ -151,6 +151,6 @@ EXTERNAL jdouble sysVaArgJdouble(va_list *ap)
 EXTERNAL jobject sysVaArgJobject(va_list *ap)
 {
   jobject result = va_arg(*ap, jobject);
-  TRACE_PRINTF("%s: sysVaArgJobject %p\n", Me, result);
+  TRACE_PRINTF("%s: sysVaArgJobject %p\n", Me, (void *)result);
   return result;
 }

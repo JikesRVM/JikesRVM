@@ -57,7 +57,7 @@ typedef struct {
 
 EXTERNAL void VMI_Initialize();
 
-Word DeathLock = NULL;
+Word DeathLock = (Word) NULL;
 
 static int systemExiting = 0;
 
@@ -104,10 +104,10 @@ static void createThreadSpecificDataKeys()
   createThreadLocal(&threadDataKey);
   createThreadLocal(&trKey);
   createThreadLocal(&sigStackKey);
-  TRACE_PRINTF("%s: vm thread key=%lu\n", Me, VmThreadKey);
-  TRACE_PRINTF("%s: thread data key key=%lu\n", Me, threadDataKey);
-  TRACE_PRINTF("%s: thread register key=%lu\n", Me, trKey);
-  TRACE_PRINTF("%s: sigStack key=%lu\n", Me, sigStackKey);
+  TRACE_PRINTF("%s: vm thread key=%lu\n", Me, (long unsigned int)VmThreadKey);
+  TRACE_PRINTF("%s: thread data key key=%lu\n", Me, (long unsigned int)threadDataKey);
+  TRACE_PRINTF("%s: thread register key=%lu\n", Me, (long unsigned int)trKey);
+  TRACE_PRINTF("%s: sigStack key=%lu\n", Me, (long unsigned int)sigStackKey);
 }
 
 void setThreadLocal(TLS_KEY_TYPE key, void * value) {
