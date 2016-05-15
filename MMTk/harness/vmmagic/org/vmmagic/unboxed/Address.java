@@ -191,7 +191,7 @@ public final class Address {
   }
 
   /**
-   * Add an integer to this <code>Address</code>, and return the sum.
+   * Add a long to this <code>Address</code>, and return the sum.
    *
    * @param  v the value to be added to this <code>Address</code>
    * @return An <code>Address</code> instance that reflects the result

@@ -68,7 +68,7 @@ public final class Map32 extends Map {
    */
 
   /**
-   * Class initializer. Create our two maps
+   * Object initializer. Creates our two maps.
    */
   public Map32() {
     descriptorMap = new int[VMLayoutConstants.MAX_CHUNKS];
@@ -117,18 +117,12 @@ public final class Map32 extends Map {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr) {
     return new GenericFreeList((GenericFreeList)globalPageMap, getDiscontigFreeListPROrdinal(pr));
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr, int units, int grain) {
@@ -313,17 +307,12 @@ public final class Map32 extends Map {
     finalized  = true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean isFinalized() {
     return finalized;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   @Interruptible
   public void boot() {
     // Nothing to do in this heap layout

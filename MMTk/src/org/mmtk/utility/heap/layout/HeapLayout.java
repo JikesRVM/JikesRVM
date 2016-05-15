@@ -16,7 +16,7 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Encapsulate all the components that contribute to the layout of the heap
- * in virtual memory.  This gives us a pluggable choice of heap layouts.
+ * in virtual memory.  This gives us a pluggable choice of heap layouts.<p>
  *
  * The class consists largely of static members containing singletons that implement
  * the various design choices.
@@ -28,6 +28,7 @@ public final class HeapLayout {
    * Class variables
    */
 
+  /** virtual memory map */
   public static final Map vmMap = new Map32();
 
   public static final Mmapper mmapper = new ByteMapMmapper();
