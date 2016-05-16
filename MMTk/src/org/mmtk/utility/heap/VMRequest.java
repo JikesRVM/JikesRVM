@@ -57,8 +57,8 @@ public final class VMRequest {
 
   /**
    * All spaces in the 64-bit layout are the same: a fixed size
-   * @param top
-   * @return
+   * @param top whether to allocate from top or bottom of the heap
+   * @return the request object
    */
   private static VMRequest common64Bit(boolean top) {
     return new VMRequest(REQUEST_EXTENT, Address.zero(), MAX_SPACE_EXTENT, 0f, top);

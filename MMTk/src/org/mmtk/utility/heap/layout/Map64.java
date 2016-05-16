@@ -199,7 +199,7 @@ public final class Map64 extends Map {
   @Override
   public Address getNextContiguousRegion(Address start) {
     VM.assertions.fail("Discontiguous spaces are not supported in 64-bit mode");
-    return Address.zero();  // Dummy return: mustn't return 'null' - it blows up the opt compiler
+    return Address.zero();
   }
 
   @Override
@@ -211,7 +211,7 @@ public final class Map64 extends Map {
   @Override
   public Extent getContiguousRegionSize(Address start) {
     VM.assertions.fail("Discontiguous spaces are not supported in 64-bit mode");
-    return Extent.zero();  // Dummy return: mustn't return 'null' - it blows up the opt compiler
+    return Extent.zero();
   }
 
   @Override

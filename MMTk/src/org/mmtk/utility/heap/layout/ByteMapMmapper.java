@@ -87,7 +87,6 @@ public final class ByteMapMmapper extends Mmapper {
    */
   @Override
   public void eagerlyMmapAllSpaces(AddressArray spaceMap) {
-
     /*for (int i = 0; i < spaceMap.length() / 2; i++) {
       Address regionStart = spaceMap.get(i * 2);
       Address regionEnd = spaceMap.get(i * 2 + 1);

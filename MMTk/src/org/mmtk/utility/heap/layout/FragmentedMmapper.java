@@ -29,11 +29,11 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * This class implements mmapping and protection of virtual memory.
+ * This class implements mmapping and protection of virtual memory.<p>
  *
  * This version of Mmapper is like the ByteMapMmapper, except that a number
  * of byte maps are held in a hash table.  The high-order bits of an address
- * are used to hash into the table, and then the low-order bits index into the table.
+ * are used to hash into the table, and then the low-order bits index into the table.<p>
  *
  * The finest grain unit of memory that is mapped and unmapped is known as a chunk,
  * or MMAP_CHUNK.  The address range addressable by a table of MMAP_CHUNKs
@@ -204,8 +204,8 @@ public final class FragmentedMmapper extends Mmapper {
 
   /**
    * Look up the hash table and return the corresponding slab of chunks.
-   * @param addr
-   * @return
+   * @param addr address to locate
+   * @return the address of the chunk map for the slab
    */
   byte[] slabTable(Address addr) {
     return slabTable(addr, true);
@@ -273,8 +273,7 @@ public final class FragmentedMmapper extends Mmapper {
   /**
    * Take a free slab of chunks from the freeSlabs array, and insert it
    * at the correct index in the slabTable.
-   * @param index
-   * @return
+   * @param index slab table index
    */
   void commitFreeSlab(int index) {
     if (freeSlabIndex >= MAX_SLABS) {
@@ -298,7 +297,6 @@ public final class FragmentedMmapper extends Mmapper {
    */
   @Override
   public void eagerlyMmapAllSpaces(AddressArray spaceMap) {
-
     /*for (int i = 0; i < spaceMap.length() / 2; i++) {
       Address regionStart = spaceMap.get(i * 2);
       Address regionEnd = spaceMap.get(i * 2 + 1);

@@ -43,7 +43,7 @@ public abstract class Mmapper {
    * request to the operating system.  Used to mark pages
    * that the VM has already mapped.
    * @param start Address of the first page to be mapped
-   * @param pages Number of pages to ensure mapped
+   * @param bytes Number of bytes to ensure mapped
    */
   public abstract void markAsMapped(Address start, int bytes);
 

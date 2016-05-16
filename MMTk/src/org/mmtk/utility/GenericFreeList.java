@@ -571,7 +571,6 @@ public abstract class GenericFreeList {
    * @param index Index of the entry to fetch.  Note this is
    * a table index, not a unit number.
    * @param value The value to store.
-   * @return Contents of the given index
    */
   protected abstract void setEntry(int index, int value);
 
