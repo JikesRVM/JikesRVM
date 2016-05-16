@@ -56,13 +56,13 @@ public final class RawMemoryFreeList extends GenericFreeList {
   private static final int LOG_BYTES_IN_UNIT = LOG_BYTES_IN_ENTRY + 1;
 
   /** Lowest address occupied by this list */
-  private Address base;
+  private final Address base;
 
   /**
    * Highest address this list is allowed to occupy. Attempts to grow the
    * list beyond this will fail.
    */
-  private Address limit;
+  private final Address limit;
 
   /**
    * Memory addresses between base (inclusive) and highWater (exclusive) are already
@@ -71,10 +71,10 @@ public final class RawMemoryFreeList extends GenericFreeList {
   private Address highWater;
 
   /** Maximum configured size of list in units */
-  private int maxUnits;
+  private final int maxUnits;
 
   /** Maximum configured size of list in units */
-  private int grain;
+  private final int grain;
 
   /**
    * Current formatted size of list in units
@@ -82,7 +82,7 @@ public final class RawMemoryFreeList extends GenericFreeList {
   private int currentUnits;
 
   /** The free list allocates VM in blocks of this many pages */
-  private int pagesPerBlock;
+  private final int pagesPerBlock;
 
   /** Local version of Math.min(int, int) */
   private static int min(int a, int b) {
@@ -363,6 +363,7 @@ public final class RawMemoryFreeList extends GenericFreeList {
     }
   }
 
+  @Override
   public void dbgPrintSummary() {
     Log.write("RFL["); Log.write(base);
     Log.write(":"); Log.write(limit);
