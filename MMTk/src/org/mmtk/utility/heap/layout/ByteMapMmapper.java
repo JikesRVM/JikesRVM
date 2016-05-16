@@ -87,6 +87,12 @@ public final class ByteMapMmapper extends Mmapper {
    */
   @Override
   public void eagerlyMmapAllSpaces(AddressArray spaceMap) {
+    // FIXME is this still supported? Currently, neither Mmapper
+    // implementation has code for this. We ought to have code for
+    // this is in at least one of the implementations or remove
+    // the option of eagerly mmapping altogether (including the
+    // command line option).
+
     /*for (int i = 0; i < spaceMap.length() / 2; i++) {
       Address regionStart = spaceMap.get(i * 2);
       Address regionEnd = spaceMap.get(i * 2 + 1);
