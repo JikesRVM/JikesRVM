@@ -225,7 +225,7 @@ public abstract class GenericFreeList {
    */
   protected final void initializeHeap(int units) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= (1L << 32) - 1);
-    initializeHeap(units, (int)units);
+    initializeHeap(units, units);
   }
 
   /**
@@ -242,7 +242,7 @@ public abstract class GenericFreeList {
     setSentinel(units);
 
     // create the free list item
-    int offset = (int)(units % grain);
+    int offset = units % grain;
     int cursor = units - offset;
     if (offset > 0) {
       setSize(cursor, offset);
@@ -284,7 +284,7 @@ public abstract class GenericFreeList {
     if (getFree(start))
       removeFromFree(start);
 
-    setSize(start, (int)(end - start + getSize(end)));
+    setSize(start, end - start + getSize(end));
   }
 
   /**
@@ -372,8 +372,8 @@ public abstract class GenericFreeList {
    * @param unit The unit to be initialized
    */
   protected void setSentinel(int unit) {
-    setLoEntry(unit, NEXT_MASK & (int)unit);
-    setHiEntry(unit, PREV_MASK & (int)unit);
+    setLoEntry(unit, NEXT_MASK & unit);
+    setHiEntry(unit, PREV_MASK & unit);
   }
 
   /**
@@ -458,7 +458,7 @@ public abstract class GenericFreeList {
   protected void setNext(int unit, int next) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= -heads) && (next <= MAX_UNITS));
     int oldValue = getHiEntry(unit);
-    int newValue = (oldValue & ~NEXT_MASK) | ((int)next & NEXT_MASK);
+    int newValue = (oldValue & ~NEXT_MASK) | (next & NEXT_MASK);
     setHiEntry(unit, newValue);
   }
 
@@ -485,7 +485,7 @@ public abstract class GenericFreeList {
   protected void setPrev(int unit, int prev) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= -heads) && (prev <= MAX_UNITS));
     int oldValue = getLoEntry(unit);
-    int newValue = (oldValue & ~PREV_MASK) | ((int)prev & PREV_MASK);
+    int newValue = (oldValue & ~PREV_MASK) | (prev & PREV_MASK);
     setLoEntry(unit, newValue);
   }
 
@@ -630,7 +630,7 @@ public abstract class GenericFreeList {
   protected static final int FREE_MASK = 1 << (TOTAL_BITS - 1);
   protected static final int MULTI_MASK = 1 << (TOTAL_BITS - 1);
   protected static final int COALESC_MASK = 1 << (TOTAL_BITS - 2);
-  protected static final int SIZE_MASK = (int) ((1 << UNIT_BITS) - 1);
+  protected static final int SIZE_MASK = (1 << UNIT_BITS) - 1;
 
   protected int heads = 1;
   protected int head = -1;

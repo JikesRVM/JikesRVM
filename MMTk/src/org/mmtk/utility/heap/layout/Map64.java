@@ -86,7 +86,7 @@ public final class Map64 extends Map {
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr) {
     /* The size in units (pages) of the free list */
-    int units = (int)(SPACE_SIZE_64.toWord().rshl(Constants.LOG_BYTES_IN_PAGE).toInt());
+    int units = (SPACE_SIZE_64.toWord().rshl(Constants.LOG_BYTES_IN_PAGE).toInt());
 
     return createFreeList(pr, units, units);
   }
