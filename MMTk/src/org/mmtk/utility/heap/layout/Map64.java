@@ -79,9 +79,6 @@ public final class Map64 extends Map {
     return base.toWord().and(SPACE_MASK_64.not()).isZero();
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr) {

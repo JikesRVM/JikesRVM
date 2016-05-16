@@ -186,13 +186,11 @@ public final class RawMemoryFreeList extends GenericFreeList {
     // Nothing to do.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void resizeFreeList(int units, int heads) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions.fail("Unimplemented method");
   }
 
-  /** {@inheritDoc} */
   @Override
   public int alloc(int size) {
     if (currentUnits == 0) {
@@ -201,7 +199,6 @@ public final class RawMemoryFreeList extends GenericFreeList {
     return super.alloc(size);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected int getEntry(int index) {
     Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ENTRY);
@@ -219,7 +216,6 @@ public final class RawMemoryFreeList extends GenericFreeList {
     return base.loadInt(offset);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected void setEntry(int index, int value) {
     Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ENTRY);
