@@ -20,6 +20,9 @@ target.address.size=
 # Must be little for little endian. Anything else will be interpreted as big endian.
 target.endianness=
 
+# Heap Layout: must be either 32BIT or 64BIT. Default is currently 32BIT.
+target.heap-layout=
+
 target.bootimage.code.address=
 target.bootimage.data.address=
 target.bootimage.rmap.address=
