@@ -30,7 +30,7 @@ typedef JNIEXPORT jint (JNICALL *JNI_OnLoad)(struct JavaVM_ *vm, void *reserved)
  * Method:    runJNI_OnLoad
  * Signature: (Lorg/vmmagic/unboxed/Address;)I
  */
-JNIEXPORT jint JNICALL Java_org_jikesrvm_runtime_DynamicLibrary_runJNI_1OnLoad (JNIEnv *env,
+JNIEXPORT jint JNICALL Java_org_jikesrvm_runtime_DynamicLibrary_runJNI_1OnLoad(JNIEnv *env,
     jclass clazz,
     jobject JNI_OnLoadAddress) {
   return ((JNI_OnLoad)JNI_OnLoadAddress)(&sysJavaVM, NULL);

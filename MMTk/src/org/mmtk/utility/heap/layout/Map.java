@@ -38,8 +38,6 @@ public abstract class Map {
   /**
    * Create a free-list for a discontiguous space.  Must only be called at build time.
    * @param pr The PageResource that requires the free-list
-   * @param units Size in units (pages) of the space
-   * @param grain Maximum allocation size
    * @return A new free list of the appropriate type for the concrete Map implementation.
    */
   @Interruptible

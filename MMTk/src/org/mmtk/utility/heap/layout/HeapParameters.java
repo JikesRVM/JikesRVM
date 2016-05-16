@@ -13,7 +13,7 @@
 package org.mmtk.utility.heap.layout;
 
 /**
- * VM-Independant parameters of the Virtual Memory Layout.
+ * VM-Independent parameters of the Virtual Memory Layout.
  * <p>
  * MUST NOT have a dependency on the VM class(es), because the constants
  * defined in this class are intended to be accessible to the VM, and we

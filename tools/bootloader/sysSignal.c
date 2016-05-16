@@ -86,7 +86,7 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   if (!inRVMAddressSpace(instructionPtr) || !inRVMAddressSpace(threadPtr)) {
     ERROR_PRINTF("%s: unexpected hardware trap outside of RVM address space - %p %p\n",
                  Me, (void*)instructionPtr, (void*)threadPtr);
-    ERROR_PRINTF("fault address %p\n", trapInfo);
+    ERROR_PRINTF("fault address %p\n", (void *)trapInfo);
     dumpContext(context);
     sysExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
   }
@@ -94,8 +94,8 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   framePtr = readContextFramePointer(context, threadPtr);
   if (!inRVMAddressSpace(framePtr)) {
     ERROR_PRINTF("%s: unexpected hardware trap with frame pointer outside of RVM address space - %p\n",
-                 Me, framePtr);
-    ERROR_PRINTF("fault address %p\n", trapInfo);
+                 Me, (void *)framePtr);
+    ERROR_PRINTF("fault address %p\n", (void *)trapInfo);
     dumpContext(context);
     sysExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
   }

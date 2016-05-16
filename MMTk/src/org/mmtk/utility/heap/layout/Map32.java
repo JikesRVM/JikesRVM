@@ -69,7 +69,7 @@ public final class Map32 extends Map {
    */
 
   /**
-   * Class initializer. Create our two maps
+   * Object initializer. Creates our two maps.
    */
   public Map32() {
     descriptorMap = new int[VMLayoutConstants.MAX_CHUNKS];
@@ -118,18 +118,12 @@ public final class Map32 extends Map {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr) {
     return new IntArrayFreeList((IntArrayFreeList)globalPageMap, getDiscontigFreeListPROrdinal(pr));
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   @Interruptible
   public GenericFreeList createFreeList(FreeListPageResource pr, int units, int grain) {
@@ -167,12 +161,12 @@ public final class Map32 extends Map {
     Address rtn = addressForChunkIndex(chunk);
     insert(rtn, Extent.fromIntZeroExtend(chunks << LOG_BYTES_IN_CHUNK), descriptor, space);
     if (head.isZero()) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[(int)chunk] == 0);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[chunk] == 0);
     } else {
-      nextLink[(int)chunk] = getChunkIndex(head);
-      prevLink[getChunkIndex(head)] = (int)chunk;
+      nextLink[chunk] = getChunkIndex(head);
+      prevLink[getChunkIndex(head)] = chunk;
     }
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(prevLink[(int)chunk] == 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(prevLink[chunk] == 0);
     lock.release();
     return rtn;
   }
@@ -314,17 +308,12 @@ public final class Map32 extends Map {
     finalized  = true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean isFinalized() {
     return finalized;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   @Interruptible
   public void boot() {
     // Nothing to do in this heap layout

@@ -156,9 +156,9 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Align an address to an arbitrary boundary
+   * Aligns an address to an arbitrary boundary.
    *
-   * @param bytes The extent to be aligned
+   * @param addr The address to be aligned
    * @param bits The log_2 of the boundary size
    * @return The aligned address
    */
@@ -167,9 +167,9 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Align an address to an arbitrary boundary
+   * Align an address to an arbitrary boundary.
    *
-   * @param bytes The extent to be aligned
+   * @param addr The address to be aligned
    * @param bits The log_2 of the boundary size
    * @return The aligned address
    */

@@ -27,6 +27,7 @@
 #include "cAttributePortability.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h> // for strcmp
 #include <jni.h>
 #include <signal.h> // for siginfo
 
@@ -277,6 +278,7 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
              Address framePtr, int signo);
 EXTERNAL void dumpContext(void *context);
 // sysThread
+EXTERNAL void sysInitialize();
 EXTERNAL Word sysMonitorCreate();
 EXTERNAL void sysMonitorDestroy(Word);
 EXTERNAL void sysMonitorEnter(Word);
@@ -300,6 +302,9 @@ EXTERNAL void sysThreadYield();
 EXTERNAL Word sysGetThreadPriorityHandle();
 EXTERNAL int sysGetThreadPriority(Word thread, Word handle);
 EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority);
+// sysThread - architecture specific
+// parameters are architecture specific too.
+EXTERNAL void bootThread(void *, void *, void *, void *);
 // sysTime
 EXTERNAL long long sysCurrentTimeMillis();
 EXTERNAL long long sysNanoTime();

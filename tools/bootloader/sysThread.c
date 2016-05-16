@@ -19,6 +19,7 @@
 #include <string.h> // memset
 #include <sys/resource.h> // getpriority, setpriority and PRIO_PROCESS
 #include <setjmp.h> // jmp_buf, longjmp, ...
+#include <unistd.h> // pause
 
 #ifdef RVM_FOR_LINUX
 #  include <sys/sysinfo.h> // get_nprocs
@@ -57,7 +58,7 @@ typedef struct {
 
 EXTERNAL void VMI_Initialize();
 
-Word DeathLock = NULL;
+Word DeathLock = (Word) NULL;
 
 static int systemExiting = 0;
 
@@ -96,7 +97,6 @@ void createThreadLocal(TLS_KEY_TYPE *key) {
 static void createThreadSpecificDataKeys()
 {
   TRACE_PRINTF("%s: createThreadSpecificDataKeys\n", Me);
-  int rc;
 
   // Create a key for thread-specific data so we can associate
   // the id of the Processor object with the pthread it is running on.
@@ -104,10 +104,10 @@ static void createThreadSpecificDataKeys()
   createThreadLocal(&threadDataKey);
   createThreadLocal(&trKey);
   createThreadLocal(&sigStackKey);
-  TRACE_PRINTF("%s: vm thread key=%lu\n", Me, VmThreadKey);
-  TRACE_PRINTF("%s: thread data key key=%lu\n", Me, threadDataKey);
-  TRACE_PRINTF("%s: thread register key=%lu\n", Me, trKey);
-  TRACE_PRINTF("%s: sigStack key=%lu\n", Me, sigStackKey);
+  TRACE_PRINTF("%s: vm thread key=%lu\n", Me, (long unsigned int)VmThreadKey);
+  TRACE_PRINTF("%s: thread data key key=%lu\n", Me, (long unsigned int)threadDataKey);
+  TRACE_PRINTF("%s: thread register key=%lu\n", Me, (long unsigned int)trKey);
+  TRACE_PRINTF("%s: sigStack key=%lu\n", Me, (long unsigned int)sigStackKey);
 }
 
 void setThreadLocal(TLS_KEY_TYPE key, void * value) {
@@ -154,7 +154,7 @@ EXTERNAL void sysExit(int value)
   }
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
-  if (verbose & value != 0) {
+  if (verbose & (value != 0)) {
     TRACE_PRINTF("%s: exit %d\n", Me, value);
   }
 
@@ -748,7 +748,7 @@ EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNan
   fflush(NULL);
 #endif
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-  int rc = pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
+  pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
 #ifdef DEBUG_THREAD
   TRACE_PRINTF("returned from wait at %lld instead of %lld with res = %d\n",
                sysNanoTime(),whenWakeupNanos,rc);
