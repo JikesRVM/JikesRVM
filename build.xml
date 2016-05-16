@@ -1806,12 +1806,6 @@ Check to make sure all required properties are specified. This includes properti
       <sysproperty key="mmtk.hostjvm" value="org.jikesrvm.mm.mmtk.Factory"/>
       <sysproperty key="mmtk.properties" value="${mmtk.properties}"/>
       <jvmarg value="-Xbootclasspath/a:${build.rt.jar}"/>
-      <arg value="-da"/>
-      <arg value="${target.bootimage.data.address}"/>
-      <arg value="-ca"/>
-      <arg value="${target.bootimage.code.address}"/>
-      <arg value="-ra"/>
-      <arg value="${target.bootimage.rmap.address}"/>
       <arg value="-out"/>
       <arg path="${build.native}/InterfaceDeclarations.h"/>
     </java>

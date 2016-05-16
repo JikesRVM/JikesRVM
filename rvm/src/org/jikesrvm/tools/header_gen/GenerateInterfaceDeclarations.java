@@ -102,47 +102,16 @@ public class GenerateInterfaceDeclarations {
   GenerateInterfaceDeclarations() {
   }
 
-  static long bootImageDataAddress = HeapLayoutConstants.BOOT_IMAGE_DATA_START.toLong();
-  static long bootImageCodeAddress = HeapLayoutConstants.BOOT_IMAGE_CODE_START.toLong();
-  static long bootImageRMapAddress = HeapLayoutConstants.BOOT_IMAGE_RMAP_START.toLong();
+  protected static final long bootImageDataAddress = HeapLayoutConstants.BOOT_IMAGE_DATA_START.toLong();
+  protected static final long bootImageCodeAddress = HeapLayoutConstants.BOOT_IMAGE_CODE_START.toLong();
+  protected static final long bootImageRMapAddress = HeapLayoutConstants.BOOT_IMAGE_RMAP_START.toLong();
   static String outFileName;
-
-  private static long decodeLong(String s) {
-    if (s.endsWith("L")) {
-      s = s.substring(0, s.length() - 1);
-    }
-    return Long.decode(s);
-  }
 
   public static void main(String[] args) throws Exception {
 
     // Process command line directives.
     //
     for (int i = 0, n = args.length; i < n; ++i) {
-      if (args[i].equals("-da")) {              // image address
-        if (++i == args.length) {
-          System.err.println("Error: The -da flag requires an argument");
-          System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        }
-        bootImageDataAddress = decodeLong(args[i]);
-        continue;
-      }
-      if (args[i].equals("-ca")) {              // image address
-        if (++i == args.length) {
-          System.err.println("Error: The -ca flag requires an argument");
-          System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        }
-        bootImageCodeAddress = decodeLong(args[i]);
-        continue;
-      }
-      if (args[i].equals("-ra")) {              // image address
-        if (++i == args.length) {
-          System.err.println("Error: The -ra flag requires an argument");
-          System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-        }
-        bootImageRMapAddress = decodeLong(args[i]);
-        continue;
-      }
       if (args[i].equals("-out")) {              // output file
         if (++i == args.length) {
           System.err.println("Error: The -out flag requires an argument");
@@ -155,18 +124,6 @@ public class GenerateInterfaceDeclarations {
       System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
 
-    if (bootImageDataAddress == 0) {
-      System.err.println("Error: Must specify boot image data load address.");
-      System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-    }
-    if (bootImageCodeAddress == 0) {
-      System.err.println("Error: Must specify boot image code load address.");
-      System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-    }
-    if (bootImageRMapAddress == 0) {
-      System.err.println("Error: Must specify boot image ref map load address.");
-      System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-    }
     if (outFileName == null) {
       out = System.out;
     } else {
