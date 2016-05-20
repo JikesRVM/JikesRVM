@@ -163,13 +163,28 @@ public final class JNIEnvironment {
   /**
    * Initialize a thread specific JNI environment.
    */
-  @NonMovingAllocation
   public JNIEnvironment() {
-    JNIRefs = JNIRefsShadow = AddressArray.create(JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH);
+    JNIRefs = JNIRefsShadow = createArrayForJNIRefs(JNIREFS_ARRAY_LENGTH);
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
     JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
     alwaysHasNativeFrame = false;
+  }
+
+  /**
+   * Creates an address array for use in {@link #JNIRefs}.
+   * <p>
+   * This has to be in a separate method to ensure that the address array
+   * is allocated into a non-moving space. The array has to be non-movable
+   * because it is accessed directly from native code.
+   *
+   * @param arrayLengthWithoutFudge the desired array length (excluding
+   *   the fudge length {@link #JNIREFS_FUDGE_LENGTH})
+   * @return an address array to be used for JNI references
+   */
+  @NonMovingAllocation
+  private AddressArray createArrayForJNIRefs(int arrayLengthWithoutFudge) {
+    return AddressArray.create(arrayLengthWithoutFudge + JNIREFS_FUDGE_LENGTH);
   }
 
   /*
@@ -252,7 +267,8 @@ public final class JNIEnvironment {
       JNIRefsTop += BYTES_IN_ADDRESS;
       if (JNIRefsTop >= JNIRefsMax) {
         JNIRefsMax *= 2;
-        replaceJNIRefs(AddressArray.create((JNIRefsMax >> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH));
+        int arrayLengthWithoutFudge = JNIRefsMax >> LOG_BYTES_IN_ADDRESS;
+        replaceJNIRefs(createArrayForJNIRefs(arrayLengthWithoutFudge));
       }
       JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
       return JNIRefsTop;
