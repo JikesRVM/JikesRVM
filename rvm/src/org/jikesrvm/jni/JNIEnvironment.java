@@ -167,7 +167,7 @@ public final class JNIEnvironment {
     JNIRefs = JNIRefsShadow = createArrayForJNIRefs(JNIREFS_ARRAY_LENGTH);
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
-    JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
+    adjustJNIRefsMaxForNewArrayLength();
     alwaysHasNativeFrame = false;
   }
 
@@ -185,6 +185,10 @@ public final class JNIEnvironment {
   @NonMovingAllocation
   private AddressArray createArrayForJNIRefs(int arrayLengthWithoutFudge) {
     return AddressArray.create(arrayLengthWithoutFudge + JNIREFS_FUDGE_LENGTH);
+  }
+
+  private void adjustJNIRefsMaxForNewArrayLength() {
+    JNIRefsMax = (JNIRefs.length() - JNIREFS_FUDGE_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
   }
 
   /*
@@ -266,9 +270,9 @@ public final class JNIEnvironment {
       if (VM.VerifyAssertions) checkPush(ref, true);
       JNIRefsTop += BYTES_IN_ADDRESS;
       if (JNIRefsTop >= JNIRefsMax) {
-        JNIRefsMax *= 2;
-        int arrayLengthWithoutFudge = JNIRefsMax >> LOG_BYTES_IN_ADDRESS;
+        int arrayLengthWithoutFudge = 2 * (JNIRefs.length() - JNIREFS_FUDGE_LENGTH);
         replaceJNIRefs(createArrayForJNIRefs(arrayLengthWithoutFudge));
+        adjustJNIRefsMaxForNewArrayLength();
       }
       JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
       return JNIRefsTop;
