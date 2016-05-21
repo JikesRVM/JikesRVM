@@ -12,9 +12,9 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.utility.options.Options;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+import org.mmtk.utility.options.Options;
 import org.mmtk.vm.gcspy.ByteStream;
 import org.mmtk.vm.gcspy.IntStream;
 import org.mmtk.vm.gcspy.ServerInterpreter;
@@ -55,6 +55,10 @@ public final class VM {
 
   /** <code>true</code> if assertions should be verified */
   public static final boolean VERIFY_ASSERTIONS;
+  /** Use the traditional 32-bit heap layout */
+  public static final boolean HEAP_LAYOUT_32BIT;
+  /** Use the 64-bit heap layout */
+  public static final boolean HEAP_LAYOUT_64BIT;
   /** The lowest address in virtual memory known to MMTk */
   public static final Address HEAP_START;
   /** The highest address in virtual memory known to MMTk */
@@ -172,6 +176,8 @@ public final class VM {
 
     /* Now initialize the constants using the vm-specific singletons */
     VERIFY_ASSERTIONS = Assert.verifyAssertionsTrapdoor(assertions);
+    HEAP_LAYOUT_32BIT = Memory.heapLayout32BitTrapdoor(memory);
+    HEAP_LAYOUT_64BIT = !HEAP_LAYOUT_32BIT;
     HEAP_START = Memory.heapStartTrapdoor(memory);
     HEAP_END = Memory.heapEndTrapdoor(memory);
     AVAILABLE_START = Memory.availableStartTrapdoor(memory);

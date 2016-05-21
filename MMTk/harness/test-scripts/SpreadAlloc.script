@@ -11,7 +11,8 @@
  *  regarding copyright ownership.
  */
  
-option baseHeap "3m";
+option baseHeap "2048k";
+option baseHeap64 "3300k";
 
  /*
   * MMTk test script.  Allocate a large object holding pointers to objects of a wide

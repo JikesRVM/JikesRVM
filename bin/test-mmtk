@@ -16,6 +16,8 @@
 TEST_DIR=MMTk/harness/test-scripts
 JARFILE=dist/mmtk-harness.jar
 
+trap 'exit -1' INT
+
 plans="CopyMS GenCopy GenImmix GenMS Immix MC MS Poisoned PrimitiveWB RC GenRC SS StickyImmix StickyMS"
 
 #opts="$opts gcEvery=SAFEPOINT"

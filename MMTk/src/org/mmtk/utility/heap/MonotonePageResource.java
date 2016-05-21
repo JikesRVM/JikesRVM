@@ -18,6 +18,8 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
+import org.mmtk.utility.heap.layout.HeapLayout;
+import org.mmtk.utility.heap.layout.VMLayoutConstants;
 import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;
@@ -76,7 +78,7 @@ public final class MonotonePageResource extends PageResource {
   public MonotonePageResource(Space space, Address start, Extent bytes, int metaDataPagesPerRegion) {
     super(space, start);
     this.cursor = start;
-    this.currentChunk = Space.chunkAlign(start, true);
+    this.currentChunk = Conversions.chunkAlign(start, true);
     this.sentinel = start.plus(bytes);
     this.zeroingCursor = this.sentinel;
     this.zeroingSentinel = start;
@@ -107,7 +109,7 @@ public final class MonotonePageResource extends PageResource {
   public int getAvailablePhysicalPages() {
     int rtn = Conversions.bytesToPages(sentinel.diff(cursor));
     if (!contiguous)
-      rtn += Map.getAvailableDiscontiguousChunks() * Space.PAGES_IN_CHUNK;
+      rtn += HeapLayout.vmMap.getAvailableDiscontiguousChunks() * VMLayoutConstants.PAGES_IN_CHUNK;
     return rtn;
   }
 
@@ -137,13 +139,13 @@ public final class MonotonePageResource extends PageResource {
        * allocated exactly enough pages to exhaust the current chunk, then cursor can point
        * to the next chunk.
        */
-      if (currentChunk.GT(cursor) || (Space.chunkAlign(cursor, true).NE(currentChunk) && Space.chunkAlign(cursor, true).NE(currentChunk.plus(Space.BYTES_IN_CHUNK)))) {
+      if (currentChunk.GT(cursor) || (Conversions.chunkAlign(cursor, true).NE(currentChunk) && Conversions.chunkAlign(cursor, true).NE(currentChunk.plus(VMLayoutConstants.BYTES_IN_CHUNK)))) {
         logChunkFields("MonotonePageResource.allocPages:fail");
       }
       VM.assertions._assert(currentChunk.LE(cursor));
       VM.assertions._assert(cursor.isZero() ||
-          Space.chunkAlign(cursor, true).EQ(currentChunk) ||
-          Space.chunkAlign(cursor, true).EQ(currentChunk.plus(Space.BYTES_IN_CHUNK)));
+          Conversions.chunkAlign(cursor, true).EQ(currentChunk) ||
+          Conversions.chunkAlign(cursor, true).EQ(currentChunk.plus(VMLayoutConstants.BYTES_IN_CHUNK)));
     }
 
     if (metaDataPagesPerRegion != 0) {
@@ -164,7 +166,7 @@ public final class MonotonePageResource extends PageResource {
       int requiredChunks = Space.requiredChunks(requiredPages);
       currentChunk = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
       cursor = currentChunk;
-      sentinel = cursor.plus(currentChunk.isZero() ? 0 : requiredChunks << Space.LOG_BYTES_IN_CHUNK);
+      sentinel = cursor.plus(currentChunk.isZero() ? 0 : requiredChunks << VMLayoutConstants.LOG_BYTES_IN_CHUNK);
       rtn = cursor;
       tmp = cursor.plus(bytes);
       newChunk = true;
@@ -179,13 +181,13 @@ public final class MonotonePageResource extends PageResource {
       cursor = tmp;
 
       /* In a contiguous space we can bump along into the next chunk, so preserve the currentChunk invariant */
-      if (contiguous && Space.chunkAlign(cursor, true).NE(currentChunk)) {
-        currentChunk = Space.chunkAlign(cursor, true);
+      if (contiguous && Conversions.chunkAlign(cursor, true).NE(currentChunk)) {
+        currentChunk = Conversions.chunkAlign(cursor, true);
       }
       commitPages(reservedPages, requiredPages);
       space.growSpace(old, bytes, newChunk);
       unlock();
-      Mmapper.ensureMapped(old, requiredPages);
+      HeapLayout.mmapper.ensureMapped(old, requiredPages);
       if (zeroed) {
         if (!zeroConcurrent) {
           VM.memory.zero(zeroNT, old, bytes);
@@ -290,7 +292,7 @@ public final class MonotonePageResource extends PageResource {
       }
       zeroingCursor = start;
       cursor = start;
-      currentChunk = Space.chunkAlign(start, true);
+      currentChunk = Conversions.chunkAlign(start, true);
     } else { /* Not contiguous */
       if (!cursor.isZero()) {
         do {
@@ -314,11 +316,11 @@ public final class MonotonePageResource extends PageResource {
    * end of the linked list.
    */
   private boolean moveToNextChunk() {
-    currentChunk = Map.getNextContiguousRegion(currentChunk);
+    currentChunk = HeapLayout.vmMap.getNextContiguousRegion(currentChunk);
     if (currentChunk.isZero())
       return false;
     else {
-      cursor = currentChunk.plus(Map.getContiguousRegionSize(currentChunk));
+      cursor = currentChunk.plus(HeapLayout.vmMap.getContiguousRegionSize(currentChunk));
       return true;
     }
   }
@@ -338,7 +340,7 @@ public final class MonotonePageResource extends PageResource {
     if (VM.config.ZERO_PAGES_ON_RELEASE)
       VM.memory.zero(false, first, bytes);
     if (Options.protectOnRelease.getValue())
-      Mmapper.protect(first, pages);
+      HeapLayout.mmapper.protect(first, pages);
     VM.events.tracePageReleased(space, first, pages);
   }
 

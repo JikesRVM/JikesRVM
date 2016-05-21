@@ -17,8 +17,8 @@ import static org.mmtk.utility.Constants.*;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.heap.FreeListPageResource;
-import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Memory;
 
@@ -48,7 +48,6 @@ public abstract class SegregatedFreeListSpace extends Space {
   /**
    *
    */
-  protected static final boolean LAZY_SWEEP = true;
   private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; // (1<<(INUSE_BITS-1))-1;
@@ -972,7 +971,7 @@ public abstract class SegregatedFreeListSpace extends Space {
         cursor = cursor.plus(EmbeddedMetaData.BYTES_IN_REGION);
       }
     } else {
-      for (Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
+      for (Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = HeapLayout.vmMap.getNextContiguousRegion(cursor)) {
         Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
         VM.memory.zero(false, metadata, bytes);
       }

@@ -37,6 +37,10 @@ public final class Offset {
     return new Offset(ArchitecturalWord.fromIntZeroExtend(value));
   }
 
+  public static Offset fromLong(long value) {
+    return new Offset(ArchitecturalWord.fromLong(value));
+  }
+
   public static Offset zero() {
     return new Offset(ArchitecturalWord.fromIntSignExtend(0));
   }
@@ -59,6 +63,10 @@ public final class Offset {
 
   public Offset plus(int byteSize) {
     return new Offset(value.plus(byteSize));
+  }
+
+  public Offset plus(Offset offset) {
+    return new Offset(value.plus(offset.value.toLongSignExtend()));
   }
 
   public Offset minus(int byteSize) {

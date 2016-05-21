@@ -15,56 +15,71 @@ package org.mmtk.harness.vm;
 import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_WORD;
 import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_PAGE;
 import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_WORD;
+import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_LONG;
+import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_INT;
 
+import org.mmtk.harness.Harness;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.heap.layout.HeapParameters;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
 import org.vmmagic.unboxed.harness.SimulatedMemory;
 
 @Uninterruptible
 public class Memory extends org.mmtk.vm.Memory {
 
   /**
-   * Allows for the VM to reserve space between HEAP_START()
-   * and AVAILABLE_START() for its own purposes.  MMTk should
-   * expect to encounter objects in this range, but may not
-   * allocate in this range.
-   *
-   * MMTk expects the virtual address space between AVAILABLE_START()
-   * and AVAILABLE_END() to be contiguous and unmapped.
-   * Allows for the VM to reserve space between HEAP_END()
-   * and AVAILABLE_END() for its own purposes.  MMTk should
-   * expect to encounter objects in this range, but may not
-   * allocate in this range.
-   *
-   * MMTk expects the virtual address space between AVAILABLE_START()
-   * and AVAILABLE_END() to be contiguous and unmapped.
-   *
-   * @return The high bound of the memory that MMTk can allocate.
-   *
-   * TODO is this comment in the right place?
+   * Select the memory model.  In 32-bit mode we only have one choice, but
+   * in 64-bit mode, we look at the value of the heapLayout option.
    */
-   private static ImmortalSpace vmSpace = null;
+  private static boolean heapLayout32BitInternal() {
+    return ArchitecturalWord.getModel().bitsInWord() == 32 ||
+      Harness.heapLayout.getValue() == 32;
+  }
 
-   private static final Extent vmSpaceSize = Extent.fromIntZeroExtend(0x10000000);
+  /**
+   * In a real virtual machine, this space would occupy all the addresses of
+   * the virtual machine's code and data.  In the harness, this is where the
+   * stacks live.
+   */
+  private static ImmortalSpace vmSpace = null;
 
-   // Uncomment the below to exercise MMTk's 64-bit address space handling
+  /**
+   * Size of the VM space.
+   */
+  private static final Extent vmSpaceSize = Extent.fromIntZeroExtend(0x10000000);
 
-//   public static final Address HEAP_START      = ArchitecturalWord.getModel().bitsInWord() == 32 ?
-//       Address.fromIntZeroExtend(0x10000000) :
-//       Address.fromLong(0x210000000L)  ;
-//   public static final Address HEAP_END        = ArchitecturalWord.getModel().bitsInWord() == 32 ?
-//       Address.fromIntZeroExtend(0xA0000000) :
-//       Address.fromLong(0x2A0000000L);
+  /**
+   * Lowest address in the MMTk heap.
+   * <p>
+   * Heap start address is essentially arbitrary in 32-bit mode, but with the 64-bit memory
+   * layout, MMTk requires a specific layout.
+   */
+  public static final Address heapStartAddress      = heapLayout32BitInternal() ?
+      Address.fromIntZeroExtend(0x10000000) :
+      Address.fromLong(1L << HeapParameters.LOG_SPACE_SIZE_64)  ;
 
-   private static final Address heapStartAddress = Address.fromIntZeroExtend(0x10000000);
-   private static final Address heapEndAddress = Address.fromIntZeroExtend(0x40000000);
+  /**
+   * Highest address in the MMTk heap.
+   * <p>
+   * Heap end address is essentially arbitrary in 32-bit mode, but with the 64-bit memory
+   * layout, MMTk requires a specific layout.
+   */
+  public static final Address heapEndAddress        = heapLayout32BitInternal() ?
+      Address.fromIntZeroExtend(0xA0000000) :
+      Address.fromLong((1L << (HeapParameters.LOG_SPACE_SIZE_64 + HeapParameters.LOG_MAX_SPACES)) - 1);
 
+  /**
+   * This method is how we pass the VM space to MMTk.
+   *
+   * @return The ImmortalSpace occupied by the VM.
+   */
   @Override
   @Interruptible
   public ImmortalSpace getVMSpace() {
@@ -107,26 +122,31 @@ public class Memory extends org.mmtk.vm.Memory {
     return -1;
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean mprotect(Address start, int size) {
     return SimulatedMemory.protect(start, size);
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean munprotect(Address start, int size) {
     return SimulatedMemory.unprotect(start, size);
   }
 
+  /** {@inheritDoc} */
   @Override
   public void zero(boolean useNT, Address start, Extent len) {
     SimulatedMemory.zero(start, len);
   }
 
+  /** {@inheritDoc} */
   @Override
   public void dumpMemory(Address start, int beforeBytes, int afterBytes) {
     SimulatedMemory.dumpMemory(start, beforeBytes, afterBytes);
   }
 
+  /** {@inheritDoc} */
   @Override
   @Inline
   public void sync() {
@@ -134,6 +154,7 @@ public class Memory extends org.mmtk.vm.Memory {
     // Nothing required
   }
 
+  /** {@inheritDoc} */
   @Override
   @Inline
   public void isync() {
@@ -146,6 +167,11 @@ public class Memory extends org.mmtk.vm.Memory {
    * class, but are internal to the VM<->MM interface glue, so are never
    * called by MMTk users.
    */
+  @Override
+  protected boolean getHeapLayout32Bit() {
+    return heapLayout32BitInternal();
+  }
+
   @Override
   protected Address getHeapStartConstant() {
     return getHeapstartaddress();
@@ -176,11 +202,11 @@ public class Memory extends org.mmtk.vm.Memory {
   }
   @Override
   protected byte getLogMinAlignmentConstant()  {
-    return (byte) LOG_BYTES_IN_WORD;
+    return (byte) LOG_BYTES_IN_INT;
   }
   @Override
   protected byte getMaxAlignmentShiftConstant() {
-    return 1;
+    return 1 + LOG_BYTES_IN_LONG - LOG_BYTES_IN_INT;
   }
   @Override
   protected int getMaxBytesPaddingConstant() {

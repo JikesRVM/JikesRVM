@@ -255,10 +255,15 @@ public final class MarkCompactCollector {
     @Inline
     ObjectReference advanceToObject() {
       ObjectReference current = VM.objectModel.getObjectFromStartAddress(cursor);
+      if (VERY_VERBOSE) {
+        Log.write("cursor "); Log.write(cursor);
+        Log.write(", current "); Log.writeln(current);
+      }
       cursor = VM.objectModel.objectStartRef(current);
-      if (VM.VERIFY_ASSERTIONS) {
-        Address lowBound = BumpPointer.getDataStart(region);
-        VM.assertions._assert(cursor.GE(lowBound) && cursor.LE(limit),"Cursor outside region");
+      if (VM.VERIFY_ASSERTIONS) assertCursorInBounds();
+      if (VERY_VERBOSE) {
+        Log.write("Next object , cursor = "); Log.write(cursor); Log.write(" "); Log.flush();
+        VM.objectModel.dumpObject(current);
       }
       return current;
     }
@@ -271,6 +276,10 @@ public final class MarkCompactCollector {
     @Inline
     void advanceToObjectEnd(ObjectReference current) {
       cursor = VM.objectModel.getObjectEndAddress(current);
+      if (VERY_VERBOSE) {
+        Log.write("Advance to end of object "); Log.write(current);
+        Log.write(" = "); Log.writeln(cursor);
+      }
       if (VM.VERIFY_ASSERTIONS) assertCursorInBounds();
     }
 

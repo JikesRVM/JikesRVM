@@ -71,4 +71,23 @@ public class RVMClassTest {
     return klass;
   }
 
+  @Test
+  public void interfaceVirtualMethodsDontContainMethodsWithTheSameSignatureAndName() throws ClassNotFoundException {
+    RVMMethod[] testInterfaceAMethods = JikesRVMSupport.getTypeForClass(
+        TestInterface_A.class).getVirtualMethods();
+    RVMMethod[] testInterfaceBMethods = JikesRVMSupport.getTypeForClass(
+        TestInterface_B.class).getVirtualMethods();
+    assertThat(testInterfaceBMethods.length, is(testInterfaceAMethods.length));
+  }
+
+  private interface TestInterface_B extends TestInterface_A {
+    @Override
+    void test();
+  }
+
+  private interface TestInterface_A {
+    void test();
+  }
+
+
 }

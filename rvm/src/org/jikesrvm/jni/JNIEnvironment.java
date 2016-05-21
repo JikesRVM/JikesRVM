@@ -48,13 +48,13 @@ public final class JNIEnvironment {
   protected static final int JNIREFS_ARRAY_LENGTH = 100;
 
   /**
-   * sometimes we put stuff onto the jnirefs array bypassing the code
+   * Sometimes we put stuff onto the {@link #JNIRefs} array bypassing the code
    * that makes sure that it does not overflow (evil assembly code in the
-   * jni stubs that would be painful to fix).  So, we keep some space
+   * PowerPC JNI stubs that would be painful to fix). So, we keep some space
    * between the max value in JNIRefsMax and the actual size of the
-   * array.  How much is governed by this field.
+   * array. How much is governed by this field.
    */
-  protected static final int JNIREFS_FUDGE_LENGTH = 50;
+  protected static final int JNIREFS_FUDGE_LENGTH = VM.BuildForPowerPC ? 50 : 0;
 
   /**
    * This is the shared JNI function table used by native code
@@ -163,13 +163,32 @@ public final class JNIEnvironment {
   /**
    * Initialize a thread specific JNI environment.
    */
-  @NonMovingAllocation
   public JNIEnvironment() {
-    JNIRefs = JNIRefsShadow = AddressArray.create(JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH);
+    JNIRefs = JNIRefsShadow = createArrayForJNIRefs(JNIREFS_ARRAY_LENGTH);
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
-    JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
+    adjustJNIRefsMaxForNewArrayLength();
     alwaysHasNativeFrame = false;
+  }
+
+  /**
+   * Creates an address array for use in {@link #JNIRefs}.
+   * <p>
+   * This has to be in a separate method to ensure that the address array
+   * is allocated into a non-moving space. The array has to be non-movable
+   * because it is accessed directly from native code.
+   *
+   * @param arrayLengthWithoutFudge the desired array length (excluding
+   *   the fudge length {@link #JNIREFS_FUDGE_LENGTH})
+   * @return an address array to be used for JNI references
+   */
+  @NonMovingAllocation
+  private AddressArray createArrayForJNIRefs(int arrayLengthWithoutFudge) {
+    return AddressArray.create(arrayLengthWithoutFudge + JNIREFS_FUDGE_LENGTH);
+  }
+
+  private void adjustJNIRefsMaxForNewArrayLength() {
+    JNIRefsMax = (JNIRefs.length() - JNIREFS_FUDGE_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
   }
 
   /*
@@ -251,8 +270,9 @@ public final class JNIEnvironment {
       if (VM.VerifyAssertions) checkPush(ref, true);
       JNIRefsTop += BYTES_IN_ADDRESS;
       if (JNIRefsTop >= JNIRefsMax) {
-        JNIRefsMax *= 2;
-        replaceJNIRefs(AddressArray.create((JNIRefsMax >> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH));
+        int arrayLengthWithoutFudge = 2 * (JNIRefs.length() - JNIREFS_FUDGE_LENGTH);
+        replaceJNIRefs(createArrayForJNIRefs(arrayLengthWithoutFudge));
+        adjustJNIRefsMaxForNewArrayLength();
       }
       JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
       return JNIRefsTop;

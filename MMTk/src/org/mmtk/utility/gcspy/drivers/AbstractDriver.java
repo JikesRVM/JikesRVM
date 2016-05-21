@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
+import static org.mmtk.utility.Constants.MAX_INT;
+
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.GCspy;
@@ -218,15 +220,18 @@ public abstract class AbstractDriver {
    * @return The number of tiles in this range.
    */
   protected int countTileNum(Extent extent, int tileSize) {
-    int diff = extent.toInt();
+    long diff = extent.toLong();
     return countTileNum(diff, tileSize);
   }
 
-  private int countTileNum(int diff, int tileSize) {
-    int tiles = diff / tileSize;
+  private int countTileNum(long diff, int tileSize) {
+    long tiles = diff / tileSize;
     if ((diff % tileSize) != 0)
       ++tiles;
-    return tiles;
+    if (tiles > MAX_INT) {
+      Log.writeln("AbstractDriver: tiles does not fit in int");
+    }
+    return (int)tiles;
   }
 
   /**

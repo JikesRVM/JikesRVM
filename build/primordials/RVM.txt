@@ -68,6 +68,7 @@ Lorg/jikesrvm/scheduler/Lock;
 
 [Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
 [Lorg/mmtk/utility/heap/FreeListPageResource;
+[Lorg/mmtk/utility/RawMemoryFreeList;
 
 [Lorg/mmtk/plan/Phase;
 [Lorg/mmtk/policy/Space;

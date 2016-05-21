@@ -98,8 +98,8 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
         ((IntOption)o).setValue(ival);
         return true;
       case Option.ADDRESS_OPTION:
-        ival = CommandLineArgs.primitiveParseInt(value);
-        ((AddressOption)o).setValue(ival);
+        long lval = CommandLineArgs.primitiveParseLong(value);
+        ((AddressOption)o).setValue(lval);
         return true;
       case Option.FLOAT_OPTION:
         float fval = CommandLineArgs.primitiveParseFloat(value);

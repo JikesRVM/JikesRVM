@@ -21,13 +21,14 @@ import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 import static org.mmtk.utility.Constants.LOG_BYTES_IN_MBYTE;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.BYTES_IN_CHUNK;
 
+import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -46,41 +47,55 @@ import org.vmmagic.unboxed.Offset;
   private static final int LOG_BYTES_IN_PAGE_LIE = 12;
 
   @Override
+  protected boolean getHeapLayout32Bit() {
+    return HeapLayoutConstants.HEAP_LAYOUT == HeapLayoutConstants.HEAP_LAYOUT_32BIT;
+  }
+
+  @Override
   protected final Address getHeapStartConstant() {
     return BOOT_IMAGE_DATA_START;
   }
+
   @Override
   protected final Address getHeapEndConstant() {
     return MAXIMUM_MAPPABLE;
   }
+
   @Override
   protected final Address getAvailableStartConstant() {
     return BOOT_IMAGE_END;
   }
+
   @Override
   protected final Address getAvailableEndConstant() {
     return MAXIMUM_MAPPABLE;
   }
+
   @Override
   protected final byte getLogBytesInAddressConstant() {
     return LOG_BYTES_IN_ADDRESS;
   }
+
   @Override
   protected final byte getLogBytesInWordConstant() {
     return LOG_BYTES_IN_WORD;
   }
+
   @Override
   protected final byte getLogBytesInPageConstant() {
     return LOG_BYTES_IN_PAGE_LIE;
   }
+
   @Override
   protected final byte getLogMinAlignmentConstant() {
     return JavaHeader.LOG_MIN_ALIGNMENT;
   }
+
   @Override
   protected final int getMaxBytesPaddingConstant() {
     return BYTES_IN_DOUBLE;
   }
+
   @Override
   protected final int getAlignmentValueConstant() {
     return JavaHeader.ALIGNMENT_VALUE;
@@ -93,14 +108,6 @@ import org.vmmagic.unboxed.Offset;
   }
 
   private static ImmortalSpace bootSpace;
-
-  private static final int BOOT_SEGMENT_MB;
-
-  static {
-    Offset bootSegmentBytes = BOOT_IMAGE_END.diff(BOOT_IMAGE_DATA_START);
-    BOOT_SEGMENT_MB = org.jikesrvm.runtime.Memory.alignUp(bootSegmentBytes.toInt(),
-        Space.BYTES_IN_CHUNK) >>> LOG_BYTES_IN_MBYTE;
-  }
 
   /**
    * Return the space associated with/reserved for the VM.  In the
@@ -121,8 +128,13 @@ import org.vmmagic.unboxed.Offset;
   @Override
   @Interruptible
   public final ImmortalSpace getVMSpace() {
+    Offset bootSegmentBytes = BOOT_IMAGE_END.diff(BOOT_IMAGE_DATA_START);
+    if (VM.VerifyAssertions) VM._assert(bootSegmentBytes.sGT(Offset.zero()));
+
+    int bootSegmentMb = org.jikesrvm.runtime.Memory.alignUp(bootSegmentBytes.toWord().toAddress(),
+        BYTES_IN_CHUNK).toWord().rshl(LOG_BYTES_IN_MBYTE).toInt();
     if (bootSpace == null) {
-      bootSpace = new ImmortalSpace("boot", VMRequest.fixedSize(BOOT_SEGMENT_MB));
+      bootSpace = new ImmortalSpace("boot", VMRequest.fixedSize(bootSegmentMb));
     }
     return bootSpace;
   }
@@ -186,7 +198,7 @@ import org.vmmagic.unboxed.Offset;
   }
 
   /*
-   * Utilities from the VM class
+   * Utilities from the Magic class
    */
 
   @Override

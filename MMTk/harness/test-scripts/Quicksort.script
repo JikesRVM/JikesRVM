@@ -13,7 +13,8 @@
 
 
 option baseHeap "3072k";
-
+option baseHeap64 "3400k";
+option fixedNursery "128k";
 
 /*
  * Create a list of random integers, then sort the list using quicksort.

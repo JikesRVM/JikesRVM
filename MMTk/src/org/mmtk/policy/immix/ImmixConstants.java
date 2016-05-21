@@ -12,8 +12,8 @@
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.Space.BYTES_IN_CHUNK;
-import static org.mmtk.policy.Space.LOG_BYTES_IN_CHUNK;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.LOG_BYTES_IN_CHUNK;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.BYTES_IN_CHUNK;
 import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
 
 import org.mmtk.plan.Plan;

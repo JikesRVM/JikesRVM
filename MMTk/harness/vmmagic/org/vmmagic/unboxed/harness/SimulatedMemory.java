@@ -417,7 +417,7 @@ public final class SimulatedMemory {
     Clock.stop();
     Trace.trace(Item.MEMORY,"zero(%s,%s)\n", start.toString(), size.toString());
     Clock.start();
-    zero(start, size.toInt());
+    zero(start, size.toLong());
   }
 
   /**
@@ -425,9 +425,13 @@ public final class SimulatedMemory {
    * @param start Start of address range (inclusive)
    * @param size Length in bytes of range to zero
    */
-  public static void zero(Address start, int size) {
+  public static void zero(Address start, long size) {
     Clock.stop();
     Trace.trace(Item.MEMORY,"zero(%s,%d)\n", start.toString(), size);
+    if (size < 0) {
+      System.out.printf("start: %s, size: %d %n",start,size);
+    }
+    assert (size >= 0) : "Can't zero negative size: int to long conversion gone wrong ?";
     assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
     Clock.start();
 

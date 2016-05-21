@@ -411,15 +411,15 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
       continue;
     }
     if (STRNEQUAL(token, nonStandardArgs[BOOTIMAGE_CODE_FILE_INDEX], 6)) {
-      bootCodeFilename = token + 6;
+      bootCodeFilename = (char *)(token + 6);
       continue;
     }
     if (STRNEQUAL(token, nonStandardArgs[BOOTIMAGE_DATA_FILE_INDEX], 6)) {
-      bootDataFilename = token + 6;
+      bootDataFilename = (char *)(token + 6);
       continue;
     }
     if (STRNEQUAL(token, nonStandardArgs[BOOTIMAGE_RMAP_FILE_INDEX], 6)) {
-      bootRMapFilename = token + 6;
+      bootRMapFilename = (char *)(token + 6);
       continue;
     }
 

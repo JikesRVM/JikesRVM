@@ -31,7 +31,6 @@ import static org.jikesrvm.objectmodel.JavaHeaderConstants.OTHER_HEADER_BYTES;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.STATUS_BYTES;
 import static org.jikesrvm.objectmodel.MiscHeader.REQUESTED_BITS;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
@@ -348,8 +347,9 @@ public class JavaHeader {
    * @return the object reference for the object
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
-    while ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-      start = start.plus(BYTES_IN_WORD);
+    /* Skip over any alignment fill */
+    while ((start.loadInt()) == ALIGNMENT_VALUE) {
+      start = start.plus(BYTES_IN_INT);
     }
     return start.plus(OBJECT_REF_OFFSET).toObjectReference();
   }

@@ -117,6 +117,9 @@
   <property name="mmtk.java.version" value="1.6"/>
   <property name="harness.java.version" value="1.6"/>
   <property name="rvm.java.version" value="1.6"/>
+	
+  <!-- Default heap layout -->
+  <property name="target.heap-layout" value="32BIT"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -1155,6 +1158,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_BOOTIMAGE_RMAP_ADDRESS_" value="${target.bootimage.rmap.address}"/>
         <filter token="_MAXIMUM_MAPPABLE_ADDRESS_" value="${target.max-mappable.address}"/>
         <filter token="_ADDRESS_METHOD_" value="${pp_address.method}"/>
+        <filter token="_HEAP_LAYOUT_" value="${target.heap-layout}"/>
       </filterset>
     </copy>
 
@@ -1943,12 +1947,6 @@ Check to make sure all required properties are specified. This includes properti
       <sysproperty key="mmtk.hostjvm" value="org.jikesrvm.mm.mmtk.Factory"/>
       <sysproperty key="mmtk.properties" value="${mmtk.properties}"/>
       <jvmarg value="-Xbootclasspath/a:${build.rt.jar}"/>
-      <arg value="-da"/>
-      <arg value="${target.bootimage.data.address}"/>
-      <arg value="-ca"/>
-      <arg value="${target.bootimage.code.address}"/>
-      <arg value="-ra"/>
-      <arg value="${target.bootimage.rmap.address}"/>
       <arg value="-out"/>
       <arg path="${build.native}/InterfaceDeclarations.h"/>
     </java>
@@ -2274,6 +2272,7 @@ target.name=${target.name}
 target.arch=${target.arch}
 target.os=${target.os}
 target.address.size=${target.address.size}
+target.heap-layout=${target.heap-layout}
 target.bootimage.code.address=${target.bootimage.code.address}
 target.bootimage.data.address=${target.bootimage.data.address}
 target.bootimage.rmap.address=${target.bootimage.rmap.address}
@@ -2331,6 +2330,7 @@ target.name=${target.name}
 target.arch=${target.arch}
 target.os=${target.os}
 target.address.size=${target.address.size}
+target.heap-layout=${target.heap-layout}
 target.bootimage.code.address=${target.bootimage.code.address}
 target.bootimage.data.address=${target.bootimage.data.address}
 target.bootimage.rmap.address=${target.bootimage.rmap.address}

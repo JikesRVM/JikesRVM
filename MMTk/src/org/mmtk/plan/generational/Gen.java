@@ -19,8 +19,8 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.sanitychecker.SanityChecker;
@@ -342,7 +342,7 @@ public abstract class Gen extends StopTheWorld {
   @Inline
   static boolean inNursery(Address addr) {
     if (USE_DISCONTIGUOUS_NURSERY)
-      return Map.getDescriptorForAddress(addr) == NURSERY;
+      return HeapLayout.vmMap.getDescriptorForAddress(addr) == NURSERY;
     else
       return addr.GE(NURSERY_START);
   }

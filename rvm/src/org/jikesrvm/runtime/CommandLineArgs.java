@@ -828,6 +828,19 @@ public class CommandLineArgs {
   }
 
   /**
+   * Primitive parsing of opaque word-length primitive values.
+   * Done this way to enable us to parse command line arguments
+   * early in VM booting before we are able call
+   * {@code  Byte.parseByte} or {@code Integer.parseInt}.
+   * @param arg the int or byte value to parse
+   * @return value as int
+   */
+  public static long primitiveParseLong(String arg) {
+    byte[] b = stringToBytes("integer or byte", arg);
+    return sysCall.sysPrimitiveParseLong(b);
+  }
+
+  /**
    * Primitive parsing of memory sizes, with proper error handling,
    * and so on.
    * Works without needing Byte.parseByte or Integer.parseInt().

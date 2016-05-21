@@ -629,6 +629,11 @@ public class Memory {
   }
 
   @Inline
+  public static Address alignUp(Address address, Extent alignment) {
+    return address.plus(alignment.minus(1)).toWord().and(alignment.minus(1).toWord().not()).toAddress();
+  }
+
+  @Inline
   public static Address alignDown(Address address, int alignment) {
     return address.toWord().and(Word.fromIntSignExtend(~(alignment - 1))).toAddress();
   }

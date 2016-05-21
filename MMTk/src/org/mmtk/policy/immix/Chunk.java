@@ -12,12 +12,12 @@
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.Space.BYTES_IN_CHUNK;
+import static org.mmtk.utility.heap.layout.VMLayoutConstants.BYTES_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.*;
 import static org.mmtk.utility.Constants.*;
 
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.Mmapper;
+import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.Uninterruptible;
@@ -78,7 +78,7 @@ public class Chunk {
       VM.assertions._assert(Conversions.isPageAligned(chunk));
       VM.assertions._assert(Conversions.isPageAligned(ROUNDED_METADATA_BYTES_PER_CHUNK));
     }
-    Mmapper.ensureMapped(chunk, ROUNDED_METADATA_PAGES_PER_CHUNK);
+    HeapLayout.mmapper.ensureMapped(chunk, ROUNDED_METADATA_PAGES_PER_CHUNK);
     VM.memory.zero(false, chunk, Extent.fromIntZeroExtend(ROUNDED_METADATA_BYTES_PER_CHUNK));
     if (VM.VERIFY_ASSERTIONS) checkMetaDataCleared(chunk, chunk);
   }

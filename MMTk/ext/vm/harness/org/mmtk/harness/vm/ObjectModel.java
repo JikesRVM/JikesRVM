@@ -100,7 +100,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
   private static final int DOUBLE_ALIGN     = 0x1 << (2 * MemoryConstants.BITS_IN_BYTE);
 
   /** The value placed in alignment holes */
-  public static final int ALIGNMENT_VALUE = 1;
+  public static final int ALIGNMENT_VALUE = 0xcafebabe;
 
   /*
    * Object identifiers.  Objects are allocated a sequential identifier.
@@ -501,8 +501,9 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
 
   @Override
   public ObjectReference getObjectFromStartAddress(Address start) {
-    if ((start.loadInt() & ALIGNMENT_VALUE) != 0) {
-      start = start.plus(MemoryConstants.BYTES_IN_WORD);
+    /* Skip alignment fill */
+    while (start.loadInt() == ALIGNMENT_VALUE) {
+      start = start.plus(MemoryConstants.BYTES_IN_INT);
     }
     return start.toObjectReference();
   }
