@@ -48,13 +48,13 @@ public final class JNIEnvironment {
   protected static final int JNIREFS_ARRAY_LENGTH = 100;
 
   /**
-   * sometimes we put stuff onto the jnirefs array bypassing the code
+   * Sometimes we put stuff onto the {@link #JNIRefs} array bypassing the code
    * that makes sure that it does not overflow (evil assembly code in the
-   * jni stubs that would be painful to fix).  So, we keep some space
+   * PowerPC JNI stubs that would be painful to fix). So, we keep some space
    * between the max value in JNIRefsMax and the actual size of the
-   * array.  How much is governed by this field.
+   * array. How much is governed by this field.
    */
-  protected static final int JNIREFS_FUDGE_LENGTH = 50;
+  protected static final int JNIREFS_FUDGE_LENGTH = VM.BuildForPowerPC ? 50 : 0;
 
   /**
    * This is the shared JNI function table used by native code

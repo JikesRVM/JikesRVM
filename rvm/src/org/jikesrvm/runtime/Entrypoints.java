@@ -396,30 +396,42 @@ public class Entrypoints {
 
   public static final RVMField JNIEnvSavedTRField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "savedTRreg", org.jikesrvm.scheduler.RVMThread.class);
-  public static final RVMField JNIEnvBasePointerOnEntryToNative =
-      getField(org.jikesrvm.jni.JNIEnvironment.class, "basePointerOnEntryToNative", org.vmmagic.unboxed.Address.class);
-  public static final RVMField JNIGlobalRefsField =
-    getField(org.jikesrvm.jni.JNIGlobalRefTable.class, "JNIGlobalRefs", org.vmmagic.unboxed.AddressArray.class);
-  public static final RVMField JNIRefsField =
-      getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIRefs", org.vmmagic.unboxed.AddressArray.class);
-  public static final RVMField JNIRefsTopField = getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIRefsTop", int.class);
-  public static final RVMField JNIRefsMaxField = getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIRefsMax", int.class);
-  public static final RVMField JNIRefsSavedFPField =
-      getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIRefsSavedFP", int.class);
   public static final RVMField JNITopJavaFPField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "JNITopJavaFP", org.vmmagic.unboxed.Address.class);
-  public static final RVMField JNIHasPendingExceptionField =
-      getField(org.jikesrvm.jni.JNIEnvironment.class, "hasPendingException", int.class);
   public static final RVMField JNIExternalFunctionsField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "externalJNIFunctions", org.vmmagic.unboxed.Address.class);
   public static final RVMField JNIEnvSavedJTOCField;
+
+  public static final RVMField JNIEnvBasePointerOnEntryToNative;
+  public static final RVMField JNIGlobalRefsField;
+  public static final RVMField JNIRefsField;
+  public static final RVMField JNIRefsTopField;
+  public static final RVMField JNIRefsSavedFPField;
+  public static final RVMField JNIHasPendingExceptionField;
   public static final RVMMethod jniThrowPendingException;
   public static final RVMMethod jniEntry;
   public static final RVMMethod jniExit;
 
+  // Deal with currently differing JNI implementations for PowerPC and IA32
 
   static {
     if (VM.BuildForPowerPC) {
+      JNIEnvBasePointerOnEntryToNative = null;
+      JNIGlobalRefsField = getField(org.jikesrvm.jni.JNIGlobalRefTable.class,
+                                              "JNIGlobalRefs",
+                                              org.vmmagic.unboxed.AddressArray.class);
+      JNIRefsField =  getField(org.jikesrvm.jni.JNIEnvironment.class,
+                                              "JNIRefs",
+                                              org.vmmagic.unboxed.AddressArray.class);
+      JNIRefsTopField = getField(org.jikesrvm.jni.JNIEnvironment.class,
+                                              "JNIRefsTop",
+                                              int.class);
+      JNIRefsSavedFPField = getField(org.jikesrvm.jni.JNIEnvironment.class,
+                                              "JNIRefsSavedFP",
+                                              int.class);
+      JNIHasPendingExceptionField = getField(org.jikesrvm.jni.JNIEnvironment.class,
+                                              "hasPendingException",
+                                              int.class);
       JNIEnvSavedJTOCField =  getField(org.jikesrvm.jni.JNIEnvironment.class,
                                               "savedJTOC",
                                               org.vmmagic.unboxed.Address.class);
@@ -430,6 +442,14 @@ public class Entrypoints {
       jniExit = null;
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32);
+      JNIEnvBasePointerOnEntryToNative = getField(org.jikesrvm.jni.JNIEnvironment.class,
+          "basePointerOnEntryToNative",
+           org.vmmagic.unboxed.Address.class);
+      JNIGlobalRefsField = null;
+      JNIRefsField = null;
+      JNIRefsTopField = null;
+      JNIRefsSavedFPField = null;
+      JNIHasPendingExceptionField = null;
       JNIEnvSavedJTOCField = null;
       jniThrowPendingException = null;
       jniEntry = getMethod(org.jikesrvm.jni.JNIEnvironment.class,
