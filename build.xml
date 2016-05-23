@@ -1453,7 +1453,7 @@ Check to make sure all required properties are specified. This includes properti
                source="${rvm.java.version}"
                target="${rvm.java.version}"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${openjdk.lib.dir}/rt.jar"/>
