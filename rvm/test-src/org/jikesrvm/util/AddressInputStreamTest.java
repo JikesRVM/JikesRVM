@@ -16,7 +16,6 @@ import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
 import java.io.IOException;
-
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.runtime.Magic;
@@ -25,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.vmmagic.pragma.NonMovingAllocation;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 
@@ -41,6 +41,7 @@ public class AddressInputStreamTest {
   private AddressInputStream toBeClosedAfterTestMethodRuns;
   private byte[] byteArray;
 
+  @NonMovingAllocation
   @Before
   public void setUp() {
     byteArray = new byte[3];
