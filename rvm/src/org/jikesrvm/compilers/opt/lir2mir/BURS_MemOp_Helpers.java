@@ -29,7 +29,6 @@ import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.vmmagic.unboxed.Offset;
-import static org.jikesrvm.compilers.opt.ir.IRTools.TG;
 
 /**
  * Contains common BURS helper functions for platforms with memory operands.
@@ -148,7 +147,7 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
         throw new OptimizingCompilerException("two scaled registers in address");
       }
     }
-    AddrStack.displacement = AddrStack.displacement.plus(tmp.displacement.toInt());
+    AddrStack.displacement = AddrStack.displacement.plus(tmp.displacement);
   }
 
   protected final MemoryOperand consumeAddress(byte size, LocationOperand loc, Operand guard) {
