@@ -172,6 +172,10 @@ public class Bits {
   public static boolean fits(Word val, int bits) {
     Word o = val.rsha(bits - 1);
     return (o.isZero() || o.isMax());
- }
+  }
+
+  public static boolean fitsUnsigned(int val, int bits) {
+    return val >= 0 && val < (1 << bits);
+  }
 
 }

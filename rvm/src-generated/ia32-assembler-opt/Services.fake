@@ -12,15 +12,13 @@
  */
 package org.jikesrvm.util;
 
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.Offset;
 
-public class Bits {
-  public static boolean fits(int x, int y) { return true; }
-  public static boolean fits(long x, int y) { return true; }
-  public static boolean fits(Address x, int y) { return true; }
-  public static boolean fits(Offset x, int y) { return true; }
-  public static boolean fits(Word x, int y) { return true; }
-  public static boolean fitsUnsigned(int val, int bits) { return true; }
+public class Services {
+
+    public static String unboxedValueString(Offset val) { return null; }
+
+    public static String unboxedValueString(Word val) { return null; }
+
 }

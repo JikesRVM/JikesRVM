@@ -12,9 +12,11 @@
  */
 package org.jikesrvm.compilers.common.assembler.ia32;
 
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
 import static org.jikesrvm.ia32.RegisterConstants.*;
 import static org.jikesrvm.util.Bits.*;
+import static org.jikesrvm.util.Services.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.MachineRegister;
@@ -547,6 +549,13 @@ public class Assembler extends AbstractAssembler {
     } else if (fits(disp,8)) {
       emitRegDisp8RegOperands(reg1, (byte)disp.toInt(), reg2);
     } else {
+      if (VM.VerifyAssertions) {
+        if (!fits(disp, 32)) {
+          final String msg = "Displacement " + unboxedValueString(disp) +
+            " does not fit into 32 bits!";
+          VM._assert(NOT_REACHED, msg);
+        }
+      }
       if (VM.VerifyAssertions) VM._assert(fits(disp,32));
       emitRegDisp32RegOperands(reg1, disp.toInt(), reg2);
     }
@@ -640,7 +649,7 @@ public class Assembler extends AbstractAssembler {
     } else if (fits(disp,8)) {
       setMachineCodes(mi++, regDisp8RegModRM(ESP, reg2));
       setMachineCodes(mi++, sib(scale, base, index));
-      emitImm8((byte)disp.toInt());
+      emitImm8(disp.toInt());
     } else {
       setMachineCodes(mi++, regDisp32RegModRM(ESP, reg2));
       setMachineCodes(mi++, sib(scale, base, index));
@@ -678,7 +687,13 @@ public class Assembler extends AbstractAssembler {
    */
   @Inline
   private void emitImm32(Word disp) {
-    if (VM.VerifyAssertions) VM._assert(fits(disp,32));
+    if (VM.VerifyAssertions) {
+      if (!fits(disp, 32)) {
+        final String msg = "Displacement " + unboxedValueString(disp) +
+          " does not fit into 32 bits!";
+        VM._assert(NOT_REACHED, msg);
+      }
+    }
     mi = emitImm32(disp.toInt(), mi);
   }
 
@@ -712,6 +727,13 @@ public class Assembler extends AbstractAssembler {
    */
   @Inline
   private void emitImm16(int imm) {
+    if (VM.VerifyAssertions) {
+      if (!fits(imm, 16) && !(fitsUnsigned(imm, 16))) {
+        final String msg = "Immediate " + imm +
+          " does not fit into 16 bits!";
+        VM._assert(NOT_REACHED, msg);
+      }
+    }
     mi = emitImm16(imm, mi);
   }
 
@@ -723,6 +745,13 @@ public class Assembler extends AbstractAssembler {
    */
   @Inline
   private void emitImm8(int imm) {
+    if (VM.VerifyAssertions) {
+      if (!fits(imm, 8) && !(fitsUnsigned(imm, 8))) {
+        final String msg = "Immediate " + imm +
+          " does not fit into 8 bits!";
+        VM._assert(NOT_REACHED, msg);
+      }
+    }
     mi = emitImm8(imm, mi);
   }
 
@@ -1168,9 +1197,15 @@ public class Assembler extends AbstractAssembler {
     }
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int relOffset = mi - (sourceIndex+2);
-    if (VM.VerifyAssertions) VM._assert(fits(relOffset, 8), "offset too large: "+relOffset);
+    if (VM.VerifyAssertions) {
+      if (!fits(relOffset, 8)) {
+        final String msg = "Relative offset too large: " +
+          relOffset;
+        VM._assert(NOT_REACHED, msg);
+      }
+    }
     sourceIndex++; // skip the op code
-    emitImm8((byte)relOffset, sourceIndex);
+    emitImm8(relOffset, sourceIndex);
   }
 
   /////////////////////////////////////
@@ -1784,7 +1819,7 @@ public class Assembler extends AbstractAssembler {
     if (fits(imm,8)) {
       setMachineCodes(mi++, (byte) 0x6B);
       emitRegRegOperands(dstReg, dstReg);
-      emitImm8((byte)imm);
+      emitImm8(imm);
     } else {
       setMachineCodes(mi++, (byte) 0x69);
       emitRegRegOperands(dstReg, dstReg);
@@ -1860,7 +1895,7 @@ public class Assembler extends AbstractAssembler {
     if (fits(imm,8)) {
       setMachineCodes(mi++, (byte) 0x6B);
       emitRegRegOperands(dstReg, dstReg);
-      emitImm8((byte)imm);
+      emitImm8(imm);
     } else {
       setMachineCodes(mi++, (byte) 0x69);
       emitRegRegOperands(dstReg, dstReg);
@@ -1936,7 +1971,7 @@ public class Assembler extends AbstractAssembler {
     int relOffset = mTarget - (mi + 1 + 1); // address relative to next instruction
     if (fits(relOffset, 8)) {
       emitCondOpByte((byte)0x70, cond);
-      emitImm8((byte)relOffset);
+      emitImm8(relOffset);
     } else {
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x80, cond);
