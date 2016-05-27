@@ -93,6 +93,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XOR;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPS;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_LOWTABLESWITCH;
+import static org.jikesrvm.util.Bits.fits;
 
 import java.util.Enumeration;
 
@@ -299,6 +300,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       EMIT(MIR_Move.mutate(s, IA32_MOV, result, mo.base));
     } else if ((mo.index == null) && result.similar(mo.base)) {
       if (VM.VerifyAssertions) opt_assert(mo.scale == 0);
+      if (VM.VerifyAssertions) opt_assert(fits(mo.disp, 32));
       // If there is no index and we're redefining the same register, emit an add
       EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(mo.disp.toInt())));
     } else {

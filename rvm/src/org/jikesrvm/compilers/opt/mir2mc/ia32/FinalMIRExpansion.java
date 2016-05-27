@@ -57,6 +57,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XOR;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP_opcode;
+import static org.jikesrvm.util.Bits.fits;
 
 import java.util.Enumeration;
 
@@ -360,11 +361,13 @@ public class FinalMIRExpansion extends IRTools {
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);
               } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
                          value.index == null) {
+                if (VM.VerifyAssertions) VM._assert(fits(value.disp, 32));
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
                          value.index != null && value.index.getRegister() == result.getRegister() &&
                          value.scale == 0) {
+                if (VM.VerifyAssertions) VM._assert(fits(value.disp, 32));
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
