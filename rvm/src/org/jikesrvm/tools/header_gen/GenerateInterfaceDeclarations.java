@@ -25,6 +25,7 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSCALL_TROUBLE;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_TIMER_TROUBLE;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP;
+import static org.jikesrvm.util.Services.unboxedValueString;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -252,9 +253,9 @@ public class GenerateInterfaceDeclarations {
         current = current.plus(4);
       }
       if (!current.EQ(offset)) {
-        System.err.printf("current (%d) and offset (%d) are neither identical nor differ by 4",
-                          current.toInt(),
-                          offset.toInt());
+        System.err.printf("current (%s) and offset (%s) are neither identical nor differ by 4",
+                          unboxedValueString(current),
+                          unboxedValueString(offset));
         System.exit(1);
       }
       if (t.isIntType()) {

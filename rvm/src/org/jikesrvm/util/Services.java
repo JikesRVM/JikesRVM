@@ -412,6 +412,12 @@ public class Services {
     return new String(buf);
   }
 
+  @Interruptible
+  public static String unboxedValueString(Offset val) {
+    return (VM.BuildFor32Addr) ? Integer.toString(val.toInt()) :
+      Long.toString(val.toLong());
+  }
+
   /**
    * Sets an element of a object array without possibly losing control.
    * NB doesn't perform checkstore or array index checking.
