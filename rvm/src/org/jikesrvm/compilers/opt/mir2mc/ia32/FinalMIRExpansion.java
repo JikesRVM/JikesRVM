@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
@@ -549,7 +550,13 @@ public class FinalMIRExpansion extends IRTools {
     Offset offset = meth.getOffset();
     LocationOperand loc = new LocationOperand(offset);
     Operand guard = TG();
-    Operand target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    Operand target;
+    if (JTOC_REGISTER == null) {
+      target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    } else {
+      target = MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, (byte) 8, loc, guard);
+    }
+
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
     ir.MIRInfo.gcIRMap.moveToEnd(s);

@@ -3559,7 +3559,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       if (!VM.runningTool && ((BaselineCompiledMethod) compiledMethod).hasCounterArray()) {
         // use (nonvolatile) EBX to hold base of this method's counter array
         if (NEEDS_OBJECT_ALOAD_BARRIER) {
-          asm.emitPUSH_Abs(Magic.getTocPointer().plus(Entrypoints.edgeCountersField.getOffset()));
+          asm.generateJTOCpush(Entrypoints.edgeCountersField.getOffset());
           asm.emitPUSH_Imm(getEdgeCounterIndex());
           Barriers.compileArrayLoadBarrier(asm, false);
           if (VM.BuildFor32Addr) {
@@ -3568,8 +3568,14 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
             asm.emitMOV_Reg_Reg_Quad(EBX, T0);
           }
         } else {
-          asm.emitMOV_Reg_Abs(EBX, Magic.getTocPointer().plus(Entrypoints.edgeCountersField.getOffset()));
-          asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
+          if (VM.BuildFor32Addr) {
+            asm.emitMOV_Reg_Abs(EBX, Magic.getTocPointer().plus(Entrypoints.edgeCountersField.getOffset()));
+            asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
+          } else {
+            asm.generateJTOCpush(Entrypoints.edgeCountersField.getOffset());
+            asm.emitPOP_Reg(EBX);
+            asm.emitMOV_Reg_RegDisp_Quad(EBX, EBX, getEdgeCounterOffset());
+          }
         }
       }
 
