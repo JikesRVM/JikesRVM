@@ -259,7 +259,6 @@ public abstract class Mutator {
    * Request a garbage collection.
    */
   public void gc() {
-    //    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
     Plan.handleUserCollectionRequest();
   }
 
