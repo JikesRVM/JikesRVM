@@ -29,6 +29,7 @@ import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.MutatorContext;
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
@@ -259,6 +260,7 @@ public abstract class Mutator {
    */
   public void gc() {
     //    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+    Plan.handleUserCollectionRequest();
   }
 
   /**
