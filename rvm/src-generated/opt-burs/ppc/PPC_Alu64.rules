@@ -203,16 +203,19 @@ EMIT (P(p)); //  Leave for ComplexLIR2MIRExpansion
 stm:      LONG_IFCMP(r,r)
 20
 EMIT_INSTRUCTION
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \\
 CMP64(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), false);
 
 stm:      LONG_IFCMP(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \\
 CMP64(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), true);
 
 stm:      LONG_IFCMP(r,LONG_CONSTANT)
 20
 EMIT_INSTRUCTION
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \\
 CMP64(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), true);
 
 #####
