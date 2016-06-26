@@ -2681,6 +2681,15 @@ public class VM extends Properties {
   }
 
   /**
+   * @return whether this is a build for 64bit addressing.
+   * NB. this method is provided to give a hook to the IA32
+   * assembler that won't be compiled away by javac.
+   */
+  public static boolean buildFor64Addr() {
+    return BuildFor64Addr;
+  }
+
+  /**
    * @return whether this is a build for SSE2.
    * NB. this method is provided to give a hook to the IA32
    * assembler that won't be compiled away by javac.

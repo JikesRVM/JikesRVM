@@ -1443,6 +1443,10 @@ public class Assembler extends AbstractAssembler {
     emitJMP_Reg(idx);
     // align table
     emitNOP((4 - getMachineCodeIndex()) & 3);
+    // Adjust patch address for REX prefix that's present for x64-only registers
+    if (VM.buildFor64Addr() && (ms.needsREXprefix() || idx.needsREXprefix())) {
+      toPatchAddress += 1;
+    }
     // create table of offsets from start of method
     patchSwitchTableDisplacement(toPatchAddress);
   }

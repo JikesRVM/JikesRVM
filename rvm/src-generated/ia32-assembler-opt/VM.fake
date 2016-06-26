@@ -32,5 +32,7 @@ public class VM {
 
     public static boolean buildFor32Addr() { return true; }
 
+    public static boolean buildFor64Addr() { return true; }
+
     public static boolean buildForSSE2() { return true; }
 }
