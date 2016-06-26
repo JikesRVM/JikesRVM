@@ -1417,6 +1417,36 @@ public class Assembler extends AbstractAssembler {
   // table switch support /////////////
   /////////////////////////////////////
 
+   /**
+   * Emits the code for the start of a {@code tableswitch}, i.e. everything
+   * but the actual table. The creation of the table is done by the individual
+   * compilers.
+   *
+   * @param ms register that holds method start address
+   * @param idx register that holds index of switch case
+   */
+  public final void emitTableswitchCode(GPR ms, GPR idx) {
+    // idx += [ms + idx<<2 + ??] - we will patch ?? when we know the placement
+    // of the table
+    int toPatchAddress = getMachineCodeIndex();
+    // the ?? that we will patch
+    final Offset placeHolder = Offset.fromIntZeroExtend(Integer.MAX_VALUE);
+    // compute value of index register
+    if (VM.buildFor32Addr()) {
+      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, placeHolder);
+      emitADD_Reg_Reg(idx, ms);
+    } else {
+      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, placeHolder);
+      emitADD_Reg_Reg_Quad(idx, ms);
+    }
+    // JMP to index register
+    emitJMP_Reg(idx);
+    // align table
+    emitNOP((4 - getMachineCodeIndex()) & 3);
+    // create table of offsets from start of method
+    patchSwitchTableDisplacement(toPatchAddress);
+  }
+
   /**
    * <p> An OFFSET instruction is not really an instruction; it is rather
    * an address (of an instruction) that is written into the binary

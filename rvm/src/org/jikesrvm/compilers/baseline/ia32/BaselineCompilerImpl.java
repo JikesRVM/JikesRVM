@@ -2210,20 +2210,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
 
     // T0 = EIP at start of method
     asm.emitMETHODSTART_Reg(T0);
-    // T1 += [T0 + T1<<2 + ??] - we will patch ?? when we know the placement of the table
-    int toPatchAddress = asm.getMachineCodeIndex();
-    if (VM.buildFor32Addr()) {
-      asm.emitMOV_Reg_RegIdx(T1, T0, T1, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
-      asm.emitADD_Reg_Reg(T1, T0);
-    } else {
-      asm.emitMOV_Reg_RegIdx(T1, T0, T1, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
-      asm.emitADD_Reg_Reg_Quad(T1, T0);
-    }
-    // JMP T1
-    asm.emitJMP_Reg(T1);
-    asm.emitNOP((4 - asm.getMachineCodeIndex()) & 3); // align table
-    // create table of offsets from start of method
-    asm.patchSwitchTableDisplacement(toPatchAddress);
+    asm.emitTableswitchCode(T0, T1);
+    // Emit data for the tableswitch, i.e. the addresses that will be
+    // loaded for the cases
     for (int i = 0; i < n; i++) {
       int offset = bcodes.getTableSwitchOffset(i);
       bTarget = biStart + offset;

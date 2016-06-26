@@ -13,7 +13,6 @@
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.CONDITION;
-import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.WORD;
 import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
@@ -1171,20 +1170,9 @@ abstract class AssemblerBase extends Assembler {
     int n = MIR_LowTableSwitch.getNumberOfTargets(inst); // n = number of normal cases (0..n-1)
     GPR ms = GPR.lookup(MIR_LowTableSwitch.getMethodStart(inst).getRegister().number);
     GPR idx = GPR.lookup(MIR_LowTableSwitch.getIndex(inst).getRegister().number);
-    // idx += [ms + idx<<2 + ??] - we will patch ?? when we know the placement of the table
-    int toPatchAddress = getMachineCodeIndex();
-    if (VM.buildFor32Addr()) {
-      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
-      emitADD_Reg_Reg(idx, ms);
-    } else {
-      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
-      emitADD_Reg_Reg_Quad(idx, ms);
-    }
-    // JMP T0
-    emitJMP_Reg(idx);
-    emitNOP((4 - getMachineCodeIndex()) & 3); // align table
-    // create table of offsets from start of method
-    patchSwitchTableDisplacement(toPatchAddress);
+    emitTableswitchCode(ms, idx);
+    // Emit data for the tableswitch, i.e. the addresses that will be
+    // loaded for the cases
     for (int i = 0; i < n; i++) {
       Operand target = MIR_LowTableSwitch.getTarget(inst, i);
       emitOFFSET_Imm_ImmOrLabel(i, getImm(target), getLabel(target));
