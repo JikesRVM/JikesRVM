@@ -1789,10 +1789,14 @@ public final class Instruction {
     if (op == null) {
       ops[i] = null;
     } else {
-      // TODO: Replace this silly copying code with an assertion that operands
-      //       are not shared between instructions and force people to be
-      //       more careful!
-      if (op.instruction != null) {
+      // Operands that are already associated with this
+      // instruction may occur here (e.g. during calls
+      // to mutate(..) ). Those don't need any changes.
+      Instruction instHandle = op.instruction;
+      if (instHandle != this && instHandle != null) {
+        // TODO: Replace this silly copying code with an assertion that operands
+        //       are not shared between instructions and force people to be
+        //       more careful!
         op = outOfLineCopy(op);
       }
       op.instruction = this;
