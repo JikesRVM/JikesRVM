@@ -198,10 +198,7 @@ public abstract class CompilerPhase {
   public final void performPhase(IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-        // only print above certain opt level.
-        //if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
         dumpIR(ir, "Before " + getName());
-        //}
       }
     }
     if (ir.options.PRINT_PHASES) VM.sysWrite(getName() + " (" + ir.method.toString() + ")");
