@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.driver;
+package org.jikesrvm.compilers.opt.ir;
 
 import static org.jikesrvm.compilers.opt.ir.IRDumpTools.determineFileName;
 
@@ -22,10 +22,6 @@ import java.util.Enumeration;
 
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.util.Pair;
 

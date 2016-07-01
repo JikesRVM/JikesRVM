@@ -19,7 +19,6 @@ import java.io.PrintStream;
 import java.util.Enumeration;
 
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.compilers.opt.driver.CFGVisualization;
 import org.jikesrvm.runtime.Time;
 
 public class IRDumpTools {
@@ -89,23 +88,23 @@ public class IRDumpTools {
     out.println("*********   END OF IR DUMP  " + tag + "   FOR " + ir.method);
   }
 
-  public static String determineFileName(IR ir, String tag, String suffix) {
-    return determineFileName(ir, tag, "", suffix);
-  }
-
-  public static String determineFileName(IR ir, String tag, String prefix, String suffix) {
-    RVMMethod method = ir.getMethod();
-    return prefix + tag.replace(' ', '-').replace('/', '-') + "_" +
-        method.getDeclaringClass().getDescriptor().classNameFromDescriptor() + "_" +
-        method.getName() + "_" +
-        "opt" + ir.options.getOptLevel() + "-" + Time.currentTimeMillis() + suffix;
-  }
-
   public static void dumpCFG(IR ir) {
     for (Enumeration<BasicBlock> allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
       BasicBlock curBB = allBB.nextElement();
       curBB.printExtended();
     }
+  }
+
+  static String determineFileName(IR ir, String tag, String suffix) {
+    return determineFileName(ir, tag, "", suffix);
+  }
+
+  static String determineFileName(IR ir, String tag, String prefix, String suffix) {
+    RVMMethod method = ir.getMethod();
+    return prefix + tag.replace(' ', '-').replace('/', '-') + "_" +
+        method.getDeclaringClass().getDescriptor().classNameFromDescriptor() + "_" +
+        method.getName() + "_" +
+        "opt" + ir.options.getOptLevel() + "-" + Time.currentTimeMillis() + suffix;
   }
 
 }
