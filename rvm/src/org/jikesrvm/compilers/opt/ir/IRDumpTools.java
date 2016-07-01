@@ -12,9 +12,15 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Enumeration;
 
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.driver.CFGVisualization;
+import org.jikesrvm.runtime.Time;
 
 public class IRDumpTools {
 
@@ -37,6 +43,25 @@ public class IRDumpTools {
       }
     }
     IRDumpTools.dumpIR(ir, tag, false);
+
+    if (ir.options.PRINT_PHASES_TO_FILES) {
+      PrintStream fileOut = null;
+      try {
+        String prefix = ir.getIdForCurrentPhase() + "-";
+        String suffix = ".irdump";
+        String fileName = determineFileName(ir, tag, prefix, suffix);
+        File f = new File(fileName);
+        FileOutputStream fos = new FileOutputStream(f);
+        fileOut = new PrintStream(fos);
+        dumpIR(fileOut, ir, tag, false);
+      } catch (IOException e) {
+        System.out.println("Error dumping IR to file: ");
+        e.printStackTrace(System.out);
+      } finally {
+        if (fileOut != null) fileOut.close();
+      }
+
+    }
   }
 
   /**
@@ -53,6 +78,27 @@ public class IRDumpTools {
       ir.cfg.printDepthFirst();
     }
     System.out.println("*********   END OF IR DUMP  " + tag + "   FOR " + ir.method);
+  }
+
+  public static void dumpIR(PrintStream out, IR ir, String tag, boolean forceCFG) {
+    out.println("********* START OF IR DUMP  " + tag + "   FOR " + ir.method);
+    ir.printInstructionsToStream(out);
+    if (forceCFG || ir.options.PRINT_CFG) {
+      ir.cfg.printDepthFirstToStream(out);
+    }
+    out.println("*********   END OF IR DUMP  " + tag + "   FOR " + ir.method);
+  }
+
+  public static String determineFileName(IR ir, String tag, String suffix) {
+    return determineFileName(ir, tag, "", suffix);
+  }
+
+  public static String determineFileName(IR ir, String tag, String prefix, String suffix) {
+    RVMMethod method = ir.getMethod();
+    return prefix + tag.replace(' ', '-').replace('/', '-') + "_" +
+        method.getDeclaringClass().getDescriptor().classNameFromDescriptor() + "_" +
+        method.getName() + "_" +
+        "opt" + ir.options.getOptLevel() + "-" + Time.currentTimeMillis() + suffix;
   }
 
   public static void dumpCFG(IR ir) {

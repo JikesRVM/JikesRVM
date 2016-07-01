@@ -64,6 +64,8 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
 
   @Override
   public void perform(IR ir) {
+    ir.setIdForNextPhase();
+
     long start = 0;
     try {
       if (VM.MeasureCompilationPhases && VM.runningVM) {

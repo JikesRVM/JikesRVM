@@ -120,6 +120,8 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
 
   @Override
   public final void perform(IR ir) {
+    ir.setIdForNextPhase();
+
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         dumpIR(ir, "Before " + getName());
