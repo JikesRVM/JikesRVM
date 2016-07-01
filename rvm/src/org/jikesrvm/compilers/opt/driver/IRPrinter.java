@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpIR;
+
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**

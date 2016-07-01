@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpCFG;
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpIR;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD;
@@ -932,12 +934,5 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     // if (InstrumentedCounter.conforms(i)))
 
     return InstrumentedCounter.conforms(i);
-  }
-
-  public static void dumpCFG(IR ir) {
-    for (Enumeration<BasicBlock> allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
-      BasicBlock curBB = allBB.nextElement();
-      curBB.printExtended();
-    }
   }
 }

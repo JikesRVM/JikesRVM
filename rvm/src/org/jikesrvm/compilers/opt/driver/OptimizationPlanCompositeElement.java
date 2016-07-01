@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpIR;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -120,7 +122,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
   public final void perform(IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-        CompilerPhase.dumpIR(ir, "Before " + getName());
+        dumpIR(ir, "Before " + getName());
       }
     }
 
@@ -132,7 +134,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
 
     if (printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-        CompilerPhase.dumpIR(ir, "After " + getName());
+        dumpIR(ir, "After " + getName());
       }
     }
   }

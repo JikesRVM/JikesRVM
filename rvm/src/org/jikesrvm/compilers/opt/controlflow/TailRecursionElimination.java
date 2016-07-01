@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpIR;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
