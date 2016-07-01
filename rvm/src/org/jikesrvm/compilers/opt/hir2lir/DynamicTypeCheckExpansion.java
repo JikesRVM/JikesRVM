@@ -135,7 +135,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       myBlock.insertOut(falseBranch);
       ir.cfg.linkInCodeOrder(myBlock, instanceOfBlock);
       Operand RHStib = getTIB(s, ir, ref, oldGuard.copyRO());
-      return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, trueBranch, falseBranch, oldGuard, bp);
+      return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, trueBranch, falseBranch, oldGuard.copy().asRegister(), bp);
     } else {
       // Not a branching pattern
       RegisterOperand guard = ir.regpool.makeTempValidation();
@@ -204,7 +204,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                           RHStib,
                                           branchBB,
                                           fallThroughBB,
-                                          oldGuard,
+                                          oldGuard.copyRO(),
                                           IfCmp.getClearBranchProfile(next).flip());
       } else {
         return generateBranchingTypeCheck(s,
@@ -214,7 +214,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
                                           RHStib,
                                           fallThroughBB,
                                           branchBB,
-                                          oldGuard,
+                                          oldGuard.copyRO(),
                                           IfCmp.getClearBranchProfile(next));
       }
     } else {

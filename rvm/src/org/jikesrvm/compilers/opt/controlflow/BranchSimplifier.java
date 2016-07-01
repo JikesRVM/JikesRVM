@@ -246,7 +246,7 @@ public abstract class BranchSimplifier {
       Goto.mutate(s, GOTO, target);
     } else if (numMatches == 1) {
       // only 1 match, simplify to ifcmp
-      BranchOperand defaultTarget = LookupSwitch.getDefault(s);
+      BranchOperand defaultTarget = LookupSwitch.getClearDefault(s);
       IfCmp.mutate(s,
                    INT_IFCMP,
                    ir.regpool.makeTempValidation(),
@@ -276,7 +276,7 @@ public abstract class BranchSimplifier {
       Goto.mutate(s, GOTO, target);
     } else if (low == high) {
       // only 1 match, simplify to ifcmp
-      BranchOperand defaultTarget = TableSwitch.getDefault(s);
+      BranchOperand defaultTarget = TableSwitch.getClearDefault(s);
       IfCmp.mutate(s,
                    INT_IFCMP,
                    ir.regpool.makeTempValidation(),

@@ -208,7 +208,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // Move the maxintFloat value and the value into registers and compare and
     // branch if they are <= or unordered. NB we don't use a memory operand as
     // that would require 2 jccs
-    RegisterOperand result = Unary.getResult(s);
+    RegisterOperand result = Unary.getResult(s).copyRO();
     RegisterOperand value = Unary.getVal(s).asRegister();
     MemoryOperand maxint = BURS_Helpers.loadFromJTOC(Entrypoints.maxintFloatField.getOffset(), (byte)4);
     RegisterOperand maxintReg = ir.regpool.makeTempFloat();
@@ -284,11 +284,11 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     if (VM.BuildFor32Addr) {
       // Move the maxlongFloat value and the value into x87 registers and compare and
       // branch if they are <= or unordered.
-      RegisterOperand resultHi = Unary.getResult(s);
+      RegisterOperand resultHi = Unary.getResult(s).copyRO();
       resultHi.setType(TypeReference.Int);
       RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
           TypeReference.Int);
-      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand value = Unary.getVal(s).asRegister().copyRO();
       RegisterOperand cw = ir.regpool.makeTempInt();
       MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
       RegisterOperand st0 = new RegisterOperand(phys(ir).getST0(),
@@ -322,7 +322,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
       f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
       f2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
-      f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw.copyRO(), IC(0xC00))));
       f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
       f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
       f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
@@ -364,9 +364,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     } else {
       // Move the maxlongFloat value and the value into x87 registers and compare and
       // branch if they are <= or unordered.
-      RegisterOperand result = Unary.getResult(s);
+      RegisterOperand result = Unary.getResult(s).copyRO();
       result.setType(TypeReference.Long);
-      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand value = Unary.getVal(s).asRegister().copyRO();
       RegisterOperand cw = ir.regpool.makeTempInt();
       MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
       RegisterOperand st0 = new RegisterOperand(phys(ir).getST0(),
@@ -398,7 +398,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
       f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
       f2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
-      f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw.copyRO(), IC(0xC00))));
       f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
       f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
       f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
@@ -477,7 +477,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
 
     // Convert float to int knowing that if the value is < min int the Intel
     // unspecified result is min int
-    d2iBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_CVTTSD2SI, result, value.copy())));
+    d2iBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_CVTTSD2SI, result.copyRO(), value.copy())));
     d2iBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     d2iBB.insertOut(nextBB);
@@ -534,11 +534,11 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // Move the maxlongFloat value and the value into x87 registers and compare and
     // branch if they are <= or unordered.
     if (VM.BuildFor32Addr) {
-      RegisterOperand resultHi = Unary.getResult(s);
+      RegisterOperand resultHi = Unary.getResult(s).copyRO();
       resultHi.setType(TypeReference.Int);
       RegisterOperand resultLo = new RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
           TypeReference.Int);
-      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand value = Unary.getVal(s).asRegister().copyRO();
       RegisterOperand cw = ir.regpool.makeTempInt();
       MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
       RegisterOperand st0 = new RegisterOperand(phys(ir).getST0(),
@@ -572,7 +572,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
       d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
       d2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
-      d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw.copyRO(), IC(0xC00))));
       d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
       d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
       d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
@@ -613,8 +613,8 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       nanBB.insertOut(nextBB);
       return nextInstr;
     } else {
-      RegisterOperand result = Unary.getResult(s);
-      RegisterOperand value = Unary.getVal(s).asRegister();
+      RegisterOperand result = Unary.getResult(s).copyRO();
+      RegisterOperand value = Unary.getVal(s).asRegister().copyRO();
       RegisterOperand cw = ir.regpool.makeTempInt();
       MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
       RegisterOperand st0 = new RegisterOperand(phys(ir).getST0(),
@@ -646,7 +646,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
       d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
       d2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
-      d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+      d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw.copyRO(), IC(0xC00))));
       d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
       d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
       d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
@@ -701,9 +701,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     ir.cfg.linkInCodeOrder(testBB, shift64BB);
 
     // Source registers
-    Register lhsReg = Binary.getResult(s).getRegister();
+    Register lhsReg = Binary.getClearResult(s).getRegister();
     Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
-    Operand val1 = Binary.getVal1(s);
+    Operand val1 = Binary.getClearVal1(s);
     Register rhsReg;
     Register lowrhsReg;
     if (val1.isRegister()) {
@@ -728,7 +728,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     Register ecx = phys(ir).getECX();
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new RegisterOperand(ecx, TypeReference.Int),
-        Binary.getVal2(s))));
+        Binary.getClearVal2(s))));
 
     // Determine shift of 32 to 63 or 0 to 31
     testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
@@ -801,9 +801,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     ir.cfg.linkInCodeOrder(testBB, shift64BB);
 
     // Source registers
-    Register lhsReg = Binary.getResult(s).getRegister();
+    Register lhsReg = Binary.getClearResult(s).getRegister();
     Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
-    Operand val1 = Binary.getVal1(s);
+    Operand val1 = Binary.getClearVal1(s);
     Register rhsReg;
     Register lowrhsReg;
     if (val1.isRegister()) {
@@ -828,7 +828,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     Register ecx = phys(ir).getECX();
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new RegisterOperand(ecx, TypeReference.Int),
-        Binary.getVal2(s))));
+        Binary.getClearVal2(s))));
 
     // Determine shift of 32 to 63 or 0 to 31
     testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
@@ -906,9 +906,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     ir.cfg.linkInCodeOrder(testBB, shift64BB);
 
     // Source registers
-    Register lhsReg = Binary.getResult(s).getRegister();
+    Register lhsReg = Binary.getClearResult(s).getRegister();
     Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
-    Operand val1 = Binary.getVal1(s);
+    Operand val1 = Binary.getClearVal1(s);
     Register rhsReg;
     Register lowrhsReg;
     if (val1.isRegister()) {
@@ -933,7 +933,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     Register ecx = phys(ir).getECX();
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new RegisterOperand(ecx, TypeReference.Int),
-        Binary.getVal2(s))));
+        Binary.getClearVal2(s))));
 
     // Determine shift of 32 to 63 or 0 to 31
     testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
@@ -1354,7 +1354,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       // We're in trouble if there is another instruction between s and lastInstr!
       if (VM.VerifyAssertions) VM._assert(s.nextInstructionInCodeOrder() == lastInstr);
       // Set testFailed to target of GOTO
-      testFailed = MIR_Branch.getTarget(lastInstr);
+      testFailed = MIR_Branch.getClearTarget(lastInstr);
       nextInstr = lastInstr.nextInstructionInCodeOrder();
       lastInstr.remove();
     } else {
@@ -1367,8 +1367,9 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     Operand val1 = MIR_Compare.getVal1(fcomi);
     Operand val2 = MIR_Compare.getVal2(fcomi);
     ConditionOperand c = IfCmp.getCond(s);
-    BranchOperand target = IfCmp.getTarget(s);
-    BranchProfileOperand branchProfile = IfCmp.getBranchProfile(s);
+    BranchOperand target = IfCmp.getTarget(s).copy().asBranch();
+    BranchProfileOperand branchProfile =
+        (BranchProfileOperand) IfCmp.getBranchProfile(s).copy();
 
     // FCOMI sets ZF, PF, and CF as follows:
     // Compare Results      ZF     PF      CF

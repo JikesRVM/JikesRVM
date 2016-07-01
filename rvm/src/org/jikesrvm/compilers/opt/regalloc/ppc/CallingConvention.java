@@ -186,11 +186,11 @@ public abstract class CallingConvention extends IRTools {
           Load.create(REF_LOAD, ir.regpool.makeJTOCOp().asRegister(), ip, AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
       s.insertBefore(s2);
       RegisterOperand iptmp = ir.regpool.makeTempAddress();
-      s2 = Load.create(REF_LOAD, iptmp, ip, AC(Offset.zero()), null);
+      s2 = Load.create(REF_LOAD, iptmp, ip.copyRO(), AC(Offset.zero()), null);
       s.insertBefore(s2);
       ip = iptmp;
     }
-    Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
+    Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip.copyRO(), null);
     s2 = Load.create(REF_LOAD,
                      (RegisterOperand)ir.regpool.makeJTOCOp(),
                      ir.regpool.makeFPOp(),

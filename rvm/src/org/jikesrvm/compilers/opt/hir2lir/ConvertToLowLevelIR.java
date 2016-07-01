@@ -512,7 +512,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     // then just use a GOTO instead of the LOWTABLESWITCH.
     // This actually happens (very occasionally), and is easy to test for.
     if (BB2.getNumberOfNormalOut() == 1) {
-      BB2.appendInstruction(CPOS(s, Goto.create(GOTO, LowTableSwitch.getTarget(s2, 0))));
+      BB2.appendInstruction(CPOS(s, Goto.create(GOTO, LowTableSwitch.getClearTarget(s2, 0))));
     } else {
       BB2.appendInstruction(s2);
     }

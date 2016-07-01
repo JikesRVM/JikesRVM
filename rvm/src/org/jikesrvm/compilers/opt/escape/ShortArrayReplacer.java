@@ -225,7 +225,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
             } else {
               Operator moveOp = IRTools.getCondMoveOp(type.getTypeRef());
               Instruction i2 = CondMove.create(moveOp, ALoad.getClearResult(inst),
-                  ALoad.getIndex(inst), IC(0), ConditionOperand.EQUAL(),
+                  ALoad.getClearIndex(inst), IC(0), ConditionOperand.EQUAL(),
                   scalars[0].copyRO(), scalars[1].copyRO());
               DefUse.replaceInstructionAndUpdateDU(inst, i2);
             }

@@ -252,7 +252,7 @@ public abstract class NormalizeConstants extends IRTools {
               if (!VM.BuildFor64Addr) {
                 if (s.getOpcode() != TRAP_IF_opcode) {
                   RegisterOperand rop = ir.regpool.makeTemp(TypeReference.Long);
-                  s.insertBefore(Move.create(LONG_MOVE, rop, use));
+                  s.insertBefore(Move.create(LONG_MOVE, rop, use.copy()));
                   s.putOperand(idx, rop.copyD2U());
                 }
               }
@@ -357,8 +357,8 @@ public abstract class NormalizeConstants extends IRTools {
         case PREPARE_LONG_opcode:
         case PREPARE_ADDR_opcode:
           // Supported addressing modes are quite limited.
-          Prepare.setAddress(s, asRegAddress(Prepare.getAddress(s), s, ir));
-          Prepare.setOffset(s, asRegOffset(Prepare.getOffset(s), s, ir));
+          Prepare.setAddress(s, asRegAddress(Prepare.getClearAddress(s), s, ir));
+          Prepare.setOffset(s, asRegOffset(Prepare.getClearOffset(s), s, ir));
           break;
 
         case LONG_MOVE_opcode:
@@ -423,17 +423,17 @@ public abstract class NormalizeConstants extends IRTools {
         case LONG_ADD_opcode:
           if (VM.BuildFor64Addr) {
             s.changeOperatorTo(REF_ADD);
-            Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
+            Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, true));
           }
           break;
 
         case INT_ADD_opcode:
           s.changeOperatorTo(REF_ADD);
-          Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
+          Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, true));
           break;
 
         case REF_ADD_opcode:
-          Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
+          Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, true));
           break;
 
         case LONG_SUB_opcode:
@@ -459,12 +459,12 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case INT_MUL_opcode:
-          Binary.setVal2(s, asImmediateOrRegInt(Binary.getVal2(s), s, ir, true));
+          Binary.setVal2(s, asImmediateOrRegInt(Binary.getClearVal2(s), s, ir, true));
           break;
 
         case LONG_MUL_opcode:
           if (VM.BuildFor64Addr) {
-            Binary.setVal2(s, asImmediateOrRegLong(Binary.getVal2(s), s, ir, true));
+            Binary.setVal2(s, asImmediateOrRegLong(Binary.getClearVal2(s), s, ir, true));
           }
           break;
 

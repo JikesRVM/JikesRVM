@@ -183,7 +183,9 @@ public class FinalMIRExpansion extends IRTools {
           p.remove();
           mcOffsets.setMachineCodeOffset(nextBlock.firstInstruction(), -1);
           // add code to thisBlock to conditionally jump to trap
-          Instruction cmp = MIR_Compare.create(IA32_CMP, MIR_TrapIf.getVal1(p), MIR_TrapIf.getVal2(p));
+          Instruction cmp = MIR_Compare.create(IA32_CMP,
+                                              MIR_TrapIf.getVal1(p).copy(),
+                                              MIR_TrapIf.getVal2(p).copy());
           if (p.isMarkedAsPEI()) {
             // The trap if was explictly marked, which means that it has
             // a memory operand into which we've folded a null check.
@@ -194,7 +196,7 @@ public class FinalMIRExpansion extends IRTools {
           }
           thisBlock.appendInstruction(cmp);
           thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC,
-                                                            MIR_TrapIf.getCond(p),
+                                                            (IA32ConditionOperand) MIR_TrapIf.getCond(p).copy(),
                                                             trap.makeJumpTarget(),
                                                             null));
 
@@ -394,14 +396,14 @@ public class FinalMIRExpansion extends IRTools {
 
         case IA32_JCC2_opcode:
           p.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                               MIR_CondBranch2.getCond1(p),
-                                               MIR_CondBranch2.getTarget1(p),
-                                               MIR_CondBranch2.getBranchProfile1(p)));
+                                               MIR_CondBranch2.getClearCond1(p),
+                                               MIR_CondBranch2.getClearTarget1(p),
+                                               MIR_CondBranch2.getClearBranchProfile1(p)));
           MIR_CondBranch.mutate(p,
                                 IA32_JCC,
-                                MIR_CondBranch2.getCond2(p),
-                                MIR_CondBranch2.getTarget2(p),
-                                MIR_CondBranch2.getBranchProfile2(p));
+                                MIR_CondBranch2.getClearCond2(p),
+                                MIR_CondBranch2.getClearTarget2(p),
+                                MIR_CondBranch2.getClearBranchProfile2(p));
           break;
 
         case CALL_SAVE_VOLATILE_opcode:

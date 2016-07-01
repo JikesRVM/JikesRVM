@@ -69,6 +69,15 @@ public final class MIRBranchOptimizations extends BranchOptimizationDriver {
     }
   }
 
+  private static BranchOperand MIR_Branch_getClearTarget(Instruction x) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.getClearTarget(x);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.ir.ppc.MIR_Branch.getClearTarget(x);
+    }
+  }
+
   private static void MIR_Branch_setTarget(Instruction x, BranchOperand y) {
     if (VM.BuildForIA32) {
       org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch.setTarget(x, y);
@@ -325,7 +334,7 @@ public final class MIRBranchOptimizations extends BranchOptimizationDriver {
       if (isMIR_Branch(target1Inst)) {
         // conditional branch to unconditional branch.
         // change conditional branch target to latter's target
-        MIR_CondBranch2_setTarget1(cb, MIR_Branch_getTarget(target1Inst));
+        MIR_CondBranch2_setTarget1(cb, MIR_Branch_getTarget(target1Inst).copy().asBranch());
         bb.recomputeNormalOut(ir); // fix CFG
         return true;
       }
@@ -346,7 +355,7 @@ public final class MIRBranchOptimizations extends BranchOptimizationDriver {
       if (isMIR_Branch(target2Inst)) {
         // conditional branch to unconditional branch.
         // change conditional branch target to latter's target
-        MIR_CondBranch2_setTarget2(cb, MIR_Branch_getTarget(target2Inst));
+        MIR_CondBranch2_setTarget2(cb, MIR_Branch_getTarget(target2Inst).copy().asBranch());
         bb.recomputeNormalOut(ir); // fix CFG
         return true;
       }
@@ -431,7 +440,7 @@ public final class MIRBranchOptimizations extends BranchOptimizationDriver {
   private void flipConditionalBranch(Instruction cb) {
     // get the trailing GOTO instruction
     Instruction g = cb.nextInstructionInCodeOrder();
-    BranchOperand gTarget = MIR_Branch_getTarget(g);
+    BranchOperand gTarget = MIR_Branch_getClearTarget(g);
     // now flip the test and set the new target
     if (VM.BuildForIA32) {
       org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch.setCond(cb,
