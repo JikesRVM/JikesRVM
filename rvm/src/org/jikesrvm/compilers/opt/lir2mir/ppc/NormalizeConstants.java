@@ -630,9 +630,7 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case LONG_2ADDR_opcode:
-          if (VM.BuildFor64Addr) {
-            s.changeOperatorTo(REF_MOVE);
-          }
+          s.changeOperatorTo(VM.BuildFor64Addr ? REF_MOVE : LONG_2INT);
           break;
 
         case NULL_CHECK_opcode:
