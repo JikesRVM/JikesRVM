@@ -693,7 +693,7 @@ public abstract class BURS_Helpers extends BURS_Common_Helpers {
     int MB = MaskBegin(mask);
     int ME = MaskEnd(mask);
     if (shift > ME) {           // result should be 0
-      EMIT(MIR_Unary.create(PPC_LDI, Def, IC(0)));
+      EMIT(MIR_Unary.create(PPC_LDI, Def.copyRO(), IC(0)));
       return;
     } else if (shift > MB) {
       MB = shift;
@@ -1933,7 +1933,7 @@ public abstract class BURS_Helpers extends BURS_Common_Helpers {
     EMIT(MIR_Binary.create(PPC_FCMPU, cr, left, right));
     // Branch depends on condition
     ConditionOperand c = IfCmp.getCond(s);
-    BranchOperand target = IfCmp.getTarget(s);
+    BranchOperand target = IfCmp.getClearTarget(s);
     if (!c.branchIfUnordered()) {
       // If branch doesn't branch when unordered then we need just one
       // branch destination
@@ -1941,7 +1941,7 @@ public abstract class BURS_Helpers extends BURS_Common_Helpers {
                                  cr.copyD2U(),
                                  new PowerPCConditionOperand(c),
                                  target,
-                                 IfCmp.getBranchProfile(s)));
+                                 IfCmp.getClearBranchProfile(s)));
     } else {
       if ((c.value != ConditionOperand.NOT_EQUAL) || (!left.similar(right))) {
         // Propagate branch probabilities as follows: assume the
@@ -1954,14 +1954,14 @@ public abstract class BURS_Helpers extends BURS_Common_Helpers {
                                     new BranchProfileOperand(0f),
                                     new PowerPCConditionOperand(c),
                                     (BranchOperand) target.copy(),
-                                    IfCmp.getBranchProfile(s)));
+                                    IfCmp.getClearBranchProfile(s)));
       } else {
         // If branch is effectively a NaN test we just need 1 branch
         EMIT(MIR_CondBranch.create(PPC_BCOND,
                                    cr.copyD2U(),
                                    new PowerPCConditionOperand(c),
                                    target,
-                                   IfCmp.getBranchProfile(s)));
+                                   IfCmp.getClearBranchProfile(s)));
       }
     }
   }
@@ -1976,12 +1976,12 @@ public abstract class BURS_Helpers extends BURS_Common_Helpers {
     //     Inject a fresh copy instruction to make sure we aren't
     //     going to get into trouble (if someone else was also using index).
     RegisterOperand newIndex = regpool.makeTempInt();
-    EMIT(MIR_Move.create(PPC_MOVE, newIndex, LowTableSwitch.getIndex(s)));
+    EMIT(MIR_Move.create(PPC_MOVE, newIndex, LowTableSwitch.getClearIndex(s)));
     int number = LowTableSwitch.getNumberOfTargets(s);
     Instruction s2 = CPOS(s, MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), number * 2));
     for (int i = 0; i < number; i++) {
-      MIR_LowTableSwitch.setTarget(s2, i, LowTableSwitch.getTarget(s, i));
-      MIR_LowTableSwitch.setBranchProfile(s2, i, LowTableSwitch.getBranchProfile(s, i));
+      MIR_LowTableSwitch.setTarget(s2, i, LowTableSwitch.getClearTarget(s, i));
+      MIR_LowTableSwitch.setBranchProfile(s2, i, LowTableSwitch.getClearBranchProfile(s, i));
     }
     EMIT(s2);
   }

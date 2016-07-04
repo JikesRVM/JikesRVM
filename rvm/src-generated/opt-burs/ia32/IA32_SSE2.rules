@@ -30,32 +30,32 @@
 r: FLOAT_ADD(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_COP(IA32_ADDSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 r: FLOAT_ADD(r, float_load)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_COP(IA32_ADDSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 r: FLOAT_ADD(float_load,r)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+SSE2_COP(IA32_ADDSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal2(P(p)), consumeMO());
 
 r: DOUBLE_ADD(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+SSE2_COP(IA32_ADDSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal2(P(p)), Binary.getClearVal1(P(p)));
 
 r: DOUBLE_ADD(r, double_load)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_COP(IA32_ADDSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 r: DOUBLE_ADD(double_load,r)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+SSE2_COP(IA32_ADDSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal2(P(p)), consumeMO());
 
 #####
 # SUB
@@ -63,22 +63,22 @@ SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consume
 r: FLOAT_SUB(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_SUBSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_NCOP(IA32_SUBSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 r: FLOAT_SUB(r, float_load)
 15
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_SUBSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_NCOP(IA32_SUBSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 r: DOUBLE_SUB(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_SUBSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_NCOP(IA32_SUBSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 r: DOUBLE_SUB(r, double_load)
 15
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_SUBSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_NCOP(IA32_SUBSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 #####
 # MUL
@@ -86,32 +86,32 @@ SSE2_NCOP(IA32_SUBSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consum
 r: FLOAT_MUL(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_COP(IA32_MULSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 r: FLOAT_MUL(r, float_load)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_COP(IA32_MULSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 r: FLOAT_MUL(float_load, r)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+SSE2_COP(IA32_MULSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal2(P(p)), consumeMO());
 
 r: DOUBLE_MUL(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_COP(IA32_MULSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 r: DOUBLE_MUL(r, double_load)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_COP(IA32_MULSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 r: DOUBLE_MUL(double_load, r)
 15
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+SSE2_COP(IA32_MULSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal2(P(p)), consumeMO());
 
 #####
 # DIV
@@ -119,22 +119,22 @@ SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consume
 r: FLOAT_DIV(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_DIVSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_NCOP(IA32_DIVSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 r: FLOAT_DIV(r, float_load)
 15
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_DIVSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_NCOP(IA32_DIVSS, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 r: DOUBLE_DIV(r, r)
 13
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_DIVSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_NCOP(IA32_DIVSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 r: DOUBLE_DIV(r, double_load)
 15
 EMIT_INSTRUCTION
-SSE2_NCOP(IA32_DIVSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+SSE2_NCOP(IA32_DIVSD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO());
 
 #####
 # NEG
@@ -142,12 +142,12 @@ SSE2_NCOP(IA32_DIVSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consum
 r: FLOAT_NEG(r)
 26
 EMIT_INSTRUCTION
-SSE2_NEG(true, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_NEG(true, P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)));
 
 r: DOUBLE_NEG(r)
 26
 EMIT_INSTRUCTION
-SSE2_NEG(false, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_NEG(false, P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)));
 
 #####
 # SQRT
@@ -155,12 +155,12 @@ SSE2_NEG(false, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 r: FLOAT_SQRT(r)
 13
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSS, Unary.getResult(P(p)), Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSS, Unary.getClearResult(P(p)), Unary.getClearVal(P(p))));
 
 r: DOUBLE_SQRT(r)
 13
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSD, Unary.getResult(P(p)), Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), IA32_SQRTSD, Unary.getClearResult(P(p)), Unary.getClearVal(P(p))));
 
 #####
 # OPERATIONS USING X87
@@ -236,7 +236,7 @@ r: DOUBLE_ALOAD(riv, r)
 EMIT_INSTRUCTION
 RegisterOperand index=ALoad.getIndex(P(p)).asRegister();\\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));\\
@@ -277,7 +277,7 @@ r: FLOAT_ALOAD(riv, r)
 EMIT_INSTRUCTION
 RegisterOperand index=ALoad.getIndex(P(p)).asRegister();\\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));\\
@@ -341,7 +341,7 @@ stm: DOUBLE_ASTORE(r, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister();\\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));\\
@@ -392,7 +392,7 @@ stm: FLOAT_ASTORE(r, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister();\\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()){\\
-EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff))));\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));\\
 }else{\\
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));\\
@@ -404,42 +404,42 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOVSS, MO_AS(P(p), DW_S, DW), AStore.getValue(P(
 r: INT_2FLOAT(riv)
 13
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSI2SS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_CONV(IA32_CVTSI2SS, P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)));
 
 r: INT_2FLOAT(load32)
 15
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSI2SS, P(p), Unary.getResult(P(p)), consumeMO());
+SSE2_CONV(IA32_CVTSI2SS, P(p), Unary.getClearResult(P(p)), consumeMO());
 
 r: INT_2DOUBLE(riv)
 13
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSI2SD, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_CONV(IA32_CVTSI2SD, P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)));
 
 r: INT_2DOUBLE(load32)
 15
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSI2SD, P(p), Unary.getResult(P(p)), consumeMO());
+SSE2_CONV(IA32_CVTSI2SD, P(p), Unary.getClearResult(P(p)), consumeMO());
 
 r: FLOAT_2DOUBLE(r)
 13
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSS2SD, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_CONV(IA32_CVTSS2SD, P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)));
 
 r: FLOAT_2DOUBLE(float_load)
 15
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSS2SD, P(p), Unary.getResult(P(p)), consumeMO());
+SSE2_CONV(IA32_CVTSS2SD, P(p), Unary.getClearResult(P(p)), consumeMO());
 
 r: DOUBLE_2FLOAT(r)
 13
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSD2SS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_CONV(IA32_CVTSD2SS, P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)));
 
 r: DOUBLE_2FLOAT(double_load)
 15
 EMIT_INSTRUCTION
-SSE2_CONV(IA32_CVTSD2SS, P(p), Unary.getResult(P(p)), consumeMO());
+SSE2_CONV(IA32_CVTSD2SS, P(p), Unary.getClearResult(P(p)), consumeMO());
 
 r: FLOAT_2INT(r)
 13
@@ -578,39 +578,39 @@ r: FCMP_CMOV(r, OTHER_OPERAND(r, any))
 13*2
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), MIR_Compare.create(CondMove.getVal1(P(p)).isFloat() ? IA32_UCOMISS : IA32_UCOMISD, \
-     CondMove.getVal1(P(p)), CondMove.getVal2(P(p))))); \
-CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+     CondMove.getClearVal1(P(p)), CondMove.getClearVal2(P(p))))); \
+CMOV_MOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearCond(P(p)).translateUNSIGNED(), \
+         CondMove.getClearTrueValue(P(p)), CondMove.getClearFalseValue(P(p)));
 
 r: FCMP_CMOV(r, OTHER_OPERAND(float_load, any))
 13+15
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISS, CondMove.getVal1(P(p)), consumeMO()))); \
-CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISS, CondMove.getClearVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearCond(P(p)).translateUNSIGNED(), \
+         CondMove.getClearTrueValue(P(p)), CondMove.getClearFalseValue(P(p)));
 
 r: FCMP_CMOV(r, OTHER_OPERAND(double_load, any))
 13+15
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISD, CondMove.getVal1(P(p)), consumeMO()))); \
-CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISD, CondMove.getClearVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearCond(P(p)).translateUNSIGNED(), \
+         CondMove.getClearTrueValue(P(p)), CondMove.getClearFalseValue(P(p)));
 
 r: FCMP_CMOV(float_load, OTHER_OPERAND(r, any))
 13+15
 EMIT_INSTRUCTION
 CondMove.getCond(P(p)).flipOperands(); \
-EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISS, CondMove.getVal1(P(p)), consumeMO()))); \
-CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISS, CondMove.getClearVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearCond(P(p)).translateUNSIGNED(), \
+         CondMove.getClearTrueValue(P(p)), CondMove.getClearFalseValue(P(p)));
 
 r: FCMP_CMOV(double_load, OTHER_OPERAND(r, any))
 13+15
 EMIT_INSTRUCTION
 CondMove.getCond(P(p)).flipOperands(); \
-EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISD, CondMove.getVal1(P(p)), consumeMO()))); \
-CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISD, CondMove.getClearVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearCond(P(p)).translateUNSIGNED(), \
+         CondMove.getClearTrueValue(P(p)), CondMove.getClearFalseValue(P(p)));
 
 #####
 # FCMP_FCMOV
@@ -618,44 +618,44 @@ CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNE
 r: FCMP_FCMOV(r, OTHER_OPERAND(r, any))
 13*4
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
-                CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+SSE2_FCMP_FCMOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)), CondMove.getClearVal2(P(p)), \
+                CondMove.getClearCond(P(p)), CondMove.getClearTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(r, float_load)))
 15+13*3
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
-                CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), consumeMO());
+SSE2_FCMP_FCMOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)), CondMove.getClearVal2(P(p)), \
+                CondMove.getClearCond(P(p)), CondMove.getClearTrueValue(P(p)), consumeMO());
 
 r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(r, double_load)))
 15+13*3
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
-                CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), consumeMO());
+SSE2_FCMP_FCMOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)), CondMove.getClearVal2(P(p)), \
+                CondMove.getClearCond(P(p)), CondMove.getClearTrueValue(P(p)), consumeMO());
 
 r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(float_load, r)))
 15+13*3
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
-                CondMove.getCond(P(p)), consumeMO(), CondMove.getFalseValue(P(p)));
+SSE2_FCMP_FCMOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)), CondMove.getClearVal2(P(p)), \
+                CondMove.getClearCond(P(p)), consumeMO(), CondMove.getFalseValue(P(p)));
 
 r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(double_load, r)))
 15+13*3
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
-                CondMove.getCond(P(p)), consumeMO(), CondMove.getFalseValue(P(p)));
+SSE2_FCMP_FCMOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)), CondMove.getClearVal2(P(p)), \
+                CondMove.getClearCond(P(p)), consumeMO(), CondMove.getFalseValue(P(p)));
 
 r: FCMP_FCMOV(r, OTHER_OPERAND(float_load, any))
 SSE2_CMP_OP(CondMove.getCond(P(p)), true) != null ? 15+13*3 : INFINITE
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), consumeMO(), \
-                CondMove.getCond(P(p)), CondMove.getFalseValue(P(p)), CondMove.getTrueValue(P(p)));
+SSE2_FCMP_FCMOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)), consumeMO(), \
+                CondMove.getClearCond(P(p)), CondMove.getFalseValue(P(p)), CondMove.getClearTrueValue(P(p)));
 
 r: FCMP_FCMOV(r, OTHER_OPERAND(double_load, any))
 SSE2_CMP_OP(CondMove.getCond(P(p)), false) != null ? 15+13*3 : INFINITE
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), consumeMO(), \
-                CondMove.getCond(P(p)), CondMove.getFalseValue(P(p)), CondMove.getTrueValue(P(p)));
+SSE2_FCMP_FCMOV(P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)), consumeMO(), \
+                CondMove.getClearCond(P(p)), CondMove.getFalseValue(P(p)), CondMove.getClearTrueValue(P(p)));
 
 #####
 # Absolute
@@ -665,112 +665,112 @@ r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPER
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # x > 0 ? x : -x
 r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(r, FLOAT_NEG(r))))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # x < 0 ? -x : x
 r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(FLOAT_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # x < 0 ? -x : x
 r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(FLOAT_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # 0 > x ? -x : x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(FLOAT_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 # 0 > x ? -x : x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(FLOAT_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 # 0 < x ? x : -x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(r, FLOAT_NEG(r))))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 # 0 < x ? x : -x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(r, FLOAT_NEG(r))))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(true, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 # x > 0 ? x : -x
 r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, DOUBLE_NEG(r))))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # x > 0 ? x : -x
 r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(r, DOUBLE_NEG(r))))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # x < 0 ? -x : x
 r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(DOUBLE_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # x < 0 ? -x : x
 r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(DOUBLE_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal1(P(p)));
 
 # 0 > x ? -x : x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(DOUBLE_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 # 0 > x ? -x : x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(DOUBLE_NEG(r), r)))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 # 0 < x ? x : -x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(r, DOUBLE_NEG(r))))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 # 0 < x ? x : -x
 r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(LONG_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(r, DOUBLE_NEG(r))))
 IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
 SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
 EMIT_INSTRUCTION
-SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+SSE2_ABS(false, P(p), CondMove.getClearResult(P(p)), CondMove.getClearVal2(P(p)));
 
 ######
 # Long operations that can use wider registers

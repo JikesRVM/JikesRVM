@@ -4,7 +4,7 @@
 r:	BOOLEAN_NOT(r)
 13
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_XOR, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), IC(1));
+EMIT_Commutative(IA32_XOR, P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)), IC(1));
 
 ### Memory operands ###
 stm:	BYTE_STORE(BOOLEAN_NOT(UBYTE_LOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))

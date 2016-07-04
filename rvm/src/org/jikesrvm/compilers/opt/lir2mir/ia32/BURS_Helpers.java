@@ -703,14 +703,14 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final void SET_EXCEPTION_OBJECT(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForCaughtException();
     StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
-    Operand val = CacheOp.getRef(s);
+    Operand val = CacheOp.getClearRef(s);
     if (val.isRegister()) {
         EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
     } else if (val.isIntConstant()) {
         RegisterOperand temp = regpool.makeTempInt();
         EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val)));
         val = temp.copyRO(); // for opt compiler var usage info?
-        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp));
+        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp.copy()));
     } else {
         throw new OptimizingCompilerException("BURS_Helpers",
                 "unexpected operand type " + val + " in SET_EXCEPTION_OBJECT");
@@ -748,17 +748,17 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, result,value)));
       if (signExtend) {
         EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
-            result,
+            result.copy(),
             LC(32))));
         EMIT(MIR_BinaryAcc.mutate(s,IA32_SAR,
-            result,
+            result.copy(),
             LC(32)));
       } else {
         EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
-            result,
+            result.copy(),
             LC(32))));
         EMIT(MIR_BinaryAcc.mutate(s,IA32_SHR,
-            result,
+            result.copy(),
             LC(32)));
       }
     }
@@ -911,8 +911,8 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     StackLocationOperand sl = new StackLocationOperand(true, offset, QW);
     StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
     StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
-    EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, sl, Unary.getVal(s))));
-    RegisterOperand i1 = Unary.getResult(s);
+    EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, sl, Unary.getClearVal(s))));
+    RegisterOperand i1 = Unary.getClearResult(s);
     RegisterOperand i2 = new RegisterOperand(regpool
         .getSecondReg(i1.getRegister()), TypeReference.Int);
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, i1, sl1)));
@@ -930,7 +930,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
     StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
     Operand i1, i2;
-    Operand val = Unary.getVal(s);
+    Operand val = Unary.getClearVal(s);
     if (val instanceof RegisterOperand) {
       RegisterOperand rval = (RegisterOperand) val;
       i1 = val;
@@ -972,8 +972,8 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param s instruction to modify for the conversion
    */
   protected final void SSE2_X87_FROMLONG(Instruction s) {
-    Operand result = Unary.getResult(s);
-    STORE_LONG_FOR_CONV(Unary.getVal(s));
+    Operand result = Unary.getClearResult(s);
+    STORE_LONG_FOR_CONV(Unary.getClearVal(s));
     // conversion space allocated, contains the long to load.
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand sl = new StackLocationOperand(true, offset, SSE2_SIZE(result));
@@ -994,9 +994,9 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     RegisterOperand st0 = new RegisterOperand(getST0(), result.getType());
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand sl = new StackLocationOperand(true, offset, SSE2_SIZE(result));
-    EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), sl, Binary.getVal2(s))));
+    EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), sl, Binary.getClearVal2(s))));
     EMIT(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
-    EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), sl.copy(), Binary.getVal1(s))));
+    EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), sl.copy(), Binary.getClearVal1(s))));
     EMIT(CPOS(s, MIR_Move.create(IA32_FLD, st0.copy(), sl.copy())));
     // The parameters to FPREM actually get ignored (implied ST0/ST1)
     EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_FPREM, st0.copy(), st0.copy())));
@@ -1013,18 +1013,19 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final void SSE2_FPR2GPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand sl = new StackLocationOperand(true, offset, QW);
+    Operand val = Unary.getClearVal(s);
     if (VM.BuildFor32Addr) {
       StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
       StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, Unary.getVal(s))));
-      RegisterOperand i1 = Unary.getResult(s);
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, val)));
+      RegisterOperand i1 = Unary.getClearResult(s);
       RegisterOperand i2 = new RegisterOperand(regpool
           .getSecondReg(i1.getRegister()), TypeReference.Int);
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, i1, sl1)));
       EMIT(MIR_Move.mutate(s, IA32_MOV, i2, sl2));
     } else {
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, Unary.getVal(s))));
-      EMIT(MIR_Move.mutate(s, IA32_MOV, Unary.getResult(s), sl));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, val)));
+      EMIT(MIR_Move.mutate(s, IA32_MOV, Unary.getResult(s), sl.copy()));
     }
   }
 
@@ -1036,7 +1037,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final void SSE2_GPR2FPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     StackLocationOperand sl = new StackLocationOperand(true, offset, QW);
-    Operand val = Unary.getVal(s);
+    Operand val = Unary.getClearVal(s);
     if (VM.BuildFor32Addr) {
       StackLocationOperand sl1 = new StackLocationOperand(true, offset + 4, DW);
       StackLocationOperand sl2 = new StackLocationOperand(true, offset, DW);
@@ -1055,7 +1056,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl));
     } else {
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl, val)));
-      EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl));
+      EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl.copy()));
     }
   }
 
@@ -1498,8 +1499,8 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       }
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp1, lowrhs1)));
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp2, rhs1)));
-      lowlhs = temp1;
-      lhs = temp2;
+      lowlhs = temp1.copy();
+      lhs = temp2.copy();
     }
     // Break apart RHS 2
     Operand rhs2, lowrhs2;
@@ -1630,12 +1631,12 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       } else {
         // Memory operand
         if (VM.VerifyAssertions) opt_assert(result.isMemory());
-        lowlhs = setSize(result.asMemory(), DW);
+        lowlhs = setSize(result.copy().asMemory(), DW);
         lhs = lowlhs.copy();
         lhs.asMemory().disp = lhs.asMemory().disp.plus(4);
       }
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lowlhs, temp1)));
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lhs, temp2)));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lowlhs, temp1.copy())));
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lhs, temp2.copy())));
     }
 
   }
@@ -3284,7 +3285,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       if (numLongs != 0) {
         Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals + numLongs);
         for (int sidx = 0, s2idx = 0; sidx < numFormals; sidx++) {
-          RegisterOperand sForm = Prologue.getFormal(s, sidx);
+          RegisterOperand sForm = Prologue.getClearFormal(s, sidx);
           if (sForm.getType().isLongType()) {
             sForm.setType(TypeReference.Int);
             Prologue.setFormal(s2, s2idx++, sForm);
@@ -3447,15 +3448,15 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     // Inject a fresh copy instruction to make sure we aren't
     // going to get into trouble (if someone else was also using index).
     RegisterOperand newIndex = regpool.makeTempInt();
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))));
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, newIndex, LowTableSwitch.getClearIndex(s))));
     RegisterOperand methodStart = regpool.makeTemp(TypeReference.Address);
     EMIT(CPOS(s, MIR_Nullary.create(IA32_METHODSTART, methodStart)));
     int number = LowTableSwitch.getNumberOfTargets(s);
     Instruction s2 = CPOS(s, MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), methodStart.copyD2U(), number * 2));
     for (int i = 0; i < number; i++) {
-      MIR_LowTableSwitch.setTarget(s2, i, LowTableSwitch.getTarget(s, i));
+      MIR_LowTableSwitch.setTarget(s2, i, LowTableSwitch.getClearTarget(s, i));
       MIR_LowTableSwitch.setBranchProfile(s2, i, LowTableSwitch
-          .getBranchProfile(s, i));
+          .getClearBranchProfile(s, i));
     }
     EMIT(s2);
   }
@@ -3619,13 +3620,13 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final void ATTEMPT_IFCMP(MemoryOperand mo, Operand oldValue, Operand newValue,
                                      ConditionOperand cond, BranchOperand target, BranchProfileOperand bp) {
     RegisterOperand temp = regpool.makeTempInt();
-    EMIT(MIR_Move.create(IA32_MOV, temp, newValue));
-    EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int), oldValue));
+    EMIT(MIR_Move.create(IA32_MOV, temp, newValue.copy()));
+    EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int), oldValue.copy()));
     EMIT(MIR_CompareExchange.create(IA32_LOCK_CMPXCHG,
                                     new RegisterOperand(getEAX(), TypeReference.Int),
                                     mo,
                                     temp.copyRO()));
-    EMIT(MIR_CondBranch.create(IA32_JCC, COND(cond), target, bp));
+    EMIT(MIR_CondBranch.create(IA32_JCC, COND(cond), target.copy().asBranch(), (BranchProfileOperand) bp.copy()));
   }
 
   /**

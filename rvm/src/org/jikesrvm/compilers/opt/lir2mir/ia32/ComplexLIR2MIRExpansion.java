@@ -401,7 +401,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw.copyRO(), IC(0xC00))));
       f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
       f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
-      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
+      f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
       f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
       f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, result, sl.copy())));
       f2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
@@ -651,7 +651,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
       d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
       d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
-      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, result, sl)));
+      d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, result, sl.copy())));
       d2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
           nextBB.makeJumpTarget())));
       d2lBB.insertOut(nextBB);
@@ -1537,7 +1537,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
               if (lc.convertedFromRef()) {
                 temp.flagAsConvertedFromRef();
               }
-              s.insertBefore(MIR_Move.create(IMMQ_MOV, temp, lc));
+              s.insertBefore(MIR_Move.create(IMMQ_MOV, temp, lc.copy()));
               s.replaceOperand(lc, temp.copyD2U());
             }
           }

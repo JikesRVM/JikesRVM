@@ -382,7 +382,7 @@ stm:	SHORT_ASTORE(riv, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index = AStore.getIndex(P(p)).asRegister(); \\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()) { \\
-  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), AStore.getValue(P(p)))); \\
 } else { \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), AStore.getValue(P(p)))); \\
@@ -401,7 +401,7 @@ stm:	INT_ASTORE(riv, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister(); \\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()) { \\
-  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p)))); \\
 } else { \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p)))); \\
@@ -429,7 +429,7 @@ stm:	LONG_ASTORE(r, OTHER_OPERAND(riv, riv))
 30
 EMIT_INSTRUCTION
 if (VM.BuildFor32Addr){\\
-  RegisterOperand hval = (RegisterOperand)AStore.getValue(P(p)); \\
+  RegisterOperand hval = (RegisterOperand)AStore.getClearValue(P(p)); \\
   hval.setType(TypeReference.Int); \\
   RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()), TypeReference.Int); \\
   EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), hval))); \\
@@ -442,7 +442,7 @@ stm:	LONG_ASTORE(r, OTHER_OPERAND(rlv, rlv))
 15
 EMIT_INSTRUCTION
 if (VM.BuildFor32Addr) {\\
-  RegisterOperand hval = (RegisterOperand)AStore.getValue(P(p)); \\
+  RegisterOperand hval = (RegisterOperand)AStore.getClearValue(P(p)); \\
   hval.setType(TypeReference.Int); \\
   RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()), TypeReference.Int); \\
   EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), hval))); \\
@@ -456,10 +456,10 @@ stm:	LONG_ASTORE(r, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister();\\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()) { \\
-  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff))));\\
+  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff))));\\
 }\\
 if (VM.BuildFor32Addr) {\\
-  RegisterOperand hval = (RegisterOperand)AStore.getValue(P(p)); \\
+  RegisterOperand hval = (RegisterOperand)AStore.getClearValue(P(p)); \\
   hval.setType(TypeReference.Int); \\
   RegisterOperand lval = new RegisterOperand(regpool.getSecondReg(hval.getRegister()), TypeReference.Int); \\
   EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), hval))); \\

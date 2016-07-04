@@ -469,8 +469,8 @@ public class FinalMIRExpansion extends IRTools {
    * @param phys controlling physical register set
    */
   private static void expandFmov(Instruction s, PhysicalRegisterSet phys) {
-    Operand result = MIR_Move.getResult(s);
-    Operand value = MIR_Move.getValue(s);
+    Operand result = MIR_Move.getClearResult(s);
+    Operand value = MIR_Move.getClearValue(s);
 
     if (result.isRegister() && value.isRegister()) {
       if (result.similar(value)) {

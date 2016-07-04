@@ -4,10 +4,10 @@
 r:	ADDR_2LONG(r)
 33
 EMIT_INSTRUCTION
-INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), false);
+INT_2LONG(P(p), Unary.getClearResult(P(p)), Unary.getClearVal(P(p)), false);
 
 r:	ADDR_2LONG(load32)
 38
 EMIT_INSTRUCTION
-INT_2LONG(P(p), Unary.getResult(P(p)), consumeMO(), false);
+INT_2LONG(P(p), Unary.getClearResult(P(p)), consumeMO(), false);
 

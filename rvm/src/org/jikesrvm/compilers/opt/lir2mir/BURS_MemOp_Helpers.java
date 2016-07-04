@@ -386,13 +386,13 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
 
   protected final MemoryOperand MO_AL(Instruction s, byte scale, byte size, int disp) {
     if (VM.VerifyAssertions) VM._assert(ALoad.conforms(s));
-    return MO_ARRAY(ALoad.getArray(s),
-                    ALoad.getIndex(s),
+    return MO_ARRAY(ALoad.getArray(s).copy(),
+                    ALoad.getIndex(s).copy(),
                     scale,
                     size,
                     Offset.fromIntSignExtend(disp),
-                    ALoad.getLocation(s),
-                    ALoad.getGuard(s));
+                    ALoad.getLocation(s).copy().asLocation(),
+                    ALoad.getGuard(s).copy());
   }
 
   protected final MemoryOperand MO_AS(Instruction s, byte scale, byte size) {
@@ -402,13 +402,13 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
 
   protected final MemoryOperand MO_AS(Instruction s, byte scale, byte size, int disp) {
     if (VM.VerifyAssertions) VM._assert(AStore.conforms(s));
-    return MO_ARRAY(AStore.getArray(s),
-                    AStore.getIndex(s),
+    return MO_ARRAY(AStore.getArray(s).copy(),
+                    AStore.getIndex(s).copy(),
                     scale,
                     size,
                     Offset.fromIntSignExtend(disp),
-                    AStore.getLocation(s),
-                    AStore.getGuard(s));
+                    AStore.getLocation(s).copy().asLocation(),
+                    AStore.getGuard(s).copy());
   }
 
   private MemoryOperand MO_ARRAY(Operand base, Operand index, byte scale, byte size, Offset disp,
