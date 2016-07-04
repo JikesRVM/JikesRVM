@@ -1720,7 +1720,7 @@ Check to make sure all required properties are specified. This includes properti
     <echo message="Number of threads for compilation = ${readableThreadCount}"/>
     <java classname="org.jikesrvm.tools.bootImageWriter.BootImageWriter"
           fork="yes"
-          maxmemory="500M"
+          maxmemory="600M"
           failonerror="false"
           resultproperty="bootimage-writer.result"
           dir="${basedir}/tools/bootImageWriter/src">
