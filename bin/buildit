@@ -69,6 +69,7 @@ Options:
      --target-user    Specify a username for the target host 
  -u, --user           Specify a username for both hosts
  -h, --help           Show this usage message
+     --ulimit         Specify resource usage limits for the build (arg passed verbatim to 'ulimit')
 
 Building Options:
      --x87            Use x87 Compatibility mode.
@@ -162,6 +163,7 @@ GetOptions(
   "p|profile" => \$profile,
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
+  "ulimit=s" => \$cmd_ulimit,
   "eclipse" => \$eclipse,
   "mmtk-eclipse" => \$mmtk_eclipse,
   "target-user=s" => \$cmd_targetUser,
@@ -755,10 +757,15 @@ if ($ok) {
     #
     $build = "";
 
+    my $ulimit = "";
+    if ($cmd_ulimit ne "") {
+      $ulimit = "ulimit $cmd_ulimit; "
+    }
+
     if ($skip_build) {
       $build .= "echo Skipping build ";
     } else {
-      $build .= "$sshHostCmdT '$shell \" ".
+      $build .= "$sshHostCmdT '$shell \"$ulimit ".
                "  cd $hostRoot &&".
                "  export JAVA_HOME=$javaHome{$host} && ";
 
