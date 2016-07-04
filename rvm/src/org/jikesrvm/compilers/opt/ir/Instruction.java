@@ -72,8 +72,9 @@ import org.vmmagic.pragma.NoInline;
  * (eg ResultCarrier, LocationCarrier) that allow manipulation of all
  * instructions that contain a common operands.
  * <p>
- * A configuration (OptOptVIFcopyingGC) is defined in which all methods of
- * all Instruction Format classes verify that the operator of the instruction
+ * Enabling extreme assertions (e.g. by using ExtremeAssertionsFull* or
+ * ExtremeAssertionsOpt* configurations) causes all methods of all
+ * Instruction Format classes to verify that the operator of the instruction
  * being manipulated actually belongs to the appropriate Instruction Format.
  * This configuration is quite slow, but is an important sanity check to make
  * sure that Instruction Formats are being used in a consistent fashion.
