@@ -2020,7 +2020,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     asm.emitMFLR(T1);         // T1 is base of table
     asm.emitSLWI(T0, T0, LOG_BYTES_IN_INT); // convert to bytes
     if (options.PROFILE_EDGE_COUNTERS) {
-      incEdgeCounterIdx(T2, S0, firstCounter, T0);
+      incEdgeCounterIdx(T2, S0, T3, firstCounter, T0);
     }
     asm.emitLIntX(T0, T0, T1); // T0 is relative offset of desired case
     asm.emitADD(T1, T1, T0); // T1 is absolute address of desired case
@@ -3463,6 +3463,18 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
    */
   private void incEdgeCounter(GPR counters, GPR scratch, GPR scratchForXER, int counterIdx) {
     asm.emitLInt(scratch, counterIdx << 2, counters);
+    emitEdgeCounterIncrease(scratch, scratchForXER);
+    asm.emitSTW(scratch, counterIdx << 2, counters);
+  }
+
+  private void incEdgeCounterIdx(GPR counters, GPR scratch, GPR scratchForXER, int base, GPR counterIdx) {
+    asm.emitADDI(counters, base << 2, counters);
+    asm.emitLIntX(scratch, counterIdx, counters);
+    emitEdgeCounterIncrease(scratch, scratchForXER);
+    asm.emitSTWX(scratch, counterIdx, counters);
+  }
+
+  private void emitEdgeCounterIncrease(GPR scratch, GPR scratchForXER) {
     asm.emitADDICr(scratch, scratch, 1);
     // spr for XER is 00000 00001 which is reversed to 00001 00000
     final int sprForXER = 1 << 5;
@@ -3476,18 +3488,6 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     // 1 will be subtracted if the value overflowed, otherwise
     // it will be unchanged
     asm.emitADDME(scratch, scratch);
-    asm.emitSTW(scratch, counterIdx << 2, counters);
-  }
-
-  private void incEdgeCounterIdx(GPR counters, GPR scratch, int base, GPR counterIdx) {
-    asm.emitADDI(counters, base << 2, counters);
-    asm.emitLIntX(scratch, counterIdx, counters);
-    asm.emitADDI(scratch, 1, scratch);
-    // Branch around store if we overflowed: want count to saturate at maxint.
-    asm.emitCMPI(scratch, 0);
-    ForwardReference fr = asm.emitForwardBC(LT);
-    asm.emitSTWX(scratch, counterIdx, counters);
-    fr.resolve(asm);
   }
 
   /**
