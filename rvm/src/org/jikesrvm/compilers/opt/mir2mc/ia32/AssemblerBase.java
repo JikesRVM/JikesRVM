@@ -789,7 +789,7 @@ abstract class AssemblerBase extends Assembler {
         if (op == null) {
           continue;
         }
-        if (op.isLong() || op.isRef()) {
+        if (op.isLong() || op.isRef() || op.isAddress()) {
           return true;
         }
       }
