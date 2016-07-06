@@ -19,7 +19,6 @@ import java.io.PrintStream;
 import java.util.Enumeration;
 
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.runtime.Time;
 
 public class IRDumpTools {
 
@@ -104,7 +103,7 @@ public class IRDumpTools {
     return prefix + tag.replace(' ', '-').replace('/', '-') + "_" +
         method.getDeclaringClass().getDescriptor().classNameFromDescriptor() + "_" +
         method.getName() + "_" +
-        "opt" + ir.options.getOptLevel() + "-" + Time.currentTimeMillis() + suffix;
+        "opt" + ir.options.getOptLevel() + "-" + System.currentTimeMillis() + suffix;
   }
 
 }
