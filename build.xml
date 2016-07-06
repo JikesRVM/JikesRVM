@@ -1723,7 +1723,7 @@ Check to make sure all required properties are specified. This includes properti
           maxmemory="600M"
           failonerror="false"
           resultproperty="bootimage-writer.result"
-          dir="${basedir}/tools/bootImageWriter/src">
+          dir="${build.base}">
       <classpath>
         <pathelement location="${build.bootimage-writer.dir}"/>
         <path refid="rvm.class.path"/>
