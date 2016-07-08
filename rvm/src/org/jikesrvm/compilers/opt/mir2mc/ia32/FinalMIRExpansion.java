@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode;
@@ -554,9 +555,9 @@ public class FinalMIRExpansion extends IRTools {
     Operand guard = TG();
     Operand target;
     if (JTOC_REGISTER == null) {
-      target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+      target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) BYTES_IN_ADDRESS, loc, guard);
     } else {
-      target = MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, (byte) 8, loc, guard);
+      target = MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, (byte) BYTES_IN_ADDRESS, loc, guard);
     }
 
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, MethodOperand.STATIC(meth));
@@ -598,9 +599,9 @@ public class FinalMIRExpansion extends IRTools {
     Operand guard = TG();
     Operand target;
     if (JTOC_REGISTER == null) {
-      target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+      target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) BYTES_IN_ADDRESS, loc, guard);
     } else {
-      target = MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, (byte)8, loc, guard);
+      target = MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, (byte) BYTES_IN_ADDRESS, loc, guard);
     }
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
