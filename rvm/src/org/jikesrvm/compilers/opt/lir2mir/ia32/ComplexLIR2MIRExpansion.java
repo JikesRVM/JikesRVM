@@ -668,7 +668,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       // Value was >= max long
       maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
           result.copyRO(),
-          LC((int)Long.MAX_VALUE))));
+          LC(Long.MAX_VALUE))));
       maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
           nextBB.makeJumpTarget())));
       maxintBB.insertOut(nextBB);
