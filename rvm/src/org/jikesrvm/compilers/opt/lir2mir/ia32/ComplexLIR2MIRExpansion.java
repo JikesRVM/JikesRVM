@@ -213,7 +213,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // that would require 2 jccs
     RegisterOperand result = Unary.getResult(s).copyRO();
     RegisterOperand value = Unary.getVal(s).asRegister();
-    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(Entrypoints.maxintFloatField.getOffset(), (byte)4);
+    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(ir, Entrypoints.maxintFloatField.getOffset(), (byte)4);
     RegisterOperand maxintReg = ir.regpool.makeTempFloat();
     s.insertBefore(CPOS(s,MIR_Move.create(IA32_MOVSS, maxintReg, maxint)));
     MIR_Compare.mutate(s, IA32_UCOMISS, maxintReg.copyRO(), value);
@@ -293,7 +293,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
           TypeReference.Int);
       RegisterOperand value = Unary.getVal(s).asRegister().copyRO();
       RegisterOperand cw = ir.regpool.makeTempInt();
-      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(ir, Entrypoints.maxlongFloatField.getOffset(), (byte)4);
       RegisterOperand st0 = new RegisterOperand(phys(ir).getST0(),
           TypeReference.Float);
       RegisterOperand st1 = new RegisterOperand(phys(ir).getST1(),
@@ -383,7 +383,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       RegisterOperand adjustment = ir.regpool.makeTempInt();
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
           adjustment.copy(), IC(0))));
-      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongFloatField.getOffset(), (byte)4);
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(ir, Entrypoints.maxlongFloatField.getOffset(), (byte)4);
       MIR_Compare.mutate(s, IA32_UCOMISS, value.copy(), maxlong);
       testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
           IA32ConditionOperand.PE(),
@@ -438,7 +438,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     // that would require 2 jccs
     RegisterOperand result = Unary.getResult(s);
     RegisterOperand value = Unary.getVal(s).asRegister();
-    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(Entrypoints.maxintField.getOffset(), (byte)8);
+    MemoryOperand maxint = BURS_Helpers.loadFromJTOC(ir, Entrypoints.maxintField.getOffset(), (byte)8);
     RegisterOperand maxintReg = ir.regpool.makeTempFloat();
     s.insertBefore(CPOS(s,MIR_Move.create(IA32_MOVSD, maxintReg, maxint)));
     MIR_Compare.mutate(s, IA32_UCOMISD, maxintReg.copyRO(), value);
@@ -514,7 +514,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
           TypeReference.Int);
       RegisterOperand value = Unary.getVal(s).asRegister().copyRO();
       RegisterOperand cw = ir.regpool.makeTempInt();
-      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(ir, Entrypoints.maxlongField.getOffset(), (byte)8);
       RegisterOperand st0 = new RegisterOperand(phys(ir).getST0(),
           TypeReference.Double);
       RegisterOperand st1 = new RegisterOperand(phys(ir).getST1(),
@@ -590,7 +590,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       RegisterOperand result = Unary.getResult(s).copyRO();
       RegisterOperand value = Unary.getVal(s).asRegister().copyRO();
       RegisterOperand cw = ir.regpool.makeTempInt();
-      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(Entrypoints.maxlongField.getOffset(), (byte)8);
+      MemoryOperand maxlong = BURS_Helpers.loadFromJTOC(ir, Entrypoints.maxlongField.getOffset(), (byte)8);
       RegisterOperand st0 = new RegisterOperand(phys(ir).getST0(),
           TypeReference.Double);
       RegisterOperand st1 = new RegisterOperand(phys(ir).getST1(),

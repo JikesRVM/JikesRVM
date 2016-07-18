@@ -93,6 +93,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XOR;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPS;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_LOWTABLESWITCH;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.util.Bits.fits;
 
 import java.util.Enumeration;
@@ -106,6 +107,7 @@ import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.LowTableSwitch;
@@ -666,14 +668,19 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   /**
    * Create memory operand to load from a given jtoc offset
    *
+   * @param ir the IR to use for getting a JTOC reg operand, if available
    * @param offset location in JTOC
    * @param size of value in JTOC
    * @return created memory operand
    */
-  static MemoryOperand loadFromJTOC(Offset offset, byte size) {
+  static MemoryOperand loadFromJTOC(IR ir, Offset offset, byte size) {
     LocationOperand loc = new LocationOperand(offset);
     Operand guard = TG();
-    return MemoryOperand.D(Magic.getTocPointer().plus(offset), size, loc, guard);
+    if (JTOC_REGISTER == null) {
+      return MemoryOperand.D(Magic.getTocPointer().plus(offset), size, loc, guard);
+    } else {
+      return MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, size, loc, guard);
+    }
   }
 
   /*
@@ -3468,7 +3475,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param s the instruction to expand
    */
   protected final void RESOLVE(Instruction s) {
-    Operand target = loadFromJTOC(Entrypoints.optResolveMethod.getOffset(), DW);
+    Operand target = loadFromJTOC(burs.ir, Entrypoints.optResolveMethod.getOffset(), DW);
     EMIT(CPOS(s,
               MIR_Call.mutate0(s,
                                CALL_SAVE_VOLATILE,
