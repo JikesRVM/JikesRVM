@@ -3475,7 +3475,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param s the instruction to expand
    */
   protected final void RESOLVE(Instruction s) {
-    Operand target = loadFromJTOC(burs.ir, Entrypoints.optResolveMethod.getOffset(), DW);
+    Operand target = loadFromJTOC(burs.ir, Entrypoints.optResolveMethod.getOffset(), VM.BuildFor32Addr ? DW : QW);
     EMIT(CPOS(s,
               MIR_Call.mutate0(s,
                                CALL_SAVE_VOLATILE,
