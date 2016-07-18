@@ -869,7 +869,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, result.copy(), new RegisterOperand(subtractee, TypeReference.Int))));
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
-    M = MemoryOperand.D(Magic.getTocPointer().plus(Entrypoints.maxintField.getOffset()), QW, null, null);
+    M = loadFromJTOC(burs.ir, Entrypoints.maxintField.getOffset(), QW);
     EMIT(CPOS(s, MIR_Move.create(IA32_FLD, myFP0(), M)));
     // FP Stack: myFP0 = (double)Integer.MAX_VALUE; myFP1 = value
     EMIT(CPOS(s, MIR_Compare.create(IA32_FCOMIP, myFP0(), myFP1())));
@@ -1164,8 +1164,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     }
     Offset signMaskOffset = single ? floatSignMask : doubleSignMask;
     EMIT(MIR_BinaryAcc.mutate(s, single ? IA32_XORPS : IA32_XORPD, result,
-        MemoryOperand.D(Magic.getTocPointer().plus(signMaskOffset), PARAGRAPH,
-            new LocationOperand(signMaskOffset), TG())));
+        loadFromJTOC(burs.ir, signMaskOffset, PARAGRAPH)));
   }
 
   /**
@@ -1308,8 +1307,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     }
     Offset absMaskOffset = single ? floatAbsMask : doubleAbsMask;
     EMIT(MIR_BinaryAcc.mutate(s, single ? IA32_ANDPS : IA32_ANDPD, result,
-        MemoryOperand.D(Magic.getTocPointer().plus(absMaskOffset), PARAGRAPH,
-            new LocationOperand(absMaskOffset), TG())));
+        loadFromJTOC(burs.ir, absMaskOffset, PARAGRAPH)));
   }
 
   /**
