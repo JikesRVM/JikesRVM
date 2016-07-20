@@ -2357,14 +2357,17 @@ target.jni-suffix=${target.jni-suffix}
     <delete dir="${components.dir}"/>
   </target>
 
-  <target name="purge" depends="cleanest" description="Execute all clean targets and delete eclipse projects, the component cache, the directory for external libraries and test results.">
+  <target name="purge" depends="cleanest,delete-test-results" description="Execute all clean targets and delete eclipse projects, the component cache, the directory for external libraries and test results.">
     <remove-eclipse-project-files/>
     <!-- Deletes cached components. -->
     <delete dir="${components.cache.dir}"/>
-    <!-- Delete test results. -->
-    <delete dir="${results.dir}"/>
     <!-- Delete external libraries used for testing. -->
     <delete dir="${external.lib.dir}"/>
+  </target>
+
+  <target name="delete-test-results" description="Deletes the test results directory but nothing else">
+    <!-- Delete test results. -->
+    <delete dir="${results.dir}"/>
   </target>
 
   <!-- **************************************************************************** -->
