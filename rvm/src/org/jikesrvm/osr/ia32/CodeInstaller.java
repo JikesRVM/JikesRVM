@@ -77,12 +77,7 @@ public abstract class CodeInstaller {
       // unwind stack pointer, SP is FP now
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
 
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
-      } else {
-        // really an object and not a long
-        asm.generateJTOCloadLong(S0, cm.getOsrJTOCoffset());
-      }
+      asm.generateJTOCloadWord(S0, cm.getOsrJTOCoffset());
 
       // restore saved EDI
       asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);

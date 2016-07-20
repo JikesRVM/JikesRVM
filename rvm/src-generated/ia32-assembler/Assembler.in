@@ -1323,13 +1323,17 @@ public class Assembler extends AbstractAssembler {
   }
 
   /**
-   * Loads a long from the JTOC
+   * Loads a word from the JTOC
    * @param dst the destination register for the loaded value
    * @param off the offset from the JTOC
    */
-  public final void generateJTOCloadLong(GPR dst, Offset off) {
+  public final void generateJTOCloadWord(GPR dst, Offset off) {
     if(JTOC_REGISTER == null) {
-      emitMOV_Reg_Abs_Quad(dst, Magic.getTocPointer().plus(off));
+      if (VM.buildFor32Addr()) {
+        emitMOV_Reg_Abs(dst, Magic.getTocPointer().plus(off));
+      } else {
+        emitMOV_Reg_Abs_Quad(dst, Magic.getTocPointer().plus(off));
+      }
     } else {
       emitMOV_Reg_RegDisp_Quad(dst, JTOC_REGISTER, off);
     }

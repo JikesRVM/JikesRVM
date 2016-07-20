@@ -2900,11 +2900,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       if (VM.VerifyAssertions) VM._assert(!target.isStatic());
       // invoke via class's tib slot
       Offset methodRefOffset = target.getOffset();
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(target.getDeclaringClass().getTibOffset()));
-      } else {
-        asm.generateJTOCloadLong(S0, target.getDeclaringClass().getTibOffset());
-      }
+      asm.generateJTOCloadWord(S0, target.getDeclaringClass().getTibOffset());
       genParameterRegisterLoad(methodRef, true);
       asm.emitCALL_RegDisp(S0, methodRefOffset);
       genResultRegisterUnload(methodRef);
@@ -4375,11 +4371,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     Offset tableOffset = Entrypoints.memberOffsetsField.getOffset();
     if (couldBeZero) {
       int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
+      asm.generateJTOCloadWord(reg, tableOffset); // reg is offsets table
       if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
         asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       } else {
-        asm.generateJTOCloadLong(reg, tableOffset);          // reg is offsets table
         asm.emitMOVSXDQ_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       }
       if (NEEDS_DYNAMIC_LINK == 0) {
@@ -4395,11 +4390,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitJMP_Imm(retryLabel);                           // reload reg with valid value
       fr.resolve(asm);                                       // come from Jcc above.
     } else {
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
-      } else {
-        asm.generateJTOCloadLong(reg, tableOffset);         // reg is offsets table
-      }
+      asm.generateJTOCloadWord(reg, tableOffset); // reg is offsets table
       asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);      // reg is offset of member
     }
   }
