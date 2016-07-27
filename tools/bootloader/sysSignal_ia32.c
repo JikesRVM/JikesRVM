@@ -627,7 +627,7 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
   sp = IA32_ESP(context);
   stackLimit = *(Address *)(threadPtr + RVMThread_stackLimit_offset);
   if (sp <= stackLimit - 384) {
-    ERROR_PRINTF("sp (%p)too far below stackLimit (%p)to recover\n", (void*)sp, (void*)stackLimit);
+    ERROR_PRINTF("sp (%p) too far below stackLimit (%p) to recover\n", (void*)sp, (void*)stackLimit);
     signal(signo, SIG_DFL);
     raise(signo);
     // We should never get here.
