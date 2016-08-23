@@ -27,6 +27,7 @@ import org.jikesrvm.adaptive.measurements.organizers.Organizer;
 import org.jikesrvm.adaptive.recompilation.CompilationThread;
 import org.jikesrvm.adaptive.recompilation.CompilerDNA;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;
+import org.jikesrvm.adaptive.util.AOSExternalOptions;
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.AOSOptions;
@@ -76,9 +77,12 @@ public final class ControllerThread extends SystemThread {
     // save this object so others can access it, if needed
     Controller.controllerThread = this;
 
+    // Cache option object because it'll be accessed often
+    AOSExternalOptions opts = Controller.options;
+
     // Bring up the logging system
     AOSLogging.logger.boot();
-    if (Controller.options.ENABLE_ADVICE_GENERATION) {
+    if (opts.ENABLE_ADVICE_GENERATION) {
       AOSGenerator.boot();
     }
 
@@ -86,11 +90,11 @@ public final class ControllerThread extends SystemThread {
     // adaptive recompilation
     createProfilers();
 
-    if (!Controller.options.ENABLE_RECOMPILATION) {
+    if (!opts.ENABLE_RECOMPILATION) {
       // We're running an AOS bootimage with a non-adaptive primary strategy.
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.
-      if (Controller.options.ENABLE_BULK_COMPILE || Controller.options.ENABLE_PRECOMPILE) {
+      if (opts.ENABLE_BULK_COMPILE || opts.ENABLE_PRECOMPILE) {
         Controller.options.DERIVED_MAX_OPT_LEVEL = 2;
         Controller.recompilationStrategy.init();
       }
@@ -100,7 +104,7 @@ public final class ControllerThread extends SystemThread {
       return; // controller thread exits.
     }
 
-    if (Controller.options.ENABLE_PRECOMPILE) {
+    if (opts.ENABLE_PRECOMPILE) {
       if (Controller.options.sampling()) {
         // Create our set of standard optimization plans.
         Controller.recompilationStrategy.init();
@@ -119,7 +123,7 @@ public final class ControllerThread extends SystemThread {
       createOrganizerThreads();
       AOSLogging.logger.reportThatAOSIsInReplayMode();
       while (true) {
-        if (Controller.options.EARLY_EXIT && Controller.options.EARLY_EXIT_TIME < Controller.controllerClock) {
+        if (opts.EARLY_EXIT && opts.EARLY_EXIT_TIME < Controller.controllerClock) {
           Controller.stop();
         }
         Object event = Controller.controllerInputQueue.deleteMin();
@@ -155,7 +159,7 @@ public final class ControllerThread extends SystemThread {
     // block until an event is available.
     // Repeat forever.
     while (true) {
-      if (Controller.options.EARLY_EXIT && Controller.options.EARLY_EXIT_TIME < Controller.controllerClock) {
+      if (opts.EARLY_EXIT && opts.EARLY_EXIT_TIME < Controller.controllerClock) {
         Controller.stop();
       }
       Object event = Controller.controllerInputQueue.deleteMin();
@@ -240,9 +244,7 @@ public final class ControllerThread extends SystemThread {
    * adaptive recompilation is actually enabled.
    */
   private void createProfilers() {
-    AOSOptions opts = Controller.options;
-
-    if (opts.GATHER_PROFILE_DATA) {
+    if (Controller.options.GATHER_PROFILE_DATA) {
       Controller.organizers.add(new AccumulatingMethodSampleOrganizer());
 
       createDynamicCallGraphOrganizer();
@@ -269,7 +271,7 @@ public final class ControllerThread extends SystemThread {
       }
     }
 
-    if ((!Controller.options.ENABLE_PRECOMPILE) && (!Controller.options.ENABLE_BULK_COMPILE)) {
+    if ((!opts.ENABLE_PRECOMPILE) && (!opts.ENABLE_BULK_COMPILE)) {
       Controller.osrOrganizer = new OSROrganizerThread();
       Controller.osrOrganizer.start();
     }
