@@ -163,8 +163,10 @@ public final class ControllerThread extends SystemThread {
     }
   }
 
-  // Now that we're done initializing, Schedule all the organizer threads
-  // and signal the sentinel object.
+  /**
+   * Now that the controller is initialized, schedule all the organizer threads
+   * and signal the sentinel object.
+   */
   private void controllerInitDone() {
     for (Enumeration<Organizer> e = Controller.organizers.elements(); e.hasMoreElements();) {
       Organizer o = e.nextElement();
