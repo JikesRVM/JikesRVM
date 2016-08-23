@@ -28,12 +28,6 @@ public final class VMField {
 
   final RVMField field;
 
-  // Prevent this class from being instantiated.
-  @SuppressWarnings("unused")
-  private VMField() {
-    field = null;
-  }
-
   // For use by JikesRVMSupport
   VMField(RVMField f) {
     field = f;
