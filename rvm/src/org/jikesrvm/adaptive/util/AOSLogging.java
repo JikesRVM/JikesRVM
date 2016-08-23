@@ -122,6 +122,30 @@ public final class AOSLogging {
   ////////////////////////////////////////////////////////////////
 
   /**
+   * Called during initialisation of the controller subsystem when
+   * it is in non-adaptive mode.
+   */
+  public void reportThatAOSIsInNonAdaptiveMode() {
+    if (Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+        log.println(getTime() + " AOS: In non-adaptive mode; controller thread exiting.");
+      }
+    }
+  }
+
+  /**
+   * Called during initialisation of the controller subsystem when
+   * it is in replay mode.
+   */
+  public void reportThatAOSIsInReplayMode() {
+    if (Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+        log.println(getTime() + " AOS: In replay mode; controller thread only runs for OSR inlining.\n");
+      }
+    }
+  }
+
+  /**
    * Call this method to dump statistics related to decaying
    * @param decayCount the number of decay events
    */

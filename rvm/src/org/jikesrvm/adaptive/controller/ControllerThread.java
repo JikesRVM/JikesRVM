@@ -96,7 +96,7 @@ public final class ControllerThread extends SystemThread {
       }
 
       controllerInitDone();
-      VM.sysWriteln("AOS: In non-adaptive mode; controller thread exiting.");
+      AOSLogging.logger.reportThatAOSIsInNonAdaptiveMode();
       return; // controller thread exits.
     }
 
@@ -117,7 +117,7 @@ public final class ControllerThread extends SystemThread {
       // to have a fair comparison, we need to create the data structures
       // of organizers
       createOrganizerThreads();
-      VM.sysWriteln("AOS: In replay mode; controller thread only runs for OSR inlining.");
+      AOSLogging.logger.reportThatAOSIsInReplayMode();
       while (true) {
         if (Controller.options.EARLY_EXIT && Controller.options.EARLY_EXIT_TIME < Controller.controllerClock) {
           Controller.stop();
