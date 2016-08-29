@@ -77,8 +77,7 @@ public abstract class CodeInstaller {
       // unwind stack pointer, SP is FP now
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
 
-      // TODO is this ok for 64-bit with JTOC in register?
-      asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
+      asm.generateJTOCloadWord(S0, cm.getOsrJTOCoffset());
 
       // restore saved EDI
       asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
@@ -116,7 +115,7 @@ public abstract class CodeInstaller {
       asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
 
       // branch to the newly compiled instructions
-      asm.emitJMP_Abs(Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
+      asm.generateJTOCjmp(cm.getOsrJTOCoffset());
     }
 
     if (VM.TraceOnStackReplacement) {

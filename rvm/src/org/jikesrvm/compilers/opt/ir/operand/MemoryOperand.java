@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
+import static org.jikesrvm.util.Services.unboxedValueString;
+
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -175,7 +177,7 @@ public final class MemoryOperand extends Operand {
       }
     }
     if (!disp.isZero()) {
-      addr += "+" + disp.toInt();
+      addr += "+" + unboxedValueString(disp);
     }
     switch (size) {
       case 1:

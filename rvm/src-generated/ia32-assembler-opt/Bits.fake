@@ -22,4 +22,5 @@ public class Bits {
   public static boolean fits(Address x, int y) { return true; }
   public static boolean fits(Offset x, int y) { return true; }
   public static boolean fits(Word x, int y) { return true; }
+  public static boolean fitsUnsigned(int val, int bits) { return true; }
 }

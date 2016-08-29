@@ -72,8 +72,9 @@ import org.vmmagic.pragma.NoInline;
  * (eg ResultCarrier, LocationCarrier) that allow manipulation of all
  * instructions that contain a common operands.
  * <p>
- * A configuration (OptOptVIFcopyingGC) is defined in which all methods of
- * all Instruction Format classes verify that the operator of the instruction
+ * Enabling extreme assertions (e.g. by using ExtremeAssertionsFull* or
+ * ExtremeAssertionsOpt* configurations) causes all methods of all
+ * Instruction Format classes to verify that the operator of the instruction
  * being manipulated actually belongs to the appropriate Instruction Format.
  * This configuration is quite slow, but is an important sanity check to make
  * sure that Instruction Formats are being used in a consistent fashion.
@@ -1789,11 +1790,24 @@ public final class Instruction {
     if (op == null) {
       ops[i] = null;
     } else {
-      // TODO: Replace this silly copying code with an assertion that operands
-      //       are not shared between instructions and force people to be
-      //       more careful!
-      if (op.instruction != null) {
-        op = outOfLineCopy(op);
+      // Operands that are already associated with this
+      // instruction may occur here (e.g. during calls
+      // to mutate(..) ). Those don't need any changes.
+      Instruction instHandle = op.instruction;
+      if (instHandle != this && instHandle != null) {
+        if (VM.VerifyAssertions) {
+          String msg = "Operand " + op + " was supposed to be inserted into " +
+              this + " but still points to " + op.instruction + " ! \nPossible " +
+              " solutions to this problem include calling .copy() on the " +
+              " operand (e.g. op.copy()) or using getClear* methods instead " +
+              " (e.g. Load.getClearResult(..) instead of Load.getResult(..)).";
+          VM._assert(VM.NOT_REACHED, msg);
+        } else {
+          // Operands must not be shared to make sure that correctness is maintained.
+          // Ensure this by inserting a copy to paper over the mistake that the caller
+          // made.
+          op = outOfLineCopy(op);
+        }
       }
       op.instruction = this;
       ops[i] = op;

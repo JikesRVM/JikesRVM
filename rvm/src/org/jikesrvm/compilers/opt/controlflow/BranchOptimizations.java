@@ -1127,7 +1127,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
           op = IRTools.getCondMoveOp(def.asRegister().getType());
           Instruction cmov =
               CondMove.create(op,
-                              def.asRegister(),
+                              def.copy().asRegister(),
                               tempVal1.copy(),
                               tempVal2.copy(),
                               cond.copy().asCondition(),

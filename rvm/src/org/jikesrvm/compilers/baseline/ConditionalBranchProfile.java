@@ -46,7 +46,7 @@ public final class ConditionalBranchProfile extends BranchProfile {
   @Override
   public String toString() {
     String ans = bci + (backwards ? "\tbackbranch" : "\tforwbranch");
-    ans += " < " + (int) taken + ", " + (int) (freq - taken) + " > ";
+    ans += " < " + (long) taken + ", " + (long) (freq - taken) + " > ";
     if (freq > 0) {
       ans += (100.0f * taken / freq) + "% taken";
     } else {

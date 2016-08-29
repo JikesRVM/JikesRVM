@@ -4,12 +4,12 @@
 r:	LONG_2INT(r)
 13
 EMIT_INSTRUCTION
-RegisterOperand val = R(Unary.getVal(P(p))); \\
+RegisterOperand val = R(Unary.getVal(P(p)).copy()); \\
 if (VM.BuildFor64Addr) { \\
 RegisterOperand r = Unary.getResult(P(p)); \\
 RegisterOperand temp = regpool.makeTempInt(); \\
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, temp, val))); \\
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, r, temp)); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, r, temp.copy())); \\
 } else { \\
 Register lh = regpool.getSecondReg(R(Unary.getVal(P(p))).getRegister()); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new RegisterOperand(lh, TypeReference.Int))); \\
@@ -18,11 +18,11 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new RegisterOperand(
 stm:	INT_STORE(LONG_2INT(r), OTHER_OPERAND(riv,riv))
 15
 EMIT_INSTRUCTION
-RegisterOperand val = R(Unary.getVal(PL(p))); \\
+RegisterOperand val = R(Unary.getVal(PL(p)).copy()); \\
 if (VM.BuildFor64Addr) { \\
 RegisterOperand temp = regpool.makeTempInt(); \\
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, temp, val))); \\
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW),temp)); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW),temp.copy())); \\
 } else { \\
 Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).getRegister()); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), new RegisterOperand(lh, TypeReference.Int))); \\
@@ -31,11 +31,11 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), new RegisterOperand(lh, Typ
 stm:	INT_ASTORE(LONG_2INT(r), OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
-RegisterOperand val = R(Unary.getVal(PL(p))); \\
+RegisterOperand val = R(Unary.getVal(PL(p)).copy()); \\
 if (VM.BuildFor64Addr) { \\
 RegisterOperand temp = regpool.makeTempInt(); \\
 EMIT(CPOS(P(p),MIR_Move.create(IA32_MOV, temp, val))); \\
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW),temp)); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW),temp.copy())); \\
 } else { \\
 Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).getRegister()); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), new RegisterOperand(lh, TypeReference.Int))); \\
@@ -57,9 +57,9 @@ EMIT_INSTRUCTION
 RegisterOperand val = R(Binary.getVal1(PL(p))); \\
 if (VM.BuildFor64Addr) { \\
 RegisterOperand temp = regpool.makeTempInt(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, temp, val))); \\
-EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_SHR,temp,LC(32)))); \\
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), temp)); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, temp, val.copy()))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_SHR,temp.copy(),LC(32)))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), temp.copy())); \\
 } else { \\
 Register uh = Binary.getVal1(PL(p)).asRegister().getRegister(); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new RegisterOperand(uh, TypeReference.Int))); \\
@@ -71,9 +71,9 @@ EMIT_INSTRUCTION
 RegisterOperand val = R(Binary.getVal1(PL(p))); \\
 if (VM.BuildFor64Addr) { \\
 RegisterOperand temp = regpool.makeTempInt(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, temp, val))); \\
-EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_SAR,temp,LC(32)))); \\
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), temp)); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, temp, val.copy()))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_SAR,temp.copy(),LC(32)))); \\
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), temp.copy())); \\
 } else { \\
 Register uh = Binary.getVal1(PL(p)).asRegister().getRegister(); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new RegisterOperand(uh, TypeReference.Int))); \\

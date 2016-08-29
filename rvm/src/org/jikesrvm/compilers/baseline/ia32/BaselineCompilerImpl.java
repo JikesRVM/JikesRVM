@@ -2210,20 +2210,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
 
     // T0 = EIP at start of method
     asm.emitMETHODSTART_Reg(T0);
-    // T0 += [T0 + T1<<2 + ??] - we will patch ?? when we know the placement of the table
-    int toPatchAddress = asm.getMachineCodeIndex();
-    if (VM.buildFor32Addr()) {
-      asm.emitMOV_Reg_RegIdx(T1, T0, T1, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
-      asm.emitADD_Reg_Reg(T0, T1);
-    } else {
-      asm.emitMOV_Reg_RegIdx(T1, T0, T1, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
-      asm.emitADD_Reg_Reg_Quad(T0, T1);
-    }
-    // JMP T0
-    asm.emitJMP_Reg(T0);
-    asm.emitNOP((4 - asm.getMachineCodeIndex()) & 3); // align table
-    // create table of offsets from start of method
-    asm.patchSwitchTableDisplacement(toPatchAddress);
+    asm.emitTableswitchCode(T0, T1);
+    // Emit data for the tableswitch, i.e. the addresses that will be
+    // loaded for the cases
     for (int i = 0; i < n; i++) {
       int offset = bcodes.getTableSwitchOffset(i);
       bTarget = biStart + offset;
@@ -2911,11 +2900,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       if (VM.VerifyAssertions) VM._assert(!target.isStatic());
       // invoke via class's tib slot
       Offset methodRefOffset = target.getOffset();
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(target.getDeclaringClass().getTibOffset()));
-      } else {
-        asm.generateJTOCloadLong(S0, target.getDeclaringClass().getTibOffset());
-      }
+      asm.generateJTOCloadWord(S0, target.getDeclaringClass().getTibOffset());
       genParameterRegisterLoad(methodRef, true);
       asm.emitCALL_RegDisp(S0, methodRefOffset);
       genResultRegisterUnload(methodRef);
@@ -3559,7 +3544,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       if (!VM.runningTool && ((BaselineCompiledMethod) compiledMethod).hasCounterArray()) {
         // use (nonvolatile) EBX to hold base of this method's counter array
         if (NEEDS_OBJECT_ALOAD_BARRIER) {
-          asm.emitPUSH_Abs(Magic.getTocPointer().plus(Entrypoints.edgeCountersField.getOffset()));
+          asm.generateJTOCpush(Entrypoints.edgeCountersField.getOffset());
           asm.emitPUSH_Imm(getEdgeCounterIndex());
           Barriers.compileArrayLoadBarrier(asm, false);
           if (VM.BuildFor32Addr) {
@@ -3568,8 +3553,14 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
             asm.emitMOV_Reg_Reg_Quad(EBX, T0);
           }
         } else {
-          asm.emitMOV_Reg_Abs(EBX, Magic.getTocPointer().plus(Entrypoints.edgeCountersField.getOffset()));
-          asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
+          if (VM.BuildFor32Addr) {
+            asm.emitMOV_Reg_Abs(EBX, Magic.getTocPointer().plus(Entrypoints.edgeCountersField.getOffset()));
+            asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
+          } else {
+            asm.generateJTOCpush(Entrypoints.edgeCountersField.getOffset());
+            asm.emitPOP_Reg(EBX);
+            asm.emitMOV_Reg_RegDisp_Quad(EBX, EBX, getEdgeCounterOffset());
+          }
         }
       }
 
@@ -4380,11 +4371,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     Offset tableOffset = Entrypoints.memberOffsetsField.getOffset();
     if (couldBeZero) {
       int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
+      asm.generateJTOCloadWord(reg, tableOffset); // reg is offsets table
       if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
         asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       } else {
-        asm.generateJTOCloadLong(reg, tableOffset);          // reg is offsets table
         asm.emitMOVSXDQ_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member, or 0 if member's class isn't loaded
       }
       if (NEEDS_DYNAMIC_LINK == 0) {
@@ -4400,11 +4390,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitJMP_Imm(retryLabel);                           // reload reg with valid value
       fr.resolve(asm);                                       // come from Jcc above.
     } else {
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_Abs(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
-      } else {
-        asm.generateJTOCloadLong(reg, tableOffset);         // reg is offsets table
-      }
+      asm.generateJTOCloadWord(reg, tableOffset); // reg is offsets table
       asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);      // reg is offset of member
     }
   }

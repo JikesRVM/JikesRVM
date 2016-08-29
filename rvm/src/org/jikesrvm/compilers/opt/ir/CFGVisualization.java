@@ -10,7 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.driver;
+package org.jikesrvm.compilers.opt.ir;
+
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.determineFileName;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,12 +22,7 @@ import java.util.Enumeration;
 
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
-import org.jikesrvm.runtime.Time;
 import org.jikesrvm.util.Pair;
 
 /**
@@ -52,8 +49,7 @@ public class CFGVisualization {
   private final byte[] nodeToColour;
 
   public CFGVisualization(IR ir, String tag) throws SecurityException, IOException {
-    RVMMethod method = ir.getMethod();
-    String fileName = determineFileName(ir, tag, method);
+    String fileName = determineFileName(ir, tag, ".graph");
     String dir = ir.options.VISUALIZE_IR_DIRECTORY;
     if (dir.trim().isEmpty()) {
       dir = System.getProperty("user.dir");
@@ -63,13 +59,6 @@ public class CFGVisualization {
     this.out = new BufferedWriter(new FileWriter(file));
     this.ir = ir;
     nodeToColour = new byte[ir.cfg.numberOfNodes()];
-  }
-
-  private String determineFileName(IR ir, String tag, RVMMethod method) {
-    return tag.replace(' ', '-').replace('/', '-') + "_" +
-        method.getDeclaringClass().getDescriptor().classNameFromDescriptor() + "_" +
-        method.getName() + "_" +
-        "opt" + ir.options.getOptLevel() + "-" + Time.currentTimeMillis() + ".graph";
   }
 
   public void visualizeCFG() throws IOException {

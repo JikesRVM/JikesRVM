@@ -28,13 +28,6 @@ final class VMMethod {
   final RVMMethod method;
   private final ReflectionBase invoker;
 
-   // Prevent this class from being instantiated.
-  @SuppressWarnings("unused")
-  private VMMethod() {
-    method = null;
-    invoker = null;
-  }
-
   // For use by JikesRVMSupport
   VMMethod(RVMMethod m) {
     method = m;

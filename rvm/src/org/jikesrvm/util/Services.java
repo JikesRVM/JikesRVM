@@ -29,6 +29,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  *  Various service utilities.  This is a common place for some shared utility routines
@@ -410,6 +411,18 @@ public class Services {
     buf[len--] = 'x';
     buf[len] = '0';
     return new String(buf);
+  }
+
+  @Interruptible
+  public static String unboxedValueString(Offset val) {
+    return (VM.BuildFor32Addr) ? Integer.toString(val.toInt()) :
+      Long.toString(val.toLong());
+  }
+
+  @Interruptible
+  public static String unboxedValueString(Word val) {
+    return (VM.BuildFor32Addr) ? Integer.toString(val.toInt()) :
+      Long.toString(val.toLong());
   }
 
   /**

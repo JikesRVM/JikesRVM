@@ -124,6 +124,7 @@ public final class CompilationPlan {
       instrumentationPlan.initInstrumentation(method);
     }
     for (OptimizationPlanElement element : optimizationPlan) {
+      ir.setIdForNextPhase();
       element.perform(ir);
     }
     // If instrumentation has occured, perform some

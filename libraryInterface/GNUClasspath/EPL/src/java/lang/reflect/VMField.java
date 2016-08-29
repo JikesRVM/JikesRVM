@@ -14,6 +14,7 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
@@ -28,15 +29,14 @@ public final class VMField {
 
   final RVMField field;
 
-  // Prevent this class from being instantiated.
-  @SuppressWarnings("unused")
-  private VMField() {
-    field = null;
-  }
-
   // For use by JikesRVMSupport
   VMField(RVMField f) {
     field = f;
+
+    if (f.getType().isMagicType()) {
+      VM.sysFail("Attempted to create reflection field for " + f +
+          " which has a magic type and thus doesn't support reflection!");
+    }
   }
 
   @Override

@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
@@ -57,6 +59,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XOR;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP_opcode;
+import static org.jikesrvm.util.Bits.fits;
 
 import java.util.Enumeration;
 
@@ -181,7 +184,9 @@ public class FinalMIRExpansion extends IRTools {
           p.remove();
           mcOffsets.setMachineCodeOffset(nextBlock.firstInstruction(), -1);
           // add code to thisBlock to conditionally jump to trap
-          Instruction cmp = MIR_Compare.create(IA32_CMP, MIR_TrapIf.getVal1(p), MIR_TrapIf.getVal2(p));
+          Instruction cmp = MIR_Compare.create(IA32_CMP,
+                                              MIR_TrapIf.getVal1(p).copy(),
+                                              MIR_TrapIf.getVal2(p).copy());
           if (p.isMarkedAsPEI()) {
             // The trap if was explictly marked, which means that it has
             // a memory operand into which we've folded a null check.
@@ -192,7 +197,7 @@ public class FinalMIRExpansion extends IRTools {
           }
           thisBlock.appendInstruction(cmp);
           thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC,
-                                                            MIR_TrapIf.getCond(p),
+                                                            (IA32ConditionOperand) MIR_TrapIf.getCond(p).copy(),
                                                             trap.makeJumpTarget(),
                                                             null));
 
@@ -360,11 +365,13 @@ public class FinalMIRExpansion extends IRTools {
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);
               } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
                          value.index == null) {
+                if (VM.VerifyAssertions) VM._assert(fits(value.disp, 32));
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
                          value.index != null && value.index.getRegister() == result.getRegister() &&
                          value.scale == 0) {
+                if (VM.VerifyAssertions) VM._assert(fits(value.disp, 32));
                 // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
@@ -390,14 +397,14 @@ public class FinalMIRExpansion extends IRTools {
 
         case IA32_JCC2_opcode:
           p.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                               MIR_CondBranch2.getCond1(p),
-                                               MIR_CondBranch2.getTarget1(p),
-                                               MIR_CondBranch2.getBranchProfile1(p)));
+                                               MIR_CondBranch2.getClearCond1(p),
+                                               MIR_CondBranch2.getClearTarget1(p),
+                                               MIR_CondBranch2.getClearBranchProfile1(p)));
           MIR_CondBranch.mutate(p,
                                 IA32_JCC,
-                                MIR_CondBranch2.getCond2(p),
-                                MIR_CondBranch2.getTarget2(p),
-                                MIR_CondBranch2.getBranchProfile2(p));
+                                MIR_CondBranch2.getClearCond2(p),
+                                MIR_CondBranch2.getClearTarget2(p),
+                                MIR_CondBranch2.getClearBranchProfile2(p));
           break;
 
         case CALL_SAVE_VOLATILE_opcode:
@@ -463,8 +470,8 @@ public class FinalMIRExpansion extends IRTools {
    * @param phys controlling physical register set
    */
   private static void expandFmov(Instruction s, PhysicalRegisterSet phys) {
-    Operand result = MIR_Move.getResult(s);
-    Operand value = MIR_Move.getValue(s);
+    Operand result = MIR_Move.getClearResult(s);
+    Operand value = MIR_Move.getClearValue(s);
 
     if (result.isRegister() && value.isRegister()) {
       if (result.similar(value)) {
@@ -546,7 +553,13 @@ public class FinalMIRExpansion extends IRTools {
     Offset offset = meth.getOffset();
     LocationOperand loc = new LocationOperand(offset);
     Operand guard = TG();
-    Operand target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    Operand target;
+    if (JTOC_REGISTER == null) {
+      target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) BYTES_IN_ADDRESS, loc, guard);
+    } else {
+      target = MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, (byte) BYTES_IN_ADDRESS, loc, guard);
+    }
+
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
     ir.MIRInfo.gcIRMap.moveToEnd(s);
@@ -584,7 +597,12 @@ public class FinalMIRExpansion extends IRTools {
     Offset offset = meth.getOffset();
     LocationOperand loc = new LocationOperand(offset);
     Operand guard = TG();
-    Operand target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    Operand target;
+    if (JTOC_REGISTER == null) {
+      target = MemoryOperand.D(Magic.getTocPointer().plus(offset), (byte) BYTES_IN_ADDRESS, loc, guard);
+    } else {
+      target = MemoryOperand.BD(ir.regpool.makeTocOp().asRegister(), offset, (byte) BYTES_IN_ADDRESS, loc, guard);
+    }
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
     ir.MIRInfo.gcIRMap.moveToEnd(s);

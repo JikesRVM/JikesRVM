@@ -3320,6 +3320,7 @@ emitFloatMemAcc() {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == FP0);
+    generateREXprefix(false, null, null, srcBase);
     setMachineCodes(mi++, (byte) ${opcode});
     // The ``register'' ${mOpExt} is really part of the opcode
     emitRegDispRegOperands(srcBase, srcDisp, GPR.getForOpcode(${mOpExt}));
@@ -3340,6 +3341,7 @@ emitFloatMemAcc() {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == FP0);
+    generateREXprefix(false, null, null, srcBase);
     setMachineCodes(mi++, (byte) ${opcode});
     // The ``register'' ${mOpExt} is really part of the opcode
     emitRegIndirectRegOperands(srcBase, GPR.getForOpcode(${mOpExt}));
@@ -3363,6 +3365,7 @@ emitFloatMemAcc() {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == FP0);
+    generateREXprefix(false, null, srcIndex, srcBase);
     setMachineCodes(mi++, (byte) ${opcode});
     // The ``register'' ${mOpExt} is really part of the opcode
     emitSIBRegOperands(srcBase, srcIndex, srcScale, srcDisp, GPR.getForOpcode(${mOpExt}));
@@ -3385,6 +3388,7 @@ emitFloatMemAcc() {
     int miStart = mi;
     // Must store result to top of stack
     if (VM.VerifyAssertions) VM._assert(dstReg == FP0);
+    generateREXprefix(false, null, srcIndex, null);
     setMachineCodes(mi++, (byte) ${opcode});
     // The ``register'' ${mOpExt} is really part of the opcode
     emitRegOffRegOperands(srcIndex, srcScale, srcDisp, GPR.getForOpcode(${mOpExt}));
@@ -3515,6 +3519,7 @@ emitFloatMem() {
   public final void emit${acronym}${pre}_RegDisp${ext}(${preArg}GPR reg, Offset disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
+    generateREXprefix(false, null, null, reg);
     setMachineCodes(mi++, (byte) ${opcode});
     emitRegDispRegOperands(reg, disp, GPR.getForOpcode(${extCode}));
     if (lister != null) lister.RD(miStart, "${acronym}", reg, disp);
@@ -3530,6 +3535,7 @@ emitFloatMem() {
   public final void emit${acronym}${pre}_RegInd${ext}(${preArg}GPR reg${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
+    generateREXprefix(false, null, null, reg);
     setMachineCodes(mi++, (byte) ${opcode});
     emitRegIndirectRegOperands(reg, GPR.getForOpcode(${extCode}));
     if (lister != null) lister.RN(miStart, "${acronym}", reg);
@@ -3548,6 +3554,7 @@ emitFloatMem() {
   public final void emit${acronym}${pre}_RegIdx${ext}(${preArg}GPR baseReg, GPR idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
+    generateREXprefix(false, null, idxReg, baseReg);
     setMachineCodes(mi++, (byte) ${opcode});
     emitSIBRegOperands(baseReg, idxReg, scale, disp, GPR.getForOpcode(${extCode}));
     if (lister != null) lister.RXD(miStart, "${acronym}", baseReg, idxReg, scale, disp);
@@ -3565,6 +3572,7 @@ emitFloatMem() {
   public final void emit${acronym}${pre}_RegOff${ext}(${preArg}GPR idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
+    generateREXprefix(false, null, idxReg, null);
     setMachineCodes(mi++, (byte) ${opcode});
     emitRegOffRegOperands(idxReg, scale, disp, GPR.getForOpcode(${extCode}));
     if (lister != null) lister.RFD(miStart, "${acronym}", idxReg, scale, disp);
@@ -3617,6 +3625,7 @@ emitFloatCmp() {
   public final void emit${acronym}_Reg_Reg (FPR reg1, FPR reg2) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(reg1 == FP0);
+    generateREXprefix(false, null, null, null);
     setMachineCodes(mi++, (byte) ${opcode1});
     setMachineCodes(mi++, (byte)  (${opcode2} | reg2.value()));
     if (lister != null) lister.RR(miStart, "${acronym}", reg1, reg2);

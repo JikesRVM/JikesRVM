@@ -6,16 +6,16 @@ czr:	LONG_ADD(r, rlv)
 EMIT_INSTRUCTION
 if (Binary.getVal2(P(p)).isLongConstant()) { \\
 RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp, Binary.getVal2(P(p))))); \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), tmp); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp, Binary.getClearVal2(P(p))))); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), tmp.copy()); \\
 } else { \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p))); \\
 }
 
 czr:	LONG_ADD(r, riv)
 11
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)));
 
 #
 # has int parameter
@@ -25,14 +25,14 @@ czr:    LONG_ADD(r,r)
 EMIT_INSTRUCTION
 if (Binary.getVal1(P(p)).asRegister().getRegister().isInteger()) { \\
 RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp,Binary.getVal1(P(p))))); \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)),tmp, Binary.getVal2(P(p))); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp,Binary.getClearVal1(P(p))))); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)),tmp.copy(), Binary.getClearVal2(P(p))); \\
 } else if (Binary.getVal2(P(p)).asRegister().getRegister().isInteger()) { \\
 RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp,Binary.getVal2(P(p))))); \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)),Binary.getVal1(P(p)),tmp); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp,Binary.getClearVal2(P(p))))); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)),Binary.getClearVal1(P(p)),tmp.copy()); \\
 } else { \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p))); \\
 }
 
 # Prefer LEA as it gives register allocator more freedom and we fold
@@ -42,11 +42,11 @@ r:	LONG_ADD(r, rlv)
 13
 EMIT_INSTRUCTION
 if (Binary.getVal2(P(p)).isLongConstant()) { \\
-  pushAddress(R(Binary.getVal1(P(p))), null, B_S, Offset.fromLong(LV(Binary.getVal2(P(p))))); \\
+  pushAddress(R(Binary.getClearVal1(P(p))), null, B_S, Offset.fromLong(LV(Binary.getClearVal2(P(p))))); \\
 } else { \\
-  pushAddress(R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))), B_S, Offset.zero()); \\
+  pushAddress(R(Binary.getClearVal1(P(p))), R(Binary.getClearVal2(P(p))), B_S, Offset.zero()); \\
 } \\
-EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(QW, null, null));
+EMIT_Lea(P(p), Binary.getClearResult(P(p)), consumeAddress(QW, null, null));
 
 ### Memory operands ###
 czr:	LONG_ADD(rlv, load64)
@@ -54,10 +54,10 @@ czr:	LONG_ADD(rlv, load64)
 EMIT_INSTRUCTION
 if (Binary.getVal1(P(p)).isLongConstant()) { \\
 RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp,Binary.getVal1(P(p))))); \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), tmp, consumeMO()); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp,Binary.getClearVal1(P(p))))); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), tmp.copy(), consumeMO()); \\
 } else { \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO()); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), consumeMO()); \\
 }
 
 czr:	LONG_ADD(load64, rlv)
@@ -65,29 +65,29 @@ czr:	LONG_ADD(load64, rlv)
 EMIT_INSTRUCTION
 if (Binary.getVal2(P(p)).isLongConstant()) { \\
 RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp, Binary.getVal2(P(p))))); \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), consumeMO(), tmp); \\
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp, Binary.getClearVal2(P(p))))); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), consumeMO(), tmp.copy()); \\
 } else { \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO()); \\
+EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal2(P(p)), consumeMO()); \\
 }
 
 stm:	LONG_STORE(LONG_ADD(LONG_LOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_ADD, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal2(PL(p)));
+EMIT_Commutative(IA32_ADD, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getClearVal2(PL(p)));
 
 stm:	LONG_STORE(LONG_ADD(rlv,LONG_LOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
 ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_ADD, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getVal1(PL(p)));
+EMIT_Commutative(IA32_ADD, P(p), MO_S(P(p), QW), MO_S(P(p), QW), Binary.getClearVal1(PL(p)));
 
 stm:	LONG_ASTORE(LONG_ADD(LONG_ALOAD(rlv,rlv),rlv),OTHER_OPERAND(rlv, rlv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_ADD, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal2(PL(p)));
+EMIT_Commutative(IA32_ADD, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getClearVal2(PL(p)));
 
 stm:	LONG_ASTORE(LONG_ADD(rlv,LONG_ALOAD(rlv,rlv)),OTHER_OPERAND(rlv, rlv))
 ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
-EMIT_Commutative(IA32_ADD, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getVal1(PL(p)));
+EMIT_Commutative(IA32_ADD, P(p), MO_AS(P(p), QW_S, QW), MO_AS(P(p), QW_S, QW), Binary.getClearVal1(PL(p)));
 

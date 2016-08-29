@@ -30,10 +30,10 @@ FITS(Move.getVal(PR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \\
    Address val = AV(Move.getVal(PR(p)));                                      \\
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \\
-                          R(Load.getAddress(P(p))), CAU16(val)));             \\
+   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)).copyRO(),           \\
+                          R(Load.getClearAddress(P(p))), CAU16(val)));             \\
    EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),         \\
-                                 Move.getResult(PR(p)).copyRO(), CAL16(val),  \\
+                                 Move.getClearResult(PR(p)), CAL16(val),  \\
                                  Load.getLocation(P(p)),                      \\
                                  Load.getGuard(P(p))));                      \\
 }
@@ -49,14 +49,14 @@ r: LONG_LOAD(REF_ADD(r,r),INT_CONSTANT)
 isZERO(VR(p), 11)
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddrX, Load.getResult(P(p)),           \\
-                              R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \\
+                              R(Binary.getClearVal1(PL(p))), Binary.getClearVal2(PL(p)), \\
                               Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r: LONG_LOAD(REF_ADD(r,INT_CONSTANT),INT_CONSTANT)
 SI16(VR(p)+VLR(p)) ? 14 : INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),            \\
-                              R(Binary.getVal1(PL(p))), IC(VR(p)+VLR(p)), \\
+                              R(Binary.getClearVal1(PL(p))), IC(VR(p)+VLR(p)), \\
                               Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
@@ -77,10 +77,10 @@ FITS(Move.getVal(PRR(p)),32,22)
 EMIT_INSTRUCTION
 {                                                                             \\
    Address val = AV(Move.getVal(PRR(p)));                                     \\
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \\
-                          R(Store.getAddress(P(p))), CAU16(val)));            \\
+   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)).copyRO(),         \\
+                          R(Store.getClearAddress(P(p))), CAU16(val)));            \\
    EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),     \\
-                                  Move.getResult(PRR(p)).copyRO(), CAL16(val),\\
+                                  Move.getClearResult(PRR(p)), CAL16(val),\\
                                   Store.getLocation(P(p)),                    \\
                                   Store.getGuard(P(p))));                    \\
 }
@@ -98,7 +98,7 @@ stm: LONG_STORE(r,OTHER_OPERAND(REF_ADD(r,INT_CONSTANT),INT_CONSTANT))
 SI16(VRR(p)+VRLR(p))?14:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),        \\
-                               R(Binary.getVal1(PRL(p))),                     \\
+                               R(Binary.getClearVal1(PRL(p))),                     \\
                                IC(VRR(p) + VRLR(p)), \\
                                Store.getLocation(P(p)),                       \\
                                Store.getGuard(P(p))));

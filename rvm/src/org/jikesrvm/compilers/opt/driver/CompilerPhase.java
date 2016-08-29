@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpIR;
+
 import java.lang.reflect.Constructor;
 
 import org.jikesrvm.VM;
@@ -198,10 +200,7 @@ public abstract class CompilerPhase {
   public final void performPhase(IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-        // only print above certain opt level.
-        //if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
         dumpIR(ir, "Before " + getName());
-        //}
       }
     }
     if (ir.options.PRINT_PHASES) VM.sysWrite(getName() + " (" + ir.method.toString() + ")");
@@ -219,44 +218,6 @@ public abstract class CompilerPhase {
     }
 
     if (IR.PARANOID) verify(ir);
-  }
-
-  /**
-   * Prints the IR, optionally including the CFG
-   *
-   * @param ir the IR to print
-   * @param tag a String to use in the start/end message of the IR dump
-   */
-  public static void dumpIR(IR ir, String tag) {
-    if (ir.options.PRINT_VISUALIZATION) {
-      try {
-        CFGVisualization visualization = new CFGVisualization(ir, tag);
-        visualization.visualizeCFG();
-        return;
-      } catch (Exception e) {
-        System.out.println("Error generating IR visualization: ");
-        e.printStackTrace(System.out);
-        System.out.println("Generating text dump instead ...");
-      }
-    }
-
-    dumpIR(ir, tag, false);
-  }
-
-  /**
-   * Prints the IR, optionally including the CFG
-   *
-   * @param ir the IR to print
-   * @param forceCFG should the CFG be printed, independent of the value of ir.options.PRINT_CFG?
-   * @param tag a String to use in the start/end message of the IR dump
-   */
-  public static void dumpIR(IR ir, String tag, boolean forceCFG) {
-    System.out.println("********* START OF IR DUMP  " + tag + "   FOR " + ir.method);
-    ir.printInstructions();
-    if (forceCFG || ir.options.PRINT_CFG) {
-      ir.cfg.printDepthFirst();
-    }
-    System.out.println("*********   END OF IR DUMP  " + tag + "   FOR " + ir.method);
   }
 
   /**

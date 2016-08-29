@@ -140,17 +140,27 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
       VM.sysWrite("\n\nEdgeCounts.dumpCounts: Error opening output file!!\n\n");
       return;
     }
+    dumpCountsToStream(f);
+  }
+
+  /**
+   * Dumps edge counts to a stream for debugging purposes.
+   *
+   * @param stream the stream to use (e.g. {@code System.out})
+   */
+  public static void dumpCountsToStream(PrintStream stream) {
     if (data == null) return;
     for (int i = 0; i < data.length; i++) {
       if (data[i] != null) {
         NormalMethod m =
             (NormalMethod) MemberReference.getMethodRef(i).peekResolvedMethod();
         if (m != null) {
-          new BranchProfiles(m, data[i]).print(f);
+          new BranchProfiles(m, data[i]).print(stream);
         }
       }
     }
   }
+
 
   public static void readCounts(String fn) {
     LineNumberReader in = null;

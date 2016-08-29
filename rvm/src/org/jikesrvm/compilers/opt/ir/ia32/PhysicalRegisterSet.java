@@ -40,6 +40,7 @@ import static org.jikesrvm.ia32.RegisterConstants.EDI;
 import static org.jikesrvm.ia32.RegisterConstants.EDX;
 import static org.jikesrvm.ia32.RegisterConstants.ESI;
 import static org.jikesrvm.ia32.RegisterConstants.ESP;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_FPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NATIVE_PARAMETER_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_FPRS;
@@ -421,6 +422,18 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
    */
   public Register getC3() {
     return reg[C3];
+  }
+
+  public Register getJTOC() {
+    if (JTOC_REGISTER == null) {
+      final String JTOCwasntSet = "Attempt to get JTOC register when it wasn't defined!";
+      if (VM.VerifyAssertions) {
+        VM._assert(VM.NOT_REACHED, JTOCwasntSet);
+      } else {
+        VM.sysFail(JTOCwasntSet);
+      }
+    }
+    return getGPR(JTOC_REGISTER);
   }
 
   @Override

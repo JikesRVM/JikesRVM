@@ -194,7 +194,7 @@ EXTERNAL void* sysStartMainThreadSignals()
     return NULL;
   }
   /* install hardware trap signal handler */
-  struct sigaction action = {0};
+  struct sigaction action = {{0}};
   action.sa_sigaction = hardwareTrapHandler;
   /*
    * mask all signal from reaching the signal handler while the signal

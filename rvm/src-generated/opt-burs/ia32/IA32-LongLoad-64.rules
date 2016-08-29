@@ -55,7 +55,7 @@ r:      LONG_ALOAD(rlv, r)
 EMIT_INSTRUCTION
 RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
 if (index.getRegister().isInteger()) { \\
-EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index, LC(0xffffffff)))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW))); \\
 } else { \\
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW))); \\

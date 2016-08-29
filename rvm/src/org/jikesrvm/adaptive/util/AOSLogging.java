@@ -117,9 +117,53 @@ public final class AOSLogging {
     booted = true;
   }
 
+  /**
+   * Prints the given string to the log, prefixed with the time provided
+   * by {@link #getTime()} and a single space but without a new line at the end.
+   *
+   * @param s string to print
+   */
+  private void printToLogWithTimePrefix(String s) {
+    synchronized (log) {
+      log.print(getTime() + " " + s);
+    }
+  }
+
+  /**
+   * Prints the given string to the log, prefixed with the time provided
+   * by {@link #getTime()} and a single space and with a new line at the end.
+   *
+   * @param s string to print
+   */
+  private void printlnToLogWithTimePrefix(String s) {
+    synchronized (log) {
+      log.println(getTime() + " " + s);
+    }
+  }
+
   ////////////////////////////////////////////////////////////////
   // Logging level 1
   ////////////////////////////////////////////////////////////////
+
+  /**
+   * Called during initialisation of the controller subsystem when
+   * it is in non-adaptive mode.
+   */
+  public void reportThatAOSIsInNonAdaptiveMode() {
+    if (Controller.options.LOGGING_LEVEL >= 1) {
+      printlnToLogWithTimePrefix("AOS: In non-adaptive mode; controller thread exiting.");
+    }
+  }
+
+  /**
+   * Called during initialisation of the controller subsystem when
+   * it is in replay mode.
+   */
+  public void reportThatAOSIsInReplayMode() {
+    if (Controller.options.LOGGING_LEVEL >= 1) {
+      printlnToLogWithTimePrefix("AOS: In replay mode; controller thread only runs for OSR inlining.\n");
+    }
+  }
 
   /**
    * Call this method to dump statistics related to decaying
@@ -128,9 +172,7 @@ public final class AOSLogging {
   public void decayStatistics(int decayCount) {
     if (!booted) return; // fast exit
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.print(getTime() + " Decay Organizer Statistics: \n\t" + " Num of Decay events: " + decayCount + "\n");
-      }
+      printToLogWithTimePrefix("Decay Organizer Statistics: \n\t" + " Num of Decay events: " + decayCount + "\n");
     }
   }
 
@@ -139,9 +181,7 @@ public final class AOSLogging {
    */
   public void recompilingAllDynamicallyLoadedMethods() {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() + " Recompiling all dynamically loaded methods");
-      }
+      printlnToLogWithTimePrefix(" Recompiling all dynamically loaded methods");
     }
   }
 
@@ -159,8 +199,7 @@ public final class AOSLogging {
       int numOpt2 = ControllerMemory.getNumOpt2();
       int numOpt3 = ControllerMemory.getNumOpt3();
 
-      synchronized (log) {
-        log.print(getTime() +
+      printToLogWithTimePrefix(
                   "\n  Num times Controller thread is awoken: " +
                   awoken +
                   "\n  Num times did nothing: " +
@@ -198,7 +237,6 @@ public final class AOSLogging {
 
         // Let the controller memory summarize itself to the log file
         ControllerMemory.printFinalMethodStats(log);
-      }
     }
   }
 
@@ -209,13 +247,10 @@ public final class AOSLogging {
    */
   public void reportSpeedupRate(int compiler, double rate) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() +
-                    " SpeedupRate for " +
+      printlnToLogWithTimePrefix("SpeedupRate for " +
                     CompilerDNA.getCompilerString(compiler) +
                     " compiler: " +
                     rate);
-      }
     }
   }
 
@@ -226,13 +261,10 @@ public final class AOSLogging {
    */
   public void reportCompilationRate(int compiler, double rate) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() +
-                    " Compilation Rate (bytecode/msec) for " +
+      printlnToLogWithTimePrefix("Compilation Rate (bytecode/msec) for " +
                     CompilerDNA.getCompilerString(compiler) +
                     " compiler: " +
                     rate);
-      }
     }
   }
 
@@ -245,15 +277,12 @@ public final class AOSLogging {
    */
   public void reportBenefitRatio(int compiler1, int compiler2, double rate) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() +
-                    " Benefit Ratio from " +
+      printlnToLogWithTimePrefix("Benefit Ratio from " +
                     CompilerDNA.getCompilerString(compiler1) +
                     " compiler to " +
                     CompilerDNA.getCompilerString(compiler2) +
                     " compiler: " +
                     rate);
-      }
     }
   }
 
@@ -267,15 +296,12 @@ public final class AOSLogging {
    */
   public void reportCompileTimeRatio(int compiler1, int compiler2, double rate) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() +
-                    " Compile Time Ratio of " +
+      printlnToLogWithTimePrefix("Compile Time Ratio of " +
                     CompilerDNA.getCompilerString(compiler1) +
                     " compiler to " +
                     CompilerDNA.getCompilerString(compiler2) +
                     " compiler: " +
                     rate);
-      }
     }
   }
 
@@ -291,10 +317,8 @@ public final class AOSLogging {
    */
   public void recompilationScheduled(CompilationPlan plan, double priority) {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() + " Scheduling level " + plan.options.getOptLevel() + " recompilation of " + plan
-            .method + " (plan has priority " + priority + ")");
-      }
+      printlnToLogWithTimePrefix("Scheduling level " + plan.options.getOptLevel() +
+          " recompilation of " + plan.method + " (plan has priority " + priority + ")");
     }
   }
 
@@ -304,9 +328,8 @@ public final class AOSLogging {
    */
   public void recompilationStarted(CompilationPlan plan) {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() + " Recompiling (at level " + plan.options.getOptLevel() + ") " + plan.method);
-      }
+      printlnToLogWithTimePrefix("Recompiling (at level " + plan.options.getOptLevel() +
+          ") " + plan.method);
     }
   }
 
@@ -317,11 +340,8 @@ public final class AOSLogging {
    */
   public void recompilationCompleted(CompilationPlan plan) {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        //        log.println(getTime() +"  Recompiled (at level "+
-        //                    plan.options.getOptLevel() +") " +plan.method);
-        log.println(getTime() + "  Recompiled (at level " + plan.options.getOptLevel() + ") " + plan.method);
-      }
+      printlnToLogWithTimePrefix("Recompiled (at level " + plan.options.getOptLevel() +
+          ") " + plan.method);
     }
   }
 
@@ -331,9 +351,8 @@ public final class AOSLogging {
    */
   public void recompilationAborted(CompilationPlan plan) {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() + " Failed recompiling (at level " + plan.options.getOptLevel() + " " + plan.method);
-      }
+      printlnToLogWithTimePrefix("Failed recompiling (at level " +
+          plan.options.getOptLevel() + " " + plan.method);
     }
   }
 
@@ -344,22 +363,19 @@ public final class AOSLogging {
    */
   public void recordCompileTime(CompiledMethod cm, double expectedCompilationTime) {
     if (log != null && Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        double compTime = cm.getCompilationTime();
-        log.println(getTime() +
-                    " Compiled " +
-                    cm.getMethod() +
-                    " with " +
-                    cm.getCompilerName() +
-                    " in " +
-                    compTime +
-                    " ms" +
-                    ", model estimated: " +
-                    expectedCompilationTime +
-                    " ms" +
-                    ", rate: " +
-                    (((NormalMethod) cm.getMethod()).getBytecodeLength() / compTime));
-      }
+      double compTime = cm.getCompilationTime();
+      printlnToLogWithTimePrefix("Compiled " +
+          cm.getMethod() +
+          " with " +
+          cm.getCompilerName() +
+          " in " +
+          compTime +
+          " ms" +
+          ", model estimated: " +
+          expectedCompilationTime +
+          " ms" +
+          ", rate: " +
+          (((NormalMethod) cm.getMethod()).getBytecodeLength() / compTime));
     }
   }
 
@@ -372,9 +388,7 @@ public final class AOSLogging {
    */
   public void oldVersionStillHot(HotMethodEvent hme) {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() + " Found a method with an old version still hot " + hme);
-      }
+      printlnToLogWithTimePrefix("Found a method with an old version still hot " + hme);
     }
   }
 
@@ -383,9 +397,7 @@ public final class AOSLogging {
    */
   public void decayingCounters() {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() + " Decaying clock and decayable objects");
-      }
+      printlnToLogWithTimePrefix("Decaying clock and decayable objects");
     }
   }
 
@@ -395,9 +407,7 @@ public final class AOSLogging {
    */
   public void organizerThresholdReached() {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() + " OrganizerThread reached sample size threshold\n");
-      }
+      printlnToLogWithTimePrefix("OrganizerThread reached sample size threshold\n");
     }
   }
 
@@ -410,9 +420,7 @@ public final class AOSLogging {
    */
   public void controllerNotifiedForHotness(CompiledMethod hotMethod, double numSamples) {
     if (Controller.options.LOGGING_LEVEL >= 2) {
-      synchronized (log) {
-        log.println(getTime() +
-                    " Controller notified that method " +
+      printlnToLogWithTimePrefix(" Controller notified that method " +
                     hotMethod.getMethod() +
                     "(" +
                     hotMethod.getId() +
@@ -420,7 +428,6 @@ public final class AOSLogging {
                     " has " +
                     numSamples +
                     " samples");
-      }
     }
   }
 
@@ -458,9 +465,7 @@ public final class AOSLogging {
   public void recordControllerEstimateCostOpt(RVMMethod method, String choiceDesc, double compilationTime,
                                                      double futureTime) {
     if (Controller.options.LOGGING_LEVEL >= 3) {
-      synchronized (log) {
-        log.println(getTime() +
-                    "  Estimated cost of OPT compiling " +
+      printlnToLogWithTimePrefix("Estimated cost of OPT compiling " +
                     method +
                     " at " +
                     choiceDesc +
@@ -468,7 +473,6 @@ public final class AOSLogging {
                     compilationTime +
                     ", total future time is " +
                     futureTime);
-      }
     }
   }
 
@@ -533,42 +537,35 @@ public final class AOSLogging {
   public void recordOSRRecompilationDecision(ControllerPlan plan) {
     CompilationPlan cplan = plan.getCompPlan();
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() + " recompile with OSR " + "( at level " + cplan.options.getOptLevel() + " ) " + cplan
-            .method);
-      }
+      printlnToLogWithTimePrefix("recompile with OSR " + "( at level " +
+          cplan.options.getOptLevel() + " ) " + cplan.method);
     }
   }
 
   public void onStackReplacementStarted(CompilationPlan plan) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() + " OSR starts " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
-      }
+      printlnToLogWithTimePrefix("OSR starts " + "( at level " +
+          plan.options.getOptLevel() + " ) " + plan.method);
     }
   }
 
   public void onStackReplacementCompleted(CompilationPlan plan) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() + " OSR ends " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
-      }
+      printlnToLogWithTimePrefix("OSR ends " + "( at level " +
+          plan.options.getOptLevel() + " ) " + plan.method);
     }
   }
 
   public void onStackReplacementAborted(CompilationPlan plan) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() + " OSR failed " + "( at level " + plan.options.getOptLevel() + " ) " + plan.method);
-      }
+      printlnToLogWithTimePrefix("OSR failed " + "( at level " +
+          plan.options.getOptLevel() + " ) " + plan.method);
     }
   }
 
   public void logOsrEvent(String s) {
     if (Controller.options.LOGGING_LEVEL >= 1) {
-      synchronized (log) {
-        log.println(getTime() + " " + s);
-      }
+      printlnToLogWithTimePrefix(s);
     }
   }
 

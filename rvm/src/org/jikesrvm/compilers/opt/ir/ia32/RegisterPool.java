@@ -14,10 +14,12 @@ package org.jikesrvm.compilers.opt.ir.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
+import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
 
@@ -58,6 +60,7 @@ public final class RegisterPool extends GenericRegisterPool {
 
   @Override
   public Operand makeTocOp() {
-    return makeJTOCOp();
+    PhysicalRegisterSet ia32Phys = (PhysicalRegisterSet) physical;
+    return new RegisterOperand(ia32Phys.getJTOC(), TypeReference.Address);
   }
 }

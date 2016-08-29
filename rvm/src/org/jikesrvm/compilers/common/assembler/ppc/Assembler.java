@@ -310,6 +310,12 @@ public final class Assembler extends AbstractAssembler {
     appendInstruction(mi);
   }
 
+  public void emitADDME(GPR RT, GPR RA) {
+    final int ADDMEtemplate = 31 << 26 | 234 << 1;
+    int mi = ADDMEtemplate | RT.value() << 21 | RA.value() << 16;
+    appendInstruction(mi);
+  }
+
   public void emitADDICr(GPR RT, GPR RA, int SI) {
     final int ADDICrtemplate = 13 << 26;
     if (VM.VerifyAssertions) VM._assert(fits(SI, 16));
@@ -916,9 +922,15 @@ public final class Assembler extends AbstractAssembler {
     appendInstruction(mi);
   }
 
-  void emitMFSPR(GPR RT, int SPR) {
+  public void emitMFSPR(GPR RT, int SPR) {
     final int MFSPRtemplate = 31 << 26 | 339 << 1;
-    int mi = MFSPRtemplate | RT.value() << 21 | SPR << 16;
+    int mi = MFSPRtemplate | RT.value() << 21 | SPR << 11;
+    appendInstruction(mi);
+  }
+
+  public void emitMTSPR(GPR RT, int SPR) {
+    final int MFSPRtemplate = 31 << 26 | 467 << 1;
+    int mi = MFSPRtemplate | RT.value() << 21 | SPR << 11;
     appendInstruction(mi);
   }
 
@@ -1280,6 +1292,13 @@ public final class Assembler extends AbstractAssembler {
     final int XORItemplate = 26 << 26;
     if (VM.VerifyAssertions) VM._assert(fits(V, 16));
     int mi = XORItemplate | RS.value() << 21 | RA.value() << 16 | V & 0xFFFF;
+    appendInstruction(mi);
+  }
+
+  public void emitXORIS(GPR RA, GPR RS, int V) {
+    final int XORIStemplate = 27 << 26;
+    if (VM.VerifyAssertions) VM._assert(fits(V, 16));
+    int mi = XORIStemplate | RS.value() << 21 | RA.value() << 16 | V & 0xFFFF;
     appendInstruction(mi);
   }
 

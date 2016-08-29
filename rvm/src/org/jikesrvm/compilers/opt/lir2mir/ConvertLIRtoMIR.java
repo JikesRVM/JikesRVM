@@ -103,17 +103,38 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
         //          (those that expand to multiple basic blocks of MIR).
         new OptimizationPlanAtomicElement(new ComplexOperators()),
 
-        // Stage 6: Use validation operands to do null check combining,
+        // Stage 6: x64-specific cleanups
+        new OptimizationPlanAtomicElement(new InsertIMMQ_MOVForX64()),
+
+        // Stage 7: Use validation operands to do null check combining,
         //          and then finish the removal off all validation
         //          operands (they are not present in the MIR).
-        new OptimizationPlanAtomicElement(new NullCheckCombining() {
+        new OptimizationPlanAtomicElement(new NullCheckCombining()),
+
+        // Stage 8: Leave LIR. Do this in an extra phase to make it
+        //          easier to insert new phases.
+        new OptimizationPlanAtomicElement(new CompilerPhase() {
           @Override
           public void perform(IR ir) {
-            super.perform(ir);
             ir.initializeStateForMIR();
           }
-        }),
-        new OptimizationPlanAtomicElement(new InsertIMMQ_MOVForX64())});
+
+          @Override
+          public String getName() {
+            return "Leave LIR and initialize State for MIR";
+          }
+
+          @Override
+          public void verify(IR ir) {
+            // Skip verification because IR didn't change
+          }
+
+          @Override
+          public CompilerPhase newExecution(IR ir) {
+            return this;
+          }
+        })
+    });
   }
 
   /**

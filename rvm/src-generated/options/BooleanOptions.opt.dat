@@ -256,6 +256,9 @@ Print dependence graph before burs
 PRINT_VISUALIZATION -1 false
 When dumping the IR, generate a visualization in a file instead
 
+PRINT_PHASES_TO_FILES -1 false
+When dumping the IR without using visualization, additionally dump the output for each phase to a separate file
+
 ## Options for IR printing at various points in compilation
 PRINT_HIGH -1 false
 Print IR after initial generation

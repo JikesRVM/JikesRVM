@@ -16,6 +16,7 @@ import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_TYPE;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+import static org.jikesrvm.util.Services.unboxedValueString;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
@@ -377,7 +378,7 @@ public final class ClassLoaderProxy {
       val = (String) Statics.getSlotContentsAsObject(offset);
       return new StringConstantOperand(val, offset);
     } catch (ClassCastException e) {
-      throw new Error("Corrupt JTOC at offset " + offset.toInt(), e);
+      throw new Error("Corrupt JTOC at offset " + unboxedValueString(offset), e);
     }
   }
 
@@ -387,7 +388,7 @@ public final class ClassLoaderProxy {
       Class<?> val = (Class<?>) Statics.getSlotContentsAsObject(offset);
       return new ClassConstantOperand(val, offset);
     } catch (ClassCastException e) {
-      throw new Error("Corrupt JTOC at offset " + offset.toInt(), e);
+      throw new Error("Corrupt JTOC at offset " + unboxedValueString(offset), e);
     }
   }
 }

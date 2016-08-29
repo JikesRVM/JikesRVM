@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.regalloc;
 
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpIR;
 import static org.jikesrvm.osr.OSRConstants.ACONST;
 import static org.jikesrvm.osr.OSRConstants.ICONST;
 import static org.jikesrvm.osr.OSRConstants.LCONST;

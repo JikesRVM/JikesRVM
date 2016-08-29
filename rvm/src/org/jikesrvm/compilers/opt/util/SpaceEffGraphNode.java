@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.io.PrintStream;
 import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -509,6 +510,10 @@ public class SpaceEffGraphNode implements GraphNode {
 
   public void printExtended() {
     System.out.println(this);
+  }
+
+  public void printExtended(PrintStream out) {
+    out.println(toString());
   }
 
   /////////////////

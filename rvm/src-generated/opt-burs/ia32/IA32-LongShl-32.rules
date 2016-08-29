@@ -4,11 +4,11 @@
 r:	LONG_SHL(rlv, riv)
 20
 EMIT_INSTRUCTION
-LONG_SHL(P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)), false);
+LONG_SHL(P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p)), false);
 
 r:	LONG_SHL(rlv, INT_AND(riv, INT_CONSTANT))
 20
 EMIT_INSTRUCTION
 if (VM.VerifyAssertions) VM._assert((VRR(p) & 0x7FFFFFFF) <= 63); \\
-LONG_SHL(P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal1(PR(p)), true);
+LONG_SHL(P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal1(PR(p)), true);
 

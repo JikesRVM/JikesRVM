@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.HashSet;
 
@@ -393,7 +394,15 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   }
 
   /**
-   * Print, to System.out, the basic blocks in the order given in
+   * Prints the basic blocks to the output stream in depth first order.
+   * @param out the stream to print the blocks to
+   */
+  public void printDepthFirstToStream(PrintStream out) {
+    print(new DepthFirstEnumerator(_firstNode), out);
+  }
+
+  /**
+   * Prints the basic blocks in the order given in
    * the supplied enumeration.
    * @param e enumeration order to print blocks
    */
@@ -401,6 +410,19 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
     while (e.hasMoreElements()) {
       SpaceEffGraphNode bb = (SpaceEffGraphNode) e.nextElement();
       bb.printExtended();
+    }
+  }
+
+  /**
+   * Prints the basic blocks in the order given in
+   * the supplied enumeration.
+   * @param e enumeration order to print blocks
+   * @param out the stream to print to
+   */
+  private void print(Enumeration<GraphNode> e, PrintStream out) {
+    while (e.hasMoreElements()) {
+      SpaceEffGraphNode bb = (SpaceEffGraphNode) e.nextElement();
+      bb.printExtended(out);
     }
   }
 

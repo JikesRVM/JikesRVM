@@ -31,13 +31,6 @@ final class VMConstructor {
   final RVMMethod constructor;
   private final ReflectionBase invoker;
 
-  // Prevent this class from being instantiated.
-  @SuppressWarnings("unused")
-  private VMConstructor() {
-    constructor = null;
-    invoker = null;
-  }
-
   // For use by JikesRVMSupport
   VMConstructor(RVMMethod m) {
     constructor = m;

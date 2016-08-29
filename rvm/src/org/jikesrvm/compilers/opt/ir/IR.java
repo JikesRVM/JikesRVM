@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import static org.jikesrvm.compilers.opt.ir.IRDumpTools.dumpIR;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
@@ -31,6 +32,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -88,6 +90,8 @@ import org.vmmagic.pragma.NoInline;
  * grouped into {@link BasicBlock factored basic blocks}.
  * In addition to the FCFG, an <code>IR</code> object also
  * contains a variety of other supporting and derived data structures.
+ * <p>
+ * The class {@link IRDumpTools} provides methods to dump the IR.
  *
  * @see ControlFlowGraph
  * @see BasicBlock
@@ -299,6 +303,17 @@ public final class IR {
     hasSysCall = b;
   }
 
+  /** id of the current phase. Used for printout options */
+  private int phaseId;
+
+  public void setIdForNextPhase() {
+    phaseId++;
+  }
+
+  public String getIdForCurrentPhase() {
+    return String.format("%03d", phaseId);
+  }
+
   {
     if (VM.BuildForIA32) {
       stackManager = new org.jikesrvm.compilers.opt.regalloc.ia32.StackManager();
@@ -365,17 +380,21 @@ public final class IR {
    * Print the instructions in this IR to System.out.
    */
   public void printInstructions() {
+    printInstructionsToStream(System.out);
+  }
+
+  public void printInstructionsToStream(PrintStream out) {
     for (Enumeration<Instruction> e = forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction i = e.nextElement();
-      System.out.print(i.getBytecodeIndex() + "\t" + i);
+      out.print(i.getBytecodeIndex() + "\t" + i);
 
       // Print block frequency with the label instruction
       if (i.operator() == LABEL) {
         BasicBlock bb = i.getBasicBlock();
-        System.out.print("   Frequency:  " + bb.getExecutionFrequency());
+        out.print("   Frequency:  " + bb.getExecutionFrequency());
       }
 
-      System.out.println();
+      out.println();
     }
   }
 
@@ -1544,7 +1563,7 @@ public final class IR {
    */
   @NoInline
   private void verror(String where, String msg) {
-    CompilerPhase.dumpIR(this, "Verify: " + where + ": " + method, true);
+    dumpIR(this, "Verify: " + where + ": " + method, true);
     VM.sysWriteln("VERIFY: " + where + " " + msg);
     throw new OptimizingCompilerException("VERIFY: " + where, msg);
   }

@@ -78,26 +78,26 @@ public class RewriteMemoryOperandsWithOversizedDisplacements extends CompilerPha
          if (mo.scale != 0) {
            temp = ir.regpool.makeTempLong();
            if (mo.index.getType() != TypeReference.Long) {
-             inst.insertBefore(MIR_Move.create(IA32_MOVSXQ__W, temp, mo.index));
+             inst.insertBefore(MIR_Move.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
            } else {
-             inst.insertBefore(MIR_Move.create(IA32_MOV, temp, mo.index));
+             inst.insertBefore(MIR_Move.create(IA32_MOV, temp, mo.index.copy()));
            }
-           inst.insertBefore(MIR_BinaryAcc.create(IA32_SHL, temp, IC(mo.scale)));
-           inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress, temp));
+           inst.insertBefore(MIR_BinaryAcc.create(IA32_SHL, temp.copy(), IC(mo.scale)));
+           inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), temp.copy()));
          } else {
            if (mo.index.getType() != TypeReference.Long) {
              temp = ir.regpool.makeTempLong();
-             inst.insertBefore(MIR_Move.create(IA32_MOVSXQ__W, temp, mo.index));
-             inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress, temp));
+             inst.insertBefore(MIR_Move.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
+             inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), temp.copy()));
            } else {
-             inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress, mo.index));
+             inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), mo.index.copy()));
            }
          }
       }
       if (mo.base != null) {
-        inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress, mo.base));
+        inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), mo.base.copy()));
       }
-      MemoryOperand newMo = MemoryOperand.I(effectiveAddress, mo.size, null != mo.loc ? (LocationOperand)mo.loc.copy() : null,
+      MemoryOperand newMo = MemoryOperand.I(effectiveAddress.copy().asRegister(), mo.size, null != mo.loc ? (LocationOperand)mo.loc.copy() : null,
           mo.guard != null ? mo.guard.copy() : null);
       inst.replaceOperand(mo, newMo);
     }

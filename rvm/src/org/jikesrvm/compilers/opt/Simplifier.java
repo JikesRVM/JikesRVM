@@ -1443,7 +1443,7 @@ public abstract class Simplifier extends IRTools {
       }
       if (cost <= targetCost) {
         // generate shift and adds
-        RegisterOperand val1Operand = op1.asRegister();
+        RegisterOperand val1Operand = op1.copy().asRegister();
         RegisterOperand resultOperand = numBits == 32 ? regpool.makeTempInt() : regpool.makeTempLong();
         Instruction move;
         if ((val2 & 1) == 1) {
