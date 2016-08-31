@@ -60,6 +60,8 @@ Projects with code changes and additional information
 * [ByteSTM](https://github.com/mohamedin/bytestm). See the paper "ByteSTM: Virtual Machine-level Java Software Transactional Memory" by Mohamedin et al.
 * [Laminar](https://github.com/ut-osa/laminar). See the paper "Laminar: Practical Fine-Grained Decentralized Information Flow Control" by Roy et al. in PLDI'09. The changes can be found in the form of patches in the Jikes RVM [research archive entry](http://sourceforge.net/p/jikesrvm/research-archive/26/).
 * [A minimal implementation of causal profiling for Java applications running on Jikes RVM](https://github.com/alanweide/coff)
+* [Velodrome: a sound and complete dynamic atomicity checker for multithreaded programs](https://github.com/palmskog/velodrome)
+* [DoubleChecker: Efficient Sound and Precise Atomicity Checking](https://github.com/palmskog/doublechecker-single-run)
 
 Projects with code changes but without any additional information
 * [https://github.com/vilay/check](https://github.com/vilay/check)
