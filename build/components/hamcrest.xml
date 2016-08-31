@@ -34,7 +34,7 @@
     <property name="hamcrest.web-archive" value="hamcrest-all-${hamcrest.version}.jar"/>
     <mkdir dir="${hamcrest.package.dir}"/>
     <cachedGet key="${hamcrest.web-archive}"
-         src="http://hamcrest.googlecode.com/files/${hamcrest.web-archive}"
+         src="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/hamcrest/${hamcrest.web-archive}"
          dest="${hamcrest.package.dir}/${hamcrest.web-archive}"/>
     <writeComponentConstants dir="${hamcrest.package.dir}"/>
   </target>

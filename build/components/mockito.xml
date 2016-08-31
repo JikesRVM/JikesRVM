@@ -34,7 +34,7 @@
     <property name="mockito.web-archive" value="mockito${mockito.version}.jar"/>
     <mkdir dir="${mockito.package.dir}"/>
     <cachedGet key="${mockito.web-archive}"
-         src="http://mockito.googlecode.com/files/mockito-all-${mockito.version}.jar"
+         src="https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/mockito/mockito-all-${mockito.version}.jar"
          dest="${mockito.package.dir}/${mockito.web-archive}"/>
     <writeComponentConstants dir="${mockito.package.dir}"/>
   </target>
