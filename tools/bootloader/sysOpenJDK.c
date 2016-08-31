@@ -1,7 +1,5 @@
-// FIXME is this code really EPL-licensed? Where does it come from?
-// TODO If this code is only needed for OpenJDK, wrap it in defines to remove it
-//  for GNU Classpath builds.
-
+// FIXME this code seems to come from OpenJDK and seems to be  GPL licensed
+// => RIP & Replace
 #include "sys.h"
 
 #include <errno.h> // for errno

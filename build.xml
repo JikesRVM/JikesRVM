@@ -2047,12 +2047,8 @@ const char *rvm_target_configuration = "${target.file}";
   </target>
 
   <target name="build-bootloader" depends="build-gcspy-stub">
-    <!-- FIXME OpenJDK: it was necessary to rename our jvm lib to jikesrvm to prevent
-      conflicts with the current setup for the OpenJDK port. This needs to be fixed.
-      We ought to be able to call our library libjvm instead of libjikesrvm --> 
-    
     <!-- create Jikes RVM library -->
-    <echo message="Creating jikesrvm${target.lib-ext}"/>
+    <echo message="Creating jvm${target.lib-ext}"/>
     <CompileCtoObj cfile="${bl.dir}/jvm.c"
                    objfile="${build.base}/${target.obj-prefix}jvm${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
@@ -2108,7 +2104,7 @@ const char *rvm_target_configuration = "${target.file}";
                        objfile="${build.base}/${target.obj-prefix}sysVarArgs${target.obj-ext}"
                        cargs="${rvm.c.args}"/>
 
-    <CreateLibrary outdir="${build.base}" dllname="jikesrvm" srcdir="${bl.dir}">
+    <CreateLibrary outdir="${build.base}" dllname="jvm" srcdir="${bl.dir}">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}jvm${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysAlignmentCheck${target.obj-ext}"/>
@@ -2150,7 +2146,7 @@ const char *rvm_target_configuration = "${target.file}";
             <arg value="${build.base}/${target.obj-prefix}vmls${target.obj-ext}"/>
           </ObjectFiles>
         </CreateLibrary>
-        <CreateDLL outdir="${build.base}" dllname="vmi" srcdir="${bl.dir}" lib="${lib.specifier}jikesrvm${target.lib-ext}">
+        <CreateDLL outdir="${build.base}" dllname="vmi" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext}">
           <ObjectFiles>
             <arg value="${build.base}/${target.obj-prefix}harmony${target.obj-ext}"/>
             <arg value="${build.base}/${target.obj-prefix}vmls${target.obj-ext}"/>
@@ -2164,7 +2160,7 @@ const char *rvm_target_configuration = "${target.file}";
     <condition property="jvm.vmi.lib.filter" value="${lib.specifier}vmi${target.lib-ext}" else="">
       <equals arg1="${classlib.provider}" arg2="Harmony"/>
     </condition>
-    <CreateDLL outdir="${build.base}" dllname="jikesrvm" srcdir="${bl.dir}" lib="${jvm.vmi.lib.filter}">
+    <CreateDLL outdir="${build.base}" dllname="jvm" srcdir="${bl.dir}" lib="${jvm.vmi.lib.filter}">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}jvm${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysAlignmentCheck${target.obj-ext}"/>
@@ -2189,11 +2185,11 @@ const char *rvm_target_configuration = "${target.file}";
 
 
     <!-- create jikesrvm_jni shared library -->
-    <echo message="Creating jikesrvm_jni${target.jni-suffix}"/>
+    <echo message="Creating jvm_jni${target.jni-suffix}"/>
     <CompileCtoObj cfile="${bl.dir}/jni/org_jikesrvm_runtime_DynamicLibrary.c"
                    objfile="${build.base}/${target.obj-prefix}org_jikesrvm_runtime_DynamicLibrary${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CreateDLL outdir="${build.base}" dllname="jikesrvm_jni" srcdir="${bl.dir}/jni" lib="${lib.specifier}jikesrvm${target.lib-ext} ${jvm.vmi.lib.filter}"
+    <CreateDLL outdir="${build.base}" dllname="jvm_jni" srcdir="${bl.dir}/jni" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter}"
                suffix="${target.jni-suffix}">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}org_jikesrvm_runtime_DynamicLibrary${target.obj-ext}"/>
@@ -2205,7 +2201,7 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/main.c"
                    objfile="${build.base}/${target.obj-prefix}main${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jikesrvm${target.lib-ext} ${jvm.vmi.lib.filter}">
+    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter}">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
       </ObjectFiles>
