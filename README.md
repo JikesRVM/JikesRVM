@@ -32,7 +32,7 @@ See the [contributions page](http://www.jikesrvm.org/Contributions/) for details
 
 The short version:
 
-* Contributions are licsensed under EPL and require a Contributor License Agreement. You keep your copyright.
+* Contributions are licensed under EPL and require a Contributor License Agreement. You keep your copyright.
 * You can send us patches or use pull requests. Send patches to the [core mailing list](mailto:jikesrvm-core@lists.sourceforge.net).
 * It is ok to test on one platform only (e.g. only on IA32).
 
