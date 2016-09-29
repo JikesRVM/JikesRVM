@@ -165,7 +165,6 @@ public abstract class CallingConvention extends IRTools {
 
     if (MIR_Return.hasVal(ret)) {
       Operand symb1 = MIR_Return.getClearVal(ret);
-      MIR_Return.setVal(ret, null);
       TypeReference type = symb1.getType();
       if (type.isFloatType() || type.isDoubleType()) {
         Register r = phys.getReturnFPR();
@@ -191,7 +190,6 @@ public abstract class CallingConvention extends IRTools {
     if (MIR_Return.hasVal2(ret)) {
       if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
       Operand symb2 = MIR_Return.getClearVal2(ret);
-      MIR_Return.setVal2(ret, null);
       TypeReference type = symb2.getType();
       Register r = phys.getSecondReturnGPR();
       RegisterOperand rOp = new RegisterOperand(r, type);
