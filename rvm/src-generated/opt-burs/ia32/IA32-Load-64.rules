@@ -27,7 +27,7 @@ r:      BYTE_ALOAD(rlv, r)
 EMIT_INSTRUCTION
 RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
 if (index.getRegister().isInteger()) { \\
-EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL)))); \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
 } else { \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
@@ -64,7 +64,7 @@ r:      UBYTE_ALOAD(rlv, r)
 EMIT_INSTRUCTION
 RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
 if (index.getRegister().isInteger()) { \\
-EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL)))); \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
 } else { \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B))); \\
@@ -111,7 +111,7 @@ r:      SHORT_ALOAD(rlv, r)
 EMIT_INSTRUCTION
 RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
 if (index.getRegister().isInteger()) { \\
-EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL)))); \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
 } else { \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
@@ -148,7 +148,7 @@ r:      USHORT_ALOAD(rlv, r)
 EMIT_INSTRUCTION
 RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
 if (index.getRegister().isInteger()) { \\
-EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL)))); \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
 } else { \\
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W))); \\
@@ -214,7 +214,7 @@ load64:	LONG_ALOAD(rlv, r)
 EMIT_INSTRUCTION
 RegisterOperand index = ALoad.getIndex(P(p)).asRegister(); \\
 if (index.getRegister().isInteger()) { \\
-EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xffffffff)))); \\
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL)))); \\
 pushMO(MO_AL(P(p), QW_S, QW)); \\
 } else { \\
 pushMO(MO_AL(P(p), QW_S, QW)); \\
