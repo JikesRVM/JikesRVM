@@ -28,6 +28,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -78,7 +79,7 @@ public class RewriteMemoryOperandsWithOversizedDisplacements extends CompilerPha
          if (mo.scale != 0) {
            temp = ir.regpool.makeTempLong();
            if (mo.index.getType() != TypeReference.Long) {
-             inst.insertBefore(MIR_Move.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
+             inst.insertBefore(MIR_Unary.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
            } else {
              inst.insertBefore(MIR_Move.create(IA32_MOV, temp, mo.index.copy()));
            }
@@ -87,7 +88,7 @@ public class RewriteMemoryOperandsWithOversizedDisplacements extends CompilerPha
          } else {
            if (mo.index.getType() != TypeReference.Long) {
              temp = ir.regpool.makeTempLong();
-             inst.insertBefore(MIR_Move.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
+             inst.insertBefore(MIR_Unary.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
              inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), temp.copy()));
            } else {
              inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), mo.index.copy()));
