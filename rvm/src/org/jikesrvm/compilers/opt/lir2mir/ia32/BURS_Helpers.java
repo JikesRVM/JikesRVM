@@ -2076,7 +2076,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
                                    boolean isDiv, boolean signed) {
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEDX(), TypeReference.Long), val1)));
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Long), val1.copy())));
-      EMIT(CPOS(s, MIR_Move.create(IA32_SAR, new RegisterOperand(getEDX(), TypeReference.Long), LC(0x3f))));
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SAR, new RegisterOperand(getEDX(), TypeReference.Long), LC(0x3f))));
 
     if (val2.isLongConstant() || val2.isIntConstant()) {
       RegisterOperand temp = regpool.makeTempLong();
