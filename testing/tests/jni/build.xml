@@ -36,6 +36,7 @@
 
   <macrodef name="jniTest">
     <attribute name="class"/>
+    <attribute name="args" default=""/>
     <sequential>
       <javah classpath="${build.classes}" outputFile="${build.native}/@{class}.h">
         <class name="@{class}"/>
@@ -48,7 +49,7 @@
           <arg value="${build.tests.dir}/${target.obj-prefix}@{class}${target.obj-ext}"/>
         </ObjectFiles>
       </CreateDLL>
-      <rvm tag="@{class}" class="@{class}" args="-quiet" rvmArgs="-Djava.library.path=${build.tests.dir}"/>
+      <rvm tag="@{class}" class="@{class}" args="@{args}" rvmArgs="-Djava.library.path=${build.tests.dir}"/>
       <findStatistic tag="@{class}" pattern="PASS:" key="pass"/>
       <outputResults tag="@{class}"/>
     </sequential>
@@ -97,7 +98,7 @@
     <jniTest class="StringFunctions"/>
     <jniTest class="TestGC"/>
     <jniTest class="TestNestedGC"/>
-    <jniTest class="t3GT3"/>
+    <jniTest class="t3GT3" args="-quiet"/>
 
     <!-- JNI 1.2 -->
     <jniTest class="JNI12"/>
