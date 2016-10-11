@@ -117,9 +117,11 @@ import org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Compare;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Divide;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Lea;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Return;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
@@ -794,6 +796,24 @@ abstract class AssemblerBase extends Assembler {
       for (int i = 0; i < inst.getNumberOfOperands(); i++) {
         Operand op = inst.getOperand(i);
         if (op == null) {
+          // The operand may only be null for a few cases.
+          if (VM.VerifyAssertions) {
+            // Return has 2 return operands on IA32 because it
+            // must be able to return a 64-bit value. On x64, only
+            // one of the operands is needed, the other one is null.
+            boolean isReturn = MIR_Return.conforms(inst);
+            if (isReturn) {
+              VM._assert(i == MIR_Return.indexOfVal2(inst));
+            }
+            // Guards may be null for divides
+            boolean isDivide = MIR_Divide.conforms(inst);
+            if (isDivide) {
+              VM._assert(i == MIR_Divide.indexOfGuard(inst));
+            }
+            // For all other cases, all operands must be non null
+            String msg = inst.toString();
+            VM._assert(isReturn || isDivide, msg);
+          }
           continue;
         }
         if (op.isLong() || op.isRef() || op.isAddress()) {
