@@ -783,21 +783,24 @@ abstract class AssemblerBase extends Assembler {
       }
     }
 
-    for (int i = 0; i < inst.getNumberOfOperands(); i++) {
-      Operand op = inst.getOperand(i);
-      if (VM.BuildFor64Addr) {
+    if (VM.BuildFor32Addr) {
+      for (int i = 0; i < inst.getNumberOfOperands(); i++) {
+        Operand op = inst.getOperand(i);
+        if (op instanceof MemoryOperand) {
+          return ((MemoryOperand) op).size == 8;
+        }
+      }
+    } else { // 64-bit
+      for (int i = 0; i < inst.getNumberOfOperands(); i++) {
+        Operand op = inst.getOperand(i);
         if (op == null) {
           continue;
         }
         if (op.isLong() || op.isRef() || op.isAddress()) {
           return true;
         }
-      }
-      if (op instanceof MemoryOperand) {
-        boolean quadMemOp = ((MemoryOperand) op).size == 8;
-        if (VM.BuildFor32Addr) {
-          return quadMemOp;
-        } else if (VM.BuildFor64Addr) {
+        if (op instanceof MemoryOperand) {
+          boolean quadMemOp = ((MemoryOperand) op).size == 8;
           // 64-bit: other operands may cause the instruction to be 64 bit
           // even if this one won't
           if (quadMemOp) {
