@@ -156,7 +156,9 @@ public final class OptCompiledMethod extends CompiledMethod {
       RVMMethod thisMethod = this.getMethod();
       VM.sysWrite(thisMethod.getName());
       VM.sysWrite(" with descriptor ");
-      VM.sysWriteln(thisMethod.getDescriptor());
+      VM.sysWrite(thisMethod.getDescriptor());
+      VM.sysWrite(" declared by class with descriptor ");
+      VM.sysWriteln(thisMethod.getDeclaringClass().getDescriptor());
       String msg = "Couldn't find a method for given instruction offset";
       if (VM.VerifyAssertions) {
         VM._assert(NOT_REACHED, msg);
