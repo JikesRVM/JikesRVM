@@ -1123,14 +1123,8 @@ public class GenerateAssembler {
    *         understand.
    */
   private static Set<String> getErrorOpcodes(Set<String> emittedOpcodes) {
-    Iterator<String> e = OperatorFormatTables.getOpcodes();
-    Set<String> errorOpcodes = new HashSet<String>();
-    while (e.hasNext()) {
-      String opcode = (String) e.next();
-      if (!emittedOpcodes.contains(opcode))
-        errorOpcodes.add(opcode);
-    }
-
+    Set<String> errorOpcodes = OperatorFormatTables.getCopyOfOpcodeSet();
+    errorOpcodes.removeAll(emittedOpcodes);
     return errorOpcodes;
   }
 
@@ -1143,10 +1137,9 @@ public class GenerateAssembler {
    * IA32 opcode with a byte operand size.
    */
   private static Set<String> getMatchingOperators(String lowLevelOpcode) {
-    Iterator<String> e = OperatorFormatTables.getOpcodes();
     Set<String> matchingOperators = new HashSet<String>();
-    while (e.hasNext()) {
-      String o = (String) e.next();
+    Set<String> opcodes = OperatorFormatTables.getCopyOfOpcodeSet();
+    for (String o : opcodes) {
       if (o.equals(lowLevelOpcode) || o.startsWith(lowLevelOpcode + "__"))
         matchingOperators.add(o);
     }

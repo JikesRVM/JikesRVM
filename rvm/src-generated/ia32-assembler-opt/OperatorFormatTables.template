@@ -45,12 +45,11 @@ class OperatorFormatTables {
   }
 
   /**
-   * Access all low-level opt operators the pot compiler understands.
-   * @return all low-level opt operators the pot compiler
-   * understands.
+   * @return a copy of the set of all low-level opt operators
+   *   the opt compiler understands
    */
-  static public Iterator<String> getOpcodes() {
-    return operators.iterator();
+  static public Set<String> getCopyOfOpcodeSet() {
+    return new HashSet<String>(operators);
   }
 
   $$$$ FOREACH OP OPERATOR_FILE
