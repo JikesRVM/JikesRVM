@@ -624,7 +624,6 @@ public final class StackManager extends GenericStackManager {
 
   @Override
   public void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb) {
-
     // Get the spill location previously assigned to the symbolic
     // register.
     int location = regAllocState.getSpill(symb.getRegister());
@@ -644,8 +643,6 @@ public final class StackManager extends GenericStackManager {
       size = WORDSIZE;
     }
     StackLocationOperand M = new StackLocationOperand(true, -location, (byte) size);
-
-    M = new StackLocationOperand(true, -location, (byte) size);
 
     // replace the register operand with the memory operand
     s.replaceOperand(symb, M);
