@@ -1348,6 +1348,10 @@ public class GenerateAssembler {
     emitTab(4);
     emit("break;\n");
 
+    emitTab(3);
+    emit("// Opcodes that are not allowed to be present. Those are expected\n");
+    emitTab(3);
+    emit("// to be handled earlier.\n");
     Set<String> errorOpcodes = getErrorOpcodes(emittedOpcodes);
     if (!errorOpcodes.isEmpty()) {
       i = errorOpcodes.iterator();
