@@ -1331,6 +1331,23 @@ public class GenerateAssembler {
     emitTab(4);
     emit("break;\n");
 
+    // Kludge for LABEL (only needed for prettier output)
+    // A line is printed before LABEL (instead of after BBEND) because
+    // the later case interferes with placements of NOPs and thus doesn't
+    // lead to a good visual distinction of blocks.
+    emitTab(3);
+    emit("// Make machine code dumps more readable by visually\n");
+    emitTab(3);
+    emit("// distinguishing basic blocks\n");
+    emitTab(3);
+    emit("case LABEL_opcode:\n");
+    emitTab(4);
+    emit("comment(\"\");\n");
+    emitTab(4);
+    emit("comment(Label.getBlock(inst).toString());\n");
+    emitTab(4);
+    emit("break;\n");
+
     Set<String> errorOpcodes = getErrorOpcodes(emittedOpcodes);
     if (!errorOpcodes.isEmpty()) {
       i = errorOpcodes.iterator();
