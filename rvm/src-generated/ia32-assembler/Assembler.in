@@ -303,7 +303,7 @@ public class Assembler extends AbstractAssembler {
   /**
    * Should code created by this assembler instance be allocated in the
    * hot code code space? By default the answer is false (ie, no).
-   * 
+   *
    * @return false
    */
   protected boolean isHotCode() { return false; }
@@ -373,7 +373,7 @@ public class Assembler extends AbstractAssembler {
    * emitted.
    */
   private static final byte SIBforESP = (byte) ((0<<6) + (4<<3) + ESP.value()); // (scale factor 1) no index, ESP is base
-  
+
   /**
    * In the representation of addressing modes in the ModRM and SIB
    * bytes, the code for register-displacement for on R12 has a
@@ -947,7 +947,7 @@ public class Assembler extends AbstractAssembler {
       case LLE: return LGT;
       case LGE: return LLT;
       case PE: return PO;
-      case PO: return PE;      
+      case PO: return PE;
       default: throw new InternalError("Unexpected condition code");
     }
   }
@@ -1269,7 +1269,7 @@ public class Assembler extends AbstractAssembler {
       emitCALL_Abs(Magic.getTocPointer().plus(off));
     } else {
       emitCALL_RegDisp(JTOC_REGISTER, off);
-    }    
+    }
   }
 
   /**
@@ -1281,7 +1281,7 @@ public class Assembler extends AbstractAssembler {
       emitCALL_RegDisp(off, Magic.getTocPointer().toWord().toOffset());
     } else {
       emitCALL_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
-    } 
+    }
   }
 
   /**
@@ -1293,7 +1293,7 @@ public class Assembler extends AbstractAssembler {
       emitJMP_Abs(Magic.getTocPointer().plus(off));
     } else {
       emitJMP_RegDisp(JTOC_REGISTER, off);
-    }    
+    }
   }
 
   /**
@@ -1598,7 +1598,7 @@ public class Assembler extends AbstractAssembler {
    * <PRE>
    * if (cond) dst = src
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param src source register
@@ -1618,7 +1618,7 @@ public class Assembler extends AbstractAssembler {
    * <PRE>
    * if (cond) dst = [srcBase + disp]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param srcBase source base register
@@ -1659,12 +1659,12 @@ public class Assembler extends AbstractAssembler {
    * <PRE>
    * if (cond) dst = [index2&lt;&lt;scale2 + disp2]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param index2 source index register
    * @param scale2 scale factor for index register
-   * @param disp2 displacement 
+   * @param disp2 displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitCMOV_Cond_Reg_RegOff(byte cond, GPR dst, GPR index2, short scale2, Offset disp2) {
@@ -1681,10 +1681,10 @@ public class Assembler extends AbstractAssembler {
    * <PRE>
    * if (cond) dst = [absAddr]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
-   * @param absAddr absolute memory address 
+   * @param absAddr absolute memory address
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitCMOV_Cond_Reg_Abs(byte cond, GPR dst, Address absAddr) {
@@ -1701,13 +1701,13 @@ public class Assembler extends AbstractAssembler {
    * <PRE>
    * if (cond) dst = [base2 + index2&lt;&lt;scale2 + disp2]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param base2 source base register
    * @param index2 source index register
    * @param scale2 scale factor for index register
-   * @param disp2 source displacement 
+   * @param disp2 source displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3,4})
   public final void emitCMOV_Cond_Reg_RegIdx(byte cond, GPR dst, GPR base2, GPR index2, short scale2, Offset disp2) {
@@ -2145,7 +2145,7 @@ public class Assembler extends AbstractAssembler {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitMOV_Reg_Imm_Quad(GPR dstReg, long imm) {
-    int miStart = mi;  
+    int miStart = mi;
     if (imm > 0 && (imm >> 32 == 0)) {
       // Do shorter unsigned 32bit move immediate
       emitMOV_Reg_Imm(dstReg, (int)imm);
@@ -2171,11 +2171,11 @@ public class Assembler extends AbstractAssembler {
   }
 
   /** pop address and goto it, pop parameterBytes additional bytes */
-  
+
   /**
    * Emits a return statement that pops the return address and
    * a number of additional bytes.
-   * 
+   *
    * @param parameterBytes number of additional bytes to pop, must be
    *  at least 0
    */
@@ -2194,7 +2194,7 @@ public class Assembler extends AbstractAssembler {
 
   /**
    * Emits a enter statement that allocates a stack frame.
-   * 
+   *
    * @param frameSize size of frame in bytes
    */
   public final void emitENTER_Imm (int frameSize) {
@@ -2244,7 +2244,7 @@ public class Assembler extends AbstractAssembler {
   /**
    * Emits an instruction that prefetches data into all cache-levels.
    * The data is supposed to be used only once.
-   * 
+   *
    * @param srcBase the source base register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
@@ -2634,7 +2634,7 @@ public class Assembler extends AbstractAssembler {
     if (lister != null) lister.RR(miStart, "FCMOV" + CONDITION[cond], dstReg, srcReg);
   }
 
-  /** 
+  /**
    * Emits a x87 floating point push of ST(i) into ST(0)
    *
    * @param destReg destination register
@@ -2757,7 +2757,7 @@ public class Assembler extends AbstractAssembler {
    *
    * @param regOne first register
    * @param regTwo second register
-   */ 
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitFXCH_Reg_Reg(FPR regOne, FPR regTwo) {
     int miStart = mi;
