@@ -1613,6 +1613,27 @@ public class Assembler extends AbstractAssembler {
     if (lister != null) lister.RR(miStart, "CMOV" + CONDITION[cond], dst, src);
   }
 
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = src
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param src source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_Reg_Quad(byte cond, GPR dst, GPR src) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, src);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegRegOperands(src, dst);
+    if (lister != null) lister.RR(miStart, "CMOV" + CONDITION[cond], dst, src);
+  }
+
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
@@ -1637,6 +1658,27 @@ public class Assembler extends AbstractAssembler {
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
+   * if (cond) dst = [srcBase + disp]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param srcBase source base register
+   * @param disp displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_RegDisp_Quad(byte cond, GPR dst, GPR srcBase, Offset disp) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, srcBase);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegDispRegOperands(srcBase, disp, dst);
+    if (lister != null) lister.RRD(miStart, "CMOV" + CONDITION[cond], dst, srcBase, disp);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
    * if (cond) dst = [srcBase]
    * </PRE>
    *
@@ -1648,6 +1690,26 @@ public class Assembler extends AbstractAssembler {
   public final void emitCMOV_Cond_Reg_RegInd(byte cond, GPR dst, GPR srcBase) {
     int miStart = mi;
     generateREXprefix(false, dst, null, srcBase);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegIndirectRegOperands(srcBase, dst);
+    if (lister != null) lister.RRN(miStart, "CMOV" + CONDITION[cond], dst, srcBase);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [srcBase]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param srcBase source base register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_RegInd_Quad(byte cond, GPR dst, GPR srcBase) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, srcBase);
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x40, cond);
     emitRegIndirectRegOperands(srcBase, dst);
@@ -1679,6 +1741,28 @@ public class Assembler extends AbstractAssembler {
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
+   * if (cond) dst = [index2&lt;&lt;scale2 + disp2]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param index2 source index register
+   * @param scale2 scale factor for index register
+   * @param disp2 displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_RegOff_Quad(byte cond, GPR dst, GPR index2, short scale2, Offset disp2) {
+    int miStart = mi;
+    generateREXprefix(true, dst, index2, null);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegOffRegOperands(index2, scale2, disp2, dst);
+    if (lister != null) lister.RRFD(miStart, "CMOV" + CONDITION[cond], dst, index2, scale2, disp2);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
    * if (cond) dst = [absAddr]
    * </PRE>
    *
@@ -1690,6 +1774,26 @@ public class Assembler extends AbstractAssembler {
   public final void emitCMOV_Cond_Reg_Abs(byte cond, GPR dst, Address absAddr) {
     int miStart = mi;
     generateREXprefix(false, dst, null, null);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitAbsRegOperands(absAddr, dst);
+    if (lister != null) lister.RRA(miStart, "CMOV" + CONDITION[cond], dst, absAddr);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [absAddr]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param absAddr absolute memory address
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
+  public final void emitCMOV_Cond_Reg_Abs_Quad(byte cond, GPR dst, Address absAddr) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, null);
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x40, cond);
     emitAbsRegOperands(absAddr, dst);
@@ -1713,6 +1817,29 @@ public class Assembler extends AbstractAssembler {
   public final void emitCMOV_Cond_Reg_RegIdx(byte cond, GPR dst, GPR base2, GPR index2, short scale2, Offset disp2) {
     int miStart = mi;
     generateREXprefix(false, dst, index2, base2);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitSIBRegOperands(base2, index2, scale2, disp2, dst);
+    if (lister != null) lister.RRXD(miStart, "CMOV" + CONDITION[cond], dst, base2, index2, scale2, disp2);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [base2 + index2&lt;&lt;scale2 + disp2]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param base2 source base register
+   * @param index2 source index register
+   * @param scale2 scale factor for index register
+   * @param disp2 source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3,4})
+  public final void emitCMOV_Cond_Reg_RegIdx_Quad(byte cond, GPR dst, GPR base2, GPR index2, short scale2, Offset disp2) {
+    int miStart = mi;
+    generateREXprefix(true, dst, index2, base2);
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x40, cond);
     emitSIBRegOperands(base2, index2, scale2, disp2, dst);
