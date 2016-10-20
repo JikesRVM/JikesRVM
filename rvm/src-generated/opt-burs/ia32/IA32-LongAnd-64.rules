@@ -20,11 +20,11 @@ szpr:    LONG_AND(r,r)
 EMIT_INSTRUCTION
 if (Binary.getVal1(P(p)).asRegister().getRegister().isInteger()) { \\
 RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp, Binary.getClearVal1(P(p))))); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXDQ, tmp, Binary.getClearVal1(P(p))))); \\
 EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), tmp, Binary.getClearVal2(P(p))); \\
 } else if (Binary.getVal2(P(p)).asRegister().getRegister().isInteger()) { \\
 RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXQ__W, tmp, Binary.getClearVal2(P(p))))); \\
+EMIT(CPOS(P(p), MIR_Unary.create(IA32_MOVSXDQ, tmp, Binary.getClearVal2(P(p))))); \\
 EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), tmp); \\
 } else { \\
 EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p))); \\
