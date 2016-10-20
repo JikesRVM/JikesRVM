@@ -16,6 +16,8 @@ import static org.jikesrvm.compilers.opt.ir.IRTools.IC;
 import static org.jikesrvm.compilers.opt.ir.IRTools.LC;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXDQ;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXQ__B;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXQ__W;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SHL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IMMQ_MOV;
@@ -78,20 +80,38 @@ public class RewriteMemoryOperandsWithOversizedDisplacements extends CompilerPha
       if (mo.index != null) {
          if (mo.scale != 0) {
            temp = ir.regpool.makeTempLong();
-           if (mo.index.getType() != TypeReference.Long) {
+           TypeReference indexType = mo.index.getType();
+           if (indexType.isLongType() || indexType.isWordLikeType()) {
+             inst.insertBefore(MIR_Move.create(IA32_MOV, temp, mo.index.copy()));
+           } else if (indexType.isIntType()) {
+             inst.insertBefore(MIR_Unary.create(IA32_MOVSXDQ, temp, mo.index.copy()));
+           } else if (indexType.isByteType()) {
+             inst.insertBefore(MIR_Unary.create(IA32_MOVSXQ__B, temp, mo.index.copy()));
+           } else if (indexType.isShortType() || indexType.isCharType()) {
              inst.insertBefore(MIR_Unary.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
            } else {
-             inst.insertBefore(MIR_Move.create(IA32_MOV, temp, mo.index.copy()));
+             String msg = "Unhandled type: " + indexType;
+             if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, msg);
            }
            inst.insertBefore(MIR_BinaryAcc.create(IA32_SHL, temp.copy(), IC(mo.scale)));
            inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), temp.copy()));
          } else {
-           if (mo.index.getType() != TypeReference.Long) {
-             temp = ir.regpool.makeTempLong();
-             inst.insertBefore(MIR_Unary.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
-             inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), temp.copy()));
-           } else {
+           TypeReference indexType = mo.index.getType();
+           if (indexType.isLongType() || indexType.isWordLikeType()) {
              inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), mo.index.copy()));
+           } else {
+             temp = ir.regpool.makeTempLong();
+             if (indexType.isIntType()) {
+               inst.insertBefore(MIR_Unary.create(IA32_MOVSXDQ, temp, mo.index.copy()));
+             } else if (indexType.isByteType()) {
+               inst.insertBefore(MIR_Unary.create(IA32_MOVSXQ__B, temp, mo.index.copy()));
+             } else if (indexType.isShortType() || indexType.isCharType()) {
+               inst.insertBefore(MIR_Unary.create(IA32_MOVSXQ__W, temp, mo.index.copy()));
+             } else {
+               String msg = "Unhandled type: " + indexType;
+               if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, msg);
+             }
+             inst.insertBefore(MIR_BinaryAcc.create(IA32_ADD, effectiveAddress.copy(), temp.copy()));
            }
          }
       }
