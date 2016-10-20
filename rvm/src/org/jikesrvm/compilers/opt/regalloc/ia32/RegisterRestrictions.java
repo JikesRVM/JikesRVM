@@ -54,6 +54,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCOMI_opcode
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FNINIT;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_IMUL2_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVD_opcode;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXDQ_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXQ__B_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXQ__W_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSX__B_opcode;
@@ -403,6 +404,11 @@ public final class RegisterRestrictions extends GenericRegisterRestrictions {
       case IA32_MOVSX__W_opcode:
       case IA32_MOVZXQ__W_opcode:
       case IA32_MOVSXQ__W_opcode: {
+        RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+        if (op.getRegister() == r) return true;
+      }
+      break;
+      case IA32_MOVSXDQ_opcode: {
         RegisterOperand op = MIR_Unary.getResult(s).asRegister();
         if (op.getRegister() == r) return true;
       }
