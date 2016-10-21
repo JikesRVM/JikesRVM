@@ -12,13 +12,16 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
+import static org.jikesrvm.util.Bits.fits;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
@@ -116,7 +119,9 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
         if (VM.BuildFor64Addr && op instanceof IntConstantOperand)  throw new OptimizingCompilerException("augmenting int to address in 64bit code");
         if (VM.BuildFor32Addr && op instanceof LongConstantOperand) throw new OptimizingCompilerException("augmenting long to address in 32bit code");
       }
-      int disp = op instanceof LongConstantOperand ? (int)((LongConstantOperand) op).value : ((IntConstantOperand) op).value;
+      long dispTemp = op instanceof LongConstantOperand ? ((LongConstantOperand) op).value : ((IntConstantOperand) op).value;
+      if (VM.VerifyAssertions && VM.BuildFor32Addr) opt_assert(fits(dispTemp, 32));
+      Offset disp = Offset.fromLong(dispTemp);
       AddrStack.displacement = AddrStack.displacement.plus(disp);
     }
   }
