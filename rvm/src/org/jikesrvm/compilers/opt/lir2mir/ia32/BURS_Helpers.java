@@ -3611,7 +3611,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   }
 
   /**
-   * This routine expands the compound pattern IFCMP(ATTEMPT, ZERO) into an
+   * This routine expands the compound pattern IFCMP(ATTEMPT_INT, ZERO) into an
    * atomic compare/exchange followed by a branch on success/failure of the
    * attempted atomic compare/exchange.
    *
@@ -3622,7 +3622,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param target the branch target
    * @param bp the branch profile information
    */
-  protected final void ATTEMPT_IFCMP(MemoryOperand mo, Operand oldValue, Operand newValue,
+  protected final void ATTEMPT_INT_IFCMP(MemoryOperand mo, Operand oldValue, Operand newValue,
                                      ConditionOperand cond, BranchOperand target, BranchProfileOperand bp) {
     RegisterOperand temp = regpool.makeTempInt();
     EMIT(MIR_Move.create(IA32_MOV, temp, newValue.copy()));
