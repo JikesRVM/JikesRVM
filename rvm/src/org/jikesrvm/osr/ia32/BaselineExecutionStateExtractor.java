@@ -39,8 +39,6 @@ import static org.jikesrvm.osr.OSRConstants.ReturnAddressTypeCode;
 import static org.jikesrvm.osr.OSRConstants.STACK;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
@@ -241,7 +239,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
         case CharTypeCode:
         case IntTypeCode:
         case FloatTypeCode: {
-          int value = Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_INT));
+          int value = Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_STACKSLOT));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
           byte tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
@@ -252,9 +250,8 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
         case LongTypeCode:
         case DoubleTypeCode: {
           //KV: this code would be nicer if VoidTypeCode would always follow a 64-bit value. Rigth now for LOCAL it follows, for STACK it proceeds
-          Offset memoff =
-              (kind == LOCAL) ? vOffset.minus(BYTES_IN_DOUBLE) : VM.BuildFor64Addr ? vOffset : vOffset.minus(
-                  BYTES_IN_STACKSLOT);
+          Offset memoff = (kind == LOCAL) ? vOffset.minus(2 * BYTES_IN_STACKSLOT) : vOffset.minus(BYTES_IN_STACKSLOT);
+
           long value = Magic.getLongAtOffset(stack, memoff);
 
           byte tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;

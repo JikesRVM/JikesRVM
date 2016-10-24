@@ -21,6 +21,7 @@ import static org.jikesrvm.ia32.RegisterConstants.EBX;
 import static org.jikesrvm.ia32.RegisterConstants.EDI;
 import static org.jikesrvm.ia32.RegisterConstants.LG_INSTRUCTION_WIDTH;
 import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
 
 import org.jikesrvm.VM;
@@ -58,7 +59,7 @@ public abstract class CodeInstaller {
     CompiledMethod foo = CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
 
-    int SW_WIDTH = 4;
+    int SW_WIDTH = BYTES_IN_STACKSLOT;
 
     // this offset is used to adjust SP to FP right after return
     // from a call. 4 bytes for return address and
@@ -75,14 +76,27 @@ public abstract class CodeInstaller {
 //        asm.emitINT_Imm(3);  // break here for debugging
 
       // unwind stack pointer, SP is FP now
-      asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
+      if (VM.BuildFor32Addr) {
+        asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
+      } else {
+        asm.emitADD_Reg_Imm_Quad(SP, sp2fpOffset.toInt());
+      }
 
       asm.generateJTOCloadWord(S0, cm.getOsrJTOCoffset());
 
       // restore saved EDI
-      asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_RegDisp(EDI, SP, EDI_SAVE_OFFSET);
+      } else {
+        asm.emitMOV_Reg_RegDisp_Quad(EDI, SP, EDI_SAVE_OFFSET);
+      }
       // restore saved EBX
-      asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
+      } else {
+        asm.emitMOV_Reg_RegDisp_Quad(EBX, SP, EBX_SAVE_OFFSET);
+      }
+
       // restore frame pointer
       asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
       // do not pop return address and parameters,
@@ -106,11 +120,20 @@ public abstract class CodeInstaller {
       int nonVolatileOffset = fooOpt.getUnsignedNonVolatileOffset();
 
       for (int i = firstNonVolatile; i < firstNonVolatile + nonVolatiles; i++) {
-        asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], SP, sp2fpOffset.minus(nonVolatileOffset));
+        if (VM.BuildFor32Addr) {
+          asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], SP, sp2fpOffset.minus(nonVolatileOffset));
+        } else {
+          asm.emitMOV_Reg_RegDisp_Quad(NONVOLATILE_GPRS[i], SP, sp2fpOffset.minus(nonVolatileOffset));
+        }
         nonVolatileOffset += SW_WIDTH;
       }
       // adjust SP to frame pointer
-      asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
+      if (VM.BuildFor32Addr) {
+        asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
+      } else {
+        asm.emitADD_Reg_Imm_Quad(SP, sp2fpOffset.toInt());
+      }
+
       // restore frame pointer
       asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
 
