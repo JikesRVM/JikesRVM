@@ -195,14 +195,14 @@ public final class StackManager extends GenericStackManager {
    * @param location the spill location
    */
   @Override
-  public void insertSpillBefore(Instruction s, Register r, byte type, int location) {
+  public void insertSpillBefore(Instruction s, Register r, Register type, int location) {
 
     Register FP = ir.regpool.getPhysicalRegisterSet().getFP();
-    if (type == FLOAT_VALUE) {
+    if (type.isFloat()) {
       s.insertBefore(MIR_Store.create(PPC_STFS, F(r), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
-    } else if (type == DOUBLE_VALUE) {
+    } else if (type.isDouble()) {
       s.insertBefore(MIR_Store.create(PPC_STFD, D(r), A(FP), IC(location)));
-    } else if (type == INT_VALUE) {      // integer or half of long
+    } else if (type.isNatural()) {      // integer or half of long
       s.insertBefore(MIR_Store.create(PPC_STAddr, A(r), A(FP), IC(location)));
     } else {
       throw new OptimizingCompilerException("insertSpillBefore", "unsupported type " + type);
@@ -234,17 +234,17 @@ public final class StackManager extends GenericStackManager {
    * @param location the spill location
    */
   @Override
-  public void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
+  public void insertUnspillBefore(Instruction s, Register r, Register type, int location) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     Register FP = phys.getFP();
-    if (type == CONDITION_VALUE) {
+    if (type.isCondition()) {
       Register temp = phys.getTemp();
       s.insertBefore(MIR_Load.create(PPC_LWZ, I(temp), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_INT)));
-    } else if (type == DOUBLE_VALUE) {
+    } else if (type.isDouble()) {
       s.insertBefore(MIR_Load.create(PPC_LFD, D(r), A(FP), IC(location)));
-    } else if (type == FLOAT_VALUE) {
+    } else if (type.isFloat()) {
       s.insertBefore(MIR_Load.create(PPC_LFS, F(r), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
-    } else if (type == INT_VALUE) { // integer or half of long
+    } else if (type.isNatural()) { // integer or half of long
       s.insertBefore(MIR_Load.create(PPC_LAddr, A(r), A(FP), IC(location)));
     } else {
       throw new OptimizingCompilerException("insertUnspillBefore", "unknown type:" + type);

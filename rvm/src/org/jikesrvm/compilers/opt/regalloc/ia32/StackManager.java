@@ -117,17 +117,17 @@ public final class StackManager extends GenericStackManager {
    * @return the size of a type of value, in bytes.
    * NOTE: For the purpose of register allocation, an x87 FLOAT_VALUE is 64 bits!
    */
-  private static byte getSizeOfType(byte type) {
-    switch (type) {
-      case INT_VALUE:
-        return (byte) (WORDSIZE);
-      case FLOAT_VALUE:
-        if (SSE2_FULL) return (byte) BYTES_IN_FLOAT;
-      case DOUBLE_VALUE:
-        return (byte) BYTES_IN_DOUBLE;
-      default:
-        OptimizingCompilerException.TODO("getSizeOfValue: unsupported");
-        return 0;
+  private static byte getSizeOfType(Register type) {
+    if (type.isNatural()) {
+      return (byte) (WORDSIZE);
+    } else if (type.isFloat()) {
+      if (SSE2_FULL) return (byte) BYTES_IN_FLOAT;
+      return (byte) BYTES_IN_DOUBLE;
+    } else if (type.isDouble()) {
+      return (byte) BYTES_IN_DOUBLE;
+    } else {
+      OptimizingCompilerException.TODO("getSizeOfValue: unsupported: " + type);
+      return (byte) -1;
     }
   }
 
@@ -135,18 +135,16 @@ public final class StackManager extends GenericStackManager {
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
    * @return the move operator for a type of value.
    */
-  private static Operator getMoveOperator(byte type) {
-    switch (type) {
-      case INT_VALUE:
-        return IA32_MOV;
-      case DOUBLE_VALUE:
-        if (SSE2_FULL) return IA32_MOVSD;
-      case FLOAT_VALUE:
-        if (SSE2_FULL) return IA32_MOVSS;
-        return IA32_FMOV;
-      default:
-        OptimizingCompilerException.TODO("getMoveOperator: unsupported");
-        return null;
+  private static Operator getMoveOperator(Register type) {
+    if (type.isNatural()) {
+      return IA32_MOV;
+    } else if (type.isDouble()) {
+      return IA32_MOVSD;
+    } else if (type.isFloat()) {
+      return IA32_MOVSS;
+    } else {
+      OptimizingCompilerException.TODO("getMoveOperator: unsupported: " + type);
+      return null;
     }
   }
 
@@ -163,41 +161,32 @@ public final class StackManager extends GenericStackManager {
   }
 
   @Override
-  public void insertSpillBefore(Instruction s, Register r, byte type, int location) {
-
+  public void insertSpillBefore(Instruction s, Register r, Register type, int location) {
     Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
     RegisterOperand rOp;
-    switch (type) {
-      case FLOAT_VALUE:
-        rOp = F(r);
-        break;
-      case DOUBLE_VALUE:
-        rOp = D(r);
-        break;
-      default:
-        rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
-        break;
+    if (type.isFloat()) {
+      rOp = F(r);
+    } else if (type.isDouble()) {
+      rOp = D(r);
+    } else {
+      rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
     }
     StackLocationOperand spill = new StackLocationOperand(true, -location, size);
     s.insertBefore(MIR_Move.create(move, spill, rOp));
   }
 
   @Override
-  public void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
+  public void insertUnspillBefore(Instruction s, Register r, Register type, int location) {
     Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
     RegisterOperand rOp;
-    switch (type) {
-      case FLOAT_VALUE:
-        rOp = F(r);
-        break;
-      case DOUBLE_VALUE:
-        rOp = D(r);
-        break;
-      default:
-        rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
-        break;
+    if (type.isFloat()) {
+      rOp = F(r);
+    } else if (type.isDouble()) {
+      rOp = D(r);
+    } else {
+      rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
     }
     StackLocationOperand spill = new StackLocationOperand(true, -location, size);
     s.insertBefore(MIR_Move.create(move, rOp, spill));

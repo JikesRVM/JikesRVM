@@ -43,16 +43,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  */
 public abstract class GenericStackManager extends IRTools {
 
-  /*
-   * Types of values stored in physical registers;
-   * These affect instruction selection for accessing
-   * the data
-   */
-  public static final byte INT_VALUE = 0;
-  public static final byte DOUBLE_VALUE = 1;
-  public static final byte FLOAT_VALUE = 2;
-  public static final byte CONDITION_VALUE = 3;
-
   protected static final boolean DEBUG = false;
   protected static final boolean VERBOSE = false;
   protected static final boolean VERBOSE_DEBUG = false;
@@ -346,7 +336,7 @@ public abstract class GenericStackManager extends IRTools {
     Register scratchContents = scratch.getCurrentContents();
     if (scratchContents != null) {
       int location = regAllocState.getSpill(scratchContents);
-      insertSpillBefore(s, scratch.scratch, getValueType(scratchContents), location);
+      insertSpillBefore(s, scratch.scratch, scratchContents, location);
     }
 
   }
@@ -362,7 +352,7 @@ public abstract class GenericStackManager extends IRTools {
     if (scratch.hadToSpill()) {
       // Restore the live contents into the scratch register.
       int location = regAllocState.getSpill(scratch.scratch);
-      insertUnspillBefore(s, scratch.scratch, getValueType(scratch.scratch), location);
+      insertUnspillBefore(s, scratch.scratch, scratch.scratch, location);
     }
   }
 
@@ -534,7 +524,7 @@ public abstract class GenericStackManager extends IRTools {
       int location = regAllocState.getSpill(current);
       int location2 = regAllocState.getSpill(symb);
       if (location != location2) {
-        insertSpillBefore(s, sr.scratch, getValueType(current), location);
+        insertSpillBefore(s, sr.scratch, current, location);
       }
     }
 
@@ -712,7 +702,7 @@ public abstract class GenericStackManager extends IRTools {
       // since symbReg must have been previously spilled, get the spill
       // location previous assigned to symbReg
       int location = regAllocState.getSpill(symb);
-      insertUnspillBefore(s, sr.scratch, getValueType(symb), location);
+      insertUnspillBefore(s, sr.scratch, symb, location);
 
       // we have not yet written to sr, so mark it 'clean'
       sr.setDirty(false);
@@ -756,11 +746,11 @@ public abstract class GenericStackManager extends IRTools {
       // Since this is a new scratch register, spill the old contents of
       // r if necessary.
       if (activeSet == null) {
-        insertSpillBefore(s, r, (byte) type, spillLocation);
+        insertSpillBefore(s, r, r, spillLocation);
         sr.setHadToSpill(true);
       } else {
         if (!isDeadBefore(r, s)) {
-          insertSpillBefore(s, r, (byte) type, spillLocation);
+          insertSpillBefore(s, r, r, spillLocation);
           sr.setHadToSpill(true);
         }
       }
@@ -1196,22 +1186,20 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param s the instruction before which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public abstract void insertSpillBefore(Instruction s, Register r, byte type, int location);
+  public abstract void insertSpillBefore(Instruction s, Register r, Register type, int location);
 
   /**
    * Insert a spill of a physical register after instruction s.
    *
    * @param s the instruction after which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public final void insertSpillAfter(Instruction s, Register r, byte type, int location) {
+  public final void insertSpillAfter(Instruction s, Register r, Register type, int location) {
     insertSpillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
@@ -1221,11 +1209,10 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param s the instruction before which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public abstract void insertUnspillBefore(Instruction s, Register r, byte type, int location);
+  public abstract void insertUnspillBefore(Instruction s, Register r, Register type, int location);
 
   /**
    * Insert a load of a physical register from a spill location before
@@ -1233,11 +1220,10 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param s the instruction before which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public final void insertUnspillAfter(Instruction s, Register r, byte type, int location) {
+  public final void insertUnspillAfter(Instruction s, Register r, Register type, int location) {
     insertUnspillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
@@ -1464,28 +1450,6 @@ l   */
       }
     }
     return null;
-  }
-
-  /**
-   * Given a symbolic register, return a code that indicates the type
-   * of the value stored in the register.
-   * Note: This routine returns INT_VALUE for longs
-   *
-   * @param r a symbolic register
-   * @return one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, CONDITION_VALUE
-   */
-  public final byte getValueType(Register r) {
-    if (r.isInteger() || r.isLong() || r.isAddress()) {
-      return INT_VALUE;
-    } else if (r.isCondition()) {
-      return CONDITION_VALUE;
-    } else if (r.isDouble()) {
-      return DOUBLE_VALUE;
-    } else if (r.isFloat()) {
-      return FLOAT_VALUE;
-    } else {
-      throw new OptimizingCompilerException("getValueType: unsupported " + r);
-    }
   }
 
   protected static int align(int number, int alignment) {
