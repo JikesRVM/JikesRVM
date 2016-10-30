@@ -949,7 +949,7 @@ public final class StackManager extends GenericStackManager {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
 
-      if (scratch.currentContents == null) continue;
+      if (scratch.getCurrentContents() == null) continue;
       if (VERBOSE_DEBUG) {
         System.out.println("RESTORE: consider " + scratch);
       }
@@ -971,12 +971,12 @@ public final class StackManager extends GenericStackManager {
           System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
-        Register scratchContents = scratch.currentContents;
+        Register scratchContents = scratch.getCurrentContents();
         if (scratchContents != null) {
           if (VERBOSE_DEBUG) {
-            System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
+            System.out.println("RSRB: End symbolic interval " + scratch.getCurrentContents() + " " + s);
           }
-          scratchMap.endSymbolicInterval(scratch.currentContents, s);
+          scratchMap.endSymbolicInterval(scratch.getCurrentContents(), s);
         }
 
         i.remove();
@@ -985,7 +985,7 @@ public final class StackManager extends GenericStackManager {
       }
 
       if (usedIn(scratch.scratch, s) ||
-          !isLegal(scratch.currentContents, scratch.scratch, s) ||
+          !isLegal(scratch.getCurrentContents(), scratch.scratch, s) ||
           (s.operator() == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // first spill the currents contents of the scratch register to
         // memory
@@ -1000,12 +1000,12 @@ public final class StackManager extends GenericStackManager {
             System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
-          Register scratchContents = scratch.currentContents;
+          Register scratchContents = scratch.getCurrentContents();
           if (scratchContents != null) {
             if (VERBOSE_DEBUG) {
-              System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
+              System.out.println("RSRB2: End symbolic interval " + scratch.getCurrentContents() + " " + s);
             }
-            scratchMap.endSymbolicInterval(scratch.currentContents, s);
+            scratchMap.endSymbolicInterval(scratch.getCurrentContents(), s);
           }
 
         }

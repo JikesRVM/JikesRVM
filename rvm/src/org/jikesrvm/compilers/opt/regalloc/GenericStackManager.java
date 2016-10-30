@@ -343,7 +343,7 @@ public abstract class GenericStackManager extends IRTools {
     if (!scratch.isDirty()) return;
 
     // spill the contents of the scratch register
-    Register scratchContents = scratch.currentContents;
+    Register scratchContents = scratch.getCurrentContents();
     if (scratchContents != null) {
       int location = regAllocState.getSpill(scratchContents);
       insertSpillBefore(s, scratch.scratch, getValueType(scratchContents), location);
@@ -375,7 +375,7 @@ public abstract class GenericStackManager extends IRTools {
     ArrayList<Register> result = new ArrayList<Register>(3);
 
     for (ScratchRegister sr : scratchInUse) {
-      if (sr.currentContents != null && appearsIn(sr.currentContents, s)) {
+      if (sr.getCurrentContents() != null && appearsIn(sr.getCurrentContents(), s)) {
         result.add(sr.scratch);
       }
     }
@@ -398,17 +398,17 @@ public abstract class GenericStackManager extends IRTools {
    */
   private ScratchRegister getCurrentScratchRegister(Register r, Instruction s) {
     for (ScratchRegister sr : scratchInUse) {
-      if (sr.currentContents == r) {
+      if (sr.getCurrentContents() == r) {
         return sr;
       }
-      int location = regAllocState.getSpill(sr.currentContents);
+      int location = regAllocState.getSpill(sr.getCurrentContents());
       int location2 = regAllocState.getSpill(r);
       if (location == location2) {
         // OK. We're currently holding a different symbolic register r2 in
         // a scratch register, and r2 is mapped to the same spill location
         // as r.  So, coopt the scratch register for r, instead.
-        Register r2 = sr.currentContents;
-        sr.currentContents = r;
+        Register r2 = sr.getCurrentContents();
+        sr.setCurrentContents(r);
         scratchMap.endScratchInterval(sr.scratch, s);
         scratchMap.endSymbolicInterval(r2, s);
         scratchMap.beginScratchInterval(sr.scratch, s);
@@ -444,7 +444,7 @@ public abstract class GenericStackManager extends IRTools {
   private void markDirtyScratchRegisters(Instruction s) {
     for (ScratchRegister scratch : scratchInUse) {
       if (scratch.isDirty()) {
-        scratchMap.markDirty(s, scratch.currentContents);
+        scratchMap.markDirty(s, scratch.getCurrentContents());
       }
     }
   }
@@ -479,7 +479,7 @@ public abstract class GenericStackManager extends IRTools {
       }
       i.remove();
       scratchMap.endScratchInterval(scratch.scratch, s);
-      Register scratchContents = scratch.currentContents;
+      Register scratchContents = scratch.getCurrentContents();
       if (scratchContents != null) {
         if (VERBOSE_DEBUG) {
           System.out.println("RALL: End symbolic interval " + scratchContents + " " + s);
@@ -528,7 +528,7 @@ public abstract class GenericStackManager extends IRTools {
 
     // make the scratch register available to hold the new
     // symbolic register
-    Register current = sr.currentContents;
+    Register current = sr.getCurrentContents();
 
     if (current != null && current != symb) {
       int location = regAllocState.getSpill(current);
@@ -539,7 +539,7 @@ public abstract class GenericStackManager extends IRTools {
     }
 
     // Record the new contents of the scratch register
-    sr.currentContents = symb;
+    sr.setCurrentContents(symb);
 
     return sr;
   }
@@ -595,15 +595,15 @@ public abstract class GenericStackManager extends IRTools {
     if (r != null) {
       // symb is currently assigned to scratch register r
       if (isLegal(symb, r.scratch, s)) {
-        if (r.currentContents != symb) {
+        if (r.getCurrentContents() != symb) {
           // we're reusing a scratch register based on the fact that symb
           // shares a spill location with r.currentContents.  However,
           // update the mapping information.
-          if (r.currentContents != null) {
+          if (r.getCurrentContents() != null) {
             if (VERBOSE_DEBUG) {
-              System.out.println("GSR: End symbolic interval " + r.currentContents + " " + s);
+              System.out.println("GSR: End symbolic interval " + r.getCurrentContents() + " " + s);
             }
-            scratchMap.endSymbolicInterval(r.currentContents, s);
+            scratchMap.endSymbolicInterval(r.getCurrentContents(), s);
           }
           if (VERBOSE_DEBUG) {
             System.out.println("GSR: Begin symbolic interval " + symb + " " + r.scratch + " " + s);
@@ -699,7 +699,7 @@ public abstract class GenericStackManager extends IRTools {
 
     ScratchRegister sr = getScratchRegister(symb, s, beCheap);
 
-    Register scratchContents = sr.currentContents;
+    Register scratchContents = sr.getCurrentContents();
     if (scratchContents != symb) {
       if (scratchContents != null) {
         // the scratch register currently holds a different
@@ -723,7 +723,7 @@ public abstract class GenericStackManager extends IRTools {
     }
 
     // Record the current contents of the scratch register
-    sr.currentContents = symb;
+    sr.setCurrentContents(symb);
 
     return sr;
   }
@@ -770,12 +770,12 @@ public abstract class GenericStackManager extends IRTools {
         System.out.println("CSB: " + " End scratch interval " + sr.scratch + " " + s);
       }
       scratchMap.endScratchInterval(sr.scratch, s);
-      Register scratchContents = sr.currentContents;
+      Register scratchContents = sr.getCurrentContents();
       if (scratchContents != null) {
         if (VERBOSE_DEBUG) {
-          System.out.println("CSB: " + " End symbolic interval " + sr.currentContents + " " + s);
+          System.out.println("CSB: " + " End symbolic interval " + sr.getCurrentContents() + " " + s);
         }
-        scratchMap.endSymbolicInterval(sr.currentContents, s);
+        scratchMap.endSymbolicInterval(sr.getCurrentContents(), s);
       }
     }
 
@@ -1530,7 +1530,7 @@ l   */
     /**
      * The current contents of scratch
      */
-    public Register currentContents;
+    private Register currentContents;
 
     /**
      * Is this physical register currently dirty? (Must be written back to
@@ -1564,10 +1564,19 @@ l   */
       this.currentContents = currentContents;
     }
 
+    public Register getCurrentContents() {
+      return currentContents;
+    }
+
+    public void setCurrentContents(Register currentContents) {
+      this.currentContents = currentContents;
+    }
+
     @Override
     public String toString() {
       String dirtyString = dirty ? "D" : "C";
-      return "SCRATCH<" + scratch + "," + currentContents + "," + dirtyString + ">";
+      return "SCRATCH<" + scratch + "," + getCurrentContents() + "," + dirtyString + ">";
     }
+
   }
 }
