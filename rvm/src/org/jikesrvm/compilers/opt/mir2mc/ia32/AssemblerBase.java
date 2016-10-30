@@ -131,6 +131,7 @@ import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
@@ -819,13 +820,16 @@ abstract class AssemblerBase extends Assembler {
         if (op.isLong() || op.isRef() || op.isAddress()) {
           return true;
         }
+        boolean quadMemOp = false;
         if (op instanceof MemoryOperand) {
-          boolean quadMemOp = ((MemoryOperand) op).size == 8;
-          // 64-bit: other operands may cause the instruction to be 64 bit
-          // even if this one won't
-          if (quadMemOp) {
-            return true;
-          }
+          quadMemOp = op.asMemory().size == 8;
+        } else if (op instanceof StackLocationOperand) {
+          quadMemOp = op.asStackLocation().getSize() == 8;
+        }
+        // Other operands may cause the instruction to be 64 bit
+        // even if this one won't
+        if (quadMemOp) {
+          return true;
         }
       }
     }
