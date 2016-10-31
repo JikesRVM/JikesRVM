@@ -158,7 +158,7 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
       reg[i] = r;
     }
 
-    // 2. Set the 'integer' attribute on each GPR
+    // 2. Set the 'integer' or 'long' attribute on each GPR
     for (int i = FIRST_INT; i < FIRST_DOUBLE; i++) {
       if (VM.BuildFor32Addr) {
         reg[i].setInteger();
