@@ -165,7 +165,8 @@ public final class StackManager extends GenericStackManager {
    * @param type one of INT_REG, DOUBLE_REG, SPECIAL_REG
    * @return the spill size for a register with the given type
    */
-  public static int getSpillSize(int type) {
+  @Override
+  public int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
       VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == SPECIAL_REG));
     }
