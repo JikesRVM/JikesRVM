@@ -183,6 +183,15 @@ public abstract class GenericStackManager extends IRTools {
    */
   public abstract int allocateNewSpillLocation(int type);
 
+  public static int getSpillSize(int type) {
+    if (VM.BuildForIA32) {
+      return org.jikesrvm.compilers.opt.regalloc.ia32.StackManager.getSpillSize(type);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return org.jikesrvm.compilers.opt.regalloc.ppc.StackManager.getSpillSize(type);
+    }
+  }
+
   /**
    * Cleans up some junk that's left in the IR after register allocation,
    * and adds epilogue code.

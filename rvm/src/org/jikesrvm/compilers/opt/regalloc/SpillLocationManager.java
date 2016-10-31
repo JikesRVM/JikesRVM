@@ -50,7 +50,7 @@ class SpillLocationManager {
 
     Register r = ci.getRegister();
     int type = GenericPhysicalRegisterSet.getPhysicalRegisterType(r);
-    int spillSize = GenericPhysicalRegisterSet.getSpillSize(type);
+    int spillSize = GenericStackManager.getSpillSize(type);
 
     // Search the free intervals and try to find an interval to
     // reuse. First look for the preferred interval.

@@ -596,22 +596,6 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
   }
 
   /**
-   * Gets the spill size for a register with a particular type
-   * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
-   * @return the spill size in bytes
-   */
-  public static int getSpillSize(int type) {
-    if (VM.VerifyAssertions) {
-      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == CONDITION_REG) || (type == SPECIAL_REG));
-    }
-    if (type == DOUBLE_REG) {
-      return BYTES_IN_DOUBLE;
-    } else {
-      return BYTES_IN_ADDRESS;
-    }
-  }
-
-  /**
    * Gets the required spill alignment for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
    * @return the alignment in bytes

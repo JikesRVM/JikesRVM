@@ -48,8 +48,10 @@ import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STFS;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STMW;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STW;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_TAddr;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.CONDITION_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.SPECIAL_REG;
 import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_GPR;
 import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
@@ -124,7 +126,7 @@ public final class StackManager extends GenericStackManager {
    */
   @Override
   public int allocateNewSpillLocation(int type) {
-    int spillSize = PhysicalRegisterSet.getSpillSize(type);
+    int spillSize = getSpillSize(type);
 
     // Naturally align the spill pointer
     spillPointer = align(spillPointer, spillSize);
@@ -136,6 +138,22 @@ public final class StackManager extends GenericStackManager {
       frameSize = spillPointer;
     }
     return spillPointer - spillSize;
+  }
+
+  /**
+   * Gets the spill size for a register with a particular type
+   * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
+   * @return the spill size in bytes
+   */
+  public static int getSpillSize(int type) {
+    if (VM.VerifyAssertions) {
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == CONDITION_REG) || (type == SPECIAL_REG));
+    }
+    if (type == DOUBLE_REG) {
+      return BYTES_IN_DOUBLE;
+    } else {
+      return BYTES_IN_ADDRESS;
+    }
   }
 
   /**

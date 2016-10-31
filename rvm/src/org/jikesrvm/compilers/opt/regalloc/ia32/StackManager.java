@@ -43,6 +43,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.SPECIAL_REG;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
@@ -152,12 +153,31 @@ public final class StackManager extends GenericStackManager {
   public int allocateNewSpillLocation(int type) {
 
     // increment by the spill size
-    spillPointer += PhysicalRegisterSet.getSpillSize(type);
+    spillPointer += getSpillSize(type);
 
     if (spillPointer + WORDSIZE > frameSize) {
       frameSize = spillPointer + WORDSIZE;
     }
     return spillPointer;
+  }
+
+  /**
+   * @param type one of INT_REG, DOUBLE_REG, SPECIAL_REG
+   * @return the spill size for a register with the given type
+   */
+  public static int getSpillSize(int type) {
+    if (VM.VerifyAssertions) {
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == SPECIAL_REG));
+    }
+    if (VM.BuildFor32Addr) {
+      if (type == DOUBLE_REG) {
+        return 8;
+      } else {
+        return 4;
+      }
+    } else {
+      return 8;
+    }
   }
 
   @Override
@@ -626,7 +646,7 @@ public final class StackManager extends GenericStackManager {
           size = WORDSIZE;
       } else {
         int type = PhysicalRegisterSet.getPhysicalRegisterType(symb.getRegister());
-        size = PhysicalRegisterSet.getSpillSize(type);
+        size = getSpillSize(type);
       }
     } else {
       size = WORDSIZE;
