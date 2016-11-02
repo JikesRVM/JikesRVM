@@ -193,8 +193,12 @@ public final class StackManager extends GenericStackManager {
     } else {
       rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
     }
-    StackLocationOperand spill = new StackLocationOperand(true, -location, size);
-    s.insertBefore(MIR_Move.create(move, spill, rOp));
+    StackLocationOperand spillLoc = new StackLocationOperand(true, -location, size);
+    Instruction spillOp = MIR_Move.create(move, spillLoc, rOp);
+    if (VERBOSE_DEBUG) {
+      System.out.println("INSERT_SPILL_BEFORE: " + "Inserting " + spillOp + " before " + s);
+    }
+    s.insertBefore(spillOp);
   }
 
   @Override
@@ -209,8 +213,12 @@ public final class StackManager extends GenericStackManager {
     } else {
       rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
     }
-    StackLocationOperand spill = new StackLocationOperand(true, -location, size);
-    s.insertBefore(MIR_Move.create(move, rOp, spill));
+    StackLocationOperand spillLoc = new StackLocationOperand(true, -location, size);
+    Instruction unspillOp = MIR_Move.create(move, rOp, spillLoc);
+    if (VERBOSE_DEBUG) {
+      System.out.println("INSERT_UNSPILL_BEFORE: " + "Inserting " + unspillOp + " before " + s);
+    }
+    s.insertBefore(unspillOp);
   }
 
   @Override
@@ -654,8 +662,14 @@ public final class StackManager extends GenericStackManager {
     }
     StackLocationOperand M = new StackLocationOperand(true, -location, (byte) size);
 
+    if (VERBOSE_DEBUG) {
+      System.out.println("REPLACE_OP_WITH_SPILL_LOC: " + "Instruction before replacement: " + s);
+    }
     // replace the register operand with the memory operand
     s.replaceOperand(symb, M);
+    if (VERBOSE_DEBUG) {
+      System.out.println("REPLACE_OP_WITH_SPILL_LOC: " + "Instruction after replacement: " + s);
+    }
   }
 
   private boolean hasSymbolicRegister(MemoryOperand M) {
