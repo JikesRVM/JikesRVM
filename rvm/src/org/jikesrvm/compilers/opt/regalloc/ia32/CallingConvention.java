@@ -31,6 +31,7 @@ import static org.jikesrvm.ia32.RegisterConstants.R14;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.util.Enumeration;
@@ -795,7 +796,11 @@ public abstract class CallingConvention extends IRTools {
             start.insertBefore(m2);
             start = m2;
           } else {
-            Operand M = new StackLocationOperand(true, paramByteOffset, WORDSIZE);
+            int stackLocSize = WORDSIZE;
+            if (VM.BuildFor64Addr && rType.getMemoryBytes() <= BYTES_IN_INT) {
+              stackLocSize = BYTES_IN_INT;
+            }
+            Operand M = new StackLocationOperand(true, paramByteOffset, stackLocSize);
             start.insertBefore(MIR_Move.create(IA32_MOV, symbOp.copyRO(), M));
           }
         }

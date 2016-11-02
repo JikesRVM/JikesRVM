@@ -48,6 +48,7 @@ import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -120,7 +121,11 @@ public final class StackManager extends GenericStackManager {
    */
   private static byte getSizeOfType(Register type) {
     if (type.isNatural()) {
-      return (byte) (WORDSIZE);
+      if (VM.BuildFor64Addr && type.isInteger()) {
+        return (byte) BYTES_IN_INT;
+      } else {
+        return (byte) WORDSIZE;
+      }
     } else if (type.isFloat()) {
       if (SSE2_FULL) return (byte) BYTES_IN_FLOAT;
       return (byte) BYTES_IN_DOUBLE;
@@ -191,7 +196,11 @@ public final class StackManager extends GenericStackManager {
     } else if (type.isDouble()) {
       rOp = D(r);
     } else {
-      rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
+      if (VM.BuildFor64Addr && type.isInteger()) {
+        rOp = new RegisterOperand(r, TypeReference.Int);
+      } else {
+        rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
+      }
     }
     StackLocationOperand spillLoc = new StackLocationOperand(true, -location, size);
     Instruction spillOp = MIR_Move.create(move, spillLoc, rOp);
@@ -211,7 +220,11 @@ public final class StackManager extends GenericStackManager {
     } else if (type.isDouble()) {
       rOp = D(r);
     } else {
-      rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
+      if (VM.BuildFor64Addr && type.isInteger()) {
+        rOp = new RegisterOperand(r, TypeReference.Int);
+      } else {
+        rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
+      }
     }
     StackLocationOperand spillLoc = new StackLocationOperand(true, -location, size);
     Instruction unspillOp = MIR_Move.create(move, rOp, spillLoc);
@@ -658,7 +671,12 @@ public final class StackManager extends GenericStackManager {
         size = getSpillSize(type);
       }
     } else {
-      size = WORDSIZE;
+      if (VM.BuildFor64Addr && symb.getType().getMemoryBytes() <= BYTES_IN_INT) {
+        // Int-like types and floats need 32-bit locations
+        size = BYTES_IN_INT;
+      } else {
+        size = WORDSIZE;
+      }
     }
     StackLocationOperand M = new StackLocationOperand(true, -location, (byte) size);
 
@@ -748,14 +766,6 @@ public final class StackManager extends GenericStackManager {
         if (rop.getRegister() == r) {
           count++;
         }
-        // If the register in question is an int register (i.e. 32 bit)
-        // and the VM is build for x64, we mustn't introduce a memory
-        // operand for the register. All spill locations are 64-bit,
-        // so the 32-bit (or word or byte) operation would be converted
-        // to a quad operation because of the memory operand.
-        // This would change the semantics of the operation (e.g. for CMP or ADD).
-        // FIXME This needs to be reverted before finishing x64 opt work.
-        if (VM.BuildFor64Addr && rop.isIntLike() && rop.getRegister() == r) return true;
       }
     }
     if (count > 1) return true;
