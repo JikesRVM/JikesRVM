@@ -1488,32 +1488,32 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     for (Instruction s = ir.firstInstructionInCodeOrder(); s != null;
         s = s.nextInstructionInCodeOrder()) {
       char opcode = s.getOpcode();
-      if (opcode != IMMQ_MOV_opcode) {
-        if (MIR_Move.conforms(s)) {
-          Operand moveResult = MIR_Move.getResult(s);
-          if (opcode == IA32_MOV_opcode && moveResult.isRegister()) {
-            Operand value = MIR_Move.getValue(s);
-            if (value.isLongConstant()) {
-              LongConstantOperand lc = (LongConstantOperand)value;
-              if (!Bits.fits(lc.value, 32)) {
-                MIR_Move.mutate(s, IMMQ_MOV, moveResult, value);
-                continue;
-              }
+      if (opcode == IMMQ_MOV_opcode) continue;
+
+      if (MIR_Move.conforms(s)) {
+        Operand moveResult = MIR_Move.getResult(s);
+        if (opcode == IA32_MOV_opcode && moveResult.isRegister()) {
+          Operand value = MIR_Move.getValue(s);
+          if (value.isLongConstant()) {
+            LongConstantOperand lc = (LongConstantOperand)value;
+            if (!Bits.fits(lc.value, 32)) {
+              MIR_Move.mutate(s, IMMQ_MOV, moveResult, value);
+              continue;
             }
           }
         }
-        for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
-          Operand op = ops.nextElement();
-          if (op.isLongConstant()) {
-            LongConstantOperand lc = (LongConstantOperand)op;
-            if (!Bits.fits(lc.value, 32)) {
-              RegisterOperand temp = ir.regpool.makeTempLong();
-              if (lc.convertedFromRef()) {
-                temp.flagAsConvertedFromRef();
-              }
-              s.insertBefore(MIR_Move.create(IMMQ_MOV, temp, lc.copy()));
-              s.replaceOperand(lc, temp.copyD2U());
+      }
+      for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+        Operand op = ops.nextElement();
+        if (op.isLongConstant()) {
+          LongConstantOperand lc = (LongConstantOperand)op;
+          if (!Bits.fits(lc.value, 32)) {
+            RegisterOperand temp = ir.regpool.makeTempLong();
+            if (lc.convertedFromRef()) {
+              temp.flagAsConvertedFromRef();
             }
+            s.insertBefore(MIR_Move.create(IMMQ_MOV, temp, lc.copy()));
+            s.replaceOperand(lc, temp.copyD2U());
           }
         }
       }
