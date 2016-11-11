@@ -2266,6 +2266,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   protected void emit_ireturn() {
     if (method.isSynchronized()) genMonitorExit();
     asm.emitPOP_Reg(T0);
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     genEpilogue(WORDSIZE, WORDSIZE);
   }
 
