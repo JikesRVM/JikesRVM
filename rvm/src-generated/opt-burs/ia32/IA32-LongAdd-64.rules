@@ -5,9 +5,13 @@ czr:	LONG_ADD(r, rlv)
 11
 EMIT_INSTRUCTION
 if (Binary.getVal2(P(p)).isLongConstant()) { \\
-RegisterOperand tmp = regpool.makeTempLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp, Binary.getClearVal2(P(p))))); \\
-EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), tmp.copy()); \\
+  if (Bits.fits(Binary.getVal2(P(p)).asLongConstant().value, 32)) { \\
+    EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), IC(Binary.getVal2(P(p)).asLongConstant().lower32())); \\
+  } else { \\
+    RegisterOperand tmp = regpool.makeTempLong(); \\
+    EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, tmp, Binary.getClearVal2(P(p))))); \\
+    EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), tmp.copy()); \\
+  } \\
 } else { \\
 EMIT_Commutative(IA32_ADD, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p))); \\
 }

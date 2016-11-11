@@ -5,9 +5,13 @@ szpr:	LONG_AND(r, rlv)
 13
 EMIT_INSTRUCTION
 if (Binary.getVal2(P(p)).isLongConstant()) { \\
-Register tmp = regpool.getLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getClearVal2(P(p))))); \\
-EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), new RegisterOperand(tmp, TypeReference.Long)); \\
+  if (Bits.fits(Binary.getVal2(P(p)).asLongConstant().value, 32)) { \\
+    EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), IC(Binary.getVal2(P(p)).asLongConstant().lower32()));   \\
+  } else { \\
+    Register tmp = regpool.getLong(); \\
+    EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getClearVal2(P(p))))); \\
+    EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), new RegisterOperand(tmp, TypeReference.Long)); \\
+  } \\
 }else{\\
 EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), Binary.getClearVal1(P(p)), Binary.getClearVal2(P(p))); \\
 }
@@ -45,9 +49,13 @@ szpr:	LONG_AND(load64, rlv)
 15
 EMIT_INSTRUCTION
 if (Binary.getVal2(P(p)).isLongConstant()) { \\
-Register tmp = regpool.getLong(); \\
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getClearVal2(P(p))))); \\
-EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), new RegisterOperand(tmp, TypeReference.Long), consumeMO()); \\
+  if (Bits.fits(Binary.getVal2(P(p)).asLongConstant().value, 32)) { \\
+    EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), IC(Binary.getVal2(P(p)).asLongConstant().lower32()), consumeMO());   \\
+  } else { \\
+    Register tmp = regpool.getLong(); \\
+    EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new RegisterOperand(tmp, TypeReference.Long), Binary.getClearVal2(P(p))))); \\
+    EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), new RegisterOperand(tmp, TypeReference.Long), consumeMO()); \\
+  } \\
 } else { \\
 EMIT_Commutative(IA32_AND, P(p), Binary.getClearResult(P(p)), Binary.getClearVal2(P(p)), consumeMO()); \\
 }
