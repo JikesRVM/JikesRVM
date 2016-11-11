@@ -66,6 +66,8 @@
     <runCompareTest tag="RVM_1129_B" class="test.org.jikesrvm.opttests.bugs.RVM_1129_B" exitCode="113"/>
     <runCompareTest tag="RVM_1129_C" class="test.org.jikesrvm.opttests.bugs.RVM_1129_C" exitCode="113"/>
     <runCompareTest tag="BURSPatterns" class="test.org.jikesrvm.opttests.burs.BURSPatterns"/>
+    <runCompareTest tag="Long_And" class="test.org.jikesrvm.opttests.optimizations.Long_And"/>
+    <runCompareTest tag="Long_Add" class="test.org.jikesrvm.opttests.optimizations.Long_Add"/>
 
     <successMessageTest tag="FloatingPoint_NaN" class="test.org.jikesrvm.opttests.optimizations.FloatingPoint_NaN"/>
 
