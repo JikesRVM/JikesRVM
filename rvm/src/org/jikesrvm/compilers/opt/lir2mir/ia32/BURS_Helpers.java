@@ -772,6 +772,22 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   }
 
   /**
+   * Emits code to clear the upper 32 bits of a register on x64.
+   *
+   * @param s the instruction to use for positioning information
+   * @param rop the register to clear
+   */
+  protected final void CLEAR_UPPER_32(Instruction s, RegisterOperand rop) {
+    if (VM.BuildFor64Addr) {
+      RegisterOperand regAsInt = rop.copy().asRegister();
+      regAsInt.setType(TypeReference.Int);
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, regAsInt, regAsInt.copy())));
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+  }
+
+  /**
    * Expansion of FLOAT_2INT and DOUBLE_2INT, using the FIST instruction. This
    * expansion does some boolean logic and conditional moves in order to avoid
    * changing the floating-point rounding mode or inserting branches. Other
