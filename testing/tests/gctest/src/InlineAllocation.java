@@ -43,6 +43,9 @@ class InlineAllocation {
   static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
   static int alloc4Limit = (VM.BuildForIA32 ? 40 : 11); // unknown size object. Should not be inlined at all.
 
+  // The limits are either in bytes or number of instructions, depending on the architecture
+  static final String unit = VM.BuildForIA32 ? " bytes" : " instructions";
+
   /**
    * A trivial method that should require the full prologue/epilogue
    * sequence (except that it won't use any nonvolatile registers...sigh).
@@ -124,32 +127,40 @@ class InlineAllocation {
     alloc3Size -= trivialSize;
     alloc4Size -= trivialSize;
 
-    System.out.println("Approximate scalar allocation size is " + alloc1Size);
-    System.out.println("Approximate small array allocation is " + alloc2Size);
-    System.out.println("Approximate large array allocation is " + alloc3Size);
-    System.out.println("Approximate unknown size array allocation is " + alloc4Size);
+    System.out.println("Approximate scalar allocation size is " + alloc1Size + unit);
+    System.out.println("Approximate small array allocation is " + alloc2Size + unit);
+    System.out.println("Approximate large array allocation is " + alloc3Size + unit);
+    System.out.println("Approximate unknown size array allocation is " + alloc4Size + unit);
 
     boolean fail = false;
     if (alloc1Size > alloc1Limit) {
       System.out.println("FAIL: scalar allocation is too porky");
+      printLimit(alloc1Limit);
       fail = true;
     }
     if (alloc2Size > alloc2Limit) {
       System.out.println("FAIL: small array allocation is too porky");
+      printLimit(alloc2Limit);
       fail = true;
     }
     if (alloc3Size > alloc3Limit) {
       System.out.println("FAIL: large array allocation is too porky");
+      printLimit(alloc3Limit);
       fail = true;
     }
     if (alloc4Size > alloc4Limit) {
       System.out.println("FAIL: unknown size array allocation is too porky");
+      printLimit(alloc4Limit);
       fail = true;
     }
 
     if (!fail) {
       System.out.println("ALL TESTS PASSED");
     }
+  }
+
+  private static void printLimit(int limit) {
+    System.out.println("      limit is " + limit + unit);
   }
 
 }
