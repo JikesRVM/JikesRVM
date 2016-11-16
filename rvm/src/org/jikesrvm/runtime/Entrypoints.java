@@ -568,7 +568,7 @@ public class Entrypoints {
     }
     NormalMethod nm = (NormalMethod) m;
     return nm == raiseAbstractMethodError || nm == raiseArithmeticException ||
-        nm == raiseArithmeticException || nm == raiseNullPointerException ||
+        nm == raiseArrayBoundsException || nm == raiseNullPointerException ||
         nm == raiseIllegalAccessError;
   }
 
