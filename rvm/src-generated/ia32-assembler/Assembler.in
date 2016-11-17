@@ -1069,7 +1069,11 @@ public class Assembler extends AbstractAssembler {
     ForwardReference r = new ForwardReference.LoadReturnAddress(mi, bReturn);
     forwardRefs = ForwardReference.enqueue(forwardRefs, r);
     /* Fake MAX_INTEGER to ensure 32 bit immediate */
-    emitADD_RegInd_Imm(ESP, Integer.MAX_VALUE);
+    if (VM.buildFor32Addr()) {
+      emitADD_RegInd_Imm(ESP, Integer.MAX_VALUE);
+    } else {
+      emitADD_RegInd_Imm_Quad(ESP, Integer.MAX_VALUE);
+    }
   }
 
   /**
@@ -1083,9 +1087,11 @@ public class Assembler extends AbstractAssembler {
     /* We have the following pattern:
      * | PUSH EIP | [SP] += | IMM32 |
      *            ^         ^
-     *  sourceIndex        +3 */
+     *  sourceIndex        +3 (32 bit)
+     *                     +4 (64 bit) */
     int ipDelta = mi - sourceIndex;
-    emitImm32(ipDelta, sourceIndex + 3);
+    int immOffset = VM.buildFor32Addr() ? 3 : 4; // account for REX byte on x64
+    emitImm32(ipDelta, sourceIndex + immOffset);
   }
 
   /**
