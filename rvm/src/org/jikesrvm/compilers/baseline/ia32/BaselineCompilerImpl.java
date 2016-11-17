@@ -1549,6 +1549,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   @Override
   protected void emit_l2i() {
     asm.emitPOP_Reg(T0);         // long value
+    if (VM.BuildFor64Addr) {
+      asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
+    }
     adjustStack(WORDSIZE, true); // throw away slot
     asm.emitPUSH_Reg(T0);
   }
