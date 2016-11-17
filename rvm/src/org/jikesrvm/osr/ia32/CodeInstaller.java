@@ -62,8 +62,8 @@ public abstract class CodeInstaller {
     int SW_WIDTH = BYTES_IN_STACKSLOT;
 
     // this offset is used to adjust SP to FP right after return
-    // from a call. 4 bytes for return address and
-    // 4 bytes for saved FP of tsfrom.
+    // from a call. 1 stack slot for return address and
+    // 1 stack slot for saved FP of tsfrom.
     Offset sp2fpOffset = fooFPOffset.minus(tsfromFPOffset).minus(2 * SW_WIDTH);
 
     // should given an estimated length, and print the instructions
