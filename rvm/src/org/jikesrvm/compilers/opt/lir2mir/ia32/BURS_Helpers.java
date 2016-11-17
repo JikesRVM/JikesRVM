@@ -712,12 +712,22 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
     Operand val = CacheOp.getClearRef(s);
     if (val.isRegister()) {
-        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
-    } else if (val.isIntConstant()) {
-        RegisterOperand temp = regpool.makeTempInt();
-        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val)));
-        val = temp.copyRO(); // for opt compiler var usage info?
-        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp.copy()));
+      EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
+    } else if (val.isConstant()) {
+      RegisterOperand temp;
+      if (val.isIntConstant()) {
+        if (VM.VerifyAssertions) opt_assert(VM.BuildFor32Addr);
+        temp = regpool.makeTempInt();
+      } else if (val.isLongConstant()) {
+        if (VM.VerifyAssertions) opt_assert(VM.BuildFor64Addr);
+        temp = regpool.makeTempLong();
+      } else {
+        throw new OptimizingCompilerException("BURS_Helpers",
+            "unexpected operand type " + val + " in SET_EXCEPTION_OBJECT");
+      }
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val)));
+      val = temp.copyRO(); // for opt compiler var usage info?
+      EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp.copy()));
     } else {
         throw new OptimizingCompilerException("BURS_Helpers",
                 "unexpected operand type " + val + " in SET_EXCEPTION_OBJECT");
