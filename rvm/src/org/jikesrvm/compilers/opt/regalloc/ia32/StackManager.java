@@ -145,9 +145,9 @@ public final class StackManager extends GenericStackManager {
     if (type.isNatural()) {
       return IA32_MOV;
     } else if (type.isDouble()) {
-      return IA32_MOVSD;
+      return SSE2_FULL ? IA32_MOVSD : IA32_FMOV;
     } else if (type.isFloat()) {
-      return IA32_MOVSS;
+      return SSE2_FULL ? IA32_MOVSS : IA32_FMOV;
     } else {
       OptimizingCompilerException.TODO("getMoveOperator: unsupported: " + type);
       return null;
