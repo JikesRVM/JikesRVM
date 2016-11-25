@@ -71,6 +71,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXDQ;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSX__B;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZX__B;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MUL;
@@ -761,22 +762,25 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
             IC(0)));
       }
     } else {
-      //MOVZX, MOVSX doesn't accept memory as target
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, result,value)));
       if (signExtend) {
-        EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
-            result.copy(),
-            LC(32))));
-        EMIT(MIR_BinaryAcc.mutate(s,IA32_SAR,
-            result.copy(),
-            LC(32)));
+        if (result.isRegister()) {
+          EMIT(MIR_Unary.mutate(s, IA32_MOVSXDQ, result, value));
+        } else {
+          // MOVSX only accepts registers as target
+          RegisterOperand tempLong = regpool.makeTempLong();
+          EMIT(CPOS(s, MIR_Unary.create(IA32_MOVSXDQ, tempLong, value)));
+          EMIT(MIR_Move.mutate(s, IA32_MOV,
+              result,
+              tempLong.copy()));
+        }
       } else {
-        EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
-            result.copy(),
-            LC(32))));
-        EMIT(MIR_BinaryAcc.mutate(s,IA32_SHR,
-            result.copy(),
-            LC(32)));
+        RegisterOperand temp  = regpool.makeTempInt();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, value)));
+        RegisterOperand tempLong = regpool.makeTempLong();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, tempLong, temp.copy())));
+        EMIT(MIR_Move.mutate(s, IA32_MOV,
+            result,
+            tempLong.copy()));
       }
     }
   }
