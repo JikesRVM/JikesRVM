@@ -167,7 +167,7 @@ public final class StackframeLayoutConstants {
   public static final int INVISIBLE_METHOD_ID = -1;
 
   // Stackframe alignment.
-  // Align to 8 byte boundary for good floating popublic static final int save/restore performance (on powerPC, anyway).
+  // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).
   //
   public static final int STACKFRAME_ALIGNMENT = 8;
 
