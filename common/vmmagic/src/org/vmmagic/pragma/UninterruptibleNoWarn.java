@@ -25,7 +25,7 @@ import org.vmmagic.Pragma;
  * for code only executed when creating the boot image.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target(ElementType.METHOD)
 @Pragma
 public @interface UninterruptibleNoWarn {
   /**
