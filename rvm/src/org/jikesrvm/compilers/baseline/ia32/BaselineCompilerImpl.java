@@ -54,11 +54,11 @@ import static org.jikesrvm.ia32.RegisterConstants.XMM0;
 import static org.jikesrvm.ia32.RegisterConstants.XMM1;
 import static org.jikesrvm.ia32.RegisterConstants.XMM2;
 import static org.jikesrvm.ia32.RegisterConstants.XMM3;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.FPU_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.X87_FPU_STATE_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.XMM_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BASELINE_XMM_STATE_SIZE;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_BYTES;
@@ -3499,18 +3499,18 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         asm.emitPUSH_Reg(T1);
         if (SSE2_FULL) {
           // TODO: Store SSE2 Control word?
-          adjustStack(-XMM_STATE_SIZE, true); // adjust stack to bottom of saved area
-          if (VM.VerifyAssertions) VM._assert(XMM_SAVE_OFFSET.toInt() == (-5 * WORDSIZE) - XMM_STATE_SIZE);
+          adjustStack(-BASELINE_XMM_STATE_SIZE, true); // adjust stack to bottom of saved area
+          if (VM.VerifyAssertions) VM._assert(XMM_SAVE_OFFSET.toInt() == (-5 * WORDSIZE) - BASELINE_XMM_STATE_SIZE);
           asm.emitMOVQ_RegDisp_Reg(SP, Offset.fromIntSignExtend(24), XMM3);
           asm.emitMOVQ_RegDisp_Reg(SP, Offset.fromIntSignExtend(16), XMM2);
           asm.emitMOVQ_RegDisp_Reg(SP, Offset.fromIntSignExtend(8), XMM1);
           asm.emitMOVQ_RegInd_Reg(SP, XMM0);
-          savedRegistersSize += XMM_STATE_SIZE;
+          savedRegistersSize += BASELINE_XMM_STATE_SIZE;
         } else {
-          if (VM.VerifyAssertions) VM._assert(FPU_SAVE_OFFSET.toInt() == (-5 * WORDSIZE) - FPU_STATE_SIZE);
-          adjustStack(-FPU_STATE_SIZE, true); // adjust stack to bottom of saved area
+          if (VM.VerifyAssertions) VM._assert(FPU_SAVE_OFFSET.toInt() == (-5 * WORDSIZE) - X87_FPU_STATE_SIZE);
+          adjustStack(-X87_FPU_STATE_SIZE, true); // adjust stack to bottom of saved area
           asm.emitFNSAVE_RegInd(SP);
-          savedRegistersSize += FPU_STATE_SIZE;
+          savedRegistersSize += X87_FPU_STATE_SIZE;
         }
       }
 

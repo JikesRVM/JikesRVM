@@ -16,7 +16,7 @@ import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.FPU_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.X87_FPU_STATE_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
@@ -153,5 +153,5 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
   }
 
   static final int VOL_SIZE = BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS;
-  static final int SAVE_VOL_SIZE = VOL_SIZE + FPU_STATE_SIZE;
+  static final int SAVE_VOL_SIZE = VOL_SIZE + X87_FPU_STATE_SIZE;
 }

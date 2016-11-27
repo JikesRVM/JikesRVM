@@ -157,9 +157,9 @@ public final class StackframeLayoutConstants {
   public static final int STACKFRAME_HEADER_SIZE = 3 * WORDSIZE;
 
   /** space to save entire FPU state.  The FPU state is saved only for 'bridge' frames */
-  public static final int FPU_STATE_SIZE = 108;
-  /** Currently only use the low 8 bytes, only use 4 SSE2 params */
-  public static final int XMM_STATE_SIZE = 8 * 4;
+  public static final int X87_FPU_STATE_SIZE = 108;
+  /** Baseline compiler: currently only use the low 8 bytes, only use 4 SSE2 params */
+  public static final int BASELINE_XMM_STATE_SIZE = 8 * 4;
 
   /** fp value indicating end of stack walkback */
   public static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);

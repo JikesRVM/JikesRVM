@@ -19,9 +19,9 @@ import static org.jikesrvm.ia32.RegisterConstants.EDI;
 import static org.jikesrvm.ia32.RegisterConstants.EDX;
 import static org.jikesrvm.ia32.RegisterConstants.ESP;
 import static org.jikesrvm.ia32.RegisterConstants.THREAD_REGISTER;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.FPU_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.X87_FPU_STATE_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.XMM_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.BASELINE_XMM_STATE_SIZE;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ia32.RegisterConstants.GPR;
@@ -57,7 +57,7 @@ public final class BaselineConstants {
     * frames, and most register as saved in the  dynamic bridge frames. */
   public static final Offset STACKFRAME_FIRST_PARAMETER_OFFSET = STACKFRAME_REG_SAVE_OFFSET.minus(2 * WORDSIZE);
   /** bridge frames save 2 additional GPRs **/
-  public static final int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? XMM_STATE_SIZE : FPU_STATE_SIZE) + (2 * WORDSIZE);
+  public static final int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? BASELINE_XMM_STATE_SIZE : X87_FPU_STATE_SIZE) + (2 * WORDSIZE);
 
   /** EDI and EBX are nonvolatile registers used by baseline compiler **/
   public static final int SAVED_GPRS = 2;
@@ -69,8 +69,8 @@ public final class BaselineConstants {
   public static final Offset EBP_SAVE_OFFSET = STACKFRAME_REG_SAVE_OFFSET.minus(WORDSIZE * 2);
   public static final Offset T0_SAVE_OFFSET = STACKFRAME_FIRST_PARAMETER_OFFSET;
   public static final Offset T1_SAVE_OFFSET = STACKFRAME_FIRST_PARAMETER_OFFSET.minus(WORDSIZE);
-  public static final Offset FPU_SAVE_OFFSET = T1_SAVE_OFFSET.minus(FPU_STATE_SIZE);
-  public static final Offset XMM_SAVE_OFFSET = T1_SAVE_OFFSET.minus(XMM_STATE_SIZE);
+  public static final Offset FPU_SAVE_OFFSET = T1_SAVE_OFFSET.minus(X87_FPU_STATE_SIZE);
+  public static final Offset XMM_SAVE_OFFSET = T1_SAVE_OFFSET.minus(BASELINE_XMM_STATE_SIZE);
 
   private BaselineConstants() {
     // prevent instantation
