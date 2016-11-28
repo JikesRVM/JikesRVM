@@ -45,6 +45,9 @@ import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.SPECIAL_REG;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_TOTAL_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
@@ -253,6 +256,9 @@ public final class StackManager extends GenericStackManager {
       // Record that we need a stack frame.
       setFrameRequired();
 
+      int fpuStateSaveAreaBegin = spillPointer;
+      // Calculate FPU state save area for restoreFloatingPointState(..)
+      // and saveFloatingPointState(..)
       if (SSE2_FULL) {
         for (int i = 0; i < 8; i++) {
           fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);
@@ -265,6 +271,13 @@ public final class StackManager extends GenericStackManager {
         }
       }
 
+      int fpuStateSaveAreaEnd = spillPointer;
+      int fpuStateSize = fpuStateSaveAreaEnd - fpuStateSaveAreaBegin;
+      if (VM.VerifyAssertions) {
+        VM._assert(fpuStateSize == OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE);
+      }
+
+      int volatileGPRSaveAreaBegin = spillPointer;
       // Map each volatile register to a spill location.
       int i = 0;
       for (Enumeration<Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
@@ -272,6 +285,14 @@ public final class StackManager extends GenericStackManager {
         // Note that as a side effect, the following call bumps up the
         // frame size.
         saveVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);
+      }
+      int volatileGPRSaveAreaEnd = spillPointer;
+      int volatileGPRSaveAreaSize = volatileGPRSaveAreaEnd - volatileGPRSaveAreaBegin;
+      if (VM.VerifyAssertions) {
+        VM._assert(volatileGPRSaveAreaSize ==
+            OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS);
+        VM._assert((volatileGPRSaveAreaSize + fpuStateSize) ==
+            OPT_SAVE_VOLATILE_TOTAL_SIZE);
       }
 
       // Map each non-volatile register to a spill location.

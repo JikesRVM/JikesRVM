@@ -13,6 +13,9 @@
 package org.jikesrvm.ia32;
 
 import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
+import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
@@ -160,6 +163,15 @@ public final class StackframeLayoutConstants {
   public static final int X87_FPU_STATE_SIZE = 108;
   /** Baseline compiler: currently only use the low 8 bytes, only use 4 SSE2 params */
   public static final int BASELINE_XMM_STATE_SIZE = 8 * 4;
+
+  /** Optimizing compiler: space for volatile GPRs in opt save volatile frames */
+  public static final int OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS = BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS;
+  /** Optimizing compiler: space for FPU state in opt save volatile frames */
+  public static final int OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE = (VM.BuildForSSE2Full) ?
+      (8 * BYTES_IN_DOUBLE) : X87_FPU_STATE_SIZE;
+  /* Optimizing compiler: total space for saving of volatile registers */
+  public static final int OPT_SAVE_VOLATILE_TOTAL_SIZE = OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS +
+      OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE;
 
   /** fp value indicating end of stack walkback */
   public static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
