@@ -944,22 +944,6 @@ public final class ReferenceMaps {
   }
 
   /**
-   * given a index in the local area (biased : local0 has index 1)
-   *   this routine determines the correspondig offset in the stack
-   */
-  /*  public int convertIndexToOffset(int index)   {
-      if (index == 0) return NOMORE; //invalid
-
-      // convert from top of local words
-      int offset = startLocal0Offset - (index <<LOG_BYTES_IN_ADDRESS); // no jsrbit here
-      if (VM.TraceStkMaps) {
-        VM.sysWriteln("convertIndexToOffset- input index = ", index, "  offset = ", offset);
-      }
-      return offset;
-    }
-  */
-
-  /**
    * Scans the map for the next reference.
    *
    * @param bitnum starting bitnumber in a map (inclusive)
