@@ -52,9 +52,16 @@ public final class BaselineConstants {
   // Constants describing baseline compiler conventions for
   // saving registers in stackframes.
 
+  /**
+   * offset from FP of the saved registers. Some registers are saved in all baseline
+   * frames, and most register as saved in the  dynamic bridge frames.
+   */
   public static final Offset STACKFRAME_REG_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
-  /** offset from FP of the saved registers. Some registers are saved in all baseline
-    * frames, and most register as saved in the  dynamic bridge frames. */
+  /**
+   * offset from FP for the first parameter for normal frames, i.e. the end of the
+   * register save area for normal frames. This marks the begin of the save area
+   * for registers that are saved only for dynamic bridge frames.
+   * */
   public static final Offset STACKFRAME_FIRST_PARAMETER_OFFSET = STACKFRAME_REG_SAVE_OFFSET.minus(2 * WORDSIZE);
   /** bridge frames save 2 additional GPRs **/
   public static final int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? BASELINE_XMM_STATE_SIZE : X87_FPU_STATE_SIZE) + (2 * WORDSIZE);
