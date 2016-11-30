@@ -4397,7 +4397,11 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       fr.resolve(asm);                                       // come from Jcc above.
     } else {
       asm.generateJTOCloadWord(reg, tableOffset); // reg is offsets table
-      asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);      // reg is offset of member
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);      // reg is offset of member
+      } else {
+        asm.emitMOVSXDQ_Reg_RegDisp(reg, reg, memberOffset);  // reg is offset of member
+      }
     }
   }
 
