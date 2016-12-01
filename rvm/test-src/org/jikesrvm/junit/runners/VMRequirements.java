@@ -52,12 +52,12 @@ public final class VMRequirements extends BlockJUnit4ClassRunner {
 
   static {
     String runnerVM = System.getProperty("jikesrvm.junit.runner.vm");
-    RUNNING_ON_BOOTSTRAP_VM = runnerVM.equals("bootstrap");
-    RUNNING_ON_BUILT_JIKES_RVM = runnerVM.equals("built-jikes-rvm");
+    RUNNING_ON_BOOTSTRAP_VM = "bootstrap".equals(runnerVM);
+    RUNNING_ON_BUILT_JIKES_RVM = "built-jikes-rvm".equals(runnerVM);
     if (RUNNING_ON_BUILT_JIKES_RVM) {
       String arch = System.getProperty("jikesrvm.target.arch");
-      RUNNING_ON_IA32 = arch.equals("ia32");
-      RUNNING_ON_POWERPC = arch.equals("ppc");
+      RUNNING_ON_IA32 = "ia32".equals(arch);
+      RUNNING_ON_POWERPC = "ppc".equals(arch);
       String opt = System.getProperty("jikesrvm.include.opt");
       VM_HAS_OPT_COMPILER = "true".equals(opt);
     } else {
