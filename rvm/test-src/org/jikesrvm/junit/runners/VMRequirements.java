@@ -108,8 +108,8 @@ public final class VMRequirements extends BlockJUnit4ClassRunner {
 
   private boolean methodIsNotSuitableForExecutionInCurrentVMEnvironment(
       FrameworkMethod method) {
-    return isRunningOnBootstrapVM() && annotatedWith(method, RequiresBuiltJikesRVM.class) ||
-    isRunningOnBuiltJikesRVM() && annotatedWith(method, RequiresBootstrapVM.class) ||
+    return !isRunningOnBuiltJikesRVM() && annotatedWith(method, RequiresBuiltJikesRVM.class) ||
+    !isRunningOnBootstrapVM() && annotatedWith(method, RequiresBootstrapVM.class) ||
     !VM_HAS_OPT_COMPILER && annotatedWith(method, RequiresOptCompiler.class) ||
     VM_HAS_OPT_COMPILER && (annotatedWith(method, RequiresLackOfOptCompiler.class)) ||
     RUNNING_ON_IA32 && annotatedWith(method, RequiresPowerPC.class) ||
