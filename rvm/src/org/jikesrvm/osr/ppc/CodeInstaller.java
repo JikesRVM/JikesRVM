@@ -27,8 +27,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.util.AOSLogging;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
-import org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl;
+import org.jikesrvm.compilers.baseline.ppc.ArchBaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
@@ -72,8 +71,8 @@ public abstract class CodeInstaller {
     ////// recover saved registers.
     /////////////////////////////////////
     if (cType == CompiledMethod.BASELINE) {
-      BaselineCompiledMethod bcm = (BaselineCompiledMethod) foo;
-      int offset = BaselineCompilerImpl.getFrameSize(bcm);
+      ArchBaselineCompiledMethod bcm = (ArchBaselineCompiledMethod) foo;
+      int offset = bcm.getFrameSize();
       for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER.value(); --i) {
         offset -= BYTES_IN_DOUBLE;
         asm.emitLFD(FPR.lookup(i), offset, FP);

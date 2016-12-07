@@ -30,7 +30,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -72,7 +71,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
   /** method for the frame */
   private NormalMethod currentMethod;
   /** compiled method for the frame */
-  private BaselineCompiledMethod currentCompiledMethod;
+  ArchBaselineCompiledMethod currentCompiledMethod;
   private int currentNumLocals;
   /** parameter types passed by that method */
   private TypeReference[] bridgeParameterTypes;
@@ -121,7 +120,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
    */
   @Override
   public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
-    currentCompiledMethod = (BaselineCompiledMethod) compiledMethod;
+    currentCompiledMethod = (ArchBaselineCompiledMethod) compiledMethod;
     currentMethod = (NormalMethod) compiledMethod.getMethod();
     currentNumLocals = currentMethod.getLocalWords();
     // setup superclass
@@ -282,7 +281,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        Address location = framePtr.plus(BaselineCompilerImpl.getFrameSize(currentCompiledMethod));
+        Address location = framePtr.plus(currentCompiledMethod.getFrameSize());
         location = location.minus((LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) * BYTES_IN_DOUBLE);
         // skip non-volatile and volatile fprs
         for (int i = LAST_NONVOLATILE_GPR.value(); i >= FIRST_VOLATILE_GPR.value(); --i) {
@@ -434,7 +433,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
     //dynamic bridge's registers already restored by calls to getNextReferenceAddress()
     if (!currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       if (VM.TraceStkMaps) VM.sysWriteln("    Update Caller RegisterLocations");
-      Address addr = framePtr.plus(BaselineCompilerImpl.getFrameSize(currentCompiledMethod));
+      Address addr = framePtr.plus(currentCompiledMethod.getFrameSize());
       addr =
           addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER.value() + 1) <<
                      LOG_BYTES_IN_DOUBLE); //skip float registers

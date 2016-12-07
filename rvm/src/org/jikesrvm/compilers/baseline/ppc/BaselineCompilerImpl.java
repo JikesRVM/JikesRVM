@@ -202,10 +202,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   /**
    * Create a Compiler object for the compilation of method.
    */
-  public BaselineCompilerImpl(BaselineCompiledMethod cm, short[] genLocLoc, short[] floatLocLoc) {
+  public BaselineCompilerImpl(BaselineCompiledMethod cm) {
     super(cm);
-    localFixedLocations = genLocLoc;
-    localFloatLocations = floatLocLoc;
+    localFixedLocations = new short[((NormalMethod)cm.getMethod()).getLocalWords()];
+    localFloatLocations = new short[((NormalMethod)cm.getMethod()).getLocalWords()];
     use_nonvolatile_registers = USE_NONVOLATILE_REGISTERS && !method.hasBaselineNoRegistersAnnotation();
 
     if (VM.VerifyAssertions) VM._assert(T7.value() <= LAST_VOLATILE_GPR.value());           // need 8 gp temps
@@ -236,7 +236,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
 
   /** position of operand stack within method's stackframe */
   @Uninterruptible
-  public static short getEmptyStackOffset(NormalMethod m) {
+  static short getEmptyStackOffset(NormalMethod m) {
     int params = m.getOperandWords() << LOG_BYTES_IN_STACKSLOT; // maximum parameter area
     int spill = params - (MIN_PARAM_REGISTERS << LOG_BYTES_IN_STACKSLOT);
     if (spill < 0) spill = 0;
@@ -268,19 +268,15 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     return size;
   }
 
-  /** size of method's stackframe. NB only valid on compiled methods */
   @Uninterruptible
-  public static int getFrameSize(BaselineCompiledMethod bcm) {
-    NormalMethod m = (NormalMethod) bcm.getMethod();
+  static int getFrameSize(NormalMethod m, byte lastFloatStackRegister, byte lastFixedStackRegister) {
     int size = getInternalStartLocalOffset(m);
     if (m.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       size += (LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) << LOG_BYTES_IN_DOUBLE;
       size += (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1) << LOG_BYTES_IN_ADDRESS;
     } else {
-      int num_fpr = bcm.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER.value() + 1;
-      int num_gpr = bcm.getLastFixedStackRegister() - FIRST_FIXED_LOCAL_REGISTER.value() + 1;
-      if (num_gpr > 0) size += (num_fpr << LOG_BYTES_IN_DOUBLE);
-      size += (num_gpr << LOG_BYTES_IN_ADDRESS);
+      size += (lastFloatStackRegister - FIRST_FLOAT_LOCAL_REGISTER.value() + 1) << LOG_BYTES_IN_DOUBLE;
+      size += (lastFixedStackRegister - FIRST_FIXED_LOCAL_REGISTER.value() + 1) << LOG_BYTES_IN_ADDRESS;
     }
     if (VM.BuildFor32Addr) {
       size = Memory.alignUp(size, STACKFRAME_ALIGNMENT);
@@ -409,13 +405,13 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     }
   }
 
-  @Override
-  public byte getLastFixedStackRegister() {
+  @Uninterruptible
+  byte getLastFixedStackRegister() {
     return lastFixedStackRegister;
   }
 
-  @Override
-  public byte getLastFloatStackRegister() {
+  @Uninterruptible
+  byte getLastFloatStackRegister() {
     return lastFloatStackRegister;
   }
 
@@ -431,24 +427,24 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     return 0 != (type & (LONG_TYPE));
   }
 
+  @Uninterruptible
   private short getGeneralLocalLocation(int index) {
     return localFixedLocations[index];
   }
 
+  @Uninterruptible
   private short getFloatLocalLocation(int index) {
     return localFloatLocations[index];
   }
 
   @Uninterruptible
-  @Inline
-  public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
-    return localloc[index];
+  short [] getLocalFixedLocations() {
+    return localFixedLocations;
   }
 
   @Uninterruptible
-  @Inline
-  public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
-    return localloc[index];
+  short [] getLocalFloatLocations() {
+    return localFloatLocations;
   }
 
   /*

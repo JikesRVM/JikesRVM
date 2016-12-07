@@ -43,7 +43,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ia32.ArchBaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.osr.BytecodeTraverser;
@@ -115,7 +115,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
       VM._assert(fooCmid == cmid);
     }
 
-    BaselineCompiledMethod fooCM = (BaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
+    ArchBaselineCompiledMethod fooCM = (ArchBaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
     NormalMethod fooM = (NormalMethod) fooCM.getMethod();
 
@@ -213,7 +213,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
 
   /* go over local/stack array, and build VariableElement. */
   private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
-                                       BaselineCompiledMethod compiledMethod, boolean kind, ExecutionState state) {
+                                       ArchBaselineCompiledMethod compiledMethod, boolean kind, ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {

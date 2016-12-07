@@ -27,7 +27,6 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ExceptionDeliverer;
@@ -51,12 +50,11 @@ public final class BaselineExceptionDeliverer extends ExceptionDeliverer {
   public void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
                                Throwable exceptionObject, AbstractRegisters registers) {
     Address fp = registers.getInnermostFramePointer();
-    NormalMethod method = (NormalMethod) compiledMethod.getMethod();
     RVMThread myThread = RVMThread.getCurrentThread();
 
     // reset sp to "empty expression stack" state
     //
-    Address sp = fp.plus(BaselineCompilerImpl.getEmptyStackOffset(method));
+    Address sp = fp.plus(((ArchBaselineCompiledMethod) compiledMethod).getEmptyStackOffset());
 
     // push exception object as argument to catch block
     //
@@ -95,14 +93,14 @@ public final class BaselineExceptionDeliverer extends ExceptionDeliverer {
     if (method.isSynchronized()) { // release the lock, if it is being held
       Address ip = registers.getInnermostInstructionAddress();
       Offset instr = compiledMethod.getInstructionOffset(ip);
-      Offset lockOffset = ((BaselineCompiledMethod) compiledMethod).getLockAcquisitionOffset();
+      Offset lockOffset = ((ArchBaselineCompiledMethod) compiledMethod).getLockAcquisitionOffset();
       if (instr.sGT(lockOffset)) { // we actually have the lock, so must unlock it.
         Object lock;
         if (method.isStatic()) {
           lock = method.getDeclaringClass().getResolvedClassForType();
         } else {
           lock =
-              Magic.addressAsObject(fp.plus(BaselineCompilerImpl.locationToOffset(((BaselineCompiledMethod) compiledMethod).getGeneralLocalLocation(
+              Magic.addressAsObject(fp.plus(BaselineCompilerImpl.locationToOffset(((ArchBaselineCompiledMethod) compiledMethod).getGeneralLocalLocation(
                   0)) - BYTES_IN_ADDRESS).loadAddress());
         }
         if (ObjectModel.holdsLock(lock, RVMThread.getCurrentThread())) {

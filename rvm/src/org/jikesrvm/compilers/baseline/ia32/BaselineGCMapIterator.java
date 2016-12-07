@@ -33,7 +33,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -64,7 +63,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
   /** Compiled method for the frame */
   private NormalMethod currentMethod;
   /** Compiled method for the frame */
-  private BaselineCompiledMethod currentCompiledMethod;
+  private ArchBaselineCompiledMethod currentCompiledMethod;
   private int currentNumLocals;
   /** Current index in current map */
   private int mapIndex;
@@ -141,7 +140,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
    */
   @Override
   public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
-    currentCompiledMethod = (BaselineCompiledMethod) compiledMethod;
+    currentCompiledMethod = (ArchBaselineCompiledMethod) compiledMethod;
     currentMethod = (NormalMethod) currentCompiledMethod.getMethod();
     currentNumLocals = currentMethod.getLocalWords();
 
@@ -151,7 +150,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
 
     // setup stackframe mapping
     //
-    maps = ((BaselineCompiledMethod) compiledMethod).referenceMaps;
+    maps = currentCompiledMethod.referenceMaps;
     mapId = maps.locateGCPoint(instructionOffset, currentMethod);
     mapIndex = 0;
     if (mapId < 0) {

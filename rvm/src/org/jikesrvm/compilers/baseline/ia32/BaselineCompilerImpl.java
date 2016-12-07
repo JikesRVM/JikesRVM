@@ -73,7 +73,6 @@ import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_SHORT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_SHORT;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNREACHABLE_BYTECODE;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
@@ -142,10 +141,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
    * Create a BaselineCompilerImpl object for the compilation of method.
    *
    * @param cm the method that will be associated with this compilation
-   * @param localFixedLocations unused on IA32
-   * @param localFloatLocations unused on IA32
    */
-  public BaselineCompilerImpl(BaselineCompiledMethod cm, short[] localFixedLocations, short[] localFloatLocations) {
+  public BaselineCompilerImpl(BaselineCompiledMethod cm) {
     super(cm);
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
@@ -171,28 +168,6 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     //nothing to do for Intel
   }
 
-  @Override
-  public byte getLastFixedStackRegister() {
-    return -1; //doesn't dedicate registers to stack;
-  }
-
-  @Override
-  public byte getLastFloatStackRegister() {
-    return -1; //doesn't dedicate registers to stack;
-  }
-
-  @Uninterruptible
-  public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
-    // we currently do not use location arrays on Intel
-    return offsetToLocation(getStartLocalOffset(m).minus(index << LOG_BYTES_IN_ADDRESS));
-  }
-
-  @Uninterruptible
-  public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
-    // we currently do not use location arrays on Intel
-    return offsetToLocation(getStartLocalOffset(m).minus(index << LOG_BYTES_IN_ADDRESS));
-  }
-
   @Uninterruptible
   public static int locationToOffset(short location) {
     return -location;
@@ -210,7 +185,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   }
 
   @Uninterruptible
-  public static short getEmptyStackOffset(NormalMethod m) {
+  static short getEmptyStackOffset(NormalMethod m) {
     return (short)getFirstLocalOffset(m).minus(m.getLocalWords() << LG_WORDSIZE).plus(WORDSIZE).toInt();
   }
 
@@ -235,7 +210,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   }
 
   @Uninterruptible
-  private static Offset getStartLocalOffset(NormalMethod method) {
+  static Offset getStartLocalOffset(NormalMethod method) {
     return getFirstLocalOffset(method).plus(WORDSIZE);
   }
 

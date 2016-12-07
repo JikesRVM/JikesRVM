@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.ArchConstants;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
@@ -36,7 +34,7 @@ import org.vmmagic.unboxed.Offset;
  * Compiler-specific information associated with a method's machine
  * instructions.
  */
-public final class BaselineCompiledMethod extends CompiledMethod {
+public abstract class BaselineCompiledMethod extends CompiledMethod {
 
   /** Does the baseline compiled method have a counters array? */
   private boolean hasCounters;
@@ -83,106 +81,27 @@ public final class BaselineCompiledMethod extends CompiledMethod {
    */
   private int[] eTable;
 
-  /** Offset into stack frame when operand stack is empty */
-  private final short emptyStackOffset;
-  /** PPC only: last general purpose register holding part of the operand stack */
-  private byte lastFixedStackRegister;
-  /** PPC only: last floating point register holding part of the operand stack */
-  private byte lastFloatStackRegister;
-
-  /**
-   * PPC only: location of general purpose local variables, positive
-   * values are register numbers, negative are stack offsets
-   */
-  private final short[] localFixedLocations;
-
-  /**
-   * PPC only: location of floating point local variables, positive
-   * values are register numbers, negative are stack offsets
-   */
-  private final short[] localFloatLocations;
-
-  /** @return offset into stack frame when operand stack is empty */
-  public int getEmptyStackOffset() {
-    return emptyStackOffset;
-  }
-
-  /**
-   * Location of local general purpose variable.  These Locations are
-   * positioned at the top of the stackslot that contains the value
-   * before accessing, substract size of value you want to access.<p>
-   * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT<br>
-   * e.g. to load long: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_LONG
-   *
-   * @param localIndex the index for the local general purpose variable
-   * @return location of the general purpose variable with the given index
-   */
-  @Uninterruptible
-  public short getGeneralLocalLocation(int localIndex) {
-    return BaselineCompiler.getGeneralLocalLocation(localIndex, localFixedLocations, (NormalMethod) method);
-  }
-
-  /**
-   * Location of local floating point variable.  These Locations are
-   * positioned at the top of the stackslot that contains the value
-   * before accessing, substract size of value you want to access.<p>
-   * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT<br>
-   * e.g. to load double: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
-   *
-   * @param localIndex the index for the local general purpose variable
-   * @return location of the floating point variable with the given index
-   */
-  @Uninterruptible
-  public short getFloatLocalLocation(int localIndex) {
-    return BaselineCompiler.getFloatLocalLocation(localIndex, localFloatLocations, (NormalMethod) method);
-  }
-
-  @Uninterruptible
-  public short getGeneralStackLocation(int stackIndex) {
-    return BaselineCompiler.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
-  }
-
-  @Uninterruptible
-  public short getFloatStackLocation(int stackIndex) {
-    // for now same implementation as getGeneralStackLocation
-    return getGeneralStackLocation(stackIndex);
-  }
-
-  /** @return last general purpose register holding part of the operand stack */
-  @Uninterruptible
-  public int getLastFixedStackRegister() {
-    return lastFixedStackRegister;
-  }
-
-  /** @return last floating point register holding part of the operand stack */
-  @Uninterruptible
-  public int getLastFloatStackRegister() {
-    return lastFloatStackRegister;
-  }
-
-  public BaselineCompiledMethod(int id, RVMMethod m) {
+  protected BaselineCompiledMethod(int id, RVMMethod m) {
     super(id, m);
-    NormalMethod nm = (NormalMethod) m;
-    //this.startLocalOffset = BaselineCompilerImpl.getStartLocalOffset(nm);
-    this.emptyStackOffset = BaselineCompiler.getEmptyStackOffset(nm);
-    this.localFixedLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
-    this.localFloatLocations = VM.BuildForIA32 ? null : new short[nm.getLocalWords()];
-    this.lastFixedStackRegister = -1;
-    this.lastFloatStackRegister = -1;
   }
+
+  /**
+   * Architecture-specific subclasses are responsible for preserving any data about this
+   * method (such as local variable locations) that will be needed later.
+   */
+  protected abstract void saveCompilerData(BaselineCompiler comp);
 
   /** Compile method */
   public void compile() {
     BaselineCompiler comp;
     if (VM.BuildForIA32) {
-      comp = new org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+      comp = new org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl(this);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      comp = new org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl(this, localFixedLocations, localFloatLocations);
+      comp = new org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl(this);
     }
     comp.compile();
-    this.lastFixedStackRegister = comp.getLastFixedStackRegister();
-    this.lastFloatStackRegister = comp.getLastFloatStackRegister();
+    saveCompilerData(comp);
   }
 
   /** @return BASELINE */
