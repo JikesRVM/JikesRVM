@@ -141,8 +141,6 @@ public final class Assembler extends AbstractAssembler {
     VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
   }
 
-  /* Handling backward branch references */
-
   /**
    * Return a copy of the generated code as a CodeArray.
    * @return a copy of the generated code as a CodeArray.
