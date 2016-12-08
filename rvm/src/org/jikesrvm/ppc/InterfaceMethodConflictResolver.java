@@ -34,10 +34,10 @@ public abstract class InterfaceMethodConflictResolver {
 
 
   /**
-   * Create a conflict resolution stub for the set of interface method signatures l.
-   * @param sigIds TODO document me!
-   * @param targets TODO document me!
-   * @return TODO document me!
+   * Creates a conflict resolution stub for the set of interface method signatures {@code l}.
+   * @param sigIds ids of elements in {@code l}
+   * @param targets target methods of elements in {@code l}
+   * @return code that implements the stub
    */
   public static CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
     // (1) Create an assembler.
@@ -71,11 +71,12 @@ public abstract class InterfaceMethodConflictResolver {
 
   /**
    * Assign ascending bytecode indices to each case (in the order they will be generated)
-   * @param bcIndex TODO document me!
-   * @param bcIndices TODO document me!
-   * @param low TODO document me!
-   * @param high TODO document me!
-   * @return
+   * @param bcIndex byte code index for the case in the search tree that will have an index assigned now
+   * @param bcIndices array of byte code indices. All entries in the array are zero at the start
+   *  and will be filled in as the generation progresses.
+   * @param low lower bound of the cases to have an index assigned
+   * @param high upper bound of the cases to have an index assigned
+   * @return byte code index to use for the next case in the search tree
    */
   private static int assignBytecodeIndices(int bcIndex, int[] bcIndices, int low, int high) {
     int middle = (high + low) / 2;
@@ -97,20 +98,20 @@ public abstract class InterfaceMethodConflictResolver {
   /**
    * Make a stub prologue: get TIB into S0 factor out to reduce code space in each call.
    *
-   * @param asm TODO document me!
+   * @param asm assembler that's used for insertion of stub prologue
    */
   private static void insertStubPrologue(Assembler asm) {
     asm.baselineEmitLoadTIB(S0, T0);
   }
 
   /**
-   * Generate a subtree covering from low to high inclusive.
-   * @param asm  TODO document me!
-   * @param sigIds  TODO document me!
-   * @param targets  TODO document me!
-   * @param bcIndices  TODO document me!
-   * @param low  TODO document me!
-   * @param high  TODO document me!
+   * Generates a subtree covering from {@code low} to {@code high} inclusive.
+   * @param asm assembler to use for generation
+   * @param sigIds ids of all the InterfaceMethodSignature instances
+   * @param targets  targets of all the InterfaceMethodSignature instances
+   * @param bcIndices  array of byte code indices (already filled out)
+   * @param low lower bound of the cases to be generated
+   * @param high upper bound of the cases to be generated
    */
   private static void insertStubCase(Assembler asm, int[] sigIds, RVMMethod[] targets, int[] bcIndices, int low,
                                      int high) {
