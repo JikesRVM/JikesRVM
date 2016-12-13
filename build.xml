@@ -963,7 +963,6 @@ Check to make sure all required properties are specified. This includes properti
       <globmapper from="*.fake" to="*.java"/>
       <fileset dir="${ia32-assembler-opt.dir}">
         <include name="**/*.fake"/>
-        <include name="ArchitectureSpecific.fake"/>
         <include name="JikesRVMSupport.fake"/>
       </fileset>
     </copy>
@@ -1603,7 +1602,6 @@ Check to make sure all required properties are specified. This includes properti
       <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
-      <exclude name="org/jikesrvm/ArchitectureSpecificOpt$*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_32/**/*.class" unless="include.32bit"/>
       <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_64/**/*.class" if="include.32bit"/>
       <include name="**/JikesRVMSupport.class"/>
