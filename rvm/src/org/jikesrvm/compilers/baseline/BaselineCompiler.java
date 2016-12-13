@@ -36,7 +36,6 @@ import org.jikesrvm.osr.BytecodeTraverser;
 import org.jikesrvm.runtime.MagicNames;
 import org.jikesrvm.runtime.Time;
 import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -77,50 +76,6 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
    * Reference maps for method being compiled
    */
   ReferenceMaps refMaps;
-
-
-  public abstract byte getLastFixedStackRegister();
-  public abstract byte getLastFloatStackRegister();
-
-  @Uninterruptible
-  static short getGeneralLocalLocation(int localIndex, short[] localFixedLocations, NormalMethod method) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, method);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, method);
-    }
-  }
-
-  @Uninterruptible
-  static short getFloatLocalLocation(int localIndex, short[] localFixedLocations, NormalMethod method) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFixedLocations, method);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFixedLocations, method);
-    }
-  }
-
-  @Uninterruptible
-  static short getEmptyStackOffset(NormalMethod m) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getEmptyStackOffset(m);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getEmptyStackOffset(m);
-    }
-  }
-
-  @Uninterruptible
-  public static short offsetToLocation(int offset) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.offsetToLocation(offset);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.offsetToLocation(offset);
-    }
-  }
 
   protected final Offset getEdgeCounterOffset() {
     return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);

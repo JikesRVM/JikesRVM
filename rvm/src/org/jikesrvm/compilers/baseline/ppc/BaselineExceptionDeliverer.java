@@ -21,7 +21,6 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ExceptionDeliverer;
@@ -45,11 +44,10 @@ public final class BaselineExceptionDeliverer extends ExceptionDeliverer {
   public void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
                                Throwable exceptionObject, AbstractRegisters registers) {
     Address fp = registers.getInnermostFramePointer();
-    NormalMethod method = (NormalMethod) compiledMethod.getMethod();
 
     // reset sp to "empty expression stack" state
     //
-    Address sp = fp.plus(BaselineCompilerImpl.getEmptyStackOffset(method));
+    Address sp = fp.plus(((ArchBaselineCompiledMethod) compiledMethod).getEmptyStackOffset());
 
     // push exception object as argument to catch block
     //
@@ -77,11 +75,11 @@ public final class BaselineExceptionDeliverer extends ExceptionDeliverer {
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
   public void unwindStackFrame(CompiledMethod compiledMethod, AbstractRegisters registers) {
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();
-    BaselineCompiledMethod bcm = (BaselineCompiledMethod) compiledMethod;
+    ArchBaselineCompiledMethod bcm = (ArchBaselineCompiledMethod) compiledMethod;
     if (method.isSynchronized()) {
       Address ip = registers.getInnermostInstructionAddress();
       Offset instr = compiledMethod.getInstructionOffset(ip);
-      Offset lockOffset = ((BaselineCompiledMethod) compiledMethod).getLockAcquisitionOffset();
+      Offset lockOffset = bcm.getLockAcquisitionOffset();
       if (instr.sGT(lockOffset)) { // we actually have the lock, so must unlock it.
         Object lock;
         if (method.isStatic()) {
@@ -106,7 +104,7 @@ public final class BaselineExceptionDeliverer extends ExceptionDeliverer {
     }
     // restore non-volatile registers
     Address fp = registers.getInnermostFramePointer();
-    Offset frameOffset = Offset.fromIntSignExtend(BaselineCompilerImpl.getFrameSize(bcm));
+    Offset frameOffset = Offset.fromIntSignExtend(bcm.getFrameSize());
 
     for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER.value(); --i) {
       frameOffset = frameOffset.minus(BYTES_IN_DOUBLE);

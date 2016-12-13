@@ -54,7 +54,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ppc.ArchBaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -113,7 +113,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
       VM._assert(fooCmid == cmid);
     }
 
-    BaselineCompiledMethod fooCM = (BaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
+    ArchBaselineCompiledMethod fooCM = (ArchBaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
     NormalMethod fooM = (NormalMethod) fooCM.getMethod();
 
@@ -196,10 +196,10 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
     if (cType == CompiledMethod.BASELINE) {
       if (VM.VerifyAssertions) {
         VM._assert(bufCM.getMethod().hasBaselineSaveLSRegistersAnnotation());
-        VM._assert(methFPoff.EQ(tsFromFPoff.plus(BaselineCompilerImpl.getFrameSize((BaselineCompiledMethod) bufCM))));
+        VM._assert(methFPoff.EQ(tsFromFPoff.plus(((ArchBaselineCompiledMethod) bufCM).getFrameSize())));
       }
 
-      Offset currentRegisterLocation = tsFromFPoff.plus(BaselineCompilerImpl.getFrameSize((BaselineCompiledMethod) bufCM));
+      Offset currentRegisterLocation = tsFromFPoff.plus(((ArchBaselineCompiledMethod) bufCM).getFrameSize());
 
       for (int i = LAST_FLOAT_STACK_REGISTER.value(); i >= FIRST_FLOAT_LOCAL_REGISTER.value(); --i) {
         currentRegisterLocation = currentRegisterLocation.minus(BYTES_IN_DOUBLE);
@@ -279,7 +279,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
 
   /** go over local/stack array, and build VariableElement. */
   private static void getVariableValueFromLocations(byte[] stack, Offset methFPoff, byte[] types,
-                                                    BaselineCompiledMethod compiledMethod, boolean kind,
+                                                    ArchBaselineCompiledMethod compiledMethod, boolean kind,
                                                     TempRegisters registers, ExecutionState state) {
     int start = 0;
     if (kind == LOCAL) {
@@ -430,7 +430,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
 
   /* go over local/stack array, and build VariableElement. */
   private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
-                                       BaselineCompiledMethod compiledMethod, boolean kind, ExecutionState state) {
+                                       ArchBaselineCompiledMethod compiledMethod, boolean kind, ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {
