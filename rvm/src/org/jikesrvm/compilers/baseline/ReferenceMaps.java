@@ -1416,13 +1416,14 @@ public final class ReferenceMaps {
   public void showInfo() {
     VM.sysWriteln("showInfo- reference maps");
     if (MCSites == null) {
-      VM.sysWrite(" no MCSites array - assume using cached data - can't do showInfo()");
+      VM.sysWriteln(" no MCSites array - assume using cached data - can't do showInfo()");
       return;
     }
 
     VM.sysWrite(" MCSites.length = ", MCSites.length);
     VM.sysWrite(" mapCount = ", mapCount);
-//    VM.sysWriteln(" startLocal0Offset = ", startLocal0Offset);
+//    VM.sysWrite(" startLocal0Offset = ", startLocal0Offset);
+    VM.sysWriteln();
 
     for (int i = 0; i < mapCount; i++) {
       VM.sysWrite("mapid = ", i);
@@ -1475,7 +1476,8 @@ public final class ReferenceMaps {
         tindex = getNextRefIndex(tindex, i);
         VM.sysWrite("next offset = ");
         VM.sysWrite(tindex);
-        if (tindex == 0) VM.sysWrite("---------------- end of map");
+        VM.sysWriteln();
+        if (tindex == 0) VM.sysWriteln("---------------- end of map");
       }
     }
   }
