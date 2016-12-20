@@ -68,15 +68,22 @@ public final class BaselineConstants {
 
   /** EDI and EBX are nonvolatile registers used by baseline compiler **/
   public static final int SAVED_GPRS = 2;
-  /** save all non-volatiles **/
+  /** save all non-volatiles, i.e. everything from {@link #SAVED_GPRS} and EBP **/
   public static final int SAVED_GPRS_FOR_SAVE_LS_REGISTERS = 3;
 
+  /** offset for saving EDI. Valid for all baseline compiled Java methods (i.e. not native bridge methods) */
   public static final Offset EDI_SAVE_OFFSET = STACKFRAME_REG_SAVE_OFFSET;
+  /** offset for saving EBX. Valid for all baseline compiled Java methods (i.e. not native bridge methods) */
   public static final Offset EBX_SAVE_OFFSET = STACKFRAME_REG_SAVE_OFFSET.minus(WORDSIZE);
+  /** offset for saving EBP. Only valid for methods with baseline save registers */
   public static final Offset EBP_SAVE_OFFSET = STACKFRAME_REG_SAVE_OFFSET.minus(WORDSIZE * 2);
+  /** offset for saving T0. Only valid  for dynamic bridge methods */
   public static final Offset T0_SAVE_OFFSET = STACKFRAME_FIRST_PARAMETER_OFFSET;
+  /** offset for saving T1. Only valid  for dynamic bridge methods */
   public static final Offset T1_SAVE_OFFSET = STACKFRAME_FIRST_PARAMETER_OFFSET.minus(WORDSIZE);
+  /** offset for saving FPU. Only valid  for dynamic bridge methods on configurations without SSE */
   public static final Offset FPU_SAVE_OFFSET = T1_SAVE_OFFSET.minus(X87_FPU_STATE_SIZE);
+  /** offset for saving FPU. Only valid  for dynamic bridge methods on configurations with SSE */
   public static final Offset XMM_SAVE_OFFSET = T1_SAVE_OFFSET.minus(BASELINE_XMM_STATE_SIZE);
 
   private BaselineConstants() {
