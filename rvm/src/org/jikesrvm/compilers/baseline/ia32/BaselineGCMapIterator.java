@@ -281,6 +281,9 @@ public final class BaselineGCMapIterator extends GCMapIterator {
         if (VM.TraceStkMaps || TRACE_ALL) {
           VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset = ");
           VM.sysWriteHex(mapOffset);
+          VM.sysWrite(" (= ");
+          VM.sysWrite(mapOffset);
+          VM.sysWrite(")");
           VM.sysWrite(".\n");
           VM.sysWrite("Reference is ");
         }
@@ -400,6 +403,9 @@ public final class BaselineGCMapIterator extends GCMapIterator {
       }
     }
 
+    if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
+      VM.sysWriteln("BaselineGCMapIterator getNextReferenceOffset: all references processed.");
+    }
     return Address.zero();
   }
 
