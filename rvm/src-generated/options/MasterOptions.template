@@ -341,7 +341,7 @@ $$$$ FOREACH OPTION VDATFILE
                  $$$$ END SPLIT CONSTNAME
             $$$$ END LOOP CONSTNAME
           $$$$ END LET MAIN_CMD_NAME
-    VM.sysWrite("\n");
+    VM.sysWriteln();
      $$$$ END IF TAG == E
      $$$$ END SPLIT
 $$$$ END FOREACH

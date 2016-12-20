@@ -228,7 +228,7 @@ public class BasicBlock extends SortedGraphNode {
         bb2 = e2.nextElement();
         VM.sysWrite(", " + bb2.toString());
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // print out set.
@@ -243,7 +243,7 @@ public class BasicBlock extends SortedGraphNode {
         bb2 = e2.nextElement();
         VM.sysWrite(", " + bb2.toString());
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     e2 = getExceptionalOut();
@@ -257,7 +257,7 @@ public class BasicBlock extends SortedGraphNode {
         bb2 = e2.nextElement();
         VM.sysWrite(", " + bb2.toString());
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     if (mayThrowUncaughtException()) {
@@ -277,7 +277,7 @@ public class BasicBlock extends SortedGraphNode {
       } else {
         VM.sysWrite("<none>");
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     if (getNext() != null) {
@@ -293,7 +293,7 @@ public class BasicBlock extends SortedGraphNode {
       }
       VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**

@@ -97,7 +97,7 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
             VM.sysWrite(registerIndex);
             VM.sysWrite(" to Location ");
             VM.sysWrite(location);
-            VM.sysWrite("\n");
+            VM.sysWriteln();
           }
           location = location.minus(BYTES_IN_ADDRESS);
         }
@@ -117,7 +117,7 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
             VM.sysWrite(registerIndex);
             VM.sysWrite(" to Location ");
             VM.sysWrite(location);
-            VM.sysWrite("\n");
+            VM.sysWriteln();
           }
           location = location.minus(BYTES_IN_ADDRESS);
         }

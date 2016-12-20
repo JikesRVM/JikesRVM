@@ -166,7 +166,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
       for (byte stackType : stackTypes) {
         VM.sysWrite(" " + (char) stackType);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // consult GC reference map again since the type matcher does not complete

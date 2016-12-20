@@ -247,7 +247,7 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
         } else {
           VM.sysWrite("NA");
         }
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
     if (explain) {

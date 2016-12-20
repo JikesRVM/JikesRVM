@@ -703,7 +703,7 @@ public final class OptMachineCodeMap {
       } else {
         VM.sysWrite("\n\tno GC map");
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
   }
 

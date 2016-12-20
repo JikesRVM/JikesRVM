@@ -195,7 +195,7 @@ $$$$ END LOOP
     VM.sysWrite("Commands\n");
     VM.sysWrite("-X:vm[:help]\t\t\tPrint brief description of the core VM's command-line arguments\n");
     VM.sysWrite("-X:vm:printOptions\t\tPrint the current values of the core VM's options\n");
-    VM.sysWrite("\n");
+    VM.sysWriteln();
 
     //Begin generated help messages
     VM.sysWrite("Boolean Options (-X:vm:<option>=true or -X:vm:<option>=false)\n");
@@ -238,7 +238,7 @@ $$$$ FOREACH OPTION VDATFILE
                  $$$$ END SPLIT CONSTNAME
             $$$$ END LOOP CONSTNAME
           $$$$ END LET MAIN_CMD_NAME
-    VM.sysWrite("\n");
+    VM.sysWriteln();
      $$$$ END IF TAG == E
      $$$$ END SPLIT
 $$$$ END FOREACH

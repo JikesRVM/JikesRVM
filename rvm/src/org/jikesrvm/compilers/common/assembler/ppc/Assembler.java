@@ -1463,7 +1463,7 @@ public final class Assembler extends AbstractAssembler {
       VM.sysWrite(Services.getHexString(machineCodes[i], false));
       VM.sysWrite("  ");
       VM.sysWrite(Disassembler.disasm(machineCodes[i], i << LG_INSTRUCTION_WIDTH));
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
   }
 

@@ -1175,7 +1175,7 @@ public class AssemblerOpt {
             VM.sysWrite("to be patched at ", mi - 1);
             VM.sysWrite(" inst ");
             VM.sysWriteHex(machinecodes.get(mi - 1));
-            VM.sysWrite("\n");
+            VM.sysWriteln();
           }
         }
         break;

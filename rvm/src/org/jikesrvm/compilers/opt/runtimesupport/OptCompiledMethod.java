@@ -201,7 +201,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         VM.sysWrite("setting stack to frame (opt): ");
         VM.sysWrite(browser.getMethod());
         VM.sysWrite(browser.getBytecodeIndex());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -227,7 +227,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         VM.sysWrite("up within frame stack (opt): ");
         VM.sysWrite(browser.getMethod());
         VM.sysWrite(browser.getBytecodeIndex());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
 
       return true;

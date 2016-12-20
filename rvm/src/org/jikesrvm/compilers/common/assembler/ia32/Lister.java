@@ -341,7 +341,7 @@ public final class Lister {
   private void end(int i) {
     VM.sysWrite(" | ");
     asm.writeLastInstruction(i);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     prefix = null;
   }
 

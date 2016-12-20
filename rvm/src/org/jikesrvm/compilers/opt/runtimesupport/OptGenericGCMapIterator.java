@@ -101,10 +101,10 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
       VM.sysWrite("Reference map request made");
       VM.sysWrite(" for machine code offset: ");
       VM.sysWrite(instructionOffset);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       VM.sysWrite("\tframePtr: ");
       VM.sysWrite(framePtr);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     reset();
@@ -172,7 +172,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
         VM.sysWrite(getFirstSpillLoc());
         VM.sysWrite("\tLast Spill: ");
         VM.sysWrite(getLastSpillLoc());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
   }
@@ -224,7 +224,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
           VM.sysWrite(regLocation);
           VM.sysWrite(", contents ==>");
           VM.sysWrite(regLocation.loadWord());
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
 
         // update for the next call to this routine
@@ -271,7 +271,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
         VM.sysWrite(map.gcMapInformation(mapIndex));
         VM.sysWrite(", value ==>");
         VM.sysWrite(newSpillLoc.loadWord());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
 
       if (lookForMissedReferencesInSpills) {
@@ -388,7 +388,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
     if (VERBOSE) {
       VM.sysWrite(" Inspecting Regs: ");
       VM.sysWrite(currentReg);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
     checkRegistersForMissedReferences(currentReg, currentReg);
   }
@@ -402,7 +402,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
       VM.sysWrite(FIRST_GCMAP_REG);
       VM.sysWrite(" ... ");
       VM.sysWrite(LAST_GCMAP_REG);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
     checkRegistersForMissedReferences(FIRST_GCMAP_REG, LAST_GCMAP_REG);
   }
@@ -440,7 +440,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
       if (DEBUG) {
         VM.sysWrite("Updated, ref1: ");
         VM.sysWrite(ref1);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
@@ -450,7 +450,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
       if (DEBUG) {
         VM.sysWrite("Updated, ref2: ");
         VM.sysWrite(ref2);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
@@ -469,7 +469,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
         VM.sysWrite(i);
         VM.sysWrite(" with value ==>");
         VM.sysWrite(ptr);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
 
       if (MemoryManager.addressInVM(ptr)) {
@@ -477,14 +477,14 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
         VM.sysWrite(i);
         VM.sysWrite(" contains a suspicious value ==>");
         VM.sysWrite(ptr);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
         VM.sysWrite("FramePtr: ");
         VM.sysWrite(framePtr);
         VM.sysWrite("\tFirst Spill: ");
         VM.sysWrite(getFirstSpillLoc());
         VM.sysWrite("\tLast Spill: ");
         VM.sysWrite(getLastSpillLoc());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
   }

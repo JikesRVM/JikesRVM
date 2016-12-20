@@ -100,7 +100,7 @@ public class DebugUtil {
     if (!Space.isMappedObject(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = ");
       VM.sysWrite(ref);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       Space.printVMMap();
       return false;
     }
@@ -122,14 +122,14 @@ public class DebugUtil {
       VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
       VM.sysWrite(tibAddr);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
     if (tibAddr.isZero()) {
       VM.sysWrite("validRef: TIB is Zero! ");
       VM.sysWrite(ref);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
@@ -138,7 +138,7 @@ public class DebugUtil {
       VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
       VM.sysWrite(tibAddr);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
@@ -151,7 +151,7 @@ public class DebugUtil {
       VM.sysWrite(Magic.objectAsAddress(tib));
       VM.sysWrite(" type = ");
       VM.sysWrite(type);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
@@ -191,7 +191,7 @@ public class DebugUtil {
     }
     VM.sysWrite(" CLASS=");
     VM.sysWrite(type.getDescriptor());
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   public static boolean addrInBootImage(Address addr) {

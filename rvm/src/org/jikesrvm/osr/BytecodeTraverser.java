@@ -128,7 +128,7 @@ public class BytecodeTraverser {
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("local size : ");
       VM.sysWrite(localsize);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     retaddr = new int[localsize];

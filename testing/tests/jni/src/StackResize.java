@@ -57,7 +57,7 @@ class StackResize {
     if (verbose) {
       VM.sysWrite("check resize: previous ");
       VM.sysWrite(previousStackSize); VM.sysWrite(", current ");
-      VM.sysWrite(currentStackSize); VM.sysWrite("\n");
+      VM.sysWrite(currentStackSize); VM.sysWriteln();
     }
 
     return !(currentStackSize == previousStackSize);
@@ -78,7 +78,7 @@ class StackResize {
     // debug printing:  OK until last frame, will cause stack overflow
     // because sysWrite will need many frames
     // VM.sysWrite("filling: left ");
-    // VM.sysWrite(spaceLeft); VM.sysWrite("\n");
+    // VM.sysWrite(spaceLeft); VM.sysWriteln();
     // recursion to fill stack up to 3 words left
     if ((spaceLeft) > (500 * 4)) {
       // VM.enableGC();

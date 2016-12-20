@@ -201,7 +201,7 @@ public abstract class TemplateCompilerFramework {
     VM.sysWrite(method.getName());
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**
@@ -216,7 +216,7 @@ public abstract class TemplateCompilerFramework {
     VM.sysWrite(method.getName());
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**

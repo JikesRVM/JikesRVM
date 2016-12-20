@@ -343,7 +343,7 @@ public final class EncodedOSRMap {
           } else {
             VM.sysWrite("S" + tuple.num);
           }
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
 
         first |= (RET_ADDR << TCODE_SHIFT);
@@ -537,7 +537,7 @@ public final class EncodedOSRMap {
       for (int j=0; j<osrMaps.length; j++) {
         VM.sysWriteHex(osrMaps[j]);VM.sysWrite(" ");
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       */
 
       // register map
@@ -550,7 +550,7 @@ public final class EncodedOSRMap {
         VM.sysWrite("(" + iterator.getValueType() + "," + iterator.getValue() + ")");
         iterator.moveToNext();
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
   }
 

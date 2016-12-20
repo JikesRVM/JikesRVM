@@ -4787,7 +4787,7 @@ public class JNIFunctions {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
-    if (traceJNI) VM.sysWrite("\n");
+    if (traceJNI) VM.sysWriteln();
   }
 
   /**

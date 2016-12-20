@@ -109,7 +109,7 @@ public class OptimizationPlanner {
       places *= 10;
     }
     VM.sysWrite(t);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**

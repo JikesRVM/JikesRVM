@@ -236,7 +236,7 @@ public final class OptExecutionStateExtractor extends ExecutionStateExtractor {
         VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
         VM.sysWrite(registers.gprs.get(reg.value()).toAddress());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
   }

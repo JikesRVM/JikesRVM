@@ -220,7 +220,7 @@ public abstract class BaselineCompiledMethod extends CompiledMethod {
       VM.sysWrite("setting stack to frame (base): ");
       VM.sysWrite(browser.getMethod());
       VM.sysWrite(browser.getBytecodeIndex());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
   }
 

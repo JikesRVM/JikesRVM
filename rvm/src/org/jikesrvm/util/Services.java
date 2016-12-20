@@ -294,7 +294,7 @@ public class Services {
   }
 
   static void println() {
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   static void print(String s) {

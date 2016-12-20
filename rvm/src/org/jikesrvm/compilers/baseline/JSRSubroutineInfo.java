@@ -108,10 +108,10 @@ final class JSRSubroutineInfo {
   public static void printStatistics() {
     VM.sysWrite("Number of JSR Subroutines processed: ");
     VM.sysWrite(JSRRoutineCount);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     VM.sysWrite("Number of JSR Subroutines that started with a mismatched map: ");
     VM.sysWrite(JSRRoutinesWithMismatch);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     VM.sysWrite("Total number of mismatch starts encountered :");
     VM.sysWrite(JSRMismatchCount);
   }

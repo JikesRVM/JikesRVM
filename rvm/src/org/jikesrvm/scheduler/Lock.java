@@ -419,7 +419,7 @@ public final class Lock {
     } else {
       VM.sysWriteInt(mutex.latestContender.getThreadSlot());
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**
@@ -647,7 +647,7 @@ public final class Lock {
         l.dump();
       }
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     VM.sysWrite("lock availability stats: ");
     VM.sysWriteInt(globalLocksAllocated);
     VM.sysWrite(" locks allocated, ");

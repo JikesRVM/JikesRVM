@@ -144,7 +144,7 @@ public class EdgeListener extends ContextListener {
       if (DEBUG) {
         VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
         VM.sysWrite(calleeCMID);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       return;
     }
@@ -160,7 +160,7 @@ public class EdgeListener extends ContextListener {
       if (DEBUG) {
         VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
         VM.sysWrite(callerCMID);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       return;
     }

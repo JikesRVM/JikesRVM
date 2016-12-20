@@ -66,7 +66,7 @@ $$$$ END LET USE_OPT_LEVELS
       VM.sysWrite(prefix+"O1\t\t\tSelect optimization level 1, modest optimizations\n");
       VM.sysWrite(prefix+"O2\t\t\tSelect optimization level 2\n");
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
 

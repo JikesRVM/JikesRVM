@@ -4488,7 +4488,7 @@ public final class RVMThread extends ThreadContext {
             .getCompiledMethod(compiledMethodId);
         VM.sysWrite(" method=");
         VM.sysWrite(compiledMethod.getMethod());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
   }
@@ -5319,7 +5319,7 @@ public final class RVMThread extends ThreadContext {
     VM.sysWrite(who);
     VM.sysWrite(": ");
     VM.sysWrite(what);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     outputLock.unlock();
   }
 
@@ -5366,7 +5366,7 @@ public final class RVMThread extends ThreadContext {
     VM.sysWrite(what);
     VM.sysWrite(" ");
     VM.sysWriteHex(addr);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     outputLock.unlock();
   }
 
@@ -5392,7 +5392,7 @@ public final class RVMThread extends ThreadContext {
     } else {
       VM.sysWriteInt(howmany);
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     outputLock.unlock();
   }
 
@@ -5688,7 +5688,7 @@ public final class RVMThread extends ThreadContext {
       VM.sysWrite(" at machine code offset ");
       VM.sysWrite(mcOffset);
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**
@@ -5758,10 +5758,10 @@ public final class RVMThread extends ThreadContext {
       RVMThread t = threads[i];
       if (t != null) {
         t.dumpWithPadding(30);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
 
     VM.sysWrite("\n-- Locks in use --\n");
     Lock.dumpLocks();

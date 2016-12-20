@@ -56,7 +56,7 @@ public final class OptExceptionDeliverer extends ExceptionDeliverer {
       VM.sysWrite(optMethod.getMethod());
       VM.sysWrite(" is ");
       VM.sysWrite(optMethod.getFrameFixedSize());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // reset sp to "empty params" state (ie same as it was after prologue)
@@ -77,19 +77,19 @@ public final class OptExceptionDeliverer extends ExceptionDeliverer {
         VM.sysWrite(offset);
         VM.sysWrite(" from framepoint ");
         VM.sysWrite(fp);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
     if (TRACE) {
       VM.sysWrite("Registers before delivering exception in ");
       VM.sysWrite(optMethod.getMethod());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       for (GPR reg : GPR.values()) {
         VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
         VM.sysWrite(registers.getGPRs().get(reg.value()));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
@@ -99,7 +99,7 @@ public final class OptExceptionDeliverer extends ExceptionDeliverer {
     if (TRACE) {
       VM.sysWrite("Set ip to ");
       VM.sysWrite(registers.getIP());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     VM.enableGC(); // disabled right before RuntimeEntrypoints.deliverException was called
@@ -131,12 +131,12 @@ public final class OptExceptionDeliverer extends ExceptionDeliverer {
     if (TRACE) {
       VM.sysWrite("Registers before unwinding frame for ");
       VM.sysWrite(optMethod.getMethod());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       for (GPR reg : GPR.values()) {
         VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
         VM.sysWrite(registers.getGPRs().get(reg.value()));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
@@ -152,12 +152,12 @@ public final class OptExceptionDeliverer extends ExceptionDeliverer {
     if (TRACE) {
       VM.sysWrite("Registers after unwinding frame for ");
       VM.sysWrite(optMethod.getMethod());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       for (GPR reg : GPR.values()) {
         VM.sysWrite(reg.toString());
         VM.sysWrite(" = ");
         VM.sysWrite(registers.getGPRs().get(reg.value()));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
   }

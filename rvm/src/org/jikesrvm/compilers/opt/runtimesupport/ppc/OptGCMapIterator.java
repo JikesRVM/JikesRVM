@@ -141,7 +141,7 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
       VM.sysWrite(LAST_SCRATCH_GPR.toString());
       VM.sysWrite("\nSAVE_VOL_SIZE: ");
       VM.sysWrite(SAVE_VOL_SIZE);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // This computation will include some locations that are not technically

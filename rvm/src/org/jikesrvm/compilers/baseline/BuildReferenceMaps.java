@@ -305,7 +305,7 @@ final class BuildReferenceMaps {
         VM.sysWrite("BuildReferenceMaps, error: found a block on work stack with");
         VM.sysWrite(" no starting map. The block number is ");
         VM.sysWrite(basicBlocks[currBBNum].getBlockNumber());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
         VM.sysFail("BuildReferenceMaps work stack failure");
       }
 

@@ -303,7 +303,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
           VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, ");
           VM.sysWrite("  this, bridge, returning: ");
           VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
         return bridgeRegisterLocation.minus(BYTES_IN_ADDRESS);
       }
@@ -325,7 +325,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
               VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, ");
               VM.sysWrite("  parm: ");
               VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
-              VM.sysWrite("\n");
+              VM.sysWriteln();
             }
             return bridgeRegisterLocation.minus(BYTES_IN_ADDRESS);
           } else if (bridgeParameterType.isLongType()) {
