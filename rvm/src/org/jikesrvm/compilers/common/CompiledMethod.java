@@ -371,8 +371,10 @@ public abstract class CompiledMethod {
 
   /**
    * Identify the compiler that produced this compiled method.
+   * <p>
+   * Note: use this instead of {@code instanceof} when GC is disabled (i.e. during GC).
+   *
    * @return one of TRAP, BASELINE, OPT, or JNI.
-   * Note: use this instead of "instanceof" when GC is disabled (i.e. during GC)
    */
   @Uninterruptible
   public abstract int getCompilerType();
