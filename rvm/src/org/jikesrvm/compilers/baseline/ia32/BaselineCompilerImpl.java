@@ -2476,17 +2476,24 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       if (VM.BuildFor32Addr) {
         // NB this is a 64bit copy from memory to the stack so implement
         // as a slightly optimized Intel memory copy using the FPU
-        adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
         if (SSE2_BASE) {
           asm.emitMOVQ_Reg_RegIdx(XMM0, T1, T0, BYTE, NO_SLOT); // XMM0 is field value
+          adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
           asm.emitMOVQ_RegInd_Reg(SP, XMM0); // place value on stack
         } else {
           asm.emitFLD_Reg_RegIdx_Quad(FP0, T1, T0, BYTE, NO_SLOT); // FP0 is field value
+          adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
           asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // place value on stack
         }
       } else {
         if (!fieldType.isWordLikeType()) {
-          adjustStack(-WORDSIZE, true); // add empty slot
+          // Note that the stack musn't be clobbered at this point.
+          // If the stack was clobbered and a NPE occurred and a
+          // garbage collection was triggered in exception handling
+          // (e.g. in a gcstress build), the stack state would not be
+          // as the GC maps expect which would lead to a failure with
+          // a "bad GC map".
+          adjustStack(-WORDSIZE, false); // add empty slot
         }
         asm.emitPUSH_RegIdx(T1, T0, BYTE, NO_SLOT); // place value on stack
       }
@@ -2546,12 +2553,13 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       if (VM.BuildFor32Addr && field.isVolatile()) {
         // NB this is a 64bit copy from memory to the stack so implement
         // as a slightly optimized Intel memory copy using the FPU
-        adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
         if (SSE2_BASE) {
           asm.emitMOVQ_Reg_RegDisp(XMM0, T0, fieldOffset); // XMM0 is field value
+          adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
           asm.emitMOVQ_RegInd_Reg(SP, XMM0); // replace reference with value on stack
         } else {
           asm.emitFLD_Reg_RegDisp_Quad(FP0, T0, fieldOffset); // FP0 is field value
+          adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
           asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
         }
       } else if (VM.BuildFor32Addr && !field.isVolatile()) {
@@ -2627,12 +2635,13 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         if (VM.BuildFor32Addr && field.isVolatile()) {
           // NB this is a 64bit copy from memory to the stack so implement
           // as a slightly optimized Intel memory copy using the FPU
-          adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
           if (SSE2_BASE) {
             asm.emitMOVQ_Reg_RegDisp(XMM0, S0, fieldOffset); // XMM0 is field value
+            adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
             asm.emitMOVQ_RegInd_Reg(SP, XMM0); // replace reference with value on stack
           } else {
             asm.emitFLD_Reg_RegDisp_Quad(FP0, S0, fieldOffset); // FP0 is field value
+            adjustStack(-2 * WORDSIZE, true); // adjust stack down to hold 64bit value
             asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
           }
         } else if (VM.BuildFor32Addr && !field.isVolatile()) {
