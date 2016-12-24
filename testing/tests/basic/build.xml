@@ -98,7 +98,11 @@
                     class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInstanceof"
                     rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
 
-    <runCompareTest tag="TestNullChecks" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks"/>
+    <runCompareTest tag="TestNullChecks_Resolved" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks_Resolved"/>
+    <runCompareTest tag="TestNullChecks_Unresolved_ReadFromNonNullObject" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks_Unresolved_ReadFromNonNullObject"/>
+    <runCompareTest tag="TestNullChecks_Unresolved_ReadFromNullObject" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks_Unresolved_ReadFromNullObject"/>
+    <runCompareTest tag="TestNullChecks_Unresolved_WriteToNonNullObject" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks_Unresolved_WriteToNonNullObject"/>
+    <runCompareTest tag="TestNullChecks_Unresolved_WriteToNullObject" class="test.org.jikesrvm.basic.core.nullchecks.TestNullChecks_Unresolved_WriteToNullObject"/>
 
     <runCompareTest tag="tClass" class="test.org.jikesrvm.basic.core.reflect.tClass"/>
     <runCompareTest tag="tArray" class="test.org.jikesrvm.basic.core.reflect.tArray"/>
