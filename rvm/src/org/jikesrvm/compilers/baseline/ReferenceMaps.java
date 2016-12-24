@@ -1472,12 +1472,12 @@ public final class ReferenceMaps {
       VM.sysWrite(" for map ");
       VM.sysWrite(i);
       VM.sysWriteln();
-      while (tindex != 0) {
+      while (tindex != NOMORE) {
         tindex = getNextRefIndex(tindex, i);
         VM.sysWrite("next offset = ");
         VM.sysWrite(tindex);
         VM.sysWriteln();
-        if (tindex == 0) VM.sysWriteln("---------------- end of map");
+        if (tindex == NOMORE) VM.sysWriteln("---------------- end of map");
       }
     }
   }
@@ -1508,7 +1508,7 @@ public final class ReferenceMaps {
         count++;
         index = getNextRefIndex(index, i);
         // display number of refs at each site - very noisy
-        if (index == 0) {
+        if (index == NOMORE) {
           VM.sysWriteln("  -----map machine code offset = ", MCSites[i], "    number of refs in this map = ", count);
         }
       }
