@@ -382,10 +382,6 @@ public final class ReferenceMaps {
     }
   }
 
-  public int getStackDepth(int mapid) {
-    return bytesPerMap();
-  }
-
   @Interruptible
   public int size() {
     int size = TypeReference.ReferenceMaps.peekType().asClass().getInstanceSize();

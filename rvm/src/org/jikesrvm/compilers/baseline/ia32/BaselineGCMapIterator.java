@@ -449,8 +449,5 @@ public final class BaselineGCMapIterator extends GCMapIterator {
     return CompiledMethod.BASELINE;
   }
 
-  public int getStackDepth() {
-    return maps.getStackDepth(mapId);
-  }
 }
 

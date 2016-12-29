@@ -445,10 +445,4 @@ public final class BaselineGCMapIterator extends GCMapIterator {
     }
   }
 
-  // For debugging (used with checkRefMap)
-  //
-  public int getStackDepth() {
-    return maps.getStackDepth(mapId);
-  }
-
 }
