@@ -27,15 +27,13 @@ import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.baseline.AbstractBaselineGCMapIterator;
 import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.ppc.RegisterConstants.GPR;
-import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -51,57 +49,16 @@ import org.vmmagic.unboxed.Offset;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public final class BaselineGCMapIterator extends GCMapIterator {
+public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
 
-  // Iterator state for mapping any stackframe.
-  //
-  /** current offset in current map */
-  private int mapIndex;
-  /** id of current map out of all maps */
-  private int mapId;
-  /** set of maps for this method */
-  private ReferenceMaps maps;
+  /** Compiled method for the frame */
+  protected ArchBaselineCompiledMethod currentCompiledMethod;
 
-  // Additional iterator state for mapping dynamic bridge stackframes.
-  //
-  /** place to keep info returned by CompiledMethod.getDynamicLink */
-  private final DynamicLink dynamicLink;
-  /** method to be invoked via dynamic bridge ({@code null}: current frame is not a dynamic bridge) */
-  private MethodReference bridgeTarget;
-  /** method for the frame */
-  private NormalMethod currentMethod;
-  /** compiled method for the frame */
-  ArchBaselineCompiledMethod currentCompiledMethod;
-  private int currentNumLocals;
-  /** parameter types passed by that method */
-  private TypeReference[] bridgeParameterTypes;
-  /** have all bridge parameters been mapped yet? */
-  private boolean bridgeParameterMappingRequired;
-  /** have the register location been updated */
-  private boolean bridgeRegistersLocationUpdated;
-  /** have we processed all the values in the regular map yet? */
-  private boolean finishedWithRegularMap;
-  /** first parameter to be mapped (-1 == "this") */
-  private int bridgeParameterInitialIndex;
-  /** current parameter being mapped (-1 == "this") */
-  private int bridgeParameterIndex;
   /**  gpr register it lives in */
   private GPR bridgeRegisterIndex;
-  /**  memory address at which that register was saved */
-  private Address bridgeRegisterLocation;
-  /** current spilled param location */
-  private Address bridgeSpilledParamLocation;
 
-  //
-  // Remember the location array for registers. This array needs to be updated
-  // with the location of any saved registers.
-  // This information is not used by this iterator but must be updated for the
-  // other types of iterators (ones for the opt compiler built frames)
-  // The locations are kept as addresses within the stack.
-  //
   public BaselineGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
-    dynamicLink = new DynamicLink();
   }
 
   /**
@@ -195,30 +152,18 @@ public final class BaselineGCMapIterator extends GCMapIterator {
     reset();
   }
 
-  /**
-   * Reset iteration to initial state.
-   * This allows a map to be scanned multiple times
-   */
   @Override
-  public void reset() {
+  protected void resetArchitectureSpecificBridgeSState() {
+    bridgeRegisterIndex = FIRST_VOLATILE_GPR;
+    bridgeRegisterLocation = framePtr.loadAddress();
+    // point to first saved gpr
+    bridgeRegisterLocation =
+        bridgeRegisterLocation.minus(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) +
+                                     BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1));
 
-    mapIndex = 0;
-    finishedWithRegularMap = false;
-
-    if (bridgeTarget != null) {
-      // point to first saved gpr
-      bridgeParameterMappingRequired = true;
-      bridgeParameterIndex = bridgeParameterInitialIndex;
-      bridgeRegisterIndex = FIRST_VOLATILE_GPR;
-      bridgeRegisterLocation = framePtr.loadAddress();
-      bridgeRegisterLocation =
-          bridgeRegisterLocation.minus(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) +
-                                       BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1));
-
-      // get to my caller's frameptr and then walk up to the spill area
-      Address callersFP = Magic.getCallerFramePointer(framePtr);
-      bridgeSpilledParamLocation = callersFP.plus(STACKFRAME_HEADER_SIZE);
-    }
+    // get to my caller's frameptr and then walk up to the spill area
+    Address callersFP = Magic.getCallerFramePointer(framePtr);
+    bridgeSpilledParamLocation = callersFP.plus(STACKFRAME_HEADER_SIZE);
   }
 
   /**
@@ -402,11 +347,6 @@ public final class BaselineGCMapIterator extends GCMapIterator {
     }
   }
 
-  /**
-   * Cleanup pointers - used with method maps to release data structures early
-   * ... they may be in temporary storage ie storage only used during garbage
-   * collection
-   */
   @Override
   public void cleanupPointers() {
     // Make sure that the registerLocation array is updated with the
@@ -415,18 +355,7 @@ public final class BaselineGCMapIterator extends GCMapIterator {
     // only safe way to do this...]]
     updateCallerRegisterLocations();
 
-    maps.cleanupPointers();
-    maps = null;
-    if (mapId < 0) {
-      ReferenceMaps.jsrLock.unlock();
-    }
-    bridgeTarget = null;
-    bridgeParameterTypes = null;
-  }
-
-  @Override
-  public int getType() {
-    return CompiledMethod.BASELINE;
+    super.cleanupPointers();
   }
 
   private void updateCallerRegisterLocations() {

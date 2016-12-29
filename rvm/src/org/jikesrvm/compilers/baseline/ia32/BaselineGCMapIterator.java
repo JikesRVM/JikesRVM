@@ -30,14 +30,12 @@ import static org.jikesrvm.ia32.RegisterConstants.NUM_PARAMETER_GPRS;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.baseline.AbstractBaselineGCMapIterator;
 import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -53,71 +51,24 @@ import org.vmmagic.unboxed.Offset;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public final class BaselineGCMapIterator extends GCMapIterator {
+public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL = false; // dynamic link frames
 
-  /*
-   * Iterator state for mapping any stackframe.
-   */
   /** Compiled method for the frame */
-  private NormalMethod currentMethod;
-  /** Compiled method for the frame */
-  private ArchBaselineCompiledMethod currentCompiledMethod;
-  private int currentNumLocals;
-  /** Current index in current map */
-  private int mapIndex;
-  /** id of current map out of all maps */
-  private int mapId;
-  /** set of maps for this method */
-  private ReferenceMaps maps;
+  protected ArchBaselineCompiledMethod currentCompiledMethod;
   /** have we reported the base ptr of the edge counter array? */
   private boolean counterArrayBase;
 
-  /*
-   *  Additional iterator state for mapping dynamic bridge stackframes.
-   */
-  /** place to keep info returned by CompiledMethod.getDynamicLink */
-  private final DynamicLink dynamicLink;
-  /** method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge) */
-  private MethodReference bridgeTarget;
-  /** parameter types passed by that method */
-  private TypeReference[] bridgeParameterTypes;
-  /** have all bridge parameters been mapped yet? */
-  private boolean bridgeParameterMappingRequired;
   /** do we need to map spilled params (baseline compiler = no, opt = yes) */
   private boolean bridgeSpilledParameterMappingRequired;
-  /** have the register location been updated */
-  private boolean bridgeRegistersLocationUpdated;
-  /** have we processed all the values in the regular map yet? */
-  private boolean finishedWithRegularMap;
-  /** first parameter to be mapped (-1 == "this") */
-  private int bridgeParameterInitialIndex;
-  /** current parameter being mapped (-1 == "this") */
-  private int bridgeParameterIndex;
   /** gpr register it lives in */
   private int bridgeRegisterIndex;
-  /** memory address at which that register was saved */
-  private Address bridgeRegisterLocation;
-  /** current spilled param location */
-  private Address bridgeSpilledParamLocation;
   /** starting offset to stack location for param0 */
   private int bridgeSpilledParamInitialOffset;
 
-  /**
-   * Constructs a BaselineGCMapIterator for IA32.
-   * <p>
-   * Note: the location array for registers needs to be remembered. It also needs to
-   * be updated with the location of any saved registers. The locations are kept
-   * as addresses within the stack. This information is not used by this iterator
-   * but must be updated for the other types of iterators (e.g. iterators for
-   * the opt compiler built frames).
-   *
-   * @param registerLocations locations of saved registers
-   */
   public BaselineGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
-    dynamicLink = new DynamicLink();
   }
 
   /*
@@ -215,21 +166,15 @@ public final class BaselineGCMapIterator extends GCMapIterator {
     reset();
   }
 
-  /**
-   * Reset iteration to initial state. This allows a map to be scanned multiple
-   * times.
-   */
   @Override
-  public void reset() {
-    mapIndex = 0;
-    finishedWithRegularMap = false;
-
+  protected void resetOtherState() {
     // setup map to report EBX if this method is holding the base of counter array in it.
     counterArrayBase = currentCompiledMethod.hasCounterArray();
+  }
 
+  @Override
+  protected void resetArchitectureSpecificBridgeSState() {
     if (bridgeTarget != null) {
-      bridgeParameterMappingRequired = true;
-      bridgeParameterIndex = bridgeParameterInitialIndex;
       bridgeRegisterIndex = 0;
       bridgeRegisterLocation = framePtr.plus(STACKFRAME_FIRST_PARAMETER_OFFSET); // top of frame
       bridgeSpilledParamLocation = framePtr.plus(bridgeSpilledParamInitialOffset);
@@ -426,27 +371,6 @@ public final class BaselineGCMapIterator extends GCMapIterator {
       VM.sysWrite(".\n");
     }
     return (mapIndex == 0) ? Address.zero() : framePtr.plus(convertIndexToOffset(mapIndex));
-  }
-
-  /**
-   * Cleanup pointers - used with method maps to release data structures early
-   * ... they may be in temporary storage i.e. storage only used during garbage
-   * collection
-   */
-  @Override
-  public void cleanupPointers() {
-    maps.cleanupPointers();
-    maps = null;
-    if (mapId < 0) {
-      ReferenceMaps.jsrLock.unlock();
-    }
-    bridgeTarget = null;
-    bridgeParameterTypes = null;
-  }
-
-  @Override
-  public int getType() {
-    return CompiledMethod.BASELINE;
   }
 
 }
