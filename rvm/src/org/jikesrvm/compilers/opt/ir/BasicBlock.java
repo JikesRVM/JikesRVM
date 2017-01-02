@@ -213,14 +213,14 @@ public class BasicBlock extends SortedGraphNode {
    */
   @Override
   public final void printExtended() {
-    VM.sysWrite("Basic block " + toString() + "\n");
+    VM.sysWriteln("Basic block " + toString());;
 
     // print in set.
     BasicBlock bb2;
     Enumeration<BasicBlock> e2 = getIn();
     VM.sysWrite("\tin: ");
     if (!e2.hasMoreElements()) {
-      VM.sysWrite("<none>\n");
+      VM.sysWriteln("<none>");
     } else {
       bb2 = e2.nextElement();
       VM.sysWrite(bb2.toString());
@@ -235,7 +235,7 @@ public class BasicBlock extends SortedGraphNode {
     e2 = getNormalOut();
     VM.sysWrite("\tnormal out: ");
     if (!e2.hasMoreElements()) {
-      VM.sysWrite("<none>\n");
+      VM.sysWriteln("<none>");
     } else {
       bb2 = e2.nextElement();
       VM.sysWrite(bb2.toString());
@@ -249,7 +249,7 @@ public class BasicBlock extends SortedGraphNode {
     e2 = getExceptionalOut();
     VM.sysWrite("\texceptional out: ");
     if (!e2.hasMoreElements()) {
-      VM.sysWrite("<none>\n");
+      VM.sysWriteln("<none>");
     } else {
       bb2 = e2.nextElement();
       VM.sysWrite(bb2.toString());
@@ -261,7 +261,7 @@ public class BasicBlock extends SortedGraphNode {
     }
 
     if (mayThrowUncaughtException()) {
-      VM.sysWrite("\tMay throw uncaught exceptions, implicit edge to EXIT\n");
+      VM.sysWriteln("\tMay throw uncaught exceptions, implicit edge to EXIT");
     }
 
     if (hasExceptionHandlers()) {
@@ -281,17 +281,17 @@ public class BasicBlock extends SortedGraphNode {
     }
 
     if (getNext() != null) {
-      VM.sysWrite("\tNext in code order: " + getNext().toString() + "\n");
+      VM.sysWriteln("\tNext in code order: " + getNext().toString());
     }
 
     if (start != null) {
-      VM.sysWrite("\tInstructions:\n");
+      VM.sysWriteln("\tInstructions:");
       Instruction inst = start;
       while (inst != end) {
-        VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
+        VM.sysWriteln(inst.getBytecodeIndex() + ":\t" + inst);
         inst = inst.getNext();
       }
-      VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
+      VM.sysWriteln(inst.getBytecodeIndex() + ":\t" + inst);
     }
     VM.sysWriteln();
   }

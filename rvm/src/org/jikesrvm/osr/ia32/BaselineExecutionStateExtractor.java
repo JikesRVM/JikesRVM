@@ -157,12 +157,13 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
     byte[] stackTypes = typer.getStackTypes();
 
     if (VM.TraceOnStackReplacement) {
-      VM.sysWrite("BC Index : " + bcIndex + "\n");
+      VM.sysWriteln("BC Index : " + bcIndex);
       VM.sysWrite("Local Types :");
       for (byte localType : localTypes) {
         VM.sysWrite(" " + (char) localType);
       }
-      VM.sysWrite("\nStack Types :");
+      VM.sysWriteln();
+      VM.sysWrite("Stack Types :");
       for (byte stackType : stackTypes) {
         VM.sysWrite(" " + (char) stackType);
       }
@@ -179,7 +180,8 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
         if (!fooCM.referenceMaps.isLocalRefType(fooM, ipOffset.plus(1 << LG_INSTRUCTION_WIDTH), i)) {
           localTypes[i] = VoidTypeCode;
           if (VM.TraceOnStackReplacement) {
-            VM.sysWriteln("GC maps disagrees with type matcher at " + i + "th local\n");
+            VM.sysWriteln("GC maps disagrees with type matcher at " + i + "th local");
+            VM.sysWriteln();
           }
         }
       }
@@ -283,7 +285,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
           int bcIndex = compiledMethod.findBytecodeIndexForInstruction(ipOffset.plus(INSTRUCTION_WIDTH));
 
           if (VM.TraceOnStackReplacement) {
-            VM.sysWrite(" bc " + bcIndex + "\n");
+            VM.sysWriteln(" bc " + bcIndex);
           }
 
           state.add(new VariableElement(kind, i, RET_ADDR, bcIndex));

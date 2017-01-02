@@ -160,7 +160,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
    */
   public static void processCommandLineArg(String prefix, String arg) {
     if (!options.processAsOption(prefix, arg)) {
-      VM.sysWrite("BaselineCompiler: Unrecognized argument \"" + arg + "\"\n");
+      VM.sysWriteln("BaselineCompiler: Unrecognized argument \"" + arg + "\"");
       VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
@@ -178,7 +178,8 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
   public static void generateBaselineCompilerSubsystemReport(boolean explain) {
     if (!VM.MeasureCompilationPhases) return;
 
-    VM.sysWriteln("\n\t\tBaseline Compiler SubSystem");
+    VM.sysWriteln();
+    VM.sysWriteln("\t\tBaseline Compiler SubSystem");
     VM.sysWriteln("\tPhase\t\t\t    Time");
     VM.sysWriteln("\t\t\t\t(ms)    (%ofTotal)");
 

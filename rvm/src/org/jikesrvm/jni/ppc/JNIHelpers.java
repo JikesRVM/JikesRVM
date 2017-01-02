@@ -607,7 +607,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     // get the JNIEnvironment for this thread in case we need to dereference any object arg
     JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
-    // VM.sysWrite("JNI packageParameterFromVarArg: packaging " + argCount + " arguments\n");
+    // VM.sysWriteln("JNI packageParameterFromVarArg: packaging " + argCount + " arguments");
 
     Address addr = argAddress;
     for (int i = 0; i < argCount; i++) {

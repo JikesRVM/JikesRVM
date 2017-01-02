@@ -217,7 +217,7 @@ public class CFGTransformations extends CompilerPhase {
     // successor will lead to irreducible control flow.
     BasicBlock[] succ = inLoopSuccessors(n);
     if (succ.length > 1) {
-      if (DEBUG) VM.sysWrite("unwhiling would lead to irreducible CFG\n");
+      if (DEBUG) VM.sysWriteln("unwhiling would lead to irreducible CFG");
       return false;
     }
 

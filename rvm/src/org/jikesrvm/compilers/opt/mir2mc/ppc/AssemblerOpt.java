@@ -762,30 +762,30 @@ public class AssemblerOpt {
           BranchOperand o = MIR_CondBranch.getTarget(p);
           int targetOffset = resolveBranch(p, o.target, mi, mcOffsets);
           if (targetOffset == 0) {            // unresolved branch
-            if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
+            if (DEBUG) VM.sysWriteln("**** Forward Cond. Branch ****");
             machinecodes.set(mi++, inst | (bo_bi << 16));
             mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+            if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
             if (unsafeCondDispl) {            // assume we might need two words
               machinecodes.set(mi++, NOPtemplate);   // for now fill with NOP
-              if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+              if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
             }
           } else if (targetOffset < MIN_COND_DISPL << 2) {
             // one word is not enough
-            if (DEBUG) VM.sysWrite("**** Backward Long Cond. Branch ****\n");
+            if (DEBUG) VM.sysWriteln("**** Backward Long Cond. Branch ****");
             // flip the condition and skip the following branch instruction
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+            if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
             machinecodes.set(mi++, inst | flipCondition(bo_bi << 16) | (2 << 2));
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+            if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
             // make a long branch to the target
             machinecodes.set(mi++, Btemplate | ((targetOffset - 4) & LI_MASK));
             mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+            if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
           } else {              // one word is enough
-            if (DEBUG) VM.sysWrite("**** Backward Short Cond. Branch ****\n");
+            if (DEBUG) VM.sysWriteln("**** Backward Short Cond. Branch ****");
             machinecodes.set(mi++, inst | (bo_bi << 16) | (targetOffset & BD_MASK));
             mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+            if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
           }
         }
         break;
@@ -837,13 +837,13 @@ public class AssemblerOpt {
           BranchOperand o = MIR_CondCall.getTarget(p);
           int targetOffset = resolveBranch(p, o.target, mi, mcOffsets);
           if (targetOffset == 0) {            // unresolved branch
-            if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
+            if (DEBUG) VM.sysWriteln("**** Forward Cond. Branch ****");
             machinecodes.set(mi++, inst | (bo_bi << 16));
             mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+            if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
             if (unsafeCondDispl) {            // assume we need two words
               machinecodes.set(mi++, NOPtemplate);    // for now fill with NOP
-              if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+              if (DEBUG) VM.sysWriteln(disasm(machinecodes.get(mi - 1), 0));
             }
           } else if (targetOffset < MIN_COND_DISPL << 2) {
             // one instruction is not enough
@@ -854,7 +854,7 @@ public class AssemblerOpt {
               unconditional branch and link.
               -- the code below generates a conditional branch and
               link around an unconditional branch.
-              if (DEBUG) VM.sysWrite("**** Backward Long Cond. Branch ****\n");
+              if (DEBUG) VM.sysWriteln("**** Backward Long Cond. Branch ****");
               // flip the condition and skip the following branch instruction
               machinecodes.set(mi++, inst | flipCondition(bo_bi<<16) | (2<<2));
               if (DEBUG) printInstruction(mi-1, inst,
@@ -865,10 +865,10 @@ public class AssemblerOpt {
               if (DEBUG) printInstruction(mi-1, Btemplate, targetOffset-4);
             */
           } else {              // one instruction is enough
-            if (DEBUG) VM.sysWrite("**** Backward Short Cond. Branch ****\n");
+            if (DEBUG) VM.sysWriteln("**** Backward Short Cond. Branch ****");
             machinecodes.set(mi++, inst | (bo_bi << 16) | (targetOffset & BD_MASK));
             mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0) + "\n");
+            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi - 1), 0));
           }
         }
         break;
@@ -1248,8 +1248,8 @@ public class AssemblerOpt {
           if (targetOffset <= MAX_COND_DISPL << 2) { // one word is enough
             machinecodes.set(bi, machinecodes.get(bi) | targetOffset & BD_MASK);
             if (DEBUG) {
-              VM.sysWrite("**** Forward Short Cond. Branch ****\n");
-              VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
+              VM.sysWriteln("**** Forward Short Cond. Branch ****");
+              VM.sysWriteln(disasm(machinecodes.get(bi), 0));
             }
           } else {          // one word is not enough
             // we're moving the "real" branch ahead 1 instruction
@@ -1268,9 +1268,9 @@ public class AssemblerOpt {
               machinecodes.set(bi + 1, machinecodes.get(bi + 1) | 1);          // turn on link bit.
             }
             if (DEBUG) {
-              VM.sysWrite("**** Forward Long Cond. Branch ****\n");
-              VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
-              VM.sysWrite(disasm(machinecodes.get(bi + 1), 0) + "\n");
+              VM.sysWriteln("**** Forward Long Cond. Branch ****");
+              VM.sysWriteln(disasm(machinecodes.get(bi), 0));
+              VM.sysWriteln(disasm(machinecodes.get(bi + 1), 0));
             }
           }
           break;

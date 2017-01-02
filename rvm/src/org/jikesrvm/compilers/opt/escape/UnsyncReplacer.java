@@ -108,7 +108,7 @@ final class UnsyncReplacer {
           if (mop.getTarget().isSynchronized()) {
             mop.spMethod = context.findOrCreateSpecializedVersion((NormalMethod) mop.getTarget());
             if (DEBUG) {
-              VM.sysWrite("Identified call " + inst + " for unsynchronization\n");
+              VM.sysWriteln("Identified call " + inst + " for unsynchronization");
             }
           }
         }

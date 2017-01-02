@@ -264,7 +264,8 @@ public class CompiledMethods {
       codeBytes[ct] += Memory.alignUp(size, BYTES_IN_ADDRESS);
       mapBytes[ct] += cm.size();
     }
-    VM.sysWriteln("Compiled code space report\n");
+    VM.sysWriteln("Compiled code space report");
+    VM.sysWriteln();
 
     VM.sysWriteln("  Baseline Compiler");
     VM.sysWriteln("    Number of compiled methods =         " + codeCount[CompiledMethod.BASELINE]);

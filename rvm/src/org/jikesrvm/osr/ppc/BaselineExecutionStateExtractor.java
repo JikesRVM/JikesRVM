@@ -151,22 +151,24 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
       if (!gcref && (localTypes[i] == ClassTypeCode)) {
         localTypes[i] = VoidTypeCode;   // use gc map as reference
         if (VM.TraceOnStackReplacement) {
-          VM.sysWriteln("GC maps disgrees with type matcher at " + i + "th local\n");
+          VM.sysWriteln("GC maps disgrees with type matcher at " + i + "th local");
+          VM.sysWriteln();
         }
       }
     }
 
     if (VM.TraceOnStackReplacement) {
       Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
-      VM.sysWrite("BC Index : " + bcIndex + "\n");
-      VM.sysWrite("IP Index : ", ipIndex.plus(1), "\n");
-      VM.sysWrite("MC Offset : ", ipOffset.plus(INSTRUCTION_WIDTH), "\n");
+      VM.sysWriteln("BC Index : " + bcIndex);
+      VM.sysWriteln("IP Index : ", ipIndex.plus(1));
+      VM.sysWriteln("MC Offset : ", ipOffset.plus(INSTRUCTION_WIDTH));
       VM.sysWrite("Local Types :");
       for (byte localType : localTypes) {
         VM.sysWrite(" " + (char) localType);
       }
 
-      VM.sysWrite("\nStack Types :");
+      VM.sysWriteln();
+      VM.sysWrite("Stack Types :");
       for (byte stackType : stackTypes) {
         VM.sysWrite(" " + (char) stackType);
       }
@@ -387,7 +389,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
           int bcIndex = compiledMethod.findBytecodeIndexForInstruction(ipOffset.plus(INSTRUCTION_WIDTH));
 
           if (VM.TraceOnStackReplacement) {
-            VM.sysWrite(" bc " + bcIndex + "\n");
+            VM.sysWriteln(" bc " + bcIndex);
           }
 
           state.add(new VariableElement(kind, i, RET_ADDR, bcIndex));
@@ -490,7 +492,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
           int bcIndex = compiledMethod.findBytecodeIndexForInstruction(ipOffset.plus(INSTRUCTION_WIDTH));
 
           if (VM.TraceOnStackReplacement) {
-            VM.sysWrite(" bc " + bcIndex + "\n");
+            VM.sysWriteln(" bc " + bcIndex);
           }
 
           state.add(new VariableElement(kind, i, RET_ADDR, bcIndex));

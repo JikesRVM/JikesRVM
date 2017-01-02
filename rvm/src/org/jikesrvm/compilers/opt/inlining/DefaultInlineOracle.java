@@ -332,7 +332,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               if (preEx) {
                 ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) RVMClass.classLoadListener;
                 if (ClassLoadingDependencyManager.TRACE || ClassLoadingDependencyManager.DEBUG) {
-                  cldm.report("PREEX_INLINE: Inlined " + callee + " into " + caller + "\n");
+                  cldm.report("PREEX_INLINE: Inlined " + callee + " into " + caller);
                 }
                 cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
                 if (goosc) {
@@ -451,7 +451,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       if (guard == OptOptions.INLINE_GUARD_CODE_PATCH) {
         ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) RVMClass.classLoadListener;
         if (ClassLoadingDependencyManager.TRACE || ClassLoadingDependencyManager.DEBUG) {
-          cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller + "\n");
+          cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller);
         }
         cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
       }

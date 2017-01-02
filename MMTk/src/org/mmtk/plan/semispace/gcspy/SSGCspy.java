@@ -202,7 +202,7 @@ import org.vmmagic.pragma.*;
     losNurseryDriver  = newTreadmillDriver("LOS Nursery", loSpace);
     losDriver         = newTreadmillDriver("LOS", loSpace);
 
-    if (DEBUG) Log.write("SemiServerInterpreter initialised\n");
+    if (DEBUG) Log.writeln("SemiServerInterpreter initialised");
 
     // Register drivers to allow immortal space to notify direct references
     immortalDriver.registerDriversForReferenceNotification(

@@ -474,7 +474,7 @@ public final class EncodedOSRMap {
 
     /* this is the place should not be reached, dump OSR content */
     if (VM.TraceOnStackReplacement) {
-      VM.sysWrite("cannot find map entry for ", mcOffset, "\n");
+      VM.sysWriteln("cannot find map entry for ", mcOffset);
       this.printMap();
     }
 
@@ -522,7 +522,7 @@ public final class EncodedOSRMap {
    */
   public void printMap() {
     if (lastEntry > 0) {
-      VM.sysWrite("On-stack-replacement maps:\n");
+      VM.sysWriteln("On-stack-replacement maps:");
     }
     for (int i = 0; i <= lastEntry; i++) {
       VM.sysWrite("Entry " + i + " : ");

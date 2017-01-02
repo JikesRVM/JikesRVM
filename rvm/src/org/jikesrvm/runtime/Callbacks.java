@@ -674,7 +674,7 @@ public final class Callbacks {
     if (TRACE_BOOTIMAGE) {
       //VM.sysWrite(getThread(), false);
       //VM.sysWrite(": ");
-      VM.sysWrite("invoking boot image writing monitors\n");
+      VM.sysWriteln("invoking boot image writing monitors");
     }
     for (CallbackList l = bootImageCallbacks; l != null; l = l.next) {
       if (TRACE_BOOTIMAGE) {
@@ -730,7 +730,7 @@ public final class Callbacks {
     if (TRACE_STARTUP) {
       //VM.sysWrite(getThread(), false);
       //VM.sysWrite(": ");
-      VM.sysWrite("invoking startup monitors\n");
+      VM.sysWriteln("invoking startup monitors");
     }
     for (CallbackList l = startupCallbacks; l != null; l = l.next) {
       if (TRACE_STARTUP) {
@@ -845,7 +845,7 @@ public final class Callbacks {
     synchronized (appStartLock) {
       if (appStartCallbacks == null) return;
       if (TRACE_APP_START) {
-        VM.sysWrite("invoking application start monitors\n");
+        VM.sysWriteln("invoking application start monitors");
       }
       for (CallbackList l = appStartCallbacks; l != null; l = l.next) {
         if (TRACE_APP_START) {

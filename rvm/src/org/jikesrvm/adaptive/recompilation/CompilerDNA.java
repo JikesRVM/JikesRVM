@@ -288,7 +288,7 @@ public class CompilerDNA {
       case OPT2:
         return 2;
       default:
-        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant");
         return -99;
     }
   }
@@ -316,7 +316,7 @@ public class CompilerDNA {
       case 2:
         return OPT2;
       default:
-        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
         return -99;
     }
   }

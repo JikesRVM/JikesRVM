@@ -154,13 +154,13 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
               BasicBlock taken = poss.getBranchTarget();
               if (taken == notTaken) continue; // both go to same block, so we don't know anything!
               if (notTaken.hasOneIn() && dt.dominates(notTaken, candBB)) {
-                if (DEBUG) VM.sysWrite(candTest + " is dominated by not-taken branch of " + poss + "\n");
+                if (DEBUG) VM.sysWriteln(candTest + " is dominated by not-taken branch of " + poss);
                 removeCondBranch(candBB, candTest, ir, poss);
                 cc.removeVertex(gvns.valueGraph.getVertex(candTest));
                 break;
               }
               if (taken.hasOneIn() && dt.dominates(taken, candBB)) {
-                if (DEBUG) VM.sysWrite(candTest + " is dominated by taken branch of " + poss + "\n");
+                if (DEBUG) VM.sysWriteln(candTest + " is dominated by taken branch of " + poss);
                 takeCondBranch(candBB, candTest, ir);
                 cc.removeVertex(gvns.valueGraph.getVertex(candTest));
                 break;
@@ -226,7 +226,7 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
      * @param di branch that dominates cb
      */
     private void removeCondBranch(BasicBlock source, Instruction cb, IR ir, Instruction di) {
-      if (DEBUG) VM.sysWrite("Eliminating definitely not-taken branch " + cb + "\n");
+      if (DEBUG) VM.sysWriteln("Eliminating definitely not-taken branch " + cb);
       if (IfCmp.conforms(cb) && IfCmp.hasGuardResult(cb)) {
         cb.insertBefore(Move.create(GUARD_MOVE, IfCmp.getGuardResult(cb), IfCmp.getGuardResult(di).copy()));
       }
@@ -249,7 +249,7 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
      * @param ir the governing IR, in SSA form
      */
     private void takeCondBranch(BasicBlock source, Instruction cb, IR ir) {
-      if (DEBUG) VM.sysWrite("Eliminating definitely taken branch " + cb + "\n");
+      if (DEBUG) VM.sysWriteln("Eliminating definitely taken branch " + cb);
       BasicBlock deadBB = source.nextBasicBlockInCodeOrder();
       Instruction next = cb.nextInstructionInCodeOrder();
       if (Goto.conforms(next)) {

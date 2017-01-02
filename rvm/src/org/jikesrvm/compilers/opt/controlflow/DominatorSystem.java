@@ -142,7 +142,7 @@ class DominatorSystem extends DF_System {
     if (Dominators.COMPUTE_POST_DOMINATORS) {
       /****
        if ( bb.mayThrowUncaughtException() ) {
-       if (Dominators.DEBUG) VM.sysWrite("LOCATION #1 ...\n");
+       if (Dominators.DEBUG) VM.sysWriteln("LOCATION #1 ...");
        // Include exit node as an output node
        DF_LatticeCell s[] = new DF_LatticeCell[bb.getNumberOfOut()+1];
        Enumeration<BasicBlock> e = bb.getOut();
@@ -157,7 +157,7 @@ class DominatorSystem extends DF_System {
        ****/
       {
         if (Dominators.DEBUG) {
-          VM.sysWrite("LOCATION #2 ...\n");
+          VM.sysWriteln("LOCATION #2 ...");
         }
         DF_LatticeCell[] s = new DF_LatticeCell[bb.getNumberOfOut()];
         Enumeration<BasicBlock> e = bb.getOut();

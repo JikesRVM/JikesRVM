@@ -45,9 +45,9 @@ $$$$ END LET USE_OPT_LEVELS
   }
 
   private static void instancePrintHelpHeader(String prefix) {
-    VM.sysWrite("Commands\n");
-    VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of baseline compiler's command-line arguments\n");
-    VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the active baseline compiler options\n");
+    VM.sysWriteln("Commands");
+    VM.sysWriteln(prefix+"[:help]\t\t\tPrint brief description of baseline compiler's command-line arguments");
+    VM.sysWriteln(prefix+":printOptions\t\tPrint the current values of the active baseline compiler options");
     VM.sysWriteln();
   }
 

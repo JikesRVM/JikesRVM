@@ -63,7 +63,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
   protected void initCompiler(String[] args) {
     try {
       BaselineCompiler.initOptions();
-      VM.sysWrite("BootImageCompiler: init (opt compiler)\n");
+      VM.sysWriteln("BootImageCompiler: init (opt compiler)");
 
       // Writing a boot image is a little bit special.  We're not really
       // concerned about compile time, but we do care a lot about the quality
@@ -77,7 +77,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
           if (arg.startsWith("exclude=")) {
             excludePattern = arg.substring(8);
           } else {
-            VM.sysWrite("BootImageCompiler: Unrecognized argument " + arg + "; ignoring\n");
+            VM.sysWriteln("BootImageCompiler: Unrecognized argument " + arg + "; ignoring");
           }
         }
       }

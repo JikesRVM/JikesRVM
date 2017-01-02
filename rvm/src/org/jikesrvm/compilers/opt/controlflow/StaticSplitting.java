@@ -141,10 +141,10 @@ public class StaticSplitting extends CompilerPhase {
       BasicBlock coldSucc = findColdSucc(candTest);
       if (containsOSRPoint(coldSucc)) continue;
       if (DEBUG) {
-        VM.sysWrite("Found candidate \n");
-        VM.sysWrite("\tTest is " + candTest + "\n");
-        VM.sysWrite("\tcoldPrev is " + coldPrev + "\n");
-        VM.sysWrite("\tcoldSucc is " + coldSucc + "\n");
+        VM.sysWriteln("Found candidate");
+        VM.sysWriteln("\tTest is " + candTest);
+        VM.sysWriteln("\tcoldPrev is " + coldPrev);
+        VM.sysWriteln("\tcoldSucc is " + coldSucc);
         cand.printExtended();
       }
       pushCandidate(cand, coldPrev, coldSucc, candTest);

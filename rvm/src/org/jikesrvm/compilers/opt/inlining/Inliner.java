@@ -148,9 +148,9 @@ public class Inliner {
         // (a)
         if (parent.getOptions().PRINT_INLINE_REPORT) {
           String guard = guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST ? " (class test) " : " (method test) ";
-          VM.sysWrite("\tGuarded inline" + guard + " " + callee +
+          VM.sysWriteln("\tGuarded inline" + guard + " " + callee +
                       " into " + callSite.position().getMethod() +
-                      " at bytecode " + callSite.getBytecodeIndex() + "\n");
+                      " at bytecode " + callSite.getBytecodeIndex());
         }
         // (b)
         children[i] = parent.createChildContext(ebag, callee, callSite);
@@ -314,7 +314,7 @@ public class Inliner {
             // the method is inherited but only the child actually
             // implements the interface).
             if (parent.getOptions().PRINT_INLINE_REPORT) {
-              VM.sysWrite("\t\tRequired additional instanceof " + callDeclClass + " test\n");
+              VM.sysWriteln("\t\tRequired additional instanceof " + callDeclClass + " test");
             }
             firstIfBlock = new BasicBlock(callSite.getBytecodeIndex(), callSite.position(), parent.getCfg());
             firstIfBlock.setExceptionHandlers(ebag);
@@ -425,9 +425,9 @@ public class Inliner {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
       NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
       if (parent.getOptions().PRINT_INLINE_REPORT) {
-        VM.sysWrite("\tInline " + callee +
+        VM.sysWriteln("\tInline " + callee +
                     " into " + callSite.position().getMethod() +
-                    " at bytecode " + callSite.getBytecodeIndex() + "\n");
+                    " at bytecode " + callSite.getBytecodeIndex());
       }
       GenerationContext child = parent.createChildContext(ebag, callee, callSite);
       BC2IR.generateHIR(child);

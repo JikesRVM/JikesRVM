@@ -55,12 +55,12 @@ public class AOSGenerator {
    * Called from ControllerThread.run to initialize the logging subsystem
    */
   public static void boot() {
-    VM.sysWrite("AOS generation booted\n");
+    VM.sysWriteln("AOS generation booted");
     try {
       log = new PrintStream(new FileOutputStream(Controller.options.COMPILATION_ADVICE_FILE_OUTPUT));
     } catch (IOException e) {
-      VM.sysWrite("IOException caught in AOSGenerator.java while trying to create and start log file.\n");
-      VM.sysWrite("Please check for file permission problems\n");
+      VM.sysWriteln("IOException caught in AOSGenerator.java while trying to create and start log file.");
+      VM.sysWriteln("Please check for file permission problems");
     }
     booted = true;
     recording = false;

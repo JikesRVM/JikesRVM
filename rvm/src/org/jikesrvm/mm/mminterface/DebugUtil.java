@@ -167,18 +167,19 @@ public class DebugUtil {
   public static void dumpRef(ObjectReference ref) {
     VM.sysWrite("REF=");
     if (ref.isNull()) {
-      VM.sysWrite("NULL\n");
+      VM.sysWriteln("NULL");
+      VM.sysWriteln();
       return;
     }
     VM.sysWrite(ref);
     if (!mappedVMRef(ref)) {
-      VM.sysWrite(" (REF OUTSIDE OF HEAP OR NOT MAPPED)\n");
+      VM.sysWriteln(" (REF OUTSIDE OF HEAP OR NOT MAPPED)");
       return;
     }
     ObjectModel.dumpHeader(ref);
     ObjectReference tib = ObjectReference.fromObject(ObjectModel.getTIB(ref));
     if (!MemoryManager.mightBeTIB(tib)) {
-      VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
+      VM.sysWriteln(" (INVALID TIB: CLASS NOT ACCESSIBLE)");
       return;
     }
     RVMType type = Magic.getObjectType(ref.toObject());
@@ -186,7 +187,7 @@ public class DebugUtil {
     VM.sysWrite(" TYPE=");
     VM.sysWrite(itype);
     if (!validType(itype)) {
-      VM.sysWrite(" (INVALID TYPE: CLASS NOT ACCESSIBLE)\n");
+      VM.sysWriteln(" (INVALID TYPE: CLASS NOT ACCESSIBLE)");
       return;
     }
     VM.sysWrite(" CLASS=");

@@ -404,7 +404,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * Dumps a human readable description of the loop.
    */
   public void dump() {
-    VM.sysWrite("********* START OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method + "\n");
+    VM.sysWriteln("********* START OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method);
     if (isNonRegularLoop()) {
       VM.sysWrite("Non-regular");
     } else if (isAffineLoop()) {
@@ -414,7 +414,7 @@ public final class AnnotatedLSTNode extends LSTNode {
     } else {
       VM.sysWrite("INVALID");
     }
-    VM.sysWrite(" Loop:\n\tIteratorInstr: " +
+    VM.sysWriteln(" Loop:\n\tIteratorInstr: " +
                 iteratorInstr.toString() +
                 "\n\tIfCmpInstr:" +
                 ifCmpInstr.toString() +
@@ -431,8 +431,7 @@ public final class AnnotatedLSTNode extends LSTNode {
                 "\n\tLoop: " +
                 getBasicBlocks().toString() +
                 " / " +
-                loop.toString() +
-                "\n");
+                loop.toString());
 
     Enumeration<BasicBlock> loopBlocks = getBasicBlocks();
     // loop_over_basic_blocks:
@@ -441,7 +440,7 @@ public final class AnnotatedLSTNode extends LSTNode {
       BasicBlock curLoopBB = loopBlocks.nextElement();
       dumpBlock(curLoopBB);
     }
-    VM.sysWrite("*********   END OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method + "\n");
+    VM.sysWriteln("*********   END OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method);
   }
 
   /**
@@ -456,7 +455,7 @@ public final class AnnotatedLSTNode extends LSTNode {
     if (block == exit) {
       VM.sysWrite("Exit ");
     }
-    VM.sysWrite("Block #" + block.getNumber() + ":\n");
+    VM.sysWriteln("Block #" + block.getNumber() + ":");
     // Print the instructions
     IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, block);
     while (instructions.hasMoreElements()) {
@@ -1003,7 +1002,7 @@ public final class AnnotatedLSTNode extends LSTNode {
       }
     } catch (NonRegularLoopException e) {
       if (DEBUG) {
-        VM.sysWrite(e.summary() + "\n");
+        VM.sysWriteln(e.summary());
       }
       // Make sure this loop looks non-regular
       initialIteratorValue = null;

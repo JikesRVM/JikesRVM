@@ -742,7 +742,8 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   private void performLocalPropagation(IR ir, boolean createGCMaps) {
     if (DEBUG) {
-      System.out.println(" .... starting local propagation\n");
+      System.out.println(" .... starting local propagation");
+      System.out.println();
     }
     Stack<MapElement> blockStack = null;
     if (createGCMaps) {
@@ -926,7 +927,8 @@ public final class LiveAnalysis extends CompilerPhase {
       }
     }           // end basic block for loop
     if (DEBUG) {
-      System.out.println(" .... completed local propagation\n");
+      System.out.println(" .... completed local propagation");
+      System.out.println();
     }
   }
 
@@ -957,7 +959,8 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   private void debugBegining(IR ir, boolean createGCMaps, boolean dumpFixedPointResults, boolean dumpFinalMaps, boolean dumpFinalLiveIntervals) {
     if (dumpFixedPointResults || dumpFinalMaps || dumpFinalLiveIntervals) {
-      System.out.print("\n ====>  Performing liveness analysis ");
+      System.out.println();
+      System.out.print(" ====>  Performing liveness analysis ");
       if (createGCMaps) {
         System.out.print("and GC Maps ");
       }
@@ -1003,7 +1006,8 @@ public final class LiveAnalysis extends CompilerPhase {
    *  @param ir the IR
    */
   private void printFixedPointResults(IR ir) {
-    System.out.println("\n  ***** Fixed point results for IR-based GC Maps for " +
+    System.out.println();
+    System.out.println("  ***** Fixed point results for IR-based GC Maps for " +
                        ir.method.getDeclaringClass() +
                        "." +
                        ir.method.getName());
@@ -1015,12 +1019,14 @@ public final class LiveAnalysis extends CompilerPhase {
   }
 
   private void printFinalMaps(IR ir) {
-    System.out.println("\n  =-=-=-=-=- Final IR-based GC Maps for " +
+    System.out.println();
+    System.out.println("  =-=-=-=-=- Final IR-based GC Maps for " +
                        ir.method.getDeclaringClass() +
                        "." +
                        ir.method.getName());
     map.dump();
-    System.out.println("  =-=-=-=-=- End Final IR-based GC Maps\n");
+    System.out.println("  =-=-=-=-=- End Final IR-based GC Maps");
+    System.out.println();
   }
 
   /**
@@ -1029,7 +1035,8 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   private void printFinalLiveIntervals(IR ir) {
     ir.printInstructions();
-    System.out.println("\n  *+*+*+*+*+ Final Live Intervals for " +
+    System.out.println();
+    System.out.println("  *+*+*+*+*+ Final Live Intervals for " +
                        ir.method.getDeclaringClass() +
                        "." +
                        ir.method.getName());
@@ -1037,7 +1044,8 @@ public final class LiveAnalysis extends CompilerPhase {
         block.nextBasicBlockInCodeOrder()) {
       liveIntervals.printLiveIntervalList(block);
     }
-    System.out.println("  *+*+*+*+*+ End Final Live Intervals\n");
+    System.out.println("  *+*+*+*+*+ End Final Live Intervals");
+    System.out.println();
   }
 
   /**

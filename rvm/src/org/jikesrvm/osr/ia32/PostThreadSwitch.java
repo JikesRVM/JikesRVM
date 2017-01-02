@@ -51,7 +51,7 @@ public final class PostThreadSwitch {
     Address bridgeaddr = Magic.objectAsAddress(bridge);
 
     if (VM.TraceOnStackReplacement) {
-      VM.sysWrite("osr post processing\n");
+      VM.sysWriteln("osr post processing");
     }
 
     Offset offset = myThread.tsFPOffset.plus(STACKFRAME_RETURN_ADDRESS_OFFSET);

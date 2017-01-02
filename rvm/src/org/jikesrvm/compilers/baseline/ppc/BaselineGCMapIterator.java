@@ -122,7 +122,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       VM.sysWrite(mapId);
       VM.sysWrite(" for ");
       VM.sysWrite(currentMethod);
-      VM.sysWrite(".\n");
+      VM.sysWriteln(".");
     }
 
     // setup dynamic bridge mapping
@@ -195,9 +195,9 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       if (VM.TraceStkMaps) {
         VM.sysWrite("BaselineGCMapIterator getNextReferenceIndex = ");
         VM.sysWrite(mapIndex);
-        VM.sysWrite(".\n");
+        VM.sysWriteln(".");
         if (mapId < 0) {
-          VM.sysWrite("Index is a JSR return address ie internal pointer.\n");
+          VM.sysWriteln("Index is a JSR return address ie internal pointer.");
         }
       }
 
@@ -293,7 +293,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
             if (VM.TraceStkMaps) {
               VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, dynamic link spilled parameter, returning: ");
               VM.sysWrite(bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS));
-              VM.sysWrite(".\n");
+              VM.sysWriteln(".");
             }
             return bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS);
           } else if (bridgeParameterType.isLongType()) {
@@ -319,7 +319,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       if (VM.TraceStkMaps) {
         VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
         VM.sysWrite(mapId);
-        VM.sysWrite(".\n");
+        VM.sysWriteln(".");
       }
       return Address.zero();
     }
@@ -327,7 +327,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
     if (VM.TraceStkMaps) {
       VM.sysWrite("BaselineGCMapIterator getNextReturnAddressIndex = ");
       VM.sysWrite(mapIndex);
-      VM.sysWrite(".\n");
+      VM.sysWriteln(".");
     }
 
     if (mapIndex == 0) return Address.zero();
@@ -336,7 +336,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
     if (VM.TraceStkMaps) {
       VM.sysWrite("BaselineGCMapIterator getNextReturnAddress location = ");
       VM.sysWrite(location);
-      VM.sysWrite(".\n");
+      VM.sysWriteln(".");
     }
 
     if (BaselineCompilerImpl.isRegister(location)) {

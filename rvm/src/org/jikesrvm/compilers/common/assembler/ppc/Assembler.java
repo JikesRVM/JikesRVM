@@ -138,7 +138,7 @@ public final class Assembler extends AbstractAssembler {
   @Override
   public void noteBytecode(int i, String bcode) {
     String s1 = Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
-    VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
+    VM.sysWriteln(s1 + ": [" + i + "] " + bcode);
   }
 
   /**

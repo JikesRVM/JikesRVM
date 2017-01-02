@@ -337,7 +337,7 @@ public class ClassFileReader {
     }
 
     if (VM.TraceClassLoading && VM.runningVM) {
-      VM.sysWrite("RVMClass: (begin) load file " + typeRef.getName() + "\n");
+      VM.sysWriteln("RVMClass: (begin) load file " + typeRef.getName());
     }
 
     int[] constantPool = readConstantPool(typeRef, input);

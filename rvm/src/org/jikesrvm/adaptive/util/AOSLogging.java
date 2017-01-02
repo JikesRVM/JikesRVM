@@ -106,12 +106,13 @@ public final class AOSLogging {
         // This statement will force the compilation of println, so it
         // is needed regardless of the particular content of the message!
         synchronized (log) {
-          log.println(getTime() + " Logging enabled\n");
+          log.println(getTime() + " Logging enabled");
+          log.println();
           log.println(Controller.options);
         }
       } catch (IOException e) {
-        VM.sysWrite("IOException caught in AOSLogging.java while trying to create and start log file.\n");
-        VM.sysWrite("Please check for file permission problems\n");
+        VM.sysWriteln("IOException caught in AOSLogging.java while trying to create and start log file.");
+        VM.sysWriteln("Please check for file permission problems");
       }
     }
     booted = true;

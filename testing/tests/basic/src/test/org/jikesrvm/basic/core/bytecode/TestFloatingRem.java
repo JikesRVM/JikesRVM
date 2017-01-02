@@ -17,7 +17,8 @@ package test.org.jikesrvm.basic.core.bytecode;
 
 class TestFloatingRem {
    public static void main(String[] args) {
-      System.out.println("\n-- frem --");
+     System.out.println();
+      System.out.println("-- frem --");
       // easy cases
       testFREM(5f,    3f);
       testFREM(-5f,    3f);
@@ -48,7 +49,8 @@ class TestFloatingRem {
       testFREM(-Inff,    1f, NaNf);
       testFREM(1f, -Inff,   1f);
 
-      System.out.println("\n-- drem --");
+      System.out.println();
+      System.out.println("-- drem --");
       // easy cases
       testDREM(5,    3);
       testDREM(-5,    3);

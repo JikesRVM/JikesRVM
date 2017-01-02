@@ -237,7 +237,7 @@ public abstract class TemplateCompilerFramework {
     VM.sysWrite(method.getName());
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
-    VM.sysWrite(" \n");
+    VM.sysWriteln();
   }
 
   /**
@@ -1984,7 +1984,7 @@ public abstract class TemplateCompilerFramework {
               }
               default:
                 if (VM.TraceOnStackReplacement) {
-                  VM.sysWrite("Unexpected PSEUDO code " + Services.intAsHexString(pseudo_opcode) + "\n");
+                  VM.sysWriteln("Unexpected PSEUDO code " + Services.intAsHexString(pseudo_opcode));
                 }
                 if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
                 break;
@@ -1996,7 +1996,7 @@ public abstract class TemplateCompilerFramework {
         }
 
         default:
-          VM.sysWrite("BaselineCompilerImpl: unexpected bytecode: " + Services.getHexString(code, false) + "\n");
+          VM.sysWriteln("BaselineCompilerImpl: unexpected bytecode: " + Services.getHexString(code, false));
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
       ending_bytecode();
@@ -2109,13 +2109,13 @@ public abstract class TemplateCompilerFramework {
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
-      ". Uninterruptible method calls non-uninterruptible method " + target + "\n");
+      VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+      ". Uninterruptible method calls non-uninterruptible method " + target);
     }
     if (isUnpreemptible && target.isInterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
-          ". Unpreemptible method calls interruptible method " + target + "\n");
+      VM.sysWriteln("WARNING: UNPREEMPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+          ". Unpreemptible method calls interruptible method " + target);
     }
   }
 

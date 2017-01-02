@@ -249,7 +249,7 @@ final class NormalBURS extends BURS {
         // potential for intra-tree cycle
         if (!trueEdgeRedundant(src, dst, srcRoot)) {
           if (DEBUG) {
-            VM.sysWrite("Potential intra-tree cycle with edge " + e + " forcing " + n + " to be a tree root\n");
+            VM.sysWriteln("Potential intra-tree cycle with edge " + e + " forcing " + n + " to be a tree root");
           }
           makeTreeRoot(n);
           problemEdgePrep(n, n.dg_node);
@@ -258,7 +258,7 @@ final class NormalBURS extends BURS {
         // potential for inter-tree cycle
         if (reachableRoot(dstRoot, srcRoot, ++searchnum)) {
           if (DEBUG) {
-            VM.sysWrite("Potential inter-tree cycle with edge " + e + " forcing " + n + " to be a tree root\n");
+            VM.sysWriteln("Potential inter-tree cycle with edge " + e + " forcing " + n + " to be a tree root");
           }
           makeTreeRoot(n);
           problemEdgePrep(n, n.dg_node);
@@ -335,7 +335,7 @@ final class NormalBURS extends BURS {
     if (DEBUG) {
       for (int i = 0; i < numTreeRoots; i++) {
         AbstractBURS_TreeNode n = treeRoots[i];
-        VM.sysWrite(castNode(n.dg_node).getPredecessorCount() + ":" + n + "\n");
+        VM.sysWriteln(castNode(n.dg_node).getPredecessorCount() + ":" + n);
       }
     }
   }
@@ -373,7 +373,7 @@ final class NormalBURS extends BURS {
       // Invoke burs.code on the supernodes of k in a post order walk of the
       // tree (thus code for children is emited before code for the parent).
       if (DEBUG) {
-        VM.sysWrite("PROCESSING TREE ROOTED AT " + k.dg_node + "\n");
+        VM.sysWriteln("PROCESSING TREE ROOTED AT " + k.dg_node);
         dumpTree(k);
       }
       numTreeRoots--;
@@ -430,7 +430,7 @@ final class NormalBURS extends BURS {
       int nonterminal = k.getNonTerminal();
       int rule = k.rule(nonterminal);
       burs.code(k, nonterminal, rule);
-      if (DEBUG) VM.sysWrite(k + " " + debug(rule) + "\n");
+      if (DEBUG) VM.sysWriteln(k + " " + debug(rule));
     }
 
     DepGraphNode dgnode = k.dg_node;
@@ -441,7 +441,7 @@ final class NormalBURS extends BURS {
         if (source != dest) {
           castNode(dest).decPredecessorCount();
           int count = castNode(dest).getPredecessorCount();
-          if (DEBUG) VM.sysWrite(count + ": edge " + source + " to " + dest + "\n");
+          if (DEBUG) VM.sysWriteln(count + ": edge " + source + " to " + dest);
           if (count == 0) {
             readySetInsert(castNode(dest).getCurrentParent());
           }
@@ -545,7 +545,7 @@ final class NormalBURS extends BURS {
     }
     if (t.dg_node != null) {
       t.dg_node.nextSorted = treeRoot;
-      if (DEBUG) VM.sysWrite(t.dg_node + " --> " + treeRoot + "\n");
+      if (DEBUG) VM.sysWriteln(t.dg_node + " --> " + treeRoot);
     }
     if (t.getChild1() != null || t.getChild2() != null) {
       // label t as in section 9.10 of the dragon book
@@ -556,7 +556,7 @@ final class NormalBURS extends BURS {
       } else {
         t.setNumRegisters(Math.max(lchild, rchild));
       }
-      if (DEBUG) VM.sysWrite("\tnum registers = " + t.numRegisters() + "\n");
+      if (DEBUG) VM.sysWrite("\tnum registers = " + t.numRegisters());
     }
   }
 

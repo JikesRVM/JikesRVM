@@ -24,16 +24,22 @@ class TestArrayAccess {
 
     boolean_array();
     if (!testSuccess) {
-      System.out.print("\n--boolean_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--boolean_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
 
     byte_array();
     if (!testSuccess) {
-      System.out.print("\n--byte_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--byte_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -41,8 +47,11 @@ class TestArrayAccess {
 
     char_array();
     if (!testSuccess) {
-      System.out.print("\n--char_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--char_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -50,8 +59,11 @@ class TestArrayAccess {
 
     short_array();
     if (!testSuccess) {
-      System.out.print("\n--short_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--short_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -59,8 +71,11 @@ class TestArrayAccess {
 
     int_array();
     if (!testSuccess) {
-      System.out.print("\n--int_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--int_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -68,8 +83,11 @@ class TestArrayAccess {
 
     long_array();
     if (!testSuccess) {
-      System.out.print("\n--long_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--long_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -77,8 +95,11 @@ class TestArrayAccess {
 
     float_array();
     if (!testSuccess) {
-      System.out.print("\n--float_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--float_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -86,8 +107,11 @@ class TestArrayAccess {
 
     double_array();
     if (!testSuccess) {
-      System.out.print("\n--double_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--double_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -95,8 +119,11 @@ class TestArrayAccess {
 
     object_array();
     if (!testSuccess) {
-      System.out.print("\n--object_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--object_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -104,8 +131,11 @@ class TestArrayAccess {
 
     array_array();
     if (!testSuccess) {
-      System.out.print("\n--array_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--array_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -113,8 +143,11 @@ class TestArrayAccess {
 
     multi_int_array();
     if (!testSuccess) {
-      System.out.print("\n--multi_int_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--multi_int_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -122,8 +155,11 @@ class TestArrayAccess {
 
     multi_object_array();
     if (!testSuccess) {
-      System.out.print("\n--multi_object_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--multi_object_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -132,8 +168,11 @@ class TestArrayAccess {
     /*
     multi_partial_array();
     if (!testSuccess) {
-      System.out.print("\n--multi_partial_array--");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("--multi_partial_array--");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     */
 
@@ -153,13 +192,15 @@ class TestArrayAccess {
     array[1] = x1;                       // bastore
 
     if (array[0]) {
-      System.out.print("\nwant: false\n got: ");
+      System.out.println();
+      System.out.print("want: false\n got: ");
       System.out.println(array[0]); // baload
       testSuccess = false;
     }
 
     if (!array[1]) {
-      System.out.print("\nwant: true\n got: ");
+      System.out.println();
+      System.out.print("want: true\n got: ");
       System.out.println(array[1]); // baload
       testSuccess = false;
     }
@@ -174,13 +215,15 @@ class TestArrayAccess {
     array[1] = x1;                  // bastore
 
     if (array[0] != 127) {
-      System.out.print("\nwant: 127\n got: ");
+      System.out.println();
+      System.out.print("want: 127\n got: ");
       System.out.println(array[0]);   // baload
       testSuccess = false;
     }
 
     if (array[1] != -1) {
-      System.out.print("\nwant: -1\n got: ");
+      System.out.println();
+      System.out.print("want: -1\n got: ");
       System.out.println(array[1]);   // baload (note sign extension)
       testSuccess = false;
     }
@@ -196,14 +239,16 @@ class TestArrayAccess {
 
     String str = Integer.toHexString(array[0]); // caload
     if (!str.equals("7f41")) {
-      System.out.print("\nwant: 7f41\n got: ");
+      System.out.println();
+      System.out.print("want: 7f41\n got: ");
       System.out.println(Integer.toHexString(array[0])); // caload
       testSuccess = false;
     }
 
     str = Integer.toHexString(array[1]); // caload (note zero extension)
     if (!str.equals("ff41")) {
-      System.out.print("\nwant: ff41\n got: ");
+      System.out.println();
+      System.out.print("want: ff41\n got: ");
       System.out.println(Integer.toHexString(array[1])); // caload (note zero extension)
       testSuccess = false;
 
@@ -219,13 +264,15 @@ class TestArrayAccess {
     array[1] = x1;                       // sastore
 
     if (array[0] != 32767) {
-      System.out.print("\nwant: 32767\n got: ");
+      System.out.println();
+      System.out.print("want: 32767\n got: ");
       System.out.println(array[0]); // saload
       testSuccess = false;
     }
 
     if (array[1] != -1) {
-      System.out.print("\nwant: -1\n got: ");
+      System.out.println();
+      System.out.print("want: -1\n got: ");
       System.out.println(array[1]); // saload (note sign extension)
       testSuccess = false;
     }
@@ -240,13 +287,15 @@ class TestArrayAccess {
     array[1] = x1;                     // iastore
 
     if (array[0] != 0) {
-      System.out.print("\nwant: 0\n got: ");
+      System.out.println();
+      System.out.print("want: 0\n got: ");
       System.out.println(array[0]);     // iaload
       testSuccess = false;
     }
 
     if (array[1] != 1) {
-      System.out.print("\nwant: 1\n got: ");
+      System.out.println();
+      System.out.print("want: 1\n got: ");
       System.out.println(array[1]);     // iaload
       testSuccess = false;
     }
@@ -261,13 +310,15 @@ class TestArrayAccess {
     array[1] = x1;                     // lastore
 
     if (array[0] != 0) {
-      System.out.print("\nwant: 0\n got: ");
+      System.out.println();
+      System.out.print("want: 0\n got: ");
       System.out.println(array[0]);     // laload
       testSuccess = false;
     }
 
     if (array[1] != 1) {
-      System.out.print("\nwant: 1\n got: ");
+      System.out.println();
+      System.out.print("want: 1\n got: ");
       System.out.println(array[1]);     // laload
       testSuccess = false;
     }
@@ -282,13 +333,15 @@ class TestArrayAccess {
     array[1] = x1;                    // fastore
 
     if (array[0] != 0.0) {
-      System.out.print("\nwant: 0.0\n got: ");
+      System.out.println();
+      System.out.print("want: 0.0\n got: ");
       System.out.println(array[0]);   // faload
       testSuccess = false;
     }
 
     if (array[1] != 1.0) {
-      System.out.print("\nwant: 1.0\n got: ");
+      System.out.println();
+      System.out.print("want: 1.0\n got: ");
       System.out.println(array[1]);   // faload
       testSuccess = false;
     }
@@ -303,13 +356,15 @@ class TestArrayAccess {
     array[1] = x1;                      // dastore
 
     if (array[0] != 0.0) {
-      System.out.print("\nwant: 0.0\n got: ");
+      System.out.println();
+      System.out.print("want: 0.0\n got: ");
       System.out.println(array[0]);   // daload
       testSuccess = false;
     }
 
     if (array[1] != 1.0) {
-      System.out.print("\nwant: 1.0\n got: ");
+      System.out.println();
+      System.out.print("want: 1.0\n got: ");
       System.out.println(array[1]);   // daload
       testSuccess = false;
     }
@@ -324,13 +379,15 @@ class TestArrayAccess {
     array[1] = x1;                    // aastore
 
     if (array[0] != null) {
-      System.out.print("\nwant: null\n got: ");
+      System.out.println();
+      System.out.print("want: null\n got: ");
       System.out.println(array[0]);   // aaload
       testSuccess = false;
     }
 
     if (array[1] != null) {
-      System.out.print("\nwant: null\n got: ");
+      System.out.println();
+      System.out.print("want: null\n got: ");
       System.out.println(array[1]);   // aaload
       testSuccess = false;
     }
@@ -346,13 +403,15 @@ class TestArrayAccess {
 
     String str = array[0].getClass().getName(); // aaload
     if (!str.equals("[Ljava.lang.Object;")) {
-      System.out.print("\nwant: [Ljava.lang.Object;\n got: ");
+      System.out.println();
+      System.out.print("want: [Ljava.lang.Object;\n got: ");
       System.out.println(array[0].getClass().getName()); // aaload
       testSuccess = false;
     }
 
     if (array[1] != null) {
-      System.out.print("\nwant: null\n got: ");
+      System.out.println();
+      System.out.print("want: null\n got: ");
       System.out.println(array[1]);                      // aaload
       testSuccess = false;
     }
@@ -376,7 +435,8 @@ class TestArrayAccess {
       for (int j = 0; j < middle; ++j)
         for (int k = 0; k < inner; ++k) {
           if (ary[i][j][k] != m) {
-            System.out.println("\nary[" + i + "][" + j + "][" + k + "]=" + ary[i][j][k]);
+            System.out.println();
+            System.out.println("ary[" + i + "][" + j + "][" + k + "]=" + ary[i][j][k]);
             System.out.println("    It should be: " + m);
             testSuccess = false;
           }
@@ -401,7 +461,8 @@ class TestArrayAccess {
         for (int k = 0; k < inner; ++k) {
           ary[i][j][k] = new Integer(n++);
           if (ary[i][j][k].intValue() != m) {
-            System.out.println("\nary[" + i + "][" + j + "][" + k + "]=" + ary[i][j][k]);
+            System.out.println();
+            System.out.println("ary[" + i + "][" + j + "][" + k + "]=" + ary[i][j][k]);
             System.out.println("    It should be: " + m);
             testSuccess = false;
           }
@@ -413,7 +474,8 @@ class TestArrayAccess {
       for (int j = 0; j < middle; ++j)
         for (int k = 0; k < inner; ++k) {
           if (ary[i][j][k].intValue() != m) {
-            System.out.println("\nary[" + i + "][" + j + "][" + k + "]=" + ary[i][j][k]);
+            System.out.println();
+            System.out.println("ary[" + i + "][" + j + "][" + k + "]=" + ary[i][j][k]);
             System.out.println("    It should be: " + m);
             testSuccess = false;
           }
@@ -432,7 +494,8 @@ class TestArrayAccess {
     for (int i = 0; i < outer; ++i)
       for (int j = 0; j < middle; ++j)
         if (ary[i][j] != null) {
-          System.out.println("\nary[" + i + "][" + j + "]=" + ary[i][j]);
+          System.out.println();
+            System.out.println("ary[" + i + "][" + j + "]=" + ary[i][j]);
           System.out.println("   It should ne: nill");
         }
 

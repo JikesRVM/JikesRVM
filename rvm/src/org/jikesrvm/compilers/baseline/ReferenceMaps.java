@@ -349,8 +349,8 @@ public final class ReferenceMaps {
         VM.sysWrite(mapword);
         VM.sysWrite(" , ");
         VM.sysWrite(bitsPerMap);
-        VM.sysWrite(" \n ");
-        VM.sysWrite("ReferenceMaps-getJSRNextReturnAddr-initial call return bitnum = ");
+        VM.sysWriteln();
+        VM.sysWrite(" ReferenceMaps-getJSRNextReturnAddr-initial call return bitnum = ");
         VM.sysWrite(bitnum);
         VM.sysWriteln();
       }
@@ -1371,7 +1371,7 @@ public final class ReferenceMaps {
    *  between stack frames as the GC scans the stack.
    */
   public void cleanupPointers() {
-    if (VM.TraceStkMaps) VM.sysWrite("ReferenceMaps- cleanupPointers\n");
+    if (VM.TraceStkMaps) VM.sysWriteln("ReferenceMaps- cleanupPointers");
   }
 
   /**
@@ -1488,13 +1488,13 @@ public final class ReferenceMaps {
     VM.sysWrite(method.getDeclaringClass().getDescriptor());
     VM.sysWrite(".");
     VM.sysWrite(method.getName());
-    VM.sysWrite("---------------------------\n");
+    VM.sysWriteln("---------------------------");
 
     for (int i = 0; i < mapCount; i++) {
       byte mapindex = referenceMaps[i * bytesPerMap()];
       if (mapindex < 0) {
         // check for non jsr map
-        VM.sysWrite("  -----skipping jsr map------- \n ");
+        VM.sysWriteln("  -----skipping jsr map-------  ");
         continue;
       }
       index = getNextRefIndex(index, i);

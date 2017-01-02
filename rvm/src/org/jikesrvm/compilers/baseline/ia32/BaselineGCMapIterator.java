@@ -128,7 +128,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       VM.sysWrite(mapId);
       VM.sysWrite(" for ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWrite(".\n");
+      VM.sysWriteln(".");
     }
 
     // setup dynamic bridge mapping
@@ -229,15 +229,15 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
           VM.sysWrite(" (= ");
           VM.sysWrite(mapOffset);
           VM.sysWrite(")");
-          VM.sysWrite(".\n");
+          VM.sysWriteln(".");
           VM.sysWrite("Reference is ");
         }
         if (bridgeParameterMappingRequired) {
           if (VM.TraceStkMaps || TRACE_ALL) {
             VM.sysWriteHex(framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE).loadAddress());
-            VM.sysWrite(".\n");
+            VM.sysWriteln(".");
             if (mapId < 0) {
-              VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
+              VM.sysWriteln("Offset is a JSR return address ie internal pointer.");
             }
           }
 
@@ -246,9 +246,9 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
         } else {
           if (VM.TraceStkMaps || TRACE_ALL) {
             VM.sysWriteHex(framePtr.plus(mapOffset).loadAddress());
-            VM.sysWrite(".\n");
+            VM.sysWriteln(".");
             if (mapId < 0) {
-              VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
+              VM.sysWriteln("Offset is a JSR return address ie internal pointer.");
             }
           }
           return (framePtr.plus(mapOffset));
@@ -264,7 +264,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
         VM.sysWrite("getNextReferenceAddress: bridgeTarget=");
         VM.sysWrite(bridgeTarget);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
 
       if (!bridgeRegistersLocationUpdated) {
@@ -289,7 +289,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
         if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
           VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset = dynamic link GPR this ");
           VM.sysWrite(bridgeRegisterLocation.plus(WORDSIZE));
-          VM.sysWrite(".\n");
+          VM.sysWriteln(".");
         }
         return bridgeRegisterLocation.plus(WORDSIZE);
       }
@@ -308,7 +308,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
             if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
               VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset = dynamic link GPR parameter ");
               VM.sysWrite(bridgeRegisterLocation.plus(WORDSIZE));
-              VM.sysWrite(".\n");
+              VM.sysWriteln(".");
             }
             return bridgeRegisterLocation.plus(WORDSIZE);
           } else {
@@ -316,7 +316,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
               if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
                 VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset = dynamic link spilled parameter ");
                 VM.sysWrite(bridgeSpilledParamLocation.plus(WORDSIZE));
-                VM.sysWrite(".\n");
+                VM.sysWriteln(".");
               }
               return bridgeSpilledParamLocation.plus(WORDSIZE);
             } else {
@@ -360,7 +360,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       if (VM.TraceStkMaps || TRACE_ALL) {
         VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
         VM.sysWrite(mapId);
-        VM.sysWrite(".\n");
+        VM.sysWriteln(".");
       }
       return Address.zero();
     }
@@ -368,7 +368,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
     if (VM.TraceStkMaps || TRACE_ALL) {
       VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset = ");
       VM.sysWrite(convertIndexToOffset(mapIndex));
-      VM.sysWrite(".\n");
+      VM.sysWriteln(".");
     }
     return (mapIndex == 0) ? Address.zero() : framePtr.plus(convertIndexToOffset(mapIndex));
   }

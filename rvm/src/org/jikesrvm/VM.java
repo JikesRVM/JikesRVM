@@ -460,7 +460,7 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of command line");
     String[] applicationArguments = CommandLineArgs.lateProcessCommandLineArguments();
 
-    if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWrite("[VM booted]\n");
+    if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
@@ -475,14 +475,14 @@ public class VM extends Properties {
     if (applicationArguments.length > 0 && !TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
       VM.sysWrite("vm: \"");
       VM.sysWrite(applicationArguments[0]);
-      VM.sysWrite("\" is not a legal Java class name.\n");
+      VM.sysWriteln("\" is not a legal Java class name.");
       pleaseSpecifyAClass();
     }
 
     if (applicationArguments.length > 0 && applicationArguments[0].startsWith("-X")) {
         VM.sysWrite("vm: \"");
         VM.sysWrite(applicationArguments[0]);
-        VM.sysWrite("\" is not a recognized Jikes RVM command line argument.\n");
+        VM.sysWriteln("\" is not a recognized Jikes RVM command line argument.");
         VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
 
@@ -539,8 +539,8 @@ public class VM extends Properties {
 
   @Interruptible
   private static void pleaseSpecifyAClass() {
-    VM.sysWrite("vm: Please specify a class to execute.\n");
-    VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
+    VM.sysWriteln("vm: Please specify a class to execute.");
+    VM.sysWriteln("vm:   You can invoke the VM with the \"-help\" flag for usage information.");
     VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 

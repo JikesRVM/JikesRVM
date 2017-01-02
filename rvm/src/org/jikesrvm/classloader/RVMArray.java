@@ -447,8 +447,8 @@ public final class RVMArray extends RVMType {
 
     state = CLASS_LOADED;
 
-    if (VM.verboseClassLoading) VM.sysWrite("[Loaded " + this.getDescriptor() + "]\n");
-    if (VM.verboseClassLoading) VM.sysWrite("[Loaded superclasses of " + this.getDescriptor() + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Loaded " + this.getDescriptor() + "]");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Loaded superclasses of " + this.getDescriptor() + "]");
   }
 
   /**
@@ -524,7 +524,7 @@ public final class RVMArray extends RVMType {
 
     if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
     if (VM.TraceClassLoading && VM.runningVM) {
-      VM.sysWrite("RVMArray: instantiate " + this + "\n");
+      VM.sysWriteln("RVMArray: instantiate " + this);
     }
 
     // Initialize TIB slots for virtual methods (copy from superclass == Object)

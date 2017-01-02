@@ -116,7 +116,7 @@ public final class MethodCountData implements Reportable {
   @Override
   public synchronized void report() {
     RVMThread.dumpLock.lockNoHandshake();
-    VM.sysWrite("Method counts: A total of " + totalCountsTaken + " samples\n");
+    VM.sysWriteln("Method counts: A total of " + totalCountsTaken + " samples");
     for (int i = 1; i < nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
       CompiledMethod cm = CompiledMethods.getCompiledMethod(cmids[i]);

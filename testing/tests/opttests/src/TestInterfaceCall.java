@@ -79,13 +79,15 @@ class TestInterfaceCall {
     foo = new TestInterfaceA();
     if (foo.foo() != 1) {
       testSuccess = false;
-      System.out.println("\n Expected value: 1; Returned value: " + foo.foo());   // 1
+      System.out.println();
+      System.out.print(" Expected value: 1; Returned value: " + foo.foo());   // 1
     }
 
     foo = new TestInterfaceB();
     if (foo.foo() != 4) {
       testSuccess = false;
-      System.out.println("\n Expected value: 4; Returned value: " + foo.foo());   // 4
+      System.out.println();
+      System.out.print(" Expected value: 4; Returned value: " + foo.foo());   // 4
     }
 
 
@@ -94,7 +96,8 @@ class TestInterfaceCall {
     if (bar.bar() != 2) {
       //      System.out.println(bar.bar());   // 2
       testSuccess = false;
-      System.out.println("\n Expected value: 2; Returned value: " + bar.bar());   // 2
+      System.out.println();
+      System.out.print(" Expected value: 2; Returned value: " + bar.bar());   // 2
 
     }
 
@@ -102,7 +105,8 @@ class TestInterfaceCall {
     if (bar.bar() != 3) {
       //      System.out.println(bar.bar());   // 3
       testSuccess = false;
-      System.out.println("\n Expected value: 3; Returned value: " + bar.bar());   // 3
+      System.out.println();
+      System.out.print(" Expected value: 3; Returned value: " + bar.bar());   // 3
 
     }
 
@@ -110,7 +114,8 @@ class TestInterfaceCall {
     if (foo.foo() != 4) {
       //      System.out.println(foo.foo());   // 4
       testSuccess = false;
-      System.out.println("\n Expected value: 4; Returned value: " + foo.foo());   // 4
+      System.out.println();
+      System.out.print(" Expected value: 4; Returned value: " + foo.foo());   // 4
 
     }
 
@@ -140,8 +145,12 @@ class TestInterfaceCall {
 
     if (testSuccess)
       System.out.println(" succeeded.");
-    else
-      System.out.println(" failed. ***************\n\n");
+    else {
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
+    }
+
 
     return testSuccess;
   }

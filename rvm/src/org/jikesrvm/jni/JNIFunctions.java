@@ -138,7 +138,7 @@ public class JNIFunctions {
    *        0x00010001 for JNI 1.1,
    */
   private static int GetVersion(JNIEnvironment env) {
-    if (traceJNI) VM.sysWrite("JNI called: GetVersion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetVersion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     return 0x00010004;          // JNI 1.4
@@ -158,7 +158,7 @@ public class JNIFunctions {
    */
   private static int DefineClass(JNIEnvironment env, Address classNameAddress, int classLoader, Address data,
                                  int dataLen) {
-    if (traceJNI) VM.sysWrite("JNI called: DefineClass  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: DefineClass");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -196,7 +196,7 @@ public class JNIFunctions {
    * @throws ExceptionInInitializerError (not implemented)
    */
   private static int FindClass(JNIEnvironment env, Address classNameAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: FindClass  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: FindClass");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     String classString = null;
@@ -238,7 +238,7 @@ public class JNIFunctions {
    *         is java.lang.Object or an interface
    */
   private static int GetSuperclass(JNIEnvironment env, int classJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetSuperclass  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetSuperclass");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -261,7 +261,7 @@ public class JNIFunctions {
    * @return true if cls1 can be assigned to cls2
    */
   private static boolean IsAssignableFrom(JNIEnvironment env, int firstClassJREF, int secondClassJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: IsAssignableFrom  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: IsAssignableFrom");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -284,7 +284,7 @@ public class JNIFunctions {
    * @return 0 if successful, -1 if not
    */
   private static int Throw(JNIEnvironment env, int exceptionJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: Throw  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: Throw");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -305,7 +305,7 @@ public class JNIFunctions {
    * @return 0 if successful, -1 otherwise
    */
   private static int ThrowNew(JNIEnvironment env, int throwableClassJREF, Address exceptionNameAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: ThrowNew  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ThrowNew");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -335,7 +335,7 @@ public class JNIFunctions {
    * @return a JREF index for the pending exception or null if nothing pending
    */
   private static int ExceptionOccurred(JNIEnvironment env) {
-    if (traceJNI) VM.sysWrite("JNI called: ExceptionOccurred  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ExceptionOccurred");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -359,7 +359,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    */
   private static void ExceptionDescribe(JNIEnvironment env) {
-    if (traceJNI) VM.sysWrite("JNI called: ExceptionDescribe  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ExceptionDescribe");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -380,7 +380,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    */
   private static void ExceptionClear(JNIEnvironment env) {
-    if (traceJNI) VM.sysWrite("JNI called: ExceptionClear  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ExceptionClear");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -398,7 +398,7 @@ public class JNIFunctions {
    * @param messageAddress an address of the string in C
    */
   private static void FatalError(JNIEnvironment env, Address messageAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: FatalError  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: FatalError");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -411,7 +411,7 @@ public class JNIFunctions {
   }
 
   private static int NewGlobalRef(JNIEnvironment env, int objectJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: NewGlobalRef\n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewGlobalRef");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -425,7 +425,7 @@ public class JNIFunctions {
   }
 
   private static void DeleteGlobalRef(JNIEnvironment env, int refJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: DeleteGlobalRef\n");
+    if (traceJNI) VM.sysWriteln("JNI called: DeleteGlobalRef");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -437,7 +437,7 @@ public class JNIFunctions {
   }
 
   private static void DeleteLocalRef(JNIEnvironment env, int objJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: DeleteLocalRef\n");
+    if (traceJNI) VM.sysWriteln("JNI called: DeleteLocalRef");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -458,7 +458,7 @@ public class JNIFunctions {
    * @return <code>true</code> if it's the same object, false otherwise
    */
   private static boolean IsSameObject(JNIEnvironment env, int obj1JREF, int obj2JREF) {
-    if (traceJNI) VM.sysWrite("JNI called: IsSameObject  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: IsSameObject");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -483,7 +483,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int AllocObject(JNIEnvironment env, int classJREF) throws InstantiationException, OutOfMemoryError {
-    if (traceJNI) VM.sysWrite("JNI called: AllocObject  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: AllocObject");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -525,7 +525,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewObject");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -560,7 +560,7 @@ public class JNIFunctions {
    */
   private static int NewObjectV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: NewObjectV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewObjectV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -594,7 +594,7 @@ public class JNIFunctions {
    */
   private static int NewObjectA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: NewObjectA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewObjectA");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -623,7 +623,7 @@ public class JNIFunctions {
    * @return a JREF index for the Class object
    */
   private static int GetObjectClass(JNIEnvironment env, int objJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetObjectClass");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -649,7 +649,7 @@ public class JNIFunctions {
    * @return true if the object is an instance of the class
    */
   private static int IsInstanceOf(JNIEnvironment env, int objJREF, int classJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: IsInstanceOf  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: IsInstanceOf");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -681,7 +681,7 @@ public class JNIFunctions {
    */
   private static int GetMethodID(JNIEnvironment env, int classJREF, Address methodNameAddress,
                                  Address methodSigAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetMethodID  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetMethodID");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -717,7 +717,7 @@ public class JNIFunctions {
         return 0;
       }
 
-      if (traceJNI) VM.sysWrite("got method " + meth + "\n");
+      if (traceJNI) VM.sysWriteln("got method " + meth);
       return meth.getId();
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -744,7 +744,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallObjectMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -770,7 +770,7 @@ public class JNIFunctions {
    */
   private static int CallObjectMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallObjectMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -795,7 +795,7 @@ public class JNIFunctions {
    */
   private static int CallObjectMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallObjectMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, null /* return type */, false);
     return env.pushJNIRef(returnObj);
   }
@@ -818,7 +818,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallBooleanMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -844,7 +844,7 @@ public class JNIFunctions {
    */
   private static boolean CallBooleanMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallBooleanMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -869,7 +869,7 @@ public class JNIFunctions {
    */
   private static boolean CallBooleanMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallBooleanMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Boolean, false);
     return Reflection.unwrapBoolean(returnObj);
   }
@@ -892,7 +892,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallByteMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -918,7 +918,7 @@ public class JNIFunctions {
    */
   private static byte CallByteMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallByteMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallByteMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -943,7 +943,7 @@ public class JNIFunctions {
    */
   private static byte CallByteMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallByteMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Byte, false);
     return Reflection.unwrapByte(returnObj);
   }
@@ -966,7 +966,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallCharMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -992,7 +992,7 @@ public class JNIFunctions {
    */
   private static char CallCharMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallCharMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallCharMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1017,7 +1017,7 @@ public class JNIFunctions {
    */
   private static char CallCharMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallCharMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Char, false);
     return Reflection.unwrapChar(returnObj);
   }
@@ -1040,7 +1040,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallShortMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1066,7 +1066,7 @@ public class JNIFunctions {
    */
   private static short CallShortMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallShortMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallShortMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1091,7 +1091,7 @@ public class JNIFunctions {
    */
   private static short CallShortMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallShortMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Short, false);
     return Reflection.unwrapShort(returnObj);
   }
@@ -1114,7 +1114,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallIntMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1140,7 +1140,7 @@ public class JNIFunctions {
    */
   private static int CallIntMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallIntMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallIntMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1165,7 +1165,7 @@ public class JNIFunctions {
    */
   private static int CallIntMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallIntMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Int, false);
     return Reflection.unwrapInt(returnObj);
   }
@@ -1188,7 +1188,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallLongMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1214,7 +1214,7 @@ public class JNIFunctions {
    */
   private static long CallLongMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallLongMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallLongMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1239,7 +1239,7 @@ public class JNIFunctions {
    */
   private static long CallLongMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallLongMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Long, false);
     return Reflection.unwrapLong(returnObj);
   }
@@ -1262,7 +1262,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallFloatMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1288,7 +1288,7 @@ public class JNIFunctions {
    */
   private static float CallFloatMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallFloatMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1313,7 +1313,7 @@ public class JNIFunctions {
    */
   private static float CallFloatMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallFloatMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Float, false);
     return Reflection.unwrapFloat(returnObj);
   }
@@ -1336,7 +1336,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallDoubleMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1362,7 +1362,7 @@ public class JNIFunctions {
    */
   private static double CallDoubleMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallDoubleMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1387,7 +1387,7 @@ public class JNIFunctions {
    */
   private static double CallDoubleMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallDoubleMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Double, false);
     return Reflection.unwrapDouble(returnObj);
   }
@@ -1409,7 +1409,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallVoidMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1432,7 +1432,7 @@ public class JNIFunctions {
    */
   private static void CallVoidMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallVoidMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1454,7 +1454,7 @@ public class JNIFunctions {
    */
   private static void CallVoidMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallVoidMethodA");
     JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Void, false);
   }
 
@@ -1478,7 +1478,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualObjectMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1505,7 +1505,7 @@ public class JNIFunctions {
    */
   private static int CallNonvirtualObjectMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualObjectMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1531,7 +1531,7 @@ public class JNIFunctions {
    */
   private static int CallNonvirtualObjectMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualObjectMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, null /* return type */, true);
     return env.pushJNIRef(returnObj);
   }
@@ -1556,7 +1556,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualBooleanMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1583,7 +1583,7 @@ public class JNIFunctions {
    */
   private static boolean CallNonvirtualBooleanMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualBooleanMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1609,7 +1609,7 @@ public class JNIFunctions {
    */
   private static boolean CallNonvirtualBooleanMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualBooleanMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Boolean, true);
     return Reflection.unwrapBoolean(returnObj);
   }
@@ -1634,7 +1634,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualByteMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1661,7 +1661,7 @@ public class JNIFunctions {
    */
   private static byte CallNonvirtualByteMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualByteMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1687,7 +1687,7 @@ public class JNIFunctions {
    */
   private static byte CallNonvirtualByteMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualByteMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Byte, true);
     return Reflection.unwrapByte(returnObj);
   }
@@ -1712,7 +1712,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualCharMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1739,7 +1739,7 @@ public class JNIFunctions {
    */
   private static char CallNonvirtualCharMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualCharMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1765,7 +1765,7 @@ public class JNIFunctions {
    */
   private static char CallNonvirtualCharMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualCharMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Char, true);
     return Reflection.unwrapChar(returnObj);
   }
@@ -1790,7 +1790,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualShortMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1817,7 +1817,7 @@ public class JNIFunctions {
    */
   private static short CallNonvirtualShortMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualShortMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1843,7 +1843,7 @@ public class JNIFunctions {
    */
   private static short CallNonvirtualShortMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualShortMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Short, true);
     return Reflection.unwrapShort(returnObj);
   }
@@ -1868,7 +1868,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualIntMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1895,7 +1895,7 @@ public class JNIFunctions {
    */
   private static int CallNonvirtualIntMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualIntMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1921,7 +1921,7 @@ public class JNIFunctions {
    */
   private static int CallNonvirtualIntMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualIntMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Int, true);
     return Reflection.unwrapInt(returnObj);
   }
@@ -1946,7 +1946,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualLongMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1973,7 +1973,7 @@ public class JNIFunctions {
    */
   private static long CallNonvirtualLongMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualLongMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -1999,7 +1999,7 @@ public class JNIFunctions {
    */
   private static long CallNonvirtualLongMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualLongMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Long, true);
     return Reflection.unwrapLong(returnObj);
   }
@@ -2024,7 +2024,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualFloatMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2051,7 +2051,7 @@ public class JNIFunctions {
    */
   private static float CallNonvirtualFloatMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualFloatMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2077,7 +2077,7 @@ public class JNIFunctions {
    */
   private static float CallNonvirtualFloatMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualFloatMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Float, true);
     return Reflection.unwrapFloat(returnObj);
   }
@@ -2102,7 +2102,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualDoubleMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2129,7 +2129,7 @@ public class JNIFunctions {
    */
   private static double CallNonvirtualDoubleMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualDoubleMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2155,7 +2155,7 @@ public class JNIFunctions {
    */
   private static double CallNonvirtualDoubleMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualDoubleMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Double, true);
     return Reflection.unwrapDouble(returnObj);
   }
@@ -2179,7 +2179,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualVoidMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2203,7 +2203,7 @@ public class JNIFunctions {
    */
   private static void CallNonvirtualVoidMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualVoidMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2226,7 +2226,7 @@ public class JNIFunctions {
    */
   private static void CallNonvirtualVoidMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallNonvirtualVoidMethodA");
     JNIGenericHelpers.callMethodJValuePtr(env, objJREF, methodID, argAddress, TypeReference.Void, true);
   }
 
@@ -2244,7 +2244,7 @@ public class JNIFunctions {
    */
   private static int GetFieldID(JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                 Address descriptorAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetFieldID  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetFieldID");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2288,7 +2288,7 @@ public class JNIFunctions {
    *         or 0 if the fieldID is incorrect
    */
   private static int GetObjectField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetObjectField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetObjectField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2311,7 +2311,7 @@ public class JNIFunctions {
    * @return the value of the boolean field, or 0 if the fieldID is incorrect
    */
   private static int GetBooleanField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetBooleanField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetBooleanField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2333,7 +2333,7 @@ public class JNIFunctions {
    * @return the value of the byte field, or 0 if the fieldID is incorrect
    */
   private static int GetByteField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetByteField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetByteField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2355,7 +2355,7 @@ public class JNIFunctions {
    * @return the value of the character field, or 0 if the fieldID is incorrect
    */
   private static int GetCharField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetCharField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetCharField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2377,7 +2377,7 @@ public class JNIFunctions {
    * @return the value of the short field, or 0 if the fieldID is incorrect
    */
   private static int GetShortField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetShortField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetShortField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2399,7 +2399,7 @@ public class JNIFunctions {
    * @return the value of the integer field, or 0 if the fieldID is incorrect
    */
   private static int GetIntField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetIntField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetIntField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2421,7 +2421,7 @@ public class JNIFunctions {
    * @return the value of the long field or 0 if the fieldID is incorrect
    */
   private static long GetLongField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetLongField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetLongField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2443,7 +2443,7 @@ public class JNIFunctions {
    * @return the value of the float field or 0 if the fieldID is incorrect
    */
   private static float GetFloatField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetFloatField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetFloatField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2465,7 +2465,7 @@ public class JNIFunctions {
    * @return the value of the double field or 0 if the fieldID is incorrect
    */
   private static double GetDoubleField(JNIEnvironment env, int objJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetDoubleField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetDoubleField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2487,7 +2487,7 @@ public class JNIFunctions {
    * @param valueJREF a JREF index for the value to assign
    */
   private static void SetObjectField(JNIEnvironment env, int objJREF, int fieldID, int valueJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: SetObjectField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetObjectField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2509,7 +2509,7 @@ public class JNIFunctions {
    * @param value   boolean value to assign
    */
   private static void SetBooleanField(JNIEnvironment env, int objJREF, int fieldID, boolean value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetBooleanField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetBooleanField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2530,7 +2530,7 @@ public class JNIFunctions {
    * @param value   byte value to assign
    */
   private static void SetByteField(JNIEnvironment env, int objJREF, int fieldID, byte value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetByteField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetByteField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2551,7 +2551,7 @@ public class JNIFunctions {
    * @param value   char value to assign
    */
   private static void SetCharField(JNIEnvironment env, int objJREF, int fieldID, char value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetCharField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetCharField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2572,7 +2572,7 @@ public class JNIFunctions {
    * @param value   short value to assign
    */
   private static void SetShortField(JNIEnvironment env, int objJREF, int fieldID, short value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetShortField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetShortField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2593,7 +2593,7 @@ public class JNIFunctions {
    * @param value   integer value to assign
    */
   private static void SetIntField(JNIEnvironment env, int objJREF, int fieldID, int value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetIntField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetIntField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2614,7 +2614,7 @@ public class JNIFunctions {
    * @param value   long value to assign
    */
   private static void SetLongField(JNIEnvironment env, int objJREF, int fieldID, long value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetLongField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetLongField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2635,7 +2635,7 @@ public class JNIFunctions {
    * @param value   float value to assign
    */
   private static void SetFloatField(JNIEnvironment env, int objJREF, int fieldID, float value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetFloatField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetFloatField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2656,7 +2656,7 @@ public class JNIFunctions {
    * @param value   double value to assign
    */
   private static void SetDoubleField(JNIEnvironment env, int objJREF, int fieldID, double value) {
-    if (traceJNI) VM.sysWrite("JNI called: SetDoubleField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetDoubleField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2682,7 +2682,7 @@ public class JNIFunctions {
    */
   private static int GetStaticMethodID(JNIEnvironment env, int classJREF, Address methodNameAddress,
                                        Address methodSigAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticMethodID  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticMethodID");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2712,7 +2712,7 @@ public class JNIFunctions {
         return 0;
       }
 
-      if (traceJNI) VM.sysWrite("got method " + meth + "\n");
+      if (traceJNI) VM.sysWriteln("got method " + meth);
       return meth.getId();
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2739,7 +2739,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticObjectMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2764,7 +2764,7 @@ public class JNIFunctions {
    */
   private static int CallStaticObjectMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticObjectMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2788,7 +2788,7 @@ public class JNIFunctions {
    */
   private static int CallStaticObjectMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticObjectMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, null /* return type */, true);
     return env.pushJNIRef(returnObj);
   }
@@ -2811,7 +2811,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticBooleanMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2836,7 +2836,7 @@ public class JNIFunctions {
    */
   private static boolean CallStaticBooleanMethodV(JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticBooleanMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2860,7 +2860,7 @@ public class JNIFunctions {
    */
   private static boolean CallStaticBooleanMethodA(JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticBooleanMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Boolean, true);
     return Reflection.unwrapBoolean(returnObj);
   }
@@ -2883,7 +2883,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticByteMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2908,7 +2908,7 @@ public class JNIFunctions {
    */
   private static byte CallStaticByteMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticByteMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2932,7 +2932,7 @@ public class JNIFunctions {
    */
   private static byte CallStaticByteMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticByteMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Byte, true);
     return Reflection.unwrapByte(returnObj);
   }
@@ -2955,7 +2955,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticCharMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -2980,7 +2980,7 @@ public class JNIFunctions {
    */
   private static char CallStaticCharMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticCharMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3004,7 +3004,7 @@ public class JNIFunctions {
    */
   private static char CallStaticCharMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticCharMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Char, true);
     return Reflection.unwrapChar(returnObj);
   }
@@ -3027,7 +3027,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticShortMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3052,7 +3052,7 @@ public class JNIFunctions {
    */
   private static short CallStaticShortMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticShortMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3076,7 +3076,7 @@ public class JNIFunctions {
    */
   private static short CallStaticShortMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticShortMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Short, true);
     return Reflection.unwrapShort(returnObj);
   }
@@ -3099,7 +3099,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticIntMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3124,7 +3124,7 @@ public class JNIFunctions {
    */
   private static int CallStaticIntMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticIntMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3149,7 +3149,7 @@ public class JNIFunctions {
    */
   private static int CallStaticIntMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticIntMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Int, true);
     return Reflection.unwrapInt(returnObj);
   }
@@ -3172,7 +3172,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticLongMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3197,7 +3197,7 @@ public class JNIFunctions {
    */
   private static long CallStaticLongMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticLongMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3221,7 +3221,7 @@ public class JNIFunctions {
    */
   private static long CallStaticLongMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticLongMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Long, true);
     return Reflection.unwrapLong(returnObj);
   }
@@ -3244,7 +3244,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticFloatMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3269,7 +3269,7 @@ public class JNIFunctions {
    */
   private static float CallStaticFloatMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticFloatMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3293,7 +3293,7 @@ public class JNIFunctions {
    */
   private static float CallStaticFloatMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticFloatMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Float, true);
     return Reflection.unwrapFloat(returnObj);
   }
@@ -3316,7 +3316,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticDoubleMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3341,7 +3341,7 @@ public class JNIFunctions {
    */
   private static double CallStaticDoubleMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticDoubleMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3365,7 +3365,7 @@ public class JNIFunctions {
    */
   private static double CallStaticDoubleMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticDoubleMethodA");
     Object returnObj = JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Double, true);
     return Reflection.unwrapDouble(returnObj);
   }
@@ -3387,7 +3387,7 @@ public class JNIFunctions {
     if (VM.VerifyAssertions) {
       VM._assert(VM.BuildForPowerPC, ERROR_MSG_WRONG_IMPLEMENTATION);
     }
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethod  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticVoidMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3409,7 +3409,7 @@ public class JNIFunctions {
    */
   private static void CallStaticVoidMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodV  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticVoidMethodV");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3430,7 +3430,7 @@ public class JNIFunctions {
    */
   private static void CallStaticVoidMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodA  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: CallStaticVoidMethodA");
     JNIGenericHelpers.callMethodJValuePtr(env, 0, methodID, argAddress, TypeReference.Void, true);
   }
 
@@ -3448,7 +3448,7 @@ public class JNIFunctions {
    */
   private static int GetStaticFieldID(JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                       Address descriptorAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticFieldID  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticFieldID");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3497,7 +3497,7 @@ public class JNIFunctions {
    *         or 0 if the fieldID is incorrect
    */
   private static int GetStaticObjectField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticObjectField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticObjectField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3519,7 +3519,7 @@ public class JNIFunctions {
    * @return the value of the boolean field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticBooleanField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticBooleanField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticBooleanField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3540,7 +3540,7 @@ public class JNIFunctions {
    * @return the value of the byte field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticByteField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticByteField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticByteField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3561,7 +3561,7 @@ public class JNIFunctions {
    * @return the value of the character field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticCharField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticCharField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticCharField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3582,7 +3582,7 @@ public class JNIFunctions {
    * @return the value of the short field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticShortField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticShortField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticShortField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3603,7 +3603,7 @@ public class JNIFunctions {
    * @return the value of the integer field, or 0 if the fieldID is incorrect
    */
   private static int GetStaticIntField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticIntField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticIntField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3624,7 +3624,7 @@ public class JNIFunctions {
    * @return the value of the long field or 0 if the fieldID is incorrect
    */
   private static long GetStaticLongField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticLongField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticLongField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3645,7 +3645,7 @@ public class JNIFunctions {
    * @return the value of the float field or 0 if the fieldID is incorrect
    */
   private static float GetStaticFloatField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticFloatField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticFloatField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3666,7 +3666,7 @@ public class JNIFunctions {
    * @return the value of the double field or 0 if the fieldID is incorrect
    */
   private static double GetStaticDoubleField(JNIEnvironment env, int classJREF, int fieldID) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStaticDoubleField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStaticDoubleField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3688,7 +3688,7 @@ public class JNIFunctions {
    * @param objectJREF  A JREF index of the value to assign
    */
   private static void SetStaticObjectField(JNIEnvironment env, int classJREF, int fieldID, int objectJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticObjectField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticObjectField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3709,7 +3709,7 @@ public class JNIFunctions {
    * @param fieldValue  The value to assign
    */
   private static void SetStaticBooleanField(JNIEnvironment env, int classJREF, int fieldID, boolean fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticBooleanField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticBooleanField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3729,7 +3729,7 @@ public class JNIFunctions {
    * @param fieldValue the value to assign
    */
   private static void SetStaticByteField(JNIEnvironment env, int classJREF, int fieldID, byte fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticByteField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticByteField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3749,7 +3749,7 @@ public class JNIFunctions {
    * @param fieldValue  The value to assign
    */
   private static void SetStaticCharField(JNIEnvironment env, int classJREF, int fieldID, char fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticCharField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticCharField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3769,7 +3769,7 @@ public class JNIFunctions {
    * @param fieldValue  The value to assign
    */
   private static void SetStaticShortField(JNIEnvironment env, int classJREF, int fieldID, short fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticShortField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticShortField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3789,7 +3789,7 @@ public class JNIFunctions {
    * @param fieldValue  The value to assign
    */
   private static void SetStaticIntField(JNIEnvironment env, int classJREF, int fieldID, int fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticIntField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticIntField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3809,7 +3809,7 @@ public class JNIFunctions {
    * @param fieldValue  The value to assign
    */
   private static void SetStaticLongField(JNIEnvironment env, int classJREF, int fieldID, long fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticLongField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticLongField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3829,7 +3829,7 @@ public class JNIFunctions {
    * @param fieldValue  The value to assign
    */
   private static void SetStaticFloatField(JNIEnvironment env, int classJREF, int fieldID, float fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticFloatField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticFloatField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3849,7 +3849,7 @@ public class JNIFunctions {
    * @param fieldValue  The value to assign
    */
   private static void SetStaticDoubleField(JNIEnvironment env, int classJREF, int fieldID, double fieldValue) {
-    if (traceJNI) VM.sysWrite("JNI called: SetStaticDoubleField  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetStaticDoubleField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3871,7 +3871,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewString(JNIEnvironment env, Address uchars, int len) {
-    if (traceJNI) VM.sysWrite("JNI called: NewString  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewString");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3892,7 +3892,7 @@ public class JNIFunctions {
    * @return the length of the String
    */
   private static int GetStringLength(JNIEnvironment env, int objJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringLength  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStringLength");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3915,7 +3915,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetStringChars(JNIEnvironment env, int strJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStringChars");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     String str = (String) env.getJNIRef(strJREF);
@@ -3954,7 +3954,7 @@ public class JNIFunctions {
    * @param bufAddress address of buffer to release
    */
   private static void ReleaseStringChars(JNIEnvironment env, int objJREF, Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseStringChars");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3974,7 +3974,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewStringUTF(JNIEnvironment env, Address utf8bytes) {
-    if (traceJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewStringUTF");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -3994,7 +3994,7 @@ public class JNIFunctions {
    * @return number of bytes to represent in UTF8 format
    */
   private static int GetStringUTFLength(JNIEnvironment env, int objJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFLength  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStringUTFLength");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4017,7 +4017,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetStringUTFChars(JNIEnvironment env, int strJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStringUTFChars");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     String str = (String) env.getJNIRef(strJREF);
@@ -4052,7 +4052,7 @@ public class JNIFunctions {
    * @param bufAddress address of buffer to release
    */
   private static void ReleaseStringUTFChars(JNIEnvironment env, int objJREF, Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseStringUTFChars");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4070,7 +4070,7 @@ public class JNIFunctions {
    * @return the array length, or -1 if it's not an array
    */
   private static int GetArrayLength(JNIEnvironment env, int arrayJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetArrayLength  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetArrayLength");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4094,7 +4094,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewObjectArray(JNIEnvironment env, int length, int classJREF, int initElementJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewObjectArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4139,7 +4139,7 @@ public class JNIFunctions {
    * @throws ArrayIndexOutOfBoundsException if the index is out of range
    */
   private static int GetObjectArrayElement(JNIEnvironment env, int arrayJREF, int index) {
-    if (traceJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetObjectArrayElement");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4178,7 +4178,7 @@ public class JNIFunctions {
    *            ArrayIndexOutOfBoundsException if the index is out of range
    */
   private static void SetObjectArrayElement(JNIEnvironment env, int arrayJREF, int index, int objectJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: SetObjectArrayElement  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetObjectArrayElement");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4198,7 +4198,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewBooleanArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewBooleanArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4219,7 +4219,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewByteArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewByteArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewByteArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4240,7 +4240,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewCharArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewCharArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewCharArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4261,7 +4261,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewShortArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewShortArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewShortArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4282,7 +4282,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewIntArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewIntArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewIntArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4303,7 +4303,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewLongArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewLongArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewLongArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4324,7 +4324,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewFloatArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewFloatArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4345,7 +4345,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewDoubleArray(JNIEnvironment env, int length) {
-    if (traceJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewDoubleArray");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4368,7 +4368,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetBooleanArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetBooleanArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4406,7 +4406,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetByteArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetByteArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4451,7 +4451,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetCharArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetCharArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4494,7 +4494,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetShortArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetShortArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4537,7 +4537,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetIntArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetIntArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4579,7 +4579,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetLongArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetLongArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4621,7 +4621,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetFloatArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetFloatArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4664,7 +4664,7 @@ public class JNIFunctions {
    * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetDoubleArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetDoubleArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4708,7 +4708,7 @@ public class JNIFunctions {
    */
   private static void ReleaseBooleanArrayElements(JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                   int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseBooleanArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseBooleanArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4802,7 +4802,7 @@ public class JNIFunctions {
    */
   private static void ReleaseCharArrayElements(JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseCharArrayElements \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseCharArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4840,7 +4840,7 @@ public class JNIFunctions {
    */
   private static void ReleaseShortArrayElements(JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                 int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseShortArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseShortArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4878,7 +4878,7 @@ public class JNIFunctions {
    */
   private static void ReleaseIntArrayElements(JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                               int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseIntArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseIntArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4916,7 +4916,7 @@ public class JNIFunctions {
    */
   private static void ReleaseLongArrayElements(JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseLongArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseLongArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4954,7 +4954,7 @@ public class JNIFunctions {
    */
   private static void ReleaseFloatArrayElements(JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                 int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseFloatArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseFloatArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -4992,7 +4992,7 @@ public class JNIFunctions {
    */
   private static void ReleaseDoubleArrayElements(JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                  int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseDoubleArrayElements  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseDoubleArrayElements");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5029,7 +5029,7 @@ public class JNIFunctions {
    */
   private static void GetBooleanArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetBooleanArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5057,7 +5057,7 @@ public class JNIFunctions {
    */
   private static void GetByteArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetByteArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetByteArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5086,7 +5086,7 @@ public class JNIFunctions {
    */
   private static void GetCharArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetCharArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetCharArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5117,7 +5117,7 @@ public class JNIFunctions {
    */
   private static void GetShortArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetShortArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetShortArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5148,7 +5148,7 @@ public class JNIFunctions {
    */
   private static void GetIntArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetIntArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetIntArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5179,7 +5179,7 @@ public class JNIFunctions {
    */
   private static void GetLongArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetLongArrayRegion   \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetLongArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5210,7 +5210,7 @@ public class JNIFunctions {
    */
   private static void GetFloatArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayRegion    \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetFloatArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5241,7 +5241,7 @@ public class JNIFunctions {
    */
   private static void GetDoubleArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayRegion   \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetDoubleArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5272,7 +5272,7 @@ public class JNIFunctions {
    */
   private static void SetBooleanArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetBooleanArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetBooleanArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5301,7 +5301,7 @@ public class JNIFunctions {
    */
   private static void SetByteArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetByteArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetByteArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5330,7 +5330,7 @@ public class JNIFunctions {
    */
   private static void SetCharArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetCharArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetCharArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5361,7 +5361,7 @@ public class JNIFunctions {
    */
   private static void SetShortArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetShortArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetShortArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5392,7 +5392,7 @@ public class JNIFunctions {
    */
   private static void SetIntArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetIntArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetIntArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5423,7 +5423,7 @@ public class JNIFunctions {
    */
   private static void SetLongArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetLongArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetLongArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5454,7 +5454,7 @@ public class JNIFunctions {
    */
   private static void SetFloatArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetFloatArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetFloatArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5485,7 +5485,7 @@ public class JNIFunctions {
    */
   private static void SetDoubleArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: SetDoubleArrayRegion  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: SetDoubleArrayRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5515,7 +5515,7 @@ public class JNIFunctions {
    * @throws NoSuchMethodError if a specified method cannot be found or is not native
    */
   private static int RegisterNatives(JNIEnvironment env, int classJREF, Address methodsAddress, int nmethods) {
-    if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: RegisterNatives");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5576,7 +5576,7 @@ public class JNIFunctions {
    * @return 0 is successful -1 if failed
    */
   private static int UnregisterNatives(JNIEnvironment env, int classJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: UnregisterNatives  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: UnregisterNatives");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5610,7 +5610,7 @@ public class JNIFunctions {
    * @return 0 if the object is locked successfully, -1 if not
    */
   private static int MonitorEnter(JNIEnvironment env, int objJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: MonitorEnter  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: MonitorEnter");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5630,7 +5630,7 @@ public class JNIFunctions {
    * @return 0 if the object is unlocked successfully, -1 if not
    */
   private static int MonitorExit(JNIEnvironment env, int objJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: MonitorExit  \n");
+    if (traceJNI) VM.sysWriteln("JNI called: MonitorExit");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5644,7 +5644,7 @@ public class JNIFunctions {
   }
 
   private static int GetJavaVM(JNIEnvironment env, Address StarStarJavaVM) {
-    if (traceJNI) VM.sysWrite("JNI called: GetJavaVM \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetJavaVM");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5671,7 +5671,7 @@ public class JNIFunctions {
    * @return the jmethodID corresponding to methodJREF
    */
   private static int FromReflectedMethod(JNIEnvironment env, int methodJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: FromReflectedMethod \n");
+    if (traceJNI) VM.sysWriteln("JNI called: FromReflectedMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     Object methodObj = env.getJNIRef(methodJREF);
@@ -5682,7 +5682,7 @@ public class JNIFunctions {
       meth = java.lang.reflect.JikesRVMSupport.getMethodOf((Method) methodObj);
     }
 
-    if (traceJNI) VM.sysWrite("got method " + meth + "\n");
+    if (traceJNI) VM.sysWriteln("got method " + meth);
     return meth.getId();
   }
 
@@ -5693,12 +5693,12 @@ public class JNIFunctions {
    * @return the jfieldID corresponding to fieldJREF
    * */
   private static int FromReflectedField(JNIEnvironment env, int fieldJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: FromReflectedField \n");
+    if (traceJNI) VM.sysWriteln("JNI called: FromReflectedField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     Field fieldObj = (Field) env.getJNIRef(fieldJREF);
     RVMField f = java.lang.reflect.JikesRVMSupport.getFieldOf(fieldObj);
-    if (traceJNI) VM.sysWrite("got field " + f + "\n");
+    if (traceJNI) VM.sysWriteln("got field " + f);
     return f.getId();
   }
 
@@ -5718,7 +5718,7 @@ public class JNIFunctions {
    * java.lang.reflect.Constructor object associated with methodID.
    */
   private static int ToReflectedMethod(JNIEnvironment env, int clsJREF, int methodID, boolean isStatic) {
-    if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ToReflectedMethod");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     RVMMethod targetMethod = MemberReference.getMethodRef(methodID).resolve();
@@ -5747,7 +5747,7 @@ public class JNIFunctions {
    *         with fieldID.
    */
   private static int ToReflectedField(JNIEnvironment env, int clsJREF, int fieldID, boolean isStatic) {
-    if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ToReflectedField");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     RVMField field = MemberReference.getFieldRef(fieldID).resolve();
@@ -5766,14 +5766,14 @@ public class JNIFunctions {
    * @return always 0
    */
   private static int PushLocalFrame(JNIEnvironment env, int capacity) {
-    if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");
+    if (traceJNI) VM.sysWriteln("JNI called: PushLocalFrame");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     return 0;                   // OK
   }
 
   private static int PopLocalFrame(JNIEnvironment env, int resultJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: PopLocalFrame \n");
+    if (traceJNI) VM.sysWriteln("JNI called: PopLocalFrame");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     // do nothing.
@@ -5789,7 +5789,7 @@ public class JNIFunctions {
    *       C NULL pointer if the oldJREF refers to null.
    */
   private static int NewLocalRef(JNIEnvironment env, int oldJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: NewLocalRef \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewLocalRef");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     Object oldObj = env.getJNIRef(oldJREF);
@@ -5808,7 +5808,7 @@ public class JNIFunctions {
    * worry about that at all.
    */
   private static int EnsureLocalCapacity(JNIEnvironment env, int capacity) {
-    if (traceJNI) VM.sysWrite("JNI called: EnsureLocalCapacity \n");
+    if (traceJNI) VM.sysWriteln("JNI called: EnsureLocalCapacity");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     return 0;                   // success!
@@ -5826,7 +5826,7 @@ public class JNIFunctions {
    *        region of the string.
    */
   private static void GetStringRegion(JNIEnvironment env, int strJREF, int start, int len, Address buf) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringRegion \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStringRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5860,7 +5860,7 @@ public class JNIFunctions {
    *        region of the string.
    */
   private static void GetStringUTFRegion(JNIEnvironment env, int strJREF, int start, int len, Address buf) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFRegion \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStringUTFRegion");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5890,7 +5890,7 @@ public class JNIFunctions {
    */
   private static Address GetPrimitiveArrayCritical(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
 
-    if (traceJNI) VM.sysWrite("JNI called: GetPrimitiveArrayCritical \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetPrimitiveArrayCritical");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5929,7 +5929,7 @@ public class JNIFunctions {
    */
   private static void ReleasePrimitiveArrayCritical(JNIEnvironment env, int arrayJREF, Address arrayCopyAddress,
                                                     int mode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleasePrimitiveArrayCritical \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleasePrimitiveArrayCritical");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5955,7 +5955,7 @@ public class JNIFunctions {
    * @return The address of the backing array; address zero (null) on error, and the jboolean pointed to by isCopyAddress is set to false, indicating that this is not a copy.
    */
   private static Address GetStringCritical(JNIEnvironment env, int strJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringCritical \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetStringCritical");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     String str = (String) env.getJNIRef(strJREF);
@@ -5982,7 +5982,7 @@ public class JNIFunctions {
    * @param carray the pointer returned by GetStringCritical (ignored)
    */
   private static void ReleaseStringCritical(JNIEnvironment env, int strJREF, Address carray) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringCritical \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ReleaseStringCritical");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -5994,7 +5994,7 @@ public class JNIFunctions {
   }
 
   private static int NewWeakGlobalRef(JNIEnvironment env, int objectJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewWeakGlobalRef");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -6008,7 +6008,7 @@ public class JNIFunctions {
   }
 
   private static void DeleteWeakGlobalRef(JNIEnvironment env, int refJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: DeleteWeakGlobalRef \n");
+    if (traceJNI) VM.sysWriteln("JNI called: DeleteWeakGlobalRef");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -6020,7 +6020,7 @@ public class JNIFunctions {
   }
 
   private static int ExceptionCheck(JNIEnvironment env) {
-    if (traceJNI) VM.sysWrite("JNI called: ExceptionCheck \n");
+    if (traceJNI) VM.sysWriteln("JNI called: ExceptionCheck");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     return env.getException() == null ? 0 : 1;
@@ -6031,7 +6031,7 @@ public class JNIFunctions {
    */
 
   private static int NewDirectByteBuffer(JNIEnvironment env, Address address, long capacity) {
-    if (traceJNI) VM.sysWrite("JNI called: NewDirectByteBuffer \n");
+    if (traceJNI) VM.sysWriteln("JNI called: NewDirectByteBuffer");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -6045,7 +6045,7 @@ public class JNIFunctions {
   }
 
   private static Address GetDirectBufferAddress(JNIEnvironment env, int bufJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferAddress \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetDirectBufferAddress");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -6065,7 +6065,7 @@ public class JNIFunctions {
   }
 
   private static long GetDirectBufferCapacity(JNIEnvironment env, int bufJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferCapacity \n");
+    if (traceJNI) VM.sysWriteln("JNI called: GetDirectBufferCapacity");
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
@@ -6083,25 +6083,25 @@ public class JNIFunctions {
    */
 
   private static int reserved0(JNIEnvironment env) {
-    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
+    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...");
     VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved1(JNIEnvironment env) {
-    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
+    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...");
     VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved2(JNIEnvironment env) {
-    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
+    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...");
     VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved3(JNIEnvironment env) {
-    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
+    VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...");
     VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }

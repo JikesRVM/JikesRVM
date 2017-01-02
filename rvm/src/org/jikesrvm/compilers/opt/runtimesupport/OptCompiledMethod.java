@@ -591,7 +591,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         RVMThread.softHandshake(codePatchSyncRequestVisitor);
 
         if (DEBUG_CODE_PATCH) {
-          VM.sysWrite("all processors got synchronized!\n");
+          VM.sysWriteln("all processors got synchronized!");
         }
       }
 

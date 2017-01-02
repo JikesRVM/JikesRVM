@@ -74,7 +74,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
   static boolean tooBig(IR ir) {
     boolean res = false;
     if (ir.getMaxBasicBlockNumber() > 1000) {
-      //VM.sysWrite (ir.method.toString() + " is too large\n");
+      //VM.sysWriteln (ir.method.toString() + " is too large");
       res = true;
     }
     return res;
@@ -121,7 +121,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
       //VM.sysWrite("> " + ir.method + "\n");
 
       if (ir.hasReachableExceptionHandlers()) {
-        //VM.sysWrite("has exceptionhandlers\n");
+        //VM.sysWriteln("has exceptionhandlers");
         dont = true;
       }
       if (GCP.tooBig(ir)) {
@@ -188,7 +188,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
     @Override
     public final void perform(IR ir) {
       ir.options.SSA = true;
-      //VM.sysWrite("< " + ir.method + "\n");
+      //VM.sysWriteln("< " + ir.method);
       // register in the IR the SSA properties GCP preserves
       if (!GCP.tooBig(ir) && !ir.hasReachableExceptionHandlers() && ir.actualSSAOptions != null) {
         if (ir.isLIR()) {

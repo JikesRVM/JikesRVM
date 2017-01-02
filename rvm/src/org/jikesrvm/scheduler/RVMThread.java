@@ -4342,7 +4342,7 @@ public final class RVMThread extends ThreadContext {
       VM.sysFail("system error: resizing stack while return barrier enabled (currently unsupported)");
     }
     if (traceAdjustments)
-      VM.sysWrite("Thread: resizeCurrentStack\n");
+      VM.sysWriteln("Thread: resizeCurrentStack");
     if (MemoryManager.gcInProgress()) {
       VM.sysFail("system error: resizing stack while GC is in progress");
     }
@@ -4354,7 +4354,7 @@ public final class RVMThread extends ThreadContext {
       RVMThread t = getCurrentThread();
       VM.sysWrite("Thread: resized stack ", t.getThreadSlot());
       VM.sysWrite(" to ", t.stack.length / 1024);
-      VM.sysWrite("k\n");
+      VM.sysWriteln("k");
     }
   }
 
@@ -4437,7 +4437,7 @@ public final class RVMThread extends ThreadContext {
    */
   public void fixupMovedStack(Offset delta) {
     if (traceAdjustments)
-      VM.sysWrite("Thread: fixupMovedStack\n");
+      VM.sysWriteln("Thread: fixupMovedStack");
 
     if (!contextRegisters.getInnermostFramePointer().isZero()) {
       adjustRegisters(contextRegisters, delta);
@@ -4463,7 +4463,7 @@ public final class RVMThread extends ThreadContext {
    */
   private static void adjustRegisters(AbstractRegisters registers, Offset delta) {
     if (traceAdjustments)
-      VM.sysWrite("Thread: adjustRegisters\n");
+      VM.sysWriteln("Thread: adjustRegisters");
 
     // adjust FP
     //
@@ -4506,7 +4506,7 @@ public final class RVMThread extends ThreadContext {
    */
   private static void adjustStack(byte[] stack, Address fp, Offset delta) {
     if (traceAdjustments)
-      VM.sysWrite("Thread: adjustStack\n");
+      VM.sysWriteln("Thread: adjustStack");
 
     while (Magic.getCallerFramePointer(fp).NE(StackFrameLayout.getStackFrameSentinelFP())) {
       // adjust FP save area
@@ -5277,13 +5277,13 @@ public final class RVMThread extends ThreadContext {
   static void dumpStats() {
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(waitOperations);
-    VM.sysWrite(" wait operations\n");
+    VM.sysWriteln(" wait operations");
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(timedWaitOperations);
-    VM.sysWrite(" timed wait operations\n");
+    VM.sysWriteln(" timed wait operations");
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(notifyOperations);
-    VM.sysWrite(" notify operations\n");
+    VM.sysWriteln(" notify operations");
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(notifyAllOperations);
   }
@@ -5637,9 +5637,9 @@ public final class RVMThread extends ThreadContext {
    */
   private static void showMethod(int compiledMethodId, Address fp) {
     showPrologue(fp);
-    VM.sysWrite(
+    VM.sysWriteln(
         "<unprintable normal Java frame: CompiledMethods.getCompiledMethod(",
-        compiledMethodId, ") returned null>\n");
+        compiledMethodId, ") returned null>");
   }
 
   /**
@@ -5653,7 +5653,7 @@ public final class RVMThread extends ThreadContext {
     showPrologue(fp);
     VM.sysWrite("<");
     VM.sysWrite(name);
-    VM.sysWrite(">\n");
+    VM.sysWriteln(">");
   }
 
   /**
@@ -5753,7 +5753,9 @@ public final class RVMThread extends ThreadContext {
   public static void dumpVirtualMachine() {
     boolean b = Monitor.lockNoHandshake(dumpLock);
     getCurrentThread().disableYieldpoints();
-    VM.sysWrite("\n-- Threads --\n");
+    VM.sysWriteln();
+    VM.sysWrite("-- Threads --");
+    VM.sysWriteln();
     for (int i = 0; i < numThreads; ++i) {
       RVMThread t = threads[i];
       if (t != null) {
@@ -5763,10 +5765,13 @@ public final class RVMThread extends ThreadContext {
     }
     VM.sysWriteln();
 
-    VM.sysWrite("\n-- Locks in use --\n");
+    VM.sysWriteln();
+    VM.sysWrite("-- Locks in use --");
+    VM.sysWriteln();
     Lock.dumpLocks();
 
-    VM.sysWriteln("Dumping stack of active thread\n");
+    VM.sysWriteln("Dumping stack of active thread");
+    VM.sysWriteln();
     dumpStack();
 
     VM.sysWriteln("Attempting to dump the stack of all other live threads");

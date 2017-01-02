@@ -418,7 +418,8 @@ public final class ControllerMemory {
       totalUniqueMethods = totalUniqueMethods + summaryArray[i];
     }
     log.println("  Num recompilations At level 2: " + totalRecompsAtLevel2);
-    log.println("  Num unique methods recompiled: " + totalUniqueMethods + "\n");
+    log.println("  Num unique methods recompiled: " + totalUniqueMethods);
+    log.println();
   }
 
   /**

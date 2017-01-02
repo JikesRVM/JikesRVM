@@ -79,14 +79,14 @@ public class InsertYieldpointCounters extends CompilerPhase {
     YieldpointCounterData data = AOSDatabase.yieldpointCounterData;
 
     if (InsertYieldpointCounters.DEBUG) {
-      VM.sysWrite("InsertYieldpointCounters.perform() " + ir.method + "\n");
+      VM.sysWriteln("InsertYieldpointCounters.perform() " + ir.method);
     }
     // For each yieldpoint, insert a counter.
     for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
       BasicBlock bb = bbe.nextElement();
 
       if (InsertYieldpointCounters.DEBUG) {
-        VM.sysWrite("Considering basic block " + bb.toString() + "\n");
+        VM.sysWriteln("Considering basic block " + bb.toString());
         bb.printExtended();
       }
 

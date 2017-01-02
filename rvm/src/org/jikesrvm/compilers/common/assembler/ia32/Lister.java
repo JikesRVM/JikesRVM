@@ -538,14 +538,14 @@ public final class Lister {
   }
 
   public void noteBytecode(int i, String bcode) {
-    VM.sysWrite("[" + decimal(i) + "] " + bcode + "\n");
+    VM.sysWriteln("[" + decimal(i) + "] " + bcode);
   }
 
   public void comment(int i, String comment) {
-    VM.sysWrite(right(hex(i), 6) + "| " + comment + "\n");
+    VM.sysWriteln(right(hex(i), 6) + "| " + comment);
   }
 
   public void comefrom(int i, int j) {
-    VM.sysWrite(right(hex(i), 6) + "| <<< " + right(hex(j), 6) + "\n");
+    VM.sysWriteln(right(hex(i), 6) + "| <<< " + right(hex(j), 6));
   }
 }

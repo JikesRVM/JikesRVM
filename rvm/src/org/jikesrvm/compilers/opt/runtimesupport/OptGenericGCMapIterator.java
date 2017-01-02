@@ -97,7 +97,9 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
   @Override
   public final void setupIterator(CompiledMethod cm, Offset instructionOffset, Address framePtr) {
     if (DEBUG) {
-      VM.sysWrite("\n\t   ==========================\n");
+      VM.sysWriteln();
+      VM.sysWrite("\t   ==========================");
+      VM.sysWriteln();
       VM.sysWrite("Reference map request made");
       VM.sysWrite(" for machine code offset: ");
       VM.sysWrite(instructionOffset);
@@ -137,7 +139,8 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
       }
       VM.sysWrite("Supposed method: ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWriteln("\nBase of its code array", Magic.objectAsAddress(cm.getEntryCodeArray()));
+      VM.sysWriteln();
+      VM.sysWriteln("Base of its code array", Magic.objectAsAddress(cm.getEntryCodeArray()));
       Address ra = cm.getInstructionAddress(instructionOffset);
       VM.sysWriteln("Calculated actual return address is ", ra);
       CompiledMethod realCM = CompiledMethods.findMethodForInstruction(ra);
@@ -157,12 +160,12 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
     if (DEBUG) {
       VM.sysWrite("\tMethod: ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWrite("\n ");
+      VM.sysWriteln();
 
       if (mapIndex == OptGCMap.NO_MAP_ENTRY) {
-        VM.sysWrite("... empty map found\n");
+        VM.sysWriteln("... empty map found");
       } else {
-        VM.sysWrite("... found a map\n");
+        VM.sysWriteln("... found a map");
       }
 
       if (lookForMissedReferencesInSpills) {
@@ -190,7 +193,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
     // make sure we have a map entry to look at
     if (mapIndex == OptGCMap.NO_MAP_ENTRY) {
       if (DEBUG) {
-        VM.sysWrite("  No Map, returning 0\n");
+        VM.sysWriteln("  No Map, returning 0");
       }
       if (lookForMissedReferencesInRegs) {
         checkAllRegistersForMissedReferences();
@@ -240,7 +243,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
     mapIndex = map.nextLocation(mapIndex);
     if (mapIndex == OptGCMap.NO_MAP_ENTRY) {
       if (DEBUG) {
-        VM.sysWrite("  No more to return, returning 0\n");
+        VM.sysWriteln("  No more to return, returning 0");
       }
 
       if (lookForMissedReferencesInSpills) {
@@ -295,7 +298,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator {
     // Since the Opt compiler inlines JSRs, this method will always return 0
     //  signaling the end of the list of such pointers.
     if (DEBUG) {
-      VM.sysWrite("\t\t getNextReturnAddressOffset returning 0\n");
+      VM.sysWriteln("\t\t getNextReturnAddressOffset returning 0");
     }
     return Address.zero();
   }

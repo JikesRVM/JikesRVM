@@ -53,7 +53,7 @@ class TestSpecialCall {
   public static boolean run() {
     System.out.println("TestSpecialCall");
 
-    System.out.print("want: A.init B.init C.init A.init B.foo C.bar C.foo\n");
+    System.out.println("want: A.init B.init C.init A.init B.foo C.bar C.foo");
     System.out.print(" got: ");
     new C().test();
     System.out.println();

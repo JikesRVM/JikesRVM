@@ -180,7 +180,7 @@ public final class ControllerPlan {
     AOSLogging.logger.recompilationStarted(cp);
 
     if (cp.options.PRINT_METHOD) {
-      VM.sysWrite("-oc:O" + cp.options.getOptLevel() + " \n");
+      VM.sysWriteln("-oc:O" + cp.options.getOptLevel());
     }
 
     // Compile the method.

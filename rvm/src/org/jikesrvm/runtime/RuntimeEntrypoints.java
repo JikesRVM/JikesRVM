@@ -610,7 +610,7 @@ public class RuntimeEntrypoints {
    */
   public static void initializeClassForDynamicLink(RVMClass cls) {
     if (VM.TraceClassLoading) {
-      VM.sysWrite("RuntimeEntrypoints.initializeClassForDynamicLink: (begin) " + cls + "\n");
+      VM.sysWriteln("RuntimeEntrypoints.initializeClassForDynamicLink: (begin) " + cls);
     }
 
     cls.resolve();
@@ -618,7 +618,7 @@ public class RuntimeEntrypoints {
     cls.initialize();   // throws ExceptionInInitializerError
 
     if (VM.TraceClassLoading) {
-      VM.sysWrite("RuntimeEntrypoints.initializeClassForDynamicLink: (end)   " + cls + "\n");
+      VM.sysWriteln("RuntimeEntrypoints.initializeClassForDynamicLink: (end)   " + cls);
     }
   }
 
@@ -639,7 +639,7 @@ public class RuntimeEntrypoints {
    */
   @Entrypoint
   static void unexpectedAbstractMethodCall() {
-    VM.sysWrite("RuntimeEntrypoints.unexpectedAbstractMethodCall\n");
+    VM.sysWriteln("RuntimeEntrypoints.unexpectedAbstractMethodCall");
     throw new AbstractMethodError();
   }
 
@@ -725,7 +725,7 @@ public class RuntimeEntrypoints {
 
     // GC stress testing
     if (canForceGC()) {
-      //VM.sysWrite("FORCING GC: in deliverHardwareException\n");
+      //VM.sysWriteln("FORCING GC: in deliverHardwareException");
       System.gc();
     }
 
@@ -739,34 +739,35 @@ public class RuntimeEntrypoints {
         Address ip = exceptionRegisters.getInnermostInstructionAddress();
         Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
         if (compiledMethod.isWithinUninterruptibleCode(instructionOffset)) {
+          VM.sysWriteln();
           switch (trapCode) {
           case TRAP_NULL_POINTER:
-            VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
+            VM.sysWriteln("Fatal error: NullPointerException within uninterruptible region.");
             break;
           case TRAP_ARRAY_BOUNDS:
-            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo.toInt(), ").");
+            VM.sysWriteln("Fatal error: ArrayIndexOutOfBoundsException within uninterruptible region (index was ", trapInfo.toInt(), ").");
             break;
           case TRAP_DIVIDE_BY_ZERO:
-            VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
+            VM.sysWriteln("Fatal error: DivideByZero within uninterruptible region.");
             break;
           case TRAP_STACK_OVERFLOW:
           case TRAP_JNI_STACK:
-            VM.sysWriteln("\nFatal error: StackOverflowError within uninterruptible region.");
+            VM.sysWriteln("Fatal error: StackOverflowError within uninterruptible region.");
             break;
           case TRAP_CHECKCAST:
-            VM.sysWriteln("\nFatal error: ClassCastException within uninterruptible region.");
+            VM.sysWriteln("Fatal error: ClassCastException within uninterruptible region.");
             break;
           case TRAP_MUST_IMPLEMENT:
-            VM.sysWriteln("\nFatal error: IncompatibleClassChangeError within uninterruptible region.");
+            VM.sysWriteln("Fatal error: IncompatibleClassChangeError within uninterruptible region.");
             break;
           case TRAP_STORE_CHECK:
-            VM.sysWriteln("\nFatal error: ArrayStoreException within uninterruptible region.");
+            VM.sysWriteln("Fatal error: ArrayStoreException within uninterruptible region.");
             break;
           case TRAP_UNREACHABLE_BYTECODE:
-            VM.sysWriteln("\nFatal error: Reached a bytecode that was determined to be unreachable within uninterruptible region.");
+            VM.sysWriteln("Fatal error: Reached a bytecode that was determined to be unreachable within uninterruptible region.");
             break;
           default:
-            VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
+            VM.sysWriteln("Fatal error: Unknown hardware trap within uninterruptible region.");
           break;
           }
           VM.sysWriteln("trapCode = ", trapCode);

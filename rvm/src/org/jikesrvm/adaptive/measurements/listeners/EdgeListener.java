@@ -97,7 +97,7 @@ public class EdgeListener extends ContextListener {
     }
 
     if (DEBUG) {
-      VM.sysWrite("EdgeListener.setBuffer(", buffer.length, "): enter\n");
+      VM.sysWriteln("EdgeListener.setBuffer(", buffer.length, "): enter");
     }
 
     this.buffer = buffer;
@@ -135,7 +135,7 @@ public class EdgeListener extends ContextListener {
     Address returnAddress = Address.zero();
 
     if (sfp.loadAddress().EQ(StackFrameLayout.getStackFrameSentinelFP())) {
-      if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");
+      if (DEBUG) VM.sysWriteln(" Walking off end of stack!");
       return;
     }
 
@@ -152,7 +152,7 @@ public class EdgeListener extends ContextListener {
     returnAddress = Magic.getReturnAddress(sfp); // return address in caller
     sfp = Magic.getCallerFramePointer(sfp);      // caller's frame pointer
     if (sfp.loadAddress().EQ(StackFrameLayout.getStackFrameSentinelFP())) {
-      if (DEBUG) VM.sysWrite(" Walking off end of stack\n");
+      if (DEBUG) VM.sysWriteln(" Walking off end of stack");
       return;
     }
     callerCMID = Magic.getCompiledMethodID(sfp);
@@ -183,7 +183,7 @@ public class EdgeListener extends ContextListener {
       VM.sysWrite(callerCMID);
       VM.sysWrite(",");
       VM.sysWrite(returnAddress);
-      VM.sysWrite(">\n");
+      VM.sysWriteln(">");
     }
 
     // Find out what sample we are.
@@ -215,7 +215,7 @@ public class EdgeListener extends ContextListener {
 
   @Override
   public void reset() {
-    if (DEBUG) VM.sysWrite("EdgeListener.reset(): enter\n");
+    if (DEBUG) VM.sysWriteln("EdgeListener.reset(): enter");
     samplesTaken = 0;
     updateCalled = 0;
     resetBuffer();

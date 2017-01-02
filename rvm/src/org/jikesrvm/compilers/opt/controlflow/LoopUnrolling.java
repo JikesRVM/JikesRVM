@@ -142,10 +142,10 @@ public class LoopUnrolling extends CompilerPhase {
     Enumeration<GraphNode> e = t.outNodes();
     if (!e.hasMoreElements()) {
       if (t.loop != null) {
-        report("Leaf loop in " + ir.method + ": " + t.loop + "\n");
+        report("Leaf loop in " + ir.method + ": " + t.loop);
         // check infrequency
         if (t.header.getInfrequent()) {
-          report("no unrolling of infrequent loop\n");
+          report("no unrolling of infrequent loop");
         } else {
           boolean doNaiveUnrolling = height == target && unrollLeaf(t, ir);
           if (doNaiveUnrolling) naiveUnroller(t, ir);
@@ -172,7 +172,7 @@ public class LoopUnrolling extends CompilerPhase {
     Instruction tmp;
 
     if (ir.hasReachableExceptionHandlers()) {
-      report("0 IR may have exception handlers\n");
+      report("0 IR may have exception handlers");
       return false;
     }
 
@@ -186,7 +186,7 @@ public class LoopUnrolling extends CompilerPhase {
       // check for size
       instructionsInLoop += b.getNumberOfRealInstructions();
       if (instructionsInLoop > MaxInstructions) {
-        report("1 is too big\n");
+        report("1 is too big");
         return false;
       }
 
@@ -197,7 +197,7 @@ public class LoopUnrolling extends CompilerPhase {
         while (e.hasMoreElements()) {
           BasicBlock o = e.nextElement();
           if (!CFGTransformations.inLoop(o, nloop)) {
-            report("2 interior pointers.\n");
+            report("2 interior pointers.");
             return true;
           }
         }
@@ -214,14 +214,14 @@ public class LoopUnrolling extends CompilerPhase {
             if (predBlock == null) {
               predBlock = o;
             } else {
-              report("3 multi entry header.\n");
+              report("3 multi entry header.");
               return true;
             }
           } else {
             if (backEdgeBlock == null) {
               backEdgeBlock = o;
             } else {
-              report("4 multiple back edges.\n");
+              report("4 multiple back edges.");
               return true;
             }
           }
@@ -236,7 +236,7 @@ public class LoopUnrolling extends CompilerPhase {
           if (exitBlock == null) {
             exitBlock = b;
           } else {
-            report("5 multiple exit blocks.\n");
+            report("5 multiple exit blocks.");
             return true;
           }
         }
@@ -259,7 +259,7 @@ public class LoopUnrolling extends CompilerPhase {
     }
 
     if (exitBlock == header && blocks > 1) {
-      report("6 while loop? (" + blocks + ")\n");
+      report("6 while loop? (" + blocks + ")");
       return true;
     }
 
@@ -268,7 +268,7 @@ public class LoopUnrolling extends CompilerPhase {
     if (origBranch != exitBlock.lastRealInstruction()) {
       Instruction aGoto = origBranch.nextInstructionInCodeOrder();
       if (aGoto.getOpcode() != GOTO_opcode) {
-        report("7 too complex exit\n");
+        report("7 too complex exit");
         return true;
       }
       succBlock = Label.getBlock(Goto.getTarget(aGoto).target).block;
@@ -280,7 +280,7 @@ public class LoopUnrolling extends CompilerPhase {
     }
 
     if (origBranch.getOpcode() != INT_IFCMP_opcode) {
-      report("8 branch isn't int_ifcmp: " + origBranch.operator() + ".\n");
+      report("8 branch isn't int_ifcmp: " + origBranch.operator() + ".");
       return true;
     }
 
@@ -300,16 +300,16 @@ public class LoopUnrolling extends CompilerPhase {
         if (DEBUG) {
           printDefs(op1, nloop, 4);
           printDefs(op2, nloop, 4);
-          VM.sysWrite("" + origBranch + "\n");
+          VM.sysWriteln(origBranch.toString());
         }
-        report("8a op1 and op2 may not be loop invariant\n");
+        report("8a op1 and op2 may not be loop invariant");
         return true;
       }
     }
     BasicBlock target = Label.getBlock(IfCmp.getTarget(origBranch).target).block;
 
     if (!(op1 instanceof RegisterOperand)) {
-      report("9 op1 of ifcmp isn't a register\n");
+      report("9 op1 of ifcmp isn't a register");
       return true;
     }
 
@@ -317,7 +317,7 @@ public class LoopUnrolling extends CompilerPhase {
 
     Register reg = rop1.getRegister();
     if (reg.isPhysical()) {
-      report("10 loops over physical register\n");
+      report("10 loops over physical register");
       return false;
     }
     if (succBlock == header && !CFGTransformations.inLoop(target, nloop)) {
@@ -326,7 +326,7 @@ public class LoopUnrolling extends CompilerPhase {
       cond.flipCode();
     }
     if (target != header) {
-      report("11 ifcmp doesn't jump to header\n");
+      report("11 ifcmp doesn't jump to header");
       return true;
     }
 
@@ -336,43 +336,43 @@ public class LoopUnrolling extends CompilerPhase {
       Operand def = defs.nextElement();
       Instruction inst = def.instruction;
       BasicBlock block = inst.getBasicBlock();
-      //VM.sysWrite (""+block+": "+inst+"\n");
+      //VM.sysWriteln(block + ": " + inst);
       if (CFGTransformations.inLoop(block, nloop)) {
         if (iterator == null) {
           iterator = inst;
         } else {
-          report("12 iterator not unique.\n");
+          report("12 iterator not unique.");
           return true;
         }
       }
     }
 
     if (iterator == null) {
-      report("15 iterator not found.\n");
+      report("15 iterator not found.");
       return true;
     }
 
     if (iterator.getOpcode() != INT_ADD_opcode) {
       //dumpIR (ir, "malformed");
-      report("16 iterator is no addition: " + iterator.operator() + "\n");
+      report("16 iterator is no addition: " + iterator.operator());
       return true;
     }
 
     if (!rop1.similar(follow(Binary.getVal1(iterator)))) {
       //dumpIR (ir, "malformed");
-      report("17 malformed iterator.\n" + iterator + "\n");
+      report("17 malformed iterator.\n" + iterator);
       return true;
     }
 
     Operand strideOp = follow(Binary.getVal2(iterator));
     if (!(strideOp instanceof IntConstantOperand)) {
-      report("18 stride not constant\n");
+      report("18 stride not constant");
       return true;
     }
 
     int stride = ((IntConstantOperand) strideOp).value;
     if (stride != 1 && stride != -1) {
-      report("18b stride != +/-1 (" + stride + ")\n");
+      report("18b stride != +/-1 (" + stride + ")");
       return true;
     }
 
@@ -384,7 +384,7 @@ public class LoopUnrolling extends CompilerPhase {
                                                           ((cond.value != ConditionOperand.GREATER) &&
                                                            cond.value != ConditionOperand.GREATER_EQUAL &&
                                                            cond.value != ConditionOperand.NOT_EQUAL))) {
-      report("19 unexpected condition: " + cond + "\n" + iterator + "\n" + origBranch + "\n\n");
+      report("19 unexpected condition: " + cond + "\n" + iterator + "\n" + origBranch);
       return true;
     }
 
@@ -394,7 +394,7 @@ public class LoopUnrolling extends CompilerPhase {
       outer = outer.getIn().nextElement();
     }
     if (outer.getNumberOfIn() > 0 && outer.getNumberOfOut() < 2) {
-      report("23 no suitable outer guard found.\n");
+      report("23 no suitable outer guard found.");
       return true;
     }
 
@@ -457,7 +457,7 @@ public class LoopUnrolling extends CompilerPhase {
 //
 //                          exit:
 //--------------------------------------------------------------------------
-    report("...transforming.\n");
+    report("...transforming.");
     if (DEBUG && ir.options.hasMETHOD_TO_PRINT() && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
       dumpIR(ir, "before unroll");
     }
@@ -622,10 +622,10 @@ public class LoopUnrolling extends CompilerPhase {
     Enumeration<BasicBlock> bs;
 
     if (t.loop.populationCount() > MAX_BLOCKS_FOR_NAIVE_UNROLLING) {
-      report("1 is too big\n");
+      report("1 is too big");
       return;
     }
-    report("Naively unrolling\n");
+    report("Naively unrolling");
 
     CFGTransformations.killFallThroughs(ir, nloop);
 
@@ -747,7 +747,7 @@ public class LoopUnrolling extends CompilerPhase {
   }
 
   static void report(String s) {
-    if (DEBUG) VM.sysWrite("] " + s);
+    if (DEBUG) VM.sysWriteln("] " + s);
   }
 
   private Operand follow(Operand use) {
@@ -814,7 +814,7 @@ public class LoopUnrolling extends CompilerPhase {
   private static boolean printDefs(Operand op, BitVector nloop, int depth) {
     if (depth <= 0) return false;
     if (op instanceof ConstantOperand) {
-      VM.sysWrite(">> " + op + "\n");
+      VM.sysWriteln(">> " + op);
       return true;
     }
     if (op instanceof RegisterOperand) {
@@ -823,7 +823,7 @@ public class LoopUnrolling extends CompilerPhase {
       Enumeration<RegisterOperand> defs = DefUse.defs(reg);
       while (defs.hasMoreElements()) {
         Instruction inst = defs.nextElement().instruction;
-        VM.sysWrite(">> " + inst.getBasicBlock() + ": " + inst + "\n");
+        VM.sysWriteln(">> " + inst.getBasicBlock() + ": " + inst);
         if (CFGTransformations.inLoop(inst.getBasicBlock(), nloop)) {
           if (Move.conforms(inst)) {
             invariant &= printDefs(Move.getVal(inst), nloop, depth - 1);
@@ -852,10 +852,10 @@ public class LoopUnrolling extends CompilerPhase {
         if (Move.conforms(inst)) {
           inst = definingInstruction(follow(Move.getVal(inst)));
         }
-        VM.sysWrite(">> " + inst.getBasicBlock() + ": " + inst + "\n");
+        VM.sysWriteln(">> " + inst.getBasicBlock() + ": " + inst);
       }
     } else {
-      VM.sysWrite(">> " + op + "\n");
+      VM.sysWriteln(">> " + op);
     }
   }
 

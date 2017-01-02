@@ -155,7 +155,8 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    VM.sysWrite("\nValue Options (");VM.sysWrite(prefix);VM.sysWriteln(":<option>=<value>)");
+    VM.sysWriteln();
+    VM.sysWrite("Value Options (");VM.sysWrite(prefix);VM.sysWriteln(":<option>=<value>)");
     VM.sysWriteln("Option                         Type    Description");
 
     o = getFirst();
@@ -180,7 +181,8 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    VM.sysWriteln("\nSelection Options (set option to one of an enumeration of possible values)");
+    VM.sysWriteln();
+    VM.sysWriteln("Selection Options (set option to one of an enumeration of possible values)");
 
     o = getFirst();
     while (o != null) {

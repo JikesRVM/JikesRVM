@@ -85,6 +85,6 @@ final class GenArch_ia32 extends GenArch {
     if (TR != ESI) {
       throw new Error("Unexpected TR value");
     }
-    p("#define TR %ESI\n");
+    pln("#define TR %ESI");
   }
 }

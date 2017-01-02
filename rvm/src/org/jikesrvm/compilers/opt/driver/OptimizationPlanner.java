@@ -86,9 +86,9 @@ public class OptimizationPlanner {
       return;
     }
 
-    VM.sysWrite("\t\tOptimizing Compiler SubSystem\n");
-    VM.sysWrite("\tPhase\t\t\t\t\tTime\n");
-    VM.sysWrite("\t\t\t\t\t   (ms)    (%ofTotal)\n");
+    VM.sysWriteln("\t\tOptimizing Compiler SubSystem");
+    VM.sysWriteln("\tPhase\t\t\t\t\tTime");
+    VM.sysWriteln("\t\t\t\t\t   (ms)    (%ofTotal)");
     double total = 0.0;
 
     for (OptimizationPlanElement element : masterPlan) {
@@ -99,7 +99,8 @@ public class OptimizationPlanner {
       element.reportStats(8, 40, total);
     }
 
-    VM.sysWrite("\n\tTOTAL COMPILATION TIME\t\t");
+    VM.sysWriteln();
+    VM.sysWrite("\tTOTAL COMPILATION TIME\t\t");
     int t = (int) total, places = t;
     if (places == 0) {
       places = 1;

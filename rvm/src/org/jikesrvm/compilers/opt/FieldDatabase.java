@@ -149,6 +149,6 @@ final class FieldDatabase {
 
   // print a debug message
   private static void debug(String s) {
-    if (DEBUG) VM.sysWrite(s + " \n");
+    if (DEBUG) VM.sysWriteln(s + " ");
   }
 }

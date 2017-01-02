@@ -192,44 +192,46 @@ $$$$ END LOOP
   @Interruptible
   public static void printHelp() {
 
-    VM.sysWrite("Commands\n");
-    VM.sysWrite("-X:vm[:help]\t\t\tPrint brief description of the core VM's command-line arguments\n");
-    VM.sysWrite("-X:vm:printOptions\t\tPrint the current values of the core VM's options\n");
+    VM.sysWriteln("Commands");
+    VM.sysWriteln("-X:vm[:help]\t\t\tPrint brief description of the core VM's command-line arguments");
+    VM.sysWriteln("-X:vm:printOptions\t\tPrint the current values of the core VM's options");
     VM.sysWriteln();
 
     //Begin generated help messages
-    VM.sysWrite("Boolean Options (-X:vm:<option>=true or -X:vm:<option>=false)\n");
-    VM.sysWrite("Option                                 Description\n");
+    VM.sysWriteln("Boolean Options (-X:vm:<option>=true or -X:vm:<option>=false)");
+    VM.sysWriteln("Option                                 Description");
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    VM.sysWrite("CMD_NAME OPTION.DESCRIP\n");
+    VM.sysWriteln("CMD_NAME OPTION.DESCRIP");
      $$$$ END LET CMD_NAME
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
-    VM.sysWrite("\nValue Options (-X:vm:<option>=<value>)\n");
-    VM.sysWrite("Option                         Type    Description\n");
+    VM.sysWriteln();
+    VM.sysWriteln("Value Options (-X:vm:<option>=<value>)");
+    VM.sysWriteln("Option                         Type    Description");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
           $$$$ LET TNAME @PAD("TYPE", 7, " ")
-    VM.sysWrite("CMD_NAME TNAME OPTION.DESCRIP\n");
+    VM.sysWriteln("CMD_NAME TNAME OPTION.DESCRIP");
           $$$$ END LET TYPE_NAME
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
      $$$$ END SPLIT OPTION.DECL
 $$$$ END FOREACH
 $$$$ END LOOP
-    VM.sysWrite("\nSelection Options (set option to one of an enumeration of possible values)\n");
+    VM.sysWriteln();
+    VM.sysWrite("Selection Options (set option to one of an enumeration of possible values)");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == E
-    VM.sysWrite("\t\tOPTION.DESCRIP\n");
+    VM.sysWriteln("\t\tOPTION.DESCRIP");
           $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
     VM.sysWrite("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
@@ -250,7 +252,7 @@ $$$$ END LOOP
   // print the options values
   @Interruptible
   public static void printOptions() {
-    VM.sysWrite("Current value of VM options:\n");
+    VM.sysWriteln("Current value of VM options:");
     //Begin generated option value printing
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE

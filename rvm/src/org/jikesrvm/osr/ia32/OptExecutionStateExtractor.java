@@ -497,7 +497,7 @@ public final class OptExecutionStateExtractor extends ExecutionStateExtractor {
       return Magic.getObjectAtOffset(stack, fpOffset.minus(value));
 
     } else {
-      VM.sysWrite("fatal error : ( vtype = " + vtype + " )\n");
+      VM.sysWriteln("fatal error : ( vtype = " + vtype + " )");
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }

@@ -213,7 +213,8 @@ public abstract class CompiledMethod {
             return offset;
         }
         Address instructionStart = Magic.objectAsAddress(instructions);
-        VM.sysWriteln("\nIn thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);
+        VM.sysWriteln();
+        VM.sysWriteln("In thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);
         VM.sysWrite("\tsupposed method is ");
         VM.sysWrite(method);
         VM.sysWriteln();

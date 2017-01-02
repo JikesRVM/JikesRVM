@@ -1059,7 +1059,7 @@ public final class RVMClass extends RVMType {
     if (VM.TraceClassLoading && VM.runningVM) {
       VM.sysWriteln("RVMClass: (end)   load file " + typeRef.getName());
     }
-    if (VM.verboseClassLoading) VM.sysWrite("[Loaded " + toString() + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Loaded " + toString() + "]");
   }
 
   /**
@@ -1110,7 +1110,7 @@ public final class RVMClass extends RVMType {
       VM.sysWriteln("WARNING: movable " + this + " extends non-moving " + superClass);
     }
 
-    if (VM.verboseClassLoading) VM.sysWrite("[Preparing " + this + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Preparing " + this + "]");
 
     // build field and method lists for this class
     //
@@ -1565,7 +1565,7 @@ public final class RVMClass extends RVMType {
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) initialize " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_INSTANTIATED);
     state = CLASS_INITIALIZING;
-    if (VM.verboseClassLoading) VM.sysWrite("[Initializing " + this + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Initializing " + this + "]");
 
     // run super <clinit>
     //
@@ -1582,7 +1582,7 @@ public final class RVMClass extends RVMType {
         cm = classInitializerMethod.getCurrentCompiledMethod();
       }
 
-      if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for " + this + "]\n");
+      if (VM.verboseClassLoading) VM.sysWriteln("[Running static initializer for " + this + "]");
 
       try {
         Magic.invokeClassInitializer(cm.getEntryCodeArray());
@@ -1613,7 +1613,7 @@ public final class RVMClass extends RVMType {
 
     markFinalFieldsAsLiterals();
 
-    if (VM.verboseClassLoading) VM.sysWrite("[Initialized " + this + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Initialized " + this + "]");
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   initialize " + this);
   }
 

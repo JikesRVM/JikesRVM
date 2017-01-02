@@ -1599,7 +1599,7 @@ public final class BC2IR {
                   publicFieldInBootImage) {
                 try {
                   ConstantOperand rhs = StaticFieldReader.getStaticFieldValue(field);
-                  // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
+                  // VM.sysWriteln("Replaced getstatic of " + field + " with " + rhs);
                   push(rhs, fieldType);
                   break;
                 } catch (NoSuchFieldException e) {
@@ -2565,7 +2565,8 @@ public final class BC2IR {
               RVMMethod meth = InvokeStatic.targetMethod(targetidx);
 
               if (VM.TraceOnStackReplacement) {
-                VM.sysWriteln("PSEUDO_Invoke " + meth + "\n");
+                VM.sysWriteln("PSEUDO_Invoke " + meth);
+                VM.sysWriteln();
               }
 
               s = _callHelper(meth.getMemberRef().asMethodReference(), MethodOperand.STATIC(meth));
@@ -2598,7 +2599,8 @@ public final class BC2IR {
               RVMMethod meth = cm.getMethod();
 
               if (VM.TraceOnStackReplacement) {
-                VM.sysWriteln("PSEUDO_InvokeCompiledMethod " + meth + "\n");
+                VM.sysWriteln("PSEUDO_InvokeCompiledMethod " + meth);
+                VM.sysWriteln();
               }
 
               /* the bcIndex should be adjusted to the original */
@@ -3536,7 +3538,7 @@ public final class BC2IR {
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.getMethod().getName() + ":" + val + "\n");
+    VM.sysWriteln("IRGEN " + bcodes.getDeclaringClass() + "." + gc.getMethod().getName() + ":" + val);
   }
 
   /**

@@ -153,7 +153,8 @@ class ReferenceTest {
       double initialHeapSize = getHeapSize();
 
       // ------ Test weak references -----------
-      System.out.println("\nChecking weak references and reference queue");
+      System.out.println();
+      System.out.println("Checking weak references and reference queue");
       ReferenceQueue<Object[]> wrq = new ReferenceQueue<Object[]>();
       allocateUntilNextGC();
       Reference<Object[]> [] wra = allocateReferenceArray(WEAK, 0.5 * initialHeapSize, wrq);
@@ -164,7 +165,8 @@ class ReferenceTest {
       check("Fraction of weak references after  GC still live = " + weakAvail, (weakAvail == 0.0));
 
       // ------ Test soft references -----------
-      System.out.println("\nChecking soft references and reference queue");
+      System.out.println();
+      System.out.println("Checking soft references and reference queue");
       ReferenceQueue<Object[]> srq = new ReferenceQueue<Object[]>();
       allocateUntilNextGC();
       Reference<Object[]> [] sra = allocateReferenceArray(SOFT, 0.75 * initialHeapSize, srq);
@@ -181,7 +183,8 @@ class ReferenceTest {
       // ------ Finish up -----------
       System.out.println();
       getHeapSize();
-      System.out.print("\nOverall: ");
+      System.out.println();
+      System.out.print("Overall: ");
       System.out.println((failCount == 0) ? "ALL TESTS PASSED" : (failCount + " FAILURES"));
   }
 

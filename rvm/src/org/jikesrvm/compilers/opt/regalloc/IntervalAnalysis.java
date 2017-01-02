@@ -154,9 +154,9 @@ public final class IntervalAnalysis extends CompilerPhase {
 
     // debug support
     if (LinearScan.VERBOSE_DEBUG) {
-      VM.sysWrite("**** start of interval dump " + ir.method + " ****\n");
+      VM.sysWriteln("**** start of interval dump " + ir.method + " ****");
       VM.sysWrite(ir.MIRInfo.linearScanState.intervals.toString());
-      VM.sysWrite("**** end   of interval dump ****\n");
+      VM.sysWriteln("**** end   of interval dump ****");
     }
   }
 

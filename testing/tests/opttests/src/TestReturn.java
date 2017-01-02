@@ -23,65 +23,76 @@ class TestReturn {
     /**/                                                       void_f();
     boolean b_f = boolean_f();
     if (!b_f) {
-      System.out.print("\nwant: true\n got: ");
+      System.out.println();
+      System.out.println("want: true\n got: ");
       System.out.println(boolean_f());
       testSuccess = false;
     }
 
     byte by_f = byte_f();
     if (by_f != 2) {
-      System.out.print("\nwant: 2\n got: ");    System.out.println(byte_f());
+      System.out.println();
+      System.out.println("want: 2\n got: ");    System.out.println(byte_f());
       testSuccess = false;
     }
 
     char c_f = char_f();
     if (c_f != 'A') {
-      System.out.print("\nwant: A\n got: ");    System.out.println(char_f());
+      System.out.println();
+      System.out.println("want: A\n got: ");    System.out.println(char_f());
       testSuccess = false;
     }
 
     short s_f = short_f();
     if (s_f != 4) {
-      System.out.print("\nwant: 4\n got: ");    System.out.println(short_f());
+      System.out.println();
+      System.out.println("want: 4\n got: ");    System.out.println(short_f());
       testSuccess = false;
     }
 
     int i_f = int_f();
     if (i_f != 5) {
-      System.out.print("\nwant: 5\n got: ");    System.out.println(int_f());
+      System.out.println();
+      System.out.println("want: 5\n got: ");    System.out.println(int_f());
       testSuccess = false;
     }
 
     long l_f = long_f();
     if (l_f != 6L) {
-      System.out.print("\nwant: 6\n got: ");    System.out.println(long_f());
+      System.out.println();
+      System.out.println("want: 6\n got: ");    System.out.println(long_f());
       testSuccess = false;
     }
 
     float f_f = float_f();
     if (f_f != 7.0) {
-      System.out.print("\nwant: 7.0\n got: ");  System.out.println(float_f());
+      System.out.println();
+      System.out.println("want: 7.0\n got: ");  System.out.println(float_f());
       testSuccess = false;
     }
 
     double d_f = double_f();
     if (d_f != 8.0D) {
-      System.out.print("\nwant: 8.0\n got: ");  System.out.println(double_f());
+      System.out.println();
+      System.out.println("want: 8.0\n got: ");  System.out.println(double_f());
        testSuccess = false;
     }
 
     if (object_f() != null) {
-      System.out.print("\nwant: null\n got: "); System.out.println(object_f());
+      System.out.println();
+      System.out.println("want: null\n got: "); System.out.println(object_f());
       testSuccess = false;
     }
 
     if (primitive_array_f() != null) {
-      System.out.print("\nwant: null\n got: "); System.out.println(primitive_array_f());
+      System.out.println();
+      System.out.println("want: null\n got: "); System.out.println(primitive_array_f());
           testSuccess = false;
     }
 
     if (object_array_f() != null) {
-      System.out.print("\nwant: null\n got: "); System.out.println(object_array_f());
+      System.out.println();
+      System.out.println("want: null\n got: "); System.out.println(object_array_f());
           testSuccess = false;
     }
 

@@ -36,7 +36,7 @@ public class OptOptions implements Cloneable {
   private int OPTIMIZATION_LEVEL = 1;    // The OPT level
 
   private void printOptionsHeader() {
-    VM.sysWrite("Current value of options at optimization level ",OPTIMIZATION_LEVEL, ":\n");
+    VM.sysWriteln("Current value of options at optimization level ",OPTIMIZATION_LEVEL, ":");
   }
 
 $$$$ LET USE_OPT_LEVELS "YES"
@@ -58,13 +58,13 @@ $$$$ END LET USE_OPT_LEVELS
   }
 
   private static void instancePrintHelpHeader(String prefix) {
-    VM.sysWrite("Commands\n");
-    VM.sysWrite(prefix+"[help]\t\t\tPrint brief description of opt compiler's command-line arguments\n");
-    VM.sysWrite(prefix+"printOptions\t\tPrint the current values of opt compiler options\n");
+    VM.sysWriteln("Commands");
+    VM.sysWriteln(prefix+"[help]\t\t\tPrint brief description of opt compiler's command-line arguments");
+    VM.sysWriteln(prefix+"printOptions\t\tPrint the current values of opt compiler options");
     if (prefix.indexOf("irc")!=-1 || prefix.indexOf("bc")!=-1 || prefix.indexOf("eoc")!=-1) {
-      VM.sysWrite(prefix+"O0\t\t\tSelect optimization level 0, minimal optimizations\n");
-      VM.sysWrite(prefix+"O1\t\t\tSelect optimization level 1, modest optimizations\n");
-      VM.sysWrite(prefix+"O2\t\t\tSelect optimization level 2\n");
+      VM.sysWriteln(prefix+"O0\t\t\tSelect optimization level 0, minimal optimizations");
+      VM.sysWriteln(prefix+"O1\t\t\tSelect optimization level 1, modest optimizations");
+      VM.sysWriteln(prefix+"O2\t\t\tSelect optimization level 2");
     }
     VM.sysWriteln();
   }

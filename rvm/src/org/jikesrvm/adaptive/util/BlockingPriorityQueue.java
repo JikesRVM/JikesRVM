@@ -63,7 +63,7 @@ public class BlockingPriorityQueue extends PriorityQueueRVM {
       notifyAll();
     } catch (Exception e) {
       // TODO: should we exit or something more dramatic?
-      VM.sysWrite("Exception occurred while notifying that element was inserted!\n");
+      VM.sysWriteln("Exception occurred while notifying that element was inserted!");
     }
   }
 
@@ -83,7 +83,7 @@ public class BlockingPriorityQueue extends PriorityQueueRVM {
         callback.doneWaiting();
       } catch (InterruptedException e) {
         // TODO: should we exit or something more dramatic?
-        VM.sysWrite("Interrupted Exception occurred!\n");
+        VM.sysWriteln("Interrupted Exception occurred!");
       }
     }
 

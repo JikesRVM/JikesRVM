@@ -1447,7 +1447,7 @@ l   */
       Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
-        if (DEBUG) VM.sysWrite(" volat." + realReg + " to symb " + symbReg + '\n');
+        if (DEBUG) VM.sysWriteln(" volat." + realReg + " to symb " + symbReg);
         return realReg;
       }
     }

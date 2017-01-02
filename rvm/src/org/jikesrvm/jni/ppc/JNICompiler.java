@@ -1493,7 +1493,7 @@ public abstract class JNICompiler {
         }
 
         if (nextOSReg > LAST_OS_PARAMETER_GPR.value() + 1) {
-          VM.sysWrite("ERROR: " + meth + " has too many int or long parameters\n");
+          VM.sysWriteln("ERROR: " + meth + " has too many int or long parameters");
           VM.sysExit(EXIT_STATUS_JNI_COMPILER_FAILED);
         }
       }

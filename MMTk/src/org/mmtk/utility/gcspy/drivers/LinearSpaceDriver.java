@@ -411,7 +411,7 @@ import org.vmmagic.unboxed.Offset;
       return;
 
     if (DEBUG) {
-      Log.write("CONNECTED\n");
+      Log.writeln("CONNECTED");
       Log.write(myClass);
       Log.write(".send: numTiles=", allTileNum);
       //Log.write("LinearSpaceDriver.transmit: numTiles=", allTileNum);

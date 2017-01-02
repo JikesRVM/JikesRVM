@@ -123,23 +123,24 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
   @Override
   public Address getLastSpillLoc() {
     if (DEBUG) {
-      VM.sysWrite("\n unsigendNVOffset: ");
+      VM.sysWriteln();
+      VM.sysWrite(" unsigendNVOffset: ");
       VM.sysWrite(compiledMethod.getUnsignedNonVolatileOffset());
       VM.sysWrite("\t isSaveVolatile: ");
       if (compiledMethod.isSaveVolatile()) {
-        VM.sysWrite("true");
+        VM.sysWriteln("true");
       } else {
-        VM.sysWrite("false");
+        VM.sysWriteln("false");
       }
-      VM.sysWrite("\nLAST_VOLATILE_GPR: ");
+      VM.sysWrite("LAST_VOLATILE_GPR: ");
       VM.sysWrite(LAST_VOLATILE_GPR.toString());
       VM.sysWrite("\tFIRST_VOLATILE_GPR: ");
-      VM.sysWrite(LAST_VOLATILE_GPR.toString());
-      VM.sysWrite("\nLAST_SCRATCH_GPR: ");
+      VM.sysWriteln(LAST_VOLATILE_GPR.toString());
+      VM.sysWrite("LAST_SCRATCH_GPR: ");
       VM.sysWrite(LAST_SCRATCH_GPR.toString());
       VM.sysWrite("\tFIRST_SCRATCH_GPR: ");
-      VM.sysWrite(LAST_SCRATCH_GPR.toString());
-      VM.sysWrite("\nSAVE_VOL_SIZE: ");
+      VM.sysWriteln(LAST_SCRATCH_GPR.toString());
+      VM.sysWrite("SAVE_VOL_SIZE: ");
       VM.sysWrite(SAVE_VOL_SIZE);
       VM.sysWriteln();
     }

@@ -295,32 +295,33 @@ $$$$ END LOOP
     instancePrintHelpHeader(prefix);
 
     //Begin generated help messages
-    VM.sysWrite("Boolean Options ("+prefix+"<option>=true or "+prefix+":<option>=false)\n");
+    VM.sysWriteln("Boolean Options ("+prefix+"<option>=true or "+prefix+":<option>=false)");
 $$$$ IF USE_OPT_LEVELS == "YES"
-    VM.sysWrite("Option                        OptLevel Description\n");
+    VM.sysWriteln("Option                        OptLevel Description");
 $$$$ ELSE
-    VM.sysWrite("Option                                 Description\n");
+    VM.sysWriteln("Option                                 Description");
 $$$$ END IF
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
      $$$$ LET PRETTY_LEVEL @IF(OPT_LEVEL == -1, "       ", @PAD(OPT_LEVEL,7," "))
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
-    VM.sysWrite("CMD_NAME PRETTY_LEVEL OPTION.DESCRIP\n");
+    VM.sysWriteln("CMD_NAME PRETTY_LEVEL OPTION.DESCRIP");
      $$$$ END LET CMD_NAME
      $$$$ END LET PRETTY_LEVEL
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
-    VM.sysWrite("\nValue Options ("+prefix+"<option>=<value>)\n");
-    VM.sysWrite("Option                         Type    Description\n");
+    VM.sysWriteln();
+    VM.sysWrite("Value Options ("+prefix+"<option>=<value>)");
+    VM.sysWriteln("Option                         Type    Description");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
           $$$$ LET TNAME @PAD("TYPE", 7, " ")
-    VM.sysWrite("CMD_NAME TNAME OPTION.DESCRIP\n");
+    VM.sysWriteln("CMD_NAME TNAME OPTION.DESCRIP");
           $$$$ END LET TYPE_NAME
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
@@ -332,7 +333,7 @@ $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == E
-    VM.sysWrite("\t\tOPTION.DESCRIP\n");
+    VM.sysWriteln("\t\tOPTION.DESCRIP");
           $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
     VM.sysWrite("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
@@ -346,13 +347,14 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
-    VM.sysWrite("\nSet Options (option is a set of values)\n");
+    VM.sysWriteln();
+    VM.sysWriteln("Set Options (option is a set of values)");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == S
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
-    VM.sysWrite("CMD_NAME OPTION.DESCRIP\n");
+    VM.sysWriteln("CMD_NAME OPTION.DESCRIP");
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == S
      $$$$ END SPLIT

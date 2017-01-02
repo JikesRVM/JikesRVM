@@ -67,13 +67,12 @@ public class EntrypointHelper {
     //  1. you mispelled the class name, member name, or member signature
     //  2. the class containing the specified member didn't get compiled
     //
-    VM.sysWrite("Entrypoints.getMember: can't resolve class=" +
+    VM.sysWriteln("Entrypoints.getMember: can't resolve class=" +
                 classDescriptor +
                 " member=" +
                 memberName +
                 " desc=" +
-                memberDescriptor +
-                "\n");
+                memberDescriptor);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }

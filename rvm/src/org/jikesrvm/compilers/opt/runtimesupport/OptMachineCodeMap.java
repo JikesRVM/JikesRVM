@@ -95,7 +95,7 @@ public final class OptMachineCodeMap {
     /** Dump stats on map size as maps are compiled */
     final boolean DUMP_MAP_SIZES = false;
     if (DUMP_MAPS) {
-      VM.sysWrite("Creating final machine code map for " + ir.method + "\n");
+      VM.sysWriteln("Creating final machine code map for " + ir.method);
     }
 
     // create all machine code maps
@@ -109,7 +109,7 @@ public final class OptMachineCodeMap {
     }
 
     if (DUMP_MAPS) {
-      VM.sysWrite("Final Machine code information:\n");
+      VM.sysWriteln("Final Machine code information:");
       map.dumpMCInformation(DUMP_MAPS);
       for (Instruction i = ir.firstInstructionInCodeOrder(); i != null; i = i.nextInstructionInCodeOrder()) {
         VM.sysWriteln(mcOffsets.getMachineCodeOffset(i) + "\t" + i);
@@ -361,7 +361,7 @@ public final class OptMachineCodeMap {
         VM.sysWrite("Negative machine code MCOffset found:" + mco);
         Instruction i = irMapElem.getInstruction();
         int machineCodeOffsetForI = mcOffsets.getMachineCodeOffset(i);
-        VM.sysWrite(i.getBytecodeIndex() + ", " + i + ", " + machineCodeOffsetForI + "\n");
+        VM.sysWriteln(i.getBytecodeIndex() + ", " + i + ", " + machineCodeOffsetForI);
         throw new OptimizingCompilerException("Negative machine code MCOffset found");
       }
       // create GC map and get GCI
@@ -659,7 +659,7 @@ public final class OptMachineCodeMap {
 
   public void dumpMCInformation(boolean DUMP_MAPS) {
     if (DUMP_MAPS) {
-      VM.sysWrite("  Dumping the MCInformation\n");
+      VM.sysWriteln("  Dumping the MCInformation");
       if (MCInformation == null) return;
       for (int idx = 0; idx < MCInformation.length;) {
         printMCInformationEntry(idx, DUMP_MAPS);
@@ -676,11 +676,13 @@ public final class OptMachineCodeMap {
       VM.sysWrite(entry + sep + getMCOffset(entry));
       int bci = getBytecodeIndex(entry);
       if (bci != -1) {
-        VM.sysWrite("\n\tBCI: " + bci);
+        VM.sysWriteln();
+        VM.sysWrite("\tBCI: " + bci);
       }
       int iei = getInlineEncodingIndex(entry);
       if (iei != -1) {
-        VM.sysWrite("\n\tIEI: " + iei);
+        VM.sysWriteln();
+        VM.sysWrite("\tIEI: " + iei);
       }
       boolean first = true;
       while (iei >= 0) {
@@ -688,9 +690,11 @@ public final class OptMachineCodeMap {
         RVMMethod meth = MemberReference.getMethodRef(mid).getResolvedMember();
         if (first) {
           first = false;
-          VM.sysWrite("\n\tIn method    " + meth + " at bytecode " + bci);
+          VM.sysWriteln();
+          VM.sysWrite("\tIn method    " + meth + " at bytecode " + bci);
         } else {
-          VM.sysWrite("\n\tInlined into " + meth + " at bytecode " + bci);
+          VM.sysWriteln();
+          VM.sysWrite("\tInlined into " + meth + " at bytecode " + bci);
         }
         if (iei > 0) {
           bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
@@ -698,10 +702,12 @@ public final class OptMachineCodeMap {
         iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding);
       }
       if (getGCMapIndex(entry) != OptGCMap.NO_MAP_ENTRY) {
-        VM.sysWrite("\n\tGC Map Idx: " + getGCMapIndex(entry) + " ");
+        VM.sysWriteln();
+        VM.sysWrite("\tGC Map Idx: " + getGCMapIndex(entry) + " ");
         OptGCMap.dumpMap(getGCMapIndex(entry), gcMaps);
       } else {
-        VM.sysWrite("\n\tno GC map");
+        VM.sysWriteln();
+        VM.sysWrite("\tno GC map");
       }
       VM.sysWriteln();
     }
@@ -715,13 +721,13 @@ public final class OptMachineCodeMap {
       totalMCSize += machineCodeSize;
       totalMapSize += mapSize;
       double MCPct = (double) totalMapSize / totalMCSize;
-      VM.sysWrite("  Cumulative maps are now " +
+      VM.sysWriteln("  Cumulative maps are now " +
                   (int) (MCPct * 100) +
                   "% (" +
                   totalMapSize +
                   "/" +
                   totalMCSize +
-                  ") of MC.\n");
+                  ") of MC.");
     }
   }
 

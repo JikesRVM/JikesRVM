@@ -780,14 +780,14 @@ class TestArithmetic {
     float zero = float0;
     float NaN = zero / zero;
 
-    System.out.print("  expr     expected    got    \n");
-    System.out.print("---------- -------- ----------\n");
-    System.out.print("NaN <  NaN  false     " + (NaN < NaN) + "\n");
-    System.out.print("NaN <= NaN  false     " + (NaN <= NaN) + "\n");
-    System.out.print("NaN == NaN  false     " + (NaN == NaN) + "\n");
-    System.out.print("NaN != NaN  true      " + (NaN != NaN) + "\n");
-    System.out.print("NaN >= NaN  false     " + (NaN >= NaN) + "\n");
-    System.out.print("NaN >  NaN  false     " + (NaN > NaN) + "\n");
+    System.out.println("  expr     expected    got    ");
+    System.out.println("---------- -------- ----------");
+    System.out.println("NaN <  NaN  false     " + (NaN < NaN));
+    System.out.println("NaN <= NaN  false     " + (NaN <= NaN));
+    System.out.println("NaN == NaN  false     " + (NaN == NaN));
+    System.out.println("NaN != NaN  true      " + (NaN != NaN));
+    System.out.println("NaN >= NaN  false     " + (NaN >= NaN));
+    System.out.println("NaN >  NaN  false     " + (NaN > NaN));
   }
 
   private static void nanTestDouble() {
