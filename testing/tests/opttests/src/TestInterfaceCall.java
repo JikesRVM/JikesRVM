@@ -25,33 +25,39 @@ interface InterfaceBaz extends InterfaceFoo {
 }
 
 class TestInterfaceA implements InterfaceFoo, InterfaceBar {
-   public int foo() {
-     return 1;
-   }
-   public int bar() {
+  @Override
+  public int foo() {
+    return 1;
+  }
+  @Override
+  public int bar() {
      return 2;
-   }
+  }
 }
 
 class TestInterfaceB implements InterfaceBar, InterfaceFoo {
-   public int bar() {
+  @Override
+  public int bar() {
      return 3;
-   }
-   public int foo() {
+  }
+  @Override
+  public int foo() {
      return 4;
-   }
+  }
 }
 
 class TestInterfaceC extends TestInterfaceB implements InterfaceFoo {
 }
 
 class TestInterfaceD implements InterfaceBaz {
-   public int foo() {
+  @Override
+  public int foo() {
      return 5;
-   }
-   public int baz() {
-     return 6;
-   }
+  }
+  @Override
+  public int baz() {
+    return 6;
+  }
 }
 
 class TestInterfaceE extends TestInterfaceD {

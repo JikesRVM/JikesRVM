@@ -26,36 +26,37 @@ class B extends A {
 }
 
 class C extends B {
-   void test() {
+  void test() {
       new A();     // invokespecial - <init>   --> A.init
       super.foo(); // invokespecial - super    --> B.foo
       bar();       // invokespecial - private  --> C.bar
       foo();       // invokevirtual            --> C.foo
-   }
+  }
 
-   C() {
-     System.out.print("C.init ");
-   }
-   void foo() {
-     System.out.print("C.foo ");
-   }
+  C() {
+    System.out.print("C.init ");
+  }
+  @Override
+  void foo() {
+    System.out.print("C.foo ");
+  }
    private void bar() {
      System.out.print("C.bar ");
    }
 }
 
 class TestSpecialCall {
-   public static void main(String[] args) {
+  public static void main(String[] args) {
       run();
-   }
+  }
 
-   public static boolean run() {
-      System.out.println("TestSpecialCall");
+  public static boolean run() {
+    System.out.println("TestSpecialCall");
 
-      System.out.print("want: A.init B.init C.init A.init B.foo C.bar C.foo\n");
-      System.out.print(" got: ");
-      new C().test();
-      System.out.println();
-      return true;
-   }
+    System.out.print("want: A.init B.init C.init A.init B.foo C.bar C.foo\n");
+    System.out.print(" got: ");
+    new C().test();
+    System.out.println();
+    return true;
+ }
 }

@@ -23,6 +23,7 @@ class MethodInvocationSub extends MethodInvocation {
    */
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Z        */
+  @Override
   public boolean virtualReturnBoolean(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -30,6 +31,7 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)B        */
+  @Override
   public byte virtualReturnByte(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -37,6 +39,7 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)C        */
+  @Override
   public char virtualReturnChar(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -47,6 +50,7 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)S        */
+  @Override
   public short virtualReturnShort(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -54,6 +58,7 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)I        */
+  @Override
   public int virtualReturnInt(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -61,6 +66,7 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)J        */
+  @Override
   public long virtualReturnLong(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -68,6 +74,7 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)F        */
+  @Override
   public float virtualReturnFloat(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -75,13 +82,15 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)D        */
+  @Override
   public double virtualReturnDouble(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    return val6 + (double) 2000.0;
+    return val6 + 2000.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)         */
+  @Override
   public void virtualReturnVoid(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
@@ -89,6 +98,7 @@ class MethodInvocationSub extends MethodInvocation {
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;        */
+  @Override
   public Object virtualReturnObject(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {

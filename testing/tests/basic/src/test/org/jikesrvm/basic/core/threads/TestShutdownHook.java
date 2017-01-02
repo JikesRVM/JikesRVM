@@ -13,6 +13,7 @@
 package test.org.jikesrvm.basic.core.threads;
 
 class TestShutdownHook extends Thread {
+  @Override
   public void run() {
     System.out.println("Shutdown hook called.");
   }

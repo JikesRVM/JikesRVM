@@ -35,6 +35,7 @@ class TestVolatileStaticLongs extends XThread {
     l = (((long) n) << 32) + n;
   }
 
+  @Override
   void performTask() {
     int errors = 0;
     for (int i = 0; i < 10000000; i++) {

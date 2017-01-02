@@ -23,10 +23,12 @@ class t3GT3Worker extends Thread {
     syncher = o;
   }
 
+  @Override
   public void start() { //- overrides Thread
     super.start();
   }
 
+  @Override
   public void run() { //- overrides Thread
       isReady = true;
       synchronized (syncher) {

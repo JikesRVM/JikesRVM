@@ -46,6 +46,7 @@ class TestStop {
       super("Worker");
     }
 
+    @Override
     void performTask() {
       try {
         while (true) {

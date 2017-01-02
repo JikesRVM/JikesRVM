@@ -128,6 +128,7 @@ public class ReferenceStress {
 
     for (int i = 0; i < threads; i++) {
       threadTable[i] = new Thread() {
+        @Override
         public void run() {
           thrash(finalLiveSize, finalIterations);
         }

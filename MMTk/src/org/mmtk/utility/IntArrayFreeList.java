@@ -142,10 +142,11 @@ public final class IntArrayFreeList extends GenericFreeList {
    * @param units The number of allocatable units for this free list
    * @param grain Units are allocated such that they will never cross this granularity boundary
    */
+  @Override
   @Interruptible
   public void resizeFreeList(int units, int grain) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(parent == null && !Plan.isInitialized());
-    table = new int[(int)((units + 1 + heads) << 1)];
+    table = new int[(units + 1 + heads) << 1];
     initializeHeap(units, grain);
   }
 
@@ -182,10 +183,12 @@ public final class IntArrayFreeList extends GenericFreeList {
     return heads;
   }
 
+  @Override
   protected int getEntry(int index) {
     return table[index];
   }
 
+  @Override
   protected void setEntry(int index, int value) {
     table[index] = value;
   }

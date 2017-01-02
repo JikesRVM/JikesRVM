@@ -22,10 +22,12 @@ class BlockingWorker extends Thread {
     this.isFinished = false;
   }
 
+  @Override
   public void start() {
     super.start();
   }
 
+  @Override
   public void run() {
     int loopctr = 5;
 

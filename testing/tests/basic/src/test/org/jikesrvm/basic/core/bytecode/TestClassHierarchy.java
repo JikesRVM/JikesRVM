@@ -21,60 +21,70 @@ public class TestClassHierarchy {
   }
 
   protected static class A implements Magic {
+    @Override
     public void magic() {
       System.out.print("A");
     }
   }
 
   protected static class B extends A {
+    @Override
     public void magic() {
       System.out.print("B");
     }
   }
 
   protected static class C extends B {
+    @Override
     public void magic() {
       System.out.print("C");
     }
   }
 
   protected static class D extends A {
+    @Override
     public void magic() {
       System.out.print("D");
     }
   }
 
   protected class E extends D {
+    @Override
     public void magic() {
       System.out.print("E");
     }
   }
 
   protected class F extends A {
+    @Override
     public void magic() {
       System.out.print("F");
     }
   }
 
   protected class G extends F {
+    @Override
     public void magic() {
       System.out.print("G");
     }
   }
 
   protected class H implements Magic {
+    @Override
     public void magic() {
       System.out.print("H");
     }
   }
 
   protected class I extends H {
+    @Override
     public void magic() {
       System.out.print("I");
     }
   }
 
   protected class J extends I {
+    @Override
     public void magic() {
       System.out.print("J");
     }
@@ -126,48 +136,56 @@ In class SubSubClass extends SubClassInDifferentPackage:
   static class SubSubClass extends test.org.jikesrvm.basic.core.bytecode.data.SubClassInDifferentPackage {
 
     static class O_C1 extends P_B {
+      @Override
       public void magic() {
         System.out.print("O_C1");
       }
     }
 
     class O_C2 extends P_B {
+      @Override
       public void magic() {
         System.out.print("O_C2");
       }
     }
 
     class O_E extends P_D {
+      @Override
       public void magic() {
         System.out.print("O_E");
       }
     }
 
     class O_G extends SubClassInDifferentPackage.P_F {
+      @Override
       public void magic() {
         System.out.print("O_G");
       }
     }
 
     class O_I1 extends H {
+      @Override
       public void magic() {
         System.out.print("O_I1");
       }
     }
 
     class O_I2 extends P_H {
+      @Override
       public void magic() {
         System.out.print("O_I2");
       }
     }
 
     class O_J1 extends P_I1 {
+      @Override
       public void magic() {
         System.out.print("O_J1");
       }
     }
 
     class O_J2 extends P_I2 {
+      @Override
       public void magic() {
         System.out.print("O_J2");
       }

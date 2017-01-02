@@ -34,6 +34,7 @@ class TestVolatileStaticDoubles extends XThread {
     this.d = d;
   }
 
+  @Override
   void performTask() {
     int errors = 0;
     for (int i = 0; i < 10000000; i++) {

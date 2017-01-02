@@ -23,6 +23,7 @@ abstract class C extends B {
 }
 
 class D extends C {
+  @Override
   public void a() {
     System.out.println("D.a()");
   }

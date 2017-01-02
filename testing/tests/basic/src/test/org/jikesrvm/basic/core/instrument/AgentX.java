@@ -42,6 +42,7 @@ public class AgentX implements ClassFileTransformer {
     return false;
   }
 
+  @Override
   public byte[] transform(ClassLoader loader, String className, Class classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
     if (true || className.equals("test.org.jikesrvm.basic.core.instrument.TestAgent")) {
       System.out.println("Transforming class: " + className);

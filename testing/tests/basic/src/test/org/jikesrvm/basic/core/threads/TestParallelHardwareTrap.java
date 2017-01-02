@@ -21,6 +21,7 @@ public class TestParallelHardwareTrap {
     System.out.println("Running: TestParallelHardwareTrap");
     for (int i = 0; i < 10; i++) {
       new Thread(new Runnable() {
+        @Override
         public void run() {
           for (int i = 0; i < 10000; i++) {
             causeAndHandleNPE();

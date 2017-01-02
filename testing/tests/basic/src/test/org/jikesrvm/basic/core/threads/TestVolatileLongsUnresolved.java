@@ -59,6 +59,7 @@ class TestVolatileLongsUnresolved extends XThread {
     block = false;
   }
 
+  @Override
   void performTask() {
     synchronized (monitor) {
       try {

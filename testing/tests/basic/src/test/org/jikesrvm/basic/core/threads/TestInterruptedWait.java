@@ -25,6 +25,7 @@ public class TestInterruptedWait {
     final Thread main = Thread.currentThread();
 
     new Thread() {
+      @Override
       public void run() {
         started = true;
         while (!locking) Thread.yield();

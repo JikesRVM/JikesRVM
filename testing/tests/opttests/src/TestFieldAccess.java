@@ -31,6 +31,7 @@ class TestFieldAccess {
   double  x7 = -7;
   Object  x8 = this;
 
+  @Override
   public String toString() {
     return "Instance of " + getClass().getName();
   }

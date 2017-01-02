@@ -42,10 +42,12 @@ class vTest4 implements abc {
 
   int tval = 1000;
 
+  @Override
   public int getVal() {
     return tval;
   }
 
+  @Override
   public void putVal(int val) {
     tval += val;
   }

@@ -37,6 +37,7 @@ class TestVolatileLongs extends XThread {
     this.vlf = vlf;
   }
 
+  @Override
   void performTask() {
     int errors = 0;
     for (int i = 0; i < 10000000; i++) {
