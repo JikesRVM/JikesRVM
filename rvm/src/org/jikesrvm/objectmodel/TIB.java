@@ -47,7 +47,18 @@ public final class TIB implements RuntimeTable<Object> {
    * @return the number of words required to hold the lazy method invoker trampoline.
    */
   public static int lazyMethodInvokerTrampolineWords() {
-    int codeWords = VM.BuildForIA32 ? (VM.BuildFor32Addr ? 2 : 1) : (VM.BuildFor32Addr ? 3 : 2);
+    // See jikesrvm.<arch>.LazyCompilationTrampoline
+    int codeWords;
+    if (VM.BuildForIA32) {
+      codeWords = VM.BuildFor32Addr ? 2 : 1;
+    } else if (VM.BuildForPowerPC) {
+      codeWords = VM.BuildFor32Addr ? 3 : 2;
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr); // 64 bit not implemented
+      codeWords = 3;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
     if (VM.VerifyAssertions && VM.runningVM) {
       int codeBytes = LazyCompilationTrampoline.getInstructions().length() << ArchConstants.getLogInstructionWidth();
       VM._assert(codeWords == ((codeBytes + BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_ADDRESS));

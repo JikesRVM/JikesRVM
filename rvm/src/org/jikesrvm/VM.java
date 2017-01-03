@@ -150,9 +150,12 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
     if (VM.BuildForIA32) {
       org.jikesrvm.ia32.ThreadLocalState.boot();
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       org.jikesrvm.ppc.ThreadLocalState.boot();
+    } else if (VM.BuildForARM) {
+      org.jikesrvm.arm.ThreadLocalState.boot();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 
     // Finish thread initialization that couldn't be done in boot image.

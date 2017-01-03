@@ -129,6 +129,10 @@ public abstract class ForwardReference {
 
   public static final class ConditionalBranch extends ForwardReference {
 
+    public ConditionalBranch(int source) {
+      super(source);
+    }
+
     public ConditionalBranch(int source, int btarget) {
       super(source, btarget);
     }

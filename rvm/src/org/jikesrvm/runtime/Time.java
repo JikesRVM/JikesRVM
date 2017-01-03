@@ -38,19 +38,14 @@ public class Time {
   }
 
   /**
-   * Return the value of a hardware cycle counter (RDTSC on IA32, time base register on PPC).
-   * This is a very cheap, but also unreliable "timing" mechanism.
-   * There is absolutely no guarantee that the values returned from this method will
-   * either by monotonic (i.e., "time" can go backwards) or
-   * smooth ("time" can appear to move at a variable rate).
-   * This method should only be used for approximate timing in frequently executed code.
-   * We intentionally do not provide an API for converting from cycles to seconds because
-   * the conversion cannot be reliably supported on all of our platforms.
+   * This used to return a hardware cycle counter, but the counter on ARM is not accessible in user mode,
+   * so it has been altered to use sysNanoTime(). This function is only used in one place,
+   * and should not be added to any new places.
    *
    * @return the value of the hardware cycle counter
    */
   public static long cycles() {
-    return Magic.getTimeBase();
+    return SysCall.sysCall.sysNanoTime();
   }
 
   /**

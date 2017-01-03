@@ -31,10 +31,16 @@ public final class JNIHelpers {
   public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue,
                                          boolean isDotDotStyle) throws Exception {
     if (VM.BuildForIA32) {
-      return org.jikesrvm.jni.ia32.JNIHelpers.invokeInitializer(cls, methodID, argAddress, isJvalue, isDotDotStyle);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      if (VM.VerifyAssertions) VM._assert(!isDotDotStyle);
+      return org.jikesrvm.jni.ia32.JNIHelpers.invokeInitializer(cls, methodID, argAddress, isJvalue);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.jni.ppc.JNIHelpers.invokeInitializer(cls, methodID, argAddress, isJvalue, isDotDotStyle);
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(!isDotDotStyle);
+      return org.jikesrvm.jni.arm.JNIHelpers.invokeInitializer(cls, methodID, argAddress, isJvalue);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 
@@ -45,10 +51,15 @@ public final class JNIHelpers {
     if (VM.BuildForIA32) {
       // All architectures other than PPC should invoke the C functions
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-      return org.jikesrvm.jni.ia32.JNIHelpers.invokeWithDotDotVarArg(methodID, expectReturnType);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return null;
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.jni.ppc.JNIHelpers.invokeWithDotDotVarArg(methodID, expectReturnType);
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 
@@ -60,10 +71,15 @@ public final class JNIHelpers {
     if (VM.BuildForIA32) {
       // All architectures other than PPC should invoke the C functions
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-      return org.jikesrvm.jni.ia32.JNIHelpers.invokeWithDotDotVarArg(obj, methodID, expectReturnType, skip4Args);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      return null;
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.jni.ppc.JNIHelpers.invokeWithDotDotVarArg(obj, methodID, expectReturnType, skip4Args);
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 
@@ -71,9 +87,13 @@ public final class JNIHelpers {
       throws Exception {
     if (VM.BuildForIA32) {
       return org.jikesrvm.jni.ia32.JNIHelpers.invokeWithVarArg(methodID, argAddress, expectReturnType);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.jni.ppc.JNIHelpers.invokeWithVarArg(methodID, argAddress, expectReturnType);
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.jni.ia32.JNIHelpers.invokeWithVarArg(methodID, argAddress, expectReturnType);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 
@@ -81,9 +101,13 @@ public final class JNIHelpers {
                                         boolean skip4Args) throws Exception {
     if (VM.BuildForIA32) {
       return org.jikesrvm.jni.ia32.JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, expectReturnType, skip4Args);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.jni.ppc.JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, expectReturnType, skip4Args);
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.jni.arm.JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, expectReturnType, skip4Args);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 

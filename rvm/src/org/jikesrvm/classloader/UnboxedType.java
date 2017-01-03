@@ -102,6 +102,8 @@ public final class UnboxedType extends RVMType {
       memoryBytes = BYTES_IN_ADDRESS;
     } else if (tr == TypeReference.Code) {
       memoryBytes = VM.BuildForIA32 ? BYTES_IN_BYTE : BYTES_IN_INT;
+      // Reminder to future developers: need to modify this if using an architecture with byte-sized instructions
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32 || VM.BuildForPowerPC || VM.BuildForARM);
     } else {
       throw new Error("Unknown unboxed type " + tr.getName());
     }

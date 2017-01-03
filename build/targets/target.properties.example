@@ -11,7 +11,7 @@
 #  regarding copyright ownership.
 #
 
-# Must be one of ia32 or ppc
+# Must be one of ia32 or ppc or arm
 target.arch=
 # Must be one of Linux or OSX
 target.os=

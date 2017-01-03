@@ -771,9 +771,12 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
 
       if (VM.BuildForIA32) {
         cm = org.jikesrvm.jni.ia32.JNICompiler.compile(method);
-      } else {
-        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      } else if (VM.BuildForPowerPC) {
         cm = org.jikesrvm.jni.ppc.JNICompiler.compile(method);
+      } else if (VM.BuildForARM) {
+        cm = org.jikesrvm.jni.arm.JNICompiler.compile(method);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
       if (VM.verboseJNI) {
         VM.sysWriteln("[Dynamic-linking native method " +

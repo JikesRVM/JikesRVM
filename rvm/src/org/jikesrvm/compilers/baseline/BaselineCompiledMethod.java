@@ -58,9 +58,12 @@ public abstract class BaselineCompiledMethod extends CompiledMethod {
   static {
     if (VM.BuildForIA32) {
       exceptionDeliverer = new org.jikesrvm.compilers.baseline.ia32.BaselineExceptionDeliverer();
-    } else {
+    } else if (VM.BuildForPowerPC) {
       exceptionDeliverer = new org.jikesrvm.compilers.baseline.ppc.BaselineExceptionDeliverer();
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForARM) {
+      exceptionDeliverer = new org.jikesrvm.compilers.baseline.arm.BaselineExceptionDeliverer();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
@@ -96,9 +99,12 @@ public abstract class BaselineCompiledMethod extends CompiledMethod {
     BaselineCompiler comp;
     if (VM.BuildForIA32) {
       comp = new org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl(this);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       comp = new org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl(this);
+    } else if (VM.BuildForARM) {
+      comp = new org.jikesrvm.compilers.baseline.arm.BaselineCompilerImpl(this);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
     comp.compile();
     saveCompilerData(comp);

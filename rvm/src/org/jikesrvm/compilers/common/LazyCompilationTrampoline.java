@@ -21,8 +21,13 @@ public class LazyCompilationTrampoline {
   public static CodeArray getInstructions() {
     if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.LazyCompilationTrampoline.instructions;
-    } else {
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.LazyCompilationTrampoline.instructions;
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.LazyCompilationTrampoline.instructions;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 }

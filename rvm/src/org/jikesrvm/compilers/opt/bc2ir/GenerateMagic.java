@@ -239,6 +239,12 @@ public class GenerateMagic {
                                               offset.copy(),
                                               new LocationOperand(elementType),
                                               new TrueGuardOperand()));
+        } else if (VM.BuildForARM) {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          result = null;
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          result = null;
         }
       } else {
         result = gc.getTemps().makeTemp(elementType);
@@ -279,6 +285,10 @@ public class GenerateMagic {
                                                offset.copy(),
                                                new LocationOperand(elementType),
                                                new TrueGuardOperand()));
+        } else if (VM.BuildForARM) {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         }
       } else {
         bc2ir.appendInstruction(Binary.create(INT_SHL,

@@ -154,9 +154,12 @@ public abstract class Operator {
   public static Operator lookupOpcode(int opcode) {
     if (VM.BuildForIA32) {
       return org.jikesrvm.compilers.opt.ir.ia32.ArchOperator.lookupOpcode(opcode);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.compilers.opt.ir.ppc.ArchOperator.lookupOpcode(opcode);
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return null;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return null;
     }
   }
 
@@ -173,9 +176,12 @@ public abstract class Operator {
   public String toString() {
     if (VM.BuildForIA32) {
       return org.jikesrvm.compilers.opt.ir.ia32.ArchOperatorNames.toString(this);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.compilers.opt.ir.ppc.ArchOperatorNames.toString(this);
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return null;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return null;
     }
   }
 
@@ -669,9 +675,12 @@ public abstract class Operator {
   public boolean isCallSaveVolatile() {
     if (VM.BuildForIA32) {
       return this == org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.CALL_SAVE_VOLATILE;
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return this == org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.CALL_SAVE_VOLATILE;
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return false;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return false;
     }
   }
 

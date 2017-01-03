@@ -59,8 +59,14 @@ public class GenerateInterfaceDeclarations {
   static {
     GenArch tmp = null;
     try {
-      tmp =
-          (GenArch) Class.forName(VM.BuildForIA32 ? "org.jikesrvm.tools.header_gen.GenArch_ia32" : "org.jikesrvm.tools.header_gen.GenArch_ppc").newInstance();
+      if (VM.BuildForIA32)
+        tmp = (GenArch) Class.forName("org.jikesrvm.tools.header_gen.GenArch_ia32").newInstance();
+      else if (VM.BuildForPowerPC)
+        tmp = (GenArch) Class.forName("org.jikesrvm.tools.header_gen.GenArch_ppc").newInstance();
+      else if (VM.BuildForARM)
+        tmp = (GenArch) Class.forName("org.jikesrvm.tools.header_gen.GenArch_arm").newInstance();
+      else
+        throw new RuntimeException("Invalid build target");
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(EXIT_STATUS_MISC_TROUBLE);     // we must *not* go on if the above has failed

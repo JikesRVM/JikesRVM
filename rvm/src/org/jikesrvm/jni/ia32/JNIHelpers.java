@@ -20,15 +20,10 @@ import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 
-import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
-
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.jni.JNIGenericHelpers;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -47,12 +42,10 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * @param methodID the method ID for a constructor
    * @param argAddress where to find the arguments for the constructor
    * @param isJvalue {@code true} if parameters are passed as a jvalue array
-   * @param isDotDotStyle {@code true} if the method uses varargs
    * @return a new object created by the specified constructor
    * @throws Exception when the reflective invocation of the constructor fails
    */
-  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue,
-                                         boolean isDotDotStyle) throws Exception {
+  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue) throws Exception {
     // get the parameter list as Java class
     MemberReference mr = MemberReference.getMemberRef(methodID);
     TypeReference tr = java.lang.JikesRVMSupport.getTypeForClass(cls).getTypeRef();
@@ -65,142 +58,15 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     }
 
     // Package the parameters for the constructor
-    Address varargAddress;
-    if (isDotDotStyle) {
-      // flag is false because this JNI function has 3 args before the var args
-      varargAddress = getVarArgAddress(false);
-    } else {
-      varargAddress = argAddress;
-    }
-
     Object[] argObjs;
     if (isJvalue) {
       argObjs = packageParametersFromJValuePtr(methodRef, argAddress);
     } else {
-      argObjs = packageParameterFromVarArg(methodRef, varargAddress);
+      argObjs = packageParameterFromVarArg(methodRef, argAddress);
     }
 
     // construct the new object
     return constMethod.newInstance(argObjs);
-  }
-
-  /**
-   * Common code shared by the JNI functions CallStatic&lt;type&gt;Method
-   * (static method invocation)
-   * @param methodID the method ID
-   * @param expectReturnType the return type of the method to be invoked
-   * @return an object that may be the return object or a wrapper for the primitive return value
-   * @throws Exception if the return type doesn't match the expected return type
-   */
-  @NoInline
-  @NoOptCompile
-  // expect a certain stack frame structure
-  public static Object invokeWithDotDotVarArg(int methodID, TypeReference expectReturnType) throws Exception {
-    MethodReference mr = MemberReference.getMethodRef(methodID);
-    Address varargAddress = getVarArgAddress(false);
-    Object[] argObjectArray = packageParameterFromVarArg(mr, varargAddress);
-    return callMethod(null, mr, argObjectArray, expectReturnType, true);
-  }
-
-  /**
-   * Common code shared by the JNI functions Call&lt;type&gt;Method
-   * (virtual method invocation)
-   * @param obj the object instance
-   * @param methodID the method ID
-   * @param expectReturnType the return type for checking purpose
-   * @param skip4Args  true if the calling JNI Function takes 4 args before the vararg
-   *                   false if the calling JNI Function takes 3 args before the vararg
-   * @return an object that may be the return object or a wrapper for the primitive return value
-   * @throws Exception if the return type doesn't match the expected return type
-   */
-  @NoInline
-  @NoOptCompile
-  // expect a certain stack frame structure
-  public static Object invokeWithDotDotVarArg(Object obj, int methodID, TypeReference expectReturnType,
-                                              boolean skip4Args) throws Exception {
-    MethodReference mr = MemberReference.getMethodRef(methodID);
-    Address varargAddress = getVarArgAddress(skip4Args);
-    Object[] argObjectArray = packageParameterFromVarArg(mr, varargAddress);
-    return callMethod(obj, mr, argObjectArray, expectReturnType, skip4Args);
-  }
-
-  /**
-   * This method supports var args passed from C.<p>
-   *
-   * In the Linux Intel C convention, the caller places the args immediately above the
-   * saved return address, starting with the first arg. <br>
-   *
-   * For the JNI functions that takes var args, their prolog code will save the
-   * var arg in the glue frame because the values in the register may be lost by
-   * subsequent calls. <br>
-   *
-   * This method copies the var arg values that were saved earlier in glue frame into
-   * the spill area of the original caller, thereby doing the work that the callee
-   * normally performs in the AIX C convention. <br>
-   *
-   * NOTE: This method contains internal stack pointer.
-   * For now we assume that the stack will not be relocatable while native code is running
-   * because native code can hold an address into the stack, so this code is OK,
-   * but this is an issue to be resolved later. <br>
-   *
-   * NOTE:  this method assumes that it is immediately above the
-   * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and
-   * the C caller frame in the respective order.
-   * Therefore, this method will not work if called from anywhere else.
-   *
-   * <pre>
-   *  low address
-   *
-   *   |  fp  | &lt;- JNIEnvironment.getVarArgAddress
-   *   | mid  |
-   *   |      |
-   *   |      |
-   *   |------|
-   *   |  fp  | &lt;- JNIEnvironment.invokeWithDotDotVarArg frame
-   *   | mid  |
-   *   | ...  |
-   *   |      |
-   *   |      |
-   *   |------|
-   *   |  fp  | &lt;- JNI method frame
-   *   | mid  |
-   *   | ...  |
-   *   | arg 0|    args copied by JNI prolog (3 for static, nonvirtual,
-   *   | arg 1|    or 4 for virtual)
-   *   | arg 2|
-   *   |      |
-   *   |      |
-   *   |------|
-   *   | fp   | &lt;- Native C caller frame
-   *   |return|
-   *   | arg 0|
-   *   | arg 1|
-   *   | arg 2|
-   *   | arg 3|
-   *   | arg 4|
-   *   | arg 5|
-   *   | arg 6|
-   *   | arg 7|
-   *   | arg 8|
-   *   | arg 9|
-   *   |      |
-   *   |      |
-   *   |      |
-   *
-   *
-   *   high address
-   * </pre>
-   *
-   * @param skip4Args if true, the calling JNI function has 4 args before the vararg
-   *                  if false, the calling JNI function has 3 args before the vararg
-   * @return the starting address of the vararg in the caller stack frame
-   */
-  @NoInline
-  private static Address getVarArgAddress(boolean skip4Args) {
-    Address fp = Magic.getFramePointer();
-    fp = fp.loadAddress();
-    fp = fp.loadAddress();
-    return (fp.plus(2 * WORDSIZE + (skip4Args ? 4 * WORDSIZE : 3 * WORDSIZE)));
   }
 
   /**

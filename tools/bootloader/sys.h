@@ -304,7 +304,15 @@ EXTERNAL int sysGetThreadPriority(Word thread, Word handle);
 EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority);
 // sysThread - architecture specific
 // parameters are architecture specific too.
-EXTERNAL void bootThread(void *, void *, void *, void *);
+#ifdef RVM_FOR_IA32
+  EXTERNAL void bootThread(void *, void *, void *, void *);
+#elif defined RVM_FOR_PPC
+  EXTERNAL void bootThread(void *, void *, void *, void *);
+#elif defined RVM_FOR_ARM
+  EXTERNAL void bootThread(void *, void *, void *, void *, void *);
+#else
+ #error invalid architecture
+#endif
 // sysTime
 EXTERNAL long long sysCurrentTimeMillis();
 EXTERNAL long long sysNanoTime();

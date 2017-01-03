@@ -42,6 +42,11 @@ import org.vmmagic.unboxed.Offset;
 @NonMoving
 public final class JNIEnvironment {
 
+  static {
+    // Remind future developers to check this file for assumptions made (that these are the only 3 architectures being used)
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC || VM.BuildForARM || VM.BuildForIA32);
+  }
+
   /**
    * initial size for JNI refs, later grow as needed
    */
@@ -54,7 +59,7 @@ public final class JNIEnvironment {
    * between the max value in JNIRefsMax and the actual size of the
    * array. How much is governed by this field.
    */
-  protected static final int JNIREFS_FUDGE_LENGTH = VM.BuildForPowerPC ? 50 : 0;
+  protected static final int JNIREFS_FUDGE_LENGTH = VM.BuildForIA32 ? 0 : 50;
 
   /**
    * This is the shared JNI function table used by native code
@@ -94,11 +99,11 @@ public final class JNIEnvironment {
 
   /**
    * For saving JTOC register on entry to native,
-   * to be restored on JNI call from native (only used on PowerPC)
+   * to be restored on JNI call from native (only used on PowerPC and ARM)
    */
   @Entrypoint
   @Untraced
-  private final Address savedJTOC = VM.BuildForPowerPC ? Magic.getTocPointer() : Address.zero();
+  private final Address savedJTOC = (VM.BuildForPowerPC || VM.BuildForARM) ? Magic.getTocPointer() : Address.zero();
 
   /**
    * When native code doesn't maintain a base pointer we can't chain
@@ -108,7 +113,7 @@ public final class JNIEnvironment {
    * handle a JNI function). This field is currently only used on IA32.
    */
   @Entrypoint
-  private Address basePointerOnEntryToNative = Address.fromIntSignExtend(0xF00BAAA1);
+  private Address basePointerOnEntryToNative = VM.BuildForIA32 ? Address.fromIntSignExtend(0xF00BAAA1) : Address.zero();
 
   /**
    * When transitioning between Java and C and back, we may want to stop a thread
@@ -303,6 +308,8 @@ public final class JNIEnvironment {
   @Uninterruptible("Encoding arguments on stack that won't be seen by GC")
   @Inline
   private int uninterruptiblePushJNIRef(Address ref, boolean isRef) {
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32);
+
     if (isRef && ref.isZero()) {
       return 0;
     } else {
@@ -326,6 +333,8 @@ public final class JNIEnvironment {
   @Uninterruptible("Objects on the stack won't be recognized by GC, therefore don't allow GC")
   @Entrypoint
   public void entryToJNI(int encodedReferenceOffsets) {
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32);
+
     // Save processor
     savedTRreg = Magic.getThreadRegister();
 
@@ -380,6 +389,8 @@ public final class JNIEnvironment {
   "Code can throw exceptions so not uninterruptible.")
   @Entrypoint
   public Object exitFromJNI(int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32);
+
     // Transition processor from IN_JNI to IN_JAVA
     RVMThread.leaveJNIFromCallIntoNative();
 

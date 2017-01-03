@@ -317,9 +317,14 @@ public final class IR {
   {
     if (VM.BuildForIA32) {
       stackManager = new org.jikesrvm.compilers.opt.regalloc.ia32.StackManager();
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       stackManager = new org.jikesrvm.compilers.opt.regalloc.ppc.StackManager();
+    } else if (VM.BuildForARM) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      stackManager = null;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      stackManager = null;
     }
   }
 

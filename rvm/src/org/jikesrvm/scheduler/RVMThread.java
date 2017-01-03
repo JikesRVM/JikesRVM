@@ -2611,9 +2611,12 @@ public final class RVMThread extends ThreadContext {
   public static RVMThread getCurrentThread() {
     if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.ThreadLocalState.getCurrentThread();
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.ThreadLocalState.getCurrentThread();
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.ThreadLocalState.getCurrentThread();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return null;
     }
   }
 
@@ -3908,6 +3911,8 @@ public final class RVMThread extends ThreadContext {
       // agree that remote processors only need to execute isync. --Filip
       // make sure not get stale data
       Magic.isync();
+    } else if (VM.VerifyAssertions) {
+      VM._assert(!(VM.BuildForARM && codePatchSyncRequested)); // Not implemented
     }
     // process memory management requests
     if (flushRequested && activeMutatorContext) {
@@ -4303,9 +4308,12 @@ public final class RVMThread extends ThreadContext {
       if (VM.BuildForAdaptiveSystem && t.isWaitingForOsr) {
         if (VM.BuildForIA32) {
           org.jikesrvm.osr.ia32.PostThreadSwitch.postProcess(t);
-        } else {
-          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        } else if (VM.BuildForPowerPC) {
           org.jikesrvm.osr.ppc.PostThreadSwitch.postProcess(t);
+        } else if (VM.BuildForARM) {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         }
       }
       if (t.asyncThrowable != null) {
@@ -4420,7 +4428,7 @@ public final class RVMThread extends ThreadContext {
     //
     if (VM.BuildForPowerPC) {
       Magic.returnToNewStack(Magic.getCallerFramePointer(newFP));
-    } else if (VM.BuildForIA32) {
+    } else if (VM.BuildForIA32 || VM.BuildForARM) {
       Magic.returnToNewStack(newFP);
     }
 
@@ -4476,12 +4484,14 @@ public final class RVMThread extends ThreadContext {
     }
 
     // additional architecture specific adjustments
-    // (1) frames from all compilers on IA32 need to update ESP
+    // (1) frames from all compilers on IA32 need to update ESP, on ARM need to update SP
     int compiledMethodId = Magic.getCompiledMethodID(registers
         .getInnermostFramePointer());
     if (compiledMethodId != StackFrameLayout.getInvisibleMethodID()) {
-      if (VM.BuildForIA32) {
-        registers.adjustESP(delta, traceAdjustments);
+      if (VM.BuildForIA32 || VM.BuildForARM) {
+        registers.adjustStackPointer(delta, traceAdjustments);
+      } else if (VM.VerifyAssertions) {
+        VM._assert(VM.BuildForPowerPC);
       }
       if (traceAdjustments) {
         CompiledMethod compiledMethod = CompiledMethods

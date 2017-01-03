@@ -23,10 +23,11 @@ import org.jikesrvm.runtime.CommandLineArgs;
 public abstract class Configuration {
 
   public static final boolean BuildForPowerPC = @_RVM_FOR_POWERPC_@;
-  public static final boolean BuildForIA32 = !BuildForPowerPC;
+  public static final boolean BuildForARM = @_RVM_FOR_ARM_@;
+  public static final boolean BuildForIA32 = @_RVM_FOR_IA32_@;
   public static final boolean BuildForSSE2 = BuildForIA32 && (@_RVM_FOR_SSE2_@ || VM.BuildFor64Addr);
   public static final boolean BuildForSSE2Full = BuildForSSE2 && (@_RVM_FOR_SSE2_FULL_@ || VM.BuildFor64Addr);
-  public static final boolean BuildForHwFsqrt = @_RVM_FOR_HW_FSQRT_@ && (@_RVM_FOR_POWERPC_@ || VM.BuildForSSE2);
+  public static final boolean BuildForHwFsqrt = @_RVM_FOR_HW_FSQRT_@ && (@_RVM_FOR_POWERPC_@ || @_RVM_FOR_ARM_@ || VM.BuildForSSE2);
 
   public static final boolean BuildFor32Addr = @_RVM_FOR_32_ADDR_@;
   public static final boolean BuildFor64Addr = !BuildFor32Addr;
@@ -129,6 +130,8 @@ public abstract class Configuration {
       targetArch = "ia32";
     } else if (BuildForPowerPC) {
       targetArch = "ppc";
+    } else if (BuildForARM) {
+      targetArch = "arm";
     } else {
       // Can't use assertions because that would require importing VM, which
       // is a subclass of this class

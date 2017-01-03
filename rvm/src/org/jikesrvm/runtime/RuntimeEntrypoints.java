@@ -1121,14 +1121,11 @@ public class RuntimeEntrypoints {
       fp = Magic.getCallerFramePointer(fp);
     } while (!MemoryManager.addressInVM(ip) && fp.NE(StackFrameLayout.getStackFrameSentinelFP()));
 
-    if (VM.BuildForPowerPC) {
-      // We want to return fp, not callee_fp because we want the stack walkers
-      // to see the "mini-frame" which has the RVM information, not the "main frame"
-      // pointed to by callee_fp which is where the saved ip was actually stored.
-      return fp;
-    } else {
-      return callee_fp;
-    }
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC || VM.BuildForARM);
+    // We want to return fp, not callee_fp because we want the stack walkers
+    // to see the "mini-frame" which has the RVM information, not the "main frame"
+    // pointed to by callee_fp which is where the saved ip was actually stored.
+    return fp;
   }
 
   /**

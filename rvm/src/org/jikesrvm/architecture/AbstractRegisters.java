@@ -130,12 +130,12 @@ public abstract class AbstractRegisters {
 
   /**
    * A thread's stack has been moved or resized.
-   * Adjust the ESP register to reflect new position.
+   * Adjust the stack pointer register to reflect new position.
    *
    * @param delta The displacement to be applied
    * @param traceAdjustments Log all adjustments to stderr if true
    */
-  public abstract void adjustESP(Offset delta, boolean traceAdjustments);
+  public abstract void adjustStackPointer(Offset delta, boolean traceAdjustments);
 
   /**
    * Set ip &amp; fp. used to control the stack frame at which a scan of

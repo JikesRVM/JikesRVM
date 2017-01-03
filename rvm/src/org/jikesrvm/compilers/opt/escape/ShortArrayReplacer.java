@@ -229,7 +229,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
                   scalars[0].copyRO(), scalars[1].copyRO());
               DefUse.replaceInstructionAndUpdateDU(inst, i2);
             }
-          } else {
+          } else if (VM.BuildForPowerPC) {
             if (size == 1) {
               int index = 0;
               Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
@@ -238,6 +238,10 @@ final class ShortArrayReplacer implements AggregateReplacer {
             } else {
               DefUse.removeInstructionAndUpdateDU(inst);
             }
+          } else if (VM.BuildForARM) {
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           }
         }
       }
@@ -282,7 +286,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
               i2.insertAfter(i3);
               DefUse.updateDUForNewInstruction(i3);
             }
-          } else {
+          } else if (VM.BuildForPowerPC) {
             if (size == 1) {
               int index = 0;
               Operator moveOp = IRTools.getMoveOp(type.getTypeRef());
@@ -291,6 +295,10 @@ final class ShortArrayReplacer implements AggregateReplacer {
             } else {
               DefUse.removeInstructionAndUpdateDU(inst);
             }
+          } else if (VM.BuildForARM) {
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           }
         }
       }

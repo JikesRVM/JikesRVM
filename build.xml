@@ -42,10 +42,10 @@
   <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
   <property name="options.java" location="common/options/src"/>
-  <property name="tuningforklib.java" location="external/tuningforklib/src"/>	
+  <property name="tuningforklib.java" location="external/tuningforklib/src"/>
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
-	
-  <!-- Location of .dat files for options -->	
+
+  <!-- Location of .dat files for options -->
   <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
 
   <!-- Location of files for SysCalls. These are subject to annotation processing -->
@@ -53,7 +53,7 @@
   <!-- Bootloader directory -->
   <property name="bl.dir" location="${basedir}/tools/bootloader"/>
 
-  <!-- Directories for IR and BURS (used in gen-opt-ir and gen-opt-ir-uptodate-check targets) -->	
+  <!-- Directories for IR and BURS (used in gen-opt-ir and gen-opt-ir-uptodate-check targets) -->
   <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
   <property name="build.burs.dir" location="${basedir}/rvm/src-generated/opt-burs"/>
 
@@ -111,7 +111,7 @@
   <property name="mmtk.java.version" value="1.6"/>
   <property name="harness.java.version" value="1.6"/>
   <property name="rvm.java.version" value="1.6"/>
-	
+
   <!-- Default heap layout -->
   <property name="target.heap-layout" value="32BIT"/>
 
@@ -179,7 +179,7 @@
           <isset property="classpath.classlib"/>
 	</and>
       </condition>
-    </fail>      
+    </fail>
     <fail message="No class library specified. Make sure classlib.provider is defined.">
       <condition>
 	<not>
@@ -375,8 +375,14 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="include.opt" value="true">
       <equals arg1="${config.runtime.compiler}" arg2="opt"/>
     </condition>
+    <condition property="include.ia32" value="true">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
     <condition property="include.ppc" value="true">
       <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="include.arm" value="true">
+      <equals arg1="${target.arch}" arg2="arm"/>
     </condition>
     <condition property="include.32bit" value="true">
       <equals arg1="${target.address.size}" arg2="32"/>
@@ -396,8 +402,14 @@ Check to make sure all required properties are specified. This includes properti
   <!-- **************************************************************************** -->
 
   <target name="setup-filter-properties" depends="check-properties">
-    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1" else="-DRVM_FOR_IA32=1">
+    <condition property="arch.filter" value="-DRVM_FOR_IA32=1">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <condition property="arch.filter" value="-DRVM_FOR_POWERPC=1">
       <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="arch.filter" value="-DRVM_FOR_ARM=1">
+      <equals arg1="${target.arch}" arg2="arm"/>
     </condition>
 
     <condition property="os.filter" value="-DRVM_FOR_LINUX=1 -DLINUX=1">
@@ -483,8 +495,8 @@ Check to make sure all required properties are specified. This includes properti
     <echo message="${javacc.dir}"/>
     <javacc target="${basedir}/MMTk/harness/src-generated/org/mmtk/harness/lang/parser/Parser.jj" javacchome="${javacc.dir}" outputdirectory="${generated.mmtk-harness-parser.java}"/>
     <mkdir dir="${build.mmtk-harness.classes}"/>
-    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" 
-        destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" 
+    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}"
+        destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source"
         source="${harness.java.version}" target="${harness.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -701,8 +713,8 @@ Check to make sure all required properties are specified. This includes properti
       	</sequential>
       </if>
     </sequential>
-  </macrodef>	
-  	
+  </macrodef>
+
   <target name="jburg-uptodate-check" depends="check-properties, prepare-ant-tasks">
     <uptodate-check filename="JBurg-uptodate" property="jburg" srcdir1="${basedir}/rvm/src-generated/opt-burs/jburg/"/>
 
@@ -716,7 +728,7 @@ Check to make sure all required properties are specified. This includes properti
       </sequential>
     </if>
   </target>
-  	
+
   <!-- build tool used to create burs -->
   <target name="build-jburg" depends="check-properties" unless="jburg.uptodate">
     <property name="build.jburg.dir" location="${build.dir}/${host.name}/jburg"/>
@@ -737,7 +749,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
     <touch file="${generated.dir}/JBurg-uptodate"/>
   </target>
-	
+
   <target name="gen-opt-ir-uptodate-check" depends="check-properties, prepare-ant-tasks, jburg-uptodate-check">
     <uptodate-check filename="Opt-IR-uptodate" property="opt-ir-files" srcdir1="${build.ir.dir}" srcdir2="${build.burs.dir}"/>
 
@@ -920,10 +932,10 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="gen-ia32-assembler-uptodate-check" depends="check-properties, prepare-ant-tasks, compile-vmmagic-stub">
     <property name="ia32-assembler-opt.dir" location="${basedir}/rvm/src-generated/ia32-assembler-opt"/>
-    <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>  	
+    <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
 
     <uptodate-check filename="IA32-Assembler-uptodate" property="ia32-assembler" srcdir1="${ia32-assembler-opt.dir}" srcdir2="${build.ia32-assembler.dir}" srcdir3="${build.vmmagic-stub.classes}" />
-  </target>	
+  </target>
 
   <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub" unless="ia32-assembler.uptodate">
     <mkdir dir="${generated.java}/org/jikesrvm/compilers/common/assembler/ia32"/>
@@ -987,7 +999,7 @@ Check to make sure all required properties are specified. This includes properti
       </classpath>
       <jvmarg value="-DgenerateToDir=${generated.java}/org/jikesrvm/compilers/opt/mir2mc/ia32"/>
     </java>
-    <touch file="${generated.dir}/IA32-Assembler-uptodate"/>  	
+    <touch file="${generated.dir}/IA32-Assembler-uptodate"/>
   </target>
 
   <target name="gen-config-source" depends="check-properties,get-git-version">
@@ -999,15 +1011,31 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
     <condition property="pp_RVM_ARCH_HELPER"
-               value="org.jikesrvm.ia32.MachineSpecificIA.IA32"
-               else="org.jikesrvm.ia32.MachineSpecificIA.EM64T">
+               value="org.jikesrvm.arm.MachineSpecificARM.ARM">
+      <equals arg1="${target.arch}" arg2="arm"/>
+    </condition>
+    <condition property="pp_RVM_ARCH_HELPER"
+               value="org.jikesrvm.ia32.MachineSpecificIA.IA32">
       <and>
         <equals arg1="${target.arch}" arg2="ia32"/>
         <equals arg1="${target.address.size}" arg2="32"/>
       </and>
     </condition>
+    <condition property="pp_RVM_ARCH_HELPER"
+               value="org.jikesrvm.ia32.MachineSpecificIA.EM64T">
+      <and>
+        <equals arg1="${target.arch}" arg2="ia32"/>
+        <equals arg1="${target.address.size}" arg2="64"/>
+      </and>
+    </condition>
+    <condition property="pp_RVM_FOR_ARM" value="true" else="false">
+      <equals arg1="${target.arch}" arg2="arm"/>
+    </condition>
     <condition property="pp_RVM_FOR_POWERPC" value="true" else="false">
       <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="pp_RVM_FOR_IA32" value="true" else="false">
+      <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
     <condition property="pp_RVM_FOR_LITTLE_ENDIAN" value="true" else="false">
       <equals arg1="${target.endianness}" arg2="little"/>
@@ -1023,7 +1051,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <condition property="pp_RVM_FOR_OSX" value="true" else="false">
       <equals arg1="${target.os}" arg2="OSX" />
-    </condition>    
+    </condition>
     <condition property="pp_RVM_FOR_SSE2" value="true" else="false">
       <not>
         <equals arg1="${target.arch.sse2}" arg2="none"/>
@@ -1063,9 +1091,11 @@ Check to make sure all required properties are specified. This includes properti
           tofile="${generated.config.java}/org/jikesrvm/Configuration.java">
       <filterset>
         <filter token="_RVM_VERSION_" value="Jikes RVM ${rvm.version} (r${git.revision})"/>
-        <filter token="_RVM_CONFIGURATION_" value="${config.name}"/>      	
+        <filter token="_RVM_CONFIGURATION_" value="${config.name}"/>
         <filter token="_RVM_ARCH_HELPER_" value="${pp_RVM_ARCH_HELPER}"/>
         <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
+        <filter token="_RVM_FOR_ARM_" value="${pp_RVM_FOR_ARM}"/>
+        <filter token="_RVM_FOR_IA32_" value="${pp_RVM_FOR_IA32}"/>
         <filter token="_RVM_FOR_LITTLE_ENDIAN_" value="${pp_RVM_FOR_LITTLE_ENDIAN}"/>
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
@@ -1129,7 +1159,7 @@ Check to make sure all required properties are specified. This includes properti
         <isset property="jburg.uptodate"/>
         <isset property="opt-ir.uptodate"/>
         <isset property="ia32-assembler.uptodate"/>
-     	
+
         <!-- Still necessary because gen-vmmagic-word needs to be run -->
         <available file="${generated.dir}/SourceGenerated"/>
       </and>
@@ -1193,10 +1223,10 @@ Check to make sure all required properties are specified. This includes properti
     <attribute name="srcdir"/>
     <element name="ObjectFiles"/>
     <sequential>
-      <!-- Nothing to do on non-Windows platforms --> 
+      <!-- Nothing to do on non-Windows platforms -->
     </sequential>
   </macrodef>
-  
+
   <!-- Macro to link object files into a DLL -->
   <macrodef name="CreateDLL">
     <attribute name="dllname"/>
@@ -1219,7 +1249,7 @@ Check to make sure all required properties are specified. This includes properti
              <ObjectFiles/>
            </exec>
          </sequential>
-       </if>    
+       </if>
       <if>
          <conditions>
            <not>
@@ -1237,7 +1267,7 @@ Check to make sure all required properties are specified. This includes properti
       </if>
     </sequential>
   </macrodef>
-  
+
   <!-- Macro to link object files into a DLL -->
   <macrodef name="CreateEXE">
     <attribute name="exename"/>
@@ -1255,7 +1285,7 @@ Check to make sure all required properties are specified. This includes properti
       </exec>
     </sequential>
    </macrodef>
-    
+
 
   <!-- Set properties for class libraries -->
   <target name="choose-classlib" depends="prepare-ant-tasks">
@@ -1283,14 +1313,17 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,update-eclipse-project,choose-classlib,do-checkstyle">
 
-    <condition property="exclude-arch" value="IA" else="PPC">
+    <condition property="arch-helper-class"
+               value="org/jikesrvm/ia32/MachineSpecificIA.java">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <condition property="arch-helper-class"
+               value="org/jikesrvm/ppc/MachineSpecificPowerPC.java">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
-
     <condition property="arch-helper-class"
-               value="org/jikesrvm/ia32/MachineSpecificIA.java"
-               else="org/jikesrvm/ppc/MachineSpecificPowerPC.java">
-      <equals arg1="${target.arch}" arg2="ia32"/>
+               value="org/jikesrvm/arm/MachineSpecificARM.java">
+      <equals arg1="${target.arch}" arg2="arm"/>
     </condition>
 
     <!--
@@ -1304,7 +1337,7 @@ Check to make sure all required properties are specified. This includes properti
       <conditions>
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
-      <sequential>       
+      <sequential>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1339,7 +1372,7 @@ Check to make sure all required properties are specified. This includes properti
       <conditions>
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
-      <sequential>       
+      <sequential>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1394,17 +1427,17 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.classes}"/>
       </classpath>
       <compilerarg value="-proc:only"/>
-      
+
       <!-- Processor needs to be specified explicitly, otherwise lookup will fail -->
       <compilerarg value="-processor"/>
       <compilerarg value="org.jikesrvm.tools.annotation_processing.SysCallProcessor"/>
- 
+
       <compilerarg value="-processorpath"/>
       <compilerarg value="${tasks.classes}"/>
       <compilerarg value="-s"/>
       <compilerarg value="${build.base}/syscall/java"/>
     </javac>
-  	
+
     <echo message="second compile (from ${generated.java})"/>
     <javac destdir="${build.classes}"
            debug="true"
@@ -1448,7 +1481,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <delete dir="${junit.reports.bootstrap}"/>
     <mkdir dir="${junit.reports.bootstrap}"/>
-    
+
     <junit haltonfailure="yes" printsummary="true" showoutput="true">
       <sysproperty key="jikesrvm.junit.runner.vm" value="bootstrap"/>
       <classpath>
@@ -1536,7 +1569,7 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="package-classpath" if="classpath.classlib">
     <!-- create a rt.jar for the RVM -->
-    <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false"> 
+    <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">
       <include name="java/**"/>
       <include name="sun/**"/>
       <include name="gnu/**"/>
@@ -1556,12 +1589,12 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${build.options.classes}"/>
     </jar>
   </target>
-  
+
   <target name="prepare-asm" depends="package,check-components-properties">
     <mkdir dir="${build.asm.classes}"/>
     <javac srcdir="${jikesrvm.dir}/tools/asm-tasks/src" destdir="${build.asm.classes}" debug="true" classpath="${asm.jar}:${build.vm.jar}:${build.rt.jar}" includeantruntime="false"/>
  </target>
-  
+
   <target name="gen-asm" depends="package,prepare-asm">
     <mkdir dir="${generated.asm}"/>
     <java classname="org.jikesrvm.tools.asm.AnnotationAdder" failonerror="true">
@@ -1580,7 +1613,7 @@ Check to make sure all required properties are specified. This includes properti
       <include name="sun/**"/>
       <include name="gnu/**"/>
     </zip>
-  </target>	
+  </target>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -1593,10 +1626,12 @@ Check to make sure all required properties are specified. This includes properti
     <fileset id="primordials.main" dir="${build.classes}">
       <include name="org/**/*.class" />
       <include name="com/ibm/tuningfork/**/*.class" />
+      <exclude name="**/arm/*.class" unless="include.arm"/>
+      <exclude name="**/arm_*/*.class" unless="include.arm"/>
       <exclude name="**/ppc/*.class" unless="include.ppc"/>
       <exclude name="**/ppc_*/*.class" unless="include.ppc"/>
-      <exclude name="**/ia32/*.class" if="include.ppc"/>
-      <exclude name="**/ia32_*/*.class" if="include.ppc"/>
+      <exclude name="**/ia32/*.class" unless="include.ia32"/>
+      <exclude name="**/ia32_*/*.class" unless="include.ia32"/>
       <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
       <exclude name="org/jikesrvm/compilers/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
@@ -1633,8 +1668,14 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="primordials.opt" value=",RVM_OPT.txt" else="">
       <isset property="include.opt"/>
     </condition>
-    <condition property="primordials.arch" value=",RVM_PPC.txt" else=",RVM_IA32.txt">
+    <condition property="primordials.arch" value=",RVM_IA32.txt">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <condition property="primordials.arch" value=",RVM_PPC.txt">
       <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="primordials.arch" value=",RVM_ARM.txt">
+      <equals arg1="${target.arch}" arg2="arm"/>
     </condition>
 
     <if>
@@ -1812,7 +1853,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- Generate JNI headers for booter -->
   <target name="gen-jni-headers" depends="gen-asm">
     <mkdir dir="${build.native}"/>
-    <javah outputFile="${build.native}/org_jikesrvm_runtime_DynamicLibrary.h" 
+    <javah outputFile="${build.native}/org_jikesrvm_runtime_DynamicLibrary.h"
            classpath="${build.vm.jar}">
       <class name="org.jikesrvm.runtime.DynamicLibrary"/>
     </javah>
@@ -1883,6 +1924,9 @@ const char *rvm_target_configuration = "${target.file}";
     <condition property="arch.includes" value="-I${bl.dir}/ppc">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
+    <condition property="arch.includes" value="-I${bl.dir}/arm">
+      <equals arg1="${target.arch}" arg2="arm"/>
+    </condition>
 
     <property name="rvm.includes"
               value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
@@ -1891,7 +1935,7 @@ const char *rvm_target_configuration = "${target.file}";
 
     <property name="rvm.c.args" value="${c.args} ${rvm.includes} ${rvm.defines}"/>
   </target>
-  
+
   <target name="build-gcspy-stub" depends="check-bootloader-properties" if="include.gcspy-stub">
     <CompileCtoObj cfile="${jikesrvm.dir}/tools/gcspy-stub/src/gcspy_main_server.c"
                    objfile="${build.base}/${target.obj-prefix}gcspy${target.obj-ext}"
@@ -2052,7 +2096,7 @@ const char *rvm_target_configuration = "${target.file}";
         <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
       </ObjectFiles>
     </CreateEXE>
-    
+
     <antcall target="build-debug-symbols"/>
   </target>
 
@@ -2379,7 +2423,7 @@ target.jni-suffix=${target.jni-suffix}
       <conditions>
         <equals arg1="${require.checkstyle}" arg2="true"/>
       </conditions>
-      <sequential> 
+      <sequential>
         <antcall target="checkstyle"/>
       </sequential>
     </if>
@@ -2395,7 +2439,7 @@ target.jni-suffix=${target.jni-suffix}
 
     <mkdir dir="${build.dir}/checkstyle"/>
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
-      <property key="checkstyle.known.archs" value="ia32,ppc"/>
+      <property key="checkstyle.known.archs" value="ia32,ppc,arm"/>
       <property key="checkstyle.target.arch" value="${target.arch}"/>
       <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
       <fileset dir="rvm/src" includes="**/*.java"/>
@@ -2485,7 +2529,13 @@ target.jni-suffix=${target.jni-suffix}
   <!-- **************************************************************************** -->
 
   <target name="compile-for-apidocs" depends="prepare-source,prepare-config-source,choose-classlib">
-    <condition property="toexclude" value="ppc" else="ia32">
+    <condition property="includeARM" value="true">
+      <equals arg1="${target.arch}" arg2="arm"/>
+    </condition>
+    <condition property="includePPC" value="true">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
+    <condition property="includeIA32" value="true">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
 
@@ -2500,7 +2550,9 @@ target.jni-suffix=${target.jni-suffix}
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
       </bootclasspath>
-      <exclude name="**/${toexclude}/**"/>
+      <exclude name="**/arm/**" unless="includeARM"/>
+      <exclude name="**/ppc/**" unless="includePPC"/>
+      <exclude name="**/ia32/**" unless="includeIA32"/>
       <src path="${main.java}"/>
       <src path="${classlib.library-interface.common.java}"/>
       <src path="${classlib.library-interface.cpl.java}"/>
@@ -2545,7 +2597,10 @@ target.jni-suffix=${target.jni-suffix}
       <arg value="-linksource"/>
       <arg value="-notimestamp"/>
 
-      <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**" excludes="**/ppc/**"/>
+      <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**">
+        <exclude name="**/ppc/**"/>
+        <exclude name="**/arm/**"/>
+      </packageset>
       <packageset dir="${classlib.library-interface.common.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.non-cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
@@ -2691,22 +2746,8 @@ target.jni-suffix=${target.jni-suffix}
         <filter token="CONFIG" value="${config.name}"/>
       </filterset>
     </copy>
-    <if>
-      <conditions>
-        <or>
-          <equals arg1="${target.arch}" arg2="ppc"/>
-        </or>
-      </conditions>
-      <sequential>
-        <property name="other.arch" value="ia32"/>
-      </sequential>
-    </if>
-    <property name="other.arch" value="ppc"/>
     <copy file="build/eclipse/${classpath.template.name}" tofile=".classpath">
-      <filterset>
-        <filter token="OTHER_ARCH" value="${other.arch}"/>
-        <filter token="ARCH" value="${target.arch}"/>
-      </filterset>
+      <filter token="ARCH" value="${target.arch}"/>
     </copy>
   </target>
 

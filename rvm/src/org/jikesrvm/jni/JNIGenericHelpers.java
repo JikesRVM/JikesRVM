@@ -384,6 +384,7 @@ public abstract class JNIGenericHelpers {
     if (VM.BuildForPowerPC) {
       return true;
     }
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForARM || VM.BuildForIA32);
     // Indexes for the JNI functions are fixed according to the JNI
     // specification and there is no need for links from functions
     // to their indexes for anything else, so they're hardcoded here.

@@ -123,9 +123,12 @@ public class CompiledMethods {
     if (compilerType == CompiledMethod.BASELINE) {
       if (VM.BuildForIA32) {
         cm = new org.jikesrvm.compilers.baseline.ia32.ArchBaselineCompiledMethod(id, m);
-      } else {
-        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+      } else if (VM.BuildForPowerPC) {
         cm = new org.jikesrvm.compilers.baseline.ppc.ArchBaselineCompiledMethod(id, m);
+      } else if (VM.BuildForARM) {
+        cm = new org.jikesrvm.compilers.baseline.arm.ArchBaselineCompiledMethod(id, m);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     } else if (VM.BuildForOptCompiler && compilerType == CompiledMethod.OPT) {
       cm = new OptCompiledMethod(id, m);

@@ -67,8 +67,7 @@ public final class GCMapIteratorGroup {
       } else {
         optIterator = null;
       }
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       baselineIterator = new org.jikesrvm.compilers.baseline.ppc.BaselineGCMapIterator(registerLocations);
       jniIterator = new org.jikesrvm.jni.ppc.JNIGCMapIterator(registerLocations);
       if (VM.BuildForOptCompiler) {
@@ -76,6 +75,17 @@ public final class GCMapIteratorGroup {
       } else {
         optIterator = null;
       }
+    } else if (VM.BuildForARM) {
+      baselineIterator = new org.jikesrvm.compilers.baseline.arm.BaselineGCMapIterator(registerLocations);
+      jniIterator = new org.jikesrvm.jni.arm.JNIGCMapIterator(registerLocations);
+      if (VM.BuildForOptCompiler) {
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        optIterator = null;
+      } else {
+        optIterator = null;
+      }
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
     hardwareTrapIterator = new HardwareTrapGCMapIterator(registerLocations);
   }

@@ -42,6 +42,11 @@ public class JMXSupport {
       name.append(" on IA32");
     } else if (VM.BuildForPowerPC) {
       name.append(" on PowerPC");
+    } else if (VM.BuildForARM) {
+      name.append(" on ARM");
+    } else {
+      if (VM.VerifyAssertions)
+        VM._assert(VM.NOT_REACHED);
     }
     if (VM.BuildForAdaptiveSystem) {
       name.append(" (Adaptive Optimization System and Opt Compiler");

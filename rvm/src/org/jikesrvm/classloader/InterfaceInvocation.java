@@ -421,9 +421,13 @@ public class InterfaceInvocation {
           CodeArray conflictResolutionStub;
           if (VM.BuildForIA32) {
             conflictResolutionStub = org.jikesrvm.ia32.InterfaceMethodConflictResolver.createStub(sigIds, targets);
-          } else {
-            if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          } else if (VM.BuildForPowerPC) {
             conflictResolutionStub = org.jikesrvm.ppc.InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          } else if (VM.BuildForARM) {
+            conflictResolutionStub = org.jikesrvm.arm.InterfaceMethodConflictResolver.createStub(sigIds, targets);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+            conflictResolutionStub = null;
           }
 
           klass.addCachedObject(Magic.codeArrayAsObject(conflictResolutionStub));

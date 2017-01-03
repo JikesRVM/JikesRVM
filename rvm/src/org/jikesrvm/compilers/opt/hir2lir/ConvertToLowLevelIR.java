@@ -160,7 +160,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * loads, (where we can use base + index*scale addressing modes),
    * we'll leave array loads in the LIR.
    */
-  public static final boolean LOWER_ARRAY_ACCESS = VM.BuildForPowerPC;
+  public static final boolean LOWER_ARRAY_ACCESS = !VM.BuildForIA32;
 
   /**
    * Converts the given HIR to LIR.

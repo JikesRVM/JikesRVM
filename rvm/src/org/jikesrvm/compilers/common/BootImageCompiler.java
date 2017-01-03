@@ -99,9 +99,13 @@ public abstract class BootImageCompiler {
 
     if (VM.BuildForIA32) {
       return org.jikesrvm.jni.ia32.JNICompiler.compile(method);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.jni.ppc.JNICompiler.compile(method);
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.jni.arm.JNICompiler.compile(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 }
