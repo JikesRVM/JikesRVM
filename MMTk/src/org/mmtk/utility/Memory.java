@@ -196,9 +196,9 @@ public class Memory {
           Log.prependThreadId();
           Log.write("VM range does not contain only value ");
           Log.writeln(value);
-          Log.write("Non-zero range: "); Log.write(start);
-          Log.write(" .. "); Log.writeln(start.plus(bytes));
-          Log.write("First bad value at "); Log.writeln(start.plus(i));
+          Log.write("Non-zero range: ", start);
+          Log.writeln(" .. ", start.plus(bytes));
+          Log.writeln("First bad value at ", start.plus(i));
           dumpMemory(start, 0, bytes);
         }
         return false;

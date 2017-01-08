@@ -143,18 +143,18 @@ public class VMLayoutConstants {
   static {
     if (VERBOSE_BUILD) {
       Log.writeln("== VMLayoutConstants ==");
-      Log.write("LOG_ADDRESS_SPACE    = "); Log.writeln(LOG_ADDRESS_SPACE);
-      Log.write("LOG_BYTES_IN_CHUNK   = "); Log.writeln(LOG_BYTES_IN_CHUNK);
-      Log.write("BYTES_IN_CHUNK       = "); Log.writeln(BYTES_IN_CHUNK);
-      Log.write("LOG_MAX_CHUNKS       = "); Log.writeln(LOG_MAX_CHUNKS);
-      Log.write("MAX_CHUNKS           = "); Log.writeln(MAX_CHUNKS);
-      Log.write("HEAP_START      = "); Log.writeln(HEAP_START);
-      Log.write("HEAP_END        = "); Log.writeln(HEAP_END);
-      Log.write("AVAILABLE_START = "); Log.writeln(AVAILABLE_START);
-      Log.write("AVAILABLE_END   = "); Log.writeln(AVAILABLE_END);
-      Log.write("AVAILABLE_BYTES      = "); Log.writeln(AVAILABLE_BYTES);
-      Log.write("MAX_SPACE_EXTENT     = "); Log.writeln(MAX_SPACE_EXTENT);
-      Log.write("LOG_MMAP_CHUNK_BYTES = "); Log.writeln(LOG_MMAP_CHUNK_BYTES);
+      Log.writeln("LOG_ADDRESS_SPACE    = ", LOG_ADDRESS_SPACE);
+      Log.writeln("LOG_BYTES_IN_CHUNK   = ", LOG_BYTES_IN_CHUNK);
+      Log.writeln("BYTES_IN_CHUNK       = ", BYTES_IN_CHUNK);
+      Log.writeln("LOG_MAX_CHUNKS       = ", LOG_MAX_CHUNKS);
+      Log.writeln("MAX_CHUNKS           = ", MAX_CHUNKS);
+      Log.writeln("HEAP_START      = ", HEAP_START);
+      Log.writeln("HEAP_END        = ", HEAP_END);
+      Log.writeln("AVAILABLE_START = ", AVAILABLE_START);
+      Log.writeln("AVAILABLE_END   = ", AVAILABLE_END);
+      Log.writeln("AVAILABLE_BYTES      = ", AVAILABLE_BYTES);
+      Log.writeln("MAX_SPACE_EXTENT     = ", MAX_SPACE_EXTENT);
+      Log.writeln("LOG_MMAP_CHUNK_BYTES = ", LOG_MMAP_CHUNK_BYTES);
       Log.writeln("==");
     }
   }

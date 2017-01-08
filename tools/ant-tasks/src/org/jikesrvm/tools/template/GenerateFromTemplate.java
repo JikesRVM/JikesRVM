@@ -868,8 +868,11 @@ public class GenerateFromTemplate {
 //    pst.wordChars('a', 'z'); pst.wordChars('A', 'Z');
 //    pst.wordChars(128 + 32, 255);
 //    pst.quoteChar('"'); pst.quoteChar('\'');
-    pst.ordinaryChar('-'); pst.ordinaryChar('/'); pst.ordinaryChar('*');
-    pst.wordChars('@','@'); pst.wordChars('_', '_');
+    pst.ordinaryChar('-');
+    pst.ordinaryChar('/');
+    pst.ordinaryChar('*');
+    pst.wordChars('@','@');
+    pst.wordChars('_', '_');
     int tok = pst.nextToken();
     if (tok != StreamTokenizer.TT_WORD)
        throw new IOException("Missing var name in LET");

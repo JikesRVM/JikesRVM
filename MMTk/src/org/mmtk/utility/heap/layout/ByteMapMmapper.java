@@ -149,13 +149,14 @@ public final class ByteMapMmapper extends Mmapper {
         int errno = VM.memory.dzmmap(mmapStart, MMAP_CHUNK_BYTES);
         if (errno != 0) {
           lock.release();
-          Log.write("ensureMapped failed with errno "); Log.write(errno);
-          Log.write(" on address "); Log.writeln(mmapStart);
+          Log.write("ensureMapped failed with errno ", errno);
+          Log.writeln(" on address ", mmapStart);
           VM.assertions.fail("Can't get more space with mmap()");
         } else {
           if (verbose) {
-            Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
+            Log.write("mmap succeeded at chunk ", chunk);
+            Log.write("  ", mmapStart);
+            Log.writeln(" with len = ", MMAP_CHUNK_BYTES);
           }
         }
       }
@@ -165,8 +166,9 @@ public final class ByteMapMmapper extends Mmapper {
           VM.assertions.fail("Mmapper.ensureMapped (unprotect) failed");
         } else {
           if (verbose) {
-            Log.write("munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
+            Log.write("munprotect succeeded at chunk ", chunk);
+            Log.write("  ", mmapStart);
+            Log.writeln(" with len = ", MMAP_CHUNK_BYTES);
           }
         }
       }
@@ -197,8 +199,9 @@ public final class ByteMapMmapper extends Mmapper {
           VM.assertions.fail("Mmapper.mprotect failed");
         } else {
           if (verbose) {
-            Log.write("mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
+            Log.write("mprotect succeeded at chunk ", chunk);
+            Log.write("  ", mmapStart);
+            Log.writeln(" with len = ", MMAP_CHUNK_BYTES);
           }
         }
         mapped[chunk] = PROTECTED;

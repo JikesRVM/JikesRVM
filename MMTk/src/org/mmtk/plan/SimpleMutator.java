@@ -69,7 +69,8 @@ public abstract class SimpleMutator extends MutatorContext {
       return;
     }
 
-    Log.write("Per-mutator phase \""); Phase.getPhase(phaseId).logPhase();
+    Log.write("Per-mutator phase \"");
+    Phase.getPhase(phaseId).logPhase();
     Log.writeln("\" not handled.");
     VM.assertions.fail("Per-mutator phase not handled!");
   }

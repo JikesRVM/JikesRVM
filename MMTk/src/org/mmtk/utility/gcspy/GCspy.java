@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public static void startGCspyServer() {
     int port = getGCspyPort();
-    Log.write("GCspy.startGCspyServer, port="); Log.write(port);
+    Log.write("GCspy.startGCspyServer, port=", port);
     Log.write(", wait=");
     Log.writeln(getGCspyWait());
     if (port > 0) {

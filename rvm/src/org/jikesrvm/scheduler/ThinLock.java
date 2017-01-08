@@ -281,9 +281,9 @@ public final class ThinLock {
     int index = lockWord.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
     if (VM.VerifyAssertions) {
       if (!(index > 0 && index < Lock.numLocks())) {
-        VM.sysWrite("Lock index out of range! Word: "); VM.sysWrite(lockWord);
-        VM.sysWrite(" index: "); VM.sysWrite(index);
-        VM.sysWrite(" locks: "); VM.sysWrite(Lock.numLocks());
+        VM.sysWriteln("Lock index out of range! Word: ", lockWord);
+        VM.sysWrite(" index: ", index);
+        VM.sysWrite(" locks: ", Lock.numLocks());
         VM.sysWriteln();
       }
       VM._assert(index > 0 && index < Lock.numLocks());  // index is in range

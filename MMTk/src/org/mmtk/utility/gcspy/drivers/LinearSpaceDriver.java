@@ -86,11 +86,12 @@ import org.vmmagic.unboxed.Offset;
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
     if (DEBUG) {
-      Log.write("LinearSpaceDriver for "); Log.write(spaceName);
-      Log.write(", blocksize="); Log.write(blockSize);
-      Log.write(", start="); Log.write(mmtkSpace.getStart());
-      Log.write(", extent="); Log.write(mmtkSpace.getExtent());
-      Log.write(", maxTileNum="); Log.writeln(maxTileNum);
+      Log.write("LinearSpaceDriver for ");
+      Log.write(spaceName);
+      Log.write(", blocksize=", blockSize);
+      Log.write(", start=", mmtkSpace.getStart());
+      Log.write(", extent=", mmtkSpace.getExtent());
+      Log.writeln(", maxTileNum=", maxTileNum);
     }
 
     // Initialise a subspace and 4 Streams
@@ -299,8 +300,11 @@ import org.vmmagic.unboxed.Offset;
 
     if (DEBUG) {
       Log.write("\nContiguousSpaceDriver.setRange for contiguous space: ");
-      Log.write(subspace.getFirstIndex()); Log.write("-", subspace.getBlockNum());
-      Log.write(" (", start); Log.write("-", end); Log.write(")");
+      Log.write(subspace.getFirstIndex());
+      Log.write("-", subspace.getBlockNum());
+      Log.write(" (", start);
+      Log.write("-", end);
+      Log.write(")");
     }
 
     // Reset the driver
@@ -344,8 +348,8 @@ import org.vmmagic.unboxed.Offset;
     if (VM.VERIFY_ASSERTIONS) {
       if (addr.LT(lastAddress.plus(lastSize))) {
         Log.write("\nContiguousSpaceDriver finds addresses going backwards: ");
-        Log.write("last="); Log.write(lastAddress);
-        Log.write(" last size="); Log.write(lastSize);
+        Log.write("last=", lastAddress);
+        Log.write(" last size=", lastSize);
         Log.writeln(" current=", addr);
       }
       lastAddress = addr;

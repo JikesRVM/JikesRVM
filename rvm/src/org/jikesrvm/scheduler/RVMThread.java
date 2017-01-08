@@ -3235,11 +3235,16 @@ public final class RVMThread extends ThreadContext {
     VM.sysWriteln("--");
     Address nextFp = Magic.getCallerFramePointer(fp);
     while (sp.LE(nextFp)) {
-      VM.sysWrite("["); VM.sysWrite(sp); VM.sysWrite("]");
-      if (sp.EQ(fp) || sp.EQ(nextFp)) VM.sysWrite("* ");
-      else if (sp.EQ(fp.plus(returnAddressOffset)) || sp.EQ(nextFp.plus(returnAddressOffset))) VM.sysWrite("R ");
-      else if (sp.EQ(fp.plus(methodIDOffset)) || sp.EQ(nextFp.plus(methodIDOffset))) VM.sysWrite("M ");
-      else VM.sysWrite(" ");
+      VM.sysWrite("[", sp, "]");
+      if (sp.EQ(fp) || sp.EQ(nextFp)) {
+        VM.sysWrite("* ");
+      } else if (sp.EQ(fp.plus(returnAddressOffset)) || sp.EQ(nextFp.plus(returnAddressOffset))) {
+        VM.sysWrite("R ");
+      }  else if (sp.EQ(fp.plus(methodIDOffset)) || sp.EQ(nextFp.plus(methodIDOffset))) {
+        VM.sysWrite("M ");
+      } else {
+        VM.sysWrite(" ");
+      }
       VM.sysWriteln(sp.loadInt());
       sp = sp.plus(4);
     }
@@ -5512,7 +5517,8 @@ public final class RVMThread extends ThreadContext {
             int compiledMethodId = Magic.getCompiledMethodID(fp);
             boolean idOutOfRange = compiledMethodId > CompiledMethods.numCompiledMethods() ||
                 compiledMethodId < 1;
-            VM.sysWrite("("); VM.sysWrite(fp); VM.sysWrite(" "); VM.sysWrite(compiledMethodId); VM.sysWrite(")");
+            VM.sysWrite("(", fp);
+            VM.sysWrite(" ", compiledMethodId, ")");
             if (compiledMethodId == StackFrameLayout.getInvisibleMethodID()) {
               showMethod("invisible method", fp);
             } else if (idOutOfRange) {

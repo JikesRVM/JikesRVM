@@ -1925,7 +1925,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       case GE: return GE;
       case GT: return GT;
       case LE: return LE;
-      default: if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1;
+      default:
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        return -1;
     }
   }
 

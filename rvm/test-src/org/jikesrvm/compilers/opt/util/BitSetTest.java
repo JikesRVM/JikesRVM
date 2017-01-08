@@ -46,7 +46,8 @@ public class BitSetTest {
 
   @Test
   public void testAddAll() {
-    BitSetMapping m = mock(BitSetMapping.class);when(m.getMappedIndex(n0)).thenReturn(0);
+    BitSetMapping m = mock(BitSetMapping.class);
+    when(m.getMappedIndex(n0)).thenReturn(0);
     when(m.getMappedIndex(n1)).thenReturn(1);
     when(m.getMappedObject(0)).thenReturn(n0);
     when(m.getMappedObject(1)).thenReturn(n1);

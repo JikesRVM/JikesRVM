@@ -270,17 +270,18 @@ public final class RawMemoryFreeList extends GenericFreeList {
   private void growListByBlocks(int blocks, int newMax) {
     if (VM.VERIFY_ASSERTIONS) {
       if ((newMax > grain) && ((newMax / grain) * grain != newMax)) {
-        Log.write("growListByBlocks: newMax="); Log.write(newMax);
-        Log.write(", grain="); Log.write(grain);
-        Log.write(", (newMax / grain) * grain="); Log.writeln((newMax / grain) * grain);
+        Log.write("growListByBlocks: newMax=", newMax);
+        Log.write(", grain=", grain);
+        Log.write(", (newMax / grain) * grain=");
+        Log.writeln((newMax / grain) * grain);
       }
       VM.assertions._assert((newMax <= grain) || (((newMax / grain) * grain) == newMax));
     }
 
     if (VERBOSE) {
       dbgPrintSummary();
-      Log.write("Growing free list by "); Log.write(blocks);
-      Log.write(" blocks to "); Log.write(newMax);
+      Log.write("Growing free list by ", blocks);
+      Log.write(" blocks to ", newMax);
       Log.writeln(" units.");
     }
 
@@ -291,8 +292,8 @@ public final class RawMemoryFreeList extends GenericFreeList {
 
     int oldMax = currentUnits;
     if (newMax > currentCapacity()) {
-      Log.write("newMax = ");  Log.write(newMax);
-      Log.write(", currentCapacity() = "); Log.writeln(currentCapacity());
+      Log.write("newMax = ", newMax);
+      Log.writeln(", currentCapacity() = ", currentCapacity());
       VM.assertions.fail("blocks and new max are inconsistent: need more blocks for the requested capacity");
     }
     if (newMax > maxUnits) {
@@ -325,7 +326,9 @@ public final class RawMemoryFreeList extends GenericFreeList {
     while (cursor >= oldMax) {
       if (VERBOSE) {
         Log.write("Adding free block ");
-        Log.write(cursor); Log.write("("); Log.write(grain); Log.writeln(")");
+        Log.write(cursor);
+        Log.write("(", grain);
+        Log.writeln(")");
       }
       setSize(cursor, grain);
       addToFree(cursor);
@@ -342,9 +345,9 @@ public final class RawMemoryFreeList extends GenericFreeList {
   private void raiseHighWater(int blocks) {
     Extent growExtent = Conversions.pagesToBytes(pagesPerBlock * blocks);
     if (highWater.EQ(limit)) {
-      Log.write("limit="); Log.write(limit);
-      Log.write(", highWater="); Log.write(highWater);
-      Log.write(", growExtent="); Log.writeln(growExtent);
+      Log.write("limit=", limit);
+      Log.write(", highWater=", highWater);
+      Log.writeln(", growExtent=", growExtent);
       VM.assertions.fail("Attempt to grow FreeList beyond limit");
     }
     if (highWater.plus(growExtent).GT(limit)) {
@@ -357,21 +360,21 @@ public final class RawMemoryFreeList extends GenericFreeList {
   private void mmap(Address start, Extent bytes) {
     int errno = VM.memory.dzmmap(start, bytes.toInt());
     if (errno != 0) {
-      Log.write("mmap failed with errno "); Log.write(errno);
-      Log.write(" on address "); Log.writeln(start);
+      Log.write("mmap failed with errno ", errno);
+      Log.writeln(" on address ", start);
       VM.assertions.fail("Can't get more space with mmap()");
     }
   }
 
   @Override
   public void dbgPrintSummary() {
-    Log.write("RFL["); Log.write(base);
-    Log.write(":"); Log.write(limit);
-    Log.write(", blksz="); Log.write(pagesPerBlock);
-    Log.write(", grain="); Log.write(grain);
-    Log.write(", hwm="); Log.write(highWater);
-    Log.write(", max="); Log.write(maxUnits);
-    Log.write(", cur="); Log.write(currentUnits);
+    Log.write("RFL[", base);
+    Log.write(":", limit);
+    Log.write(", blksz=", pagesPerBlock);
+    Log.write(", grain=", grain);
+    Log.write(", hwm=", highWater);
+    Log.write(", max=", maxUnits);
+    Log.write(", cur=", currentUnits);
     Log.writeln("]");
   }
 

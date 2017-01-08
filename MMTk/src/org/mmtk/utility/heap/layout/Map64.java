@@ -100,12 +100,13 @@ public final class Map64 extends Map {
     Extent listExtent = Conversions.pagesToBytes(RawMemoryFreeList.sizeInPages(units, 1));
 
     if (VMLayoutConstants.VERBOSE_BUILD) {
-      Log.write("Allocating free list for space "); Log.write(space.getName());
-      Log.write(", start = "); Log.write(start);
-      Log.write(", extent = "); Log.write(extent);
-      Log.write(", units = "); Log.writeln(units);
-      Log.write("  listPages = "); Log.write(RawMemoryFreeList.sizeInPages(units, 1));
-      Log.write(", listExtent = "); Log.writeln(listExtent);
+      Log.write("Allocating free list for space ");
+      Log.write(space.getName());
+      Log.write(", start = ", start);
+      Log.write(", extent = ", extent);
+      Log.write(", units = ", units);
+      Log.write("  listPages = ", RawMemoryFreeList.sizeInPages(units, 1));
+      Log.writeln(", listExtent = ", listExtent);
     }
     RawMemoryFreeList list = new RawMemoryFreeList(start, start.plus(listExtent), units, grain);
 
@@ -140,14 +141,18 @@ public final class Map64 extends Map {
       Space space) {
     if (VM.VERIFY_ASSERTIONS) {
       if (!isSpaceStart(start)) {
-        Log.write("Space ");  Log.write(space.getName());
-        Log.write(", extent ");  Log.write(extent);
-        Log.write(" starts at ");  Log.write(start);
+        Log.write("Space ");
+        Log.write(space.getName());
+        Log.write(", extent ", extent);
+        Log.write(" starts at ", start);
         Log.writeln(" which is not the start of a space in the 64-bit model");
         VM.assertions.fail("Space start address is wrong");
       }
       if (VM.HEAP_LAYOUT_64BIT && !extent.LE(SPACE_SIZE_64)) {
-        Log.write("Space ");Log.write(space.getName()); Log.write(", SPACE_SIZE=");Log.write(SPACE_SIZE_64);Log.write(", extent=");Log.writeln(extent);
+        Log.write("Space ");
+        Log.write(space.getName());
+        Log.write(", SPACE_SIZE=", SPACE_SIZE_64);
+        Log.writeln(", extent=", extent);
       }
       VM.assertions._assert(VM.HEAP_LAYOUT_32BIT || extent.LE(SPACE_SIZE_64));
     }

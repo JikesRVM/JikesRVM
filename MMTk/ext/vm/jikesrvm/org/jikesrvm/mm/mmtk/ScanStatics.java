@@ -91,9 +91,12 @@ public final class ScanStatics {
     if (!MemoryManager.validRef(ref)) {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning statics");
-      Log.write("Static slot: "); Log.writeln(slot);
+      Log.writeln("Static slot: ", slot);
       Log.writeln();
-      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
+      Log.write(refaddr);
+      Log.write(":");
+      Log.flush();
+      MemoryManager.dumpRef(ref);
       Log.writeln();
       Log.writeln("Dumping stack:");
       RVMThread.dumpStack();

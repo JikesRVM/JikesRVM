@@ -93,9 +93,10 @@ import org.vmmagic.unboxed.*;
     int chunks = end.diff(start).toWord().rshl(LOG_BYTES_IN_CHUNK).toInt();
     if (VM.VERIFY_ASSERTIONS) {
       if (!start.isZero() && (chunks <= 0 || chunks >= (1 << SIZE_BITS))) {
-        Log.write("SpaceDescriptor.createDescriptor("); Log.write(start);
-        Log.write(","); Log.write(end); Log.writeln(")");
-        Log.write("chunks = "); Log.writeln(chunks);
+        Log.write("SpaceDescriptor.createDescriptor(", start);
+        Log.write(",", end);
+        Log.writeln(")");
+        Log.writeln("chunks = ", chunks);
       }
       VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << SIZE_BITS));
     }

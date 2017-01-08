@@ -115,18 +115,18 @@ public final class FragmentedMmapper extends Mmapper {
   static {
     if (VERBOSE_BUILD) {
       Log.writeln("== FragmentedMmap ==");
-      Log.write("LOG_MAPPABLE_BYTES       = "); Log.writeln(LOG_MAPPABLE_BYTES);
-      Log.write("LOG_MMAP_CHUNK_BYTES = "); Log.writeln(VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
-      Log.write("MMAP_CHUNK_BYTES     = "); Log.writeln(MMAP_CHUNK_BYTES);
-      Log.write("LOG_MMAP_SLAB_BYTES  = "); Log.writeln(LOG_MMAP_SLAB_BYTES);
-      Log.write("MMAP_SLAB_EXTENT     = "); Log.writeln(MMAP_SLAB_EXTENT);
-      Log.write("LOG_MMAP_CHUNKS_PER_SLAB = "); Log.writeln(LOG_MMAP_CHUNKS_PER_SLAB);
-      Log.write("LOG_MAX_SLABS = "); Log.writeln(LOG_MAX_SLABS);
-      Log.write("MAX_SLABS     = "); Log.writeln(MAX_SLABS);
-      Log.write("SLAB_TABLE_SIZE = "); Log.writeln(SLAB_TABLE_SIZE);
-      Log.write("MMAP_NUM_CHUNKS = "); Log.writeln(MMAP_NUM_CHUNKS);
+      Log.write("LOG_MAPPABLE_BYTES       = ", LOG_MAPPABLE_BYTES);
+      Log.write("LOG_MMAP_CHUNK_BYTES = ", VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
+      Log.write("MMAP_CHUNK_BYTES     = ", MMAP_CHUNK_BYTES);
+      Log.write("LOG_MMAP_SLAB_BYTES  = ", LOG_MMAP_SLAB_BYTES);
+      Log.write("MMAP_SLAB_EXTENT     = ", MMAP_SLAB_EXTENT);
+      Log.write("LOG_MMAP_CHUNKS_PER_SLAB = ", LOG_MMAP_CHUNKS_PER_SLAB);
+      Log.write("LOG_MAX_SLABS = ", LOG_MAX_SLABS);
+      Log.write("MAX_SLABS     = ", MAX_SLABS);
+      Log.write("SLAB_TABLE_SIZE = ", SLAB_TABLE_SIZE);
+      Log.write("MMAP_NUM_CHUNKS = ", MMAP_NUM_CHUNKS);
 
-      Log.write("Total memory used (kB) = "); Log.writeln((MMAP_NUM_CHUNKS * MAX_SLABS) >> 10);
+      Log.write("Total memory used (kB) = ", (MMAP_NUM_CHUNKS * MAX_SLABS) >> 10);
       Log.writeln("==");
     }
   }
@@ -261,8 +261,8 @@ public final class FragmentedMmapper extends Mmapper {
   public byte[] slabTableFor(Address addr, int index) {
     if (VM.VERIFY_ASSERTIONS) {
       if (slabTable[index] == null) {
-        Log.write("Addr = "); Log.write(addr);
-        Log.write(" stabTable["); Log.write(index);
+        Log.write("Addr = ", addr);
+        Log.write(" stabTable[", index);
         Log.write("] == null");
       }
       VM.assertions._assert(slabTable[index] != null);
@@ -330,7 +330,9 @@ public final class FragmentedMmapper extends Mmapper {
     final Address end = start.plus(bytes);
 
     if (VERBOSE) {
-      Log.write("Pre-mapping ["); Log.write(start); Log.write(":"); Log.write(end); Log.writeln("]");
+      Log.write("Pre-mapping [", start);
+      Log.write(":", end);
+      Log.writeln("]");
     }
 
     // Iterate over the slabs covered
@@ -341,14 +343,17 @@ public final class FragmentedMmapper extends Mmapper {
       int endChunk = chunkIndex(slab,chunkAlignUp(high));
 
       if (VERBOSE) {
-        Log.write("  Pre-mapping chunks ");  Log.write(startChunk);
-        Log.write(":"); Log.write(endChunk);
-        Log.write(" in slab ");  Log.writeln(slabAlignDown(start));
+        Log.write("  Pre-mapping chunks ", startChunk);
+        Log.write(":", endChunk);
+        Log.writeln(" in slab ", slabAlignDown(start));
       }
       byte[] mapped = slabTable(start);
       for (int i = startChunk; i < endChunk; i++) {
         if (VERBOSE) {
-          Log.write("    Pre-mapping chunk "); Log.write(slabAlignDown(start)); Log.write("["); Log.write(i);  Log.writeln("]");
+          Log.write("    Pre-mapping chunk ", slabAlignDown(start));
+          Log.write("[");
+          Log.write(i);
+          Log.writeln("]");
         }
         mapped[i] = MAPPED;
       }
@@ -373,7 +378,9 @@ public final class FragmentedMmapper extends Mmapper {
     if (STATS) mapCounter.inc();
     final Address end = start.plus(Conversions.pagesToBytes(pages));
     if (VERBOSE) {
-      Log.write("Ensuring ["); Log.write(start); Log.write(":"); Log.write(end); Log.writeln("]");
+      Log.write("Ensuring [", start);
+      Log.write(":", end);
+      Log.writeln("]");
     }
 
     // Iterate over the slabs covered
@@ -387,9 +394,9 @@ public final class FragmentedMmapper extends Mmapper {
 
       byte[] mapped = slabTable(start);
       if (VERBOSE) {
-        Log.write("  Ensuring chunks ");  Log.write(startChunk);
-        Log.write(":"); Log.write(endChunk);
-        Log.write(" in slab ");  Log.writeln(base);
+        Log.write("  Ensuring chunks ", startChunk);
+        Log.write(":", endChunk);
+        Log.writeln(" in slab ", base);
       }
 
       /* Iterate over the chunks within the slab */
@@ -401,20 +408,23 @@ public final class FragmentedMmapper extends Mmapper {
         // might have become MAPPED here
         if (mapped[chunk] == UNMAPPED) {
           if (VERBOSE) {
-            Log.write("    Mapping chunk "); Log.write(base); Log.write("["); Log.write(chunk);
-            Log.write("] ("); Log.write(mmapStart); Log.write(":"); Log.write(mmapStart.plus(MMAP_CHUNK_BYTES));
+            Log.write("    Mapping chunk ", base);
+            Log.write("[", chunk);
+            Log.write("] (", mmapStart);
+            Log.write(":", mmapStart.plus(MMAP_CHUNK_BYTES));
             Log.writeln(")");
           }
           int errno = VM.memory.dzmmap(mmapStart, MMAP_CHUNK_BYTES);
           if (errno != 0) {
             lock.release();
-            Log.write("ensureMapped failed with errno "); Log.write(errno);
-            Log.write(" on address "); Log.writeln(mmapStart);
+            Log.write("ensureMapped failed with errno ", errno);
+            Log.writeln(" on address ", mmapStart);
             VM.assertions.fail("Can't get more space with mmap()");
           } else {
             if (VERBOSE) {
-              Log.write("    mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-              Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
+              Log.write("    mmap succeeded at chunk ", chunk);
+              Log.write("  ", mmapStart);
+              Log.writeln(" with len = ", MMAP_CHUNK_BYTES);
             }
           }
         }
@@ -424,8 +434,9 @@ public final class FragmentedMmapper extends Mmapper {
             VM.assertions.fail("Mmapper.ensureMapped (unprotect) failed");
           } else {
             if (VERBOSE) {
-              Log.write("    munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-              Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
+              Log.write("    munprotect succeeded at chunk ", chunk);
+              Log.write("  ", mmapStart);
+              Log.writeln(" with len = ", MMAP_CHUNK_BYTES);
             }
           }
         }
@@ -449,7 +460,9 @@ public final class FragmentedMmapper extends Mmapper {
     final Address end = start.plus(Conversions.pagesToBytes(pages));
 
     if (VERBOSE) {
-      Log.write("Protecting ["); Log.write(start); Log.write(":"); Log.write(end); Log.writeln("]");
+      Log.write("Protecting [", start);
+      Log.write(":", end);
+      Log.writeln("]");
     }
     lock.acquire();
     // Iterate over the slabs covered
@@ -471,8 +484,9 @@ public final class FragmentedMmapper extends Mmapper {
             VM.assertions.fail("Mmapper.mprotect failed");
           } else {
             if (VERBOSE) {
-              Log.write("    mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-              Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
+              Log.write("    mprotect succeeded at chunk ", chunk);
+              Log.write("  ", mmapStart);
+              Log.writeln(" with len = ", MMAP_CHUNK_BYTES);
             }
           }
           mapped[chunk] = PROTECTED;

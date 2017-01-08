@@ -211,9 +211,13 @@ import org.vmmagic.pragma.*;
       trace.processNode(newObject); // Scan it later
 
       if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-        Log.write("C["); Log.write(object); Log.write("/");
-        Log.write(getName()); Log.write("] -> ");
-        Log.write(newObject); Log.write("/");
+        Log.write("C[");
+        Log.write(object);
+        Log.write("/");
+        Log.write(getName());
+        Log.write("] -> ");
+        Log.write(newObject);
+        Log.write("/");
         Log.write(Space.getSpaceForObject(newObject).getName());
         Log.writeln("]");
       }

@@ -110,10 +110,14 @@ public class Defrag {
 
   void globalRelease() {
     if (inDefragCollection && Options.verbose.getValue() > 2) {
-      Log.write("(Defrag summary: cu: "); defragCleanBytesUsed.printCurrentVolume();
-      Log.write(" nf: "); defragBytesNotFreed.printCurrentVolume();
-      Log.write(" fr: "); defragBytesFreed.printCurrentVolume();
-      Log.write(" av: "); defragCleanBytesAvailable.printCurrentVolume();
+      Log.write("(Defrag summary: cu: ");
+      defragCleanBytesUsed.printCurrentVolume();
+      Log.write(" nf: ");
+      defragBytesNotFreed.printCurrentVolume();
+      Log.write(" fr: ");
+      defragBytesFreed.printCurrentVolume();
+      Log.write(" av: ");
+      defragCleanBytesAvailable.printCurrentVolume();
       Log.write(")");
     }
 
@@ -161,9 +165,10 @@ public class Defrag {
     short threshold = MAX_CONSV_SPILL_COUNT;
     int limit = (int) (availableLines / Options.defragLineReuseRatio.getValue());
     if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() > 2) {
-      Log.write("[threshold: "); Log.write("cl: "); Log.write(cleanLines);
-      Log.write(" al: "); Log.write(availableLines);
-      Log.write(" lm: "); Log.write(limit);
+      Log.write("[threshold: ");
+      Log.write("cl: ", cleanLines);
+      Log.write(" al: ", availableLines);
+      Log.write(" lm: ", limit);
     }
     int collectors = VM.activePlan.collectorCount();
     for (short index = MAX_CONSV_SPILL_COUNT; index >= TMP_MIN_SPILL_THRESHOLD && limit > requiredLines; index--) {
@@ -176,11 +181,15 @@ public class Defrag {
       limit -= thisBucketAvail;
       requiredLines += thisBucketMark;
       if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() > 2) {
-        Log.write(" ("); Log.write(index); Log.write(" "); Log.write(limit); Log.write(","); Log.write(requiredLines); Log.write(")");
+        Log.write(" (", index);
+        Log.write(" ", limit);
+        Log.write(",", requiredLines);
+        Log.write(")");
       }
     }
     if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() > 2) {
-      Log.write(" threshold: "); Log.write(threshold); Log.write("]");
+      Log.write(" threshold: ", threshold);
+      Log.write("]");
     }
     defragSpillThreshold = threshold;
   }

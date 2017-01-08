@@ -56,8 +56,10 @@ class StackResize {
 
     if (verbose) {
       VM.sysWrite("check resize: previous ");
-      VM.sysWrite(previousStackSize); VM.sysWrite(", current ");
-      VM.sysWrite(currentStackSize); VM.sysWriteln();
+      VM.sysWrite(previousStackSize);
+      VM.sysWrite(", current ");
+      VM.sysWrite(currentStackSize);
+      VM.sysWriteln();
     }
 
     return !(currentStackSize == previousStackSize);

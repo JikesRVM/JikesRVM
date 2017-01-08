@@ -77,11 +77,12 @@ import org.vmmagic.unboxed.Offset;
     super(server, spaceName, lospace, blockSize, mainSpace);
 
     if (DEBUG) {
-      Log.write("TreadmillDriver for "); Log.write(spaceName);
-      Log.write(", blocksize="); Log.write(blockSize);
-      Log.write(", start="); Log.write(lospace.getStart());
-      Log.write(", extent="); Log.write(lospace.getExtent());
-      Log.write(", maxTileNum="); Log.writeln(maxTileNum);
+      Log.write("TreadmillDriver for ");
+      Log.write(spaceName);
+      Log.write(", blocksize=", blockSize);
+      Log.write(", start=", lospace.getStart());
+      Log.write(", extent=", lospace.getExtent());
+      Log.writeln(", maxTileNum=", maxTileNum);
     }
 
     this.threshold = threshold;

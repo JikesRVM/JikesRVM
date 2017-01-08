@@ -136,13 +136,13 @@ import org.vmmagic.pragma.*;
   @Inline
   public ObjectReference traceMarkObject(TraceLocal trace, ObjectReference object) {
     if (MarkCompactCollector.VERY_VERBOSE) {
-      Log.write("marking "); Log.write(object);
+      Log.write("marking ", object);
     }
     if (testAndMark(object)) {
       trace.processNode(object);
     } else if (!getForwardingPointer(object).isNull()) {
       if (MarkCompactCollector.VERY_VERBOSE) {
-        Log.write(" -> "); Log.writeln(getForwardingPointer(object));
+        Log.writeln(" -> ", getForwardingPointer(object));
       }
       return getForwardingPointer(object);
     }
@@ -169,8 +169,8 @@ import org.vmmagic.pragma.*;
     }
     ObjectReference newObject = getForwardingPointer(object);
     if (MarkCompactCollector.VERY_VERBOSE) {
-      Log.write("forwarding "); Log.write(object);
-      Log.write(" -> "); Log.writeln(newObject);
+      Log.write("forwarding ", object);
+      Log.writeln(" -> ", newObject);
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!newObject.isNull());
     return getForwardingPointer(object);
@@ -339,7 +339,7 @@ import org.vmmagic.pragma.*;
   public void append(Address region) {
     lock.acquire();
     if (MarkCompactCollector.VERBOSE) {
-      Log.write("Appending region "); Log.write(region);
+      Log.write("Appending region ", region);
       Log.writeln(" to global list");
     }
     if (regionList.isZero()) {

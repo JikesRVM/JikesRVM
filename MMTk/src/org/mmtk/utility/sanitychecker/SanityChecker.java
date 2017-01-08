@@ -172,10 +172,10 @@ public final class SanityChecker {
       checkTraceLocal.release();
 
       Log.writeln("roots\tobjects\trefs\tnull");
-      Log.write(rootReferenceCount);Log.write("\t");
-      Log.write(liveObjectCount);Log.write("\t");
-      Log.write(referenceCount);Log.write("\t");
-      Log.writeln(nullReferenceCount);
+      Log.write(rootReferenceCount);
+      Log.write("\t", liveObjectCount);
+      Log.write("\t", referenceCount);
+      Log.write("\t", nullReferenceCount);
 
       Log.write("========================================");
       Log.writeln("========================================");

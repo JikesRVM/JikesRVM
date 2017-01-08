@@ -612,7 +612,7 @@ public abstract class Plan {
   public void printPreStats() {
     if ((Options.verbose.getValue() == 1) ||
         (Options.verbose.getValue() == 2)) {
-      Log.write("[GC "); Log.write(Stats.gcCount());
+      Log.write("[GC ", Stats.gcCount());
       if (Options.verbose.getValue() == 1) {
         Log.write(" Start ");
         Plan.totalTime.printTotalSecs();
@@ -628,7 +628,7 @@ public abstract class Plan {
       Log.flush();
     }
     if (Options.verbose.getValue() > 2) {
-      Log.write("Collection "); Log.write(Stats.gcCount());
+      Log.write("Collection ", Stats.gcCount());
       Log.write(":        ");
       printUsedPages();
       Log.write("  Before Collection: ");
