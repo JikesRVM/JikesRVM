@@ -215,69 +215,22 @@ public class BasicBlock extends SortedGraphNode {
   public final void printExtended() {
     VM.sysWriteln("Basic block " + toString());;
 
-    // print in set.
-    BasicBlock bb2;
-    Enumeration<BasicBlock> e2 = getIn();
-    VM.sysWrite("\tin: ");
-    if (!e2.hasMoreElements()) {
-      VM.sysWriteln("<none>");
-    } else {
-      bb2 = e2.nextElement();
-      VM.sysWrite(bb2.toString());
-      while (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(", " + bb2.toString());
-      }
-      VM.sysWriteln();
-    }
+    Enumeration<BasicBlock> blocks = getIn();
+    printBlocks("in", blocks);
 
-    // print out set.
-    e2 = getNormalOut();
-    VM.sysWrite("\tnormal out: ");
-    if (!e2.hasMoreElements()) {
-      VM.sysWriteln("<none>");
-    } else {
-      bb2 = e2.nextElement();
-      VM.sysWrite(bb2.toString());
-      while (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(", " + bb2.toString());
-      }
-      VM.sysWriteln();
-    }
+    blocks = getNormalOut();
+    printBlocks("out", blocks);
 
-    e2 = getExceptionalOut();
-    VM.sysWrite("\texceptional out: ");
-    if (!e2.hasMoreElements()) {
-      VM.sysWriteln("<none>");
-    } else {
-      bb2 = e2.nextElement();
-      VM.sysWrite(bb2.toString());
-      while (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(", " + bb2.toString());
-      }
-      VM.sysWriteln();
-    }
+    blocks = getExceptionalOut();
+    printBlocks("exceptional out", blocks);
 
     if (mayThrowUncaughtException()) {
       VM.sysWriteln("\tMay throw uncaught exceptions, implicit edge to EXIT");
     }
 
     if (hasExceptionHandlers()) {
-      VM.sysWrite("\tIn scope exception handlers: ");
-      e2 = getExceptionHandlers();
-      if (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(bb2.toString());
-        while (e2.hasMoreElements()) {
-          bb2 = e2.nextElement();
-          VM.sysWrite(", " + bb2.toString());
-        }
-      } else {
-        VM.sysWrite("<none>");
-      }
-      VM.sysWriteln();
+      blocks = getExceptionHandlers();
+      printBlocks("In scope exception handlers", blocks);
     }
 
     if (getNext() != null) {
@@ -294,6 +247,23 @@ public class BasicBlock extends SortedGraphNode {
       VM.sysWriteln(inst.getBytecodeIndex() + ":\t" + inst);
     }
     VM.sysWriteln();
+  }
+
+  private void printBlocks(String name, Enumeration<BasicBlock> blocks) {
+    VM.sysWrite("\t" + name + ": ");
+
+    BasicBlock block;
+    if (!blocks.hasMoreElements()) {
+      VM.sysWriteln("<none>");
+    } else {
+      block = blocks.nextElement();
+      VM.sysWrite(block.toString());
+      while (blocks.hasMoreElements()) {
+        block = blocks.nextElement();
+        VM.sysWrite(", " + block.toString());
+      }
+      VM.sysWriteln();
+    }
   }
 
   /**
