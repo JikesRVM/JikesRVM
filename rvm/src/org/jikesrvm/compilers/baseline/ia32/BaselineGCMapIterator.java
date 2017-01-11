@@ -52,8 +52,6 @@ import org.vmmagic.unboxed.Offset;
  */
 @Uninterruptible
 public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
-  private static final boolean TRACE_ALL = false;
-  private static final boolean TRACE_DL = false; // dynamic link frames
 
   /** Compiled method for the frame */
   protected ArchBaselineCompiledMethod currentCompiledMethod;

@@ -117,7 +117,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
         JSRindex = maps.getNextJSRAddressIndex(nextMachineCodeOffset, currentMethod);
       }
     }
-    if (VM.TraceStkMaps) {
+    if (VM.TraceStkMaps || TRACE_ALL) {
       VM.sysWrite("BaselineGCMapIterator setupIterator mapId = ");
       VM.sysWrite(mapId);
       VM.sysWrite(" for ");
@@ -192,7 +192,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
         mapIndex = maps.getNextRefIndex(mapIndex, mapId);
       }
 
-      if (VM.TraceStkMaps) {
+      if (VM.TraceStkMaps || TRACE_ALL) {
         VM.sysWrite("BaselineGCMapIterator getNextReferenceIndex = ");
         VM.sysWrite(mapIndex);
         VM.sysWriteln(".");
@@ -203,7 +203,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
 
       if (mapIndex != 0) {
         short location = convertIndexToLocation(mapIndex);
-        if (VM.TraceStkMaps) {
+        if (VM.TraceStkMaps || TRACE_ALL) {
           VM.sysWrite("BaselineGCMapIterator getNextReference location = ");
           VM.sysWrite(location);
           VM.sysWriteln();
@@ -244,7 +244,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
         bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
         bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
 
-        if (VM.TraceStkMaps) {
+        if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
           VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, ");
           VM.sysWrite("  this, bridge, returning: ");
           VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
@@ -266,7 +266,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
             bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
             bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
 
-            if (VM.TraceStkMaps) {
+            if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
               VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, ");
               VM.sysWrite("  parm: ");
               VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
@@ -290,7 +290,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
           if (bridgeParameterType.isReferenceType()) {
             bridgeSpilledParamLocation = bridgeSpilledParamLocation.plus(BYTES_IN_ADDRESS);
 
-            if (VM.TraceStkMaps) {
+            if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
               VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, dynamic link spilled parameter, returning: ");
               VM.sysWrite(bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS));
               VM.sysWriteln(".");
@@ -316,7 +316,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
   public Address getNextReturnAddressAddress() {
 
     if (mapId >= 0) {
-      if (VM.TraceStkMaps) {
+      if (VM.TraceStkMaps || TRACE_ALL) {
         VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
         VM.sysWrite(mapId);
         VM.sysWriteln(".");
@@ -324,7 +324,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       return Address.zero();
     }
     mapIndex = maps.getNextJSRReturnAddrIndex(mapIndex);
-    if (VM.TraceStkMaps) {
+    if (VM.TraceStkMaps || TRACE_ALL) {
       VM.sysWrite("BaselineGCMapIterator getNextReturnAddressIndex = ");
       VM.sysWrite(mapIndex);
       VM.sysWriteln(".");
@@ -333,7 +333,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
     if (mapIndex == 0) return Address.zero();
 
     short location = convertIndexToLocation(mapIndex);
-    if (VM.TraceStkMaps) {
+    if (VM.TraceStkMaps || TRACE_ALL) {
       VM.sysWrite("BaselineGCMapIterator getNextReturnAddress location = ");
       VM.sysWrite(location);
       VM.sysWriteln(".");
@@ -361,7 +361,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
   private void updateCallerRegisterLocations() {
     //dynamic bridge's registers already restored by calls to getNextReferenceAddress()
     if (!currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
-      if (VM.TraceStkMaps) VM.sysWriteln("    Update Caller RegisterLocations");
+      if (VM.TraceStkMaps || TRACE_ALL) VM.sysWriteln("    Update Caller RegisterLocations");
       Address addr = framePtr.plus(currentCompiledMethod.getFrameSize());
       addr =
           addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER.value() + 1) <<

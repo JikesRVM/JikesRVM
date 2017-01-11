@@ -29,6 +29,11 @@ import org.vmmagic.unboxed.AddressArray;
 @Uninterruptible
 public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
 
+  /** trace all actions */
+  protected static final boolean TRACE_ALL = false;
+  /** trace actions relating to dynamic link (= dynamic bridge) frames */
+  protected static final boolean TRACE_DL = false;
+
   // Iterator state for mapping any stackframe.
 
   /** Current index in current map */
