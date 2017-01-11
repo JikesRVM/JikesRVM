@@ -12,6 +12,14 @@
  */
 package org.jikesrvm.compilers.opt.inlining;
 
+import static org.jikesrvm.compilers.opt.inlining.InlineTools.hasBody;
+import static org.jikesrvm.compilers.opt.inlining.InlineTools.hasInlinePragma;
+import static org.jikesrvm.compilers.opt.inlining.InlineTools.hasNoInlinePragma;
+import static org.jikesrvm.compilers.opt.inlining.InlineTools.inlinedSizeEstimate;
+import static org.jikesrvm.compilers.opt.inlining.InlineTools.isCurrentlyFinal;
+import static org.jikesrvm.compilers.opt.inlining.InlineTools.isForbiddenSpeculation;
+import static org.jikesrvm.compilers.opt.inlining.InlineTools.needsGuard;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -38,7 +46,7 @@ import org.jikesrvm.scheduler.RVMThread;
  *      to inline larger methods and methods that require guards.
  * </ol>
  */
-public final class DefaultInlineOracle extends InlineTools implements InlineOracle {
+public final class DefaultInlineOracle implements InlineOracle {
 
   @Override
   public InlineDecision shouldInline(final CompilationState state) {
