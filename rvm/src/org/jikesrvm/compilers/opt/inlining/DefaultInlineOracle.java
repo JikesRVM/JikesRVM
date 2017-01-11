@@ -122,7 +122,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
     //          what are the possible targets of this call.
     WeightedCallTargets targets = null;
     boolean purelyStatic = true;
-    if (Controller.dcg != null && Controller.options.ADAPTIVE_INLINING) {
+    if (Controller.dcgAvailable() && Controller.options.ADAPTIVE_INLINING) {
       targets = Controller.dcg.getCallTargets(caller, bcIndex);
       if (targets != null) {
         reportProfilingIfVerbose("Found profile data", verbose);

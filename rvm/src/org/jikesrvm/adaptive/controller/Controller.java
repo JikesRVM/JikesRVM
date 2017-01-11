@@ -297,5 +297,13 @@ public class Controller implements Callbacks.ExitMonitor,
     RuntimeMeasurements.stop();
     report();
   }
+
+  /**
+   * @return is the dynamic call graph available?
+   */
+  public static boolean dcgAvailable() {
+    return dcg != null;
+  }
+
 }
 
