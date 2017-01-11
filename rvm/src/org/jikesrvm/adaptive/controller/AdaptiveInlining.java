@@ -53,7 +53,15 @@ public class AdaptiveInlining {
     }
   }
 
+  /**
+   * @param weight edge weight
+   * @return adjusted weight if data is available, NaN otherwise
+   */
   public static double adjustedWeight(double weight) {
-    return weight / (Controller.dcg.getTotalEdgeWeights()) * callDensityListener.callDensity();
+    if (Controller.dcg != null) {
+      return weight / (Controller.dcg.getTotalEdgeWeights()) * callDensityListener.callDensity();
+    } else {
+      return Double.NaN;
+    }
   }
 }

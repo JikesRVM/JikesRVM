@@ -338,15 +338,19 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
         private void reportInitialProfileState(final boolean verbose, RVMMethod callee,
             double weight) {
-          if (verbose) {
-            reportProfilingIfVerbose("Evaluating target " +
-                callee +
-                " with " +
-                weight +
-                (" samples (" +
-                    (100 * AdaptiveInlining.adjustedWeight(weight)) +
-                    "%)"), verbose);
+          double adjustedWeight = AdaptiveInlining.adjustedWeight(weight);
+          String sampleString = " samples (";
+          if (Double.isNaN(adjustedWeight)) {
+            sampleString += "no DCG available)";
+          } else {
+            sampleString += (100 * adjustedWeight) +
+                "%)";
           }
+          reportProfilingIfVerbose("Evaluating target " +
+              callee +
+              " with " +
+              weight +
+              sampleString, verbose);
         }
       });
 
