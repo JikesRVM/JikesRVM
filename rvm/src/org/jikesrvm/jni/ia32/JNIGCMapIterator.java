@@ -15,18 +15,10 @@ package org.jikesrvm.jni.ia32;
 import static org.jikesrvm.ia32.RegisterConstants.EBP;
 import static org.jikesrvm.ia32.RegisterConstants.EBX;
 import static org.jikesrvm.ia32.RegisterConstants.EDI;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
-
-import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.jni.JNIEnvironment;
-import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.jni.AbstractJNIGCMapIterator;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to
@@ -39,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * @see JNICompiler
  */
 @Uninterruptible
-public final class JNIGCMapIterator extends GCMapIterator {
+public final class JNIGCMapIterator extends AbstractJNIGCMapIterator {
 
   // Java to Native C transition frame...(see JNICompiler)
   //
@@ -59,76 +51,25 @@ public final class JNIGCMapIterator extends GCMapIterator {
   // -34        | returnAddr |  return address pushed by call to native method
   //            + saved FP   +  <---- FP for called native method
 
-  // additional instance fields added by this subclass of GCMapIterator
-  AddressArray jniRefs;
-  int jniNextRef;
-  int jniFramePtr;
-
   public JNIGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
   }
 
-  // Override newStackWalk() in parent class GCMapIterator to
-  // initialize iterator for scan of JNI JREFs stack of refs
-  // Taken:    thread
-  // Returned: nothing
-  //
   @Override
-  public void newStackWalk(RVMThread thread) {
-    super.newStackWalk(thread);   // sets this.thread, inits registerLocations[]
-    JNIEnvironment env = this.thread.getJNIEnv();
-    // the "primordial" thread, created by JDK in the bootimage, does not have
-    // a JniEnv object, all threads created by the VM will.
-    if (env != null) {
-      this.jniRefs = env.refsArray();
-      this.jniNextRef = env.refsTop();
-      this.jniFramePtr = env.savedRefsFP();
-    }
+  protected void setupIteratorForArchitecture() {
+    // nothing to do for IA32
   }
 
+  /**
+   * Sets register locations for non-volatiles to point to registers saved in
+   * the JNI transition frame at a fixed negative offset from the callers FP.
+   * For IA32, the save non-volatiles are {@code EBX}, {@code EBP} and {@code EDI}.
+   */
   @Override
-  public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
-    this.framePtr = framePtr;
-  }
-
-  // return (address of) next ref in the current "frame" on the
-  // threads JNIEnvironment stack of refs
-  // When at the end of the current frame, update register locations to point
-  // to the non-volatile registers saved in the JNI transition frame.
-  //
-  @Override
-  public Address getNextReferenceAddress() {
-    // first report jni refs in the current frame in the jniRef side stack
-    // until all in the frame are reported
-    //
-    if (jniNextRef > jniFramePtr) {
-      Address ref_address = Magic.objectAsAddress(jniRefs).plus(jniNextRef);
-      jniNextRef -= BYTES_IN_ADDRESS;
-      return ref_address;
-    }
-
-    // no more refs to report, before returning 0, setup for processing
-    // the next jni frame, if any
-
-    // jniNextRef -> savedFramePtr for another "frame" of refs for another
-    // sequence of Native C frames lower in the stack, or to 0 if this is the
-    // last jni frame in the JNIRefs stack.  If more frames, initialize for a
-    // later scan of those refs.
-    //
-    if (jniFramePtr > 0) {
-      jniFramePtr = jniRefs.get(jniFramePtr >> LOG_BYTES_IN_ADDRESS).toInt();
-      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
-    }
-
-    // set register locations for non-volatiles to point to registers saved in
-    // the JNI transition frame at a fixed negative offset from the callers FP.
-    // the save non-volatiles are EBX EBP and EDI.
-    //
+  protected void setRegisterLocations() {
     registerLocations.set(EDI.value(), framePtr.plus(JNICompiler.EDI_SAVE_OFFSET));
     registerLocations.set(EBX.value(), framePtr.plus(JNICompiler.EBX_SAVE_OFFSET));
     registerLocations.set(EBP.value(), framePtr.plus(JNICompiler.EBP_SAVE_OFFSET));
-
-    return Address.zero();  // no more refs to report
   }
 
   @Override
@@ -136,14 +77,4 @@ public final class JNIGCMapIterator extends GCMapIterator {
     return Address.zero();
   }
 
-  @Override
-  public void reset() { }
-
-  @Override
-  public void cleanupPointers() { }
-
-  @Override
-  public int getType() {
-    return CompiledMethod.JNI;
-  }
 }
