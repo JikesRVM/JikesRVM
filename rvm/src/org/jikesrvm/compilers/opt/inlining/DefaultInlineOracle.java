@@ -58,11 +58,11 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
     // Stage 1: We definitely don't inline certain methods
     if (!state.isInvokeInterface()) {
       if (staticCallee.isNative()) {
-        if (verbose) VM.sysWriteln("\tNO: native method\n");
+        reportUnguardedDecisionIfVerbose("NO: native method", verbose);
         return InlineDecision.NO("native method");
       }
       if (hasNoInlinePragma(staticCallee, state)) {
-        if (verbose) VM.sysWriteln("\tNO: pragmaNoInline\n");
+        reportUnguardedDecisionIfVerbose("NO: pragmaNoInline", verbose);
         return InlineDecision.NO("pragmaNoInline");
       }
       // We need constructors of Throwable (and its subclasses) to have their own
@@ -70,7 +70,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       // traces (see StackTrace).
       if (staticCallee.isObjectInitializer() &&
           staticCallee.getDeclaringClass().isAssignableToThrowable()) {
-        if (verbose) VM.sysWriteln("\tNO: constructor of class assignable to throwable\n");
+        reportUnguardedDecisionIfVerbose("NO: constructor of class assignable to throwable", verbose);
         return InlineDecision.NO("constructor of class assignable to throwable");
       }
     }
@@ -90,7 +90,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
           // inlining is desirable
           if (!state.getSequence().containsMethod(staticCallee)) {
             // not recursive
-            if (verbose) VM.sysWriteln("\tYES: trivial guardless inline\n");
+            reportUnguardedDecisionIfVerbose("YES: trivial guardless inline", verbose);
             return InlineDecision.YES(staticCallee, "trivial inline");
           }
         }
@@ -98,7 +98,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
           // inlining is desirable
           if (!state.getSequence().containsMethod(staticCallee)) {
             // not recursive
-            if (verbose) VM.sysWriteln("\tYES: pragma inline\n");
+            reportUnguardedDecisionIfVerbose("YES: pragma inline", verbose);
             return InlineDecision.YES(staticCallee, "pragma inline");
           }
         }
@@ -107,14 +107,14 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
     if (opts.getOptLevel() == 0) {
       // at opt level 0, trivial unguarded inlines are the only kind we consider
-      if (verbose) VM.sysWriteln("\tNO: only do trivial inlines at O0\n");
+      reportUnguardedDecisionIfVerbose("NO: only do trivial inlines at O0", verbose);
       return InlineDecision.NO("Only do trivial inlines at O0");
     }
 
     if (rootMethod.inlinedSizeEstimate() > opts.INLINE_MASSIVE_METHOD_SIZE) {
       // In massive methods, we do not do any additional inlining to
       // avoid completely blowing out compile time by making a bad situation worse
-      if (verbose) VM.sysWriteln("\tNO: only do trivial inlines into massive methods\n");
+      reportUnguardedDecisionIfVerbose("NO: only do trivial inlines into massive methods", verbose);
       return InlineDecision.NO("Root method is massive; no non-trivial inlines");
     }
 
@@ -125,14 +125,14 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
     if (Controller.dcg != null && Controller.options.ADAPTIVE_INLINING) {
       targets = Controller.dcg.getCallTargets(caller, bcIndex);
       if (targets != null) {
-        if (verbose) VM.sysWriteln("\tFound profile data");
+        reportProfilingIfVerbose("Found profile data", verbose);
         purelyStatic = false;
         WeightedCallTargets filteredTargets = targets.filter(staticCallee, state.getHasPreciseTarget());
         if (targets != filteredTargets) {
-          if (verbose) VM.sysWriteln("\tProfiled callees filtered based on static information");
+          reportProfilingIfVerbose("Profiled callees filtered based on static information", verbose);
           targets = filteredTargets;
           if (targets == null) {
-            if (verbose) VM.sysWriteln("\tAfter filterting no profile data...");
+            reportProfilingIfVerbose("After filterting no profile data...", verbose);
             // After filtering, no matching profile data, fall back to
             // static information to avoid degradations
             targets = WeightedCallTargets.create(staticCallee, 0);
@@ -148,7 +148,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
       boolean guardOverrideOnStaticCallee = false;
       if (targets == null) {
-        if (verbose) VM.sysWriteln("\tNo profile data");
+        reportUnguardedDecisionIfVerbose("no profile data", verbose);
         // No profile information.
         // Fake up "profile data" based on static information to
         // be able to share all the decision making logic.
@@ -178,7 +178,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                   subClasses[0].findDeclaredMethod(staticCallee.getName(), staticCallee.getDescriptor());
               if (singleImpl != null && !singleImpl.isAbstract()) {
                 // found something
-                if (verbose) VM.sysWriteln("\tsingle impl of abstract method");
+                reportProfilingIfVerbose("single impl of abstract method", verbose);
                 targets = WeightedCallTargets.create(singleImpl, 0);
                 guardOverrideOnStaticCallee = true;
                 break;
@@ -208,30 +208,22 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         @Override
         public void visit(RVMMethod callee, double weight) {
           if (hasBody(callee)) {
-            if (verbose) {
-              VM.sysWriteln("\tEvaluating target " +
-                            callee +
-                            " with " +
-                            weight +
-                            " samples (" +
-                            (100 * AdaptiveInlining.adjustedWeight(weight)) +
-                            "%)");
-            }
+            reportInitialProfileState(verbose, callee, weight);
             // Don't inline recursively and respect no inline pragmas
             InlineSequence seq = state.getSequence();
             if (seq.containsMethod(callee)) {
-              if (verbose) VM.sysWriteln("\t\tReject: recursive");
+              reportSelectionIfVerbose("Reject: recursive", verbose);
               return;
             }
             if (hasNoInlinePragma(callee, state)) {
-              if (verbose) VM.sysWriteln("\t\tReject: noinline pragma");
+              reportSelectionIfVerbose("Reject: noinline pragma", verbose);
               return;
             }
 
             // more or less figure out the guard situation early -- impacts size estimate.
             boolean needsGuard = !state.getHasPreciseTarget() && (staticCallee != callee || needsGuard(staticCallee));
             if (needsGuard && isForbiddenSpeculation(state.getRootMethod(), callee)) {
-              if (verbose) VM.sysWriteln("\t\tReject: forbidden speculation");
+              reportSelectionIfVerbose("Reject: forbidden speculation", verbose);
               return;
             }
             boolean currentlyFinal =
@@ -239,11 +231,11 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
             boolean preEx = needsGuard && state.getIsExtant() && opts.INLINE_PREEX && currentlyFinal;
             if (needsGuard && !preEx) {
               if (!opts.INLINE_GUARDED) {
-                if (verbose) VM.sysWriteln("\t\tReject: guarded inlining disabled");
+                reportSelectionIfVerbose("Reject: guarded inlining disabled", verbose);
                 return;
               }
               if (!currentlyFinal && ps) {
-                if (verbose) VM.sysWriteln("\t\tReject: multiple targets and no profile data");
+                reportSelectionIfVerbose("Reject: multiple targets and no profile data", verbose);
                 return;
               }
             }
@@ -252,7 +244,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
             // Includes cost of guard & off-branch call if they are going to be generated.
             boolean decideYes = false;
             if (hasInlinePragma(callee, state)) {
-              if (verbose) VM.sysWriteln("\t\tSelect: pragma inline");
+              reportSelectionIfVerbose("Select: pragma inline", verbose);
               decideYes = true;
             } else {
               // Preserve previous inlining decisions
@@ -262,7 +254,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               CompiledMethod prev = state.getRootMethod().getCurrentCompiledMethod();
               if (prev != null && prev.getCompilerType() == CompiledMethod.OPT) {
                 if (((OptCompiledMethod)prev).getMCMap().hasInlinedEdge(caller, bcIndex, callee)) {
-                  if (verbose) VM.sysWriteln("\t\tSelect: Previously inlined");
+                  reportSelectionIfVerbose("Select: Previously inlined", verbose);
                   decideYes = true;
                 }
               }
@@ -281,7 +273,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                     // This call accounts for less than INLINE_AI_MIN_CALLSITE_FRACTION
                     // of the profiled targets at this call site.
                     // It is highly unlikely to be profitable to inline it.
-                    if (verbose) VM.sysWriteln("\t\tReject: less than INLINE_AI_MIN_CALLSITE_FRACTION of distribution");
+                    reportSelectionIfVerbose("Reject: less than INLINE_AI_MIN_CALLSITE_FRACTION of distribution", verbose);
                     maxCost = 0;
                   } else {
                     if (cost > maxCost) {
@@ -315,12 +307,10 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                 }
 
                 decideYes = cost <= maxCost;
-                if (verbose) {
-                  if (decideYes) {
-                    VM.sysWriteln("\t\tAccept: cost of " + cost + " was below threshold " + maxCost);
-                  } else {
-                    VM.sysWriteln("\t\tReject: cost of " + cost + " was above threshold " + maxCost);
-                  }
+                if (decideYes) {
+                  reportSelectionIfVerbose("Accept: cost of " + cost + " was below threshold " + maxCost, verbose);
+                } else {
+                  reportSelectionIfVerbose("Reject: cost of " + cost + " was above threshold " + maxCost, verbose);
                 }
               }
             }
@@ -345,12 +335,25 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
             }
           }
         }
+
+        private void reportInitialProfileState(final boolean verbose, RVMMethod callee,
+            double weight) {
+          if (verbose) {
+            reportProfilingIfVerbose("Evaluating target " +
+                callee +
+                " with " +
+                weight +
+                (" samples (" +
+                    (100 * AdaptiveInlining.adjustedWeight(weight)) +
+                    "%)"), verbose);
+          }
+        }
       });
 
       // Stage 5: Choose guards and package up the results in an InlineDecision object
       if (methodsToInline.isEmpty()) {
         InlineDecision d = InlineDecision.NO("No desirable targets");
-        if (verbose) VM.sysWriteln("\tDecide: " + d);
+        reportGuardedDecisionIfVerbose(d, verbose);
         return d;
       } else if (methodsToInline.size() == 1) {
         RVMMethod target = methodsToInline.get(0);
@@ -387,12 +390,12 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               InlineDecision.guardedYES(target,
                   chooseGuard(caller, target, staticCallee, state, false),
                   "Guarded inlining of one potential target");
-            if (verbose) VM.sysWriteln("\tDecide: " + d);
+            reportGuardedDecisionIfVerbose(d, verbose);
             return d;
           }
         } else {
           InlineDecision d = InlineDecision.YES(target, "Unique and desirable target");
-          if (verbose) VM.sysWriteln("\tDecide: " + d);
+          reportGuardedDecisionIfVerbose(d, verbose);
           return d;
         }
       } else {
@@ -421,10 +424,32 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
           idx++;
         }
         InlineDecision d = InlineDecision.guardedYES(methods, guards, "Inline multiple targets");
-        if (verbose) VM.sysWriteln("\tDecide: " + d);
+        reportGuardedDecisionIfVerbose(d, verbose);
         return d;
       }
     }
+  }
+
+  private void reportUnguardedDecisionIfVerbose(String reason, boolean verbose) {
+    if (verbose) {
+      VM.sysWriteln("\t" + reason);
+      VM.sysWriteln();
+    }
+  }
+
+  private void reportProfilingIfVerbose(String profileInfo, boolean verbose) {
+    if (verbose) {
+      VM.sysWriteln("\t" + profileInfo);
+    }
+  }
+
+  private void reportSelectionIfVerbose(String selectionInfo, boolean verbose) {
+    reportProfilingIfVerbose("\t" + selectionInfo, verbose);
+  }
+
+  private void reportGuardedDecisionIfVerbose(InlineDecision d,
+      final boolean verbose) {
+    reportUnguardedDecisionIfVerbose("Decide: " + d, verbose);
   }
 
   /**
