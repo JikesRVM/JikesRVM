@@ -138,27 +138,27 @@ public final class JNIEnvironment {
    */
   @Entrypoint
   @Untraced
-  public AddressArray JNIRefs;
+  private AddressArray JNIRefs;
   private AddressArray JNIRefsShadow;
 
   /**
    * Offset of current top ref in JNIRefs array
    */
   @Entrypoint
-  public int JNIRefsTop;
+  private int JNIRefsTop;
 
   /**
    * Offset of end (last entry) of JNIRefs array
    */
   @Entrypoint
-  protected int JNIRefsMax;
+  private int JNIRefsMax;
 
   /**
    * Previous frame boundary in JNIRefs array.
    * NB unused on IA32
    */
   @Entrypoint
-  public int JNIRefsSavedFP;
+  private int JNIRefsSavedFP;
 
   /**
    * Initialize a thread specific JNI environment.
