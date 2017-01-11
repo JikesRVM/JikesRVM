@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.inlining;
 
+import static org.jikesrvm.compilers.opt.inlining.InlineDecision.NO;
+import static org.jikesrvm.compilers.opt.inlining.InlineDecision.YES;
+import static org.jikesrvm.compilers.opt.inlining.InlineDecision.guardedYES;
 import static org.jikesrvm.compilers.opt.inlining.InlineTools.hasBody;
 import static org.jikesrvm.compilers.opt.inlining.InlineTools.hasInlinePragma;
 import static org.jikesrvm.compilers.opt.inlining.InlineTools.hasNoInlinePragma;
@@ -53,7 +56,7 @@ public final class DefaultInlineOracle implements InlineOracle {
     final OptOptions opts = state.getOptions();
     final boolean verbose = opts.PRINT_DETAILED_INLINE_REPORT;
     if (!opts.INLINE) {
-      return InlineDecision.NO("inlining not enabled");
+      return NO("inlining not enabled");
     }
 
     final RVMMethod staticCallee = state.obtainTarget();
@@ -67,11 +70,11 @@ public final class DefaultInlineOracle implements InlineOracle {
     if (!state.isInvokeInterface()) {
       if (staticCallee.isNative()) {
         reportUnguardedDecisionIfVerbose("NO: native method", verbose);
-        return InlineDecision.NO("native method");
+        return NO("native method");
       }
       if (hasNoInlinePragma(staticCallee, state)) {
         reportUnguardedDecisionIfVerbose("NO: pragmaNoInline", verbose);
-        return InlineDecision.NO("pragmaNoInline");
+        return NO("pragmaNoInline");
       }
       // We need constructors of Throwable (and its subclasses) to have their own
       // compiled method IDs to correctly elide stack frames when generating stack
@@ -79,7 +82,7 @@ public final class DefaultInlineOracle implements InlineOracle {
       if (staticCallee.isObjectInitializer() &&
           staticCallee.getDeclaringClass().isAssignableToThrowable()) {
         reportUnguardedDecisionIfVerbose("NO: constructor of class assignable to throwable", verbose);
-        return InlineDecision.NO("constructor of class assignable to throwable");
+        return NO("constructor of class assignable to throwable");
       }
     }
     // Stage 2: At all optimization levels we should attempt to inline
@@ -99,7 +102,7 @@ public final class DefaultInlineOracle implements InlineOracle {
           if (!state.getSequence().containsMethod(staticCallee)) {
             // not recursive
             reportUnguardedDecisionIfVerbose("YES: trivial guardless inline", verbose);
-            return InlineDecision.YES(staticCallee, "trivial inline");
+            return YES(staticCallee, "trivial inline");
           }
         }
         if (hasInlinePragma(staticCallee, state)) {
@@ -107,7 +110,7 @@ public final class DefaultInlineOracle implements InlineOracle {
           if (!state.getSequence().containsMethod(staticCallee)) {
             // not recursive
             reportUnguardedDecisionIfVerbose("YES: pragma inline", verbose);
-            return InlineDecision.YES(staticCallee, "pragma inline");
+            return YES(staticCallee, "pragma inline");
           }
         }
       }
@@ -116,14 +119,14 @@ public final class DefaultInlineOracle implements InlineOracle {
     if (opts.getOptLevel() == 0) {
       // at opt level 0, trivial unguarded inlines are the only kind we consider
       reportUnguardedDecisionIfVerbose("NO: only do trivial inlines at O0", verbose);
-      return InlineDecision.NO("Only do trivial inlines at O0");
+      return NO("Only do trivial inlines at O0");
     }
 
     if (rootMethod.inlinedSizeEstimate() > opts.INLINE_MASSIVE_METHOD_SIZE) {
       // In massive methods, we do not do any additional inlining to
       // avoid completely blowing out compile time by making a bad situation worse
       reportUnguardedDecisionIfVerbose("NO: only do trivial inlines into massive methods", verbose);
-      return InlineDecision.NO("Root method is massive; no non-trivial inlines");
+      return NO("Root method is massive; no non-trivial inlines");
     }
 
     // Stage 3: Determine based on profile data and static information
@@ -204,7 +207,7 @@ public final class DefaultInlineOracle implements InlineOracle {
       // This information may be either derived from profile information or
       // from static heuristics. To the first approximation, we don't care which.
       // If there is a precise target, then targets contains exactly that target method.
-      if (targets == null) return InlineDecision.NO("No potential targets identified");
+      if (targets == null) return NO("No potential targets identified");
 
       // Stage 4: We have one or more targets.  Determine what if anything should be done with them.
       final ArrayList<RVMMethod> methodsToInline = new ArrayList<RVMMethod>();
@@ -364,7 +367,7 @@ public final class DefaultInlineOracle implements InlineOracle {
 
       // Stage 5: Choose guards and package up the results in an InlineDecision object
       if (methodsToInline.isEmpty()) {
-        InlineDecision d = InlineDecision.NO("No desirable targets");
+        InlineDecision d = NO("No desirable targets");
         reportGuardedDecisionIfVerbose(d, verbose);
         return d;
       } else if (methodsToInline.size() == 1) {
@@ -374,7 +377,7 @@ public final class DefaultInlineOracle implements InlineOracle {
           if ((guardOverrideOnStaticCallee || target == staticCallee) &&
               isCurrentlyFinal(target, !opts.guardWithClassTest())) {
             InlineDecision d =
-              InlineDecision.guardedYES(target,
+              guardedYES(target,
                   chooseGuard(caller, target, staticCallee, state, true),
                   "Guarded inline of single static target");
             /*
@@ -399,14 +402,14 @@ public final class DefaultInlineOracle implements InlineOracle {
             return d;
           } else {
             InlineDecision d =
-              InlineDecision.guardedYES(target,
+              guardedYES(target,
                   chooseGuard(caller, target, staticCallee, state, false),
                   "Guarded inlining of one potential target");
             reportGuardedDecisionIfVerbose(d, verbose);
             return d;
           }
         } else {
-          InlineDecision d = InlineDecision.YES(target, "Unique and desirable target");
+          InlineDecision d = YES(target, "Unique and desirable target");
           reportGuardedDecisionIfVerbose(d, verbose);
           return d;
         }
@@ -435,7 +438,7 @@ public final class DefaultInlineOracle implements InlineOracle {
           guards[idx] = chooseGuard(caller, target, staticCallee, state, false);
           idx++;
         }
-        InlineDecision d = InlineDecision.guardedYES(methods, guards, "Inline multiple targets");
+        InlineDecision d = guardedYES(methods, guards, "Inline multiple targets");
         reportGuardedDecisionIfVerbose(d, verbose);
         return d;
       }
