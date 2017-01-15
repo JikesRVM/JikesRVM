@@ -35,19 +35,11 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
   protected static final boolean TRACE_ALL = false;
   /** trace actions relating to dynamic link (= dynamic bridge) frames */
   protected static final boolean TRACE_DL = false;
+  /** helper for reading data from the reference maps */
+  protected ReferenceMapReader mapReader;
 
-  // Iterator state for mapping any stackframe.
-
-  /** Current index in current map */
-  protected int mapIndex;
-  /** id of current map out of all maps */
-  protected int mapId;
-  /** set of maps for this method */
-  protected ReferenceMaps maps;
   /** method for the frame */
   protected NormalMethod currentMethod;
-  /** have we processed all the values in the regular map yet? */
-  protected boolean finishedWithRegularMap;
 
   protected int currentNumLocals;
 
@@ -81,6 +73,7 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
    */
   public AbstractBaselineGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
+    mapReader = new ReferenceMapReader();
     dynamicLink = new DynamicLink();
   }
 
@@ -91,10 +84,9 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
    */
   @Override
   public void cleanupPointers() {
-    maps.cleanupPointers();
-    maps = null;
-    if (mapId < 0) {
-      ReferenceMaps.jsrLock.unlock();
+    mapReader.cleanupPointers();
+    if (mapReader.currentMapIsForJSR()) {
+      mapReader.releaseLockForJSRProcessing();
     }
     bridgeTarget = null;
     bridgeParameterTypes = null;
@@ -119,8 +111,7 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
    * Resets state for processing of reference maps.
    */
   protected final void resetMapState() {
-    mapIndex = 0;
-    finishedWithRegularMap = false;
+    mapReader.reset();
   }
 
   /**
@@ -160,7 +151,7 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
 
   protected void traceMapIdForGetNextReturnAddressAddress() {
     VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
-    VM.sysWrite(mapId);
+    VM.sysWrite(mapReader.getMapId());
     VM.sysWriteln(".");
   }
 

@@ -33,7 +33,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.AbstractBaselineGCMapIterator;
-import org.jikesrvm.compilers.baseline.ReferenceMaps;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
@@ -99,13 +98,11 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
 
     // setup stackframe mapping
     //
-    maps = currentCompiledMethod.referenceMaps;
-    mapId = maps.locateGCPoint(instructionOffset, currentMethod);
-    mapIndex = 0;
-    if (mapId < 0) {
-      // lock the jsr lock to serialize jsr processing
-      ReferenceMaps.jsrLock.lock();
-      int JSRindex = maps.setupJSRSubroutineMap(mapId);
+    mapReader.setMethod(currentMethod, compiledMethod);
+    mapReader.locateGCPoint(instructionOffset);
+    if (mapReader.currentMapIsForJSR()) {
+      mapReader.acquireLockForJSRProcessing();
+      int JSRindex = mapReader.setupJSRSubroutineMap();
       while (JSRindex != 0) {
         Address nextCallerAddress = framePtr.plus(convertIndexToOffset(JSRindex)).loadAddress();
         Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
@@ -113,12 +110,12 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
           traceSetupJSRsubroutineMap(JSRindex, nextCallerAddress,
               nextMachineCodeOffset);
         }
-        JSRindex = maps.getNextJSRAddressIndex(nextMachineCodeOffset, currentMethod);
+        JSRindex = mapReader.getNextJSRAddressIndex(nextMachineCodeOffset);
       }
     }
     if (VM.TraceStkMaps || TRACE_ALL) {
       VM.sysWrite("BaselineGCMapIterator setupIterator mapId = ");
-      VM.sysWrite(mapId);
+      VM.sysWrite(mapReader.getMapId());
       VM.sysWrite(" for ");
       VM.sysWrite(compiledMethod.getMethod());
       VM.sysWriteln(".");
@@ -203,19 +200,15 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
 
   @Override
   public Address getNextReferenceAddress() {
-    if (!finishedWithRegularMap) {
+    if (!mapReader.isFinishedWithRegularMap()) {
       if (counterArrayBase) {
         counterArrayBase = false;
         return registerLocations.get(EBX.value());
       }
-      if (mapId < 0) {
-        mapIndex = maps.getNextJSRRefIndex(mapIndex);
-      } else {
-        mapIndex = maps.getNextRefIndex(mapIndex, mapId);
-      }
+      mapReader.updateMapIndex();
 
-      if (mapIndex != 0) {
-        int mapOffset = convertIndexToOffset(mapIndex);
+      if (mapReader.currentMapHasMorePointers()) {
+        int mapOffset = convertIndexToOffset(mapReader.getMapIndex());
         if (VM.TraceStkMaps || TRACE_ALL) {
           VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset = ");
           VM.sysWriteHex(mapOffset);
@@ -229,7 +222,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
           if (VM.TraceStkMaps || TRACE_ALL) {
             VM.sysWriteHex(framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE).loadAddress());
             VM.sysWriteln(".");
-            if (mapId < 0) {
+            if (mapReader.currentMapIsForJSR()) {
               VM.sysWriteln("Offset is a JSR return address ie internal pointer.");
             }
           }
@@ -240,7 +233,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
           if (VM.TraceStkMaps || TRACE_ALL) {
             VM.sysWriteHex(framePtr.plus(mapOffset).loadAddress());
             VM.sysWriteln(".");
-            if (mapId < 0) {
+            if (mapReader.currentMapIsForJSR()) {
               VM.sysWriteln("Offset is a JSR return address ie internal pointer.");
             }
           }
@@ -249,7 +242,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       } else {
         // remember that we are done with the map for future calls, and then
         //   drop down to the code below
-        finishedWithRegularMap = true;
+        mapReader.setFinishedWithRegularMap();
       }
     }
 
@@ -349,19 +342,19 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
 
   @Override
   public Address getNextReturnAddressAddress() {
-    if (mapId >= 0) {
+    if (!mapReader.currentMapIsForJSR()) {
       if (VM.TraceStkMaps || TRACE_ALL) {
         traceMapIdForGetNextReturnAddressAddress();
       }
       return Address.zero();
     }
-    mapIndex = maps.getNextJSRReturnAddrIndex(mapIndex);
+    mapReader.updateMapIndexWithJSRReturnAddrIndex();
     if (VM.TraceStkMaps || TRACE_ALL) {
       VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset = ");
-      VM.sysWrite(convertIndexToOffset(mapIndex));
+      VM.sysWrite(convertIndexToOffset(mapReader.getMapIndex()));
       VM.sysWriteln(".");
     }
-    return (mapIndex == 0) ? Address.zero() : framePtr.plus(convertIndexToOffset(mapIndex));
+    return (!mapReader.currentMapHasMorePointers()) ? Address.zero() : framePtr.plus(convertIndexToOffset(mapReader.getMapIndex()));
   }
 
 }
