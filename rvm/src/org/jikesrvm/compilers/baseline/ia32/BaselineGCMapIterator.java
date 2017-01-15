@@ -110,13 +110,8 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
         Address nextCallerAddress = framePtr.plus(convertIndexToOffset(JSRindex)).loadAddress();
         Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
         if (VM.TraceStkMaps) {
-          VM.sysWriteln("     setupJSRsubroutineMap- nested jsrs end of loop- = ");
-          VM.sysWriteln("      next jsraddress offset = ", JSRindex);
-          VM.sysWriteln("      next callers address = ", nextCallerAddress);
-          VM.sysWriteln("      next machinecodeoffset = ", nextMachineCodeOffset);
-          if (nextMachineCodeOffset.sLT(Offset.zero())) {
-            VM.sysWriteln("BAD MACHINE CODE OFFSET");
-          }
+          traceSetupJSRsubroutineMap(JSRindex, nextCallerAddress,
+              nextMachineCodeOffset);
         }
         JSRindex = maps.getNextJSRAddressIndex(nextMachineCodeOffset, currentMethod);
       }
@@ -356,9 +351,7 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
   public Address getNextReturnAddressAddress() {
     if (mapId >= 0) {
       if (VM.TraceStkMaps || TRACE_ALL) {
-        VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
-        VM.sysWrite(mapId);
-        VM.sysWriteln(".");
+        traceMapIdForGetNextReturnAddressAddress();
       }
       return Address.zero();
     }

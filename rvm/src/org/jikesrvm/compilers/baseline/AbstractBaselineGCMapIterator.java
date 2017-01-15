@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
@@ -21,6 +22,7 @@ import org.jikesrvm.runtime.DynamicLink;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * This class implements the architecture-independent functionality that is
@@ -144,4 +146,22 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
    * of dynamic bridge frames.
    */
   protected abstract void resetArchitectureSpecificBridgeSState();
+
+  protected void traceSetupJSRsubroutineMap(int JSRindex,
+      Address nextCallerAddress, Offset nextMachineCodeOffset) {
+    VM.sysWriteln("     setupJSRsubroutineMap- nested jsrs end of loop- = ");
+    VM.sysWriteln("      next jsraddress offset = ", JSRindex);
+    VM.sysWriteln("      next callers address = ", nextCallerAddress);
+    VM.sysWriteln("      next machinecodeoffset = ", nextMachineCodeOffset);
+    if (nextMachineCodeOffset.sLT(Offset.zero())) {
+      VM.sysWriteln("BAD MACHINE CODE OFFSET");
+    }
+  }
+
+  protected void traceMapIdForGetNextReturnAddressAddress() {
+    VM.sysWrite("BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
+    VM.sysWrite(mapId);
+    VM.sysWriteln(".");
+  }
+
 }
