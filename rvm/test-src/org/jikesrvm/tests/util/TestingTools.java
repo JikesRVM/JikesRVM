@@ -34,6 +34,8 @@ import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.vmmagic.pragma.NonMovingAllocation;
+import org.vmmagic.unboxed.WordArray;
 
 public class TestingTools {
 
@@ -113,6 +115,14 @@ public class TestingTools {
 
   public static RVMField getRVMFieldForField(Field field) {
     return JikesRVMSupport.getFieldOf(field);
+  }
+
+  @NonMovingAllocation
+  public static WordArray createNonMovableWordArray(int words) {
+    if (words < 0) {
+      throw new IllegalArgumentException("size must be >= 0");
+    }
+    return WordArray.create(words);
   }
 
 }

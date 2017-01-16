@@ -414,6 +414,12 @@ public class Services {
   }
 
   @Interruptible
+  public static String unboxedValueString(Address val) {
+    return (VM.BuildFor32Addr) ? Integer.toString(val.toInt()) :
+      Long.toString(val.toLong());
+  }
+
+  @Interruptible
   public static String unboxedValueString(Offset val) {
     return (VM.BuildFor32Addr) ? Integer.toString(val.toInt()) :
       Long.toString(val.toLong());
