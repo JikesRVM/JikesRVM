@@ -18,21 +18,14 @@ import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_FPR;
 import static org.jikesrvm.ppc.RegisterConstants.FIRST_VOLATILE_GPR;
 import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_FPR;
 import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
-import static org.jikesrvm.ppc.RegisterConstants.LAST_VOLATILE_GPR;
-import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_HEADER_SIZE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.AbstractBaselineGCMapIterator;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.ppc.RegisterConstants.GPR;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -53,11 +46,9 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
   /** Compiled method for the frame */
   protected ArchBaselineCompiledMethod currentCompiledMethod;
 
-  /**  gpr register it lives in */
-  private GPR bridgeRegisterIndex;
-
   public BaselineGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
+    bridgeData = new ArchBridgeDataExtractor();
   }
 
   /**
@@ -117,45 +108,22 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       VM.sysWriteln(".");
     }
 
-    // setup dynamic bridge mapping
-    //
-    bridgeTarget = null;
-    bridgeParameterTypes = null;
-    bridgeParameterMappingRequired = false;
-    bridgeRegistersLocationUpdated = false;
-    bridgeParameterIndex = 0;
-    bridgeRegisterIndex = GPR.R0;
-    bridgeRegisterLocation = Address.zero();
-    bridgeSpilledParamLocation = Address.zero();
-
-    if (currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
-      fp = Magic.getCallerFramePointer(fp);
-      Address ip = Magic.getNextInstructionAddress(fp);
-      int callingCompiledMethodId = Magic.getCompiledMethodID(fp);
-      CompiledMethod callingCompiledMethod = CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      Offset callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
-
-      callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
-      bridgeTarget = dynamicLink.methodRef();
-      bridgeParameterInitialIndex = dynamicLink.isInvokedWithImplicitThisParameter() ? -1 : 0;
-      bridgeParameterTypes = bridgeTarget.getParameterTypes();
-    }
+    bridgeData.setupDynamicBridgeMapping(currentMethod, fp);
 
     reset();
   }
 
   @Override
   protected void resetArchitectureSpecificBridgeSState() {
-    bridgeRegisterIndex = FIRST_VOLATILE_GPR;
-    bridgeRegisterLocation = framePtr.loadAddress();
+    bridgeData.resetBridgeRegisterIndex();
+    bridgeData.setBridgeRegisterLocation(framePtr.loadAddress());
     // point to first saved gpr
-    bridgeRegisterLocation =
-        bridgeRegisterLocation.minus(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) +
-                                     BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1));
+    bridgeData.decBrigeRegisterLocation(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) +
+        BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1));
 
     // get to my caller's frameptr and then walk up to the spill area
     Address callersFP = Magic.getCallerFramePointer(framePtr);
-    bridgeSpilledParamLocation = callersFP.plus(STACKFRAME_HEADER_SIZE);
+    bridgeData.resetBridgeSpilledParamLocation(callersFP);
   }
 
   /**
@@ -210,8 +178,8 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
       }
     }
 
-    if (bridgeParameterMappingRequired) {
-      if (!bridgeRegistersLocationUpdated) {
+    if (bridgeData.isBridgeParameterMappingRequired()) {
+      if (bridgeData.needsBridgeRegisterLocationsUpdate()) {
         // point registerLocations[] to our callers stackframe
         //
         Address location = framePtr.plus(currentCompiledMethod.getFrameSize());
@@ -222,79 +190,17 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
           registerLocations.set(i, location);
         }
 
-        bridgeRegistersLocationUpdated = true;
+        bridgeData.setBridgeRegistersLocationUpdated();
       }
 
-      // handle implicit "this" parameter, if any
-      //
-      if (bridgeParameterIndex == -1) {
-        bridgeParameterIndex += 1;
-        bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
-        bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
-
-        if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
-          VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, ");
-          VM.sysWrite("  this, bridge, returning: ");
-          VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
-          VM.sysWriteln();
-        }
-        return bridgeRegisterLocation.minus(BYTES_IN_ADDRESS);
+      if (bridgeData.hasUnprocessedImplicitThis()) {
+        return bridgeData.getImplicitThisAddress();
       }
 
       // now the remaining parameters
       //
-      while (bridgeParameterIndex < bridgeParameterTypes.length) {
-        TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
-
-        // are we still processing the regs?
-        if (bridgeRegisterIndex.value() <= LAST_VOLATILE_GPR.value()) {
-
-          // update the bridgeRegisterLocation (based on type) and return a value if it is a ref
-          if (bridgeParameterType.isReferenceType()) {
-            bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
-            bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
-
-            if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
-              VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, ");
-              VM.sysWrite("  parm: ");
-              VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
-              VM.sysWriteln();
-            }
-            return bridgeRegisterLocation.minus(BYTES_IN_ADDRESS);
-          } else if (bridgeParameterType.isLongType()) {
-            bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
-            if (VM.BuildFor32Addr) bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
-            bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_LONG);
-          } else if (bridgeParameterType.isDoubleType() || bridgeParameterType.isFloatType()) {
-            // nothing to do, these are not stored in gprs
-          } else {
-            // boolean, byte, char, short, int
-            bridgeRegisterIndex = bridgeRegisterIndex.nextGPR();
-            bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
-          }
-        } else {  // now process the register spill area for the remain params
-          // no need to update BridgeRegisterIndex anymore, it isn't used and is already
-          //  big enough (> LAST_VOLATILE_GPR) to ensure we'll live in this else code in the future
-          if (bridgeParameterType.isReferenceType()) {
-            bridgeSpilledParamLocation = bridgeSpilledParamLocation.plus(BYTES_IN_ADDRESS);
-
-            if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
-              VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset, dynamic link spilled parameter, returning: ");
-              VM.sysWrite(bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS));
-              VM.sysWriteln(".");
-            }
-            return bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS);
-          } else if (bridgeParameterType.isLongType()) {
-            bridgeSpilledParamLocation = bridgeSpilledParamLocation.plus(BYTES_IN_LONG);
-          } else if (bridgeParameterType.isDoubleType()) {
-            bridgeSpilledParamLocation = bridgeSpilledParamLocation.plus(BYTES_IN_DOUBLE);
-          } else if (bridgeParameterType.isFloatType()) {
-            bridgeSpilledParamLocation = bridgeSpilledParamLocation.plus(BYTES_IN_FLOAT);
-          } else {
-            // boolean, byte, char, short, int
-            bridgeSpilledParamLocation = bridgeSpilledParamLocation.plus(BYTES_IN_ADDRESS);
-          }
-        }
+      while (bridgeData.hasMoreBridgeParameters()) {
+        return bridgeData.getNextBridgeParameterAddress();
       }
     }
     return Address.zero();

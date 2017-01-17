@@ -13,12 +13,9 @@
 package org.jikesrvm.compilers.baseline;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.runtime.DynamicLink;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -32,35 +29,18 @@ import org.vmmagic.unboxed.Offset;
 public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
 
   /** trace all actions */
-  protected static final boolean TRACE_ALL = false;
+  public static final boolean TRACE_ALL = false;
   /** trace actions relating to dynamic link (= dynamic bridge) frames */
-  protected static final boolean TRACE_DL = false;
+  public static final boolean TRACE_DL = false;
   /** helper for reading data from the reference maps */
   protected ReferenceMapReader mapReader;
+  /** helper for extracting data for dynamic bridge frames */
+  protected AbstractBridgeDataExtractor bridgeData;
 
   /** method for the frame */
   protected NormalMethod currentMethod;
 
   protected int currentNumLocals;
-
-  /** place to keep info returned by CompiledMethod.getDynamicLink */
-  protected final DynamicLink dynamicLink;
-  /** method to be invoked via dynamic bridge ({@code null}: current frame is not a dynamic bridge) */
-  protected MethodReference bridgeTarget;
-  /** parameter types passed by that method */
-  protected TypeReference[] bridgeParameterTypes;
-  /** have all bridge parameters been mapped yet? */
-  protected boolean bridgeParameterMappingRequired;
-  /** have the register location been updated? */
-  protected boolean bridgeRegistersLocationUpdated;
-  /** first parameter to be mapped (-1 == "this") */
-  protected int bridgeParameterInitialIndex;
-  /** current parameter being mapped (-1 == "this") */
-  protected int bridgeParameterIndex;
-  /** memory address at which that register was saved */
-  protected Address bridgeRegisterLocation;
-  /** current spilled param location */
-  protected Address bridgeSpilledParamLocation;
 
   /**
    * Note: the location array for registers needs to be remembered. It also needs to
@@ -74,7 +54,6 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
   public AbstractBaselineGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
     mapReader = new ReferenceMapReader();
-    dynamicLink = new DynamicLink();
   }
 
   /**
@@ -88,8 +67,7 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
     if (mapReader.currentMapIsForJSR()) {
       mapReader.releaseLockForJSRProcessing();
     }
-    bridgeTarget = null;
-    bridgeParameterTypes = null;
+    bridgeData.cleanupPointers();
   }
 
   @Override
@@ -101,7 +79,7 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
   public final void reset() {
     resetMapState();
     resetOtherState();
-    if (bridgeTarget != null) {
+    if (bridgeData.hasBridgeInfo()) {
       resetArchitectureIndependentBridgeState();
       resetArchitectureSpecificBridgeSState();
     }
@@ -128,8 +106,7 @@ public abstract class AbstractBaselineGCMapIterator extends GCMapIterator {
    * of dynamic bridge frames.
    */
   protected final void resetArchitectureIndependentBridgeState() {
-    bridgeParameterMappingRequired = true;
-    bridgeParameterIndex = bridgeParameterInitialIndex;
+    bridgeData.reset();
   }
 
   /**
