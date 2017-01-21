@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.Offset;
  * This includes processing of the register spill areas.
  */
 @Uninterruptible
-class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
+final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
 
   /**  gpr register it lives in */
   private GPR bridgeRegisterIndex;
