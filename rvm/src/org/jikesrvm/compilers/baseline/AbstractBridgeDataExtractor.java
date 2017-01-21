@@ -55,7 +55,7 @@ public abstract class AbstractBridgeDataExtractor {
   /** current spilled param location */
   protected Address bridgeSpilledParamLocation;
 
-  public AbstractBridgeDataExtractor() {
+  protected AbstractBridgeDataExtractor() {
     dynamicLink = new DynamicLink();
   }
 
@@ -122,16 +122,16 @@ public abstract class AbstractBridgeDataExtractor {
     bridgeRegisterLocation = bridgeRegisterLocation.minus(bytes);
   }
 
-  public final void incBrigeRegisterLocation(int bytes) {
+  protected final void incBrigeRegisterLocation(int bytes) {
     bridgeRegisterLocation = bridgeRegisterLocation.plus(bytes);
   }
 
-  public final void cleanupPointers() {
+  protected final void cleanupPointers() {
     bridgeTarget = null;
     bridgeParameterTypes = null;
   }
 
-  public final void updateWithInfoForDynamicLink(CompiledMethod callingCompiledMethod, Offset callingInstructionOffset) {
+  protected final void updateWithInfoForDynamicLink(CompiledMethod callingCompiledMethod, Offset callingInstructionOffset) {
     callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
 
     bridgeTarget = dynamicLink.methodRef();
@@ -146,7 +146,7 @@ public abstract class AbstractBridgeDataExtractor {
 
   public abstract void resetBridgeRegisterIndex();
 
-  public abstract void incBridgeRegisterIndex();
+  protected abstract void incBridgeRegisterIndex();
 
   /**
    * Checks if any unprocessed bridge <em>registers</em>
@@ -157,9 +157,9 @@ public abstract class AbstractBridgeDataExtractor {
    * @return {@code true} if any unprocessed bridge <em>registers</em>
    * remain
    */
-  public abstract boolean unprocessedBridgeRegistersRemain();
+  protected abstract boolean unprocessedBridgeRegistersRemain();
 
-  public final void reset() {
+  protected final void reset() {
     bridgeParameterMappingRequired = true;
     bridgeParameterIndex = bridgeParameterInitialIndex;
   }

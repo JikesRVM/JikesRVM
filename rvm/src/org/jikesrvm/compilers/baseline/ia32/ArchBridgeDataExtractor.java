@@ -33,7 +33,8 @@ import org.vmmagic.unboxed.Offset;
  * This includes processing of parameters spilled by the IA32 opt compiler.
  */
 @Uninterruptible
-public final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
+class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
+
 
   /** gpr register it lives in */
   private int bridgeRegisterIndex;
