@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.Offset;
  * require to read baseline compiler reference maps.
  */
 @Uninterruptible
-public class ReferenceMapReader {
+public final class ReferenceMapReader {
   /** Current index in current map */
   protected int mapIndex;
   /** id of current map out of all maps */
