@@ -25,7 +25,6 @@ import org.jikesrvm.junit.runners.RequiresIA32;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.runtime.Magic;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -54,7 +53,6 @@ public class ArchBridgeDataExtractorTest {
     assertZero(bridgeParameterAddr);
   }
 
-  @Ignore("fails due to RVM-1156")
   @Test
   @Category(Requires64BitAddressing.class)
   public void longParametersInBridgeMethodsAreProcessedCorrectlyFor64BitAddressing() {

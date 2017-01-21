@@ -119,9 +119,14 @@ class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
     // Skip over non-reference parameters
     while (!paramIsRef) {
       if (bridgeParameterType.isLongType()) {
-        incBridgeRegisterIndex();
-        if (VM.BuildFor32Addr) incBridgeRegisterIndex();
-        decBrigeRegisterLocation(2 * WORDSIZE);
+        if (VM.BuildFor32Addr) {
+          incBridgeRegisterIndex();
+          incBridgeRegisterIndex();
+          decBrigeRegisterLocation(2 * WORDSIZE);
+        } else {
+          incBridgeRegisterIndex();
+          decBrigeRegisterLocation(WORDSIZE);
+        }
         bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(2 * WORDSIZE);
       } else if (bridgeParameterType.isDoubleType()) {
         bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(2 * WORDSIZE);
