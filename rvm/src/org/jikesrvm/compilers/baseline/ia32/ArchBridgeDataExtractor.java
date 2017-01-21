@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * This includes processing of parameters spilled by the IA32 opt compiler.
  */
 @Uninterruptible
-final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
+class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
 
 
   /** gpr register it lives in */
@@ -45,17 +45,17 @@ final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
   private int bridgeSpilledParamInitialOffset;
 
   @Override
-  protected void setupBridgeRegisterIndex() {
+  protected final void setupBridgeRegisterIndex() {
     bridgeRegisterIndex = 0;
   }
 
   @Override
-  public void resetBridgeRegisterIndex() {
+  public final void resetBridgeRegisterIndex() {
     bridgeRegisterIndex = 0;
   }
 
   @Override
-  protected void setupArchitectureSpecificDynamicBridgeMapping(Address fp) {
+  protected final void setupArchitectureSpecificDynamicBridgeMapping(Address fp) {
     Address ip = Magic.getReturnAddressUnchecked(fp);
     fp = Magic.getCallerFramePointer(fp);
     int callingCompiledMethodId = Magic.getCompiledMethodID(fp);
@@ -74,26 +74,26 @@ final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
   }
 
   @Override
-  public void resetBridgeSpilledParamLocation(Address framePtr) {
+  public final void resetBridgeSpilledParamLocation(Address framePtr) {
     bridgeSpilledParamLocation = framePtr.plus(bridgeSpilledParamInitialOffset);
   }
 
   @Override
-  public void incBridgeRegisterIndex() {
+  public final void incBridgeRegisterIndex() {
     bridgeRegisterIndex++;
   }
 
   @Override
-  public boolean unprocessedBridgeRegistersRemain() {
+  public final boolean unprocessedBridgeRegistersRemain() {
     return bridgeRegisterIndex <= NUM_PARAMETER_GPRS;
   }
 
-  public boolean isBridgeSpilledParameterMappingRequired() {
+  public final boolean isBridgeSpilledParameterMappingRequired() {
     return bridgeSpilledParameterMappingRequired;
   }
 
   @Override
-  public Address getImplicitThisAddress() {
+  public final Address getImplicitThisAddress() {
     bridgeParameterIndex++;
     incBridgeRegisterIndex();
     decBrigeRegisterLocation(WORDSIZE);
@@ -108,7 +108,7 @@ final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
   }
 
   @Override
-  public Address getNextBridgeParameterAddress() {
+  public  final Address getNextBridgeParameterAddress() {
     if (!hasMoreBridgeParameters()) {
       return Address.zero();
     }
@@ -171,7 +171,7 @@ final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
     return Address.zero();
   }
 
-  public void traceBridgeTarget() {
+  public final void traceBridgeTarget() {
     VM.sysWrite("getNextReferenceAddress: bridgeTarget=");
     VM.sysWrite(bridgeTarget);
     VM.sysWriteln();

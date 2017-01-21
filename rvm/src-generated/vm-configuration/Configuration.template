@@ -139,5 +139,8 @@ public abstract class Configuration {
     if (BuildForOptCompiler) {
       System.setProperty("jikesrvm.include.opt", "true");
     }
+
+    String addressingMode = BuildFor32Addr ? "32-bit" : "64-bit";
+    System.setProperty("jikesrvm.addressing.mode", addressingMode);
   }
 }
