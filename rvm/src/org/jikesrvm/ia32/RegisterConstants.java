@@ -423,7 +423,8 @@ public final class RegisterConstants {
   public static final int NUM_RETURN_FPRS = RETURN_FPRS.length;
 
   /** Native volatile GPRS */
-  public static final GPR[] NATIVE_VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, ECX, EDX} : new GPR[]{EAX, ECX, EDX, R8, R9, R10, R11};
+  public static final GPR[] NATIVE_VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, ECX, EDX} : new GPR[]{EAX, ECX, EDX, ESI, EDI, R8, R9, R10, R11};
+
   /** Native non-volatile GPRS */
   public static final GPR[] NATIVE_NONVOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{EBX, EBP, EDI, ESI} : new GPR[]{EBX, EBP, R12, R13, R14, R15};
 
