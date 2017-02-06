@@ -370,7 +370,7 @@ public final class RegisterConstants {
    * NB: the order here is important.  The opt-compiler allocates
    * the volatile registers in the order they appear here.
    */
-  public static final GPR[] VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{R0 /*EAX*/, R2 /*EDX*/, R1 /*ECX*/} : new GPR[]{R0, R2, R1};
+  public static final GPR[] VOLATILE_GPRS = VM.buildFor32Addr() ? new GPR[]{R0 /*EAX*/, R2 /*EDX*/, R1 /*ECX*/} : new GPR[]{R0, R2, R1, R8, R9, R10, R11, R14};
   public static final int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
 
   /**
