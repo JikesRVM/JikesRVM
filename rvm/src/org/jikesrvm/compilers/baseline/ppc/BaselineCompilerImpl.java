@@ -4263,20 +4263,23 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     } else if (methodName == MagicNames.addressArrayLength) {
       emit_arraylength();
     } else if (methodName == MagicNames.addressArrayGet) {
+      genBoundsCheck();
       if (VM.BuildFor32Addr || methodToBeCalled.getType() == TypeReference.CodeArray) {
-        emit_iaload();
+        asm.emitSLWI(T1, T1, LOG_BYTES_IN_INT);  // convert index to offset
+        asm.emitLIntX(T2, T0, T1);  // load desired int array element
+        pushInt(T2);
       } else {
-        genBoundsCheck();
         asm.emitSLDI(T1, T1, LOG_BYTES_IN_ADDRESS);  // convert index to offset
         asm.emitLAddrX(T2, T0, T1);  // load desired array element
         pushAddr(T2);
       }
     } else if (methodName == MagicNames.addressArraySet) {
+      popAddr(T2);                                   // T2 is value to store
+      genBoundsCheck();
       if (VM.BuildFor32Addr || methodToBeCalled.getType() == TypeReference.CodeArray) {
-        emit_iastore();
+        asm.emitSLWI(T1, T1, LOG_BYTES_IN_INT); // convert index to offset
+        asm.emitSTWX(T2, T0, T1); // store 32-bit value in array
       } else {
-        popAddr(T2);                                   // T2 is value to store
-        genBoundsCheck();
         asm.emitSLDI(T1, T1, LOG_BYTES_IN_ADDRESS);  // convert index to offset
         asm.emitSTAddrX(T2, T0, T1);                  // store value in array
       }
