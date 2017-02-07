@@ -4559,6 +4559,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitSYNC();
     } else if (methodName == MagicNames.fence) {
       asm.emitHWSYNC();
+    } else if (methodName == MagicNames.illegalInstruction) {
+      asm.emitIllegalInstruction();
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(GPR.R0, T0);

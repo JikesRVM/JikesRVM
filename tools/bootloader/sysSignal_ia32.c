@@ -413,6 +413,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
   /* two byte opcodes */
   if (two_byte_opcode == 1) {
     switch (opcode) {
+      case 0x0B: // ud2 - undefined instruction
       case 0x31: // rdtsc - read time stamp counter
         break;
 

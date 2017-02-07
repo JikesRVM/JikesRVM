@@ -2413,6 +2413,20 @@ final class BaselineMagic {
   }
 
   /**
+   * Illegal Instruction
+   */
+  private static final class IllegalInstruction extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitIllegalInstruction();
+    }
+  }
+  static {
+    MagicGenerator g = new IllegalInstruction();
+    generators.put(getMethodReference(Magic.class, MagicNames.illegalInstruction, void.class), g);
+  }
+
+  /**
    * Return the current inlining depth (always 0 for baseline)
    */
   private static final class GetInlineDepth extends MagicGenerator {

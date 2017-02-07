@@ -556,6 +556,14 @@ stm:	PAUSE
 EMIT_INSTRUCTION
 EMIT(MIR_Empty.mutate(P(p), IA32_PAUSE));
 
+#####
+# ILLEGAL_INSTRUCTION
+#####
+stm:	ILLEGAL_INSTRUCTION
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Empty.mutate(P(p), IA32_UD2));
+
 ##################################
 # Calling convention
 ##################################

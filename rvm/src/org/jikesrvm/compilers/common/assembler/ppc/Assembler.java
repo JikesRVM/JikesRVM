@@ -2067,6 +2067,18 @@ public final class Assembler extends AbstractAssembler {
     }
   }
 
+  /**
+   * Emits an illegal instruction.
+   * <p>
+   * The only instruction that is guaranteed to be illegal in all
+   * future versions of the PowerISA consists entirely of zeros.
+   * It currently doesn't have a name.
+   */
+  public void emitIllegalInstruction() {
+    final int mi = 0;
+    appendInstruction(mi);
+  }
+
   // -----------------------------------------------------------//
   // The following section contains assembler "macros" used by: //
   //    BaselineCompilerImpl                                             //

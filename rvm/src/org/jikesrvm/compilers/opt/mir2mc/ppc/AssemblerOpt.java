@@ -1156,6 +1156,12 @@ public class AssemblerOpt {
         }
         break;
 
+        case PPC_ILLEGAL_INSTRUCTION_opcode: {
+          machinecodes.set(mi++, inst);
+          mcOffsets.setMachineCodeOffset(p, mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+
         case IG_PATCH_POINT_opcode: {
           BranchOperand bop = InlineGuard.getTarget(p);
           Instruction target = bop.target;

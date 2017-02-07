@@ -1588,6 +1588,13 @@ immedPEI
 
 
 
+# an illegal instruction
+ILLEGAL_INSTRUCTION
+Empty
+immedPEI
+
+
+
 # Move bits unchanged from a float register/constant to an int register
 FLOAT_AS_INT_BITS
 Unary

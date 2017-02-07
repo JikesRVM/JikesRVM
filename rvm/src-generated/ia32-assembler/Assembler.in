@@ -1548,9 +1548,23 @@ public class Assembler extends AbstractAssembler {
     }
   }
 
+  /**
+   * Emits an illegal instruction for testing purposes.
+   */
+  public final void emitIllegalInstruction() {
+    emitUD2();
+  }
+
   /////////////////////////////////////
   // instructions (hand coded)       //
   /////////////////////////////////////
+
+  public final void emitUD2() {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) 0x0B);
+    if (lister != null) lister.OP(miStart, "UD2");
+  }
 
   public final void emitMFENCE() {
   	int miStart = mi;
