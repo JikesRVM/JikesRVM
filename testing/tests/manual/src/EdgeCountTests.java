@@ -15,9 +15,17 @@ import org.vmmagic.pragma.NoOptCompile;
 
 public class EdgeCountTests {
 
+  private static final int EDGE_COUNT = Integer.MAX_VALUE;
+
   @NoOptCompile
   public static void main(String[] args) {
-    final int EDGE_COUNT = Integer.MAX_VALUE;
+    printEdgeCountsForIfStatement();
+    printEdgeCountsForTableswitch();
+  }
+
+  @NoOptCompile
+  private static void printEdgeCountsForIfStatement() {
+    printHeader("IF STATEMENT");
 
     // Edge counts for this loop should be
     // 2147483648
@@ -47,6 +55,58 @@ public class EdgeCountTests {
     }
 
     EdgeCounts.dumpCountsToStream(System.out);
+  }
+
+  @NoOptCompile
+  private static void printEdgeCountsForTableswitch() {
+    printHeader("TABLESWITCH");
+
+    // Edge counts for this loop should be
+    // 2147483648
+
+    for (int i = 0; i < EDGE_COUNT; i++) {
+      int caseIndex = 2;
+      switch (caseIndex) {
+        case 0:
+          break;
+        case 1:
+          break;
+        case 2:
+          break;
+        case 3:
+          break;
+        default:
+          break;
+      }
+    }
+
+    // Edge counts for this loop should be
+    // 4294967296 if the platform supports
+    // full 32-bit edge counters
+
+    for (int o = 0; o < 2; o++) {
+      for (int i = 0; i < EDGE_COUNT; i++) {
+        int caseIndex = 1;
+        switch (caseIndex) {
+          case 0:
+            break;
+          case 1:
+            break;
+          case 2:
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    EdgeCounts.dumpCountsToStream(System.out);
+  }
+
+  private static void printHeader(String string) {
+    System.out.println();
+    System.out.println("EDGE COUNTS - " + string);
+    System.out.println();
   }
 
 }
