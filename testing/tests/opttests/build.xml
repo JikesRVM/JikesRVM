@@ -65,6 +65,12 @@
     <runCompareTest tag="RVM_1129_A" class="test.org.jikesrvm.opttests.bugs.RVM_1129_A" exitCode="113"/>
     <runCompareTest tag="RVM_1129_B" class="test.org.jikesrvm.opttests.bugs.RVM_1129_B" exitCode="113"/>
     <runCompareTest tag="RVM_1129_C" class="test.org.jikesrvm.opttests.bugs.RVM_1129_C" exitCode="113"/>
+    <runCompareTest tag="RVM_1129_ArithmeticException" class="test.org.jikesrvm.opttests.bugs.RVM_1129_ArithmeticException" exitCode="113"/>
+
+    <!-- Deactivated because it will fail with the opt compiler. See RVM-1158
+    <runCompareTest tag="RVM_1129_ArrayIndexOutOfBoundsException" class="test.org.jikesrvm.opttests.bugs.RVM_1129_ArrayIndexOutOfBoundsException" exitCode="113"/>
+    -->
+
     <runCompareTest tag="BURSPatterns" class="test.org.jikesrvm.opttests.burs.BURSPatterns"/>
     <runCompareTest tag="Long_And" class="test.org.jikesrvm.opttests.optimizations.Long_And"/>
     <runCompareTest tag="Long_Add" class="test.org.jikesrvm.opttests.optimizations.Long_Add"/>
