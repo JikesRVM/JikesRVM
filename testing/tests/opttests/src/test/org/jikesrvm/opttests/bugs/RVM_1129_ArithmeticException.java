@@ -13,9 +13,9 @@
 package test.org.jikesrvm.opttests.bugs;
 
 /**
- * Testcase for elision of constructors of subclasses of Throwable
+ * Testcase for elision of constructors of subclasses of {@link Throwable}
  * in stack traces. This test case makes sure that the stack trace for
- * ArithmeticException is the same on all platforms.
+ * {@link ArithmeticException} is the same on all platforms.
  */
 public class RVM_1129_ArithmeticException {
 
