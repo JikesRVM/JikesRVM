@@ -18,10 +18,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 /**
@@ -30,18 +28,17 @@ import org.junit.runner.RunWith;
  * consistent with the official API.
  */
 @RunWith(VMRequirements.class)
-@Category(RequiresBuiltJikesRVM.class)
 public class JavaLangClassTest {
 
   private static final Class<?>[] EMPTY_ARGS = new Class[0];
 
-  @Test(expected = ClassNotFoundException.class)
-  public void forName_String_nullNameLeadsToClassNotFoundException() throws ClassNotFoundException {
+  @Test(expected = NullPointerException.class)
+  public void forName_String_nullNameLeadsToNPE() throws ClassNotFoundException {
     Class.forName(null);
   }
 
-  @Test(expected = ClassNotFoundException.class)
-  public void forName_MultipleArgs_nullNameLeadsToClassNotFoundException() throws ClassNotFoundException {
+  @Test(expected = NullPointerException.class)
+  public void forName_MultipleArgs_nullNameLeadsToNPE() throws ClassNotFoundException {
     Class.forName(null, false, this.getClass().getClassLoader());
   }
 
@@ -80,9 +77,9 @@ public class JavaLangClassTest {
     getClass().getResourceAsStream(null);
   }
 
-  @Test
-  public void getResource_returnsNullForNullArgument() throws NoSuchMethodException {
-    assertNull(getClass().getResource(null));
+  @Test(expected = NullPointerException.class)
+  public void getResource_nullArgumentLeadsToNPE() throws NoSuchMethodException {
+    getClass().getResource(null);
   }
 
   @Test(expected = NullPointerException.class)
