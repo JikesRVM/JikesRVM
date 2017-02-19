@@ -17,34 +17,34 @@ r:	LONG_ADD(address1scaledreg, r)
 11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal2(P(p))); \\
-EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(QW, null, null));
 
 r:	LONG_ADD(r, address1scaledreg)
 11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal1(P(p))); \\
-EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(QW, null, null));
 
 r:	LONG_ADD(address1scaledreg, address1reg)
 11
 EMIT_INSTRUCTION
 combineAddresses(); \\
-EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(QW, null, null));
 
 r:	LONG_ADD(address1reg, address1scaledreg)
 11
 EMIT_INSTRUCTION
 combineAddresses(); \\
-EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(QW, null, null));
 
 r:	LONG_ADD(address, LONG_CONSTANT)
 11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal2(P(p))); \\
-EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(QW, null, null));
 
 r:	LONG_MOVE(address)
 20
 EMIT_INSTRUCTION
-EMIT_Lea(P(p), Move.getResult(P(p)), consumeAddress(DW, null, null));
+EMIT_Lea(P(p), Move.getResult(P(p)), consumeAddress(QW, null, null));
 
