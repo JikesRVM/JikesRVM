@@ -685,7 +685,7 @@ public abstract class JNICompiler {
         // For 32-bit float arguments, must be converted to
         // double
         //
-        if (types[arg].isFloatType() || types[arg].isDoubleType()) {
+        if (types[arg].isFloatingPointType()) {
           boolean is32bits = types[arg].isFloatType();
 
           // 1. check the source, the value will be in srcVMArg

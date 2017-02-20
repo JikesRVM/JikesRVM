@@ -702,6 +702,15 @@ public final class TypeReference {
   }
 
   /**
+   * @return {@code true} if this is the type for either the float primitive
+   *  type or the double primitive type
+   */
+  @Uninterruptible
+  public boolean isFloatingPointType() {
+    return isFloatType() || isDoubleType();
+  }
+
+  /**
    * @return {@code true} if {@code this} is the type reference for an
    * int-like (1, 8, 16, or 32 bit integral) primitive type
    */

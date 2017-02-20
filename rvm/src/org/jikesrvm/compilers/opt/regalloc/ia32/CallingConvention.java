@@ -322,7 +322,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = MIR_Call.getClearParam(call, i);
       MIR_Call.setParam(call, i, null);
       TypeReference paramType = param.getType();
-      if (paramType.isFloatType() || paramType.isDoubleType()) {
+      if (paramType.isFloatingPointType()) {
         nFPRParams++;
         int size;
         if (paramType.isFloatType()) {
@@ -515,7 +515,7 @@ public abstract class CallingConvention extends IRTools {
         Operand param = MIR_Call.getClearParam(call, i);
         MIR_Call.setParam(call, i, null);
         TypeReference paramType = param.getType();
-        if (paramType.isFloatType() || paramType.isDoubleType()) {
+        if (paramType.isFloatingPointType()) {
           nFPRParams++;
           int size;
           if (paramType.isFloatType()) {
@@ -568,7 +568,7 @@ public abstract class CallingConvention extends IRTools {
         Operand param = MIR_Call.getClearParam(call, i);
         MIR_Call.setParam(call, i, null);
         TypeReference paramType = param.getType();
-        if (paramType.isFloatType() || paramType.isDoubleType()) {
+        if (paramType.isFloatingPointType()) {
           nFPRParams++;
           int size;
           size = BYTES_IN_STACKSLOT;
@@ -684,7 +684,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = MIR_Call.getParam(call, i);
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
-        if (symb.getType().isFloatType() || symb.getType().isDoubleType()) {
+        if (symb.getType().isFloatingPointType()) {
           result++;
         }
       }
@@ -699,7 +699,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = e.nextElement();
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
-        if (symb.getType().isFloatType() || symb.getType().isDoubleType()) {
+        if (symb.getType().isFloatingPointType()) {
           result++;
         }
       }
@@ -733,7 +733,7 @@ public abstract class CallingConvention extends IRTools {
     for (Enumeration<Operand> e = p.getDefs(); e.hasMoreElements();) {
       RegisterOperand symbOp = (RegisterOperand) e.nextElement();
       TypeReference rType = symbOp.getType();
-      if (rType.isFloatType() || rType.isDoubleType()) {
+      if (rType.isFloatingPointType()) {
         int size;
         if (rType.isFloatType()) {
           size = BYTES_IN_FLOAT;

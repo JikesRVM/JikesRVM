@@ -117,7 +117,7 @@ final class ArchBridgeDataExtractor extends AbstractBridgeDataExtractor {
           incBridgeRegisterIndex();
           if (VM.BuildFor32Addr) incBridgeRegisterIndex();
           incBrigeRegisterLocation(BYTES_IN_LONG);
-        } else if (bridgeParameterType.isDoubleType() || bridgeParameterType.isFloatType()) {
+        } else if (bridgeParameterType.isFloatingPointType()) {
           // nothing to do, these are not stored in gprs
         } else {
           // boolean, byte, char, short, int
