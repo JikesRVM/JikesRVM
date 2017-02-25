@@ -547,6 +547,13 @@ public final class RVMArray extends RVMType {
   @Override
   public void initialize() { }
 
+  @Override
+  @Pure
+  public void prepareForFirstUse() {
+    resolve();
+    instantiate();
+  }
+
   //-------------------------------------------------------------------------------------------------//
   //                                   Misc static methods.                                          //
   //-------------------------------------------------------------------------------------------------//

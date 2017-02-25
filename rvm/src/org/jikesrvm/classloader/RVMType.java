@@ -823,6 +823,11 @@ public abstract class RVMType extends AnnotatedElement {
   public abstract void initialize();
 
   /**
+   * Prepares a type for the first use by making sure that it is initialized.
+   */
+  public abstract void prepareForFirstUse();
+
+  /**
    * @return {@code true} if this type overrides {@code java.lang.Object.finalize()}
    */
   @Uninterruptible

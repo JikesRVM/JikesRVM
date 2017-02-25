@@ -400,8 +400,7 @@ public final class BC2IR {
       RVMType elementType = elementTypeRef.peekType();
       if ((elementType != null) && (elementType.isInitialized() || elementType.isInBootImage())) {
         arrayType = arrayTypeRef.resolve();
-        arrayType.resolve();
-        arrayType.instantiate();
+        arrayType.prepareForFirstUse();
         op = NEWARRAY;
         arrayOp = makeTypeOperand(arrayType);
         t.setExtant();

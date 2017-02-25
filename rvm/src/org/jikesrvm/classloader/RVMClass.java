@@ -1633,6 +1633,14 @@ public final class RVMClass extends RVMType {
     }
   }
 
+  @Override
+  @Pure
+  public void prepareForFirstUse() {
+    resolve();
+    instantiate();
+    initialize();
+  }
+
   /**
    * Copy the values of all static final fields into
    * the JTOC.  Note: This method should only be run AFTER

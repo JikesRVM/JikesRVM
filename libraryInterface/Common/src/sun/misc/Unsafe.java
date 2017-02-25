@@ -105,11 +105,7 @@ public final class Unsafe {
       if (type.isClassType()) {
         RuntimeEntrypoints.initializeClassForDynamicLink(type.asClass());
       } else {
-        // TODO these 3 methods appear a few times in the code base together.
-        // Consider refactoring this
-        type.resolve();
-        type.instantiate();
-        type.initialize();
+        type.prepareForFirstUse();
       }
     }
   }

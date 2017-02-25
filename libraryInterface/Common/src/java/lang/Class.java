@@ -855,9 +855,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       RVMType ans = tRef.resolve();
       Callbacks.notifyForName(ans);
       if (initialize && !ans.isInitialized()) {
-        ans.resolve();
-        ans.instantiate();
-        ans.initialize();
+        ans.prepareForFirstUse();
       }
       return ans.getClassForType();
     } catch (NoClassDefFoundError ncdfe) {

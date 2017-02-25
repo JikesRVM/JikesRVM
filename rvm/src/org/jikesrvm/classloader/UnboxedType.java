@@ -296,6 +296,15 @@ public final class UnboxedType extends RVMType {
   public void initialize() {}
 
   /**
+   * {@inheritDoc}
+   * <p>
+   * This is a no-op for unboxed types.
+   */
+  @Override
+  @Pure
+  public void prepareForFirstUse() { }
+
+  /**
    * @return false
    */
   @Override

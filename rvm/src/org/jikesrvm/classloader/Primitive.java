@@ -363,6 +363,15 @@ public final class Primitive extends RVMType {
   public void initialize() {}
 
   /**
+   * {@inheritDoc}
+   * <p>
+   * This is a no-op for primitive types.
+   */
+  @Override
+  @Pure
+  public void prepareForFirstUse() { }
+
+  /**
    * @return <code>false</code>
    */
   @Override

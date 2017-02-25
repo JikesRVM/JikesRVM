@@ -115,9 +115,7 @@ final class VMClassLoader {
 
   static void resolveClass(Class<?> c) {
     RVMType cls = JikesRVMSupport.getTypeForClass(c);
-    cls.resolve();
-    cls.instantiate();
-    cls.initialize();
+    cls.prepareForFirstUse();
   }
 
   static Class<?> loadClass(String name, boolean resolve)

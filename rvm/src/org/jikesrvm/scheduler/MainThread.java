@@ -161,9 +161,7 @@ public final class MainThread extends Thread {
       Atom mainAtom = Atom.findOrCreateUnicodeAtom(args[0]);
       TypeReference mainClass = TypeReference.findOrCreate(cl, mainAtom.descriptorFromClassName());
       cls = mainClass.resolve().asClass();
-      cls.resolve();
-      cls.instantiate();
-      cls.initialize();
+      cls.prepareForFirstUse();
     } catch (NoClassDefFoundError e) {
       if (dbg) VM.sysWrite("failed.]");
       // no such class

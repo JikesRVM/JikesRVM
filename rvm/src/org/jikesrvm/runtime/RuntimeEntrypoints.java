@@ -613,9 +613,7 @@ public class RuntimeEntrypoints {
       VM.sysWriteln("RuntimeEntrypoints.initializeClassForDynamicLink: (begin) " + cls);
     }
 
-    cls.resolve();
-    cls.instantiate();
-    cls.initialize();   // throws ExceptionInInitializerError
+    cls.prepareForFirstUse();
 
     if (VM.TraceClassLoading) {
       VM.sysWriteln("RuntimeEntrypoints.initializeClassForDynamicLink: (end)   " + cls);
