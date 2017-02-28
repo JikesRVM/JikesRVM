@@ -16,6 +16,7 @@
 
   <property name="junit.version" value="4.10"/>
   <property name="junit.description" value="jUnit"/>
+  <property name="junit.web-archive" value="junit${junit.version}.zip"/>
 
   <property name="junit.package.dir" value="${components.dir}/junit/${junit.version}"/>
   <property name="junit.dir" location="${junit.package.dir}/junit${junit.version}"/>
@@ -32,7 +33,6 @@
   </target>
 
   <target name="fetch" depends="init-junit-properties" if="junit.from-web">
-    <property name="junit.web-archive" value="junit${junit.version}.zip"/>
     <mkdir dir="${junit.package.dir}"/>
     <cachedGet key="${junit.web-archive}"
          src="http://downloads.sourceforge.net/project/junit/junit/${junit.version}/${junit.web-archive}"
@@ -47,6 +47,7 @@
 
   <target name="ensure" depends="prepare-ant-tasks">
     <ensureUptodate name="junit" dir="${junit.dir}"/>
+    <setComponentsConfig key="junit.jar" value="${junit.dir}/junit-${junit.version}.jar"/>
   </target>
 
 </project>
