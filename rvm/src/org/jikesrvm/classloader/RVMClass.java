@@ -1634,7 +1634,6 @@ public final class RVMClass extends RVMType {
   }
 
   @Override
-  @Pure
   public void prepareForFirstUse() {
     resolve();
     instantiate();

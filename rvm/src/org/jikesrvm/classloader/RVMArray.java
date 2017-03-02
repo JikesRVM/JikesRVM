@@ -548,7 +548,6 @@ public final class RVMArray extends RVMType {
   public void initialize() { }
 
   @Override
-  @Pure
   public void prepareForFirstUse() {
     resolve();
     instantiate();
