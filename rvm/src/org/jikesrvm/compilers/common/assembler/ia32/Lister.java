@@ -51,297 +51,297 @@ public final class Lister {
 
   public void OP(int i, String op) {
     i = begin(i, op);
-    VM.sysWrite(right("", DEST_AREA_SIZE));
-    VM.sysWrite(right("", SOURCE_AREA_SIZE));
+    writeString(right("", DEST_AREA_SIZE));
+    writeString(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void I(int i, String op, int n) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(n) + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("", SOURCE_AREA_SIZE));
+    writeString(right(decimal(n) + " ", DEST_AREA_SIZE));
+    writeString(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void R(int i, String op, MachineRegister R0) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RD(int i, String op, MachineRegister R0, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right("", SOURCE_AREA_SIZE));
+    writeString(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RI(int i, String op, MachineRegister R0, long n) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RDI(int i, String op, MachineRegister R0, Offset d, long n) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
+    writeString(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RNI(int i, String op, MachineRegister R0, long n) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE));
+    writeString(right("[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right(decimal(n) + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RR(int i, String op, MachineRegister R0, MachineRegister R1) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RDR(int i, String op, MachineRegister R0, Offset d, MachineRegister R1) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RDRI(int i, String op, MachineRegister R0, Offset d, MachineRegister R1, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
+    writeString(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RDRR(int i, String op, MachineRegister R0, Offset d, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
-    VM.sysWrite(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
+    writeString(right(decimal(d) + "[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RRD(int i, String op, MachineRegister R0, MachineRegister R1, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(d) + "[" + R1 + "]", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right(decimal(d) + "[" + R1 + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RNR(int i, String op, MachineRegister R0, MachineRegister R1) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right("[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RN(int i, String op, MachineRegister R0) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + R0 + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(" ", SOURCE_AREA_SIZE));
+    writeString(right("[" + R0 + "]", DEST_AREA_SIZE));
+    writeString(right(" ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RRN(int i, String op, MachineRegister R0, MachineRegister R1) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + R1 + "]", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + R1 + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RXD(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
+    writeString(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
-    VM.sysWrite(right("", SOURCE_AREA_SIZE));
+    writeString(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RXDI(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, long n) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
+    writeString(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
+    writeString(right(decimal(n), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RFD(int i, String op, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right("", SOURCE_AREA_SIZE));
+    writeString(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
+    writeString(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RA(int i, String op, Address d) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + hex(d) + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right("", SOURCE_AREA_SIZE));
+    writeString(right("[" + hex(d) + "]", DEST_AREA_SIZE));
+    writeString(right("", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RFDI(int i, String op, MachineRegister X, short s, Offset d, long n) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
+    writeString(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
+    writeString(right(decimal(n), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RAI(int i, String op, Address d, long n) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + hex(d) + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE));
+    writeString(right("[" + hex(d) + "]", DEST_AREA_SIZE));
+    writeString(right(decimal(n), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RRR(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RNRI(int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + R0 + "] ", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
+    writeString(right("[" + R0 + "] ", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RNRR(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + R0 + "] ", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
+    writeString(right("[" + R0 + "] ", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RRI(int i, String op, MachineRegister R0, MachineRegister R1, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RRXD(int i, String op, MachineRegister R0, MachineRegister R1, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + R1 + "+" + X + "<<" + decimal(s) + "]",
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + decimal(d) + "+" + R1 + "+" + X + "<<" + decimal(s) + "]",
                       SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RXDR(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
+    writeString(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RXDRI(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
+    writeString(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       DEST_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
+    writeString(right(R1 + " ", SOURCE_AREA_SIZE));
+    writeString(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RXDRR(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d, MachineRegister R1, MachineRegister R2) {
     i = begin(i, op);
-    VM.sysWrite(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
+    writeString(right("[" + decimal(d) + "+" + R0 + "+" + X + "<<" + decimal(s) + "]",
                       SOURCE_AREA_SIZE));
-    VM.sysWrite(right(R1 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R1 + " ", DEST_AREA_SIZE));
+    writeString(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RRFD(int i, String op, MachineRegister R0, MachineRegister X, short s, Offset d) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RFDR(int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RFDRI(int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    writeString(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RFDRR(int i, String op, MachineRegister X, short s, Offset d, MachineRegister R0, MachineRegister R2) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + decimal(d) + "+" + X + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    writeString(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RRA(int i, String op, MachineRegister R0, Address d) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RAR(int i, String op, Address d, MachineRegister R0) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RARI(int i, String op, Address d, MachineRegister R0, int imm) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
+    writeString(right(decimal(imm), SOURCE_AREA_SIZE));
     end(i);
   }
 
   public void RARR(int i, String op, Address d, MachineRegister R0, MachineRegister R2) {
     i = begin(i, op);
-    VM.sysWrite(right(R0 + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(R2 + " ", SOURCE_AREA_SIZE));
+    writeString(right(R0 + " ", DEST_AREA_SIZE));
+    writeString(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
+    writeString(right(R2 + " ", SOURCE_AREA_SIZE));
     end(i);
   }
 
   private int begin(int i, String op) {
     if (prefix != null) i--;
-    VM.sysWrite(right(hex(i), 6) + "| ");
+    writeString(right(hex(i), 6) + "| ");
     if (prefix != null) {
-      VM.sysWrite(right(prefix.toString(), PREFIX_AREA_SIZE) + " ");
+      writeString(right(prefix.toString(), PREFIX_AREA_SIZE) + " ");
     } else {
-      VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
+      writeString(right("", PREFIX_AREA_SIZE) + " ");
     }
-    VM.sysWrite(left(op, OP_AREA_SIZE));
+    writeString(left(op, OP_AREA_SIZE));
     return i;
   }
 
   private void end(int i) {
-    VM.sysWrite(" | ");
+    writeString(" | ");
     asm.writeLastInstruction(i);
-    VM.sysWriteln();
+    writeLine();
     prefix = null;
   }
 
@@ -538,14 +538,27 @@ public final class Lister {
   }
 
   public void noteBytecode(int i, String bcode) {
-    VM.sysWriteln("[" + decimal(i) + "] " + bcode);
+    writeLine("[" + decimal(i) + "] " + bcode);
   }
 
   public void comment(int i, String comment) {
-    VM.sysWriteln(right(hex(i), 6) + "| " + comment);
+    writeLine(right(hex(i), 6) + "| " + comment);
   }
 
   public void comefrom(int i, int j) {
-    VM.sysWriteln(right(hex(i), 6) + "| <<< " + right(hex(j), 6));
+    writeLine(right(hex(i), 6) + "| <<< " + right(hex(j), 6));
   }
+
+  private void writeString(String s) {
+    VM.sysWrite(s);
+  }
+
+  private void writeLine(String s) {
+    VM.sysWriteln(s);
+  }
+
+  private void writeLine() {
+    VM.sysWriteln();
+  }
+
 }
