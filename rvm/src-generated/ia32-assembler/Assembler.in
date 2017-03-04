@@ -2306,8 +2306,8 @@ public class Assembler extends AbstractAssembler {
         setMachineCodes(mi++, (byte) (0xB8 | dstReg.value()));
         emitImm64(imm);
       }
+      if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
     }
-    if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
   }
 
   /** pop address and goto it */
