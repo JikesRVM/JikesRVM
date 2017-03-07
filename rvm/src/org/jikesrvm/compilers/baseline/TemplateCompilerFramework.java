@@ -70,7 +70,7 @@ public abstract class TemplateCompilerFramework {
   protected final int[] bytecodeMap;
 
   /**
-   * bi at the start of a bytecode
+   * bytecode index at the start of a bytecode
    */
   protected int biStart;
 
