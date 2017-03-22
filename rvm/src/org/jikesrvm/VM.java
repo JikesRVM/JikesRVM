@@ -662,6 +662,7 @@ public class VM extends Properties {
   private static Offset sysWriteLockOffset = Offset.max();
 
   private static void swLock() {
+    if (!VM.runningVM && !VM.writingBootImage) return;
     if (sysWriteLockOffset.isMax()) return;
     while (!Synchronization.testAndSet(Magic.getJTOC(), sysWriteLockOffset, 1)) {
       ;
@@ -669,6 +670,7 @@ public class VM extends Properties {
   }
 
   private static void swUnlock() {
+    if (!VM.runningVM && !VM.writingBootImage) return;
     if (sysWriteLockOffset.isMax()) return;
     Synchronization.fetchAndStore(Magic.getJTOC(), sysWriteLockOffset, 0);
   }
