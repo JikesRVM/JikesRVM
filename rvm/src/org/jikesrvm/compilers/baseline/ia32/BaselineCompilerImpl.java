@@ -4095,8 +4095,12 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     if (VM.BuildForAdaptiveSystem && options.INVOCATION_COUNTERS) {
       int id = compiledMethod.getId();
       InvocationCounts.allocateCounter(id);
-      asm.emitMOV_Reg_Abs(ECX, Magic.getTocPointer().plus(AosEntrypoints.invocationCountsField.getOffset()));
-      asm.emitSUB_RegDisp_Imm(ECX, Offset.fromIntZeroExtend(compiledMethod.getId() << 2), 1);
+      asm.generateJTOCloadWord(ECX, AosEntrypoints.invocationCountsField.getOffset());
+      if (VM.BuildFor32Addr) {
+        asm.emitSUB_RegDisp_Imm(ECX, Offset.fromIntZeroExtend(compiledMethod.getId() << LOG_BYTES_IN_INT), 1);
+      } else {
+        asm.emitSUB_RegDisp_Imm_Quad(ECX, Offset.fromIntZeroExtend(compiledMethod.getId() << LOG_BYTES_IN_INT), 1);
+      }
       ForwardReference notTaken = asm.forwardJcc(GT);
       asm.emitPUSH_Imm(id);
       genParameterRegisterLoad(asm, 1);
