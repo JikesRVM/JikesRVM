@@ -21,6 +21,16 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.pragma.Pure;
 
+/**
+ * Provides methods to produce listings for IA32 machine code.
+ * <p>
+ * This class is intended to be used by the IA32 assemblers. Every time
+ * the IA32 assembler emits an instruction, it calls the lister to produce
+ * the listing for the instruction. The main drawback of this approach is
+ * that code patching isn't supported: for every instruction that's being
+ * patched (e.g. jumps, moves and NOPs), the listing will show the original,
+ * unpatched version.
+ */
 public final class Lister {
 
   private static class Line {
