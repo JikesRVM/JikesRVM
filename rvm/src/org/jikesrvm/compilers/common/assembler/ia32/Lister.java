@@ -12,15 +12,40 @@
  */
 package org.jikesrvm.compilers.common.assembler.ia32;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.MachineRegister;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.pragma.Pure;
 
-/**
- */
 public final class Lister {
+
+  private static class Line {
+
+    private static final String NEWLINE = System.getProperty("line.separator");
+
+    private final StringBuilder lineContent = new StringBuilder(DEFAULT_LINE_SIZE);
+
+    private void addToLine(String s) {
+      lineContent.append(s);
+    }
+
+    private void addNewline() {
+      lineContent.append(NEWLINE);
+    }
+
+    public String finish() {
+      addNewline();
+      return lineContent.toString();
+    }
+
+  }
+
+  /** an estimate of the maximum size of a line printed by the lister */
+  private static final int DEFAULT_LINE_SIZE = 80;
 
   private static final int PREFIX_AREA_SIZE = 8;
   private static final int OP_AREA_SIZE = 9;
@@ -33,8 +58,14 @@ public final class Lister {
 
   private Prefix prefix;
 
+  private final List<Line> lines;
+
+  private Line currentLine;
+
   public Lister(Assembler asm) {
     this.asm = asm;
+    this.lines = new LinkedList<Lister.Line>();
+    this.currentLine = new Line();
   }
 
   public void lockPrefix() {
@@ -340,8 +371,11 @@ public final class Lister {
 
   private void end(int i) {
     writeString(" | ");
-    asm.writeLastInstruction(i);
-    writeLine();
+    String inst = asm.lastInstructionAsString(i);
+    writeString(inst);
+    lines.add(currentLine);
+    currentLine = new Line();
+
     prefix = null;
   }
 
@@ -550,15 +584,22 @@ public final class Lister {
   }
 
   private void writeString(String s) {
-    VM.sysWrite(s);
+    currentLine.addToLine(s);
   }
 
   private void writeLine(String s) {
-    VM.sysWriteln(s);
+    currentLine.addToLine(s);
+    currentLine.addNewline();
   }
 
-  private void writeLine() {
-    VM.sysWriteln();
+  public void printListing() {
+    final int sizeEstimate = lines.size() * DEFAULT_LINE_SIZE;
+    StringBuilder listing = new StringBuilder(sizeEstimate);
+    for (Line l : lines) {
+      String content = l.finish();
+      listing.append(content);
+    }
+    VM.sysWriteln(listing.toString().trim());
   }
 
 }

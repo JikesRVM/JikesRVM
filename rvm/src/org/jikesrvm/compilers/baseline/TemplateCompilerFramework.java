@@ -2002,6 +2002,7 @@ public abstract class TemplateCompilerFramework {
       ending_bytecode();
     }
     bytecodeMap[bcodes.length()] = asm.getMachineCodeIndex();
+    ending_method();
     return new MachineCode(getAssembler().getMachineCodes(),bytecodeMap);
   }
 
@@ -2139,6 +2140,11 @@ public abstract class TemplateCompilerFramework {
    * Notify BaselineCompilerImpl that we are ending code gen for the bytecode biStart
    */
   protected void ending_bytecode() {}
+
+  /**
+   * Notify BaselineCompilerImpl that we are ending code gen for the method.
+   */
+  protected void ending_method() {}
 
   /**
    * Emit the prologue for the method

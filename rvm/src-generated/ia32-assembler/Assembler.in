@@ -366,6 +366,30 @@ public class Assembler extends AbstractAssembler {
   }
 
   /**
+   * @param start the starting index of the last instruction
+   * @return all bytes for the last emitted instruction as a hex String
+   */
+  public final String lastInstructionAsString(int start) {
+    StringBuilder inst = new StringBuilder();
+    for (int j=start; j<mi; j++) {
+      if (j < machineCodes.length) {
+        inst.append(Lister.hex(machineCodes[j]));
+      } else {
+        inst.append(Lister.hex((byte)0x0));
+      }
+    }
+    return inst.toString();
+  }
+
+  /**
+   * Informs the lister that generation of bytecodes is done. This
+   * allows the lister to generate the final listing.
+   */
+  public final void noteEndOfBytecodes() {
+    if (lister != null) lister.printListing();
+  }
+
+  /**
    * In the representation of addressing modes in the ModRM and SIB
    * bytes, the code for register-displacement for on ESP has a
    * special meaning.  Thus, when register-displacement mode using ESP

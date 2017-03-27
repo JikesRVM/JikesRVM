@@ -4431,5 +4431,11 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   protected ForwardReference emit_pending_goto(int bTarget) {
     return asm.generatePendingJMP(bTarget);
   }
+
+  @Override
+  protected void ending_method() {
+    asm.noteEndOfBytecodes();
+  }
+
 }
 
