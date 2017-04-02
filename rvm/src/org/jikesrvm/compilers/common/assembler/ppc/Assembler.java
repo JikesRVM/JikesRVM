@@ -92,19 +92,22 @@ public final class Assembler extends AbstractAssembler {
    */
   private static final int CODE_OVERHEAD_TERM    = 30;
 
+  private final Lister lister;
+
   public Assembler(int length) {
-    this(length, false, null);
+    this(length, false, null, null);
   }
 
-  public Assembler(int bytecodeSize, boolean sp, BaselineCompilerImpl comp) {
+  public Assembler(int bytecodeSize, boolean sp, BaselineCompilerImpl comp, int[] bytecodeMap) {
     machineCodes = new int[bytecodeSize * CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
     shouldPrint = sp;
     compiler = comp;
     mIP = 0;
+    lister = new Lister(bytecodeMap);
   }
 
   public Assembler(int length, boolean sp) {
-    this(length, sp, null);
+    this(length, sp, null, null);
   }
 
   private static int maskLower16(Offset val) {
@@ -137,8 +140,7 @@ public final class Assembler extends AbstractAssembler {
 
   @Override
   public void noteBytecode(int i, String bcode) {
-    String s1 = Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
-    VM.sysWriteln(s1 + ": [" + i + "] " + bcode);
+    lister.noteBytecode(i, bcode);
   }
 
   /**
@@ -2258,5 +2260,12 @@ public final class Assembler extends AbstractAssembler {
   public void baselineEmitLoadTIB(MachineRegister dest, MachineRegister object) {
     Offset tibOffset = JavaHeader.getTibOffset();
     emitLAddrOffset((GPR)dest, (GPR)object, tibOffset);
+  }
+
+  public void noteEndOfBytecodes() {
+    if (shouldPrint) {
+      lister.addLinesForCode(machineCodes, getMachineCodeIndex());
+      lister.endAndPrintListing();
+    }
   }
 }

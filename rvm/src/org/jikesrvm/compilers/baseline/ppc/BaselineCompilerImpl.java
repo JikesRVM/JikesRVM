@@ -215,7 +215,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     startLocalOffset = getInternalStartLocalOffset(method);
     emptyStackOffset = getEmptyStackOffset(method);
     fullStackOffset = emptyStackOffset - (method.getOperandWords() << LOG_BYTES_IN_STACKSLOT);
-    asm = new Assembler(bcodes.length(),shouldPrint, this);
+    asm = new Assembler(bcodes.length(),shouldPrint, this, bytecodeMap);
   }
 
   @Override
@@ -3396,6 +3396,11 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitMTLR(S0);
       asm.emitBCLR(); // branch always, through link register
     }
+  }
+
+  @Override
+  protected void ending_method() {
+    asm.noteEndOfBytecodes();
   }
 
   /**

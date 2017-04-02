@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.common.assembler.ppc.Lister;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
@@ -63,7 +64,6 @@ import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.ppc.Disassembler;
 import org.jikesrvm.util.EmptyIterator;
-import org.jikesrvm.util.Services;
 
 /**
  * Assemble PowerPC MIR into binary code.
@@ -1195,14 +1195,9 @@ public class AssemblerOpt {
 
     if (shouldPrint) {
       OptimizingCompiler.header("Final machine code", ir.method);
-      for (int i = 0; i < machinecodes.length(); i++) {
-        System.out.print(Services.getHexString(i << LG_INSTRUCTION_WIDTH, true) +
-                         " : " +
-                         Services.getHexString(machinecodes.get(i), false));
-        System.out.print("  ");
-        System.out.print(disasm(machinecodes.get(i), i << LG_INSTRUCTION_WIDTH));
-        System.out.println();
-      }
+      Lister lister = new Lister(null);
+      lister.addLinesForCode(machinecodes);
+      lister.endAndPrintListing();
     }
 
     return mi;
