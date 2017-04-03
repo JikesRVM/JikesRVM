@@ -138,9 +138,8 @@ public final class Assembler extends AbstractAssembler {
     return (val == 0 || val == -1);
   }
 
-  @Override
-  public void noteBytecode(int i, String bcode) {
-    lister.noteBytecode(i, bcode);
+  public Lister getLister() {
+    return lister;
   }
 
   /**

@@ -96,8 +96,10 @@ import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.baseline.TemplateCompilerFramework;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
+import org.jikesrvm.compilers.common.assembler.AbstractLister;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
+import org.jikesrvm.compilers.common.assembler.ia32.Lister;
 import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.ia32.RegisterConstants.XMM;
 import org.jikesrvm.jni.ia32.JNICompiler;
@@ -120,6 +122,7 @@ import org.vmmagic.unboxed.Offset;
 public final class BaselineCompilerImpl extends BaselineCompiler {
 
   private final Assembler asm;
+  private final Lister lister;
 
   static {
     // Force resolution of BaselineMagic before using in genMagic
@@ -147,11 +150,17 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
     asm = new Assembler(bcodes.length(),shouldPrint, this);
+    lister = asm.getLister();
   }
 
   @Override
   protected AbstractAssembler getAssembler() {
     return asm;
+  }
+
+  @Override
+  protected AbstractLister getLister() {
+    return lister;
   }
 
   /**

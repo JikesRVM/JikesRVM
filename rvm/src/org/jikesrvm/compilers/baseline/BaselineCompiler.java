@@ -390,7 +390,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       int nextBC = bcodes.peekNextOpcode();
       switch (nextBC) {
       case JBC_caload:
-        if (shouldPrint) getAssembler().noteBytecode(biStart, "caload");
+        if (shouldPrint) getLister().noteBytecode(biStart, "caload");
         bytecodeMap[bcodes.index()] = getAssembler().getMachineCodeIndex();
         bcodes.nextInstruction(); // skip opcode
         emit_iload_caload(index);
@@ -442,7 +442,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
           emit_regular_aload(index);
         } else {
           bytecodeMap[gfIndex] = getAssembler().getMachineCodeIndex();
-          if (shouldPrint) getAssembler().noteBytecode(biStart, "getfield", fieldRef);
+          if (shouldPrint) getLister().noteBytecode(biStart, "getfield", fieldRef);
           emit_aload_resolved_getfield(index, fieldRef);
         }
         break;
@@ -518,7 +518,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     bcodes.nextInstruction(); // skip opcode
     int offset = bcodes.getBranchOffset();
     int bTarget = biStart + offset;
-    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (shouldPrint) getLister().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
     if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
     emit_lcmp_if(bTarget, bc);
   }
@@ -587,7 +587,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     bcodes.nextInstruction(); // skip opcode
     int offset = bcodes.getBranchOffset();
     int bTarget = biStart + offset;
-    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (shouldPrint) getLister().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
     if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
     emit_DFcmpGL_if(single, unorderedGT, bTarget, bc);
   }

@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.MachineRegister;
+import org.jikesrvm.compilers.common.assembler.AbstractLister;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.pragma.Pure;
@@ -31,11 +32,9 @@ import org.vmmagic.pragma.Pure;
  * patched (e.g. jumps, moves and NOPs), the listing will show the original,
  * unpatched version.
  */
-public final class Lister {
+public final class Lister extends AbstractLister {
 
   private static class Line {
-
-    private static final String NEWLINE = System.getProperty("line.separator");
 
     private final StringBuilder lineContent = new StringBuilder(DEFAULT_LINE_SIZE);
 
@@ -581,6 +580,7 @@ public final class Lister {
     return s + t;
   }
 
+  @Override
   public void noteBytecode(int i, String bcode) {
     writeLine("[" + decimal(i) + "] " + bcode);
   }

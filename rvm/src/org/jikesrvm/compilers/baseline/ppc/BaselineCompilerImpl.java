@@ -144,6 +144,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
+import org.jikesrvm.compilers.common.assembler.ppc.Lister;
 import org.jikesrvm.jni.ppc.JNICompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -167,6 +168,7 @@ import org.vmmagic.unboxed.Offset;
 public final class BaselineCompilerImpl extends BaselineCompiler {
 
   final Assembler asm;
+  final Lister lister;
 
   // stackframe pseudo-constants //
   private int frameSize;
@@ -216,11 +218,17 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     emptyStackOffset = getEmptyStackOffset(method);
     fullStackOffset = emptyStackOffset - (method.getOperandWords() << LOG_BYTES_IN_STACKSLOT);
     asm = new Assembler(bcodes.length(),shouldPrint, this, bytecodeMap);
+    lister = asm.getLister();
   }
 
   @Override
   protected AbstractAssembler getAssembler() {
     return asm;
+  }
+
+  @Override
+  protected Lister getLister() {
+    return lister;
   }
 
   @Override

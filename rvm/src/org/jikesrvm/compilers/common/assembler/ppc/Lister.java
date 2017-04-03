@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.common.assembler.AbstractLister;
 import org.jikesrvm.ppc.Disassembler;
 import org.jikesrvm.util.Services;
 
@@ -29,7 +30,7 @@ import org.jikesrvm.util.Services;
  * can be be disassembled by the
  * {@link org.jikesrvm.ppc.Disassembler Jikes RVM PPC disassembler}.
  */
-public final class Lister {
+public final class Lister extends AbstractLister {
 
   private static class Line {
 
@@ -57,8 +58,6 @@ public final class Lister {
    */
   private static final int DEFAULT_LINE_SIZE = 50;
 
-  private static final String NEWLINE = System.getProperty("line.separator");
-
   private final List<Line> lines;
   private final int[] bytecodeMap;
 
@@ -79,6 +78,7 @@ public final class Lister {
    * @param i bytecode index
    * @param bcode string for bytecode
    */
+  @Override
   public void noteBytecode(int i, String bcode) {
     if (VM.VerifyAssertions) VM._assert(bytecodeMap != null,
         "No bytecode map present but bytecodes are used");

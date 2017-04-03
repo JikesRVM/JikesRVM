@@ -321,21 +321,10 @@ public class Assembler extends AbstractAssembler {
     return trimmed;
   }
 
-  /**
-   * Give the lister a message associated with a particular
-   * bytecode.  This is used by the baseline assembler to print the
-   * bytecode associated with portions of machine code.  (The
-   * optimizing compiler does not do this because its association
-   * between bytecodes and generated code is much less direct).
-   *
-   * @param bytecodeNumber the offset of the current bytecode in the
-   *     current method's bytecode array.
-   * @param bc a message descriptive of the current bytecode.
-   */
-  @Override
-  public final void noteBytecode (int bytecodeNumber, String bc) {
-    if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
+  public final Lister getLister() {
+    return lister;
   }
+
   /**
    * Inform the lister of a comment related to the currently
    * generated machine code.
