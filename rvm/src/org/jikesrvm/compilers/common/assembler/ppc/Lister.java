@@ -14,8 +14,10 @@ package org.jikesrvm.compilers.common.assembler.ppc;
 
 import static org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CodeArray;
@@ -58,7 +60,7 @@ public final class Lister extends AbstractLister {
    */
   private static final int DEFAULT_LINE_SIZE = 50;
 
-  private final List<Line> lines;
+  private List<Line> lines;
   private final int[] bytecodeMap;
 
   /**
@@ -160,34 +162,52 @@ public final class Lister extends AbstractLister {
 
   private void addLinesForCode(CodeAccessor code) {
     StringBuilder newLine = new StringBuilder(DEFAULT_LINE_SIZE);
-
     int codeLength = code.length();
-    boolean emptyBeforeCode = lines.size() == 0;
-    int nextInsertPos = -1;
+
+    LinkedList<Line> linesForCode = new LinkedList<Line>();
     for (int instIndex = 0; instIndex < codeLength; instIndex++) {
       int byteIndex = instIndex << LG_INSTRUCTION_WIDTH;
       Line l = createLineFromCode(code.getInstruction(instIndex),
           newLine, byteIndex);
-
-      if (emptyBeforeCode) {
-        lines.add(l);
+        linesForCode.add(l);
         newLine.setLength(0);
-        continue;
-      }
+    }
 
-      for (int lastInsertPos = nextInsertPos; lastInsertPos < lines.size(); lastInsertPos++) {
-        nextInsertPos = lastInsertPos + 1;
-        if (nextInsertPos < lines.size()) {
-          if (byteIndex < lines.get(nextInsertPos).byteIndex) {
-            lines.add(nextInsertPos, l);
-            break;
-          }
+    if (lines.size() == 0) {
+      lines = linesForCode;
+      return;
+    }
+
+    Iterator<Line> oldLines = lines.iterator();
+    ListIterator<Line> codeLines = linesForCode.listIterator();
+    Line lastReturnedOldLine = oldLines.next();
+    Line lastReturnedCodeLine = null;
+
+    while (lastReturnedOldLine.byteIndex <= 0) {
+      codeLines.add(lastReturnedOldLine);
+      lastReturnedOldLine = oldLines.next();
+    }
+
+    while (codeLines.hasNext()) {
+      lastReturnedCodeLine = codeLines.next();
+      if (lastReturnedOldLine.byteIndex <= lastReturnedCodeLine.byteIndex) {
+        codeLines.previous();
+        codeLines.add(lastReturnedOldLine);
+        // no call to next() because there might be multiple lines
+        // to add at a given position
+        if (oldLines.hasNext()) {
+          lastReturnedOldLine = oldLines.next();
         } else {
-          lines.add(l);
           break;
         }
       }
     }
+
+    while (oldLines.hasNext()) {
+      codeLines.add(oldLines.next());
+    }
+
+    lines = linesForCode;
   }
 
   private Line createLineFromCode(int inst, StringBuilder newLine, int byteIndex) {
