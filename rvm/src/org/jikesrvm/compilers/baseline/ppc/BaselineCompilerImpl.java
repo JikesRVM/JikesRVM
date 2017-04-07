@@ -4451,7 +4451,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       fr.resolve(asm);
       pushInt(T0);  // push success of conditional store
     } else if (methodName == MagicNames.attemptLong) {
-      popAddr(T2);  // pop newValue
+      popLong(T3, T2); // pop newValue
       discardSlots(2); // ignore oldValue which is a long and thus takes 2 slots
       popOffset(T1);  // pop offset
       popAddr(T0);  // pop object
