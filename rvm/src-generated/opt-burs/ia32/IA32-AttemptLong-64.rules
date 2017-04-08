@@ -4,15 +4,15 @@
 r:	ATTEMPT_LONG(rlv, OTHER_OPERAND(rlv, OTHER_OPERAND(rlv, rlv)))
 67
 EMIT_INSTRUCTION
-ATTEMPT(Attempt.getClearResult(P(p)), \\
-              MO(Attempt.getClearAddress(P(p)), Attempt.getOffset(P(p)), QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
+ATTEMPT_LONG(Attempt.getClearResult(P(p)), \\
+              MO(Attempt.getClearAddress(P(p)), Attempt.getClearOffset(P(p)), QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
               Attempt.getClearOldValue(P(p)), Attempt.getClearNewValue(P(p)));
 
 r:	ATTEMPT_LONG(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv, rlv)))
 67
 EMIT_INSTRUCTION
 augmentAddress(Attempt.getClearAddress(P(p))); \\
-ATTEMPT(Attempt.getClearResult(P(p)), \\
+ATTEMPT_LONG(Attempt.getClearResult(P(p)), \\
               consumeAddress(QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
               Attempt.getClearOldValue(P(p)), Attempt.getClearNewValue(P(p)));
 
@@ -20,7 +20,7 @@ r:	ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(r, OTHER_OPERAND(rlv, rlv)))
 67
 EMIT_INSTRUCTION
 augmentAddress(Attempt.getOffset(P(p))); \\
-ATTEMPT(Attempt.getClearResult(P(p)), \\
+ATTEMPT_LONG(Attempt.getClearResult(P(p)), \\
               consumeAddress(QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
               Attempt.getClearOldValue(P(p)), Attempt.getClearNewValue(P(p)));
 
@@ -28,7 +28,7 @@ r:	ATTEMPT_LONG(address1scaledreg, OTHER_OPERAND(address1reg, OTHER_OPERAND(rlv,
 67
 EMIT_INSTRUCTION
 combineAddresses(); \\
-ATTEMPT(Attempt.getClearResult(P(p)), \\
+ATTEMPT_LONG(Attempt.getClearResult(P(p)), \\
               consumeAddress(QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
               Attempt.getClearOldValue(P(p)), Attempt.getClearNewValue(P(p)));
 
@@ -36,7 +36,7 @@ r:	ATTEMPT_LONG(address1reg, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(rlv,
 67
 EMIT_INSTRUCTION
 combineAddresses(); \\
-ATTEMPT(Attempt.getClearResult(P(p)), \\
+ATTEMPT_LONG(Attempt.getClearResult(P(p)), \\
               consumeAddress(QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
               Attempt.getClearOldValue(P(p)), Attempt.getClearNewValue(P(p)));
 
@@ -44,7 +44,7 @@ r:	ATTEMPT_LONG(address, OTHER_OPERAND(LONG_CONSTANT, OTHER_OPERAND(rlv, rlv)))
 67
 EMIT_INSTRUCTION
 augmentAddress(Attempt.getOffset(P(p))); \\
-ATTEMPT(Attempt.getClearResult(P(p)), \\
+ATTEMPT_LONG(Attempt.getClearResult(P(p)), \\
               consumeAddress(QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
               Attempt.getClearOldValue(P(p)), Attempt.getClearNewValue(P(p)));
 
@@ -52,7 +52,7 @@ r:	ATTEMPT_LONG(LONG_CONSTANT, OTHER_OPERAND(address, OTHER_OPERAND(rlv, rlv)))
 67
 EMIT_INSTRUCTION
 augmentAddress(Attempt.getClearAddress(P(p))); \\
-ATTEMPT(Attempt.getClearResult(P(p)), \\
+ATTEMPT_LONG(Attempt.getClearResult(P(p)), \\
               consumeAddress(QW, Attempt.getClearLocation(P(p)), Attempt.getClearGuard(P(p))), \\
               Attempt.getClearOldValue(P(p)), Attempt.getClearNewValue(P(p)));
 
