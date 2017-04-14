@@ -24,9 +24,46 @@ import org.vmmagic.unboxed.Word;
 public class TestNullChecks_Resolved {
 
   public static void main(String[] args) {
+    testExplicitNullChecks();
     resolveClassesAndFieldsForNullChecks();
     testNullChecksForResolvedFields();
   }
+
+  private static void printCode(String code) {
+    System.out.print(code);
+    System.out.print(": ");
+  }
+
+  private static void testExplicitNullChecks() {
+    printCode("null == null");
+    System.out.println(null == null);
+    printCode("null != null");
+    System.out.println(null != null);
+
+    Object obj = null;
+    printCode("obj == null");
+    System.out.println(obj == null);
+    ClassWithUnsetObjectField cwuof = null;
+    printCode("cwuof == null");
+    System.out.println(cwuof == null);
+    cwuof = new ClassWithUnsetObjectField();
+    printCode("cwuof == null");
+    System.out.println(cwuof == null);
+    printCode("cwuof.obj == null");
+    System.out.println(cwuof.obj == null);
+    cwuof.obj = new Object();
+    printCode("cwuof.obj == null");
+    System.out.println(cwuof.obj == null);
+
+    ClassWithArrayField cwuaf = new ClassWithArrayField();
+    printCode("cwuaf.array[0] == null");
+    System.out.println(cwuaf.array[0] == null);
+    cwuaf.array[0] = new Object();
+    printCode("cwuaf.array[0] == null");
+    System.out.println(cwuaf.array[0] == null);
+  }
+
+
 
   private static void resolveClassesAndFieldsForNullChecks() {
     ClassWithObjectField cwobjf = new ClassWithObjectField();
@@ -933,6 +970,12 @@ public class TestNullChecks_Resolved {
       this.e = DEFAULT_EXTENT;
     }
     public volatile Extent e;
+  }
+  private static class ClassWithUnsetObjectField {
+    public Object obj;
+  }
+  private static class ClassWithArrayField {
+    public Object[] array = new Object[1];
   }
 
 }

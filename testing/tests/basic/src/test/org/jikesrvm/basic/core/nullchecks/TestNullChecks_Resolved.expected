@@ -1,3 +1,12 @@
+null == null: true
+null != null: false
+obj == null: true
+cwuof == null: true
+cwuof == null: false
+cwuof.obj == null: true
+cwuof.obj == null: false
+cwuaf.array[0] == null: true
+cwuaf.array[0] == null: false
 Caught NPE when reading Object field
 Read object value from field
 Caught NPE when writing Object field
