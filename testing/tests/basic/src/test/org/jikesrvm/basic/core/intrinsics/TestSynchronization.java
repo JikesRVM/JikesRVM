@@ -36,6 +36,10 @@ public class TestSynchronization {
     public Object obj;
   }
 
+  private static class ClassWithObjectArrayField {
+    public Object[] objArray;
+  }
+
   private static class ClassWithIntField {
     public int intVal;
   }
@@ -202,7 +206,7 @@ public class TestSynchronization {
   }
 
   private static void testTryCompareAndSwapObject() throws SecurityException, NoSuchFieldException {
-    System.out.println("--- testTryCompareAndSwapObject ----");
+    System.out.println("--- testTryCompareAndSwapObject (object field) ----");
 
     ClassWithObjectField to = createClassWithObjectField();
     Offset off = java.lang.reflect.JikesRVMSupport.getFieldOf((ClassWithObjectField.class.getField("obj"))).getOffset();
@@ -232,6 +236,36 @@ public class TestSynchronization {
     swap = Synchronization.tryCompareAndSwap(to, off, secondObj, firstObj);
     objectTest("Synchronization.tryCompareAndSwap(to, off, secondObj, firstObj)", to.obj, firstObj);
     booleanTest("return value", swap, false);
+
+    System.out.println("--- testTryCompareAndSwapObject (object array element) ----");
+
+    ClassWithObjectArrayField to2 = createClassWithObjectArrayField();
+    to2.objArray = createNewObjectArray();
+    Offset elementOffset = Offset.zero();
+
+    boolean swapElement = Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, null, firstObj);
+    objectTest("Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, null, firstObj)", to2.objArray[0], firstObj);
+    booleanTest("return value", swapElement, true);
+
+    to2.objArray[0] = firstObj;
+    swapElement = Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, firstObj, secondObj);
+    objectTest("Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, firstObj, secondObj)", to2.objArray[0], secondObj);
+    booleanTest("return value", swapElement, true);
+
+    to2.objArray[0] = secondObj;
+    swapElement = Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, secondObj, null);
+    objectTest("Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, secondObj, null)", to2.objArray[0], null);
+    booleanTest("return value", swapElement, true);
+
+    to2.objArray[0] = null;
+    swapElement = Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, (Object)null, null);
+    objectTest("Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, (Object)null, null)", to2.objArray[0], null);
+    booleanTest("return value", swapElement, true);
+
+    to2.objArray[0] = firstObj;
+    swapElement = Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, secondObj, firstObj);
+    objectTest("Synchronization.tryCompareAndSwap(to2.objArray, elementOffset, secondObj, firstObj)", to2.objArray[0], firstObj);
+    booleanTest("return value", swapElement, false);
   }
 
   @NonMovingAllocation
@@ -240,10 +274,19 @@ public class TestSynchronization {
   }
 
   @NonMovingAllocation
+  private static Object[] createNewObjectArray() {
+    return new Object[1];
+  }
+
+  @NonMovingAllocation
   public static ClassWithObjectField createClassWithObjectField() {
     return new ClassWithObjectField();
   }
 
+  @NonMovingAllocation
+  public static ClassWithObjectArrayField createClassWithObjectArrayField() {
+    return new ClassWithObjectArrayField();
+  }
 
   @NonMovingAllocation
   public static ClassWithIntField createClassWithIntField() {
