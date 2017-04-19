@@ -35,7 +35,7 @@ public final class Constants {
    */
 
   /**
-   *
+   * Modes.
    */
   public static final int INSTANCE_FIELD = 0;
   public static final int ARRAY_ELEMENT = 1;
