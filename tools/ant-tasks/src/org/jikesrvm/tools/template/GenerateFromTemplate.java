@@ -266,14 +266,12 @@ public class GenerateFromTemplate {
       GenerateFromTemplate gft = new GenerateFromTemplate(inStream, outStream);
       gft.setSubst(vars, vals);
       gft.generateOutputFromTemplate();
-    // } catch (IOException e) {
-    //   System.out.println("An error occurred: "+e);
     } finally {
       try {
         inStream.close();
         outStream.close();
       } catch (Exception ignore) {
-        // ignored because there's nothing that can be done here
+        ignore.printStackTrace();
       }
     }
   }
@@ -311,8 +309,10 @@ public class GenerateFromTemplate {
         Vector<Object> region = buildTemplateRegion(inLine);
         processTemplateRegion(region);
       }
+      in.close();
     } finally {
       out.flush();
+      out.close();
     }
   }
 
@@ -1023,6 +1023,7 @@ public class GenerateFromTemplate {
       Vector<Object> newRegion = buildTemplateRegion(inLine);
       processTemplateRegion(newRegion);
     }
+    in.close();
 
     in = old_in;
   }
