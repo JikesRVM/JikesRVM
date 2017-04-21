@@ -75,6 +75,7 @@
     <runCompareTest tag="TestArrayAccess" class="test.org.jikesrvm.basic.core.bytecode.TestArrayAccess"/>
     <runCompareTest tag="TestCompare" class="test.org.jikesrvm.basic.core.bytecode.TestCompare"/>
     <runCompareTest tag="TestThrownException" class="test.org.jikesrvm.basic.core.bytecode.TestThrownException"/>
+    <runCompareTest tag="TestStackOverflow" class="test.org.jikesrvm.basic.core.bytecode.TestStackOverflow"/>
     <runCompareTest tag="TestSwitch" class="test.org.jikesrvm.basic.core.bytecode.TestSwitch"/>
     <runCompareTest tag="TestInvoke" class="test.org.jikesrvm.basic.core.bytecode.TestInvoke"/>
     <runCompareTest tag="TestClassInitializer" class="test.org.jikesrvm.basic.core.bytecode.TestClassInitializer"/>

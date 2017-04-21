@@ -3430,6 +3430,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       // firstLocalOffset is shifted down because more registers are saved
       firstLocalOffset = STACKFRAME_BODY_OFFSET.minus(JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
     } else {
+
+      genStackOverflowCheck();
+
       /* paramaters are on the stack and/or in registers;  There is space
        * on the stack for all the paramaters;  Parameter slots in the
        * stack are such that the first paramater has the higher address,
@@ -3522,24 +3525,6 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
        */
       if (method.isForOsrSpecialization()) {
         return;
-      }
-
-      /*
-       * generate stacklimit check
-       */
-      if (isInterruptible) {
-        // S0<-limit
-        if (VM.BuildFor32Addr) {
-          asm.emitCMP_Reg_RegDisp(SP, TR, Entrypoints.stackLimitField.getOffset());
-        } else {
-          asm.emitCMP_Reg_RegDisp_Quad(SP, TR, Entrypoints.stackLimitField.getOffset());
-        }
-        asm.emitBranchLikelyNextInstruction();
-        ForwardReference fr = asm.forwardJcc(LGT);        // Jmp around trap if OK
-        asm.emitINT_Imm(RuntimeEntrypoints.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE);     // trap
-        fr.resolve(asm);
-      } else {
-        // TODO!! make sure stackframe of uninterruptible method doesn't overflow guard page
       }
 
       if (!VM.runningTool && ((BaselineCompiledMethod) compiledMethod).hasCounterArray()) {
@@ -3646,6 +3631,84 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         asm.emitRET_Imm(parameterWords << LG_WORDSIZE);
       }
     }
+  }
+
+  private void genStackOverflowCheck() {
+    /*
+     * Generate stacklimit check.
+     *
+     * NOTE: The stack overflow check MUST happen before the frame is created.
+     * If the check were to happen after frame creation, the stack pointer
+     * could already be well below the stack limit. This would be a problem
+     * because the IA32 stack overflow handling code imposes a bound on the
+     * difference between the stack pointer and the stack limit.
+     *
+     * NOTE: Frame sizes for the baseline compiler can get very large because
+     * each non-parameter local slot and each slot for the operand stack
+     * requires one machine word.
+     *
+     * The Java Virtual Machine Specification has an overview of the limits for
+     * the local words and operand words in section 4.11,
+     * "Limitations of the Java Virtual Machine".
+     */
+    if (isInterruptible) {
+      int frameSize = calculateRequiredSpaceForFrame(method);
+      // S0<-limit
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_Reg_Reg(S0, ESP);
+        asm.emitSUB_Reg_Imm(S0, frameSize);
+        asm.emitCMP_Reg_RegDisp(S0, TR, Entrypoints.stackLimitField.getOffset());
+      } else {
+        asm.emitMOV_Reg_Reg_Quad(S0, ESP);
+        asm.emitSUB_Reg_Imm_Quad(S0, frameSize);
+        asm.emitCMP_Reg_RegDisp_Quad(S0, TR, Entrypoints.stackLimitField.getOffset());
+      }
+      asm.emitBranchLikelyNextInstruction();
+      ForwardReference fr = asm.forwardJcc(LGT);        // Jmp around trap if OK
+      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE);     // trap
+      fr.resolve(asm);
+    } else {
+      // TODO!! make sure stackframe of uninterruptible method doesn't overflow guard page
+    }
+  }
+
+  /**
+   * Calculates the space that is required for creating a frame for the
+   * given method, in bytes. This quantity is necessary to be able to do
+   * a stack overflow check before creating the frame.
+   * <p>
+   * Note that this method doesn't return the complete frame size:
+   * the parameters are in the caller's frame for the baseline compiler
+   * and the caller's frame has already been created when the callee is
+   * called. The additional space that's required is necessary
+   *
+   * @param method a method with bytecodes
+   * @return space required to create the frame, in bytes
+   */
+  public static int calculateRequiredSpaceForFrame(NormalMethod method) {
+    int frameWords = 3; // method id, EDI, EDX
+
+    if (method.hasBaselineSaveLSRegistersAnnotation()) {
+      frameWords++; // EBP
+    }
+
+    if (method.getDeclaringClass().hasDynamicBridgeAnnotation()) {
+      frameWords += 2; // T0, T1
+      if (SSE2_FULL) {
+        frameWords += (BASELINE_XMM_STATE_SIZE / WORDSIZE);
+      } else {
+        frameWords += (X87_FPU_STATE_SIZE / WORDSIZE);
+      }
+    }
+
+    frameWords += method.getOperandWords();
+    frameWords += method.getLocalWords();
+    // parameters are in the caller's frame so they don't
+    // count towards the space for the method's frame
+    frameWords -= method.getParameterWords();
+    if (!method.isStatic()) frameWords--;
+
+    return frameWords * WORDSIZE;
   }
 
   /**

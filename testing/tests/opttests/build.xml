@@ -74,6 +74,7 @@
     <runCompareTest tag="BURSPatterns" class="test.org.jikesrvm.opttests.burs.BURSPatterns"/>
     <runCompareTest tag="Long_And" class="test.org.jikesrvm.opttests.optimizations.Long_And"/>
     <runCompareTest tag="Long_Add" class="test.org.jikesrvm.opttests.optimizations.Long_Add"/>
+    <runCompareTest tag="TestStackOverflowOpt" class="test.org.jikesrvm.opttests.optimizations.TestStackOverflowOpt"/>
 
     <successMessageTest tag="FloatingPoint_NaN" class="test.org.jikesrvm.opttests.optimizations.FloatingPoint_NaN"/>
 
