@@ -36,7 +36,6 @@ import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_MUST_IMPLEMENT;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_NULL_POINTER;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_REGENERATE;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_STACK_OVERFLOW;
-import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_STACK_OVERFLOW_FATAL;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_STORE_CHECK;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
 
@@ -641,7 +640,6 @@ public final class Simple extends CompilerPhase {
       case TRAP_DIVIDE_BY_ZERO:
       case TRAP_MUST_IMPLEMENT:
       case TRAP_STORE_CHECK:
-      case TRAP_STACK_OVERFLOW_FATAL:
         return true;
       // code in the same basic block after the instruction might be reachable
       case TRAP_STACK_OVERFLOW:
