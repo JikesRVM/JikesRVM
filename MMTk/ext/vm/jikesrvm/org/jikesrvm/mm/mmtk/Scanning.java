@@ -211,6 +211,6 @@ public final class Scanning extends org.mmtk.vm.Scanning {
 
   @Override
   public boolean supportsReturnBarrier() {
-    return VM.BuildForIA32 && VM.BuildFor32Addr;
+    return VM.BuildForIA32;
   }
 }

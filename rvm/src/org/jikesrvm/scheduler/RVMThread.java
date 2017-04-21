@@ -3219,6 +3219,8 @@ public final class RVMThread extends ThreadContext {
             break;
         }
       }
+      if (VM.VerifyAssertions) VM._assert(t.hijackedReturnCalleeFp.EQ(hijackedFp),
+          "No matching thread found");
       return t.hijackedReturnAddress;
   }
 
