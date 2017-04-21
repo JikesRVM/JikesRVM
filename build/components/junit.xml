@@ -14,9 +14,9 @@
 
   <import file="base.xml"/>
 
-  <property name="junit.version" value="4.10"/>
+  <property name="junit.version" value="4.12"/>
   <property name="junit.description" value="jUnit"/>
-  <property name="junit.web-archive" value="junit${junit.version}.zip"/>
+  <property name="junit.web-archive" value="junit-${junit.version}.jar"/>
 
   <property name="junit.package.dir" value="${components.dir}/junit/${junit.version}"/>
   <property name="junit.dir" location="${junit.package.dir}/junit${junit.version}"/>
@@ -35,14 +35,14 @@
   <target name="fetch" depends="init-junit-properties" if="junit.from-web">
     <mkdir dir="${junit.package.dir}"/>
     <cachedGet key="${junit.web-archive}"
-         src="http://downloads.sourceforge.net/project/junit/junit/${junit.version}/${junit.web-archive}"
+         src="https://github.com/junit-team/junit4/releases/download/r${junit.version}/${junit.web-archive}"
          dest="${junit.package.dir}/${junit.web-archive}"/>
-    <unzip src="${junit.package.dir}/${junit.web-archive}" dest="${junit.package.dir}"/>
+    <copy file="${junit.package.dir}/${junit.web-archive}" todir="${junit.dir}"/>
     <writeComponentConstants dir="${junit.dir}"/>
   </target>
 
   <target name="build" depends="fetch">
-    <setComponentsConfig key="junit.jar" value="${junit.dir}/junit-${junit.version}.jar"/>
+    <setComponentsConfig key="junit.jar" value="${junit.dir}/${junit.web-archive}"/>
   </target>
 
   <target name="ensure" depends="prepare-ant-tasks">
