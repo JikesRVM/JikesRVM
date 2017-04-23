@@ -1970,11 +1970,6 @@ public final class Instruction {
     return false;
   }
 
-  public void copySourcePositionFrom(Instruction other) {
-    this.bcIndex = other.bcIndex;
-    this.position = other.position;
-  }
-
   public void setSourcePosition(int bcIndex, InlineSequence position) {
     this.bcIndex = bcIndex;
     this.position = position;

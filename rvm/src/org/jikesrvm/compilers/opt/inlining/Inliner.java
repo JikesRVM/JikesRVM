@@ -201,13 +201,13 @@ public class Inliner {
         // note where we're storing the osr barrier instruction
         Instruction lastOsrBarrier = parent.getOSRBarrierFromInst(callSite);
         Instruction s = BC2IR._osrHelper(lastOsrBarrier, parent);
-        s.copySourcePositionFrom(callSite);
+        s.copyPosition(callSite);
         testFailed.appendInstruction(s);
         testFailed.insertOut(parent.getExit());
       } else {
         Instruction call = callSite.copyWithoutLinks();
         Call.getMethod(call).setIsGuardedInlineOffBranch(true);
-        call.copySourcePositionFrom(callSite);
+        call.copyPosition(callSite);
         testFailed.appendInstruction(call);
         testFailed.insertOut(container.getEpilogue());
         // This is ugly....since we didn't call BC2IR to generate the
