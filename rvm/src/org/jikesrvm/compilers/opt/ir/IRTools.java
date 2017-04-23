@@ -29,7 +29,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.INT_COND_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_COND_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MOVE;
@@ -702,8 +701,24 @@ public abstract class IRTools {
    * @param oldPrologue the old prologue instruction
    */
   public static void removeDefsFromPrologue(Instruction oldPrologue) {
+    if (VM.VerifyAssertions) Prologue.conforms(oldPrologue);
     // Now that we've made the calling convention explicit in the prologue,
     // set IR_PROLOGUE to have no defs.
-    oldPrologue.replace(Prologue.create(IR_PROLOGUE, 0));
+    oldPrologue.replace(createNewPrologueInst(oldPrologue, 0));
   }
+
+  /**
+   * Replaces a prologue instruction with another prologue instruction
+   * that has a different number of variable operands.
+   *
+   * @param oldPrologue the old prologue instruction
+   * @param newNumVarOps the new number of variable operands
+   */
+  public static Instruction createNewPrologueInst(Instruction oldPrologue, int newNumVarOps) {
+    if (VM.VerifyAssertions) Prologue.conforms(oldPrologue);
+    Instruction newPrologue = Prologue.create(oldPrologue.operator(), newNumVarOps);
+    newPrologue.copyPosition(oldPrologue);
+    return newPrologue;
+  }
+
 }

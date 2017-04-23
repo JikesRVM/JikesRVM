@@ -17,7 +17,6 @@ import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_CMPL;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_CMPL;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
@@ -3318,7 +3317,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
         }
       }
       if (numLongs != 0) {
-        Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals + numLongs);
+        Instruction s2 = createNewPrologueInst(s, numFormals + numLongs);
         for (int sidx = 0, s2idx = 0; sidx < numFormals; sidx++) {
           RegisterOperand sForm = Prologue.getClearFormal(s, sidx);
           if (sForm.getType().isLongType()) {
