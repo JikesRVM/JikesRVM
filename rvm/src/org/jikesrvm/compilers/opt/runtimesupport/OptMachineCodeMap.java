@@ -673,7 +673,9 @@ public final class OptMachineCodeMap {
       String sep = "\tMC: ";
       if (isBigEntry(entry)) sep = "B\tMC: ";
       if (isHugeEntry(entry)) sep = "H\tMC: ";
-      VM.sysWrite(entry + sep + getMCOffset(entry));
+      int mcOffset = getMCOffset(entry);
+      VM.sysWrite(entry + sep + mcOffset +
+          " (" + Integer.toHexString(mcOffset) + ")");
       int bci = getBytecodeIndex(entry);
       if (bci != -1) {
         VM.sysWriteln();
