@@ -400,6 +400,14 @@ public final class Instruction {
     }
   }
 
+  public InlineSequence position() {
+    return position;
+  }
+
+  public void setPosition(InlineSequence position) {
+    this.position = position;
+  }
+
   /**
    * Set the source position description ({@link #bcIndex},
    * {@link #position}) for this instruction to be the same as the
@@ -410,6 +418,11 @@ public final class Instruction {
   public void copyPosition(Instruction source) {
     bcIndex = source.bcIndex;
     position = source.position;
+  }
+
+  public void setSourcePosition(int bcIndex, InlineSequence position) {
+    this.bcIndex = bcIndex;
+    this.position = position;
   }
 
   /**
@@ -429,6 +442,11 @@ public final class Instruction {
   public void setBytecodeIndex(int bci) {
     bcIndex = bci;
   }
+
+  public void adjustBytecodeIndex(int delta) {
+    bcIndex += delta;
+  }
+
 
   /**
    * Return the instruction's operator.
@@ -1968,23 +1986,6 @@ public final class Instruction {
       return LocationCarrier.getLocation(this).mayBeVolatile();
     }
     return false;
-  }
-
-  public void setSourcePosition(int bcIndex, InlineSequence position) {
-    this.bcIndex = bcIndex;
-    this.position = position;
-  }
-
-  public void adjustBytecodeIndex(int delta) {
-    bcIndex += delta;
-  }
-
-  public InlineSequence position() {
-    return position;
-  }
-
-  public void setPosition(InlineSequence position) {
-    this.position = position;
   }
 
 }
