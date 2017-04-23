@@ -57,7 +57,6 @@ import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
@@ -308,9 +307,7 @@ public abstract class CallingConvention extends IRTools {
       }
     }
 
-    // Now that we've made the calling convention explicit in the prologue,
-    // set IR_PROLOGUE to have no defs.
-    prologueInstr.replace(Prologue.create(IR_PROLOGUE, 0));
+    removeDefsFromPrologue(prologueInstr);
   }
 
   /**

@@ -45,7 +45,6 @@ import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
@@ -813,9 +812,7 @@ public abstract class CallingConvention extends IRTools {
       VM._assert(VM.NOT_REACHED, msg);
     }
 
-    // Now that we've made the calling convention explicit in the prologue,
-    // set IR_PROLOGUE to have no defs.
-    p.replace(Prologue.create(IR_PROLOGUE, 0));
+    removeDefsFromPrologue(p);
   }
 
 }

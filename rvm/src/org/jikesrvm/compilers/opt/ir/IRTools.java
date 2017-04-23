@@ -29,6 +29,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.INT_COND_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_COND_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MOVE;
@@ -691,5 +692,18 @@ public abstract class IRTools {
    */
   public static boolean mayBeVolatileFieldLoad(Instruction s) {
     return s.mayBeVolatileFieldLoad();
+  }
+
+  /**
+   * Replaces a prologue instruction with another prologue instruction
+   * that has no definitions. This is used by the classes that expand
+   * the calling convention.
+   *
+   * @param oldPrologue the old prologue instruction
+   */
+  public static void removeDefsFromPrologue(Instruction oldPrologue) {
+    // Now that we've made the calling convention explicit in the prologue,
+    // set IR_PROLOGUE to have no defs.
+    oldPrologue.replace(Prologue.create(IR_PROLOGUE, 0));
   }
 }
