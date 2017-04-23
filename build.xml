@@ -12,8 +12,8 @@
  -->
 <project name="JikesRVM" default="main" basedir=".">
 
-  <property name="rvm.version" value="3.1.4+git"/>
-  <!-- <property name="git.revision" value="XXX"/> -->
+  <property name="rvm.version" value="3.1.4"/>
+  <property name="git.revision" value="2f8d54c6ac12c720c92f9fe18d925315e4685bac"/>
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
