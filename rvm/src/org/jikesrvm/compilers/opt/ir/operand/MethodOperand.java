@@ -13,10 +13,12 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.specialization.SpecializedMethod;
 import org.vmmagic.unboxed.Offset;
 
@@ -151,13 +153,18 @@ public final class MethodOperand extends Operand {
   }
 
   /**
-   * create a method operand for an INVOKE_STATIC bytecode
-   * where the target method is known at compile time.
+   * Creates a method operand for an INVOKESTATIC bytecode
+   * where the target method is known at compile time AND
+   * where the target method doesn't have Java source code.
    *
-   * @param target the RVMMethod to call
+   * @param target field that has the address of the method
+   *  to call
    * @return the newly created method operand
    */
   public static MethodOperand STATIC(RVMField target) {
+    TypeReference type = target.getType();
+    if (VM.VerifyAssertions) VM._assert(type.isCodeArrayType() ||
+        type == TypeReference.Address);
     return new MethodOperand(target.getMemberRef(), null, STATIC);
   }
 
