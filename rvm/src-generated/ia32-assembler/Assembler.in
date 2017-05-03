@@ -1580,7 +1580,11 @@ public class Assembler extends AbstractAssembler {
 
   public final void emitMFENCE() {
     emitLockNextInstruction();
-    emitADD_RegInd_Imm(ESP, 0);
+    if (VM.buildFor32Addr()) {
+      emitADD_RegInd_Imm(ESP, 0);
+    } else {
+      emitADD_RegInd_Imm_Quad(ESP, 0);
+    }
     /**
      * The above has the same semantics, but with better performance as a true MFENCE:
      * setMachineCodes(mi++,(byte) 0x0F);
