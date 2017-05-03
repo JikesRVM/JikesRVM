@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.common.assembler.ia32.Lister;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.ia32.OutOfLineMachineCode;
-import org.jikesrvm.ia32.RegisterConstants;
 import org.jikesrvm.ia32.RegisterConstants.IntelMachineRegister;
 import org.jikesrvm.objectmodel.JavaHeader;
 
@@ -1580,7 +1579,6 @@ public class Assembler extends AbstractAssembler {
   }
 
   public final void emitMFENCE() {
-  	int miStart = mi;
     emitLockNextInstruction();
     emitADD_RegInd_Imm(ESP, 0);
     /**
