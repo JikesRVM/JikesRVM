@@ -627,14 +627,14 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
    */
   sp = IA32_ESP(context);
   stackLimit = *(Address *)(threadPtr + RVMThread_stackLimit_offset);
-  if (sp <= stackLimit - 384) {
+  if (sp <= stackLimit - Constants_MAX_DIFFERENCE_TO_STACK_LIMIT) {
     ERROR_PRINTF("sp (%p) too far below stackLimit (%p) to recover\n", (void*)sp, (void*)stackLimit);
     signal(signo, SIG_DFL);
     raise(signo);
     // We should never get here.
     sysExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
   }
-  sp = stackLimit - 384;
+  sp = stackLimit - Constants_MAX_DIFFERENCE_TO_STACK_LIMIT;
   stackLimit -= Constants_STACK_SIZE_GUARD;
   *(Address *)(threadPtr + RVMThread_stackLimit_offset) = stackLimit;
 

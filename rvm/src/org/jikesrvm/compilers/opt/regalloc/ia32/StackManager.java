@@ -93,6 +93,30 @@ import org.vmmagic.unboxed.Offset;
 public final class StackManager extends GenericStackManager {
 
   /**
+   * the minimum size that a frame must have to be considered
+   * a big frame for a stack overflow check. In contrast to
+   * a small frame, a big frame is not allowed to leak into the
+   * guard region of the stack.
+   */
+  private static final int BIG_FRAME_MINIMUM_SIZE = 256;
+
+  /**
+   * the amount of bytes that a stack pointer is allowed
+   * to differ from the stack limit beyond {@link #BIG_FRAME_MINIMUM_SIZE}.
+   * <p>
+   * This was set based on the historic values so it's probably
+   * safe to change this if you have appropriate test cases.
+   */
+  private static final int HISTORIC_SAFETY_MARGIN = 128;
+
+  /**
+   * the maximum difference between the stack pointer and the stack limit
+   * that can possibly occur when handling a stack overflow
+   */
+  public static final int MAX_DIFFERENCE_TO_STACK_LIMIT = BIG_FRAME_MINIMUM_SIZE +
+      HISTORIC_SAFETY_MARGIN;
+
+  /**
    * A frame offset for 108 bytes of stack space to store the
    * floating point state in the SaveVolatile protocol.
    */
@@ -490,14 +514,14 @@ public final class StackManager extends GenericStackManager {
 
     // I. Buy a stackframe (including overflow check)
     // NOTE: We play a little game here.  If the frame we are buying is
-    //       very small (less than 256) then we can be sloppy with the
+    //       very small then we can be sloppy with the
     //       stackoverflow check and actually allocate the frame in the guard
     //       region.  We'll notice when this frame calls someone and take the
     //       stackoverflow in the callee. We can't do this if the frame is too big,
     //       because growing the stack in the callee and/or handling a hardware trap
     //       in this frame will require most of the guard region to complete.
-    //       See libvm.C.
-    if (frameFixedSize >= 256) {
+    //       See sysSignal_ia32.c
+    if (frameFixedSize >= BIG_FRAME_MINIMUM_SIZE) {
       // 1. Insert Stack overflow check.
       insertBigFrameStackOverflowCheck(plg);
 
