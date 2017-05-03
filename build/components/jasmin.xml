@@ -1,0 +1,63 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="jasmin" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <!-- Sourceforge version. Ancient but there are binary downloads so we don't have to build it -->
+  <property name="jasmin.version" value="2.4"/>
+  <property name="jasmin.url" value="http://sourceforge.net/projects/jasmin/files/jasmin/jasmin-${jasmin.version}/${jasmin.web-archive}/download?use_mirror=autoselect"/>
+  <property name="jasmin.description" value="Jasmin - a Java assembler"/>
+
+  <!-- GitHub version provided by Soot. Note: can't use this right now because we'd have to write
+  code to build it
+  <property name="jasmin.version" value="2017-02-06"/>
+  <property name="jasmin.description" value="Jasmin - a Java assembler (Soot version)"/>
+  <property name="jasmin.url" value="https://github.com/Sable/jasmin/archive/0a181c0bc3e9fd2b3f4f9f5d7d047bed54d2f5a2.zip"/>
+  -->
+
+  <property name="jasmin.package.dir" value="${components.dir}/jasmin/${jasmin.version}"/>
+  <property name="jasmin.dir" location="${jasmin.package.dir}/jasmin-${jasmin.version}"/>
+
+  <target name="init-jasmin-properties" depends="prepare-ant-tasks">
+    <condition property="jasmin.from-web" value="true">
+      <or>
+        <not>
+          <available file="${jasmin.dir}/constants.properties"/>
+        </not>
+        <isset property="jasmin.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-jasmin-properties" if="jasmin.from-web">
+    <property name="jasmin.web-archive" value="jasmin-${jasmin.version}.zip"/>
+    <mkdir dir="${jasmin.package.dir}"/>
+    <cachedGet key="${jasmin.web-archive}"
+         src="${jasmin.url}"
+         dest="${jasmin.package.dir}/${jasmin.web-archive}"/>
+    <unzip src="${jasmin.package.dir}/${jasmin.web-archive}" dest="${jasmin.package.dir}"/>
+    <writeComponentConstants dir="${jasmin.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="jasmin.dir" value="${jasmin.dir}"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="jasmin" dir="${jasmin.dir}"/>
+    <setComponentsConfig key="jasmin.dir" value="${jasmin.dir}"/>
+  </target>
+
+</project>

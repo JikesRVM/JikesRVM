@@ -1,0 +1,46 @@
+.source RVM_1017.java
+.class public RVM_1017
+.super java/lang/Object
+
+.field public static final INTCONST I = 16
+
+.field private intvar I
+
+
+.method public <init>()V
+    .limit stack 1
+    .limit locals 1
+    aload_0
+    invokespecial java/lang/Object/<init>()V
+    return
+.end method
+
+.method public static main([Ljava/lang/String;)V
+    .limit stack 2
+    .limit locals 1
+    new RVM_1017
+    dup
+    invokespecial RVM_1017/<init>()V
+    invokevirtual RVM_1017/failure()Z
+    pop
+    return
+.end method
+
+.method public synchronized failure()Z
+    .limit stack 2
+    .limit locals 1
+    aload_0
+    getfield RVM_1017/intvar I
+    bipush 16
+    if_icmpne label0
+    iconst_1
+    istore_0
+    goto label1
+label0:
+    iconst_0
+    istore_0
+label1:
+    iload_0
+    ireturn
+.end method
+

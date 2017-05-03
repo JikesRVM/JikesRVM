@@ -1,0 +1,76 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="jasmin_based" default="test" basedir=".">
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}/src"/>
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="ensure-jasmin">
+    <ant antfile="jasmin.xml" dir="${jikesrvm.dir}/build/components" target="ensure"/>
+    <property file="${components.file}"/>
+  </target>
+
+  <target name="compile" depends="init,ensure-jasmin">
+    <fileset dir="${main.java}" id="jasmin-inputs">
+       <include name="**/*.j*"/>
+       <exclude name="**/*.java"/>
+     </fileset>
+     <pathconvert property="jasmin-input-files" refid="jasmin-inputs" pathsep=" "/>
+     <echo>${jasmin-input-files}</echo>
+
+    <!-- Generate class files using Jasmin -->
+    <java jar="${jasmin.dir}/jasmin.jar" fork="true">
+      <arg value="-d"/>
+      <arg value="${build.classes}"/>
+      <arg line="${jasmin-input-files}"/>
+    </java>
+    <!-- Jasmin assembles classes in a folder matching package structure. This is not
+     what is needed for the tests, so the files need to be moved. -->
+    <move todir="${build.classes}">
+      <fileset dir="${build.classes}" includes="test/**/*.class"/>
+    </move>
+
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" includeantruntime="false" source="1.6" target="1.6">
+      <classpath>
+        <pathelement path="${test.rvm.dir}/jksvm.jar"/>
+      </classpath>
+    </javac>
+
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <startResults/>
+
+    <runCompareTest tag="RVM1017" class="test.org.jikesrvm.jasmin_based.RVM1017"/>
+    <runCompareTest tag="RVM_1017" class="RVM_1017"/>
+
+    <finishResults/>
+  </target>
+
+</project>
