@@ -1180,8 +1180,6 @@ public final class RVMThread extends ThreadContext {
   /** In dump stack and dying */
   protected static boolean exitInProgress = false;
 
-  private static boolean worldStopped;
-
   /** Extra debug from traces */
   protected static final boolean traceDetails = false;
 
@@ -4094,7 +4092,6 @@ public final class RVMThread extends ThreadContext {
         handshakeThreads[i] = null; // help GC
       }
     }
-    worldStopped = true;
 
     processAboutToTerminate(); /*
                                 * ensure that any threads that died while
@@ -4129,7 +4126,6 @@ public final class RVMThread extends ThreadContext {
     handshakeLock.lockWithHandshake();
 
     RVMThread current = getCurrentThread();
-    worldStopped = false;
     acctLock.lockNoHandshake();
     int numToHandshake = 0;
     for (int i = 0; i < numThreads;++i) {
@@ -4163,10 +4159,6 @@ public final class RVMThread extends ThreadContext {
   @Unpreemptible
   public static void hardHandshakeResume() {
     hardHandshakeResume(handshakeBlockAdapter,allButGC);
-  }
-
-  public static boolean worldStopped() {
-    return worldStopped;
   }
 
   /**
