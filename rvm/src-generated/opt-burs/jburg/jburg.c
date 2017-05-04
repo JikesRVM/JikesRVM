@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
   if (outfp == stdout) {
     fflush(stdout);
   } else {
-    fclose(stdout);
+    fclose(outfp);
   }
   while (memlist) {   /* for purify */
     struct block *q = memlist->link;
