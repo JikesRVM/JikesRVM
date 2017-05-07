@@ -230,3 +230,19 @@ load8_16_32_64:	load8_16_32
 NOFLAGS
 // no code emitted
 
+#####
+# FLOAT_ALOAD
+#####
+float_load: FLOAT_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), DW_S, DW));
+
+#####
+# DOUBLE_ALOAD
+#####
+double_load: DOUBLE_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), QW_S, QW));
+
