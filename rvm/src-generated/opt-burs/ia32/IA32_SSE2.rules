@@ -253,6 +253,12 @@ r: DOUBLE_ALOAD(rlv, rlv)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOVSD, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));
 
+# x64
+double_load: DOUBLE_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), QW_S, QW));
+
 double_load: DOUBLE_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
@@ -272,6 +278,12 @@ float_load: FLOAT_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), DW));
+
+# x64
+float_load: FLOAT_ALOAD(rlv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), DW_S, DW));
 
 r: FLOAT_ALOAD(riv, riv)
 15
