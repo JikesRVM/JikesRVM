@@ -62,6 +62,7 @@ Projects with code changes and additional information
 * [A minimal implementation of causal profiling for Java applications running on Jikes RVM](https://github.com/alanweide/coff)
 * [Velodrome: a sound and complete dynamic atomicity checker for multithreaded programs](https://github.com/palmskog/velodrome)
 * [DoubleChecker: Efficient Sound and Precise Atomicity Checking](https://github.com/palmskog/doublechecker-single-run)
+* [Java Object Environment](https://github.com/joekoolade/JOE)
 
 Projects with code changes but without any additional information
 * [https://github.com/vilay/check](https://github.com/vilay/check)
