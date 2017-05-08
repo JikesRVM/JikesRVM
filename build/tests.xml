@@ -277,6 +277,9 @@
       <replace file="${build.tests.dir}/deleteme.txt" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
       <concat destfile="${results.file}" append="true">
         <path path="${build.tests.dir}/deleteme.txt"/>
+        <filterchain>
+          <deletecharacters chars="\f"/>
+        </filterchain>
       </concat>
       <res>]]<![CDATA[></output>]]></res>
     </sequential>
