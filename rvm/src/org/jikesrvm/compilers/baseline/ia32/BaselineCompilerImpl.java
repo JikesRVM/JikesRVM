@@ -199,10 +199,6 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   }
 
   /**
-   * This is misnamed.  It should be getFirstParameterOffset.
-   * It will not work as a base to access true locals.
-   * TODO!! make sure it is not being used incorrectly
-   *
    * @param method the method in question
    *
    * @return offset of first parameter
