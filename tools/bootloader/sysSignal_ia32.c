@@ -240,7 +240,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
   int rex_w_byte = 0;
 
   if (!inRVMAddressSpace(faultingInstructionAddress)) {
-    ERROR_PRINTF("%s: Failing instruction starting at %x wasn't in RVM address space\n",
+	ERROR_PRINTF("%s: Failing instruction starting at %zx wasn't in RVM address space\n",
         Me, faultingInstructionAddress);
     return (Address) -1;
   }
@@ -405,7 +405,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
       size++;
       break;
     default:
-      ERROR_PRINTF("%s: Unhandled opcode 0x%x during decoding of instruction at %x, stopped decoding\n",
+      ERROR_PRINTF("%s: Unhandled opcode 0x%x during decoding of instruction at %zx, stopped decoding\n",
           Me, (unsigned int) opcode, faultingInstructionAddress);
       return (Address) 0;
   }
@@ -464,7 +464,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
         size += decodeModRMLength(modrmAddr);
         break;
       default:
-        ERROR_PRINTF("%s: Unhandled opcode 0x%x during decoding of second opcode byte of two-byte opcode from instruction at %x, stopped decoding\n",
+        ERROR_PRINTF("%s: Unhandled opcode 0x%x during decoding of second opcode byte of two-byte opcode from instruction at %zx, stopped decoding\n",
             Me, (unsigned int) opcode, faultingInstructionAddress);
         return (Address) 0;
       }
@@ -656,7 +656,7 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
   sp = sp - __SIZEOF_POINTER__; /* next parameter is trap info */
   ((Word *)sp)[0] = trapInfo;
   IA32_EDX(context) = trapInfo;
-  VERBOSE_SIGNALS_PRINTF("%s: trap info is %x\n", Me, trapInfo);
+  VERBOSE_SIGNALS_PRINTF("%s: trap info is %zx\n", Me, trapInfo);
 
   sp = sp - __SIZEOF_POINTER__; /* return address - looks like called from failing instruction */
   *(Address *) sp = instructionFollowingPtr;
@@ -749,8 +749,8 @@ EXTERNAL void dumpContext(void *context)
   ERROR_PRINTF("gs            %p\n", (void*)IA32_GS(context));
   ERROR_PRINTF("ss            %p\n", (void*)IA32_SS(context));
 #endif
-  ERROR_PRINTF("trapno        0x%08x\n", IA32_TRAPNO(context));
-  ERROR_PRINTF("err           0x%08x\n", IA32_ERR(context));
+  ERROR_PRINTF("trapno        0x%08x\n", (unsigned int)IA32_TRAPNO(context));
+  ERROR_PRINTF("err           0x%08x\n", (unsigned int)IA32_ERR(context));
   ERROR_PRINTF("eflags        0x%08x\n", (int)IA32_EFLAGS(context));
   /* null if fp registers haven't been used yet */
 #ifndef RVM_FOR_OSX

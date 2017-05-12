@@ -466,8 +466,8 @@ int createVM(int vmInSeparateThread)
     TRACE_PRINTF("   bootImageCodeEnd:     %p\n", (void *)bootRecord->bootImageCodeEnd);
     TRACE_PRINTF("   bootImageRMapStart:   %p\n", (void *)bootRecord->bootImageRMapStart);
     TRACE_PRINTF("   bootImageRMapEnd:     %p\n", (void *)bootRecord->bootImageRMapEnd);
-    TRACE_PRINTF("   initialHeapSize:      %d\n", bootRecord->initialHeapSize);
-    TRACE_PRINTF("   maximumHeapSize:      %d\n", bootRecord->maximumHeapSize);
+    TRACE_PRINTF("   initialHeapSize:      %zu\n", bootRecord->initialHeapSize);
+    TRACE_PRINTF("   maximumHeapSize:      %zu\n", bootRecord->maximumHeapSize);
     TRACE_PRINTF("   spRegister:           %p\n", (void *)bootRecord->spRegister);
     TRACE_PRINTF("   ipRegister:           %p\n", (void *)bootRecord->ipRegister);
     TRACE_PRINTF("   tocRegister:          %p\n", (void *)bootRecord->tocRegister);

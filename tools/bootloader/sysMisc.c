@@ -231,7 +231,7 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
     CONSOLE_PRINTF( "\tPlease specify %s as follows:\n", sizeName);
     CONSOLE_PRINTF( "\t    in bytes, using \"-X%s<positive number>\",\n", sizeFlag);
     CONSOLE_PRINTF( "\tor, in kilobytes, using \"-X%s<positive number>K\",\n", sizeFlag);
-    CONSOLE_PRINTF( "\tor, in virtual memory pages of %u bytes, using\n"
+    CONSOLE_PRINTF( "\tor, in virtual memory pages of %zu bytes, using\n"
                     "\t\t\"-X%s<positive number>pages\",\n", pageSize,
                     sizeFlag);
     CONSOLE_PRINTF( "\tor, in megabytes, using \"-X%s<positive number>M\",\n", sizeFlag);
@@ -240,7 +240,7 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
     if (roundTo != 1) {
       CONSOLE_PRINTF( "  The # of bytes will be rounded up to a multiple of");
       if (roundTo == pageSize) CONSOLE_PRINTF( "\n  the virtual memory page size: ");
-      CONSOLE_PRINTF( "%u\n", roundTo);
+      CONSOLE_PRINTF( "%zu\n", roundTo);
     }
     return 0U;              // Distinguished value meaning trouble.
   }
@@ -254,8 +254,8 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
   if (tot % roundTo) {
     Extent newTot = tot + roundTo - (tot % roundTo);
     CONSOLE_PRINTF(
-      "%s: Rounding up %s size from %u bytes to %u,\n"
-      "\tthe next multiple of %u bytes%s\n",
+      "%s: Rounding up %s size from %zu bytes to %zu,\n"
+      "\tthe next multiple of %zu bytes%s\n",
       Me, sizeName, tot, newTot, roundTo,
       roundTo == pageSize ?
       ", the virtual memory page size" : "");

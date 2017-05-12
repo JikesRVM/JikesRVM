@@ -509,7 +509,7 @@ int main(int argc, const char **argv)
   // it's needed to parse command line options
   pageSize = (Extent) determinePageSize();
   if (pageSize <= 0) {
-    ERROR_PRINTF("RunBootImage.main(): invalid page size %u", pageSize);
+    ERROR_PRINTF("RunBootImage.main(): invalid page size %zu", pageSize);
     exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
   }
 
