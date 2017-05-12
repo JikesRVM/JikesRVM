@@ -315,6 +315,15 @@ EXTERNAL void sysSyncCache(void *address, size_t size)
 
   /* context synchronization */
   asm("isync");
+#elif defined RVM_FOR_ARM
+  if (size < 0) {
+    ERROR_PRINTF("%s: tried to sync a region of negative size!\n", Me);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
+
+  uintptr_t start = (uintptr_t)address;
+  uintptr_t end = start + size;
+  __clear_cache(start, end); // ARM cache clear routines are kernel-mode only. This is a GCC call that invokes them
 #endif
 }
 

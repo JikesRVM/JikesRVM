@@ -512,7 +512,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -732,7 +732,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -806,7 +806,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -880,7 +880,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -954,7 +954,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1028,7 +1028,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1102,7 +1102,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1176,7 +1176,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1250,7 +1250,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1324,7 +1324,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1398,7 +1398,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1464,7 +1464,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1542,7 +1542,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1620,7 +1620,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1698,7 +1698,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1776,7 +1776,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1854,7 +1854,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -1932,7 +1932,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -2010,7 +2010,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -2088,7 +2088,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -2166,7 +2166,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -2727,7 +2727,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -2799,7 +2799,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -2871,7 +2871,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -2943,7 +2943,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -3015,7 +3015,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -3087,7 +3087,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -3160,7 +3160,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -3232,7 +3232,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -3304,7 +3304,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -3376,7 +3376,7 @@ public class JNIFunctions {
    * NOTE:  the vararg's are not visible in the method signature here; they are saved
    *        in the caller frame and the glue frame
    * <p>
-   * <strong>NOTE: This implementation is NOT used for IA32. On IA32, it is overwritten
+   * <strong>NOTE: This implementation is NOT used for IA32 and ARM. It is overwritten
    * with a C implementation in the bootloader when the VM starts.</strong>
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object

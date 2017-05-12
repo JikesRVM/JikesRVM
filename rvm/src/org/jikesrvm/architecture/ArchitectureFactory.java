@@ -19,18 +19,25 @@ public final class ArchitectureFactory {
   public static AbstractRegisters createRegisters() {
     if (VM.BuildForIA32) {
       return new org.jikesrvm.ia32.Registers();
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return new org.jikesrvm.ppc.Registers();
+    } else if (VM.BuildForARM) {
+      return new org.jikesrvm.arm.Registers();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 
   public static void initOutOfLineMachineCode() {
     if (VM.BuildForIA32) {
       org.jikesrvm.ia32.OutOfLineMachineCode.init();
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       org.jikesrvm.ppc.OutOfLineMachineCode.init();
+    } else if (VM.BuildForARM) {
+      org.jikesrvm.arm.OutOfLineMachineCode.init();
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 }

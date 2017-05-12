@@ -130,9 +130,13 @@ public class DynamicLinker {
         Object targetObject;
         if (VM.BuildForIA32) {
           targetObject = org.jikesrvm.ia32.DynamicLinkerHelper.getReceiverObject();
-        } else {
-          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        } else if (VM.BuildForPowerPC) {
           targetObject = org.jikesrvm.ppc.DynamicLinkerHelper.getReceiverObject();
+        } else if (VM.BuildForARM) {
+          targetObject = org.jikesrvm.arm.DynamicLinkerHelper.getReceiverObject();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          targetObject = null;
         }
         VM.enableGC();
         RVMClass targetClass = Magic.getObjectType(targetObject).asClass();
@@ -178,9 +182,13 @@ public class DynamicLinker {
         Object targetObject;
         if (VM.BuildForIA32) {
           targetObject = org.jikesrvm.ia32.DynamicLinkerHelper.getReceiverObject();
-        } else {
-          if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        } else if (VM.BuildForPowerPC) {
           targetObject = org.jikesrvm.ppc.DynamicLinkerHelper.getReceiverObject();
+        } else if (VM.BuildForARM) {
+          targetObject = org.jikesrvm.arm.DynamicLinkerHelper.getReceiverObject();
+        } else {
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          targetObject = null;
         }
         VM.enableGC();
         RVMClass recvClass = (RVMClass) Magic.getObjectType(targetObject);

@@ -65,6 +65,8 @@ public class CompilerDNA {
     } else if (VM.BuildForIA32) {
       compilationRates = new double[]{909.46,               // base
                                       39.53, 18.48, 17.28}; // opt 0...2
+    } else if (VM.BuildForARM) {
+      throw new RuntimeException("ARM NOT IMPLEMENTED");
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       compilationRates = null;
@@ -83,6 +85,8 @@ public class CompilerDNA {
     } else if (VM.BuildForIA32) {
       speedupRates = new double[]{1.00,               // base
                                   4.03, 5.88, 5.93};  // opt 0...2
+    } else if (VM.BuildForARM) {
+      throw new RuntimeException("ARM NOT IMPLEMENTED");
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       speedupRates = null;

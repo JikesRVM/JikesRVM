@@ -131,9 +131,13 @@ public class Reflection {
     int triple = 0;
     if (VM.BuildForIA32) {
       triple = org.jikesrvm.ia32.MachineReflection.countParameters(method);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       triple = org.jikesrvm.ppc.MachineReflection.countParameters(method);
+    } else if (VM.BuildForARM) {
+      triple = org.jikesrvm.arm.MachineReflection.countParameters(method);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      triple = 0;
     }
     int gprs = triple & REFLECTION_GPRS_MASK;
     WordArray GPRs = (gprs > 0) ? WordArray.create(gprs) : emptyWordArray;
@@ -205,9 +209,12 @@ public class Reflection {
     CodeArray code = cm.getEntryCodeArray();
     if (VM.BuildForIA32) {
       org.jikesrvm.ia32.MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       org.jikesrvm.ppc.MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    } else if (VM.BuildForARM) {
+      org.jikesrvm.arm.MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 
     // critical: no yieldpoints/GCpoints between here and the invoke of code!

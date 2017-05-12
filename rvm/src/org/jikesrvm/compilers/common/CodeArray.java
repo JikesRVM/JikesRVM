@@ -24,6 +24,8 @@ import org.vmmagic.pragma.Uninterruptible;
 public final class CodeArray {
   /** backing array for PPC code arrays during boot image creation */
   private final int[] ppc_data;
+  /** backing array for ARM code arrays during boot image creation */
+  private final int[] arm_data;
   /** backing array for x86 code arrays during boot image creation */
   private final byte[] x86_data;
 
@@ -32,11 +34,17 @@ public final class CodeArray {
     if (VM.BuildForIA32) {
       x86_data = new byte[size];
       ppc_data = null;
+      arm_data = null;
     } else if (VM.BuildForPowerPC) {
       ppc_data = new int[size];
       x86_data = null;
+      arm_data = null;
+    } else if (VM.BuildForARM) {
+      arm_data = new int[size];
+      x86_data = null;
+      ppc_data = null;
     } else {
-      throw new Error("Should not reach here");
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
@@ -44,8 +52,13 @@ public final class CodeArray {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     if (VM.BuildForIA32) {
       return x86_data[index];
-    } else {
+    } else if (VM.BuildForPowerPC) {
       return ppc_data[index];
+    } else if (VM.BuildForARM) {
+      return arm_data[index];
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return 0;
     }
   }
 
@@ -55,8 +68,12 @@ public final class CodeArray {
       byte bv = (byte)v;
       if (VM.VerifyAssertions) VM._assert(v == bv);
       x86_data[index] = bv;
-    } else {
+    } else if (VM.BuildForPowerPC) {
       ppc_data[index] = v;
+    } else if (VM.BuildForARM) {
+      arm_data[index] = v;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
@@ -64,8 +81,13 @@ public final class CodeArray {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     if (VM.BuildForIA32) {
       return x86_data.length;
-    } else {
+    } else if (VM.BuildForPowerPC) {
       return ppc_data.length;
+    } else if (VM.BuildForARM) {
+      return arm_data.length;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return 0;
     }
   }
 
@@ -73,8 +95,13 @@ public final class CodeArray {
     if (!VM.writingImage) VM.sysFail("CodeArray.getBacking called when not writing boot image");
     if (VM.BuildForIA32) {
       return x86_data;
-    } else {
+    } else if (VM.BuildForPowerPC) {
       return ppc_data;
+    } else if (VM.BuildForARM) {
+      return arm_data;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return null;
     }
   }
 

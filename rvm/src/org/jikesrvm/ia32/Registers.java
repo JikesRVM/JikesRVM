@@ -130,7 +130,7 @@ public final class Registers extends AbstractRegisters {
    */
   @Uninterruptible
   @Override
-  public void adjustESP(Offset delta, boolean traceAdjustments) {
+  public void adjustStackPointer(Offset delta, boolean traceAdjustments) {
     Word old = getGPRs().get(ESP.value());
     getGPRs().set(ESP.value(), old.plus(delta));
     if (traceAdjustments) {

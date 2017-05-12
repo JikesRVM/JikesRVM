@@ -22,9 +22,13 @@ public class ArchConstants {
   public static int getLogInstructionWidth() {
     if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.RegisterConstants.LG_INSTRUCTION_WIDTH;
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.RegisterConstants.LG_INSTRUCTION_WIDTH;
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.RegisterConstants.LG_INSTRUCTION_WIDTH;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return 0;
     }
   }
 
@@ -32,9 +36,13 @@ public class ArchConstants {
   public static int getNumberOfGPRs() {
     if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.RegisterConstants.NUM_GPRS;
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.RegisterConstants.NUM_GPRS;
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.RegisterConstants.NUM_GPRS;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return 0;
     }
   }
 
@@ -42,9 +50,13 @@ public class ArchConstants {
   public static int getNumberOfFPRs() {
     if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.RegisterConstants.NUM_FPRS;
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.RegisterConstants.NUM_FPRS;
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.RegisterConstants.NUM_FPRS;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return 0;
     }
   }
 
@@ -52,9 +64,13 @@ public class ArchConstants {
   public static int getInstructionWidth() {
     if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.RegisterConstants.INSTRUCTION_WIDTH;
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+    } else if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.RegisterConstants.INSTRUCTION_WIDTH;
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.RegisterConstants.INSTRUCTION_WIDTH;
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return 0;
     }
   }
 

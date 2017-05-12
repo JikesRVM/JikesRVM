@@ -2432,10 +2432,12 @@ public class BootImageWriter {
         byte[] values = (byte[]) jdkObject;
         for (int i = 0; i < arrayCount; ++i)
           bootImage.setByte(arrayImageAddress.plus(i), values[i]);
-      } else {
+      } else if (VM.BuildForPowerPC || VM.BuildForARM) {
         int[] values = (int[]) jdkObject;
         for (int i = 0; i < arrayCount; ++i)
           bootImage.setFullWord(arrayImageAddress.plus(i << LOG_BYTES_IN_INT), values[i]);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     } else if (rvmElementType.equals(RVMType.AddressType)) {
       Address[] values = (Address[]) jdkObject;

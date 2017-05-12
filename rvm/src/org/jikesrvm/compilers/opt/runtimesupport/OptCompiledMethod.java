@@ -429,6 +429,8 @@ public final class OptCompiledMethod extends CompiledMethod {
   public int getNumberOfNonvolatileGPRs() {
     if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
     } else if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS - getFirstNonVolatileGPR();
     } else if (VM.VerifyAssertions) {
@@ -443,6 +445,8 @@ public final class OptCompiledMethod extends CompiledMethod {
   public int getNumberOfNonvolatileFPRs() {
     if (VM.BuildForPowerPC) {
       return org.jikesrvm.ppc.RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
+    } else if (VM.BuildForARM) {
+      return org.jikesrvm.arm.RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
     } else if (VM.BuildForIA32) {
       return org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS - getFirstNonVolatileFPR();
     } else if (VM.VerifyAssertions) {
@@ -454,6 +458,8 @@ public final class OptCompiledMethod extends CompiledMethod {
   public void setNumberOfNonvolatileGPRs(short n) {
     if (VM.BuildForPowerPC) {
       setFirstNonVolatileGPR(org.jikesrvm.ppc.RegisterConstants.NUM_GPRS - n);
+    } else if (VM.BuildForARM) {
+      setFirstNonVolatileGPR(org.jikesrvm.arm.RegisterConstants.NUM_GPRS - n);
     } else if (VM.BuildForIA32) {
       setFirstNonVolatileGPR(org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS - n);
     } else if (VM.VerifyAssertions) {
@@ -464,6 +470,8 @@ public final class OptCompiledMethod extends CompiledMethod {
   public void setNumberOfNonvolatileFPRs(short n) {
     if (VM.BuildForPowerPC) {
       setFirstNonVolatileFPR(org.jikesrvm.ppc.RegisterConstants.NUM_FPRS - n);
+    } else if (VM.BuildForARM) {
+      setFirstNonVolatileFPR(org.jikesrvm.arm.RegisterConstants.NUM_FPRS - n);
     } else if (VM.BuildForIA32) {
       setFirstNonVolatileFPR(org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_FPRS - n);
     } else if (VM.VerifyAssertions) {
@@ -539,6 +547,8 @@ public final class OptCompiledMethod extends CompiledMethod {
             patchMap[idx++] = (patchPoint >> ArchConstants.getLogInstructionWidth()) - 1;
             patchMap[idx++] =
                 (newTarget - patchPoint + (1 << ArchConstants.getLogInstructionWidth()));
+          } else if (VM.BuildForARM) {
+            throw new RuntimeException("ARM NOT IMPLEMENTED");
           } else if (VM.VerifyAssertions) {
             VM._assert(VM.NOT_REACHED);
           }
@@ -561,13 +571,15 @@ public final class OptCompiledMethod extends CompiledMethod {
           org.jikesrvm.compilers.common.assembler.ia32.Assembler.patchCode(code, patchMap[idx], patchMap[idx + 1]);
         } else if (VM.BuildForPowerPC) {
           org.jikesrvm.compilers.opt.mir2mc.ppc.AssemblerOpt.patchCode(code, patchMap[idx], patchMap[idx + 1]);
+        } else if (VM.BuildForARM) {
+          throw new RuntimeException("ARM NOT IMPLEMENTED");
         } else if (VM.VerifyAssertions) {
           VM._assert(VM.NOT_REACHED);
         }
       }
 
-      if (VM.BuildForPowerPC) {
-        // we need synchronization on PPC to handle the weak memory model
+      if (VM.BuildForPowerPC || VM.BuildForARM) {
+        // we need synchronization on PPC and ARM to handle the weak memory model
         // and its icache/dcache synchronization requirements.
         // Before the class loading finishes, other processors must get
         // synchronized.
@@ -593,6 +605,8 @@ public final class OptCompiledMethod extends CompiledMethod {
         if (DEBUG_CODE_PATCH) {
           VM.sysWriteln("all processors got synchronized!");
         }
+      } else if (VM.VerifyAssertions) {
+        VM._assert(VM.BuildForIA32); // No synchronisation needed on IA32
       }
 
     }

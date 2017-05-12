@@ -314,13 +314,22 @@ EXTERNAL void sysStartMainThread(jboolean vmInSeparateThread, Address ip, Addres
   *(Address*)sp = Constants_STACKFRAME_SENTINEL_FP; /* STACKFRAME_FRAME_POINTER_OFFSET */
   sp -= __SIZEOF_POINTER__;
   ((Address *)sp)[0] = Constants_INVISIBLE_METHOD_ID;    /* STACKFRAME_METHOD_ID_OFFSET */
-#else
+#elif defined RVM_FOR_ARM
+  // See BaselineCompilerImpl for a diagram of what the stack looks like
+  Address fp = sp - Constants_STACKFRAME_PARAMETER_OFFSET;
+  *(Address *)(fp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = 0xdeadbabe;
+  *(int *)(fp + Constants_STACKFRAME_METHOD_ID_OFFSET) = Constants_INVISIBLE_METHOD_ID;
+  *(Address *)(fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET) = Constants_STACKFRAME_SENTINEL_FP;
+  sp = fp; // sp here means frame pointer, the value of the actual SP is recalculated in sysThreadStartup() below
+#elif defined RVM_FOR_POWERPC
   Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
   fp = fp & ~(Constants_STACKFRAME_ALIGNMENT -1);     // align fp
   *(Address *)(fp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = ip;
   *(int *)(fp + Constants_STACKFRAME_METHOD_ID_OFFSET) = Constants_INVISIBLE_METHOD_ID;
   *(Address *)(fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET) = Constants_STACKFRAME_SENTINEL_FP;
   sp = fp;
+#else
+  #error invalid architecture 
 #endif
 
   /* create arguments - memory reclaimed in sysThreadStartup */
@@ -504,6 +513,10 @@ EXTERNAL void * sysThreadStartup(void *args)
 #ifdef RVM_FOR_IA32 /* TODO: refactor */
     *(Address *)(tr + Thread_framePointer_offset) = fp;
     fp = fp + Constants_STACKFRAME_BODY_OFFSET;
+#elif defined RVM_FOR_ARM
+#elif defined RVM_FOR_POWERPC
+#else
+ #error invalid architecture
 #endif
   } else {
     sigStack = sysStartMainThreadSignals();
@@ -512,7 +525,17 @@ EXTERNAL void * sysThreadStartup(void *args)
   TRACE_PRINTF("%s: sysThreadStartup: booting\n", Me);
 
   // branch to vm code
+#ifdef RVM_FOR_IA32
   bootThread((void*)ip, (void*)tr, (void*)fp, (void*)jtoc);
+#elif defined RVM_FOR_POWERPC
+  bootThread((void*)ip, (void*)tr, (void*)fp, (void*)jtoc);
+#elif defined RVM_FOR_ARM
+  Address sp = fp + Constants_STACKFRAME_END_OF_FRAME_OFFSET; // See MachineSpecificARM.java
+  bootThread((void*)ip, (void*)tr, (void*)fp, (void*)sp, (void*)jtoc);
+#else
+ #error invalid architecture
+#endif
+  
   // not reached
   ERROR_PRINTF("%s: sysThreadStartup: failed\n", Me);
 #ifdef RVM_FOR_HARMONY
@@ -782,8 +805,14 @@ EXTERNAL void sysMonitorBroadcast(Word _monitor)
 EXTERNAL void sysThreadTerminate()
 {
   TRACE_PRINTF("%s: sysThreadTerminate\n", Me);
-#ifdef RVM_FOR_POWERPC
+#ifdef RVM_FOR_IA32
+  // No sync required
+#elif defined RVM_FOR_POWERPC
   asm("sync");
+#elif defined RVM_FOR_ARM
+  asm("DSB");
+#else
+ #error invalid architecture
 #endif
 #ifdef RVM_FOR_HARMONY
   hythread_detach(NULL);

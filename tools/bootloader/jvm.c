@@ -445,7 +445,7 @@ int createVM(int vmInSeparateThread)
   /* write syscall linkage information into boot record */
   setLinkage(bootRecord);
 
-#ifndef RVM_FOR_POWERPC
+#ifdef RVM_FOR_IA32
   /*
    * Add C defined JNI functions into the JNI function table,
    * overwriting existing Java-based definitions. That's not
@@ -453,6 +453,11 @@ int createVM(int vmInSeparateThread)
    * and PPC can use the Java-based definitions.
    */
   sysSetJNILinkage();
+#elif defined RVM_FOR_POWERPC
+#elif defined RVM_FOR_ARM
+  sysSetJNILinkage();
+#else
+ #error invalid architecture
 #endif
 
   /* Initialize system call routines and side data structures */

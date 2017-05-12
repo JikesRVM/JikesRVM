@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Information associated with artifical stackframe inserted at the
- * transition from Jave to JNI Native C.
+ * transition from Java to JNI Native C.
  * <p>
  * Exception delivery should never see Native C frames, or the Java to C
  * transition frame.  Native C code is redispatched during exception
@@ -49,6 +49,7 @@ public final class JNICompiledMethod extends CompiledMethod {
       }
     } else {
       deliverer = null;
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC || VM.BuildForARM);
     }
   }
 
@@ -70,7 +71,7 @@ public final class JNICompiledMethod extends CompiledMethod {
   @Override
   @Uninterruptible
   public ExceptionDeliverer getExceptionDeliverer() {
-    // this method should never get called on PPC
+    // this method should never get called on PPC or ARM
     if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32);
     return deliverer;
   }

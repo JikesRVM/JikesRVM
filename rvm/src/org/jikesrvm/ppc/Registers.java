@@ -30,7 +30,6 @@ import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
 
 /**
  * The machine state comprising a thread's execution context.
@@ -133,12 +132,7 @@ public final class Registers extends AbstractRegisters {
 
   @Uninterruptible
   @Override
-  public void adjustESP(Offset delta, boolean traceAdjustments) {
-    Word old = getGPRs().get(FRAME_POINTER.value());
-    getGPRs().set(FRAME_POINTER.value(), old.plus(delta));
-    if (traceAdjustments) {
-      VM.sysWrite(" esp =");
-      VM.sysWrite(getGPRs().get(FRAME_POINTER.value()));
-    }
+  public void adjustStackPointer(Offset delta, boolean traceAdjustments) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); // No stack pointer on PPC, only frame pointer
   }
 }
