@@ -13,6 +13,7 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import org.jikesrvm.adaptive.util.AOSOptions;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -28,11 +29,13 @@ public final class CounterBasedSampling {
    * Holds the value that is used to reset the global counter after
    * a sample is taken.
    */
+  @Entrypoint
   static int resetValue = 100;
 
   /**
    *  The global counter.
    */
+  @Entrypoint
   static int globalCounter = resetValue;
 
   /**

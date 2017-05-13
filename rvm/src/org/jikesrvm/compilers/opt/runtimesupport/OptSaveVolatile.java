@@ -91,6 +91,7 @@ public class OptSaveVolatile {
    * Wrapper to save/restore volatile registers when a class needs to be
    * dynamically loaded/resolved/etc.
    */
+  @Entrypoint
   @Interruptible
   public static void resolve() throws NoClassDefFoundError {
     VM.disableGC();

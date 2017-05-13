@@ -90,6 +90,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.MagicNames;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -155,6 +156,7 @@ final class BaselineMagic {
    * @param value the reference to check
    */
   @SuppressWarnings("unused")
+  @Entrypoint
   @Uninterruptible
   private static void check(ObjectReference value) {
     if (!inCheck) {

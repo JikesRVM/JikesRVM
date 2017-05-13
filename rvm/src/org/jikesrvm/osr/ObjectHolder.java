@@ -17,6 +17,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -78,6 +79,7 @@ public class ObjectHolder {
    *
    * Get the object handed in before, only called by specialized code.
    */
+  @Entrypoint
   @Inline
   public static Object getRefAt(int h, int i) {
 
@@ -94,6 +96,7 @@ public class ObjectHolder {
    * Clean objects. This method is called by specialized bytecode prologue
    * Uses magic because it must be uninterruptible
    */
+  @Entrypoint
   @Inline
   public static void cleanRefs(int h) {
     if (VM.TraceOnStackReplacement) {

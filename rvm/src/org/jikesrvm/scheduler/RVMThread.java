@@ -588,6 +588,7 @@ public final class RVMThread extends ThreadContext {
    * For builds using counter-based sampling. This field holds a
    * processor-specific counter so that it can be updated efficiently on SMP's.
    */
+  @Entrypoint
   public int thread_cbs_counter;
 
   /**
@@ -639,29 +640,32 @@ public final class RVMThread extends ThreadContext {
   /**
    * Place to save register state when this thread is not actually running.
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   @Untraced
   public final AbstractRegisters contextRegisters;
   @SuppressWarnings("unused")
+  @Entrypoint(fieldMayBeFinal = true)
   private final AbstractRegisters contextRegistersShadow;
 
   /**
    * Place to save register state when this thread is not actually running.
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   @Untraced
   public final AbstractRegisters contextRegistersSave;
   @SuppressWarnings("unused")
+  @Entrypoint(fieldMayBeFinal = true)
   private final AbstractRegisters contextRegistersSaveShadow;
 
   /**
    * Place to save register state during hardware(C signal trap handler) or
    * software (RuntimeEntrypoints.athrow) trap handling.
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   @Untraced
   private final AbstractRegisters exceptionRegisters;
   @SuppressWarnings("unused")
+  @Entrypoint(fieldMayBeFinal = true)
   private final AbstractRegisters exceptionRegistersShadow;
 
   /** Count of recursive uncaught exceptions, we need to bail out at some point */
@@ -1141,7 +1145,7 @@ public final class RVMThread extends ThreadContext {
    * Used to transfer x87 to SSE registers on IA32
    */
   @SuppressWarnings({ "unused" })
-  // accessed via EntryPoints
+  @Entrypoint
   private double scratchStorage;
 
   /**
@@ -1159,6 +1163,7 @@ public final class RVMThread extends ThreadContext {
    * Flag set by external signal to request debugger activation at next thread
    * switch. See also: sysSignal.c
    */
+  @Entrypoint
   public static volatile boolean debugRequested;
 
   public volatile boolean asyncDebugRequestedForThisThread;
@@ -2751,7 +2756,7 @@ public final class RVMThread extends ThreadContext {
    */
   @Interruptible
   @SuppressWarnings({ "unused" })
-  // Called by back-door methods.
+  @Entrypoint
   private static void startoff() {
     bindIfRequested();
 

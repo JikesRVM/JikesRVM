@@ -28,4 +28,12 @@ import org.vmmagic.Pragma;
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Documented
 @Pragma
-public @interface Entrypoint { }
+public @interface Entrypoint {
+
+  /**
+   * @return whether the field for this entrypoint may be final
+   *  (no effect on methods)
+   */
+  boolean fieldMayBeFinal() default false;
+
+}

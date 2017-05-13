@@ -97,30 +97,37 @@ public abstract class OutOfLineMachineCode {
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEAXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEBXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkECXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEDXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEBPInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkESIInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEDIInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})

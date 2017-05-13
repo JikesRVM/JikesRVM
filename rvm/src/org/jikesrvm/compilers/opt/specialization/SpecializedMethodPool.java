@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.specialization;
 
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * This class holds the static array of pointers to instructions
@@ -22,6 +23,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 public final class SpecializedMethodPool {
   private static final int SPECIALIZED_METHOD_COUNT = 1024;
   static int specializedMethodCount = 0;
+  @Entrypoint
   static CodeArray[] specializedMethods = new CodeArray[SPECIALIZED_METHOD_COUNT];
 
   public int getSpecializedMethodCount() {

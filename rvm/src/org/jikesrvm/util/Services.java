@@ -22,6 +22,7 @@ import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Synchronization;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
@@ -46,10 +47,11 @@ public class Services {
   /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
   private static final char[] dumpBuffer = new char[MAX_DUMP_LEN];
 
-  @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via EntryPoints
+  @Entrypoint
   private static int dumpBufferLock = 0;
 
   /** Reset at boot time. */
+  @Entrypoint
   private static Offset dumpBufferLockOffset = Offset.max();
 
   /**
@@ -79,6 +81,7 @@ public class Services {
 
   /** A lock for {@link #intBuffer} */
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via EntryPoints
+  @Entrypoint
   private static int intBufferLock = 0;
 
   /** The offset of {@link #intBufferLock} in this class's TIB.

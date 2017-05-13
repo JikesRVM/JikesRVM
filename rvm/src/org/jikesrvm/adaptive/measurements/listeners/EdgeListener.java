@@ -20,6 +20,7 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -60,11 +61,13 @@ public class EdgeListener extends ContextListener {
   /**
    * Number of samples taken so far
    */
+  @Entrypoint
   protected int samplesTaken;
 
   /**
    * Number of times update is called
    */
+  @Entrypoint
   protected int updateCalled;
 
   /**

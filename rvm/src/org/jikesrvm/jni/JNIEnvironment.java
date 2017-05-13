@@ -80,7 +80,7 @@ public final class JNIEnvironment {
    */
   @SuppressWarnings({"unused", "UnusedDeclaration"})
   // used by native code
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   private final Address externalJNIFunctions =
       VM.BuildForPower64ELF_ABI ? Magic.objectAsAddress(linkageTriplets) : Magic.objectAsAddress(JNIFunctions);
 
@@ -98,7 +98,7 @@ public final class JNIEnvironment {
    */
   @Entrypoint
   @Untraced
-  private final Address savedJTOC = VM.BuildForPowerPC ? Magic.getTocPointer() : Address.zero();
+  private Address savedJTOC = VM.BuildForPowerPC ? Magic.getTocPointer() : Address.zero();
 
   /**
    * When native code doesn't maintain a base pointer we can't chain
@@ -125,6 +125,8 @@ public final class JNIEnvironment {
    * Currently pending exception (null if none)
    */
   private Throwable pendingException;
+  @SuppressWarnings("unused")
+  @Entrypoint
   private int hasPendingException;
 
   /**

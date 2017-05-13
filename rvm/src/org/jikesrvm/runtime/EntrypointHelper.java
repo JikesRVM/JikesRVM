@@ -53,6 +53,7 @@ public class EntrypointHelper {
 
       RVMMember member;
       if ((member = cls.findDeclaredField(memName, memDescriptor)) != null) {
+        verifyThatFieldIsNotFinal((RVMField) member);
         verifyPresenceOfEntrypointAnnotation(member);
         return member;
       }
@@ -77,11 +78,49 @@ public class EntrypointHelper {
     return null;
   }
 
+  private static void verifyThatFieldIsNotFinal(RVMField field) {
+    if (field.isFinal() && field.isAnnotationPresent(Entrypoint.class) &&
+        !field.getAnnotation(Entrypoint.class).fieldMayBeFinal()) {
+      String msg = "ERROR: Field " + field +
+          " is marked with @Entrypoint annotation and is final." +
+          "This is forbidden because the Java compiler views a final field " +
+          "as immutable which it likely won't be if it's " +
+          "explicitly accessed by code. If it's indeed final, use " +
+          "@Entrypoint(fieldMayBeFinal = true) to mark the field.";
+      throw new Error(msg);
+    }
+  }
+
   private static void verifyPresenceOfEntrypointAnnotation(RVMMember member) {
     if (VM.VerifyAssertions && !(member.isAnnotationPresent(Entrypoint.class))) {
-      String msg = "WARNING: MISSING @Entrypoint ANNOTATION: " + member +
-          " is missing an @Entrypoint annotation!";
-        VM.sysWriteln(msg);
+      // For certain methods, it's clear that they're accessed by the
+      // compiler, so an annotation is not required:
+      boolean annotationRequired = true;
+      if (member instanceof RVMMethod) {
+        RVMMethod m = (RVMMethod) member;
+        RVMClass declClass = m.getDeclaringClass();
+        if (declClass.getTypeRef().isMagicType() ||
+            declClass.getTypeRef().isUnboxedType() ||
+            // don't impose constraints on class library methods,
+            // it's the VM's job to handle those correctly
+            declClass.getPackageName().startsWith("java.lang")) {
+          annotationRequired = false;
+        }
+      }
+      // Don't require annotations on fields for the class library.
+      if (member instanceof RVMField) {
+        RVMField field = (RVMField) member;
+        RVMClass declClass = field.getDeclaringClass();
+        if (declClass.getPackageName().startsWith("java.lang")) {
+          annotationRequired = false;
+        }
+      }
+
+      if (annotationRequired) {
+        String msg = "WARNING: MISSING @Entrypoint ANNOTATION: " + member +
+            " is missing an @Entrypoint annotation!";
+          throw new Error(msg);
+      }
     }
   }
 
@@ -119,6 +158,7 @@ public class EntrypointHelper {
 
         RVMMethod method = cls.findDeclaredMethod(member, descriptor);
         if (method != null) {
+          verifyPresenceOfEntrypointAnnotation(method);
           return method;
         }
       } catch (Throwable t) {
@@ -167,6 +207,8 @@ public class EntrypointHelper {
 
         RVMField field = cls.findDeclaredField(memName, typeName);
         if (field != null) {
+          verifyPresenceOfEntrypointAnnotation(field);
+          verifyThatFieldIsNotFinal(field);
           return field;
         }
       } catch (Throwable t) {
@@ -197,6 +239,8 @@ public class EntrypointHelper {
 
         RVMField field = cls.findDeclaredField(memName, typeName);
         if (field != null) {
+          verifyPresenceOfEntrypointAnnotation(field);
+          verifyThatFieldIsNotFinal(field);
           return field;
         }
       } catch (Throwable t) {
@@ -227,6 +271,7 @@ public class EntrypointHelper {
 
         NormalMethod m = (NormalMethod)cls.findDeclaredMethod(memName, memDescriptor);
         if (m != null) {
+          verifyPresenceOfEntrypointAnnotation(m);
           m.setRuntimeServiceMethod(true);
           return m;
         }
