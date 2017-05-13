@@ -302,7 +302,7 @@ public final class RVMThread extends ThreadContext {
 
   /** Registers used by return barrier trampoline */
   @Entrypoint
-  private final AbstractRegisters trampolineRegisters = ArchitectureFactory.createRegisters();
+  private AbstractRegisters trampolineRegisters = ArchitectureFactory.createRegisters();
 
   /** Return address of stack frame hijacked by return barrier */
   @Entrypoint
