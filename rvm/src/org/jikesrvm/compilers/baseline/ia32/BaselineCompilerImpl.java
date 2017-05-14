@@ -527,8 +527,14 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitAND_Reg_Reg(T0, T0); // clear MSBs
     }
     genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
-    // push [S0+T0<<2]
-    asm.emitPUSH_RegIdx(S0, T0, WORD, NO_SLOT);
+    if (VM.BuildFor32Addr) {
+      // push [S0+T0<<2]
+      asm.emitPUSH_RegIdx(S0, T0, WORD, NO_SLOT);
+    } else {
+      // T1 = [S0+T0<<2] NB: must use 32-bit memory access!
+      asm.emitMOV_Reg_RegIdx(T1, S0, T0, WORD, NO_SLOT);
+      asm.emitPUSH_Reg(T1); // push int on stack
+    }
   }
 
   @Override
