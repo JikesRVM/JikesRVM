@@ -1047,7 +1047,7 @@ if ($save_space) {
   $cleanUpCmd = $cleanUpCmd."mv $localRoot/$resultdir/tests  $localRoot/results/buildit/latest/ ; ";
 
   # Remove result files that won't be archived.
-  $cleanUpCmd = $cleanUpCmd."rm -rf $resultdir \"'";
+  $cleanUpCmd = $cleanUpCmd."rm -rf $localRoot/$resultdir \"'";
 
 
   print "$cleanUpCmd\n";
