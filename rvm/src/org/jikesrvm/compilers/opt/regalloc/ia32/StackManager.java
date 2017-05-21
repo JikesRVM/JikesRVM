@@ -101,20 +101,10 @@ public final class StackManager extends GenericStackManager {
   private static final int BIG_FRAME_MINIMUM_SIZE = 256;
 
   /**
-   * the amount of bytes that a stack pointer is allowed
-   * to differ from the stack limit beyond {@link #BIG_FRAME_MINIMUM_SIZE}.
-   * <p>
-   * This was set based on the historic values so it's probably
-   * safe to change this if you have appropriate test cases.
-   */
-  private static final int HISTORIC_SAFETY_MARGIN = 128;
-
-  /**
    * the maximum difference between the stack pointer and the stack limit
-   * that can possibly occur when handling a stack overflow
+   * that can possibly occur when handling a stack overflow for opt frames
    */
-  public static final int MAX_DIFFERENCE_TO_STACK_LIMIT = BIG_FRAME_MINIMUM_SIZE +
-      HISTORIC_SAFETY_MARGIN;
+  public static final int MAX_DIFFERENCE_TO_STACK_LIMIT = BIG_FRAME_MINIMUM_SIZE;
 
   /**
    * A frame offset for 108 bytes of stack space to store the

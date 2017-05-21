@@ -635,6 +635,7 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
     sysExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
   }
   sp = stackLimit - Constants_MAX_DIFFERENCE_TO_STACK_LIMIT;
+  stackLimit -= Constants_RED_ZONE_SIZE;
   stackLimit -= Constants_STACK_SIZE_GUARD;
   *(Address *)(threadPtr + RVMThread_stackLimit_offset) = stackLimit;
 

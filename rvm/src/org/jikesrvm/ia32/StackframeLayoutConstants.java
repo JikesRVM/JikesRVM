@@ -231,6 +231,15 @@ public final class StackframeLayoutConstants {
 
   public static final int STACK_SIZE_JNINATIVE_GROW = 0; // TODO!!;
 
+  /**
+   * The
+   * "System V Application Binary Interface AMD64 Architecture Processor Supplement"
+   * mandates that signal and interrupt handlers don't modify the
+   * 128 bytes beyond the stack pointer. This area is known as
+   * the red zone.
+   */
+  public static final int RED_ZONE_SIZE = 128;
+
   private StackframeLayoutConstants() {
     // prevent instantiation
   }
