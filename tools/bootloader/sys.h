@@ -136,6 +136,7 @@ EXTERNAL void sysConsoleWriteChar(unsigned value);
 EXTERNAL void sysConsoleWriteInteger(int value, int hexToo);
 EXTERNAL void sysConsoleWriteLong(long long value, int hexToo);
 EXTERNAL void sysConsoleWriteDouble(double value,  int postDecimalDigits);
+EXTERNAL void sysConsoleFlushErrorAndTrace();
 // sysGCSpy
 #ifdef RVM_WITH_GCSPY
 EXTERNAL gcspy_gc_stream_t * gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id);

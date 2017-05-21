@@ -69,6 +69,14 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysConsoleWriteDouble(double value, int postDecimalDigits);
 
+  /**
+   * Flushes the underlying output streams from the bootloader
+   * by calling the appropriate C functions (e.g. {@code fflush}
+   * and {@code fsync}).
+   */
+  @SysCallTemplate
+  public abstract void sysConsoleFlushErrorAndTrace();
+
   // startup/shutdown
   @SysCallTemplate
   public abstract void sysExit(int value);

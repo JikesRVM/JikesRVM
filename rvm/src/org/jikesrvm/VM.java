@@ -2316,6 +2316,7 @@ public class VM extends Properties {
     }
     bugReportMessage();
     if (VM.runningVM) {
+      sysCall.sysConsoleFlushErrorAndTrace();
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
       VM.sysExit(EXIT_STATUS_SYSFAIL);
@@ -2339,6 +2340,7 @@ public class VM extends Properties {
     RVMThread.traceback(message, number);
     bugReportMessage();
     if (VM.runningVM) {
+      sysCall.sysConsoleFlushErrorAndTrace();
       VM.shutdown(EXIT_STATUS_SYSFAIL);
     } else {
       VM.sysExit(EXIT_STATUS_SYSFAIL);
