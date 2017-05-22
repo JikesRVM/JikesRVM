@@ -170,7 +170,7 @@ public class ThreadQueue {
       t.dump();
       pastFirst = true;
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     if (head != null) {
       VM.sysWriteln("head: ", head.getThreadSlot());
     } else {

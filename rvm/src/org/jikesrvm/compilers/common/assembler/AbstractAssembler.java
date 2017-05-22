@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.common.assembler;
 
 import org.jikesrvm.architecture.MachineRegister;
 import org.jikesrvm.compilers.common.CodeArray;
-import org.vmmagic.pragma.NoInline;
 
 /**
  * <p>This class has been created to work around a bug whereby the system seems to have gotten
@@ -41,42 +40,6 @@ public abstract class AbstractAssembler {
 
   public abstract void resolveForwardReferences(int biStart);
 
-  public abstract void noteBytecode(int biStart, String msg);
-
-  @NoInline
-  public final void noteBytecode(int biStart, String bcode, int x) {
-    noteBytecode(biStart, bcode + " " + x);
-  }
-
-  @NoInline
-  public final void noteBytecode(int biStart, String bcode, long x) {
-    noteBytecode(biStart, bcode + " " + x);
-  }
-
-  @NoInline
-  public final void noteBytecode(int biStart, String bcode, Object o) {
-    noteBytecode(biStart, bcode + " " + o);
-  }
-
-  @NoInline
-  public final void noteBytecode(int biStart, String bcode, int x, int y) {
-    noteBytecode(biStart, bcode + " " + x + " " + y);
-  }
-
-  @NoInline
-  public final void noteBranchBytecode(int biStart, String bcode, int off, int bt) {
-    noteBytecode(biStart, bcode + " " + off + " [" + bt + "] ");
-  }
-
-  @NoInline
-  public final void noteTableswitchBytecode(int biStart, int l, int h, int d) {
-    noteBytecode(biStart, "tableswitch [" + l + "--" + h + "] " + d);
-  }
-
-  @NoInline
-  public final void noteLookupswitchBytecode(int biStart, int n, int d) {
-    noteBytecode(biStart, "lookupswitch [<" + n + ">]" + d);
-  }
 
   /**
    * The following method will emit code that moves a reference to an

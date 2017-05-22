@@ -63,11 +63,12 @@ import org.vmmagic.unboxed.Address;
     remsetStream = createRemsetStream();
 
     if (DEBUG) {
-      Log.write("GenImmortalSpaceDriver for "); Log.write(spaceName);
-      Log.write(", blocksize="); Log.write(blockSize);
-      Log.write(", start="); Log.write(mmtkSpace.getStart());
-      Log.write(", extent="); Log.write(mmtkSpace.getExtent());
-      Log.write(", maxTileNum="); Log.writeln(maxTileNum);
+      Log.write("GenImmortalSpaceDriver for ");
+      Log.write(spaceName);
+      Log.write(", blocksize=", blockSize);
+      Log.write(", start=", mmtkSpace.getStart());
+      Log.write(", extent=", mmtkSpace.getExtent());
+      Log.writeln(", maxTileNum=", maxTileNum);
     }
 
     resetData();

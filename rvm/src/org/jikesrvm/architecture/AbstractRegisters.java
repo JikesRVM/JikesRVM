@@ -36,13 +36,15 @@ public abstract class AbstractRegisters {
 
   /** General purpose registers */
   @Untraced
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   private final WordArray gprs;
+  @Entrypoint(fieldMayBeFinal = true)
   private final WordArray gprsShadow;
   /** Floating point registers */
   @Untraced
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   private final double[] fprs;
+  @Entrypoint(fieldMayBeFinal = true)
   private final double[] fprsShadow;
   /** Instruction address register */
   @Entrypoint

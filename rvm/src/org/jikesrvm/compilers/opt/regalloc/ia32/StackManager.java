@@ -45,6 +45,9 @@ import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.SPECIAL_REG;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_TOTAL_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
@@ -88,6 +91,20 @@ import org.vmmagic.unboxed.Offset;
  * functions.
  */
 public final class StackManager extends GenericStackManager {
+
+  /**
+   * the minimum size that a frame must have to be considered
+   * a big frame for a stack overflow check. In contrast to
+   * a small frame, a big frame is not allowed to leak into the
+   * guard region of the stack.
+   */
+  private static final int BIG_FRAME_MINIMUM_SIZE = 256;
+
+  /**
+   * the maximum difference between the stack pointer and the stack limit
+   * that can possibly occur when handling a stack overflow for opt frames
+   */
+  public static final int MAX_DIFFERENCE_TO_STACK_LIMIT = BIG_FRAME_MINIMUM_SIZE;
 
   /**
    * A frame offset for 108 bytes of stack space to store the
@@ -145,9 +162,9 @@ public final class StackManager extends GenericStackManager {
     if (type.isNatural()) {
       return IA32_MOV;
     } else if (type.isDouble()) {
-      return IA32_MOVSD;
+      return SSE2_FULL ? IA32_MOVSD : IA32_FMOV;
     } else if (type.isFloat()) {
-      return IA32_MOVSS;
+      return SSE2_FULL ? IA32_MOVSS : IA32_FMOV;
     } else {
       OptimizingCompilerException.TODO("getMoveOperator: unsupported: " + type);
       return null;
@@ -253,6 +270,9 @@ public final class StackManager extends GenericStackManager {
       // Record that we need a stack frame.
       setFrameRequired();
 
+      int fpuStateSaveAreaBegin = spillPointer;
+      // Calculate FPU state save area for restoreFloatingPointState(..)
+      // and saveFloatingPointState(..)
       if (SSE2_FULL) {
         for (int i = 0; i < 8; i++) {
           fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);
@@ -265,6 +285,13 @@ public final class StackManager extends GenericStackManager {
         }
       }
 
+      int fpuStateSaveAreaEnd = spillPointer;
+      int fpuStateSize = fpuStateSaveAreaEnd - fpuStateSaveAreaBegin;
+      if (VM.VerifyAssertions) {
+        VM._assert(fpuStateSize == OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE);
+      }
+
+      int volatileGPRSaveAreaBegin = spillPointer;
       // Map each volatile register to a spill location.
       int i = 0;
       for (Enumeration<Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
@@ -272,6 +299,14 @@ public final class StackManager extends GenericStackManager {
         // Note that as a side effect, the following call bumps up the
         // frame size.
         saveVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);
+      }
+      int volatileGPRSaveAreaEnd = spillPointer;
+      int volatileGPRSaveAreaSize = volatileGPRSaveAreaEnd - volatileGPRSaveAreaBegin;
+      if (VM.VerifyAssertions) {
+        VM._assert(volatileGPRSaveAreaSize ==
+            OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS);
+        VM._assert((volatileGPRSaveAreaSize + fpuStateSize) ==
+            OPT_SAVE_VOLATILE_TOTAL_SIZE);
       }
 
       // Map each non-volatile register to a spill location.
@@ -469,14 +504,14 @@ public final class StackManager extends GenericStackManager {
 
     // I. Buy a stackframe (including overflow check)
     // NOTE: We play a little game here.  If the frame we are buying is
-    //       very small (less than 256) then we can be sloppy with the
+    //       very small then we can be sloppy with the
     //       stackoverflow check and actually allocate the frame in the guard
     //       region.  We'll notice when this frame calls someone and take the
     //       stackoverflow in the callee. We can't do this if the frame is too big,
     //       because growing the stack in the callee and/or handling a hardware trap
     //       in this frame will require most of the guard region to complete.
-    //       See libvm.C.
-    if (frameFixedSize >= 256) {
+    //       See sysSignal_ia32.c
+    if (frameFixedSize >= BIG_FRAME_MINIMUM_SIZE) {
       // 1. Insert Stack overflow check.
       insertBigFrameStackOverflowCheck(plg);
 

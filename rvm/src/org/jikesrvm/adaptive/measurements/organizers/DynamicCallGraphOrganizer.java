@@ -194,7 +194,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
             }
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
             VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
-            VM.sysWrite(") ArrayIndexOutOfBounds!\n");
+            VM.sysWriteln(") ArrayIndexOutOfBounds!");
             e.printStackTrace();
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             caller = stackFrameCaller;
@@ -205,7 +205,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
                         "@" +
                         compiledMethod +
                         " at MC offset ", MCOff);
-            VM.sysWrite("!\n");
+            VM.sysWriteln("!");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
@@ -214,7 +214,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
             caller = mc_map.getMethodForMCOffset(MCOffset);
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
             VM.sysWrite("  ***ERROR: getMethodForMCOffset(", MCOffset);
-            VM.sysWrite(") ArrayIndexOutOfBounds!\n");
+            VM.sysWriteln(") ArrayIndexOutOfBounds!");
             e.printStackTrace();
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             caller = stackFrameCaller;
@@ -225,14 +225,14 @@ public class DynamicCallGraphOrganizer extends Organizer {
                         "@" +
                         compiledMethod +
                         " at MC offset ", MCOff);
-            VM.sysWrite("!\n");
+            VM.sysWriteln("!");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
 
           if (caller == null) {
             VM.sysWrite("  ***ERROR: getMethodForMCOffset(", MCOffset);
-            VM.sysWrite(") returned null!\n");
+            VM.sysWriteln(") returned null!");
             caller = stackFrameCaller;
             continue;  // skip sample
           }

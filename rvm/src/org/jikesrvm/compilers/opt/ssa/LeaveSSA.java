@@ -293,7 +293,7 @@ public class LeaveSSA extends CompilerPhase {
    */
   private void scheduleCopies(BasicBlock bb, LiveAnalysis live) {
 
-    if (DEBUG) VM.sysWrite("scheduleCopies: " + bb + "\n");
+    if (DEBUG) VM.sysWriteln("scheduleCopies: " + bb);
 
     // compute out liveness from information in LiveAnalysis
     LiveSet out = new LiveSet();
@@ -377,7 +377,7 @@ public class LeaveSSA extends CompilerPhase {
         TypeReference tt = c.destination.getType();
         if (VM.VerifyAssertions && tt == null) {
           tt = TypeReference.Int;
-          VM.sysWrite("SSA, warning: null type in " + c.destination + "\n");
+          VM.sysWriteln("SSA, warning: null type in " + c.destination);
         }
 
         Register rr = null;

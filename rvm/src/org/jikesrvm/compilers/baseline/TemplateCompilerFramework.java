@@ -32,6 +32,7 @@ import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
+import org.jikesrvm.compilers.common.assembler.AbstractLister;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Statics;
@@ -70,7 +71,7 @@ public abstract class TemplateCompilerFramework {
   protected final int[] bytecodeMap;
 
   /**
-   * bi at the start of a bytecode
+   * bytecode index at the start of a bytecode
    */
   protected int biStart;
 
@@ -185,6 +186,8 @@ public abstract class TemplateCompilerFramework {
 
   protected abstract AbstractAssembler getAssembler();
 
+  protected abstract AbstractLister getLister();
+
   final int[] getBytecodeMap() {
     return bytecodeMap;
   }
@@ -201,7 +204,7 @@ public abstract class TemplateCompilerFramework {
     VM.sysWrite(method.getName());
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**
@@ -216,7 +219,7 @@ public abstract class TemplateCompilerFramework {
     VM.sysWrite(method.getName());
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**
@@ -237,7 +240,7 @@ public abstract class TemplateCompilerFramework {
     VM.sysWrite(method.getName());
     VM.sysWrite(" ");
     VM.sysWrite(method.getDescriptor());
-    VM.sysWrite(" \n");
+    VM.sysWriteln();
   }
 
   /**
@@ -247,6 +250,7 @@ public abstract class TemplateCompilerFramework {
    */
   protected final MachineCode genCode() {
     AbstractAssembler asm = getAssembler();
+    AbstractLister lister = getLister();
 
     emit_prologue();
     while (bcodes.hasMoreBytecodes()) {
@@ -257,117 +261,117 @@ public abstract class TemplateCompilerFramework {
       int code = bcodes.nextInstruction();
       switch (code) {
         case JBC_nop: {
-          if (shouldPrint) asm.noteBytecode(biStart, "nop");
+          if (shouldPrint) lister.noteBytecode(biStart, "nop");
           break;
         }
 
         case JBC_aconst_null: {
-          if (shouldPrint) asm.noteBytecode(biStart, "aconst_null");
+          if (shouldPrint) lister.noteBytecode(biStart, "aconst_null");
           emit_aconst_null();
           break;
         }
 
         case JBC_iconst_m1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iconst_m1");
+          if (shouldPrint) lister.noteBytecode(biStart, "iconst_m1");
           emit_iconst(-1);
           break;
         }
 
         case JBC_iconst_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iconst_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "iconst_0");
           emit_iconst(0);
           break;
         }
 
         case JBC_iconst_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iconst_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "iconst_1");
           emit_iconst(1);
           break;
         }
 
         case JBC_iconst_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iconst_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "iconst_2");
           emit_iconst(2);
           break;
         }
 
         case JBC_iconst_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iconst_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "iconst_3");
           emit_iconst(3);
           break;
         }
 
         case JBC_iconst_4: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iconst_4");
+          if (shouldPrint) lister.noteBytecode(biStart, "iconst_4");
           emit_iconst(4);
           break;
         }
 
         case JBC_iconst_5: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iconst_5");
+          if (shouldPrint) lister.noteBytecode(biStart, "iconst_5");
           emit_iconst(5);
           break;
         }
 
         case JBC_lconst_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lconst_0");  // floating-point 0 is long 0
+          if (shouldPrint) lister.noteBytecode(biStart, "lconst_0");  // floating-point 0 is long 0
           emit_lconst(0);
           break;
         }
 
         case JBC_lconst_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lconst_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "lconst_1");
           emit_lconst(1);
           break;
         }
 
         case JBC_fconst_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fconst_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "fconst_0");
           emit_fconst_0();
           break;
         }
 
         case JBC_fconst_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fconst_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "fconst_1");
           emit_fconst_1();
           break;
         }
 
         case JBC_fconst_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fconst_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "fconst_2");
           emit_fconst_2();
           break;
         }
 
         case JBC_dconst_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dconst_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "dconst_0");
           emit_dconst_0();
           break;
         }
 
         case JBC_dconst_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dconst_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "dconst_1");
           emit_dconst_1();
           break;
         }
 
         case JBC_bipush: {
           int val = bcodes.getByteValue();
-          if (shouldPrint) asm.noteBytecode(biStart, "bipush", val);
+          if (shouldPrint) lister.noteBytecode(biStart, "bipush", val);
           emit_iconst(val);
           break;
         }
 
         case JBC_sipush: {
           int val = bcodes.getShortValue();
-          if (shouldPrint) asm.noteBytecode(biStart, "sipush", val);
+          if (shouldPrint) lister.noteBytecode(biStart, "sipush", val);
           emit_iconst(val);
           break;
         }
 
         case JBC_ldc: {
           int index = bcodes.getConstantIndex();
-          if (shouldPrint) asm.noteBytecode(biStart, "ldc", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "ldc", index);
           Offset offset = klass.getLiteralOffset(index);
           byte type = klass.getLiteralDescription(index);
           emit_ldc(offset, type);
@@ -376,7 +380,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_ldc_w: {
           int index = bcodes.getWideConstantIndex();
-          if (shouldPrint) asm.noteBytecode(biStart, "ldc_w", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "ldc_w", index);
           Offset offset = klass.getLiteralOffset(index);
           byte type = klass.getLiteralDescription(index);
           emit_ldc(offset, type);
@@ -385,7 +389,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_ldc2_w: {
           int index = bcodes.getWideConstantIndex();
-          if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "ldc2_w", index);
           Offset offset = klass.getLiteralOffset(index);
           byte type = klass.getLiteralDescription(index);
           emit_ldc2(offset, type);
@@ -394,388 +398,388 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_iload: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "iload", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "iload", index);
           emit_iload(index);
           break;
         }
 
         case JBC_lload: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "lload", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "lload", index);
           emit_lload(index);
           break;
         }
 
         case JBC_fload: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "fload", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "fload", index);
           emit_fload(index);
           break;
         }
 
         case JBC_dload: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "dload", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "dload", index);
           emit_dload(index);
           break;
         }
 
         case JBC_aload: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "aload", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "aload", index);
           emit_aload(index);
           break;
         }
 
         case JBC_iload_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iload_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "iload_0");
           emit_iload(0);
           break;
         }
 
         case JBC_iload_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iload_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "iload_1");
           emit_iload(1);
           break;
         }
 
         case JBC_iload_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iload_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "iload_2");
           emit_iload(2);
           break;
         }
 
         case JBC_iload_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iload_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "iload_3");
           emit_iload(3);
           break;
         }
 
         case JBC_lload_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lload_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "lload_0");
           emit_lload(0);
           break;
         }
 
         case JBC_lload_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lload_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "lload_1");
           emit_lload(1);
           break;
         }
 
         case JBC_lload_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lload_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "lload_2");
           emit_lload(2);
           break;
         }
 
         case JBC_lload_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lload_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "lload_3");
           emit_lload(3);
           break;
         }
 
         case JBC_fload_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fload_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "fload_0");
           emit_fload(0);
           break;
         }
 
         case JBC_fload_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fload_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "fload_1");
           emit_fload(1);
           break;
         }
 
         case JBC_fload_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fload_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "fload_2");
           emit_fload(2);
           break;
         }
 
         case JBC_fload_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fload_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "fload_3");
           emit_fload(3);
           break;
         }
 
         case JBC_dload_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dload_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "dload_0");
           emit_dload(0);
           break;
         }
 
         case JBC_dload_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dload_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "dload_1");
           emit_dload(1);
           break;
         }
 
         case JBC_dload_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dload_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "dload_2");
           emit_dload(2);
           break;
         }
 
         case JBC_dload_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dload_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "dload_3");
           emit_dload(3);
           break;
         }
 
         case JBC_aload_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "aload_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "aload_0");
           emit_aload(0);
           break;
         }
 
         case JBC_aload_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "aload_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "aload_1");
           emit_aload(1);
           break;
         }
 
         case JBC_aload_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "aload_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "aload_2");
           emit_aload(2);
           break;
         }
 
         case JBC_aload_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "aload_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "aload_3");
           emit_aload(3);
           break;
         }
 
         case JBC_iaload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iaload");
+          if (shouldPrint) lister.noteBytecode(biStart, "iaload");
           emit_iaload();
           break;
         }
 
         case JBC_laload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "laload");
+          if (shouldPrint) lister.noteBytecode(biStart, "laload");
           emit_laload();
           break;
         }
 
         case JBC_faload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "faload");
+          if (shouldPrint) lister.noteBytecode(biStart, "faload");
           emit_faload();
           break;
         }
 
         case JBC_daload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "daload");
+          if (shouldPrint) lister.noteBytecode(biStart, "daload");
           emit_daload();
           break;
         }
 
         case JBC_aaload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "aaload");
+          if (shouldPrint) lister.noteBytecode(biStart, "aaload");
           emit_aaload();
           break;
         }
 
         case JBC_baload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "baload");
+          if (shouldPrint) lister.noteBytecode(biStart, "baload");
           emit_baload();
           break;
         }
 
         case JBC_caload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "caload");
+          if (shouldPrint) lister.noteBytecode(biStart, "caload");
           emit_caload();
           break;
         }
 
         case JBC_saload: {
-          if (shouldPrint) asm.noteBytecode(biStart, "saload");
+          if (shouldPrint) lister.noteBytecode(biStart, "saload");
           emit_saload();
           break;
         }
 
         case JBC_istore: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "istore", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "istore", index);
           emit_istore(index);
           break;
         }
 
         case JBC_lstore: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "lstore", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "lstore", index);
           emit_lstore(index);
           break;
         }
 
         case JBC_fstore: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "fstore", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "fstore", index);
           emit_fstore(index);
           break;
         }
 
         case JBC_dstore: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "dstore", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "dstore", index);
           emit_dstore(index);
           break;
         }
 
         case JBC_astore: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "astore", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "astore", index);
           emit_astore(index);
           break;
         }
 
         case JBC_istore_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "istore_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "istore_0");
           emit_istore(0);
           break;
         }
 
         case JBC_istore_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "istore_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "istore_1");
           emit_istore(1);
           break;
         }
 
         case JBC_istore_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "istore_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "istore_2");
           emit_istore(2);
           break;
         }
 
         case JBC_istore_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "istore_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "istore_3");
           emit_istore(3);
           break;
         }
 
         case JBC_lstore_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lstore_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "lstore_0");
           emit_lstore(0);
           break;
         }
 
         case JBC_lstore_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lstore_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "lstore_1");
           emit_lstore(1);
           break;
         }
 
         case JBC_lstore_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lstore_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "lstore_2");
           emit_lstore(2);
           break;
         }
 
         case JBC_lstore_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lstore_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "lstore_3");
           emit_lstore(3);
           break;
         }
 
         case JBC_fstore_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fstore_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "fstore_0");
           emit_fstore(0);
           break;
         }
 
         case JBC_fstore_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fstore_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "fstore_1");
           emit_fstore(1);
           break;
         }
 
         case JBC_fstore_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fstore_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "fstore_2");
           emit_fstore(2);
           break;
         }
 
         case JBC_fstore_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fstore_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "fstore_3");
           emit_fstore(3);
           break;
         }
 
         case JBC_dstore_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dstore_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "dstore_0");
           emit_dstore(0);
           break;
         }
 
         case JBC_dstore_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dstore_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "dstore_1");
           emit_dstore(1);
           break;
         }
 
         case JBC_dstore_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dstore_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "dstore_2");
           emit_dstore(2);
           break;
         }
 
         case JBC_dstore_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dstore_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "dstore_3");
           emit_dstore(3);
           break;
         }
 
         case JBC_astore_0: {
-          if (shouldPrint) asm.noteBytecode(biStart, "astore_0");
+          if (shouldPrint) lister.noteBytecode(biStart, "astore_0");
           emit_astore(0);
           break;
         }
 
         case JBC_astore_1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "astore_1");
+          if (shouldPrint) lister.noteBytecode(biStart, "astore_1");
           emit_astore(1);
           break;
         }
 
         case JBC_astore_2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "astore_2");
+          if (shouldPrint) lister.noteBytecode(biStart, "astore_2");
           emit_astore(2);
           break;
         }
 
         case JBC_astore_3: {
-          if (shouldPrint) asm.noteBytecode(biStart, "astore_3");
+          if (shouldPrint) lister.noteBytecode(biStart, "astore_3");
           emit_astore(3);
           break;
         }
 
         case JBC_iastore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iastore");
+          if (shouldPrint) lister.noteBytecode(biStart, "iastore");
           emit_iastore();
           break;
         }
 
         case JBC_lastore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lastore");
+          if (shouldPrint) lister.noteBytecode(biStart, "lastore");
           emit_lastore();
           break;
         }
 
         case JBC_fastore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fastore");
+          if (shouldPrint) lister.noteBytecode(biStart, "fastore");
           emit_fastore();
           break;
         }
 
         case JBC_dastore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dastore");
+          if (shouldPrint) lister.noteBytecode(biStart, "dastore");
           emit_dastore();
           break;
         }
 
         case JBC_aastore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "aastore");
+          if (shouldPrint) lister.noteBytecode(biStart, "aastore");
           // Forbidden from uninterruptible code as may cause an {@link
           // ArrayStoreException}
           if (VM.VerifyUnint && isUninterruptible && doesCheckStore) forbiddenBytecode("aastore", bcodes.index());
@@ -784,289 +788,289 @@ public abstract class TemplateCompilerFramework {
         }
 
         case JBC_bastore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "bastore");
+          if (shouldPrint) lister.noteBytecode(biStart, "bastore");
           emit_bastore();
           break;
         }
 
         case JBC_castore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "castore");
+          if (shouldPrint) lister.noteBytecode(biStart, "castore");
           emit_castore();
           break;
         }
 
         case JBC_sastore: {
-          if (shouldPrint) asm.noteBytecode(biStart, "sastore");
+          if (shouldPrint) lister.noteBytecode(biStart, "sastore");
           emit_sastore();
           break;
         }
 
         case JBC_pop: {
-          if (shouldPrint) asm.noteBytecode(biStart, "pop");
+          if (shouldPrint) lister.noteBytecode(biStart, "pop");
           emit_pop();
           break;
         }
 
         case JBC_pop2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "pop2");
+          if (shouldPrint) lister.noteBytecode(biStart, "pop2");
           emit_pop2();
           break;
         }
 
         case JBC_dup: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dup");
+          if (shouldPrint) lister.noteBytecode(biStart, "dup");
           emit_dup();
           break;
         }
 
         case JBC_dup_x1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dup_x1");
+          if (shouldPrint) lister.noteBytecode(biStart, "dup_x1");
           emit_dup_x1();
           break;
         }
 
         case JBC_dup_x2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dup_x2");
+          if (shouldPrint) lister.noteBytecode(biStart, "dup_x2");
           emit_dup_x2();
           break;
         }
 
         case JBC_dup2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dup2");
+          if (shouldPrint) lister.noteBytecode(biStart, "dup2");
           emit_dup2();
           break;
         }
 
         case JBC_dup2_x1: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dup2_x1");
+          if (shouldPrint) lister.noteBytecode(biStart, "dup2_x1");
           emit_dup2_x1();
           break;
         }
 
         case JBC_dup2_x2: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dup2_x2");
+          if (shouldPrint) lister.noteBytecode(biStart, "dup2_x2");
           emit_dup2_x2();
           break;
         }
 
         case JBC_swap: {
-          if (shouldPrint) asm.noteBytecode(biStart, "swap");
+          if (shouldPrint) lister.noteBytecode(biStart, "swap");
           emit_swap();
           break;
         }
 
         case JBC_iadd: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iadd");
+          if (shouldPrint) lister.noteBytecode(biStart, "iadd");
           emit_iadd();
           break;
         }
 
         case JBC_ladd: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ladd");
+          if (shouldPrint) lister.noteBytecode(biStart, "ladd");
           emit_ladd();
           break;
         }
 
         case JBC_fadd: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fadd");
+          if (shouldPrint) lister.noteBytecode(biStart, "fadd");
           emit_fadd();
           break;
         }
 
         case JBC_dadd: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dadd");
+          if (shouldPrint) lister.noteBytecode(biStart, "dadd");
           emit_dadd();
           break;
         }
 
         case JBC_isub: {
-          if (shouldPrint) asm.noteBytecode(biStart, "isub");
+          if (shouldPrint) lister.noteBytecode(biStart, "isub");
           emit_isub();
           break;
         }
 
         case JBC_lsub: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lsub");
+          if (shouldPrint) lister.noteBytecode(biStart, "lsub");
           emit_lsub();
           break;
         }
 
         case JBC_fsub: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fsub");
+          if (shouldPrint) lister.noteBytecode(biStart, "fsub");
           emit_fsub();
           break;
         }
 
         case JBC_dsub: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dsub");
+          if (shouldPrint) lister.noteBytecode(biStart, "dsub");
           emit_dsub();
           break;
         }
 
         case JBC_imul: {
-          if (shouldPrint) asm.noteBytecode(biStart, "imul");
+          if (shouldPrint) lister.noteBytecode(biStart, "imul");
           emit_imul();
           break;
         }
 
         case JBC_lmul: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lmul");
+          if (shouldPrint) lister.noteBytecode(biStart, "lmul");
           emit_lmul();
           break;
         }
 
         case JBC_fmul: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fmul");
+          if (shouldPrint) lister.noteBytecode(biStart, "fmul");
           emit_fmul();
           break;
         }
 
         case JBC_dmul: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dmul");
+          if (shouldPrint) lister.noteBytecode(biStart, "dmul");
           emit_dmul();
           break;
         }
 
         case JBC_idiv: {
-          if (shouldPrint) asm.noteBytecode(biStart, "idiv");
+          if (shouldPrint) lister.noteBytecode(biStart, "idiv");
           emit_idiv();
           break;
         }
 
         case JBC_ldiv: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ldiv");
+          if (shouldPrint) lister.noteBytecode(biStart, "ldiv");
           emit_ldiv();
           break;
         }
 
         case JBC_fdiv: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fdiv");
+          if (shouldPrint) lister.noteBytecode(biStart, "fdiv");
           emit_fdiv();
           break;
         }
 
         case JBC_ddiv: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ddiv");
+          if (shouldPrint) lister.noteBytecode(biStart, "ddiv");
           emit_ddiv();
           break;
         }
 
         case JBC_irem: {
-          if (shouldPrint) asm.noteBytecode(biStart, "irem");
+          if (shouldPrint) lister.noteBytecode(biStart, "irem");
           emit_irem();
           break;
         }
 
         case JBC_lrem: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lrem");
+          if (shouldPrint) lister.noteBytecode(biStart, "lrem");
           emit_lrem();
           break;
         }
 
         case JBC_frem: {
-          if (shouldPrint) asm.noteBytecode(biStart, "frem");
+          if (shouldPrint) lister.noteBytecode(biStart, "frem");
           emit_frem();
           break;
         }
 
         case JBC_drem: {
-          if (shouldPrint) asm.noteBytecode(biStart, "drem");
+          if (shouldPrint) lister.noteBytecode(biStart, "drem");
           emit_drem();
           break;
         }
 
         case JBC_ineg: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ineg");
+          if (shouldPrint) lister.noteBytecode(biStart, "ineg");
           emit_ineg();
           break;
         }
 
         case JBC_lneg: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lneg");
+          if (shouldPrint) lister.noteBytecode(biStart, "lneg");
           emit_lneg();
           break;
         }
 
         case JBC_fneg: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fneg");
+          if (shouldPrint) lister.noteBytecode(biStart, "fneg");
           emit_fneg();
           break;
         }
 
         case JBC_dneg: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dneg");
+          if (shouldPrint) lister.noteBytecode(biStart, "dneg");
           emit_dneg();
           break;
         }
 
         case JBC_ishl: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ishl");
+          if (shouldPrint) lister.noteBytecode(biStart, "ishl");
           emit_ishl();
           break;
         }
 
         case JBC_lshl: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lshl");    // l >> n
+          if (shouldPrint) lister.noteBytecode(biStart, "lshl");    // l >> n
           emit_lshl();
           break;
         }
 
         case JBC_ishr: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ishr");
+          if (shouldPrint) lister.noteBytecode(biStart, "ishr");
           emit_ishr();
           break;
         }
 
         case JBC_lshr: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lshr");
+          if (shouldPrint) lister.noteBytecode(biStart, "lshr");
           emit_lshr();
           break;
         }
 
         case JBC_iushr: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iushr");
+          if (shouldPrint) lister.noteBytecode(biStart, "iushr");
           emit_iushr();
           break;
         }
 
         case JBC_lushr: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lushr");
+          if (shouldPrint) lister.noteBytecode(biStart, "lushr");
           emit_lushr();
           break;
         }
 
         case JBC_iand: {
-          if (shouldPrint) asm.noteBytecode(biStart, "iand");
+          if (shouldPrint) lister.noteBytecode(biStart, "iand");
           emit_iand();
           break;
         }
 
         case JBC_land: {
-          if (shouldPrint) asm.noteBytecode(biStart, "land");
+          if (shouldPrint) lister.noteBytecode(biStart, "land");
           emit_land();
           break;
         }
 
         case JBC_ior: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ior");
+          if (shouldPrint) lister.noteBytecode(biStart, "ior");
           emit_ior();
           break;
         }
 
         case JBC_lor: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lor");
+          if (shouldPrint) lister.noteBytecode(biStart, "lor");
           emit_lor();
           break;
         }
 
         case JBC_ixor: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ixor");
+          if (shouldPrint) lister.noteBytecode(biStart, "ixor");
           emit_ixor();
           break;
         }
 
         case JBC_lxor: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lxor");
+          if (shouldPrint) lister.noteBytecode(biStart, "lxor");
           emit_lxor();
           break;
         }
@@ -1074,127 +1078,127 @@ public abstract class TemplateCompilerFramework {
         case JBC_iinc: {
           int index = bcodes.getLocalNumber();
           int val = bcodes.getIncrement();
-          if (shouldPrint) asm.noteBytecode(biStart, "iinc", index, val);
+          if (shouldPrint) lister.noteBytecode(biStart, "iinc", index, val);
           emit_iinc(index, val);
           break;
         }
 
         case JBC_i2l: {
-          if (shouldPrint) asm.noteBytecode(biStart, "i2l");
+          if (shouldPrint) lister.noteBytecode(biStart, "i2l");
           emit_i2l();
           break;
         }
 
         case JBC_i2f: {
-          if (shouldPrint) asm.noteBytecode(biStart, "i2f");
+          if (shouldPrint) lister.noteBytecode(biStart, "i2f");
           emit_i2f();
           break;
         }
 
         case JBC_i2d: {
-          if (shouldPrint) asm.noteBytecode(biStart, "i2d");
+          if (shouldPrint) lister.noteBytecode(biStart, "i2d");
           emit_i2d();
           break;
         }
 
         case JBC_l2i: {
-          if (shouldPrint) asm.noteBytecode(biStart, "l2i");
+          if (shouldPrint) lister.noteBytecode(biStart, "l2i");
           emit_l2i();
           break;
         }
 
         case JBC_l2f: {
-          if (shouldPrint) asm.noteBytecode(biStart, "l2f");
+          if (shouldPrint) lister.noteBytecode(biStart, "l2f");
           emit_l2f();
           break;
         }
 
         case JBC_l2d: {
-          if (shouldPrint) asm.noteBytecode(biStart, "l2d");
+          if (shouldPrint) lister.noteBytecode(biStart, "l2d");
           emit_l2d();
           break;
         }
 
         case JBC_f2i: {
-          if (shouldPrint) asm.noteBytecode(biStart, "f2i");
+          if (shouldPrint) lister.noteBytecode(biStart, "f2i");
           emit_f2i();
           break;
         }
 
         case JBC_f2l: {
-          if (shouldPrint) asm.noteBytecode(biStart, "f2l");
+          if (shouldPrint) lister.noteBytecode(biStart, "f2l");
           emit_f2l();
           break;
         }
 
         case JBC_f2d: {
-          if (shouldPrint) asm.noteBytecode(biStart, "f2d");
+          if (shouldPrint) lister.noteBytecode(biStart, "f2d");
           emit_f2d();
           break;
         }
 
         case JBC_d2i: {
-          if (shouldPrint) asm.noteBytecode(biStart, "d2i");
+          if (shouldPrint) lister.noteBytecode(biStart, "d2i");
           emit_d2i();
           break;
         }
 
         case JBC_d2l: {
-          if (shouldPrint) asm.noteBytecode(biStart, "d2l");
+          if (shouldPrint) lister.noteBytecode(biStart, "d2l");
           emit_d2l();
           break;
         }
 
         case JBC_d2f: {
-          if (shouldPrint) asm.noteBytecode(biStart, "d2f");
+          if (shouldPrint) lister.noteBytecode(biStart, "d2f");
           emit_d2f();
           break;
         }
 
         case JBC_int2byte: {
-          if (shouldPrint) asm.noteBytecode(biStart, "i2b");
+          if (shouldPrint) lister.noteBytecode(biStart, "i2b");
           emit_i2b();
           break;
         }
 
         case JBC_int2char: {
-          if (shouldPrint) asm.noteBytecode(biStart, "i2c");
+          if (shouldPrint) lister.noteBytecode(biStart, "i2c");
           emit_i2c();
           break;
         }
 
         case JBC_int2short: {
-          if (shouldPrint) asm.noteBytecode(biStart, "i2s");
+          if (shouldPrint) lister.noteBytecode(biStart, "i2s");
           emit_i2s();
           break;
         }
 
         case JBC_lcmp: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lcmp");  // a ? b
+          if (shouldPrint) lister.noteBytecode(biStart, "lcmp");  // a ? b
           emit_lcmp();
           break;
         }
 
         case JBC_fcmpl: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fcmpl");
+          if (shouldPrint) lister.noteBytecode(biStart, "fcmpl");
           emit_DFcmpGL(true, false);
           break;
         }
 
         case JBC_fcmpg: {
-          if (shouldPrint) asm.noteBytecode(biStart, "fcmpg");
+          if (shouldPrint) lister.noteBytecode(biStart, "fcmpg");
           emit_DFcmpGL(true, true);
           break;
         }
 
         case JBC_dcmpl: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dcmpl");
+          if (shouldPrint) lister.noteBytecode(biStart, "dcmpl");
           emit_DFcmpGL(false, false);
           break;
         }
 
         case JBC_dcmpg: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dcmpg");
+          if (shouldPrint) lister.noteBytecode(biStart, "dcmpg");
           emit_DFcmpGL(false, true);
           break;
         }
@@ -1262,7 +1266,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_if_acmpeq: {
           int offset = bcodes.getBranchOffset();
           int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpeq", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "if_acmpeq", offset, bTarget);
           if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
           emit_if_acmpeq(bTarget);
           break;
@@ -1271,7 +1275,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_if_acmpne: {
           int offset = bcodes.getBranchOffset();
           int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpne", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "if_acmpne", offset, bTarget);
           if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
           emit_if_acmpne(bTarget);
           break;
@@ -1280,7 +1284,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_goto: {
           int offset = bcodes.getBranchOffset();
           int bTarget = biStart + offset; // bi has been bumped by 3 already
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "goto", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "goto", offset, bTarget);
           if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
           emit_goto(bTarget);
           break;
@@ -1289,14 +1293,14 @@ public abstract class TemplateCompilerFramework {
         case JBC_jsr: {
           int offset = bcodes.getBranchOffset();
           int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "jsr", offset, bTarget);
           emit_jsr(bTarget);
           break;
         }
 
         case JBC_ret: {
           int index = bcodes.getLocalNumber();
-          if (shouldPrint) asm.noteBytecode(biStart, "ret ", index);
+          if (shouldPrint) lister.noteBytecode(biStart, "ret ", index);
           emit_ret(index);
           break;
         }
@@ -1306,7 +1310,7 @@ public abstract class TemplateCompilerFramework {
           int defaultval = bcodes.getDefaultSwitchOffset();
           int low = bcodes.getLowSwitchValue();
           int high = bcodes.getHighSwitchValue();
-          if (shouldPrint) asm.noteTableswitchBytecode(biStart, low, high, defaultval);
+          if (shouldPrint) lister.noteTableswitchBytecode(biStart, low, high, defaultval);
           emit_tableswitch(defaultval, low, high);
           break;
         }
@@ -1315,48 +1319,48 @@ public abstract class TemplateCompilerFramework {
           bcodes.alignSwitch();
           int defaultval = bcodes.getDefaultSwitchOffset();
           int npairs = bcodes.getSwitchLength();
-          if (shouldPrint) asm.noteLookupswitchBytecode(biStart, npairs, defaultval);
+          if (shouldPrint) lister.noteLookupswitchBytecode(biStart, npairs, defaultval);
           emit_lookupswitch(defaultval, npairs);
           break;
         }
 
         case JBC_ireturn: {
-          if (shouldPrint) asm.noteBytecode(biStart, "ireturn");
+          if (shouldPrint) lister.noteBytecode(biStart, "ireturn");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           emit_ireturn();
           break;
         }
 
         case JBC_lreturn: {
-          if (shouldPrint) asm.noteBytecode(biStart, "lreturn");
+          if (shouldPrint) lister.noteBytecode(biStart, "lreturn");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           emit_lreturn();
           break;
         }
 
         case JBC_freturn: {
-          if (shouldPrint) asm.noteBytecode(biStart, "freturn");
+          if (shouldPrint) lister.noteBytecode(biStart, "freturn");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           emit_freturn();
           break;
         }
 
         case JBC_dreturn: {
-          if (shouldPrint) asm.noteBytecode(biStart, "dreturn");
+          if (shouldPrint) lister.noteBytecode(biStart, "dreturn");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           emit_dreturn();
           break;
         }
 
         case JBC_areturn: {
-          if (shouldPrint) asm.noteBytecode(biStart, "areturn");
+          if (shouldPrint) lister.noteBytecode(biStart, "areturn");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           emit_areturn();
           break;
         }
 
         case JBC_return: {
-          if (shouldPrint) asm.noteBytecode(biStart, "return");
+          if (shouldPrint) lister.noteBytecode(biStart, "return");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           emit_return();
           break;
@@ -1364,7 +1368,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_getstatic: {
           FieldReference fieldRef = bcodes.getFieldReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "getstatic", fieldRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "getstatic", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
             // Forbidden from uninterruptible code as dynamic linking can cause
             // interruptions
@@ -1378,7 +1382,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_putstatic: {
           FieldReference fieldRef = bcodes.getFieldReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "putstatic", fieldRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "putstatic", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
             // Forbidden from uninterruptible code as dynamic linking can cause
             // interruptions
@@ -1392,7 +1396,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_getfield: {
           FieldReference fieldRef = bcodes.getFieldReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "getfield", fieldRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "getfield", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
             // Forbidden from uninterruptible code as dynamic linking can cause
             // interruptions
@@ -1406,7 +1410,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_putfield: {
           FieldReference fieldRef = bcodes.getFieldReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "putfield", fieldRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "putfield", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
             // Forbidden from uninterruptible code as dynamic linking can cause
             // interruptions
@@ -1431,7 +1435,7 @@ public abstract class TemplateCompilerFramework {
           }
 
           MethodReference methodRef = bcodes.getMethodReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual", methodRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "invokevirtual", methodRef);
           if (methodRef.getType().isMagicType()) {
             if (emit_Magic(methodRef)) {
               break;
@@ -1443,7 +1447,7 @@ public abstract class TemplateCompilerFramework {
              * an invokeinterface, despite the compiler claiming it should
              * be invokevirtual.
              */
-            if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
+            if (shouldPrint) lister.noteBytecode(biStart, "invokeinterface", methodRef);
             // Forbidden from uninterruptible code as interface invocation
             // causes runtime checks that can be interrupted
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef, bcodes.index());
@@ -1478,7 +1482,7 @@ public abstract class TemplateCompilerFramework {
             x.resolve(asm);                       //  X:
           }
           MethodReference methodRef = bcodes.getMethodReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "invokespecial", methodRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "invokespecial", methodRef);
           RVMMethod target = methodRef.resolveInvokeSpecial();
           if (target != null) {
             if (VM.VerifyUnint && !isInterruptible) checkTarget(target, bcodes.index());
@@ -1507,7 +1511,7 @@ public abstract class TemplateCompilerFramework {
           }
 
           MethodReference methodRef = bcodes.getMethodReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "invokestatic", methodRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "invokestatic", methodRef);
           if (methodRef.isMagic()) {
             if (emit_Magic(methodRef)) {
               break;
@@ -1544,7 +1548,7 @@ public abstract class TemplateCompilerFramework {
 
           MethodReference methodRef = bcodes.getMethodReference();
           bcodes.alignInvokeInterface();
-          if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "invokeinterface", methodRef);
           // Forbidden from uninterruptible code as interface invocation
           // causes runtime checks that can be interrupted
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef, bcodes.index());
@@ -1558,14 +1562,14 @@ public abstract class TemplateCompilerFramework {
         }
 
         case JBC_invokedynamic: {
-          if (shouldPrint) asm.noteBytecode(biStart, "unused");
+          if (shouldPrint) lister.noteBytecode(biStart, "unused");
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
         }
 
         case JBC_new: {
           TypeReference typeRef = bcodes.getTypeReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "new", typeRef);
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
           if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("new ", typeRef, bcodes.index());
@@ -1592,7 +1596,7 @@ public abstract class TemplateCompilerFramework {
           }
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
-          if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
+          if (shouldPrint) lister.noteBytecode(biStart, "newarray", array.getTypeRef());
           if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("newarray ", array, bcodes.index());
           emit_resolved_newarray(array);
           break;
@@ -1602,7 +1606,7 @@ public abstract class TemplateCompilerFramework {
           TypeReference elementTypeRef = bcodes.getTypeReference();
           TypeReference arrayRef = elementTypeRef.getArrayTypeForElementType();
 
-          if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "anewarray new", arrayRef);
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("anewarray ", arrayRef, bcodes.index());
@@ -1642,13 +1646,13 @@ public abstract class TemplateCompilerFramework {
         }
 
         case JBC_arraylength: {
-          if (shouldPrint) asm.noteBytecode(biStart, "arraylength");
+          if (shouldPrint) lister.noteBytecode(biStart, "arraylength");
           emit_arraylength();
           break;
         }
 
         case JBC_athrow: {
-          if (shouldPrint) asm.noteBytecode(biStart, "athrow");
+          if (shouldPrint) lister.noteBytecode(biStart, "athrow");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(RVMThread.EPILOGUE);
           // Forbidden from uninterruptible code as athrow causes calls into runtime
           // that are interruptible
@@ -1659,7 +1663,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_checkcast: {
           TypeReference typeRef = bcodes.getTypeReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "checkcast", typeRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "checkcast", typeRef);
           RVMType type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
@@ -1697,7 +1701,7 @@ public abstract class TemplateCompilerFramework {
 
         case JBC_instanceof: {
           TypeReference typeRef = bcodes.getTypeReference();
-          if (shouldPrint) asm.noteBytecode(biStart, "instanceof", typeRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "instanceof", typeRef);
           RVMType type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
@@ -1730,7 +1734,7 @@ public abstract class TemplateCompilerFramework {
         }
 
         case JBC_monitorenter: {
-          if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");
+          if (shouldPrint) lister.noteBytecode(biStart, "monitorenter");
           // Forbidden from uninterruptible code as calls interruptible object model
           // for its implementation
           if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("monitorenter", bcodes.index());
@@ -1739,7 +1743,7 @@ public abstract class TemplateCompilerFramework {
         }
 
         case JBC_monitorexit: {
-          if (shouldPrint) asm.noteBytecode(biStart, "monitorexit");
+          if (shouldPrint) lister.noteBytecode(biStart, "monitorexit");
           // Forbidden from uninterruptible code as calls interruptible object model
           // for its implementation
           if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("monitorexit", bcodes.index());
@@ -1752,63 +1756,63 @@ public abstract class TemplateCompilerFramework {
           int index = bcodes.getWideLocalNumber();
           switch (widecode) {
             case JBC_iload: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide iload", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide iload", index);
               emit_iload(index);
               break;
             }
             case JBC_lload: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide lload", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide lload", index);
               emit_lload(index);
               break;
             }
             case JBC_fload: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide fload", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide fload", index);
               emit_fload(index);
               break;
             }
             case JBC_dload: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide dload", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide dload", index);
               emit_dload(index);
               break;
             }
             case JBC_aload: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide aload", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide aload", index);
               emit_aload(index);
               break;
             }
             case JBC_istore: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide istore", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide istore", index);
               emit_istore(index);
               break;
             }
             case JBC_lstore: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide lstore", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide lstore", index);
               emit_lstore(index);
               break;
             }
             case JBC_fstore: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide fstore", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide fstore", index);
               emit_fstore(index);
               break;
             }
             case JBC_dstore: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide dstore", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide dstore", index);
               emit_dstore(index);
               break;
             }
             case JBC_astore: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide astore", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide astore", index);
               emit_astore(index);
               break;
             }
             case JBC_iinc: {
               int val = bcodes.getWideIncrement();
-              if (shouldPrint) asm.noteBytecode(biStart, "wide inc", index, val);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide inc", index, val);
               emit_iinc(index, val);
               break;
             }
             case JBC_ret: {
-              if (shouldPrint) asm.noteBytecode(biStart, "wide ret", index);
+              if (shouldPrint) lister.noteBytecode(biStart, "wide ret", index);
               emit_ret(index);
               break;
             }
@@ -1821,7 +1825,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_multianewarray: {
           TypeReference typeRef = bcodes.getTypeReference();
           int dimensions = bcodes.getArrayDimension();
-          if (shouldPrint) asm.noteBytecode(biStart, "multianewarray", typeRef);
+          if (shouldPrint) lister.noteBytecode(biStart, "multianewarray", typeRef);
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray", bcodes.index());
@@ -1832,7 +1836,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_ifnull: {
           int offset = bcodes.getBranchOffset();
           int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnull", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "ifnull", offset, bTarget);
           if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
           emit_ifnull(bTarget);
           break;
@@ -1841,7 +1845,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_ifnonnull: {
           int offset = bcodes.getBranchOffset();
           int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnonnull", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "ifnonnull", offset, bTarget);
           if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
           emit_ifnonnull(bTarget);
           break;
@@ -1850,7 +1854,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_goto_w: {
           int offset = bcodes.getWideBranchOffset();
           int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "goto_w", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "goto_w", offset, bTarget);
           if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
           emit_goto(bTarget);
           break;
@@ -1859,7 +1863,7 @@ public abstract class TemplateCompilerFramework {
         case JBC_jsr_w: {
           int offset = bcodes.getWideBranchOffset();
           int bTarget = biStart + offset;
-          if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr_w", offset, bTarget);
+          if (shouldPrint) lister.noteBranchBytecode(biStart, "jsr_w", offset, bTarget);
           emit_jsr(bTarget);
           break;
         }
@@ -1875,7 +1879,7 @@ public abstract class TemplateCompilerFramework {
               case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadIntConst: {
                 int value = bcodes.readIntConst();
 
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_load_int", value);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(value));
                 emit_ldc(offset, CP_INT);
@@ -1885,7 +1889,7 @@ public abstract class TemplateCompilerFramework {
               case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadLongConst: {
                 long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
 
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_load_long", value);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(value));
                 emit_ldc2(offset, CP_LONG);
@@ -1896,14 +1900,14 @@ public abstract class TemplateCompilerFramework {
                 if (VM.BuildFor32Addr) {
                   int value = bcodes.readIntConst();
 
-                  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
+                  if (shouldPrint) lister.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(value));
                   emit_ldc(offset, CP_INT);
                 } else {
                   long value = bcodes.readLongConst();
 
-                  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
+                  if (shouldPrint) lister.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(value));
                   emit_ldc2(offset, CP_LONG);
@@ -1914,7 +1918,7 @@ public abstract class TemplateCompilerFramework {
               case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadFloatConst: {
                 int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
 
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_load_float", ibits);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(ibits));
                 emit_ldc(offset, CP_FLOAT);
@@ -1924,7 +1928,7 @@ public abstract class TemplateCompilerFramework {
               case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadDoubleConst: {
                 long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
 
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_load_double", lbits);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(lbits));
                 emit_ldc2(offset, CP_DOUBLE);
@@ -1934,7 +1938,7 @@ public abstract class TemplateCompilerFramework {
               case org.jikesrvm.osr.OSRConstants.PSEUDO_LoadRetAddrConst: {
                 int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
 
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_retaddr", bcIndex);
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_load_retaddr", bcIndex);
                 // for bytecode to get future bytecode's address
                 // we register it and patch it later.
                 emit_loadretaddrconst(bcIndex);
@@ -1944,14 +1948,14 @@ public abstract class TemplateCompilerFramework {
               case org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeStatic: {
                 int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
                 RVMMethod methodRef = InvokeStatic.targetMethod(targetidx);
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
                 emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
                 break;
               }
               /*
                 case org.jikesrvm.osr.OSRConstants.PSEUDO_CheckCast: {
 
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_checkcast");
 
                 // fetch 4 byte type id
                 int tid = bcodes.readIntConst(); // fetch4BytesSigned();
@@ -1964,7 +1968,7 @@ public abstract class TemplateCompilerFramework {
                 int origIdx =
                     bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
 
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid", cmid);
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_invoke_cmid", cmid);
 
                 this.pendingCMID = cmid;
                 this.pendingIdx = origIdx + this.method.getOsrPrologueLength();
@@ -1977,14 +1981,14 @@ public abstract class TemplateCompilerFramework {
                 break;
               }
               case org.jikesrvm.osr.OSRConstants.PSEUDO_ParamInitEnd: {
-                if (shouldPrint) asm.noteBytecode(biStart, "pseudo_paraminitend");
+                if (shouldPrint) lister.noteBytecode(biStart, "pseudo_paraminitend");
                 // now we can inserted stack overflow check,
                 emit_deferred_prologue();
                 break;
               }
               default:
                 if (VM.TraceOnStackReplacement) {
-                  VM.sysWrite("Unexpected PSEUDO code " + Services.intAsHexString(pseudo_opcode) + "\n");
+                  VM.sysWriteln("Unexpected PSEUDO code " + Services.intAsHexString(pseudo_opcode));
                 }
                 if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
                 break;
@@ -1996,12 +2000,13 @@ public abstract class TemplateCompilerFramework {
         }
 
         default:
-          VM.sysWrite("BaselineCompilerImpl: unexpected bytecode: " + Services.getHexString(code, false) + "\n");
+          VM.sysWriteln("BaselineCompilerImpl: unexpected bytecode: " + Services.getHexString(code, false));
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
       ending_bytecode();
     }
     bytecodeMap[bcodes.length()] = asm.getMachineCodeIndex();
+    ending_method();
     return new MachineCode(getAssembler().getMachineCodes(),bytecodeMap);
   }
 
@@ -2015,7 +2020,7 @@ public abstract class TemplateCompilerFramework {
     final boolean shouldPrint = this.shouldPrint;
     int offset = bcodes.getBranchOffset();
     int bTarget = biStart + offset;
-    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (shouldPrint) getLister().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
     if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
     emit_if(bTarget, bc);
   }
@@ -2030,7 +2035,7 @@ public abstract class TemplateCompilerFramework {
     final boolean shouldPrint = this.shouldPrint;
     int offset = bcodes.getBranchOffset();
     int bTarget = biStart + offset;
-    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if_icmp" + bc, offset, bTarget);
+    if (shouldPrint) getLister().noteBranchBytecode(biStart, "if_icmp" + bc, offset, bTarget);
     if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
     emit_if_icmp(bTarget, bc);
   }
@@ -2109,13 +2114,13 @@ public abstract class TemplateCompilerFramework {
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
-      ". Uninterruptible method calls non-uninterruptible method " + target + "\n");
+      VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+      ". Uninterruptible method calls non-uninterruptible method " + target);
     }
     if (isUnpreemptible && target.isInterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
-          ". Unpreemptible method calls interruptible method " + target + "\n");
+      VM.sysWriteln("WARNING: UNPREEMPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+          ". Unpreemptible method calls interruptible method " + target);
     }
   }
 
@@ -2139,6 +2144,11 @@ public abstract class TemplateCompilerFramework {
    * Notify BaselineCompilerImpl that we are ending code gen for the bytecode biStart
    */
   protected void ending_bytecode() {}
+
+  /**
+   * Notify BaselineCompilerImpl that we are ending code gen for the method.
+   */
+  protected void ending_method() {}
 
   /**
    * Emit the prologue for the method

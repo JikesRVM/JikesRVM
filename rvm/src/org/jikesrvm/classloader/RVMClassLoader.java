@@ -465,9 +465,7 @@ public class RVMClassLoader {
       else {
         try {
           cls = tRef.resolve().asClass();
-          cls.resolve();
-          cls.instantiate();
-          cls.initialize();
+          cls.prepareForFirstUse();
           return clx;
         } catch (NoClassDefFoundError cnf) {
           /* silently catch this exception and try another class loader */

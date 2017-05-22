@@ -290,6 +290,14 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_ICBI, I(0), R(CacheOp.getRef(P(p)))));
 # Trap operations
 ##################################
 #####
+# ILLEGAL_INSTRUCTION
+#####
+stm:   ILLEGAL_INSTRUCTION
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Empty.mutate(P(p), PPC_ILLEGAL_INSTRUCTION));
+
+#####
 # TRAP
 #####
 stm: TRAP

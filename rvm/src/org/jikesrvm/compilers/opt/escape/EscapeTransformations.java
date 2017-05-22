@@ -120,7 +120,7 @@ public class EscapeTransformations extends CompilerPhase {
             s = getAggregateReplacer(def, ir);
           }
           if (s != null) {
-            // org.jikesrvm.VM.sysWrite("Scalar replacing "+def+" in "+ir.method+"\n");
+            // org.jikesrvm.VM.sysWriteln("Scalar replacing " + def + " in " + ir.method);
             s.transform();
             removedAggregate = true;
           }
@@ -134,14 +134,14 @@ public class EscapeTransformations extends CompilerPhase {
             unsync = getUnsyncReplacer(reg, def, ir);
           }
           if (unsync != null) {
-            // VM.sysWrite("Removing synchronization on "+def+" in "+ir.method+"\n");
+            // VM.sysWriteln("Removing synchronization on " + def + " in " + ir.method);
             unsync.transform();
           }
         }
       }
       if (removedAggregate) {
         // do quick clean up of IR
-        // org.jikesrvm.VM.sysWrite("Cleaning up IR in "+ir.method+"\n");
+        // org.jikesrvm.VM.sysWriteln("Cleaning up IR in " + ir.method);
         escapeCleanUp.perform(ir);
       }
     } while (removedAggregate);

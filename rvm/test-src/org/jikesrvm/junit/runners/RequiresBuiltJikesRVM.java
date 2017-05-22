@@ -12,6 +12,13 @@
  */
 package org.jikesrvm.junit.runners;
 
+/**
+ * Indicates that a unit test or test method must be executed on the
+ * built Jikes RVM.
+ * <p>
+ * This generally means that the unit test is accessing the internals
+ * of the Jikes RVM, e.g. to to get data about methods and types.
+ */
 public final class RequiresBuiltJikesRVM {
 
   private RequiresBuiltJikesRVM() { }

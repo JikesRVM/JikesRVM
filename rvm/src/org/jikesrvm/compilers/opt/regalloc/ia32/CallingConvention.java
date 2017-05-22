@@ -45,7 +45,6 @@ import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
@@ -322,7 +321,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = MIR_Call.getClearParam(call, i);
       MIR_Call.setParam(call, i, null);
       TypeReference paramType = param.getType();
-      if (paramType.isFloatType() || paramType.isDoubleType()) {
+      if (paramType.isFloatingPointType()) {
         nFPRParams++;
         int size;
         if (paramType.isFloatType()) {
@@ -515,7 +514,7 @@ public abstract class CallingConvention extends IRTools {
         Operand param = MIR_Call.getClearParam(call, i);
         MIR_Call.setParam(call, i, null);
         TypeReference paramType = param.getType();
-        if (paramType.isFloatType() || paramType.isDoubleType()) {
+        if (paramType.isFloatingPointType()) {
           nFPRParams++;
           int size;
           if (paramType.isFloatType()) {
@@ -568,7 +567,7 @@ public abstract class CallingConvention extends IRTools {
         Operand param = MIR_Call.getClearParam(call, i);
         MIR_Call.setParam(call, i, null);
         TypeReference paramType = param.getType();
-        if (paramType.isFloatType() || paramType.isDoubleType()) {
+        if (paramType.isFloatingPointType()) {
           nFPRParams++;
           int size;
           size = BYTES_IN_STACKSLOT;
@@ -684,7 +683,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = MIR_Call.getParam(call, i);
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
-        if (symb.getType().isFloatType() || symb.getType().isDoubleType()) {
+        if (symb.getType().isFloatingPointType()) {
           result++;
         }
       }
@@ -699,7 +698,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = e.nextElement();
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
-        if (symb.getType().isFloatType() || symb.getType().isDoubleType()) {
+        if (symb.getType().isFloatingPointType()) {
           result++;
         }
       }
@@ -733,7 +732,7 @@ public abstract class CallingConvention extends IRTools {
     for (Enumeration<Operand> e = p.getDefs(); e.hasMoreElements();) {
       RegisterOperand symbOp = (RegisterOperand) e.nextElement();
       TypeReference rType = symbOp.getType();
-      if (rType.isFloatType() || rType.isDoubleType()) {
+      if (rType.isFloatingPointType()) {
         int size;
         if (rType.isFloatType()) {
           size = BYTES_IN_FLOAT;
@@ -813,9 +812,7 @@ public abstract class CallingConvention extends IRTools {
       VM._assert(VM.NOT_REACHED, msg);
     }
 
-    // Now that we've made the calling convention explicit in the prologue,
-    // set IR_PROLOGUE to have no defs.
-    p.replace(Prologue.create(IR_PROLOGUE, 0));
+    removeDefsFromPrologue(p);
   }
 
 }

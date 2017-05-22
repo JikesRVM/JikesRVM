@@ -144,6 +144,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
+import org.jikesrvm.compilers.common.assembler.ppc.Lister;
 import org.jikesrvm.jni.ppc.JNICompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -167,6 +168,7 @@ import org.vmmagic.unboxed.Offset;
 public final class BaselineCompilerImpl extends BaselineCompiler {
 
   final Assembler asm;
+  final Lister lister;
 
   // stackframe pseudo-constants //
   private int frameSize;
@@ -202,10 +204,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   /**
    * Create a Compiler object for the compilation of method.
    */
-  public BaselineCompilerImpl(BaselineCompiledMethod cm, short[] genLocLoc, short[] floatLocLoc) {
+  public BaselineCompilerImpl(BaselineCompiledMethod cm) {
     super(cm);
-    localFixedLocations = genLocLoc;
-    localFloatLocations = floatLocLoc;
+    localFixedLocations = new short[((NormalMethod)cm.getMethod()).getLocalWords()];
+    localFloatLocations = new short[((NormalMethod)cm.getMethod()).getLocalWords()];
     use_nonvolatile_registers = USE_NONVOLATILE_REGISTERS && !method.hasBaselineNoRegistersAnnotation();
 
     if (VM.VerifyAssertions) VM._assert(T7.value() <= LAST_VOLATILE_GPR.value());           // need 8 gp temps
@@ -215,12 +217,18 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     startLocalOffset = getInternalStartLocalOffset(method);
     emptyStackOffset = getEmptyStackOffset(method);
     fullStackOffset = emptyStackOffset - (method.getOperandWords() << LOG_BYTES_IN_STACKSLOT);
-    asm = new Assembler(bcodes.length(),shouldPrint, this);
+    asm = new Assembler(bcodes.length(),shouldPrint, this, bytecodeMap);
+    lister = asm.getLister();
   }
 
   @Override
   protected AbstractAssembler getAssembler() {
     return asm;
+  }
+
+  @Override
+  protected Lister getLister() {
+    return lister;
   }
 
   @Override
@@ -236,7 +244,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
 
   /** position of operand stack within method's stackframe */
   @Uninterruptible
-  public static short getEmptyStackOffset(NormalMethod m) {
+  static short getEmptyStackOffset(NormalMethod m) {
     int params = m.getOperandWords() << LOG_BYTES_IN_STACKSLOT; // maximum parameter area
     int spill = params - (MIN_PARAM_REGISTERS << LOG_BYTES_IN_STACKSLOT);
     if (spill < 0) spill = 0;
@@ -268,19 +276,15 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     return size;
   }
 
-  /** size of method's stackframe. NB only valid on compiled methods */
   @Uninterruptible
-  public static int getFrameSize(BaselineCompiledMethod bcm) {
-    NormalMethod m = (NormalMethod) bcm.getMethod();
+  static int getFrameSize(NormalMethod m, byte lastFloatStackRegister, byte lastFixedStackRegister) {
     int size = getInternalStartLocalOffset(m);
     if (m.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       size += (LAST_NONVOLATILE_FPR.value() - FIRST_VOLATILE_FPR.value() + 1) << LOG_BYTES_IN_DOUBLE;
       size += (LAST_NONVOLATILE_GPR.value() - FIRST_VOLATILE_GPR.value() + 1) << LOG_BYTES_IN_ADDRESS;
     } else {
-      int num_fpr = bcm.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER.value() + 1;
-      int num_gpr = bcm.getLastFixedStackRegister() - FIRST_FIXED_LOCAL_REGISTER.value() + 1;
-      if (num_gpr > 0) size += (num_fpr << LOG_BYTES_IN_DOUBLE);
-      size += (num_gpr << LOG_BYTES_IN_ADDRESS);
+      size += (lastFloatStackRegister - FIRST_FLOAT_LOCAL_REGISTER.value() + 1) << LOG_BYTES_IN_DOUBLE;
+      size += (lastFixedStackRegister - FIRST_FIXED_LOCAL_REGISTER.value() + 1) << LOG_BYTES_IN_ADDRESS;
     }
     if (VM.BuildFor32Addr) {
       size = Memory.alignUp(size, STACKFRAME_ALIGNMENT);
@@ -409,13 +413,13 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     }
   }
 
-  @Override
-  public byte getLastFixedStackRegister() {
+  @Uninterruptible
+  byte getLastFixedStackRegister() {
     return lastFixedStackRegister;
   }
 
-  @Override
-  public byte getLastFloatStackRegister() {
+  @Uninterruptible
+  byte getLastFloatStackRegister() {
     return lastFloatStackRegister;
   }
 
@@ -431,24 +435,24 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     return 0 != (type & (LONG_TYPE));
   }
 
+  @Uninterruptible
   private short getGeneralLocalLocation(int index) {
     return localFixedLocations[index];
   }
 
+  @Uninterruptible
   private short getFloatLocalLocation(int index) {
     return localFloatLocations[index];
   }
 
   @Uninterruptible
-  @Inline
-  public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
-    return localloc[index];
+  short [] getLocalFixedLocations() {
+    return localFixedLocations;
   }
 
   @Uninterruptible
-  @Inline
-  public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
-    return localloc[index];
+  short [] getLocalFloatLocations() {
+    return localFloatLocations;
   }
 
   /*
@@ -1886,7 +1890,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       case GE: return GE;
       case GT: return GT;
       case LE: return LE;
-      default: if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1;
+      default:
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        return -1;
     }
   }
 
@@ -3400,6 +3406,11 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     }
   }
 
+  @Override
+  protected void ending_method() {
+    asm.noteEndOfBytecodes();
+  }
+
   /**
    * Emit the code to load the counter array into the given register.
    * May call a read barrier so will kill all temporaries.
@@ -4265,20 +4276,23 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     } else if (methodName == MagicNames.addressArrayLength) {
       emit_arraylength();
     } else if (methodName == MagicNames.addressArrayGet) {
+      genBoundsCheck();
       if (VM.BuildFor32Addr || methodToBeCalled.getType() == TypeReference.CodeArray) {
-        emit_iaload();
+        asm.emitSLWI(T1, T1, LOG_BYTES_IN_INT);  // convert index to offset
+        asm.emitLIntX(T2, T0, T1);  // load desired int array element
+        pushInt(T2);
       } else {
-        genBoundsCheck();
         asm.emitSLDI(T1, T1, LOG_BYTES_IN_ADDRESS);  // convert index to offset
         asm.emitLAddrX(T2, T0, T1);  // load desired array element
         pushAddr(T2);
       }
     } else if (methodName == MagicNames.addressArraySet) {
+      popAddr(T2);                                   // T2 is value to store
+      genBoundsCheck();
       if (VM.BuildFor32Addr || methodToBeCalled.getType() == TypeReference.CodeArray) {
-        emit_iastore();
+        asm.emitSLWI(T1, T1, LOG_BYTES_IN_INT); // convert index to offset
+        asm.emitSTWX(T2, T0, T1); // store 32-bit value in array
       } else {
-        popAddr(T2);                                   // T2 is value to store
-        genBoundsCheck();
         asm.emitSLDI(T1, T1, LOG_BYTES_IN_ADDRESS);  // convert index to offset
         asm.emitSTAddrX(T2, T0, T1);                  // store value in array
       }
@@ -4437,7 +4451,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       fr.resolve(asm);
       pushInt(T0);  // push success of conditional store
     } else if (methodName == MagicNames.attemptLong) {
-      popAddr(T2);  // pop newValue
+      popLong(T3, T2); // pop newValue
       discardSlots(2); // ignore oldValue which is a long and thus takes 2 slots
       popOffset(T1);  // pop offset
       popAddr(T0);  // pop object
@@ -4561,6 +4575,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitSYNC();
     } else if (methodName == MagicNames.fence) {
       asm.emitHWSYNC();
+    } else if (methodName == MagicNames.illegalInstruction) {
+      asm.emitIllegalInstruction();
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(GPR.R0, T0);

@@ -48,9 +48,9 @@ public class DynamicCallFileInfoReader {
 
     if (file == null) return;// null;
 
-    if ((!VM.runningVM) && (Controller.dcg == null)) {
+    if ((!VM.runningVM) && (!Controller.dcgAvailable())) {
       Controller.dcg = new PartialCallGraph(300);
-    } else if (Controller.dcg == null) {
+    } else if (!Controller.dcgAvailable()) {
       System.out.println("dcg is null ");
       return;
     } else {

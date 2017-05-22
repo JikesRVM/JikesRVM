@@ -73,7 +73,8 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
 
   @Override
   public void report() {
-    VM.sysWrite("\nMethod sampler report");
+    VM.sysWriteln();
+    VM.sysWrite("Method sampler report");
     if (data != null) data.report();
   }
   @NonMoving

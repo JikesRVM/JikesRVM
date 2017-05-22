@@ -18,10 +18,11 @@ public class tak_int{
   public static void main(String argv[])
   {
         int i;
-        System.out.println("Tak is running\n");
+        System.out.println("Tak is running");
+        System.out.println();
         for (i=0; i<1000; i++){
           int result = tak(18,12,6);
-//       System.out.println(result + "\n");
+//       System.out.println(result); System.out.println();
         }
 
         System.exit(0);

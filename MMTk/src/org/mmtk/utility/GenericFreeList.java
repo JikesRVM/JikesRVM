@@ -358,12 +358,14 @@ public abstract class GenericFreeList {
     boolean coalesc = isCoalescable(i);
     int prev = getPrev(i);
     int next = getNext(i);
-    Log.write(i); Log.write("  : ");
+    Log.write(i);
+    Log.write("  : ");
     Log.write(multi ? 'M' : ' ');
     Log.write(free ? 'F' : 'A');
     Log.write(coalesc ? 'C' : ' ');
-    Log.write(" <"); Log.write(prev);
-    Log.write("< >"); Log.write(next); Log.writeln(">");
+    Log.write(" <", prev);
+    Log.write("< >", next);
+    Log.writeln(">");
   }
 
   /**

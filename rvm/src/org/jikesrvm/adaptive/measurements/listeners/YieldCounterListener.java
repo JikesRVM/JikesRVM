@@ -15,6 +15,7 @@ package org.jikesrvm.adaptive.measurements.listeners;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -59,7 +60,7 @@ public final class YieldCounterListener extends NullListener {
 
   private final int yieldThreshold;
   @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"})
-// Accessed via EntryPoints
-  private final int numYields = 0;
+  @Entrypoint
+  private int numYields = 0;
   private int totalYields = 0;
 }

@@ -182,7 +182,7 @@ public abstract class BURS {
    */
   final void prepareForBlock(BasicBlock bb) {
     if (DEBUG) {
-      VM.sysWrite("FINAL LIR\n");
+      VM.sysWriteln("FINAL LIR");
       bb.printExtended();
     }
     lastInstr = bb.firstInstruction();
@@ -198,7 +198,7 @@ public abstract class BURS {
     lastInstr.BURS_backdoor_linkWithNext(bb.lastInstruction());
     lastInstr = null;
     if (DEBUG) {
-      VM.sysWrite("INITIAL MIR\n");
+      VM.sysWriteln("INITIAL MIR");
       bb.printExtended();
     }
   }

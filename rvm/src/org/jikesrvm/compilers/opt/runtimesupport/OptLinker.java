@@ -28,6 +28,7 @@ import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TableBasedDynamicLinker;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -85,9 +86,7 @@ public final class OptLinker {
     }
   }
 
-  /*
-   * Method referenced from Entrypoints
-   */
+  @Entrypoint
   public static Object newArrayArray(int methodId, int[] dimensions, int typeId)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     // validate arguments
@@ -100,6 +99,7 @@ public final class OptLinker {
     return RuntimeEntrypoints.buildMultiDimensionalArray(methodId, dimensions, aType);
   }
 
+  @Entrypoint
   public static Object new2DArray(int methodId, int dim0, int dim1, int typeId)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     // validate arguments

@@ -183,6 +183,11 @@ int main(int argc, char *argv[])
   if (!feof(infp))
     while ((c = getc(infp)) != EOF)
       putc(c, outfp);
+  if (outfp == stdout) {
+    fflush(stdout);
+  } else {
+    fclose(outfp);
+  }
   while (memlist) {   /* for purify */
     struct block *q = memlist->link;
     free(memlist);

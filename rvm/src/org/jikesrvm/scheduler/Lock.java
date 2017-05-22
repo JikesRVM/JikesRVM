@@ -394,7 +394,7 @@ public final class Lock {
     }
     VM.sysWrite("Lock ");
     VM.sysWriteInt(index);
-    VM.sysWrite(":\n");
+    VM.sysWriteln(":");
     VM.sysWrite(" lockedObject: ");
     VM.sysWriteHex(Magic.objectAsAddress(lockedObject));
     VM.sysWrite("   thin lock = ");
@@ -419,7 +419,7 @@ public final class Lock {
     } else {
       VM.sysWriteInt(mutex.latestContender.getThreadSlot());
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**
@@ -647,14 +647,14 @@ public final class Lock {
         l.dump();
       }
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     VM.sysWrite("lock availability stats: ");
     VM.sysWriteInt(globalLocksAllocated);
     VM.sysWrite(" locks allocated, ");
     VM.sysWriteInt(globalLocksFreed);
     VM.sysWrite(" locks freed, ");
     VM.sysWriteInt(globalFreeLocks);
-    VM.sysWrite(" free locks\n");
+    VM.sysWriteln(" free locks");
   }
 
   /**
@@ -727,17 +727,17 @@ public final class Lock {
       int totalLocks = lockOperations + ThinLock.fastLocks + ThinLock.slowLocks;
 
       RVMThread.dumpStats();
-      VM.sysWrite(" notifyAll operations\n");
+      VM.sysWriteln(" notifyAll operations");
       VM.sysWrite("FatLocks: ");
       VM.sysWrite(lockOperations);
       VM.sysWrite(" locks");
       Services.percentage(lockOperations, totalLocks, "all lock operations");
       VM.sysWrite("FatLocks: ");
       VM.sysWrite(unlockOperations);
-      VM.sysWrite(" unlock operations\n");
+      VM.sysWriteln(" unlock operations");
       VM.sysWrite("FatLocks: ");
       VM.sysWrite(deflations);
-      VM.sysWrite(" deflations\n");
+      VM.sysWriteln(" deflations");
 
       ThinLock.notifyExit(totalLocks);
       VM.sysWriteln();
@@ -748,7 +748,7 @@ public final class Lock {
       VM.sysWriteInt(globalLocksFreed);
       VM.sysWrite(" locks freed, ");
       VM.sysWriteInt(globalFreeLocks);
-      VM.sysWrite(" free locks\n");
+      VM.sysWriteln(" free locks");
     }
   }
 }

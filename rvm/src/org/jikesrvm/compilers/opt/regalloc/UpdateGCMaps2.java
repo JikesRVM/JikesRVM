@@ -64,7 +64,9 @@ final class UpdateGCMaps2 extends CompilerPhase {
     RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
 
     if (LinearScan.GC_DEBUG) {
-      System.out.println("SCRATCH MAP:\n" + scratchMap);
+      System.out.println("SCRATCH MAP:");
+      System.out.println();
+      System.out.println(scratchMap);
     }
     if (scratchMap.isEmpty()) return;
 
@@ -87,7 +89,7 @@ final class UpdateGCMaps2 extends CompilerPhase {
       // For each element in the GC Map ...
       for (RegSpillListElement elem : GCelement.regSpillList()) {
         if (LinearScan.GC_DEBUG) {
-          VM.sysWrite("Update " + elem + "\n");
+          VM.sysWriteln("Update " + elem);
         }
         if (elem.isSpill()) {
           // check if the spilled value currently is cached in a scratch
@@ -96,7 +98,7 @@ final class UpdateGCMaps2 extends CompilerPhase {
           Register scratch = scratchMap.getScratch(r, dfn);
           if (scratch != null) {
             if (LinearScan.GC_DEBUG) {
-              VM.sysWrite("cached in scratch register " + scratch + "\n");
+              VM.sysWriteln("cached in scratch register " + scratch);
             }
             // we will add a new element noting that the scratch register
             // also must be including in the GC map
@@ -118,7 +120,7 @@ final class UpdateGCMaps2 extends CompilerPhase {
             // The regalloc state knows where the physical register r is
             // spilled.
             if (LinearScan.GC_DEBUG) {
-              VM.sysWrite("CHANGE to spill location " + regAllocState.getSpill(r) + "\n");
+              VM.sysWriteln("CHANGE to spill location " + regAllocState.getSpill(r));
             }
             elem.setSpill(regAllocState.getSpill(r));
           }

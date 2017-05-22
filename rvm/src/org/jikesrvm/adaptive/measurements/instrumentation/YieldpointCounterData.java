@@ -45,8 +45,8 @@ public final class YieldpointCounterData extends StringEventCounterData implemen
     // not change while we are iterating over them
     Instrumentation.disableInstrumentation();
 
-    VM.sysWrite("Printing " + dataName + ":\n");
-    VM.sysWrite("--------------------------------------------------\n");
+    VM.sysWriteln("Printing " + dataName + ":");
+    VM.sysWriteln("--------------------------------------------------");
     double total = 0;
     double methodEntryTotal = 0;
     double backedgeTotal = 0;
@@ -54,7 +54,7 @@ public final class YieldpointCounterData extends StringEventCounterData implemen
       Integer counterNum = stringToCounterMap.get(stringName);
       double count = getCounter(counterNum);
 
-      VM.sysWrite(count + " " + stringName + "\n");
+      VM.sysWriteln(count + " " + stringName);
       total += count;
 
       // If it's a method entry event
@@ -67,9 +67,9 @@ public final class YieldpointCounterData extends StringEventCounterData implemen
       }
 
     }
-    VM.sysWrite("Total backedges: " + backedgeTotal + "\n");
-    VM.sysWrite("Method Entry Total: " + methodEntryTotal + "\n");
-    VM.sysWrite("Total Yieldpoints: " + total + "\n");
+    VM.sysWriteln("Total backedges: " + backedgeTotal);
+    VM.sysWriteln("Method Entry Total: " + methodEntryTotal);
+    VM.sysWriteln("Total Yieldpoints: " + total);
   }
 
 }

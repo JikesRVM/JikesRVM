@@ -2892,8 +2892,8 @@ EOF
     fi
 }
 
-emitStackOp POP pop -= 0x58 0x8F 0x0 none none
-emitStackOp PUSH push += 0x50 0xFF 0x6 0x6A 0x68
+emitStackOp POP pop += 0x58 0x8F 0x0 none none
+emitStackOp PUSH push -= 0x50 0xFF 0x6 0x6A 0x68
 
 # SSE/2 instructions
 emitSSE2Op() {
@@ -3037,7 +3037,7 @@ emitSSE2Op() {
   /**
    * Generate a register--register-index ${acronym}. That is,
    * <PRE>
-   * dstReg ${opStr}= $code srcReg
+   * dstReg ${opStr}= $code [srcBase + srcIndex&lt;&lt;scale + srcDisp]
    * </PRE>
    *
    * @param dstReg destination register
@@ -3046,7 +3046,6 @@ emitSSE2Op() {
    * @param srcScale the source scale
    * @param srcDisp the source displacement
    */
-  // dstReg ${opStr}= $code [srcBase + srcIndex&lt;&lt;scale + srcDisp]
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2,3})
   public final void emit${acronym}_Reg_RegIdx${ext}($toRegType dstReg, GPR srcBase, GPR srcIndex, short srcScale, Offset srcDisp) {
     int miStart = mi;$prefix1Line

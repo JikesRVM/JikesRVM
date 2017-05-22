@@ -137,7 +137,11 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
     try {
       f = new PrintStream(new FileOutputStream(fn));
     } catch (IOException e) {
-      VM.sysWrite("\n\nEdgeCounts.dumpCounts: Error opening output file!!\n\n");
+      VM.sysWriteln();
+      VM.sysWriteln();
+      VM.sysWrite("EdgeCounts.dumpCounts: Error opening output file!!");
+      VM.sysWriteln();
+      VM.sysWriteln();
       return;
     }
     dumpCountsToStream(f);

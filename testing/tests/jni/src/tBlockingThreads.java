@@ -66,7 +66,9 @@ class tBlockingThreads {
             RVMThread.trace("main","waiting for worker",i);
 
           if (FORCE_GC) {
-            System.out.println("\nMain calling System.gc:\n");
+            System.out.println();
+            System.out.println("Main calling System.gc:");
+            System.out.println();
             System.gc();
           }
 

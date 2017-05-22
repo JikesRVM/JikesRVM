@@ -57,7 +57,6 @@ import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
@@ -308,9 +307,7 @@ public abstract class CallingConvention extends IRTools {
       }
     }
 
-    // Now that we've made the calling convention explicit in the prologue,
-    // set IR_PROLOGUE to have no defs.
-    prologueInstr.replace(Prologue.create(IR_PROLOGUE, 0));
+    removeDefsFromPrologue(prologueInstr);
   }
 
   /**
@@ -432,7 +429,7 @@ public abstract class CallingConvention extends IRTools {
     }
     if (MIR_Call.hasResult(s)) {
       RegisterOperand result1 = MIR_Call.getClearResult(s);
-      if (result1.getType().isFloatType() || result1.getType().isDoubleType()) {
+      if (result1.getType().isFloatingPointType()) {
         RegisterOperand physical = new RegisterOperand(phys.get(FIRST_DOUBLE_RETURN), result1.getType());
         Instruction tmp = MIR_Move.create(PPC_FMR, result1, physical);
         lastCallSeqInstr.insertAfter(tmp);
@@ -458,7 +455,7 @@ public abstract class CallingConvention extends IRTools {
     if (MIR_Return.hasVal(s)) {
       RegisterOperand symb1 = MIR_Return.getClearVal(s);
       RegisterOperand phys1;
-      if (symb1.getType().isFloatType() || symb1.getType().isDoubleType()) {
+      if (symb1.getType().isFloatingPointType()) {
         phys1 = D(phys.get(FIRST_DOUBLE_RETURN));
         s.insertBefore(MIR_Move.create(PPC_FMR, phys1, symb1));
       } else {

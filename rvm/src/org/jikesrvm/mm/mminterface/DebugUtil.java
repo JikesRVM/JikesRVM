@@ -100,7 +100,7 @@ public class DebugUtil {
     if (!Space.isMappedObject(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = ");
       VM.sysWrite(ref);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       Space.printVMMap();
       return false;
     }
@@ -122,14 +122,14 @@ public class DebugUtil {
       VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
       VM.sysWrite(tibAddr);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
     if (tibAddr.isZero()) {
       VM.sysWrite("validRef: TIB is Zero! ");
       VM.sysWrite(ref);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
@@ -138,7 +138,7 @@ public class DebugUtil {
       VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
       VM.sysWrite(tibAddr);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
@@ -151,7 +151,7 @@ public class DebugUtil {
       VM.sysWrite(Magic.objectAsAddress(tib));
       VM.sysWrite(" type = ");
       VM.sysWrite(type);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
     }
@@ -167,18 +167,19 @@ public class DebugUtil {
   public static void dumpRef(ObjectReference ref) {
     VM.sysWrite("REF=");
     if (ref.isNull()) {
-      VM.sysWrite("NULL\n");
+      VM.sysWriteln("NULL");
+      VM.sysWriteln();
       return;
     }
     VM.sysWrite(ref);
     if (!mappedVMRef(ref)) {
-      VM.sysWrite(" (REF OUTSIDE OF HEAP OR NOT MAPPED)\n");
+      VM.sysWriteln(" (REF OUTSIDE OF HEAP OR NOT MAPPED)");
       return;
     }
     ObjectModel.dumpHeader(ref);
     ObjectReference tib = ObjectReference.fromObject(ObjectModel.getTIB(ref));
     if (!MemoryManager.mightBeTIB(tib)) {
-      VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
+      VM.sysWriteln(" (INVALID TIB: CLASS NOT ACCESSIBLE)");
       return;
     }
     RVMType type = Magic.getObjectType(ref.toObject());
@@ -186,12 +187,12 @@ public class DebugUtil {
     VM.sysWrite(" TYPE=");
     VM.sysWrite(itype);
     if (!validType(itype)) {
-      VM.sysWrite(" (INVALID TYPE: CLASS NOT ACCESSIBLE)\n");
+      VM.sysWriteln(" (INVALID TYPE: CLASS NOT ACCESSIBLE)");
       return;
     }
     VM.sysWrite(" CLASS=");
     VM.sysWrite(type.getDescriptor());
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   public static boolean addrInBootImage(Address addr) {

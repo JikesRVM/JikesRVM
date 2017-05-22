@@ -1487,6 +1487,16 @@ public final class Magic {
     return -1.0d; // which should upset them even if assertions aren't enabled ...
   }
 
+  /**
+   * An illegal instruction. Useful for testing purposes but not needed
+   * for running the VM.
+   */
+  public static void illegalInstruction() {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
   //---------------------------------------//
   //    Methods which are evaluated at     //
   //    compile-time when instructions     //

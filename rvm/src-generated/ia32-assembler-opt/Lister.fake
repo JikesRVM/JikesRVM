@@ -198,4 +198,8 @@ final class Lister {
   static String hex (byte b) {
       return null;
   }
+
+  public void printListing() {
+
+  }
 }

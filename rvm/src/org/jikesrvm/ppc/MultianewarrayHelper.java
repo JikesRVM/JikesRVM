@@ -37,11 +37,12 @@ public abstract class MultianewarrayHelper {
    *                      or {@code new int[cnt0][cnt1]...[cntN-1]}.
    * @param methodId      id of caller
    * @param numDimensions number of array dimensions
-   * @param id            {@link TypeReference} id of type of array
+   * @param typeId        {@link TypeReference} id of type of array
    * @param argOffset     position of word *above* `cnt0' argument within caller's frame
    *                      This is used to access the number of elements to
    *                      be allocated for each dimension.
    * See also: bytecode 0xc5 ("multianewarray") in Compiler
+   * @return the new array
    */
   @Entrypoint
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)

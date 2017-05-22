@@ -43,6 +43,7 @@ class TestDispatch {
       super(name);
     }
 
+    @Override
     void performTask() {
       for (int i = 0; i < 4; ++i) {
         XThread.say("sleeping");

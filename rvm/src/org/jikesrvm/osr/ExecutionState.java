@@ -142,7 +142,7 @@ public class ExecutionState {
     VM.sysWriteln("         bcIndex : ", bcIndex);
 
     for (VariableElement var : varElms) {
-      VM.sysWrite("  " + var + "\n");
+      VM.sysWriteln("  " + var);
     }
   }
 

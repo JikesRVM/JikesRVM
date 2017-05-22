@@ -119,7 +119,7 @@ public final class GlobalCSE extends CompilerPhase {
     (new GlobalValueNumber()).perform(ir);
     valueNumbers = ir.HIRInfo.valueNumbers;
 
-    if (verbose) VM.sysWrite("in GCSE for " + ir.method + "\n");
+    if (verbose) VM.sysWriteln("in GCSE for " + ir.method);
 
     // compute DU and perform copy propagation
     DefUse.computeDU(ir);
@@ -199,7 +199,7 @@ public final class GlobalCSE extends CompilerPhase {
           DefUse.transferUse(use, formerDef);
         }
         if (verbose) {
-          VM.sysWrite("using      " + former + "\n" + "instead of " + inst + "\n");
+          VM.sysWriteln("using      " + former + "\n" + "instead of " + inst);
         }
         // remove the redundant instruction
         inst.remove();

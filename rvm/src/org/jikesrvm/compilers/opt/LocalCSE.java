@@ -40,13 +40,9 @@ import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_ZERO_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
@@ -428,15 +424,7 @@ public class LocalCSE extends CompilerPhase {
    * @return whether this is a synchronizing instruction
    */
   private static boolean isSynchronizing(Instruction inst) {
-    switch (inst.getOpcode()) {
-      case MONITORENTER_opcode:
-      case MONITOREXIT_opcode:
-      case READ_CEILING_opcode:
-      case WRITE_FLOOR_opcode:
-        return true;
-      default:
-        return false;
-    }
+    return inst.isAcquire() || inst.isRelease();
   }
 
   /**

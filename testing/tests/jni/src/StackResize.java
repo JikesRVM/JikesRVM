@@ -44,7 +44,7 @@ class StackResize {
     boolean resizeDidNotOccur = expectNoResize(currentStackSize);
     if (resizeDidNotOccur == false) {
       if (verbose)
-        VM.sysWrite("> Unexpected stack resize with native frame present\n");
+        VM.sysWriteln("> Unexpected stack resize with native frame present");
       return false;
     }
     return true;
@@ -56,8 +56,10 @@ class StackResize {
 
     if (verbose) {
       VM.sysWrite("check resize: previous ");
-      VM.sysWrite(previousStackSize); VM.sysWrite(", current ");
-      VM.sysWrite(currentStackSize); VM.sysWrite("\n");
+      VM.sysWrite(previousStackSize);
+      VM.sysWrite(", current ");
+      VM.sysWrite(currentStackSize);
+      VM.sysWriteln();
     }
 
     return !(currentStackSize == previousStackSize);
@@ -78,7 +80,7 @@ class StackResize {
     // debug printing:  OK until last frame, will cause stack overflow
     // because sysWrite will need many frames
     // VM.sysWrite("filling: left ");
-    // VM.sysWrite(spaceLeft); VM.sysWrite("\n");
+    // VM.sysWrite(spaceLeft); VM.sysWriteln();
     // recursion to fill stack up to 3 words left
     if ((spaceLeft) > (500 * 4)) {
       // VM.enableGC();
@@ -91,7 +93,7 @@ class StackResize {
         return true;
       } else {
         if (verbose)
-          VM.sysWrite("> Second stack resize did not occur\n");
+          VM.sysWriteln("> Second stack resize did not occur");
         return false;
       }
     }
@@ -112,20 +114,22 @@ class StackResize {
     }
 
     if (verbose)
-      VM.sysWrite("Checking stack size\n");
+      VM.sysWriteln("Checking stack size");
     // Test 1
     // First check if the current stack size is smaller than
     // required for native call
     Thread th = Thread.getCurrentThread();
     int currentStackSpace = Magic.getArrayLength(th.stack);
     if (currentStackSpace > VM.STACK_SIZE_JNINATIVE) {
-      if (verbose)
-        VM.sysWrite("StackResize:  normal stack size already exceeds native requirement, stack will not get resized.\n  Set up the system configuration for smaller normal stack:  StackFrameLayoutConstants.java\n");
-      VM.sysWrite("FAIL: StackResize\n");
+      if (verbose) {
+        VM.sysWriteln("StackResize:  normal stack size already exceeds native requirement, stack will not get resized.  Set up the system configuration for smaller normal stack:  StackFrameLayoutConstants.java");
+        VM.sysWriteln();
+      }
+      VM.sysWriteln("FAIL: StackResize");
     }
 
     if (verbose)
-      VM.sysWrite("Starting test 1\n");
+      VM.sysWriteln("Starting test 1");
 
     // proceed with resize test
     returnValue = expectResize(currentStackSpace);
@@ -135,7 +139,7 @@ class StackResize {
     // After the stack has been resized once, fill up the stack
     // and call native again to force a second resize
     if (verbose)
-      VM.sysWrite("Starting test 2\n");
+      VM.sysWriteln("Starting test 2");
     returnValue =  nativeWithStackAlmostFull();
     checkTest(0, returnValue, "second stack resize");
 

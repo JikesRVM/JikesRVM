@@ -22,6 +22,7 @@ import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.baseline.BaselineBootImageCompiler;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.BootImageCompiler;
@@ -62,8 +63,12 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
   @Override
   protected void initCompiler(String[] args) {
     try {
-      BaselineCompiler.initOptions();
-      VM.sysWrite("BootImageCompiler: init (opt compiler)\n");
+      if (BaselineCompiler.options == null) {
+        BaselineCompiler.initOptions();
+      }
+      BaselineBootImageCompiler.processBaselineCompilerArgs(args);
+
+      VM.sysWriteln("BootImageCompiler: init (opt compiler)");
 
       // Writing a boot image is a little bit special.  We're not really
       // concerned about compile time, but we do care a lot about the quality
@@ -77,7 +82,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
           if (arg.startsWith("exclude=")) {
             excludePattern = arg.substring(8);
           } else {
-            VM.sysWrite("BootImageCompiler: Unrecognized argument " + arg + "; ignoring\n");
+            VM.sysWriteln("BootImageCompiler: Unrecognized argument " + arg + "; ignoring");
           }
         }
       }

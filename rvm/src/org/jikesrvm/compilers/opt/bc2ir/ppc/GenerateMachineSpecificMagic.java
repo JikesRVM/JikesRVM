@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir.ppc;
 
 import static org.jikesrvm.compilers.opt.ir.IRTools.AC;
 import static org.jikesrvm.compilers.opt.ir.IRTools.offsetOperand;
+import static org.jikesrvm.compilers.opt.ir.Operators.ILLEGAL_INSTRUCTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
@@ -133,6 +134,8 @@ public abstract class GenerateMachineSpecificMagic {
       bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
     } else if (methodName == MagicNames.pause) {
       // IA-specific
+    } else if (methodName == MagicNames.illegalInstruction) {
+      bc2ir.appendInstruction(Empty.create(ILLEGAL_INSTRUCTION));
     } else if (methodName == MagicNames.dcbst) {
       bc2ir.appendInstruction(CacheOp.create(DCBST, bc2ir.popAddress()));
     } else if (methodName == MagicNames.dcbt || methodName == MagicNames.prefetch) {

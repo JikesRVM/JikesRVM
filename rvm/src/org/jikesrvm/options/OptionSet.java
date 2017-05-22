@@ -132,14 +132,18 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
   public void printHelp() {
 
     VM.sysWriteln("Commands");
-    VM.sysWrite(prefix);VM.sysWriteln("[:help]\t\t\tPrint brief description of arguments");
-    VM.sysWrite(prefix);VM.sysWriteln(":printOptions\t\tPrint the current values of options");
+    VM.sysWrite(prefix);
+    VM.sysWriteln("[:help]\t\t\tPrint brief description of arguments");
+    VM.sysWrite(prefix);
+    VM.sysWriteln(":printOptions\t\tPrint the current values of options");
     VM.sysWriteln();
 
     //Begin generated help messages
     VM.sysWrite("Boolean Options (");
-    VM.sysWrite(prefix);VM.sysWrite(":<option>=true or ");
-    VM.sysWrite(prefix);VM.sysWriteln(":<option>=false)");
+    VM.sysWrite(prefix);
+    VM.sysWrite(":<option>=true or ");
+    VM.sysWrite(prefix);
+    VM.sysWriteln(":<option>=false)");
     VM.sysWriteln("Option                                 Description");
 
     Option o = getFirst();
@@ -155,7 +159,10 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    VM.sysWrite("\nValue Options (");VM.sysWrite(prefix);VM.sysWriteln(":<option>=<value>)");
+    VM.sysWriteln();
+    VM.sysWrite("Value Options (");
+    VM.sysWrite(prefix);
+    VM.sysWriteln(":<option>=<value>)");
     VM.sysWriteln("Option                         Type    Description");
 
     o = getFirst();
@@ -180,7 +187,8 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    VM.sysWriteln("\nSelection Options (set option to one of an enumeration of possible values)");
+    VM.sysWriteln();
+    VM.sysWriteln("Selection Options (set option to one of an enumeration of possible values)");
 
     o = getFirst();
     while (o != null) {

@@ -489,7 +489,7 @@ final class BBSet {
       if (DBG_FLATTEN) {
         db("Current Code order for " + gc.getMethod() + "\n");
         for (BasicBlock bb = gc.getPrologue(); bb != null; bb = (BasicBlock) bb.getNext()) {
-          VM.sysWrite(bb + "\n");
+          VM.sysWriteln(bb.toString());
         }
       }
       // Step 1.1 Sometimes (rarely) there will be an inscope
@@ -648,7 +648,7 @@ final class BBSet {
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.getMethod().getName() + ":" + val + "\n");
+    VM.sysWriteln("IRGEN " + bcodes.getDeclaringClass() + "." + gc.getMethod().getName() + ":" + val);
   }
 
   /**

@@ -302,7 +302,7 @@ public final class RVMThread extends ThreadContext {
 
   /** Registers used by return barrier trampoline */
   @Entrypoint
-  private final AbstractRegisters trampolineRegisters = ArchitectureFactory.createRegisters();
+  private AbstractRegisters trampolineRegisters = ArchitectureFactory.createRegisters();
 
   /** Return address of stack frame hijacked by return barrier */
   @Entrypoint
@@ -588,6 +588,7 @@ public final class RVMThread extends ThreadContext {
    * For builds using counter-based sampling. This field holds a
    * processor-specific counter so that it can be updated efficiently on SMP's.
    */
+  @Entrypoint
   public int thread_cbs_counter;
 
   /**
@@ -639,29 +640,32 @@ public final class RVMThread extends ThreadContext {
   /**
    * Place to save register state when this thread is not actually running.
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   @Untraced
   public final AbstractRegisters contextRegisters;
   @SuppressWarnings("unused")
+  @Entrypoint(fieldMayBeFinal = true)
   private final AbstractRegisters contextRegistersShadow;
 
   /**
    * Place to save register state when this thread is not actually running.
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   @Untraced
   public final AbstractRegisters contextRegistersSave;
   @SuppressWarnings("unused")
+  @Entrypoint(fieldMayBeFinal = true)
   private final AbstractRegisters contextRegistersSaveShadow;
 
   /**
    * Place to save register state during hardware(C signal trap handler) or
    * software (RuntimeEntrypoints.athrow) trap handling.
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   @Untraced
   private final AbstractRegisters exceptionRegisters;
   @SuppressWarnings("unused")
+  @Entrypoint(fieldMayBeFinal = true)
   private final AbstractRegisters exceptionRegistersShadow;
 
   /** Count of recursive uncaught exceptions, we need to bail out at some point */
@@ -1141,7 +1145,7 @@ public final class RVMThread extends ThreadContext {
    * Used to transfer x87 to SSE registers on IA32
    */
   @SuppressWarnings({ "unused" })
-  // accessed via EntryPoints
+  @Entrypoint
   private double scratchStorage;
 
   /**
@@ -1159,6 +1163,7 @@ public final class RVMThread extends ThreadContext {
    * Flag set by external signal to request debugger activation at next thread
    * switch. See also: sysSignal.c
    */
+  @Entrypoint
   public static volatile boolean debugRequested;
 
   public volatile boolean asyncDebugRequestedForThisThread;
@@ -1179,8 +1184,6 @@ public final class RVMThread extends ThreadContext {
 
   /** In dump stack and dying */
   protected static boolean exitInProgress = false;
-
-  private static boolean worldStopped;
 
   /** Extra debug from traces */
   protected static final boolean traceDetails = false;
@@ -2753,7 +2756,7 @@ public final class RVMThread extends ThreadContext {
    */
   @Interruptible
   @SuppressWarnings({ "unused" })
-  // Called by back-door methods.
+  @Entrypoint
   private static void startoff() {
     bindIfRequested();
 
@@ -3219,6 +3222,8 @@ public final class RVMThread extends ThreadContext {
             break;
         }
       }
+      if (VM.VerifyAssertions) VM._assert(t.hijackedReturnCalleeFp.EQ(hijackedFp),
+          "No matching thread found");
       return t.hijackedReturnAddress;
   }
 
@@ -3235,11 +3240,16 @@ public final class RVMThread extends ThreadContext {
     VM.sysWriteln("--");
     Address nextFp = Magic.getCallerFramePointer(fp);
     while (sp.LE(nextFp)) {
-      VM.sysWrite("["); VM.sysWrite(sp); VM.sysWrite("]");
-      if (sp.EQ(fp) || sp.EQ(nextFp)) VM.sysWrite("* ");
-      else if (sp.EQ(fp.plus(returnAddressOffset)) || sp.EQ(nextFp.plus(returnAddressOffset))) VM.sysWrite("R ");
-      else if (sp.EQ(fp.plus(methodIDOffset)) || sp.EQ(nextFp.plus(methodIDOffset))) VM.sysWrite("M ");
-      else VM.sysWrite(" ");
+      VM.sysWrite("[", sp, "]");
+      if (sp.EQ(fp) || sp.EQ(nextFp)) {
+        VM.sysWrite("* ");
+      } else if (sp.EQ(fp.plus(returnAddressOffset)) || sp.EQ(nextFp.plus(returnAddressOffset))) {
+        VM.sysWrite("R ");
+      }  else if (sp.EQ(fp.plus(methodIDOffset)) || sp.EQ(nextFp.plus(methodIDOffset))) {
+        VM.sysWrite("M ");
+      } else {
+        VM.sysWrite(" ");
+      }
       VM.sysWriteln(sp.loadInt());
       sp = sp.plus(4);
     }
@@ -4087,7 +4097,6 @@ public final class RVMThread extends ThreadContext {
         handshakeThreads[i] = null; // help GC
       }
     }
-    worldStopped = true;
 
     processAboutToTerminate(); /*
                                 * ensure that any threads that died while
@@ -4122,7 +4131,6 @@ public final class RVMThread extends ThreadContext {
     handshakeLock.lockWithHandshake();
 
     RVMThread current = getCurrentThread();
-    worldStopped = false;
     acctLock.lockNoHandshake();
     int numToHandshake = 0;
     for (int i = 0; i < numThreads;++i) {
@@ -4156,10 +4164,6 @@ public final class RVMThread extends ThreadContext {
   @Unpreemptible
   public static void hardHandshakeResume() {
     hardHandshakeResume(handshakeBlockAdapter,allButGC);
-  }
-
-  public static boolean worldStopped() {
-    return worldStopped;
   }
 
   /**
@@ -4342,7 +4346,7 @@ public final class RVMThread extends ThreadContext {
       VM.sysFail("system error: resizing stack while return barrier enabled (currently unsupported)");
     }
     if (traceAdjustments)
-      VM.sysWrite("Thread: resizeCurrentStack\n");
+      VM.sysWriteln("Thread: resizeCurrentStack");
     if (MemoryManager.gcInProgress()) {
       VM.sysFail("system error: resizing stack while GC is in progress");
     }
@@ -4354,7 +4358,7 @@ public final class RVMThread extends ThreadContext {
       RVMThread t = getCurrentThread();
       VM.sysWrite("Thread: resized stack ", t.getThreadSlot());
       VM.sysWrite(" to ", t.stack.length / 1024);
-      VM.sysWrite("k\n");
+      VM.sysWriteln("k");
     }
   }
 
@@ -4437,7 +4441,7 @@ public final class RVMThread extends ThreadContext {
    */
   public void fixupMovedStack(Offset delta) {
     if (traceAdjustments)
-      VM.sysWrite("Thread: fixupMovedStack\n");
+      VM.sysWriteln("Thread: fixupMovedStack");
 
     if (!contextRegisters.getInnermostFramePointer().isZero()) {
       adjustRegisters(contextRegisters, delta);
@@ -4463,7 +4467,7 @@ public final class RVMThread extends ThreadContext {
    */
   private static void adjustRegisters(AbstractRegisters registers, Offset delta) {
     if (traceAdjustments)
-      VM.sysWrite("Thread: adjustRegisters\n");
+      VM.sysWriteln("Thread: adjustRegisters");
 
     // adjust FP
     //
@@ -4488,7 +4492,7 @@ public final class RVMThread extends ThreadContext {
             .getCompiledMethod(compiledMethodId);
         VM.sysWrite(" method=");
         VM.sysWrite(compiledMethod.getMethod());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
   }
@@ -4506,7 +4510,7 @@ public final class RVMThread extends ThreadContext {
    */
   private static void adjustStack(byte[] stack, Address fp, Offset delta) {
     if (traceAdjustments)
-      VM.sysWrite("Thread: adjustStack\n");
+      VM.sysWriteln("Thread: adjustStack");
 
     while (Magic.getCallerFramePointer(fp).NE(StackFrameLayout.getStackFrameSentinelFP())) {
       // adjust FP save area
@@ -5277,13 +5281,13 @@ public final class RVMThread extends ThreadContext {
   static void dumpStats() {
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(waitOperations);
-    VM.sysWrite(" wait operations\n");
+    VM.sysWriteln(" wait operations");
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(timedWaitOperations);
-    VM.sysWrite(" timed wait operations\n");
+    VM.sysWriteln(" timed wait operations");
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(notifyOperations);
-    VM.sysWrite(" notify operations\n");
+    VM.sysWriteln(" notify operations");
     VM.sysWrite("FatLocks: ");
     VM.sysWrite(notifyAllOperations);
   }
@@ -5319,7 +5323,7 @@ public final class RVMThread extends ThreadContext {
     VM.sysWrite(who);
     VM.sysWrite(": ");
     VM.sysWrite(what);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     outputLock.unlock();
   }
 
@@ -5366,7 +5370,7 @@ public final class RVMThread extends ThreadContext {
     VM.sysWrite(what);
     VM.sysWrite(" ");
     VM.sysWriteHex(addr);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     outputLock.unlock();
   }
 
@@ -5392,7 +5396,7 @@ public final class RVMThread extends ThreadContext {
     } else {
       VM.sysWriteInt(howmany);
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     outputLock.unlock();
   }
 
@@ -5512,7 +5516,8 @@ public final class RVMThread extends ThreadContext {
             int compiledMethodId = Magic.getCompiledMethodID(fp);
             boolean idOutOfRange = compiledMethodId > CompiledMethods.numCompiledMethods() ||
                 compiledMethodId < 1;
-            VM.sysWrite("("); VM.sysWrite(fp); VM.sysWrite(" "); VM.sysWrite(compiledMethodId); VM.sysWrite(")");
+            VM.sysWrite("(", fp);
+            VM.sysWrite(" ", compiledMethodId, ")");
             if (compiledMethodId == StackFrameLayout.getInvisibleMethodID()) {
               showMethod("invisible method", fp);
             } else if (idOutOfRange) {
@@ -5637,9 +5642,9 @@ public final class RVMThread extends ThreadContext {
    */
   private static void showMethod(int compiledMethodId, Address fp) {
     showPrologue(fp);
-    VM.sysWrite(
+    VM.sysWriteln(
         "<unprintable normal Java frame: CompiledMethods.getCompiledMethod(",
-        compiledMethodId, ") returned null>\n");
+        compiledMethodId, ") returned null>");
   }
 
   /**
@@ -5653,7 +5658,7 @@ public final class RVMThread extends ThreadContext {
     showPrologue(fp);
     VM.sysWrite("<");
     VM.sysWrite(name);
-    VM.sysWrite(">\n");
+    VM.sysWriteln(">");
   }
 
   /**
@@ -5688,7 +5693,7 @@ public final class RVMThread extends ThreadContext {
       VM.sysWrite(" at machine code offset ");
       VM.sysWrite(mcOffset);
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**
@@ -5753,20 +5758,25 @@ public final class RVMThread extends ThreadContext {
   public static void dumpVirtualMachine() {
     boolean b = Monitor.lockNoHandshake(dumpLock);
     getCurrentThread().disableYieldpoints();
-    VM.sysWrite("\n-- Threads --\n");
+    VM.sysWriteln();
+    VM.sysWrite("-- Threads --");
+    VM.sysWriteln();
     for (int i = 0; i < numThreads; ++i) {
       RVMThread t = threads[i];
       if (t != null) {
         t.dumpWithPadding(30);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
 
-    VM.sysWrite("\n-- Locks in use --\n");
+    VM.sysWriteln();
+    VM.sysWrite("-- Locks in use --");
+    VM.sysWriteln();
     Lock.dumpLocks();
 
-    VM.sysWriteln("Dumping stack of active thread\n");
+    VM.sysWriteln("Dumping stack of active thread");
+    VM.sysWriteln();
     dumpStack();
 
     VM.sysWriteln("Attempting to dump the stack of all other live threads");

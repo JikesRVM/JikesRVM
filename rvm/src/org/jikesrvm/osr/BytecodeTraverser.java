@@ -119,7 +119,7 @@ public class BytecodeTraverser {
    */
   public boolean computeLocalStackTypes(NormalMethod method, int bcpoint) {
     if (VM.TraceOnStackReplacement) {
-      VM.sysWrite("computing local and stack types of " + method + "\n");
+      VM.sysWriteln("computing local and stack types of " + method);
     }
 
     int localsize = method.getLocalWords();
@@ -128,7 +128,7 @@ public class BytecodeTraverser {
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("local size : ");
       VM.sysWrite(localsize);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     retaddr = new int[localsize];
@@ -1408,7 +1408,7 @@ public class BytecodeTraverser {
               break;
             default:
               if (VM.VerifyAssertions) {
-                VM.sysWrite(" Error, no such pseudo code : " + pseudo_opcode + "\n");
+                VM.sysWriteln(" Error, no such pseudo code : " + pseudo_opcode);
                 VM._assert(VM.NOT_REACHED);
               }
               return false;
@@ -1416,7 +1416,7 @@ public class BytecodeTraverser {
           break;
         }
         default:
-          VM.sysWrite("Unknown bytecode : " + bcode + "\n");
+          VM.sysWriteln("Unknown bytecode : " + bcode);
           return false;
       }
     }

@@ -23,6 +23,7 @@ public class TestInterruptedSleep {
     final Thread main = Thread.currentThread();
 
     new Thread() {
+      @Override
       public void run() {
         started = true;
         while (!sleeping) Thread.yield();

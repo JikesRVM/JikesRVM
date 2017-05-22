@@ -112,6 +112,6 @@ final class UnusualMaps {
     VM.sysWrite(nonReferenceMapIndex);
     VM.sysWrite("\n    returnAddressMapIndex = ");
     VM.sysWrite(returnAddressMapIndex);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 }

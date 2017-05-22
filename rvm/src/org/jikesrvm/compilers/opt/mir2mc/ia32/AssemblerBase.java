@@ -1277,6 +1277,8 @@ abstract class AssemblerBase extends Assembler {
       }
     }
 
+    if (lister != null) lister.printListing();
+
     ir.MIRInfo.machinecode = getMachineCodes();
 
     return ir.MIRInfo.machinecode.length();

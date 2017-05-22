@@ -192,7 +192,7 @@ import org.vmmagic.unboxed.*;
     Log.write(cur);
     while (!cur.isZero()) {
       cur = cur.loadAddress(NEXT_OFFSET);
-      Log.write(" -> "); Log.write(cur);
+      Log.write(" -> ", cur);
     }
     Log.writeln();
     if (lock != null) lock.release();

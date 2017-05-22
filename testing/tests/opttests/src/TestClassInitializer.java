@@ -53,9 +53,15 @@ class TestClassInitializer {
    }
 
    public static void run() {
+     // test initialization before first field reference
       System.out.println("TestClassInitializer");
-      int                   i = TestClassInitializerA.i;     System.out.println(i);     // test initialization before first field reference
-      TestClassInitializerB b = new TestClassInitializerB(); System.out.println(b.f()); // test initialization before first instance creation
-      TestClassInitializerD d = new TestClassInitializerD(); System.out.println(d.i);   // test order of superclass initialization
+      int                   i = TestClassInitializerA.i;
+      System.out.println(i);
+      // test initialization before first instance creation
+      TestClassInitializerB b = new TestClassInitializerB();
+      System.out.println(b.f());
+      // test order of superclass initialization
+      TestClassInitializerD d = new TestClassInitializerD();
+      System.out.println(d.i);
    }
 }

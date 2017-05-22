@@ -87,7 +87,7 @@ public class BulkCompile implements Callbacks.StartupMonitor {
     for (CompilerAdviceAttribute value : CompilerAdviceAttribute.values()) {
       if (value.getOptLevel() == -1) {
         if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
-          VM.sysWrite("Skipping base method: "); VM.sysWriteln(value.toString());
+          VM.sysWriteln("Skipping base method: ", value.toString());
         } else if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) {
           VM.sysWrite(".");
         }
@@ -131,8 +131,12 @@ public class BulkCompile implements Callbacks.StartupMonitor {
           // if user's requirement is higher than advice
           if (value.getOptLevel() > Controller.options.DERIVED_MAX_OPT_LEVEL) {
             if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
-              VM.sysWrite("Replay advice overriden by default opt levels.  Wanted "); VM.sysWrite(value.getOptLevel()); VM.sysWrite(", but Controller.options.DERIVED_MAX_OPT_LEVEL: ");
-              VM.sysWrite(Controller.options.DERIVED_MAX_OPT_LEVEL); VM.sysWrite(" "); VM.sysWriteln(value.toString());
+              VM.sysWrite("Replay advice overriden by default opt levels.  Wanted ");
+              VM.sysWrite(value.getOptLevel());
+              VM.sysWrite(", but Controller.options.DERIVED_MAX_OPT_LEVEL: ");
+              VM.sysWrite(Controller.options.DERIVED_MAX_OPT_LEVEL);
+              VM.sysWrite(" ");
+              VM.sysWriteln(value.toString());
             } else if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) {
               VM.sysWrite(value.getOptLevel(), "!");
             }
@@ -172,7 +176,10 @@ public class BulkCompile implements Callbacks.StartupMonitor {
           }
         } else {
           if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
-            VM.sysWrite("Replay failed for "); VM.sysWrite(value.toString()); VM.sysWrite(" "); VM.sysWriteln(cl.toString());
+            VM.sysWrite("Replay failed for ");
+            VM.sysWrite(value.toString());
+            VM.sysWrite(" ");
+            VM.sysWriteln(cl.toString());
           } else if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) {
             VM.sysWrite("*");
           }

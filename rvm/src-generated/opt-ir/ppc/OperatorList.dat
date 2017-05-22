@@ -1925,6 +1925,14 @@ immedPEI | dynLink
 VM.BuildFor32Addr ? (31<<26 | 4<<1) : (31<<26 | 68<<1)
 
 ####################
+PPC_ILLEGAL_INSTRUCTION
+MIR_Empty
+immedPEI
+
+
+0
+
+####################
 MIR_END
 Unassigned
 none

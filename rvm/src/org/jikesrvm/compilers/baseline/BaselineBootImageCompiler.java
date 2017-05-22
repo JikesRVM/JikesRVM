@@ -25,16 +25,21 @@ import org.jikesrvm.runtime.Callbacks;
  */
 public final class BaselineBootImageCompiler extends BootImageCompiler {
 
-  @Override
-  protected void initCompiler(String[] args) {
-    BaselineCompiler.initOptions();
+  public static void processBaselineCompilerArgs(String[] args) {
     // Process arguments specified by the user.
     for (int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
       if (!BaselineCompiler.options.processAsOption("-X:bc:", arg)) {
-        VM.sysWrite("BootImageCompiler(baseline): Unrecognized argument " + arg + "; ignoring\n");
+        VM.sysWriteln("BootImageCompiler(baseline): Unrecognized argument " + arg + "; ignoring");
       }
     }
+  }
+
+
+  @Override
+  protected void initCompiler(String[] args) {
+    BaselineCompiler.initOptions();
+    processBaselineCompilerArgs(args);
   }
 
   @Override

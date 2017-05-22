@@ -36,7 +36,6 @@ import org.jikesrvm.osr.BytecodeTraverser;
 import org.jikesrvm.runtime.MagicNames;
 import org.jikesrvm.runtime.Time;
 import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -77,50 +76,6 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
    * Reference maps for method being compiled
    */
   ReferenceMaps refMaps;
-
-
-  public abstract byte getLastFixedStackRegister();
-  public abstract byte getLastFloatStackRegister();
-
-  @Uninterruptible
-  static short getGeneralLocalLocation(int localIndex, short[] localFixedLocations, NormalMethod method) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, method);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getGeneralLocalLocation(localIndex, localFixedLocations, method);
-    }
-  }
-
-  @Uninterruptible
-  static short getFloatLocalLocation(int localIndex, short[] localFixedLocations, NormalMethod method) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFixedLocations, method);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getFloatLocalLocation(localIndex, localFixedLocations, method);
-    }
-  }
-
-  @Uninterruptible
-  static short getEmptyStackOffset(NormalMethod m) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.getEmptyStackOffset(m);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.getEmptyStackOffset(m);
-    }
-  }
-
-  @Uninterruptible
-  public static short offsetToLocation(int offset) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.offsetToLocation(offset);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl.offsetToLocation(offset);
-    }
-  }
 
   protected final Offset getEdgeCounterOffset() {
     return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);
@@ -205,7 +160,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
    */
   public static void processCommandLineArg(String prefix, String arg) {
     if (!options.processAsOption(prefix, arg)) {
-      VM.sysWrite("BaselineCompiler: Unrecognized argument \"" + arg + "\"\n");
+      VM.sysWriteln("BaselineCompiler: Unrecognized argument \"" + arg + "\"");
       VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
@@ -223,7 +178,8 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
   public static void generateBaselineCompilerSubsystemReport(boolean explain) {
     if (!VM.MeasureCompilationPhases) return;
 
-    VM.sysWriteln("\n\t\tBaseline Compiler SubSystem");
+    VM.sysWriteln();
+    VM.sysWriteln("\t\tBaseline Compiler SubSystem");
     VM.sysWriteln("\tPhase\t\t\t    Time");
     VM.sysWriteln("\t\t\t\t(ms)    (%ofTotal)");
 
@@ -434,7 +390,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       int nextBC = bcodes.peekNextOpcode();
       switch (nextBC) {
       case JBC_caload:
-        if (shouldPrint) getAssembler().noteBytecode(biStart, "caload");
+        if (shouldPrint) getLister().noteBytecode(biStart, "caload");
         bytecodeMap[bcodes.index()] = getAssembler().getMachineCodeIndex();
         bcodes.nextInstruction(); // skip opcode
         emit_iload_caload(index);
@@ -486,7 +442,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
           emit_regular_aload(index);
         } else {
           bytecodeMap[gfIndex] = getAssembler().getMachineCodeIndex();
-          if (shouldPrint) getAssembler().noteBytecode(biStart, "getfield", fieldRef);
+          if (shouldPrint) getLister().noteBytecode(biStart, "getfield", fieldRef);
           emit_aload_resolved_getfield(index, fieldRef);
         }
         break;
@@ -562,7 +518,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     bcodes.nextInstruction(); // skip opcode
     int offset = bcodes.getBranchOffset();
     int bTarget = biStart + offset;
-    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (shouldPrint) getLister().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
     if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
     emit_lcmp_if(bTarget, bc);
   }
@@ -631,7 +587,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     bcodes.nextInstruction(); // skip opcode
     int offset = bcodes.getBranchOffset();
     int bTarget = biStart + offset;
-    if (shouldPrint) getAssembler().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
+    if (shouldPrint) getLister().noteBranchBytecode(biStart, "if" + bc, offset, bTarget);
     if (offset <= 0) emit_threadSwitchTest(RVMThread.BACKEDGE);
     emit_DFcmpGL_if(single, unorderedGT, bTarget, bc);
   }

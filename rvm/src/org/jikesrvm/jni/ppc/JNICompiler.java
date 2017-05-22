@@ -685,7 +685,7 @@ public abstract class JNICompiler {
         // For 32-bit float arguments, must be converted to
         // double
         //
-        if (types[arg].isFloatType() || types[arg].isDoubleType()) {
+        if (types[arg].isFloatingPointType()) {
           boolean is32bits = types[arg].isFloatType();
 
           // 1. check the source, the value will be in srcVMArg
@@ -1493,7 +1493,7 @@ public abstract class JNICompiler {
         }
 
         if (nextOSReg > LAST_OS_PARAMETER_GPR.value() + 1) {
-          VM.sysWrite("ERROR: " + meth + " has too many int or long parameters\n");
+          VM.sysWriteln("ERROR: " + meth + " has too many int or long parameters");
           VM.sysExit(EXIT_STATUS_JNI_COMPILER_FAILED);
         }
       }

@@ -153,9 +153,9 @@ public abstract class TraceLocal extends TransitiveClosure {
       if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1 << 24))) {
         // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta to interior pointer");
-        Log.write("       object base = "); Log.writeln(target);
-        Log.write("       interior reference = "); Log.writeln(interiorRef);
-        Log.write("       delta = "); Log.writeln(offset);
+        Log.writeln("       object base = ", target);
+        Log.writeln("       interior reference = ", interiorRef);
+        Log.writeln("       delta = ", offset);
         VM.assertions._assert(false);
       }
     }
@@ -228,7 +228,7 @@ public abstract class TraceLocal extends TransitiveClosure {
       return Plan.largeCodeSpace.isLive(object);
     else if (space == null) {
       if (VM.VERIFY_ASSERTIONS) {
-        Log.write("space failure: "); Log.writeln(object);
+        Log.writeln("space failure: ", object);
       }
     }
     return true;
@@ -284,7 +284,7 @@ public abstract class TraceLocal extends TransitiveClosure {
     if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.LARGE_CODE, object))
       return Plan.largeCodeSpace.traceObject(this, object);
     if (VM.VERIFY_ASSERTIONS) {
-      Log.write("Failing object => "); Log.writeln(object);
+      Log.writeln("Failing object => ", object);
       Space.printVMMap();
       VM.assertions._assert(false, "No special case for space in traceObject");
     }

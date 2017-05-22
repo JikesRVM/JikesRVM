@@ -305,7 +305,7 @@ public abstract class RecompilationStrategy {
         try {
           optLevelS = optCompilerOption1.substring(3, endPoint);
         } catch (IndexOutOfBoundsException e) {
-          VM.sysWrite("vm internal error: trying to find opt level has thrown indexOutOfBoundsException\n");
+          VM.sysWriteln("vm internal error: trying to find opt level has thrown indexOutOfBoundsException");
           e.printStackTrace();
           continue;
         }

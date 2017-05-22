@@ -147,7 +147,8 @@ public abstract class SimpleCollector extends ParallelCollector {
       return;
     }
 
-    Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId));
+    Log.write("Per-collector phase ");
+    Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Per-collector phase not handled!");
   }

@@ -43,7 +43,7 @@ public class MSCollector extends StopTheWorldCollector {
   /**
    *
    */
-  protected MSTraceLocal fullTrace = new MSTraceLocal(global().msTrace, null);;
+  protected MSTraceLocal fullTrace = new MSTraceLocal(global().msTrace, null);
   protected TraceLocal currentTrace = fullTrace;
 
 

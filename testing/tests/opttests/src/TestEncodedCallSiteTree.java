@@ -44,7 +44,8 @@ class TestEncodedCallSiteTree {
   }
 
   static void test(int callerMID, int bcIndex, int calleeMID, int[] data) {
-    System.out.println("Result is " + VM_OptEncodedCallSiteTree.callEdgeMissing(callerMID, bcIndex, calleeMID, data) + "\n");
+    System.out.println("Result is " + VM_OptEncodedCallSiteTree.callEdgeMissing(callerMID, bcIndex, calleeMID, data));
+    System.out.println();
   }
 
 }

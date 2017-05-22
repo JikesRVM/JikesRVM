@@ -13,7 +13,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.policy.Space;
-
+import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.RVMThread;
 
@@ -53,6 +53,8 @@ import org.vmmagic.pragma.*;
   public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
+    if (!cond)
+      Log.flush(); // log potential MMTk debugging output
     //CHECKSTYLE:OFF - Checkstyle assertion plugin would warn otherwise
     VM._assert(cond);
     //CHECKSTYLE:ON
@@ -63,7 +65,10 @@ import org.vmmagic.pragma.*;
   public final void _assert(boolean cond, String message) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
-    if (!cond) VM.sysWriteln(message);
+    if (!cond) {
+      VM.sysWriteln(message);
+      Log.flush(); // log potential MMTk debugging output
+    }
     //CHECKSTYLE:OFF - Checkstyle assertion plugin would warn otherwise
     VM._assert(cond);
     //CHECKSTYLE:ON

@@ -42,30 +42,30 @@ final class JSRInfo {
    * @param bytesPerMap size of each map
    */
   public void showUnusualMapInfo(int bytesPerMap) {
-    VM.sysWrite("-------------------------------------------------\n");
+    VM.sysWriteln("-------------------------------------------------");
     VM.sysWriteln("     numberUnusualMaps = ", numberUnusualMaps);
 
     for (int i = 0; i < numberUnusualMaps; i++) {
-      VM.sysWrite("-----------------\n");
+      VM.sysWriteln("-----------------");
       VM.sysWrite("Unusual map #", i);
-      VM.sysWrite(":\n");
+      VM.sysWriteln(":");
       unusualMaps[i].showInfo();
       VM.sysWrite("    -- reference Map:   ");
       showAnUnusualMap(unusualMaps[i].getReferenceMapIndex(), bytesPerMap);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       VM.sysWrite("    -- non-reference Map:   ");
       showAnUnusualMap(unusualMaps[i].getNonReferenceMapIndex(), bytesPerMap);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       VM.sysWrite("    -- returnAddress Map:   ");
       showAnUnusualMap(unusualMaps[i].getReturnAddressMapIndex(), bytesPerMap);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
     VM.sysWrite("------ extraUnusualMap:   ");
     extraUnusualMap.showInfo();
     showAnUnusualMap(extraUnusualMap.getReferenceMapIndex(), bytesPerMap);
     showAnUnusualMap(extraUnusualMap.getNonReferenceMapIndex(), bytesPerMap);
     showAnUnusualMap(extraUnusualMap.getReturnAddressMapIndex(), bytesPerMap);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
   }
 
   /**

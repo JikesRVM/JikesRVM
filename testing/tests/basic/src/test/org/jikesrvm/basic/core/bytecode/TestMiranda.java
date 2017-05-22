@@ -43,6 +43,7 @@ public class TestMiranda {
    */
   private static class ConcreteClass extends AbstractClass {
     /** Implementation of the Miranda method our test will call */
+    @Override
     public int someMethod(int i, int j) {
       return i * j;
     }

@@ -53,6 +53,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
@@ -950,6 +951,7 @@ public final class RVMClass extends RVMType {
    *
    * @return the class loader
    */
+  @Entrypoint
   public static ClassLoader getClassLoaderFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
     StackBrowser browser = new StackBrowser();
@@ -969,6 +971,7 @@ public final class RVMClass extends RVMType {
    *
    * @return the class that declares the method at the desired frame
    */
+  @Entrypoint
   public static RVMClass getClassFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
     StackBrowser browser = new StackBrowser();
@@ -1059,7 +1062,7 @@ public final class RVMClass extends RVMType {
     if (VM.TraceClassLoading && VM.runningVM) {
       VM.sysWriteln("RVMClass: (end)   load file " + typeRef.getName());
     }
-    if (VM.verboseClassLoading) VM.sysWrite("[Loaded " + toString() + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Loaded " + toString() + "]");
   }
 
   /**
@@ -1110,7 +1113,7 @@ public final class RVMClass extends RVMType {
       VM.sysWriteln("WARNING: movable " + this + " extends non-moving " + superClass);
     }
 
-    if (VM.verboseClassLoading) VM.sysWrite("[Preparing " + this + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Preparing " + this + "]");
 
     // build field and method lists for this class
     //
@@ -1565,7 +1568,7 @@ public final class RVMClass extends RVMType {
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) initialize " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_INSTANTIATED);
     state = CLASS_INITIALIZING;
-    if (VM.verboseClassLoading) VM.sysWrite("[Initializing " + this + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Initializing " + this + "]");
 
     // run super <clinit>
     //
@@ -1582,7 +1585,7 @@ public final class RVMClass extends RVMType {
         cm = classInitializerMethod.getCurrentCompiledMethod();
       }
 
-      if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for " + this + "]\n");
+      if (VM.verboseClassLoading) VM.sysWriteln("[Running static initializer for " + this + "]");
 
       try {
         Magic.invokeClassInitializer(cm.getEntryCodeArray());
@@ -1613,7 +1616,7 @@ public final class RVMClass extends RVMType {
 
     markFinalFieldsAsLiterals();
 
-    if (VM.verboseClassLoading) VM.sysWrite("[Initialized " + this + "]\n");
+    if (VM.verboseClassLoading) VM.sysWriteln("[Initialized " + this + "]");
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   initialize " + this);
   }
 
@@ -1631,6 +1634,13 @@ public final class RVMClass extends RVMType {
         }
       }
     }
+  }
+
+  @Override
+  public void prepareForFirstUse() {
+    resolve();
+    instantiate();
+    initialize();
   }
 
   /**

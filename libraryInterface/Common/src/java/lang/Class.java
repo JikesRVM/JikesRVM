@@ -159,7 +159,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public URL getResource(String resName) {
-    if (resName == null) return null;
+    throwNPEWhenNameIsNull(resName);
     ClassLoader loader = type.getClassLoader();
     if (loader == BootstrapClassLoader.getBootstrapClassLoader())
       return ClassLoader.getSystemResource(toResourceName(resName));
@@ -809,6 +809,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @Inline
   public static Class<?> forName(String typeName) throws ClassNotFoundException {
+    throwNPEWhenNameIsNull(typeName);
     ClassLoader parentCL = RVMClass.getClassLoaderFromStackFrame(1);
     return forNameInternal(typeName, true, parentCL);
   }
@@ -817,6 +818,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     throws ClassNotFoundException,
            LinkageError,
            ExceptionInInitializerError {
+    throwNPEWhenNameIsNull(className);
     if (classLoader == null) {
       SecurityManager security = System.getSecurityManager();
       if (security != null) {
@@ -853,9 +855,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       RVMType ans = tRef.resolve();
       Callbacks.notifyForName(ans);
       if (initialize && !ans.isInitialized()) {
-        ans.resolve();
-        ans.instantiate();
-        ans.initialize();
+        ans.prepareForFirstUse();
       }
       return ans.getClassForType();
     } catch (NoClassDefFoundError ncdfe) {

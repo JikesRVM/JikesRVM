@@ -56,6 +56,8 @@ class InvokeReflect {
   }
 
   static void printUsage() {
-    System.out.println("\nUsage:  InvokeReflect className ...\n");
+    System.out.println();
+    System.out.println("Usage:  InvokeReflect className ...");
+    System.out.println();
   }
 }

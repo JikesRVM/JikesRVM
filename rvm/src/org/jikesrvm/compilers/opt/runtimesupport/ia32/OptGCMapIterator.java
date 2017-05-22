@@ -16,7 +16,7 @@ import static org.jikesrvm.ia32.RegisterConstants.NONVOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NUM_NONVOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.NUM_VOLATILE_GPRS;
 import static org.jikesrvm.ia32.RegisterConstants.VOLATILE_GPRS;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.FPU_STATE_SIZE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_TOTAL_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
@@ -97,7 +97,7 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
             VM.sysWrite(registerIndex);
             VM.sysWrite(" to Location ");
             VM.sysWrite(location);
-            VM.sysWrite("\n");
+            VM.sysWriteln();
           }
           location = location.minus(BYTES_IN_ADDRESS);
         }
@@ -117,7 +117,7 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
             VM.sysWrite(registerIndex);
             VM.sysWrite(" to Location ");
             VM.sysWrite(location);
-            VM.sysWrite("\n");
+            VM.sysWriteln();
           }
           location = location.minus(BYTES_IN_ADDRESS);
         }
@@ -146,12 +146,10 @@ public final class OptGCMapIterator extends OptGenericGCMapIterator {
   @Override
   public Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
-      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - BYTES_IN_ADDRESS - SAVE_VOL_SIZE);
+      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - BYTES_IN_ADDRESS - OPT_SAVE_VOLATILE_TOTAL_SIZE);
     } else {
       return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - BYTES_IN_ADDRESS);
     }
   }
 
-  static final int VOL_SIZE = BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS;
-  static final int SAVE_VOL_SIZE = VOL_SIZE + FPU_STATE_SIZE;
 }

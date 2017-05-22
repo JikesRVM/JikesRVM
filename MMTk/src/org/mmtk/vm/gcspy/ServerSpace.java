@@ -160,6 +160,6 @@ import org.vmmagic.pragma.*;
    * End the transmission (for this event)
    */
   public void endCommunication() {
-    if (DEBUG) Log.write("endComm\n");
+    if (DEBUG) Log.writeln("endComm");
   }
 }

@@ -17,7 +17,6 @@ import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_CMPL;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_CMPL;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
@@ -71,6 +70,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXDQ;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSX__B;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZX__B;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MUL;
@@ -712,12 +712,22 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
     Operand val = CacheOp.getClearRef(s);
     if (val.isRegister()) {
-        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
-    } else if (val.isIntConstant()) {
-        RegisterOperand temp = regpool.makeTempInt();
-        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val)));
-        val = temp.copyRO(); // for opt compiler var usage info?
-        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp.copy()));
+      EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
+    } else if (val.isConstant()) {
+      RegisterOperand temp;
+      if (val.isIntConstant()) {
+        if (VM.VerifyAssertions) opt_assert(VM.BuildFor32Addr);
+        temp = regpool.makeTempInt();
+      } else if (val.isLongConstant()) {
+        if (VM.VerifyAssertions) opt_assert(VM.BuildFor64Addr);
+        temp = regpool.makeTempLong();
+      } else {
+        throw new OptimizingCompilerException("BURS_Helpers",
+            "unexpected operand type " + val + " in SET_EXCEPTION_OBJECT");
+      }
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val)));
+      val = temp.copyRO(); // for opt compiler var usage info?
+      EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp.copy()));
     } else {
         throw new OptimizingCompilerException("BURS_Helpers",
                 "unexpected operand type " + val + " in SET_EXCEPTION_OBJECT");
@@ -751,23 +761,42 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
             IC(0)));
       }
     } else {
-      //MOVZX, MOVSX doesn't accept memory as target
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, result,value)));
       if (signExtend) {
-        EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
-            result.copy(),
-            LC(32))));
-        EMIT(MIR_BinaryAcc.mutate(s,IA32_SAR,
-            result.copy(),
-            LC(32)));
+        if (result.isRegister()) {
+          EMIT(MIR_Unary.mutate(s, IA32_MOVSXDQ, result, value));
+        } else {
+          // MOVSX only accepts registers as target
+          RegisterOperand tempLong = regpool.makeTempLong();
+          EMIT(CPOS(s, MIR_Unary.create(IA32_MOVSXDQ, tempLong, value)));
+          EMIT(MIR_Move.mutate(s, IA32_MOV,
+              result,
+              tempLong.copy()));
+        }
       } else {
-        EMIT(CPOS(s,MIR_BinaryAcc.create(IA32_SHL,
-            result.copy(),
-            LC(32))));
-        EMIT(MIR_BinaryAcc.mutate(s,IA32_SHR,
-            result.copy(),
-            LC(32)));
+        RegisterOperand temp  = regpool.makeTempInt();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, value)));
+        RegisterOperand tempLong = regpool.makeTempLong();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, tempLong, temp.copy())));
+        EMIT(MIR_Move.mutate(s, IA32_MOV,
+            result,
+            tempLong.copy()));
       }
+    }
+  }
+
+  /**
+   * Emits code to clear the upper 32 bits of a register on x64.
+   *
+   * @param s the instruction to use for positioning information
+   * @param rop the register to clear
+   */
+  protected final void CLEAR_UPPER_32(Instruction s, RegisterOperand rop) {
+    if (VM.BuildFor64Addr) {
+      RegisterOperand regAsInt = rop.copy().asRegister();
+      regAsInt.setType(TypeReference.Int);
+      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, regAsInt, regAsInt.copy())));
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
@@ -3288,7 +3317,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
         }
       }
       if (numLongs != 0) {
-        Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals + numLongs);
+        Instruction s2 = createNewPrologueInst(s, numFormals + numLongs);
         for (int sidx = 0, s2idx = 0; sidx < numFormals; sidx++) {
           RegisterOperand sForm = Prologue.getClearFormal(s, sidx);
           if (sForm.getType().isLongType()) {
@@ -3519,7 +3548,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   }
 
   /**
-   * This routine expands an ATTEMPT instruction into an atomic
+   * This routine expands an ATTEMPT_INT instruction into an atomic
    * compare exchange. The atomic compare and exchange will place at
    * mo the value of newValue if the value of mo is oldValue. The
    * result register is set to 0/1 depending on whether the valye was
@@ -3531,34 +3560,19 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param oldValue the old value at the address mo
    * @param newValue the new value at the address mo
    */
-  protected final void ATTEMPT(RegisterOperand result, MemoryOperand mo, Operand oldValue,
+  protected final void ATTEMPT_INT(RegisterOperand result, MemoryOperand mo, Operand oldValue,
                                Operand newValue) {
-    if (VM.BuildFor32Addr) {
-      RegisterOperand temp = regpool.makeTempInt();
-      RegisterOperand temp2 = regpool.makeTemp(result);
-      EMIT(MIR_Move.create(IA32_MOV, temp, newValue));
-      EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int), oldValue));
-      EMIT(MIR_CompareExchange.create(IA32_LOCK_CMPXCHG,
-                                      new RegisterOperand(getEAX(), TypeReference.Int),
-                                      mo,
-                                      temp.copyRO()));
-      EMIT(MIR_Set.create(IA32_SET__B, temp2, IA32ConditionOperand.EQ()));
-      // need to zero-extend the result of the set
-      EMIT(MIR_Unary.create(IA32_MOVZX__B, result, temp2.copy()));
-    } else {
-      RegisterOperand temp = regpool.makeTempLong();
-      RegisterOperand temp2 = regpool.makeTemp(result);
-      EMIT(MIR_Move.create(IA32_MOV, temp, newValue));
-      EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Long), oldValue));
-      EMIT(MIR_CompareExchange.create(IA32_LOCK_CMPXCHG,
-                                      new RegisterOperand(getEAX(), TypeReference.Long),
-                                      mo,
-                                      temp.copyRO()));
-      EMIT(MIR_Set.create(IA32_SET__B, temp2, IA32ConditionOperand.EQ()));
-      // need to zero-extend the result of the set
-      EMIT(MIR_Unary.create(IA32_MOVZX__B, result, temp2.copy()));
-
-    }
+    RegisterOperand temp = regpool.makeTempInt();
+    RegisterOperand temp2 = regpool.makeTemp(result);
+    EMIT(MIR_Move.create(IA32_MOV, temp, newValue));
+    EMIT(MIR_Move.create(IA32_MOV, new RegisterOperand(getEAX(), TypeReference.Int), oldValue));
+    EMIT(MIR_CompareExchange.create(IA32_LOCK_CMPXCHG,
+                                    new RegisterOperand(getEAX(), TypeReference.Int),
+                                    mo,
+                                    temp.copyRO()));
+    EMIT(MIR_Set.create(IA32_SET__B, temp2, IA32ConditionOperand.EQ()));
+    // need to zero-extend the result of the set
+    EMIT(MIR_Unary.create(IA32_MOVZX__B, result, temp2.copy()));
   }
 
   /**

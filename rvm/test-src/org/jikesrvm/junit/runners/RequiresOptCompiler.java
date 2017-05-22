@@ -12,6 +12,15 @@
  */
 package org.jikesrvm.junit.runners;
 
+/**
+ * Indicates that a unit test or test method requires the presence of
+ * the optimizing compiler.
+ * <p>
+ * Using an annotation allows testing of opt-compiler specific data
+ * structures that don't actually require the presence of the optimizing
+ * compiler: those data structures simply won't be marked with
+ * this annotation.
+ */
 public final class RequiresOptCompiler {
 
   private RequiresOptCompiler() { }

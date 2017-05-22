@@ -22,10 +22,12 @@ class t3GTWorker2 extends Thread {
     this.isReady    = false;
   }
 
+  @Override
   public void start() {
     super.start();
   }
 
+  @Override
   public void run() {
 
                 isReady = true;

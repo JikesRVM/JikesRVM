@@ -116,6 +116,7 @@ class temp5 {
 }
 
 class temp6 extends temp5 {
+  @Override
   int foo() {
     return 2;
   }

@@ -46,8 +46,8 @@ import org.vmmagic.pragma.*;
    * @param end The end of the range
    */
   public static void dumpRange(Address start, Address end) {
-    Log.write("["); Log.write(start);
-    Log.write(","); Log.write(end);
+    Log.write("[", start);
+    Log.write(",", end);
     Log.write(')');
   }
 

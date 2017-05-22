@@ -162,10 +162,11 @@ public abstract class Space {
 
     if (heapCursor.GT(heapLimit)) {
       Log.write("Out of virtual address space allocating \"");
-      Log.write(name); Log.write("\" at ");
-      Log.write(heapCursor.minus(extent)); Log.write(" (");
-      Log.write(heapCursor); Log.write(" > ");
-      Log.write(heapLimit); Log.writeln(")");
+      Log.write(name);
+      Log.write("\" at ", heapCursor.minus(extent));
+      Log.write(" (", heapCursor);
+      Log.write(" > ", heapLimit);
+      Log.writeln(")");
       VM.assertions.fail("exiting");
     }
 
@@ -178,10 +179,10 @@ public abstract class Space {
     HeapLayout.vmMap.insert(start, extent, descriptor, this);
 
     if (DEBUG) {
-      Log.write(name); Log.write(" ");
-      Log.write(start); Log.write(" ");
-      Log.write(start.plus(extent)); Log.write(" ");
-      Log.writeln(extent.toWord());
+      Log.write(name);
+      Log.write(" ", start);
+      Log.write(" ", start.plus(extent));
+      Log.writeln(" ", extent.toWord());
     }
   }
 
@@ -565,31 +566,34 @@ public abstract class Space {
    */
   public static void printVMMap() {
     Log.writeln("Key: (I)mmortal (N)onmoving (D)iscontiguous (E)xtent (F)raction");
-    Log.write("     HEAP_START "); Log.writeln(HEAP_START);
-    Log.write("AVAILABLE_START "); Log.writeln(AVAILABLE_START);
+    Log.writeln("     HEAP_START ", HEAP_START);
+    Log.writeln("AVAILABLE_START ", AVAILABLE_START);
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
 
       for (int s = 0; s < 11 - space.nameLength; s++)
         Log.write(" ");
-      Log.write(space.name); Log.write(" ");
+      Log.write(space.name);
+      Log.write(" ");
       Log.write(space.immortal ? "I" : " ");
       Log.write(space.movable ? " " : "N");
 
       if (space.contiguous) {
-        Log.write("  ");
-        Log.write(space.start); Log.write("->");
-        Log.write(space.start.plus(space.extent.minus(1)));
+        Log.write("  ", space.start);
+        Log.write("->", space.start.plus(space.extent.minus(1)));
         if (space.vmRequest.type == VMRequest.REQUEST_EXTENT) {
-          Log.write(" E "); Log.write(space.vmRequest.extent);
+          Log.write(" E ", space.vmRequest.extent);
         } else if (space.vmRequest.type == VMRequest.REQUEST_FRACTION) {
-          Log.write(" F "); Log.write(space.vmRequest.frac);
+          Log.write(" F ");
+          Log.write(space.vmRequest.frac);
         }
         Log.writeln();
       } else {
         Log.write("D [");
-        for (Address a = space.headDiscontiguousRegion; !a.isZero(); a = HeapLayout.vmMap.getNextContiguousRegion(a)) {
-          Log.write(a); Log.write("->");
+        for (Address a = space.headDiscontiguousRegion; !a.isZero();
+            a = HeapLayout.vmMap.getNextContiguousRegion(a)) {
+          Log.write(a);
+          Log.write("->");
           Log.write(a.plus(HeapLayout.vmMap.getContiguousRegionSize(a).minus(1)));
           if (!HeapLayout.vmMap.getNextContiguousRegion(a).isZero())
             Log.write(", ");
@@ -597,8 +601,8 @@ public abstract class Space {
         Log.writeln("]");
       }
     }
-    Log.write("  AVAILABLE_END "); Log.writeln(AVAILABLE_END);
-    Log.write("       HEAP_END "); Log.writeln(HEAP_END);
+    Log.writeln("  AVAILABLE_END ", AVAILABLE_END);
+    Log.writeln("       HEAP_END ", HEAP_END);
   }
 
   /**
@@ -687,7 +691,8 @@ public abstract class Space {
       Space space = spaces[i];
       Log.write(first ? " = " : " + ");
       first = false;
-      Log.write(space.name); Log.write(" ");
+      Log.write(space.name);
+      Log.write(" ");
       printPages(space.reservedPages(), mode);
     }
     Log.writeln();

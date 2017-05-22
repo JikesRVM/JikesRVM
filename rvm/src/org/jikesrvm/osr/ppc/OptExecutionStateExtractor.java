@@ -481,7 +481,7 @@ public final class OptExecutionStateExtractor extends ExecutionStateExtractor {
     } else if (vtype == SPILL) {
       return Magic.getObjectAtOffset(stack, fpOffset.plus(value));
     } else {
-      VM.sysWrite("fatal error : ( vtype = " + vtype + " )\n");
+      VM.sysWriteln("fatal error : ( vtype = " + vtype + " )");
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
@@ -497,16 +497,16 @@ public final class OptExecutionStateExtractor extends ExecutionStateExtractor {
     int cmid = Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
     OptCompiledMethod cm = (OptCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
-    VM.sysWrite("stack of " + cm.getMethod() + "\n");
-    VM.sysWrite(" NV area offset " + cm.getUnsignedNonVolatileOffset() + "\n");
-    VM.sysWrite("   first NV GPR " + cm.getFirstNonVolatileGPR() + "\n");
-    VM.sysWrite("   first NV FPR " + cm.getFirstNonVolatileFPR() + "\n");
+    VM.sysWriteln("stack of " + cm.getMethod());
+    VM.sysWriteln(" NV area offset " + cm.getUnsignedNonVolatileOffset());
+    VM.sysWriteln("   first NV GPR " + cm.getFirstNonVolatileGPR());
+    VM.sysWriteln("   first NV FPR " + cm.getFirstNonVolatileFPR());
 
     for (int i = 0; fpOffset.sLT(upOffset); i += BYTES_IN_STACKSLOT, fpOffset = fpOffset.plus(BYTES_IN_STACKSLOT)) {
       Word content = Magic.getWordAtOffset(stack, fpOffset);
       VM.sysWrite("    0x");
       VM.sysWrite(content);
-      VM.sysWrite("      " + i + "\n");
+      VM.sysWriteln("      " + i);
     }
   }
 

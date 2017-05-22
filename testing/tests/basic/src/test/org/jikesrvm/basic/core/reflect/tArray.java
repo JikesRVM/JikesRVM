@@ -21,6 +21,7 @@ class tArray {
     this.i = i;
   }
 
+  @Override
   public String
   toString() {
     return "tArray " + i;

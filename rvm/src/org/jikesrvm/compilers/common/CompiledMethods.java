@@ -22,7 +22,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.runtime.Magic;
@@ -122,7 +121,12 @@ public class CompiledMethods {
     currentCompiledMethodId++;
     CompiledMethod cm = null;
     if (compilerType == CompiledMethod.BASELINE) {
-      cm = new BaselineCompiledMethod(id, m);
+      if (VM.BuildForIA32) {
+        cm = new org.jikesrvm.compilers.baseline.ia32.ArchBaselineCompiledMethod(id, m);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        cm = new org.jikesrvm.compilers.baseline.ppc.ArchBaselineCompiledMethod(id, m);
+      }
     } else if (VM.BuildForOptCompiler && compilerType == CompiledMethod.OPT) {
       cm = new OptCompiledMethod(id, m);
     } else if (compilerType == CompiledMethod.JNI) {
@@ -260,7 +264,8 @@ public class CompiledMethods {
       codeBytes[ct] += Memory.alignUp(size, BYTES_IN_ADDRESS);
       mapBytes[ct] += cm.size();
     }
-    VM.sysWriteln("Compiled code space report\n");
+    VM.sysWriteln("Compiled code space report");
+    VM.sysWriteln();
 
     VM.sysWriteln("  Baseline Compiler");
     VM.sysWriteln("    Number of compiled methods =         " + codeCount[CompiledMethod.BASELINE]);

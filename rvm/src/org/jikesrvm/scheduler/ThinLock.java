@@ -30,6 +30,7 @@ import static org.jikesrvm.objectmodel.ThinLockConstants.TL_UNLOCK_MASK;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.util.Services;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoNullCheck;
@@ -49,6 +50,7 @@ public final class ThinLock {
   @Inline
   @NoNullCheck
   @Unpreemptible
+  @Entrypoint
   public static void inlineLock(Object o, Offset lockOffset) {
     Word old = Magic.prepareWord(o, lockOffset); // FIXME: bad for PPC?
     Word id = old.and(TL_THREAD_ID_MASK.or(TL_STAT_MASK));
@@ -72,6 +74,7 @@ public final class ThinLock {
   @Inline
   @NoNullCheck
   @Unpreemptible
+  @Entrypoint
   public static void inlineUnlock(Object o, Offset lockOffset) {
     Word old = Magic.prepareWord(o, lockOffset); // FIXME: bad for PPC?
     Word id = old.and(TL_THREAD_ID_MASK.or(TL_STAT_MASK));
@@ -281,9 +284,9 @@ public final class ThinLock {
     int index = lockWord.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
     if (VM.VerifyAssertions) {
       if (!(index > 0 && index < Lock.numLocks())) {
-        VM.sysWrite("Lock index out of range! Word: "); VM.sysWrite(lockWord);
-        VM.sysWrite(" index: "); VM.sysWrite(index);
-        VM.sysWrite(" locks: "); VM.sysWrite(Lock.numLocks());
+        VM.sysWriteln("Lock index out of range! Word: ", lockWord);
+        VM.sysWrite(" index: ", index);
+        VM.sysWrite(" locks: ", Lock.numLocks());
         VM.sysWriteln();
       }
       VM._assert(index > 0 && index < Lock.numLocks());  // index is in range

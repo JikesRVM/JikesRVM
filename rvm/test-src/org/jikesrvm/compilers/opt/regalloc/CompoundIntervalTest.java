@@ -22,11 +22,14 @@ import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.junit.runners.RequiresOptCompiler;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
+@Category({RequiresOptCompiler.class})
 public class CompoundIntervalTest {
 
   private static final int DEFAULT_BEGIN = 1;

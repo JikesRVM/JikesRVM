@@ -59,3 +59,10 @@ EXTERNAL void sysConsoleWriteDouble(double value,  int postDecimalDigits)
     CONSOLE_PRINTF(tmp, value);
   }
 }
+
+EXTERNAL void sysConsoleFlushErrorAndTrace() {
+  fflush(SysTraceFile);
+  fsync(fileno(SysTraceFile));
+  fflush(SysErrorFile);
+  fsync(fileno(SysErrorFile));
+}

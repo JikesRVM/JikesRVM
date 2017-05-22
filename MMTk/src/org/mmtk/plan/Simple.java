@@ -255,7 +255,8 @@ public abstract class Simple extends Plan {
       return;
     }
 
-    Log.write("Global phase "); Log.write(Phase.getName(phaseId));
+    Log.write("Global phase ");
+    Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Global phase not handled!");
   }

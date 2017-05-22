@@ -2,7 +2,7 @@
 
 Basics:
 
-The language has four types: integerr, object, boolean and string, although
+The language has four types: integer, object, boolean and string, although
 boolean and string have only minimal support.  Objects are allocated
 with the 'alloc' expression, and have a specified number of pointers and
 nonpointers (integers).  Variables are declared 'c' style, and are optionally

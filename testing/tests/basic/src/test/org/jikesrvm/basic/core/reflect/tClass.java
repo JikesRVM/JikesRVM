@@ -22,6 +22,7 @@ class tClass {
   private static class ToStringComparator implements Comparator<Object> {
     static final ToStringComparator COMPARATOR = new ToStringComparator();
 
+    @Override
     public int compare(Object x, Object y) {
       return x.toString().compareTo(y.toString());
     }

@@ -25,8 +25,11 @@ class TestConversions {
     i2b();
 
     if (!testSuccess) {
-      System.out.print("\n-- i2b --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- i2b --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -34,8 +37,11 @@ class TestConversions {
     i2c();
 
     if (!testSuccess) {
-      System.out.print("\n-- i2c --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- i2c --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -43,8 +49,11 @@ class TestConversions {
     i2s();
 
     if (!testSuccess) {
-      System.out.print("\n-- i2s --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- i2s --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -52,8 +61,11 @@ class TestConversions {
     i2l();
 
     if (!testSuccess) {
-      System.out.print("\n-- i2l --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- i2l --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -61,8 +73,11 @@ class TestConversions {
     l2i();
 
     if (!testSuccess) {
-      System.out.print("\n-- l2i --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- l2i --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -70,8 +85,11 @@ class TestConversions {
     i2f();
 
     if (!testSuccess) {
-      System.out.print("\n-- i2f --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- i2f --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -79,8 +97,11 @@ class TestConversions {
     i2d();
 
     if (!testSuccess) {
-      System.out.print("\n-- i2d --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- i2d --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -88,8 +109,11 @@ class TestConversions {
     l2f();
 
     if (!testSuccess) {
-      System.out.print("\n-- l2f --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- l2f --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     retSuccess &= testSuccess;
@@ -98,8 +122,11 @@ class TestConversions {
     l2d();
 
     if (!testSuccess) {
-      System.out.print("\n-- l2d --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- l2d --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -107,8 +134,11 @@ class TestConversions {
     f2d();
 
     if (!testSuccess) {
-      System.out.print("\n-- f2d --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- f2d --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -116,8 +146,11 @@ class TestConversions {
     f2l();
 
     if (!testSuccess) {
-      System.out.print("\n-- f2l --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- f2l --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -125,8 +158,11 @@ class TestConversions {
     f2i();
 
     if (!testSuccess) {
-      System.out.print("\n-- f2i --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- f2i --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -134,8 +170,11 @@ class TestConversions {
     d2i();
 
     if (!testSuccess) {
-      System.out.print("\n-- d2i --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- d2i --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -143,8 +182,11 @@ class TestConversions {
     d2l();
 
     if (!testSuccess) {
-      System.out.print("\n-- d2l --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- d2l --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -152,8 +194,11 @@ class TestConversions {
     d2f();
 
     if (!testSuccess) {
-      System.out.print("\n-- d2f --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- d2f --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -164,8 +209,11 @@ class TestConversions {
     //    testFloatLimits(-Float.MAX_VALUE,           Float.MAX_VALUE);
     //    testFloatLimits(-99999F,                    99999F);
     if (!testSuccess) {
-      System.out.print("\n-- float_limits --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- float_limits --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
     retSuccess &= testSuccess;
     testSuccess = true;
@@ -176,8 +224,11 @@ class TestConversions {
     //    testDoubleLimits(-Double.MAX_VALUE,         Double.MAX_VALUE);
     //    testDoubleLimits(-99999D,                   99999D);
     if (!testSuccess) {
-      System.out.print("\n-- double_limits --");
-      System.out.println(" failed. ***************\n\n");
+      System.out.println();
+      System.out.print("-- double_limits --");
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
     }
 
     if (retSuccess)
@@ -190,21 +241,24 @@ class TestConversions {
     byte x;
     x = i2b(0x0000007f);
     if (x != 127) {
-      System.out.print("\nwant: 127\n got: ");
+      System.out.println();
+      System.out.print("want: 127\n got: ");
       System.out.println(i2b(0x0000007f));
       testSuccess = false;
     }
 
     x = i2b(0x000000ff);
     if (x != -1) {
-      System.out.print("\nwant: -1\n got: ");
+      System.out.println();
+      System.out.print("want: -1\n got: ");
       System.out.println(i2b(0x000000ff));
       testSuccess = false;
     }
 
     x = i2b(0xffffffff);
     if (x != -1) {
-      System.out.print("\nwant: -1\n got: ");
+      System.out.println();
+      System.out.print("want: -1\n got: ");
       System.out.println(i2b(0xffffffff));
       testSuccess = false;
     }
@@ -217,21 +271,24 @@ class TestConversions {
   static void i2c() {
     int c = (int)i2c(0x0000007f);
     if (c != 127) {
-      System.out.print("\nwant: 127\n got: ");
+      System.out.println();
+      System.out.print("want: 127\n got: ");
       System.out.println((int)i2c(0x0000007f));
       testSuccess = false;
     }
 
     c = (int)i2c(0x000000ff);
     if (c != 255) {
-      System.out.print("\nwant: 255\n got: ");
+      System.out.println();
+      System.out.print("want: 255\n got: ");
       System.out.println((int)i2c(0x000000ff));
       testSuccess = false;
     }
 
     c = (int)i2c(0xffffffff);
     if (c != 65535) {
-      System.out.print("\nwant: 65535\n got: ");
+      System.out.println();
+      System.out.print("want: 65535\n got: ");
       System.out.println((int)i2c(0xffffffff));
       testSuccess = false;
     }
@@ -246,14 +303,16 @@ class TestConversions {
 
     x = i2s(0x00007fff);
     if (x != 32767) {
-      System.out.print("\nwant: 32767\n got: ");
+      System.out.println();
+      System.out.print("want: 32767\n got: ");
       System.out.println(i2s(0x00007fff));
       testSuccess = false;
     }
 
     x = i2s(0x0000ffff);
     if (x != -1) {
-      System.out.print("\nwant: -1\n got: ");
+      System.out.println();
+      System.out.print("want: -1\n got: ");
       System.out.println(i2s(0x0000ffff));
       testSuccess = false;
     }
@@ -266,14 +325,16 @@ class TestConversions {
   static void i2l() {
     long l = i2l(0x7fffffff);
     if (l != 2147483647L) {
-      System.out.print("\nwant: 2147483647\n got: ");
+      System.out.println();
+      System.out.print("want: 2147483647\n got: ");
       System.out.println(i2l(0x7fffffff));
       testSuccess = false;
     }
 
     l = i2l(0xffffffff);
     if (l != -1) {
-      System.out.print("\nwant: -1\n got: ");
+      System.out.println();
+      System.out.print("want: -1\n got: ");
       System.out.println(i2l(0xffffffff));
       testSuccess = false;
     }
@@ -286,14 +347,16 @@ class TestConversions {
   static void l2i() {
     int i = l2i(0x000000007fffffffL);
     if (i != 2147483647) {
-      System.out.print("\nwant: 2147483647\n got: ");
+      System.out.println();
+      System.out.print("want: 2147483647\n got: ");
       System.out.println(l2i(0x000000007fffffffL));
       testSuccess = false;
     }
 
     i = l2i(0x00000000ffffffffL);
     if (i != -1) {
-      System.out.print("\nwant: -1\n got: ");
+      System.out.println();
+      System.out.print("want: -1\n got: ");
       System.out.println(l2i(0x00000000ffffffffL));
       testSuccess = false;
     }
@@ -305,7 +368,8 @@ class TestConversions {
 
   static void i2f() {
     if (i2f(-2) != -2.0) {
-      System.out.print("\nwant: -2.0\n got: ");
+      System.out.println();
+      System.out.print("want: -2.0\n got: ");
       System.out.println(i2f(-2));
       testSuccess = false;
     }
@@ -317,7 +381,8 @@ class TestConversions {
 
   static void l2f() {
     if (l2f(-2L) != -2.0) {
-      System.out.print("\nwant: -2.0\n got: ");
+      System.out.println();
+      System.out.print("want: -2.0\n got: ");
       System.out.println(l2f(-2L));
       testSuccess = false;
     }
@@ -329,7 +394,8 @@ class TestConversions {
 
   static void l2d() {
     if (l2d(-2L) != -2.0) {
-      System.out.print("\nwant: -2.0\n got: ");
+      System.out.println();
+      System.out.print("want: -2.0\n got: ");
       System.out.println(l2d(-2L));
       testSuccess = false;
     }
@@ -341,7 +407,8 @@ class TestConversions {
 
   static void i2d() {
     if (i2d(-2) != -2.0) {
-      System.out.print("\nwant: -2.0\n got: ");
+      System.out.println();
+      System.out.print("want: -2.0\n got: ");
       System.out.println(i2d(-2));
       testSuccess = false;
     }
@@ -354,7 +421,8 @@ class TestConversions {
 
   static void f2d() {
     if (f2d(-2.6F) != -2.5999999046325684D) {
-      System.out.print("\nwant: -2.5999999046325684\n got: ");
+      System.out.println();
+      System.out.print("want: -2.5999999046325684\n got: ");
       System.out.println(f2d(-2.6F));
       testSuccess = false;
     }
@@ -366,7 +434,8 @@ class TestConversions {
 
   static void f2l() {
     if (f2l(-2.6F) != -2) {
-      System.out.print("\nwant: -2\n got: ");
+      System.out.println();
+      System.out.print("want: -2\n got: ");
       System.out.println(f2l(-2.6F));
       testSuccess = false;
     }
@@ -378,7 +447,8 @@ class TestConversions {
 
   static void f2i() {
     if (f2i(-2.6F) != -2) {
-      System.out.print("\nwant: -2\n got: ");
+      System.out.println();
+      System.out.print("want: -2\n got: ");
       System.out.println(f2i(-2.6F));
       testSuccess = false;
     }
@@ -390,7 +460,8 @@ class TestConversions {
 
   static void d2i() {
     if (d2i(-2.6) != -2) {
-      System.out.print("\nwant: -2\n got: ");
+      System.out.println();
+      System.out.print("want: -2\n got: ");
       System.out.println(d2i(-2.6));
       testSuccess = false;
     }
@@ -402,7 +473,8 @@ class TestConversions {
 
   static void d2l() {
     if (d2l(-2.6) != -2) {
-      System.out.print("\nwant: -2\n got: ");
+      System.out.println();
+      System.out.print("want: -2\n got: ");
       System.out.println(d2l(-2.6));
       testSuccess = false;
     }
@@ -414,7 +486,8 @@ class TestConversions {
 
   static void d2f() {
     if (d2f(-2.6) != -2.6F) {
-      System.out.print("\nwant: -2.6\n got: ");
+      System.out.println();
+      System.out.print("want: -2.6\n got: ");
       System.out.println(d2f(-2.6));
       testSuccess = false;
     }
@@ -428,19 +501,22 @@ class TestConversions {
     //    System.out.println();
     if ((!Float.toString(lo).equals("-Infinity")) ||
         (!Float.toString(hi).equals("Infinity"))) {
-      System.out.println("\nfloat:  " +       lo + " .. " +       hi);
+      System.out.println();
+      System.out.println("float:  " +       lo + " .. " +       hi);
       testSuccess = false;
     }
 
     if ((!Long.toString((long)lo).equals("-9223372036854775808")) ||
         (!Long.toString((long)hi).equals("9223372036854775807"))) {
-      System.out.println("\nlong:   " + (long)lo + " .. " + (long)hi);
+      System.out.println();
+      System.out.println("long:   " + (long)lo + " .. " + (long)hi);
       testSuccess = false;
     }
 
     if ((!Integer.toString((int)lo).equals("-2147483648")) ||
         (!Integer.toString((int)hi).equals("2147483647"))) {
-      System.out.println("\nint:    " + (int)lo + " .. " + (int)hi);
+      System.out.println();
+      System.out.println("int:    " + (int)lo + " .. " + (int)hi);
       testSuccess = false;
     }
   }
@@ -451,19 +527,22 @@ class TestConversions {
     Double dbl1 = new Double(lo), dbl2 = new Double(hi);
     if ((!dbl1.toString().equals("-Infinity")) ||
         (!dbl2.toString().equals("Infinity"))) {
-      System.out.println("\ndouble: " +       lo + " .. " +       hi);
+      System.out.println();
+      System.out.println("double: " +       lo + " .. " +       hi);
       testSuccess = false;
     }
 
     if ((!Long.toString((long)lo).equals("-9223372036854775808")) ||
         (!Long.toString((long)hi).equals("9223372036854775807"))) {
-      System.out.println("\nlong:   " + (long)lo + " .. " + (long)hi);
+      System.out.println();
+      System.out.println("long:   " + (long)lo + " .. " + (long)hi);
       testSuccess = false;
     }
 
     if ((!Integer.toString((int)lo).equals("-2147483648")) ||
         (!Integer.toString((int)hi).equals("2147483647"))) {
-      System.out.println("\nint:    " + (int)lo + " .. " + (int)hi);
+      System.out.println();
+      System.out.println("int:    " + (int)lo + " .. " + (int)hi);
       testSuccess = false;
     }
   }

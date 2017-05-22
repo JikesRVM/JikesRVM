@@ -90,6 +90,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.MagicNames;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -155,6 +156,7 @@ final class BaselineMagic {
    * @param value the reference to check
    */
   @SuppressWarnings("unused")
+  @Entrypoint
   @Uninterruptible
   private static void check(ObjectReference value) {
     if (!inCheck) {
@@ -2410,6 +2412,20 @@ final class BaselineMagic {
   static {
     MagicGenerator g = new Dsqrt();
     generators.put(getMethodReference(Magic.class, MagicNames.sqrt, double.class, double.class), g);
+  }
+
+  /**
+   * Illegal Instruction
+   */
+  private static final class IllegalInstruction extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitIllegalInstruction();
+    }
+  }
+  static {
+    MagicGenerator g = new IllegalInstruction();
+    generators.put(getMethodReference(Magic.class, MagicNames.illegalInstruction, void.class), g);
   }
 
   /**

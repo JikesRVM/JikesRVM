@@ -56,11 +56,12 @@ import org.vmmagic.pragma.*;
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
     if (DEBUG) {
-      Log.write("ImmortalSpaceDriver for "); Log.write(spaceName);
-      Log.write(", blocksize="); Log.write(blockSize);
-      Log.write(", start="); Log.write(mmtkSpace.getStart());
-      Log.write(", extent="); Log.write(mmtkSpace.getExtent());
-      Log.write(", maxTileNum="); Log.writeln(maxTileNum);
+      Log.write("ImmortalSpaceDriver for ");
+      Log.write(spaceName);
+      Log.write(", blocksize=", blockSize);
+      Log.write(", start=", mmtkSpace.getStart());
+      Log.write(", extent=", mmtkSpace.getExtent());
+      Log.writeln(", maxTileNum=", maxTileNum);
     }
 
     // initially no registered drivers for reference notification

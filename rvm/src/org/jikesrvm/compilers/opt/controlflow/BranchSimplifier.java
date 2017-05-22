@@ -340,7 +340,7 @@ public abstract class BranchSimplifier {
   private static void insertTrueGuard(Instruction inst, RegisterOperand guard) {
     if (guard == null) return;  // Probably bad style but correct IR
     Instruction trueGuard = Move.create(GUARD_MOVE, guard.copyD2D(), new TrueGuardOperand());
-    trueGuard.copySourcePositionFrom(inst);
+    trueGuard.copyPosition(inst);
     inst.insertBefore(trueGuard);
     DefUse.updateDUForNewInstruction(trueGuard);
   }

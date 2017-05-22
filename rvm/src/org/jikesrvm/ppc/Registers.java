@@ -113,7 +113,6 @@ public final class Registers extends AbstractRegisters {
    * "startoff" method had been called by an empty baseline-compiled
    *  "sentinel" frame with one local variable
    *
-   * @param contextRegisters The context registers for this thread
    * @param ip The instruction pointer for the "startoff" method
    * @param sp The base of the stack
    */

@@ -67,6 +67,7 @@ class TestRuntimeExec extends Thread {
         this.myNumber = myNum;
     }
 
+    @Override
     public void run() {
         try {
             charsExpected = 10000 * (testData[0].length() + testData[1].length());
@@ -77,6 +78,7 @@ class TestRuntimeExec extends Thread {
                 Runtime.getRuntime().exec(new String[]{PROGRAM, fileName}, null, new File("/tmp"));
 
             Thread writer = new Thread() {
+                @Override
                 public void run() {
                     DataOutputStream stdin =
                         new DataOutputStream(tac.getOutputStream());
@@ -99,6 +101,7 @@ class TestRuntimeExec extends Thread {
             };
 
             Thread reader = new Thread() {
+                @Override
                 public void run() {
                     DataInputStream stdout =
                         new DataInputStream(tac.getInputStream());
@@ -137,6 +140,7 @@ class TestRuntimeExec extends Thread {
 
             // Use Process.waitFor() to wait for the process to complete
             final Thread waiter = new Thread() {
+                @Override
                 public void run() {
                     try {
                         int exitCode = tac.waitFor();
@@ -159,6 +163,7 @@ class TestRuntimeExec extends Thread {
                 // This should not affect the behavoir of the IO threads
                 // or the process.
                 new Thread() {
+                    @Override
                     public void run() {
                         try {
                           Thread.sleep(2000);
@@ -173,6 +178,7 @@ class TestRuntimeExec extends Thread {
             // Use repeated polling with exitValue() to wait for the process
             // to complete
             Thread poller = new Thread() {
+                @Override
                 public void run() {
                     int exitCode = -99;
                     boolean exited = false;

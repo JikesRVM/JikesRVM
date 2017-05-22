@@ -93,7 +93,7 @@ $$$$ END LOOP
    *             instruction was expected to conform to.
    */
   protected static void fail(Instruction i, String name) {
-      VM.sysWrite("Instruction "+i+" improperly accessed as "+name+"\n");
+      VM.sysWriteln("Instruction "+i+" improperly accessed as "+name);
       throw new OptimizingCompilerException();
     }
 
@@ -108,7 +108,7 @@ $$$$ END LOOP
    *             operator was expected to conform to.
    */
   protected static void fail(Operator op, String name) {
-      VM.sysWrite("Improper attempt to create/mutate as "+name+"\n");
+      VM.sysWriteln("Improper attempt to create/mutate as "+name);
       throw new OptimizingCompilerException();
     }
 }

@@ -31,6 +31,7 @@ class TestSuspend extends XThread {
     super("Resumer");
   }
 
+  @Override
   void performTask() {
     try {
       Thread.sleep(5000);

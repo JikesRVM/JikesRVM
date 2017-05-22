@@ -99,7 +99,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_CLASSLOADED) {
         VM.sysWrite("adding class loaded monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       classLoadedCallbacks = new CallbackList(cb, classLoadedCallbacks);
     }
@@ -118,14 +118,14 @@ public final class Callbacks {
       //VM.sysWrite(": ");
       VM.sysWrite("invoking class loaded monitors: ");
       VM.sysWrite(klass.getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = classLoadedCallbacks; l != null; l = l.next) {
       if (TRACE_CLASSLOADED) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((ClassLoadedMonitor) l.callback).notifyClassLoaded(klass);
     }
@@ -159,7 +159,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_CLASSRESOLVED) {
         VM.sysWrite("adding class resolved monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       classResolvedCallbacks = new CallbackList(cb, classResolvedCallbacks);
     }
@@ -178,14 +178,14 @@ public final class Callbacks {
       //VM.sysWrite(": ");
       VM.sysWrite("invoking class resolved monitors: ");
       VM.sysWrite(klass.getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = classResolvedCallbacks; l != null; l = l.next) {
       if (TRACE_CLASSRESOLVED) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((ClassResolvedMonitor) l.callback).notifyClassResolved(klass);
     }
@@ -219,7 +219,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_CLASSINSTANTIATED) {
         VM.sysWrite("adding class instantiated monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       classInstantiatedCallbacks = new CallbackList(cb, classInstantiatedCallbacks);
     }
@@ -238,14 +238,14 @@ public final class Callbacks {
       //VM.sysWrite(": ");
       VM.sysWrite("invoking class instantiated monitors: ");
       VM.sysWrite(klass.getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = classInstantiatedCallbacks; l != null; l = l.next) {
       if (TRACE_CLASSINSTANTIATED) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((ClassInstantiatedMonitor) l.callback).notifyClassInstantiated(klass);
     }
@@ -279,7 +279,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_CLASSINITIALIZED) {
         VM.sysWrite("adding class initialized monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       classInitializedCallbacks = new CallbackList(cb, classInitializedCallbacks);
     }
@@ -298,14 +298,14 @@ public final class Callbacks {
       //VM.sysWrite(": ");
       VM.sysWrite("invoking class initialized monitors: ");
       VM.sysWrite(klass.getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = classInitializedCallbacks; l != null; l = l.next) {
       if (TRACE_CLASSINITIALIZED) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((ClassInitializedMonitor) l.callback).notifyClassInitialized(klass);
     }
@@ -340,7 +340,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_METHODOVERRIDE) {
         VM.sysWrite("adding method override monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       methodOverrideCallbacks = new CallbackList(cb, methodOverrideCallbacks);
     }
@@ -366,14 +366,14 @@ public final class Callbacks {
       } else {
         VM.sysWrite("null");
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = methodOverrideCallbacks; l != null; l = l.next) {
       if (TRACE_METHODOVERRIDE) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((MethodOverrideMonitor) l.callback).notifyMethodOverride(method, parent);
     }
@@ -411,7 +411,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_METHODCOMPILE) {
         VM.sysWrite("adding method compile monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       methodCompileCallbacks = new CallbackList(cb, methodCompileCallbacks);
     }
@@ -436,14 +436,14 @@ public final class Callbacks {
       VM.sysWrite(method);
       VM.sysWrite(":");
       VM.sysWrite(compiler);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = methodCompileCallbacks; l != null; l = l.next) {
       if (TRACE_METHODCOMPILE) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((MethodCompileMonitor) l.callback).notifyMethodCompile(method, compiler);
     }
@@ -477,7 +477,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_FORNAME) {
         VM.sysWrite("adding forName monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       forNameCallbacks = new CallbackList(cb, forNameCallbacks);
     }
@@ -496,14 +496,14 @@ public final class Callbacks {
       //VM.sysWrite(": ");
       VM.sysWrite("invoking forName monitors: ");
       VM.sysWrite(type.getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = forNameCallbacks; l != null; l = l.next) {
       if (TRACE_FORNAME) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((ForNameMonitor) l.callback).notifyForName(type);
     }
@@ -537,7 +537,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_DEFINECLASS) {
         VM.sysWrite("adding defineclass monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       defineClassCallbacks = new CallbackList(cb, defineClassCallbacks);
     }
@@ -556,14 +556,14 @@ public final class Callbacks {
       //VM.sysWrite(": ");
       VM.sysWrite("invoking defineclass monitors: ");
       VM.sysWrite(type.getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = defineClassCallbacks; l != null; l = l.next) {
       if (TRACE_DEFINECLASS) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((DefineClassMonitor) l.callback).notifyDefineClass(type);
     }
@@ -597,7 +597,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_LOADCLASS) {
         VM.sysWrite("adding loadclass monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       loadClassCallbacks = new CallbackList(cb, loadClassCallbacks);
     }
@@ -616,14 +616,14 @@ public final class Callbacks {
       //VM.sysWrite(": ");
       VM.sysWrite("invoking loadclass monitors: ");
       VM.sysWrite(type.getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       //printStack("From: ");
     }
     for (CallbackList l = loadClassCallbacks; l != null; l = l.next) {
       if (TRACE_LOADCLASS) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((LoadClassMonitor) l.callback).notifyLoadClass(type);
     }
@@ -657,7 +657,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_BOOTIMAGE) {
         VM.sysWrite("adding boot image writing monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       bootImageCallbacks = new CallbackList(cb, bootImageCallbacks);
     }
@@ -674,13 +674,13 @@ public final class Callbacks {
     if (TRACE_BOOTIMAGE) {
       //VM.sysWrite(getThread(), false);
       //VM.sysWrite(": ");
-      VM.sysWrite("invoking boot image writing monitors\n");
+      VM.sysWriteln("invoking boot image writing monitors");
     }
     for (CallbackList l = bootImageCallbacks; l != null; l = l.next) {
       if (TRACE_BOOTIMAGE) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((BootImageMonitor) l.callback).notifyBootImage(types);
     }
@@ -713,7 +713,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_STARTUP) {
         VM.sysWrite("adding startup monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       startupCallbacks = new CallbackList(cb, startupCallbacks);
     }
@@ -730,13 +730,13 @@ public final class Callbacks {
     if (TRACE_STARTUP) {
       //VM.sysWrite(getThread(), false);
       //VM.sysWrite(": ");
-      VM.sysWrite("invoking startup monitors\n");
+      VM.sysWriteln("invoking startup monitors");
     }
     for (CallbackList l = startupCallbacks; l != null; l = l.next) {
       if (TRACE_STARTUP) {
         VM.sysWrite("    ");
         VM.sysWrite(getClass(l.callback));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       ((StartupMonitor) l.callback).notifyStartup();
     }
@@ -770,7 +770,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_EXIT) {
         VM.sysWrite("adding exit monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       exitCallbacks = new CallbackList(cb, exitCallbacks);
     }
@@ -797,7 +797,7 @@ public final class Callbacks {
         if (TRACE_EXIT) {
           VM.sysWrite("    ");
           VM.sysWrite(Callbacks.getClass(l.callback));
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
         ((ExitMonitor) l.callback).notifyExit(value);
       }
@@ -830,7 +830,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_APP_START) {
         VM.sysWrite("adding application start monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       appStartCallbacks = new CallbackList(cb, appStartCallbacks);
     }
@@ -845,13 +845,13 @@ public final class Callbacks {
     synchronized (appStartLock) {
       if (appStartCallbacks == null) return;
       if (TRACE_APP_START) {
-        VM.sysWrite("invoking application start monitors\n");
+        VM.sysWriteln("invoking application start monitors");
       }
       for (CallbackList l = appStartCallbacks; l != null; l = l.next) {
         if (TRACE_APP_START) {
           VM.sysWrite("    ");
           VM.sysWrite(Callbacks.getClass(l.callback));
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
         ((AppStartMonitor) l.callback).notifyAppStart(app);
       }
@@ -884,7 +884,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_APP_COMPLETE) {
         VM.sysWrite("adding application complete monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       appCompleteCallbacks = new CallbackList(cb, appCompleteCallbacks);
     }
@@ -901,13 +901,13 @@ public final class Callbacks {
       if (TRACE_APP_COMPLETE) {
         VM.sysWrite("invoking application complete monitors for application ");
         VM.sysWrite(app);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       for (CallbackList l = appCompleteCallbacks; l != null; l = l.next) {
         if (TRACE_APP_COMPLETE) {
           VM.sysWrite("    ");
           VM.sysWrite(Callbacks.getClass(l.callback));
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
         ((AppCompleteMonitor) l.callback).notifyAppComplete(app);
       }
@@ -941,7 +941,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_APP_RUN_START) {
         VM.sysWrite("adding application run start monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       appRunStartCallbacks = new CallbackList(cb, appRunStartCallbacks);
     }
@@ -963,13 +963,13 @@ public final class Callbacks {
         VM.sysWrite(app);
         VM.sysWrite(" at run ");
         VM.sysWrite(run);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       for (CallbackList l = appRunStartCallbacks; l != null; l = l.next) {
         if (TRACE_APP_RUN_START) {
           VM.sysWrite("    ");
           VM.sysWrite(Callbacks.getClass(l.callback));
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
         ((AppRunStartMonitor) l.callback).notifyAppRunStart(app, run);
       }
@@ -1003,7 +1003,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_APP_RUN_COMPLETE) {
         VM.sysWrite("adding application run complete monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       appRunCompleteCallbacks = new CallbackList(cb, appRunCompleteCallbacks);
     }
@@ -1028,7 +1028,7 @@ public final class Callbacks {
         if (TRACE_APP_RUN_COMPLETE) {
           VM.sysWrite("    ");
           VM.sysWrite(Callbacks.getClass(l.callback));
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
         ((AppRunCompleteMonitor) l.callback).notifyAppRunComplete(app, run);
       }
@@ -1061,7 +1061,7 @@ public final class Callbacks {
       if (TRACE_ADDMONITOR || TRACE_RECOMPILE_ALL) {
         VM.sysWrite("adding recompile all monitor: ");
         VM.sysWrite(getClass(cb));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       recompileAllCallbacks = new CallbackList(cb, recompileAllCallbacks);
     }
@@ -1081,7 +1081,7 @@ public final class Callbacks {
         if (TRACE_RECOMPILE_ALL) {
           VM.sysWrite("    ");
           VM.sysWrite(Callbacks.getClass(l.callback));
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
         ((RecompileAllDynamicallyLoadedMethodsMonitor) l.callback).notifyRecompileAll();
       }

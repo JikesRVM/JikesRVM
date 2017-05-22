@@ -20,13 +20,14 @@ import java.util.Enumeration;
 
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
+import org.jikesrvm.junit.runners.RequiresOptCompiler;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category(RequiresBuiltJikesRVM.class)
+@Category({RequiresBuiltJikesRVM.class, RequiresOptCompiler.class})
 public class InlineSequenceTest {
 
   public class Methods {

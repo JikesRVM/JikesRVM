@@ -41,6 +41,7 @@ class TestInvoke {
     }
 
     //invokevirtual
+    @Override
     void f() {
       System.out.println("TypeB.f()");
     }
@@ -62,6 +63,7 @@ class TestInvoke {
     }
 
     //invokeinterface
+    @Override
     public void performMagic() {
       System.out.println("TypeC.performMagic()");
     }

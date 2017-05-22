@@ -276,7 +276,8 @@ public final class FreeListPageResource extends PageResource {
     int requiredChunks = Space.requiredChunks(pages);
     Address region = space.growDiscontiguousSpace(requiredChunks);
     if (VERBOSE) {
-      Log.write("flpr.allocateContiguousChunks("); Log.write(pages); Log.write("): region="); Log.writeln(region);
+      Log.write("flpr.allocateContiguousChunks(", pages);
+      Log.writeln("): region=", region);
     }
     if (!region.isZero()) {
       int regionStart = Conversions.bytesToPages(region.diff(start));
@@ -289,7 +290,9 @@ public final class FreeListPageResource extends PageResource {
           freeList.clearUncoalescable(p);
         liberated = freeList.free(p, true); // add chunk to our free list
         if (liberated != PAGES_IN_CHUNK + (p - regionStart)) {
-          Log.write("flpr: liberated "); Log.write(liberated); Log.write(" pages, expected "); Log.writeln(PAGES_IN_CHUNK + (p - regionStart));
+          Log.write("flpr: liberated ", liberated);
+          Log.write(" pages, expected ");
+          Log.writeln(PAGES_IN_CHUNK + (p - regionStart));
         }
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liberated == PAGES_IN_CHUNK + (p - regionStart));
         if (metaDataPagesPerRegion > 1) {
@@ -395,7 +398,8 @@ public final class FreeListPageResource extends PageResource {
   @Interruptible
   public void resizeFreeList(Address startAddress) {
     if (VERBOSE) {
-      Log.write("flpr: Start address old: ");Log.write(start); Log.write(", new: "); Log.writeln(startAddress);
+      Log.write("flpr: Start address old: ", start);
+      Log.writeln(", new: ", startAddress);
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((VM.HEAP_LAYOUT_64BIT || !contiguous) && !Plan.isInitialized());
     start = Conversions.alignUp(startAddress,EmbeddedMetaData.LOG_BYTES_IN_REGION);

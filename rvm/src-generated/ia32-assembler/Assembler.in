@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.common.assembler.ia32.Lister;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.ia32.OutOfLineMachineCode;
-import org.jikesrvm.ia32.RegisterConstants;
 import org.jikesrvm.ia32.RegisterConstants.IntelMachineRegister;
 import org.jikesrvm.objectmodel.JavaHeader;
 
@@ -321,21 +320,10 @@ public class Assembler extends AbstractAssembler {
     return trimmed;
   }
 
-  /**
-   * Give the lister a message associated with a particular
-   * bytecode.  This is used by the baseline assembler to print the
-   * bytecode associated with portions of machine code.  (The
-   * optimizing compiler does not do this because its association
-   * between bytecodes and generated code is much less direct).
-   *
-   * @param bytecodeNumber the offset of the current bytecode in the
-   *     current method's bytecode array.
-   * @param bc a message descriptive of the current bytecode.
-   */
-  @Override
-  public final void noteBytecode (int bytecodeNumber, String bc) {
-    if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
+  public final Lister getLister() {
+    return lister;
   }
+
   /**
    * Inform the lister of a comment related to the currently
    * generated machine code.
@@ -363,6 +351,30 @@ public class Assembler extends AbstractAssembler {
         VM.sysWrite(Lister.hex((byte)0x0));
       }
     }
+  }
+
+  /**
+   * @param start the starting index of the last instruction
+   * @return all bytes for the last emitted instruction as a hex String
+   */
+  public final String lastInstructionAsString(int start) {
+    StringBuilder inst = new StringBuilder();
+    for (int j=start; j<mi; j++) {
+      if (j < machineCodes.length) {
+        inst.append(Lister.hex(machineCodes[j]));
+      } else {
+        inst.append(Lister.hex((byte)0x0));
+      }
+    }
+    return inst.toString();
+  }
+
+  /**
+   * Informs the lister that generation of bytecodes is done. This
+   * allows the lister to generate the final listing.
+   */
+  public final void noteEndOfBytecodes() {
+    if (lister != null) lister.printListing();
   }
 
   /**
@@ -1069,7 +1081,11 @@ public class Assembler extends AbstractAssembler {
     ForwardReference r = new ForwardReference.LoadReturnAddress(mi, bReturn);
     forwardRefs = ForwardReference.enqueue(forwardRefs, r);
     /* Fake MAX_INTEGER to ensure 32 bit immediate */
-    emitADD_RegInd_Imm(ESP, Integer.MAX_VALUE);
+    if (VM.buildFor32Addr()) {
+      emitADD_RegInd_Imm(ESP, Integer.MAX_VALUE);
+    } else {
+      emitADD_RegInd_Imm_Quad(ESP, Integer.MAX_VALUE);
+    }
   }
 
   /**
@@ -1083,9 +1099,11 @@ public class Assembler extends AbstractAssembler {
     /* We have the following pattern:
      * | PUSH EIP | [SP] += | IMM32 |
      *            ^         ^
-     *  sourceIndex        +3 */
+     *  sourceIndex        +3 (32 bit)
+     *                     +4 (64 bit) */
     int ipDelta = mi - sourceIndex;
-    emitImm32(ipDelta, sourceIndex + 3);
+    int immOffset = VM.buildFor32Addr() ? 3 : 4; // account for REX byte on x64
+    emitImm32(ipDelta, sourceIndex + immOffset);
   }
 
   /**
@@ -1542,14 +1560,31 @@ public class Assembler extends AbstractAssembler {
     }
   }
 
+  /**
+   * Emits an illegal instruction for testing purposes.
+   */
+  public final void emitIllegalInstruction() {
+    emitUD2();
+  }
+
   /////////////////////////////////////
   // instructions (hand coded)       //
   /////////////////////////////////////
 
+  public final void emitUD2() {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) 0x0B);
+    if (lister != null) lister.OP(miStart, "UD2");
+  }
+
   public final void emitMFENCE() {
-  	int miStart = mi;
     emitLockNextInstruction();
-    emitADD_RegInd_Imm(ESP, 0);
+    if (VM.buildFor32Addr()) {
+      emitADD_RegInd_Imm(ESP, 0);
+    } else {
+      emitADD_RegInd_Imm_Quad(ESP, 0);
+    }
     /**
      * The above has the same semantics, but with better performance as a true MFENCE:
      * setMachineCodes(mi++,(byte) 0x0F);
@@ -2286,8 +2321,8 @@ public class Assembler extends AbstractAssembler {
         setMachineCodes(mi++, (byte) (0xB8 | dstReg.value()));
         emitImm64(imm);
       }
+      if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
     }
-    if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
   }
 
   /** pop address and goto it */

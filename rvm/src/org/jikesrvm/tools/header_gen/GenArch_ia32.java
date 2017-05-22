@@ -30,11 +30,13 @@ import static org.jikesrvm.ia32.RegisterConstants.R14;
 import static org.jikesrvm.ia32.RegisterConstants.R15;
 import static org.jikesrvm.ia32.RegisterConstants.R8;
 import static org.jikesrvm.ia32.RegisterConstants.R9;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.RED_ZONE_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.compilers.opt.regalloc.ia32.StackManager;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
@@ -71,6 +73,15 @@ final class GenArch_ia32 extends GenArch {
     pln("Constants_STACKFRAME_BODY_OFFSET", STACKFRAME_BODY_OFFSET);
     pln("Constants_STACKFRAME_RETURN_ADDRESS_OFFSET", STACKFRAME_RETURN_ADDRESS_OFFSET);
     pln("Constants_RVM_TRAP_BASE", RVM_TRAP_BASE);
+    pln("Constants_RED_ZONE_SIZE", RED_ZONE_SIZE);
+    if (VM.BuildForOptCompiler) {
+      pln("Constants_MAX_DIFFERENCE_TO_STACK_LIMIT", StackManager.MAX_DIFFERENCE_TO_STACK_LIMIT);
+    } else {
+      // The baseline compiler always checks for stack overflow before
+      // creating the frame, so it's not necessary to allow any overflow
+      // into the guard region of the stack.
+      pln("Constants_MAX_DIFFERENCE_TO_STACK_LIMIT", 0);
+    }
 
     offset = ArchEntrypoints.framePointerField.getOffset();
     pln("Thread_framePointer_offset", offset);
@@ -85,6 +96,6 @@ final class GenArch_ia32 extends GenArch {
     if (TR != ESI) {
       throw new Error("Unexpected TR value");
     }
-    p("#define TR %ESI\n");
+    pln("#define TR %ESI");
   }
 }

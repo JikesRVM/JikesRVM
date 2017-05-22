@@ -979,6 +979,13 @@ none
 
 
 ####################
+IA32_UD2
+MIR_Empty
+none
+
+
+
+####################
 IA32_PREFETCHNTA
 MIR_CacheOp
 none

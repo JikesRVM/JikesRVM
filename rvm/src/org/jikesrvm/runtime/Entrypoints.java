@@ -499,8 +499,6 @@ public class Entrypoints {
   public static final NormalMethod optThreadSwitchFromPrologueMethod;
   public static final NormalMethod optThreadSwitchFromBackedgeMethod;
   public static final NormalMethod optThreadSwitchFromEpilogueMethod;
-  public static final NormalMethod yieldpointFromNativePrologueMethod;
-  public static final NormalMethod yieldpointFromNativeEpilogueMethod;
   public static final NormalMethod optResolveMethod;
   public static final NormalMethod optNewArrayArrayMethod;
   public static final NormalMethod optNew2DArrayMethod;
@@ -521,10 +519,6 @@ public class Entrypoints {
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "yieldpointFromBackedge", "()V");
       optThreadSwitchFromEpilogueMethod =
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "yieldpointFromEpilogue", "()V");
-      yieldpointFromNativePrologueMethod =
-          getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "yieldpointFromNativePrologue", "()V");
-      yieldpointFromNativeEpilogueMethod =
-          getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "yieldpointFromNativeEpilogue", "()V");
       optResolveMethod = getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "resolve", "()V");
 
       optNewArrayArrayMethod =
@@ -539,8 +533,6 @@ public class Entrypoints {
       optThreadSwitchFromPrologueMethod = null;
       optThreadSwitchFromBackedgeMethod = null;
       optThreadSwitchFromEpilogueMethod = null;
-      yieldpointFromNativePrologueMethod = null;
-      yieldpointFromNativeEpilogueMethod = null;
       optResolveMethod = null;
       optNewArrayArrayMethod = null;
       optNew2DArrayMethod = null;
@@ -568,7 +560,7 @@ public class Entrypoints {
     }
     NormalMethod nm = (NormalMethod) m;
     return nm == raiseAbstractMethodError || nm == raiseArithmeticException ||
-        nm == raiseArithmeticException || nm == raiseNullPointerException ||
+        nm == raiseArrayBoundsException || nm == raiseNullPointerException ||
         nm == raiseIllegalAccessError;
   }
 

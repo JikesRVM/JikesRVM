@@ -24,6 +24,7 @@ class SerializationData implements Serializable {
     public Obj() {}
     // CHECKSTYLE:ON
 
+    @Override
     public String toString() {
       return "SerializationData$Obj(42L)";
     }
@@ -115,6 +116,7 @@ class SerializationData implements Serializable {
     oa[0] = o;
   }
 
+  @Override
   public String toString() {
     StringBuilder res = new StringBuilder();
     res.append("Z:").append(z).append("\n");

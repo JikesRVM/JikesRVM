@@ -143,6 +143,7 @@ public class MagicNames {
   public static final Atom getObjectType = Atom.findOrCreateAsciiAtom("getObjectType");
   public static final Atom getArrayLength = Atom.findOrCreateAsciiAtom("getArrayLength");
 
+  public static final Atom illegalInstruction = Atom.findOrCreateAsciiAtom("illegalInstruction");
   public static final Atom fence = Atom.findOrCreateAsciiAtom("fence");
   public static final Atom combinedLoadBarrier = Atom.findOrCreateAsciiAtom("combinedLoadBarrier");
   public static final Atom storeStoreBarrier = Atom.findOrCreateAsciiAtom("storeStoreBarrier");

@@ -692,4 +692,33 @@ public abstract class IRTools {
   public static boolean mayBeVolatileFieldLoad(Instruction s) {
     return s.mayBeVolatileFieldLoad();
   }
+
+  /**
+   * Replaces a prologue instruction with another prologue instruction
+   * that has no definitions. This is used by the classes that expand
+   * the calling convention.
+   *
+   * @param oldPrologue the old prologue instruction
+   */
+  public static void removeDefsFromPrologue(Instruction oldPrologue) {
+    if (VM.VerifyAssertions) Prologue.conforms(oldPrologue);
+    // Now that we've made the calling convention explicit in the prologue,
+    // set IR_PROLOGUE to have no defs.
+    oldPrologue.replace(createNewPrologueInst(oldPrologue, 0));
+  }
+
+  /**
+   * Replaces a prologue instruction with another prologue instruction
+   * that has a different number of variable operands.
+   *
+   * @param oldPrologue the old prologue instruction
+   * @param newNumVarOps the new number of variable operands
+   */
+  public static Instruction createNewPrologueInst(Instruction oldPrologue, int newNumVarOps) {
+    if (VM.VerifyAssertions) Prologue.conforms(oldPrologue);
+    Instruction newPrologue = Prologue.create(oldPrologue.operator(), newNumVarOps);
+    newPrologue.copyPosition(oldPrologue);
+    return newPrologue;
+  }
+
 }

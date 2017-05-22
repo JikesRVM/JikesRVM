@@ -1261,19 +1261,22 @@ public class BootImageWriter {
       totalCount += info.count;
       totalBytes += info.size;
     }
-    VM.sysWriteln("\nBoot image space report:");
+    VM.sysWriteln();
+    VM.sysWriteln("Boot image space report:");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     VM.sysWriteField(60, "TOTAL");
     VM.sysWriteField(15, totalCount);
     VM.sysWriteField(15, totalBytes);
     VM.sysWriteln();
 
-    VM.sysWriteln("\nCompiled methods space report:");
+    VM.sysWriteln();
+    VM.sysWriteln("Compiled methods space report:");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     CompiledMethods.spaceReport();
 
     VM.sysWriteln("------------------------------------------------------------------------------------------");
-    VM.sysWriteln("\nBoot image space usage by types:");
+    VM.sysWriteln();
+    VM.sysWriteln("Boot image space usage by types:");
     VM.sysWriteln("Type                                                               Count             Bytes");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     VM.sysWriteField(60, "TOTAL");

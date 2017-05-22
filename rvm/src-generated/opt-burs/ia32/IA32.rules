@@ -229,6 +229,11 @@ stm: SET_CAUGHT_EXCEPTION(INT_CONSTANT)
 EMIT_INSTRUCTION
 SET_EXCEPTION_OBJECT(P(p));
 
+stm: SET_CAUGHT_EXCEPTION(LONG_CONSTANT)
+20
+EMIT_INSTRUCTION
+SET_EXCEPTION_OBJECT(P(p));
+
 ##################################
 # Trap operations
 ##################################
@@ -382,7 +387,7 @@ stm:	SHORT_ASTORE(riv, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index = AStore.getIndex(P(p)).asRegister(); \\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()) { \\
-  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL)))); \\
+  CLEAR_UPPER_32(P(p), index.copy().asRegister()); \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), AStore.getValue(P(p)))); \\
 } else { \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), AStore.getValue(P(p)))); \\
@@ -401,7 +406,7 @@ stm:	INT_ASTORE(riv, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister(); \\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()) { \\
-  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL)))); \\
+  CLEAR_UPPER_32(P(p), index.copy().asRegister()); \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p)))); \\
 } else { \\
   EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p)))); \\
@@ -456,7 +461,7 @@ stm:	LONG_ASTORE(r, OTHER_OPERAND(r, r))
 EMIT_INSTRUCTION
 RegisterOperand index=AStore.getIndex(P(p)).asRegister();\\
 if (VM.BuildFor64Addr && index.getRegister().isInteger()) { \\
-  EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, index.copy(), LC(0xFFFFFFFFL))));\\
+  CLEAR_UPPER_32(P(p), index.copy().asRegister()); \\
 }\\
 if (VM.BuildFor32Addr) {\\
   RegisterOperand hval = (RegisterOperand)AStore.getClearValue(P(p)); \\
@@ -550,6 +555,14 @@ stm:	PAUSE
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Empty.mutate(P(p), IA32_PAUSE));
+
+#####
+# ILLEGAL_INSTRUCTION
+#####
+stm:	ILLEGAL_INSTRUCTION
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Empty.mutate(P(p), IA32_UD2));
 
 ##################################
 # Calling convention

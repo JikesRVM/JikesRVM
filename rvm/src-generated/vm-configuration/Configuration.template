@@ -24,8 +24,8 @@ public abstract class Configuration {
 
   public static final boolean BuildForPowerPC = @_RVM_FOR_POWERPC_@;
   public static final boolean BuildForIA32 = !BuildForPowerPC;
-  public static final boolean BuildForSSE2 = BuildForIA32 && @_RVM_FOR_SSE2_@;
-  public static final boolean BuildForSSE2Full = BuildForSSE2 && @_RVM_FOR_SSE2_FULL_@;
+  public static final boolean BuildForSSE2 = BuildForIA32 && (@_RVM_FOR_SSE2_@ || VM.BuildFor64Addr);
+  public static final boolean BuildForSSE2Full = BuildForSSE2 && (@_RVM_FOR_SSE2_FULL_@ || VM.BuildFor64Addr);
   public static final boolean BuildForHwFsqrt = @_RVM_FOR_HW_FSQRT_@ && (@_RVM_FOR_POWERPC_@ || VM.BuildForSSE2);
 
   public static final boolean BuildFor32Addr = @_RVM_FOR_32_ADDR_@;
@@ -139,5 +139,8 @@ public abstract class Configuration {
     if (BuildForOptCompiler) {
       System.setProperty("jikesrvm.include.opt", "true");
     }
+
+    String addressingMode = BuildFor32Addr ? "32-bit" : "64-bit";
+    System.setProperty("jikesrvm.addressing.mode", addressingMode);
   }
 }

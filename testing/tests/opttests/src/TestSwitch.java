@@ -21,7 +21,8 @@ class TestSwitch {
     int j;
 
     // tableswitch
-    System.out.print("\nwant: 99101199\n got: ");
+    System.out.println();
+    System.out.print("want: 99101199\n got: ");
     for (int i = 9; i < 13; i += 1) {
         switch (i) {
           case 10: j = 10; break;
@@ -33,7 +34,8 @@ class TestSwitch {
     System.out.println();
 
     // lookupswitch
-    System.out.print("\nwant: 99102030405099\n got: ");
+    System.out.println();
+    System.out.print("want: 99102030405099\n got: ");
     for (int i = 0; i < 70; i += 10) {
         switch (i) {
           case 10: j = 10;  break;

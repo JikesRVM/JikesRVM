@@ -17,21 +17,21 @@ class TestCall {
 
    public static boolean run() {
       System.out.println("TestCall");
-      System.out.print("want: 5\n");
-      System.out.print(" got: " + fooI(1,2,3,4,5,6,7,8,9,10,11,12,1) + "\n");
-      System.out.print("want: -4\n");
-      System.out.print(" got: " + fooIR(1,2,3,4,5,6,7,8,9,10,11,12,1) + "\n");
-      System.out.print("want: 3\n");
-      System.out.print(" got: " + fooL(1L,2L,3L,4L,0,5L,6L,7L,8L,1L) + "\n");
-      System.out.print("want: 7.0\n");
-      System.out.print(" got: " + fooF(1.F,2.F,3.F,4.F,5.F,6.F,7.F,8.F,
-                                     9.F,10.F,11.F,12.F,13.F,14.F,15.F,16.F,1.F) + "\n");
-      System.out.print("want: 211.0 \n");
-      System.out.print(" got: " + fooID(1,1.,2,2.,3,3.,4,4.,5,5.,6,6.,7,7.,
-                                      8,8.,9,9.,10,10.,11,11.,12,12.,13,13.,14.,15.) + "\n");
-      System.out.print("want: 7.0\n");
-      System.out.print(" got: " + fooD(1.,2.,3.,4.,5.,6.,7.,8.,
-                                     9.,10.,11.,12.,13.,14.,15.,16.,1.) + "\n");
+      System.out.println("want: 5");
+      System.out.println(" got: " + fooI(1,2,3,4,5,6,7,8,9,10,11,12,1));
+      System.out.println("want: -4");
+      System.out.println(" got: " + fooIR(1,2,3,4,5,6,7,8,9,10,11,12,1));
+      System.out.println("want: 3");
+      System.out.println(" got: " + fooL(1L,2L,3L,4L,0,5L,6L,7L,8L,1L));
+      System.out.println("want: 7.0");
+      System.out.println(" got: " + fooF(1.F,2.F,3.F,4.F,5.F,6.F,7.F,8.F,
+                                     9.F,10.F,11.F,12.F,13.F,14.F,15.F,16.F,1.F));
+      System.out.println("want: 211.0 ");
+      System.out.println(" got: " + fooID(1,1.,2,2.,3,3.,4,4.,5,5.,6,6.,7,7.,
+                                      8,8.,9,9.,10,10.,11,11.,12,12.,13,13.,14.,15.));
+      System.out.println("want: 7.0");
+      System.out.println(" got: " + fooD(1.,2.,3.,4.,5.,6.,7.,8.,
+                                     9.,10.,11.,12.,13.,14.,15.,16.,1.));
       return true;
    }
 

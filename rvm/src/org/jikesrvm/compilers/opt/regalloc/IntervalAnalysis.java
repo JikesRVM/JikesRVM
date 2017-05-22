@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
 
 import java.lang.reflect.Constructor;
@@ -154,9 +155,9 @@ public final class IntervalAnalysis extends CompilerPhase {
 
     // debug support
     if (LinearScan.VERBOSE_DEBUG) {
-      VM.sysWrite("**** start of interval dump " + ir.method + " ****\n");
+      VM.sysWriteln("**** start of interval dump " + ir.method + " ****");
       VM.sysWrite(ir.MIRInfo.linearScanState.intervals.toString());
-      VM.sysWrite("**** end   of interval dump ****\n");
+      VM.sysWriteln("**** end   of interval dump ****");
     }
   }
 
@@ -228,8 +229,12 @@ public final class IntervalAnalysis extends CompilerPhase {
       regAllocState.setSpill(reg, 0);
       // clear the 'long' type if it's persisted to here.
       if (VM.BuildFor32Addr && reg.isLong()) {
-        reg.clearType();
-        reg.setInteger();
+        if (VM.VerifyAssertions) {
+          opt_assert(reg.isLong(), "Found long-typed register on 32-bit.");
+        } else {
+          reg.clearType();
+          reg.setInteger();
+        }
       }
     }
   }

@@ -525,7 +525,7 @@ public final class MemoryManager {
   public static Object allocateArray(int numElements, int logElementSize, int headerSize, TIB tib, int allocator,
                                      int align, int offset, int site) {
     int elemBytes = numElements << logElementSize;
-    if ((elemBytes >>> logElementSize) != numElements) {
+    if (elemBytes < 0 || (elemBytes >>> logElementSize) != numElements) {
       /* asked to allocate more than Integer.MAX_VALUE bytes */
       throwLargeArrayOutOfMemoryError();
     }
@@ -862,7 +862,7 @@ public final class MemoryManager {
     int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
     int width = fakeType.getLogElementSize();
     int elemBytes = elements << width;
-    if ((elemBytes >>> width) != elements) {
+    if (elemBytes < 0 || (elemBytes >>> width) != elements) {
       /* asked to allocate more than Integer.MAX_VALUE bytes */
       throwLargeArrayOutOfMemoryError();
     }

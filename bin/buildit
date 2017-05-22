@@ -1031,7 +1031,7 @@ if ($save_space) {
   $cleanUpCmd = $cleanUpCmd."mkdir -p $localRoot/results/buildit/archived ; ";
 
   # Copy archive results to the archive directory.
-  $cleanUpCmd = $cleanUpCmd."cp $resultdir/archive/* $localRoot/results/buildit/archived ; ";
+  $cleanUpCmd = $cleanUpCmd."cp $localRoot/$resultdir/archive/* $localRoot/results/buildit/archived ; ";
 
   # Remove latest dir.
   $cleanUpCmd = $cleanUpCmd."rm -rf $localRoot/results/buildit/latest ; ";
@@ -1040,14 +1040,14 @@ if ($save_space) {
   $cleanUpCmd = $cleanUpCmd."mkdir -p $localRoot/results/buildit/latest/archive ; ";
 
   # Move archive results to new latest dir so they can be found for post-processing.
-  $cleanUpCmd = $cleanUpCmd."mv $resultdir/archive/* $localRoot/results/buildit/latest/archive ; ";
+  $cleanUpCmd = $cleanUpCmd."mv $localRoot/$resultdir/archive/* $localRoot/results/buildit/latest/archive ; ";
 
   # Move test results dir to new latest dir so test results (e.g. JUnit report) can be
   # found for post processing.
-  $cleanUpCmd = $cleanUpCmd."mv $resultdir/tests  $localRoot/results/buildit/latest/ ; ";
+  $cleanUpCmd = $cleanUpCmd."mv $localRoot/$resultdir/tests  $localRoot/results/buildit/latest/ ; ";
 
   # Remove result files that won't be archived.
-  $cleanUpCmd = $cleanUpCmd."rm -rf $resultdir \"'";
+  $cleanUpCmd = $cleanUpCmd."rm -rf $localRoot/$resultdir \"'";
 
 
   print "$cleanUpCmd\n";

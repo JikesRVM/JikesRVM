@@ -262,11 +262,11 @@ public class SharedDeque extends Deque {
           if (numConsumersWaiting == numConsumers)
             setCompletionFlag();
           if (TRACE) {
-            Log.write("-- ("); Log.write(ordinal);
+            Log.write("-- (", ordinal);
             Log.write(") joining wait queue of SharedDeque(");
-            Log.write(name); Log.write(") ");
-            Log.write(numConsumersWaiting); Log.write("/");
-            Log.write(numConsumers);
+            Log.write(name);
+            Log.write(") ", numConsumersWaiting);
+            Log.write("/", numConsumers);
             Log.write(" consumers waiting");
             if (complete()) Log.write(" WAIT COMPLETE");
             Log.writeln();
@@ -279,7 +279,8 @@ public class SharedDeque extends Deque {
 
           if (complete()) {
             if (TRACE) {
-              Log.write("-- ("); Log.write(ordinal); Log.writeln(") EXITING");
+              Log.write("-- (", ordinal);
+              Log.writeln(") EXITING");
             }
             lock();
             setNumConsumersWaiting(numConsumersWaiting - 1);
@@ -292,8 +293,9 @@ public class SharedDeque extends Deque {
         }
         setNumConsumersWaiting(numConsumersWaiting - 1);
         if (TRACE) {
-          Log.write("-- ("); Log.write(ordinal); Log.write(") resuming work ");
-          Log.write(" n="); Log.writeln(numConsumersWaiting);
+          Log.write("-- (", ordinal);
+          Log.write(") resuming work ");
+          Log.writeln(" n=", numConsumersWaiting);
         }
       } else {
         unlock();
@@ -355,10 +357,13 @@ public class SharedDeque extends Deque {
         long nowNano = VM.statistics.nanoTime();
         long elapsedNano = nowNano - startNano;
         if (elapsedNano - lastElapsedNano > WARN_PERIOD) {
-          Log.write("GC Warning: SharedDeque("); Log.write(name);
-          Log.write(") wait has reached "); Log.write(VM.statistics.nanosToSecs(elapsedNano));
-          Log.write(", "); Log.write(numConsumersWaiting); Log.write("/");
-          Log.write(numConsumers); Log.writeln(" threads waiting");
+          Log.write("GC Warning: SharedDeque(");
+          Log.write(name);
+          Log.write(") wait has reached ");
+          Log.write(VM.statistics.nanosToSecs(elapsedNano));
+          Log.write(", ", numConsumersWaiting);
+          Log.write("/" , numConsumers);
+          Log.writeln(" threads waiting");
           lastElapsedNano = elapsedNano;
         }
         if (elapsedNano > TIMEOUT_PERIOD) {
@@ -475,7 +480,7 @@ public class SharedDeque extends Deque {
   @Inline
   private void setNumConsumers(int newNumConsumers) {
     if (TRACE_DETAIL) {
-      Log.write("# Num consumers "); Log.writeln(newNumConsumers);
+      Log.writeln("# Num consumers ", newNumConsumers);
     }
     numConsumers = newNumConsumers;
   }
@@ -483,7 +488,7 @@ public class SharedDeque extends Deque {
   @Inline
   private void setNumConsumersWaiting(int newNCW) {
     if (TRACE_DETAIL) {
-      Log.write("# Num consumers waiting "); Log.writeln(newNCW);
+      Log.writeln("# Num consumers waiting ", newNCW);
     }
     numConsumersWaiting = newNCW;
   }

@@ -163,7 +163,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
       myNamePtr++;
       curCol++;
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     // (2) print elements
     for (OptimizationPlanElement myElement : myElements) {
       myElement.reportStats(indent + 4, timeCol, totalTime);

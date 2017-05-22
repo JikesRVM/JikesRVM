@@ -92,19 +92,22 @@ public final class Assembler extends AbstractAssembler {
    */
   private static final int CODE_OVERHEAD_TERM    = 30;
 
+  private final Lister lister;
+
   public Assembler(int length) {
-    this(length, false, null);
+    this(length, false, null, null);
   }
 
-  public Assembler(int bytecodeSize, boolean sp, BaselineCompilerImpl comp) {
+  public Assembler(int bytecodeSize, boolean sp, BaselineCompilerImpl comp, int[] bytecodeMap) {
     machineCodes = new int[bytecodeSize * CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
     shouldPrint = sp;
     compiler = comp;
     mIP = 0;
+    lister = new Lister(bytecodeMap);
   }
 
   public Assembler(int length, boolean sp) {
-    this(length, sp, null);
+    this(length, sp, null, null);
   }
 
   private static int maskLower16(Offset val) {
@@ -135,13 +138,9 @@ public final class Assembler extends AbstractAssembler {
     return (val == 0 || val == -1);
   }
 
-  @Override
-  public void noteBytecode(int i, String bcode) {
-    String s1 = Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
-    VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
+  public Lister getLister() {
+    return lister;
   }
-
-  /* Handling backward branch references */
 
   /**
    * Return a copy of the generated code as a CodeArray.
@@ -1465,7 +1464,7 @@ public final class Assembler extends AbstractAssembler {
       VM.sysWrite(Services.getHexString(machineCodes[i], false));
       VM.sysWrite("  ");
       VM.sysWrite(Disassembler.disasm(machineCodes[i], i << LG_INSTRUCTION_WIDTH));
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
   }
 
@@ -2069,6 +2068,18 @@ public final class Assembler extends AbstractAssembler {
     }
   }
 
+  /**
+   * Emits an illegal instruction.
+   * <p>
+   * The only instruction that is guaranteed to be illegal in all
+   * future versions of the PowerISA consists entirely of zeros.
+   * It currently doesn't have a name.
+   */
+  public void emitIllegalInstruction() {
+    final int mi = 0;
+    appendInstruction(mi);
+  }
+
   // -----------------------------------------------------------//
   // The following section contains assembler "macros" used by: //
   //    BaselineCompilerImpl                                             //
@@ -2248,5 +2259,12 @@ public final class Assembler extends AbstractAssembler {
   public void baselineEmitLoadTIB(MachineRegister dest, MachineRegister object) {
     Offset tibOffset = JavaHeader.getTibOffset();
     emitLAddrOffset((GPR)dest, (GPR)object, tibOffset);
+  }
+
+  public void noteEndOfBytecodes() {
+    if (shouldPrint) {
+      lister.addLinesForCode(machineCodes, getMachineCodeIndex());
+      lister.endAndPrintListing();
+    }
   }
 }

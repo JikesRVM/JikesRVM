@@ -136,14 +136,4 @@ public final class GCMapIteratorGroup {
     return null;
   }
 
-  /**
-   * get the GCMapIterator used for scanning JNI native stack frames.
-   *
-   * @return jniIterator
-   */
-  @Uninterruptible
-  public GCMapIterator getJniIterator() {
-    if (VM.VerifyAssertions) VM._assert(jniIterator != null);
-    return jniIterator;
-  }
 }
