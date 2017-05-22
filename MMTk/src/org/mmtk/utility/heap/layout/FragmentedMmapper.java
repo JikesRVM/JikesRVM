@@ -220,9 +220,12 @@ public final class FragmentedMmapper extends Mmapper {
    * @return The address of the chunk map for the slab.
    */
   byte[] slabTable(Address addr, boolean allocate) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(!addr.equals(SENTINEL));
+    }
     Address base = addr.toWord().and(MMAP_SLAB_MASK.not()).toAddress();
     final int hash = hash(base);
-    int index = hash;
+    int index = hash;  // Use 'index' to iterate over the hash table so that we remember where we started
     if (STATS) hashAttemptCounter.inc();
     while (true) {
       /* Check for a hash-table hit.  Should be the frequent case. */
@@ -231,7 +234,6 @@ public final class FragmentedMmapper extends Mmapper {
       }
       if (STATS) hashMissCounter.inc();
 
-      /* Check for a free slot */
       lock.acquire();
 
       /* Check whether another thread has allocated a slab while we were acquiring the lock */
@@ -239,6 +241,8 @@ public final class FragmentedMmapper extends Mmapper {
         lock.release();
         return slabTableFor(addr, index);
       }
+
+      /* Check for a free slot */
       if (slabMap.get(index).EQ(SENTINEL)) {
         if (!allocate) {
           lock.release();
@@ -262,8 +266,9 @@ public final class FragmentedMmapper extends Mmapper {
     if (VM.VERIFY_ASSERTIONS) {
       if (slabTable[index] == null) {
         Log.write("Addr = "); Log.write(addr);
-        Log.write(" stabTable["); Log.write(index);
-        Log.write("] == null");
+        Log.write(" slabTable["); Log.write(index);
+        Log.writeln("] == null");
+        Log.flush(); // To be sure, to be sure
       }
       VM.assertions._assert(slabTable[index] != null);
     }
