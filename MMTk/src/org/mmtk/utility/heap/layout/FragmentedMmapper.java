@@ -221,7 +221,7 @@ public final class FragmentedMmapper extends Mmapper {
    */
   byte[] slabTable(Address addr, boolean allocate) {
     if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(!addr.equals(SENTINEL));
+      VM.assertions._assert(!addr.EQ(SENTINEL));
     }
     Address base = addr.toWord().and(MMAP_SLAB_MASK.not()).toAddress();
     final int hash = hash(base);
