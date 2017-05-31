@@ -248,8 +248,8 @@ public final class FragmentedMmapper extends Mmapper {
           lock.release();
           return null;
         }
-        slabMap.set(index, base);
         commitFreeSlab(index);
+        slabMap.set(index, base);
         lock.release();
         return slabTableFor(addr, index);
       }
