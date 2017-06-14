@@ -48,6 +48,26 @@ EXTERNAL int inRVMAddressSpace(Address addr)
   return 0;
 }
 
+EXTERNAL void dumpProcessAddressSpace() {
+  /** file descriptor of proc map */
+  FILE* procMap;
+  /** char */
+  int c;
+
+  ERROR_PRINTF("attempting to dump proc map ...\n");
+#ifdef RVM_FOR_LINUX
+  procMap = fopen("/proc/self/maps", "r");
+  c = fgetc(procMap);
+  while (c != EOF) {
+    fputc(c, stdout);
+    c = fgetc(procMap);
+  }
+  fclose(procMap);
+#else
+  #warning "dumpProcessAddressSpace() NYI"
+  ERROR_PRINTF("... not implemented for this platform\n");
+#endif
+}
 
 /**
  * Hardware trap handler
@@ -88,6 +108,7 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                  Me, (void*)instructionPtr, (void*)threadPtr);
     ERROR_PRINTF("fault address %p\n", (void *)trapInfo);
     dumpContext(context);
+    dumpProcessAddressSpace();
     sysExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
   }
   /* get frame pointer checking its validity */
