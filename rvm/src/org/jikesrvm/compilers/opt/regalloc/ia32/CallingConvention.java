@@ -640,7 +640,7 @@ public abstract class CallingConvention extends IRTools {
   public static void allocateSpaceForSysCall(IR ir) {
     StackManager sm = (StackManager) ir.stackManager;
 
-    // add one to account for the processor register.
+    // add one to account for the thread register.
     int nToSave = PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
 
     sm.allocateSpaceForSysCall(nToSave);
