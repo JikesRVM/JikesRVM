@@ -552,9 +552,13 @@ public abstract class CallingConvention extends IRTools {
       // stack
       parameterBytes = -2 * WORDSIZE;
       RegisterOperand fpCount = new RegisterOperand(phys.getEAX(), TypeReference.Int);
+      // Save count of vector parameters (= XMM) in EAX as defined by
+      // the ABI for varargs convention
       call.insertBefore(MIR_Move.create(IA32_MOV, fpCount, IC(FPRRegisterParams)));
+      // Save volatiles to non-volatiles that are currently not used
       call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(R14), TypeReference.Long),new RegisterOperand(phys.getESI(), TypeReference.Long)));
       call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(R13), TypeReference.Long),new RegisterOperand(phys.getEDI(), TypeReference.Long)));
+      // Restore volatiles from non-volatiles
       call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getESI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R14), TypeReference.Long)));
       call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getEDI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R13), TypeReference.Long)));
       // Require ESP to be at bottom of frame before a call,
