@@ -26,6 +26,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.ia32.RegisterConstants.R13;
 import static org.jikesrvm.ia32.RegisterConstants.R14;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
@@ -403,8 +404,9 @@ public abstract class CallingConvention extends IRTools {
    * We do this in case the sys call does not respect our
    * register conventions.<p>
    *
-   * We save/restore all nonvolatiles and the PR, whether
-   * or not this routine uses them.  This may be a tad inefficient, but if
+   * We save/restore all nonvolatiles and the thread register as
+   * well as the JTOC (if present), whether or not this routine
+   * uses them.  This may be a tad inefficient, but if
    * you're making a system call, you probably don't care.<p>
    *
    * Side effect: changes the operator of the call instruction to
@@ -450,6 +452,12 @@ public abstract class CallingConvention extends IRTools {
     // save the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
     call.insertBefore(MIR_Move.create(IA32_MOV, M, ir.regpool.makeTROp()));
+    // save the JTOC, if present
+    if (JTOC_REGISTER != null) {
+      location += WORDSIZE;
+      Operand jtocSave = new StackLocationOperand(true, -location, (byte) WORDSIZE);
+      call.insertBefore(MIR_Move.create(IA32_MOV, jtocSave, ir.regpool.makeTocOp()));
+    }
   }
 
   /**
@@ -483,6 +491,12 @@ public abstract class CallingConvention extends IRTools {
     // restore the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
     call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makeTROp(), M));
+    // restore the JTOC, if applicable
+    if (JTOC_REGISTER != null) {
+      location += WORDSIZE;
+      Operand jtocSave = new StackLocationOperand(true, -location, (byte) WORDSIZE);
+      call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makeTocOp(), jtocSave));
+    }
   }
 
   /**
@@ -646,6 +660,8 @@ public abstract class CallingConvention extends IRTools {
 
     // add one to account for the thread register.
     int nToSave = PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
+    // add one for JTOC
+    if (JTOC_REGISTER != null) nToSave++;
 
     sm.allocateSpaceForSysCall(nToSave);
   }
