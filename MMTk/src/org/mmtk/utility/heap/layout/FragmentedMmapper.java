@@ -263,16 +263,16 @@ public final class FragmentedMmapper extends Mmapper {
   }
 
   public byte[] slabTableFor(Address addr, int index) {
+    byte[] slabTableElement = slabTable[index];
     if (VM.VERIFY_ASSERTIONS) {
-      if (slabTable[index] == null) {
+      if (slabTableElement == null) {
         Log.write("Addr = "); Log.write(addr);
         Log.write(" slabTable["); Log.write(index);
         Log.writeln("] == null");
-        Log.flush(); // To be sure, to be sure
       }
-      VM.assertions._assert(slabTable[index] != null);
+      VM.assertions._assert(slabTableElement != null);
     }
-    return slabTable[index];
+    return slabTableElement;
   }
 
   /**
