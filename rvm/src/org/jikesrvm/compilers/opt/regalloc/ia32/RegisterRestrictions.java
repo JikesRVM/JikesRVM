@@ -133,7 +133,8 @@ public final class RegisterRestrictions extends GenericRegisterRestrictions {
     // at a relevant PEI, so that the assumptions of register homes in the
     // catch block remain valid.  For now, we do this by forcing any
     // register used in such a PEI as not spilled.  TODO: relax this
-    // restriction for better code.
+    // restriction for better code. This needs to be coordinated with
+    // the code in MIRSplitRanges.
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
       if (s.isPEI() && s.operator() != IR_PROLOGUE) {
