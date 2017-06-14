@@ -141,8 +141,8 @@ public class LoopUnrolling extends CompilerPhase {
     int height = 1;
     Enumeration<GraphNode> e = t.outNodes();
     if (!e.hasMoreElements()) {
-      if (t.loop != null) {
-        report("Leaf loop in " + ir.method + ": " + t.loop);
+      if (t.getLoop() != null) {
+        report("Leaf loop in " + ir.method + ": " + t.getLoop());
         // check infrequency
         if (t.header.getInfrequent()) {
           report("no unrolling of infrequent loop");
@@ -167,7 +167,7 @@ public class LoopUnrolling extends CompilerPhase {
   boolean unrollLeaf(LSTNode t, IR ir) {
     int instructionsInLoop = 0;
     BasicBlock exitBlock = null, backEdgeBlock = null, succBlock = null, predBlock = null;
-    BitVector nloop = t.loop;
+    BitVector nloop = t.getLoop();
     BasicBlock header = t.header;
     Instruction tmp;
 
@@ -617,11 +617,11 @@ public class LoopUnrolling extends CompilerPhase {
   }
 
   private void naiveUnroller(LSTNode t, IR ir) {
-    BitVector nloop = t.loop;
+    BitVector nloop = t.getLoop();
     BasicBlock seqStart = null;
     Enumeration<BasicBlock> bs;
 
-    if (t.loop.populationCount() > MAX_BLOCKS_FOR_NAIVE_UNROLLING) {
+    if (t.getLoop().populationCount() > MAX_BLOCKS_FOR_NAIVE_UNROLLING) {
       report("1 is too big");
       return;
     }

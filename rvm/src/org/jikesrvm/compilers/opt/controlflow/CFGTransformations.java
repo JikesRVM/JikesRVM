@@ -199,10 +199,10 @@ public class CFGTransformations extends CompilerPhase {
     int i = 0;
     int exiters = 0;
 
-    Enumeration<BasicBlock> e = ir.getBasicBlocks(n.loop);
+    Enumeration<BasicBlock> e = ir.getBasicBlocks(n.getLoop());
     while (e.hasMoreElements()) {
       BasicBlock b = e.nextElement();
-      if (!exitsLoop(b, n.loop)) {
+      if (!exitsLoop(b, n.getLoop())) {
         // header doesn't exit: nothing to do
         if (b == n.header) return false;
       } else {
@@ -242,7 +242,7 @@ public class CFGTransformations extends CompilerPhase {
 
   private static BasicBlock[] loopPredecessors(LSTNode n) {
     BasicBlock header = n.header;
-    BitVector loop = n.loop;
+    BitVector loop = n.getLoop();
 
     int i = 0;
     Enumeration<BasicBlock> be = header.getIn();
@@ -261,7 +261,7 @@ public class CFGTransformations extends CompilerPhase {
 
   private static BasicBlock[] inLoopPredecessors(LSTNode n) {
     BasicBlock header = n.header;
-    BitVector loop = n.loop;
+    BitVector loop = n.getLoop();
 
     int i = 0;
     Enumeration<BasicBlock> be = header.getIn();
@@ -280,7 +280,7 @@ public class CFGTransformations extends CompilerPhase {
 
   private static BasicBlock[] inLoopSuccessors(LSTNode n) {
     BasicBlock header = n.header;
-    BitVector loop = n.loop;
+    BitVector loop = n.getLoop();
 
     int i = 0;
     Enumeration<BasicBlock> be = header.getOut();

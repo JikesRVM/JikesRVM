@@ -75,7 +75,7 @@ public class LSTGraph extends SpaceEffGraph {
    */
   public boolean inInnermostLoop(BasicBlock bb) {
     LSTNode node = loopMap.get(bb);
-    return node != null && node.firstOutEdge() == null && node.loop != null;
+    return node != null && node.firstOutEdge() == null && node.getLoop() != null;
   }
 
   public boolean isLoopExit(BasicBlock source, BasicBlock target) {
@@ -175,12 +175,12 @@ public class LSTGraph extends SpaceEffGraph {
             addGraphNode(header);
             loop = new BitVector(cfg.numberOfNodes());
             loop.set(node.getNumber());
-            header.loop = loop;
+            header.setLoop(loop);
             if (DEBUG) {
               System.out.println("header" + header);
             }
           } else {
-            loop = header.loop;
+            loop = header.getLoop();
           }
           cfg.clearDFS();
           node.setDfsVisited();
@@ -199,7 +199,7 @@ public class LSTGraph extends SpaceEffGraph {
     for (LSTNode node = (LSTNode) _firstNode.getNext(); node != null; node = (LSTNode) node.getNext()) {
       int number = node.header.getNumber();
       for (LSTNode prev = (LSTNode) node.getPrev(); prev != _firstNode; prev = (LSTNode) prev.getPrev()) {
-        if (prev.loop.get(number)) {            // nested
+        if (prev.getLoop().get(number)) {            // nested
           prev.insertOut(node);
           continue lstloop;
         }
@@ -219,7 +219,7 @@ public class LSTGraph extends SpaceEffGraph {
     for (Enumeration<LSTNode> e = node.getChildren(); e.hasMoreElements();) {
       setDepth(ir, e.nextElement(), depth + 1);
     }
-    BitVector loop = node.loop;
+    BitVector loop = node.getLoop();
     if (loop != null) {
       for (int i = 0; i < loop.length(); i++) {
         if (loop.get(i)) {
