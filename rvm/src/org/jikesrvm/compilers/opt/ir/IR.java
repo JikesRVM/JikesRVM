@@ -650,7 +650,7 @@ public final class IR {
     BitSetBBEnum(IR ir, BitVector bits) {
       stack = new Stack<BasicBlock>();
       int size = bits.length();
-      Enumeration<BasicBlock> bbEnum = ir.getBasicBlocks();
+      Enumeration<BasicBlock> bbEnum = ir.forwardBlockEnumerator();
       while (bbEnum.hasMoreElements()) {
         BasicBlock block = bbEnum.nextElement();
         int number = block.getNumber();
