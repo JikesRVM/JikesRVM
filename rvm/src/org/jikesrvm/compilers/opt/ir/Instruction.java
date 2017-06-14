@@ -1222,7 +1222,7 @@ public final class Instruction {
   /**
    * Invert the probabilty of this branch being taken.  This method
    * should be called on a branch instruction when its condition is
-   * reversed using flipCode().
+   * reversed using {@link  org.jikesrvm.compilers.opt.ir.operand.ConditionOperand#flipCode() flipCode()}.
    */
   public void flipBranchProbability() {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
