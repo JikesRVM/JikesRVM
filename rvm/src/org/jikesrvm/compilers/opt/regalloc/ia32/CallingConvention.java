@@ -689,7 +689,7 @@ public abstract class CallingConvention extends IRTools {
     }
     // allocate space for each parameter, plus one word on the stack to
     // hold the address of the callee.
-    ir.stackManager.allocateParameterSpace((1 + parameterWords) * 4);
+    ir.stackManager.allocateParameterSpace((1 + parameterWords) * WORDSIZE);
 
     // Convert to a SYSCALL instruction with a null method operand.
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
