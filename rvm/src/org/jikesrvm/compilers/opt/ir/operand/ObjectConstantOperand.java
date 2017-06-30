@@ -97,7 +97,7 @@ public class ObjectConstantOperand extends ConstantOperand {
 
   @Override
   public boolean similar(Operand op) {
-    return (op instanceof ObjectConstantOperand) && value.equals(((ObjectConstantOperand) op).value);
+    return (op instanceof ObjectConstantOperand) && value == ((ObjectConstantOperand) op).value;
   }
 
   /**
