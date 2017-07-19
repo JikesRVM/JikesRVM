@@ -51,6 +51,19 @@ public class CompilerDNA {
   static final int OPT2 = 3;
 
   /**
+   * Represents the fact that a method can't be recompiled. There are at least three different
+   * cases here:
+   * <ul>
+   * <li>recompilation doesn't make any sense because the method cannot be optimized,
+   * e.g. for JNI compiled methods and hardware trap methods</li>
+   * <li>recompilation might make sense but the optimizing compiler doesn't implement
+   * the special semantics that the methods require</li>
+   * <li>the method was explicitly barred from opt compilation</li>
+   * </ul>
+   */
+  public static final int CANNOT_RECOMPILE = -1;
+
+  /**
    *  The number of compilers available
    */
   private static int numCompilers;
@@ -331,21 +344,21 @@ public class CompilerDNA {
     switch (cmpMethod.getCompilerType()) {
       case CompiledMethod.TRAP:
       case CompiledMethod.JNI:
-        return -1; // don't try to optimize these guys!
+        return CANNOT_RECOMPILE; // don't try to optimize these guys!
       case CompiledMethod.BASELINE: {
         // Prevent the adaptive system from recompiling certain classes
         // of baseline compiled methods.
         if (cmpMethod.getMethod().getDeclaringClass().hasDynamicBridgeAnnotation()) {
           // The opt compiler does not implement this calling convention.
-          return -1;
+          return CANNOT_RECOMPILE;
         }
         if (cmpMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
           // The opt compiler does not implement this calling convention.
-          return -1;
+          return CANNOT_RECOMPILE;
         }
         if (cmpMethod.getMethod().hasNoOptCompileAnnotation()) {
           // Explict declaration that the method should not be opt compiled.
-          return -1;
+          return CANNOT_RECOMPILE;
         }
         if (!cmpMethod.getMethod().isInterruptible()) {
           // A crude filter to identify the subset of core VM methods that
@@ -364,7 +377,7 @@ public class CompilerDNA {
         return getCompilerConstant(optMeth.getOptLevel());
       default:
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unknown Compiler");
-        return -1;
+        return CANNOT_RECOMPILE;
     }
   }
 }
