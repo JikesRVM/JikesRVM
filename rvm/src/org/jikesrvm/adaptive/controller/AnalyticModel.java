@@ -89,7 +89,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
   @Override
   ControllerPlan considerHotMethod(CompiledMethod cmpMethod, HotMethodEvent hme) {
     // Compiler used for the previous compilation
-    int prevCompiler = getPreviousCompiler(cmpMethod);
+    int prevCompiler = CompilerDNA.getPreviousCompiler(cmpMethod);
     if (prevCompiler == -1) {
       return null; // Not a method that we can recompile (trap, JNI).
     }
@@ -250,7 +250,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
   void considerHotCallEdge(CompiledMethod cmpMethod, AINewHotEdgeEvent event) {
 
     // Compiler used for the previous compilation
-    int prevCompiler = getPreviousCompiler(cmpMethod);
+    int prevCompiler = CompilerDNA.getPreviousCompiler(cmpMethod);
     if (prevCompiler == -1) {
       return; // Not a method we can recompile (trap, JNI).
     }

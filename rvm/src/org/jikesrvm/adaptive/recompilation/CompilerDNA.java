@@ -22,7 +22,9 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
+import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 
 /**
  * This class codifies the cost/benefit properties of the various compilers
@@ -318,6 +320,51 @@ public class CompilerDNA {
       default:
         if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
         return -99;
+    }
+  }
+
+  /**
+   *  @param cmpMethod the compiled method whose previous compiler we want to know
+   *  @return the constant for the previous compiler
+   */
+  public static int getPreviousCompiler(CompiledMethod cmpMethod) {
+    switch (cmpMethod.getCompilerType()) {
+      case CompiledMethod.TRAP:
+      case CompiledMethod.JNI:
+        return -1; // don't try to optimize these guys!
+      case CompiledMethod.BASELINE: {
+        // Prevent the adaptive system from recompiling certain classes
+        // of baseline compiled methods.
+        if (cmpMethod.getMethod().getDeclaringClass().hasDynamicBridgeAnnotation()) {
+          // The opt compiler does not implement this calling convention.
+          return -1;
+        }
+        if (cmpMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+          // The opt compiler does not implement this calling convention.
+          return -1;
+        }
+        if (cmpMethod.getMethod().hasNoOptCompileAnnotation()) {
+          // Explict declaration that the method should not be opt compiled.
+          return -1;
+        }
+        if (!cmpMethod.getMethod().isInterruptible()) {
+          // A crude filter to identify the subset of core VM methods that
+          // can't be recompiled because we require their code to be non-moving.
+          // We really need to do a better job of this to avoid missing too many opportunities.
+          // NOTE: it doesn't matter whether or not the GC is non-moving here,
+          //       because recompiling effectively moves the code to a new location even if
+          //       GC never moves it again!!!
+          //      (C code may have a return address or other naked pointer into the old instruction array)
+          return -1;
+        }
+        return 0;
+      }
+      case CompiledMethod.OPT:
+        OptCompiledMethod optMeth = (OptCompiledMethod) cmpMethod;
+        return getCompilerConstant(optMeth.getOptLevel());
+      default:
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unknown Compiler");
+        return -1;
     }
   }
 }
