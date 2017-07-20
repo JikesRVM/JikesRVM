@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.CALL_SAVE_VOLATILE;
@@ -89,6 +90,7 @@ import org.jikesrvm.compilers.opt.ir.ppc.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.Bits;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -751,6 +753,11 @@ public final class StackManager extends GenericStackManager {
       }
     }
     frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
+  }
+
+  @Override
+  protected void verifyArchSpecificFrameSizeConstraints(int frameSize) {
+    if (VM.VerifyAssertions) opt_assert(Bits.fits(frameSize, 16));
   }
 
   /**

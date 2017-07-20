@@ -78,6 +78,8 @@
 
     <successMessageTest tag="FloatingPoint_NaN" class="test.org.jikesrvm.opttests.optimizations.FloatingPoint_NaN"/>
 
+    <successMessageTest tag="TestStackAlignment" class="test.org.jikesrvm.opttests.optimizations.TestStackAlignment"/>
+
     <finishResults/>
   </target>
 

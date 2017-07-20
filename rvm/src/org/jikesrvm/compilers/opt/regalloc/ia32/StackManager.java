@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.PRIMITIVE_TYPE_FOR_WORD;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
@@ -83,6 +84,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.Bits;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -349,6 +351,11 @@ public final class StackManager extends GenericStackManager {
       ir.compiledMethod.setNumberOfNonvolatileFPRs((short) 0);
 
     }
+  }
+
+  @Override
+  protected void verifyArchSpecificFrameSizeConstraints(int frameSize) {
+    if (VM.VerifyAssertions) opt_assert(Bits.fits(frameSize, 32));
   }
 
   @Override

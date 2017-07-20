@@ -4611,6 +4611,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     } else if (methodName == MagicNames.getInlineDepth ||
                methodName == MagicNames.isConstantParameter) {
       emit_iconst(0);
+    } else if (methodName == MagicNames.getCompilerLevel) {
+      emit_iconst(-1);
+    } else if (methodName == MagicNames.getFrameSize) {
+      emit_iconst(frameSize);
     } else if (methodName == MagicNames.wordToInt ||
                methodName == MagicNames.wordToAddress ||
                methodName == MagicNames.wordToOffset ||

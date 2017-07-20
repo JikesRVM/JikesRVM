@@ -69,6 +69,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -2443,6 +2444,20 @@ final class BaselineMagic {
   }
 
   /**
+   * Return the current compiler opt level (always {@code -1} for baseline)
+   */
+  private static final class GetCompilerLevel extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPUSH_Imm(-1);
+    }
+  }
+  static {
+    MagicGenerator g = new GetCompilerLevel();
+    generators.put(getMethodReference(Magic.class, MagicNames.getCompilerLevel, int.class), g);
+  }
+
+  /**
    * Is the requested parameter a constant? Always {@code false} for baseline.
    */
   private static final class IsConstantParameter extends MagicGenerator {
@@ -2455,5 +2470,19 @@ final class BaselineMagic {
   static {
     MagicGenerator g = new IsConstantParameter();
     generators.put(getMethodReference(Magic.class, MagicNames.isConstantParameter, int.class, boolean.class), g);
+  }
+
+  /**
+   * Return the frame size as calculated by the baseline compiler
+   */
+  private static final class GetFrameSize extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPUSH_Imm(BaselineCompilerImpl.calculateRequiredSpaceForFrame((NormalMethod) cm));
+    }
+  }
+  static {
+    MagicGenerator g = new GetFrameSize();
+    generators.put(getMethodReference(Magic.class, MagicNames.getFrameSize, int.class), g);
   }
 }

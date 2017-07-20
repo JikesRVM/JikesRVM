@@ -156,6 +156,11 @@ stm:	YIELDPOINT_BACKEDGE
 EMIT_INSTRUCTION
 EMIT(P(p));
 
+r: FRAMESIZE
+10
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Nullary.getClearResult(P(p)), new UnknownConstantOperand()));
+
 ##################################
 #
 ##################################

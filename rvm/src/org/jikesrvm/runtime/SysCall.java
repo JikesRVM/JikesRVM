@@ -478,5 +478,8 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract int gcspySprintf(Address str, Address format, Address value);
+
+  @SysCallTemplate
+  public abstract void sysStackAlignmentTest();
 }
 

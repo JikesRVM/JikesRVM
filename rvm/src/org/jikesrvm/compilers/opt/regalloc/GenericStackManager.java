@@ -36,6 +36,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.UnknownConstantOperand;
 
 /**
  * Class to manage the allocation of the "compiler-independent" portion of
@@ -320,6 +321,13 @@ public abstract class GenericStackManager extends IRTools {
    */
   public int getOffsetForSysCall() {
     return sysCallOffset;
+  }
+
+  /**
+   * @return whether the compiled method has any syscalls
+   */
+  public boolean hasSysCall() {
+    return sysCallOffset != 0;
   }
 
   /**
@@ -1031,6 +1039,8 @@ public abstract class GenericStackManager extends IRTools {
     // compute the number of stack words needed to hold nonvolatile
     // registers
     computeNonVolatileArea();
+    // insert values for getFrameSize magic, if present
+    rewriteFrameSizeMagics();
 
     if (frameIsRequired()) {
       insertNormalPrologue();
@@ -1041,6 +1051,18 @@ public abstract class GenericStackManager extends IRTools {
       ir.MIRInfo.gcIRMap.delete(inst);
     }
   }
+
+  private void rewriteFrameSizeMagics() {
+    Enumeration<Instruction> instructions = ir.forwardInstrEnumerator();
+    while (instructions.hasMoreElements()) {
+      Instruction inst = instructions.nextElement();
+      int frameSize = getFrameFixedSize();
+      verifyArchSpecificFrameSizeConstraints(frameSize);
+      inst.replaceSimilarOperands(new UnknownConstantOperand(), IC(frameSize));
+    }
+  }
+
+  protected abstract void verifyArchSpecificFrameSizeConstraints(int frameSize);
 
   /**
    * After register allocation, go back through the IR and insert

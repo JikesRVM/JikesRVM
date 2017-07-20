@@ -1631,6 +1631,13 @@ none
 
 
 
+# Get size of a stack frame
+FRAMESIZE
+Nullary
+none
+
+
+
 ##########
 # 'Unary' operators for manipulating the Jikes RVM object model
 ##########

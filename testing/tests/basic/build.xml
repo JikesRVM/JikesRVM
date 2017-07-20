@@ -66,6 +66,7 @@
   <target name="test" depends="compile">
     <startResults/>
 
+    <successMessageTest tag="TestMagic" class="test.org.jikesrvm.basic.core.intrinsics.TestMagic"/>
     <successMessageTest tag="TestExtent" class="test.org.jikesrvm.basic.core.intrinsics.TestExtent"/>
     <successMessageTest tag="TestOffset" class="test.org.jikesrvm.basic.core.intrinsics.TestOffset"/>
     <successMessageTest tag="TestSynchronization" class="test.org.jikesrvm.basic.core.intrinsics.TestSynchronization"/>

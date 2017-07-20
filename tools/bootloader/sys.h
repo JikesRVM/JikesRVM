@@ -218,6 +218,7 @@ EXTERNAL double sysVMMathExpm1(double a);
 EXTERNAL double sysVMMathHypot(double a, double b);
 EXTERNAL double sysVMMathLog10(double a);
 EXTERNAL double sysVMMathLog1p(double a);
+EXTERNAL void sysStackAlignmentTest();
 // sysMemory
 EXTERNAL void * sysMalloc(int length);
 EXTERNAL void * sysCalloc(int length);

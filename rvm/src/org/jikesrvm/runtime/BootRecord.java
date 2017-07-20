@@ -308,6 +308,8 @@ public class BootRecord {
   public Address sysPrimitiveParseLongIP;
   public Address sysParseMemorySizeIP;
 
+  public Address sysStackAlignmentTestIP;
+
   // time
   Address sysCurrentTimeMillisIP;
   Address sysNanoTimeIP;

@@ -612,6 +612,30 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
   }
 
   /**
+   * A wrapper method for those callers that don't want to make
+   * optimization plans and need a given opt level
+   * @param method the method to recompile
+   * @param optLevel the opt level to use
+   * @return a compiled method id or -1 when the compilation failed
+   */
+  public static int recompileWithOpt(NormalMethod method, int optLevel) {
+    if (VM.BuildForOptCompiler) {
+      OptOptions optOptions = (OptOptions) options;
+      OptOptions newOptions = optOptions.dup();
+      newOptions.setOptLevel(optLevel);
+      CompilationPlan plan =
+          new CompilationPlan(method,
+                                  (OptimizationPlanElement[]) optimizationPlan,
+                                  null,
+                                  newOptions);
+      return recompileWithOpt(plan);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return -1;
+    }
+  }
+
+  /**
    * This method uses the default compiler (baseline) to compile a method
    * It is typically called when a more aggressive compilation fails.
    * This method is safe to invoke from RuntimeCompiler.compile.
