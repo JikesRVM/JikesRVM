@@ -3682,7 +3682,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
    * Note that this method doesn't return the complete frame size:
    * the parameters are in the caller's frame for the baseline compiler
    * and the caller's frame has already been created when the callee is
-   * called. The additional space that's required is necessary
+   * called. The additional space that's required is necessary for
+   * holding the non-parameter locals and the operand stack.
    *
    * @param method a method with bytecodes
    * @return space required to create the frame, in bytes
