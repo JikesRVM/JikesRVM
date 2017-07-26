@@ -12,6 +12,7 @@
  */
 
 #include "sys.h"
+#include <unistd.h> // for fsync
 
 /** Console write (java character). */
 EXTERNAL void sysConsoleWriteChar(unsigned value)
