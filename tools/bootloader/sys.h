@@ -261,6 +261,7 @@ EXTERNAL void sysPerfEventRead(int id, long long *values);
 // sysSignal
 EXTERNAL int inRVMAddressSpace(Address addr);
 EXTERNAL void dumpProcessAddressSpace();
+EXTERNAL void unblockSIGQUIT();
 EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *context);
 EXTERNAL void* sysStartMainThreadSignals();

@@ -65,6 +65,12 @@
 
   <target name="test" depends="compile">
     <startResults/>
+    <!--
+      Test if the bin/timedrun script, which is used for running the tests,
+      correctly kills tests that run too long. This test is commented out rather than excluded
+      because it's only useful for porting to a new platform.
+    <runCompareTest tag="TestSleepForever" class="test.org.jikesrvm.basic.core.threads.TestSleepForever" timelimit="10"/>
+    -->
 
     <successMessageTest tag="TestMagic" class="test.org.jikesrvm.basic.core.intrinsics.TestMagic"/>
     <successMessageTest tag="TestExtent" class="test.org.jikesrvm.basic.core.intrinsics.TestExtent"/>

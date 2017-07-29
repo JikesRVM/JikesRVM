@@ -305,6 +305,8 @@ EXTERNAL void sysStartMainThread(jboolean vmInSeparateThread, Address ip, Addres
 
   createThreadSpecificDataKeys();
 
+  unblockSIGQUIT();
+
   /* Set up thread stack - TODO: move to bootimagewriter */
 #ifdef RVM_FOR_IA32
   *(Address *) (tr + Thread_framePointer_offset) = (Address)sp - (2*__SIZEOF_POINTER__);

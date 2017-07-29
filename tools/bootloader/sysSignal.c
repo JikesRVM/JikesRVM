@@ -70,6 +70,29 @@ EXTERNAL void dumpProcessAddressSpace() {
 }
 
 /**
+ * External programs might block SIGQUIT. This is undesirable for the VM
+ * because the software signal handler interprets SIGQUIT a as request
+ * to trigger a thread dump. Therefore, unblock SIGQUIT.
+ *
+ * An example use case for this is triggering a thread dump from the bin/timedrun
+ * script. It uses Perl's system() function to run the tests and system() blocks
+ * SIGQUIT by default.
+ */
+EXTERNAL void unblockSIGQUIT() {
+  sigset_t sigQuitSet;
+
+  VERBOSE_SIGNALS_PRINTF("Attempting to unmask SIGQUIT...");
+  sigemptyset(&sigQuitSet);
+  sigaddset (&sigQuitSet, SIGQUIT);
+  int rc = pthread_sigmask(SIG_UNBLOCK, &sigQuitSet, NULL);
+  if (rc == 0) {
+    VERBOSE_SIGNALS_PRINTF("SUCCESS\n");
+  } else {
+    VERBOSE_SIGNALS_PRINTF("FAILURE: %d %s\n", rc, strerror(rc));
+  }
+}
+
+/**
  * Hardware trap handler
  *
  * Taken: signo   [in] signal raised
