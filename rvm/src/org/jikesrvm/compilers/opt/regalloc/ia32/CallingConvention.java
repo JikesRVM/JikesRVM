@@ -691,11 +691,15 @@ public abstract class CallingConvention extends IRTools {
       // Restore volatiles from non-volatiles
       call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getESI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R14), TypeReference.Long)));
       call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getEDI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R13), TypeReference.Long)));
-      // Add a marker instruction. When processing x64 syscalls, the block of the syscall
-      // needs to be split up to copy the code for the call. Copying has to occur
-      // to be able to ensure stack alignment for the x64 ABI. This instruction
-      // marks the border for the copy: everything before this instruction isn't duplicated.
-      call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(MARKER)));
+
+      if (VM.BuildFor64Addr) {
+        // Add a marker instruction. When processing x64 syscalls, the block of the syscall
+        // needs to be split up to copy the code for the call. Copying has to occur
+        // to be able to ensure stack alignment for the x64 ABI. This instruction
+        // marks the border for the copy: everything before this instruction isn't duplicated.
+        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(MARKER)));
+      }
+
       // Require ESP to be at bottom of frame before a call,
       call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
 
