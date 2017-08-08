@@ -1885,7 +1885,7 @@ const char *rvm_target_configuration = "${target.file}";
     </condition>
 
     <property name="rvm.includes"
-              value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
+              value="-I${bl.dir} -I${bl.dir}/jni -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
 
     <property name="rvm.defines" value="-D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE ${filter} "/>
 
