@@ -31,7 +31,7 @@ JNIEXPORT void JNICALL Java_TestNestedGC_level0
   if (methodID == NULL) {
     if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method level1()\n");
-    return NULL;
+    return;
   }
 
   (*env) -> CallStaticVoidMethodA(env, cls, methodID, NULL);
@@ -49,7 +49,7 @@ JNIEXPORT void JNICALL Java_TestNestedGC_level2
   if (methodID == NULL) {
     if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method level3()\n");
-    return NULL;
+    return;
   }
 
   (*env) -> CallStaticVoidMethodA(env, cls, methodID, NULL);
