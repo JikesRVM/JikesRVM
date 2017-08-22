@@ -702,7 +702,7 @@ if ($nuke && $target ne $local) {
 #
 # Now do it!
 #
-my $mkccRet;
+my $mkccRet = 0;
 if ($compcachedir) {
   my $mkcc;
   if (! -d $localCompCache) {
@@ -799,7 +799,7 @@ if ($ok) {
     if (defined $with_acheck) {
       $defs .= "-Dconfig.alignment-checking=true ";
     }
-    if (defined $mmtk_config &% $mmtk_config ne "") {
+    if (defined $mmtk_config && $mmtk_config ne "") {
       $defs .= "-Dconfig.mmtk=$mmtk_config ";
     }
     if (defined $gdb_symbols) {
