@@ -12,8 +12,10 @@
 #  regarding copyright ownership.
 #
 use warnings;
+use strict;
 
 use Getopt::Std;
+use Proc::ProcessTable;
 
 our($opt_o, $opt_t, $opt_e);
 getopts('t:e:o:');
@@ -36,8 +38,9 @@ if ($opt_e ne "") {
     $alarm_exit_code = $opt_e;
 }
 
+our $pid;
+
 FORK: {
-    our $pid;
     if ($pid = fork) {
         # parent
         if (defined ($deadman_seconds)){
@@ -71,12 +74,27 @@ sub alarmHandler {
 }
 
 sub euthanase {
-    my ($pid) = @_;
-    open (JOBS, "ps -ef | cut -c10-21 | grep $pid|");
-    while (<JOBS>) {
-        ($target) = /(\d+)\s+\d+/;
-        system("kill -9 $target 2>/dev/null");
+    my $processTable = new Proc::ProcessTable;
+
+    my $DEBUG;
+    # Comment in the next line to print out all
+    # fields available in the process table
+    # $DEBUG = 'defined';
+    if (defined ($DEBUG)) {
+         print "All process table fields\n";
+         foreach my $f ($processTable->fields) {
+             print $f, "\n";
+         }
     }
-    close JOBS;
+
+    foreach my $p (@{$processTable->table}) {
+        my $processPid = $p->pid;
+        my $processPpid = $p->ppid;
+        # NOTE: process table fields are OS-specific
+        # Only tested on Linux right now.
+        if ($processPid == $pid || $processPpid == $pid) {
+            $p->kill(9);
+        }
+    }
 }
 

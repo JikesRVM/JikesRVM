@@ -15,6 +15,7 @@ You'll need
 * GCC with multilibs
 * Bison
 * an internet connection during the first build to download [GNU Classpath](http://www.gnu.org/software/classpath/) and other components
+* (tests only) the Perl library for Proc::ProcessTable (e.g. the package libproc-processtable-perl on Debian-based distributions or perl-Proc-ProcessTable on CentOS)
 
 Please see the [user guide](http://www.jikesrvm.org/UserGuide/) for more details.
 
