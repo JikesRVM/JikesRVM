@@ -582,7 +582,7 @@ if ($#gcs == -1) {
   if ($eclipse && !defined $compiler) {
     $compiler = "production";
   }
-  if ($mmtk_eclipse && !defined compiler) {
+  if ($mmtk_eclipse && !defined $compiler) {
     $compiler = "prototype-opt";
   }
   if ($compiler ne "") {
@@ -600,7 +600,7 @@ foreach my $g (@gcs) {
   } 
 }
 # The -m option
-if (! $mmtk_config eq "") {
+if (defined $mmtk_config) {
   if (! -e $localRoot."/build/mmtk/".$mmtk_config.".properties") {
     bad_usage("Could not find MMTk properties '$mmtk_config'");
   }
@@ -667,7 +667,7 @@ if ($host ne $target && $config{"$host-$target.tested"} eq "") {
     cache_data("$host-$target.tested", "OK");
   }
 }
-if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
+if (defined $upload_host && $config{"$target-$upload_host.tested"} eq "") {
   print "Testing target-host -> upload-host connectivity... ";
   if (!system("$sshTargetCmdT 'ssh $upload_host -t echo OK'")) {
     cache_data("$target-$upload_host.tested", "OK");
@@ -677,7 +677,7 @@ if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
 #
 # Timestamp (pre-build)
 #
-if ($timestampfile ne "") {
+if (defined $timestampfile) {
   my $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (pre build): \"; cat $timestampfile ; echo \n'";
   print "$timestampCmd\n";
   if (! $dry_run) {
@@ -775,50 +775,50 @@ if ($ok) {
             "-Dgit.revision=$rvm_revision ";
 
     my $targetDir; 
-    if ($suffix ne "") {
+    if (defined $suffix) {
       $defs .= "-Dconfig.variant=$suffix ";
       $targetDir = $config."_".$suffix."_".$targetConfig;
     } else {
       $targetDir = $config."_".$targetConfig;
     }
-    if ($checkstyle ne "") {
+    if (defined $checkstyle) {
       $defs .= "-Drequire.checkstyle=true ";
     }
-    if ($test_image ne "") {
+    if (defined $test_image) {
       $defs .= "-Drequire.rvm-unit-tests=true ";
     }
-    if ($x87 ne "") {
+    if (defined $x87) {
       $defs .= "-Dtarget.arch.sse2=none ";
     }
-    if ($harmony ne "") {
+    if (defined $harmony) {
       $defs .= "-Dclasslib.provider=Harmony ";
     }
-    if ($with_perfevent ne "") {
+    if (defined $with_perfevent) {
       $defs .= "-Dconfig.include.perfevent=true ";
     }
-    if ($with_acheck ne "") {
+    if (defined $with_acheck) {
       $defs .= "-Dconfig.alignment-checking=true ";
     }
-    if ($mmtk_config ne "") {
+    if (defined $mmtk_config &% $mmtk_config ne "") {
       $defs .= "-Dconfig.mmtk=$mmtk_config ";
     }
-    if ($gdb_symbols ne "") {
+    if (defined $gdb_symbols) {
       $defs .= "-Drvm.debug-symbols=true ";
     }
-    if ($build_args ne "") {
+    if (defined $build_args && $build_args ne "") {
       $defs       = $defs." ".$build_args." ";
     }
-    if ($profile ne "") {
+    if (defined $profile) {
       $defs       = $defs." profiled-image ";
     }
-    if ($bc_args ne "") {
+    if (defined $bc_args && $bc_args ne "") {
       $defs       = $defs."-Dconfig.bootimage.compiler.args=\\\"$bc_args\\\" ";
     }
 
     my $hostdefs   = $defs."-Dhost.name=$hostConfig ";
     my $targetdefs = $defs."-Dhost.name=$targetConfig ";
 
-    if ($compcachedir ne "") {
+    if (defined $compcachedir) {
       $hostdefs   .= "-Dcomponents.cache.dir=$hostCompCache ";
       $targetdefs .= "-Dcomponents.cache.dir=$targetCompCache ";
     }
@@ -1004,21 +1004,21 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
     }
   }
 
-  if ($procs ne "") {
+  if (defined $procs && $procs ne "") {
     $test .= "-Dtest.processors=$procs ";
   }
 
-  if ($test_set ne "") {
+  if (defined $test_set && $test_set ne "") {
     $test .= "-Dtest-run.name=$test_set ";
   }
 
-  if ($test_list ne "") {
+  if (defined $test_list && $test_list ne "") {
     $test .= "-Dtest.tests='$test_list' ".
              "-Dtest-run.name=local ";
     $test_set = "local";
   }
 
-  if ($test_args ne "") {
+  if (defined $test_args) {
     $test .= " $test_args ";
   }
 
