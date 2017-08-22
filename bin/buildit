@@ -649,13 +649,13 @@ foreach $dir (@dirs) {
 #
 # Test connectivity
 #
-if ($config{"$host.tested"} eq "" && $host ne $local) {
+if (! defined $config{"$host.tested"} && $host ne $local) {
   print "Testing build-host connectivity... ";
   if (!system("$sshHostCmd echo OK")) {
     cache_data("$host.tested", "OK");
   }
 }
-if ($config{"$target.tested"} eq "" && $target ne $local) {
+if (! defined $config{"$target.tested"} && $target ne $local) {
   print "Testing target-host connectivity... ";
   if (!system("$sshTargetCmd echo OK")) {
     cache_data("$target.tested", "OK");
@@ -721,8 +721,8 @@ if ($compcachedir) {
 my $ok = ($mkccRet == 0);
 
 my $rsyncRet = 0;
+my $rsync;
 if ($ok) {
-  my $rsync;
   if ($host ne $local) {
     $rsync .= "ssh $sshHost -t mkdir -p $hostRoot;\n";
     if ($compcachedir ne "") {
@@ -829,7 +829,7 @@ if ($ok) {
     $build = "";
 
     my $ulimit = "";
-    if ($cmd_ulimit ne "") {
+    if (defined $cmd_ulimit && $cmd_ulimit ne "") {
       $ulimit = "ulimit $cmd_ulimit; "
     }
 
@@ -977,7 +977,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
     $test .= "-Dcomponents.cache.dir=$targetCompCache ";
   }
 
-  if ($suffix ne "") {
+  if (defined suffix && $suffix ne "") {
     $test .= "-Dconfig.variant=$suffix ";
   }
 
@@ -1037,7 +1037,6 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
     system($test);
   }
 
-  my $rsync;
   if ($target ne $local) {
     $rsync = "mkdir -p $localRoot/$resultdir && ".
              "rm -rf $localRoot/results/buildit/$results_name && ".
@@ -1045,16 +1044,18 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
              "rsync -azvLe ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
   }
 
-  print "$rsync\n";
-  if(! $dry_run) {
-    system($rsync);
+  if (defined $rsync) {
+	print "$rsync\n";
+    if(! $dry_run) {
+      system($rsync);
+    }
   }
 }
 
 #
 # Timestamp (post-build)
 #
-if ($timestampfile ne "") {
+if (defined $timestampfile && $timestampfile ne "") {
   my $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (post build): \"; cat $timestampfile ; echo \n'";
   print "$timestampCmd\n";
   if (! $dry_run) {
