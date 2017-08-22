@@ -629,7 +629,7 @@ my $sourcedirs = "";
 # The files that need to be transferred to a host in order to do a build
 #
 my @dirs = ("rvm", "MMTk", "bin", "build", "testing", "tools", "tools-external", 
-         "include", "common", "build.xml", "libraryInterface", "external", "test.xml");
+         "common", "build.xml", "libraryInterface", "external", "test.xml");
 
 #
 # The files needed to be transferred to a host in order to complete a
