@@ -977,7 +977,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
     $test .= "-Dcomponents.cache.dir=$targetCompCache ";
   }
 
-  if (defined suffix && $suffix ne "") {
+  if (defined $suffix && $suffix ne "") {
     $test .= "-Dconfig.variant=$suffix ";
   }
 
