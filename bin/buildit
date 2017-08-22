@@ -720,7 +720,7 @@ if ($compcachedir) {
 
 my $ok = ($mkccRet == 0);
 
-my $rsyncRet;
+my $rsyncRet = 0;
 if ($ok) {
   my $rsync;
   if ($host ne $local) {
@@ -747,7 +747,7 @@ if ($ok) {
   }
 }
 
-$ok = $ok && ($mkccRet == 0);
+$ok = $ok && ($rsyncRet == 0);
 
 #
 # Additional ant flags for building classpath
