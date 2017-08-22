@@ -81,7 +81,7 @@ Building Options:
  -a, --with-acheck    Build with align checks, implies --x87 --processors 1
  -g, --gdb-symbols    Build with gdb symbols
  -q, --quick          Quick build (not 100% safe - doesn't regenerate source)
-     --classpath-cvs  Build from classpath CVS head
+     --classpath-git  Build from classpath git HEAD
  -r, --root           Specify rvm root on the commandline, chosen by:
                         -r root option if specified, otherwise;
                         \$RVM_ROOT environment variable if set, otherwise;
@@ -171,7 +171,7 @@ my $cmd_ulimit;
 my $eclipse;
 my $mmtk_eclipse;
 my $cmd_targetUser;
-my $cvs_head;
+my $git_head;
 my $gdb_symbols;
 my @test_arg_array;
 my $test_set;
@@ -216,7 +216,7 @@ GetOptions(
   "eclipse" => \$eclipse,
   "mmtk-eclipse" => \$mmtk_eclipse,
   "target-user=s" => \$cmd_targetUser,
-  "classpath-cvs" => \$cvs_head,
+  "classpath-git" => \$git_head,
   "g|gdb-symbols" => \$gdb_symbols,
   "test-arg=s" => \@test_arg_array,
   "test-run=s" => \$test_set,
@@ -753,8 +753,8 @@ $ok = $ok && ($mkccRet == 0);
 # Additional ant flags for building classpath
 #
 my $cp_flags = "";
-if ($cvs_head) {
-  $cp_flags .= "-Dclasspath.from-cvs=true ";
+if ($git_head) {
+  $cp_flags .= "-Dclasspath.from-git=true ";
 }
 
 my $rvm_revision=`git rev-parse HEAD`;
