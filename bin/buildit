@@ -555,12 +555,12 @@ if ($test_set && !$test_image) {
   }
 }
 
-my $implicitconfigs = ($#gcs == -1 && $compiler eq "");
-if ($#gcs == -1 && $test_set && $compiler eq "") {
+my $implicitconfigs = ($#gcs == -1 && !defined $compiler);
+if ($#gcs == -1 && $test_set && !defined $compiler) {
   my $rawconfigs = `grep \"^test.configs=.*$\" $localRoot/build/test-runs/$test_set.properties`;
   chomp($rawconfigs);
   $rawconfigs =~ s/^test.configs=//;
-  my $compiler="";
+  $compiler="";
   my $baseconfigs = " ";
   foreach $config (split(" ", $rawconfigs)) {
     my $search = "test.config.$config.configuration=";
@@ -579,10 +579,10 @@ if ($#gcs == -1 && $test_set && $compiler eq "") {
   @gcs = split(" ", $baseconfigs);
 }
 if ($#gcs == -1) {
-  if ($eclipse && $compiler eq "") {
+  if ($eclipse && !defined $compiler) {
     $compiler = "production";
   }
-  if ($mmtk_eclipse && $compiler eq "") {
+  if ($mmtk_eclipse && !defined compiler) {
     $compiler = "prototype-opt";
   }
   if ($compiler ne "") {
@@ -707,10 +707,10 @@ if ($compcachedir) {
   my $mkcc;
   if (! -d $localCompCache) {
     $mkcc = "mkdir -p $localCompCache";
-  } elsif ($clearcc ne "") {
+  } elsif (defined $clearcc) {
     $mkcc = "rm -rf $localCompCache/*";
   }
-  if ($mkcc ne "") {
+  if (defined $mkcc) {
     print "$mkcc\n\n";
     if (! $dry_run) {
       $mkccRet = system ($mkcc);
@@ -944,8 +944,14 @@ if ($ok) {
 }
 
 my $resultdir = "results/buildit/".$testsid;
-my $uploaddir = $upload_base.$resultdir;
-my $webdir = $web_base.$resultdir;
+my $uploaddir;
+if (defined $upload_base) {
+  $uploaddir = $upload_base.$resultdir;
+}
+my $webdir;
+if (defined $web_base) {
+  $web_base = $web_base.$resultdir;
+}
 
 if ($ok && ($test_set ne "" || $test_list ne "")) {
   my $configs="";
