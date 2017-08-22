@@ -20,12 +20,14 @@
 #
 # Comments and suggestions on how to improve this script are most welcome.
 #
+use strict;
+use warnings;
 
-$shortusage = 
+my $shortusage =
 "Usage: buildit [-dhgqpz] [-r root] [-s suffix] [-j java-home]
        [--test-run xxx] build-host [-c target-host] [ Configs... ]
 ";
-$usage = $shortusage."Building:
+my $usage = $shortusage."Building:
   buildit <Option(s)> build-host [-c target-host] <Config(s)>
 
 Eclipse Project:
@@ -122,33 +124,80 @@ Testing Options:
 #
 # Load configuration and cache
 #
-$baseConfigFile = $0.".base_config";
-$configFile = home_dir()."/.buildit_config";
-$cacheFile = home_dir()."/.buildit_cache";
+my $baseConfigFile = $0.".base_config";
+my $configFile = home_dir()."/.buildit_config";
+my $cacheFile = home_dir()."/.buildit_cache";
 
+my %config;
+my $config;
 load_config($baseConfigFile);
 load_config($configFile);
 
 # Benchmarks directory
-$extlibdir=$config{"global.ext.lib.dir"};
+my $extlibdir=$config{"global.ext.lib.dir"};
 
 # Components download cache
-$compcachedir=$config{"global.components.cache.dir"};
+my $compcachedir=$config{"global.components.cache.dir"};
 
 # Upload Information
-$upload_base=$config{"global.upload.base"};
-$upload_host=$config{"global.upload.host"};
-$web_base=$config{"global.upload.url"};
+my $upload_base=$config{"global.upload.base"};
+my $upload_host=$config{"global.upload.host"};
+my $web_base=$config{"global.upload.url"};
 
 # Email Server
-$mailserver=$config{"global.mail.server"};
+my $mailserver=$config{"global.mail.server"};
 
 # Execution environment
-$xvfb_run=$config{"global.display-wrapper.exe"};
-$shell=$config{"global.shell"};
+my $xvfb_run=$config{"global.display-wrapper.exe"};
+my $shell=$config{"global.shell"};
 
 use Cwd 'abs_path';
 use Getopt::Long qw(:config no_auto_abbrev bundling);
+
+# Define all options
+my $suffix;
+my $mmtk_config;
+my $custom_host_name;
+my $custom_target_name;
+my $nuke;
+my $answeryes;
+my $target;
+my $checkstyle;
+my $test_image;
+my $profile;
+my $cmd_user;
+my $cmd_hostUser;
+my $cmd_ulimit;
+my $eclipse;
+my $mmtk_eclipse;
+my $cmd_targetUser;
+my $cvs_head;
+my $gdb_symbols;
+my @test_arg_array;
+my $test_set;
+my @test_array;
+my @build_array;
+my $results_name;
+my @run_array;
+my @bcarg_array;
+my $dry_run;
+my $clear_cache;
+my $root;
+my $quick;
+my $procs;
+my $with_perfevent;
+my $with_acheck;
+my $skip_build;
+my $save_space;
+my $help;
+my $x87;
+my $m32;
+my $m64;
+my $harmony;
+my $javaHomeCmd;
+my $clearcc;
+my $timestampfile;
+my $email_report;
 
 GetOptions(
   "s|suffix=s" => \$suffix,
@@ -207,29 +256,30 @@ if ($clear_cache) {
 }
 load_config($cacheFile);
 
-$test_list = join(" ", @test_array);
-$build_args = join(" ", @build_array);
-$run_args = join(" ", @run_array);
-$test_args = join(" ", @test_arg_array);
-$bc_args = join(" ", @bcarg_array);
+my $test_list = join(" ", @test_array);
+my $build_args = join(" ", @build_array);
+my $run_args = join(" ", @run_array);
+my $test_args = join(" ", @test_arg_array);
+my $bc_args = join(" ", @bcarg_array);
   
-$start = `date`;
+my $start = `date`;
 chomp($start);
-$host = shift(@ARGV);
-$compiler = shift(@ARGV);
-@gcs = @ARGV;
+my $host = shift(@ARGV);
+my $compiler = shift(@ARGV);
+my @gcs = @ARGV;
 
-if ($target eq "") {
+if (!defined $target) {
   $target = $host;
 }
-if ($results_name eq "") {
+if (!defined $results_name) {
   $results_name = "latest";
 }
-if ($shell eq "") {
+if (!defined $shell) {
   $shell = "/bin/bash --login -c ";
 }
 
-$testsid = getid();
+sub getid();
+my $testsid = getid();
 
 # The -h option
 if ($help) {
@@ -237,8 +287,8 @@ if ($help) {
   exit();
 }
 
-if ($root eq "") {
-  if ($ENV{RVM_ROOT} != "") {
+if (!defined $root) {
+  if (defined $ENV{RVM_ROOT}) {
     $root = $ENV{RVM_ROOT};
   } else { 
     $root = abs_path(".");
@@ -255,11 +305,11 @@ if ($root eq "") {
   bad_usage("rvm root is not specified");
 }
 
-if ($m64 ne "" && $m32 ne "") {
+if (defined $m64 && defined $m32) {
   bad_usage("Only one of --m64 and --m32 can be specified");
 }
 
-$local = `hostname`;
+my $local = `hostname`;
 chomp($local);
 
 if ($host eq "localhost") {
@@ -270,32 +320,32 @@ if ($target eq "localhost") {
   $target = $local;
 }
 
-$hostUser = undef;
-$targetUser = undef;
+my $hostUser = undef;
+my $targetUser = undef;
 
-if ($cmd_hostUser ne "") {
+if (defined $cmd_hostUser) {
   $hostUser = $cmd_hostUser;
-} elsif ($cmd_user ne "") {
+} elsif (defined $cmd_user) {
   $hostUser = $cmd_user;
-} elsif ($config{"$host.user"} ne "") {
+} elsif (defined $config{"$host.user"}) {
   $hostUser = $config{"$host.user"};
 }
 
-if ($cmd_targetUser ne "") {
+if (defined $cmd_targetUser) {
   $targetUser = $cmd_targetUser;
-} elsif ($cmd_user ne "") {
+} elsif (defined $cmd_user) {
   $targetUser = $cmd_user;
-} elsif ($config{"$target.user"} ne "") {
+} elsif (defined $config{"$target.user"}) {
   $targetUser = $config{"$target.user"};
 }
 
-$sshHost = defined($hostUser) ? $hostUser."@".$host : $host;
-$sshHostCmd = "ssh $sshHost";
-$sshHostCmdT = "ssh $sshHost -t";
+my $sshHost = defined($hostUser) ? $hostUser."@".$host : $host;
+my $sshHostCmd = "ssh $sshHost";
+my $sshHostCmdT = "ssh $sshHost -t";
 
-$sshTarget = defined($targetUser) ? $targetUser."@".$target : $target;
-$sshTargetCmd = "ssh $sshTarget";
-$sshTargetCmdT = "ssh $sshTarget -t";
+my $sshTarget = defined($targetUser) ? $targetUser."@".$target : $target;
+my $sshTargetCmd = "ssh $sshTarget";
+my $sshTargetCmdT = "ssh $sshTarget -t";
 
 if ($host eq $local) {
   $sshHostCmd = $shell;
@@ -307,13 +357,15 @@ if ($target eq $local) {
   $sshTargetCmdT = $shell;
 }
 
-if ($config{"$local.home"} ne "") {
+my $localHome;
+if (defined $config{"$local.home"}) {
   $localHome = $config{"$local.home"};
 } else {
   $localHome = abs_path(home_dir());
 }
 
-if ($config{"$host.home"} ne "") {
+my $hostHome;
+if (defined $config{"$host.home"}) {
   $hostHome = $config{"$host.home"};
 } else {
   if ($host eq $local) {
@@ -324,7 +376,8 @@ if ($config{"$host.home"} ne "") {
   }
 }
 
-if ($config{"$target.home"} ne "") {
+my $targetHome;
+if (defined $config{"$target.home"}) {
   $targetHome = $config{"$target.home"};
 } else {
   if ($target eq $local) {
@@ -335,30 +388,33 @@ if ($config{"$target.home"} ne "") {
   }
 }
 
+my $localCompCache;
+my $hostCompCache;
+my $targetCompCache;
 if ($compcachedir ne "") {
-  if ($config{"$local.components.cache"} ne "") {
+  if (defined $config{"$local.components.cache"}) {
     $localCompCache = $config{"$local.components.cache"};
   } else {
     $localCompCache = $localHome."/".$compcachedir;
   }
 
-  if ($config{"$host.components.cache"} ne "") {
+  if (defined $config{"$host.components.cache"} ne "") {
     $hostCompCache = $config{"$host.components.cache"};
   } else {
     $hostCompCache = $hostHome."/".$compcachedir;
   }
 
-  if ($config{"$target.components.cache"} ne "") {
+  if (defined $config{"$target.components.cache"} ne "") {
     $targetCompCache = $config{"$target.components.cache"};
   } else {
     $targetCompCache = $targetHome."/".$compcachedir;
   }
 }
 
-$localRoot = abs_path($root);
+my $localRoot = abs_path($root);
 $localRoot =~ s/^$localHome/~/;
-$hostRoot = $localRoot;
-$targetRoot = $localRoot;
+my $hostRoot = $localRoot;
+my $targetRoot = $localRoot;
 
 $localRoot =~ s/^~/$localHome/;
 $hostRoot =~ s/^~/$hostHome/;
@@ -368,13 +424,16 @@ if (! -e $localRoot . "/rvm") {
   bad_usage("rvm root does not point to a valid source tree");
 }
 
-if ($custom_host_name ne "") {
+my $hostConfig;
+my @host_info;
+if (defined $custom_host_name) {
   $hostConfig = $custom_host_name;
 } else {
-  if ($config{"$host.host-type"} ne "") {
+  if (defined $config{"$host.host-type"}) {
     $hostConfig = $config{"$host.host-type"};
   } else {
-    @host_info = split(" ", `$sshHostCmd 'uname -ms'`);
+	my $unameOutput = `$sshHostCmd 'uname -ms'`;
+    @host_info = split(/ /, $unameOutput);
     chomp(@host_info);
     $hostConfig = $config{"global.arch.".$host_info[1]}."-".$config{"global.os.".$host_info[0]};
   }
@@ -382,24 +441,25 @@ if ($custom_host_name ne "") {
   $hostConfig = get_word_variant($arch)."-$os";
 }
 
-if ($custom_target_name ne "") {
+my $targetConfig;
+if (defined $custom_target_name) {
   $targetConfig = $custom_target_name;
-} elsif ($config{"$target.host-type"} ne "") {
+} elsif (defined $config{"$target.host-type"}) {
   $targetConfig = $config{"$target.host-type"};
   my ($arch, $os) = split(/-/,$targetConfig);
   $targetConfig = get_word_variant($arch)."-$os";
 } else {
-  @target_info = split(" ", `$sshTargetCmd 'uname -ms'`);
+  my @target_info = split(/ /, `$sshTargetCmd 'uname -ms'`);
   chomp(@target_info);
   my $arch = get_word_variant($config{"global.arch.".$target_info[1]});
   $targetConfig = $arch."-".$config{"global.os.".$target_info[0]};
 }
 
-if ($config{"$local.home"} eq "") {
+if (!defined $config{"$local.home"}) {
   confirm("Is $localHome the right home directory for $local?");
   cache_data("$local.home", $localHome);
 }
-if ($config{"$host.home"} eq "") {
+if (!defined $config{"$host.home"}) {
   confirm("Is $hostHome the right home directory for $host?");
   cache_data("$host.home", $hostHome);
 }
@@ -407,7 +467,7 @@ if ($config{"$target.home"} eq "" && $host ne $target) {
   confirm("Is $targetHome the right home directory for $target?");
   cache_data("$target.home", $targetHome);
 }
-if ($config{"$host.host-type"} eq "") {
+if (!defined $config{"$host.host-type"}) {
   confirm("Is $hostConfig the right type for $host?");
   cache_data("$host.host-type", $hostConfig);
 }
@@ -416,11 +476,11 @@ if ($config{"$target.host-type"} eq "" && $host ne $target) {
   cache_data("$target.host-type", $targetConfig);
 }
 
-if ($config{"$local.$localRoot"} eq "") {
+if (defined $config{"$local.$localRoot"}) {
   confirm("Is $localRoot the correct root directory here?");
   cache_data("$local.$localRoot", "OK");
 }
-if ($config{"$host.$hostRoot"} eq "") {
+if (defined $config{"$host.$hostRoot"}) {
   confirm("Is $hostRoot the correct root directory on $host?\nBe CAREFUL as we are going to rsync --delete to there!");
   cache_data("$host.$hostRoot", "OK");
 }
@@ -429,6 +489,7 @@ if ($config{"$target.$targetRoot"} eq "" && $host ne $target) {
   cache_data("$target.$targetRoot", "OK");
 }
 
+my %javaHome;
 if ($javaHomeCmd eq "") {
   $javaHome{$host} = $config{"global.javahome.".$hostConfig};
   $javaHome{$target} = $config{"global.javahome.".$targetConfig};
@@ -462,7 +523,8 @@ if ($test_set) {
 }
 
 if ($test_list ne "") {
-  @tests = split(" ", $test_list);
+  my @tests = split(" ", $test_list);
+  my $test;
   foreach $test (@tests) {
     if (! -d $localRoot."/testing/tests/$test") {
       bad_usage("Couldn't find test '$test'");
@@ -493,13 +555,13 @@ if ($test_set && !$test_image) {
   }
 }
 
-$implicitconfigs = ($#gcs == -1 && $compiler eq "");
+my $implicitconfigs = ($#gcs == -1 && $compiler eq "");
 if ($#gcs == -1 && $test_set && $compiler eq "") {
   my $rawconfigs = `grep \"^test.configs=.*$\" $localRoot/build/test-runs/$test_set.properties`;
   chomp($rawconfigs);
   $rawconfigs =~ s/^test.configs=//;
-  $compiler="";
-  $baseconfigs = " ";
+  my $compiler="";
+  my $baseconfigs = " ";
   foreach $config (split(" ", $rawconfigs)) {
     my $search = "test.config.$config.configuration=";
     my $baseconfig = `grep \"^$search.*$\" $localRoot/build/test-runs/$test_set.properties`;
@@ -531,7 +593,7 @@ if ($#gcs == -1) {
   }
 }
 
-foreach $g (@gcs) {
+foreach my $g (@gcs) {
   $config = $compiler.$g; 
   if (! -e $localRoot."/build/configs/".$config.".properties") {
     bad_usage("Could not find configuration '$config'");
@@ -545,7 +607,7 @@ if (! $mmtk_config eq "") {
   $suffix .= $mmtk_config;
 }
 
-$report_email="";
+my $report_email="";
 if ($email_report) {
   if ($config{"global.report-email"} ne "") {
     $report_email = $config{"global.report-email"};
@@ -559,14 +621,14 @@ if ($email_report) {
   }
 }
 
-$bindir = "bin";
-$configdir = "config";
-$sourcedirs = "";
+my $bindir = "bin";
+my $configdir = "config";
+my $sourcedirs = "";
 
 #
 # The files that need to be transferred to a host in order to do a build
 #
-@dirs = ("rvm", "MMTk", "bin", "build", "testing", "tools", "tools-external", 
+my @dirs = ("rvm", "MMTk", "bin", "build", "testing", "tools", "tools-external", 
          "include", "common", "build.xml", "libraryInterface", "external", "test.xml");
 
 #
@@ -575,8 +637,9 @@ $sourcedirs = "";
 #
 # Plus the particular 'target' subdirectory.
 #
-@ccdirs = ("build.xml", "build");
+my @ccdirs = ("build.xml", "build");
 
+my $dir;
 foreach $dir (@dirs) {
   if (-e $localRoot."/".$dir) {
     $sourcedirs .= " $localRoot/$dir";
@@ -615,7 +678,7 @@ if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
 # Timestamp (pre-build)
 #
 if ($timestampfile ne "") {
-  $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (pre build): \"; cat $timestampfile ; echo \n'";
+  my $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (pre build): \"; cat $timestampfile ; echo \n'";
   print "$timestampCmd\n";
   if (! $dry_run) {
     system ($timestampCmd);
@@ -626,7 +689,7 @@ if ($timestampfile ne "") {
 # Clean up first ?
 #
 if ($nuke && $target ne $local) {
-  $nukecmd = "$sshHostCmdT rm -rf $hostRoot;\n"; 
+  my $nukecmd = "$sshHostCmdT rm -rf $hostRoot;\n"; 
   if ($host ne $target) {
     $nukecmd = "$sshTargetCmdT rm -rf $targetRoot;\n"; 
   }
@@ -639,7 +702,9 @@ if ($nuke && $target ne $local) {
 #
 # Now do it!
 #
+my $mkccRet;
 if ($compcachedir) {
+  my $mkcc;
   if (! -d $localCompCache) {
     $mkcc = "mkdir -p $localCompCache";
   } elsif ($clearcc ne "") {
@@ -655,7 +720,9 @@ if ($compcachedir) {
 
 my $ok = ($mkccRet == 0);
 
+my $rsyncRet;
 if ($ok) {
+  my $rsync;
   if ($host ne $local) {
     $rsync .= "ssh $sshHost -t mkdir -p $hostRoot;\n";
     if ($compcachedir ne "") {
@@ -685,25 +752,29 @@ $ok = $ok && ($mkccRet == 0);
 #
 # Additional ant flags for building classpath
 #
-$cp_flags = "";
+my $cp_flags = "";
 if ($cvs_head) {
   $cp_flags .= "-Dclasspath.from-cvs=true ";
 }
 
-$rvm_revision=`git rev-parse HEAD`;
+my $rvm_revision=`git rev-parse HEAD`;
 chomp($rvm_revision);
 
+my $build;
+my %retval;
+my %date;
 if ($ok) {
-  foreach $g (@gcs) {
+  foreach my $g (@gcs) {
     $_ = $g;
 
     $config = "$compiler$g";
 
     # Principal "-D" defines for ant
-    $defs = "-Dtarget.name=$targetConfig ".
+    my $defs = "-Dtarget.name=$targetConfig ".
             "-Dconfig.name=$config ".
             "-Dgit.revision=$rvm_revision ";
-     
+
+    my $targetDir; 
     if ($suffix ne "") {
       $defs .= "-Dconfig.variant=$suffix ";
       $targetDir = $config."_".$suffix."_".$targetConfig;
@@ -744,8 +815,8 @@ if ($ok) {
       $defs       = $defs."-Dconfig.bootimage.compiler.args=\\\"$bc_args\\\" ";
     }
 
-    $hostdefs   = $defs."-Dhost.name=$hostConfig ";
-    $targetdefs = $defs."-Dhost.name=$targetConfig ";
+    my $hostdefs   = $defs."-Dhost.name=$hostConfig ";
+    my $targetdefs = $defs."-Dhost.name=$targetConfig ";
 
     if ($compcachedir ne "") {
       $hostdefs   .= "-Dcomponents.cache.dir=$hostCompCache ";
@@ -831,8 +902,8 @@ if ($ok) {
                   " $sshTarget:$targetRoot/target/$targetDir/ &&".
                   " rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ".
                   " $sshTarget:$targetRoot/dist/$targetDir/ &&";
-        $copydirs = "";
-        foreach $d (@ccdirs) {
+        my $copydirs = "";
+        foreach my $d (@ccdirs) {
           $copydirs .= " $hostRoot/$d";
         }
         $build .= "  rsync -avze ssh --delete $copydirs $sshTarget:$targetRoot/' &&";
@@ -878,12 +949,12 @@ my $webdir = $web_base.$resultdir;
 
 if ($ok && ($test_set ne "" || $test_list ne "")) {
   my $configs="";
-  foreach $g (@gcs) {
+  foreach my $g (@gcs) {
     $configs = $configs." ".$compiler.$g;
   }
   $configs =~ s/^ //;
 
-  $test = "$sshTargetCmdT '$shell \" ".
+  my $test = "$sshTargetCmdT '$shell \" ".
           "  cd $targetRoot && ".
           "  mkdir -p $resultdir && ".
           "  rm -rf results/buildit/latest && ".
@@ -920,7 +991,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
       $test .= "-Dupload.location=$upload_host:$uploaddir ";
     }
 
-    $make_upload = "ssh $upload_host -t mkdir -p $uploaddir ";
+    my $make_upload = "ssh $upload_host -t mkdir -p $uploaddir ";
     print($make_upload."\n");
     if (! $dry_run) {
       system($make_upload);
@@ -948,7 +1019,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   if(! $implicitconfigs) {
     $test .= "-Dtest.configs='$configs' ";
     if ($run_args ne "") {
-      foreach $conf (split(" ", $configs)) {
+      foreach my $conf (split(" ", $configs)) {
         $test .= "-Dtest.config.$conf.extra.args=\\\"$run_args\\\" ";
       }
     }
@@ -960,6 +1031,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
     system($test);
   }
 
+  my $rsync;
   if ($target ne $local) {
     $rsync = "mkdir -p $localRoot/$resultdir && ".
              "rm -rf $localRoot/results/buildit/$results_name && ".
@@ -977,14 +1049,14 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
 # Timestamp (post-build)
 #
 if ($timestampfile ne "") {
-  $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (post build): \"; cat $timestampfile ; echo \n'";
+  my $timestampCmd = "$sshHostCmd 'echo -n \"Contents of timestamp file (post build): \"; cat $timestampfile ; echo \n'";
   print "$timestampCmd\n";
   if (! $dry_run) {
     system ($timestampCmd);
   }
 }
 
-$end = `date`;
+my $end = `date`;
 chomp($end);
 
 print "===================== Summary =====================\n";
@@ -992,8 +1064,8 @@ print "Local   : ".$localRoot."\n";
 print "Build   : ".$sshHost.":".$hostRoot."\n";
 print "Target  : ".$sshTarget.":".$targetRoot."\n";
 print "Start   : ".$start."\n";
-$configTitle = "Config  : ";
-foreach $g (@gcs) {
+my $configTitle = "Config  : ";
+foreach my $g (@gcs) {
   print $configTitle.$compiler.$g;
   if ($dry_run) {
     print " [DRY RUN]\n";
@@ -1019,7 +1091,7 @@ print "===================================================\n";
 if ($save_space) {
   print "==== Saving space by deleting results and only keeping archives ====\n";
 
-  $cleanUpCmd = "$sshHostCmdT '$shell \"";
+  my $cleanUpCmd = "$sshHostCmdT '$shell \"";
 
   # The script uses a symlink for latest by default. Remove it.
   # Note that this only applies if the previous run didn't use --save-space.
@@ -1091,8 +1163,10 @@ sub load_config {
     open(CONFIG, "< $file");
     while (<CONFIG>) {
       if (($_ =~ m/^#(.*)/) eq "") { 
-        my ($key, $value) = $_ =~ m/^(\S+)\s*=\s*(\S*)\s*$/;
-        if ($key ne "") {
+		my $key;
+		my $value;
+        ($key, $value) = $_ =~ m/^(\S+)\s*=\s*(\S*)\s*$/;
+        if (defined $key && $key ne "") {
           $value = eval("\"".$value."\"");
           $config{$key} = $value;
         }
@@ -1103,13 +1177,13 @@ sub load_config {
 }
 
 sub confirm {
-  $message=shift;
+  my $message=shift;
   if ($answeryes) {
     print "Answering yes for message: ".$message."\n";
     return;
   }
   print $message."\nPlease type y to confirm > ";
-  $conf = <STDIN>;
+  my $conf = <STDIN>;
   chomp($conf);
   ($conf =~ /^[yY]/) or (print("Confirmation rejected...\n") and exit(-1));
 }
@@ -1128,11 +1202,20 @@ sub home_dir {
 # Create a string that uniquely identifies this run
 #
 sub getid() {
+	my $sec;
+	my $min;
+	my $hour;
+	my $mday;
+	my $mon;
+	my $year;
+	my $wday;
+	my $yday;
+	my $isdst;
     ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
     $year += 1900;
     $mon += 1;
-    $day = (Sun,Mon,Tue,Wed,Thu,Fri,Sat)[$wday];
-    $id = sprintf("%s-%4d-%2.2d-%2.2d-%s-%2.2d-%2.2d-%2.2d", $target, $year, $mon, $mday, $day, $hour, $min, $sec);
+    my $day = ("Sun","Mon","Tue","Wed","Thu","Fri","Sat")[$wday];
+    my $id = sprintf("%s-%4d-%2.2d-%2.2d-%s-%2.2d-%2.2d-%2.2d", $target, $year, $mon, $mday, $day, $hour, $min, $sec);
     return $id;
 }
 
@@ -1146,10 +1229,10 @@ sub getid() {
 sub get_word_variant {
   my ($raw_arch) = @_;
   my $arch = $raw_arch;
-  if ($m64 ne "" && $config{"global.wordsize.".$raw_arch.".64"} ne "") {
+  if (defined $m64 && defined $config{"global.wordsize.".$raw_arch.".64"}) {
     $arch = $config{"global.wordsize.".$raw_arch.".64"};
   }
-  if ($m32 ne "" && $config{"global.wordsize.".$raw_arch.".32"} ne "") {
+  if (defined $m32 && defined $config{"global.wordsize.".$raw_arch.".32"}) {
     $arch = $config{"global.wordsize.".$raw_arch.".32"};
   }
   return $arch;
