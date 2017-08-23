@@ -784,7 +784,7 @@ if ($ok) {
     if (defined $checkstyle) {
       $defs .= "-Drequire.checkstyle=true ";
     }
-    if (defined $test_image) {
+    if (defined $test_image && $test_image ne "") {
       $defs .= "-Drequire.rvm-unit-tests=true ";
     }
     if (defined $x87) {
