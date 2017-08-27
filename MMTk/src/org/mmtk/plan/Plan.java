@@ -543,7 +543,6 @@ public abstract class Plan {
 
   private static boolean initialized = false;
 
-  @Entrypoint
   private static int gcStatus = NOT_IN_GC; // shared variable
 
   /** @return Is the memory management system initialized? */
