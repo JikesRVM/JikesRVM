@@ -75,7 +75,7 @@ public class CompiledMethods {
       }
       tmp[column] = new CompiledMethod[1 << LOG_ROW_SIZE];
       compiledMethods = tmp;
-      Magic.sync();
+      Magic.fence();
     }
   }
 
@@ -94,6 +94,7 @@ public class CompiledMethods {
     int column = cmid >> LOG_ROW_SIZE;
     CompiledMethod[] col = compiledMethods[column];
     Services.setArrayUninterruptible(col, cmid & ROW_MASK, cm);
+    Magic.fence();
   }
 
   /**
@@ -102,7 +103,7 @@ public class CompiledMethods {
    */
   @Uninterruptible
   public static CompiledMethod getCompiledMethod(int compiledMethodId) {
-    Magic.isync();  // see potential update from other procs
+    Magic.combinedLoadBarrier();
 
     if (VM.VerifyAssertions) {
       if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
@@ -206,8 +207,8 @@ public class CompiledMethods {
   // in use.
   public static void setCompiledMethodObsolete(CompiledMethod compiledMethod) {
     compiledMethod.setObsolete();
-    Magic.sync();
     scanForObsoleteMethods = true;
+    Magic.fence();
   }
 
   /**
@@ -220,10 +221,10 @@ public class CompiledMethods {
    */
   @Uninterruptible
   public static void snipObsoleteCompiledMethods() {
-    Magic.isync();
+    Magic.combinedLoadBarrier();
     if (!scanForObsoleteMethods) return;
     scanForObsoleteMethods = false;
-    Magic.sync();
+    Magic.fence();
 
     int max = numCompiledMethods();
     for (int i = 0; i < max; i++) {
@@ -233,7 +234,7 @@ public class CompiledMethods {
           if (cm.isObsolete()) {
             // can't get it this time; force us to look again next GC
             scanForObsoleteMethods = true;
-            Magic.sync();
+            Magic.fence();
           }
           cm.clearActiveOnStack();
         } else {
