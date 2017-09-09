@@ -64,7 +64,9 @@ public abstract class InterfaceMethodConflictResolver {
     int[] mcIndices = new int[numEntries]; // Machine code indices for the switches (initialised to zeros)
 
     // (4) Generate the stub.
-    asm.emitPUSH(ALWAYS, T1);                                                      // Save T1
+    asm.emitPUSH(ALWAYS, T0); // TODO: use multi-push instruction to save
+    asm.emitPUSH(ALWAYS, T1); // TODO: only need T0 in the rare case that sigIds don't all fit in 8 bits
+    asm.emitMOV(ALWAYS, T0, R12);
     asm.baselineEmitLoadTIB(T1, T0); // Load TIB into T1 (T0 contains "this" pointer)
     insertStubCase(asm, sigIds, targets, bcIndices, mcIndices, 0, numEntries - 1); // Recursive call generates all of them
 
@@ -125,9 +127,10 @@ public abstract class InterfaceMethodConflictResolver {
         asm.generateOffsetLoad(ALWAYS, R12, T1, target.getOffset()); // T1 contains TIB
       }
       asm.emitPOP(ALWAYS, T1); // Restore T1
+      asm.emitPOP(ALWAYS, T0);
       asm.emitBX(ALWAYS, R12); // Branch to function we wanted to call
     } else {
-      asm.emitCMPimm(ALWAYS, R12, sigIds[middle]);
+      asm.generateImmediateCompare(ALWAYS, T0, sigIds[middle]);
       if (low < middle)
         asm.generateUnknownBranch(LT, mcIndices[(low + middle - 1) / 2], bcIndices[(low + middle - 1) / 2]);
       if (middle < high)
@@ -142,6 +145,7 @@ public abstract class InterfaceMethodConflictResolver {
         asm.generateOffsetLoad(ALWAYS, R12, T1, target.getOffset()); // T1 contains TIB
       }
       asm.emitPOP(ALWAYS, T1); // Restore T1
+      asm.emitPOP(ALWAYS, T0);
       asm.emitBX(ALWAYS, R12); // Branch to function we wanted to call
 
       // Recurse.

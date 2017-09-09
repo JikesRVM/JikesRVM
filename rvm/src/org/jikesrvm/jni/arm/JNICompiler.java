@@ -587,9 +587,6 @@ public abstract class JNICompiler {
     }
     destGP++; // Second parameter = class (for static) or this (for non-static)
 
-    if (!method.isStatic())
-      sourceGP++;
-
     for (int i = 0; i < args.length; i++) {
       TypeReference t = args[i];
       if (t.isDoubleType()) {
