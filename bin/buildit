@@ -398,13 +398,13 @@ if ($compcachedir ne "") {
     $localCompCache = $localHome."/".$compcachedir;
   }
 
-  if (defined $config{"$host.components.cache"} ne "") {
+  if (defined $config{"$host.components.cache"}) {
     $hostCompCache = $config{"$host.components.cache"};
   } else {
     $hostCompCache = $hostHome."/".$compcachedir;
   }
 
-  if (defined $config{"$target.components.cache"} ne "") {
+  if (defined $config{"$target.components.cache"}) {
     $targetCompCache = $config{"$target.components.cache"};
   } else {
     $targetCompCache = $targetHome."/".$compcachedir;
@@ -471,26 +471,26 @@ if (!defined $config{"$host.host-type"}) {
   confirm("Is $hostConfig the right type for $host?");
   cache_data("$host.host-type", $hostConfig);
 }
-if ($config{"$target.host-type"} eq "" && $host ne $target) {
+if (!defined $config{"$target.host-type"} && $host ne $target) {
   confirm("Is $targetConfig the right type for $target?");
   cache_data("$target.host-type", $targetConfig);
 }
 
-if (defined $config{"$local.$localRoot"}) {
+if (!defined $config{"$local.$localRoot"}) {
   confirm("Is $localRoot the correct root directory here?");
   cache_data("$local.$localRoot", "OK");
 }
-if (defined $config{"$host.$hostRoot"}) {
+if (!defined $config{"$host.$hostRoot"}) {
   confirm("Is $hostRoot the correct root directory on $host?\nBe CAREFUL as we are going to rsync --delete to there!");
   cache_data("$host.$hostRoot", "OK");
 }
-if ($config{"$target.$targetRoot"} eq "" && $host ne $target) {
+if (!defined $config{"$target.$targetRoot"} && $host ne $target) {
   confirm("Is $targetRoot the correct root directory on $target?\nBe CAREFUL as we are going to rsync --delete to there!");
   cache_data("$target.$targetRoot", "OK");
 }
 
 my %javaHome;
-if ($javaHomeCmd eq "") {
+if (! defined $javaHomeCmd) {
   $javaHome{$host} = $config{"global.javahome.".$hostConfig};
   $javaHome{$target} = $config{"global.javahome.".$targetConfig};
 } else {
@@ -516,7 +516,7 @@ if (! -e $localRoot."/build/targets/".$targetConfig.".properties") {
   bad_usage("Couldn't find target-host config for $target '$targetConfig'");
 }
 
-if ($test_set) {
+if (defined $test_set) {
   if (! -e $localRoot."/build/test-runs/".$test_set.".properties") {
     bad_usage("Couldn't find test-set '$test_set'");
   }
@@ -953,7 +953,7 @@ if (defined $web_base) {
   $web_base = $web_base.$resultdir;
 }
 
-if ($ok && ($test_set ne "" || $test_list ne "")) {
+if ($ok && (defined $test_set || defined $test_list)) {
   my $configs="";
   foreach my $g (@gcs) {
     $configs = $configs." ".$compiler.$g;
