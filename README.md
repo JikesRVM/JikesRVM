@@ -10,7 +10,7 @@ More information is available at our [website](http://www.jikesrvm.org).
 
 You'll need
 
-* a JDK (>= 6)
+* a JDK (>= 6 and < 9). Building with JDK 9 or later is currently [not supported](https://xtenlang.atlassian.net/projects/RVM/issues/RVM-1136).
 * Ant (>= 1.7) with optional tasks (e.g. for JUnit and JavaDoc)
 * GCC with multilibs
 * Bison
