@@ -208,6 +208,8 @@
     <property file="${classpath.lib.dir}/constants.properties"/>
     <property name="config.portable-native-sync" value="true"/>
     <property name="build.extra.rt.jars" value=""/>
+    <test-file name="c++.exe" location="${host.file}"/>
+    <test-property name="c++.args" location="${host.file}"/>
   </target>
 
   <target name="check-harmony-properties" depends="check-components-properties,check-classlibrary-properties" if="harmony.classlib">
