@@ -55,7 +55,7 @@ public final class InvocationCounts {
       System.arraycopy(counts, 0, tmp, 0, counts.length);
       boolean[] tmp2 = new boolean[newSize];
       System.arraycopy(processed, 0, tmp2, 0, processed.length);
-      Magic.sync();
+      Magic.fence();
       counts = tmp;
       processed = tmp2;
     }

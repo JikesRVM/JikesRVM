@@ -1270,8 +1270,7 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.intBitsAsFloat, int.class, float.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.doubleAsLongBits, double.class, long.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.longBitsAsDouble, long.class, double.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.sync, void.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.isync, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.synchronizeInstructionCache, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.combinedLoadBarrier, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.storeStoreBarrier, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {

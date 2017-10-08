@@ -593,7 +593,7 @@ public abstract class Plan {
         VM.activePlan.global().printPreStats();
       }
     }
-    VM.memory.isync();
+    VM.memory.combinedLoadBarriers();
     gcStatus = s;
     VM.memory.fence();
     if (gcStatus == NOT_IN_GC) {

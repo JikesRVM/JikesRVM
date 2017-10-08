@@ -1421,20 +1421,10 @@ public final class Magic {
   /**** NOTE: all per-address operations now live in vmmagic.Address *****/
 
   /**
-   * Wait for preceeding cache flush/invalidate instructions to
-   * complete on all processors.
-   */
-  public static void sync() {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    }
-  }
-
-  /**
    * Wait for all preceeding instructions to complete and discard any
    * prefetched instructions on this processor.
    */
-  public static void isync() {
+  public static void synchronizeInstructionCache() {
     if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }

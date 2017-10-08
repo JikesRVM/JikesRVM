@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.NonMoving;
 
@@ -143,7 +142,6 @@ public class DynamicCallGraphOrganizer extends Organizer {
       while (calleeCMID == 0) {
         calleeCMID = buffer[i + 0];
       }
-      Magic.isync();
       CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(calleeCMID);
       if (compiledMethod == null) continue;
       RVMMethod callee = compiledMethod.getMethod();

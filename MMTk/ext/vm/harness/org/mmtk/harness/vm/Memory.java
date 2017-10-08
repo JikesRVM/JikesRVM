@@ -157,7 +157,7 @@ public class Memory extends org.mmtk.vm.Memory {
   /** {@inheritDoc} */
   @Override
   @Inline
-  public void isync() {
+  public void combinedLoadBarrier() {
     Scheduler.yield();
     // Nothing required
   }

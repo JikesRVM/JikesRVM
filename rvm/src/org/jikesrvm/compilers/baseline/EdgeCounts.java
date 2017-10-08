@@ -108,7 +108,7 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
       if (newSize <= id) newSize = id + 500;
       int[][] tmp = new int[newSize][];
       System.arraycopy(data, 0, tmp, 0, data.length);
-      Magic.sync();
+      Magic.fence();
       data = tmp;
     }
     data[id] = new int[numEntries];

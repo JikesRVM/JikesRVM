@@ -4563,9 +4563,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       popAddr(T0);                   // get object pointer
       asm.emitLIntOffset(T0, T0, ObjectModel.getArrayLengthOffset()); // get array length field
       pushInt(T0);                   // *sp := length
-    } else if (methodName == MagicNames.sync) {
-      asm.emitSYNC();
-    } else if (methodName == MagicNames.isync) {
+    } else if (methodName == MagicNames.synchronizeInstructionCache) {
       asm.emitISYNC();
     } else if (methodName == MagicNames.pause) {
       // NO-OP

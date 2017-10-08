@@ -21,7 +21,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBST;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBT;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBTST;
@@ -128,10 +127,8 @@ public abstract class GenerateMachineSpecificMagic {
                                           null));
       Instruction s = bc2ir._binaryHelper(REF_ADD, callerFP.copyRO(), offsetOperand(STACKFRAME_RETURN_ADDRESS_OFFSET), TypeReference.Address);
       bc2ir.appendInstruction(s);
-    } else if (methodName == MagicNames.isync) {
+    } else if (methodName == MagicNames.synchronizeInstructionCache) {
       bc2ir.appendInstruction(Empty.create(READ_CEILING));
-    } else if (methodName == MagicNames.sync) {
-      bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
     } else if (methodName == MagicNames.pause) {
       // IA-specific
     } else if (methodName == MagicNames.illegalInstruction) {

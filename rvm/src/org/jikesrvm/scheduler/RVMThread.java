@@ -1579,7 +1579,10 @@ public final class RVMThread extends ThreadContext {
         communicationLockBySlot[threadSlot] = m;
         handshakeLock.unlock();
       }
-      Magic.sync(); /*
+      // TODO is this actually needed? The synchronization for locks
+      // should normally take care of required barriers and bar
+      // code movement
+      Magic.fence(); /*
                      * make sure that nobody sees the thread in any of the
                      * tables until the thread slot is inited
                      */
@@ -1609,7 +1612,7 @@ public final class RVMThread extends ThreadContext {
     threads[threadIdx] = replacementThread;
     replacementThread.threadIdx = threadIdx;
     threadIdx = -1;
-    Magic.sync(); /*
+    Magic.fence(); /*
                    * make sure that if someone is processing the threads array
                    * without holding the acctLock (which is definitely legal)
                    * then they see the replacementThread moved to the new index
@@ -3620,7 +3623,6 @@ public final class RVMThread extends ThreadContext {
     if (parkingPermit) {
       // fast path
       parkingPermit = false;
-      Magic.sync();
       return;
     }
     // massive retardation. someone might be holding the java.lang.Thread lock.
@@ -3917,7 +3919,7 @@ public final class RVMThread extends ThreadContext {
       // A: Yes, this is sufficient. We (Filip and Dave) talked about it and
       // agree that remote processors only need to execute isync. --Filip
       // make sure not get stale data
-      Magic.isync();
+      Magic.synchronizeInstructionCache();
     }
     // process memory management requests
     if (flushRequested && activeMutatorContext) {

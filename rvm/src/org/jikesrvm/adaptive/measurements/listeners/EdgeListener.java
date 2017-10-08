@@ -200,7 +200,7 @@ public class EdgeListener extends ContextListener {
     if (idx < buffer.length) {
       buffer[idx + 1] = callerCMID;
       buffer[idx + 2] = callSite.toInt();
-      Magic.sync();
+      Magic.fence();
       buffer[idx + 0] = calleeCMID;
 
       // If we are the last sample, we need to activate the organizer.

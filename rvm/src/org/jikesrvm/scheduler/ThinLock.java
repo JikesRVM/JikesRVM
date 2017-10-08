@@ -41,6 +41,9 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Implementation of thin locks.
+ * <p>
+ * Note that these locks are used for Java-level locking. As such, they must ensure that all paths for lock have at least
+ * one LoadLoad and LoadStore barrier and that all paths for unlock have at least one StoreStore and StoreLoad barrier.
  */
 @Uninterruptible
 public final class ThinLock {
@@ -59,12 +62,13 @@ public final class ThinLock {
       Word changed = old.plus(TL_LOCK_COUNT_UNIT);
       if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
         setDedicatedU16(o, lockOffset, changed);
+        Magic.combinedLoadBarrier();
         return;
       }
     } else if (id.EQ(TL_STAT_THIN)) {
       // lock is thin and not held by anyone
       if (Magic.attemptWord(o, lockOffset, old, old.or(tid))) {
-        Magic.isync();
+        if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
         return;
       }
     }
@@ -82,11 +86,13 @@ public final class ThinLock {
     if (id.EQ(tid)) {
       if (!old.and(TL_LOCK_COUNT_MASK).isZero()) {
         setDedicatedU16(o, lockOffset, old.minus(TL_LOCK_COUNT_UNIT));
+        Magic.fence();
         return;
       }
     } else if (old.xor(tid).rshl(TL_LOCK_COUNT_SHIFT).EQ(TL_STAT_THIN.rshl(TL_LOCK_COUNT_SHIFT))) {
-      Magic.sync();
+      Magic.combinedLoadBarrier();
       if (Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK).or(TL_STAT_THIN))) {
+        if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
         return;
       }
     }
@@ -114,7 +120,7 @@ public final class ThinLock {
                   o, lockOffset,
                   old,
                   old.or(threadId).plus(TL_LOCK_COUNT_UNIT))) {
-              Magic.isync();
+              if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
               return;
             }
           } else {
@@ -124,7 +130,7 @@ public final class ThinLock {
                   o, lockOffset,
                   old,
                   old.or(threadId).or(TL_STAT_THIN))) {
-              Magic.isync();
+              if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
               return;
             }
           }
@@ -133,6 +139,7 @@ public final class ThinLock {
           Word changed = old.plus(TL_LOCK_COUNT_UNIT);
           if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
             setDedicatedU16(o, lockOffset, changed);
+            Magic.combinedLoadBarrier();
             return;
           } else {
             tryToInflate = true;
@@ -147,7 +154,7 @@ public final class ThinLock {
         if (id.isZero()) {
           if (Synchronization.tryCompareAndSwap(
                 o, lockOffset, old, old.or(threadId))) {
-            Magic.isync();
+            if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
             return;
           }
         } else if (id.EQ(threadId)) {
@@ -156,7 +163,7 @@ public final class ThinLock {
             tryToInflate = true;
           } else if (Synchronization.tryCompareAndSwap(
                        o, lockOffset, old, changed)) {
-            Magic.isync();
+            if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
             return;
           }
         } else if (cnt > retryLimit) {
@@ -182,6 +189,7 @@ public final class ThinLock {
           return;
         }
       } else {
+        Magic.combinedLoadBarrier();
         RVMThread.yieldNoHandshake();
       }
     }
@@ -202,12 +210,12 @@ public final class ThinLock {
             RVMThread.raiseIllegalMonitorStateException("biased unlocking: we own this object but the count is already zero", o);
           }
           setDedicatedU16(o, lockOffset, old.minus(TL_LOCK_COUNT_UNIT));
+          Magic.fence();
           return;
         } else {
           RVMThread.raiseIllegalMonitorStateException("biased unlocking: we don't own this object", o);
         }
       } else if (stat.EQ(TL_STAT_THIN)) {
-        Magic.sync();
         Word id = old.and(TL_THREAD_ID_MASK);
         if (id.EQ(threadId)) {
           Word changed;
@@ -216,8 +224,10 @@ public final class ThinLock {
           } else {
             changed = old.minus(TL_LOCK_COUNT_UNIT);
           }
+          Magic.combinedLoadBarrier();
           if (Synchronization.tryCompareAndSwap(
                 o, lockOffset, old, changed)) {
+            if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
             return;
           }
         } else {

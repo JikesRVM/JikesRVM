@@ -524,7 +524,7 @@ public final class Lock {
           l.active = true;
           /* make sure other processors see lock initialization.
            * Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen */
-          Magic.sync();
+          Magic.fence();
         }
         if (trace && l != null) {
           VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),

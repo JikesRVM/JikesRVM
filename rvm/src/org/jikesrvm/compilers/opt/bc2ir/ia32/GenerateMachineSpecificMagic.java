@@ -104,9 +104,7 @@ public abstract class GenerateMachineSpecificMagic {
       AddressConstantOperand addr = new AddressConstantOperand(Magic.getTocPointer());
       bc2ir.appendInstruction(Move.create(REF_MOVE, val, addr));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == MagicNames.isync) {
-      // nothing required on Intel
-    } else if (methodName == MagicNames.sync) {
+    } else if (methodName == MagicNames.synchronizeInstructionCache) {
       // nothing required on Intel
     } else if (methodName == MagicNames.prefetch) {
       bc2ir.appendInstruction(CacheOp.create(PREFETCH, bc2ir.popAddress()));

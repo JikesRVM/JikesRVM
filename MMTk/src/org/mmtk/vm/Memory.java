@@ -128,12 +128,11 @@ import org.vmmagic.pragma.*;
   public abstract void fence();
 
   /**
-   * Wait for all preceeding instructions to complete and discard any
-   * prefetched instructions on this processor.  Also prevents the
-   * compiler from performing code motion across this point.
+   * Ensures that all memory reads before this point are visible to all processors.
+   * In JMM terminology, this would be a {@code LoadLoad} + {@code LoadStore} fence.
    */
   @Inline
-  public abstract void isync();
+  public abstract void combinedLoadBarriers();
 
   /*
    * NOTE: The following methods must be implemented by subclasses of this
