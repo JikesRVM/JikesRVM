@@ -71,6 +71,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.jikesrvm.VM;
@@ -1481,7 +1482,8 @@ public class BootImageWriter {
       order.fixUpMissingSuperClasses();
 
       if (verbosity.isAtLeast(SUMMARY)) say(" compiling with " + numThreads + " threads");
-      ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
+      ThreadFactory threadFactory = new KillVMonUncaughtExceptionThreadFactory();
+      ExecutorService threadPool = Executors.newFixedThreadPool(numThreads, threadFactory);
       int runnableCount = order.getCountOfNeededWorkers();
       while (runnableCount > 0) {
         try {
