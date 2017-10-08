@@ -115,16 +115,16 @@ public final class FragmentedMmapper extends Mmapper {
   static {
     if (VERBOSE_BUILD) {
       Log.writeln("== FragmentedMmap ==");
-      Log.write("LOG_MAPPABLE_BYTES       = ", LOG_MAPPABLE_BYTES);
-      Log.write("LOG_MMAP_CHUNK_BYTES = ", VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
-      Log.write("MMAP_CHUNK_BYTES     = ", MMAP_CHUNK_BYTES);
-      Log.write("LOG_MMAP_SLAB_BYTES  = ", LOG_MMAP_SLAB_BYTES);
-      Log.write("MMAP_SLAB_EXTENT     = ", MMAP_SLAB_EXTENT);
-      Log.write("LOG_MMAP_CHUNKS_PER_SLAB = ", LOG_MMAP_CHUNKS_PER_SLAB);
-      Log.write("LOG_MAX_SLABS = ", LOG_MAX_SLABS);
-      Log.write("MAX_SLABS     = ", MAX_SLABS);
-      Log.write("SLAB_TABLE_SIZE = ", SLAB_TABLE_SIZE);
-      Log.write("MMAP_NUM_CHUNKS = ", MMAP_NUM_CHUNKS);
+      Log.writeln("LOG_MAPPABLE_BYTES       = ", LOG_MAPPABLE_BYTES);
+      Log.writeln("LOG_MMAP_CHUNK_BYTES = ", VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
+      Log.writeln("MMAP_CHUNK_BYTES     = ", MMAP_CHUNK_BYTES);
+      Log.writeln("LOG_MMAP_SLAB_BYTES  = ", LOG_MMAP_SLAB_BYTES);
+      Log.writeln("MMAP_SLAB_EXTENT     = ", MMAP_SLAB_EXTENT);
+      Log.writeln("LOG_MMAP_CHUNKS_PER_SLAB = ", LOG_MMAP_CHUNKS_PER_SLAB);
+      Log.writeln("LOG_MAX_SLABS = ", LOG_MAX_SLABS);
+      Log.writeln("MAX_SLABS     = ", MAX_SLABS);
+      Log.writeln("SLAB_TABLE_SIZE = ", SLAB_TABLE_SIZE);
+      Log.writeln("MMAP_NUM_CHUNKS = ", MMAP_NUM_CHUNKS);
 
       Log.write("Total memory used (kB) = ", (MMAP_NUM_CHUNKS * MAX_SLABS) >> 10);
       Log.writeln("==");
