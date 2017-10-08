@@ -203,8 +203,8 @@ import org.vmmagic.unboxed.Offset;
 
   @Override
   @Inline
-  public final void sync() {
-    Magic.sync();
+  public final void fence() {
+    Magic.fence();
   }
 
   @Override

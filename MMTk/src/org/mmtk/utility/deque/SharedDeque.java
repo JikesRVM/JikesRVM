@@ -496,12 +496,12 @@ public class SharedDeque extends Deque {
   @Inline
   private void setHead(Address newHead) {
     head = newHead;
-    VM.memory.sync();
+    VM.memory.fence();
   }
 
   @Inline
   private void setTail(Address newTail) {
     tail = newTail;
-    VM.memory.sync();
+    VM.memory.fence();
   }
 }

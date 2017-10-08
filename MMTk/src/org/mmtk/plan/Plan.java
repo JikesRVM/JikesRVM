@@ -595,7 +595,7 @@ public abstract class Plan {
     }
     VM.memory.isync();
     gcStatus = s;
-    VM.memory.sync();
+    VM.memory.fence();
     if (gcStatus == NOT_IN_GC) {
       /* From any phase to NOT_IN_GC */
       if (Stats.gatheringStats()) {

@@ -121,12 +121,11 @@ import org.vmmagic.pragma.*;
       int afterBytes);
 
   /**
-   * Wait for preceeding cache flush/invalidate instructions to complete
-   * on all processors.  Ensures that all memory writes before this
-   * point are visible to all processors.
+   * Ensures that all memory writes before this point are visible to all processors.
+   * In JMM terminology, this would be a {@code StoreLoad} + {@code StoreStore} fence.
    */
   @Inline
-  public abstract void sync();
+  public abstract void fence();
 
   /**
    * Wait for all preceeding instructions to complete and discard any
