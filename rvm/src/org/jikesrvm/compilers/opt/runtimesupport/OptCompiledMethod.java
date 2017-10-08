@@ -574,7 +574,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         boolean DEBUG_CODE_PATCH = false;
 
         // let other processors see changes.
-        Magic.sync();
+        Magic.fence();
 
         // All other processors now will see the patched code in their data cache.
         // We now need to force everyone's instruction caches to be in synch with their

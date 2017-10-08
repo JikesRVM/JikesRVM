@@ -1046,7 +1046,7 @@ public final class RVMClass extends RVMType {
 
     // we're about to leak a reference to 'this' force memory to be
     // consistent
-    Magic.sync();
+    Magic.fence();
 
     if (superClass != null) {
       // MUST wait until end of constructor to 'publish' the subclass link.
