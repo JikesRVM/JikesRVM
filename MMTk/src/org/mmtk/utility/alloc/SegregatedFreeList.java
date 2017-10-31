@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implements the fast past for a segregated free list.
+ * This abstract class implements the fast path for a segregated free list.
  */
 @Uninterruptible
 public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> extends Allocator {
