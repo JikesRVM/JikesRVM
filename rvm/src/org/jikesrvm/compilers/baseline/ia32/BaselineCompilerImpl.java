@@ -2333,8 +2333,16 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       if (VM.BuildFor32Addr) {
-        asm.emitPUSH_RegDisp(T0, Magic.getTocPointer().toWord().toOffset().plus(WORDSIZE)); // get high part
-        asm.emitPUSH_RegDisp(T0, Magic.getTocPointer().toWord().toOffset());                // get low part
+        // JMM: field could be volatile so we need to guarantee atomic access
+        if (SSE2_BASE) {
+          asm.emitMOVQ_Reg_RegDisp(XMM0, T0, Magic.getTocPointer().toWord().toOffset());
+          adjustStack(-2 * WORDSIZE, false);
+          asm.emitMOVQ_RegInd_Reg(SP, XMM0);
+        } else {
+          asm.emitFLD_Reg_RegDisp_Quad(FP0, T0, Magic.getTocPointer().toWord().toOffset());
+          adjustStack(-2 * WORDSIZE, false);
+          asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+        }
       } else {
         if (fieldRef.getNumberOfStackSlots() != 1) {
           adjustStack(-WORDSIZE, true);
@@ -2362,8 +2370,21 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       if (VM.BuildFor32Addr) {
-        asm.emitPUSH_Abs(Magic.getTocPointer().plus(fieldOffset).plus(WORDSIZE)); // get high part
-        asm.emitPUSH_Abs(Magic.getTocPointer().plus(fieldOffset));                // get low part
+        // JMM: we need to guarantee atomic access for volatile fields
+        if (field.isVolatile()) {
+          if (SSE2_BASE) {
+            asm.emitMOVQ_Reg_Abs(XMM0, Magic.getTocPointer().plus(fieldOffset));
+            adjustStack(-2 * WORDSIZE, true);
+            asm.emitMOVQ_RegInd_Reg(SP, XMM0);
+          } else {
+            asm.emitFLD_Reg_Abs_Quad(FP0, Magic.getTocPointer().plus(fieldOffset));
+            adjustStack(-2 * WORDSIZE, true);
+            asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+          }
+        } else {
+          asm.emitPUSH_Abs(Magic.getTocPointer().plus(fieldOffset).plus(WORDSIZE)); // get high part
+          asm.emitPUSH_Abs(Magic.getTocPointer().plus(fieldOffset));                // get low part
+        }
       } else {
         if (fieldRef.getNumberOfStackSlots() != 1) {
           adjustStack(-WORDSIZE, true);
@@ -2389,8 +2410,15 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       } else { // field is two words (double or long)
         if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
         if (VM.BuildFor32Addr) {
-          asm.emitPOP_RegDisp(T0, Magic.getTocPointer().toWord().toOffset());                // store low part
-          asm.emitPOP_RegDisp(T0, Magic.getTocPointer().toWord().toOffset().plus(WORDSIZE)); // store high part
+          // JMM: field could be volatile so we need to guarantee atomic access
+          if (SSE2_BASE) {
+            asm.emitMOVQ_Reg_RegInd(XMM0, SP);
+            asm.emitMOVQ_RegDisp_Reg(T0, Magic.getTocPointer().toWord().toOffset(), XMM0);
+          } else {
+            asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
+            asm.emitFSTP_RegDisp_Reg_Quad(T0, Magic.getTocPointer().toWord().toOffset(), FP0);
+          }
+          adjustStack(2 * WORDSIZE, false);
         } else {
           asm.generateJTOCpop(T0);
           if (fieldRef.getNumberOfStackSlots() != 1) {
@@ -2420,8 +2448,20 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       } else { // field is two words (double or long)
         if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
         if (VM.BuildFor32Addr) {
-          asm.generateJTOCpop(fieldOffset);                // store low part
-          asm.generateJTOCpop(fieldOffset.plus(WORDSIZE)); // store high part
+          // JMM: we need to guarantee atomic access for volatile fields
+          if (field.isVolatile()) {
+            if (SSE2_BASE) {
+              asm.emitMOVQ_Reg_RegInd(XMM0, SP);
+              asm.emitMOVQ_Abs_Reg(Magic.getTocPointer().plus(fieldOffset), XMM0);
+            } else {
+              asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
+              asm.emitFSTP_Abs_Reg_Quad(Magic.getTocPointer().plus(fieldOffset), FP0);
+            }
+            adjustStack(2 * WORDSIZE, false);
+          } else {
+            asm.emitPOP_Abs(Magic.getTocPointer().plus(fieldOffset));          // store low part
+            asm.emitPOP_Abs(Magic.getTocPointer().plus(fieldOffset).plus(WORDSIZE)); // store high part
+          }
         } else {
           asm.generateJTOCpop(fieldOffset);
           if (fieldRef.getNumberOfStackSlots() != 1) {
