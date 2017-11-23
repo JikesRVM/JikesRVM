@@ -20,7 +20,6 @@ import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifgt;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifle;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_iflt;
 import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifne;
-import static org.jikesrvm.classloader.BytecodeConstants.JBC_nop;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
@@ -431,7 +430,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     if (!mergeBytecodes || basicBlockBoundary()) {
       emit_regular_aload(index);
     } else {
-      int nextBC = JBC_nop; // bcodes.peekNextOpcode();
+      int nextBC = bcodes.peekNextOpcode();
       switch (nextBC) {
       case JBC_getfield: {
         int gfIndex = bcodes.index();

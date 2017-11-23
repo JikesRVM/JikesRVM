@@ -2669,7 +2669,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         asm.emitMOVZX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
         asm.emitPUSH_Reg(T0);                                // place value on stack
       } else if (fieldType.isIntType() || fieldType.isFloatType() ||
-                 (VM.BuildFor32Addr && fieldType.isWordType())) {
+                 (VM.BuildFor32Addr && fieldType.isWordLikeType())) {
         // 32bit load
         stackMoveHelper(S0, offset);                         // S0 is object reference
         if (VM.BuildFor32Addr) {
@@ -2682,7 +2682,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         // 64bit load
         if (VM.VerifyAssertions) {
           VM._assert(fieldType.isLongType() || fieldType.isDoubleType() ||
-                     (VM.BuildFor64Addr && fieldType.isWordType()));
+                     (VM.BuildFor64Addr && fieldType.isWordLikeType()));
         }
         stackMoveHelper(S0, offset);                  // S0 is object reference
         if (VM.BuildFor32Addr && field.isVolatile()) {
@@ -2701,7 +2701,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
           asm.emitPUSH_RegDisp(S0, fieldOffset.plus(ONE_SLOT)); // place high half on stack
           asm.emitPUSH_RegDisp(S0, fieldOffset);                // place low half on stack
         } else {
-          if (!fieldType.isWordType()) {
+          if (!fieldType.isWordLikeType()) {
             adjustStack(-WORDSIZE, true); // add empty slot
           }
           asm.emitPUSH_RegDisp(S0, fieldOffset); // place value on stack
