@@ -12,6 +12,7 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Conversions.*;
 import static org.mmtk.utility.Constants.*;
 import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
 import static org.mmtk.utility.heap.layout.VMLayoutConstants.*;
@@ -653,7 +654,7 @@ public abstract class Space {
           Log.write("->");
           Log.writeln(space.start.plus(space.extent.minus(1)));
         }
-        HeapLayout.mmapper.ensureMapped(space.start, space.extent.toInt() >> LOG_BYTES_IN_PAGE);
+        HeapLayout.mmapper.ensureMapped(space.start, bytesToPagesUp(space.extent));
       }
     }
   }
@@ -666,7 +667,7 @@ public abstract class Space {
   public static void eagerlyMmapMMTkDiscontiguousSpaces() {
     Address regionStart = Space.getDiscontigStart();
     Address regionEnd = Space.getDiscontigEnd();
-    int pages = regionEnd.diff(regionStart).toInt() >> LOG_BYTES_IN_PAGE;
+    int pages = bytesToPages(regionEnd.diff(regionStart));
     if (Options.verbose.getValue() > 2) {
       Log.write("Mapping discontiguous spaces ");
       Log.write(regionStart);

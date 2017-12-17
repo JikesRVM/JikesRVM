@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.heap;
 
-import static org.mmtk.utility.Constants.*;
+import static org.mmtk.utility.Conversions.*;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
@@ -227,7 +227,7 @@ public final class MonotonePageResource extends PageResource {
    * @return The number of required pages, inclusive of any metadata
    */
   public int adjustForMetaData(int pages, Address begin) {
-    if (getRegionStart(begin).plus(metaDataPagesPerRegion << LOG_BYTES_IN_PAGE).EQ(begin)) {
+    if (getRegionStart(begin).plus(pagesToBytes(metaDataPagesPerRegion)).EQ(begin)) {
       pages += metaDataPagesPerRegion;
     }
     return pages;

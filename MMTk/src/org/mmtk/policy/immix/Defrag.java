@@ -13,6 +13,7 @@
 
 package org.mmtk.policy.immix;
 
+import static org.mmtk.utility.Conversions.*;
 import static org.mmtk.policy.immix.ImmixConstants.*;
 import static org.mmtk.utility.Constants.*;
 
@@ -103,7 +104,7 @@ public class Defrag {
       chunkMap.consolidateMap();
       establishDefragSpillThreshold(chunkMap, space);
       defrags.inc();
-      defragCleanBytesAvailable.inc(availableCleanPagesForDefrag << LOG_BYTES_IN_PAGE);
+      defragCleanBytesAvailable.inc(pagesToBytes(availableCleanPagesForDefrag));
     }
     availableCleanPagesForDefrag += VM.activePlan.global().getCollectionReserve();
   }
