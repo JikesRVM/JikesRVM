@@ -122,10 +122,13 @@ public final class DefaultInlineOracle implements InlineOracle {
       return NO("Only do trivial inlines at O0");
     }
 
-    if (rootMethod.inlinedSizeEstimate() > opts.INLINE_MASSIVE_METHOD_SIZE) {
-      // In massive methods, we do not do any additional inlining to
-      // avoid completely blowing out compile time by making a bad situation worse
-      reportUnguardedDecisionIfVerbose("NO: only do trivial inlines into massive methods", verbose);
+    // In massive methods, we do not do any additional inlining when the VM runs to
+    // avoid completely blowing out compile time by making a bad situation worse.
+    // However, the normal inlining policy will be applied for massive methods
+    // during boot image compilation. We'd rather have more performance at run time
+    // than faster boot image compilation.
+    if (VM.runningVM && rootMethod.inlinedSizeEstimate() > opts.INLINE_MASSIVE_METHOD_SIZE) {
+      reportUnguardedDecisionIfVerbose("NO: only do trivial inlines into massive methods when the VM is running", verbose);
       return NO("Root method is massive; no non-trivial inlines");
     }
 
