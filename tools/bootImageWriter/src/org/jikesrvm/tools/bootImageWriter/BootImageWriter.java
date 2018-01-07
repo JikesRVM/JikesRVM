@@ -103,6 +103,14 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.ClassNameComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.IdenticalComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.NonFinalReferenceDensityComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.NumberOfNonFinalReferencesComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.NumberOfReferencesComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.ObjectSizeComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.ReferenceDensityComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.TypeReferenceComparator;
 import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -270,198 +278,6 @@ public class BootImageWriter {
     @Override
     public boolean equals(Object that) {
       return (that instanceof Key) && jdkType == ((Key)that).jdkType;
-    }
-  }
-
-  /**
-   * Comparator that always says entries are equivalent. For use when
-   * comparator defers to another comparator.
-   */
-  private static final class IdenticalComparator implements Comparator<BootImageMap.Entry> {
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      return 0;
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the type
-   * reference ID.
-   */
-  private static final class TypeReferenceComparator implements Comparator<BootImageMap.Entry> {
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      return aRef.getId() - bRef.getId();
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the name of the
-   * classes.
-   */
-  private static final class ClassNameComparator implements Comparator<BootImageMap.Entry> {
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      return b.jdkObject.getClass().toString().compareTo(a.jdkObject.getClass().toString());
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the size of
-   * the objects.
-   */
-  private static final class ObjectSizeComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    ObjectSizeComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return -1;
-      } else if (!bRef.isResolved()) {
-        return 1;
-      } else {
-        int aSize = getSize(aRef.peekType(), a.jdkObject);
-        int bSize = getSize(bRef.peekType(), b.jdkObject);
-        if (aSize == bSize) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return aSize - bSize;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the number of
-   * references within the objects.
-   */
-  private static final class NumberOfReferencesComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    NumberOfReferencesComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        int aSize = getNumberOfReferences(aRef.peekType(), a.jdkObject);
-        int bSize = getNumberOfReferences(bRef.peekType(), b.jdkObject);
-        if (aSize == bSize) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return bSize - aSize;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the number of
-   * non-final references within the objects.
-   */
-  private static final class NumberOfNonFinalReferencesComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    NumberOfNonFinalReferencesComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        int aSize = getNumberOfNonFinalReferences(aRef.peekType(), a.jdkObject);
-        int bSize = getNumberOfNonFinalReferences(bRef.peekType(), b.jdkObject);
-        if (aSize == bSize) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return bSize - aSize;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the density of
-   * non-final references within the objects.
-   */
-  private static final class NonFinalReferenceDensityComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    NonFinalReferenceDensityComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        double aSize = (double)getNumberOfNonFinalReferences(aRef.peekType(), a.jdkObject) / (double)getSize(aRef.peekType(), a.jdkObject);
-        double bSize = (double)getNumberOfNonFinalReferences(bRef.peekType(), b.jdkObject) / (double)getSize(bRef.peekType(), b.jdkObject);
-        int result = Double.compare(bSize, aSize);
-        if (result == 0) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return result;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the density of
-   * references within the objects.
-   */
-  private static final class ReferenceDensityComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    ReferenceDensityComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        double aSize = (double)getNumberOfReferences(aRef.peekType(), a.jdkObject) / (double)getSize(aRef.peekType(), a.jdkObject);
-        double bSize = (double)getNumberOfReferences(bRef.peekType(), b.jdkObject) / (double)getSize(bRef.peekType(), b.jdkObject);
-        int result = Double.compare(bSize, aSize);
-        if (result == 0) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return result;
-        }
-      }
     }
   }
 
@@ -3526,7 +3342,7 @@ public class BootImageWriter {
    * @param obj we want the size of
    * @return size of object
    */
-  private static int getSize(RVMType type, Object obj) {
+  public static int getSize(RVMType type, Object obj) {
     if (type.isArrayType()) {
       if (obj instanceof RuntimeTable) {
         obj = ((RuntimeTable<?>)obj).getBacking();
@@ -3550,7 +3366,7 @@ public class BootImageWriter {
    * @param obj we want the size of
    * @return number of non-final references
    */
-  private static int getNumberOfNonFinalReferences(RVMType type, Object obj) {
+  public static int getNumberOfNonFinalReferences(RVMType type, Object obj) {
     if (type.isArrayType()) {
       if (type.asArray().getElementType().isReferenceType()) {
         if (obj instanceof RuntimeTable) {
@@ -3582,7 +3398,7 @@ public class BootImageWriter {
    * @param obj we want the size of
    * @return number of non-final references
    */
-  private static int getNumberOfReferences(RVMType type, Object obj) {
+  public static int getNumberOfReferences(RVMType type, Object obj) {
     if (type.isArrayType()) {
       if (type.asArray().getElementType().isReferenceType()) {
         if (obj instanceof RuntimeTable) {
