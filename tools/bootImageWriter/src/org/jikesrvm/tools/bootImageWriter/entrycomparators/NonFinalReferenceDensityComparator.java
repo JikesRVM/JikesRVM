@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.tools.bootImageWriter.entrycomparators;
 
+import static org.jikesrvm.tools.bootImageWriter.entrycomparators.BootImageObjectInformation.getNumberOfNonFinalReferences;
+import static org.jikesrvm.tools.bootImageWriter.entrycomparators.BootImageObjectInformation.getSize;
+
 import java.util.Comparator;
 
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.tools.bootImageWriter.BootImageMap;
-import org.jikesrvm.tools.bootImageWriter.BootImageWriter;
 
 /**
  * Comparator of boot image entries that sorts according to the density of
@@ -38,8 +40,8 @@ public final class NonFinalReferenceDensityComparator implements Comparator<Boot
     } else if (!bRef.isResolved()) {
       return -1;
     } else {
-      double aSize = (double)BootImageWriter.getNumberOfNonFinalReferences(aRef.peekType(), a.getJdkObject()) / (double)BootImageWriter.getSize(aRef.peekType(), a.getJdkObject());
-      double bSize = (double)BootImageWriter.getNumberOfNonFinalReferences(bRef.peekType(), b.getJdkObject()) / (double)BootImageWriter.getSize(bRef.peekType(), b.getJdkObject());
+      double aSize = (double)getNumberOfNonFinalReferences(aRef.peekType(), a.getJdkObject()) / (double)getSize(aRef.peekType(), a.getJdkObject());
+      double bSize = (double)getNumberOfNonFinalReferences(bRef.peekType(), b.getJdkObject()) / (double)getSize(bRef.peekType(), b.getJdkObject());
       int result = Double.compare(bSize, aSize);
       if (result == 0) {
         return identicalSizeComparator.compare(a, b);

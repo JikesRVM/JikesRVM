@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.tools.bootImageWriter.entrycomparators;
 
+import static org.jikesrvm.tools.bootImageWriter.entrycomparators.BootImageObjectInformation.getSize;
+
 import java.util.Comparator;
 
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.tools.bootImageWriter.BootImageMap;
-import org.jikesrvm.tools.bootImageWriter.BootImageWriter;
-
 /**
  * Comparator of boot image entries that sorts according to the size of
  * the objects.
@@ -38,8 +38,8 @@ public final class ObjectSizeComparator implements Comparator<BootImageMap.Entry
     } else if (!bRef.isResolved()) {
       return 1;
     } else {
-      int aSize = BootImageWriter.getSize(aRef.peekType(), a.getJdkObject());
-      int bSize = BootImageWriter.getSize(bRef.peekType(), b.getJdkObject());
+      int aSize = getSize(aRef.peekType(), a.getJdkObject());
+      int bSize = getSize(bRef.peekType(), b.getJdkObject());
       if (aSize == bSize) {
         return identicalSizeComparator.compare(a, b);
       } else {

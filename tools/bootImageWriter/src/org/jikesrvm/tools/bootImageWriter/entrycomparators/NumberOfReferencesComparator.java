@@ -11,12 +11,12 @@
  *  regarding copyright ownership.
  */
 package org.jikesrvm.tools.bootImageWriter.entrycomparators;
+import static org.jikesrvm.tools.bootImageWriter.entrycomparators.BootImageObjectInformation.getNumberOfReferences;
 
 import java.util.Comparator;
 
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.tools.bootImageWriter.BootImageMap;
-import org.jikesrvm.tools.bootImageWriter.BootImageWriter;
 
 /**
  * Comparator of boot image entries that sorts according to the number of
@@ -38,8 +38,8 @@ public final class NumberOfReferencesComparator implements Comparator<BootImageM
     } else if (!bRef.isResolved()) {
       return -1;
     } else {
-      int aSize = BootImageWriter.getNumberOfReferences(aRef.peekType(), a.getJdkObject());
-      int bSize = BootImageWriter.getNumberOfReferences(bRef.peekType(), b.getJdkObject());
+      int aSize = getNumberOfReferences(aRef.peekType(), a.getJdkObject());
+      int bSize = getNumberOfReferences(bRef.peekType(), b.getJdkObject());
       if (aSize == bSize) {
         return identicalSizeComparator.compare(a, b);
       } else {
