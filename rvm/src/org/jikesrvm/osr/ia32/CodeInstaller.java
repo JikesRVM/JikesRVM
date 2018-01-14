@@ -141,7 +141,7 @@ public abstract class CodeInstaller {
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("new CM instr addr ");
-      VM.sysWriteHex(Statics.getSlotContentsAsInt(cm.getOsrJTOCoffset()));
+      VM.sysWriteHex(Statics.getSlotContentsAsAddress(cm.getOsrJTOCoffset()));
       VM.sysWriteln();
       VM.sysWrite("JTOC register ");
       VM.sysWriteHex(Magic.getTocPointer());
@@ -152,7 +152,7 @@ public abstract class CodeInstaller {
 
       VM.sysWriteln("tsfromFPOffset ", tsfromFPOffset);
       VM.sysWriteln("fooFPOffset ", fooFPOffset);
-      VM.sysWriteln("SP + ", sp2fpOffset.plus(4));
+      VM.sysWriteln("SP + ", sp2fpOffset.plus(BYTES_IN_STACKSLOT));
     }
 
     // 3. set thread flags
