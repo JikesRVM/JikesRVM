@@ -148,6 +148,11 @@ stm: YIELDPOINT_BACKEDGE
 EMIT_INSTRUCTION
 EMIT(P(p));
 
+r: FRAMESIZE
+10
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), PPC_LDI, Nullary.getClearResult(P(p)), new UnknownConstantOperand()));
+
 ##################################
 # One operator is passed through nearly unchanged
 ##################################
@@ -289,6 +294,14 @@ EMIT(MIR_CacheOp.mutate(P(p), PPC_ICBI, I(0), R(CacheOp.getRef(P(p)))));
 ##################################
 # Trap operations
 ##################################
+#####
+# ILLEGAL_INSTRUCTION
+#####
+stm:   ILLEGAL_INSTRUCTION
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Empty.mutate(P(p), PPC_ILLEGAL_INSTRUCTION));
+
 #####
 # TRAP
 #####

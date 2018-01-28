@@ -237,7 +237,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   private void duplicateCode(IR ir, HashMap<BasicBlock, BasicBlock> origToDupMap,
                              HashSet<BasicBlock> exceptionHandlerBlocks) {
 
-    if (DEBUG) VM.sysWrite("In duplicate code\n");
+    if (DEBUG) VM.sysWriteln("In duplicate code");
 
     // Iterate through all blocks and duplicate them.  While
     // iterating, loop until you see the block that was the *original*
@@ -296,7 +296,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       dup.setInfrequent();  // duplicated code is known to be infrequent.
 
       if (DEBUG2) {
-        VM.sysWrite("Copying bb: " + curBlock + " to be " + dup + "\n");
+        VM.sysWriteln("Copying bb: " + curBlock + " to be " + dup);
       }
 
       ir.cfg.addLastInCodeOrder(dup);
@@ -343,7 +343,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       if (dup == null) {
         // Getting here means that for some reason the block was not duplicated.
         if (DEBUG) {
-          VM.sysWrite("Debug: block " + bb + " was not duplicated\n");
+          VM.sysWriteln("Debug: block " + bb + " was not duplicated");
         }
         continue;
       }
@@ -373,7 +373,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         ir.cfg.linkInCodeOrder(prev, checkBB);
         ir.cfg.linkInCodeOrder(checkBB, bb);
         if (DEBUG) {
-          VM.sysWrite("Creating check " + checkBB + " to preceed " + bb + " \n");
+          VM.sysWriteln("Creating check " + checkBB + " to preceed " + bb);
         }
 
         // Step 2, Make all of bb's predecessors point to the check instead
@@ -450,7 +450,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @param ir The IR */
   private void appendLoad(BasicBlock bb, IR ir) {
 
-    if (DEBUG) VM.sysWrite("Adding load to " + bb + "\n");
+    if (DEBUG) VM.sysWriteln("Adding load to " + bb);
     Instruction load = null;
     if (ir.options.ADAPTIVE_PROCESSOR_SPECIFIC_COUNTER) {
       // Use one CBS counter per processor (better for multi threaded apps)
@@ -507,7 +507,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @param ir The IR */
   private void prependStore(BasicBlock bb, IR ir) {
 
-    if (DEBUG) VM.sysWrite("Adding store to " + bb + "\n");
+    if (DEBUG) VM.sysWriteln("Adding store to " + bb);
     Instruction store = null;
     if (ir.options.ADAPTIVE_PROCESSOR_SPECIFIC_COUNTER) {
       store =
@@ -553,7 +553,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @param ir The IR
    */
   private void prependDecrement(BasicBlock bb, IR ir) {
-    if (DEBUG) VM.sysWrite("Adding Increment to " + bb + "\n");
+    if (DEBUG) VM.sysWrite("Adding Increment to " + bb);
 
     RegisterOperand use = cbsReg.copyRO();
     RegisterOperand def = use.copyU2D();
@@ -713,15 +713,15 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
           dupBlock.redirectOuts(origSucc, dupSucc, ir);
           if (DEBUG) {
-            VM.sysWrite("Source: " + dupBlock + "\n");
-            VM.sysWrite("============= FROM " + origSucc + " =============\n");
+            VM.sysWriteln("Source: " + dupBlock);
+            VM.sysWriteln("============= FROM " + origSucc + " =============");
             //origSucc.printExtended();
-            VM.sysWrite("============= TO " + dupSucc + "=============\n");
+            VM.sysWriteln("============= TO " + dupSucc + "=============");
             //dupSucc.printExtended();
           }
         } else {
           if (DEBUG) {
-            VM.sysWrite("Not adjusting pointer from " + dupBlock + " to " + origSucc + " because dupSucc is null\n");
+            VM.sysWriteln("Not adjusting pointer from " + dupBlock + " to " + origSucc + " because dupSucc is null");
           }
         }
       }
@@ -754,7 +754,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         Instruction i = ie.nextElement();
         if (isInstrumentationInstruction(i) || (isYieldpoint(i) && ir.options.ADAPTIVE_REMOVE_YP_FROM_CHECKING)) {
 
-          if (DEBUG) VM.sysWrite("Removing " + i + "\n");
+          if (DEBUG) VM.sysWriteln("Removing " + i);
           i.remove();
         }
       }
@@ -810,7 +810,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
             // replace it with a temp.
             RegisterOperand newReg = getOrCreateDupReg(ro, ir, duplicates);
             if (DEBUG2) {
-              VM.sysWrite("Was " + ro + " and now it's " + newReg + "\n");
+              VM.sysWriteln("Was " + ro + " and now it's " + newReg);
             }
             inst.putOperand(i, newReg);
           }
@@ -906,7 +906,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     try {
       B = bb.splitNodeWithLinksAt(prev, ir);
     } catch (RuntimeException e) {
-      VM.sysWrite("Bombed when I: " + i + " prev: " + prev + "\n");
+      VM.sysWriteln("Bombed when I: " + i + " prev: " + prev);
       bb.printExtended();
       throw e;
     }

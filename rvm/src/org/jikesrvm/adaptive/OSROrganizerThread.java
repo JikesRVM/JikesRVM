@@ -64,7 +64,7 @@ public final class OSROrganizerThread extends SystemThread {
   private void processOsrRequest() {
     // scan RVMThread.threads (scan down so we don't miss anything)
     for (int i = RVMThread.numThreads - 1; i >= 0; i--) {
-      Magic.sync();
+      Magic.combinedLoadBarrier();
       RVMThread t = RVMThread.threads[i];
       if (t != null) {
         boolean go = false;

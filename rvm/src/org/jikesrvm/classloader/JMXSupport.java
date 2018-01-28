@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Callbacks.ClassLoadedMonitor;
 import org.jikesrvm.scheduler.Synchronization;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Implements functionality to support JMX classloading beans.
@@ -30,6 +31,7 @@ public final class JMXSupport implements ClassLoadedMonitor {
 
    /** the count of loaded classes */
   @SuppressWarnings("unused") // accessed via low-level synchronization
+  @Entrypoint
   private int classLoadedCount;
 
   private JMXSupport() {

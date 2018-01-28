@@ -149,7 +149,7 @@ public class Memory extends org.mmtk.vm.Memory {
   /** {@inheritDoc} */
   @Override
   @Inline
-  public void sync() {
+  public void fence() {
     Scheduler.yield();
     // Nothing required
   }
@@ -157,7 +157,7 @@ public class Memory extends org.mmtk.vm.Memory {
   /** {@inheritDoc} */
   @Override
   @Inline
-  public void isync() {
+  public void combinedLoadBarriers() {
     Scheduler.yield();
     // Nothing required
   }

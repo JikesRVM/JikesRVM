@@ -12,6 +12,7 @@
  */
 
 #include "sys.h"
+#include <unistd.h> // for fsync
 
 /** Console write (java character). */
 EXTERNAL void sysConsoleWriteChar(unsigned value)
@@ -58,4 +59,11 @@ EXTERNAL void sysConsoleWriteDouble(double value,  int postDecimalDigits)
     char tmp[5] = {'%', '.', '0'+postDecimalDigits, 'f', 0};
     CONSOLE_PRINTF(tmp, value);
   }
+}
+
+EXTERNAL void sysConsoleFlushErrorAndTrace() {
+  fflush(SysTraceFile);
+  fsync(fileno(SysTraceFile));
+  fflush(SysErrorFile);
+  fsync(fileno(SysErrorFile));
 }

@@ -32,6 +32,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_AS_INT_BITS;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_SQRT;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.FRAMESIZE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_OBJ_TIB;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GET_TYPE_FROM_TIB;
@@ -807,6 +808,8 @@ public class GenerateMagic {
       bc2ir.pushDual(op0.copyD2U());
     } else if (methodName == MagicNames.getInlineDepth) {
       bc2ir.push(new IntConstantOperand(gc.getInlineSequence().getInlineDepth()));
+    } else if (methodName == MagicNames.getCompilerLevel) {
+      bc2ir.push(new IntConstantOperand(gc.getOptions().getOptLevel()));
     } else if (methodName == MagicNames.isConstantParameter) {
       Operand requestedOperand = bc2ir.pop();
       if (!(requestedOperand instanceof IntConstantOperand)) {
@@ -815,6 +818,11 @@ public class GenerateMagic {
       int requested = ((IntConstantOperand)(requestedOperand)).value;
       boolean isConstant = gc.getArguments()[requested].isConstant();
       bc2ir.push(new IntConstantOperand(isConstant ? 1 : 0));
+    } else if (methodName == MagicNames.getFrameSize) {
+      RegisterOperand res = gc.getTemps().makeTempInt();
+      gc.forceFrameAllocation();
+      bc2ir.appendInstruction(Nullary.create(FRAMESIZE, res));
+      bc2ir.push(res.copyD2U());
     } else {
       // Wasn't machine-independent, so try the machine-dependent magics next.
       if (VM.BuildForIA32) {

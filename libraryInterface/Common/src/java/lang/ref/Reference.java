@@ -18,6 +18,7 @@ import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.ReferenceFieldsVary;
@@ -35,6 +36,7 @@ public abstract class Reference<T> {
    *
    * Set and maintained by the ReferenceProcessor class.
    */
+  @Entrypoint
   private Address _referent;
 
   /**

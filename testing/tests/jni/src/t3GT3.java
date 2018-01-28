@@ -117,10 +117,12 @@ class t3GT3 {
         } // use Worker Threads
 
         long endtime = System.currentTimeMillis();
-        if (sanity)
-            System.out.println("PASS:\n");
-        else
-            System.out.println(" Execution Time = " + (endtime - starttime) + " ms.");
+        if (sanity) {
+          System.out.println("PASS:");
+          System.out.println();
+        } else {
+          System.out.println(" Execution Time = " + (endtime - starttime) + " ms.");
+        }
 
     } // main
 

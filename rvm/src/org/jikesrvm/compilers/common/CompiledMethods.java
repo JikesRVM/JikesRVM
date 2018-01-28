@@ -22,7 +22,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.runtime.Magic;
@@ -76,7 +75,7 @@ public class CompiledMethods {
       }
       tmp[column] = new CompiledMethod[1 << LOG_ROW_SIZE];
       compiledMethods = tmp;
-      Magic.sync();
+      Magic.fence();
     }
   }
 
@@ -95,6 +94,7 @@ public class CompiledMethods {
     int column = cmid >> LOG_ROW_SIZE;
     CompiledMethod[] col = compiledMethods[column];
     Services.setArrayUninterruptible(col, cmid & ROW_MASK, cm);
+    Magic.fence();
   }
 
   /**
@@ -103,7 +103,7 @@ public class CompiledMethods {
    */
   @Uninterruptible
   public static CompiledMethod getCompiledMethod(int compiledMethodId) {
-    Magic.isync();  // see potential update from other procs
+    Magic.combinedLoadBarrier();
 
     if (VM.VerifyAssertions) {
       if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
@@ -122,7 +122,12 @@ public class CompiledMethods {
     currentCompiledMethodId++;
     CompiledMethod cm = null;
     if (compilerType == CompiledMethod.BASELINE) {
-      cm = new BaselineCompiledMethod(id, m);
+      if (VM.BuildForIA32) {
+        cm = new org.jikesrvm.compilers.baseline.ia32.ArchBaselineCompiledMethod(id, m);
+      } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        cm = new org.jikesrvm.compilers.baseline.ppc.ArchBaselineCompiledMethod(id, m);
+      }
     } else if (VM.BuildForOptCompiler && compilerType == CompiledMethod.OPT) {
       cm = new OptCompiledMethod(id, m);
     } else if (compilerType == CompiledMethod.JNI) {
@@ -202,8 +207,8 @@ public class CompiledMethods {
   // in use.
   public static void setCompiledMethodObsolete(CompiledMethod compiledMethod) {
     compiledMethod.setObsolete();
-    Magic.sync();
     scanForObsoleteMethods = true;
+    Magic.fence();
   }
 
   /**
@@ -216,10 +221,10 @@ public class CompiledMethods {
    */
   @Uninterruptible
   public static void snipObsoleteCompiledMethods() {
-    Magic.isync();
+    Magic.combinedLoadBarrier();
     if (!scanForObsoleteMethods) return;
     scanForObsoleteMethods = false;
-    Magic.sync();
+    Magic.fence();
 
     int max = numCompiledMethods();
     for (int i = 0; i < max; i++) {
@@ -229,7 +234,7 @@ public class CompiledMethods {
           if (cm.isObsolete()) {
             // can't get it this time; force us to look again next GC
             scanForObsoleteMethods = true;
-            Magic.sync();
+            Magic.fence();
           }
           cm.clearActiveOnStack();
         } else {
@@ -260,7 +265,8 @@ public class CompiledMethods {
       codeBytes[ct] += Memory.alignUp(size, BYTES_IN_ADDRESS);
       mapBytes[ct] += cm.size();
     }
-    VM.sysWriteln("Compiled code space report\n");
+    VM.sysWriteln("Compiled code space report");
+    VM.sysWriteln();
 
     VM.sysWriteln("  Baseline Compiler");
     VM.sysWriteln("    Number of compiled methods =         " + codeCount[CompiledMethod.BASELINE]);

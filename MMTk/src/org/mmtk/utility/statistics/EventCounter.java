@@ -100,6 +100,16 @@ public class EventCounter extends Counter {
     if (running) currentCount += value;
   }
 
+  /**
+   * Increments the event counter by {@code value}.
+   *
+   * @param value The amount by which the counter should be incremented.
+   */
+  public void inc(long value) {
+    if (running) currentCount += value;
+  }
+
+
   /****************************************************************************
    *
    * Generic counter control methods: start, stop, print etc

@@ -10,11 +10,12 @@ More information is available at our [website](http://www.jikesrvm.org).
 
 You'll need
 
-* a JDK (>= 6)
-* Ant (>= 1.7) with optional tasks
+* a JDK (>= 6 and < 9). Building with JDK 9 or later is currently [not supported](https://xtenlang.atlassian.net/projects/RVM/issues/RVM-1136).
+* Ant (>= 1.7) with optional tasks (e.g. for JUnit and JavaDoc)
 * GCC with multilibs
 * Bison
 * an internet connection during the first build to download [GNU Classpath](http://www.gnu.org/software/classpath/) and other components
+* (tests only) the Perl library for Proc::ProcessTable (e.g. the package libproc-processtable-perl on Debian-based distributions or perl-Proc-ProcessTable on CentOS)
 
 Please see the [user guide](http://www.jikesrvm.org/UserGuide/) for more details.
 
@@ -32,7 +33,7 @@ See the [contributions page](http://www.jikesrvm.org/Contributions/) for details
 
 The short version:
 
-* Contributions are licsensed under EPL and require a Contributor License Agreement. You keep your copyright.
+* Contributions are licensed under EPL and require a Contributor License Agreement. You keep your copyright.
 * You can send us patches or use pull requests. Send patches to the [core mailing list](mailto:jikesrvm-core@lists.sourceforge.net).
 * It is ok to test on one platform only (e.g. only on IA32).
 
@@ -60,6 +61,9 @@ Projects with code changes and additional information
 * [ByteSTM](https://github.com/mohamedin/bytestm). See the paper "ByteSTM: Virtual Machine-level Java Software Transactional Memory" by Mohamedin et al.
 * [Laminar](https://github.com/ut-osa/laminar). See the paper "Laminar: Practical Fine-Grained Decentralized Information Flow Control" by Roy et al. in PLDI'09. The changes can be found in the form of patches in the Jikes RVM [research archive entry](http://sourceforge.net/p/jikesrvm/research-archive/26/).
 * [A minimal implementation of causal profiling for Java applications running on Jikes RVM](https://github.com/alanweide/coff)
+* [Velodrome: a sound and complete dynamic atomicity checker for multithreaded programs](https://github.com/palmskog/velodrome)
+* [DoubleChecker: Efficient Sound and Precise Atomicity Checking](https://github.com/palmskog/doublechecker-single-run)
+* [Java Object Environment](https://github.com/joekoolade/JOE)
 
 Projects with code changes but without any additional information
 * [https://github.com/vilay/check](https://github.com/vilay/check)

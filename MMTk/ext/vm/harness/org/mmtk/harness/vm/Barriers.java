@@ -12,7 +12,10 @@
  */
 package org.mmtk.harness.vm;
 
+import static org.mmtk.utility.Constants.INSTANCE_FIELD;
+
 import org.mmtk.harness.sanity.Sanity;
+import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
@@ -296,6 +299,18 @@ public class Barriers extends org.mmtk.vm.Barriers {
     assert unused == null;
     Sanity.assertValid(ref);
     slot.toAddress().store(value);
+  }
+
+  @Override
+  public final void initializeObjectReferenceFields(ObjectReference ref,
+      ObjectReference typeRef) {
+    int refs = ObjectModel.getRefs(ref);
+    ObjectReference nullValue = ObjectReference.nullReference();
+    for (int i = 0; i < refs; i++) {
+      Address refAddr = ObjectModel.getRefSlot(ref, i);
+      // Arrays are currently not implemented so all writes are to instance fields
+      VM.activePlan.mutator().objectReferenceWrite(ref, refAddr, nullValue, refAddr.toWord(), null, INSTANCE_FIELD);
+    }
   }
 
   /**

@@ -68,7 +68,9 @@
 
     <xsl:variable name="testConfigTotalTests" select="count(test)"/>
     <xsl:variable name="testConfigSkippedTests" select="count(test/test-execution/result/text()[.='EXCLUDED'])"/>
-    <xsl:variable name="testConfigFailedTests" select="count(test/test-execution/result/text()[.='FAILURE'])"/>
+    <xsl:variable name="testConfigFailedTestsDueToFailure" select="count(test/test-execution/result/text()[.='FAILURE'])"/>
+    <xsl:variable name="testConfigFailedTestsDueToOvertime" select="count(test/test-execution/result/text()[.='OVERTIME'])"/>
+    <xsl:variable name="testConfigFailedTests" select="number($testConfigFailedTestsDueToOvertime)+number($testConfigFailedTestsDueToFailure)"/>
 
     <xsl:variable name="testConfigTimeInMilliSeconds" select="sum(test/test-execution/duration/text())"/>
     <xsl:variable name="testConfigTimeInSeconds" select="number($testConfigTimeInMilliSeconds) div 1000"/>
@@ -104,6 +106,13 @@
         </xsl:if>
 
         <xsl:if test="$testResult = 'FAILURE'">
+          <failure message="{$resultExplanation}"/>
+        </xsl:if>
+        <system-out>
+          <xsl:copy-of select="test-execution/output/text()"/>
+        </system-out>
+
+        <xsl:if test="$testResult = 'OVERTIME'">
           <failure message="{$resultExplanation}"/>
         </xsl:if>
         <system-out>

@@ -204,9 +204,13 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
       reg[i] = r;
     }
 
-    // 2. Set the 'integer' attribute on each GPR
+    // 2. Set the 'integer' or 'long' attribute on each GPR
     for (int i = FIRST_INT; i < FIRST_DOUBLE; i++) {
-      reg[i].setInteger();
+      if (VM.BuildFor32Addr) {
+        reg[i].setInteger();
+      } else {
+        reg[i].setLong();
+      }
     }
 
     // 3. Set the 'double' attribute on each FPR
@@ -576,25 +580,6 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
    */
   public static String getName(int number) {
     return registerName[number];
-  }
-
-  /**
-   * @param type one of INT_REG, DOUBLE_REG, SPECIAL_REG
-   * @return the spill size for a register with the given type
-   */
-  public static int getSpillSize(int type) {
-    if (VM.VerifyAssertions) {
-      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == SPECIAL_REG));
-    }
-    if (VM.BuildFor32Addr) {
-      if (type == DOUBLE_REG) {
-        return 8;
-      } else {
-        return 4;
-      }
-    } else {
-      return 8;
-    }
   }
 
   /**

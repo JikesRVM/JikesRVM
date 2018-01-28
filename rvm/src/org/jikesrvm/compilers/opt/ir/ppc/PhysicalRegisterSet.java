@@ -72,22 +72,6 @@ import org.jikesrvm.util.EmptyEnumeration;
  * PowerPC register set.
  *
  * <P> Implementation Notes:
- * <P> Due to some historical ugliness not yet cleaned up, the register
- * allocator depend on properties cached in the
- * <code>next</code> field of Register.  The constructor sets the
- * following properties:
- * <ul>
- * <li> The volatile GPRs form a linked list, starting with
- * FIRST_VOLATILE_GPR and ending with LAST_SCRATCH_GPR
- * <li> The volatile FPRs form a linked list, starting with
- * FIRST_VOLATILE_FPR and ending with LAST_SCRATCH_FPR
- * <li> The non-volatile GPRs form a linked list, starting with
- * FIRST_NONVOLATILE_GPR and ending with LAST_NONVOLATILE_GPR
- * <li> The non-volatile FPRs form a linked list, starting with
- * FIRST_NONVOLATILE_FPR and ending with LAST_NONVOLATILE_FPR
- * <li> The condition registers from a linked list, starting with
- * FIRST_CONDITION and ending with LAST_CONDITION-1, which opt reserves for yieldpoints.
- * </ul>
  * <P> The register allocator allocates registers according to the order
  * in these lists.  For volatile registers, it traverses the lists in
  * order, starting with getFirstVolatile() and traversing with getNext().
@@ -158,7 +142,7 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
       reg[i] = r;
     }
 
-    // 2. Set the 'integer' attribute on each GPR
+    // 2. Set the 'integer' or 'long' attribute on each GPR
     for (int i = FIRST_INT; i < FIRST_DOUBLE; i++) {
       if (VM.BuildFor32Addr) {
         reg[i].setInteger();
@@ -181,14 +165,11 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
     for (int i = FIRST_VOLATILE_GPR.value(); i < LAST_VOLATILE_GPR.value(); i++) {
       Register r = reg[i];
       r.setVolatile();
-      r.linkWithNext(reg[i + 1]);
     }
     reg[LAST_VOLATILE_GPR.value()].setVolatile();
-    reg[LAST_VOLATILE_GPR.value()].linkWithNext(reg[FIRST_SCRATCH_GPR.value()]);
     for (int i = FIRST_SCRATCH_GPR.value(); i < LAST_SCRATCH_GPR.value(); i++) {
       Register r = reg[i];
       r.setVolatile();
-      r.linkWithNext(reg[i + 1]);
     }
     reg[LAST_SCRATCH_GPR.value()].setVolatile();
 
@@ -196,7 +177,6 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
     for (int i = FIRST_NONVOLATILE_GPR.value(); i < LAST_NONVOLATILE_GPR.value(); i++) {
       Register r = reg[i];
       r.setNonVolatile();
-      r.linkWithNext(reg[i + 1]);
     }
 
     // 7. set properties on some special registers
@@ -209,16 +189,13 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
          i < FIRST_DOUBLE + LAST_VOLATILE_FPR.value(); i++) {
       Register r = reg[i];
       r.setVolatile();
-      r.linkWithNext(reg[i + 1]);
     }
-    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR.value()].linkWithNext(reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR.value()]);
     reg[FIRST_DOUBLE + LAST_VOLATILE_FPR.value()].setVolatile();
     if (FIRST_SCRATCH_FPR != LAST_SCRATCH_FPR) {
       for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR.value();
            i < FIRST_DOUBLE + LAST_SCRATCH_FPR.value(); i++) {
         Register r = reg[i];
         r.setVolatile();
-        r.linkWithNext(reg[i + 1]);
       }
     }
     reg[FIRST_DOUBLE + LAST_SCRATCH_FPR.value()].setVolatile();
@@ -228,21 +205,11 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
          i < FIRST_DOUBLE + LAST_NONVOLATILE_FPR.value(); i++) {
       Register r = reg[i];
       r.setNonVolatile();
-      r.linkWithNext(reg[i + 1]);
     }
 
     // 10. set up the condition registers
-    int firstCR = -1;
-    int prevCR = -1;
     for (int i : CR_NUMS) {
       reg[FIRST_CONDITION + i].setVolatile();
-      if (prevCR != -1) {
-        reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);
-      }
-      prevCR = i;
-      if (firstCR == -1) {
-        firstCR = i;
-      }
     }
 
     // 11. cache the volatiles for efficiency
@@ -593,22 +560,6 @@ public final class PhysicalRegisterSet extends GenericPhysicalRegisterSet {
    */
   public static String getName(int number) {
     return registerName[number];
-  }
-
-  /**
-   * Gets the spill size for a register with a particular type
-   * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
-   * @return the spill size in bytes
-   */
-  public static int getSpillSize(int type) {
-    if (VM.VerifyAssertions) {
-      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == CONDITION_REG) || (type == SPECIAL_REG));
-    }
-    if (type == DOUBLE_REG) {
-      return BYTES_IN_DOUBLE;
-    } else {
-      return BYTES_IN_ADDRESS;
-    }
   }
 
   /**

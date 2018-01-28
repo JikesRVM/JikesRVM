@@ -250,7 +250,11 @@ public final class PartialCallGraph implements Decayable, Reportable {
     try {
       f = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fn), "ISO-8859-1"));
     } catch (IOException e) {
-      VM.sysWrite("\n\nPartialCallGraph.dumpGraph: Error opening output file!!\n\n");
+      VM.sysWriteln();
+      VM.sysWriteln();
+      VM.sysWrite("PartialCallGraph.dumpGraph: Error opening output file!!");
+      VM.sysWriteln();
+      VM.sysWriteln();
       return;
     }
     TreeSet<CallSite> tmp = new TreeSet<CallSite>(new OrderByTotalWeight());

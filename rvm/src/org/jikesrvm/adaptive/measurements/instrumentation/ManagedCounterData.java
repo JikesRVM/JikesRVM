@@ -228,7 +228,7 @@ public class ManagedCounterData {
       String s = c.name;
       double count = c.count;
       double percent = (100 * count) / sum;
-      VM.sysWrite(count + "/" + sum + " = " + percent + "% " + s + "\n");
+      VM.sysWriteln(count + "/" + sum + " = " + percent + "% " + s);
     }
   }
 

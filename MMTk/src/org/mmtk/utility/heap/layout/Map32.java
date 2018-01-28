@@ -107,7 +107,8 @@ public final class Map32 extends Map {
       int index = getChunkIndex(start.plus(e));
       if (descriptorMap[index] != 0) {
         Log.write("Conflicting virtual address request for space \"");
-        Log.write(space.getName()); Log.write("\" at ");
+        Log.write(space.getName());
+        Log.write("\" at ");
         Log.writeln(start.plus(e));
         Space.printVMMap();
         VM.assertions.fail("exiting");
@@ -147,9 +148,12 @@ public final class Map32 extends Map {
     if (chunk == -1) {
       if (Options.verbose.getValue() > 3) {
         Log.write("Unable to allocate virtual address space for space \"");
-        Log.write(space.getName()); Log.write("\" for ");
-        Log.write(chunks); Log.write(" chunks (");
-        Log.write(chunks << VMLayoutConstants.LOG_BYTES_IN_CHUNK); Log.writeln(" bytes), requesting GC.");
+        Log.write(space.getName());
+        Log.write("\" for ");
+        Log.write(chunks);
+        Log.write(" chunks (");
+        Log.write(chunks << VMLayoutConstants.LOG_BYTES_IN_CHUNK);
+        Log.writeln(" bytes), requesting GC.");
         if (Options.verbose.getValue() > 7) {
           Space.printVMMap();
         }

@@ -139,12 +139,12 @@ public class LTDominators extends Stack<BasicBlock> {
   private void checkReachability(IR ir) {
     if (!forward) {
       if (DFSCounter != cfg.numberOfNodes()) {
-        VM.sysWrite(" *** Warning ***\n CFG for method " +
+        VM.sysWriteln(" *** Warning ***\n CFG for method " +
                     ir.method.getName() +
                     " in class " +
                     ir.method.getDeclaringClass() +
-                    " has unreachable nodes.\n");
-        VM.sysWrite(" Assuming pessimistic results in dominators computation\n" + " for unreachable nodes.\n");
+                    " has unreachable nodes.");
+        VM.sysWriteln(" Assuming pessimistic results in dominators computation\n" + " for unreachable nodes.");
       }
     }
   }
@@ -348,7 +348,8 @@ public class LTDominators extends Stack<BasicBlock> {
    */
   private void step2() {
     if (DEBUG) {
-      System.out.println(" ******* Beginning STEP 2 *******\n");
+      System.out.println(" ******* Beginning STEP 2 *******");
+      System.out.println();
     }
 
     // Visit each node in reverse DFS order, except for the root, which
@@ -360,7 +361,8 @@ public class LTDominators extends Stack<BasicBlock> {
       LTDominatorInfo blockInfo = LTDominatorInfo.getInfo(block, ir);
 
       if (DEBUG) {
-        System.out.println(" Processing: " + block + "\n");
+        System.out.println(" Processing: " + block);
+        System.out.println();
       }
 
       // visit each predecessor
@@ -585,15 +587,21 @@ public class LTDominators extends Stack<BasicBlock> {
    */
   private void printResults(IR ir) {
     if (forward) {
-      System.out.println("Results of dominators computation for method " + ir.method.getName() + "\n");
+      System.out.println("Results of dominators computation for method " + ir.method.getName());
+      System.out.println();
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
-      System.out.println("\n\n  Here's the Dominator Info:");
+      System.out.println();
+      System.out.println();
+      System.out.println("  Here's the Dominator Info:");
     } else {
-      System.out.println("Results of Post-Dominators computation for method " + ir.method.getName() + "\n");
+      System.out.println("Results of Post-Dominators computation for method " + ir.method.getName());
+      System.out.println();
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
-      System.out.println("\n\n  Here's the Post-Dominator Info:");
+      System.out.println();
+      System.out.println();
+      System.out.println("  Here's the Post-Dominator Info:");
     }
 
     for (Enumeration<BasicBlock> bbEnum = cfg.basicBlocks(); bbEnum.hasMoreElements();) {

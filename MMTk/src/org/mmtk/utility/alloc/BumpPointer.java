@@ -480,8 +480,8 @@ import org.vmmagic.unboxed.Word;
       VM.assertions._assert(nextRegion.isZero() || isRegionAligned(nextRegion));
       VM.assertions._assert(dataEnd.GE(dataStart));
       if (dataEnd.GT(regionLimit)) {
-        Log.write("dataEnd="); Log.write(dataEnd);
-        Log.write(", regionLimit="); Log.writeln(regionLimit);
+        Log.write("dataEnd=", dataEnd);
+        Log.writeln(", regionLimit=", regionLimit);
       }
       VM.assertions._assert(dataEnd.LE(regionLimit));
       VM.assertions._assert(regionLimit.EQ(region.plus(BLOCK_SIZE)));
@@ -544,9 +544,9 @@ import org.vmmagic.unboxed.Word;
     driver.setRange(start, limit);
 
     if (false) {
-      Log.write("\nBumpPointer.gcspyGatherData set Range "); Log.write(scanSpace.getStart());
-      Log.write(" to "); Log.writeln(limit);
-      Log.write("BumpPointergcspyGatherData scan from "); Log.writeln(initialRegion);
+      Log.write("\nBumpPointer.gcspyGatherData set Range ", scanSpace.getStart());
+      Log.write(" to ", limit);
+      Log.writeln("BumpPointergcspyGatherData scan from ", initialRegion);
     }
 
     linearScan(driver.getScanner());
@@ -643,10 +643,10 @@ import org.vmmagic.unboxed.Word;
    * Print out the status of the allocator (for debugging)
    */
   public final void show() {
-    Log.write("cursor = "); Log.write(cursor);
+    Log.write("cursor = ", cursor);
     if (allowScanning) {
-      Log.write(" region = "); Log.write(region);
+      Log.write(" region = ", region);
     }
-    Log.write(" limit = "); Log.writeln(limit);
+    Log.writeln(" limit = ", limit);
   }
 }

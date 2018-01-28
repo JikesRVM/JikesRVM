@@ -49,7 +49,8 @@ import org.vmmagic.unboxed.Address;
       server = sysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose ? 1 : 0);
 
       if (DEBUG) {
-        Log.writeln("gcspy_main_server_t address = "); Log.writeln(server);
+        Log.writeln("gcspy_main_server_t address = ");
+        Log.writeln(server);
       }
 
       GCspy.util.free(tmp);

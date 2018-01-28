@@ -363,10 +363,10 @@ import org.vmmagic.unboxed.Offset;
       if (offset.sLT(Offset.zero()) ||
           offset.sGT(Offset.fromIntZeroExtend(ObjectModel.getObjectSize(code)))) {
         Log.writeln("ERROR: Suspiciously large offset of interior pointer from object base");
-        Log.write("       object base = "); Log.writeln(code);
-        Log.write("       interior reference = "); Log.writeln(ip);
-        Log.write("       offset = "); Log.writeln(offset);
-        Log.write("       interior ref loc = "); Log.writeln(ipLoc);
+        Log.writeln("       object base = ", code);
+        Log.writeln("       interior reference = ", ip);
+        Log.writeln("       offset = ", offset);
+        Log.writeln("       interior ref loc = ", ipLoc);
         if (!failed) failed = true;
       }
     }
@@ -559,8 +559,8 @@ import org.vmmagic.unboxed.Offset;
       Address returnAddressLoc = Magic.getReturnAddressLocation(prevFp);
       Address returnAddress = returnAddressLoc.loadAddress();
       if (verbosity >= 4) {
-        Log.write("--- Processing return address "); Log.write(returnAddress);
-        Log.write(" located at "); Log.writeln(returnAddressLoc);
+        Log.write("--- Processing return address ", returnAddress);
+        Log.writeln(" located at ", returnAddressLoc);
       }
       /* skip boot image code, as it is not (cannot be) moved */
       if (!DebugUtil.addrInBootImage(returnAddress))
@@ -626,10 +626,11 @@ import org.vmmagic.unboxed.Offset;
    * performing the scan.
    */
   private void dumpTopFrameInfo(int verbosity) {
-    Log.write("   topFrame = "); Log.writeln(topFrame);
-    Log.write("         ip = "); Log.writeln(ip);
-    Log.write("         fp = "); Log.writeln(fp);
-    Log.write("  registers.ip = "); Log.writeln(thread.getContextRegisters().getIP());
+    Log.writeln("   topFrame = ", topFrame);
+    Log.writeln("         ip = ", ip);
+    Log.writeln("         fp = ", fp);
+    Log.write("  registers.ip = ");
+    Log.writeln(thread.getContextRegisters().getIP());
     if (verbosity >= 3 && thread.getJNIEnv() != null)
       thread.getJNIEnv().dumpJniRefsStack();
   }
@@ -645,7 +646,8 @@ import org.vmmagic.unboxed.Offset;
     ObjectReference ref = refaddr.loadObjectReference();
     VM.sysWrite(refaddr);
     if (verbosity >= 5) {
-      VM.sysWrite(":"); MemoryManager.dumpRef(ref);
+      VM.sysWrite(":");
+      MemoryManager.dumpRef(ref);
     } else
       VM.sysWriteln();
   }
@@ -664,7 +666,10 @@ import org.vmmagic.unboxed.Offset;
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning stack");
       printMethodHeader();
-      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
+      Log.write(refaddr);
+      Log.write(":");
+      Log.flush();
+      MemoryManager.dumpRef(ref);
       dumpStackFrame(verbosity);
       Log.writeln();
       Log.writeln("Dumping stack starting at frame with bad ref:");
@@ -682,8 +687,13 @@ import org.vmmagic.unboxed.Offset;
            !addr.isZero();
            addr = iterator.getNextReferenceAddress()) {
         ObjectReference ref2 = addr.loadObjectReference();
-        Log.write("Iterator "); Log.write(i++); Log.write(": "); Log.write(addr);
-        Log.write(": "); Log.flush(); MemoryManager.dumpRef(ref2);
+        Log.write("Iterator ");
+        Log.write(i++);
+        Log.write(": ");
+        Log.write(addr);
+        Log.write(": ");
+        Log.flush();
+        MemoryManager.dumpRef(ref2);
       }
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
@@ -700,7 +710,10 @@ import org.vmmagic.unboxed.Offset;
     if (!MemoryManager.validRef(ref)) {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning stack");
-      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
+      Log.write(refaddr);
+      Log.write(":");
+      Log.flush();
+      MemoryManager.dumpRef(ref);
       Log.writeln();
       Log.writeln("Dumping stack:");
       RVMThread.dumpStack();
@@ -713,8 +726,10 @@ import org.vmmagic.unboxed.Offset;
    * @param m The method to be printed
    */
   private void printMethod(RVMMethod m) {
-    Log.write(m.getMemberRef().getType().getName().toByteArray()); Log.write(".");
-    Log.write(m.getMemberRef().getName().toByteArray()); Log.write(" ");
+    Log.write(m.getMemberRef().getType().getName().toByteArray());
+    Log.write(".");
+    Log.write(m.getMemberRef().getName().toByteArray());
+    Log.write(" ");
     Log.write(m.getMemberRef().getDescriptor().toByteArray());
   }
 
@@ -772,7 +787,8 @@ import org.vmmagic.unboxed.Offset;
     }
 
     for (Address loc = start; loc.LT(end); loc = loc.plus(BYTES_IN_ADDRESS)) {
-      Log.write(loc); Log.write(" (");
+      Log.write(loc);
+      Log.write(" (");
       Log.write(loc.diff(start));
       Log.write("):   ");
       ObjectReference value = Selected.Plan.get().loadObjectReference(loc);

@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
 import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.CALL_SAVE_VOLATILE;
@@ -48,8 +49,10 @@ import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STFS;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STMW;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_STW;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC_TAddr;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.CONDITION_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.SPECIAL_REG;
 import static org.jikesrvm.ppc.RegisterConstants.FIRST_SCRATCH_GPR;
 import static org.jikesrvm.ppc.RegisterConstants.LAST_SCRATCH_GPR;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
@@ -87,6 +90,7 @@ import org.jikesrvm.compilers.opt.ir.ppc.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.Bits;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -124,7 +128,7 @@ public final class StackManager extends GenericStackManager {
    */
   @Override
   public int allocateNewSpillLocation(int type) {
-    int spillSize = PhysicalRegisterSet.getSpillSize(type);
+    int spillSize = getSpillSize(type);
 
     // Naturally align the spill pointer
     spillPointer = align(spillPointer, spillSize);
@@ -136,6 +140,23 @@ public final class StackManager extends GenericStackManager {
       frameSize = spillPointer;
     }
     return spillPointer - spillSize;
+  }
+
+  /**
+   * Gets the spill size for a register with a particular type
+   * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
+   * @return the spill size in bytes
+   */
+  @Override
+  public int getSpillSize(int type) {
+    if (VM.VerifyAssertions) {
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == CONDITION_REG) || (type == SPECIAL_REG));
+    }
+    if (type == DOUBLE_REG) {
+      return BYTES_IN_DOUBLE;
+    } else {
+      return BYTES_IN_ADDRESS;
+    }
   }
 
   /**
@@ -195,14 +216,14 @@ public final class StackManager extends GenericStackManager {
    * @param location the spill location
    */
   @Override
-  public void insertSpillBefore(Instruction s, Register r, byte type, int location) {
+  public void insertSpillBefore(Instruction s, Register r, Register type, int location) {
 
     Register FP = ir.regpool.getPhysicalRegisterSet().getFP();
-    if (type == FLOAT_VALUE) {
+    if (type.isFloat()) {
       s.insertBefore(MIR_Store.create(PPC_STFS, F(r), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
-    } else if (type == DOUBLE_VALUE) {
+    } else if (type.isDouble()) {
       s.insertBefore(MIR_Store.create(PPC_STFD, D(r), A(FP), IC(location)));
-    } else if (type == INT_VALUE) {      // integer or half of long
+    } else if (type.isNatural()) {      // integer or half of long
       s.insertBefore(MIR_Store.create(PPC_STAddr, A(r), A(FP), IC(location)));
     } else {
       throw new OptimizingCompilerException("insertSpillBefore", "unsupported type " + type);
@@ -234,17 +255,17 @@ public final class StackManager extends GenericStackManager {
    * @param location the spill location
    */
   @Override
-  public void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
+  public void insertUnspillBefore(Instruction s, Register r, Register type, int location) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asPPC();
     Register FP = phys.getFP();
-    if (type == CONDITION_VALUE) {
+    if (type.isCondition()) {
       Register temp = phys.getTemp();
       s.insertBefore(MIR_Load.create(PPC_LWZ, I(temp), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_INT)));
-    } else if (type == DOUBLE_VALUE) {
+    } else if (type.isDouble()) {
       s.insertBefore(MIR_Load.create(PPC_LFD, D(r), A(FP), IC(location)));
-    } else if (type == FLOAT_VALUE) {
+    } else if (type.isFloat()) {
       s.insertBefore(MIR_Load.create(PPC_LFS, F(r), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
-    } else if (type == INT_VALUE) { // integer or half of long
+    } else if (type.isNatural()) { // integer or half of long
       s.insertBefore(MIR_Load.create(PPC_LAddr, A(r), A(FP), IC(location)));
     } else {
       throw new OptimizingCompilerException("insertUnspillBefore", "unknown type:" + type);
@@ -734,6 +755,11 @@ public final class StackManager extends GenericStackManager {
     frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
   }
 
+  @Override
+  protected void verifyArchSpecificFrameSizeConstraints(int frameSize) {
+    if (VM.VerifyAssertions) opt_assert(Bits.fits(frameSize, 16));
+  }
+
   /**
    * Walk over the currently available scratch registers.
    *
@@ -756,7 +782,7 @@ public final class StackManager extends GenericStackManager {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
 
-      if (scratch.currentContents == null) continue;
+      if (scratch.getCurrentContents() == null) continue;
       if (VERBOSE_DEBUG) {
         System.out.println("RESTORE: consider " + scratch);
       }
@@ -776,12 +802,12 @@ public final class StackManager extends GenericStackManager {
           System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
-        Register scratchContents = scratch.currentContents;
+        Register scratchContents = scratch.getCurrentContents();
         if (scratchContents != null) {
           if (VERBOSE_DEBUG) {
-            System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
+            System.out.println("RSRB: End symbolic interval " + scratch.getCurrentContents() + " " + s);
           }
-          scratchMap.endSymbolicInterval(scratch.currentContents, s);
+          scratchMap.endSymbolicInterval(scratch.getCurrentContents(), s);
         }
 
         i.remove();
@@ -789,7 +815,7 @@ public final class StackManager extends GenericStackManager {
         unloaded = true;
       }
 
-      if (usedIn(scratch.scratch, s) || !isLegal(scratch.currentContents, scratch.scratch, s)) {
+      if (usedIn(scratch.scratch, s) || !isLegal(scratch.getCurrentContents(), scratch.scratch, s)) {
         // first spill the currents contents of the scratch register to
         // memory
         if (!unloaded) {
@@ -803,12 +829,12 @@ public final class StackManager extends GenericStackManager {
             System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
-          Register scratchContents = scratch.currentContents;
+          Register scratchContents = scratch.getCurrentContents();
           if (scratchContents != null) {
             if (VERBOSE_DEBUG) {
-              System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
+              System.out.println("RSRB2: End symbolic interval " + scratch.getCurrentContents() + " " + s);
             }
-            scratchMap.endSymbolicInterval(scratch.currentContents, s);
+            scratchMap.endSymbolicInterval(scratch.getCurrentContents(), s);
           }
 
         }

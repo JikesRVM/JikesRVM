@@ -96,7 +96,7 @@ public class TableBasedDynamicLinker {
       if (NEEDS_DYNAMIC_LINK != 0) {
         java.util.Arrays.fill(tmp1, oldLen, tmp1.length, NEEDS_DYNAMIC_LINK);
       }
-      Magic.sync(); // be sure array initialization is visible before we publish the reference!
+      Magic.fence(); // be sure array initialization is visible before we publish the reference!
       memberOffsets = tmp1;
     }
   }

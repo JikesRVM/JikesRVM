@@ -45,11 +45,8 @@ import static org.jikesrvm.ia32.RegisterConstants.XMM2;
 import static org.jikesrvm.ia32.RegisterConstants.XMM3;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_BODY_OFFSET;
-import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_BYTES;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.compilers.common.CodeArray;
@@ -100,30 +97,37 @@ public abstract class OutOfLineMachineCode {
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEAXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEBXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkECXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEDXInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEBPInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkESIInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
   // Accessed via field array above
+  @Entrypoint
   private static CodeArray pcThunkEDIInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
@@ -569,16 +573,6 @@ public abstract class OutOfLineMachineCode {
   private static CodeArray generateStackTrampolineBridgeInstructions() {
     if (VM.VerifyAssertions) {
       VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
-    }
-
-    // NYI: 64-bit version. Do not use an assertion here because a failing assertion
-    // would fail the bootimage build on x64. Return barriers are currently
-    // optional. Therefore, just crash the VM if the code ever gets executed on
-    // x64.
-    if (VM.BuildFor64Addr) {
-      Assembler asm = new Assembler(0);
-      asm.emitINT_Imm(TRAP_UNKNOWN + RVM_TRAP_BASE);
-      return asm.getMachineCodes();
     }
 
     Assembler asm = new Assembler(0);

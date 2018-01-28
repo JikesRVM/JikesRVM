@@ -26,6 +26,8 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.runtime.Magic;
+import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.NonMovingAllocation;
 
 /**
  * Runtime system support for using invocation counters in baseline
@@ -36,9 +38,11 @@ import org.jikesrvm.runtime.Magic;
  */
 public final class InvocationCounts {
 
+  @Entrypoint
   private static int[] counts;
   private static boolean[] processed;
 
+  @NonMovingAllocation
   public static synchronized void allocateCounter(int id) {
     if (counts == null) {
       counts = new int[id + 500];
@@ -51,7 +55,7 @@ public final class InvocationCounts {
       System.arraycopy(counts, 0, tmp, 0, counts.length);
       boolean[] tmp2 = new boolean[newSize];
       System.arraycopy(processed, 0, tmp2, 0, processed.length);
-      Magic.sync();
+      Magic.fence();
       counts = tmp;
       processed = tmp2;
     }
@@ -64,6 +68,7 @@ public final class InvocationCounts {
    *
    * @param id the compiled method id
    */
+  @Entrypoint
   static synchronized void counterTripped(int id) {
     counts[id] = 0x7fffffff; // set counter to max int to avoid lots of redundant calls.
     if (processed[id]) return;

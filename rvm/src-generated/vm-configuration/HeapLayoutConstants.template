@@ -12,6 +12,7 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.architecture.BootImageSize.*;
 import org.vmmagic.unboxed.*;
 
 /**
@@ -60,7 +61,7 @@ public final class HeapLayoutConstants {
    * is not set and the boot image data size is greater than or equal to this amount
    * of bytes.
    */
-  public static final int BOOT_IMAGE_DATA_SIZE_LIMIT = 56 << 20;
+  public static final int BOOT_IMAGE_DATA_SIZE_LIMIT = (int) (1.0f * (56 << 20) * dataSizeAdjustment());
 
   /**
    * Limit for boot image code size: fail the build if
@@ -68,7 +69,7 @@ public final class HeapLayoutConstants {
    * is not set and the boot image code size is greater than or equal to this amount
    * of bytes.
    */
-  public static final int BOOT_IMAGE_CODE_SIZE_LIMIT = 24 << 20;
+  public static final int BOOT_IMAGE_CODE_SIZE_LIMIT = (int) (1.0f * (24 << 20) * codeSizeAdjustment());
 
   /* Typical compression ratio is about 1/20 */
   public static final int BAD_MAP_COMPRESSION = 5;  // conservative heuristic

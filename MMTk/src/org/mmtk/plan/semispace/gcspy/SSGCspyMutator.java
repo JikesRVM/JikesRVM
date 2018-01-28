@@ -175,7 +175,8 @@ import org.vmmagic.unboxed.*;
         else
           Log.write("\nMutator Examining Highspace (event ", event);
         Log.write(")");
-        SSGCspy.reportSpaces(); Log.writeln();
+        SSGCspy.reportSpaces();
+        Log.writeln();
       }
 
       if (event == SSGCspy.BEFORE_COLLECTION) {
@@ -304,7 +305,8 @@ import org.vmmagic.unboxed.*;
     // We want to do this at every GCspy event
     if (DEBUG) {
       Log.write("SSGCspyMutator.gcspyGatherData: gather data for immortal space ");
-      Log.write(SSGCspy.immortalSpace.getStart()); Log.writeln("-",immortal.getCursor());
+      Log.write(SSGCspy.immortalSpace.getStart());
+      Log.writeln("-", immortal.getCursor());
     }
     SSGCspy.immortalDriver.resetData();
     immortal.gcspyGatherData(SSGCspy.immortalDriver);
@@ -317,11 +319,17 @@ import org.vmmagic.unboxed.*;
    */
   private void debugSpaces(CopySpace scannedSpace) {
     Log.write("SSGCspyMutator.gcspyGatherData: gather data for active semispace ");
-    Log.write(scannedSpace.getStart()); Log.write("-",ss.getCursor()); Log.flush();
-    Log.write(". The space is: "); Log.writeln(ss.getSpace().getName());
-    Log.write("scannedSpace is "); Log.writeln(scannedSpace.getName());
-    Log.write("The range is "); Log.write(ss.getSpace().getStart());
-    Log.write(" to "); Log.writeln(ss.getCursor());
+    Log.write(scannedSpace.getStart());
+    Log.write("-",ss.getCursor());
+    Log.flush();
+    Log.write(". The space is: ");
+    Log.writeln(ss.getSpace().getName());
+    Log.write("scannedSpace is ");
+    Log.writeln(scannedSpace.getName());
+    Log.write("The range is ");
+    Log.write(ss.getSpace().getStart());
+    Log.write(" to ");
+    Log.writeln(ss.getCursor());
     SSGCspy.reportSpaces();
   }
 

@@ -39,13 +39,11 @@ import static org.jikesrvm.osr.OSRConstants.ReturnAddressTypeCode;
 import static org.jikesrvm.osr.OSRConstants.STACK;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
+import org.jikesrvm.compilers.baseline.ia32.ArchBaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.osr.BytecodeTraverser;
@@ -117,7 +115,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
       VM._assert(fooCmid == cmid);
     }
 
-    BaselineCompiledMethod fooCM = (BaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
+    ArchBaselineCompiledMethod fooCM = (ArchBaselineCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
 
     NormalMethod fooM = (NormalMethod) fooCM.getMethod();
 
@@ -159,16 +157,17 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
     byte[] stackTypes = typer.getStackTypes();
 
     if (VM.TraceOnStackReplacement) {
-      VM.sysWrite("BC Index : " + bcIndex + "\n");
+      VM.sysWriteln("BC Index : " + bcIndex);
       VM.sysWrite("Local Types :");
       for (byte localType : localTypes) {
         VM.sysWrite(" " + (char) localType);
       }
-      VM.sysWrite("\nStack Types :");
+      VM.sysWriteln();
+      VM.sysWrite("Stack Types :");
       for (byte stackType : stackTypes) {
         VM.sysWrite(" " + (char) stackType);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // consult GC reference map again since the type matcher does not complete
@@ -181,7 +180,8 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
         if (!fooCM.referenceMaps.isLocalRefType(fooM, ipOffset.plus(1 << LG_INSTRUCTION_WIDTH), i)) {
           localTypes[i] = VoidTypeCode;
           if (VM.TraceOnStackReplacement) {
-            VM.sysWriteln("GC maps disagrees with type matcher at " + i + "th local\n");
+            VM.sysWriteln("GC maps disagrees with type matcher at " + i + "th local");
+            VM.sysWriteln();
           }
         }
       }
@@ -215,7 +215,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
 
   /* go over local/stack array, and build VariableElement. */
   private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
-                                       BaselineCompiledMethod compiledMethod, boolean kind, ExecutionState state) {
+                                       ArchBaselineCompiledMethod compiledMethod, boolean kind, ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {
@@ -241,7 +241,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
         case CharTypeCode:
         case IntTypeCode:
         case FloatTypeCode: {
-          int value = Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_INT));
+          int value = Magic.getIntAtOffset(stack, vOffset.minus(BYTES_IN_STACKSLOT));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
           byte tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
@@ -252,9 +252,8 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
         case LongTypeCode:
         case DoubleTypeCode: {
           //KV: this code would be nicer if VoidTypeCode would always follow a 64-bit value. Rigth now for LOCAL it follows, for STACK it proceeds
-          Offset memoff =
-              (kind == LOCAL) ? vOffset.minus(BYTES_IN_DOUBLE) : VM.BuildFor64Addr ? vOffset : vOffset.minus(
-                  BYTES_IN_STACKSLOT);
+          Offset memoff = (kind == LOCAL) ? vOffset.minus(2 * BYTES_IN_STACKSLOT) : vOffset.minus(BYTES_IN_STACKSLOT);
+
           long value = Magic.getLongAtOffset(stack, memoff);
 
           byte tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
@@ -286,7 +285,7 @@ public final class BaselineExecutionStateExtractor extends ExecutionStateExtract
           int bcIndex = compiledMethod.findBytecodeIndexForInstruction(ipOffset.plus(INSTRUCTION_WIDTH));
 
           if (VM.TraceOnStackReplacement) {
-            VM.sysWrite(" bc " + bcIndex + "\n");
+            VM.sysWriteln(" bc " + bcIndex);
           }
 
           state.add(new VariableElement(kind, i, RET_ADDR, bcIndex));

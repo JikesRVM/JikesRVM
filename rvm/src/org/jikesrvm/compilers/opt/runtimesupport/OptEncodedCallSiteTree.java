@@ -36,7 +36,11 @@ import org.vmmagic.pragma.Uninterruptible;
  * </pre>
  */
 @Uninterruptible
-public abstract class OptEncodedCallSiteTree {
+public final class OptEncodedCallSiteTree {
+
+  private OptEncodedCallSiteTree() {
+    // no instantiation
+  }
 
   public static int getMethodID(int entryOffset, int[] encoding) {
     return encoding[entryOffset + 1];

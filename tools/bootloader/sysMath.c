@@ -18,6 +18,10 @@
 #include <stdlib.h> // strtod, exit
 #include <errno.h> // errno
 
+#ifdef __x86_64__
+#include <emmintrin.h>
+#endif
+
 double maxlong = 0.5 + (double)0x7fffffffffffffffLL;
 double maxint  = 0.5 + (double)0x7fffffff;
 
@@ -330,4 +334,15 @@ EXTERNAL double sysVMMathLog10(double a) {
 EXTERNAL double sysVMMathLog1p(double a) {
   TRACE_PRINTF("%s: sysVMMathLog1p %f\n", Me, a);
   return log1p(a);
+}
+
+EXTERNAL void sysStackAlignmentTest() {
+  TRACE_PRINTF("StackAlignmentTest\n");
+#ifdef __x86_64__
+#ifndef __SSE2__
+#error "x64 builds must have SSE2 enabled"
+#endif
+  asm volatile("movapd (%rsp), %XMM0");
+#endif
+// Tests for platforms other than x64 are currently not implemented
 }

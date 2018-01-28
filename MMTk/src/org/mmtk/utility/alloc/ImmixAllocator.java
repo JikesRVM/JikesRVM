@@ -235,14 +235,14 @@ public class ImmixAllocator extends Allocator {
           Address tmp = cursor;
           while (tmp.LT(limit)) {
             if (tmp.loadByte() != (byte) 0) {
-              Log.write("cursor: "); Log.writeln(cursor);
-              Log.write(" limit: "); Log.writeln(limit);
-              Log.write("current: "); Log.write(tmp);
-              Log.write("  value: "); Log.write(tmp.loadByte());
-              Log.write("   line: "); Log.write(line);
-              Log.write("endline: "); Log.write(endLine);
-              Log.write("  chunk: "); Log.write(Chunk.align(cursor));
-              Log.write("     hw: "); Log.write(Chunk.getHighWater(Chunk.align(cursor)));
+              Log.writeln("cursor: ", cursor);
+              Log.writeln(" limit: ", limit);
+              Log.write("current: ", tmp);
+              Log.write("  value: ", tmp.loadByte());
+              Log.write("   line: ", line);
+              Log.write("endline: ", endLine);
+              Log.write("  chunk: ", Chunk.align(cursor));
+              Log.write("     hw: ", Chunk.getHighWater(Chunk.align(cursor)));
               Log.writeln(" values: ");
               Address tmp2 = cursor;
               while (tmp2.LT(limit)) {
@@ -262,7 +262,9 @@ public class ImmixAllocator extends Allocator {
         }
         VM.memory.zero(false, cursor, limit.diff(cursor).toWord().toExtent());
         if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-          Log.write("Z["); Log.write(cursor); Log.write("->"); Log.write(limit); Log.writeln("]");
+          Log.write("Z[", cursor);
+          Log.write("->", limit);
+          Log.writeln("]");
         }
 
         line = endLine;
@@ -336,7 +338,7 @@ public class ImmixAllocator extends Allocator {
    * Print out the status of the allocator (for debugging)
    */
   public final void show() {
-    Log.write("cursor = "); Log.write(cursor);
-    Log.write(" limit = "); Log.writeln(limit);
+    Log.write("cursor = ", cursor);
+    Log.writeln(" limit = ", limit);
   }
 }

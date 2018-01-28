@@ -179,8 +179,10 @@ import org.vmmagic.unboxed.*;
       // Heap size is going to change
       currentHeapSize = newSize;
       if (Options.verbose.getValue() >= 2) {
-        Log.write("GC Message: Heap changed from "); Log.writeDec(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE));
-        Log.write("KB to "); Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE));
+        Log.write("GC Message: Heap changed from ");
+        Log.writeDec(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE));
+        Log.write("KB to ");
+        Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE));
         Log.writeln("KB");
       }
       VM.events.heapSizeChanged(currentHeapSize);
@@ -206,22 +208,29 @@ import org.vmmagic.unboxed.*;
       if (gcLoad > 1.0001) {
         Log.write("GC Error: GC load was greater than 1!! ");
         Log.writeln(gcLoad);
-        Log.write("GC Error:\ttotal time (ms) "); Log.writeln(totalTime);
-        Log.write("GC Error:\tgc time (ms) "); Log.writeln(accumulatedGCTime);
+        Log.write("GC Error:\ttotal time (ms) ");
+        Log.writeln(totalTime);
+        Log.write("GC Error:\tgc time (ms) ");
+        Log.writeln(accumulatedGCTime);
       }
       gcLoad = 1;
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio >= 0);
     if (VM.VERIFY_ASSERTIONS && gcLoad < -0.0) {
-      Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
-      Log.write("\taccumulateGCTime was (ms) "); Log.writeln(accumulatedGCTime);
-      Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);
+      Log.write("gcLoad computed to be ");
+      Log.writeln(gcLoad);
+      Log.write("\taccumulateGCTime was (ms) ");
+      Log.writeln(accumulatedGCTime);
+      Log.write("\ttotalTime was (ms) ");
+      Log.writeln(totalTime);
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     }
 
     if (Options.verbose.getValue() > 2) {
-      Log.write("Live ratio "); Log.writeln(liveRatio);
-      Log.write("GCLoad     "); Log.writeln(gcLoad);
+      Log.write("Live ratio ");
+      Log.writeln(liveRatio);
+      Log.write("GCLoad     ");
+      Log.writeln(gcLoad);
     }
 
     // (2) Find the 4 points surrounding gcLoad and liveRatio

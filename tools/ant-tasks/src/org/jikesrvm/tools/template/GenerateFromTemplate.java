@@ -266,14 +266,12 @@ public class GenerateFromTemplate {
       GenerateFromTemplate gft = new GenerateFromTemplate(inStream, outStream);
       gft.setSubst(vars, vals);
       gft.generateOutputFromTemplate();
-    // } catch (IOException e) {
-    //   System.out.println("An error occurred: "+e);
     } finally {
       try {
         inStream.close();
         outStream.close();
       } catch (Exception ignore) {
-        // ignored because there's nothing that can be done here
+        ignore.printStackTrace();
       }
     }
   }
@@ -311,8 +309,10 @@ public class GenerateFromTemplate {
         Vector<Object> region = buildTemplateRegion(inLine);
         processTemplateRegion(region);
       }
+      in.close();
     } finally {
       out.flush();
+      out.close();
     }
   }
 
@@ -868,8 +868,11 @@ public class GenerateFromTemplate {
 //    pst.wordChars('a', 'z'); pst.wordChars('A', 'Z');
 //    pst.wordChars(128 + 32, 255);
 //    pst.quoteChar('"'); pst.quoteChar('\'');
-    pst.ordinaryChar('-'); pst.ordinaryChar('/'); pst.ordinaryChar('*');
-    pst.wordChars('@','@'); pst.wordChars('_', '_');
+    pst.ordinaryChar('-');
+    pst.ordinaryChar('/');
+    pst.ordinaryChar('*');
+    pst.wordChars('@','@');
+    pst.wordChars('_', '_');
     int tok = pst.nextToken();
     if (tok != StreamTokenizer.TT_WORD)
        throw new IOException("Missing var name in LET");
@@ -1020,6 +1023,7 @@ public class GenerateFromTemplate {
       Vector<Object> newRegion = buildTemplateRegion(inLine);
       processTemplateRegion(newRegion);
     }
+    in.close();
 
     in = old_in;
   }

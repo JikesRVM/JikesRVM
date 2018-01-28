@@ -641,22 +641,22 @@ public abstract class Operand {
     if (op1 == op2) {
       if (DBG_OPERAND_LATTICE) {
         if (op2 == null) {
-          VM.sysWrite("operands are both bottom therefore trivially true\n");
+          VM.sysWriteln("operands are both bottom therefore trivially true");
         } else {
-          VM.sysWrite("operands are identical therefore trivially true\n");
+          VM.sysWriteln("operands are identical therefore trivially true");
         }
       }
       return true;
     }
     if (op1 == null) {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("op1 is bottom, therefore trivially true\n");
+        VM.sysWriteln("op1 is bottom, therefore trivially true");
       }
       return true;
     }
     if (op2 == null) {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("op2 is bottom, therefore trivially false\n");
+        VM.sysWriteln("op2 is bottom, therefore trivially false");
       }
       return false;
     }
@@ -667,12 +667,12 @@ public abstract class Operand {
     if (op1.isConstant()) {
       if (op1.similar(op2)) {
         if (DBG_OPERAND_LATTICE) {
-          VM.sysWrite("operands are similar constants\n");
+          VM.sysWriteln("operands are similar constants");
         }
         return true;
       } else {
         if (DBG_OPERAND_LATTICE) {
-          VM.sysWrite("op1 is a constant but op2 is not the same constant\n");
+          VM.sysWriteln("op1 is a constant but op2 is not the same constant");
         }
         return false;
       }
@@ -690,17 +690,17 @@ public abstract class Operand {
         if (type1 == type2) {
           if (rop1.hasLessConservativeFlags(rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Operands are registers of identical type, but incompatible flags\n");
+              VM.sysWriteln("Operands are registers of identical type, but incompatible flags");
             }
             return false;
           } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Operands are registers of identical type, but with incompatible non-null guards\n");
+              VM.sysWriteln("Operands are registers of identical type, but with incompatible non-null guards");
             }
             return false;
           } else {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Operands are compatible register operands\n");
+              VM.sysWriteln("Operands are compatible register operands");
             }
             return true;
           }
@@ -709,23 +709,23 @@ public abstract class Operand {
           // types are ok, only have to worry about the flags
           if (rop1.isPreciseType() || rop1.hasLessConservativeFlags(rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Flag mismatch between type compatible register operands\n");
+              VM.sysWriteln("Flag mismatch between type compatible register operands");
             }
             return false;
           } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Non-null guard mismatch between type compatible register operands\n");
+              VM.sysWriteln("Non-null guard mismatch between type compatible register operands");
             }
             return false;
           } else {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Operands are compatible register operands\n");
+              VM.sysWriteln("Operands are compatible register operands");
             }
             return true;
           }
         } else {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Operands are type incompatible register operands\n");
+            VM.sysWriteln("Operands are type incompatible register operands");
           }
           return false;
         }
@@ -733,7 +733,7 @@ public abstract class Operand {
         // op2 is not a register
         if (op2 instanceof ReturnAddressOperand || op2 == BC2IR.DUMMY) {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Operands are incompatibale values\n");
+            VM.sysWriteln("Operands are incompatibale values");
           }
           return false;
         }
@@ -745,7 +745,7 @@ public abstract class Operand {
           // only have to consider state of op1's flags.  Types are ok.
           if (rop1.isPreciseType() && (type1 != type2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("op1 preciseType bit will be incorrect\n");
+              VM.sysWriteln("op1 preciseType bit will be incorrect");
             }
             return false;
           }
@@ -755,17 +755,17 @@ public abstract class Operand {
                (type2.isWordLikeType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("op1 non null guard will be incorrect");
+              VM.sysWriteln("op1 non null guard will be incorrect");
             }
             return false;
           }
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("(Constant) op2 was compatible with register op1\n");
+            VM.sysWriteln("(Constant) op2 was compatible with register op1");
           }
           return true;
         } else {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Op2 not compatible with register op1\n");
+            VM.sysWriteln("Op2 not compatible with register op1");
           }
           return false;
         }
@@ -775,12 +775,12 @@ public abstract class Operand {
     // Step 4: op1 is a IRGEN operand of some form
     if (op1.similar(op2)) {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("Compatible BC2IR.* operands\n");
+        VM.sysWriteln("Compatible BC2IR.* operands");
       }
       return true;
     } else {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("Incompatible BC2IR.* operands\n");
+        VM.sysWriteln("Incompatible BC2IR.* operands");
       }
       return false;
     }
@@ -819,22 +819,22 @@ public abstract class Operand {
     if (op1 == op2) {
       if (DBG_OPERAND_LATTICE) {
         if (op1 == null) {
-          VM.sysWrite("Both operands are bottom\n");
+          VM.sysWriteln("Both operands are bottom");
         } else {
-          VM.sysWrite("Operands are identical\n");
+          VM.sysWriteln("Operands are identical");
         }
       }
       return op1;
     }
     if (op1 == null) {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("Op1 was already bottom\n");
+        VM.sysWriteln("Op1 was already bottom");
       }
       return op1;
     }
     if (op2 == null) {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("Op2 is bottom (but op1 was not)\n");
+        VM.sysWriteln("Op2 is bottom (but op1 was not)");
       }
       return op2;
     }
@@ -845,7 +845,7 @@ public abstract class Operand {
     if (op1 instanceof NullConstantOperand) {
       if (op2 instanceof NullConstantOperand) {
         if (DBG_OPERAND_LATTICE) {
-          VM.sysWrite("Both operands are <null>\n");
+          VM.sysWriteln("Both operands are <null>");
         }
         return op1;
       } else {
@@ -861,19 +861,19 @@ public abstract class Operand {
          */
         if (op2 instanceof ReturnAddressOperand || op2 == BC2IR.DUMMY) {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Incompatabily typed operands");
+            VM.sysWriteln("Incompatabily typed operands");
           }
           return null; // bottom
         }
         TypeReference type2 = op2.getType();
         if (type2.isReferenceType()) {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("op1 is <null>, but op2 is other ref type\n");
+            VM.sysWriteln("op1 is <null>, but op2 is other ref type");
           }
           return new RegisterOperand(reg, type2);
         } else {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("op1 is <null>, but op2 is not a ref type\n");
+            VM.sysWriteln("op1 is <null>, but op2 is not a ref type");
           }
           return null; // bottom
         }
@@ -884,14 +884,14 @@ public abstract class Operand {
     if (op1.isConstant()) {
       if (op1.similar(op2)) {
         if (DBG_OPERAND_LATTICE) {
-          VM.sysWrite("op1 and op2 are similar constants\n");
+          VM.sysWriteln("op1 and op2 are similar constants");
         }
         return op1;
       } else {
         TypeReference superType = ClassLoaderProxy.findCommonSuperclass(op1.getType(), op2.getType());
         if (superType == null) {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("op1 and op2 have incompatible types\n");
+            VM.sysWriteln("op1 and op2 have incompatible types");
           }
           return null; // bottom
         } else {
@@ -911,11 +911,11 @@ public abstract class Operand {
         TypeReference type2 = rop2.getType();
         if (type1 == type2) {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Identically typed register operands, checking flags...");
+            VM.sysWriteln("Identically typed register operands, checking flags...");
           }
           if (rop1.hasLessConservativeFlags(rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("mismatch\n");
+              VM.sysWriteln("mismatch");
             }
             RegisterOperand res = new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
             if (rop1.getGuard() instanceof Operand &&
@@ -927,14 +927,14 @@ public abstract class Operand {
             return res;
           } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite(
-                  "Operands are registers of identical type with compatible flags but with incompatible non-null guards\n");
+              VM.sysWriteln(
+                  "Operands are registers of identical type with compatible flags but with incompatible non-null guards");
             }
             // by not setting guard we mark as possible null
             return new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
           } else {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("match\n");
+              VM.sysWriteln("match");
             }
             return op1;
           }
@@ -945,7 +945,7 @@ public abstract class Operand {
           }
           if (rop1.isPreciseType() || rop1.hasLessConservativeFlags(rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("mismatch\n");
+              VM.sysWriteln("mismatch");
             }
             RegisterOperand res = new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
             res.meetInheritableFlags(rop2);
@@ -961,28 +961,28 @@ public abstract class Operand {
             return res;
           } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Operands are registers of compatible type and flags but with incompatible non-null guards\n");
+              VM.sysWriteln("Operands are registers of compatible type and flags but with incompatible non-null guards");
             }
             return new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
           } else {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("match\n");
+              VM.sysWriteln("match");
             }
             return op1;
           }
         } else {
           if (DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Incompatibly typed register operands...(" + type1 + ", " + type2 + ")...");
+            VM.sysWriteln("Incompatibly typed register operands...(" + type1 + ", " + type2 + ")...");
           }
           TypeReference resType = ClassLoaderProxy.findCommonSuperclass(type1, type2);
           if (resType == null) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("no common supertype, returning bottom\n");
+              VM.sysWriteln("no common supertype, returning bottom");
             }
             return null; // bottom
           } else {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("found common supertype\n");
+              VM.sysWriteln("found common supertype");
             }
             RegisterOperand res = new RegisterOperand(reg, resType, rop1.getFlags(), false, false);
             res.meetInheritableFlags(rop2);
@@ -1026,9 +1026,9 @@ public abstract class Operand {
           }
           if (DBG_OPERAND_LATTICE) {
             if (res == rop1) {
-              VM.sysWrite("match\n");
+              VM.sysWriteln("match");
             } else {
-              VM.sysWrite("mismatch\n");
+              VM.sysWriteln("mismatch");
             }
           }
           return res;
@@ -1039,12 +1039,12 @@ public abstract class Operand {
           TypeReference resType = ClassLoaderProxy.findCommonSuperclass(type1, type2);
           if (resType == null) {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("no common supertype, returning bottom\n");
+              VM.sysWriteln("no common supertype, returning bottom");
             }
             return null; // bottom
           } else {
             if (DBG_OPERAND_LATTICE) {
-              VM.sysWrite("found common supertype\n");
+              VM.sysWriteln("found common supertype");
             }
             return new RegisterOperand(reg, resType);
           }
@@ -1055,12 +1055,12 @@ public abstract class Operand {
     // Step 5: op1 is some IRGEN operand
     if (op1.similar(op2)) {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("Compatible BC2IR.* operands\n");
+        VM.sysWriteln("Compatible BC2IR.* operands");
       }
       return op1;
     } else {
       if (DBG_OPERAND_LATTICE) {
-        VM.sysWrite("Incompatible BC2IR.* operands, returning bottom\n");
+        VM.sysWriteln("Incompatible BC2IR.* operands, returning bottom");
       }
       return null; // bottom
     }

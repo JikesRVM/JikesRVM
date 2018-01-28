@@ -132,6 +132,10 @@ public final class BootImageMap {
      */
     final Object jdkObject;
 
+    public Object getJdkObject() {
+      return jdkObject;
+    }
+
     /**
      * Address of corresponding rvm object in bootimage
      * (OBJECT_NOT_ALLOCATED --> hasn't been written to image yet)

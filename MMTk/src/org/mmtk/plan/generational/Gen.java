@@ -12,7 +12,7 @@
  */
 package org.mmtk.plan.generational;
 
-import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
+import static org.mmtk.utility.Conversions.pagesToBytes;
 
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
@@ -227,7 +227,7 @@ public abstract class Gen extends StopTheWorld {
     int availableNurseryPages = Options.nurserySize.getMaxNursery() - nurserySpace.reservedPages();
 
     /* periodically recalculate nursery pretenure threshold */
-    Plan.pretenureThreshold = (int) ((availableNurseryPages << LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+    Plan.pretenureThreshold = (int) (pagesToBytes(availableNurseryPages).toInt() * Options.pretenureThresholdFraction.getValue());
 
     if (availableNurseryPages <= 0) {
       return true;

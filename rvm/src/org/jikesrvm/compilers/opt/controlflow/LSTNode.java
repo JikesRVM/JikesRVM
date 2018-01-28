@@ -33,7 +33,7 @@ public class LSTNode extends SpaceEffGraphNode {
   /**
    * Basic blocks in the loop
    */
-  BitVector loop;
+  protected BitVector loop;
 
   /**
    * The depth of the loop
@@ -119,6 +119,10 @@ public class LSTNode extends SpaceEffGraphNode {
 
   public void addLoopExit(BasicBlock source, BasicBlock target, float prob) {
     loopExits.add(new Edge(source, target, prob));
+  }
+
+  void setLoop(BitVector loop) {
+    this.loop = loop;
   }
 
   static final class Edge {

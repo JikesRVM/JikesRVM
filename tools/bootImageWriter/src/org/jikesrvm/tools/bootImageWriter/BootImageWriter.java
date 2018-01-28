@@ -67,11 +67,11 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.SortedSet;
-import java.util.Stack;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.jikesrvm.VM;
@@ -104,6 +104,14 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.ClassNameComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.IdenticalComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.NonFinalReferenceDensityComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.NumberOfNonFinalReferencesComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.NumberOfReferencesComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.ObjectSizeComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.ReferenceDensityComparator;
+import org.jikesrvm.tools.bootImageWriter.entrycomparators.TypeReferenceComparator;
 import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -277,198 +285,6 @@ public class BootImageWriter {
   }
 
   /**
-   * Comparator that always says entries are equivalent. For use when
-   * comparator defers to another comparator.
-   */
-  private static final class IdenticalComparator implements Comparator<BootImageMap.Entry> {
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      return 0;
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the type
-   * reference ID.
-   */
-  private static final class TypeReferenceComparator implements Comparator<BootImageMap.Entry> {
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      return aRef.getId() - bRef.getId();
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the name of the
-   * classes.
-   */
-  private static final class ClassNameComparator implements Comparator<BootImageMap.Entry> {
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      return b.jdkObject.getClass().toString().compareTo(a.jdkObject.getClass().toString());
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the size of
-   * the objects.
-   */
-  private static final class ObjectSizeComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    ObjectSizeComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return -1;
-      } else if (!bRef.isResolved()) {
-        return 1;
-      } else {
-        int aSize = getSize(aRef.peekType(), a.jdkObject);
-        int bSize = getSize(bRef.peekType(), b.jdkObject);
-        if (aSize == bSize) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return aSize - bSize;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the number of
-   * references within the objects.
-   */
-  private static final class NumberOfReferencesComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    NumberOfReferencesComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        int aSize = getNumberOfReferences(aRef.peekType(), a.jdkObject);
-        int bSize = getNumberOfReferences(bRef.peekType(), b.jdkObject);
-        if (aSize == bSize) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return bSize - aSize;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the number of
-   * non-final references within the objects.
-   */
-  private static final class NumberOfNonFinalReferencesComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    NumberOfNonFinalReferencesComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        int aSize = getNumberOfNonFinalReferences(aRef.peekType(), a.jdkObject);
-        int bSize = getNumberOfNonFinalReferences(bRef.peekType(), b.jdkObject);
-        if (aSize == bSize) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return bSize - aSize;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the density of
-   * non-final references within the objects.
-   */
-  private static final class NonFinalReferenceDensityComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    NonFinalReferenceDensityComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        double aSize = (double)getNumberOfNonFinalReferences(aRef.peekType(), a.jdkObject) / (double)getSize(aRef.peekType(), a.jdkObject);
-        double bSize = (double)getNumberOfNonFinalReferences(bRef.peekType(), b.jdkObject) / (double)getSize(bRef.peekType(), b.jdkObject);
-        int result = Double.compare(bSize, aSize);
-        if (result == 0) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return result;
-        }
-      }
-    }
-  }
-
-  /**
-   * Comparator of boot image entries that sorts according to the density of
-   * references within the objects.
-   */
-  private static final class ReferenceDensityComparator implements Comparator<BootImageMap.Entry> {
-    private final Comparator<BootImageMap.Entry> identicalSizeComparator;
-    ReferenceDensityComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
-      this.identicalSizeComparator = identicalSizeComparator;
-    }
-    @Override
-    public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
-      TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
-        return identicalSizeComparator.compare(a, b);
-      } else if (!aRef.isResolved()) {
-        return 1;
-      } else if (!bRef.isResolved()) {
-        return -1;
-      } else {
-        double aSize = (double)getNumberOfReferences(aRef.peekType(), a.jdkObject) / (double)getSize(aRef.peekType(), a.jdkObject);
-        double bSize = (double)getNumberOfReferences(bRef.peekType(), b.jdkObject) / (double)getSize(bRef.peekType(), b.jdkObject);
-        int result = Double.compare(bSize, aSize);
-        if (result == 0) {
-          return identicalSizeComparator.compare(a, b);
-        } else {
-          return result;
-        }
-      }
-    }
-  }
-
-  /**
    * Linked list that operates in FIFO manner rather than LIFO
    */
   private static final class FIFOLinkedList<T> extends LinkedList<T> {
@@ -564,103 +380,6 @@ public class BootImageWriter {
    * report any methods that take 'too long' to compile.
    */
   private static boolean profile = false;
-
-  /**
-   * A wrapper around the calling context to aid in tracing.
-   */
-  private static class TraceContext extends Stack<String> {
-    private static final long serialVersionUID = -9048590130621822408L;
-    /**
-     * Report a field that is part of our library's (GNU Classpath's)
-     implementation, but not the host JDK's implementation.
-     */
-    public void traceFieldNotInHostJdk() {
-      traceNulledWord(": field not in host jdk");
-    }
-
-    /** Report a field that is an instance field in the host JDK but a static
-       field in ours.  */
-    public void traceFieldNotStaticInHostJdk() {
-      traceNulledWord(": field not static in host jdk");
-    }
-
-    /** Report a field that is a different type  in the host JDK.  */
-    public void traceFieldDifferentTypeInHostJdk() {
-      traceNulledWord(": field different type in host jdk");
-    }
-
-    /**
-     * Report an object of a class that is not part of the bootImage.
-     */
-    public void traceObjectNotInBootImage() {
-      traceNulledWord(": object not in bootimage");
-    }
-
-    /**
-     * Report nulling out a pointer.
-     */
-    private void traceNulledWord(String message) {
-      say(this.toString(), message, ", writing a null");
-    }
-
-    /**
-     * Report an object of a class that is not part of the bootImage.
-     */
-    public void traceObjectFoundThroughKnown() {
-      say(this.toString(), ": object found through known");
-    }
-
-    /**
-     * Generic trace routine.
-     */
-    public void trace(String message) {
-      say(this.toString(), message);
-    }
-
-    /**
-     * Return a string representation of the context.
-     * @return string representation of this context
-     */
-    @Override
-    public String toString() {
-      StringBuilder message = new StringBuilder();
-      for (int i = 0; i < size(); i++) {
-        if (i > 0) message.append(" --> ");
-        message.append(elementAt(i));
-      }
-      return message.toString();
-    }
-
-    /**
-     * Push an entity onto the context
-     */
-    public void push(String type, String fullName) {
-      StringBuilder sb = new StringBuilder("(");
-      sb.append(type).append(")");
-      sb.append(fullName);
-      push(sb.toString());
-    }
-
-    /**
-     * Push a field access onto the context
-     */
-    public void push(String type, String decl, String fieldName) {
-      StringBuilder sb = new StringBuilder("(");
-      sb.append(type).append(")");
-      sb.append(decl).append(".").append(fieldName);
-      push(sb.toString());
-    }
-
-    /**
-     * Push an array access onto the context
-     */
-    public void push(String type, String decl, int index) {
-      StringBuilder sb = new StringBuilder("(");
-      sb.append(type).append(")");
-      sb.append(decl).append("[").append(index).append("]");
-      push(sb.toString());
-    }
-  }
 
   /**
    * Global trace context.
@@ -1267,19 +986,22 @@ public class BootImageWriter {
       totalCount += info.count;
       totalBytes += info.size;
     }
-    VM.sysWriteln("\nBoot image space report:");
+    VM.sysWriteln();
+    VM.sysWriteln("Boot image space report:");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     VM.sysWriteField(60, "TOTAL");
     VM.sysWriteField(15, totalCount);
     VM.sysWriteField(15, totalBytes);
     VM.sysWriteln();
 
-    VM.sysWriteln("\nCompiled methods space report:");
+    VM.sysWriteln();
+    VM.sysWriteln("Compiled methods space report:");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     CompiledMethods.spaceReport();
 
     VM.sysWriteln("------------------------------------------------------------------------------------------");
-    VM.sysWriteln("\nBoot image space usage by types:");
+    VM.sysWriteln();
+    VM.sysWriteln("Boot image space usage by types:");
     VM.sysWriteln("Type                                                               Count             Bytes");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     VM.sysWriteField(60, "TOTAL");
@@ -1484,7 +1206,8 @@ public class BootImageWriter {
       order.fixUpMissingSuperClasses();
 
       if (verbosity.isAtLeast(SUMMARY)) say(" compiling with " + numThreads + " threads");
-      ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
+      ThreadFactory threadFactory = new KillVMonUncaughtExceptionThreadFactory();
+      ExecutorService threadPool = Executors.newFixedThreadPool(numThreads, threadFactory);
       int runnableCount = order.getCountOfNeededWorkers();
       while (runnableCount > 0) {
         try {
@@ -3634,91 +3357,4 @@ public class BootImageWriter {
     }
   }
 
-  /**
-   * Get the size of the object in the boot image
-   * @param type of object
-   * @param obj we want the size of
-   * @return size of object
-   */
-  private static int getSize(RVMType type, Object obj) {
-    if (type.isArrayType()) {
-      if (obj instanceof RuntimeTable) {
-        obj = ((RuntimeTable<?>)obj).getBacking();
-      } else if (obj instanceof CodeArray) {
-        obj = ((CodeArray)obj).getBacking();
-      }
-      if (!obj.getClass().isArray()) {
-        fail("This should be an array " + obj.getClass() + " " + type);
-      }
-      return type.asArray().getInstanceSize(Array.getLength(obj));
-    } else {
-      return type.asClass().getInstanceSize();
-    }
-  }
-
-  private static final HashMap<RVMType, Integer> typeSizes = new HashMap<RVMType, Integer>();
-
-  /**
-   * Get the number of non-final references of the object in the boot image
-   * @param type of object
-   * @param obj we want the size of
-   * @return number of non-final references
-   */
-  private static int getNumberOfNonFinalReferences(RVMType type, Object obj) {
-    if (type.isArrayType()) {
-      if (type.asArray().getElementType().isReferenceType()) {
-        if (obj instanceof RuntimeTable) {
-          obj = ((RuntimeTable<?>)obj).getBacking();
-        } else if (obj instanceof CodeArray) {
-          obj = ((CodeArray)obj).getBacking();
-        }
-        if (!obj.getClass().isArray()) {
-          fail("This should be an array " + obj.getClass() + " " + type);
-        }
-        return Array.getLength(obj);
-      } else {
-        return 0;
-      }
-    } else {
-      Integer size = typeSizes.get(type);
-      if (size == null) {
-        // discount final references that aren't part of the boot image
-        size = type.asClass().getNumberOfNonFinalReferences();
-        typeSizes.put(type, size);
-      }
-      return size;
-    }
-  }
-
-  /**
-   * Get the number of non-final references of the object in the boot image
-   * @param type of object
-   * @param obj we want the size of
-   * @return number of non-final references
-   */
-  private static int getNumberOfReferences(RVMType type, Object obj) {
-    if (type.isArrayType()) {
-      if (type.asArray().getElementType().isReferenceType()) {
-        if (obj instanceof RuntimeTable) {
-          obj = ((RuntimeTable<?>)obj).getBacking();
-        } else if (obj instanceof CodeArray) {
-          obj = ((CodeArray)obj).getBacking();
-        }
-        if (!obj.getClass().isArray()) {
-          fail("This should be an array " + obj.getClass() + " " + type);
-        }
-        return Array.getLength(obj);
-      } else {
-        return 0;
-      }
-    } else {
-      Integer size = typeSizes.get(type);
-      if (size == null) {
-        // discount final references that aren't part of the boot image
-        size = type.getReferenceOffsets().length;
-        typeSizes.put(type, size);
-      }
-      return size;
-    }
-  }
 }

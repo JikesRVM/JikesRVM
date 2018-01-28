@@ -15,6 +15,7 @@ package org.vmmagic.pragma;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import org.vmmagic.Pragma;
 
@@ -25,7 +26,8 @@ import org.vmmagic.Pragma;
  * for code only executed when creating the boot image.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target(ElementType.METHOD)
+@Documented
 @Pragma
 public @interface UninterruptibleNoWarn {
   /**

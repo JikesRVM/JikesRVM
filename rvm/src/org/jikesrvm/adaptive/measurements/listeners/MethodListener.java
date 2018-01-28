@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -38,6 +39,7 @@ public final class MethodListener extends Listener {
   /**
    * Number of samples taken so far
    */
+  @Entrypoint
   int numSamples;
 
   /**

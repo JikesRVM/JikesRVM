@@ -75,7 +75,7 @@ public final class ReferenceMaps {
       VM.sysWrite(method.getName());
       VM.sysWrite(" -Class name is :");
       VM.sysWrite(method.getDeclaringClass().getDescriptor());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       VM.sysWrite(" bytesPerMap = ", bytesPerMap());
       VM.sysWrite(" - bitsPerMap = ", bitsPerMap);
 //      VM.sysWriteln(" - startLocal0Offset = ", startLocal0Offset);
@@ -123,7 +123,7 @@ public final class ReferenceMaps {
       VM.sysWrite(machCodeOffset);
       VM.sysWrite("  --- in  method = ");
       VM.sysWrite(method.getName());
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     //  Scan the list of machine code addresses to find the
@@ -155,19 +155,19 @@ public final class ReferenceMaps {
       VM.sysWrite(index);
       VM.sysWrite("  byte  = ");
       VM.sysWrite(referenceMaps[index]);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       if (index - 1 >= 0) {
         VM.sysWrite(" MCSites[index-1] = ");
         VM.sysWrite(machCodeOffset.minus(MCSites[index - 1]));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
       VM.sysWrite(" MCSites[index  ] = ");
       VM.sysWrite(machCodeOffset.minus(MCSites[index]));
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       if (index + 1 < MCSites.length) {
         VM.sysWrite(" MCSites[index+1] = ");
         VM.sysWrite(machCodeOffset.minus(MCSites[index + 1]));
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
@@ -178,7 +178,7 @@ public final class ReferenceMaps {
       if (VM.TraceStkMaps) {
         VM.sysWrite(" ReferenceMaps-locateGCPoint jsr mapid = ");
         VM.sysWrite(-index);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
@@ -187,7 +187,7 @@ public final class ReferenceMaps {
       VM.sysWrite(machCodeOffset);
       VM.sysWrite("  - return map index = ");
       VM.sysWrite(index);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     return index;
@@ -205,7 +205,7 @@ public final class ReferenceMaps {
       VM.sysWrite(index);
       VM.sysWrite(" -siteindex = ");
       VM.sysWrite(siteindex);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // use index to locate the gc point of interest
@@ -349,10 +349,10 @@ public final class ReferenceMaps {
         VM.sysWrite(mapword);
         VM.sysWrite(" , ");
         VM.sysWrite(bitsPerMap);
-        VM.sysWrite(" \n ");
-        VM.sysWrite("ReferenceMaps-getJSRNextReturnAddr-initial call return bitnum = ");
+        VM.sysWriteln();
+        VM.sysWrite(" ReferenceMaps-getJSRNextReturnAddr-initial call return bitnum = ");
         VM.sysWrite(bitnum);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     } else {
       // get bitnum and determine mapword to restart scan
@@ -382,10 +382,6 @@ public final class ReferenceMaps {
     }
   }
 
-  public int getStackDepth(int mapid) {
-    return bytesPerMap();
-  }
-
   @Interruptible
   public int size() {
     int size = TypeReference.ReferenceMaps.peekType().asClass().getInstanceSize();
@@ -409,7 +405,7 @@ public final class ReferenceMaps {
       VM.sysWrite(gcPointCount);
       VM.sysWrite(" -jsrCount = ");
       VM.sysWrite(jsrCount);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     if (jsrCount > 0) {
@@ -458,16 +454,16 @@ public final class ReferenceMaps {
     if (VM.TraceStkMaps) {
       VM.sysWrite(" ReferenceMaps-recordStkMap bytecode offset = ");
       VM.sysWrite(byteindex);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       VM.sysWrite(" input byte map = ");
       for (int j = 0; j <= BBLastPtr; j++) {
         VM.sysWrite(byteMap[j]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
       if (replacemap) {
         VM.sysWrite(" ReferenceMaps-recordStkMap- replacing map at byteindex = ");
         VM.sysWrite(byteindex);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
 
@@ -500,7 +496,7 @@ public final class ReferenceMaps {
     if (VM.TraceStkMaps) {
       VM.sysWrite(" ReferenceMaps-recordStkMap map id  = ");
       VM.sysWrite(mapNum);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // convert Boolean array into array of bits ie create the map
@@ -527,7 +523,7 @@ public final class ReferenceMaps {
       VM.sysWrite(referenceMaps[word]);
       VM.sysWrite(" - before shift = ");
       VM.sysWrite(firstByte);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // update indexes for additional bytes
@@ -640,7 +636,7 @@ public final class ReferenceMaps {
         for (int i = 0; i < BBLastPtr + 1; i++) {
           VM.sysWrite(currReferenceMap[i]);
         }
-        VM.sysWrite("\n");
+        VM.sysWriteln();
         VM.sysWrite("ReferenceMaps-recordJSRSubroutineMap- mapNum = ");
         VM.sysWrite(mapNum);
         VM.sysWrite(" - byteindex = ");
@@ -649,7 +645,7 @@ public final class ReferenceMaps {
         VM.sysWrite(internalReturnIndex);
         VM.sysWrite(" - reference map byte = ");
         VM.sysWrite(referenceMaps[mapNum * bytesPerMap()]);
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }    // end else clause - add new map
 
@@ -671,7 +667,7 @@ public final class ReferenceMaps {
       for (int i = refindex; i < refindex + bytesPerMap(); i++) {
         VM.sysWrite(jsrInfo.unusualReferenceMaps[i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // setup NONReference Map
@@ -690,7 +686,7 @@ public final class ReferenceMaps {
       for (int i = nonrefindex; i < nonrefindex + bytesPerMap(); i++) {
         VM.sysWrite(jsrInfo.unusualReferenceMaps[i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // setup returnAddress Map
@@ -709,13 +705,13 @@ public final class ReferenceMaps {
       for (int i = addrindex; i < addrindex + bytesPerMap(); i++) {
         VM.sysWrite(jsrInfo.unusualReferenceMaps[i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     if (VM.TraceStkMaps) {
       VM.sysWrite("ReferenceMaps-recordJSRSubroutineMap- unusualmap index = ");
       VM.sysWrite(unusualMapIndex);
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
 
     // update stats
@@ -942,22 +938,6 @@ public final class ReferenceMaps {
     jsrInfo.freeMapSlot = jsrInfo.freeMapSlot + bytesPerMap();
     return allocate;
   }
-
-  /**
-   * given a index in the local area (biased : local0 has index 1)
-   *   this routine determines the correspondig offset in the stack
-   */
-  /*  public int convertIndexToOffset(int index)   {
-      if (index == 0) return NOMORE; //invalid
-
-      // convert from top of local words
-      int offset = startLocal0Offset - (index <<LOG_BYTES_IN_ADDRESS); // no jsrbit here
-      if (VM.TraceStkMaps) {
-        VM.sysWriteln("convertIndexToOffset- input index = ", index, "  offset = ", offset);
-      }
-      return offset;
-    }
-  */
 
   /**
    * Scans the map for the next reference.
@@ -1346,7 +1326,7 @@ public final class ReferenceMaps {
          VM.sysWrite("     deltaNonRef = "); VM.sysWrite(deltaNonRef);
          VM.sysWrite("     base = "); VM.sysWrite(base);
          VM.sysWrite("     newRef = "); VM.sysWrite(newRef);
-         VM.sysWrite("\n");
+         VM.sysWriteln();
        */
     }
 
@@ -1356,32 +1336,32 @@ public final class ReferenceMaps {
       for (i = 0; i < bytesPerMap(); i++) {
         VM.sysWrite(jsrInfo.unusualReferenceMaps[refMapIndex + i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
 
       VM.sysWrite("              -jsr total set2nonref delta map  = ");
       for (i = 0; i < bytesPerMap(); i++) {
         VM.sysWrite(jsrInfo.unusualReferenceMaps[nonRefMapIndex + i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
 
       VM.sysWrite("              -jsr base map  = ");
       for (i = 0; i < bytesPerMap(); i++) {
         // ORIGINAL VM.sysWrite( jsrInfo.unusualReferenceMaps[jsrBaseMapIndex + i]);
         VM.sysWrite(referenceMaps[jsrBaseMapIndex + i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
 
       VM.sysWrite("              -combined merged ref map  = ");
       for (i = 0; i < bytesPerMap(); i++) {
         VM.sysWrite(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap + i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
 
       VM.sysWrite("              -combined merged return address map  = ");
       for (i = 0; i < bytesPerMap(); i++) {
         VM.sysWrite(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap + i]);
       }
-      VM.sysWrite("\n");
+      VM.sysWriteln();
     }
   }
 
@@ -1391,7 +1371,7 @@ public final class ReferenceMaps {
    *  between stack frames as the GC scans the stack.
    */
   public void cleanupPointers() {
-    if (VM.TraceStkMaps) VM.sysWrite("ReferenceMaps- cleanupPointers\n");
+    if (VM.TraceStkMaps) VM.sysWriteln("ReferenceMaps- cleanupPointers");
   }
 
   /**
@@ -1432,13 +1412,14 @@ public final class ReferenceMaps {
   public void showInfo() {
     VM.sysWriteln("showInfo- reference maps");
     if (MCSites == null) {
-      VM.sysWrite(" no MCSites array - assume using cached data - can't do showInfo()");
+      VM.sysWriteln(" no MCSites array - assume using cached data - can't do showInfo()");
       return;
     }
 
     VM.sysWrite(" MCSites.length = ", MCSites.length);
     VM.sysWrite(" mapCount = ", mapCount);
-//    VM.sysWriteln(" startLocal0Offset = ", startLocal0Offset);
+//    VM.sysWrite(" startLocal0Offset = ", startLocal0Offset);
+    VM.sysWriteln();
 
     for (int i = 0; i < mapCount; i++) {
       VM.sysWrite("mapid = ", i);
@@ -1473,7 +1454,7 @@ public final class ReferenceMaps {
   public void showOffsets() {
     VM.sysWrite("in showOffset- #maps = ");
     VM.sysWrite(mapCount);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
     int i, tindex = 0;
 
     if (mapCount == 0) {
@@ -1486,12 +1467,13 @@ public final class ReferenceMaps {
       VM.sysWrite(tindex);
       VM.sysWrite(" for map ");
       VM.sysWrite(i);
-      VM.sysWrite("\n");
-      while (tindex != 0) {
+      VM.sysWriteln();
+      while (tindex != NOMORE) {
         tindex = getNextRefIndex(tindex, i);
         VM.sysWrite("next offset = ");
         VM.sysWrite(tindex);
-        if (tindex == 0) VM.sysWrite("---------------- end of map");
+        VM.sysWriteln();
+        if (tindex == NOMORE) VM.sysWriteln("---------------- end of map");
       }
     }
   }
@@ -1506,13 +1488,13 @@ public final class ReferenceMaps {
     VM.sysWrite(method.getDeclaringClass().getDescriptor());
     VM.sysWrite(".");
     VM.sysWrite(method.getName());
-    VM.sysWrite("---------------------------\n");
+    VM.sysWriteln("---------------------------");
 
     for (int i = 0; i < mapCount; i++) {
       byte mapindex = referenceMaps[i * bytesPerMap()];
       if (mapindex < 0) {
         // check for non jsr map
-        VM.sysWrite("  -----skipping jsr map------- \n ");
+        VM.sysWriteln("  -----skipping jsr map-------  ");
         continue;
       }
       index = getNextRefIndex(index, i);
@@ -1522,7 +1504,7 @@ public final class ReferenceMaps {
         count++;
         index = getNextRefIndex(index, i);
         // display number of refs at each site - very noisy
-        if (index == 0) {
+        if (index == NOMORE) {
           VM.sysWriteln("  -----map machine code offset = ", MCSites[i], "    number of refs in this map = ", count);
         }
       }
@@ -1531,7 +1513,7 @@ public final class ReferenceMaps {
     VM.sysWrite(totalCount);
     VM.sysWrite("  total number of maps in method = ");
     VM.sysWrite(mapCount);
-    VM.sysWrite("\n");
+    VM.sysWriteln();
 
     return totalCount;
   }

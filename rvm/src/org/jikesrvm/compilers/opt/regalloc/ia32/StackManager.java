@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.PRIMITIVE_TYPE_FOR_WORD;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.NOP;
@@ -43,10 +44,15 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.SPECIAL_REG;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.OPT_SAVE_VOLATILE_TOTAL_SIZE;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -78,6 +84,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.Bits;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -86,6 +93,20 @@ import org.vmmagic.unboxed.Offset;
  * functions.
  */
 public final class StackManager extends GenericStackManager {
+
+  /**
+   * the minimum size that a frame must have to be considered
+   * a big frame for a stack overflow check. In contrast to
+   * a small frame, a big frame is not allowed to leak into the
+   * guard region of the stack.
+   */
+  private static final int BIG_FRAME_MINIMUM_SIZE = 256;
+
+  /**
+   * the maximum difference between the stack pointer and the stack limit
+   * that can possibly occur when handling a stack overflow for opt frames
+   */
+  public static final int MAX_DIFFERENCE_TO_STACK_LIMIT = BIG_FRAME_MINIMUM_SIZE;
 
   /**
    * A frame offset for 108 bytes of stack space to store the
@@ -117,17 +138,21 @@ public final class StackManager extends GenericStackManager {
    * @return the size of a type of value, in bytes.
    * NOTE: For the purpose of register allocation, an x87 FLOAT_VALUE is 64 bits!
    */
-  private static byte getSizeOfType(byte type) {
-    switch (type) {
-      case INT_VALUE:
-        return (byte) (WORDSIZE);
-      case FLOAT_VALUE:
-        if (SSE2_FULL) return (byte) BYTES_IN_FLOAT;
-      case DOUBLE_VALUE:
-        return (byte) BYTES_IN_DOUBLE;
-      default:
-        OptimizingCompilerException.TODO("getSizeOfValue: unsupported");
-        return 0;
+  private static byte getSizeOfType(Register type) {
+    if (type.isNatural()) {
+      if (VM.BuildFor64Addr && type.isInteger()) {
+        return (byte) BYTES_IN_INT;
+      } else {
+        return (byte) WORDSIZE;
+      }
+    } else if (type.isFloat()) {
+      if (SSE2_FULL) return (byte) BYTES_IN_FLOAT;
+      return (byte) BYTES_IN_DOUBLE;
+    } else if (type.isDouble()) {
+      return (byte) BYTES_IN_DOUBLE;
+    } else {
+      OptimizingCompilerException.TODO("getSizeOfValue: unsupported: " + type);
+      return (byte) -1;
     }
   }
 
@@ -135,18 +160,16 @@ public final class StackManager extends GenericStackManager {
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
    * @return the move operator for a type of value.
    */
-  private static Operator getMoveOperator(byte type) {
-    switch (type) {
-      case INT_VALUE:
-        return IA32_MOV;
-      case DOUBLE_VALUE:
-        if (SSE2_FULL) return IA32_MOVSD;
-      case FLOAT_VALUE:
-        if (SSE2_FULL) return IA32_MOVSS;
-        return IA32_FMOV;
-      default:
-        OptimizingCompilerException.TODO("getMoveOperator: unsupported");
-        return null;
+  private static Operator getMoveOperator(Register type) {
+    if (type.isNatural()) {
+      return IA32_MOV;
+    } else if (type.isDouble()) {
+      return SSE2_FULL ? IA32_MOVSD : IA32_FMOV;
+    } else if (type.isFloat()) {
+      return SSE2_FULL ? IA32_MOVSS : IA32_FMOV;
+    } else {
+      OptimizingCompilerException.TODO("getMoveOperator: unsupported: " + type);
+      return null;
     }
   }
 
@@ -154,7 +177,7 @@ public final class StackManager extends GenericStackManager {
   public int allocateNewSpillLocation(int type) {
 
     // increment by the spill size
-    spillPointer += PhysicalRegisterSet.getSpillSize(type);
+    spillPointer += getSpillSize(type);
 
     if (spillPointer + WORDSIZE > frameSize) {
       frameSize = spillPointer + WORDSIZE;
@@ -162,45 +185,72 @@ public final class StackManager extends GenericStackManager {
     return spillPointer;
   }
 
+  /**
+   * @param type one of INT_REG, DOUBLE_REG, SPECIAL_REG
+   * @return the spill size for a register with the given type
+   */
   @Override
-  public void insertSpillBefore(Instruction s, Register r, byte type, int location) {
-
-    Operator move = getMoveOperator(type);
-    byte size = getSizeOfType(type);
-    RegisterOperand rOp;
-    switch (type) {
-      case FLOAT_VALUE:
-        rOp = F(r);
-        break;
-      case DOUBLE_VALUE:
-        rOp = D(r);
-        break;
-      default:
-        rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
-        break;
+  public int getSpillSize(int type) {
+    if (VM.VerifyAssertions) {
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == SPECIAL_REG));
     }
-    StackLocationOperand spill = new StackLocationOperand(true, -location, size);
-    s.insertBefore(MIR_Move.create(move, spill, rOp));
+    if (VM.BuildFor32Addr) {
+      if (type == DOUBLE_REG) {
+        return 8;
+      } else {
+        return 4;
+      }
+    } else {
+      return 8;
+    }
   }
 
   @Override
-  public void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
+  public void insertSpillBefore(Instruction s, Register r, Register type, int location) {
     Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
     RegisterOperand rOp;
-    switch (type) {
-      case FLOAT_VALUE:
-        rOp = F(r);
-        break;
-      case DOUBLE_VALUE:
-        rOp = D(r);
-        break;
-      default:
+    if (type.isFloat()) {
+      rOp = F(r);
+    } else if (type.isDouble()) {
+      rOp = D(r);
+    } else {
+      if (VM.BuildFor64Addr && type.isInteger()) {
+        rOp = new RegisterOperand(r, TypeReference.Int);
+      } else {
         rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
-        break;
+      }
     }
-    StackLocationOperand spill = new StackLocationOperand(true, -location, size);
-    s.insertBefore(MIR_Move.create(move, rOp, spill));
+    StackLocationOperand spillLoc = new StackLocationOperand(true, -location, size);
+    Instruction spillOp = MIR_Move.create(move, spillLoc, rOp);
+    if (VERBOSE_DEBUG) {
+      System.out.println("INSERT_SPILL_BEFORE: " + "Inserting " + spillOp + " before " + s);
+    }
+    s.insertBefore(spillOp);
+  }
+
+  @Override
+  public void insertUnspillBefore(Instruction s, Register r, Register type, int location) {
+    Operator move = getMoveOperator(type);
+    byte size = getSizeOfType(type);
+    RegisterOperand rOp;
+    if (type.isFloat()) {
+      rOp = F(r);
+    } else if (type.isDouble()) {
+      rOp = D(r);
+    } else {
+      if (VM.BuildFor64Addr && type.isInteger()) {
+        rOp = new RegisterOperand(r, TypeReference.Int);
+      } else {
+        rOp = new RegisterOperand(r, PRIMITIVE_TYPE_FOR_WORD);
+      }
+    }
+    StackLocationOperand spillLoc = new StackLocationOperand(true, -location, size);
+    Instruction unspillOp = MIR_Move.create(move, rOp, spillLoc);
+    if (VERBOSE_DEBUG) {
+      System.out.println("INSERT_UNSPILL_BEFORE: " + "Inserting " + unspillOp + " before " + s);
+    }
+    s.insertBefore(unspillOp);
   }
 
   @Override
@@ -222,6 +272,9 @@ public final class StackManager extends GenericStackManager {
       // Record that we need a stack frame.
       setFrameRequired();
 
+      int fpuStateSaveAreaBegin = spillPointer;
+      // Calculate FPU state save area for restoreFloatingPointState(..)
+      // and saveFloatingPointState(..)
       if (SSE2_FULL) {
         for (int i = 0; i < 8; i++) {
           fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);
@@ -234,6 +287,13 @@ public final class StackManager extends GenericStackManager {
         }
       }
 
+      int fpuStateSaveAreaEnd = spillPointer;
+      int fpuStateSize = fpuStateSaveAreaEnd - fpuStateSaveAreaBegin;
+      if (VM.VerifyAssertions) {
+        VM._assert(fpuStateSize == OPT_SAVE_VOLATILE_SPACE_FOR_FPU_STATE);
+      }
+
+      int volatileGPRSaveAreaBegin = spillPointer;
       // Map each volatile register to a spill location.
       int i = 0;
       for (Enumeration<Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
@@ -241,6 +301,14 @@ public final class StackManager extends GenericStackManager {
         // Note that as a side effect, the following call bumps up the
         // frame size.
         saveVolatileGPRLocation[i] = allocateNewSpillLocation(INT_REG);
+      }
+      int volatileGPRSaveAreaEnd = spillPointer;
+      int volatileGPRSaveAreaSize = volatileGPRSaveAreaEnd - volatileGPRSaveAreaBegin;
+      if (VM.VerifyAssertions) {
+        VM._assert(volatileGPRSaveAreaSize ==
+            OPT_SAVE_VOLATILE_SPACE_FOR_VOLATILE_GPRS);
+        VM._assert((volatileGPRSaveAreaSize + fpuStateSize) ==
+            OPT_SAVE_VOLATILE_TOTAL_SIZE);
       }
 
       // Map each non-volatile register to a spill location.
@@ -283,6 +351,11 @@ public final class StackManager extends GenericStackManager {
       ir.compiledMethod.setNumberOfNonvolatileFPRs((short) 0);
 
     }
+  }
+
+  @Override
+  protected void verifyArchSpecificFrameSizeConstraints(int frameSize) {
+    if (VM.VerifyAssertions) opt_assert(Bits.fits(frameSize, 32));
   }
 
   @Override
@@ -438,14 +511,14 @@ public final class StackManager extends GenericStackManager {
 
     // I. Buy a stackframe (including overflow check)
     // NOTE: We play a little game here.  If the frame we are buying is
-    //       very small (less than 256) then we can be sloppy with the
+    //       very small then we can be sloppy with the
     //       stackoverflow check and actually allocate the frame in the guard
     //       region.  We'll notice when this frame calls someone and take the
     //       stackoverflow in the callee. We can't do this if the frame is too big,
     //       because growing the stack in the callee and/or handling a hardware trap
     //       in this frame will require most of the guard region to complete.
-    //       See libvm.C.
-    if (frameFixedSize >= 256) {
+    //       See sysSignal_ia32.c
+    if (frameFixedSize >= BIG_FRAME_MINIMUM_SIZE) {
       // 1. Insert Stack overflow check.
       insertBigFrameStackOverflowCheck(plg);
 
@@ -624,7 +697,6 @@ public final class StackManager extends GenericStackManager {
 
   @Override
   public void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb) {
-
     // Get the spill location previously assigned to the symbolic
     // register.
     int location = regAllocState.getSpill(symb.getRegister());
@@ -638,17 +710,26 @@ public final class StackManager extends GenericStackManager {
           size = WORDSIZE;
       } else {
         int type = PhysicalRegisterSet.getPhysicalRegisterType(symb.getRegister());
-        size = PhysicalRegisterSet.getSpillSize(type);
+        size = getSpillSize(type);
       }
     } else {
-      size = WORDSIZE;
+      if (VM.BuildFor64Addr && symb.getType().getMemoryBytes() <= BYTES_IN_INT) {
+        // Int-like types and floats need 32-bit locations
+        size = BYTES_IN_INT;
+      } else {
+        size = WORDSIZE;
+      }
     }
     StackLocationOperand M = new StackLocationOperand(true, -location, (byte) size);
 
-    M = new StackLocationOperand(true, -location, (byte) size);
-
+    if (VERBOSE_DEBUG) {
+      System.out.println("REPLACE_OP_WITH_SPILL_LOC: " + "Instruction before replacement: " + s);
+    }
     // replace the register operand with the memory operand
     s.replaceOperand(symb, M);
+    if (VERBOSE_DEBUG) {
+      System.out.println("REPLACE_OP_WITH_SPILL_LOC: " + "Instruction after replacement: " + s);
+    }
   }
 
   private boolean hasSymbolicRegister(MemoryOperand M) {
@@ -727,16 +808,6 @@ public final class StackManager extends GenericStackManager {
         if (rop.getRegister() == r) {
           count++;
         }
-        // If the register in question is an int register (i.e. 32 bit)
-        // and the VM is build for x64, we mustn't introduce a memory
-        // operand for the register. All spill locations are 64-bit,
-        // so the 32-bit operation would be converted to a quad operation
-        // because of the memory operand. This would change the semantics
-        // of the operation (e.g. for CMP or ADD).
-        // Moreover, we can't use a 32-bit memory operation because it is
-        // not guaranteed that a x64 memory address would fit into 32 bits.
-        // FIXME need to review this decision before finishing x64 opt work
-        if (VM.BuildFor64Addr && rop.isInt() && rop.getRegister() == r) return true;
       }
     }
     if (count > 1) return true;
@@ -954,7 +1025,7 @@ public final class StackManager extends GenericStackManager {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
 
-      if (scratch.currentContents == null) continue;
+      if (scratch.getCurrentContents() == null) continue;
       if (VERBOSE_DEBUG) {
         System.out.println("RESTORE: consider " + scratch);
       }
@@ -976,12 +1047,12 @@ public final class StackManager extends GenericStackManager {
           System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
-        Register scratchContents = scratch.currentContents;
+        Register scratchContents = scratch.getCurrentContents();
         if (scratchContents != null) {
           if (VERBOSE_DEBUG) {
-            System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
+            System.out.println("RSRB: End symbolic interval " + scratch.getCurrentContents() + " " + s);
           }
-          scratchMap.endSymbolicInterval(scratch.currentContents, s);
+          scratchMap.endSymbolicInterval(scratch.getCurrentContents(), s);
         }
 
         i.remove();
@@ -990,7 +1061,7 @@ public final class StackManager extends GenericStackManager {
       }
 
       if (usedIn(scratch.scratch, s) ||
-          !isLegal(scratch.currentContents, scratch.scratch, s) ||
+          !isLegal(scratch.getCurrentContents(), scratch.scratch, s) ||
           (s.operator() == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // first spill the currents contents of the scratch register to
         // memory
@@ -1005,12 +1076,12 @@ public final class StackManager extends GenericStackManager {
             System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
-          Register scratchContents = scratch.currentContents;
+          Register scratchContents = scratch.getCurrentContents();
           if (scratchContents != null) {
             if (VERBOSE_DEBUG) {
-              System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
+              System.out.println("RSRB2: End symbolic interval " + scratch.getCurrentContents() + " " + s);
             }
-            scratchMap.endSymbolicInterval(scratch.currentContents, s);
+            scratchMap.endSymbolicInterval(scratch.getCurrentContents(), s);
           }
 
         }

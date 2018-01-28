@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.adaptive.controller;
 
+import static org.jikesrvm.adaptive.recompilation.CompilerDNA.CANNOT_RECOMPILE;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.CompilerDNA;
 import org.jikesrvm.adaptive.util.AOSLogging;
@@ -89,9 +91,9 @@ abstract class AnalyticModel extends RecompilationStrategy {
   @Override
   ControllerPlan considerHotMethod(CompiledMethod cmpMethod, HotMethodEvent hme) {
     // Compiler used for the previous compilation
-    int prevCompiler = getPreviousCompiler(cmpMethod);
-    if (prevCompiler == -1) {
-      return null; // Not a method that we can recompile (trap, JNI).
+    int prevCompiler = CompilerDNA.getPreviousCompiler(cmpMethod);
+    if (prevCompiler == CANNOT_RECOMPILE) {
+      return null;
     }
 
     ControllerPlan plan = ControllerMemory.findMatchingPlan(cmpMethod);
@@ -250,9 +252,9 @@ abstract class AnalyticModel extends RecompilationStrategy {
   void considerHotCallEdge(CompiledMethod cmpMethod, AINewHotEdgeEvent event) {
 
     // Compiler used for the previous compilation
-    int prevCompiler = getPreviousCompiler(cmpMethod);
-    if (prevCompiler == -1) {
-      return; // Not a method we can recompile (trap, JNI).
+    int prevCompiler = CompilerDNA.getPreviousCompiler(cmpMethod);
+    if (prevCompiler == CANNOT_RECOMPILE) {
+      return;
     }
 
     ControllerPlan plan = ControllerMemory.findMatchingPlan(cmpMethod);

@@ -92,16 +92,16 @@ public class StringEventCounterData extends ManagedCounterData implements Report
     // iteration
     Instrumentation.disableInstrumentation();
 
-    VM.sysWrite("Printing " + dataName + ":\n");
-    VM.sysWrite("--------------------------------------------------\n");
+    VM.sysWriteln("Printing " + dataName + ":");
+    VM.sysWriteln("--------------------------------------------------");
     double total = 0;
     for (String stringName : stringToCounterMap.keySet()) {
       int counterIdx = getCounterIndexForString(stringName);
       double counterVal = getCounter(counterIdx);
-      VM.sysWrite(doubleToString(counterVal) + " " + stringName + "\n");
+      VM.sysWriteln(doubleToString(counterVal) + " " + stringName);
       total += counterVal;
     }
-    VM.sysWrite("Total: " + doubleToString(total) + "\n");
+    VM.sysWriteln("Total: " + doubleToString(total));
   }
 
   /**

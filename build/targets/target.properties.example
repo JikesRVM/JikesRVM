@@ -51,6 +51,7 @@ target.obj-ext=
 target.obj-prefix=
 
 # Set to none, base or full depending on usage of SSE2 instructions on ia32
+# x64 builds are always assumed to have SSE2 even if this property is set to none.
 target.arch.sse2=
 
 # Hardware support for the floating point square root

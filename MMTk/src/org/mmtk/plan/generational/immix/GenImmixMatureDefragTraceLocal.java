@@ -73,7 +73,9 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
   @Override
   protected void scanObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-      Log.write("SO["); Log.write(object); Log.writeln("]");
+      Log.write("SO[");
+      Log.write(object);
+      Log.writeln("]");
     }
     super.scanObject(object);
     if (MARK_LINE_AT_SCAN_TIME && Space.isInSpace(GenImmix.IMMIX, object))

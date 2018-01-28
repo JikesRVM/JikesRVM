@@ -124,14 +124,14 @@ public final class SpinLock {
       p = Magic.objectAsThread(Magic.addressAsObject(Magic.prepareAddress(this, latestContenderOffset)));
       if (p == null) { // nobody owns the lock
         if (Magic.attemptAddress(this, latestContenderOffset, Address.zero(), Magic.objectAsAddress(i))) {
-          Magic.isync(); // so subsequent instructions wont see stale values
+          if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
           return;
         } else {
           continue; // don't handle contention
         }
       } else if (MCS_Locking && Magic.objectAsAddress(p).NE(IN_FLUX)) { // lock is owned, but not being changed
         if (Magic.attemptAddress(this, latestContenderOffset, Magic.objectAsAddress(p), IN_FLUX)) {
-          Magic.isync(); // so subsequent instructions wont see stale values
+          if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
           break;
         }
       }
@@ -146,10 +146,10 @@ public final class SpinLock {
       i.contenderLink = p.contenderLink;
       p.contenderLink = i;
     }
-    Magic.sync(); // so other contender will see updated contender chain
+    Magic.fence(); // so other contender will see updated contender chain
     Magic.setObjectAtOffset(this, latestContenderOffset, i);  // other threads can get at the lock
     do { // spin, waiting for the lock
-      Magic.isync(); // to make new value visible as soon as possible
+      Magic.combinedLoadBarrier(); // to make new value visible as soon as possible
     } while (i.awaitingSpinLock == this);
   }
 
@@ -164,7 +164,7 @@ public final class SpinLock {
     if (Magic.prepareAddress(this, latestContenderOffset).isZero()) {
       Address cp = Magic.objectAsAddress(RVMThread.getCurrentThread());
       if (Magic.attemptAddress(this, latestContenderOffset, Address.zero(), cp)) {
-        Magic.isync(); // so subsequent instructions wont see stale values
+        if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
         return true;
       }
     }
@@ -177,7 +177,7 @@ public final class SpinLock {
    */
   public void unlock() {
     if (!VM.runningVM) return;
-    Magic.sync(); // commit changes while lock was held so they are visible to the next processor that acquires the lock
+    Magic.fence(); // commit changes while lock was held so they are visible to the next processor that acquires the lock
     Offset latestContenderOffset = Entrypoints.latestContenderField.getOffset();
     RVMThread i = RVMThread.getCurrentThread();
     if (!MCS_Locking) {
@@ -205,13 +205,13 @@ public final class SpinLock {
       RVMThread q = p.contenderLink; // q is first thread on the chain
       if (p == q) { // only one thread waiting for the lock
         q.awaitingSpinLock = null; // q now owns the lock
-        Magic.sync(); // make sure the chain of waiting threads gets updated before another thread accesses the chain
+        Magic.fence(); // make sure the chain of waiting threads gets updated before another thread accesses the chain
         // other contenders can get at the lock:
         Magic.setObjectAtOffset(this, latestContenderOffset, q); // latestContender = q;
       } else { // more than one thread waiting for the lock
         p.contenderLink = q.contenderLink; // remove q from the chain
         q.awaitingSpinLock = null; // q now owns the lock
-        Magic.sync(); // make sure the chain of waiting threads gets updated before another thread accesses the chain
+        Magic.fence(); // make sure the chain of waiting threads gets updated before another thread accesses the chain
         Magic.setObjectAtOffset(this, latestContenderOffset, p); // other contenders can get at the lock
       }
     }

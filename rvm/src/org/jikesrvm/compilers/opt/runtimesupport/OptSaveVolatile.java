@@ -77,34 +77,6 @@ public class OptSaveVolatile {
   }
 
   /**
-   * Handle timer interrupt taken in the prologue of a native method.
-   */
-  @Entrypoint
-  public static void yieldpointFromNativePrologue() {
-    // VM.sysWriteln(123);
-    // VM.sysWriteln(Magic.getFramePointer());
-    // VM.sysWriteln(Magic.getCallerFramePointer(Magic.getFramePointer()));
-    // System.gc();
-    // VM.sysWriteln("Survived GC");
-    // Address fp = Magic.getFramePointer();
-    // Thread.yieldpoint(Thread.NATIVE_PROLOGUE, fp);
-  }
-
-  /**
-   * Handle timer interrupt taken in the epilogue of a native method.
-   */
-  @Entrypoint
-  public static void yieldpointFromNativeEpilogue() {
-    // VM.sysWriteln(321);
-    // VM.sysWriteln(Magic.getFramePointer());
-    // VM.sysWriteln(Magic.getCallerFramePointer(Magic.getFramePointer()));
-    // System.gc();
-    // VM.sysWriteln("Survived GC");
-    // Address fp = Magic.getFramePointer();
-    // Thread.yieldpoint(Thread.NATIVE_EPILOGUE, fp);
-  }
-
-  /**
    * OSR invalidation being initiated.
    */
   @Entrypoint
@@ -119,6 +91,7 @@ public class OptSaveVolatile {
    * Wrapper to save/restore volatile registers when a class needs to be
    * dynamically loaded/resolved/etc.
    */
+  @Entrypoint
   @Interruptible
   public static void resolve() throws NoClassDefFoundError {
     VM.disableGC();

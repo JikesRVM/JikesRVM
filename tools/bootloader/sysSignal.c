@@ -48,6 +48,49 @@ EXTERNAL int inRVMAddressSpace(Address addr)
   return 0;
 }
 
+EXTERNAL void dumpProcessAddressSpace() {
+  /** file descriptor of proc map */
+  FILE* procMap;
+  /** char */
+  int c;
+
+  ERROR_PRINTF("attempting to dump proc map ...\n");
+#ifdef RVM_FOR_LINUX
+  procMap = fopen("/proc/self/maps", "r");
+  c = fgetc(procMap);
+  while (c != EOF) {
+    fputc(c, stdout);
+    c = fgetc(procMap);
+  }
+  fclose(procMap);
+#else
+  #warning "dumpProcessAddressSpace() NYI"
+  ERROR_PRINTF("... not implemented for this platform\n");
+#endif
+}
+
+/**
+ * External programs might block SIGQUIT. This is undesirable for the VM
+ * because the software signal handler interprets SIGQUIT a as request
+ * to trigger a thread dump. Therefore, unblock SIGQUIT.
+ *
+ * An example use case for this is triggering a thread dump from the bin/timedrun
+ * script. It uses Perl's system() function to run the tests and system() blocks
+ * SIGQUIT by default.
+ */
+EXTERNAL void unblockSIGQUIT() {
+  sigset_t sigQuitSet;
+
+  VERBOSE_SIGNALS_PRINTF("Attempting to unmask SIGQUIT...");
+  sigemptyset(&sigQuitSet);
+  sigaddset (&sigQuitSet, SIGQUIT);
+  int rc = pthread_sigmask(SIG_UNBLOCK, &sigQuitSet, NULL);
+  if (rc == 0) {
+    VERBOSE_SIGNALS_PRINTF("SUCCESS\n");
+  } else {
+    VERBOSE_SIGNALS_PRINTF("FAILURE: %d %s\n", rc, strerror(rc));
+  }
+}
 
 /**
  * Hardware trap handler
@@ -88,6 +131,7 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                  Me, (void*)instructionPtr, (void*)threadPtr);
     ERROR_PRINTF("fault address %p\n", (void *)trapInfo);
     dumpContext(context);
+    dumpProcessAddressSpace();
     sysExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
   }
   /* get frame pointer checking its validity */

@@ -25,6 +25,7 @@ public class TestInterruptAndSpin {
 
       // Ensure that there is another thread to run
       Thread t = new Thread() {
+        @Override
         public void run() {
           while (true)
             Thread.yield();

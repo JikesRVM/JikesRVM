@@ -187,7 +187,9 @@ public class SpecialCompiler {
 
     /* adjust exception table. */
     {
-      // if (VM.TraceOnStackReplacement) { VM.sysWrite("OPT adjust exception table.\n"); }
+//      if (VM.TraceOnStackReplacement) {
+//        VM.sysWriteln("OPT adjust exception table.");
+//      }
 
       ExceptionHandlerMap exceptionHandlerMap = method.getExceptionHandlerMap();
 
@@ -246,7 +248,10 @@ public class SpecialCompiler {
     // mark the method is a specialized one
     newCompiledMethod.setSpecialForOSR();
 
-    if (VM.TraceOnStackReplacement) VM.sysWriteln("OPT : done\n");
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("OPT : done");
+      VM.sysWriteln();
+    }
 
     return newCompiledMethod;
   }

@@ -17,18 +17,10 @@ import static org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants.JNI_RVM_NONVOLAT
 import static org.jikesrvm.ppc.RegisterConstants.FIRST_NONVOLATILE_GPR;
 import static org.jikesrvm.ppc.RegisterConstants.LAST_NONVOLATILE_GPR;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
-
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.jni.JNIEnvironment;
-import org.jikesrvm.mm.mminterface.GCMapIterator;
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.jni.AbstractJNIGCMapIterator;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to
@@ -45,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
  * these regs, and the transition return code does not do the restore.
  */
 @Uninterruptible
-public final class JNIGCMapIterator extends GCMapIterator {
+public final class JNIGCMapIterator extends AbstractJNIGCMapIterator {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.
@@ -69,38 +61,12 @@ public final class JNIGCMapIterator extends GCMapIterator {
   // the GC flag at the beginning of this area.
   //
 
-  public static final int verbose = 0;
-
-  // additional instance fields added by this subclass of GCMapIterator
-  private AddressArray jniRefs;
-  private int jniNextRef;
-  private int jniFramePtr;
-
   public JNIGCMapIterator(AddressArray registerLocations) {
     super(registerLocations);
   }
 
-  // Override newStackWalk() in parent class GCMapIterator to
-  // initialize iterator for scan of JNI JREFs stack of refs
-  // Taken:    thread
-  // Returned: nothing
-  //
   @Override
-  public void newStackWalk(RVMThread thread) {
-    super.newStackWalk(thread);   // sets this.thread
-    JNIEnvironment env = this.thread.getJNIEnv();
-    // the "primordial" thread, created by JDK in the bootimage, does not have
-    // a JniEnv object, all threads created by the VM will.
-    if (env != null) {
-      this.jniRefs = env.JNIRefs;
-      this.jniNextRef = env.JNIRefsTop;
-      this.jniFramePtr = env.JNIRefsSavedFP;
-    }
-  }
-
-  @Override
-  public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
-    this.framePtr = framePtr;
+  protected void setupIteratorForArchitecture() {
     Address callers_fp = this.framePtr.loadAddress();
 
     // set the GC flag in the Java to C frame to indicate GC occurred
@@ -110,41 +76,18 @@ public final class JNIGCMapIterator extends GCMapIterator {
     callers_fp.minus(JNI_GC_FLAG_OFFSET).store(1);
   }
 
-  // return (address of) next ref in the current "frame" on the
-  // threads JNIEnvironment stack of refs
-  // When at the end of the current frame, update register locations to point
-  // to the non-volatile registers saved in the JNI transition frame.
-  //
+  /**
+   * Sets register locations for non-volatiles to point to registers saved in
+   * the JNI transition frame at a fixed negative offset from the callers FP.
+   */
   @Override
-  public Address getNextReferenceAddress() {
-    if (jniNextRef > jniFramePtr) {
-      Address ref_address = Magic.objectAsAddress(jniRefs).plus(jniNextRef);
-      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
-      if (verbose > 0) VM.sysWriteln("JNI iterator returning JNI ref: ", ref_address);
-      return ref_address;
-    }
-
-    // jniNextRef -> savedFramePtr for another "frame" of refs for another
-    // sequence of Native C frames lower in the stack, or to 0 if this is the
-    // last jni frame in the JNIRefs stack.  If more frames, initialize for a
-    // later scan of those refs.
-    //
-    if (jniFramePtr > 0) {
-      jniFramePtr = jniRefs.get(jniFramePtr >> LOG_BYTES_IN_ADDRESS).toInt();
-      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
-    }
-
-    // set register locations for non-volatiles to point to registers saved in
-    // the JNI transition frame at a fixed negative offset from the callers FP.
+  protected void setRegisterLocations() {
     Address registerLocation = this.framePtr.loadAddress().minus(JNI_RVM_NONVOLATILE_OFFSET);
 
     for (int i = LAST_NONVOLATILE_GPR.value(); i >= FIRST_NONVOLATILE_GPR.value() - 1; --i) {
       registerLocations.set(i, registerLocation);
       registerLocation = registerLocation.minus(BYTES_IN_ADDRESS);
     }
-
-    if (verbose > 1) VM.sysWriteln("JNI iterator returning 0");
-    return Address.zero();  // no more refs to report
   }
 
   @Override
@@ -152,14 +95,4 @@ public final class JNIGCMapIterator extends GCMapIterator {
     return Address.zero();
   }
 
-  @Override
-  public void reset() {}
-
-  @Override
-  public void cleanupPointers() {}
-
-  @Override
-  public int getType() {
-    return CompiledMethod.JNI;
-  }
 }

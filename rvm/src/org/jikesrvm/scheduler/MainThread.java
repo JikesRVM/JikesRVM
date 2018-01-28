@@ -161,13 +161,11 @@ public final class MainThread extends Thread {
       Atom mainAtom = Atom.findOrCreateUnicodeAtom(args[0]);
       TypeReference mainClass = TypeReference.findOrCreate(cl, mainAtom.descriptorFromClassName());
       cls = mainClass.resolve().asClass();
-      cls.resolve();
-      cls.instantiate();
-      cls.initialize();
+      cls.prepareForFirstUse();
     } catch (NoClassDefFoundError e) {
       if (dbg) VM.sysWrite("failed.]");
       // no such class
-      VM.sysWrite(e + "\n");
+      VM.sysWriteln(e.toString());
       return;
     }
     if (dbg) VM.sysWriteln("loaded.]");
@@ -177,7 +175,7 @@ public final class MainThread extends Thread {
     mainMethod = cls.findMainMethod();
     if (mainMethod == null) {
       // no such method
-      VM.sysWrite(cls + " doesn't have a \"public static void main(String[])\" method to execute\n");
+      VM.sysWriteln(cls + " doesn't have a \"public static void main(String[])\" method to execute");
       return;
     }
 

@@ -228,7 +228,8 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    System.err.print("\nValue Options (");System.err.println("<option>=<value>)");
+    System.err.print("\nValue Options (");
+    System.err.println("<option>=<value>)");
     System.err.println("Option                         Type    Description");
 
     o = getFirst();

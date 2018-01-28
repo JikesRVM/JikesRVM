@@ -213,87 +213,57 @@ public class BasicBlock extends SortedGraphNode {
    */
   @Override
   public final void printExtended() {
-    VM.sysWrite("Basic block " + toString() + "\n");
+    VM.sysWriteln("Basic block " + toString());;
 
-    // print in set.
-    BasicBlock bb2;
-    Enumeration<BasicBlock> e2 = getIn();
-    VM.sysWrite("\tin: ");
-    if (!e2.hasMoreElements()) {
-      VM.sysWrite("<none>\n");
-    } else {
-      bb2 = e2.nextElement();
-      VM.sysWrite(bb2.toString());
-      while (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(", " + bb2.toString());
-      }
-      VM.sysWrite("\n");
-    }
+    Enumeration<BasicBlock> blocks = getIn();
+    printBlocks("in", blocks);
 
-    // print out set.
-    e2 = getNormalOut();
-    VM.sysWrite("\tnormal out: ");
-    if (!e2.hasMoreElements()) {
-      VM.sysWrite("<none>\n");
-    } else {
-      bb2 = e2.nextElement();
-      VM.sysWrite(bb2.toString());
-      while (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(", " + bb2.toString());
-      }
-      VM.sysWrite("\n");
-    }
+    blocks = getNormalOut();
+    printBlocks("out", blocks);
 
-    e2 = getExceptionalOut();
-    VM.sysWrite("\texceptional out: ");
-    if (!e2.hasMoreElements()) {
-      VM.sysWrite("<none>\n");
-    } else {
-      bb2 = e2.nextElement();
-      VM.sysWrite(bb2.toString());
-      while (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(", " + bb2.toString());
-      }
-      VM.sysWrite("\n");
-    }
+    blocks = getExceptionalOut();
+    printBlocks("exceptional out", blocks);
 
     if (mayThrowUncaughtException()) {
-      VM.sysWrite("\tMay throw uncaught exceptions, implicit edge to EXIT\n");
+      VM.sysWriteln("\tMay throw uncaught exceptions, implicit edge to EXIT");
     }
 
     if (hasExceptionHandlers()) {
-      VM.sysWrite("\tIn scope exception handlers: ");
-      e2 = getExceptionHandlers();
-      if (e2.hasMoreElements()) {
-        bb2 = e2.nextElement();
-        VM.sysWrite(bb2.toString());
-        while (e2.hasMoreElements()) {
-          bb2 = e2.nextElement();
-          VM.sysWrite(", " + bb2.toString());
-        }
-      } else {
-        VM.sysWrite("<none>");
-      }
-      VM.sysWrite("\n");
+      blocks = getExceptionHandlers();
+      printBlocks("In scope exception handlers", blocks);
     }
 
     if (getNext() != null) {
-      VM.sysWrite("\tNext in code order: " + getNext().toString() + "\n");
+      VM.sysWriteln("\tNext in code order: " + getNext().toString());
     }
 
     if (start != null) {
-      VM.sysWrite("\tInstructions:\n");
+      VM.sysWriteln("\tInstructions:");
       Instruction inst = start;
       while (inst != end) {
-        VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
+        VM.sysWriteln(inst.getBytecodeIndex() + ":\t" + inst);
         inst = inst.getNext();
       }
-      VM.sysWrite(inst.getBytecodeIndex() + ":\t" + inst + "\n");
+      VM.sysWriteln(inst.getBytecodeIndex() + ":\t" + inst);
     }
-    VM.sysWrite("\n");
+    VM.sysWriteln();
+  }
+
+  private void printBlocks(String name, Enumeration<BasicBlock> blocks) {
+    VM.sysWrite("\t" + name + ": ");
+
+    BasicBlock block;
+    if (!blocks.hasMoreElements()) {
+      VM.sysWriteln("<none>");
+    } else {
+      block = blocks.nextElement();
+      VM.sysWrite(block.toString());
+      while (blocks.hasMoreElements()) {
+        block = blocks.nextElement();
+        VM.sysWrite(", " + block.toString());
+      }
+      VM.sysWriteln();
+    }
   }
 
   /**

@@ -57,7 +57,7 @@ public final class DefUse {
     }
 
     if (TRACE_DU_ACTIONS || DEBUG) {
-      VM.sysWrite("Cleared DU\n");
+      VM.sysWriteln("Cleared DU");
     }
   }
 
@@ -100,7 +100,7 @@ public final class DefUse {
       next = reg.getNext();
       if (reg.defList == null && reg.useList == null) {
         if (DEBUG) {
-          VM.sysWrite("Removing " + reg + " from the register pool\n");
+          VM.sysWriteln("Removing " + reg + " from the register pool");
         }
         ir.regpool.removeRegister(reg);
       }
@@ -162,7 +162,7 @@ public final class DefUse {
     }
     reg.useCount--;
     if (DEBUG) {
-      VM.sysWrite("removed a use " + regOp.instruction + "\n");
+      VM.sysWriteln("removed a use " + regOp.instruction);
       printUses(reg);
     }
   }
@@ -186,7 +186,7 @@ public final class DefUse {
       prev.setNext(curr.getNext());
     }
     if (DEBUG) {
-      VM.sysWrite("removed a def " + regOp.instruction + "\n");
+      VM.sysWriteln("removed a def " + regOp.instruction);
       printDefs(reg);
     }
   }
@@ -208,7 +208,7 @@ public final class DefUse {
     }
     Instruction inst = origRegOp.instruction;
     if (DEBUG) {
-      VM.sysWrite("Transfering a use of " + origRegOp + " in " + inst + " to " + newRegOp + "\n");
+      VM.sysWriteln("Transfering a use of " + origRegOp + " in " + inst + " to " + newRegOp);
     }
     removeUse(origRegOp);
     // check to see if the regOp type is NOT a ref, but the newRegOp type
@@ -287,16 +287,16 @@ public final class DefUse {
   }
 
   static void printDefs(Register reg) {
-    VM.sysWrite("Definitions of " + reg + '\n');
+    VM.sysWriteln("Definitions of " + reg);
     for (Enumeration<RegisterOperand> e = defs(reg); e.hasMoreElements();) {
-      VM.sysWrite("\t" + e.nextElement().instruction + "\n");
+      VM.sysWriteln("\t" + e.nextElement().instruction);
     }
   }
 
   static void printUses(Register reg) {
-    VM.sysWrite("Uses of " + reg + '\n');
+    VM.sysWriteln("Uses of " + reg);
     for (Enumeration<RegisterOperand> e = uses(reg); e.hasMoreElements();) {
-      VM.sysWrite("\t" + e.nextElement().instruction + "\n");
+      VM.sysWriteln("\t" + e.nextElement().instruction);
     }
   }
 
@@ -330,7 +330,7 @@ public final class DefUse {
       return;
     }
     if (DEBUG) {
-      VM.sysWrite("Merging " + reg2 + " into " + reg1 + "\n");
+      VM.sysWriteln("Merging " + reg2 + " into " + reg1);
       printDefs(reg2);
       printUses(reg2);
       printDefs(reg1);
@@ -365,7 +365,7 @@ public final class DefUse {
     // Remove reg2 from RegisterPool
     ir.regpool.removeRegister(reg2);
     if (DEBUG) {
-      VM.sysWrite("Merge complete\n");
+      VM.sysWriteln("Merge complete");
       printDefs(reg1);
       printUses(reg1);
     }

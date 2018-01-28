@@ -66,7 +66,9 @@ public class MagicNames {
   public static final Atom sqrt  = Atom.findOrCreateAsciiAtom("sqrt");
 
   public static final Atom getInlineDepth = Atom.findOrCreateAsciiAtom("getInlineDepth");
+  public static final Atom getCompilerLevel = Atom.findOrCreateAsciiAtom("getCompilerLevel");
   public static final Atom isConstantParameter = Atom.findOrCreateAsciiAtom("isConstantParameter");
+  public static final Atom getFrameSize = Atom.findOrCreateAsciiAtom("getFrameSize");
 
   public static final Atom getUnsignedByteAtOffset = Atom.findOrCreateAsciiAtom("getUnsignedByteAtOffset");
   public static final Atom getByteAtOffset = Atom.findOrCreateAsciiAtom("getByteAtOffset");
@@ -143,11 +145,11 @@ public class MagicNames {
   public static final Atom getObjectType = Atom.findOrCreateAsciiAtom("getObjectType");
   public static final Atom getArrayLength = Atom.findOrCreateAsciiAtom("getArrayLength");
 
+  public static final Atom illegalInstruction = Atom.findOrCreateAsciiAtom("illegalInstruction");
   public static final Atom fence = Atom.findOrCreateAsciiAtom("fence");
   public static final Atom combinedLoadBarrier = Atom.findOrCreateAsciiAtom("combinedLoadBarrier");
   public static final Atom storeStoreBarrier = Atom.findOrCreateAsciiAtom("storeStoreBarrier");
-  public static final Atom sync = Atom.findOrCreateAsciiAtom("sync");
-  public static final Atom isync = Atom.findOrCreateAsciiAtom("isync");
+  public static final Atom synchronizeInstructionCache = Atom.findOrCreateAsciiAtom("synchronizeInstructionCache");
   public static final Atom prefetch = Atom.findOrCreateAsciiAtom("prefetch");
   /* IA-specific */
   public static final Atom prefetchNTA = Atom.findOrCreateAsciiAtom("prefetchNTA");

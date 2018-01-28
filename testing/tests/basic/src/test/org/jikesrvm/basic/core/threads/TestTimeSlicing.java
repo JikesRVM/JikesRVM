@@ -66,6 +66,7 @@ class TestTimeSlicing {
       this.previous = (id + values.length - 1) % values.length;
     }
 
+    @Override
     void performTask() {
       while (values[id] < LAST_COUNT) {
         boolean increment = false;

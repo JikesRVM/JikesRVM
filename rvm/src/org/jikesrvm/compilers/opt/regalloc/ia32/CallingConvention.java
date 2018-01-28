@@ -13,24 +13,32 @@
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.Operators.LABEL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCLEAR;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FSTP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JCC;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JMP;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TEST;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP_opcode;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.ia32.RegisterConstants.R13;
 import static org.jikesrvm.ia32.RegisterConstants.R14;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.util.Enumeration;
@@ -39,25 +47,31 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.InterfaceMethodSignature;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_Return;
+import org.jikesrvm.compilers.opt.ir.ia32.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterTools;
+import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
+import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.util.Queue;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 
@@ -79,6 +93,13 @@ import org.jikesrvm.runtime.Entrypoints;
 public abstract class CallingConvention extends IRTools {
 
   /**
+   * marker value for splitting blocks for x64 sys calls:
+   * the block will be split at an require_esp
+   * instruction that contains an int constant with that value
+   */
+  private static final int MARKER = Integer.MAX_VALUE;
+
+  /**
    * Size of a word, in bytes
    */
   private static final int WORDSIZE = BYTES_IN_ADDRESS;
@@ -92,18 +113,39 @@ public abstract class CallingConvention extends IRTools {
    * @param ir the governing IR
    */
   public static void expandCallingConventions(IR ir) {
-    // expand each call and return instruction
+    Queue<Instruction> calls = new Queue<Instruction>();
+
+    // expand each return instruction and remember calls for later.
+    // Calls aren't processed immediately because x64 syscalls need code for stack
+    // alignment. The stack alignment code requires duplicating the block with the
+    // syscall and if we were to process calls immediately, an infinite loop would
+    // occur because the newly copied syscalls would be processed, too.
     for (Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst =
         inst.nextInstructionInCodeOrder()) {
       if (inst.isCall()) {
-        callExpand(inst, ir);
+        calls.insert(inst);
       } else if (inst.isReturn()) {
         returnExpand(inst, ir);
       }
     }
 
+    for (Instruction call : calls) {
+      callExpand(call, ir);
+    }
+
     // expand the prologue instruction
     expandPrologue(ir);
+
+    if (VM.BuildFor64Addr && ir.stackManager.hasSysCall()) {
+      // Recompute def-use data structures due to added blocks
+      // for syscall expansion.
+      DefUse.computeDU(ir);
+      // Temporaries used for parameters might now be in two blocks.
+      DefUse.recomputeSpansBasicBlock(ir);
+      // The SSA property might be invalidated by two definitions
+      // for a temporary used for a return value.
+      DefUse.recomputeSSA(ir);
+    }
   }
 
   /**
@@ -150,8 +192,83 @@ public abstract class CallingConvention extends IRTools {
 
     // 4. ESP must be parameterBytes before call, will be at either parameterBytes
     //    or 0 afterwards depending on whether or it is an RVM method or a sysCall.
-    call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes)));
-    call.insertAfter(MIR_UnaryNoRes.create(ADVISE_ESP, IC(isSysCall ? parameterBytes : 0)));
+    Instruction requireESP = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
+    call.insertBefore(requireESP);
+    Instruction adviseESP = MIR_UnaryNoRes.create(ADVISE_ESP, IC(isSysCall ? parameterBytes : 0));
+    call.insertAfter(adviseESP);
+
+    // 5. For x64 syscalls, the ABI requires that the stack pointer is divisible
+    // by 16 at the call.
+    if (VM.BuildFor64Addr && isSysCall) {
+      alignStackForX64SysCall(call, ir, parameterBytes, requireESP, adviseESP);
+    }
+  }
+
+  public static void alignStackForX64SysCall(Instruction call, IR ir,
+      int parameterBytes, Instruction requireESP, Instruction adviseESP) {
+    BasicBlock originalBlockForCall = call.getBasicBlock();
+
+    // Search marker instruction
+    Instruction currentInst = requireESP;
+    do {
+      currentInst = currentInst.prevInstructionInCodeOrder();
+      if (currentInst.getOpcode() == REQUIRE_ESP_opcode &&
+          MIR_UnaryNoRes.getVal(currentInst).asIntConstant().value == MARKER) {
+        break;
+      }
+    } while (!(currentInst.getOpcode() == LABEL_opcode));
+
+    if (VM.VerifyAssertions) VM._assert(currentInst != null);
+    if (VM.VerifyAssertions) VM._assert(currentInst.getBasicBlock() == originalBlockForCall);
+    if (VM.VerifyAssertions) VM._assert(currentInst.getOpcode() == REQUIRE_ESP_opcode);
+    Instruction marker = currentInst;
+
+    // Leave everything before the marker in the original block and move the rest to test block
+    BasicBlock testBlock = originalBlockForCall.splitNodeWithLinksAt(marker, ir);
+    // originalBlockForCall now has only code preceding the call,
+    // testBlock has call code and subsequent code
+    marker.remove();
+
+    // make testBlock empty
+    BasicBlock newBlockForCall = testBlock.splitNodeWithLinksAt(testBlock.firstInstruction(), ir);
+
+
+    // testBlock is now empty, newBlockForCall has the call and subsequent code
+    // Move everything after the call to a new block
+    BasicBlock callBlockRest = newBlockForCall.splitNodeWithLinksAt(adviseESP, ir);
+
+    // newBlockForCall now has the call and advise_esp / require_esp, subsequent code is in callBlockRest
+    BasicBlock copiedBlock = newBlockForCall.copyWithoutLinks(ir);
+    ir.cfg.addLastInCodeOrder(copiedBlock);
+    copiedBlock.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
+    copiedBlock.recomputeNormalOut(ir);
+
+    // Set up test block for checking stack alignment before the call
+    Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+    Instruction requireEspCheck = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
+    testBlock.appendInstruction(requireEspCheck);
+    Instruction spTest = MIR_Test.create(IA32_TEST,
+        new RegisterOperand(espReg, TypeReference.Word), IC(8));
+    testBlock.appendInstruction(spTest);
+    Instruction jcc = MIR_CondBranch.create(IA32_JCC,
+                                            IA32ConditionOperand.NE(),
+                                            copiedBlock.makeJumpTarget(),
+                                            new BranchProfileOperand());
+    testBlock.appendInstruction(jcc);
+    testBlock.recomputeNormalOut(ir);
+
+    // modify ESP in the copied block to ensure correct alignment
+    // when the original alignment would be incorrect. That's accomplished
+    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+    Enumeration<Instruction> copiedInsts = copiedBlock.forwardRealInstrEnumerator();
+    while (copiedInsts.hasMoreElements()) {
+      Instruction inst = copiedInsts.nextElement();
+      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
+          inst.getOpcode() == ADVISE_ESP_opcode) {
+        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
+        MIR_UnaryNoRes.setVal(inst, IC(val + WORDSIZE));
+      }
+    }
   }
 
   /**
@@ -165,7 +282,6 @@ public abstract class CallingConvention extends IRTools {
 
     if (MIR_Return.hasVal(ret)) {
       Operand symb1 = MIR_Return.getClearVal(ret);
-      MIR_Return.setVal(ret, null);
       TypeReference type = symb1.getType();
       if (type.isFloatType() || type.isDoubleType()) {
         Register r = phys.getReturnFPR();
@@ -191,7 +307,6 @@ public abstract class CallingConvention extends IRTools {
     if (MIR_Return.hasVal2(ret)) {
       if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
       Operand symb2 = MIR_Return.getClearVal2(ret);
-      MIR_Return.setVal2(ret, null);
       TypeReference type = symb2.getType();
       Register r = phys.getSecondReturnGPR();
       RegisterOperand rOp = new RegisterOperand(r, type);
@@ -323,7 +438,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = MIR_Call.getClearParam(call, i);
       MIR_Call.setParam(call, i, null);
       TypeReference paramType = param.getType();
-      if (paramType.isFloatType() || paramType.isDoubleType()) {
+      if (paramType.isFloatingPointType()) {
         nFPRParams++;
         int size;
         if (paramType.isFloatType()) {
@@ -405,8 +520,9 @@ public abstract class CallingConvention extends IRTools {
    * We do this in case the sys call does not respect our
    * register conventions.<p>
    *
-   * We save/restore all nonvolatiles and the PR, whether
-   * or not this routine uses them.  This may be a tad inefficient, but if
+   * We save/restore all nonvolatiles and the thread register as
+   * well as the JTOC (if present), whether or not this routine
+   * uses them.  This may be a tad inefficient, but if
    * you're making a system call, you probably don't care.<p>
    *
    * Side effect: changes the operator of the call instruction to
@@ -452,6 +568,12 @@ public abstract class CallingConvention extends IRTools {
     // save the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
     call.insertBefore(MIR_Move.create(IA32_MOV, M, ir.regpool.makeTROp()));
+    // save the JTOC, if present
+    if (JTOC_REGISTER != null) {
+      location += WORDSIZE;
+      Operand jtocSave = new StackLocationOperand(true, -location, (byte) WORDSIZE);
+      call.insertBefore(MIR_Move.create(IA32_MOV, jtocSave, ir.regpool.makeTocOp()));
+    }
   }
 
   /**
@@ -485,6 +607,12 @@ public abstract class CallingConvention extends IRTools {
     // restore the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
     call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makeTROp(), M));
+    // restore the JTOC, if applicable
+    if (JTOC_REGISTER != null) {
+      location += WORDSIZE;
+      Operand jtocSave = new StackLocationOperand(true, -location, (byte) WORDSIZE);
+      call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makeTocOp(), jtocSave));
+    }
   }
 
   /**
@@ -516,7 +644,7 @@ public abstract class CallingConvention extends IRTools {
         Operand param = MIR_Call.getClearParam(call, i);
         MIR_Call.setParam(call, i, null);
         TypeReference paramType = param.getType();
-        if (paramType.isFloatType() || paramType.isDoubleType()) {
+        if (paramType.isFloatingPointType()) {
           nFPRParams++;
           int size;
           if (paramType.isFloatType()) {
@@ -554,11 +682,24 @@ public abstract class CallingConvention extends IRTools {
       // stack
       parameterBytes = -2 * WORDSIZE;
       RegisterOperand fpCount = new RegisterOperand(phys.getEAX(), TypeReference.Int);
+      // Save count of vector parameters (= XMM) in EAX as defined by
+      // the ABI for varargs convention
       call.insertBefore(MIR_Move.create(IA32_MOV, fpCount, IC(FPRRegisterParams)));
+      // Save volatiles to non-volatiles that are currently not used
       call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(R14), TypeReference.Long),new RegisterOperand(phys.getESI(), TypeReference.Long)));
       call.insertBefore(MIR_Move.create(IA32_MOV, new RegisterOperand(phys.getGPR(R13), TypeReference.Long),new RegisterOperand(phys.getEDI(), TypeReference.Long)));
+      // Restore volatiles from non-volatiles
       call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getESI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R14), TypeReference.Long)));
       call.insertAfter(MIR_Move.create(IA32_MOV,new RegisterOperand(phys.getEDI(), TypeReference.Long), new RegisterOperand(phys.getGPR(R13), TypeReference.Long)));
+
+      if (VM.BuildFor64Addr) {
+        // Add a marker instruction. When processing x64 syscalls, the block of the syscall
+        // needs to be split up to copy the code for the call. Copying has to occur
+        // to be able to ensure stack alignment for the x64 ABI. This instruction
+        // marks the border for the copy: everything before this instruction isn't duplicated.
+        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(MARKER)));
+      }
+
       // Require ESP to be at bottom of frame before a call,
       call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
 
@@ -569,7 +710,7 @@ public abstract class CallingConvention extends IRTools {
         Operand param = MIR_Call.getClearParam(call, i);
         MIR_Call.setParam(call, i, null);
         TypeReference paramType = param.getType();
-        if (paramType.isFloatType() || paramType.isDoubleType()) {
+        if (paramType.isFloatingPointType()) {
           nFPRParams++;
           int size;
           size = BYTES_IN_STACKSLOT;
@@ -642,8 +783,10 @@ public abstract class CallingConvention extends IRTools {
   public static void allocateSpaceForSysCall(IR ir) {
     StackManager sm = (StackManager) ir.stackManager;
 
-    // add one to account for the processor register.
+    // add one to account for the thread register.
     int nToSave = PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
+    // add one for JTOC
+    if (JTOC_REGISTER != null) nToSave++;
 
     sm.allocateSpaceForSysCall(nToSave);
   }
@@ -669,9 +812,12 @@ public abstract class CallingConvention extends IRTools {
       Operand op = Call.getParam(s, i);
       parameterWords += op.getType().getStackWords();
     }
-    // allocate space for each parameter, plus one word on the stack to
-    // hold the address of the callee.
-    ir.stackManager.allocateParameterSpace((1 + parameterWords) * 4);
+    // allocate space for each parameter,
+    // plus one word on the stack to hold the address of the callee,
+    // plus one word on stack for alignment of x64 syscalls
+    int alignWords = VM.BuildFor64Addr ? 1 : 0;
+    int neededWords = parameterWords + alignWords + 1;
+    ir.stackManager.allocateParameterSpace(neededWords * WORDSIZE);
 
     // Convert to a SYSCALL instruction with a null method operand.
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
@@ -685,7 +831,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = MIR_Call.getParam(call, i);
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
-        if (symb.getType().isFloatType() || symb.getType().isDoubleType()) {
+        if (symb.getType().isFloatingPointType()) {
           result++;
         }
       }
@@ -700,7 +846,7 @@ public abstract class CallingConvention extends IRTools {
       Operand param = e.nextElement();
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
-        if (symb.getType().isFloatType() || symb.getType().isDoubleType()) {
+        if (symb.getType().isFloatingPointType()) {
           result++;
         }
       }
@@ -734,7 +880,7 @@ public abstract class CallingConvention extends IRTools {
     for (Enumeration<Operand> e = p.getDefs(); e.hasMoreElements();) {
       RegisterOperand symbOp = (RegisterOperand) e.nextElement();
       TypeReference rType = symbOp.getType();
-      if (rType.isFloatType() || rType.isDoubleType()) {
+      if (rType.isFloatingPointType()) {
         int size;
         if (rType.isFloatType()) {
           size = BYTES_IN_FLOAT;
@@ -797,7 +943,11 @@ public abstract class CallingConvention extends IRTools {
             start.insertBefore(m2);
             start = m2;
           } else {
-            Operand M = new StackLocationOperand(true, paramByteOffset, WORDSIZE);
+            int stackLocSize = WORDSIZE;
+            if (VM.BuildFor64Addr && rType.getMemoryBytes() <= BYTES_IN_INT) {
+              stackLocSize = BYTES_IN_INT;
+            }
+            Operand M = new StackLocationOperand(true, paramByteOffset, stackLocSize);
             start.insertBefore(MIR_Move.create(IA32_MOV, symbOp.copyRO(), M));
           }
         }
@@ -810,9 +960,7 @@ public abstract class CallingConvention extends IRTools {
       VM._assert(VM.NOT_REACHED, msg);
     }
 
-    // Now that we've made the calling convention explicit in the prologue,
-    // set IR_PROLOGUE to have no defs.
-    p.replace(Prologue.create(IR_PROLOGUE, 0));
+    removeDefsFromPrologue(p);
   }
 
 }

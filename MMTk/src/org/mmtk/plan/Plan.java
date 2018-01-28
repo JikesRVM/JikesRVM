@@ -543,7 +543,6 @@ public abstract class Plan {
 
   private static boolean initialized = false;
 
-  @Entrypoint
   private static int gcStatus = NOT_IN_GC; // shared variable
 
   /** @return Is the memory management system initialized? */
@@ -594,9 +593,9 @@ public abstract class Plan {
         VM.activePlan.global().printPreStats();
       }
     }
-    VM.memory.isync();
+    VM.memory.combinedLoadBarriers();
     gcStatus = s;
-    VM.memory.sync();
+    VM.memory.fence();
     if (gcStatus == NOT_IN_GC) {
       /* From any phase to NOT_IN_GC */
       if (Stats.gatheringStats()) {
@@ -612,7 +611,7 @@ public abstract class Plan {
   public void printPreStats() {
     if ((Options.verbose.getValue() == 1) ||
         (Options.verbose.getValue() == 2)) {
-      Log.write("[GC "); Log.write(Stats.gcCount());
+      Log.write("[GC ", Stats.gcCount());
       if (Options.verbose.getValue() == 1) {
         Log.write(" Start ");
         Plan.totalTime.printTotalSecs();
@@ -628,7 +627,7 @@ public abstract class Plan {
       Log.flush();
     }
     if (Options.verbose.getValue() > 2) {
-      Log.write("Collection "); Log.write(Stats.gcCount());
+      Log.write("Collection ", Stats.gcCount());
       Log.write(":        ");
       printUsedPages();
       Log.write("  Before Collection: ");

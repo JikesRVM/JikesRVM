@@ -24,6 +24,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
+import org.jikesrvm.junit.runners.RequiresOptCompiler;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.junit.runner.RunWith;
 
 
 @RunWith(VMRequirements.class)
+@Category({RequiresOptCompiler.class})
 public class ScratchMapTest {
 
   private static final int REGISTER_COUNT = 100;

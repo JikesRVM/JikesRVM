@@ -184,7 +184,7 @@ final class MinimalBURS extends BURS {
       int nonterminal = k.getNonTerminal();
       int rule = k.rule(nonterminal);
       burs.code(k, nonterminal, rule);
-      if (DEBUG) VM.sysWrite(k + " " + debug(rule) + "\n");
+      if (DEBUG) VM.sysWriteln(k + " " + debug(rule));
     }
   }
 }

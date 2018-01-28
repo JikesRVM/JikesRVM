@@ -231,6 +231,7 @@ public class BootRecord {
   public Address sysConsoleWriteIntegerIP;
   public Address sysConsoleWriteLongIP;
   public Address sysConsoleWriteDoubleIP;
+  public Address sysConsoleFlushErrorAndTraceIP;
 
   // startup/shutdown
   public Address sysExitIP;
@@ -306,6 +307,8 @@ public class BootRecord {
   public Address sysPrimitiveParseIntIP;
   public Address sysPrimitiveParseLongIP;
   public Address sysParseMemorySizeIP;
+
+  public Address sysStackAlignmentTestIP;
 
   // time
   Address sysCurrentTimeMillisIP;

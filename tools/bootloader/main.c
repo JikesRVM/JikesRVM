@@ -482,16 +482,6 @@ int main(int argc, const char **argv)
   JavaVM *mainJavaVM;
   JNIEnv *mainJNIEnv;
 
-  /* Make standard streams unbuffered so that we can use them
-     for low level-debugging */
-  vbufret = setvbuf(stdout, NULL, _IONBF, 0);
-  if (vbufret != 0) {
-    printf("Error making stdout unbuffered: %d\n", vbufret);
-  }
-  vbufret = setvbuf(stderr, NULL, _IONBF, 0);
-  if (vbufret != 0) {
-    printf("Error making stderr unbuffered: %d\n", vbufret);
-  }
   SysErrorFile = stderr;
   SysTraceFile = stdout;
   Me = strrchr(*argv, '/');
@@ -509,7 +499,7 @@ int main(int argc, const char **argv)
   // it's needed to parse command line options
   pageSize = (Extent) determinePageSize();
   if (pageSize <= 0) {
-    ERROR_PRINTF("RunBootImage.main(): invalid page size %u", pageSize);
+    ERROR_PRINTF("RunBootImage.main(): invalid page size %zu", pageSize);
     exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
   }
 

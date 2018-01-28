@@ -32,11 +32,6 @@ public final class VMField {
   // For use by JikesRVMSupport
   VMField(RVMField f) {
     field = f;
-
-    if (f.getType().isMagicType()) {
-      VM.sysFail("Attempted to create reflection field for " + f +
-          " which has a magic type and thus doesn't support reflection!");
-    }
   }
 
   @Override
@@ -53,6 +48,15 @@ public final class VMField {
   }
 
   Object get(Field f, Object object) throws IllegalAccessException, IllegalArgumentException {
+    if (VM.ExtremeAssertions) {
+      boolean invalidGet = JikesRVMSupport.getFieldOf(f).getType().isMagicType();
+      if (invalidGet) {
+        String msg = "Attempted to access reflection field for " + f +
+            " which has a magic type and thus doesn't support reflection!";
+        VM._assert(VM.NOT_REACHED, msg);
+      }
+    }
+
     return VMCommonLibrarySupport.get(object, field, f, RVMClass.getClassFromStackFrame(2));
   }
 
@@ -102,6 +106,15 @@ public final class VMField {
 
   void set(Field f, Object object, Object value)
     throws IllegalAccessException, IllegalArgumentException     {
+    if (VM.ExtremeAssertions) {
+      boolean invalidSet = JikesRVMSupport.getFieldOf(f).getType().isMagicType();
+      if (invalidSet) {
+        String msg = "Attempted to access reflection field for " + f +
+            " which has a magic type and thus doesn't support reflection!";
+        VM._assert(VM.NOT_REACHED, msg);
+      }
+    }
+
     VMCommonLibrarySupport.set(object, value, field, f, RVMClass.getClassFromStackFrame(2));
   }
 

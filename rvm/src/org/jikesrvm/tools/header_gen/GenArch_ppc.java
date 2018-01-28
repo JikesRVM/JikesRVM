@@ -57,7 +57,7 @@ import org.vmmagic.unboxed.Offset;
 final class GenArch_ppc extends GenArch {
 
   static void pln(String s, GPR gp) {
-    out.print("#define " + s + " 0x" + Integer.toHexString(gp.value()) + "\n");
+    out.println("#define " + s + " 0x" + Integer.toHexString(gp.value()));
   }
 
   @Override

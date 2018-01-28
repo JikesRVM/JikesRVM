@@ -1421,20 +1421,10 @@ public final class Magic {
   /**** NOTE: all per-address operations now live in vmmagic.Address *****/
 
   /**
-   * Wait for preceeding cache flush/invalidate instructions to
-   * complete on all processors.
-   */
-  public static void sync() {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    }
-  }
-
-  /**
    * Wait for all preceeding instructions to complete and discard any
    * prefetched instructions on this processor.
    */
-  public static void isync() {
+  public static void synchronizeInstructionCache() {
     if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
@@ -1487,6 +1477,16 @@ public final class Magic {
     return -1.0d; // which should upset them even if assertions aren't enabled ...
   }
 
+  /**
+   * An illegal instruction. Useful for testing purposes but not needed
+   * for running the VM.
+   */
+  public static void illegalInstruction() {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
   //---------------------------------------//
   //    Methods which are evaluated at     //
   //    compile-time when instructions     //
@@ -1505,6 +1505,16 @@ public final class Magic {
   }
 
   /**
+   * @return the compiler opt level, {@code -1} means baseline
+   */
+  public static int getCompilerLevel() {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+    return Integer.MIN_VALUE;
+  }
+
+  /**
    * Is the specified parameter constant (due to either inlining or specialization).
    * Count starts at zero and includes the 'this' parameter for instance methods.
    *
@@ -1517,4 +1527,16 @@ public final class Magic {
     }
     return false;
   }
+
+  /**
+   * Returns the size of the stack frame for the method.
+   * <p>
+   * This method forces the opt compiler to allocate a stack frame.
+   *
+   * @return the size of the stack frame for the method.
+   */
+  public static int getFrameSize() {
+    return -1;
+  }
+
 }

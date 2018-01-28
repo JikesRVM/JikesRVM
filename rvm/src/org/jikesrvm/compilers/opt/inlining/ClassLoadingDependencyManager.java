@@ -53,7 +53,7 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
     // Process any dependencies on methods not being overridden.
     if (!writingBootImage) {
       if (DEBUG) {
-        report("CLDM: " + c + " is about to be marked as initialized.\n");
+        report("CLDM: " + c + " is about to be marked as initialized.");
       }
       handleOverriddenMethods(c);
       handleSubclassing(c);
@@ -75,7 +75,7 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
   public synchronized void addNotOverriddenDependency(RVMMethod source, CompiledMethod cm) {
     int cmid = cm.getId();
     if (TRACE || DEBUG) {
-      report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not being overridden\n");
+      report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not being overridden");
     }
     db.addNotOverriddenDependency(source, cmid);
   }
@@ -90,7 +90,7 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
   public synchronized void addNoSubclassDependency(RVMClass source, CompiledMethod cm) {
     int cmid = cm.getId();
     if (TRACE || DEBUG) {
-      report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not having a subclass\n");
+      report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not having a subclass");
     }
     db.addNoSubclassDependency(source, cmid);
   }
@@ -157,13 +157,13 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
   private void invalidate(CompiledMethod cm) {
     RVMMethod m = cm.getMethod();
     if (TRACE || DEBUG) {
-      report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");
+      report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")");
     }
 
     // (1) Mark the compiled method as invalid.
     synchronized (cm) {
       if (cm.isInvalid()) {
-        if (TRACE || DEBUG) report("\tcmid was alrady invalid; nothing more to do\n");
+        if (TRACE || DEBUG) report("\tcmid was alrady invalid; nothing more to do");
         return;
       }
 
@@ -191,11 +191,15 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
         try {
           log = new PrintStream(new FileOutputStream("PREEX_OPTS.TRACE"));
         } catch (IOException e) {
-          VM.sysWrite("\n\nCLDM: Error opening logging file!!\n\n");
+          VM.sysWriteln();
+          VM.sysWriteln();
+          VM.sysWrite("CLDM: Error opening logging file!!");
+          VM.sysWriteln();
+          VM.sysWriteln();
         }
       }
     } else {
-      System.out.print(s);
+      System.out.println(s);
     }
   }
 }

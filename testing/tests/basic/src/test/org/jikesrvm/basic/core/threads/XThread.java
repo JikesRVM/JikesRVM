@@ -60,11 +60,13 @@ abstract class XThread extends Thread {
     tsay("creating");
   }
 
+  @Override
   public synchronized void start() {
     tsay("starting");
     super.start();
   }
 
+  @Override
   public void run() {
     tsay("run starting");
     running = true;

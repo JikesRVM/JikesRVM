@@ -11,18 +11,24 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-use Getopt::Std;
+use warnings;
+use strict;
 
+use Getopt::Std;
+use Proc::ProcessTable;
+
+our($opt_o, $opt_t, $opt_e);
 getopts('t:e:o:');
 
-$alarm_exit_code = 1;
+my $alarm_exit_code = 1;
 
-$outfile="timedrun.out";
+my $outfile="timedrun.out";
 
 if ($opt_o ne "") {
     $outfile = $opt_o;
 }
 
+my $deadman_seconds;
 if ($opt_t ne "") {
     $SIG{ALRM} = 'alarmHandler';
     $deadman_seconds = $opt_t;
@@ -32,31 +38,35 @@ if ($opt_e ne "") {
     $alarm_exit_code = $opt_e;
 }
 
+our $pid;
+
 FORK: {
     if ($pid = fork) {
-	# parent
-	if (defined ($deadman_seconds)){
-	    alarm($deadman_seconds);
-	}
-	wait;
+        # parent
+        if (defined ($deadman_seconds)){
+            alarm($deadman_seconds);
+        }
+        wait;
         exit($? >> 8);
     } elsif (defined $pid) { # $pid is zero here if defind
-	# child
-	open(STDOUT, '>', $outfile) or die "failed to redirect stdout";
-	open(STDERR, ">&STDOUT") or die "failed to redirect stderr";
-	exec @ARGV;
+        # child
+        open(STDOUT, '>', $outfile) or die "failed to redirect stdout";
+        open(STDERR, ">&STDOUT") or die "failed to redirect stderr";
+        exec @ARGV;
     } elsif ($! =~ /No more process/) {
-	# EAGAIN, supposedly recoverable fork error
-	sleep 5;
-	redo FORK;
+        # EAGAIN, supposedly recoverable fork error
+        sleep 5;
+        redo FORK;
     } else {
-	# weird fork error
-	die "Can't fork: $!\n";
+        # weird fork error
+        die "Can't fork: $!\n";
     }
 }
 
 sub alarmHandler {
     print "CAUGHT ALARM\n";
+    system("kill -3 $pid 2>/dev/null");
+    sleep 2;
     system("kill  $pid 2>/dev/null");
     sleep 2;
     euthanase($pid);
@@ -64,12 +74,27 @@ sub alarmHandler {
 }
 
 sub euthanase {
-    my ($pid) = @_;
-    open (JOBS, "ps -ef | cut -c10-21 | grep $pid|");
-    while (<JOBS>) {
-	($target) = /(\d+)\s+\d+/;
-	system("kill -9 $target 2>/dev/null");
+    my $processTable = new Proc::ProcessTable;
+
+    my $DEBUG;
+    # Comment in the next line to print out all
+    # fields available in the process table
+    # $DEBUG = 'defined';
+    if (defined ($DEBUG)) {
+         print "All process table fields\n";
+         foreach my $f ($processTable->fields) {
+             print $f, "\n";
+         }
     }
-    close JOBS;
+
+    foreach my $p (@{$processTable->table}) {
+        my $processPid = $p->pid;
+        my $processPpid = $p->ppid;
+        # NOTE: process table fields are OS-specific
+        # Only tested on Linux right now.
+        if ($processPid == $pid || $processPpid == $pid) {
+            $p->kill(9);
+        }
+    }
 }
 

@@ -56,6 +56,7 @@ public class OptTestHarnessTest {
   private static final String CLASS_WITH_STATIC_METHOD = "org.jikesrvm.tools.oth.ClassWithStaticMethod";
   private static final String CLASS_OVERLOADED_METHODS = "org.jikesrvm.tools.oth.ClassWithOverloadedMethods";
   private static final String CLASS_WITH_MAIN_METHOD = "org.jikesrvm.tools.oth.ClassWithMainMethod";
+  private static final String CLASS_WITHOUT_MAIN_METHOD = "org.jikesrvm.tools.oth.ClassWithoutMainMethod";
   private static final String CLASS_WITH_INSTANCE_METHOD = "org.jikesrvm.tools.oth.ClassWithInstanceMethod";
   private static final String CLASS_WITH_PRIVATE_CONSTRUCTOR = "org.jikesrvm.tools.oth.ClassWithPrivateConstructor";
 
@@ -781,12 +782,12 @@ public class OptTestHarnessTest {
 
   @Test
   public void complainsWhenNoMainMethodExists() throws Exception {
-    String[] useMainForClassWithoutMain = { "-main", EMPTY_CLASS};
+    String[] useMainForClassWithoutMain = { "-main", CLASS_WITHOUT_MAIN_METHOD};
     executeOTHWithStreamRedirection(useMainForClassWithoutMain);
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(0);
     assertThatRemainingOutputIsEmptyWhenTrimmed();
-    String expectedErrorOutput = EMPTY_CLASS +
+    String expectedErrorOutput = CLASS_WITHOUT_MAIN_METHOD +
         " doesn't have a \"public static void main(String[])\" method to execute\n\n";
     removeMessageFromErrorOutput(expectedErrorOutput);
     assertThatNoAdditionalErrorsHaveOccurred();

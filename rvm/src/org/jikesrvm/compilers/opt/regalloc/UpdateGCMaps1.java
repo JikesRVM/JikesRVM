@@ -71,21 +71,21 @@ final class UpdateGCMaps1 extends CompilerPhase {
         Register symbolic = elem.getSymbolicReg();
 
         if (LinearScan.GC_DEBUG) {
-          VM.sysWrite("get location for " + symbolic + '\n');
+          VM.sysWriteln("get location for " + symbolic);
         }
 
         if (symbolic.isAllocated()) {
           Register ra = regAllocState.getMapping(symbolic);
           elem.setRealReg(ra);
           if (LinearScan.GC_DEBUG) {
-            VM.sysWrite(ra + "\n");
+            VM.sysWriteln(ra.toString());
           }
 
         } else if (symbolic.isSpilled()) {
           int spill = ir.MIRInfo.regAllocState.getSpill(symbolic);
           elem.setSpill(spill);
           if (LinearScan.GC_DEBUG) {
-            VM.sysWrite(spill + "\n");
+            VM.sysWriteln(Integer.toString(spill));
           }
         } else {
           OptimizingCompilerException.UNREACHABLE("LinearScan", "register not alive:", symbolic.toString());

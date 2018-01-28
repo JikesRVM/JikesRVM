@@ -221,6 +221,20 @@ public abstract class Barriers {
   public abstract double doubleRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
 
   /**
+   * Initializes the reference fields of a given object reference. Most collectors
+   * won't need to use this method.
+   * <p>
+   * It is only required if the default value for a reference field is not the
+   * default value that's provided by the initialization for the memory of the
+   * object (e.g. if memory is initialized to zero and the default value for a
+   * reference is not zero).
+   *
+   * @param ref the object that has the reference field
+   * @param typeRef the object's type reference
+   */
+  public abstract void initializeObjectReferenceFields(ObjectReference ref, ObjectReference typeRef);
+
+  /**
    * Perform the actual write of an object reference write barrier.
    *
    * @param ref The object that has the reference field

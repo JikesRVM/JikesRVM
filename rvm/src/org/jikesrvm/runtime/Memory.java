@@ -614,7 +614,7 @@ public class Memory {
     VM.sysWrite(start.minus(beforeBytes));
     VM.sysWrite(" to ");
     VM.sysWrite(start.plus(afterBytes));
-    VM.sysWrite(" ----\n");
+    VM.sysWriteln(" ----");
     for (int i = -beforeBytes; i < afterBytes; i += BYTES_IN_ADDRESS) {
       VM.sysWrite(i, ": ");
       VM.sysWrite(start.plus(i));

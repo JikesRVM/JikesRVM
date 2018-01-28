@@ -63,15 +63,6 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
     }
   }
 
-  public static int getSpillSize(int type) {
-    if (VM.BuildForIA32) {
-      return org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet.getSpillSize(type);
-    } else {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-      return org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet.getSpillSize(type);
-    }
-  }
-
   public org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet asIA32() {
     return (org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet)this;
   }

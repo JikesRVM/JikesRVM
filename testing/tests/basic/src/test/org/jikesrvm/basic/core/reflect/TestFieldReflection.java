@@ -246,6 +246,7 @@ class TestFieldReflection {
   private static class StringComparator implements Comparator<Object> {
     static StringComparator COMPARATOR = new StringComparator();
 
+    @Override
     public int compare(final Object x, final Object y) {
       return x.toString().compareTo(y.toString());
     }

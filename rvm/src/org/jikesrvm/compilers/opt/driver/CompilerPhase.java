@@ -207,7 +207,7 @@ public abstract class CompilerPhase {
 
     perform(ir);                // DOIT!!
 
-    if (ir.options.PRINT_PHASES) VM.sysWrite(" done\n");
+    if (ir.options.PRINT_PHASES) VM.sysWriteln(" done");
     if (ir.options.PRINT_ALL_IR || printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         // only print when above certain opt level

@@ -277,7 +277,7 @@ public abstract class JNICompiler {
     int numFprArgs = 0;
     int numGprArgs = 0;
     for (TypeReference arg : args) {
-      if (arg.isFloatType() || arg.isDoubleType()) {
+      if (arg.isFloatingPointType()) {
         numFprArgs++;
       } else if (VM.BuildFor32Addr && arg.isLongType()) {
         numGprArgs += 2;

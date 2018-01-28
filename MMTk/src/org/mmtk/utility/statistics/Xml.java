@@ -41,7 +41,9 @@ public class Xml {
    * @param name the tag's name
    */
   public static void closeTag(String name) {
-    Log.write("</"); Log.write(name); Log.writeln(">");
+    Log.write("</");
+    Log.write(name);
+    Log.writeln(">");
   }
 
   /**
@@ -150,7 +152,9 @@ public class Xml {
    * @param value The value of the entity
    */
   public static void attribute(String name, Word value) {
-    openAttribute(name); Log.write(value); closeAttribute();
+    openAttribute(name);
+    Log.write(value);
+    closeAttribute();
   }
 
   /**
@@ -160,7 +164,9 @@ public class Xml {
    * @param value The value of the entity
    */
   public static void attribute(String name, byte[] value) {
-    openAttribute(name); Log.write(value); closeAttribute();
+    openAttribute(name);
+    Log.write(value);
+    closeAttribute();
   }
 
   /**
@@ -170,7 +176,9 @@ public class Xml {
    * @param value The value of the entity
    */
   public static void attribute(String name, String value) {
-    openAttribute(name); Log.write(value); closeAttribute();
+    openAttribute(name);
+    Log.write(value);
+    closeAttribute();
   }
 
   /**
@@ -180,7 +188,9 @@ public class Xml {
    * @param value The value of the entity
    */
   public static void attribute(String name, boolean value) {
-    openAttribute(name); Log.write(value); closeAttribute();
+    openAttribute(name);
+    Log.write(value);
+    closeAttribute();
   }
 
   /**
@@ -190,7 +200,9 @@ public class Xml {
    * @param value The value of the entity
    */
   public static void attribute(String name, double value) {
-    openAttribute(name); Log.write(value); closeAttribute();
+    openAttribute(name);
+    Log.write(value);
+    closeAttribute();
   }
 
   /**
@@ -200,7 +212,9 @@ public class Xml {
    * @param value The value of the entity
    */
   public static void attribute(String name, long value) {
-    openAttribute(name); Log.write(value); closeAttribute();
+    openAttribute(name);
+    Log.write(value);
+    closeAttribute();
   }
 
   /**
@@ -210,7 +224,9 @@ public class Xml {
    * @param value The value of the entity
    */
   public static void attribute(String name, int value) {
-    openAttribute(name); Log.write(value); closeAttribute();
+    openAttribute(name);
+    Log.write(value);
+    closeAttribute();
   }
 
   /**
@@ -226,7 +242,9 @@ public class Xml {
    * @param name Name of the entity
    */
   public static void openAttribute(String name) {
-    Log.write(" "); Log.write(name); Log.write("=\"");
+    Log.write(" ");
+    Log.write(name);
+    Log.write("=\"");
   }
 
   /**
@@ -272,7 +290,8 @@ public class Xml {
    * @param name Name of the entity
    */
   public static void openMinorTag(String name) {
-    Log.write("<"); Log.write(name);
+    Log.write("<");
+    Log.write(name);
   }
 
   /**

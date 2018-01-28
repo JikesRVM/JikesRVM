@@ -13,6 +13,7 @@
 package org.mmtk.utility.statistics;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Extent;
 
 /**
  * This class implements a simple counter of events of different sizes
@@ -90,6 +91,16 @@ public class SizeCounter {
   public void inc(int value) {
     units.inc();
     volume.inc(value);
+  }
+
+  /**
+   * Increments the event counter by {@code value}.
+   *
+   * @param value The amount by which the counter should be incremented.
+   */
+  public void inc(Extent value) {
+    units.inc();
+    volume.inc(value.toLong());
   }
 
   /****************************************************************************

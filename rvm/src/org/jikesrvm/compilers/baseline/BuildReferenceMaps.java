@@ -168,7 +168,11 @@ final class BuildReferenceMaps {
 
     currBBStkEmpty = TemplateCompilerFramework.stackHeightForEmptyBasicBlock(method);
 
-    if (debug) VM.sysWrite("getLocalWords() : " + method.getLocalWords() + "\n");
+    if (debug) {
+      VM.sysWriteln("getLocalWords() : " + method.getLocalWords());
+      VM.sysWriteln("getOperandWords() : " + method.getOperandWords());
+      VM.sysWriteln("getParameterWords() : " + method.getParameterWords());
+    }
 
     // Get information from the method being processed
     bcodes = method.getBytecodes();
@@ -301,7 +305,7 @@ final class BuildReferenceMaps {
         VM.sysWrite("BuildReferenceMaps, error: found a block on work stack with");
         VM.sysWrite(" no starting map. The block number is ");
         VM.sysWrite(basicBlocks[currBBNum].getBlockNumber());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
         VM.sysFail("BuildReferenceMaps work stack failure");
       }
 
@@ -408,12 +412,13 @@ final class BuildReferenceMaps {
         }
 
         if (debug) {
-          VM.sysWrite("opcode : " + opcode + "\n");
+          VM.sysWriteln("bytecode: " + JBC_name(opcode) +
+              " (opcode : " + opcode + ")");
           VM.sysWrite("current map: ");
           for (int j = 0; j <= currBBStkTop; j++) {
             VM.sysWrite(currBBMap[j]);
           }
-          VM.sysWrite("\n");
+          VM.sysWriteln();
         }
 
         switch (opcode) {

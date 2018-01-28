@@ -25,6 +25,7 @@ class Task extends XThread {
     this.taskId = id;
   }
 
+  @Override
   void performTask() {
     mailbox.send(String.valueOf(taskId));
     sent = true;

@@ -25,33 +25,39 @@ interface InterfaceBaz extends InterfaceFoo {
 }
 
 class TestInterfaceA implements InterfaceFoo, InterfaceBar {
-   public int foo() {
-     return 1;
-   }
-   public int bar() {
+  @Override
+  public int foo() {
+    return 1;
+  }
+  @Override
+  public int bar() {
      return 2;
-   }
+  }
 }
 
 class TestInterfaceB implements InterfaceBar, InterfaceFoo {
-   public int bar() {
+  @Override
+  public int bar() {
      return 3;
-   }
-   public int foo() {
+  }
+  @Override
+  public int foo() {
      return 4;
-   }
+  }
 }
 
 class TestInterfaceC extends TestInterfaceB implements InterfaceFoo {
 }
 
 class TestInterfaceD implements InterfaceBaz {
-   public int foo() {
+  @Override
+  public int foo() {
      return 5;
-   }
-   public int baz() {
-     return 6;
-   }
+  }
+  @Override
+  public int baz() {
+    return 6;
+  }
 }
 
 class TestInterfaceE extends TestInterfaceD {
@@ -73,13 +79,15 @@ class TestInterfaceCall {
     foo = new TestInterfaceA();
     if (foo.foo() != 1) {
       testSuccess = false;
-      System.out.println("\n Expected value: 1; Returned value: " + foo.foo());   // 1
+      System.out.println();
+      System.out.print(" Expected value: 1; Returned value: " + foo.foo());   // 1
     }
 
     foo = new TestInterfaceB();
     if (foo.foo() != 4) {
       testSuccess = false;
-      System.out.println("\n Expected value: 4; Returned value: " + foo.foo());   // 4
+      System.out.println();
+      System.out.print(" Expected value: 4; Returned value: " + foo.foo());   // 4
     }
 
 
@@ -88,7 +96,8 @@ class TestInterfaceCall {
     if (bar.bar() != 2) {
       //      System.out.println(bar.bar());   // 2
       testSuccess = false;
-      System.out.println("\n Expected value: 2; Returned value: " + bar.bar());   // 2
+      System.out.println();
+      System.out.print(" Expected value: 2; Returned value: " + bar.bar());   // 2
 
     }
 
@@ -96,7 +105,8 @@ class TestInterfaceCall {
     if (bar.bar() != 3) {
       //      System.out.println(bar.bar());   // 3
       testSuccess = false;
-      System.out.println("\n Expected value: 3; Returned value: " + bar.bar());   // 3
+      System.out.println();
+      System.out.print(" Expected value: 3; Returned value: " + bar.bar());   // 3
 
     }
 
@@ -104,7 +114,8 @@ class TestInterfaceCall {
     if (foo.foo() != 4) {
       //      System.out.println(foo.foo());   // 4
       testSuccess = false;
-      System.out.println("\n Expected value: 4; Returned value: " + foo.foo());   // 4
+      System.out.println();
+      System.out.print(" Expected value: 4; Returned value: " + foo.foo());   // 4
 
     }
 
@@ -134,8 +145,12 @@ class TestInterfaceCall {
 
     if (testSuccess)
       System.out.println(" succeeded.");
-    else
-      System.out.println(" failed. ***************\n\n");
+    else {
+      System.out.println(" failed. ***************");
+      System.out.println();
+      System.out.println();
+    }
+
 
     return testSuccess;
   }

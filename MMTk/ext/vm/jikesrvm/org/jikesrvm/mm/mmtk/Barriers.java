@@ -13,7 +13,12 @@
 package org.jikesrvm.mm.mmtk;
 
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.mmtk.utility.Constants.ARRAY_ELEMENT;
+import static org.mmtk.utility.Constants.INSTANCE_FIELD;
 
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.vm.VM;
 
@@ -310,6 +315,55 @@ public class Barriers extends org.mmtk.vm.Barriers {
   @Override
   public final double doubleRead(ObjectReference objref, Word offset, Word location, int mode) {
     return Magic.getDoubleAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Initializes the reference fields of a given object reference. Most collectors
+   * won't need to use this method.
+   * <p>
+   * The Poisoned collector uses this method. Without using this method,
+   * all reference fields would be initialized to {@code Word.zero()}. However,
+   * the value for {@code null} in the Poisoned collector is actually
+   * {@code Poisoned.poison(ObjectReference.fromObject(null))}, which is
+   * {@code Word.one()} at the time of this writing. Not initializing the value
+   * to the real value of {@code null} leads to problems when the value isn't
+   * explicitly initialized before it is read (i.e. when the programmer relies
+   * on the JVM to initialize the value to {@code null}). This can occur when
+   * using intrinsics such as compare-and-swap.
+   *
+   * @param ref the object that has the reference field(s)
+   * @param tibAddr the object's type TIB
+   */
+  @Override
+  public final void initializeObjectReferenceFields(ObjectReference ref,
+      ObjectReference tibAddr) {
+    ObjectReference nullValue = Word.zero().toAddress().toObjectReference();
+    // location is actually unknown. I suppose we could try mapping the
+    // reference offsets to field offsets if we really needed it.
+    Word location = Word.zero();
+
+    TIB tib = Magic.addressAsTIB(tibAddr.toAddress());
+    RVMType type = tib.getType();
+    int[] referenceOffsets = type.getReferenceOffsets();
+
+    if (referenceOffsets == RVMType.REFARRAY_OFFSET_ARRAY) {
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(type.isArrayType() &&
+          type.asArray().getElementType().isReferenceType());
+      int arrayLength = ObjectModel.getArrayLength(ref.toObject());
+      for (int i = 0; i < arrayLength; i++) {
+        Word offset = Offset.fromIntSignExtend(i << LOG_BYTES_IN_ADDRESS).toWord();
+        Address slotAddress = ref.toAddress().plus(i << LOG_BYTES_IN_ADDRESS);
+        VM.activePlan.mutator().objectReferenceWrite(ref, slotAddress, nullValue, offset, location, ARRAY_ELEMENT);
+      }
+    } else {
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(type.isClassType() ||
+          (type.isArrayType() && !type.asArray().getElementType().isReferenceType()));
+      for (int i = 0; i < referenceOffsets.length; i++) {
+        Word offset = Offset.fromIntSignExtend(referenceOffsets[i]).toWord();
+        Address slotAddress = ref.toAddress().plus(referenceOffsets[i]);
+        VM.activePlan.mutator().objectReferenceWrite(ref, slotAddress, nullValue, offset, location, INSTANCE_FIELD);
+      }
+    }
   }
 
   /**

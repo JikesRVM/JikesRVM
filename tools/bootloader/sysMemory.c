@@ -74,7 +74,7 @@ EXTERNAL void sysFree(void *location)
 /* Zero a range of memory with non-temporal instructions on x86 */
 EXTERNAL void sysZeroNT(void *dst, Extent cnt)
 {
-  TRACE_PRINTF("%s: sysZeroNT %p %d\n", Me, dst, cnt);
+  TRACE_PRINTF("%s: sysZeroNT %p %zu\n", Me, dst, cnt);
 #ifdef RVM_FOR_SSE2
   char *buf = (char *) dst;
   unsigned int len = cnt;
@@ -121,7 +121,7 @@ EXTERNAL void sysZeroNT(void *dst, Extent cnt)
 /** Zero a range of memory bytes. */
 EXTERNAL void sysZero(void *dst, Extent cnt)
 {
-  TRACE_PRINTF("%s: sysZero %p %d\n", Me, dst, cnt);
+  TRACE_PRINTF("%s: sysZero %p %zu\n", Me, dst, cnt);
   memset(dst, 0x00, cnt);
 }
 
@@ -214,7 +214,7 @@ EXTERNAL void * sysMMap(char *start , size_t length ,
                         int fd , Offset offset)
 {
   void *result;
-  TRACE_PRINTF("%s: sysMMap %p %zu %d %d %d %d\n",
+  TRACE_PRINTF("%s: sysMMap %p %zu %d %d %d %zu\n",
                Me, start, length, protection, flags, fd, offset);
   result = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   return result;
@@ -229,13 +229,13 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
                              int fd , Offset offset)
 {
   void* res;
-  TRACE_PRINTF("%s: sysMMapErrno %p %zu %d %d %d %ud\n",
+  TRACE_PRINTF("%s: sysMMapErrno %p %zu %d %d %d %zu\n",
                Me, start, length, protection, flags, fd, offset);
   res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1) {
     ERROR_PRINTF("%s: sysMMapErrno %p %zu %d %d %d %ld failed with %d.\n",
                  Me, start, length, protection, flags, fd, (long) offset, errno);
-    return (void *) errno;
+    return (void *)(intptr_t) errno;
   } else {
     TRACE_PRINTF("mmap succeeded- region = [%p ... %p]    size = %zu\n",
                  res, (void*)(((size_t)res) + length), length);
@@ -260,14 +260,14 @@ EXTERNAL int sysMProtect(char *start, size_t length, int prot)
 /** Memory to memory copy. Memory regions must not overlap. */
 EXTERNAL void sysCopy(void *dst, const void *src, Extent cnt)
 {
-  TRACE_PRINTF("%s: sysCopy %p %p %d\n", Me, dst, src, cnt);
+  TRACE_PRINTF("%s: sysCopy %p %p %zu\n", Me, dst, src, cnt);
   memcpy(dst, src, cnt);
 }
 
 /** Memory to memory copy. Memory regions may overlap. */
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt)
 {
-  TRACE_PRINTF("%s: sysMemmove %p %p %d\n", Me, dst, src, cnt);
+  TRACE_PRINTF("%s: sysMemmove %p %p %zu\n", Me, dst, src, cnt);
   memmove(dst, src, cnt);
 }
 
@@ -326,7 +326,7 @@ void findMappable()
   Address i;
   Address granularity = 1 << 22; // every 4 megabytes
   Address max = (1L << ((sizeof(Address)*8)-2)) / (granularity >> 2);
-  CONSOLE_PRINTF("Attempting to find mappable blocks of size %d\n", pageSize);
+  CONSOLE_PRINTF("Attempting to find mappable blocks of size %zu\n", pageSize);
   for (i = 0; i < max; i++) {
     char *start = (char *) (i * granularity);
     int prot = PROT_READ | PROT_WRITE | PROT_EXEC;

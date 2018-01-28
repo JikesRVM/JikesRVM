@@ -27,6 +27,13 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public class PoisonedMutator extends MSMutator {
 
+  @Override
+  public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes,
+      int allocator) {
+    VM.barriers.initializeObjectReferenceFields(ref, typeRef);
+    super.postAlloc(ref, typeRef, bytes, allocator);
+  }
+
   /****************************************************************************
    *
    * Write and read barriers. By default do nothing, override if

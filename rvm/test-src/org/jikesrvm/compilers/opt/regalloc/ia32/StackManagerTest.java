@@ -31,6 +31,7 @@ import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.RequiresIA32;
+import org.jikesrvm.junit.runners.RequiresOptCompiler;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-@Category({RequiresBuiltJikesRVM.class, RequiresIA32.class})
+@Category({RequiresBuiltJikesRVM.class, RequiresIA32.class, RequiresOptCompiler.class})
 public class StackManagerTest {
 
   private StackManager stackManager;

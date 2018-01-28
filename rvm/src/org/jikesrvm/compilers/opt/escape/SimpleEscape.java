@@ -121,7 +121,7 @@ class SimpleEscape extends CompilerPhase {
   public FI_EscapeSummary simpleEscapeAnalysis(IR ir) {
     final boolean DEBUG = false;
     if (DEBUG) {
-      VM.sysWrite("ENTER Simple Escape Analysis " + ir.method + "\n");
+      VM.sysWriteln("ENTER Simple Escape Analysis " + ir.method);
     }
     if (DEBUG) {
       ir.printInstructions();
@@ -199,7 +199,7 @@ class SimpleEscape extends CompilerPhase {
     // record that we're done with analysis
     summ.setInProgress(false);
     if (DEBUG) {
-      VM.sysWrite("LEAVE Simple Escape Analysis " + ir.method + "\n");
+      VM.sysWriteln("LEAVE Simple Escape Analysis " + ir.method);
     }
     return result;
   }

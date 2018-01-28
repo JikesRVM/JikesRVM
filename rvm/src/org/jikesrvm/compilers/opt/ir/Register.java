@@ -436,17 +436,8 @@ public final class Register {
     return next;
   }
 
-  void setNext(Register e) {
-    next = e;
-  }
-
   public Register getPrev() {
     return prev;
-  }
-
-  public void linkWithNext(Register Next) {
-    next = Next;
-    Next.prev = this;
   }
 
   void append(Register l) {

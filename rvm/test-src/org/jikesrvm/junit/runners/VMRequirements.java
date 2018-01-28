@@ -49,21 +49,29 @@ public final class VMRequirements extends BlockJUnit4ClassRunner {
   private static final boolean RUNNING_ON_IA32;
   private static final boolean RUNNING_ON_POWERPC;
   private static final boolean VM_HAS_OPT_COMPILER;
+  private static final boolean VM_USES_32_BIT_ADDRESSING;
+  private static final boolean VM_USES_64_BIT_ADDRESSING;
 
   static {
     String runnerVM = System.getProperty("jikesrvm.junit.runner.vm");
-    RUNNING_ON_BOOTSTRAP_VM = runnerVM.equals("bootstrap");
-    RUNNING_ON_BUILT_JIKES_RVM = runnerVM.equals("built-jikes-rvm");
+    RUNNING_ON_BOOTSTRAP_VM = "bootstrap".equals(runnerVM);
+    RUNNING_ON_BUILT_JIKES_RVM = "built-jikes-rvm".equals(runnerVM);
     if (RUNNING_ON_BUILT_JIKES_RVM) {
       String arch = System.getProperty("jikesrvm.target.arch");
-      RUNNING_ON_IA32 = arch.equals("ia32");
-      RUNNING_ON_POWERPC = arch.equals("ppc");
+      RUNNING_ON_IA32 = "ia32".equals(arch);
+      RUNNING_ON_POWERPC = "ppc".equals(arch);
       String opt = System.getProperty("jikesrvm.include.opt");
       VM_HAS_OPT_COMPILER = "true".equals(opt);
+
+      String addressingMode = System.getProperty("jikesrvm.addressing.mode");
+      VM_USES_32_BIT_ADDRESSING = "32-bit".equals(addressingMode);
+      VM_USES_64_BIT_ADDRESSING = "64-bit".equals(addressingMode);
     } else {
       RUNNING_ON_IA32 = false;
       RUNNING_ON_POWERPC = false;
       VM_HAS_OPT_COMPILER = false;
+      VM_USES_32_BIT_ADDRESSING = false;
+      VM_USES_64_BIT_ADDRESSING = false;
     }
   }
 
@@ -108,12 +116,14 @@ public final class VMRequirements extends BlockJUnit4ClassRunner {
 
   private boolean methodIsNotSuitableForExecutionInCurrentVMEnvironment(
       FrameworkMethod method) {
-    return isRunningOnBootstrapVM() && annotatedWith(method, RequiresBuiltJikesRVM.class) ||
-    isRunningOnBuiltJikesRVM() && annotatedWith(method, RequiresBootstrapVM.class) ||
+    return !isRunningOnBuiltJikesRVM() && annotatedWith(method, RequiresBuiltJikesRVM.class) ||
+    !isRunningOnBootstrapVM() && annotatedWith(method, RequiresBootstrapVM.class) ||
     !VM_HAS_OPT_COMPILER && annotatedWith(method, RequiresOptCompiler.class) ||
     VM_HAS_OPT_COMPILER && (annotatedWith(method, RequiresLackOfOptCompiler.class)) ||
     RUNNING_ON_IA32 && annotatedWith(method, RequiresPowerPC.class) ||
-    RUNNING_ON_POWERPC && annotatedWith(method, RequiresIA32.class);
+    RUNNING_ON_POWERPC && annotatedWith(method, RequiresIA32.class) ||
+    VM_USES_32_BIT_ADDRESSING && annotatedWith(method, Requires64BitAddressing.class) ||
+    VM_USES_64_BIT_ADDRESSING && annotatedWith(method, Requires32BitAddressing.class);
   }
 
   public static boolean isRunningOnBootstrapVM() {

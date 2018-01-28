@@ -400,6 +400,14 @@ public final class Instruction {
     }
   }
 
+  public InlineSequence position() {
+    return position;
+  }
+
+  public void setPosition(InlineSequence position) {
+    this.position = position;
+  }
+
   /**
    * Set the source position description ({@link #bcIndex},
    * {@link #position}) for this instruction to be the same as the
@@ -410,6 +418,11 @@ public final class Instruction {
   public void copyPosition(Instruction source) {
     bcIndex = source.bcIndex;
     position = source.position;
+  }
+
+  public void setSourcePosition(int bcIndex, InlineSequence position) {
+    this.bcIndex = bcIndex;
+    this.position = position;
   }
 
   /**
@@ -429,6 +442,11 @@ public final class Instruction {
   public void setBytecodeIndex(int bci) {
     bcIndex = bci;
   }
+
+  public void adjustBytecodeIndex(int delta) {
+    bcIndex += delta;
+  }
+
 
   /**
    * Return the instruction's operator.
@@ -1204,7 +1222,7 @@ public final class Instruction {
   /**
    * Invert the probabilty of this branch being taken.  This method
    * should be called on a branch instruction when its condition is
-   * reversed using flipCode().
+   * reversed using {@link  org.jikesrvm.compilers.opt.ir.operand.ConditionOperand#flipCode() flipCode()}.
    */
   public void flipBranchProbability() {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
@@ -1968,28 +1986,6 @@ public final class Instruction {
       return LocationCarrier.getLocation(this).mayBeVolatile();
     }
     return false;
-  }
-
-  public void copySourcePositionFrom(Instruction other) {
-    this.bcIndex = other.bcIndex;
-    this.position = other.position;
-  }
-
-  public void setSourcePosition(int bcIndex, InlineSequence position) {
-    this.bcIndex = bcIndex;
-    this.position = position;
-  }
-
-  public void adjustBytecodeIndex(int delta) {
-    bcIndex += delta;
-  }
-
-  public InlineSequence position() {
-    return position;
-  }
-
-  public void setPosition(InlineSequence position) {
-    this.position = position;
   }
 
 }

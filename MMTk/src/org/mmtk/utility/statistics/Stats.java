@@ -195,18 +195,23 @@ public class Stats {
   public static void printTotals() {
     Log.writeln("============================ MMTk Statistics Totals ============================");
     printColumnNames();
-    Log.write(phase / 2); Log.write("\t");
+    Log.write(phase / 2);
+    Log.write("\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
-        counter[c].printTotal(); Log.write("\t");
+        counter[c].printTotal();
+        Log.write("\t");
       } else {
-        counter[c].printTotal(true); Log.write("\t");
-        counter[c].printTotal(false); Log.write("\t");
+        counter[c].printTotal(true);
+        Log.write("\t");
+        counter[c].printTotal(false);
+        Log.write("\t");
       }
     }
     Log.writeln();
     Log.write("Total time: ");
-    Plan.totalTime.printTotal(); Log.writeln(" ms");
+    Plan.totalTime.printTotal();
+    Log.writeln(" ms");
     Log.writeln("------------------------------ End MMTk Statistics -----------------------------");
   }
 
@@ -218,13 +223,17 @@ public class Stats {
     Log.writeln("--------------------- MMTk Statistics Per GC/Mutator Phase ---------------------");
     printColumnNames();
     for (int p = 0; p <= phase; p += 2) {
-      Log.write((p / 2) + 1); Log.write("\t");
+      Log.write((p / 2) + 1);
+      Log.write("\t");
       for (int c = 0; c < counters; c++) {
         if (counter[c].mergePhases()) {
-          counter[c].printCount(p); Log.write("\t");
+          counter[c].printCount(p);
+          Log.write("\t");
         } else {
-          counter[c].printCount(p); Log.write("\t");
-          counter[c].printCount(p + 1); Log.write("\t");
+          counter[c].printCount(p);
+          Log.write("\t");
+          counter[c].printCount(p + 1);
+          Log.write("\t");
         }
       }
       Log.writeln();

@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt.lir2mir.ppc;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT;
-import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.MIR_LOWTABLESWITCH;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.PPC64_CMP;
@@ -496,7 +495,7 @@ public abstract class BURS_Helpers extends BURS_Common_Helpers {
         if (Prologue.getFormal(s, i).getType().isLongType()) numLongs++;
       }
       if (numLongs != 0) {
-        Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals + numLongs);
+        Instruction s2 = createNewPrologueInst(s, numFormals + numLongs);
         for (int sidx = 0, s2idx = 0; sidx < numFormals; sidx++) {
           RegisterOperand sForm = Prologue.getClearFormal(s, sidx);
           Prologue.setFormal(s2, s2idx++, sForm);

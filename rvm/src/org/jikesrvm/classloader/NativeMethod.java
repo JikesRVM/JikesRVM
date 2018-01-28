@@ -157,7 +157,7 @@ public final class NativeMethod extends RVMMethod {
 
     String mangledName = "Java_" + mangledClassName + "_" + mangledMethodName;
     mangledName = mangledName.replace('.', '_');
-    // VM.sysWrite("getMangledName:  " + mangledName + " \n");
+    // VM.sysWriteln("getMangledName:  " + mangledName);
 
     return mangledName;
   }

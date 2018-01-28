@@ -1,0 +1,3 @@
+Exception in thread "MainThread" java.lang.ArrayIndexOutOfBoundsException: Array index out of range: 5
+   at test.org.jikesrvm.opttests.bugs.RVM_1129_ArrayIndexOutOfBoundsException.causeArrayIndexOutOfBoundsException(RVM_1129_ArrayIndexOutOfBoundsException.java:28)
+   at test.org.jikesrvm.opttests.bugs.RVM_1129_ArrayIndexOutOfBoundsException.main(RVM_1129_ArrayIndexOutOfBoundsException.java:23)

@@ -32,6 +32,7 @@
       <!-- need extra classpath for vmmagic -->
       <classpath>
         <pathelement path="${test.rvm.dir}/jksvm.jar"/>
+        <pathelement path="${test.rvm.dir}/rvmrt.jar"/>
       </classpath>
       <compilerarg value="-Xlint:deprecation"/>
     </javac>

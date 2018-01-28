@@ -94,9 +94,9 @@ import org.vmmagic.pragma.*;
       boolean bytesMatchPages = computedExtent.EQ(bytes);
       if (!bytesMatchPages) {
         Log.writeln("ERROR: number of bytes computed from pages must match original byte amount!");
-        Log.write("       bytes = "); Log.writeln(bytes);
-        Log.write("       pages = "); Log.writeln(pages);
-        Log.write("       bytes computed from pages = "); Log.writeln(computedExtent);
+        Log.writeln("       bytes = ", bytes);
+        Log.writeln("       pages = ", pages);
+        Log.writeln("       bytes computed from pages = ", computedExtent);
         VM.assertions._assert(false);
       }
     }

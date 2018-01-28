@@ -74,6 +74,7 @@ class TestBackEdgeGC {
       this.id = cnt;
     }
 
+    @Override
     void performTask() {
       XThread.say("calling GC id = " + id);
       System.gc();
@@ -90,6 +91,7 @@ class TestBackEdgeGC {
       super("Looper");
     }
 
+    @Override
     void performTask() {
       CallGC gc = new CallGC(2);
       XThread.say("2nd CallGC created");

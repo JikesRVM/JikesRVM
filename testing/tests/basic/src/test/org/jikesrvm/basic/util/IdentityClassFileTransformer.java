@@ -26,6 +26,7 @@ public class IdentityClassFileTransformer implements ClassFileTransformer {
     instrumentation.addTransformer(new IdentityClassFileTransformer());
   }
 
+  @Override
   public byte[] transform(ClassLoader loader, String className, Class classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
     if (className.startsWith("test/org/jikesrvm/")) {
       System.out.println("Transforming class: " + className);

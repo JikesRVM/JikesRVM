@@ -84,13 +84,13 @@ public class LICM extends CompilerPhase {
     this.ir = ir;
 
     if (DEBUG && ir.hasReachableExceptionHandlers()) {
-      VM.sysWrite("] " + ir.method + "\n");
+      VM.sysWriteln("] " + ir.method);
       (new LiveAnalysis(false, false, true, false)).perform(ir);
       Enumeration<BasicBlock> e = ir.getBasicBlocks();
       while (e.hasMoreElements()) {
         BasicBlock b = e.nextElement();
         if (b instanceof ExceptionHandlerBasicBlock) {
-          VM.sysWrite("] " + b + ": " + ((ExceptionHandlerBasicBlock) b).getLiveSet() + "\n");
+          VM.sysWriteln("] " + b + ": " + ((ExceptionHandlerBasicBlock) b).getLiveSet());
         }
       }
     }
@@ -110,7 +110,7 @@ public class LICM extends CompilerPhase {
       }
     }
 
-    if (VERBOSE) VM.sysWrite("] " + ir.method + "\n");
+    if (VERBOSE) VM.sysWriteln("] " + ir.method);
     initialize(ir);
     if (VERBOSE) SSA.printInstructions(ir);
 
@@ -353,7 +353,7 @@ public class LICM extends CompilerPhase {
     setEarlyPos(inst, _earlyPos);
 
     if (DEBUG && getBlock(_earlyPos) != getBlock(inst)) {
-      VM.sysWrite("new earlyBlock: " + getBlock(_earlyPos) + " for " + getBlock(inst) + ": " + inst + "\n");
+      VM.sysWriteln("new earlyBlock: " + getBlock(_earlyPos) + " for " + getBlock(inst) + ": " + inst);
     }
 
     setBlock(inst, getBlock(_earlyPos));
@@ -361,7 +361,7 @@ public class LICM extends CompilerPhase {
   }
 
   BasicBlock scheduleLate(Instruction inst) {
-    if (DEBUG) VM.sysWrite("Schedule Late: " + inst + "\n");
+    if (DEBUG) VM.sysWriteln("Schedule Late: " + inst);
 
     BasicBlock lateBlock = null;
     int _state = getState(inst);
@@ -383,21 +383,21 @@ public class LICM extends CompilerPhase {
 
     // dependencies via scalar operands
     lateBlock = scheduleScalarUsesLate(inst, lateBlock);
-    if (DEBUG) VM.sysWrite("lateBlock1: " + lateBlock + " for " + inst + "\n");
+    if (DEBUG) VM.sysWriteln("lateBlock1: " + lateBlock + " for " + inst);
 
     // dependencies via heap operands
     if (ir.isHIR()) {
       lateBlock = scheduleHeapUsesLate(inst, lateBlock);
-      if (DEBUG) VM.sysWrite("lateBlock2: " + lateBlock + " for " + inst + "\n");
+      if (DEBUG) VM.sysWriteln("lateBlock2: " + lateBlock + " for " + inst);
     }
 
     // if there are no uses, this instruction is dead.
     if (lateBlock == null) {
-      if (VERBOSE) VM.sysWrite("deleting " + inst + "\n");
+      if (VERBOSE) VM.sysWriteln("deleting " + inst);
       inst.remove();
     } else {
       if (DEBUG && lateBlock != getOrigBlock(inst)) {
-        VM.sysWrite("new lateBlock: " + lateBlock + " for " + getOrigBlock(inst) + ": " + inst + "\n");
+        VM.sysWriteln("new lateBlock: " + lateBlock + " for " + getOrigBlock(inst) + ": " + inst);
       }
 
       BasicBlock to = upto(getEarlyPos(inst), lateBlock, inst);
@@ -477,7 +477,7 @@ public class LICM extends CompilerPhase {
       if (aDomDepth >= bDomDepth) a = dominator.getParent(a);
       if (bDomDepth >= aDomDepth) b = dominator.getParent(b);
     }
-    //VM.sysWrite (" = "+a+"\n");
+    //VM.sysWriteln (" = " + a);
     return a;
   }
 
@@ -540,7 +540,7 @@ public class LICM extends CompilerPhase {
   }
 
   BasicBlock useBlock(Instruction use, Operand op) {
-    //VM.sysWrite ("UseBlock: "+use+"\n");
+    //VM.sysWriteln ("UseBlock: " + use);
     BasicBlock res = scheduleLate(use);
     if (res != null && Phi.conforms(use)) {
       int i;
@@ -575,23 +575,23 @@ public class LICM extends CompilerPhase {
   }
 
   BasicBlock scheduleHeapUsesLate(Instruction inst, BasicBlock lateBlock) {
-    //VM.sysWrite (" scheduleHeapUsesLate\n");
+    //VM.sysWriteln (" scheduleHeapUsesLate");
     Operand[] defs = ssad.getHeapDefs(inst);
     if (defs == null) return lateBlock;
 
-    //VM.sysWrite (" defs: "+defs.length+"\n");
+    //VM.sysWriteln (" defs: " + defs.length);
     for (Operand def : defs) {
       @SuppressWarnings("unchecked") // Cast to generic HeapOperand
           HeapOperand<Object> dhop = (HeapOperand) def;
       HeapVariable<Object> H = dhop.value;
-      if (DEBUG) VM.sysWrite("H: " + H + "\n");
+      if (DEBUG) VM.sysWriteln("H: " + H);
       Iterator<HeapOperand<Object>> it = ssad.iterateHeapUses(H);
-      //VM.sysWrite (" H: "+H+" ("+ssad.getNumberOfUses (H)+")\n");
+      //VM.sysWriteln (" H: " + H + " (" + ssad.getNumberOfUses (H) + ")");
       while (it.hasNext()) {
         HeapOperand<Object> uhop = it.next();
-        //VM.sysWrite (" uhop: "+uhop+"\n");
+        //VM.sysWriteln (" uhop: " + uhop):
         Instruction use = uhop.instruction;
-        //VM.sysWrite ("use: "+use+"\n");
+        //VM.sysWriteln ("use: " + use);
         BasicBlock _block = useBlock(use, uhop);
         lateBlock = commonDominator(_block, lateBlock);
       }
@@ -613,7 +613,7 @@ public class LICM extends CompilerPhase {
       if (defiOp == null || defiOp.instruction == null) {
         return ir.firstInstructionInCodeOrder();
       } else {
-        //VM.sysWrite ("def of "+op+" is "+defiOp.instruction+"\n");
+        //VM.sysWriteln ("def of " + op + " is " + defiOp.instruction);
         return defiOp.instruction;
       }
     } else if (op instanceof RegisterOperand) {
@@ -626,7 +626,7 @@ public class LICM extends CompilerPhase {
         // we are in SSA, so there is at most one definition.
         if (VM.VerifyAssertions) VM._assert(!defs.hasMoreElements());
         //if (defs.hasMoreElements()) {
-        //  VM.sysWrite("GCP: multiple defs: " + reg + "\n");
+        //  VM.sysWriteln("GCP: multiple defs: " + reg);
         //  return  null;
         //}
         return def;
@@ -673,14 +673,13 @@ public class LICM extends CompilerPhase {
       if (!dominator.dominates(earlyBlock.getNumber(), _origBlock.getNumber()) ||
           !dominator.dominates(earlyBlock.getNumber(), lateBlock.getNumber())) {
         SSA.printInstructions(ir);
-        VM.sysWrite("> " +
+        VM.sysWriteln("> " +
                     earlyBlock.getNumber() +
                     ", " +
                     _origBlock.getNumber() +
                     ", " +
-                    lateBlock.getNumber() +
-                    "\n");
-        VM.sysWrite("" + inst + "\n");
+                    lateBlock.getNumber());
+        VM.sysWriteln(inst.toString());
       }
       VM._assert(dominator.dominates(earlyBlock.getNumber(), _origBlock.getNumber()));
       VM._assert(dominator.dominates(earlyBlock.getNumber(), lateBlock.getNumber()));
@@ -690,7 +689,7 @@ public class LICM extends CompilerPhase {
          than the so far best block? */
       if (frequency(actBlock) < frequency(bestBlock)) {
         if (DEBUG) {
-          VM.sysWrite("going from " + frequency(_origBlock) + " to " + frequency(actBlock) + "\n");
+          VM.sysWriteln("going from " + frequency(_origBlock) + " to " + frequency(actBlock));
         }
         bestBlock = actBlock;
       }
@@ -703,7 +702,7 @@ public class LICM extends CompilerPhase {
       actBlock = dominator.getParent(actBlock);
     }
     if (bestBlock == _origBlock) return null;
-    if (DEBUG) VM.sysWrite("best Block: " + bestBlock + "\n");
+    if (DEBUG) VM.sysWriteln("best Block: " + bestBlock);
     return bestBlock;
   }
 
@@ -729,7 +728,7 @@ public class LICM extends CompilerPhase {
       Enumeration<Instruction> e = to.forwardInstrEnumerator();
       while (e.hasMoreElements()) {
         cand = e.nextElement();
-        if (DEBUG) VM.sysWrite(cand.toString() + "\n");
+        if (DEBUG) VM.sysWriteln(cand.toString());;
         // skip labels, phis, and yieldpoints
         if (!Label.conforms(cand) && !cand.isYieldPoint() && !Phi.conforms(cand)) {
           break;
@@ -742,22 +741,22 @@ public class LICM extends CompilerPhase {
       Enumeration<Instruction> e = to.reverseInstrEnumerator();
       while (e.hasMoreElements()) {
         cand = e.nextElement();
-        if (DEBUG) VM.sysWrite(cand.toString() + "\n");
+        if (DEBUG) VM.sysWriteln(cand.toString());
         // skip branches and newly placed insts
         if (!BBend.conforms(cand) && !cand.isBranch() && !relocated.contains(cand)) {
           break;
         }
       }
-      if (DEBUG) VM.sysWrite("Adding to relocated: " + inst + "\n");
+      if (DEBUG) VM.sysWriteln("Adding to relocated: " + inst);
       relocated.add(inst);
     }
 
     if (DEBUG && moved.add(inst.operator())) {
-      VM.sysWrite("m(" + (ir.isLIR() ? "l" : "h") + ") " + inst.operator() + "\n");
+      VM.sysWriteln("m(" + (ir.isLIR() ? "l" : "h") + ") " + inst.operator());
     }
     if (VERBOSE) {
       VM.sysWrite(ir.isLIR() ? "%" : "#");
-      VM.sysWrite(" moving " + inst + " from " + _origBlock + " to " + to + "\n" + "behind  " + cand + "\n");
+      VM.sysWriteln(" moving " + inst + " from " + _origBlock + " to " + to + "\n" + "behind  " + cand);
 
     }
     inst.remove();
@@ -783,7 +782,7 @@ public class LICM extends CompilerPhase {
     //VM.sysWrite ("does " + a + " postdominate " + b + "?: ");
     DominatorInfo info = ir.getDominators().getDominatorInfo(b);
     res = info.isDominatedBy(a);
-    //VM.sysWrite (res ? "yes\n" : "no\n");
+    //VM.sysWriteln (res ? "yes" : "no");
     return res;
   }
 
@@ -843,7 +842,7 @@ public class LICM extends CompilerPhase {
     dominators.computeApproxPostdominators(ir);
     ir.setDominators(dominators);
     dominator = ir.HIRInfo.dominatorTree;
-    if (DEBUG) VM.sysWrite("" + dominator.toString() + "\n");
+    if (DEBUG) VM.sysWriteln(dominator.toString());
 
     instructionNumbers = ir.numberInstructionsViaMap();
     int instructions = instructionNumbers.size();
@@ -918,12 +917,12 @@ public class LICM extends CompilerPhase {
 
     //if (Phi.getNumberOfValues (inst) != 2) return false; // want exactly 2 inputs
 
-    //VM.sysWrite ("Simplify "+inst+"\n");
+    //VM.sysWriteln ("Simplify " + inst);
 
     Operand resOp = Phi.getResult(inst);
 
     if (!(resOp instanceof HeapOperand)) {
-      //VM.sysWrite (" no heap op result\n");
+      //VM.sysWriteln (" no heap op result");
       return false; // scalar phi
     }
 
@@ -980,7 +979,7 @@ public class LICM extends CompilerPhase {
       if (i == xidx) continue;
       Instruction y = definingInstruction(Phi.getValue(inst, i));
       while (y != inst) {
-        //VM.sysWrite (" y: "+y+"\n");
+        //VM.sysWriteln (" y: " + y);
         if (y.isImplicitStore() || y.isPEI() || !LocationCarrier.conforms(y)) {
           return CL_COMPLEX;
         }
@@ -988,7 +987,7 @@ public class LICM extends CompilerPhase {
         // check for access to volatile field
         LocationOperand loc = LocationCarrier.getLocation(y);
         if (loc == null || loc.mayBeVolatile()) {
-          //VM.sysWrite (" no loc or volatile field\n");
+          //VM.sysWriteln (" no loc or volatile field");
           return CL_COMPLEX;
         }
         for (HeapOperand<?> op : ssad.getHeapUses(y)) {
@@ -1049,7 +1048,7 @@ public class LICM extends CompilerPhase {
         // check for access to volatile field
         LocationOperand loc = LocationCarrier.getLocation(y);
         if (loc == null || loc.mayBeVolatile()) {
-          //VM.sysWrite (" no loc or volatile field\n");
+          //VM.sysWriteln (" no loc or volatile field");
           return CL_COMPLEX;
         }
         if (y.isImplicitStore()) {
@@ -1138,7 +1137,7 @@ public class LICM extends CompilerPhase {
         }
       }
       if (DEBUG && changed) {
-        VM.sysWrite(" changing dependency of " + user + "\n" + "from " + H + " to " + replacement + "\n");
+        VM.sysWriteln(" changing dependency of " + user + "\n" + "from " + H + " to " + replacement);
       }
     }
     if (!onlyPEIs) {

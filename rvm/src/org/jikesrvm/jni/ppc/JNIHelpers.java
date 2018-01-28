@@ -298,7 +298,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     for (int i = 0; i < argCount && spillAreaOffset.sLT(spillAreaLimit); i++) {
       Word hiword, loword;
 
-      if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
+      if (argTypes[i].isFloatingPointType()) {
         // move 2 words from the vararg FPR save area into the spill area of the caller
         hiword = gluefp.loadWord(varargFPROffset);
         varargFPROffset = varargFPROffset.plus(BYTES_IN_ADDRESS);
@@ -510,7 +510,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
 
     // now interpret values by types, see PPC ABI
     for (int i = 0; i < argCount; i++) {
-      if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
+      if (argTypes[i].isFloatingPointType()) {
         int loword, hiword;
         if (fpr > LAST_OS_PARAMETER_FPR.value()) {
           // overflow, OTHER
@@ -607,7 +607,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
     // get the JNIEnvironment for this thread in case we need to dereference any object arg
     JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
-    // VM.sysWrite("JNI packageParameterFromVarArg: packaging " + argCount + " arguments\n");
+    // VM.sysWriteln("JNI packageParameterFromVarArg: packaging " + argCount + " arguments");
 
     Address addr = argAddress;
     for (int i = 0; i < argCount; i++) {

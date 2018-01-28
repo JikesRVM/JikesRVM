@@ -167,7 +167,9 @@ public final class ImmixSpace extends Space {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockSentinel));
     exhaustedReusableSpace = allocBlockCursor.isZero();
     if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-      Log.write("gr[allocBlockCursor: "); Log.write(allocBlockCursor); Log.write(" allocBlockSentinel: "); Log.write(allocBlockSentinel); Log.writeln("]");
+      Log.write("gr[allocBlockCursor: ", allocBlockCursor);
+      Log.write(" allocBlockSentinel: ", allocBlockSentinel);
+      Log.writeln("]");
     }
 
     /* really just want this to happen once after options are booted, but no harm in re-doing it */
@@ -281,7 +283,11 @@ public final class ImmixSpace extends Space {
       Block.setBlockAsInUse(rtn);
       Chunk.updateHighWater(rtn);
       if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-        Log.write("gs["); Log.write(rtn); Log.write(" -> "); Log.write(rtn.plus(BYTES_IN_BLOCK - 1)); Log.write(" copy: "); Log.write(copy); Log.writeln("]");
+        Log.write("gs[", rtn);
+        Log.write(" -> ", rtn.plus(BYTES_IN_BLOCK - 1));
+        Log.write(" copy: ");
+        Log.write(copy);
+        Log.writeln("]");
       }
     }
 
@@ -316,7 +322,10 @@ public final class ImmixSpace extends Space {
       if (allocBlockCursor.GT(Chunk.getHighWater(lastAllocChunk)))
         allocBlockCursor = chunkMap.nextChunk(lastAllocChunk);
       if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-        Log.write("arb[ rtn: "); Log.write(rtn); Log.write(" allocBlockCursor: "); Log.write(allocBlockCursor); Log.write(" allocBlockSentinel: "); Log.write(allocBlockSentinel); Log.writeln("]");
+        Log.write("arb[ rtn: ", rtn);
+        Log.write(" allocBlockCursor: ", allocBlockCursor);
+        Log.write(" allocBlockSentinel: ", allocBlockSentinel);
+        Log.writeln("]");
       }
 
       if (allocBlockCursor.isZero() || allocBlockCursor.EQ(allocBlockSentinel)) {
@@ -550,9 +559,11 @@ public final class ImmixSpace extends Space {
           if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(HeaderByte.isUnlogged(newObject));
         }
         if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
-          Log.write("C["); Log.write(object); Log.write("/");
-          Log.write(getName()); Log.write("] -> ");
-          Log.write(newObject); Log.write("/");
+          Log.write("C[", object);
+          Log.write("/");
+          Log.write(getName());
+          Log.write("] -> ", newObject);
+          Log.write("/");
           Log.write(Space.getSpaceForObject(newObject).getName());
           Log.writeln("]");
         }
@@ -565,15 +576,17 @@ public final class ImmixSpace extends Space {
                 (nurseryCollection && willNotMoveThisNurseryGC(newObject)) ||
                 (defrag.inDefrag() && willNotMoveThisGC(newObject))
                )) {
-            Log.write("   object: "); Log.writeln(object);
-            Log.write("newObject: "); Log.writeln(newObject);
-            Log.write("    space: "); Log.writeln(getName());
-            Log.write(" nursery?: "); Log.writeln(nurseryCollection);
-            Log.write("  mature?: "); Log.writeln(ObjectHeader.isMatureObject(object));
-            Log.write("  wnmngc?: "); Log.writeln(willNotMoveThisNurseryGC(newObject));
-            Log.write("  pinned?: "); Log.writeln(ObjectHeader.isPinnedObject(object));
+            Log.writeln("   object: ", object);
+            Log.writeln("newObject: ", newObject);
+            Log.write("    space: ");
+            Log.writeln(getName());
+            Log.writeln(" nursery?: ", nurseryCollection);
+            Log.writeln("  mature?: ", ObjectHeader.isMatureObject(object));
+            Log.writeln("  wnmngc?: ", willNotMoveThisNurseryGC(newObject));
+            Log.writeln("  pinned?: ", ObjectHeader.isPinnedObject(object));
             Space otherSpace = getSpaceForObject(newObject);
-            Log.write(" space(o): "); Log.writeln(otherSpace == null ? "<NULL>" : otherSpace.getName());
+            Log.write(" space(o): ");
+            Log.writeln(otherSpace == null ? "<NULL>" : otherSpace.getName());
             VM.assertions._assert(false);
           }
         }

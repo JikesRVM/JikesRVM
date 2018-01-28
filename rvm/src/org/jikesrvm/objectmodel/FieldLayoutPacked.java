@@ -41,7 +41,9 @@ public class FieldLayoutPacked extends FieldLayout {
         case 1: return slot1;
         case 2: return slot2;
         case 3: return (short)Memory.alignUp(getObjectSize(), MAX_SLOT_SIZE);
-        default: VM.sysFail("Invalid slot"); return -1;
+        default:
+          VM.sysFail("Invalid slot");
+          return -1;
       }
     }
 

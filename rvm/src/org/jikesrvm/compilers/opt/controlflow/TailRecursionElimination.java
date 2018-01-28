@@ -39,6 +39,7 @@ import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.vmmagic.pragma.NoTailCallElimination;
 
 /**
  * Transform tail recursive calls into loops.
@@ -109,7 +110,7 @@ public final class TailRecursionElimination extends CompilerPhase {
           break;
         case SYSCALL_opcode:
         case CALL_opcode:
-          if (isTailRecursion(instr, ir)) {
+          if (isTailRecursion(instr, ir) && allowedToOptimize(instr)) {
             if (target == null) {
               target = prologue.getBasicBlock().splitNodeWithLinksAt(prologue, ir);
             }
@@ -128,7 +129,7 @@ public final class TailRecursionElimination extends CompilerPhase {
       branchOpts.perform(ir, true);
       if (DEBUG) dumpIR(ir, "After cleanup");
       if (DEBUG) {
-        VM.sysWrite("Eliminated tail calls in " + ir.method + "\n");
+        VM.sysWriteln("Eliminated tail calls in " + ir.method);
       }
     }
   }
@@ -152,21 +153,21 @@ public final class TailRecursionElimination extends CompilerPhase {
       if (s.isMove()) {
         if (Move.getVal(s).similar(result)) {
           result = Move.getResult(s);
-          if (DEBUG) VM.sysWrite("Updating result to " + result + "\n");
+          if (DEBUG) VM.sysWriteln("Updating result to " + result);
         } else {
           return false; // move of a value that isn't the result blocks us
         }
       } else
       if (s.operator() == LABEL || s.operator() == BBEND || s.operator() == UNINT_BEGIN || s.operator() == UNINT_END) {
-        if (DEBUG) VM.sysWrite("Falling through " + s + "\n");
+        if (DEBUG) VM.sysWriteln("Falling through " + s);
         // skip over housekeeping instructions and follow the code order.
       } else if (s.operator() == GOTO) {
         // follow the unconditional branch to its target LABEL
         s = s.getBranchTarget().firstInstruction();
-        if (DEBUG) VM.sysWrite("Following goto to " + s + "\n");
+        if (DEBUG) VM.sysWriteln("Following goto to " + s);
       } else if (s.isReturn()) {
         Operand methodResult = Return.getVal(s);
-        if (DEBUG) VM.sysWrite("Found return " + s + "\n");
+        if (DEBUG) VM.sysWriteln("Found return " + s);
         return methodResult == null || methodResult.similar(result);
       } else {
         // any other instruction blocks us
@@ -174,6 +175,22 @@ public final class TailRecursionElimination extends CompilerPhase {
       }
       s = s.nextInstructionInCodeOrder();
     }
+  }
+
+  /**
+   * @param call the call instruction
+   * @return whether the instruction is allowed to be optimized
+   */
+  boolean allowedToOptimize(Instruction call) {
+    if (Call.hasMethod(call)) {
+      MethodOperand method = Call.getMethod(call);
+      if (method.hasTarget()) {
+        if (method.getTarget().isAnnotationPresent(NoTailCallElimination.class)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**

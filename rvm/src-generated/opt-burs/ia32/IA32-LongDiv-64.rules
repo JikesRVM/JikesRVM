@@ -4,31 +4,31 @@
 r:  LONG_DIV(rlv, rlv)
 52
 EMIT_INSTRUCTION
-LONG_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
-            GuardedBinary.getVal2(P(p)), true, true);
+LONG_DIVIDES(P(p), GuardedBinary.getClearResult(P(p)), GuardedBinary.getClearVal1(P(p)), \\
+            GuardedBinary.getClearVal2(P(p)), true, true);
 
 r:  LONG_DIV(rlv, riv)
 52
 EMIT_INSTRUCTION
-LONG_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
-            GuardedBinary.getVal2(P(p)), true, true);
+LONG_DIVIDES(P(p), GuardedBinary.getClearResult(P(p)), GuardedBinary.getClearVal1(P(p)), \\
+            GuardedBinary.getClearVal2(P(p)), true, true);
 
 r:  LONG_DIV(riv, rlv)
 52
 EMIT_INSTRUCTION
-LONG_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
-            GuardedBinary.getVal2(P(p)), true, true);
+LONG_DIVIDES(P(p), GuardedBinary.getClearResult(P(p)), GuardedBinary.getClearVal1(P(p)), \\
+            GuardedBinary.getClearVal2(P(p)), true, true);
 
 ### Memory operands ###
 r:  LONG_DIV(rlv, load64)
 55
 EMIT_INSTRUCTION
-LONG_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
+LONG_DIVIDES(P(p), GuardedBinary.getClearResult(P(p)), GuardedBinary.getClearVal1(P(p)), \\
             consumeMO(), true, true);
 
 r:  LONG_DIV(load64,rlv)
 55
 EMIT_INSTRUCTION
-LONG_DIVIDES(P(p), GuardedBinary.getResult(P(p)), consumeMO(), GuardedBinary.getVal2(P(p)), \\
+LONG_DIVIDES(P(p), GuardedBinary.getClearResult(P(p)), consumeMO(), GuardedBinary.getClearVal2(P(p)), \\
            true, true);
 

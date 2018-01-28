@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.common.assembler.ia32.Lister;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.AbstractAssembler;
 import org.jikesrvm.ia32.OutOfLineMachineCode;
-import org.jikesrvm.ia32.RegisterConstants;
 import org.jikesrvm.ia32.RegisterConstants.IntelMachineRegister;
 import org.jikesrvm.objectmodel.JavaHeader;
 
@@ -303,7 +302,7 @@ public class Assembler extends AbstractAssembler {
   /**
    * Should code created by this assembler instance be allocated in the
    * hot code code space? By default the answer is false (ie, no).
-   * 
+   *
    * @return false
    */
   protected boolean isHotCode() { return false; }
@@ -321,21 +320,10 @@ public class Assembler extends AbstractAssembler {
     return trimmed;
   }
 
-  /**
-   * Give the lister a message associated with a particular
-   * bytecode.  This is used by the baseline assembler to print the
-   * bytecode associated with portions of machine code.  (The
-   * optimizing compiler does not do this because its association
-   * between bytecodes and generated code is much less direct).
-   *
-   * @param bytecodeNumber the offset of the current bytecode in the
-   *     current method's bytecode array.
-   * @param bc a message descriptive of the current bytecode.
-   */
-  @Override
-  public final void noteBytecode (int bytecodeNumber, String bc) {
-    if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
+  public final Lister getLister() {
+    return lister;
   }
+
   /**
    * Inform the lister of a comment related to the currently
    * generated machine code.
@@ -366,6 +354,30 @@ public class Assembler extends AbstractAssembler {
   }
 
   /**
+   * @param start the starting index of the last instruction
+   * @return all bytes for the last emitted instruction as a hex String
+   */
+  public final String lastInstructionAsString(int start) {
+    StringBuilder inst = new StringBuilder();
+    for (int j=start; j<mi; j++) {
+      if (j < machineCodes.length) {
+        inst.append(Lister.hex(machineCodes[j]));
+      } else {
+        inst.append(Lister.hex((byte)0x0));
+      }
+    }
+    return inst.toString();
+  }
+
+  /**
+   * Informs the lister that generation of bytecodes is done. This
+   * allows the lister to generate the final listing.
+   */
+  public final void noteEndOfBytecodes() {
+    if (lister != null) lister.printListing();
+  }
+
+  /**
    * In the representation of addressing modes in the ModRM and SIB
    * bytes, the code for register-displacement for on ESP has a
    * special meaning.  Thus, when register-displacement mode using ESP
@@ -373,7 +385,7 @@ public class Assembler extends AbstractAssembler {
    * emitted.
    */
   private static final byte SIBforESP = (byte) ((0<<6) + (4<<3) + ESP.value()); // (scale factor 1) no index, ESP is base
-  
+
   /**
    * In the representation of addressing modes in the ModRM and SIB
    * bytes, the code for register-displacement for on R12 has a
@@ -947,7 +959,7 @@ public class Assembler extends AbstractAssembler {
       case LLE: return LGT;
       case LGE: return LLT;
       case PE: return PO;
-      case PO: return PE;      
+      case PO: return PE;
       default: throw new InternalError("Unexpected condition code");
     }
   }
@@ -1069,7 +1081,11 @@ public class Assembler extends AbstractAssembler {
     ForwardReference r = new ForwardReference.LoadReturnAddress(mi, bReturn);
     forwardRefs = ForwardReference.enqueue(forwardRefs, r);
     /* Fake MAX_INTEGER to ensure 32 bit immediate */
-    emitADD_RegInd_Imm(ESP, Integer.MAX_VALUE);
+    if (VM.buildFor32Addr()) {
+      emitADD_RegInd_Imm(ESP, Integer.MAX_VALUE);
+    } else {
+      emitADD_RegInd_Imm_Quad(ESP, Integer.MAX_VALUE);
+    }
   }
 
   /**
@@ -1083,9 +1099,11 @@ public class Assembler extends AbstractAssembler {
     /* We have the following pattern:
      * | PUSH EIP | [SP] += | IMM32 |
      *            ^         ^
-     *  sourceIndex        +3 */
+     *  sourceIndex        +3 (32 bit)
+     *                     +4 (64 bit) */
     int ipDelta = mi - sourceIndex;
-    emitImm32(ipDelta, sourceIndex + 3);
+    int immOffset = VM.buildFor32Addr() ? 3 : 4; // account for REX byte on x64
+    emitImm32(ipDelta, sourceIndex + immOffset);
   }
 
   /**
@@ -1269,7 +1287,7 @@ public class Assembler extends AbstractAssembler {
       emitCALL_Abs(Magic.getTocPointer().plus(off));
     } else {
       emitCALL_RegDisp(JTOC_REGISTER, off);
-    }    
+    }
   }
 
   /**
@@ -1281,7 +1299,7 @@ public class Assembler extends AbstractAssembler {
       emitCALL_RegDisp(off, Magic.getTocPointer().toWord().toOffset());
     } else {
       emitCALL_RegIdx(JTOC_REGISTER, off, AssemblerConstants.BYTE, Offset.zero());
-    } 
+    }
   }
 
   /**
@@ -1293,7 +1311,7 @@ public class Assembler extends AbstractAssembler {
       emitJMP_Abs(Magic.getTocPointer().plus(off));
     } else {
       emitJMP_RegDisp(JTOC_REGISTER, off);
-    }    
+    }
   }
 
   /**
@@ -1542,14 +1560,31 @@ public class Assembler extends AbstractAssembler {
     }
   }
 
+  /**
+   * Emits an illegal instruction for testing purposes.
+   */
+  public final void emitIllegalInstruction() {
+    emitUD2();
+  }
+
   /////////////////////////////////////
   // instructions (hand coded)       //
   /////////////////////////////////////
 
+  public final void emitUD2() {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) 0x0B);
+    if (lister != null) lister.OP(miStart, "UD2");
+  }
+
   public final void emitMFENCE() {
-  	int miStart = mi;
     emitLockNextInstruction();
-    emitADD_RegInd_Imm(ESP, 0);
+    if (VM.buildFor32Addr()) {
+      emitADD_RegInd_Imm(ESP, 0);
+    } else {
+      emitADD_RegInd_Imm_Quad(ESP, 0);
+    }
     /**
      * The above has the same semantics, but with better performance as a true MFENCE:
      * setMachineCodes(mi++,(byte) 0x0F);
@@ -1598,7 +1633,7 @@ public class Assembler extends AbstractAssembler {
    * <PRE>
    * if (cond) dst = src
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param src source register
@@ -1613,12 +1648,33 @@ public class Assembler extends AbstractAssembler {
     if (lister != null) lister.RR(miStart, "CMOV" + CONDITION[cond], dst, src);
   }
 
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = src
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param src source register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_Reg_Quad(byte cond, GPR dst, GPR src) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, src);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegRegOperands(src, dst);
+    if (lister != null) lister.RR(miStart, "CMOV" + CONDITION[cond], dst, src);
+  }
+
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
    * if (cond) dst = [srcBase + disp]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param srcBase source base register
@@ -1628,6 +1684,27 @@ public class Assembler extends AbstractAssembler {
   public final void emitCMOV_Cond_Reg_RegDisp(byte cond, GPR dst, GPR srcBase, Offset disp) {
     int miStart = mi;
     generateREXprefix(false, dst, null, srcBase);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegDispRegOperands(srcBase, disp, dst);
+    if (lister != null) lister.RRD(miStart, "CMOV" + CONDITION[cond], dst, srcBase, disp);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [srcBase + disp]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param srcBase source base register
+   * @param disp displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_RegDisp_Quad(byte cond, GPR dst, GPR srcBase, Offset disp) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, srcBase);
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x40, cond);
     emitRegDispRegOperands(srcBase, disp, dst);
@@ -1657,14 +1734,34 @@ public class Assembler extends AbstractAssembler {
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
+   * if (cond) dst = [srcBase]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param srcBase source base register
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_RegInd_Quad(byte cond, GPR dst, GPR srcBase) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, srcBase);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegIndirectRegOperands(srcBase, dst);
+    if (lister != null) lister.RRN(miStart, "CMOV" + CONDITION[cond], dst, srcBase);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
    * if (cond) dst = [index2&lt;&lt;scale2 + disp2]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param index2 source index register
    * @param scale2 scale factor for index register
-   * @param disp2 displacement 
+   * @param disp2 displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
   public final void emitCMOV_Cond_Reg_RegOff(byte cond, GPR dst, GPR index2, short scale2, Offset disp2) {
@@ -1679,12 +1776,34 @@ public class Assembler extends AbstractAssembler {
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
-   * if (cond) dst = [absAddr]
+   * if (cond) dst = [index2&lt;&lt;scale2 + disp2]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
-   * @param absAddr absolute memory address 
+   * @param index2 source index register
+   * @param scale2 scale factor for index register
+   * @param disp2 displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
+  public final void emitCMOV_Cond_Reg_RegOff_Quad(byte cond, GPR dst, GPR index2, short scale2, Offset disp2) {
+    int miStart = mi;
+    generateREXprefix(true, dst, index2, null);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitRegOffRegOperands(index2, scale2, disp2, dst);
+    if (lister != null) lister.RRFD(miStart, "CMOV" + CONDITION[cond], dst, index2, scale2, disp2);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [absAddr]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param absAddr absolute memory address
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitCMOV_Cond_Reg_Abs(byte cond, GPR dst, Address absAddr) {
@@ -1699,20 +1818,63 @@ public class Assembler extends AbstractAssembler {
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
+   * if (cond) dst = [absAddr]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param absAddr absolute memory address
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
+  public final void emitCMOV_Cond_Reg_Abs_Quad(byte cond, GPR dst, Address absAddr) {
+    int miStart = mi;
+    generateREXprefix(true, dst, null, null);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitAbsRegOperands(absAddr, dst);
+    if (lister != null) lister.RRA(miStart, "CMOV" + CONDITION[cond], dst, absAddr);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
    * if (cond) dst = [base2 + index2&lt;&lt;scale2 + disp2]
    * </PRE>
-   * 
+   *
    * @param cond the condition to be tested
    * @param dst destination register
    * @param base2 source base register
    * @param index2 source index register
    * @param scale2 scale factor for index register
-   * @param disp2 source displacement 
+   * @param disp2 source displacement
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3,4})
   public final void emitCMOV_Cond_Reg_RegIdx(byte cond, GPR dst, GPR base2, GPR index2, short scale2, Offset disp2) {
     int miStart = mi;
     generateREXprefix(false, dst, index2, base2);
+    setMachineCodes(mi++, (byte) 0x0F);
+    emitCondOpByte((byte)0x40, cond);
+    emitSIBRegOperands(base2, index2, scale2, disp2, dst);
+    if (lister != null) lister.RRXD(miStart, "CMOV" + CONDITION[cond], dst, base2, index2, scale2, disp2);
+  }
+
+  /**
+   * Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [base2 + index2&lt;&lt;scale2 + disp2]
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst destination register
+   * @param base2 source base register
+   * @param index2 source index register
+   * @param scale2 scale factor for index register
+   * @param disp2 source displacement
+   */
+  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3,4})
+  public final void emitCMOV_Cond_Reg_RegIdx_Quad(byte cond, GPR dst, GPR base2, GPR index2, short scale2, Offset disp2) {
+    int miStart = mi;
+    generateREXprefix(true, dst, index2, base2);
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x40, cond);
     emitSIBRegOperands(base2, index2, scale2, disp2, dst);
@@ -2145,7 +2307,7 @@ public class Assembler extends AbstractAssembler {
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitMOV_Reg_Imm_Quad(GPR dstReg, long imm) {
-    int miStart = mi;  
+    int miStart = mi;
     if (imm > 0 && (imm >> 32 == 0)) {
       // Do shorter unsigned 32bit move immediate
       emitMOV_Reg_Imm(dstReg, (int)imm);
@@ -2159,8 +2321,8 @@ public class Assembler extends AbstractAssembler {
         setMachineCodes(mi++, (byte) (0xB8 | dstReg.value()));
         emitImm64(imm);
       }
+      if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
     }
-    if (lister != null) lister.RI(miStart, "MOV", dstReg, imm);
   }
 
   /** pop address and goto it */
@@ -2171,11 +2333,11 @@ public class Assembler extends AbstractAssembler {
   }
 
   /** pop address and goto it, pop parameterBytes additional bytes */
-  
+
   /**
    * Emits a return statement that pops the return address and
    * a number of additional bytes.
-   * 
+   *
    * @param parameterBytes number of additional bytes to pop, must be
    *  at least 0
    */
@@ -2194,7 +2356,7 @@ public class Assembler extends AbstractAssembler {
 
   /**
    * Emits a enter statement that allocates a stack frame.
-   * 
+   *
    * @param frameSize size of frame in bytes
    */
   public final void emitENTER_Imm (int frameSize) {
@@ -2244,7 +2406,7 @@ public class Assembler extends AbstractAssembler {
   /**
    * Emits an instruction that prefetches data into all cache-levels.
    * The data is supposed to be used only once.
-   * 
+   *
    * @param srcBase the source base register
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
@@ -2634,7 +2796,7 @@ public class Assembler extends AbstractAssembler {
     if (lister != null) lister.RR(miStart, "FCMOV" + CONDITION[cond], dstReg, srcReg);
   }
 
-  /** 
+  /**
    * Emits a x87 floating point push of ST(i) into ST(0)
    *
    * @param destReg destination register
@@ -2757,7 +2919,7 @@ public class Assembler extends AbstractAssembler {
    *
    * @param regOne first register
    * @param regTwo second register
-   */ 
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emitFXCH_Reg_Reg(FPR regOne, FPR regTwo) {
     int miStart = mi;

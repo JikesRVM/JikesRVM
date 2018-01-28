@@ -84,8 +84,8 @@ public class ScanBootImage {
     /* print some debugging stats */
     if (DEBUG) {
       Log.write("<boot image");
-      Log.write(" roots: "); Log.write(roots);
-      Log.write(" refs: "); Log.write(refs);
+      Log.write(" roots: ", roots);
+      Log.write(" refs: ", refs);
       Log.write(">");
     }
   }
@@ -161,7 +161,10 @@ public class ScanBootImage {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning boot image");
       Log.writeln();
-      Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
+      Log.write(refaddr);
+      Log.write(":");
+      Log.flush();
+      MemoryManager.dumpRef(ref);
       Log.writeln();
       Log.writeln("Dumping stack:");
       RVMThread.dumpStack();
@@ -233,12 +236,12 @@ public class ScanBootImage {
    */
   public static void encodingStats() {
     if (DEBUG) {
-      Log.write("refs: "); Log.writeln(startRefs + shortRefs + longRefs + runRefs);
-      Log.write("start: "); Log.writeln(startRefs);
-      Log.write("short: "); Log.writeln(shortRefs);
-      Log.write("long: "); Log.writeln(longRefs);
-      Log.write("run: "); Log.writeln(runRefs);
-      Log.write("size: "); Log.writeln(codeIndex);
+      Log.writeln("refs: ", startRefs + shortRefs + longRefs + runRefs);
+      Log.writeln("start: ", startRefs);
+      Log.writeln("short: ", shortRefs);
+      Log.writeln("long: ", longRefs);
+      Log.write("run: ", runRefs);
+      Log.write("size: ", codeIndex);
     }
   }
 
@@ -256,9 +259,9 @@ public class ScanBootImage {
       codeIndex = encodeLongEncoding(code, codeIndex, offset);
       if (DEBUG) {
         startRefs++;
-        Log.write("[chunk: "); Log.write(codeIndex);
-        Log.write(" offset: "); Log.write(offset);
-        Log.write(" last offset: "); Log.write(lastOffset);
+        Log.write("[chunk: ", codeIndex);
+        Log.write(" offset: ", offset);
+        Log.write(" last offset: ", lastOffset);
         Log.writeln("]");
       }
     } else {
@@ -288,17 +291,17 @@ public class ScanBootImage {
       }
     }
     if (offset != getOffset(code, oldIndex, lastOffset)) {
-      Log.write("offset: "); Log.writeln(offset);
-      Log.write("last offset: "); Log.writeln(lastOffset);
-      Log.write("offset: "); Log.writeln(getOffset(code, oldIndex, lastOffset));
-      Log.write("index: "); Log.writeln(oldIndex);
-      Log.write("index: "); Log.writeln(oldIndex & (CHUNK_BYTES - 1));
+      Log.writeln("offset: ", offset);
+      Log.writeln("last offset: ", lastOffset);
+      Log.writeln("offset: ", getOffset(code, oldIndex, lastOffset));
+      Log.writeln("index: ", oldIndex);
+      Log.writeln("index: ", oldIndex & (CHUNK_BYTES - 1));
       Log.writeln();
-      Log.write("1: "); Log.writeln(code[oldIndex]);
-      Log.write("2: "); Log.writeln(code[oldIndex + 1]);
-      Log.write("3: "); Log.writeln(code[oldIndex + 2]);
-      Log.write("4: "); Log.writeln(code[oldIndex + 3]);
-      Log.write("5: "); Log.writeln(code[oldIndex + 4]);
+      Log.writeln("1: ", code[oldIndex]);
+      Log.writeln("2: ", code[oldIndex + 1]);
+      Log.writeln("3: ", code[oldIndex + 2]);
+      Log.writeln("4: ", code[oldIndex + 3]);
+      Log.writeln("5: ", code[oldIndex + 4]);
       if (VM.VerifyAssertions)
         VM._assert(offset == getOffset(code, oldIndex, lastOffset));
     }

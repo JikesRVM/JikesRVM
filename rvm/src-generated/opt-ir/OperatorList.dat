@@ -1588,6 +1588,13 @@ immedPEI
 
 
 
+# an illegal instruction
+ILLEGAL_INSTRUCTION
+Empty
+immedPEI
+
+
+
 # Move bits unchanged from a float register/constant to an int register
 FLOAT_AS_INT_BITS
 Unary
@@ -1620,6 +1627,13 @@ none
 # NOTE: This cannot be a PEI because we guard with explicit null check instructions.
 ARRAYLENGTH
 GuardedUnary
+none
+
+
+
+# Get size of a stack frame
+FRAMESIZE
+Nullary
 none
 
 

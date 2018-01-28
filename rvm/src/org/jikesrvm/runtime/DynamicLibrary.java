@@ -179,7 +179,7 @@ public final class DynamicLibrary {
    * unload a dynamic library
    */
   public void unload() {
-    VM.sysWrite("DynamicLibrary.unload: not implemented yet \n");
+    VM.sysWriteln("DynamicLibrary.unload: not implemented yet");
   }
 
   /**
@@ -187,7 +187,7 @@ public final class DynamicLibrary {
    * system space.
    */
   public void clean() {
-    VM.sysWrite("DynamicLibrary.clean: not implemented yet \n");
+    VM.sysWriteln("DynamicLibrary.clean: not implemented yet");
   }
 
   @Override

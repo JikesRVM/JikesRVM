@@ -54,7 +54,8 @@ public class RawMemoryFreeListTest32 extends RawMemoryFreeListTest {
         cooked.setUncoalescable(0);
         cooked.setUncoalescable(4);
 
-        raw.alloc(4,0); cooked.alloc(4,0);
+        raw.alloc(4,0);
+        cooked.alloc(4,0);
         raw.free(0);
         cooked.free(0);
 

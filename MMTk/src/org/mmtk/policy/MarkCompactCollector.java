@@ -219,10 +219,11 @@ public final class MarkCompactCollector {
      * Print the cursor - for debugging
      */
     void print() {
-      Log.write(name); Log.write(" cursor:");
-      Log.write(" region="); Log.write(region);
-      Log.write(" limit="); Log.write(limit);
-      Log.write(" cursor="); Log.write(cursor);
+      Log.write(name);
+      Log.write(" cursor:");
+      Log.write(" region=", region);
+      Log.write(" limit=", limit);
+      Log.write(" cursor=", cursor);
       Log.writeln();
 
     }
@@ -256,13 +257,15 @@ public final class MarkCompactCollector {
     ObjectReference advanceToObject() {
       ObjectReference current = VM.objectModel.getObjectFromStartAddress(cursor);
       if (VERY_VERBOSE) {
-        Log.write("cursor "); Log.write(cursor);
-        Log.write(", current "); Log.writeln(current);
+        Log.write("cursor ", cursor);
+        Log.writeln(", current ", current);
       }
       cursor = VM.objectModel.objectStartRef(current);
       if (VM.VERIFY_ASSERTIONS) assertCursorInBounds();
       if (VERY_VERBOSE) {
-        Log.write("Next object , cursor = "); Log.write(cursor); Log.write(" "); Log.flush();
+        Log.write("Next object , cursor = ", cursor);
+        Log.write(" ");
+        Log.flush();
         VM.objectModel.dumpObject(current);
       }
       return current;
@@ -277,8 +280,8 @@ public final class MarkCompactCollector {
     void advanceToObjectEnd(ObjectReference current) {
       cursor = VM.objectModel.getObjectEndAddress(current);
       if (VERY_VERBOSE) {
-        Log.write("Advance to end of object "); Log.write(current);
-        Log.write(" = "); Log.writeln(cursor);
+        Log.write("Advance to end of object ", current);
+        Log.write(" = ", cursor);
       }
       if (VM.VERIFY_ASSERTIONS) assertCursorInBounds();
     }
@@ -385,10 +388,10 @@ public final class MarkCompactCollector {
       cursor = VM.objectModel.copyTo(from, to, cursor);
       if (VM.VERIFY_ASSERTIONS) {
         if (cursor.LT(BumpPointer.getDataStart(region)) || cursor.GT(limit)) {
-          Log.write("Copy of "); Log.write(from);
-          Log.write(" to "); Log.write(to);
-          Log.write(" puts cursor at "); Log.write(cursor);
-          Log.write(" (was: "); Log.write(savedCursor);
+          Log.write("Copy of ", from);
+          Log.write(" to ", to);
+          Log.write(" puts cursor at ", cursor);
+          Log.write(" (was: ", savedCursor);
           Log.writeln(")");
         }
         VM.assertions._assert(cursor.GT(region) && cursor.LE(limit));
@@ -506,8 +509,8 @@ public final class MarkCompactCollector {
     /* Loop through active regions or until the last region */
     while (fromCursor.isValid()) {
       if (VERBOSE) {
-        Log.write("Compacting from region "); Log.write(fromCursor.getRegion());
-        Log.write(" to region "); Log.writeln(toCursor.getRegion());
+        Log.write("Compacting from region ", fromCursor.getRegion());
+        Log.writeln(" to region ", toCursor.getRegion());
       }
 
       /* Loop through the objects in the region */
@@ -521,7 +524,7 @@ public final class MarkCompactCollector {
         if (!copyTo.isNull() && Space.isInSpace(MC.MARK_COMPACT, copyTo)) {
           if (VM.VERIFY_ASSERTIONS) {
             if (MarkCompactSpace.isMarked(current)) {
-              Log.write("Object "); Log.write(current);
+              Log.write("Object ", current);
               Log.writeln(" is marked during the compact phase");
               VM.objectModel.dumpObject(current);
             }

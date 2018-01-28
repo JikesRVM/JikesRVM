@@ -32,6 +32,7 @@ public class RVM_708 {
 
   private static void createThread() {
     Thread t1 = new Thread(new Runnable() {
+      @Override
       public void run() {
         infiniteLoop();
       }

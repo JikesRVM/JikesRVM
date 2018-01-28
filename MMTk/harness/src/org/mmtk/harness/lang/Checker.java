@@ -87,7 +87,8 @@ public class Checker extends Visitor {
   private static void fail(AST ast, String message, Object...params) {
     String fullMessage = String.format(message,params);
     System.err.printf("Error at line %d: %s%n",ast.getLine(),fullMessage);
-    PrettyPrinter.print(System.err, ast); System.err.println();
+    PrettyPrinter.print(System.err, ast);
+    System.err.println();
     throw new CheckerException(fullMessage);
   }
 

@@ -127,7 +127,8 @@ class FixedLive {
     int count = maxMb * ((1 << 20) / Node2I2A.objectSize);
     long firstStart = System.currentTimeMillis();
     System.out.println("Allocating " + maxMb + " Mb or until " + maxGC + " GCs have occurred or until we would exceed " + maxTime + " secs.");
-    System.out.println("First " + exclude + "GC's are excluded from overall statistics\n");
+    System.out.println("First " + exclude + "GC's are excluded from overall statistics");
+    System.out.println();
 
     int checkFreqObj = checkFreq / Node2I2A.objectSize;
     long last = System.currentTimeMillis();
@@ -156,7 +157,8 @@ class FixedLive {
 
   public static void runTest() throws Throwable {
 
-    System.out.println("FixedLive running with " + liveSize + " Mb fixed live data\n");
+    System.out.println("FixedLive running with " + liveSize + " Mb fixed live data");
+    System.out.println();
 
     long start = System.currentTimeMillis();
     Node2I2A.computeObjectSize();

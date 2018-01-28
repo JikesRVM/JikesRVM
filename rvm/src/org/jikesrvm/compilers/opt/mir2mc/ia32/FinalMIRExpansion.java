@@ -269,6 +269,13 @@ public class FinalMIRExpansion extends IRTools {
           break;
 
         case IA32_MOV_opcode:
+          // Convert 0L to 0 to allow optimization into XOR.
+          if (MIR_Move.getResult(p).isRegister() &&
+              MIR_Move.getValue(p).isLongConstant() &&
+              MIR_Move.getValue(p).asLongConstant().value == 0L) {
+            MIR_Move.setValue(p, IC(0));
+          }
+
           // Replace result = IA32_MOV 0 with result = IA32_XOR result, result
           if (MIR_Move.getResult(p).isRegister() &&
               MIR_Move.getValue(p).isIntConstant() &&

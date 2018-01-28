@@ -118,9 +118,9 @@ import org.jikesrvm.scheduler.ThreadQueue;
                     Magic.attemptInt(this,offset,LOCKED,QUEUEING)) ||
                    (oldState == LOCKED_QUEUED &&
                     Magic.attemptInt(this,offset,LOCKED_QUEUED,QUEUEING))) {
-          Magic.sync();
+          if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
           queue.enqueue(me);
-          Magic.sync();
+          Magic.fence();
           state = LOCKED_QUEUED;
           me.monitor().lockNoHandshake();
           while (queue.isQueued(me)) {
@@ -133,7 +133,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
     }
     thread = me;
     where = -1;
-    Magic.isync();
+    Magic.combinedLoadBarrier();
   }
 
   @Override
@@ -146,7 +146,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
   public void release() {
     where = -1;
     thread = null;
-    Magic.sync();
+    Magic.fence();
     Offset offset = Entrypoints.lockStateField.getOffset();
     for (;;) {
       int oldState = Magic.prepareInt(this,offset);
@@ -158,11 +158,11 @@ import org.jikesrvm.scheduler.ThreadQueue;
         break;
       } else if (oldState == LOCKED_QUEUED &&
                  Magic.attemptInt(this,offset,LOCKED_QUEUED,QUEUEING)) {
-        Magic.sync();
+        if (!VM.MagicAttemptImpliesStoreLoadBarrier) Magic.fence();
         RVMThread toAwaken = queue.dequeue();
         if (VM.VerifyAssertions) VM._assert(toAwaken != null);
         boolean queueEmpty = queue.isEmpty();
-        Magic.sync();
+        Magic.combinedLoadBarrier();
         if (queueEmpty) {
           state = CLEAR;
         } else {

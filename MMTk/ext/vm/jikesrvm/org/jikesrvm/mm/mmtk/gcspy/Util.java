@@ -67,7 +67,9 @@ import org.vmmagic.pragma.*;
         return Address.zero();
 
       if (DEBUG_) {
-        Log.write("getBytes: "); Log.write(str); Log.write("->");
+        Log.write("getBytes: ");
+        Log.write(str);
+        Log.write("->");
       }
 
       // Grab some memory sufficient to hold the null terminated string,
@@ -87,7 +89,8 @@ import org.vmmagic.pragma.*;
         rtn.store((byte)0, Offset.fromIntSignExtend(i - str_offset));
       }
       if (DEBUG_) {
-        sysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");
+        sysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size);
+        Log.write("\n");
       }
       return rtn;
     } else {

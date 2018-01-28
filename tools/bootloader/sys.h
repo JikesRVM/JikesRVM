@@ -136,6 +136,7 @@ EXTERNAL void sysConsoleWriteChar(unsigned value);
 EXTERNAL void sysConsoleWriteInteger(int value, int hexToo);
 EXTERNAL void sysConsoleWriteLong(long long value, int hexToo);
 EXTERNAL void sysConsoleWriteDouble(double value,  int postDecimalDigits);
+EXTERNAL void sysConsoleFlushErrorAndTrace();
 // sysGCSpy
 #ifdef RVM_WITH_GCSPY
 EXTERNAL gcspy_gc_stream_t * gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id);
@@ -217,6 +218,7 @@ EXTERNAL double sysVMMathExpm1(double a);
 EXTERNAL double sysVMMathHypot(double a, double b);
 EXTERNAL double sysVMMathLog10(double a);
 EXTERNAL double sysVMMathLog1p(double a);
+EXTERNAL void sysStackAlignmentTest();
 // sysMemory
 EXTERNAL void * sysMalloc(int length);
 EXTERNAL void * sysCalloc(int length);
@@ -258,6 +260,8 @@ EXTERNAL void sysPerfEventDisable();
 EXTERNAL void sysPerfEventRead(int id, long long *values);
 // sysSignal
 EXTERNAL int inRVMAddressSpace(Address addr);
+EXTERNAL void dumpProcessAddressSpace();
+EXTERNAL void unblockSIGQUIT();
 EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 EXTERNAL void softwareSignalHandler(int signo, siginfo_t UNUSED *si, void *context);
 EXTERNAL void* sysStartMainThreadSignals();

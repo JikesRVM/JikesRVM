@@ -196,7 +196,7 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
    * @param what a string message to print
    */
   public static void report(String what) {
-    VM.sysWrite(what + '\n');
+    VM.sysWriteln(what);
   }
 
   /**
@@ -251,13 +251,12 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
    */
   private static void printMethodMessage(NormalMethod method, OptOptions options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT) {
-      VM.sysWrite("-methodOpt " +
+      VM.sysWriteln("-methodOpt " +
                   method.getDeclaringClass() +
                   ' ' +
                   method.getName() +
                   ' ' +
-                  method.getDescriptor() +
-                  " \n");
+                  method.getDescriptor());
     }
   }
 

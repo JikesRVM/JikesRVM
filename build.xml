@@ -217,6 +217,8 @@
     <property file="${classpath.lib.dir}/constants.properties"/>
     <property name="config.portable-native-sync" value="true"/>
     <property name="build.extra.rt.jars" value=""/>
+    <test-file name="c++.exe" location="${host.file}"/>
+    <test-property name="c++.args" location="${host.file}"/>
   </target>
 
   <target name="check-harmony-properties" depends="check-components-properties,check-classlibrary-properties" if="harmony.classlib">
@@ -1007,7 +1009,6 @@ Check to make sure all required properties are specified. This includes properti
       <globmapper from="*.fake" to="*.java"/>
       <fileset dir="${ia32-assembler-opt.dir}">
         <include name="**/*.fake"/>
-        <include name="ArchitectureSpecific.fake"/>
         <include name="JikesRVMSupport.fake"/>
       </fileset>
     </copy>
@@ -1721,7 +1722,6 @@ Check to make sure all required properties are specified. This includes properti
       <exclude name="org/jikesrvm/${target.arch}/opt/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/osr/**/*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/${target.arch}/osr/**/*.class" unless="include.opt"/>
-      <exclude name="org/jikesrvm/ArchitectureSpecificOpt$*.class" unless="include.opt"/>
       <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_32/**/*.class" unless="include.32bit"/>
       <exclude name="org/jikesrvm/compilers/opt/lir2mir/${target.arch}_64/**/*.class" if="include.32bit"/>
       <include name="**/JikesRVMSupport.class"/>
@@ -2028,7 +2028,7 @@ const char *rvm_target_configuration = "${target.file}";
     </condition>
 
     <property name="rvm.includes"
-              value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
+              value="-I${bl.dir} -I${bl.dir}/jni -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
 
     <property name="rvm.defines" value="-D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE ${filter} "/>
 
@@ -2782,7 +2782,7 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
-  <target name="apidoc" depends="compile-for-apidocs" description="Generate the javadoc.">
+  <target name="apidoc" depends="compile-for-apidocs" description="Generate the javadoc for IA32.">
 
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="start" append="true" emacsmode="true"/>
     <javadoc
@@ -2810,6 +2810,54 @@ target.jni-suffix=${target.jni-suffix}
       <arg value="-notimestamp"/>
 
       <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**" excludes="**/ppc/**"/>
+      <packageset dir="${classlib.library-interface.common.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.non-cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.non-cpl2.java}" defaultexcludes="yes" includes="gnu/**"/>
+
+      <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${options.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${tuningforklib.java}" defaultexcludes="yes" includes="com/ibm/tuningfork/**"/>
+      <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${generated.java}" includes="org/**"/>
+      <packageset dir="${generated.config.java}" includes="org/**"/>
+      <packageset dir="${generated.vmmagic.arch.java}" includes="org/**"/>
+
+      <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+    </javadoc>
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
+  </target>
+
+  <target name="apidoc-for-all-architectures" depends="compile" description="Generate the javadoc for all architectures.">
+
+    <mkdir dir="${build.dir}/javadoc/"/>
+    <record name="${build.dir}/javadoc/JavadocReport.txt" action="start" emacsmode="true"/>
+    <javadoc
+        destdir="${build.dir}/javadoc/docs/api"
+        author="true"
+        version="true"
+        use="true"
+        breakiterator="true"
+        maxmemory="400M"
+        source="${rvm.java.version}"
+        private="true"
+        windowtitle="Jikes RVM API">
+
+      <classpath>
+        <pathelement location="${build.classes}"/>
+        <pathelement location="${classpath.lib.dir}/classpath.jar"/>
+      </classpath>
+
+      <group title="RVM" packages="org.jikesrvm*"/>
+      <group title="VM Magic" packages="org.vmmagic.*"/>
+      <group title="MMTk" packages="org.mmtk.*"/>
+      <group title="GNU Classpath Interface" packages="gnu.*"/>
+
+      <arg value="-linksource"/>
+      <arg value="-notimestamp"/>
+
+      <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${classlib.library-interface.common.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.non-cpl.java}" defaultexcludes="yes" includes="gnu/**"/>

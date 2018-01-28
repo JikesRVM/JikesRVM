@@ -302,7 +302,7 @@ class ArrayFunctions {
 
     // first part: update but don't release the copy
     for (int i = 0; i < longArray.length; i++)
-      longArray[i] = (long) i;
+      longArray[i] = i;
     long [] returnArray = testLongArrayElements(longArray, 0);
     wasCopied = lastGetArrayElementsWasCopy();
     if (verbose)
@@ -316,7 +316,7 @@ class ArrayFunctions {
 
     // second part: update and release the copy
     for (int i = 0; i < longArray.length; i++)
-      longArray[i] = (long) i;
+      longArray[i] = i;
     returnArray = testLongArrayElements(longArray, 1);
     for (int i = 0; i < returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
@@ -326,7 +326,7 @@ class ArrayFunctions {
 
     // third part: release the copy with no update
     for (int i = 0; i < longArray.length; i++)
-      longArray[i] = (long) i;
+      longArray[i] = i;
     returnArray = testLongArrayElements(longArray, 2);
     wasCopied = lastGetArrayElementsWasCopy();
     for (int i = 0; i < returnArray.length; i++) {
@@ -354,7 +354,7 @@ class ArrayFunctions {
           (lastGetArrayElementsWasCopy() ? "copied" : "did not copy") + " the array");
     for (int i = 0; i < returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
-      if (returnArray[i] != ((float)i + 16.0f))
+      if (returnArray[i] != (i + 16.0f))
         arrayFlag = false;
     }
 
@@ -364,7 +364,7 @@ class ArrayFunctions {
     returnArray = testFloatArrayElements(floatArray, 1);
     for (int i = 0; i < returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i] != ((float)i + (wasCopied ? 33.0f : 17.0f)))
+      if (returnArray[i] != (i + (wasCopied ? 33.0f : 17.0f)))
         arrayFlag = false;
     }
 
@@ -375,7 +375,7 @@ class ArrayFunctions {
     wasCopied = lastGetArrayElementsWasCopy();
     for (int i = 0; i < returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i] != (float) i + (wasCopied ? 0f : 18f))
+      if (returnArray[i] != i + (wasCopied ? 0f : 18f))
         arrayFlag = false;
     }
 
@@ -390,7 +390,7 @@ class ArrayFunctions {
 
     // first part: update but don't release the copy
     for (int i = 0; i < doubleArray.length; i++)
-      doubleArray[i] = (double) i;
+      doubleArray[i] = i;
     double [] returnArray = testDoubleArrayElements(doubleArray, 0);
     wasCopied = lastGetArrayElementsWasCopy();
     if (verbose)
@@ -398,28 +398,28 @@ class ArrayFunctions {
           (lastGetArrayElementsWasCopy() ? "copied" : "did not copy") + " the array");
     for (int i = 0; i < returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
-      if (returnArray[i] != ((double) i + 13.0))
+      if (returnArray[i] != (i + 13.0))
         arrayFlag = false;
     }
 
     // second part: update and release the copy
     for (int i = 0; i < doubleArray.length; i++)
-      doubleArray[i] = (double) i;
+      doubleArray[i] = i;
     returnArray = testDoubleArrayElements(doubleArray, 1);
     for (int i = 0; i < returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i] != ((double) i + (wasCopied ? 27.0 : 14.0)))
+      if (returnArray[i] != (i + (wasCopied ? 27.0 : 14.0)))
         arrayFlag = false;
     }
 
     // third part: release the copy with no update
     for (int i = 0; i < shortArray.length; i++)
-      doubleArray[i] = (double) i;
+      doubleArray[i] = i;
     returnArray = testDoubleArrayElements(doubleArray, 2);
     wasCopied = lastGetArrayElementsWasCopy();
     for (int i = 0; i < returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
-      if (returnArray[i] != (double) i + (wasCopied ? 0.0 : 15.0))
+      if (returnArray[i] != i + (wasCopied ? 0.0 : 15.0))
         arrayFlag = false;
     }
 
@@ -592,7 +592,7 @@ class ArrayFunctions {
     float[]  returnFloatArray = testFloatArrayRegion(floatArray);
     arrayFlag = true;
     for (int i = 0; i < returnFloatArray.length; i++) {
-      if (returnFloatArray[i] != ((float) 115.1 + (float) i)) {
+      if (returnFloatArray[i] != ((float) 115.1 + i)) {
         printVerbose("Get/SetFloatArrayRegion returns: " + i + " = " +
                      returnFloatArray[i]);
         arrayFlag = false;

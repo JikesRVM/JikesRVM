@@ -156,7 +156,9 @@ public final class OptCompiledMethod extends CompiledMethod {
       RVMMethod thisMethod = this.getMethod();
       VM.sysWrite(thisMethod.getName());
       VM.sysWrite(" with descriptor ");
-      VM.sysWriteln(thisMethod.getDescriptor());
+      VM.sysWrite(thisMethod.getDescriptor());
+      VM.sysWrite(" declared by class with descriptor ");
+      VM.sysWriteln(thisMethod.getDeclaringClass().getDescriptor());
       String msg = "Couldn't find a method for given instruction offset";
       if (VM.VerifyAssertions) {
         VM._assert(NOT_REACHED, msg);
@@ -199,7 +201,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         VM.sysWrite("setting stack to frame (opt): ");
         VM.sysWrite(browser.getMethod());
         VM.sysWrite(browser.getBytecodeIndex());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -225,7 +227,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         VM.sysWrite("up within frame stack (opt): ");
         VM.sysWrite(browser.getMethod());
         VM.sysWrite(browser.getBytecodeIndex());
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
 
       return true;
@@ -572,7 +574,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         boolean DEBUG_CODE_PATCH = false;
 
         // let other processors see changes.
-        Magic.sync();
+        Magic.fence();
 
         // All other processors now will see the patched code in their data cache.
         // We now need to force everyone's instruction caches to be in synch with their
@@ -589,7 +591,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         RVMThread.softHandshake(codePatchSyncRequestVisitor);
 
         if (DEBUG_CODE_PATCH) {
-          VM.sysWrite("all processors got synchronized!\n");
+          VM.sysWriteln("all processors got synchronized!");
         }
       }
 

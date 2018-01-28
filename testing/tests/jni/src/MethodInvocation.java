@@ -73,14 +73,14 @@ class MethodInvocation {
   public static int staticReturnInt(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    return val3 + (int) val2;
+    return val3 + val2;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)J        */
   public static long staticReturnLong(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    return val4 + (long) val3;
+    return val4 + val3;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)F        */
@@ -94,7 +94,7 @@ class MethodInvocation {
   public static double staticReturnDouble(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    return val6 + (double) 100.0;
+    return val6 + 100.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)         */
@@ -152,14 +152,14 @@ class MethodInvocation {
   public int virtualReturnInt(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    return val3 + (int) val0;
+    return val3 + val0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)J        */
   public long virtualReturnLong(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    return val4 + (long) val2;
+    return val4 + val2;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)F        */
@@ -173,7 +173,7 @@ class MethodInvocation {
   public double virtualReturnDouble(byte val0, char val1, short val2,
                                   int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
-    return val6 + (double) 1000.0;
+    return val6 + 1000.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)         */

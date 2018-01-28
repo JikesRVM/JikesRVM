@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir.ia32;
 
 import static org.jikesrvm.compilers.opt.ir.IRTools.offsetOperand;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD;
+import static org.jikesrvm.compilers.opt.ir.Operators.ILLEGAL_INSTRUCTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
@@ -103,14 +104,14 @@ public abstract class GenerateMachineSpecificMagic {
       AddressConstantOperand addr = new AddressConstantOperand(Magic.getTocPointer());
       bc2ir.appendInstruction(Move.create(REF_MOVE, val, addr));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == MagicNames.isync) {
-      // nothing required on Intel
-    } else if (methodName == MagicNames.sync) {
+    } else if (methodName == MagicNames.synchronizeInstructionCache) {
       // nothing required on Intel
     } else if (methodName == MagicNames.prefetch) {
       bc2ir.appendInstruction(CacheOp.create(PREFETCH, bc2ir.popAddress()));
     } else if (methodName == MagicNames.pause) {
       bc2ir.appendInstruction(Empty.create(PAUSE));
+    } else if (methodName == MagicNames.illegalInstruction) {
+      bc2ir.appendInstruction(Empty.create(ILLEGAL_INSTRUCTION));
     } else if (methodName == MagicNames.getCallerFramePointer) {
       Operand fp = bc2ir.popAddress();
       RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);

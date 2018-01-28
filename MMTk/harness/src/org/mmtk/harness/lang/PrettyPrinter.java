@@ -140,11 +140,13 @@ public class PrettyPrinter extends Visitor {
       }
       decl.accept(this);
     }
-    fmt.out(") {"); fmt.newline();
+    fmt.out(") {");
+    fmt.newline();
     fmt.increaseIndent();
     method.getBody().accept(this);
     fmt.decreaseIndent();
-    fmt.out("%s}",fmt.margin()); fmt.newline();
+    fmt.out("%s}",fmt.margin());
+    fmt.newline();
     return null;
   }
 
@@ -170,7 +172,8 @@ public class PrettyPrinter extends Visitor {
   @Override
   public Object visit(Sequence ass) {
     for (Statement stmt : ass) {
-      stmt.accept(this); fmt.newline();
+      stmt.accept(this);
+      fmt.newline();
     }
     return null;
   }
@@ -193,10 +196,12 @@ public class PrettyPrinter extends Visitor {
         Expression cond = condIter.next();
         fmt.out("%s (", keyword);
         cond.accept(this);
-        fmt.out(") {"); fmt.newline();
+        fmt.out(") {");
+        fmt.newline();
         keyword = "elif";
       } else {
-        fmt.out("else {"); fmt.newline();
+        fmt.out("else {");
+        fmt.newline();
       }
       fmt.increaseIndent();
       body.accept(this);
@@ -210,7 +215,8 @@ public class PrettyPrinter extends Visitor {
   public Object visit(WhileStatement w) {
     fmt.out("while (");
     w.getCond().accept(this);
-    fmt.out(") {"); fmt.newline();
+    fmt.out(") {");
+    fmt.newline();
     fmt.increaseIndent();
     w.getBody().accept(this);
     fmt.decreaseIndent();

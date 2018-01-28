@@ -308,7 +308,7 @@ public class Log {
   }
 
   /**
-   * writes a string followed by an address, in hexadecimal.
+   * Writes a String followed by an address, in hexadecimal.
    * @see #write(String)
    * @see #write(Address)
    *
@@ -318,6 +318,32 @@ public class Log {
   public static void write(String s, Address a) {
     write(s);
     write(a);
+  }
+
+  /**
+   * Writes a String followed by an extent, in hexadecimal.
+   * @see #write(String)
+   * @see #write(Extent)
+   *
+   * @param s the string to be logged
+   * @param e the extent to be logged
+   */
+  public static void write(String s, Extent e) {
+    write(s);
+    write(e);
+  }
+
+  /**
+   * Writes a string followed by an object reference, in hexadecimal.
+   * @see #write(String)
+   * @see #write(ObjectReference)
+   *
+   * @param s the string to be logged
+   * @param objRef the object reference to be logged
+   */
+  public static void write(String s, ObjectReference objRef) {
+    write(s);
+    write(objRef);
   }
 
   /**
@@ -647,6 +673,54 @@ public class Log {
     writeln(l);
   }
 
+
+  /**
+   * Writes a String followed by an extent, in hexadecimal.
+   * Then flushes the buffer.
+   * @param s the string to be logged
+   * @param extent the extent reference to be logged
+   */
+  public static void writeln(String s, Extent extent) {
+    write(s);
+    write(extent);
+    writeln();
+  }
+
+  /**
+   * Writes a String followed by an object reference, in hexadecimal.
+   * Then flushes the buffer.
+   * @param s the string to be logged
+   * @param objRef the object reference to be logged
+   */
+  public static void writeln(String s, ObjectReference objRef) {
+    write(s);
+    write(objRef);
+    writeln();
+  }
+
+  /**
+   * Writes a String followed by an offset, in hexadecimal.
+   * Then flushes the buffer.
+   * @param s the string to be logged
+   * @param offset the offset to be logged
+   */
+  public static void writeln(String s, Offset offset) {
+    write(s);
+    write(offset);
+    writeln();
+  }
+
+  /**
+   * Writes a String followed by a word, in hexadecimal.
+   * Then flushes the buffer.
+   * @param s the string to be logged
+   * @param word the word to be logged
+   */
+  public static void writeln(String s, Word word) {
+    write(s);
+    write(word);
+    writeln();
+  }
 
   /**
    * writes a word, in hexadecimal, and a new-line, then optionally

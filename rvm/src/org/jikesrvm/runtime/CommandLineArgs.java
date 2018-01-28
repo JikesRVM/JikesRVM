@@ -223,7 +223,7 @@ public class CommandLineArgs {
     if (DEBUG) {
       for (int i = 0; i < prefixes.length; i++) {
         Prefix t = prefixes[i];
-        VM.sysWrite("Prefix[" + i + "]: \"" + t.value + "\"; " + t.type + "\n");
+        VM.sysWriteln("Prefix[" + i + "]: \"" + t.value + "\"; " + t.type);
       }
     }
   }
@@ -632,7 +632,7 @@ public class CommandLineArgs {
           if (VM.BuildForAdaptiveSystem) {
             Controller.processCommandLineArg("help");
           } else {
-            VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
+            VM.sysWriteln("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration");
             VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
@@ -640,7 +640,7 @@ public class CommandLineArgs {
           if (VM.BuildForAdaptiveSystem) {
             Controller.processCommandLineArg(arg);
           } else {
-            VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
+            VM.sysWriteln("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration");
             VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
@@ -780,9 +780,9 @@ public class CommandLineArgs {
 
     // Debugging: write out application arguments
     if (DEBUG) {
-      VM.sysWrite("VM.CommandLineArgs(): application arguments " + arglist.length + "\n");
+      VM.sysWriteln("VM.CommandLineArgs(): application arguments " + arglist.length);
       for (int i = 0; i < arglist.length; i++) {
-        VM.sysWrite(i + ": \"" + arglist[i] + "\"\n");
+        VM.sysWriteln(i + ": \"" + arglist[i] + "\"");
       }
     }
 

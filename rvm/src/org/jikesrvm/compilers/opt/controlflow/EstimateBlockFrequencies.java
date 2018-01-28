@@ -240,7 +240,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     n.header.setExecutionFrequency(1f);
     int idx = 0;
     while (topOrder[idx] != n.header) idx++;
-    for (int numNodes = n.loop.populationCount(); numNodes > 0;) {
+    for (int numNodes = n.getLoop().populationCount(); numNodes > 0;) {
       if (idx >= topOrder.length) {
         numNodes--;
         continue;
@@ -250,12 +250,12 @@ public class EstimateBlockFrequencies extends CompilerPhase {
         numNodes--;
         continue;
       }
-      if (!n.loop.get(cur.getNumber())) continue; // node was not in the loop nest being processed.
+      if (!n.getLoop().get(cur.getNumber())) continue; // node was not in the loop nest being processed.
       LSTNode other = lst.getLoop(cur);
       if (other != n) {
         if (cur == other.header) {
           // loop header of nested loop
-          numNodes -= other.loop.populationCount();
+          numNodes -= other.getLoop().populationCount();
         }
         continue; // skip over nodes in nested loop.
       }
@@ -271,7 +271,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
 
   private void processEdge(LSTNode n, BasicBlock source, BasicBlock target, float prob, float weight) {
     if (target.getScratchFlag()) return; // ignore backedge
-    if (n.loop.get(target.getNumber())) {
+    if (n.getLoop().get(target.getNumber())) {
       LSTNode other = lst.getLoop(target);
       if (other == n) {
         target.augmentExecutionFrequency(prob * weight);

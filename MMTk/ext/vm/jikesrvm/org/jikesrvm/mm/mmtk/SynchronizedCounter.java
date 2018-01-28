@@ -36,15 +36,7 @@ public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
 
   @Override
   public int reset() {
-    //    int offset = Interface.synchronizedCounterOffset;
-    int oldValue = count;
-    int actualOldValue = Synchronization.fetchAndAdd(this, offset, -oldValue);
-    if (actualOldValue != oldValue) {
-      VM.sysWriteln("oldValue = ", oldValue);
-      VM.sysWriteln("actualOldValue = ", actualOldValue);
-      VM.sysFail("Concurrent use of SynchronizedCounter.reset");
-    }
-    return oldValue;
+    return Synchronization.fetchAndStore(this, offset, 0);
   }
 
   @Override

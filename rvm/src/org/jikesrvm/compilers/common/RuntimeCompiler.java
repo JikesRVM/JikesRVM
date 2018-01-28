@@ -209,8 +209,9 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
    * @param explain Explains the metrics used in the report
    */
   public static void report(boolean explain) {
-    VM.sysWrite("\n\t\tCompilation Subsystem Report\n");
-    VM.sysWrite("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB\n");
+    VM.sysWriteln();
+    VM.sysWriteln("\t\tCompilation Subsystem Report");
+    VM.sysWriteln("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB");
     for (int i = 0; i <= name.length - 1; i++) {
       if (totalMethods[i] > 0) {
         VM.sysWrite(name[i]);
@@ -247,18 +248,18 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
         } else {
           VM.sysWrite("NA");
         }
-        VM.sysWrite("\n");
+        VM.sysWriteln();
       }
     }
     if (explain) {
       // Generate an explanation of the metrics reported
-      VM.sysWrite("\t\t\tExplanation of Metrics\n");
-      VM.sysWrite("#Meths:\t\tTotal number of methods compiled by the compiler\n");
-      VM.sysWrite("Time:\t\tTotal compilation time in milliseconds\n");
-      VM.sysWrite("bcb/ms:\t\tNumber of bytecode bytes complied per millisecond\n");
-      VM.sysWrite("mcb/bcb:\tRatio of machine code bytes to bytecode bytes\n");
-      VM.sysWrite("MCKB:\t\tTotal number of machine code bytes generated in kilobytes\n");
-      VM.sysWrite("BCKB:\t\tTotal number of bytecode bytes compiled in kilobytes\n");
+      VM.sysWriteln("\t\t\tExplanation of Metrics");
+      VM.sysWriteln("#Meths:\t\tTotal number of methods compiled by the compiler");
+      VM.sysWriteln("Time:\t\tTotal compilation time in milliseconds");
+      VM.sysWriteln("bcb/ms:\t\tNumber of bytecode bytes complied per millisecond");
+      VM.sysWriteln("mcb/bcb:\tRatio of machine code bytes to bytecode bytes");
+      VM.sysWriteln("MCKB:\t\tTotal number of machine code bytes generated in kilobytes");
+      VM.sysWriteln("BCKB:\t\tTotal number of bytecode bytes compiled in kilobytes");
     }
 
     BaselineCompiler.generateBaselineCompilerSubsystemReport(explain);
@@ -269,8 +270,10 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
       if (theType != null && theType.asClass().isInitialized()) {
         OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
       } else {
-        VM.sysWrite("\n\tNot generating Optimizing Compiler SubSystem Report because \n");
-        VM.sysWrite("\tthe opt compiler was never invoked.\n\n");
+        VM.sysWriteln();
+        VM.sysWriteln("\tNot generating Optimizing Compiler SubSystem Report because ");
+        VM.sysWriteln("\tthe opt compiler was never invoked.");
+        VM.sysWriteln();
       }
     }
   }
@@ -601,6 +604,30 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
                                   (OptimizationPlanElement[]) optimizationPlan,
                                   null,
                                   (OptOptions) options);
+      return recompileWithOpt(plan);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return -1;
+    }
+  }
+
+  /**
+   * A wrapper method for those callers that don't want to make
+   * optimization plans and need a given opt level
+   * @param method the method to recompile
+   * @param optLevel the opt level to use
+   * @return a compiled method id or -1 when the compilation failed
+   */
+  public static int recompileWithOpt(NormalMethod method, int optLevel) {
+    if (VM.BuildForOptCompiler) {
+      OptOptions optOptions = (OptOptions) options;
+      OptOptions newOptions = optOptions.dup();
+      newOptions.setOptLevel(optLevel);
+      CompilationPlan plan =
+          new CompilationPlan(method,
+                                  (OptimizationPlanElement[]) optimizationPlan,
+                                  null,
+                                  newOptions);
       return recompileWithOpt(plan);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);

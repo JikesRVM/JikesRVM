@@ -356,7 +356,8 @@ public final class OptGCMap {
     gcMapInformation[lastEntry] = gcMapInformation[lastEntry] & ~NEXT_BIT;
 
     if (DEBUG) {
-      System.out.println("\nendCurrentMap called with firstIndex: " +
+      System.out.println();
+      System.out.println("endCurrentMap called with firstIndex: " +
                          firstIndex +
                          ", lastGCMapEntry: " +
                          lastGCMapEntry);

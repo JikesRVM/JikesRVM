@@ -190,7 +190,7 @@ public abstract class RVMType extends AnnotatedElement {
   /**
    * Type id -- used to index into typechecking datastructures
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   protected final int id;
 
   /**
@@ -208,7 +208,7 @@ public abstract class RVMType extends AnnotatedElement {
    * classes. NB this field must appear in all Types for fast type
    * checks (See transformation from HIR to LIR for details).
    */
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   protected final int dimension;
   /**
    * Number of superclasses to Object. Known immediately for
@@ -821,6 +821,11 @@ public abstract class RVMType extends AnnotatedElement {
    * This will cause the class's {@code <clinit>} method to be executed.
    */
   public abstract void initialize();
+
+  /**
+   * Prepares a type for the first use by making sure that it is initialized.
+   */
+  public abstract void prepareForFirstUse();
 
   /**
    * @return {@code true} if this type overrides {@code java.lang.Object.finalize()}

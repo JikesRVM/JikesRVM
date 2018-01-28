@@ -38,6 +38,8 @@ import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.NonMovingAllocation;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -221,11 +223,13 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager {
   static final int INITIAL_COUNT = 10;
   static final int INCREMENT = 10;
   static int numCounterArrays = 0;
+  @Entrypoint
   static double[][] counterArrays = new double[INITIAL_COUNT][];
 
   /**
    * increment the number of counter arrays
    */
+  @NonMovingAllocation
   private static void expandCounterArrays() {
     // expand the number of counter arrays
     double[][] temp = new double[counterArrays.length * 2][];

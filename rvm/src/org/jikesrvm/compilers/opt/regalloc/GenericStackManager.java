@@ -36,22 +36,13 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.operand.UnknownConstantOperand;
 
 /**
  * Class to manage the allocation of the "compiler-independent" portion of
  * the stackframe.
  */
 public abstract class GenericStackManager extends IRTools {
-
-  /*
-   * Types of values stored in physical registers;
-   * These affect instruction selection for accessing
-   * the data
-   */
-  public static final byte INT_VALUE = 0;
-  public static final byte DOUBLE_VALUE = 1;
-  public static final byte FLOAT_VALUE = 2;
-  public static final byte CONDITION_VALUE = 3;
 
   protected static final boolean DEBUG = false;
   protected static final boolean VERBOSE = false;
@@ -193,6 +184,8 @@ public abstract class GenericStackManager extends IRTools {
    */
   public abstract int allocateNewSpillLocation(int type);
 
+  public abstract int getSpillSize(int type);
+
   /**
    * Cleans up some junk that's left in the IR after register allocation,
    * and adds epilogue code.
@@ -331,6 +324,13 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
+   * @return whether the compiled method has any syscalls
+   */
+  public boolean hasSysCall() {
+    return sysCallOffset != 0;
+  }
+
+  /**
    * Spills the contents of a scratch register to memory before
    * instruction s.
    *
@@ -343,10 +343,10 @@ public abstract class GenericStackManager extends IRTools {
     if (!scratch.isDirty()) return;
 
     // spill the contents of the scratch register
-    Register scratchContents = scratch.currentContents;
+    Register scratchContents = scratch.getCurrentContents();
     if (scratchContents != null) {
       int location = regAllocState.getSpill(scratchContents);
-      insertSpillBefore(s, scratch.scratch, getValueType(scratchContents), location);
+      insertSpillBefore(s, scratch.scratch, scratchContents, location);
     }
 
   }
@@ -362,7 +362,7 @@ public abstract class GenericStackManager extends IRTools {
     if (scratch.hadToSpill()) {
       // Restore the live contents into the scratch register.
       int location = regAllocState.getSpill(scratch.scratch);
-      insertUnspillBefore(s, scratch.scratch, getValueType(scratch.scratch), location);
+      insertUnspillBefore(s, scratch.scratch, scratch.scratch, location);
     }
   }
 
@@ -375,7 +375,7 @@ public abstract class GenericStackManager extends IRTools {
     ArrayList<Register> result = new ArrayList<Register>(3);
 
     for (ScratchRegister sr : scratchInUse) {
-      if (sr.currentContents != null && appearsIn(sr.currentContents, s)) {
+      if (sr.getCurrentContents() != null && appearsIn(sr.getCurrentContents(), s)) {
         result.add(sr.scratch);
       }
     }
@@ -398,17 +398,17 @@ public abstract class GenericStackManager extends IRTools {
    */
   private ScratchRegister getCurrentScratchRegister(Register r, Instruction s) {
     for (ScratchRegister sr : scratchInUse) {
-      if (sr.currentContents == r) {
+      if (sr.getCurrentContents() == r) {
         return sr;
       }
-      int location = regAllocState.getSpill(sr.currentContents);
+      int location = regAllocState.getSpill(sr.getCurrentContents());
       int location2 = regAllocState.getSpill(r);
       if (location == location2) {
         // OK. We're currently holding a different symbolic register r2 in
         // a scratch register, and r2 is mapped to the same spill location
         // as r.  So, coopt the scratch register for r, instead.
-        Register r2 = sr.currentContents;
-        sr.currentContents = r;
+        Register r2 = sr.getCurrentContents();
+        sr.setCurrentContents(r);
         scratchMap.endScratchInterval(sr.scratch, s);
         scratchMap.endSymbolicInterval(r2, s);
         scratchMap.beginScratchInterval(sr.scratch, s);
@@ -444,7 +444,7 @@ public abstract class GenericStackManager extends IRTools {
   private void markDirtyScratchRegisters(Instruction s) {
     for (ScratchRegister scratch : scratchInUse) {
       if (scratch.isDirty()) {
-        scratchMap.markDirty(s, scratch.currentContents);
+        scratchMap.markDirty(s, scratch.getCurrentContents());
       }
     }
   }
@@ -479,7 +479,7 @@ public abstract class GenericStackManager extends IRTools {
       }
       i.remove();
       scratchMap.endScratchInterval(scratch.scratch, s);
-      Register scratchContents = scratch.currentContents;
+      Register scratchContents = scratch.getCurrentContents();
       if (scratchContents != null) {
         if (VERBOSE_DEBUG) {
           System.out.println("RALL: End symbolic interval " + scratchContents + " " + s);
@@ -528,18 +528,18 @@ public abstract class GenericStackManager extends IRTools {
 
     // make the scratch register available to hold the new
     // symbolic register
-    Register current = sr.currentContents;
+    Register current = sr.getCurrentContents();
 
     if (current != null && current != symb) {
       int location = regAllocState.getSpill(current);
       int location2 = regAllocState.getSpill(symb);
       if (location != location2) {
-        insertSpillBefore(s, sr.scratch, getValueType(current), location);
+        insertSpillBefore(s, sr.scratch, current, location);
       }
     }
 
     // Record the new contents of the scratch register
-    sr.currentContents = symb;
+    sr.setCurrentContents(symb);
 
     return sr;
   }
@@ -595,15 +595,15 @@ public abstract class GenericStackManager extends IRTools {
     if (r != null) {
       // symb is currently assigned to scratch register r
       if (isLegal(symb, r.scratch, s)) {
-        if (r.currentContents != symb) {
+        if (r.getCurrentContents() != symb) {
           // we're reusing a scratch register based on the fact that symb
           // shares a spill location with r.currentContents.  However,
           // update the mapping information.
-          if (r.currentContents != null) {
+          if (r.getCurrentContents() != null) {
             if (VERBOSE_DEBUG) {
-              System.out.println("GSR: End symbolic interval " + r.currentContents + " " + s);
+              System.out.println("GSR: End symbolic interval " + r.getCurrentContents() + " " + s);
             }
-            scratchMap.endSymbolicInterval(r.currentContents, s);
+            scratchMap.endSymbolicInterval(r.getCurrentContents(), s);
           }
           if (VERBOSE_DEBUG) {
             System.out.println("GSR: Begin symbolic interval " + symb + " " + r.scratch + " " + s);
@@ -699,7 +699,7 @@ public abstract class GenericStackManager extends IRTools {
 
     ScratchRegister sr = getScratchRegister(symb, s, beCheap);
 
-    Register scratchContents = sr.currentContents;
+    Register scratchContents = sr.getCurrentContents();
     if (scratchContents != symb) {
       if (scratchContents != null) {
         // the scratch register currently holds a different
@@ -712,7 +712,7 @@ public abstract class GenericStackManager extends IRTools {
       // since symbReg must have been previously spilled, get the spill
       // location previous assigned to symbReg
       int location = regAllocState.getSpill(symb);
-      insertUnspillBefore(s, sr.scratch, getValueType(symb), location);
+      insertUnspillBefore(s, sr.scratch, symb, location);
 
       // we have not yet written to sr, so mark it 'clean'
       sr.setDirty(false);
@@ -723,7 +723,7 @@ public abstract class GenericStackManager extends IRTools {
     }
 
     // Record the current contents of the scratch register
-    sr.currentContents = symb;
+    sr.setCurrentContents(symb);
 
     return sr;
   }
@@ -756,11 +756,11 @@ public abstract class GenericStackManager extends IRTools {
       // Since this is a new scratch register, spill the old contents of
       // r if necessary.
       if (activeSet == null) {
-        insertSpillBefore(s, r, (byte) type, spillLocation);
+        insertSpillBefore(s, r, r, spillLocation);
         sr.setHadToSpill(true);
       } else {
         if (!isDeadBefore(r, s)) {
-          insertSpillBefore(s, r, (byte) type, spillLocation);
+          insertSpillBefore(s, r, r, spillLocation);
           sr.setHadToSpill(true);
         }
       }
@@ -770,12 +770,12 @@ public abstract class GenericStackManager extends IRTools {
         System.out.println("CSB: " + " End scratch interval " + sr.scratch + " " + s);
       }
       scratchMap.endScratchInterval(sr.scratch, s);
-      Register scratchContents = sr.currentContents;
+      Register scratchContents = sr.getCurrentContents();
       if (scratchContents != null) {
         if (VERBOSE_DEBUG) {
-          System.out.println("CSB: " + " End symbolic interval " + sr.currentContents + " " + s);
+          System.out.println("CSB: " + " End symbolic interval " + sr.getCurrentContents() + " " + s);
         }
-        scratchMap.endSymbolicInterval(sr.currentContents, s);
+        scratchMap.endSymbolicInterval(sr.getCurrentContents(), s);
       }
     }
 
@@ -1039,6 +1039,8 @@ public abstract class GenericStackManager extends IRTools {
     // compute the number of stack words needed to hold nonvolatile
     // registers
     computeNonVolatileArea();
+    // insert values for getFrameSize magic, if present
+    rewriteFrameSizeMagics();
 
     if (frameIsRequired()) {
       insertNormalPrologue();
@@ -1049,6 +1051,18 @@ public abstract class GenericStackManager extends IRTools {
       ir.MIRInfo.gcIRMap.delete(inst);
     }
   }
+
+  private void rewriteFrameSizeMagics() {
+    Enumeration<Instruction> instructions = ir.forwardInstrEnumerator();
+    while (instructions.hasMoreElements()) {
+      Instruction inst = instructions.nextElement();
+      int frameSize = getFrameFixedSize();
+      verifyArchSpecificFrameSizeConstraints(frameSize);
+      inst.replaceSimilarOperands(new UnknownConstantOperand(), IC(frameSize));
+    }
+  }
+
+  protected abstract void verifyArchSpecificFrameSizeConstraints(int frameSize);
 
   /**
    * After register allocation, go back through the IR and insert
@@ -1196,22 +1210,20 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param s the instruction before which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public abstract void insertSpillBefore(Instruction s, Register r, byte type, int location);
+  public abstract void insertSpillBefore(Instruction s, Register r, Register type, int location);
 
   /**
    * Insert a spill of a physical register after instruction s.
    *
    * @param s the instruction after which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public final void insertSpillAfter(Instruction s, Register r, byte type, int location) {
+  public final void insertSpillAfter(Instruction s, Register r, Register type, int location) {
     insertSpillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
@@ -1221,11 +1233,10 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param s the instruction before which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public abstract void insertUnspillBefore(Instruction s, Register r, byte type, int location);
+  public abstract void insertUnspillBefore(Instruction s, Register r, Register type, int location);
 
   /**
    * Insert a load of a physical register from a spill location before
@@ -1233,11 +1244,10 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param s the instruction before which the spill should occur
    * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
+   * @param type the register that's contained in the physical register
    * @param location the spill location
    */
-  public final void insertUnspillAfter(Instruction s, Register r, byte type, int location) {
+  public final void insertUnspillAfter(Instruction s, Register r, Register type, int location) {
     insertUnspillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
@@ -1459,33 +1469,11 @@ l   */
       Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
-        if (DEBUG) VM.sysWrite(" volat." + realReg + " to symb " + symbReg + '\n');
+        if (DEBUG) VM.sysWriteln(" volat." + realReg + " to symb " + symbReg);
         return realReg;
       }
     }
     return null;
-  }
-
-  /**
-   * Given a symbolic register, return a code that indicates the type
-   * of the value stored in the register.
-   * Note: This routine returns INT_VALUE for longs
-   *
-   * @param r a symbolic register
-   * @return one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, CONDITION_VALUE
-   */
-  public final byte getValueType(Register r) {
-    if (r.isInteger() || r.isLong() || r.isAddress()) {
-      return INT_VALUE;
-    } else if (r.isCondition()) {
-      return CONDITION_VALUE;
-    } else if (r.isDouble()) {
-      return DOUBLE_VALUE;
-    } else if (r.isFloat()) {
-      return FLOAT_VALUE;
-    } else {
-      throw new OptimizingCompilerException("getValueType: unsupported " + r);
-    }
   }
 
   protected static int align(int number, int alignment) {
@@ -1530,7 +1518,7 @@ l   */
     /**
      * The current contents of scratch
      */
-    public Register currentContents;
+    private Register currentContents;
 
     /**
      * Is this physical register currently dirty? (Must be written back to
@@ -1564,10 +1552,19 @@ l   */
       this.currentContents = currentContents;
     }
 
+    public Register getCurrentContents() {
+      return currentContents;
+    }
+
+    public void setCurrentContents(Register currentContents) {
+      this.currentContents = currentContents;
+    }
+
     @Override
     public String toString() {
       String dirtyString = dirty ? "D" : "C";
-      return "SCRATCH<" + scratch + "," + currentContents + "," + dirtyString + ">";
+      return "SCRATCH<" + scratch + "," + getCurrentContents() + "," + dirtyString + ">";
     }
+
   }
 }

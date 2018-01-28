@@ -136,7 +136,8 @@ import org.vmmagic.pragma.Uninterruptible;
   @Override
   public void send(int event, int numTiles) {
     if (DEBUG) {
-      Log.write("sending "); Log.write(numTiles); Log.writeln(" int values");
+      Log.write("sending ", numTiles);
+      Log.writeln(" int values");
     }
     serverSpace.stream(streamId, numTiles);
     for (int index = 0; index < numTiles; index++)

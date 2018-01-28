@@ -23,19 +23,22 @@ class TestStackAccess {
     String str;
 
     if (!istoreload().equals("01234")) {
-      System.out.print("\nwant: 01234\n got: ");
+      System.out.println();
+      System.out.println("want: 01234\n got: ");
       System.out.println(istoreload());
       testSuccess = false;
     }
 
     if (!fstoreload().equals("0.01.02.03.04.0")) {
-      System.out.print("\nwant: 0.01.02.03.04.0\n got: ");
+      System.out.println();
+      System.out.println("want: 0.01.02.03.04.0\n got: ");
       System.out.println(fstoreload());
       testSuccess = false;
     }
 
     if (!astoreload().equals("nullnullnullnullnull")) {
-      System.out.print("\nwant: nullnullnullnullnull\n got: ");
+      System.out.println();
+      System.out.println("want: nullnullnullnullnull\n got: ");
       System.out.println(astoreload());
       testSuccess = false;
     }
@@ -43,7 +46,8 @@ class TestStackAccess {
     str =  lstoreload0() + lstoreload1() + lstoreload2() +
              lstoreload3() + lstoreload();
     if (!str.equals("001012012301234")) {
-      System.out.print("\nwant: 001012012301234\n got: ");
+      System.out.println();
+      System.out.println("want: 001012012301234\n got: ");
       System.out.println(str);
       testSuccess = false;
     }
@@ -51,19 +55,22 @@ class TestStackAccess {
     str = dstoreload0() + dstoreload1() + dstoreload2() +
           dstoreload3() + dstoreload();
     if (!str.equals("0.001.0012.00123.001234.0")) {
-      System.out.print("\nwant: 0.001.0012.00123.001234.0\n got: ");
+      System.out.println();
+      System.out.println("want: 0.001.0012.00123.001234.0\n got: ");
       System.out.println(str);
       testSuccess = false;
     }
 
     if (!dup().equals("12211")) {
-      System.out.print("\nwant: 12211\n got: ");
+      System.out.println();
+      System.out.println("want: 12211\n got: ");
       System.out.println(dup());
       testSuccess = false;
     }
 
     if (!swap().equals("x")) {
-      System.out.print("\nwant: x\n got: ");
+      System.out.println();
+      System.out.println("want: x\n got: ");
       System.out.println(swap());
       testSuccess = false;
     }

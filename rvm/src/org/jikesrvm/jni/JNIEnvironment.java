@@ -80,7 +80,7 @@ public final class JNIEnvironment {
    */
   @SuppressWarnings({"unused", "UnusedDeclaration"})
   // used by native code
-  @Entrypoint
+  @Entrypoint(fieldMayBeFinal = true)
   private final Address externalJNIFunctions =
       VM.BuildForPower64ELF_ABI ? Magic.objectAsAddress(linkageTriplets) : Magic.objectAsAddress(JNIFunctions);
 
@@ -98,7 +98,7 @@ public final class JNIEnvironment {
    */
   @Entrypoint
   @Untraced
-  private final Address savedJTOC = VM.BuildForPowerPC ? Magic.getTocPointer() : Address.zero();
+  private Address savedJTOC = VM.BuildForPowerPC ? Magic.getTocPointer() : Address.zero();
 
   /**
    * When native code doesn't maintain a base pointer we can't chain
@@ -125,6 +125,8 @@ public final class JNIEnvironment {
    * Currently pending exception (null if none)
    */
   private Throwable pendingException;
+  @SuppressWarnings("unused")
+  @Entrypoint
   private int hasPendingException;
 
   /**
@@ -138,27 +140,27 @@ public final class JNIEnvironment {
    */
   @Entrypoint
   @Untraced
-  public AddressArray JNIRefs;
+  private AddressArray JNIRefs;
   private AddressArray JNIRefsShadow;
 
   /**
    * Offset of current top ref in JNIRefs array
    */
   @Entrypoint
-  public int JNIRefsTop;
+  private int JNIRefsTop;
 
   /**
    * Offset of end (last entry) of JNIRefs array
    */
   @Entrypoint
-  protected int JNIRefsMax;
+  private int JNIRefsMax;
 
   /**
    * Previous frame boundary in JNIRefs array.
    * NB unused on IA32
    */
   @Entrypoint
-  public int JNIRefsSavedFP;
+  private int JNIRefsSavedFP;
 
   /**
    * Initialize a thread specific JNI environment.
@@ -423,7 +425,7 @@ public final class JNIEnvironment {
         VM.sysWrite(offset);
         VM.sysWrite("(top is ");
         VM.sysWrite(JNIRefsTop);
-        VM.sysWrite(")\n");
+        VM.sysWriteln(")");
         if (VM.VerifyAssertions) {
           VM.sysFail("getJNIRef called with illegal offset > TOP (see above)");
         } else {
@@ -445,7 +447,7 @@ public final class JNIEnvironment {
       VM.sysWrite(offset);
       VM.sysWrite("(top is ");
       VM.sysWrite(JNIRefsTop);
-      VM.sysWrite(")\n");
+      VM.sysWriteln(")");
     }
 
     JNIRefs.set(offset >> LOG_BYTES_IN_ADDRESS, Address.zero());
@@ -459,14 +461,16 @@ public final class JNIEnvironment {
   @Uninterruptible
   public void dumpJniRefsStack() {
     int jniRefOffset = JNIRefsTop;
-    VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
+    VM.sysWriteln();
+    VM.sysWriteln("* * dump of JNIEnvironment JniRefs Stack * *");
     VM.sysWrite("* JNIRefs = ");
     VM.sysWrite(Magic.objectAsAddress(JNIRefs));
     VM.sysWrite(" * JNIRefsTop = ");
     VM.sysWrite(JNIRefsTop);
     VM.sysWrite(" * JNIRefsSavedFP = ");
     VM.sysWrite(JNIRefsSavedFP);
-    VM.sysWrite(".\n*\n");
+    VM.sysWriteln(".");
+    VM.sysWriteln("*");
     while (jniRefOffset >= 0) {
       VM.sysWrite(jniRefOffset);
       VM.sysWrite(" ");
@@ -475,7 +479,8 @@ public final class JNIEnvironment {
       MemoryManager.dumpRef(JNIRefs.get(jniRefOffset >> LOG_BYTES_IN_ADDRESS).toObjectReference());
       jniRefOffset -= BYTES_IN_ADDRESS;
     }
-    VM.sysWrite("\n* * end of dump * *\n");
+    VM.sysWriteln();
+    VM.sysWriteln("* * end of dump * *");
   }
 
   /**
