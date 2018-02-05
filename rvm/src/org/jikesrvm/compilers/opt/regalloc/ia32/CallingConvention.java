@@ -259,14 +259,14 @@ public abstract class CallingConvention extends IRTools {
 
     // modify ESP in the copied block to ensure correct alignment
     // when the original alignment would be incorrect. That's accomplished
-    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+    // by adjusting the ESP downwards (i.e. towards the top of the stack, growing the stack).
     Enumeration<Instruction> copiedInsts = copiedBlock.forwardRealInstrEnumerator();
     while (copiedInsts.hasMoreElements()) {
       Instruction inst = copiedInsts.nextElement();
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
           inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + WORDSIZE));
+        MIR_UnaryNoRes.setVal(inst, IC(val - WORDSIZE));
       }
     }
   }
