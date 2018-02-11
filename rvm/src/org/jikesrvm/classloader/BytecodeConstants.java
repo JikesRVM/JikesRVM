@@ -735,4 +735,13 @@ public final class BytecodeConstants {
        "jsr_w",
        "breakpoint"
       };
+
+  /**
+   * @param bc a bytecode
+   * @return whether the bytecode is a call that's allowed in Java 6, i.e.
+   * an {@code invoke*} instruction that's not an {@code invokedynamic}
+   */
+  public static boolean JBC_isJava6Call(int bc) {
+    return bc >= JBC_invokevirtual && bc <= JBC_invokeinterface;
+  }
 }
