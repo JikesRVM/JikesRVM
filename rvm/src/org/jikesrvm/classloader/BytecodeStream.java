@@ -493,7 +493,7 @@ public class BytecodeStream {
     return ClassFileReader.getFieldRef(constantPool, readUnsignedShort());
   }
   /**
-   * Returns a reference to a field.<p>
+   * Returns a reference to a method.<p>
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @return method reference
    */
@@ -508,7 +508,7 @@ public class BytecodeStream {
   }
 
   /**
-   * Returns a reference to a field, for use prior to the class being loaded.<p>
+   * Returns a reference to a method, for use prior to the class being loaded.<p>
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @param constantPool the constant pool for the class
    * @return method reference
