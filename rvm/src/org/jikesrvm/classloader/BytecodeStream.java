@@ -499,10 +499,7 @@ public class BytecodeStream {
    */
   public final MethodReference getMethodReference() {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_invokevirtual ||
-                 opcode == JBC_invokespecial ||
-                 opcode == JBC_invokestatic ||
-                 opcode == JBC_invokeinterface);
+      VM._assert(JBC_isJava6Call(opcode));
     }
     return getDeclaringClass().getMethodRef(readUnsignedShort());
   }
@@ -515,10 +512,7 @@ public class BytecodeStream {
    */
   public final MethodReference getMethodReference(int[] constantPool) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_invokevirtual ||
-                 opcode == JBC_invokespecial ||
-                 opcode == JBC_invokestatic ||
-                 opcode == JBC_invokeinterface);
+      VM._assert(JBC_isJava6Call(opcode));
     }
     return ClassFileReader.getMethodRef(constantPool, readUnsignedShort());
   }

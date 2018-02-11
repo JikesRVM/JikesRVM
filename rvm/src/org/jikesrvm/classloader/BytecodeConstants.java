@@ -13,6 +13,7 @@
 package org.jikesrvm.classloader;
 
 import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Information about java byte codes that appear in the "code" attribute
@@ -741,6 +742,7 @@ public final class BytecodeConstants {
    * @return whether the bytecode is a call that's allowed in Java 6, i.e.
    * an {@code invoke*} instruction that's not an {@code invokedynamic}
    */
+  @Uninterruptible
   public static boolean JBC_isJava6Call(int bc) {
     return bc >= JBC_invokevirtual && bc <= JBC_invokeinterface;
   }
