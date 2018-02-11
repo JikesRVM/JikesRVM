@@ -481,5 +481,12 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract void sysStackAlignmentTest();
+
+  @SysCallTemplate
+  public abstract void sysArgumentPassingTest(long firstLong, long secondLong, long thirdLong, long fourthLong,
+      long fifthLong, long sixthLong, long seventhLong, long eightLong, double firstDouble, double secondDouble,
+      double thirdDouble, double fourthDouble, double fifthDouble, double sixthDouble, double seventhDouble,
+      double eightDouble, int firstInt, long ninthLong, byte[] firstByteArray, double ninthDouble, Address firstAddress);
+
 }
 

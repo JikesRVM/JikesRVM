@@ -69,6 +69,8 @@
 
     <runCompareTest tag="RVM1017" class="test.org.jikesrvm.jasmin_based.RVM1017"/>
     <runCompareTest tag="RVM_1017" class="RVM_1017"/>
+    <runCompareTest tag="RVM_1167_normal_stack" class="RVM_1167_normal_stack"/>
+    <runCompareTest tag="RVM_1167_adjusted_stack" class="RVM_1167_adjusted_stack"/>
 
     <finishResults/>
   </target>

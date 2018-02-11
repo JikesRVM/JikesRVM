@@ -218,7 +218,6 @@ EXTERNAL double sysVMMathExpm1(double a);
 EXTERNAL double sysVMMathHypot(double a, double b);
 EXTERNAL double sysVMMathLog10(double a);
 EXTERNAL double sysVMMathLog1p(double a);
-EXTERNAL void sysStackAlignmentTest();
 // sysMemory
 EXTERNAL void * sysMalloc(int length);
 EXTERNAL void * sysCalloc(int length);
@@ -281,6 +280,12 @@ EXTERNAL void setupDeliverHardwareException(void *context, Address vmRegisters,
              Address threadPtr, Address jtocPtr,
              Address framePtr, int signo);
 EXTERNAL void dumpContext(void *context);
+// sysTestcases
+EXTERNAL void sysStackAlignmentTest();
+EXTERNAL void sysArgumentPassingTest(long long firstLong, long long secondLong, long long thirdLong, long long fourthLong,
+    long long fifthLong, long long sixthLong, long long seventhLong, long long eightLong, double firstDouble, double secondDouble,
+  double thirdDouble, double fourthDouble, double fifthDouble, double sixthDouble, double seventhDouble,
+  double eightDouble, int firstInt, long long ninthLong, const char * firstByteArray, double ninthDouble, Address firstAddress);
 // sysThread
 EXTERNAL void sysInitialize();
 EXTERNAL Word sysMonitorCreate();
