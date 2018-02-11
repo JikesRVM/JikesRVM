@@ -469,10 +469,7 @@ public class BytecodeStream {
    */
   public final FieldReference getFieldReference() {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_getstatic ||
-                 opcode == JBC_putstatic ||
-                 opcode == JBC_getfield ||
-                 opcode == JBC_putfield);
+      VM._assert(JBC_isFieldAccess(opcode));
     }
     return getDeclaringClass().getFieldRef(readUnsignedShort());
   }
@@ -485,10 +482,7 @@ public class BytecodeStream {
    */
   public final FieldReference getFieldReference(int[] constantPool) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_getstatic ||
-                 opcode == JBC_putstatic ||
-                 opcode == JBC_getfield ||
-                 opcode == JBC_putfield);
+      VM._assert(JBC_isFieldAccess(opcode));
     }
     return ClassFileReader.getFieldRef(constantPool, readUnsignedShort());
   }

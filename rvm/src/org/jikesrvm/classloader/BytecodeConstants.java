@@ -746,4 +746,8 @@ public final class BytecodeConstants {
   public static boolean JBC_isJava6Call(int bc) {
     return bc >= JBC_invokevirtual && bc <= JBC_invokeinterface;
   }
+
+  public static Boolean JBC_isFieldAccess(int bc) {
+    return bc >= JBC_getstatic && bc <= JBC_putfield;
+  }
 }
