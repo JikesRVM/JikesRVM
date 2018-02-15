@@ -4317,6 +4317,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         }
       }
 
+      Offset initialOffsetToFirstArg = offsetToFirstArg;
+      Offset initialOffsetToLastArg = offsetToLastArg;
       // Generate argument pushing and call code upto twice, once with realignment
       ForwardReference afterCalls = null;
       for (int j = VM.BuildFor32Addr ? 1 : 0;  j < 2; j++) {
@@ -4326,6 +4328,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
           offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
         } else {
           if (dontRealignStack != null) dontRealignStack.resolve(asm);
+          offsetToFirstArg = initialOffsetToFirstArg;
+          offsetToLastArg = initialOffsetToLastArg;
+          paramBytes = 0;
         }
         // (4) Stack remaining args to target function from right-to-left
         //     (NB avoid the first argument holding the target function address)
