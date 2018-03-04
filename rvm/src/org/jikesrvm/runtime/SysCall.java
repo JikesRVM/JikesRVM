@@ -488,5 +488,17 @@ public abstract class SysCall {
       double thirdDouble, double fourthDouble, double fifthDouble, double sixthDouble, double seventhDouble,
       double eightDouble, int firstInt, long ninthLong, byte[] firstByteArray, double ninthDouble, Address firstAddress);
 
+  @SysCallTemplate
+  public abstract void sysArgumentPassingSeveralLongsAndSeveralDoubles(long firstLong, long secondLong, long thirdLong, long fourthLong,
+      long fifthLong, long sixthLong, long seventhLong, long eightLong, double firstDouble, double secondDouble,
+      double thirdDouble, double fourthDouble, double fifthDouble, double sixthDouble, double seventhDouble,
+      double eightDouble);
+
+  @SysCallTemplate
+  public abstract void sysArgumentPassingSeveralFloatsAndSeveralInts(float firstFloat, float secondFloat, float thirdFloat, float fourthFloat,
+      float fifthFloat, float sixthFloat, float seventhFloat, float eightFloat, int firstInt, int secondInt,
+      int thirdInt, int fourthInt, int fifthInt, int sixthInt, int seventhInt,
+      int eightInt);
+
 }
 

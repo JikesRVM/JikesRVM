@@ -4262,6 +4262,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
               offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
               asm.emitMOVSS_Reg_RegDisp((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP, offsetToJavaArg);
               fpRegistersInUse++;
+            } else { // skip stack slot
+              offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
             }
           } else if (arg.isDoubleType()) {
             if (fpRegistersInUse < NATIVE_PARAMETER_FPRS.length) {
@@ -4269,6 +4271,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
               offsetToJavaArg = offsetToJavaArg.minus(2 * WORDSIZE);
               asm.emitMOVSD_Reg_RegDisp((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP, offsetToJavaArg);
               fpRegistersInUse++;
+            } else { // skip stack slots
+              offsetToJavaArg = offsetToJavaArg.minus(2 * WORDSIZE);
             }
           } else if (arg.isLongType()) {
             if (gpRegistersInUse < NATIVE_PARAMETER_GPRS.length) {
@@ -4276,6 +4280,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
               offsetToJavaArg = offsetToJavaArg.minus(2 * WORDSIZE);
               asm.emitMOV_Reg_RegDisp_Quad(NATIVE_PARAMETER_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
               gpRegistersInUse++;
+            } else { // skip stack slots
+              offsetToJavaArg = offsetToJavaArg.minus(2 * WORDSIZE);
             }
           } else if (arg.isWordLikeType() || arg.isReferenceType()) {
             if (gpRegistersInUse < NATIVE_PARAMETER_GPRS.length) {
@@ -4283,6 +4289,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
               offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
               asm.emitMOV_Reg_RegDisp_Quad(NATIVE_PARAMETER_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
               gpRegistersInUse++;
+            } else { // skip stack slot
+              offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
             }
           } else {
             if (gpRegistersInUse < NATIVE_PARAMETER_GPRS.length) {
@@ -4290,6 +4298,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
               offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
               asm.emitMOV_Reg_RegDisp(NATIVE_PARAMETER_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
               gpRegistersInUse++;
+            } else { // skip stack slot
+              offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
             }
           }
         }
@@ -4302,11 +4312,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         for (int i = args.length - 1; i >= 1; i--) {
           if (!inRegister[i]) {
             TypeReference arg = args[i];
-            if (arg.isLongType() || arg.isDoubleType()) {
-              argsToPush += 2;
-            } else {
-              argsToPush ++;
-            }
+            argsToPush++; // 1 stack slot for each data type
           }
         }
         asm.emitTEST_Reg_Imm(SP, 0x8);
@@ -4355,12 +4361,11 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
           } else {
             if (!inRegister[i]) {
               if (arg.isLongType() || arg.isDoubleType()) {
-                adjustStack(-WORDSIZE, true);
-                asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
-                offsetToJavaArg = offsetToJavaArg.plus(4 * WORDSIZE);
-                offsetToFirstArg = offsetToFirstArg.plus(2 * WORDSIZE);
-                offsetToLastArg = offsetToLastArg.plus(2 * WORDSIZE);
-                paramBytes += 2 * WORDSIZE;
+                asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
+                offsetToJavaArg = offsetToJavaArg.plus(3 * WORDSIZE);
+                offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
+                offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
+                paramBytes += WORDSIZE;
               } else {
                 asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
                 offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);

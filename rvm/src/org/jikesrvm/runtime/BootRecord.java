@@ -399,6 +399,8 @@ public class BootRecord {
 
   public Address sysStackAlignmentTestIP;
   public Address sysArgumentPassingTestIP;
+  public Address sysArgumentPassingSeveralLongsAndSeveralDoublesIP;
+  public Address sysArgumentPassingSeveralFloatsAndSeveralIntsIP;
 
   // perf event support
   public Address sysPerfEventInitIP;

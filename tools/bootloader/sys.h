@@ -286,6 +286,12 @@ EXTERNAL void sysArgumentPassingTest(long long firstLong, long long secondLong, 
     long long fifthLong, long long sixthLong, long long seventhLong, long long eightLong, double firstDouble, double secondDouble,
   double thirdDouble, double fourthDouble, double fifthDouble, double sixthDouble, double seventhDouble,
   double eightDouble, int firstInt, long long ninthLong, const char * firstByteArray, double ninthDouble, Address firstAddress);
+EXTERNAL void sysArgumentPassingSeveralLongsAndSeveralDoubles(long long firstLong, long long secondLong, long long thirdLong, long long fourthLong,
+    long long fifthLong, long long sixthLong, long long seventhLong, long long eightLong, double firstDouble, double secondDouble,
+  double thirdDouble, double fourthDouble, double fifthDouble, double sixthDouble, double seventhDouble, double eightDouble);
+EXTERNAL void sysArgumentPassingSeveralFloatsAndSeveralInts(float firstFloat, float secondFloat, float thirdFloat, float fourthFloat,
+    float fifthFloat, float sixthFloat, float seventhFloat, float eightFloat, int firstInt, int secondInt,
+  int thirdInt, int fourthInt, int fifthInt, int sixthInt, int seventhInt, int eightInt);
 // sysThread
 EXTERNAL void sysInitialize();
 EXTERNAL Word sysMonitorCreate();
