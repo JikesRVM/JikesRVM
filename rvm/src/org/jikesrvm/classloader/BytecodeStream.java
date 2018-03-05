@@ -469,10 +469,7 @@ public class BytecodeStream {
    */
   public final FieldReference getFieldReference() {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_getstatic ||
-                 opcode == JBC_putstatic ||
-                 opcode == JBC_getfield ||
-                 opcode == JBC_putfield);
+      VM._assert(JBC_isFieldAccess(opcode));
     }
     return getDeclaringClass().getFieldRef(readUnsignedShort());
   }
@@ -485,40 +482,31 @@ public class BytecodeStream {
    */
   public final FieldReference getFieldReference(int[] constantPool) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_getstatic ||
-                 opcode == JBC_putstatic ||
-                 opcode == JBC_getfield ||
-                 opcode == JBC_putfield);
+      VM._assert(JBC_isFieldAccess(opcode));
     }
     return ClassFileReader.getFieldRef(constantPool, readUnsignedShort());
   }
   /**
-   * Returns a reference to a field.<p>
+   * Returns a reference to a method.<p>
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @return method reference
    */
   public final MethodReference getMethodReference() {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_invokevirtual ||
-                 opcode == JBC_invokespecial ||
-                 opcode == JBC_invokestatic ||
-                 opcode == JBC_invokeinterface);
+      VM._assert(JBC_isJava6Call(opcode));
     }
     return getDeclaringClass().getMethodRef(readUnsignedShort());
   }
 
   /**
-   * Returns a reference to a field, for use prior to the class being loaded.<p>
+   * Returns a reference to a method, for use prior to the class being loaded.<p>
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @param constantPool the constant pool for the class
    * @return method reference
    */
   public final MethodReference getMethodReference(int[] constantPool) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_invokevirtual ||
-                 opcode == JBC_invokespecial ||
-                 opcode == JBC_invokestatic ||
-                 opcode == JBC_invokeinterface);
+      VM._assert(JBC_isJava6Call(opcode));
     }
     return ClassFileReader.getMethodRef(constantPool, readUnsignedShort());
   }

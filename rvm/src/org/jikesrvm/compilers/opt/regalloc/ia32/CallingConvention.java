@@ -259,14 +259,14 @@ public abstract class CallingConvention extends IRTools {
 
     // modify ESP in the copied block to ensure correct alignment
     // when the original alignment would be incorrect. That's accomplished
-    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+    // by adjusting the ESP downwards (i.e. towards the top of the stack, growing the stack).
     Enumeration<Instruction> copiedInsts = copiedBlock.forwardRealInstrEnumerator();
     while (copiedInsts.hasMoreElements()) {
       Instruction inst = copiedInsts.nextElement();
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
           inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + WORDSIZE));
+        MIR_UnaryNoRes.setVal(inst, IC(val - WORDSIZE));
       }
     }
   }
@@ -673,6 +673,8 @@ public abstract class CallingConvention extends IRTools {
       }
       return parameterBytes;
     } else {
+      if (VM.VerifyAssertions) VM._assert(SSE2_FULL, "x64 builds must have SSE2_FULL enabled");
+
       PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet().asIA32();
       // count the number FPR parameters in a pre-pass
       int FPRRegisterParams = countFPRParams(call);
@@ -703,61 +705,74 @@ public abstract class CallingConvention extends IRTools {
       // Require ESP to be at bottom of frame before a call,
       call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
 
-      // walk over each parameter
-      // must count the, before we start nulling them out!
-      int nParamsInRegisters = 0;
+      // Determine if a parameter is in a register or not
+      boolean[] inRegister = new boolean[numParams];
+      nFPRParams = 0;
+      nGPRParams = 0;
       for (int i = 0; i < numParams; i++) {
-        Operand param = MIR_Call.getClearParam(call, i);
-        MIR_Call.setParam(call, i, null);
+        Operand param = MIR_Call.getParam(call, i);
         TypeReference paramType = param.getType();
         if (paramType.isFloatingPointType()) {
           nFPRParams++;
-          int size;
-          size = BYTES_IN_STACKSLOT;
-          parameterBytes -= WORDSIZE;
-          if (nFPRParams > PhysicalRegisterSet.getNumberOfNativeFPRParams()) {
+          inRegister[i] = nFPRParams <= PhysicalRegisterSet.getNumberOfNativeFPRParams();
+        } else {
+          nGPRParams++;
+          inRegister[i] = nGPRParams <= PhysicalRegisterSet.getNumberOfNativeGPRParams();
+        }
+      }
+
+      // Walk over non-register parameters from right-to-left and assign stack slots
+      int[] stackSlot = new int[numParams];
+      for (int i = numParams - 1; i >= 0; i--) {
+        if (!inRegister[i]) {
+          parameterBytes -= BYTES_IN_STACKSLOT;
+          stackSlot[i] = parameterBytes;
+        }
+      }
+
+      // Pass stack slot parameters from right-to-left
+      for (int i = numParams - 1; i >= 0; i--) {
+        if (!inRegister[i]) {
+          Operand param = MIR_Call.getClearParam(call, i);
+          TypeReference paramType = param.getType();
+          if (paramType.isFloatingPointType()) {
             // pass the FP parameter on the stack
-            Operand M = new StackLocationOperand(false, parameterBytes, size);
-            if (SSE2_FULL) {
-              if (paramType.isFloatType()) {
-                call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
-              } else {
-                call.insertBefore(MIR_Move.create(IA32_MOVSD, M, param));
-              }
+            Operand M = new StackLocationOperand(false, stackSlot[i], BYTES_IN_STACKSLOT);
+            if (paramType.isFloatType()) {
+              call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
             } else {
-              call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
+              call.insertBefore(MIR_Move.create(IA32_MOVSD, M, param));
             }
           } else {
+            // Write the parameter into the appropriate stack frame location.
+            call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(stackSlot[i] + BYTES_IN_STACKSLOT)));
+            call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
+          }
+        }
+      }
+
+      // Pass register parameters from left-to-right
+      int nParamsInRegisters = 0;
+      nFPRParams = 0;
+      nGPRParams = 0;
+      for (int i = 0; i < numParams; i++) {
+        if (inRegister[i]) {
+          Operand param = MIR_Call.getClearParam(call, i);
+          TypeReference paramType = param.getType();
+          if (paramType.isFloatingPointType()) {
             // Pass the parameter in a register.
-            RegisterOperand real;
-            if (SSE2_FULL) {
-              real = new RegisterOperand(phys.getNativeFPRParam(nFPRParams - 1), paramType);
-              if (paramType.isFloatType()) {
-                call.insertBefore(MIR_Move.create(IA32_MOVSS, real, param));
-              } else {
-                call.insertBefore(MIR_Move.create(IA32_MOVSD, real, param));
-              }
+            RegisterOperand real = new RegisterOperand(phys.getNativeFPRParam(nFPRParams), paramType);
+            nFPRParams++;
+            if (paramType.isFloatType()) {
+              call.insertBefore(MIR_Move.create(IA32_MOVSS, real, param));
             } else {
-              // Note that if k FPRs are passed in registers,
-              // the 1st goes in F(k-1),
-              // the 2nd goes in F(k-2), etc...
-              real = new RegisterOperand(phys.getNativeFPRParam(FPRRegisterParams - nFPRParams), paramType);
-              call.insertBefore(MIR_Move.create(IA32_FMOV, real, param));
+              call.insertBefore(MIR_Move.create(IA32_MOVSD, real, param));
             }
             // Record that the call now has a use of the real register.
             MIR_Call.setParam(call, nParamsInRegisters++, real.copy());
-          }
-        } else {
-          nGPRParams++;
-          parameterBytes -= WORDSIZE;
-          if (nGPRParams > PhysicalRegisterSet.getNumberOfNativeGPRParams()) {
-            // Too many parameters to pass in registers.  Write the
-            // parameter into the appropriate stack frame location.
-            call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + WORDSIZE)));
-            call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
           } else {
-            // Pass the parameter in a register.
-            Register phy = phys.getNativeGPRParam(nGPRParams - 1);
+            Register phy = phys.getNativeGPRParam(nGPRParams);
+            nGPRParams++;
             RegisterOperand real = new RegisterOperand(phy, paramType);
             call.insertBefore(MIR_Move.create(IA32_MOV, real, param));
             // Record that the call now has a use of the real register.

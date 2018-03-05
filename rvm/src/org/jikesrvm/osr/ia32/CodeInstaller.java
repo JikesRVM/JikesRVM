@@ -59,12 +59,10 @@ public abstract class CodeInstaller {
     CompiledMethod foo = CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
 
-    int SW_WIDTH = BYTES_IN_STACKSLOT;
-
     // this offset is used to adjust SP to FP right after return
     // from a call. 1 stack slot for return address and
     // 1 stack slot for saved FP of tsfrom.
-    Offset sp2fpOffset = fooFPOffset.minus(tsfromFPOffset).minus(2 * SW_WIDTH);
+    Offset sp2fpOffset = fooFPOffset.minus(tsfromFPOffset).minus(2 * BYTES_IN_STACKSLOT);
 
     // should given an estimated length, and print the instructions
     // for debugging
@@ -125,7 +123,7 @@ public abstract class CodeInstaller {
         } else {
           asm.emitMOV_Reg_RegDisp_Quad(NONVOLATILE_GPRS[i], SP, sp2fpOffset.minus(nonVolatileOffset));
         }
-        nonVolatileOffset += SW_WIDTH;
+        nonVolatileOffset += BYTES_IN_STACKSLOT;
       }
       // adjust SP to frame pointer
       if (VM.BuildFor32Addr) {
@@ -143,7 +141,7 @@ public abstract class CodeInstaller {
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("new CM instr addr ");
-      VM.sysWriteHex(Statics.getSlotContentsAsInt(cm.getOsrJTOCoffset()));
+      VM.sysWriteHex(Statics.getSlotContentsAsAddress(cm.getOsrJTOCoffset()));
       VM.sysWriteln();
       VM.sysWrite("JTOC register ");
       VM.sysWriteHex(Magic.getTocPointer());
@@ -154,7 +152,7 @@ public abstract class CodeInstaller {
 
       VM.sysWriteln("tsfromFPOffset ", tsfromFPOffset);
       VM.sysWriteln("fooFPOffset ", fooFPOffset);
-      VM.sysWriteln("SP + ", sp2fpOffset.plus(4));
+      VM.sysWriteln("SP + ", sp2fpOffset.plus(BYTES_IN_STACKSLOT));
     }
 
     // 3. set thread flags

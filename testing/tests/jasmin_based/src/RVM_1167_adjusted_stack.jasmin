@@ -1,0 +1,85 @@
+; test case for x64 stack alignment for the baseline compiler
+.source RVM_1167_adjusted_stack.java
+.class public RVM_1167_adjusted_stack
+.super java/lang/Object
+
+.method public <init>()V
+    .limit stack 1
+    .limit locals 1
+    aload_0
+    invokespecial java/lang/Object/<init>()V
+    return
+.end method
+
+.method public static main([Ljava/lang/String;)V
+    .limit stack 2
+    .limit locals 1
+    new RVM_1167_adjusted_stack
+    dup
+    invokespecial RVM_1167_adjusted_stack/<init>()V
+    invokevirtual RVM_1167_adjusted_stack/sysCallArguments()V
+    return
+.end method
+
+.method public sysCallArguments()V
+; limits aren't relevant for this test case so use generous ones
+    .limit stack 200
+    .limit locals 20
+; adjusted stack upwards by one word - will only work for baseline compiler
+    iconst_0
+; prepare byte array in local 0
+    iconst_3
+    newarray byte
+    astore_0
+    aload_0
+    iconst_0
+    bipush 97
+    bastore
+    aload_0
+    iconst_1
+    bipush 90
+    bastore
+    aload_0
+    iconst_2
+    bipush 0
+    bastore
+
+; get syscall for invocation
+    getstatic org/jikesrvm/runtime/SysCall/sysCall Lorg/jikesrvm/runtime/SysCall;
+
+    ldc2_w 123456789101112131
+    ldc2_w -2345678910111213141
+    ldc2_w 987654321012345678
+    ldc2_w -1
+    ldc2_w -4294967296
+    lconst_0
+    ldc2_w 4294967295
+    ldc2_w -72056498568622321
+
+; Should be NaN but Jasmin doesn't seem to support it
+    ldc2_w 123456789010.0
+
+    ldc2_w 1.7976931348623157E308
+    ldc2_w 4.9E-324
+
+; Should be Infinity but Jasmin doesn't seem to support it
+    ldc2_w 123456789010.0
+; Should be -Infinity but Jasmin doesn't seem to support it
+    ldc2_w 123456789010.0
+
+    ldc2_w -1.0
+    dconst_0
+    ldc2_w 0.1
+    ldc_w -2147483648
+    ldc2_w -9223372036854775808
+
+    aload_0
+    dconst_1
+    invokestatic  org/vmmagic/unboxed/Address/zero()Lorg/vmmagic/unboxed/Address;
+    invokevirtual org/jikesrvm/runtime/SysCall/sysArgumentPassingTest(JJJJJJJJDDDDDDDDIJ[BDLorg/vmmagic/unboxed/Address;)V
+
+; remove stack adjustment
+    pop
+
+    return
+.end method

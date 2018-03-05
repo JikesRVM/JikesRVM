@@ -76,6 +76,7 @@
     <successMessageTest tag="TestExtent" class="test.org.jikesrvm.basic.core.intrinsics.TestExtent"/>
     <successMessageTest tag="TestOffset" class="test.org.jikesrvm.basic.core.intrinsics.TestOffset"/>
     <successMessageTest tag="TestSynchronization" class="test.org.jikesrvm.basic.core.intrinsics.TestSynchronization"/>
+    <runCompareTest tag="TestSysCalls" class="test.org.jikesrvm.basic.core.intrinsics.TestSysCalls"/>
 
     <runCompareTest tag="TestClassHierarchy" class="test.org.jikesrvm.basic.core.bytecode.TestClassHierarchy"/>
     <runCompareTest tag="TestArithmetic" class="test.org.jikesrvm.basic.core.bytecode.TestArithmetic"/>

@@ -12,10 +12,8 @@
  */
 package org.jikesrvm.osr;
 
-import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokeinterface;
-import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokespecial;
-import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokestatic;
-import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokevirtual;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_isJava6Call;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_length;
 import static org.jikesrvm.osr.OSRConstants.CLEANREFS;
 import static org.jikesrvm.osr.OSRConstants.DOUBLE;
 import static org.jikesrvm.osr.OSRConstants.FLOAT;
@@ -233,24 +231,12 @@ public class ExecutionState {
       bcodes.reset(this.bcIndex);
 
       int code = bcodes.nextInstruction();
-
-      switch (code) {
-        case JBC_invokeinterface: {
-          branchTarget = this.bcIndex + 5;
-          break;
-        }
-        case JBC_invokespecial:
-        case JBC_invokestatic:
-        case JBC_invokevirtual: {
-          branchTarget = this.bcIndex + 3;
-          break;
-        }
-        default: {
-          if (VM.VerifyAssertions) {
-            String msg = "ExecutionState: unknown bytecode " + code + " at " + this.bcIndex + "@" + this.meth;
-            VM._assert(VM.NOT_REACHED, msg);
-          }
-          break;
+      if (JBC_isJava6Call(code)) {
+        branchTarget = this.bcIndex + JBC_length(code);
+      } else {
+        if (VM.VerifyAssertions) {
+          String msg = "ExecutionState: unknown bytecode " + code + " at " + this.bcIndex + "@" + this.meth;
+          VM._assert(VM.NOT_REACHED, msg);
         }
       }
     }
