@@ -26,7 +26,6 @@
 package sun.reflect;
 
 import java.lang.reflect.*;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +55,15 @@ public class Reflection {
         methodFilterMap = new HashMap<Class,String[]>();
     }
 
+    /** Returns the class of the caller of the method calling this method,
+    ignoring frames associated with java.lang.reflect.Method.invoke()
+    and its implementation. */
+    @CallerSensitive
+    public static Class getCallerClass() {
+      return getCallerClass(1);
+    }
+
+
     /** Returns the class of the method <code>realFramesToSkip</code>
         frames up the stack (zero-based), ignoring frames associated
         with java.lang.reflect.Method.invoke() and its implementation.
@@ -80,7 +88,7 @@ public class Reflection {
   private static int getClassAccessFlags(Class c) {
     return c.getModifiers();
   }
-    
+
 
     /** A quick "fast-path" check to try to avoid getCallerClass()
         calls. */

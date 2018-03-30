@@ -474,6 +474,7 @@ public class VM extends Properties {
     if (VM.BuildForOpenJDK) {
       //    runClassInitializer("java/lang/reflect/Modifier");
       runClassInitializer("sun.reflect.Reflection");
+      runClassInitializer("java.lang.reflect.Proxy");
       runClassInitializer("java.util.concurrent.atomic.AtomicInteger");
       runClassInitializer("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
       runClassInitializer("java.io.FileInputStream");

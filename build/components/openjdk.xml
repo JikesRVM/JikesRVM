@@ -1,76 +1,89 @@
 <project name="openjdk" default="build" basedir=".">
 
   <import file="base.xml"/>
-  <property file="${components.file}"/>
 
-  <condition property="openjdk.basename"
-             value="openjdk6-"
-             else="openjdk">
-    <os family="mac"/>
-  </condition>
-  <condition property="openjdk.version"
-             value="b16-24_apr_2009-r1"
-             else="i386lib">
-    <os family="mac"/>
-  </condition>
-  <condition property="openjdk.suffix"
-             value="tar.bz2"
-             else="tar">
-    <os family="mac"/>
-  </condition>
-  <condition property="openjdk.tar"
-             value="${openjdk.basename}${openjdk.version}.${openjdk.suffix}"
-             else="${openjdk.basename}.${openjdk.suffix}">
-    <os family="mac"/>
-  </condition>
-  <condition property="openjdk.url"
-             value="http://landonf.bikemonkey.org/static/soylatte/bsd-dist/openjdk6_darwin/${openjdk.tar}"
-             else="http://yangxi.anu.edu.au/${openjdk.tar}">
-    <os family="mac"/>
-  </condition>
-  <condition property="openjdk.compression"
-             value="bzip2"
-             else="none">
-    <os family="mac"/>
-  </condition>
-  <property name="openjdk.component.dir" location="${components.dir}/openjdk"/>
-  <property name="openjdk.package.dir" value="${openjdk.component.dir}/${openjdk.version}"/>
-  <property name="openjdk.dir" value="${openjdk.package.dir}/openjdk"/>
-  <condition property="openjdk.lib"
-             value="${openjdk.dir}/jre/lib"
-             else="${openjdk.dir}/lib">
-    <os family="mac"/>
-  </condition>
+  <property name="openjdk.description" value="OpenJDK / IcedTea"/>
 
-  <setComponentsConfig key="${target.name}.openjdk.lib.dir" value="${openjdk.lib}"/>
+  <!-- Note: IcedTea 6 is no longer buildable because it tries to download from java.net -->
+  <property name="openjdk.version" value="6-1.13.13"/>
 
-  <target name="fetch">
-    <if>
-      <conditions>
-	<not>
-	  <available file="${openjdk.package.dir}"/>
-	</not>
-      </conditions>
-      <sequential>
-        <mkdir dir="${openjdk.package.dir}"/>
-        <cachedGet key="${openjdk.tar}"
-                   src="${openjdk.url}"
-                   dest="${openjdk.package.dir}/${openjdk.tar}"/>
-        <untar compression="${openjdk.compression}"
-               src="${openjdk.package.dir}/${openjdk.tar}"
-               dest="${openjdk.package.dir}"/>
-        <move
-            file="${openjdk.package.dir}/${openjdk.basename}${openjdk.version}"
-            tofile="${openjdk.dir}"/>
-      </sequential>
-    </if>	
+  <property name="icedtea.version" value="${openjdk.version}"/>
+
+  <property name="icedtea.base.url" value="http://icedtea.classpath.org/download/source/"/>
+  <!-- .tar.xz is also provided by upstream -->
+  <property name="icedtea.archive.type" value=".tar.gz"/>
+  <property name="icedtea.version.start" value="icedtea${icedtea.version}"/>
+  <property name="icedtea.archive" value="${icedtea.version.start}${icedtea.archive.type}"/>
+
+  <property name="openjdk.tarball.archive" value="openjdk-6-src-b41-04_jan_2017.tar.xz"/>
+  <property name="openjdk.tarball.url" value="https://openjdk-sources.osci.io/openjdk6/${openjdk.tarball.archive}"/>
+
+  <property name="icedtea.component.dir" location="${components.dir}/icedtea"/>
+  <property name="icedtea.package.dir" value="${icedtea.component.dir}/${icedtea.version}"/>
+  <property name="icedtea.dir" value="${icedtea.package.dir}/${icedtea.version.start}"/>
+  <property name="icedtea.jre.location" value="${icedtea.dir}/icedtea-build/openjdk.build/j2sdk-server-image/jre"/>
+
+  <property name="openjdk.tarball.dest" value="${icedtea.package.dir}/${openjdk.tarball.archive}"/>
+
+  <target name="download-icedtea-from-web">
+    <echo message="Downloading IcedTea sources"/>
+    <test-file name="tar.exe" location="${host.file}"/>
+    <mkdir dir="${icedtea.package.dir}"/>
+    <cachedGet key="${icedtea.archive}"
+         src="${icedtea.base.url}${icedtea.archive}"
+         dest="${icedtea.package.dir}/${icedtea.archive}"/>
+    <cachedGet key="${openjdk.tarball.archive}"
+         src="${openjdk.tarball.url}"
+         dest="${openjdk.tarball.dest}"/>
+    <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untarchmod task for same but it was annoying -->
+    <exec executable="${tar.exe}" failonerror="true" dir="${icedtea.package.dir}">
+      <arg value="xzf"/>
+      <arg value="${icedtea.archive}"/>
+    </exec>
   </target>
 
-  <target name="build" depends="fetch">
-    <echo message="Building OpenJDK libraries"/>
+  <target name="fetch" depends="download-icedtea-from-web">
   </target>
-  <target name="ensure" depends="fetch">
-    <echo message="Ensure OpenJDK libraries"/>
+
+  <target name="patch" depends="fetch">
+    <echo message="Patching IcedTea sources"/>
+    <echo message="(nothing to do for current version)"/>
   </target>
+
+  <target name="build" depends="patch">
+    <echo message="Building IcedTea libraries"/>
+    <test-file name="make.exe" location="${host.file}"/>
+
+    <echo>Executing autogen.sh</echo>
+    <exec executable="${icedtea.dir}/autogen.sh" failonerror="true" dir="${icedtea.dir}"/>
+
+    <echo>Executing configure</echo>
+    <mkdir dir="${icedtea.dir}/icedtea-build"/>
+    <exec executable="${icedtea.dir}/configure" failonerror="true" dir="${icedtea.dir}/icedtea-build">
+      <!-- Don't pass through the options that we use. For GNU Classpath, we only use this to make sure
+           that libraries are built correctly when using 32-bit on 64-bit systems. OpenJDK and IcedTea don't
+           support that at all. We risk introducing build failures by passing through our options, so we refrain
+           from doing that. -->
+<!--  Note that c++.exe and c++.args aren't defined in host properties at the moment, so they need to be introduced
+      if options need to be passed through.
+      <env key="CXX" value="${c++.exe} ${c++.args}"/>
+      <env key="CC" value="${c.exe} ${c.args}"/>
+-->
+      <arg value="--with-openjdk-src-zip=${openjdk.tarball.dest}"/>
+    </exec>
+
+    <echo>Executing make</echo>
+    <exec executable="${make.exe}" failonerror="true" dir="${icedtea.dir}/icedtea-build">
+    </exec>
+
+    <echo>Setting up for use as class library</echo>
+    <writeComponentConstants dir="${icedtea.jre.location}/lib"/>
+    <setComponentsConfig key="${target.name}.openjdk.lib.dir" value="${icedtea.jre.location}/lib"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <echo message="Ensure IcedTea libraries"/>
+    <ensureUptodate name="openjdk" dir="${icedtea.jre.location}/lib"/>
+  </target>
+
 </project>
-

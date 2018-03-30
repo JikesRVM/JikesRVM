@@ -2373,7 +2373,7 @@ target.jni-suffix=${target.jni-suffix}
       </conditions>
       <sequential>
         <symlink link="${dist.base}/libjvm.jnilib"
-                 resource="${dist.base}/lib/i386/server/libjvm.dylib"
+                 resource="${dist.base}/lib/amd64/server/libjvm.dylib"
                  overwrite="true"/>
         <symlink link="${dist.base}/librvm.jnilib"
                  resource="${dist.base}/librvm.dylib"
@@ -2388,11 +2388,11 @@ target.jni-suffix=${target.jni-suffix}
         <os name="Linux"/>
       </conditions>
       <sequential>
-        <copy file="${dist.base}/lib/i386/server/libjvm.so" todir="${dist.base}/lib/i386/"/>
+        <copy file="${dist.base}/lib/amd64/server/libjvm.so" todir="${dist.base}/lib/amd64/"/>
       </sequential>
     </if>
     <copy todir="${dist.base}">
-      <fileset dir="${openjdk.lib.dir}/i386">
+      <fileset dir="${openjdk.lib.dir}/amd64">
         <include name="*${target.dll-ext}"/>
       </fileset>
       <globmapper from="*${target.dll-ext}" to="*${target.jni-suffix}"/>

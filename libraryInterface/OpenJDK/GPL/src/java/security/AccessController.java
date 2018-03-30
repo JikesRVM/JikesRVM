@@ -25,6 +25,8 @@
 
 package java.security;
 
+import sun.reflect.CallerSensitive;
+import sun.reflect.Reflection;
 import sun.security.util.Debug;
 
 import org.jikesrvm.VM;
@@ -293,15 +295,15 @@ public final class AccessController {
      *
      * @since 1.6
      */
-    public static <T> T doPrivilegedWithCombiner(PrivilegedAction<T> action) {
-
-        DomainCombiner dc = null;
-        AccessControlContext acc = getStackAccessControlContext();
-        if (acc == null || (dc = acc.getAssignedCombiner()) == null) {
-            return AccessController.doPrivileged(action);
-        }
-        return AccessController.doPrivileged(action, preserveCombiner(dc));
-    }
+  @CallerSensitive
+  public static <T> T doPrivilegedWithCombiner(PrivilegedAction<T> action) {
+      AccessControlContext acc = getStackAccessControlContext();
+      if (acc == null) {
+          return AccessController.doPrivileged(action);
+      }
+      DomainCombiner dc = acc.getAssignedCombiner();
+      return AccessController.doPrivileged(action, preserveCombiner(dc, Reflection.getCallerClass()));
+  }
 
 
     /**
@@ -378,68 +380,84 @@ public final class AccessController {
   }
 
 
-    /**
-     * Performs the specified <code>PrivilegedExceptionAction</code> with
-     * privileges enabled.  The action is performed with <i>all</i> of the
-     * permissions possessed by the caller's protection domain.
-     *
-     * <p> If the action's <code>run</code> method throws an <i>unchecked</i>
-     * exception, it will propagate through this method.
-     *
-     * <p> This method preserves the current AccessControlContext's
-     * DomainCombiner (which may be null) while the action is performed.
-     *
-     * @param action the action to be performed.
-     *
-     * @return the value returned by the action's <code>run</code> method
-     *
-     * @exception PrivilegedActionException if the specified action's
-     *         <code>run</code> method threw a <i>checked</i> exception
-     * @exception NullPointerException if the action is <code>null</code>
-     *
-     * @see #doPrivileged(PrivilegedAction)
-     * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
-     * @see java.security.DomainCombiner
-     *
-     * @since 1.6
-     */
-    public static <T> T doPrivilegedWithCombiner
-        (PrivilegedExceptionAction<T> action) throws PrivilegedActionException {
+  /**
+   * Performs the specified <code>PrivilegedExceptionAction</code> with
+   * privileges enabled.  The action is performed with <i>all</i> of the
+   * permissions possessed by the caller's protection domain.
+   *
+   * <p> If the action's <code>run</code> method throws an <i>unchecked</i>
+   * exception, it will propagate through this method.
+   *
+   * <p> This method preserves the current AccessControlContext's
+   * DomainCombiner (which may be null) while the action is performed.
+   *
+   * @param action the action to be performed.
+   *
+   * @return the value returned by the action's <code>run</code> method
+   *
+   * @exception PrivilegedActionException if the specified action's
+   *         <code>run</code> method threw a <i>checked</i> exception
+   * @exception NullPointerException if the action is <code>null</code>
+   *
+   * @see #doPrivileged(PrivilegedAction)
+   * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
+   * @see java.security.DomainCombiner
+   *
+   * @since 1.6
+   */
+  @CallerSensitive
+  public static <T> T doPrivilegedWithCombiner
+      (PrivilegedExceptionAction<T> action) throws PrivilegedActionException {
 
-        DomainCombiner dc = null;
-        AccessControlContext acc = getStackAccessControlContext();
-        if (acc == null || (dc = acc.getAssignedCombiner()) == null) {
-            return AccessController.doPrivileged(action);
-        }
-        return AccessController.doPrivileged(action, preserveCombiner(dc));
-    }
+      AccessControlContext acc = getStackAccessControlContext();
+      if (acc == null) {
+          return AccessController.doPrivileged(action);
+      }
+      DomainCombiner dc = acc.getAssignedCombiner();
+      return AccessController.doPrivileged(action, preserveCombiner(dc, Reflection.getCallerClass()));
+  }
 
     /**
      * preserve the combiner across the doPrivileged call
      */
-    private static AccessControlContext preserveCombiner
-                                        (DomainCombiner combiner) {
-
-        /**
-         * callerClass[0] = Reflection.getCallerClass
-         * callerClass[1] = AccessController.preserveCombiner
-         * callerClass[2] = AccessController.doPrivileged
-         * callerClass[3] = caller
-         */
-        final Class callerClass = sun.reflect.Reflection.getCallerClass(3);
-        ProtectionDomain callerPd = doPrivileged
-            (new PrivilegedAction<ProtectionDomain>() {
-            public ProtectionDomain run() {
-                return callerClass.getProtectionDomain();
-            }
-        });
-
-        // perform 'combine' on the caller of doPrivileged,
-        // even if the caller is from the bootclasspath
-        ProtectionDomain[] pds = new ProtectionDomain[] {callerPd};
-        return new AccessControlContext(combiner.combine(pds, null), combiner);
+    private static AccessControlContext preserveCombiner(DomainCombiner combiner,
+                                                         final Class<?> caller) {
+        return createWrapper(combiner, caller, null, null, null);
     }
 
+    /**
+     * Create a wrapper to contain the limited privilege scope data.
+     */
+    private static AccessControlContext
+        createWrapper(DomainCombiner combiner, Class<?> caller,
+                      AccessControlContext parent, AccessControlContext context,
+                      Permission[] perms)
+    {
+        ProtectionDomain callerPD = getCallerPD(caller);
+        // check if caller is authorized to create context
+        if (context != null && !context.isAuthorized() &&
+            System.getSecurityManager() != null &&
+            !callerPD.impliesCreateAccessControlContext())
+        {
+            ProtectionDomain nullPD = new ProtectionDomain(null, null);
+            return new AccessControlContext(new ProtectionDomain[] { nullPD });
+        } else {
+            return new AccessControlContext(callerPD, combiner, parent,
+                                            context, perms);
+        }
+    }
+
+    private static ProtectionDomain getCallerPD(final Class <?> caller) {
+      ProtectionDomain callerPd = doPrivileged
+          (new PrivilegedAction<ProtectionDomain>() {
+          @Override
+          public ProtectionDomain run() {
+              return caller.getProtectionDomain();
+          }
+      });
+
+      return callerPd;
+  }
 
     /**
      * Performs the specified <code>PrivilegedExceptionAction</code> with

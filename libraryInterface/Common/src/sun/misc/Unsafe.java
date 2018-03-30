@@ -29,6 +29,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
 
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 import org.jikesrvm.runtime.SysCall;
@@ -170,9 +171,19 @@ public final class Unsafe {
     }
   }
 
+  // FIXME add atomic copying if size is aligned properly (i.e. 8 / 4 / 2 bytes).
   @Inline
   public void copyMemory(long srcAddress, long destAddress, long bytes) {
     Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), Offset.fromLong(bytes).toWord().toExtent());
+  }
+
+  // FIXME add atomic copying if size is aligned properly (i.e. 8 / 4 / 2 bytes).
+  @Inline
+  public void copyMemory(Object srcBase, long srcOffset, Object dstBase, long dstOffset, long bytes) {
+    Address effectiveSrcAddr = Magic.objectAsAddress(srcBase).plus(Offset.fromLong(srcOffset));
+    Address effectiveDstAddr = Magic.objectAsAddress(dstBase).plus(Offset.fromLong(dstOffset));
+    Extent length = Offset.fromLong(bytes).toWord().toExtent();
+    Memory.memcopy(effectiveDstAddr, effectiveSrcAddr, length);
   }
 
   @Inline
