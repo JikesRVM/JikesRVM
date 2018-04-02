@@ -258,7 +258,7 @@ public final class TypeReference {
    * Shorthand for doing a find or create for a type reference that should
    * be created using the bootstrap classloader.
    * @return the canonical type reference
-   * @param tn type name
+   * @param tn type descriptor
    */
   public static TypeReference findOrCreate(String tn) {
     return findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), Atom.findOrCreateAsciiAtom(tn));

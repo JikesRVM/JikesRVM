@@ -180,17 +180,6 @@ public final class Address {
   }
 
   /**
-   * Add a long to this <code>Address</code>, and return the sum.
-   *
-   * @param  v the value to be added to this <code>Address</code>
-   * @return An <code>Address</code> instance that reflects the result
-   * of the addition.
-   */
-  public Address plus(long v) {
-    return null;
-  }
-
-  /**
    * Add an <code>Offset</code> to this <code>Address</code>, and
    * return the sum.
    *
@@ -225,19 +214,6 @@ public final class Address {
    * of the subtraction.
    */
   public Address minus(int v) {
-    return null;
-  }
-
-  /**
-   * Subtract a long from this <code>Address</code>, and return
-   * the result.
-   *
-   * @param v the value to be subtracted from this
-   * <code>Address</code>.
-   * @return An <code>Address</code> instance that reflects the result
-   * of the subtraction.
-   */
-  public Address minus(long v) {
     return null;
   }
 

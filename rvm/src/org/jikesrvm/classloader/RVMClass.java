@@ -1992,9 +1992,9 @@ public final class RVMClass extends RVMType {
       return null;
     }
     int[] constantPool = new int[methodToCall.getParameterTypes().length + 3];
-    String reflectionClassName = "Lorg/jikesrvm/classloader/ReflectionBase$$Reflect" +
+    String reflectionClassDescriptor = "Lorg/jikesrvm/classloader/ReflectionBase$$Reflect" +
         methodToCall.getMemberRef().getId() + ";";
-    TypeReference reflectionClass = TypeReference.findOrCreate(reflectionClassName);
+    TypeReference reflectionClass = TypeReference.findOrCreate(reflectionClassDescriptor);
     RVMType klass = reflectionClass.peekType();
     if (klass == null) {
       MethodReference reflectionMethodRef = MethodReference.findOrCreate(reflectionClass,

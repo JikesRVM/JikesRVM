@@ -965,7 +965,7 @@ if ($ok && (defined $test_set || defined $test_list)) {
   }
   $configs =~ s/^ //;
 
-  my $test = "$sshTargetCmdT '$shell \" ".
+  my $test = "$sshTargetCmdT \"$shell \\\" ".
           "  cd $targetRoot && ".
           "  mkdir -p $resultdir && ".
           "  rm -rf results/buildit/latest && ".
@@ -1036,7 +1036,7 @@ if ($ok && (defined $test_set || defined $test_list)) {
     }
   }
 
-  $test .= "\"' \n";
+  $test .= "\\\"\" \n";
   print "$test\n";
   if(! $dry_run) {
     system($test);
