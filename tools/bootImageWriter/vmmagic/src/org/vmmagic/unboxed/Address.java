@@ -247,19 +247,6 @@ public final class Address extends ArchitecturalWord {
   }
 
   /**
-   * Add a long to this {@link Address}, and return the sum.
-   *
-   * @param  v the value to be added to this {@link Address}
-   * @return An {@link Address} instance that reflects the result
-   * of the addition.
-   */
-  @UninterruptibleNoWarn
-  public Address plus(long v) {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(value + v);
-  }
-
-  /**
    * Add an {@link Offset} to this {@link Address}, and
    * return a new {@link Address} which is the sum.
    *
