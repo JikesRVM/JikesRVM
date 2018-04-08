@@ -710,25 +710,26 @@ EXTERNAL void sysMonitorDestroy(Word _monitor)
   TRACE_PRINTF("%s: sysMonitorDestroy %p\n", Me, (void*)_monitor);
 }
 
-EXTERNAL void sysMonitorEnter(Word _monitor)
+EXTERNAL int sysMonitorEnter(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorEnter %p\n", Me, (void*)_monitor);
 #ifdef RVM_FOR_HARMONY
   hythread_monitor_enter((hythread_monitor_t)_monitor);
+  return 0;
 #else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-  pthread_mutex_lock(&monitor->mutex);
+  return pthread_mutex_lock(&monitor->mutex);
 #endif
 }
 
-EXTERNAL void sysMonitorExit(Word _monitor)
+EXTERNAL int sysMonitorExit(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorExit %p\n", Me, (void*)_monitor);
 #ifdef RVM_FOR_HARMONY
-  hythread_monitor_exit((hythread_monitor_t)_monitor);
+  return hythread_monitor_exit((hythread_monitor_t)_monitor);
 #else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-  pthread_mutex_unlock(&monitor->mutex);
+  return pthread_mutex_unlock(&monitor->mutex);
 #endif
 }
 

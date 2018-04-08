@@ -460,11 +460,15 @@ public class VM extends Properties {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.VMDouble");
     }
-    runClassInitializer("java.util.PropertyPermission");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.util.PropertyPermission");
+    }
     runClassInitializer("org.jikesrvm.classloader.RVMAnnotation");
     runClassInitializer("java.lang.annotation.RetentionPolicy");
     runClassInitializer("java.lang.annotation.ElementType");
-    runClassInitializer("java.lang.Thread$State");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Thread$State");
+    }
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.VMClassLoader");
