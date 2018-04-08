@@ -12,8 +12,8 @@
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.utility.Constants.BYTES_IN_PAGE;
 import static org.mmtk.utility.Constants.LOG_BYTES_IN_ADDRESS;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -25,7 +25,8 @@ import org.vmmagic.unboxed.AddressArray;
 @Uninterruptible
 public final class ChunkList {
   private static final int LOG_PAGES_IN_CHUNK_MAP_BLOCK = 0;
-  private static final int ENTRIES_IN_CHUNK_MAP_BLOCK = (BYTES_IN_PAGE << LOG_PAGES_IN_CHUNK_MAP_BLOCK) >> LOG_BYTES_IN_ADDRESS;
+  private static final int LOG_ENTRIES_IN_CHUNK_MAP_BLOCK = LOG_BYTES_IN_PAGE + LOG_PAGES_IN_CHUNK_MAP_BLOCK - LOG_BYTES_IN_ADDRESS;
+  private static final int ENTRIES_IN_CHUNK_MAP_BLOCK = 1 << LOG_ENTRIES_IN_CHUNK_MAP_BLOCK;
   private static final int CHUNK_MAP_BLOCKS = 1 << 4;
   private static final int MAX_ENTRIES_IN_CHUNK_MAP = ENTRIES_IN_CHUNK_MAP_BLOCK * CHUNK_MAP_BLOCKS;
   private final AddressArray chunkMap =  AddressArray.create(CHUNK_MAP_BLOCKS);
@@ -88,7 +89,7 @@ public final class ChunkList {
   }
 
   private int getChunkMap(int entry) {
-    return entry & ~(ENTRIES_IN_CHUNK_MAP_BLOCK - 1);
+    return entry >> LOG_ENTRIES_IN_CHUNK_MAP_BLOCK;
   }
 
   private Address getMapAddress(int entry) {
