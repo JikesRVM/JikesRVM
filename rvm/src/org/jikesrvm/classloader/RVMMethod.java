@@ -78,6 +78,9 @@ public abstract class RVMMethod extends RVMMember {
   private static final ImmutableEntryHashMapRVM<RVMMethod, Annotation[][]> declaredParameterAnnotations =
     new ImmutableEntryHashMapRVM<RVMMethod, Annotation[][]>();
 
+  /** Reference to method designated to replace this one when compiled */
+  private RVMMethod replacementMethod = null;
+
   /**
    * Construct a read method
    *
@@ -633,7 +636,15 @@ public abstract class RVMMethod extends RVMMember {
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMMethod: (begin) compiling " + this);
 
-    CompiledMethod cm = genCode();
+    CompiledMethod cm;
+
+    // Compile the replacement method if one has been set
+    if (replacementMethod != null) {
+      replacementMethod.compile();
+      cm = replacementMethod.getCurrentCompiledMethod();
+    } else {
+      cm = genCode();
+    }
 
     // Ensure that cm wasn't invalidated while it was being compiled.
     synchronized (cm) {
@@ -653,6 +664,16 @@ public abstract class RVMMethod extends RVMMember {
    * @return an object representing the compiled method
    */
   protected abstract CompiledMethod genCode();
+
+  /**
+   * Set a replacement RVMMethod to be compiled in place of this one
+   */
+  protected void setReplacementMethod(RVMMethod m) {
+    replacementMethod = m;
+    // invalidate currently compiled method if target class has been instantiated already
+    if (getDeclaringClass().isInstantiated())
+      replaceCompiledMethod(null);
+  }
 
   //----------------------------------------------------------------//
   //                        Section 3.                              //

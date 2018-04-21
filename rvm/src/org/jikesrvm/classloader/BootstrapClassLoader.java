@@ -27,6 +27,7 @@ import java.util.zip.ZipFile;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
+import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
 /**
  * Implements an object that functions as the bootstrap class loader.
@@ -34,8 +35,13 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  */
 public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
+  private static final String REPLACEMENT_CLASS_NAME_PREFIX = "org.jikesrvm.classlibrary.openjdk.OpenJDK_";
+
   private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
     new ImmutableEntryHashMapRVM<String, RVMType>();
+
+  private final ImmutableEntryHashSetRVM<Atom> loadedReplacementClasses = new ImmutableEntryHashSetRVM<Atom>();
+  private final ImmutableEntryHashSetRVM<Atom> classesCheckedForReplacements = new ImmutableEntryHashSetRVM<Atom>();
 
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
@@ -144,6 +150,56 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length() - 2);
     }
+
+    Atom classNameAtom = null;
+    Atom replacementClassName = null;
+    try {
+      // TODO Adopt better nomenclature for replacement classes
+      classNameAtom = Atom.findOrCreateAsciiAtom(className);
+      Atom classNameDescriptor = Atom.findOrCreateAsciiAtom("L" + classNameAtom.toString().replace('.', '/') + ";");
+      replacementClassName = toReplacementClassNameAtom(className);
+      // TODO needs a method to convert class names to descriptors and vice versa. possibly in atom if it doesn't exist yet
+      Atom replacementClassDescriptor = Atom.findOrCreateAsciiAtom("L" + replacementClassName.toString().replace('.', '/') + ";");
+
+      boolean isReplacementClass = className.startsWith(REPLACEMENT_CLASS_NAME_PREFIX);
+
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " is a replacement class itself and thus won't be checked for a replacement class: " + isReplacementClass);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " is a bootstrap class descriptor? " + replacementClassDescriptor.isBootstrapClassDescriptor());
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(replacementClassName));
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " would have replacement class name: " + replacementClassName);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " would have replacement class descriptor: " + replacementClassDescriptor);
+
+      boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(classNameAtom);
+      // Check if there has been an attempt to load the replacement JDK class of this name
+      if (!isReplacementClass && !alreadyTriedToLoadReplacementClass && classNameDescriptor.isBootstrapClassDescriptor()) {
+        classesCheckedForReplacements.add(classNameAtom);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Checking for replacement class for " + className + " named " + replacementClassName);
+
+        // Load, resolve and instantiate the replacement class if it exists.
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: About to call findClass for replacement class for " + className + " named " + replacementClassName);
+        Class<?> findClass = findClass(replacementClassName.toString());
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Finished with call findClass for replacement class for " + className + " named " + replacementClassName);
+        RVMType replacementClassType = TypeReference.findOrCreate(findClass).resolve();
+        replacementClassType.prepareForFirstUse();
+
+        loadedReplacementClasses.add(replacementClassName);
+
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Replacement class " + replacementClassName + " loaded for " + className);
+      }
+    } catch (ClassNotFoundException ce) {
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: No replacement class for " + className);
+      // FIXME check if this is still the case after porting is far enough along
+      // don't print stack trace by default because it causes class loading issues right now
+      final boolean printStackTrace = false;
+      if (VM.TraceClassLoading && printStackTrace) ce.printStackTrace();
+    } catch (NoSuchMethodError e) {
+        VM.sysWriteln("ClassReplacement: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
+        VM.sysWriteln(e.toString());
+        e.printStackTrace();
+        throw new ClassNotFoundException("Failed to load replacement class " + replacementClassName, e);
+    }
+
+
     RVMType loadedType = loaded.get(className);
     Class<?> loadedClass;
     if (loadedType == null) {
@@ -155,6 +211,10 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       resolveClass(loadedClass);
     }
     return loadedClass;
+  }
+
+  public Atom toReplacementClassNameAtom(String className) {
+    return Atom.findOrCreateAsciiAtom(REPLACEMENT_CLASS_NAME_PREFIX + className.replace('.', '_'));
   }
 
   /**
@@ -350,6 +410,10 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
           }
         }
       } catch (Exception e) {
+        if (VM.TraceClassLoading) {
+          VM.sysWriteln("Exception in getResourceInternal: ");
+          e.printStackTrace();
+        }
       }
     }
 

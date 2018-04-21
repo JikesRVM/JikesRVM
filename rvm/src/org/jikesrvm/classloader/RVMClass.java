@@ -56,6 +56,7 @@ import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.ReplaceMember;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -1343,6 +1344,11 @@ public final class RVMClass extends RVMType {
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
     doesImplement = DynamicTypeCheck.buildDoesImplement(this);
 
+    if (isAnnotationDeclared(TypeReference.ReplaceClass)) {
+      if (VM.verboseClassLoading) VM.sysWriteln("Replace: " + this.typeRef.name + " (" + this.typeRef.classloader + ") is @ReplaceClass annotated");
+      replaceFieldsAndStaticMethods();
+    }
+
     // can't move this beyond "finalize" code block as findVirtualMethod
     // assumes state >= RESOLVED, no allocation occurs until
     // state >= CLASS_INITIALIZING
@@ -1368,6 +1374,98 @@ public final class RVMClass extends RVMType {
     }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   resolve " + this);
+  }
+
+  /**
+   * Replace the static methods and fields by resetting the offset.
+   * Replace the virtual methods by resetting CodeArray address in TIB.
+   */
+  private void replaceMember(TypeReference targetClassRef, RVMClass targetClass, RVMMember member) {
+    final ReplaceMember annotation = member.getAnnotation(org.vmmagic.pragma.ReplaceMember.class);
+    final Atom targetMemberName;
+
+    if (VM.verboseClassLoading)
+      VM.sysWriteln("Replace: processing replacememt member " + member.getName());
+
+    if (annotation != null && annotation.value().length() > 0)
+      targetMemberName = Atom.findOrCreateAsciiAtom(annotation.value());
+    else
+      targetMemberName = member.getName();
+
+    final RVMMember targetMember = MemberReference.findOrCreate(targetClassRef, targetMemberName, member.getDescriptor()).peekResolvedMember();
+
+    if (VM.verboseClassLoading)
+      VM.sysWriteln("Replace: " + "replacing member " + targetMemberName + " of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+
+    if (member instanceof RVMField) {
+      member.setOffset(targetMember.getOffset());
+    } else if (member instanceof RVMMethod) {
+      RVMMethod targetMethod = (RVMMethod)targetMember;
+      RVMMethod thisMethod = (RVMMethod)member;
+
+      targetMethod.setReplacementMethod(thisMethod);
+    }
+  }
+
+  /**
+   * Replacing the targeting class's fields and static methods with this class's.
+   */
+  private void replaceFieldsAndStaticMethods() {
+    replaceClass(false);
+  }
+
+  /**
+   * Replacing the targeting class's virtual methods with this class's.
+   */
+  private void replaceVirtualMethods() {
+    replaceClass(true);
+  }
+
+  /**
+   * Replace methods and fields of the targeting class when generating bootimage.
+   * @param handleVirtualMethods - replace virtual methods if it is true, replace fields and static methods if it is false.
+   */
+  private void replaceClass(boolean handleVirtualMethods) {
+    String targetClassName = getAnnotation(org.vmmagic.pragma.ReplaceClass.class).className();
+    TypeReference targetClassRef = TypeReference.findOrCreate(this.typeRef.classloader, Atom.findOrCreateAsciiAtom(targetClassName));
+    RVMClass targetClass = targetClassRef.resolve().asClass();
+
+    if (!handleVirtualMethods) {
+      if (VM.verboseClassLoading)
+        VM.sysWriteln("Replace: replacing fields and static methods of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+      //resolve target class before reset the offset for fields and static methods
+      targetClass.resolve();
+      targetClass.classInitializerMethod = classInitializerMethod;
+
+      for (RVMField f : staticFields) {
+        if (!f.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, f);
+      }
+
+      for (RVMField f : instanceFields) {
+        if (!f.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, f);
+      }
+
+      for (RVMMethod m : staticMethods) {
+        if (!m.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, m);
+      }
+    } else {
+      if (VM.verboseClassLoading)
+        VM.sysWriteln("Replace: replacing virtual methods of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+      targetClass.instantiate();
+
+      for (RVMMethod m : virtualMethods) {
+        if (!m.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, m);
+      }
+      targetClass.initialize();
+    }
   }
 
   /**
@@ -1469,6 +1567,9 @@ public final class RVMClass extends RVMType {
         declaredInterface.instantiate();
       }
     }
+
+    if (isAnnotationDeclared(TypeReference.ReplaceClass))
+      replaceVirtualMethods();
 
     if (!isInterface()) {
       // Create the internal lazy method invoker trampoline
@@ -1578,7 +1679,7 @@ public final class RVMClass extends RVMType {
 
     // run <clinit>
     //
-    if (classInitializerMethod != null) {
+    if (classInitializerMethod != null && !isAnnotationDeclared(TypeReference.ReplaceClass)) {
       CompiledMethod cm = classInitializerMethod.getCurrentCompiledMethod();
       while (cm == null) {
         classInitializerMethod.compile();

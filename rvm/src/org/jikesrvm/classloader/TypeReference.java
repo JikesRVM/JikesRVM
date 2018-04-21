@@ -172,6 +172,8 @@ public final class TypeReference {
   public static final TypeReference BaselineSaveLSRegisters = findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
   public static final TypeReference ReferenceFieldsVary = findOrCreate(org.vmmagic.pragma.ReferenceFieldsVary.class);
 
+  public static final TypeReference ReplaceClass = findOrCreate(org.vmmagic.pragma.ReplaceClass.class);
+  public static final TypeReference ReplaceMember = findOrCreate(org.vmmagic.pragma.ReplaceMember.class);
 
   public static final TypeReference ReferenceMaps =
       findOrCreate(org.jikesrvm.compilers.baseline.ReferenceMaps.class);

@@ -757,7 +757,9 @@ public final class Atom {
        "Lgnu/classpath/ServiceProviderLoadingAction".getBytes(),
        "Lgnu/classpath/SystemProperties".getBytes(),
        "Lorg/vmmagic/".getBytes(),
-       "Lorg/mmtk/".getBytes()};
+       "Lorg/mmtk/".getBytes(),
+       "Lsun/misc/".getBytes(),
+       "Lsun/reflect/".getBytes()};
 
   /**
    * The set of class prefixes that MUST NOT be loaded by bootstrap classloader.

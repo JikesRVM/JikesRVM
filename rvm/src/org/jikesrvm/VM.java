@@ -96,6 +96,7 @@ public class VM extends Properties {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     if (VM.VerifyAssertions) VM._assert(!VM.runningTool);
     writingBootImage = true;
+    VM.TraceClassLoading = true;
     init(classPath, bootCompilerArgs);
   }
 
