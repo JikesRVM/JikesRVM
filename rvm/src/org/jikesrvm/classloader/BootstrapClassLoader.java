@@ -81,14 +81,17 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     zipFileCache = new HashMap<String, ZipFile>();
     if (VM.BuildForGnuClasspath && VM.runningVM) {
       try {
-        /* Here, we have to replace the fields that aren't carried over from
-         * boot image writing time to run time.
-         * This would be the following, if the fields weren't final:
-         *
-         * bootstrapClassLoader.definedPackages    = new HashMap();
-         */
-        Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader,
-                                                                          new java.util.HashMap<String, Package>());
+        // FIXME should be a classlibrary specific hook
+        if (VM.BuildForGnuClasspath) {
+          /* Here, we have to replace the fields that aren't carried over from
+           * boot image writing time to run time.
+           * This would be the following, if the fields weren't final:
+           *
+           * bootstrapClassLoader.definedPackages    = new HashMap();
+           */
+          Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader,
+                                                                            new java.util.HashMap<String, Package>());
+        }
       } catch (Exception e) {
         VM.sysFail("Failed to setup bootstrap class loader");
       }

@@ -13,6 +13,7 @@
 package java.lang;
 
 import java.security.ProtectionDomain;
+import java.util.HashMap;
 import java.lang.instrument.Instrumentation;
 
 import org.jikesrvm.classloader.Atom;
@@ -98,22 +99,27 @@ public class JikesRVMSupport {
     return new String(data, offset, count);
   }
 
+  // FIXME save this information in java.lang.Thread
+  public static final HashMap<Thread, RVMThread> threadMap = new HashMap<Thread, RVMThread>();
+
   /***
    * Thread stuff
    * */
-  public static Thread createThread(RVMThread vmdata, String myName) {
-      return new Thread(vmdata, myName);
+  public static synchronized Thread createThread(RVMThread vmdata, String myName) {
+    Thread thread = new Thread(myName);
+    threadMap.put(thread, vmdata);
+    return thread;
   }
 
-  public static RVMThread getThread(Thread thread) {
+  public static synchronized RVMThread getThread(Thread thread) {
     if (thread == null)
       return null;
     else
-      return thread.vmThread;
+      return threadMap.get(thread);
   }
 
   public static void threadDied(Thread thread) {
-
+    threadMap.remove(thread);
   }
   public static Throwable getStillBorn(Thread thread) {
     return null;

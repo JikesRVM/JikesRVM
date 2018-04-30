@@ -2442,8 +2442,18 @@ public class BootImageWriter {
         return false;
       }
     } else if (classLibrary == "openjdk") {
-      System.out.println("Unknow field in " + rvmFieldName + " " + rvmFieldType + " " + rvmFieldOffset);
-      return false;
+      if (rvmFieldName.equals("JDK_PACKAGE_PREFIX") && rvmFieldType == TypeReference.JavaLangString) {
+        String packagePrefix = "sun.net.www.protocol";
+        Statics.setSlotContents(rvmFieldOffset, packagePrefix);
+        return true;
+      } else if (rvmFieldName.equals("extendedProviderLock") && rvmFieldType == TypeReference.JavaLangObject) {
+        Object lock = new Object();
+        Statics.setSlotContents(rvmFieldOffset, lock);
+        return true;
+      } else {
+        System.out.println("Unknow field in " + rvmFieldName + " " + rvmFieldType + " " + rvmFieldOffset);
+        return false;
+      }
     } else {
       throw new Error("Unknown class library: \"" + classLibrary + "\"");
     }
@@ -2462,6 +2472,7 @@ public class BootImageWriter {
 
     // Class library independent objects
     if (jdkObject instanceof java.lang.Class)   {
+      Class<?> jdkObjectAsClass = (Class<?>) jdkObject;
       Object value = null;
       String fieldName = null;
       boolean fieldIsFinal = false;
@@ -2486,6 +2497,10 @@ public class BootImageWriter {
           value = RVMType.ShortType;
         } else if (jdkObject == java.lang.Void.TYPE) {
           value = RVMType.VoidType;
+        } else if (jdkObjectAsClass.getName().startsWith("com.sun.proxy")) {
+          // FIXME will probably lead to problems at runtime
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForOpenJDK);
+          say("Doing nothing for proxy " + jdkObject + " for now");
         } else {
           value = TypeReference.findOrCreate((Class<?>)jdkObject).peekType();
           if (value == null) {
