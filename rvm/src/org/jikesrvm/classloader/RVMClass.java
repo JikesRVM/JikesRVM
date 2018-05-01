@@ -1060,7 +1060,7 @@ public final class RVMClass extends RVMType {
 
     Callbacks.notifyClassLoaded(this);
 
-    if (VM.TraceClassLoading && VM.runningVM) {
+    if (VM.TraceClassLoading) {
       VM.sysWriteln("RVMClass: (end)   load file " + typeRef.getName());
     }
     if (VM.verboseClassLoading) VM.sysWriteln("[Loaded " + toString() + "]");
@@ -1076,7 +1076,7 @@ public final class RVMClass extends RVMType {
   @Override
   public synchronized void resolve() {
     if (isResolved()) return;
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) resolve " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (begin) resolve " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
     // Resolve superclass and super interfaces
@@ -1373,7 +1373,7 @@ public final class RVMClass extends RVMType {
       }
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   resolve " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (end)   resolve " + this);
   }
 
   /**
@@ -1427,7 +1427,10 @@ public final class RVMClass extends RVMType {
    */
   private void replaceClass(boolean handleVirtualMethods) {
     String targetClassName = getAnnotation(org.vmmagic.pragma.ReplaceClass.class).className();
-    TypeReference targetClassRef = TypeReference.findOrCreate(this.typeRef.classloader, Atom.findOrCreateAsciiAtom(targetClassName));
+    String descriptor = "L" + targetClassName.replace('.', '/') + ";";
+    if (VM.verboseClassLoading) VM.sysWriteln("Created descriptor " + descriptor + " from className " + targetClassName);
+
+    TypeReference targetClassRef = TypeReference.findOrCreate(this.typeRef.classloader, Atom.findOrCreateAsciiAtom(descriptor));
     RVMClass targetClass = targetClassRef.resolve().asClass();
 
     if (!handleVirtualMethods) {
@@ -1549,7 +1552,7 @@ public final class RVMClass extends RVMType {
       return;
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) instantiate " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (begin) instantiate " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
 
     // instantiate superclass
@@ -1617,7 +1620,7 @@ public final class RVMClass extends RVMType {
       Callbacks.notifyClassInitialized(this);
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   instantiate " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (end)   instantiate " + this);
   }
 
   /**
@@ -1666,7 +1669,7 @@ public final class RVMClass extends RVMType {
       throw new NoClassDefFoundError(this + " (initialization failure)");
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) initialize " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (begin) initialize " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_INSTANTIATED);
     state = CLASS_INITIALIZING;
     if (VM.verboseClassLoading) VM.sysWriteln("[Initializing " + this + "]");
@@ -1718,7 +1721,7 @@ public final class RVMClass extends RVMType {
     markFinalFieldsAsLiterals();
 
     if (VM.verboseClassLoading) VM.sysWriteln("[Initialized " + this + "]");
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   initialize " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (end)   initialize " + this);
   }
 
   /**

@@ -96,7 +96,6 @@ public class VM extends Properties {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     if (VM.VerifyAssertions) VM._assert(!VM.runningTool);
     writingBootImage = true;
-    VM.TraceClassLoading = true;
     init(classPath, bootCompilerArgs);
   }
 
@@ -217,6 +216,31 @@ public class VM extends Properties {
     RVMThread.getCurrentThread().initializeJNIEnv();
     if (verboseBoot >= 1) VM.sysWriteln("JNI initialized for boot thread");
 
+    if (verboseBoot >= 1) VM.sysWriteln("Attempting to resolve java.lang.System");
+    try {
+      if (verboseBoot >= 1) VM.sysWriteln("Attempting to resolve java.lang.System - forName");
+      Class<?> forName = Class.forName("java.lang.System", true, null);
+      if (verboseBoot >= 1) VM.sysWriteln("Attempting to resolve java.lang.System - after forName");
+      forName.getAnnotations();
+    } catch (ClassNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    if (verboseBoot >= 1) VM.sysWriteln("Attempted to resolve java.lang.System");
+
+    if (verboseBoot >= 1) VM.sysWriteln("Trying out class init system");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.System");
+    }
+    if (verboseBoot >= 1) VM.sysWriteln("End trying out class init system");
+
+
+    if (verboseBoot >= 1) VM.sysWriteln("Trying out system.arraycopy");
+    byte[] temp = {1, 2, 3};
+    byte[] temp2 = new byte[3];
+    System.arraycopy(temp, 0, temp2, 0, temp2.length);
+    if (verboseBoot >= 1) VM.sysWriteln("Done with system.arraycopy");
+
     // Fetch arguments from program command line.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Fetching command-line arguments");
@@ -224,8 +248,10 @@ public class VM extends Properties {
 
     // Process most virtual machine command line arguments.
     //
+    RuntimeEntrypoints.enableCallLimit();
     if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of command line");
     CommandLineArgs.earlyProcessCommandLineArguments();
+    RuntimeEntrypoints.resetCallLimit();
 
     // Early initialization of TuningFork tracing engine.
     TraceEngine.engine.earlyStageBooting();
@@ -233,7 +259,10 @@ public class VM extends Properties {
     // Allow Memory Manager to respond to its command line arguments
     //
     if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
+    RuntimeEntrypoints.enableCallLimit();
     MemoryManager.postBoot();
+    RuntimeEntrypoints.resetCallLimit();
+    if (verboseBoot >= 1) VM.sysWriteln("Done: Collector processing rest of boot options");
 
     // Initialize class loader.
     //
@@ -264,7 +293,9 @@ public class VM extends Properties {
     }
 
     runClassInitializer("java.lang.Runtime");
-    runClassInitializer("java.lang.System");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.System");
+    }
     runClassInitializer("sun.misc.Unsafe");
 
     runClassInitializer("java.lang.Character");
@@ -815,8 +846,7 @@ public class VM extends Properties {
   }
   @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   private static void writeNotRunningVM(String value) {
-    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
-    System.err.print(value);
+    System.out.print(value);
   }
 
   /**
@@ -2615,6 +2645,9 @@ public class VM extends Properties {
     }
     RuntimeEntrypoints.init();
     RVMThread.init();
+
+    VM.verboseClassLoading = true;
+    VM.TraceClassLoading = true;
   }
 
   public static void disableYieldpoints() {

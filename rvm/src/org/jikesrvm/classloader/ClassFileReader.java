@@ -336,8 +336,8 @@ public class ClassFileReader {
       throw new RuntimeException("ClassLoading Disabled : " + typeRef);
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) {
-      VM.sysWriteln("RVMClass: (begin) load file " + typeRef.getName());
+    if (VM.TraceClassLoading) {
+      VM.sysWriteln("RVMClass (ClassFileReader): (begin) load file " + typeRef.getName());
     }
 
     int[] constantPool = readConstantPool(typeRef, input);

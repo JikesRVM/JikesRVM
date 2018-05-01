@@ -485,10 +485,15 @@ public class CommandLineArgs {
    * @return null if no such command line argument is given.
    */
   public static String getBootstrapClasses() {
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: Before getArgs");
     String[] vmClassesAll = getArgs(PrefixType.BOOTSTRAP_CLASSES_ARG);
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: aga1");
     String[] prependClasses = getArgs(PrefixType.BOOTCLASSPATH_P_ARG);
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: Before aga2");
     String[] appendClasses = getArgs(PrefixType.BOOTCLASSPATH_A_ARG);
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: After getArgs");
 
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: Before vmClasses");
     // choose the latest definition of -X:vmClasses
     String vmClasses = null;
     // could be specified multiple times, use last specification
@@ -496,9 +501,16 @@ public class CommandLineArgs {
       vmClasses = vmClassesAll[vmClassesAll.length - 1];
     }
 
+    RuntimeEntrypoints.traceEntrypoints = true;
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: Before StringBuilder creation");
     // concatenate all bootclasspath entries
+    RuntimeEntrypoints.enableCallLimit();
     StringBuilder result = new StringBuilder(vmClasses);
+    RuntimeEntrypoints.resetCallLimit();
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: After StringBuilder creation");
+    RuntimeEntrypoints.traceEntrypoints = false;
 
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: Before StringBuilder usage");
     for (int c = 0; c < prependClasses.length; c++) {
       result.insert(0, File.pathSeparatorChar);
       result.insert(0, prependClasses[c]);
@@ -509,7 +521,11 @@ public class CommandLineArgs {
       result.append(appendClasses[c]);
     }
 
-    return result.toString();
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: Before return value creation");
+
+    String string = result.toString();
+    if (VM.verboseBoot >= 1) VM.sysWriteln("CommandLineArgs: Before return");
+    return string;
   }
 
   /**
@@ -520,9 +536,13 @@ public class CommandLineArgs {
    */
   public static void earlyProcessCommandLineArguments() {
     for (int i = 0; i < app_name_pos; i++) {
+      if (DEBUG) VM.sysWriteln(" CommandLineArgs.earlyProcessCLA(" + i + ")");
       String arg = args[i];
+      if (DEBUG) VM.sysWriteln(" CommandLineArgs.earlyProcessCLA(" + arg + ")");
       PrefixType type = arg_types[i];
+      if (DEBUG) VM.sysWriteln(" CommandLineArgs.earlyProcessCLA(" + type + ")");
       if (type == PrefixType.INVALID_ARG) continue;
+      if (DEBUG) VM.sysWriteln(" CommandLineArgs.earlyProcessCLA(findPrefix)");
       Prefix p = findPrefix(type);
       if (DEBUG) VM.sysWriteln(" CommandLineArgs.earlyProcessCLA(" + p + arg + " - " + type + ")");
       switch (type) {
@@ -693,6 +713,7 @@ public class CommandLineArgs {
           break;
       }
     }
+    if (DEBUG) VM.sysWriteln(" CommandLineArgs.earlyProcessCLA: Done");
   }
 
   /**

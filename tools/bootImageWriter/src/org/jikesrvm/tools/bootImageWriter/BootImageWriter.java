@@ -648,6 +648,8 @@ public class BootImageWriter {
     //   - they are used later, by target rvm, to execute the bootimage
     //
     if (verbosity.isAtLeast(SUMMARY)) say("starting up");
+    VM.verboseClassLoading = true;
+    VM.TraceClassLoading = true;
     //    try {
       VM.initForBootImageWriter(bootImageRepositoriesAtBuildTime,
                                 bootImageCompilerArgs);

@@ -27,6 +27,8 @@ Ljava/lang/ThreadGroup;
 Ljava/lang/Enum;
 Ljava/lang/Cloneable;
 Ljava/lang/System;
+Ljava/lang/System$1;
+#Ljava/lang/System$2;
 Ljava/lang/ClassLoader;
 Ljava/lang/ClassLoader$3;
 Ljava/lang/Error;

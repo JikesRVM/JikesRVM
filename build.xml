@@ -1464,6 +1464,7 @@ Check to make sure all required properties are specified. This includes properti
           </classpath>
           <include name="Dummy.java"/>
           <include name="OptDummy.java"/>
+          <include name="org/jikesrvm/classlibrary/openjdk/replacements/**"/>
           <include name="org/apache/**/*.java"/>
           <include name="sun/**/*.java"/>
           <include name="java/**/*.java"/>

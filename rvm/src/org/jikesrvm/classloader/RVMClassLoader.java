@@ -345,8 +345,8 @@ public class RVMClassLoader {
 
     try {
       if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
-      if (VM.TraceClassLoading && VM.runningVM) {
-        VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
+      if (VM.TraceClassLoading) {
+        VM.sysWriteln("(defineClassInternal) loading \"" + tRef.getName() + "\" with " + classloader);
       }
       RVMClass ans = ClassFileReader.readClass(tRef, new DataInputStream(is));
       tRef.setType(ans);
