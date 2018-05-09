@@ -255,7 +255,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: About to call loadVMClass for replacement class for " + className + " named " + replacementClassName);
         RVMType loadVMClass = loadVMClass(replacementClassName.toString());
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Finished with call loadVMClass for replacement class for " + className + " named " + replacementClassName);
-        loadVMClass.prepareForFirstUse();
+        loadVMClass.resolve();
         loadedReplacementClasses.add(replacementClassName);
 
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Replacement class " + replacementClassName + " loaded for " + className);
