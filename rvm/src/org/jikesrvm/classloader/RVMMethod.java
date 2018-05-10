@@ -634,7 +634,7 @@ public abstract class RVMMethod extends RVMMember {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());
     if (isCompiled()) return;
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMMethod: (begin) compiling " + this);
+    if (VM.TraceClassLoading && VM.runningVM && VM.fullyBooted) VM.sysWriteln("RVMMethod: (begin) compiling " + this);
 
     CompiledMethod cm;
 
@@ -655,7 +655,7 @@ public abstract class RVMMethod extends RVMMember {
       }
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMMethod: (end)   compiling " + this);
+    if (VM.TraceClassLoading && VM.runningVM && VM.fullyBooted) VM.sysWriteln("RVMMethod: (end)   compiling " + this);
   }
 
   /**

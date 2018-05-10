@@ -313,12 +313,12 @@ public class RuntimeEntrypoints {
    * See also: bytecode 0xbb ("new")
    */
   public static Object resolvedNewScalar(RVMClass cls) {
-    if (traceEntrypoints) VM.sysWriteln("Unresolved new scalar: only class");
+    if (traceEntrypoints) VM.sysWriteln("Resolved new scalar: only class");
     int allocator = MemoryManager.pickAllocator(cls);
     int site = MemoryManager.getAllocationSite(false);
     int align = ObjectModel.getAlignment(cls);
     int offset = ObjectModel.getOffsetForAlignment(cls, false);
-    if (traceEntrypoints) VM.sysWriteln("esolved new scalar: detail method");
+    if (traceEntrypoints) VM.sysWriteln("Resolved new scalar: detail method");
     return resolvedNewScalar(cls.getInstanceSize(),
                              cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
@@ -362,6 +362,7 @@ public class RuntimeEntrypoints {
     // Deal with finalization
     if (hasFinalizer) MemoryManager.addFinalizer(newObj);
 
+    if (traceEntrypoints) RVMThread.dumpStack();
     if (traceEntrypoints) VM.sysWriteln("resolvedNewScalar: retuning new obj");
     return newObj;
   }

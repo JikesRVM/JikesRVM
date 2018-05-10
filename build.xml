@@ -1891,6 +1891,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-m"/>
       <arg path="${build.base}/RVM.map"/>
       <arg line="${config.bootimage.writer.args}"/>
+      <arg line="-X:bc:mc=true -X:bc:method_to_print=resolvedNewScalar"/>
       <!-- <arg value="-trace"/> -->
       <!-- <arg value="-detailed"/> -->
       <!-- <arg value="-X:bc:verbose=true"/> -->

@@ -16,13 +16,12 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
-import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classlibrary.common.RVMSystem;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.mm.mminterface.MemoryManager;
-import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 import org.vmmagic.pragma.Entrypoint;
@@ -105,29 +104,7 @@ final class VMCommonLibrarySupport {
    */
   @Entrypoint
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
-    if (src == null || dst == null) {
-      RuntimeEntrypoints.raiseNullPointerException();
-    } else if ((src instanceof char[]) && (dst instanceof char[])) {
-      RVMArray.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
-    } else if ((src instanceof Object[]) && (dst instanceof Object[])) {
-      RVMArray.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
-    } else if ((src instanceof byte[]) && (dst instanceof byte[])) {
-      RVMArray.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
-    } else if ((src instanceof boolean[]) && (dst instanceof boolean[])) {
-      RVMArray.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
-    } else if ((src instanceof short[]) && (dst instanceof short[])) {
-      RVMArray.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
-    } else if ((src instanceof int[]) && (dst instanceof int[])) {
-      RVMArray.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
-    } else if ((src instanceof long[]) && (dst instanceof long[])) {
-      RVMArray.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
-    } else if ((src instanceof float[]) && (dst instanceof float[])) {
-      RVMArray.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
-    } else if ((src instanceof double[]) && (dst instanceof double[])) {
-      RVMArray.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
-    } else {
-      RuntimeEntrypoints.raiseArrayStoreException();
-    }
+    RVMSystem.arraycopy(src, srcPos, dst, dstPos, len);
   }
 
   /**

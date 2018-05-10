@@ -220,8 +220,10 @@ public class VM extends Properties {
     try {
       if (verboseBoot >= 1) VM.sysWriteln("Attempting to resolve java.lang.System - forName");
       Class<?> forName = Class.forName("java.lang.System", true, null);
+      RuntimeEntrypoints.traceEntrypoints = true;
       if (verboseBoot >= 1) VM.sysWriteln("Attempting to resolve java.lang.System - after forName");
       forName.getAnnotations();
+      RuntimeEntrypoints.traceEntrypoints = false;
     } catch (ClassNotFoundException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
