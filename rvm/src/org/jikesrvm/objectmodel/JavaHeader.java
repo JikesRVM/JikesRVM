@@ -29,6 +29,7 @@ import static org.jikesrvm.objectmodel.JavaHeaderConstants.JAVA_HEADER_OFFSET;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.NUM_AVAILABLE_BITS;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.OTHER_HEADER_BYTES;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.STATUS_BYTES;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.TIB_BYTES;
 import static org.jikesrvm.objectmodel.MiscHeader.REQUESTED_BITS;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
@@ -95,7 +96,7 @@ public class JavaHeader {
   /** offset of object reference from the lowest memory word */
   public static final int OBJECT_REF_OFFSET = ARRAY_HEADER_SIZE;  // from start to ref
   protected static final Offset TIB_OFFSET = JAVA_HEADER_OFFSET;
-  protected static final Offset STATUS_OFFSET = TIB_OFFSET.plus(STATUS_BYTES);
+  protected static final Offset STATUS_OFFSET = TIB_OFFSET.plus(TIB_BYTES);
   protected static final Offset AVAILABLE_BITS_OFFSET =
       VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET.plus(STATUS_BYTES - 1));
 
