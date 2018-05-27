@@ -539,8 +539,16 @@ public class Entrypoints {
     }
   }
 
-  public static final RVMField classLoaderDefinedPackages =
-    getField(java.lang.ClassLoader.class, "definedPackages", java.util.HashMap.class);
+  public static final RVMField classLoaderDefinedPackages;
+
+  static {
+    // Initialize fields specific to the class library
+    if (VM.BuildForGnuClasspath) {
+      classLoaderDefinedPackages = getField(java.lang.ClassLoader.class, "definedPackages", java.util.HashMap.class);
+    } else {
+      classLoaderDefinedPackages = null;
+    }
+  }
 
   /**
    * Is this a special exception-raising method that must be invisible in stack traces?
