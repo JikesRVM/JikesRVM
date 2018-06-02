@@ -35,4 +35,9 @@ public class java_lang_System {
     JavaLangSupport.arraycopy(src, srcPos, dest, destPos, length);
   }
 
+  @ReplaceMember
+  public static int identityHashCode(Object obj) {
+    return JavaLangSupport.identityHashCode(obj);
+  }
+
 }

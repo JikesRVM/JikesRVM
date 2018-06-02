@@ -22,6 +22,7 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
@@ -128,6 +129,10 @@ public final class JavaLangSupport {
     } else {
       RuntimeEntrypoints.raiseArrayStoreException();
     }
+  }
+
+  public static int identityHashCode(Object obj) {
+    return obj == null ? 0 : ObjectModel.getObjectHashCode(obj);
   }
 
   /**
