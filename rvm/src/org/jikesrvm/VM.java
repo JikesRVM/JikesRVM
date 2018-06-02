@@ -296,6 +296,7 @@ public class VM extends Properties {
     //
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     RVMThread.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
     DynamicLibrary.boot();
 
     if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
