@@ -19,8 +19,6 @@ import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.architecture.StackFrameLayout;
@@ -86,21 +84,6 @@ import org.vmmagic.unboxed.Word;
  * </ul>
  */
 public class RuntimeEntrypoints {
-
-  public static boolean traceEntrypoints = false;
-
-  private static boolean callLimit = false;
-
-  public static void enableCallLimit() {
-//    callLimit = true;
-  }
-
-  public static void resetCallLimit() {
-    callLimit = false;
-    current = new AtomicInteger();
-  }
-
-  public static AtomicInteger current = new AtomicInteger();
 
   //  private static final boolean traceAthrow = false;
   private static final boolean traceAthrow = true;
@@ -278,24 +261,19 @@ public class RuntimeEntrypoints {
    */
   @Entrypoint
   static Object unresolvedNewScalar(int id, int site) throws NoClassDefFoundError, OutOfMemoryError {
-    if (traceEntrypoints) VM.sysWriteln("Unresolved new scalar: start");
     TypeReference tRef = TypeReference.getTypeRef(id);
-    if (traceEntrypoints) VM.sysWriteln("Unresolved new scalar: peek Type");
     RVMType t = tRef.peekType();
-    if (traceEntrypoints) VM.sysWriteln("Unresolved new scalar: resolve");
     if (t == null) {
       t = tRef.resolve();
     }
     RVMClass cls = t.asClass();
     if (!cls.isInitialized()) {
-      if (traceEntrypoints) VM.sysWriteln("Unresolved new scalar: initializing class");
       initializeClassForDynamicLink(cls);
     }
 
     int allocator = MemoryManager.pickAllocator(cls);
     int align = ObjectModel.getAlignment(cls);
     int offset = ObjectModel.getOffsetForAlignment(cls, false);
-    if (traceEntrypoints) VM.sysWriteln("Resolved new scalar: start");
     return resolvedNewScalar(cls.getInstanceSize(),
                              cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
@@ -313,12 +291,10 @@ public class RuntimeEntrypoints {
    * See also: bytecode 0xbb ("new")
    */
   public static Object resolvedNewScalar(RVMClass cls) {
-    if (traceEntrypoints) VM.sysWriteln("Resolved new scalar: only class");
     int allocator = MemoryManager.pickAllocator(cls);
     int site = MemoryManager.getAllocationSite(false);
     int align = ObjectModel.getAlignment(cls);
     int offset = ObjectModel.getOffsetForAlignment(cls, false);
-    if (traceEntrypoints) VM.sysWriteln("Resolved new scalar: detail method");
     return resolvedNewScalar(cls.getInstanceSize(),
                              cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
@@ -344,26 +320,15 @@ public class RuntimeEntrypoints {
   @Entrypoint
   public static Object resolvedNewScalar(int size, TIB tib, boolean hasFinalizer, int allocator, int align,
                                          int offset, int site) throws OutOfMemoryError {
-    if (callLimit) {
-      int incrementAndGet = current.incrementAndGet();
-      if (incrementAndGet >= 100) {
-        VM.sysFail("Call limit reached");
-      }
-    }
-    if (traceEntrypoints) VM.sysWriteln("resolvedNewScalar: all");
     // GC stress testing
     if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
-    if (traceEntrypoints) VM.sysWriteln("resolvedNewScalar: allocateScalar");
     // Allocate the object and initialize its header
     Object newObj = MemoryManager.allocateScalar(size, tib, allocator, align, offset, site);
 
-    if (traceEntrypoints) VM.sysWriteln("resolvedNewScalar: addFinalizer");
     // Deal with finalization
     if (hasFinalizer) MemoryManager.addFinalizer(newObj);
 
-    if (traceEntrypoints) RVMThread.dumpStack();
-    if (traceEntrypoints) VM.sysWriteln("resolvedNewScalar: retuning new obj");
     return newObj;
   }
 
