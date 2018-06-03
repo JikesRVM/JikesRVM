@@ -118,6 +118,11 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    * @throws NoClassDefFoundError when no definition of the class was found
    */
   synchronized RVMType loadVMClass(String className) throws NoClassDefFoundError {
+    RVMType loadedType = loaded.get(className);
+    if (loadedType != null) {
+      return loadedType;
+    }
+
     try {
       InputStream is = getResourceAsStream(className.replace('.', File.separatorChar) + ".class");
       if (is == null) throw new NoClassDefFoundError(className);
