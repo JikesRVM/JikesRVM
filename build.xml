@@ -2049,7 +2049,7 @@ const char *rvm_target_configuration = "${target.file}";
   </target>
 
   <target name="build-bootloader" depends="build-gcspy-stub">
-    <!-- create Jikes RVM library -->
+    <!-- create JVM library -->
     <echo message="Creating jvm${target.lib-ext}"/>
     <CompileCtoObj cfile="${bl.dir}/jvm.c"
                    objfile="${build.base}/${target.obj-prefix}jvm${target.obj-ext}"
@@ -2158,7 +2158,7 @@ const char *rvm_target_configuration = "${target.file}";
     </if>
 
     <!-- create JVM shared library -->
-    <echo message="Creating jikesrvm${target.dll-ext}"/>
+    <echo message="Creating jvm${target.dll-ext}"/>
     <condition property="jvm.vmi.lib.filter" value="${lib.specifier}vmi${target.lib-ext}" else="">
       <equals arg1="${classlib.provider}" arg2="Harmony"/>
     </condition>
@@ -2185,8 +2185,7 @@ const char *rvm_target_configuration = "${target.file}";
       </ObjectFiles>
     </CreateDLL>
 
-
-    <!-- create jikesrvm_jni shared library -->
+    <!-- create jvm_jni shared library -->
     <echo message="Creating jvm_jni${target.jni-suffix}"/>
     <CompileCtoObj cfile="${bl.dir}/jni/org_jikesrvm_runtime_DynamicLibrary.c"
                    objfile="${build.base}/${target.obj-prefix}org_jikesrvm_runtime_DynamicLibrary${target.obj-ext}"
