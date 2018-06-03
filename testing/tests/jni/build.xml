@@ -43,7 +43,7 @@
       </javah>
       <CompileCtoObj cfile="${main.java}/@{class}.c"
                      objfile="${build.tests.dir}/${target.obj-prefix}@{class}${target.obj-ext}"
-                     cargs="-I${build.native} -I${jikesrvm.dir}/include ${c.args}"/>
+                     cargs="-I${build.native} -I${jikesrvm.dir}/tools/bootloader/jni/ ${c.args}"/>
       <CreateDLL outdir="${build.tests.dir}" dllname="@{class}" srcdir="${main.java}">
         <ObjectFiles>
           <arg value="${build.tests.dir}/${target.obj-prefix}@{class}${target.obj-ext}"/>

@@ -73,7 +73,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       BootstrapClassLoader.bootstrapClasspath = bootstrapClasspath;
     }
     zipFileCache = new HashMap<String, ZipFile>();
-    if (VM.runningVM) {
+    if (VM.BuildForGnuClasspath && VM.runningVM) {
       try {
         /* Here, we have to replace the fields that aren't carried over from
          * boot image writing time to run time.
