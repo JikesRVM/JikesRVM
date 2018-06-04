@@ -14,6 +14,7 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.runtime.Reflection;
@@ -56,7 +57,7 @@ final class VMMethod {
     if (exceptionTypes == null) {
       return new Class[0];
     } else {
-      return VMCommonLibrarySupport.typesToClasses(exceptionTypes);
+      return JavaLangReflectSupport.typesToClasses(exceptionTypes);
     }
   }
 
@@ -69,7 +70,7 @@ final class VMMethod {
   }
 
   Class<?>[] getParameterTypes() {
-    return VMCommonLibrarySupport.typesToClasses(method.getParameterTypes());
+    return JavaLangReflectSupport.typesToClasses(method.getParameterTypes());
   }
 
   Class<?> getReturnType() {
@@ -79,7 +80,7 @@ final class VMMethod {
   Object invoke(Object receiver, Object[] args, Method m)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
-    return VMCommonLibrarySupport.invoke(receiver, args, method, m, RVMClass.getClassFromStackFrame(2), invoker);
+    return JavaLangReflectSupport.invoke(receiver, args, method, m, RVMClass.getClassFromStackFrame(2), invoker);
   }
 
   // AnnotatedElement interface

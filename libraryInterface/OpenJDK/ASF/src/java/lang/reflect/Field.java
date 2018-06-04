@@ -1,13 +1,13 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,22 +17,17 @@
 
 package java.lang.reflect;
 
-import java.lang.reflect.VMCommonLibrarySupport;
 
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
-import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 
 /**
  * This class must be implemented by the VM vendor. This class models a field.
  * Information about the field can be accessed, and the field's value can be
  * accessed dynamically.
- * 
+ *
  */
 public final class Field extends AccessibleObject implements Member {
   private final RVMField vmField;
@@ -51,6 +46,7 @@ public final class Field extends AccessibleObject implements Member {
 	 vmField = null;
   }
 
+  @Override
   public boolean isSynthetic() {
 	 return super.isSynthetic();
   }
@@ -60,7 +56,7 @@ public final class Field extends AccessibleObject implements Member {
 	* Returns the String representation of the field's declaration, including
 	* the type parameters.
 	* </p>
-	* 
+	*
 	* @return An instance of String.
 	* @since 1.5
 	*/
@@ -72,7 +68,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* Indicates whether or not this field is an enumeration constant.
 	* </p>
-	* 
+	*
 	* @return A value of <code>true</code> if this field is an enumeration
 	*         constant, otherwise <code>false</code>.
 	* @since 1.5
@@ -85,7 +81,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* Gets the declared type of this field.
 	* </p>
-	* 
+	*
 	* @return An instance of {@link Type}.
 	* @throws GenericSignatureFormatError if the generic method signature is
 	*         invalid.
@@ -98,12 +94,12 @@ public final class Field extends AccessibleObject implements Member {
   public Type getGenericType() {
 	 throw new Error("TODO");
   }
-    
+
   /**
 	* Compares the specified object to this Field and answer if they are equal.
 	* The object must be an instance of Field with the same defining class and
 	* name.
-	* 
+	*
 	* @param object the object to compare
 	* @return true if the specified object is equal to this Field, false
 	*         otherwise
@@ -134,7 +130,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* The value of the field is returned. If the type of this field is a base
 	* type, the field value is automatically wrapped.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value, possibly wrapped
@@ -146,7 +142,7 @@ public final class Field extends AccessibleObject implements Member {
 	*             if modeled field is not accessible
 	*/
   public Object get(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.get(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+    return JavaLangReflectSupport.get(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -161,7 +157,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If this Field object is enforcing access control (see AccessibleObject)
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -174,7 +170,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public boolean getBoolean(Object object)
 	 throws IllegalAccessException, IllegalArgumentException{
-	 return VMCommonLibrarySupport.getBoolean(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 return JavaLangReflectSupport.getBoolean(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -189,7 +185,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If this Field object is enforcing access control (see AccessibleObject)
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -202,7 +198,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public byte getByte(Object object) throws IllegalAccessException,
 														  IllegalArgumentException{
-	 return VMCommonLibrarySupport.getByte(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 return JavaLangReflectSupport.getByte(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -217,7 +213,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If this Field object is enforcing access control (see AccessibleObject)
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -230,17 +226,18 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public char getChar(Object object) throws IllegalAccessException,
 														  IllegalArgumentException {
-	 return VMCommonLibrarySupport.getChar(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 return JavaLangReflectSupport.getChar(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
 	* Return the {@link Class} associated with the class that defined this
 	* field.
-	* 
+	*
 	* @return the declaring class
 	*/
+  @Override
   public Class<?> getDeclaringClass() {
-	 return (Class<?>)vmField.getDeclaringClass().getClassForType();
+	 return vmField.getDeclaringClass().getClassForType();
   }
 
   /**
@@ -255,7 +252,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If this Field object is enforcing access control (see AccessibleObject)
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -268,7 +265,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public double getDouble(Object object)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 return VMCommonLibrarySupport.getDouble(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 return JavaLangReflectSupport.getDouble(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -283,7 +280,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If this Field object is enforcing access control (see AccessibleObject)
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -296,7 +293,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public float getFloat(Object object) throws IllegalAccessException,
 															 IllegalArgumentException {
-	 return VMCommonLibrarySupport.getFloat(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 return JavaLangReflectSupport.getFloat(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -311,7 +308,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If this Field object is enforcing access control (see AccessibleObject)
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -323,7 +320,7 @@ public final class Field extends AccessibleObject implements Member {
 	*             if modeled field is not accessible
 	*/
   public int getInt(Object object) throws IllegalAccessException, IllegalArgumentException {
-    return VMCommonLibrarySupport.getInt(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+    return JavaLangReflectSupport.getInt(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -338,7 +335,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If this Field object is enforcing access control (see AccessibleObject)
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -351,25 +348,27 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public long getLong(Object object) throws IllegalAccessException,
 														  IllegalArgumentException {
-	 return VMCommonLibrarySupport.getLong(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 return JavaLangReflectSupport.getLong(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
 	* Return the modifiers for the modeled field. The Modifier class should be
 	* used to decode the result.
-	* 
+	*
 	* @return the modifiers
 	* @see java.lang.reflect.Modifier
 	*/
+  @Override
   public int getModifiers() {
     return super.getModifiers();
   }
 
   /**
 	* Return the name of the modeled field.
-	* 
+	*
 	* @return the name
 	*/
+  @Override
   public String getName() {
 	 return vmField.getName().toString();
   }
@@ -387,7 +386,7 @@ public final class Field extends AccessibleObject implements Member {
 	* and the modeled field is not accessible from the current context, an
 	* IllegalAccessException is thrown.
 	* <p>
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @return the field value
@@ -400,12 +399,12 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public short getShort(Object object) throws IllegalAccessException,
 															 IllegalArgumentException {
-	 return VMCommonLibrarySupport.getShort(object, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 return JavaLangReflectSupport.getShort(object, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
 	* Return the {@link Class} associated with the type of this field.
-	* 
+	*
 	* @return the type
 	*/
   public Class<?> getType() {
@@ -417,7 +416,7 @@ public final class Field extends AccessibleObject implements Member {
 	* answer the same value for this method.
 	* <p>
 	* The hash code for a Field is the hash code of the field's name.
-	* 
+	*
 	* @return the receiver's hash
 	* @see #equals
 	*/
@@ -443,7 +442,7 @@ public final class Field extends AccessibleObject implements Member {
 	* If the unwrap fails, an IllegalArgumentException is thrown. If the value
 	* cannot be converted to the field type via a widening conversion, an
 	* IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -457,7 +456,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void set(Object object, Object value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.set(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.set(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -475,7 +474,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -489,7 +488,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setBoolean(Object object, boolean value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setBoolean(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setBoolean(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -507,7 +506,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -521,7 +520,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setByte(Object object, byte value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setByte(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setByte(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -539,7 +538,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -553,7 +552,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setChar(Object object, char value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setChar(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setChar(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -571,7 +570,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -585,7 +584,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setDouble(Object object, double value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setDouble(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setDouble(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -603,7 +602,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -617,7 +616,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setFloat(Object object, float value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setFloat(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setFloat(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -635,7 +634,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -649,7 +648,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setInt(Object object, int value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setInt(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setInt(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -667,7 +666,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -681,7 +680,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setLong(Object object, long value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setLong(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setLong(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -699,7 +698,7 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* If the value cannot be converted to the field type via a widening
 	* conversion, an IllegalArgumentException is thrown.
-	* 
+	*
 	* @param object
 	*            the object to access
 	* @param value
@@ -713,7 +712,7 @@ public final class Field extends AccessibleObject implements Member {
 	*/
   public void setShort(Object object, short value)
 	 throws IllegalAccessException, IllegalArgumentException {
-	 VMCommonLibrarySupport.setShort(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
+	 JavaLangReflectSupport.setShort(object, value, vmField, this, RVMClass.getClassFromStackFrame(1));
   }
 
   /**
@@ -731,9 +730,10 @@ public final class Field extends AccessibleObject implements Member {
 	* <p>
 	* For example:
 	* <code>public static java.io.InputStream java.lang.System.in</code>
-	* 
+	*
 	* @return a printable representation for the receiver
 	*/
+  @Override
   public String toString() {
 	 StringBuilder sb = new StringBuilder(80);
 	 // append modifiers if any

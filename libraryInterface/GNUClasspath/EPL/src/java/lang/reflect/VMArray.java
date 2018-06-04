@@ -12,6 +12,8 @@
  */
 package java.lang.reflect;
 
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
+
 /**
  * VM dependent Array operations
  */
@@ -27,6 +29,6 @@ class VMArray {
    */
   static Object createObjectArray(Class<?> cls, int length)
     throws OutOfMemoryError, NegativeArraySizeException {
-    return VMCommonLibrarySupport.createArray(cls, length);
+    return JavaLangReflectSupport.createArray(cls, length);
   }
 }

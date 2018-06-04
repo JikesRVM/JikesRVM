@@ -1,13 +1,13 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,8 @@
 package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.VMCommonLibrarySupport;
 
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
@@ -30,7 +30,7 @@ import org.jikesrvm.runtime.ReflectionBase;
  * This class must be implemented by the VM vendor. This class models a method.
  * Information about the method can be accessed, and the method can be invoked
  * dynamically.
- * 
+ *
  */
 public final class Method extends AccessibleObject implements GenericDeclaration, Member {
     private final RVMMethod vmMethod;
@@ -47,7 +47,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
         invoker = null;
       }
     }
-    
+
     /**
      * Prevent this class from being instantiated
      */
@@ -55,7 +55,8 @@ public final class Method extends AccessibleObject implements GenericDeclaration
       vmMethod = null;
       invoker = null;
     }
-    
+
+    @Override
     public TypeVariable<Method>[] getTypeParameters() {
       throw new Error("TODO");
     }
@@ -65,7 +66,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * Returns the String representation of the method's declaration, including
      * the type parameters.
      * </p>
-     * 
+     *
      * @return An instance of String.
      * @since 1.5
      */
@@ -79,7 +80,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * declaration order. If the method has no parameters, then an empty array
      * is returned.
      * </p>
-     * 
+     *
      * @return An array of {@link Type} instances.
      * @throws GenericSignatureFormatError if the generic method signature is
      *         invalid.
@@ -98,7 +99,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * Gets the exception types as an array of {@link Type} instances. If the
      * method has no declared exceptions, then an empty array is returned.
      * </p>
-     * 
+     *
      * @return An array of {@link Type} instances.
      * @throws GenericSignatureFormatError if the generic method signature is
      *         invalid.
@@ -116,7 +117,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * <p>
      * Gets the return type as a {@link Type} instance.
      * </p>
-     * 
+     *
      * @return A {@link Type} instance.
      * @throws GenericSignatureFormatError if the generic method signature is
      *         invalid.
@@ -137,10 +138,11 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * then an empty array is returned. If there are no annotations set, then
      * and array of empty arrays is returned.
      * </p>
-     * 
+     *
      * @return An array of arrays of {@link Annotation} instances.
      * @since 1.5
      */
+    @Override
     public Annotation[][] getParameterAnnotations() {
       return super.getParameterAnnotations();
     }
@@ -149,11 +151,12 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * <p>
      * Indicates whether or not this method takes a variable number argument.
      * </p>
-     * 
+     *
      * @return A value of <code>true</code> if a vararg is declare, otherwise
      *         <code>false</code>.
      * @since 1.5
      */
+    @Override
     public boolean isVarArgs() {
       return super.isVarArgs();
     }
@@ -162,7 +165,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
      * <p>
      * Indicates whether or not this method is a bridge.
      * </p>
-     * 
+     *
      * @return A value of <code>true</code> if this method's a bridge,
      *         otherwise <code>false</code>.
      * @since 1.5
@@ -171,10 +174,11 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 		return (vmMethod.getModifiers() & Modifier.BRIDGE) != 0;
     }
 
+    @Override
     public boolean isSynthetic() {
 		return super.isSynthetic();
     }
-    
+
     /**
      * <p>Gets the default value for the annotation member represented by
      * this method.</p>
@@ -186,12 +190,12 @@ public final class Method extends AccessibleObject implements GenericDeclaration
     public Object getDefaultValue() {
         return vmMethod.getAnnotationDefault();
     }
-    
+
 	/**
 	 * Compares the specified object to this Method and answer if they are
 	 * equal. The object must be an instance of Method with the same defining
 	 * class and parameter types.
-	 * 
+	 *
 	 * @param object
 	 *            the object to compare
 	 * @return true if the specified object is equal to this Method, false
@@ -211,41 +215,45 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	/**
 	 * Return the {@link Class} associated with the class that defined this
 	 * method.
-	 * 
+	 *
 	 * @return the declaring class
 	 */
-	public Class<?> getDeclaringClass() {
-      return (Class<?>)vmMethod.getDeclaringClass().getClassForType();
+	@Override
+  public Class<?> getDeclaringClass() {
+      return vmMethod.getDeclaringClass().getClassForType();
 	}
 
 	/**
 	 * Return an array of the {@link Class} objects associated with the
 	 * exceptions declared to be thrown by this method. If the method was not
 	 * declared to throw any exceptions, the array returned will be empty.
-	 * 
+	 *
 	 * @return the declared exception classes
 	 */
-	public Class<?>[] getExceptionTypes() {
+	@Override
+  public Class<?>[] getExceptionTypes() {
 		return super.getExceptionTypes();
 	}
 
 	/**
 	 * Return the modifiers for the modeled method. The Modifier class
 	 * should be used to decode the result.
-	 * 
+	 *
 	 * @return the modifiers
 	 * @see java.lang.reflect.Modifier
 	 */
+    @Override
     public int getModifiers() {
 		return super.getModifiers();
 	}
 
 	/**
 	 * Return the name of the modeled method.
-	 * 
+	 *
 	 * @return the name
 	 */
-	public String getName() {
+	@Override
+  public String getName() {
 		return vmMethod.getName().toString();
 	}
 
@@ -253,17 +261,17 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * Return an array of the {@link Class} objects associated with the
 	 * parameter types of this method. If the method was declared with no
 	 * parameters, the array returned will be empty.
-	 * 
+	 *
 	 * @return the parameter types
 	 */
 	public Class<?>[] getParameterTypes() {
-      return VMCommonLibrarySupport.typesToClasses(vmMethod.getParameterTypes());
+      return JavaLangReflectSupport.typesToClasses(vmMethod.getParameterTypes());
 	}
 
 	/**
 	 * Return the {@link Class} associated with the return type of this
 	 * method.
-	 * 
+	 *
 	 * @return the return type
 	 */
 	public Class<?> getReturnType() {
@@ -274,7 +282,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * Answers an integer hash code for the receiver. Objects which are equal
 	 * answer the same value for this method. The hash code for a Method is the
 	 * hash code of the method's name.
-	 * 
+	 *
 	 * @return the receiver's hash
 	 * @see #equals
 	 */
@@ -320,7 +328,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * value is first wrapped. If the return type is void, null is returned.
 	 * </li>
 	 * </ul>
-	 * 
+	 *
 	 * @param receiver
 	 * 	          The object on which to call the modeled method
 	 * @param args
@@ -341,7 +349,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	public Object invoke(Object receiver, Object... args)
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {
-	    return VMCommonLibrarySupport.invoke(receiver, args, vmMethod, this, RVMClass.getClassFromStackFrame(1), invoker);
+	    return JavaLangReflectSupport.invoke(receiver, args, vmMethod, this, RVMClass.getClassFromStackFrame(1), invoker);
 	}
 
 	/**
@@ -351,7 +359,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	 * ',' ')' If the method throws exceptions, ' throws ' exception types,
 	 * separated by ',' For example:
 	 * <code>public native Object java.lang.Method.invoke(Object,Object) throws IllegalAccessException,IllegalArgumentException,InvocationTargetException</code>
-	 * 
+	 *
 	 * @return a printable representation for the receiver
 	 */
 	@Override
@@ -362,7 +370,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	  if (modifier != 0) {
 		 // BRIDGE & VARARGS recognized incorrectly
 		 final int MASK = ~(Modifier.BRIDGE | Modifier.VARARGS);
-		 sb.append(Modifier.toString(modifier & MASK)).append(' ');            
+		 sb.append(Modifier.toString(modifier & MASK)).append(' ');
 	  }
 	  // append return type
 	  appendArrayType(sb, getReturnType());
@@ -374,7 +382,7 @@ public final class Method extends AccessibleObject implements GenericDeclaration
 	  appendArrayType(sb, getParameterTypes());
 	  sb.append(')');
 	  // append exeptions if any
-	  Class[] exn = getExceptionTypes(); 
+	  Class[] exn = getExceptionTypes();
 	  if (exn.length > 0) {
 		 sb.append(" throws ");
 		 appendSimpleType(sb, exn);

@@ -10,19 +10,20 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package java.lang;
+package org.jikesrvm.classlibrary;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
-import org.jikesrvm.classlibrary.common.RVMSystem;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NoInline;
@@ -31,7 +32,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Common utilities for Jikes RVM implementations of the java.lang API
  */
-final class VMCommonLibrarySupport {
+public final class JavaLangSupport {
   /* ---- Non-inlined Exception Throwing Methods --- */
   /**
    * Method just to throw an illegal access exception without being inlined
@@ -47,7 +48,7 @@ final class VMCommonLibrarySupport {
    * Assumption: member is not public.  This trivial case should
    * be approved by the caller without needing to call this method.
    */
-  static void checkAccess(RVMMember member, RVMClass accessingClass) throws IllegalAccessException {
+  public static void checkAccess(RVMMember member, RVMClass accessingClass) throws IllegalAccessException {
     RVMClass declaringClass = member.getDeclaringClass();
     if (member.isPrivate()) {
       // access from the declaringClass is allowed
@@ -89,7 +90,7 @@ final class VMCommonLibrarySupport {
   /**
    * Request GC
    */
-  static void gc() {
+  public static void gc() {
     gcLockSingleton.gc();
   }
 
@@ -103,8 +104,30 @@ final class VMCommonLibrarySupport {
    * @param len amount of elements to copy
    */
   @Entrypoint
-  static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
-    RVMSystem.arraycopy(src, srcPos, dst, dstPos, len);
+  public static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
+    if (src == null || dst == null) {
+      RuntimeEntrypoints.raiseNullPointerException();
+    } else if ((src instanceof char[]) && (dst instanceof char[])) {
+      RVMArray.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
+    } else if ((src instanceof Object[]) && (dst instanceof Object[])) {
+      RVMArray.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
+    } else if ((src instanceof byte[]) && (dst instanceof byte[])) {
+      RVMArray.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
+    } else if ((src instanceof boolean[]) && (dst instanceof boolean[])) {
+      RVMArray.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
+    } else if ((src instanceof short[]) && (dst instanceof short[])) {
+      RVMArray.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
+    } else if ((src instanceof int[]) && (dst instanceof int[])) {
+      RVMArray.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
+    } else if ((src instanceof long[]) && (dst instanceof long[])) {
+      RVMArray.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
+    } else if ((src instanceof float[]) && (dst instanceof float[])) {
+      RVMArray.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
+    } else if ((src instanceof double[]) && (dst instanceof double[])) {
+      RVMArray.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
+    } else {
+      RuntimeEntrypoints.raiseArrayStoreException();
+    }
   }
 
   /**
@@ -112,7 +135,7 @@ final class VMCommonLibrarySupport {
    * @param fieldName name of field to set
    * @param stream value
    */
-  static void setSystemStreamField(String fieldName, Object stream) {
+  public static void setSystemStreamField(String fieldName, Object stream) {
     try {
       RVMField field = ((RVMClass)JikesRVMSupport.getTypeForClass(System.class))
         .findDeclaredField(Atom.findOrCreateUnicodeAtom(fieldName));
@@ -128,7 +151,7 @@ final class VMCommonLibrarySupport {
    * @param libname name of library without any prefix or suffix
    * @return complete name of library
    */
-  static String mapLibraryName(String libname) {
+  public static String mapLibraryName(String libname) {
     String libSuffix;
     if (VM.BuildForLinux || VM.BuildForSolaris) {
       libSuffix = ".so";
@@ -142,7 +165,7 @@ final class VMCommonLibrarySupport {
   /**
    * Get the value of an environment variable.
    */
-  static String getenv(String envarName) {
+  public static String getenv(String envarName) {
     byte[] buf = new byte[128]; // Modest amount of space for starters.
 
     byte[] nameBytes = envarName.getBytes();

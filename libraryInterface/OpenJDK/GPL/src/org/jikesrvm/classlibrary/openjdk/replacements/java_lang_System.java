@@ -13,7 +13,7 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classlibrary.common.RVMSystem;
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
@@ -32,7 +32,7 @@ public class java_lang_System {
 
   @ReplaceMember
   public static void arraycopy(Object src,  int  srcPos, Object dest, int destPos, int length) {
-    RVMSystem.arraycopy(src, srcPos, dest, destPos, length);
+    JavaLangSupport.arraycopy(src, srcPos, dest, destPos, length);
   }
 
 }

@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.MethodReference;
@@ -939,7 +940,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     // Check that caller is allowed to access it
     if (!defaultConstructor.isPublic()) {
       RVMClass accessingClass = RVMClass.getClassFromStackFrame(1);
-      VMCommonLibrarySupport.checkAccess(defaultConstructor, accessingClass);
+      JavaLangSupport.checkAccess(defaultConstructor, accessingClass);
     }
 
     // Allocate an uninitialized instance;

@@ -1,13 +1,13 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,8 @@
 
 package java.lang.reflect;
 
-import java.lang.reflect.VMCommonLibrarySupport;
 
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 /**
@@ -26,7 +26,7 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
  * to dynamically create and access arrays.
  */
 public final class Array {
-    
+
   /**
 	* Prevent this class from being instantiated
 	*/
@@ -38,7 +38,7 @@ public final class Array {
 	* Return the element of the array at the specified index. This reproduces
 	* the effect of <code>array[index]</code> If the array component is a
 	* base type, the result is automatically wrapped.
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -89,7 +89,7 @@ public final class Array {
 	* Return the element of the array at the specified index, converted to a
 	* boolean if possible. This reproduces the effect of
 	* <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -116,7 +116,7 @@ public final class Array {
   /**
 	* Return the element of the array at the specified index, converted to a
 	* byte if possible. This reproduces the effect of <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -143,7 +143,7 @@ public final class Array {
   /**
 	* Return the element of the array at the specified index, converted to a
 	* char if possible. This reproduces the effect of <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -171,7 +171,7 @@ public final class Array {
 	* Return the element of the array at the specified index, converted to a
 	* double if possible. This reproduces the effect of
 	* <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -198,7 +198,7 @@ public final class Array {
 	* Return the element of the array at the specified index, converted to a
 	* float if possible. This reproduces the effect of
 	* <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -224,7 +224,7 @@ public final class Array {
   /**
 	* Return the element of the array at the specified index, converted to an
 	* int if possible. This reproduces the effect of <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -253,7 +253,7 @@ public final class Array {
   /**
 	* Return the length of the array. This reproduces the effect of
 	* <code>array.length</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @return the length
@@ -298,7 +298,7 @@ public final class Array {
   /**
 	* Return the element of the array at the specified index, converted to a
 	* long if possible. This reproduces the effect of <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -325,7 +325,7 @@ public final class Array {
 	* Return the element of the array at the specified index, converted to a
 	* short if possible. This reproduces the effect of
 	* <code>array[index]</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -353,7 +353,7 @@ public final class Array {
 	* dimensions. This reproduces the effect of
 	* <code>new componentType[d0][d1]...[dn]</code> for a dimensions array of {
 	* d0, d1, ... , dn }
-	* 
+	*
 	* @param componentType
 	*            the component type of the new array
 	* @param dimensions
@@ -370,13 +370,13 @@ public final class Array {
 	*/
   public static Object newInstance(Class<?> componentType, int[] dimensions)
 	 throws NegativeArraySizeException, IllegalArgumentException {
-    return VMCommonLibrarySupport.createArray(componentType, dimensions);
+    return JavaLangReflectSupport.createArray(componentType, dimensions);
   }
 
   /**
 	* Return a new array of the specified component type and length. This
 	* reproduces the effect of <code>new componentType[size]</code>
-	* 
+	*
 	* @param componentType
 	*            the component type of the new array
 	* @param size
@@ -389,14 +389,14 @@ public final class Array {
 	*/
   public static Object newInstance(Class<?> componentType, int size)
 	 throws NegativeArraySizeException {
-    return VMCommonLibrarySupport.createArray(componentType, size);
+    return JavaLangReflectSupport.createArray(componentType, size);
   }
 
   /**
 	* Set the element of the array at the specified index to the value. This
 	* reproduces the effect of <code>array[index] = value</code> If the array
 	* component is a base type, the value is automatically unwrapped
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -417,7 +417,7 @@ public final class Array {
 	 if (array == null) {
 		throw new NullPointerException();
 	 }
-       
+
 	 try {
 		((Object[])array)[index] = value;
 		return;
@@ -459,7 +459,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the boolean value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -487,7 +487,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the byte value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -515,7 +515,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the char value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -543,7 +543,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the double value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -571,7 +571,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the float value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -599,7 +599,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the int value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -627,7 +627,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the long value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index
@@ -655,7 +655,7 @@ public final class Array {
   /**
 	* Set the element of the array at the specified index to the short value.
 	* This reproduces the effect of <code>array[index] = value</code>
-	* 
+	*
 	* @param array
 	*            the array
 	* @param index

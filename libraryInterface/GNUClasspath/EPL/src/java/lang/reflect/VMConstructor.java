@@ -14,6 +14,7 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
@@ -59,7 +60,7 @@ final class VMConstructor {
     if (exceptionTypes == null) {
       return new Class[0];
     } else {
-      return VMCommonLibrarySupport.typesToClasses(exceptionTypes);
+      return JavaLangReflectSupport.typesToClasses(exceptionTypes);
     }
   }
 
@@ -72,14 +73,14 @@ final class VMConstructor {
   }
 
   Class<?>[] getParameterTypes() {
-    return VMCommonLibrarySupport.typesToClasses(constructor.getParameterTypes());
+    return JavaLangReflectSupport.typesToClasses(constructor.getParameterTypes());
   }
 
   Object construct(Object[] args, Constructor<?> cons) throws InstantiationException,
                 IllegalAccessException,
                 IllegalArgumentException,
                 InvocationTargetException {
-    return VMCommonLibrarySupport.construct(constructor, cons, args, RVMClass.getClassFromStackFrame(2), invoker);
+    return JavaLangReflectSupport.construct(constructor, cons, args, RVMClass.getClassFromStackFrame(2), invoker);
   }
 
   String getSignature() {

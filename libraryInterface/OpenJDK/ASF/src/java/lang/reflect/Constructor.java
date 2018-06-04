@@ -1,13 +1,13 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,17 +22,16 @@ import java.lang.annotation.Annotation;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.ReflectionBase;
-import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 
 /**
  * This class must be implemented by the VM vendor. This class models a
  * constructor. Information about the constructor can be accessed, and the
  * constructor can be invoked dynamically.
- * 
+ *
  */
 public final class Constructor<T> extends AccessibleObject implements GenericDeclaration, Member {
   /**
@@ -66,6 +65,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	 invoker = null;
   }
 
+  @Override
   public TypeVariable<Constructor<T>>[] getTypeParameters() {
         VM.sysWriteln("xxxx getTypeParameters is called");
 	 throw new Error("TODO");
@@ -76,7 +76,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* Returns the String representation of the constructor's declaration,
 	* including the type parameters.
 	* </p>
-	* 
+	*
 	* @return An instance of String.
 	* @since 1.5
 	*/
@@ -91,7 +91,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* declaration order. If the constructor has no parameters, then an empty
 	* array is returned.
 	* </p>
-	* 
+	*
 	* @return An array of {@link Type} instances.
 	* @throws GenericSignatureFormatError if the generic method signature is
 	*         invalid.
@@ -111,7 +111,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* Gets the exception types as an array of {@link Type} instances. If the
 	* constructor has no declared exceptions, then an empty array is returned.
 	* </p>
-	* 
+	*
 	* @return An array of {@link Type} instances.
 	* @throws GenericSignatureFormatError if the generic method signature is
 	*         invalid.
@@ -133,10 +133,11 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* constructor, then an empty array is returned. If there are no annotations
 	* set, then and array of empty arrays is returned.
 	* </p>
-	* 
+	*
 	* @return An array of arrays of {@link Annotation} instances.
 	* @since 1.5
 	*/
+  @Override
   public Annotation[][] getParameterAnnotations() {
 	 return super.getParameterAnnotations();
   }
@@ -146,15 +147,17 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* Indicates whether or not this constructor takes a variable number
 	* argument.
 	* </p>
-	* 
+	*
 	* @return A value of <code>true</code> if a vararg is declare, otherwise
 	*         <code>false</code>.
 	* @since 1.5
 	*/
+  @Override
   public boolean isVarArgs() {
 	 return super.isVarArgs();
   }
 
+  @Override
   public boolean isSynthetic() {
 	 return super.isSynthetic();
   }
@@ -163,7 +166,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* Compares the specified object to this Constructor and answer if they are
 	* equal. The object must be an instance of Constructor with the same
 	* defining class and parameter types.
-	* 
+	*
 	* @param object the object to compare
 	* @return true if the specified object is equal to this Constructor, false
 	*         otherwise
@@ -182,9 +185,10 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
   /**
 	* Return the {@link Class} associated with the class that defined this
 	* constructor.
-	* 
+	*
 	* @return the declaring class
 	*/
+  @Override
   public Class<T> getDeclaringClass() {
 	 return (Class<T>)vmConstructor.getDeclaringClass().getClassForType();
   }
@@ -194,9 +198,10 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* exceptions declared to be thrown by this constructor. If the constructor
 	* was not declared to throw any exceptions, the array returned will be
 	* empty.
-	* 
+	*
 	* @return the declared exception classes
 	*/
+  @Override
   public Class<?>[] getExceptionTypes() {
 	 return super.getExceptionTypes();
   }
@@ -204,10 +209,11 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
   /**
 	* Return the modifiers for the modeled constructor. The Modifier class
 	* should be used to decode the result.
-	* 
+	*
 	* @return the modifiers
 	* @see java.lang.reflect.Modifier
 	*/
+  @Override
   public int getModifiers() {
 	 return super.getModifiers();
   }
@@ -215,9 +221,10 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
   /**
 	* Return the name of the modeled constructor. This is the name of the
 	* declaring class.
-	* 
+	*
 	* @return the name
 	*/
+  @Override
   public String getName() {
 	 return getDeclaringClass().getName();
   }
@@ -226,18 +233,18 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* Return an array of the {@link Class} objects associated with the
 	* parameter types of this constructor. If the constructor was declared with
 	* no parameters, the array returned will be empty.
-	* 
+	*
 	* @return the parameter types
 	*/
   public Class<?>[] getParameterTypes() {
-	 return VMCommonLibrarySupport.typesToClasses(vmConstructor.getParameterTypes());
+	 return JavaLangReflectSupport.typesToClasses(vmConstructor.getParameterTypes());
   }
 
   /**
 	* Answers an integer hash code for the receiver. Objects which are equal
 	* answer the same value for this method. The hash code for a Constructor is
 	* the hash code of the declaring class' name.
-	* 
+	*
 	* @return the receiver's hash
 	* @see #equals
 	*/
@@ -273,7 +280,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* InvocationTargetException. This exception is then thrown. If the
 	* invocation completes normally, the newly initialized object is returned.
 	* </ul>
-	* 
+	*
 	* @param args the arguments to the constructor
 	* @return the new, initialized, object
 	* @exception java.lang.InstantiationException if the class cannot be
@@ -289,7 +296,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	*/
   public T newInstance(Object... args) throws InstantiationException, IllegalAccessException,
 															 IllegalArgumentException, InvocationTargetException {
-	 return (T)VMCommonLibrarySupport.construct(vmConstructor, this, args, RVMClass.getClassFromStackFrame(1), invoker);
+	 return (T)JavaLangReflectSupport.construct(vmConstructor, this, args, RVMClass.getClassFromStackFrame(1), invoker);
   }
 
   /**
@@ -298,7 +305,7 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	* name '(' parameter types, separated by ',' ')' If the constructor throws
 	* exceptions, ' throws ' exception types, separated by ',' For example:
 	* <code>public String(byte[],String) throws UnsupportedEncodingException</code>
-	* 
+	*
 	* @return a printable representation for the receiver
 	*/
   @Override
@@ -308,8 +315,8 @@ public final class Constructor<T> extends AccessibleObject implements GenericDec
 	 int modifier = getModifiers();
 	 if (modifier != 0) {
 		// VARARGS incorrectly recognized
-		final int MASK = ~Modifier.VARARGS;  
-		sb.append(Modifier.toString(modifier & MASK)).append(' ');            
+		final int MASK = ~Modifier.VARARGS;
+		sb.append(Modifier.toString(modifier & MASK)).append(' ');
 	 }
 	 // append constructor name
 	 appendArrayType(sb, getDeclaringClass());
