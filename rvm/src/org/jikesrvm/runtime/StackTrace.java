@@ -728,5 +728,26 @@ public class StackTrace {
     return buildStackTrace(first, last);
   }
 
+  /**
+   * Converts a series of Jikes RVM internal stack trace elements to a series of stack
+   * trace elements of the Java API.
+   *
+   * @param vmElements a non-{@code null} array of stack elemetns
+   * @return a possibly empty array of stack trace elements
+   */
+  public static StackTraceElement[] convertToJavaClassLibraryStackTrace(
+      Element[] vmElements) {
+    StackTraceElement[] elements = new StackTraceElement[vmElements.length];
+    for (int i = 0; i < vmElements.length; i++) {
+      Element vmElement = vmElements[i];
+      String fileName = vmElement.getFileName();
+      int lineNumber = vmElement.getLineNumber();
+      String className = vmElement.getClassName();
+      String methodName = vmElement.getMethodName();
+      elements[i] = new StackTraceElement(className, methodName, fileName, lineNumber);
+    }
+    return elements;
+  }
+
 }
 

@@ -81,7 +81,7 @@ public final class VMThrowable {
     }
     if (VM.fullyBooted) {
       try {
-        return JikesRVMStackTraceSupport.convertToJavaClassLibraryStackTrace(vmElements);
+        return StackTrace.convertToJavaClassLibraryStackTrace(vmElements);
       } catch (Throwable t) {
         VM.sysWriteln("Error constructing StackTraceElements: dumping stack");
       }
