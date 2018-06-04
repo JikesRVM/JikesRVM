@@ -12,7 +12,7 @@
  */
 package java.lang;
 
-import static java.lang.VMCommonLibrarySupport.stackSizeFromAPIToJikesRVM;
+import static org.jikesrvm.classlibrary.JavaLangSupport.stackSizeFromAPIToJikesRVM;
 
 import org.jikesrvm.scheduler.RVMThread;
 

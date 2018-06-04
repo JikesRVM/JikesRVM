@@ -17,6 +17,7 @@ import java.io.PrintStream;
 import java.util.List;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Time;
 
@@ -26,7 +27,7 @@ import org.jikesrvm.runtime.Time;
 public final class VMSystem {
 
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
-    VMCommonLibrarySupport.arraycopy(src, srcPos, dst, dstPos, len);
+    JavaLangSupport.arraycopy(src, srcPos, dst, dstPos, len);
   }
 
   static int identityHashCode(Object o) {
@@ -46,15 +47,15 @@ public final class VMSystem {
   }
 
   static void setIn(InputStream in) {
-    VMCommonLibrarySupport.setSystemStreamField("in", in);
+    JavaLangSupport.setSystemStreamField("in", in);
   }
 
   static void setOut(PrintStream out) {
-    VMCommonLibrarySupport.setSystemStreamField("out", out);
+    JavaLangSupport.setSystemStreamField("out", out);
   }
 
   static void setErr(PrintStream err) {
-    VMCommonLibrarySupport.setSystemStreamField("err", err);
+    JavaLangSupport.setSystemStreamField("err", err);
   }
 
   static InputStream makeStandardInputStream() {
@@ -73,7 +74,7 @@ public final class VMSystem {
    * Get the value of an environment variable.
    */
   static String getenv(String envarName) {
-    return VMCommonLibrarySupport.getenv(envarName);
+    return JavaLangSupport.getenv(envarName);
   }
 
   static native List<?> environ();

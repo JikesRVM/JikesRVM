@@ -101,7 +101,7 @@ public class Entrypoints {
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
 
 
-  public static final RVMField gcLockField = getField("Ljava/lang/VMCommonLibrarySupport$GCLock;", "gcLock", int.class);
+  public static final RVMField gcLockField = getField("Lorg/jikesrvm/classlibrary/JavaLangSupport$GCLock;", "gcLock", int.class);
 
   public static final NormalMethod invokeInterfaceMethod =
       getMethod(org.jikesrvm.classloader.InterfaceInvocation.class,
@@ -524,7 +524,7 @@ public class Entrypoints {
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptLinker.class, "newArrayArray", "(I[II)Ljava/lang/Object;");
       optNew2DArrayMethod =
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptLinker.class, "new2DArray", "(IIII)Ljava/lang/Object;");
-      sysArrayCopy = getMethod("Ljava/lang/VMCommonLibrarySupport;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+      sysArrayCopy = getMethod("Lorg/jikesrvm/classlibrary/JavaLangSupport;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
       sysArrayCopy.setRuntimeServiceMethod(false);
     } else {
       specializedMethodsField = null;

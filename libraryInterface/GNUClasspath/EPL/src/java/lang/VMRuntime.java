@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.jikesrvm.*;
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.UnimplementedError;
@@ -48,7 +49,7 @@ public final class VMRuntime {
   }
 
   static void gc() {
-    VMCommonLibrarySupport.gc();
+    JavaLangSupport.gc();
   }
 
   static void runFinalization() {
@@ -94,7 +95,7 @@ public final class VMRuntime {
    * dynamically loadable library.
    */
   static String mapLibraryName(String libname) {
-    return VMCommonLibrarySupport.mapLibraryName(libname);
+    return JavaLangSupport.mapLibraryName(libname);
   }
 
   static Process exec(String[] cmd, String[] env, File dir)

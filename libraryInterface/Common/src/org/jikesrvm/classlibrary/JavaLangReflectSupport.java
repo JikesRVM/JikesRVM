@@ -10,7 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package java.lang.reflect;
+package org.jikesrvm.classlibrary;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
@@ -32,7 +37,7 @@ import org.vmmagic.pragma.Pure;
 /**
  * Common utilities for Jikes RVM implementations of the java.lang.reflect API
  */
-final class VMCommonLibrarySupport {
+public final class JavaLangReflectSupport {
   /* ---- Non-inlined Exception Throwing Methods --- */
   /**
    * Method just to throw an illegal argument exception without being inlined
@@ -94,7 +99,7 @@ final class VMCommonLibrarySupport {
    * @throws NegativeArraySizeException if dim is negative
    * @throws OutOfMemoryError if memory allocation fails
    */
-  static Object createArray(Class<?> cls, int length)
+  public static Object createArray(Class<?> cls, int length)
     throws OutOfMemoryError, NegativeArraySizeException {
 
     if (cls == Void.TYPE)
@@ -164,7 +169,7 @@ final class VMCommonLibrarySupport {
   }
   /* ---- Reflective Method Invocation Support ---- */
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static Object invoke(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass, ReflectionBase invoker)
+  public static Object invoke(Object receiver, Object[] args, RVMMethod method, Method jlrMethod, RVMClass accessingClass, ReflectionBase invoker)
       throws IllegalAccessException, IllegalArgumentException,
       ExceptionInInitializerError, InvocationTargetException {
     // validate number and types of arguments
@@ -410,7 +415,7 @@ final class VMCommonLibrarySupport {
    * Construct an object from the given constructor args, called from the accessing class
    */
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {0})
-  static Object construct(RVMMethod constructor, Constructor<?> cons, Object[] args, RVMClass accessingClass, ReflectionBase invoker)
+  public static Object construct(RVMMethod constructor, Constructor<?> cons, Object[] args, RVMClass accessingClass, ReflectionBase invoker)
   throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !cons.isAccessible()) {
@@ -442,7 +447,7 @@ final class VMCommonLibrarySupport {
   /**
    * Convert from "VM" type system to "JDK" type system.
    */
-  static Class<?>[] typesToClasses(TypeReference[] types) {
+  public static Class<?>[] typesToClasses(TypeReference[] types) {
     Class<?>[] classes = new Class[types.length];
     for (int i = 0; i < types.length; i++) {
       classes[i] = types[i].resolve().getClassForType();
@@ -521,7 +526,7 @@ final class VMCommonLibrarySupport {
    * @throws IllegalArgumentException
    */
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static Object get(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static Object get(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
 
     if (field.isReferenceType()) {
@@ -549,7 +554,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static boolean getBoolean(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static boolean getBoolean(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (!type.isBooleanType()) throwNewIllegalArgumentException("field type mismatch");
@@ -557,7 +562,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static byte getByte(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static byte getByte(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (!type.isByteType()) throwNewIllegalArgumentException("field type mismatch");
@@ -565,7 +570,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static char getChar(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static char getChar(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (!type.isCharType()) throwNewIllegalArgumentException("field type mismatch");
@@ -573,7 +578,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static double getDouble(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static double getDouble(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (type.isDoubleType()) {
@@ -597,7 +602,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static float getFloat(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static float getFloat(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (type.isFloatType()) {
@@ -619,7 +624,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static int getInt(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static int getInt(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (type.isIntType()) {
@@ -637,7 +642,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static long getLong(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static long getLong(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (type.isLongType()) {
@@ -657,7 +662,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {1})
-  static short getShort(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
+  public static short getShort(Object object, RVMField field, Field jlrField, RVMClass accessingClass) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object, field, jlrField, accessingClass);
     TypeReference type = field.getType();
     if (type.isShortType()) {
@@ -671,7 +676,7 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void set(Object object, Object value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void set(Object object, Object value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object, field, jlrField, accessingClass);
 
@@ -712,56 +717,56 @@ final class VMCommonLibrarySupport {
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setBoolean(Object object, boolean value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setBoolean(Object object, boolean value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setBooleanInternal(object, value, field);
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setByte(Object object, byte value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setByte(Object object, byte value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setByteInternal(object, value, field);
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setChar(Object object, char value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setChar(Object object, char value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setCharInternal(object, value, field);
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setDouble(Object object, double value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setDouble(Object object, double value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setDoubleInternal(object, value, field);
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setFloat(Object object, float value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setFloat(Object object, float value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setFloatInternal(object, value, field);
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setInt(Object object, int value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setInt(Object object, int value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setIntInternal(object, value, field);
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setLong(Object object, long value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setLong(Object object, long value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setLongInternal(object, value, field);
   }
 
   @Inline(value = Inline.When.ArgumentsAreConstant, arguments = {2})
-  static void setShort(Object object, short value, RVMField field, Field jlrField, RVMClass accessingClass)
+  public static void setShort(Object object, short value, RVMField field, Field jlrField, RVMClass accessingClass)
   throws IllegalAccessException, IllegalArgumentException   {
     checkWriteAccess(object, field, jlrField, accessingClass);
     setShortInternal(object, value, field);

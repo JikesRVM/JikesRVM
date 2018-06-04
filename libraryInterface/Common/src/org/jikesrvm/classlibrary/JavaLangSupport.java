@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package java.lang;
+package org.jikesrvm.classlibrary;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Common utilities for Jikes RVM implementations of the java.lang API
  */
-final class VMCommonLibrarySupport {
+public final class JavaLangSupport {
   /* ---- Non-inlined Exception Throwing Methods --- */
   /**
    * Method just to throw an illegal access exception without being inlined
@@ -48,7 +48,7 @@ final class VMCommonLibrarySupport {
    * Assumption: member is not public.  This trivial case should
    * be approved by the caller without needing to call this method.
    */
-  static void checkAccess(RVMMember member, RVMClass accessingClass) throws IllegalAccessException {
+  public static void checkAccess(RVMMember member, RVMClass accessingClass) throws IllegalAccessException {
     RVMClass declaringClass = member.getDeclaringClass();
     if (member.isPrivate()) {
       // access from the declaringClass is allowed
@@ -90,7 +90,7 @@ final class VMCommonLibrarySupport {
   /**
    * Request GC
    */
-  static void gc() {
+  public static void gc() {
     gcLockSingleton.gc();
   }
 
@@ -104,7 +104,7 @@ final class VMCommonLibrarySupport {
    * @param len amount of elements to copy
    */
   @Entrypoint
-  static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
+  public static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (src == null || dst == null) {
       RuntimeEntrypoints.raiseNullPointerException();
     } else if ((src instanceof char[]) && (dst instanceof char[])) {
@@ -135,7 +135,7 @@ final class VMCommonLibrarySupport {
    * @param fieldName name of field to set
    * @param stream value
    */
-  static void setSystemStreamField(String fieldName, Object stream) {
+  public static void setSystemStreamField(String fieldName, Object stream) {
     try {
       RVMField field = ((RVMClass)JikesRVMSupport.getTypeForClass(System.class))
         .findDeclaredField(Atom.findOrCreateUnicodeAtom(fieldName));
@@ -151,7 +151,7 @@ final class VMCommonLibrarySupport {
    * @param libname name of library without any prefix or suffix
    * @return complete name of library
    */
-  static String mapLibraryName(String libname) {
+  public static String mapLibraryName(String libname) {
     String libSuffix;
     if (VM.BuildForLinux || VM.BuildForSolaris) {
       libSuffix = ".so";
@@ -165,7 +165,7 @@ final class VMCommonLibrarySupport {
   /**
    * Get the value of an environment variable.
    */
-  static String getenv(String envarName) {
+  public static String getenv(String envarName) {
     byte[] buf = new byte[128]; // Modest amount of space for starters.
 
     byte[] nameBytes = envarName.getBytes();
