@@ -13,20 +13,39 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.StackBrowser;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
 @ReplaceClass(className = "sun.reflect.Reflection")
 public class sun_reflect_Reflection {
 
+  private static final boolean DEBUG_GET_CALLER_CLASS = false;
+
   @ReplaceMember
   public static Class<?> getCallerClass() {
-    VM.sysFail("getCallerClass");
-    // TODO implement this. This can probably be done using StackBrowser.
-    // TODO Evaluate whether we should copy functionality from our
-    // VMStackWalker implementation from GNU Classpath and/or make changes
-    // to StackBrowser.
-    return null;
+    StackBrowser b = new StackBrowser();
+    VM.disableGC();
+
+    b.init();
+    b.up(); // skip sun.reflect.Reflection.getCallerClass (this call)
+
+    /* Skip Method.invoke, (if the caller was called by reflection) */
+    if (b.currentMethodIs_Java_Lang_Reflect_Method_InvokeMethod()) {
+      b.up();
+    }
+
+    RVMType ret = b.getCurrentClass();
+    VM.enableGC();
+
+    Class<?> clazz = ret.getClassForType();
+    if (DEBUG_GET_CALLER_CLASS) {
+      VM.sysWriteln("Returning caller class " + clazz + " for stack:");
+      RVMThread.dumpStack();
+    }
+    return clazz;
   }
 
 }
