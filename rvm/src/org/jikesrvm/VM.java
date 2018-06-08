@@ -326,6 +326,7 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Booting Lock");
     Lock.boot();
 
+    if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
     DynamicLibrary.boot();
     if (VM.BuildForOpenJDK) {
       System.loadLibrary("jvm");

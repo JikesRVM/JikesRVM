@@ -22,30 +22,7 @@ public class java_lang_Class {
 
   @ReplaceMember
   static Class<?> getPrimitiveClass(String className) {
-    TypeReference typeRef = null;
-    // TODO extract mapping of primitive type name to typeReference to extra
-    // method in TypeReference. This can't be done on the OpenJDK branch
-    // because a unit test for that would require executing on a built image
-    // which doesn't yet work for OpenJDK.
-    if (className.equals("int")) {
-      typeRef = TypeReference.Int;
-    } else if (className.equals("boolean")) {
-      typeRef = TypeReference.Boolean;
-    } else if (className.equals("byte")) {
-      typeRef = TypeReference.Byte;
-    } else if (className.equals("char")) {
-      typeRef = TypeReference.Char;
-    } else if (className.equals("double")) {
-      typeRef = TypeReference.Double;
-    } else if (className.equals("float")) {
-      typeRef = TypeReference.Float;
-    } else if (className.equals("long")) {
-      typeRef = TypeReference.Long;
-    } else if (className.equals("short")) {
-      typeRef = TypeReference.Short;
-    } else if (className.equals("void")) {
-      typeRef = TypeReference.Void;
-    }
+    TypeReference typeRef = TypeReference.mapPrimitiveClassNameToTypeReference(className);
     if (typeRef != null) {
       return typeRef.resolve().getClassForType();
     }
