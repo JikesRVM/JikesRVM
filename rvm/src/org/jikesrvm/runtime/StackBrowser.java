@@ -167,4 +167,8 @@ public final class StackBrowser {
   public int getInlineEncodingIndex() {
     return currentInlineEncodingIndex;
   }
+
+  public boolean currentMethodIs_Java_Lang_Reflect_Method_InvokeMethod() {
+    return currentMethod == Entrypoints.java_lang_reflect_Method_invokeMethod;
+  }
 }
