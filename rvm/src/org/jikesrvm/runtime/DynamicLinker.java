@@ -61,6 +61,9 @@ public class DynamicLinker {
   static void unimplementedNativeMethod() {
     DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     RVMMethod targMethod = DL_Helper.resolveMethodRef(dl);
+    if (!VM.fullyBooted) {
+      VM.sysWriteln("Unimplemented native method: " + targMethod);
+    }
     throw new UnsatisfiedLinkError(targMethod.toString());
   }
 
