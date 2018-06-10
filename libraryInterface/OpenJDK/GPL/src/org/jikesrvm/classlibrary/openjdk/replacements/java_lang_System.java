@@ -40,4 +40,9 @@ public class java_lang_System {
     return JavaLangSupport.identityHashCode(obj);
   }
 
+  @ReplaceMember
+  public static String mapLibraryName(String libname) {
+    return JavaLangSupport.mapLibraryName(libname);
+  }
+
 }
