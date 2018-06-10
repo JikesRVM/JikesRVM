@@ -282,3 +282,4 @@ Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;
 #Ljava/util/concurrent/locks/ReentrantLock$NonfairSync;
 #Ljava/util/concurrent/locks/ReentrantLock$Sync;
 Ljava/lang/UnsatisfiedLinkError;
+Ljava/lang/OutOfMemoryError;
