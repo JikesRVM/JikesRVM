@@ -19,6 +19,7 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSFAIL;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
 import org.jikesrvm.architecture.StackFrameLayout;
+import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.JMXSupport;
@@ -341,13 +342,23 @@ public class VM extends Properties {
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
+
+    ThreadGroup mainThreadGroup = null;
+    if (VM.BuildForOpenJDK) {
+      // Create initial thread group. This has to be done before creating other threads.
+      ThreadGroup systemThreadGroup = ClassLibraryHelpers.allocateObjectForClassAndRunNoArgConstructor(ThreadGroup.class);
+      RVMThread.setThreadGroupForSystemThreads(systemThreadGroup);
+      // We'll need the main group later for the first application thread.
+      mainThreadGroup = new ThreadGroup(systemThreadGroup, "main");
+    }
+    // Early set-up for the boot thread is required for OpenJDK.
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
+    RVMThread.getCurrentThread().setupBootJavaThread();
+
     RVMThread.boot();
 
     if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
     MemoryManager.enableCollection();
-
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
-    RVMThread.getCurrentThread().setupBootJavaThread();
 
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyluni");
@@ -605,7 +616,7 @@ public class VM extends Properties {
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
-    mainThread = new MainThread(applicationArguments);
+    mainThread = new MainThread(applicationArguments, mainThreadGroup);
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");

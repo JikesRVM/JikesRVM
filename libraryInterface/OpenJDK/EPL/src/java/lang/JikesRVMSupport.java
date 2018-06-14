@@ -16,6 +16,7 @@ import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.lang.instrument.Instrumentation;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.RVMField;
@@ -106,7 +107,14 @@ public class JikesRVMSupport {
    * Thread stuff
    * */
   public static synchronized Thread createThread(RVMThread vmdata, String myName) {
-    Thread thread = new Thread(myName);
+    ThreadGroup tg = null;
+    if (vmdata.isSystemThread()) {
+      tg = RVMThread.getThreadGroupForSystemThreads();
+    } else if (vmdata.getJavaLangThread() != null) {
+      tg = vmdata.getJavaLangThread().getThreadGroup();
+    }
+    if (VM.VerifyAssertions) VM._assert(tg != null);
+    Thread thread = new Thread(tg, myName);
     threadMap.put(thread, vmdata);
     return thread;
   }
@@ -120,6 +128,14 @@ public class JikesRVMSupport {
 
   public static void threadDied(Thread thread) {
     threadMap.remove(thread);
+    ThreadGroup threadGroup = thread.getThreadGroup();
+    if (threadGroup != null) {
+      threadGroup.remove(thread);
+    } else {
+      if (VM.VerifyAssertions) {
+        VM._assert(threadGroup != null, "Every thread must have a threadGroup in OpenJDK");
+      }
+    }
   }
   public static Throwable getStillBorn(Thread thread) {
     return null;

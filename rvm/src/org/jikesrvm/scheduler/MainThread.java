@@ -46,9 +46,10 @@ public final class MainThread extends Thread {
    * Create "main" thread.
    * @param args {@code args[0]}: name of class containing "main" method;
    *  {@code args[1..N]}: parameters to pass to "main" method
+   * @param threadGroup thread group for the main thread
    */
-  public MainThread(String[] args) {
-    super("MainThread");
+  public MainThread(String[] args, ThreadGroup threadGroup) {
+    super(threadGroup, "MainThread");
     setDaemon(false); // NB otherwise we inherit the boot threads daemon status
     this.agents = CommandLineArgs.getJavaAgentArgs();
     this.args = args;

@@ -2645,8 +2645,13 @@ public final class RVMThread extends ThreadContext {
    */
   @Interruptible
   public void setupBootJavaThread() {
-    thread = java.lang.JikesRVMSupport.createThread(this,
-        "Jikes_RVM_Boot_Thread");
+    if (VM.BuildForOpenJDK) {
+      // Use a fake thread to get through the constructor calls
+      Thread fakeThread = (Thread) RuntimeEntrypoints.resolvedNewScalar(JikesRVMSupport.getTypeForClass(Thread.class).asClass());
+      thread = fakeThread;
+    }
+    // Create the real thread
+    thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RVM_Boot_Thread");
   }
 
   /**
@@ -4572,6 +4577,17 @@ public final class RVMThread extends ThreadContext {
     Memory.memcopy(newFP, myFP, myDepth.toWord().toExtent());
 
     return newFP.diff(myFP);
+  }
+
+  private static ThreadGroup systemThreadGroup;
+
+  public static void setThreadGroupForSystemThreads(
+      ThreadGroup systemThreadGroup) {
+        RVMThread.systemThreadGroup = systemThreadGroup;
+  }
+
+  public static ThreadGroup getThreadGroupForSystemThreads() {
+    return RVMThread.systemThreadGroup;
   }
 
   /**
