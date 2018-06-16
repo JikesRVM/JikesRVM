@@ -19,10 +19,8 @@ import java.util.HashMap;
 import org.jikesrvm.mm.mminterface.Selected.Plan;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Conversions;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.Stats;
-import org.vmmagic.unboxed.Extent;
 
 /**
  * Provides methods supporting all JMX beans that relate to memory. Functionality
@@ -129,42 +127,22 @@ public class JMXSupport {
     return pools.get(poolName) != null;
   }
 
-  public static long getReservedBytes(Space space) {
-    int reservedPages = space.reservedPages();
-    return Conversions.pagesToBytes(reservedPages).toLong();
-  }
-
-  public static long getComittedBytes(Space space) {
-    int committedPages = space.committedPages();
-    return Conversions.pagesToBytes(committedPages).toLong();
-  }
-
-  public static long getPoolExtent(Space space) {
-    Extent poolExtent = space.getExtent();
-    return poolExtent.toLong();
-  }
-
   public static MemoryUsage getUsage(boolean immortal) {
-    long committed = 0, used = 0, max = 0;
     int spaceCount = Space.getSpaceCount();
     Space[] spaces = Space.getSpaces();
+    JMXMemoryUsage usage = JMXMemoryUsage.empty();
     for (int index = 0; index < spaceCount; index++) {
       Space space = spaces[index];
       if (space.isImmortal() == immortal) {
-        used += getReservedBytes(space);
-        committed += getComittedBytes(space);
-        max += getPoolExtent(space);
+        usage.add(space);
       }
     }
-    return new MemoryUsage(-1, used, committed, max);
+    return usage.toMemoryUsage();
   }
 
   public static MemoryUsage getUsage(String poolName) {
     Space space = getSpace(poolName);
-    long reservedBytes = JMXSupport.getReservedBytes(space);
-    long committedBytes = JMXSupport.getComittedBytes(space);
-    long poolExtent = JMXSupport.getPoolExtent(space);
-    return new MemoryUsage(-1, reservedBytes, committedBytes, poolExtent);
+    return new JMXMemoryUsage(space).toMemoryUsage();
   }
 
   public static int getObjectPendingFinalizationCount() {
