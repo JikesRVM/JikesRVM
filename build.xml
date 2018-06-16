@@ -2653,9 +2653,10 @@ target.jni-suffix=${target.jni-suffix}
   <target name="set-checkstyle-as-required">
     <property name="require.checkstyle" value="true"/>
   </target>
+  
+  <target name="checkstyle-preparation" depends="set-checkstyle-as-required,prepare-source,prepare-config-source,choose-classlib"/>
 
-  <target name="checkstyle" depends="set-checkstyle-as-required,prepare-source,prepare-config-source,choose-classlib,
-    compile-plugins-into-single-jar">
+  <target name="checkstyle" depends="checkstyle-preparation,checkstyle-openjdk-libinterface,compile-plugins-into-single-jar">
     <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${checkstyle.plugin.combined.jar}"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
@@ -2685,6 +2686,28 @@ target.jni-suffix=${target.jni-suffix}
     <echo message="${checkstyle.output}"/>
 
     <fail if="checkstyle.failed" message="Checkstyle failures must be corrected!"/>
+  </target>
+  
+  <target name="checkstyle-openjdk-libinterface" depends="checkstyle-preparation">
+    <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.jar}:${checkstyle.plugin.combined.jar}"/>
+
+    <mkdir dir="${build.dir}/checkstyle"/>
+    <checkstyle config="build/checkstyle/rvm-checks-openjdk-gpl-header.xml" failureProperty="checkstyle.openjdk.failed" failOnViolation="false">
+          <property key="checkstyle.known.archs" value="ia32,ppc"/>
+          <property key="checkstyle.target.arch" value="${target.arch}"/>
+          <!-- Report errors but don't add them to the main report-->
+          <formatter type="xml" tofile="${build.dir}/checkstyle/report-openjdk.xml"/>
+          <fileset dir="libraryInterface/OpenJDK/GPL" includes="**/*.java"/>
+    </checkstyle>
+    
+    <xslt in="${build.dir}/checkstyle/report-openjdk.xml"
+           out="${build.dir}/checkstyle/report-openjdk.txt"
+           style="build/checkstyle/text-output.xsl"/>
+
+    <loadfile property="checkstyle.openjdk.output" srcFile="${build.dir}/checkstyle/report-openjdk.txt"/>
+    <echo message="${checkstyle.openjdk.output}"/>
+
+    <fail if="checkstyle.openjdk.failed" message="Checkstyle failures for OpenJDK library interface must be corrected!"/>
   </target>
 
   <!-- **************************************************************************** -->
