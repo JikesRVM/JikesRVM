@@ -1,4 +1,5 @@
 /*
+ *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -250,6 +251,7 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
                 ensureProtectedAccess(obj);
         }
 
+        @Override
         public boolean compareAndSet(T obj, V expect, V update) {
 	  VM.sysWriteln("CompareAndSet");
             if (obj == null || obj.getClass() != tclass || cclass != null ||
@@ -260,6 +262,7 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
             return unsafe.compareAndSwapObject(obj, offset, expect, update);
         }
 
+        @Override
         public boolean weakCompareAndSet(T obj, V expect, V update) {
             // same implementation as strong form for now
             if (obj == null || obj.getClass() != tclass || cclass != null ||
@@ -269,6 +272,7 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
             return unsafe.compareAndSwapObject(obj, offset, expect, update);
         }
 
+        @Override
         public void set(T obj, V newValue) {
             if (obj == null || obj.getClass() != tclass || cclass != null ||
                 (newValue != null && vclass != null &&
@@ -277,6 +281,7 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
             unsafe.putObjectVolatile(obj, offset, newValue);
         }
 
+        @Override
         public void lazySet(T obj, V newValue) {
             if (obj == null || obj.getClass() != tclass || cclass != null ||
                 (newValue != null && vclass != null &&
@@ -285,6 +290,7 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
             unsafe.putOrderedObject(obj, offset, newValue);
         }
 
+        @Override
         public V get(T obj) {
             if (obj == null || obj.getClass() != tclass || cclass != null)
                 targetCheck(obj);
