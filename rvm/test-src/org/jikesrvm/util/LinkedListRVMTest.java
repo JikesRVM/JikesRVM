@@ -19,16 +19,21 @@ import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class LinkedListRVMTest {
 
-  // TODO refactor this
+  private LinkedListRVM<Integer> list;
+
+  @Before
+  public void setupList() {
+    list = new LinkedListRVM<Integer>();
+  }
 
   @Test
   public void testAdd() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     assertEquals(1, list.get(0), 0);
@@ -37,7 +42,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testClearAndSize() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(3);
     list.add(5);
     list.clear();
@@ -46,7 +50,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testContains() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     assertTrue(list.contains(1) && list.contains(2));
@@ -66,7 +69,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testGet() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     assertEquals(1, (int) list.get(0));
@@ -75,7 +77,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testIndexOf() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     list.add(3);
@@ -87,7 +88,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testIsEmpty() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     assertFalse(list.isEmpty());
@@ -97,7 +97,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testIterator() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     Iterator<Integer> y = list.iterator();
@@ -107,7 +106,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testListIterator() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     Iterator<Integer> y = list.listIterator();
@@ -117,7 +115,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testRemoveInt() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     list.add(3);
@@ -132,7 +129,6 @@ public class LinkedListRVMTest {
 
   @Test
   public void testRemoveObject() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(1);
     list.add(2);
     list.add(3);
@@ -147,14 +143,12 @@ public class LinkedListRVMTest {
 
   @Test
   public void testRemoveInternal() {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(3);
     list.add(5);
   }
 
   @Test
   public void toArrayReturnsElementsInListIfSizeMatchesExactly() throws Exception {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     Integer firstInt = Integer.valueOf(1234);
     Integer secondInt = Integer.valueOf(5678);
     list.add(firstInt);
@@ -169,7 +163,6 @@ public class LinkedListRVMTest {
   @Ignore("NYI")
   @Test
   public void toArrayReturnsELementsInANewArrayIfPassedOneIsntBigEnough() throws Exception {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     Integer firstInt = Integer.valueOf(1234);
     Integer secondInt = Integer.valueOf(5678);
     list.add(firstInt);
@@ -184,7 +177,6 @@ public class LinkedListRVMTest {
   @Ignore("NYI")
   @Test
   public void toArraySetsFirstElementAfterEndOfWrittenElementsToNull() throws Exception {
-    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     Integer firstInt = Integer.valueOf(1234);
     Integer secondInt = Integer.valueOf(5678);
     list.add(firstInt);
