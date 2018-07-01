@@ -12,13 +12,19 @@
  */
 package org.jikesrvm.util;
 
+import static org.hamcrest.CoreMatchers.*;
+
+import java.util.Arrays;
 import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class LinkedListRVMTest {
+
+  // TODO refactor this
 
   @Test
   public void testAdd() {
@@ -144,5 +150,53 @@ public class LinkedListRVMTest {
     LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
     list.add(3);
     list.add(5);
+  }
+
+  @Test
+  public void toArrayReturnsElementsInListIfSizeMatchesExactly() throws Exception {
+    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
+    Integer firstInt = Integer.valueOf(1234);
+    Integer secondInt = Integer.valueOf(5678);
+    list.add(firstInt);
+    list.add(secondInt);
+    Integer[] ints = new Integer[2];
+    Integer[] result = list.toArray(ints);
+    assertSame(ints, result);
+    assertThat(result[0], is(firstInt));
+    assertThat(result[1], is(secondInt));
+  }
+
+  @Ignore("NYI")
+  @Test
+  public void toArrayReturnsELementsInANewArrayIfPassedOneIsntBigEnough() throws Exception {
+    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
+    Integer firstInt = Integer.valueOf(1234);
+    Integer secondInt = Integer.valueOf(5678);
+    list.add(firstInt);
+    list.add(secondInt);
+    Integer[] ints = new Integer[1];
+    Integer[] result = list.toArray(ints);
+    assertThat(result[0], is(firstInt));
+    assertThat(result[1], is(secondInt));
+    assertNotSame(ints, result);
+  }
+
+  @Ignore("NYI")
+  @Test
+  public void toArraySetsFirstElementAfterEndOfWrittenElementsToNull() throws Exception {
+    LinkedListRVM<Integer> list = new LinkedListRVM<Integer>();
+    Integer firstInt = Integer.valueOf(1234);
+    Integer secondInt = Integer.valueOf(5678);
+    list.add(firstInt);
+    list.add(secondInt);
+    Integer[] ints = new Integer[4];
+    Integer filler = new Integer(10102020);
+    Arrays.fill(ints, filler);
+    Integer[] result = list.toArray(ints);
+    assertThat(result[0], is(firstInt));
+    assertThat(result[1], is(secondInt));
+    assertThat(result[2], nullValue());
+    assertThat(result[3], is(filler));
+    assertNotSame(ints, result);
   }
 }

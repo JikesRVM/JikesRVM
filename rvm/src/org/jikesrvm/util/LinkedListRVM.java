@@ -319,9 +319,17 @@ public final class LinkedListRVM<T> implements List<T> {
     return null;
   }
 
-  /** UNIMPLEMENTED */
+  /** MOSTLY UNIMPLEMENTED */
   @Override
   public <U> U[] toArray(U[] arg0) {
+    if (arg0.length >= count) {
+      int index = 0;
+      LinkedListRVM<U> castedThis = (LinkedListRVM<U>) this;
+      for (U u: castedThis) {
+        arg0[index++] = u;
+      }
+      return arg0;
+    }
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
