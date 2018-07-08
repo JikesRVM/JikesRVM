@@ -151,6 +151,7 @@ final class VMThreadMXBeanImpl {
    */
   static ThreadInfo getThreadInfoForId(long id, int maxDepth) {
     Thread thread = getThreadForId(id);
+    if (thread == null) return null;
     Constructor<ThreadInfo> cons = null;
     try {
       // ensure class is at least resolved

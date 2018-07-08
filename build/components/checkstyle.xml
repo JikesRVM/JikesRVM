@@ -33,12 +33,12 @@
   </target>
 
   <target name="fetch" depends="init-checkstyle-properties" if="checkstyle.from-web">
-    <property name="checkstyle.web-archive" value="checkstyle-${checkstyle.version}-bin.tar.gz"/>
+    <property name="checkstyle.file-from-web" value="checkstyle-${checkstyle.version}-all.jar"/>
     <mkdir dir="${checkstyle.package.dir}"/>
-    <cachedGet key="${checkstyle.web-archive}"
-         src="http://downloads.sourceforge.net/project/checkstyle/checkstyle/${checkstyle.version}/${checkstyle.web-archive}"
-         dest="${checkstyle.package.dir}/${checkstyle.web-archive}"/>
-    <untar src="${checkstyle.package.dir}/${checkstyle.web-archive}" compression="gzip" dest="${checkstyle.package.dir}"/>
+    <cachedGet key="${checkstyle.file-from-web}"
+         src="https://github.com/checkstyle/checkstyle/releases/download/checkstyle-${checkstyle.version}/${checkstyle.file-from-web}"
+         dest="${checkstyle.package.dir}/${checkstyle.file-from-web}"/>
+    <copy file="${checkstyle.package.dir}/${checkstyle.file-from-web}" todir="${checkstyle.package.dir}/checkstyle-${checkstyle.version}"/>
     <writeComponentConstants dir="${checkstyle.package.dir}"/>
   </target>
 
