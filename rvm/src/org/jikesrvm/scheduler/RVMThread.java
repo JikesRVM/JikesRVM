@@ -31,6 +31,7 @@ import org.jikesrvm.architecture.ArchitectureFactory;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CodeArray;
@@ -2648,6 +2649,16 @@ public final class RVMThread extends ThreadContext {
     if (VM.BuildForOpenJDK) {
       // Use a fake thread to get through the constructor calls
       Thread fakeThread = (Thread) RuntimeEntrypoints.resolvedNewScalar(JikesRVMSupport.getTypeForClass(Thread.class).asClass());
+      // Need to set a valid priority, 10 is maximum
+      RVMField[] instanceFields = JikesRVMSupport.getTypeForClass(Thread.class).getInstanceFields();
+      RVMField priorityField = null;
+      for (RVMField f : instanceFields) {
+        if (f.getName().toString().equals("priority")) {
+          priorityField = f;
+          break;
+        }
+      }
+      priorityField.setIntValueUnchecked(fakeThread, 10);
       thread = fakeThread;
     }
     // Create the real thread
