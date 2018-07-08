@@ -839,6 +839,7 @@ public abstract class RVMType extends AnnotatedElement {
    * @return non-static fields of this class/array type
    * (composed with supertypes, if any).
    */
+  @Uninterruptible
   public abstract RVMField[] getInstanceFields();
 
   public abstract RVMMethod[] getStaticMethods();

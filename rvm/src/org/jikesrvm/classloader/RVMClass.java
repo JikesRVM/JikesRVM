@@ -747,6 +747,7 @@ public final class RVMClass extends RVMType {
    * @return non-static fields of this class (composed with supertypes, if any).
    * Values in these fields are distinct for each class instance.
    */
+  @Uninterruptible
   @Override
   @Pure
   public RVMField[] getInstanceFields() {

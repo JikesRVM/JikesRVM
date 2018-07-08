@@ -19,6 +19,7 @@ import java.lang.instrument.Instrumentation;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.classloader.RVMField;
 
 import org.vmmagic.pragma.*;
@@ -31,8 +32,10 @@ import org.jikesrvm.scheduler.RVMThread;
  */
 public class JikesRVMSupport {
 
-  private static final RVMField JavaLangStringCharsField = RVMType.JavaLangStringType.findDeclaredField(Atom.findAsciiAtom("value"));
-  private static final RVMField JavaLangStringOffsetField = RVMType.JavaLangStringType.findDeclaredField(Atom.findAsciiAtom("offset"));
+  private static final Atom OFFSET_ATOM = Atom.findAsciiAtom("offset");
+  private static final Atom VALUE_ATOM = Atom.findAsciiAtom("value");
+  private static final RVMField JavaLangStringCharsField = RVMType.JavaLangStringType.findDeclaredField(VALUE_ATOM);
+  private static final RVMField JavaLangStringOffsetField = RVMType.JavaLangStringType.findDeclaredField(OFFSET_ATOM);
   private static final Offset STRING_CHARS_OFFSET = JavaLangStringCharsField.getOffset();
   private static final Offset STRING_OFFSET_OFFSET = JavaLangStringOffsetField.getOffset();
 
@@ -78,6 +81,11 @@ public class JikesRVMSupport {
     return c.type;
   }
 
+  @Uninterruptible
+  public static RVMType getTypeForClassUninterruptible(Class<?> c) {
+    return c.type;
+  }
+
   public static void setClassProtectionDomain(Class<?> c, ProtectionDomain pd) {
     c.pd = pd;
   }
@@ -88,17 +96,34 @@ public class JikesRVMSupport {
 
   @Uninterruptible
   public static char[] getBackingCharArray(String str) {
-    return str.value;
+    RVMType typeForClass = JikesRVMSupport.getTypeForClassUninterruptible(String.class);
+    RVMField[] instanceFields = typeForClass.getInstanceFields();
+    for (RVMField f : instanceFields) {
+      if (f.getName() == VALUE_ATOM) {
+        return  (char[]) Magic.getObjectAtOffset(str, f.getOffset());
+      }
+    }
+    VM.sysFail("field 'value' not found");
+    return null;
   }
 
   @Uninterruptible
   public static int getStringLength(String str) {
-    return str.count;
+    // Note: made uninterruptible via AnnotationAdder
+    return str.length();
   }
 
   @Uninterruptible
   public static int getStringOffset(String str) {
-    return str.offset;
+    RVMType typeForClass = JikesRVMSupport.getTypeForClassUninterruptible(String.class);
+    RVMField[] instanceFields = typeForClass.getInstanceFields();
+    for (RVMField f : instanceFields) {
+      if (f.getName() == OFFSET_ATOM) {
+        return Magic.getIntAtOffset(str, f.getOffset());
+      }
+    }
+    VM.sysFail("field offset not found");
+    return -1;
   }
 
   public static String newStringWithoutCopy(char[] data, int offset, int count) {

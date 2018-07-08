@@ -448,6 +448,7 @@ public final class AnnotationAdder {
       if (classLibrary.toLowerCase().equals("openjdk")) {
         addToAdapt(Uninterruptible.class, Enum.class.getMethod("ordinal", new Class[0]));
         addToAdapt(Uninterruptible.class, Enum.class.getMethod("name", new Class[0]));
+        addToAdapt(Uninterruptible.class, String.class.getMethod("length", new Class[0]));
       }
     } catch (Exception e) {
       System.out.println("Exception " + e);
