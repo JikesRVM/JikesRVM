@@ -36,6 +36,12 @@ public class JikesRVMSupport {
   private static final Offset STRING_CHARS_OFFSET = JavaLangStringCharsField.getOffset();
   private static final Offset STRING_OFFSET_OFFSET = JavaLangStringOffsetField.getOffset();
 
+  public static HashMap<Thread, RVMThread> threadMap;
+
+  public static void initThreadMap() {
+    threadMap = new HashMap<Thread, RVMThread>();
+  }
+
   /**
    * Call the Object finalize method on the given object
    */
@@ -100,8 +106,6 @@ public class JikesRVMSupport {
     return new String(data, offset, count);
   }
 
-  // FIXME save this information in java.lang.Thread
-  public static final HashMap<Thread, RVMThread> threadMap = new HashMap<Thread, RVMThread>();
 
   /***
    * Thread stuff
