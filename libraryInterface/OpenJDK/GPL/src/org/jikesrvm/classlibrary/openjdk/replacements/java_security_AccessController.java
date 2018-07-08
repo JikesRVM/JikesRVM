@@ -25,8 +25,13 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import java.security.AccessControlContext;
-
+import java.security.ProtectionDomain;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.StackBrowser;
+import org.jikesrvm.util.LinkedListRVM;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
@@ -35,8 +40,57 @@ public class java_security_AccessController {
 
   @ReplaceMember
   private static AccessControlContext getStackAccessControlContext() {
-    VM.sysFail("NYI: getStackAccessControlContext");
-    return null;
+    StackBrowser b = new StackBrowser();
+    VM.disableGC();
+    b.init();
+    int frameCount = b.countFrames();
+    VM.enableGC();
+
+    RVMClass classes[] = new RVMClass[frameCount];
+
+    int lastEntry = 0;
+    VM.disableGC();
+    // Process all frames, skipping the first one as it belongs to this method
+    do {
+      b.up();
+      RVMClass clazz = b.getCurrentClass();
+      if (clazz != null) {
+        classes[lastEntry++] = clazz;
+      }
+    } while (b.hasMoreFrames());
+    VM.enableGC();
+
+    LinkedListRVM<ProtectionDomain> protectionDomains = new LinkedListRVM<ProtectionDomain>();
+    for (int i = 0; i < lastEntry; i++) {
+      ProtectionDomain pd = classes[i].getClassForType().getProtectionDomain();
+      if (pd != null) {
+        protectionDomains.add(pd);
+      }
+    }
+
+    ProtectionDomain result[] = new ProtectionDomain[protectionDomains.size()];
+    result = protectionDomains.toArray(result);
+    AccessControlContext context = new AccessControlContext(result);
+    return context;
+  }
+
+  // FIXME not sure if the semantics of this are correct
+  // TODO use entrypoints to set the values
+  @ReplaceMember
+  static AccessControlContext getInheritedAccessControlContext() {
+    Thread thisThread = Thread.currentThread();
+    RVMType typeForClass = JikesRVMSupport.getTypeForClass(Thread.class);
+    RVMField[] instanceFields = typeForClass.getInstanceFields();
+    String targetName = "inheritedAccessControlContext";
+    RVMField inherited = null;
+    for (RVMField f : instanceFields) {
+      if (f.getName().toString().equals(targetName)) {
+        inherited = f;
+        break;
+      }
+    }
+    AccessControlContext context = (AccessControlContext) inherited.getObjectUnchecked(thisThread);
+    return context;
   }
 
 }
