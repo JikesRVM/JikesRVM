@@ -79,11 +79,7 @@ public final class VMStackWalker {
       reflected = false;
     }
 
-    /* Count # of frames. */
-    while (b.hasMoreFrames()) {
-      frames++;
-      b.up();
-    }
+    frames = b.countFrames();
 
     VM.enableGC();
 

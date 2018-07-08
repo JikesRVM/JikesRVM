@@ -595,11 +595,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     StackBrowser browser = new StackBrowser();
     if (maxDepth == -1) {
       browser.init();
-      maxDepth = 0;
-      while (browser.hasMoreFrames()) {
-        maxDepth++;
-        browser.up();
-      }
+      maxDepth = browser.countFrames();
     }
     if (maxDepth == 0) return new Class[0];
     else if (maxDepth < 0) {

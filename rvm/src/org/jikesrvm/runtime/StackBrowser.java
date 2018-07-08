@@ -111,6 +111,52 @@ public final class StackBrowser {
     }
   }
 
+  /**
+   * Example: for a stack trace of
+   * <pre>
+  A1 <- frame with call to countFrames()
+  A2
+  A3
+  A4
+  A5
+  A6
+  A7
+  A8
+  A9
+    </pre>
+   * the result would be 8 (9 frames and frame A1 isn't counted).
+   *
+   * @return a count of frames, excluding the frame of this method and the frame that the method is called in
+   */
+  public int countFrames() {
+    // Save state
+    RVMMethod oldMethod = currentMethod;
+    int oldIndex = currentBytecodeIndex;
+    Address oldFramePointer = currentFramePointer;
+    Offset oldInstructionPointer = currentInstructionPointer;
+    CompiledMethod oldCompiledMethod = currentCompiledMethod;
+    int oldInlineEncodingfIndex = currentInlineEncodingIndex;
+    // Count
+    int frameCount = 0;
+    while (hasMoreFrames()) {
+      frameCount++;
+      up();
+    }
+    // Reset instance variables
+    currentMethod = oldMethod;
+    currentBytecodeIndex = oldIndex;
+    currentFramePointer = oldFramePointer;
+    currentInstructionPointer = oldInstructionPointer;
+    currentCompiledMethod = oldCompiledMethod;
+    // Reset position in compiled method
+    int compiledMethodID = Magic.getCompiledMethodID(currentFramePointer);
+    CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodID);
+    compiledMethod.set(this, currentInstructionPointer);
+    currentInlineEncodingIndex = oldInlineEncodingfIndex;
+
+    return frameCount;
+  }
+
   public void setBytecodeIndex(int bytecodeIndex) {
     currentBytecodeIndex = bytecodeIndex;
   }
