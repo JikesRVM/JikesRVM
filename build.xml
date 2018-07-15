@@ -1773,7 +1773,7 @@ Check to make sure all required properties are specified. This includes properti
         <concat destfile="${build.base}/Primordials.txt">
           <filelist dir="${build.base}" files="ClassesForImage.txt"/>
           <filelist dir="${primordials.dir}"
-                    files="Classpath-0.${classpath.version}.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
+                    files="ClassLibrary_Throwables.txt,Classpath-0.${classpath.version}.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
         </concat>
       </sequential>
     </if>
@@ -1786,7 +1786,7 @@ Check to make sure all required properties are specified. This includes properti
         <concat destfile="${build.base}/Primordials.txt">
           <filelist dir="${build.base}" files="ClassesForImage.txt"/>
           <filelist dir="${primordials.dir}"
-                    files="Harmony.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
+                    files="ClassLibrary_Throwables.txt,Harmony.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
         </concat>
       </sequential>
     </if>
@@ -1799,7 +1799,7 @@ Check to make sure all required properties are specified. This includes properti
 	<concat destfile="${build.base}/Primordials.txt">
 	  <filelist dir="${build.base}" files="ClassesForImage.txt"/>
           <filelist dir="${primordials.dir}"
-                    files="${primordials.openjdk},RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
+                    files="ClassLibrary_Throwables.txt,${primordials.openjdk},RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
         </concat>
       </sequential>
     </if> 
