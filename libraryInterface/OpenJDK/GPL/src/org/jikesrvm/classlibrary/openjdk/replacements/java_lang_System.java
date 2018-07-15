@@ -24,6 +24,9 @@
  */
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
+import java.io.InputStream;
+import java.io.PrintStream;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.vmmagic.pragma.ReplaceClass;
@@ -55,6 +58,21 @@ public class java_lang_System {
   @ReplaceMember
   public static String mapLibraryName(String libname) {
     return JavaLangSupport.mapLibraryName(libname);
+  }
+
+  @ReplaceMember
+  private static void setIn0(InputStream in) {
+    VM.sysFail("NYI: setIn0");
+  }
+
+  @ReplaceMember
+  private static void setOut0(PrintStream out) {
+    VM.sysFail("NYI: setOut0");
+  }
+
+  @ReplaceMember
+  private static void setErr0(PrintStream err) {
+    VM.sysFail("NYI: setErr0");
   }
 
 }

@@ -25,6 +25,7 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.scheduler.RVMThread;
@@ -59,6 +60,12 @@ public class sun_reflect_Reflection {
       RVMThread.dumpStack();
     }
     return clazz;
+  }
+
+  @ReplaceMember
+  private static int getClassAccessFlags(Class c) {
+    RVMClass clazz = JikesRVMSupport.getTypeForClass(c).asClass();
+    return clazz.getOriginalModifiers();
   }
 
 }
