@@ -49,6 +49,7 @@ public class sun_reflect_Reflection {
       b.up();
     }
 
+    b.up(); // skip method that contains the call
     RVMType ret = b.getCurrentClass();
     VM.enableGC();
 
