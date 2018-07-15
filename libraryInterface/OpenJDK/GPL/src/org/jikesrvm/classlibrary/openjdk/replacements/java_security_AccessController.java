@@ -25,6 +25,9 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import java.security.AccessControlContext;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
@@ -91,6 +94,38 @@ public class java_security_AccessController {
     }
     AccessControlContext context = (AccessControlContext) inherited.getObjectUnchecked(thisThread);
     return context;
+  }
+
+  // TODO actually add restrictions
+  @ReplaceMember
+  public static <T> T doPrivileged(PrivilegedAction<T> action) {
+    return action.run();
+  }
+
+  // TODO actually add restrictions
+  @ReplaceMember
+  public static <T> T doPrivileged(PrivilegedExceptionAction<T> action) throws PrivilegedActionException {
+    try {
+      return action.run();
+    } catch (Exception e) {
+      throw new PrivilegedActionException(e);
+    }
+  }
+
+  // TODO actually add restrictions
+  @ReplaceMember
+  public static <T> T doPrivileged(PrivilegedAction<T> action, AccessControlContext context) {
+    return action.run();
+  }
+
+  // TODO actually add restrictions
+  @ReplaceMember
+  public static <T> T doPrivileged(PrivilegedExceptionAction<T> action, AccessControlContext context) throws PrivilegedActionException {
+    try {
+      return action.run();
+    } catch (Exception e) {
+      throw new PrivilegedActionException(e);
+    }
   }
 
 }
