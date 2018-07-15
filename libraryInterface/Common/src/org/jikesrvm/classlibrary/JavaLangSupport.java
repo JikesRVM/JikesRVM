@@ -183,6 +183,15 @@ public final class JavaLangSupport {
     return new String(buf, 0, len);
   }
 
+  /* --- String support --- */
+
+  public static String intern(String str) {
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+    return Atom.internString(str);
+  }
+
+  /* --- Stack trace support --- */
+
   /**
    * Converts from {@link java.lang.Thread} stack size to Jikes
    * RVM internal stack size.
