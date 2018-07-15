@@ -72,60 +72,6 @@ Ljava/lang/annotation/ElementType;
 [Ljava/lang/annotation/RetentionPolicy;
 [Ljava/lang/annotation/ElementType;
 
-# hardware runtime errors
-Ljava/lang/ArithmeticException;
-Ljava/lang/ArrayIndexOutOfBoundsException;
-Ljava/lang/Exception;
-Ljava/lang/Error;
-Ljava/lang/IndexOutOfBoundsException;
-Ljava/lang/LinkageError;
-Ljava/lang/NullPointerException;
-Ljava/lang/RuntimeException;
-Ljava/lang/SecurityException;
-Ljava/lang/StackOverflowError;
-Ljava/lang/Throwable;
-Ljava/lang/StackTraceElement;
-[Ljava/lang/StackTraceElement;
-
-Ljava/lang/UnknownError;
-Ljava/lang/VirtualMachineError;
-
-# software runtime errors
-Ljava/io/UnsupportedEncodingException;
-Ljava/io/UTFDataFormatException;
-Ljava/lang/AbstractMethodError;
-Ljava/lang/ArrayStoreException;
-Ljava/lang/ClassCastException;
-Ljava/lang/CloneNotSupportedException;
-Ljava/lang/ExceptionInInitializerError;
-Ljava/lang/IllegalArgumentException;
-Ljava/lang/IllegalAccessException;
-Ljava/lang/IllegalMonitorStateException;
-Ljava/lang/IllegalStateException;
-Ljava/lang/IncompatibleClassChangeError;
-Ljava/lang/InstantiationException;
-Ljava/lang/InternalError;
-Ljava/lang/InterruptedException;
-Ljava/lang/NegativeArraySizeException;
-Ljava/lang/NoSuchFieldError;
-Ljava/lang/NoSuchFieldException;
-Ljava/lang/NoSuchMethodError;
-Ljava/lang/NoSuchMethodException;
-Ljava/lang/NumberFormatException;
-Ljava/lang/StringIndexOutOfBoundsException;
-Ljava/lang/ThreadDeath;
-Ljava/lang/UnsatisfiedLinkError;
-Ljava/lang/UnsupportedOperationException;
-Ljava/lang/ExceptionInInitializerError;
-Ljava/net/MalformedURLException;
-Ljava/net/UnknownHostException;
-Ljava/nio/charset/UnsupportedCharsetException;
-Ljava/util/NoSuchElementException;
-Ljava/util/zip/DataFormatException;
-Ljava/security/GeneralSecurityException;
-Ljava/security/MessageDigest;
-Ljava/security/NoSuchAlgorithmException;
-
 # primitive wrapper types
 Ljava/lang/Boolean;
 Ljava/lang/Byte;
@@ -148,15 +94,6 @@ Ljava/lang/Short;
 [Ljava/lang/Short;
 Ljava/lang/Short$valueOfCache;
 Ljava/lang/Void;
-
-# class loading errors
-Ljava/io/IOException;
-Ljava/io/EOFException;
-Ljava/io/FileNotFoundException;
-Ljava/lang/ClassNotFoundException;
-Ljava/lang/ClassFormatError;
-Ljava/lang/NoClassDefFoundError;
-Ljava/util/zip/ZipException;
 
 # util datastructures (needed by compilers, classloaders, etc)
 Ljava/util/AbstractList;
@@ -564,3 +501,6 @@ Lcom/ibm/icu/charset/CharsetUTF8;
 Lcom/ibm/icu/charset/Charset88591$CharsetDecoder88591;
 Lcom/ibm/icu/charset/Charset88591$CharsetEncoder88591;
 Lcom/ibm/icu/charset/Charset88591;
+
+# Other stuff
+Ljava/security/MessageDigest;

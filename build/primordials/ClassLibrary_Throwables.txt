@@ -1,0 +1,76 @@
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Eclipse Public License (EPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/eclipse-1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+
+# Basic classes
+Ljava/lang/StackTraceElement;
+[Ljava/lang/StackTraceElement;
+Ljava/lang/Throwable;
+
+# hardware runtime errors
+Ljava/lang/ArithmeticException;
+Ljava/lang/ArrayIndexOutOfBoundsException;
+Ljava/lang/Exception;
+Ljava/lang/Error;
+Ljava/lang/IndexOutOfBoundsException;
+Ljava/lang/LinkageError;
+Ljava/lang/NullPointerException;
+Ljava/lang/RuntimeException;
+Ljava/lang/SecurityException;
+Ljava/lang/StackOverflowError;
+Ljava/lang/UnknownError;
+Ljava/lang/VirtualMachineError;
+
+# software runtime errors
+Ljava/io/UnsupportedEncodingException;
+Ljava/io/UTFDataFormatException;
+Ljava/lang/AbstractMethodError;
+Ljava/lang/ArrayStoreException;
+Ljava/lang/ClassCastException;
+Ljava/lang/CloneNotSupportedException;
+Ljava/lang/ExceptionInInitializerError;
+Ljava/lang/IllegalArgumentException;
+Ljava/lang/IllegalAccessException;
+Ljava/lang/IllegalMonitorStateException;
+Ljava/lang/IllegalStateException;
+Ljava/lang/IllegalThreadStateException;
+Ljava/lang/IncompatibleClassChangeError;
+Ljava/lang/InstantiationException;
+Ljava/lang/InternalError;
+Ljava/lang/InterruptedException;
+Ljava/lang/NegativeArraySizeException;
+Ljava/lang/NoSuchFieldError;
+Ljava/lang/NoSuchFieldException;
+Ljava/lang/NoSuchMethodError;
+Ljava/lang/NoSuchMethodException;
+Ljava/lang/NumberFormatException;
+Ljava/lang/StringIndexOutOfBoundsException;
+Ljava/lang/ThreadDeath;
+Ljava/lang/UnsatisfiedLinkError;
+Ljava/lang/UnsupportedOperationException;
+Ljava/lang/ExceptionInInitializerError;
+Ljava/net/MalformedURLException;
+Ljava/net/UnknownHostException;
+Ljava/nio/charset/UnsupportedCharsetException;
+Ljava/util/NoSuchElementException;
+Ljava/util/zip/DataFormatException;
+Ljava/security/GeneralSecurityException;
+Ljava/security/NoSuchAlgorithmException;
+
+# class loading errors
+Ljava/io/IOException;
+Ljava/io/EOFException;
+Ljava/io/FileNotFoundException;
+Ljava/lang/ClassNotFoundException;
+Ljava/lang/ClassFormatError;
+Ljava/lang/NoClassDefFoundError;
+Ljava/util/zip/ZipException;
