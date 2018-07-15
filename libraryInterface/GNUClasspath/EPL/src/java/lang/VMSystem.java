@@ -30,7 +30,7 @@ public final class VMSystem {
   }
 
   static int identityHashCode(Object o) {
-    return JavaLangSupport.identityHashCode(obj);
+    return JavaLangSupport.identityHashCode(o);
   }
 
   static boolean isWordsBigEndian() {
