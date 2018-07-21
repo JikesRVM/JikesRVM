@@ -62,17 +62,17 @@ public class java_lang_System {
 
   @ReplaceMember
   private static void setIn0(InputStream in) {
-    VM.sysFail("NYI: setIn0");
+    JavaLangSupport.setSystemStreamField("in", in);
   }
 
   @ReplaceMember
   private static void setOut0(PrintStream out) {
-    VM.sysFail("NYI: setOut0");
+    JavaLangSupport.setSystemStreamField("out", out);
   }
 
   @ReplaceMember
   private static void setErr0(PrintStream err) {
-    VM.sysFail("NYI: setErr0");
+    JavaLangSupport.setSystemStreamField("err", err);
   }
 
 }

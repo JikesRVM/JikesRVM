@@ -400,6 +400,7 @@ public class VM extends Properties {
     runClassInitializer("java.lang.Class$StaticData");
 
     if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
+      // OpenJDK runs it later
       runClassInitializer("java.nio.charset.Charset");
     }
 
@@ -507,6 +508,7 @@ public class VM extends Properties {
       runClassInitializer("java.nio.Bits");
       runClassInitializer("sun.nio.cs.StreamEncoder");
       runClassInitializer("java.util.StringTokenizer");
+      runClassInitializer("java.nio.charset.Charset");
     }
 
     if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
