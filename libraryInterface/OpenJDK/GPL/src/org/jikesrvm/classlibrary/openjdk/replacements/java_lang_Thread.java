@@ -51,6 +51,12 @@ public class java_lang_Thread {
     }
   }
 
+  @ReplaceMember
+  public final boolean isAlive() {
+    VM.sysFail("NYI: java.lang.Thread isAlive()");
+    return false;
+  }
+
   private Thread thisAsThread() {
     return (Thread) (Object) this;
   }
