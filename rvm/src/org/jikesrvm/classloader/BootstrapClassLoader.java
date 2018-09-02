@@ -191,38 +191,38 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
       boolean isReplacementClass = className.startsWith(REPLACEMENT_CLASS_NAME_PREFIX);
 
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " is a replacement class itself and thus won't be checked for a replacement class: " + isReplacementClass);
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " is a bootstrap class descriptor? " + replacementClassDescriptor.isBootstrapClassDescriptor());
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(replacementClassName));
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " would have replacement class name: " + replacementClassName);
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " would have replacement class descriptor: " + replacementClassDescriptor);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " is a replacement class itself and thus won't be checked for a replacement class: " + isReplacementClass);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " is a bootstrap class descriptor? " + replacementClassDescriptor.isBootstrapClassDescriptor());
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(replacementClassName));
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " would have replacement class name: " + replacementClassName);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " would have replacement class descriptor: " + replacementClassDescriptor);
 
       boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(classNameAtom);
       // Check if there has been an attempt to load the replacement JDK class of this name
       if (!isReplacementClass && !alreadyTriedToLoadReplacementClass && classNameDescriptor.isBootstrapClassDescriptor()) {
         classesCheckedForReplacements.add(classNameAtom);
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Checking for replacement class for " + className + " named " + replacementClassName);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Checking for replacement class for " + className + " named " + replacementClassName);
 
         // Load, resolve and instantiate the replacement class if it exists.
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: About to call findClass for replacement class for " + className + " named " + replacementClassName);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: About to call findClass for replacement class for " + className + " named " + replacementClassName);
         Class<?> findClass = findClass(replacementClassName.toString());
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Finished with call findClass for replacement class for " + className + " named " + replacementClassName);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Finished with call findClass for replacement class for " + className + " named " + replacementClassName);
         RVMType replacementClassType = TypeReference.findOrCreate(findClass).resolve();
         replacementClassType.prepareForFirstUse();
         if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
 
         loadedReplacementClasses.add(replacementClassName);
 
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Replacement class " + replacementClassName + " loaded for " + className);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Replacement class " + replacementClassName + " loaded for " + className);
       }
     } catch (ClassNotFoundException ce) {
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: No replacement class for " + className);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: No replacement class for " + className);
       // FIXME check if this is still the case after porting is far enough along
       // don't print stack trace by default because it causes class loading issues right now
       final boolean printStackTrace = false;
       if (VM.TraceClassLoading && printStackTrace) ce.printStackTrace();
     } catch (NoSuchMethodError e) {
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
         if (VM.TraceClassLoading) VM.sysWriteln(e.toString());
         if (VM.TraceClassLoading) e.printStackTrace();
         throw new ClassNotFoundException("Failed to load replacement class " + replacementClassName, e);
@@ -243,37 +243,37 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
       boolean isReplacementClass = className.startsWith(REPLACEMENT_CLASS_NAME_PREFIX);
 
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " is a replacement class itself and thus won't be checked for a replacement class: " + isReplacementClass);
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " is a bootstrap class descriptor? " + replacementClassDescriptor.isBootstrapClassDescriptor());
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(replacementClassName));
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " would have replacement class name: " + replacementClassName);
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: " + className + " would have replacement class descriptor: " + replacementClassDescriptor);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " is a replacement class itself and thus won't be checked for a replacement class: " + isReplacementClass);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " is a bootstrap class descriptor? " + replacementClassDescriptor.isBootstrapClassDescriptor());
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(replacementClassName));
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " would have replacement class name: " + replacementClassName);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " would have replacement class descriptor: " + replacementClassDescriptor);
 
       boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(classNameAtom);
       // Check if there has been an attempt to load the replacement JDK class of this name
       if (!isReplacementClass && !alreadyTriedToLoadReplacementClass && classNameDescriptor.isBootstrapClassDescriptor()) {
         classesCheckedForReplacements.add(classNameAtom);
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Checking for replacement class for " + className + " named " + replacementClassName);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Checking for replacement class for " + className + " named " + replacementClassName);
 
         if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
         // Load, resolve and instantiate the replacement class if it exists.
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: About to call loadVMClass for replacement class for " + className + " named " + replacementClassName);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: About to call loadVMClass for replacement class for " + className + " named " + replacementClassName);
         RVMType loadVMClass = loadVMClass(replacementClassName.toString());
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Finished with call loadVMClass for replacement class for " + className + " named " + replacementClassName);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Finished with call loadVMClass for replacement class for " + className + " named " + replacementClassName);
         loadVMClass.resolve();
         loadedReplacementClasses.add(replacementClassName);
 
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Replacement class " + replacementClassName + " loaded for " + className);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Replacement class " + replacementClassName + " loaded for " + className);
       }
     } catch (NoSuchMethodError e) {
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
         if (VM.TraceClassLoading) VM.sysWriteln(e.toString());
         if (VM.TraceClassLoading) e.printStackTrace();
         throw new ClassNotFoundException("Failed to load replacement class " + replacementClassName, e);
     } catch (NoClassDefFoundError e) {
       // TODO we should have a lookup component for classes in jars that's usable indepedently of classloading and that just checks if a class were present if we
       // wanted to read it
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
       if (VM.TraceClassLoading) VM.sysWriteln(e.toString());
       if (VM.TraceClassLoading) e.printStackTrace();
     }
@@ -292,7 +292,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    */
   @Override
   public Class<?> findClass(String className) throws ClassNotFoundException {
-    final boolean DBG = false;
+    final boolean DBG = true;
     if (!VM.runningVM) {
       return super.findClass(className);
     }
@@ -316,7 +316,10 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
           className = className.substring(1, className.length() - 2);
         }
         InputStream is = getResourceAsStream(className.replace('.', File.separatorChar) + ".class");
-        if (is == null) throw new ClassNotFoundException(className);
+        if (is == null) {
+          if (VM.TraceClassLoading) VM.sysWriteln("Throwing ClassNotFoundException because inputstream was null for " + className);
+          throw new ClassNotFoundException(className);
+        }
         DataInputStream dataInputStream = new DataInputStream(is);
         Class<?> cls = null;
         try {
@@ -331,6 +334,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         }
         return cls;
       } catch (ClassNotFoundException e) {
+        if (VM.TraceClassLoading) VM.sysWriteln("Throwing plain ClassNotFoundException");
         throw e;
       } catch (Throwable e) {
         if (DBG) {
