@@ -1139,7 +1139,7 @@ if ($save_space) {
     # Remove symlink so that copy won't fail
     my $localSpaceSaving = "rm $localRoot/results/buildit/latest/ ; ";
     # Remove real dir, if it exists
-    $localSpaceSaving = "rm -rf $localRoot/results/buildit/latest/ ; ";
+    $localSpaceSaving = $localSpaceSaving."rm -rf $localRoot/results/buildit/latest/ ; ";
     # Move the results
     $localSpaceSaving = $localSpaceSaving."mv $localRoot/$resultdir $localRoot/results/buildit/latest ; ";
     # Delete everything that has a - in it and is left over. Only actual test results are supposed to have this.
