@@ -1134,16 +1134,20 @@ if ($save_space) {
     system($cleanUpCmd);
   }
 
-  print "==== Saving space on the build machine by deleting results and only keeping archives ====\n";
-  # Remove symlink so that copy won't fail
-  my $localSpaceSaving = "rm $localRoot/results/buildit/latest/ ; ";
-  # Copy the results
-  $localSpaceSaving = $localSpaceSaving."cp -r $localRoot/$resultdir/ $localRoot/results/buildit/latest/ ; ";
-  # Delete everything that has a - in it. Only actual test results are supposed to have this.
-  $localSpaceSaving = $localSpaceSaving."rm -rf $localRoot/results/buildit/*-*/";
-  print "$localSpaceSaving\n";
-  if(! $dry_run) {
-    system($localSpaceSaving);
+  if ($host ne $local) {
+    print "==== Saving space on the local machine by deleting results and only keeping archives ====\n";
+    # Remove symlink so that copy won't fail
+    my $localSpaceSaving = "rm $localRoot/results/buildit/latest/ ; ";
+    # Remove real dir, if it exists
+    $localSpaceSaving = "rm -rf $localRoot/results/buildit/latest/ ; ";
+    # Move the results
+    $localSpaceSaving = $localSpaceSaving."mv $localRoot/$resultdir $localRoot/results/buildit/latest ; ";
+    # Delete everything that has a - in it and is left over. Only actual test results are supposed to have this.
+    $localSpaceSaving = $localSpaceSaving."rm -rf $localRoot/results/buildit/*-*/";
+    print "$localSpaceSaving\n";
+    if(! $dry_run) {
+      system($localSpaceSaving);
+    }
   }
 
   print "==== Space saving complete ====\n";
