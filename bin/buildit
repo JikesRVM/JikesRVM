@@ -1137,7 +1137,7 @@ if ($save_space) {
   if ($host ne $local) {
     print "==== Saving space on the local machine by deleting results and only keeping archives ====\n";
     # Remove symlink so that copy won't fail
-    my $localSpaceSaving = "rm $localRoot/results/buildit/latest/ ; ";
+    my $localSpaceSaving = "rm $localRoot/results/buildit/latest ; ";
     # Remove real dir, if it exists
     $localSpaceSaving = $localSpaceSaving."rm -rf $localRoot/results/buildit/latest/ ; ";
     # Move the results
