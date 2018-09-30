@@ -1136,7 +1136,7 @@ if ($save_space) {
 
   print "==== Saving space on the build machine by deleting results and only keeping archives ====\n";
   # Remove symlink so that copy won't fail
-  my $localSpaceSaving = "rm $localRoot/results/buildit/latest/ ;"
+  my $localSpaceSaving = "rm $localRoot/results/buildit/latest/ ; ";
   # Copy the results
   $localSpaceSaving = $localSpaceSaving."cp -r $localRoot/$resultdir/ $localRoot/results/buildit/latest/ ; ";
   # Delete everything that has a - in it. Only actual test results are supposed to have this.
