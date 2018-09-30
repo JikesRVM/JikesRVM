@@ -1096,7 +1096,7 @@ if ($test_set) {
 print "===================================================\n";
 
 if ($save_space) {
-  print "==== Saving space by deleting results and only keeping archives ====\n";
+  print "==== Saving space on the build machine by deleting results and only keeping archives ====\n";
 
   my $cleanUpCmd = "$sshHostCmdT '$shell \"";
 
@@ -1133,6 +1133,15 @@ if ($save_space) {
   if(! $dry_run) {
     system($cleanUpCmd);
   }
+
+  print "==== Saving space on the build machine by deleting results and only keeping archives ====\n";
+  # Delete everything that has a - in it. Only actual test results are supposed to have this.
+  my $localSpaceSaving = "rm -rf $localRoot/results/buildit/*-*/";
+  print "$localSpaceSaving\n";
+  if(! $dry_run) {
+    system($localSpaceSaving);
+  }
+
   print "==== Space saving complete ====\n";
 }
 
