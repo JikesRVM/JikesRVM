@@ -55,6 +55,7 @@ global.javahome.ppc64le-linux=/usr/lib/jvm/java-8-openjdk
 global.javahome.ia32-linux=/usr/lib/jvm/java-7-openjdk-amd64
 global.javahome.x86_64-linux=/usr/lib/jvm/java-7-openjdk-amd64
 global.javahome.x86_64_m64-linux=/usr/lib/jvm/java-7-openjdk-amd64
+global.javahome.x86_64_m32-linux=/usr/lib/jvm/java-7-openjdk-amd64
 global.javahome.ia32-osx=/System/Library/Frameworks/JavaVM.framework/Home
 global.javahome.x86_64-osx=/System/Library/Frameworks/JavaVM.framework/Home
 
@@ -70,6 +71,8 @@ global.wordsize.x86_64.32=x86_64
 global.wordsize.x86_64.64=x86_64_m64
 global.wordsize.x86_64_m64.32=x86_64
 global.wordsize.x86_64_m64.64=x86_64_m64
+global.wordsize.x86_64_m32.32=x86_64
+global.wordsize.x86_64_m32.64=x86_64_m64
 global.wordsize.ppc64.32=ppc32
 global.wordsize.ppc64.64=ppc64
 global.wordsize.ppc64le.64=ppc64le

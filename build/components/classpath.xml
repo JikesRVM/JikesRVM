@@ -198,6 +198,7 @@
             <equals arg1="${target.os}" arg2="Solaris"/> 
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
             <equals arg1="${target.name}" arg2="x86_64-linux"/>
+            <equals arg1="${target.name}" arg2="x86_64_m32-linux"/>
             <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
             <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
           </or>
@@ -216,6 +217,7 @@
     <condition property="cp.disable.alsa" value=" --disable-alsa" else="">
       <or>
         <equals arg1="${target.name}" arg2="x86_64-linux"/>
+        <equals arg1="${target.name}" arg2="x86_64_m32-linux"/>
         <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
         <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
       </or>
@@ -230,7 +232,10 @@
 
 
     <condition property="cp.libdirs" value="  --libdir=/usr/lib32 --x-libraries=/usr/lib32" else="">
-      <equals arg1="${target.name}" arg2="x86_64-linux"/> 
+      <or>
+        <equals arg1="${target.name}" arg2="x86_64-linux"/>
+        <equals arg1="${target.name}" arg2="x86_64_m32-linux"/>
+      </or>
     </condition>
 
     <if>
