@@ -1101,7 +1101,7 @@ if ($test_set) {
 print "===================================================\n";
 
 if ($save_space) {
-  print "==== Saving space by deleting results and only keeping archives ====\n";
+  print "==== Saving space on the build machine by deleting results and only keeping archives ====\n";
 
   my $cleanUpCmd = "$sshHostCmdT '$shell \"";
 
@@ -1138,6 +1138,23 @@ if ($save_space) {
   if(! $dry_run) {
     system($cleanUpCmd);
   }
+
+  if ($host ne $local) {
+    print "==== Saving space on the local machine by deleting results and only keeping archives ====\n";
+    # Remove symlink so that copy won't fail
+    my $localSpaceSaving = "rm $localRoot/results/buildit/latest ; ";
+    # Remove real dir, if it exists
+    $localSpaceSaving = $localSpaceSaving."rm -rf $localRoot/results/buildit/latest/ ; ";
+    # Move the results
+    $localSpaceSaving = $localSpaceSaving."mv $localRoot/$resultdir $localRoot/results/buildit/latest ; ";
+    # Delete everything that has a - in it and is left over. Only actual test results are supposed to have this.
+    $localSpaceSaving = $localSpaceSaving."rm -rf $localRoot/results/buildit/*-*/";
+    print "$localSpaceSaving\n";
+    if(! $dry_run) {
+      system($localSpaceSaving);
+    }
+  }
+
   print "==== Space saving complete ====\n";
 }
 
