@@ -1477,9 +1477,36 @@ Check to make sure all required properties are specified. This includes properti
           <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
           <exclude name="org/jikesrvm/tools/header_gen.GenerateInterfaceDeclarations.java"/>
         </javac>
+        <!-- Compile libraryInterface again to detect problems relating to @ReplaceClass -->
+        <mkdir dir="${build.base}/replacements/java"/>
+        <echo>Generating list of replacement classes</echo>
+        <javac srcDir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               source="${rvm.java.version}"
+               target="${rvm.java.version}"
+               failonerror="true"
+               includeantruntime="false"
+               createMissingPackageInfoClass="false">
+          <bootclasspath>
+            <pathelement location="${openjdk.lib.dir}/rt.jar"/>
+          </bootclasspath>
+          <classpath>
+            <pathelement location="${tasks.classes}"/>
+            <pathelement location="${build.vmmagic-stub.classes}"/>
+            <pathelement location="${build.classes}"/>
+          </classpath>
+          <compilerarg value="-proc:only"/>
+          <!-- Processor needs to be specified explicitly, otherwise lookup will fail -->
+          <compilerarg value="-processor"/>
+          <compilerarg value="org.jikesrvm.tools.annotation_processing.ReplaceClassProcessor"/>
+          <compilerarg value="-processorpath"/>
+          <compilerarg value="${tasks.classes}"/>
+          <compilerarg value="-s"/>
+          <compilerarg value="${build.base}/replacements/java"/>
+        </javac>
       </sequential>
     </if>
 
+    <echo>Generating implementations for @SysCall</echo>
     <mkdir dir="${build.base}/syscall/java"/>
 
     <javac srcDir="${syscall.dir}"
@@ -1503,14 +1530,14 @@ Check to make sure all required properties are specified. This includes properti
       <compilerarg value="-s"/>
       <compilerarg value="${build.base}/syscall/java"/>
     </javac>
-  	
+
     <echo message="second compile (from ${generated.java})"/>
     <javac destdir="${build.classes}"
            debug="true"
            debugLevel="lines,source"
            source="${rvm.java.version}"
            target="${rvm.java.version}"
-           srcdir="${build.base}/syscall/java"
+           srcdir="${build.base}/syscall/java;${build.base}/replacements/java"
            includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>

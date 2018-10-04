@@ -25,7 +25,9 @@ import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.AbstractReplacementClasses;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.HashSetRVM;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 
@@ -98,9 +100,26 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     }
   }
 
+  private AbstractReplacementClasses replacementClasses;
+  private HashSetRVM<String> remainingReplacementClassNames;
+
   /** Prevent other classes from constructing one. */
   private BootstrapClassLoader() {
     super(null);
+    try {
+      this.replacementClasses =       (AbstractReplacementClasses)Class.forName("org.jikesrvm.classlibrary.ReplacementClasses").newInstance();
+    } catch (ExceptionInInitializerError e) {
+      throw new Error("Throwable during construction of BootstrapClassLoader", e);
+    } catch (SecurityException e) {
+      throw new Error("Throwable during construction of BootstrapClassLoader", e);
+    } catch (IllegalAccessException e) {
+      throw new Error("Throwable during construction of BootstrapClassLoader", e);
+    } catch (InstantiationException e) {
+      throw new Error("Throwable during construction of BootstrapClassLoader", e);
+    } catch (ClassNotFoundException e) {
+      throw new Error("Throwable during construction of BootstrapClassLoader", e);
+    }
+    remainingReplacementClassNames = replacementClasses.getReplacementClassNames();
   }
 
   /* Interface */
@@ -179,6 +198,13 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
   private void attemptToLoadReplacementClassIfNeeded(String className)
       throws NoClassDefFoundError, ClassNotFoundException {
+    if (remainingReplacementClassNames.contains(className)) {
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " has a replacement!");
+    } else {
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " has NO replacement!");
+      return;
+    }
+
     Atom classNameAtom = null;
     Atom replacementClassName = null;
     try {
@@ -212,6 +238,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
 
         loadedReplacementClasses.add(replacementClassName);
+        remainingReplacementClassNames.remove(className);
 
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Replacement class " + replacementClassName + " loaded for " + className);
       }
@@ -231,6 +258,13 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
   private void attemptToLoadReplacementClassIfNeededForVmClass(String className)
       throws NoClassDefFoundError, ClassNotFoundException {
+    if (remainingReplacementClassNames.contains(className)) {
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " has a replacement!");
+    } else {
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " has NO replacement!");
+      return;
+    }
+
     Atom classNameAtom = null;
     Atom replacementClassName = null;
     try {
@@ -262,7 +296,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Finished with call loadVMClass for replacement class for " + className + " named " + replacementClassName);
         loadVMClass.resolve();
         loadedReplacementClasses.add(replacementClassName);
-
+        remainingReplacementClassNames.remove(className);
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Replacement class " + replacementClassName + " loaded for " + className);
       }
     } catch (NoSuchMethodError e) {
