@@ -13,10 +13,10 @@
 package java.lang;
 
 import java.security.ProtectionDomain;
-import java.util.HashMap;
 import java.lang.instrument.Instrumentation;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.Magic;
@@ -38,12 +38,6 @@ public class JikesRVMSupport {
   private static final RVMField JavaLangStringOffsetField = RVMType.JavaLangStringType.findDeclaredField(OFFSET_ATOM);
   private static final Offset STRING_CHARS_OFFSET = JavaLangStringCharsField.getOffset();
   private static final Offset STRING_OFFSET_OFFSET = JavaLangStringOffsetField.getOffset();
-
-  public static HashMap<Thread, RVMThread> threadMap;
-
-  public static void initThreadMap() {
-    threadMap = new HashMap<Thread, RVMThread>();
-  }
 
   /**
    * Call the Object finalize method on the given object
@@ -135,7 +129,7 @@ public class JikesRVMSupport {
   /***
    * Thread stuff
    * */
-  public static synchronized Thread createThread(RVMThread vmdata, String myName) {
+  public static Thread createThread(RVMThread vmdata, String myName) {
     ThreadGroup tg = null;
     if (vmdata.isSystemThread()) {
       tg = RVMThread.getThreadGroupForSystemThreads();
@@ -144,19 +138,22 @@ public class JikesRVMSupport {
     }
     if (VM.VerifyAssertions) VM._assert(tg != null);
     Thread thread = new Thread(tg, myName);
-    threadMap.put(thread, vmdata);
+    RVMField rvmThreadField = ClassLibraryHelpers.rvmThreadField;
+    Magic.setObjectAtOffset(thread, rvmThreadField.getOffset(), vmdata);
     return thread;
   }
 
-  public static synchronized RVMThread getThread(Thread thread) {
+  public static RVMThread getThread(Thread thread) {
     if (thread == null)
       return null;
-    else
-      return threadMap.get(thread);
+    else {
+      RVMField rvmThreadField = ClassLibraryHelpers.rvmThreadField;
+      RVMThread realRvmThread = (RVMThread) Magic.getObjectAtOffset(thread, rvmThreadField.getOffset());
+      return realRvmThread;
+    }
   }
 
   public static void threadDied(Thread thread) {
-    threadMap.remove(thread);
     ThreadGroup threadGroup = thread.getThreadGroup();
     if (threadGroup != null) {
       threadGroup.remove(thread);

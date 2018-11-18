@@ -24,6 +24,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -286,6 +287,8 @@ public class ClassFileReader {
         declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input);
       }
     }
+    // FIXME review the design for this before merging the OpenJDK branch
+    declaredFields = ClassLibraryHelpers.modifyDeclaredFields(declaredFields, typeRef);
     return declaredFields;
   }
 

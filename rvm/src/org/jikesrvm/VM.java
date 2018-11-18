@@ -311,7 +311,6 @@ public class VM extends Properties {
 
         So the boot Thread needs to be associated with a real Thread for
         Thread.getCurrentThread() to return. */
-    JikesRVMSupport.initThreadMap();
     VM.safeToAllocateJavaThread = true;
 
     if (VM.BuildForGnuClasspath) {

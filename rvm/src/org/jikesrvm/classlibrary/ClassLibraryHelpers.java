@@ -12,14 +12,21 @@
  */
 package org.jikesrvm.classlibrary;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 // TODO decide where to put this code before merging the OpenJDK branch
 public class ClassLibraryHelpers {
+
+  public static RVMField rvmThreadField;
 
   /**
    * Allocates an object of the given class and runs the no-arg constructor
@@ -46,6 +53,24 @@ public class ClassLibraryHelpers {
     T systemThreadGroup = (T) RuntimeEntrypoints.resolvedNewScalar(rvmClass);
     Reflection.invoke(noArgConst, null, systemThreadGroup, null, true);
     return systemThreadGroup;
+  }
+
+  public static RVMField[] modifyDeclaredFields(RVMField[] declaredFields, TypeReference typeRef) {
+    if (typeRef == TypeReference.findOrCreate(java.lang.Thread.class)) {
+      short modifiers = ACC_SYNTHETIC | ACC_PRIVATE;
+      Atom fieldName = Atom.findOrCreateUnicodeAtom("rvmThread");
+      Atom fieldDescriptor = Atom.findOrCreateUnicodeAtom("Lorg/jikesrvm/scheduler/RVMThread;");
+      MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
+      RVMField newField = RVMField.createSyntheticFieldForReplacementClass(typeRef, modifiers, fieldName, null, memRef);
+      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
+      System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
+      newDeclaredFields[newDeclaredFields.length - 1] = newField;
+      ClassLibraryHelpers.rvmThreadField = newField;
+      if (VM.TraceClassLoading) VM.sysWriteln("Added rvmThread field to java.lang.Thread");
+      return newDeclaredFields;
+    }
+
+    return declaredFields;
   }
 
 }

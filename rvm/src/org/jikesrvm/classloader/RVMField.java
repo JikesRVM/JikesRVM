@@ -136,6 +136,19 @@ public final class RVMField extends RVMMember {
                         annotations);
   }
 
+  public static RVMField createSyntheticFieldForReplacementClass(
+      TypeReference declaringClass, short modifiers, Atom fieldName, Atom genericSignature, MemberReference memRef) {
+    final int fieldIsNotConstant = 0;
+    final RVMAnnotation[] noAnnotations = {};
+    return new RVMField(declaringClass,
+                        memRef,
+                        (short) (modifiers & APPLICABLE_TO_FIELDS),
+                        genericSignature,
+                        fieldIsNotConstant,
+                        noAnnotations);
+  }
+
+
   static RVMField createAnnotationField(TypeReference annotationClass, MemberReference memRef) {
     return new RVMField(annotationClass, memRef, (short) (ACC_PRIVATE | ACC_SYNTHETIC), null, 0, null);
   }
