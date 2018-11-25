@@ -53,7 +53,10 @@ public class java_lang_Thread {
 
   @ReplaceMember
   public final boolean isAlive() {
-    VM.sysFail("NYI: java.lang.Thread isAlive()");
+    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
+    if (rvmThread != null) {
+      return rvmThread.isAlive();
+    }
     return false;
   }
 
