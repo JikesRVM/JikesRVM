@@ -401,3 +401,9 @@ JNIEXPORT jint JNICALL JVM_GetLastErrorString(char *buffer, int bufferLength) {
   strncpy(buffer, errorString, copySize);
   return (jint) copySize;
 }
+
+// getAvailableProcessors() from java.lang.Runtime and sun.management.VMManagementImpl
+
+JNIEXPORT jint JVM_ActiveProcessorCount() {
+  return sysNumProcessors();
+}

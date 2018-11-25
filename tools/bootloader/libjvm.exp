@@ -91,4 +91,5 @@ SUNWprivate_1.1 {
     JVM_Close;
     JVM_SupportsCX8;
     JVM_GetLastErrorString;
+    JVM_ActiveProcessorCount;
 } JVM_0.1;
