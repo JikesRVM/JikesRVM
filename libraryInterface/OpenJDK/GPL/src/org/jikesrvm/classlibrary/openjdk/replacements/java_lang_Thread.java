@@ -25,6 +25,7 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
@@ -58,6 +59,18 @@ public class java_lang_Thread {
       return rvmThread.isAlive();
     }
     return false;
+  }
+
+  @ReplaceMember
+  public final void start0() {
+    int stacksize = StackFrameLayout.getStackSizeNormal();
+    Thread me = thisAsThread();
+    int priority = me.getPriority();
+    String name = me.getName();
+    boolean daemon = me.isDaemon();
+    RVMThread myThread = new RVMThread(me, stacksize, name, daemon, priority);
+    JikesRVMSupport.setThread(myThread, me);
+    myThread.start();
   }
 
   private Thread thisAsThread() {

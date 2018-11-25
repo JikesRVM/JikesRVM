@@ -138,9 +138,13 @@ public class JikesRVMSupport {
     }
     if (VM.VerifyAssertions) VM._assert(tg != null);
     Thread thread = new Thread(tg, myName);
+    setThread(vmdata, thread);
+    return thread;
+  }
+
+  public static void setThread(RVMThread vmdata, Thread thread) {
     RVMField rvmThreadField = ClassLibraryHelpers.rvmThreadField;
     Magic.setObjectAtOffset(thread, rvmThreadField.getOffset(), vmdata);
-    return thread;
   }
 
   public static RVMThread getThread(Thread thread) {
