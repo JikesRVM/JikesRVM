@@ -44,7 +44,7 @@ public class java_lang_Thread {
 
   @ReplaceMember
   public final void setPriority0(int newPriority) {
-    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());;
+    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
     // setPriority0 will be called during the constructor when the rvmThread isn't set
     if (rvmThread != null) {
       rvmThread.setPriority(newPriority);
