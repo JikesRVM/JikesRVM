@@ -510,6 +510,10 @@ public class VM extends Properties {
       runClassInitializer("java.nio.charset.Charset");
     }
 
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Shutdown");
+    }
+
     if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     FileSystem.initializeStandardStreams();

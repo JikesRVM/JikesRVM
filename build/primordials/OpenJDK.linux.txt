@@ -277,3 +277,5 @@ Ljava/io/Serializable;
 Ljava/lang/StringCoding;
 Ljava/lang/StringCoding$StringEncoder;
 Ljava/lang/ref/SoftReference;
+Ljava/lang/Shutdown$Lock;
+Ljava/lang/Shutdown;
