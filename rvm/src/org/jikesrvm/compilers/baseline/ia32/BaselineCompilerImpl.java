@@ -3805,7 +3805,12 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   @Inline
   private static void genNullCheck(Assembler asm, GPR objRefReg) {
     // compare to zero
-    asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
+    if (VM.BuildFor32Addr) {
+      asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
+    } else {
+      asm.emitTEST_Reg_Reg_Quad(objRefReg, objRefReg);
+    }
+
     // Jmp around trap if index is OK
     asm.emitBranchLikelyNextInstruction();
     ForwardReference fr = asm.forwardJcc(NE);
