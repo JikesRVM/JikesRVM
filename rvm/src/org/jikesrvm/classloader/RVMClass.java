@@ -1473,6 +1473,16 @@ public final class RVMClass extends RVMType {
           continue;
         replaceMember(targetClassRef, targetClass, m);
       }
+      if (VM.verboseClassLoading) {
+        VM.sysWriteln("Replace: scanning class initializer <clinit> of " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+        RVMMethod clinitToBeRun = targetClass.getClassInitializerMethod();
+        if (clinitToBeRun != null) {
+          VM.sysWriteln("Replace: class initializer <clinit> has the compiled method of " + clinitToBeRun.getCurrentCompiledMethod());
+          VM.sysWriteln("Replace: running class initializer <clinit> of " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+        } else {
+          VM.sysWriteln("Replace: no class initializer <clinit> present for " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+        }
+      }
       targetClass.initialize();
     }
   }
