@@ -273,3 +273,4 @@ Ljava/lang/StringCoding$StringEncoder;
 Ljava/lang/ref/SoftReference;
 Ljava/lang/Shutdown$Lock;
 Ljava/lang/Shutdown;
+Ljava/lang/Package;

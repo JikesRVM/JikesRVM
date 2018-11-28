@@ -514,6 +514,11 @@ public class VM extends Properties {
       runClassInitializer("java.lang.Shutdown");
     }
 
+    // Class initializers needed for dynamic classloading at runtime
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Package");
+    }
+
     if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     FileSystem.initializeStandardStreams();
