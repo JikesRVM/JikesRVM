@@ -27,6 +27,7 @@ package org.jikesrvm.classlibrary.openjdk.replacements;
 import java.io.File;
 
 import org.jikesrvm.classlibrary.ClassLoaderSupport;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
@@ -56,6 +57,11 @@ public class java_lang_ClassLoader {
   @ReplaceMember
   private  Class<?> findLoadedClass0(String name) {
     return ClassLoaderSupport.findLoadedClass(thisAsClassLoader(), name);
+  }
+
+  @ReplaceMember
+  private Class<?> findBootstrapClass(String name) throws ClassNotFoundException {
+      return BootstrapClassLoader.getBootstrapClassLoader().findClass(name);
   }
 
   private ClassLoader thisAsClassLoader() {
