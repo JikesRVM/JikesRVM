@@ -1150,9 +1150,36 @@ public class BootImageWriter {
       //
       if (profile) startTime = System.currentTimeMillis();
       if (verbosity.isAtLeast(SUMMARY)) say("resolving");
+
+      ArrayList<RVMType> replacementClasses = new ArrayList<RVMType>();
       for (RVMType type : bootImageTypes.values()) {
         if (verbosity.isAtLeast(DETAILED)) say("resolving " + type);
+
+        // Resolve replacement classer later because we need to subject them to additional checks.
+        Atom typeDescriptor = type.getDescriptor();
+        if (typeDescriptor.toString().startsWith("Lorg/jikesrvm/classlibrary/openjdk/replacements/")) {
+          if (verbosity.isAtLeast(DETAILED)) say("SKIPPING resolving " + type + " , will be done later");
+          replacementClasses.add(type);
+          continue;
+        }
+
         // The resolution is supposed to be cached already.
+        type.resolve();
+      }
+      // Resolve replacement classes
+      for (RVMType type : replacementClasses) {
+        if (verbosity.isAtLeast(DETAILED)) say("resolving previously skipped replacement class " + type);
+        boolean resolved = type.isResolved();
+        if (!resolved) {
+          String message = "Type for replacement class " + type + " wasn't resolved yet: is the class that's" +
+              " supposed to be replaced in the boot image? Note: Inner classes of the to be replaced" +
+              " class may also need to be in the boot image";
+          if (VM.VerifyAssertions) {
+            VM._assert(resolved, message);
+          } else {
+            VM.sysFail(message);
+          }
+        }
         type.resolve();
       }
 
