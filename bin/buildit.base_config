@@ -52,10 +52,10 @@ global.components.cache.dir=.buildit_components_cache
 global.javahome.ppc32-linux=/opt/ibm-java2-ppc-50
 global.javahome.ppc64-linux=/opt/ibm-java2-ppc-50
 global.javahome.ppc64le-linux=/usr/lib/jvm/java-8-openjdk
-global.javahome.ia32-linux=/usr/lib/jvm/java-7-openjdk-amd64
-global.javahome.x86_64-linux=/usr/lib/jvm/java-7-openjdk-amd64
-global.javahome.x86_64_m64-linux=/usr/lib/jvm/java-7-openjdk-amd64
-global.javahome.x86_64_m32-linux=/usr/lib/jvm/java-7-openjdk-amd64
+global.javahome.ia32-linux=/usr/lib/jvm/java-8-openjdk-amd64
+global.javahome.x86_64-linux=/usr/lib/jvm/java-8-openjdk-amd64
+global.javahome.x86_64_m64-linux=/usr/lib/jvm/java-8-openjdk-amd64
+global.javahome.x86_64_m32-linux=/usr/lib/jvm/java-8-openjdk-amd64
 global.javahome.ia32-osx=/System/Library/Frameworks/JavaVM.framework/Home
 global.javahome.x86_64-osx=/System/Library/Frameworks/JavaVM.framework/Home
 
