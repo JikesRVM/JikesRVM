@@ -26,6 +26,7 @@ package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Properties;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.JavaLangSupport;
@@ -43,6 +44,18 @@ public class java_lang_System {
   public static void registerNatives() {
     VM.sysWriteln("registerNativesCalled");
     // no natives
+  }
+
+  @ReplaceMember
+  private static Properties initProperties(Properties props) {
+    JavaLangSupport.setupStandardJavaProperties(props);
+
+    VM.sysWriteln("TODO: initProperties: some properties are probably still missing");
+
+    // OpenJDK specific properties
+    // TODO add remaining properties when they're known
+
+    return props;
   }
 
   @ReplaceMember

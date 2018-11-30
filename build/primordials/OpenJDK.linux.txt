@@ -274,3 +274,18 @@ Ljava/lang/ref/SoftReference;
 Ljava/lang/Shutdown$Lock;
 Ljava/lang/Shutdown;
 Ljava/lang/Package;
+# for java.lang.System initialization
+Lsun/misc/Version;
+Lsun/misc/VM;
+Ljava/util/Hashtable$EntrySet;
+Ljava/util/Hashtable$Enumerator;
+Ljava/util/Collections$SynchronizedSet;
+Ljava/util/Collections$SynchronizedCollection;
+Ljava/lang/Terminator;
+Ljava/lang/Terminator$1;
+Ljava/io/Console;
+Ljava/io/Console$1;
+Ljava/io/Console$1$1;
+Ljava/lang/ApplicationShutdownHooks;
+Lsun/misc/OSEnvironment;
+Ljava/lang/System$2;

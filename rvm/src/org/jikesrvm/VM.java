@@ -40,6 +40,7 @@ import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.runtime.Time;
@@ -522,6 +523,15 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     FileSystem.initializeStandardStreams();
+
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("sun.misc.Version");
+      runClassInitializer("sun.misc.VM");
+      runClassInitializer("java.io.Console");
+      RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
+      RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
+      Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
+    }
 
     ///////////////////////////////////////////////////////////////
     // The VM is now fully booted.                               //
