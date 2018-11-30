@@ -25,7 +25,6 @@
 
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
-import org.jikesrvm.VM;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
@@ -34,7 +33,10 @@ public class java_lang_Package {
 
   @ReplaceMember
   private static String getSystemPackage0(String name) {
-    VM.sysFail("NYI. Attempted to create system package for " + name);
+    // FIXME Do a proper implementation of this later.
+    // AFAIK the first call is supposed to return null anyway.
+    // The first packages can't have been loaded anyway, so always return null for now.
+    //VM.sysFail("NYI. Attempted to create system package for " + name);
     return null;
   }
 
