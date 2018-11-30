@@ -15,8 +15,8 @@ package gnu.classpath;
 import java.util.Properties;
 
 import org.jikesrvm.VM;     // for VM.sysWrite()
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.Configuration;
-import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.scheduler.Lock;
@@ -32,36 +32,8 @@ import org.jikesrvm.scheduler.Lock;
 public class VMSystemProperties {
 
   public static void preInit(Properties p) {
-    p.put("java.version", "1.6.0"); /* This is a lie, of course -- we don't
-                                       really support all 1.6 features, such
-                                       as assertions.  However, it is a
-                                       necessary lie, since Eclipse 3.0
-                                       explicitly tests java.version and
-                                       insists upon at least 1.4.1 to run. */
-    p.put("java.vendor", "Jikes RVM Project");
-    p.put("java.vm.vendor", "Jikes RVM Project");
-    p.put("java.vendor.url", "http://www.jikesrvm.org");
+    JavaLangSupport.setupStandardJavaProperties(p);
 
-    p.put("java.specification.name", "Java Platform API Specification");
-    p.put("java.specification.vendor", "Sun Microsystems Inc.");
-    p.put("java.specification.version", "1.6");
-
-    p.put("java.vm.specification.name", "Java Virtual Machine Specification");
-    p.put("java.vm.specification.vendor", "Sun Microsystems Inc.");
-    p.put("java.vm.specification.version", "1.0");
-
-    /* 50.0 brings us through Java version 1.6. */
-    p.put("java.class.version", "50.0");
-
-    p.put("file.separator", "/");
-    p.put("path.separator", ":");
-    p.put("line.separator", "\n");
-
-    p.put("java.compiler", "JikesRVM");
-    p.put("java.vm.version", "1.6.0");
-    p.put("java.vm.name", "JikesRVM");
-    p.put("file.encoding", "8859_1");
-    p.put("java.io.tmpdir", "/tmp");
     p.put("gnu.cpu.endian", Configuration.LittleEndian ? "little" : "big");
 
     /* Properties for JMX; this lets the implementation know which
@@ -74,14 +46,11 @@ public class VMSystemProperties {
       p.put("gnu.java.lang.management.ThreadContentionSupport","true");
     }
 
-    String s;
-    s = BootstrapClassLoader.getBootstrapRepositories();
-    p.put("java.boot.class.path", s);
+    String s = BootstrapClassLoader.getBootstrapRepositories();
     /* sun.boot.class.path is not necessary, yes, but possibly useful; Steve
      * Augart has seen at least one piece of code on the web that reads
      * this. */
     p.put("sun.boot.class.path", s);
-
 
     /* user.timezone
 
@@ -97,59 +66,18 @@ public class VMSystemProperties {
        until the VM is fully booted; too late for java.util.TimeZone, which
        reads this value when it runs its initializer.
     */
-    s = CommandLineArgs.getEnvironmentArg("user.timezone");
-    s = (s == null) ? "" : s;   // Maybe it's silly to set it to the empty
-                                // string.  Well, this should never succeed
-                                // anyway, since we're always called by
-                                // runrvm, which explicitly sets the value.
-    p.put("user.timezone", s);
-
-    /* java.library.path
-       Now the library path.  This is the path used for system
-       dynamically-loaded libraries, the things that end in ".so" on Linux. */
-    insertLibraryPath(p);
-
-    /* What should we do about java.ext.dirs?
-       XXX TODO
-
-       java.ext.dirs is allegedly mandatory, according to the API docs shipped
-       with the Sun 1.4.2 JDK.
-
-       Ridiculous, since we don't search it for anything, and since if the
-       user were to set it it wouldn't do anything anyway.   We keep all of
-       the extensions stored with the other bits of the JDK.   So, this would
-       really need to be prepended to the list of VM classes, wouldn't it?  Or
-       appended, perhaps? */
-    s = CommandLineArgs.getEnvironmentArg("java.ext.dirs");
-    if (s == null) {
-      s = "";
-    } else {
-      VM.sysWrite("Jikes RVM: Warning: You have explicitly set java.ext.dirs; that will not do anything under Jikes RVM");
-    }
-    p.put("java.ext.dirs", s);
-
-
-    /* We also set java.class.path in setApplicationRepositories().
-     *  We'll treat setting the java.class.path property as essentially
-     * equivalent to using the -classpath argument. */
-    s = CommandLineArgs.getEnvironmentArg("java.class.path");
-    if (s != null) {
-      p.put("java.class.path", s);
-      RVMClassLoader.stashApplicationRepositories(s);
-    } else {
-      p.put("java.class.path", RVMClassLoader.getApplicationRepositories());
-    }
+    JavaLangSupport.setTimezoneProperties(p);
 
     if (VM.PortableNativeSync) {
       /* Enable portable native sync to support M-to-N threading with gtk peers */
       p.put("gnu.classpath.awt.gtk.portable.native.sync", "true");
     }
 
-    /* Now the rest of the special ones that we set on the command line.   Do
+    /* Now the rest of the GNU Classpath specific ones that we set on the command line.   Do
      * this just in case later revisions of GNU Classpath start to require
      * some of them in the boot process; otherwise, we could wait for them to
      * be set in CommandLineArgs.lateProcessCommandLineArguments() */
-    final String[] clProps = new String[] {"os.name", "os.arch", "os.version", "user.name", "user.home", "user.dir", "gnu.classpath.vm.shortname", "gnu.classpath.home.url", "java.home"};
+    final String[] clProps = new String[] {"gnu.classpath.vm.shortname", "gnu.classpath.home.url"};
 
     for (final String prop : clProps) {
       s = CommandLineArgs.getEnvironmentArg(prop);
@@ -158,23 +86,6 @@ public class VMSystemProperties {
       }
     }
   }
-
-  /** Set java.library.path.<p>
-   *
-   * I wish I knew where to check in the source code to confirm that this
-   * is, in fact, the process we actually follow.  I do not understand this
-   * code.  I do not understand why we are adding something to
-   * java.library.path.  --Steve Augart, 3/23/2004 XXX
-   *
-   * @param p the properties to modify
-   */
-  private static void insertLibraryPath(Properties p) {
-    String jlp = CommandLineArgs.getEnvironmentArg("java.library.path");
-    String snp = CommandLineArgs.getEnvironmentArg("java.home");
-    if (jlp == null) jlp = ".";
-    p.put("java.library.path", snp + p.get("path.separator") + jlp);
-  }
-
 
   /**
    * Override the default SystemProperties code; insert the command-line
