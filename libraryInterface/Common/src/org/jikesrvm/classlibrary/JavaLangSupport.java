@@ -16,6 +16,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import java.util.Properties;
 
+import org.jikesrvm.Configuration;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMArray;
@@ -245,9 +246,14 @@ public final class JavaLangSupport {
     explicitly tests java.version and
     insists upon at least 1.4.1 to run. */
 
-    p.put("java.vendor", "Jikes RVM Project");
+    p.put("java.vm.name", "Jikes RVM");
+    p.put("java.vm.info", org.jikesrvm.JMXSupport.getVmInfo());
     p.put("java.vm.vendor", "Jikes RVM Project");
+    p.put("java.vm.version", Configuration.RVM_CONFIGURATION + " " + Configuration.RVM_VERSION_STRING);
+
+    p.put("java.vendor", "Jikes RVM Project");
     p.put("java.vendor.url", "http://www.jikesrvm.org");
+    p.put("java.vendor.url.bug", "http://www.jikesrvm.org/ReportingBugs/");
 
     p.put("java.specification.name", "Java Platform API Specification");
     p.put("java.specification.vendor", "Sun Microsystems Inc.");
