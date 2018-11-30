@@ -67,11 +67,11 @@ global.arch.ppc64=ppc64
 global.arch.i386=ia32
 global.arch.ppc64le=ppc64le
 
-global.wordsize.x86_64.32=x86_64
+global.wordsize.x86_64.32=x86_64_m32
 global.wordsize.x86_64.64=x86_64_m64
-global.wordsize.x86_64_m64.32=x86_64
+global.wordsize.x86_64_m64.32=x86_64_m32
 global.wordsize.x86_64_m64.64=x86_64_m64
-global.wordsize.x86_64_m32.32=x86_64
+global.wordsize.x86_64_m32.32=x86_64_m32
 global.wordsize.x86_64_m32.64=x86_64_m64
 global.wordsize.ppc64.32=ppc32
 global.wordsize.ppc64.64=ppc64
