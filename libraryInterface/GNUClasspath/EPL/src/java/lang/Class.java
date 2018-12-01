@@ -56,7 +56,7 @@ import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
 
 /**
- * Implementation of java.lang.Class for JikesRVM.
+ * Implementation of java.lang.Class for JikesRVM with GNU Classpath.
  *
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
