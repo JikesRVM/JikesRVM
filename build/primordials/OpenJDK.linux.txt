@@ -16,7 +16,6 @@
 Lorg/jikesrvm/runtime/RuntimeEntrypoints;
 Lorg/jikesrvm/runtime/Entrypoints;
 Ljava/lang/Class;
-Ljava/lang/Class$StaticData;
 Ljava/lang/Object;
 Ljava/lang/Thread;
 Ljava/lang/ThreadLocal$ThreadLocalMap;

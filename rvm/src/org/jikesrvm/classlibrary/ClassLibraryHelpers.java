@@ -19,12 +19,22 @@ import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 
 // TODO decide where to put this code before merging the OpenJDK branch
 public class ClassLibraryHelpers {
+
+  /**
+   * Field name for the field in {@link Class} that contains the {@link RVMType}
+   * for the class.
+   * <p>
+   * For now, we use the same name for this field as in GNU Classpath in order to
+   * reuse the code for setup (e.g. in the boot image writer when copying Class objects).
+   */
+  private static final String RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS = "type";
 
   public static RVMField rvmThreadField;
   public static RVMField rvmTypeField;
@@ -72,7 +82,7 @@ public class ClassLibraryHelpers {
     } else if (typeRef == TypeReference.findOrCreate(java.lang.Class.class)) {
       // TODO this really should be final, but that would mean we'd have to add a constructor, too
       short modifiers = ACC_SYNTHETIC | ACC_PRIVATE;
-      Atom fieldName = Atom.findOrCreateUnicodeAtom("rvmType");
+      Atom fieldName = Atom.findOrCreateUnicodeAtom(RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS);
       Atom fieldDescriptor = Atom.findOrCreateUnicodeAtom("Lorg/jikesrvm/classloader/RVMType;");
       MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
       RVMField newField = RVMField.createSyntheticFieldForReplacementClass(typeRef, modifiers, fieldName, null, memRef);
@@ -80,7 +90,7 @@ public class ClassLibraryHelpers {
       System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
       newDeclaredFields[newDeclaredFields.length - 1] = newField;
       ClassLibraryHelpers.rvmTypeField = newField;
-      if (VM.TraceClassLoading) VM.sysWriteln("Added rvmType field to java.lang.Class");
+      if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS + " field to java.lang.Class");
       return newDeclaredFields;
     }
 
