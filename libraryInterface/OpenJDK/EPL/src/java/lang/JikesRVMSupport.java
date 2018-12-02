@@ -62,26 +62,31 @@ public class JikesRVMSupport {
   }
 
   public static Class<?> createClass(RVMType type) {
-    return Class.create(type);
+    Class<?> createdClass = ClassLibraryHelpers.allocateObjectForClassAndRunNoArgConstructor(java.lang.Class.class);
+    RVMField rvmTypeField = ClassLibraryHelpers.rvmTypeField;
+    Magic.setObjectAtOffset(createdClass, rvmTypeField.getOffset(), type);
+    return createdClass;
   }
 
   public static Class<?> createClass(RVMType type, ProtectionDomain pd) {
-    Class<?> c = Class.create(type);
+    Class<?> c = createClass(type);
     setClassProtectionDomain(c, pd);
     return c;
   }
 
   public static RVMType getTypeForClass(Class<?> c) {
-    return c.type;
+    RVMField rvmTypeField = ClassLibraryHelpers.rvmTypeField;
+    return (RVMType) Magic.getObjectAtOffset(c, rvmTypeField.getOffset());
   }
 
   @Uninterruptible
   public static RVMType getTypeForClassUninterruptible(Class<?> c) {
-    return c.type;
+    RVMField rvmTypeField = ClassLibraryHelpers.rvmTypeField;
+    return (RVMType) Magic.getObjectAtOffset(c, rvmTypeField.getOffset());
   }
 
   public static void setClassProtectionDomain(Class<?> c, ProtectionDomain pd) {
-    c.pd = pd;
+    //c.pd = pd;
   }
 
   /***

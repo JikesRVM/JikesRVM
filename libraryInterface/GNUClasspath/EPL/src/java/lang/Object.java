@@ -18,7 +18,7 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Pure;
 
 /**
- * Jikes RVM implementation of {@link java.lang.Object}
+ * Jikes RVM implementation of {@link java.lang.Object} for GNU Classpath
  *
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.

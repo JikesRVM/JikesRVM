@@ -27,6 +27,7 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
 public class ClassLibraryHelpers {
 
   public static RVMField rvmThreadField;
+  public static RVMField rvmTypeField;
 
   /**
    * Allocates an object of the given class and runs the no-arg constructor
@@ -67,6 +68,19 @@ public class ClassLibraryHelpers {
       newDeclaredFields[newDeclaredFields.length - 1] = newField;
       ClassLibraryHelpers.rvmThreadField = newField;
       if (VM.TraceClassLoading) VM.sysWriteln("Added rvmThread field to java.lang.Thread");
+      return newDeclaredFields;
+    } else if (typeRef == TypeReference.findOrCreate(java.lang.Class.class)) {
+      // TODO this really should be final, but that would mean we'd have to add a constructor, too
+      short modifiers = ACC_SYNTHETIC | ACC_PRIVATE;
+      Atom fieldName = Atom.findOrCreateUnicodeAtom("rvmType");
+      Atom fieldDescriptor = Atom.findOrCreateUnicodeAtom("Lorg/jikesrvm/classloader/RVMType;");
+      MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
+      RVMField newField = RVMField.createSyntheticFieldForReplacementClass(typeRef, modifiers, fieldName, null, memRef);
+      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
+      System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
+      newDeclaredFields[newDeclaredFields.length - 1] = newField;
+      ClassLibraryHelpers.rvmTypeField = newField;
+      if (VM.TraceClassLoading) VM.sysWriteln("Added rvmType field to java.lang.Class");
       return newDeclaredFields;
     }
 
