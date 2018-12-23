@@ -580,10 +580,14 @@ public final class ImmixSpace extends Space {
             Log.writeln("newObject: ", newObject);
             Log.write("    space: ");
             Log.writeln(getName());
-            Log.writeln(" nursery?: ", nurseryCollection);
-            Log.writeln("  mature?: ", ObjectHeader.isMatureObject(object));
-            Log.writeln("  wnmngc?: ", willNotMoveThisNurseryGC(newObject));
-            Log.writeln("  pinned?: ", ObjectHeader.isPinnedObject(object));
+            Log.write(" nursery?: ");
+            Log.writeln(nurseryCollection);
+            Log.write("  mature?: ");
+            Log.writeln(ObjectHeader.isMatureObject(object));
+            Log.write("  wnmngc?: ");
+            Log.writeln(willNotMoveThisNurseryGC(newObject));
+            Log.write("  pinned?: ");
+            Log.writeln(ObjectHeader.isPinnedObject(object));
             Space otherSpace = getSpaceForObject(newObject);
             Log.write(" space(o): ");
             Log.writeln(otherSpace == null ? "<NULL>" : otherSpace.getName());
