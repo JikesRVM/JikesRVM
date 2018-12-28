@@ -32,6 +32,7 @@ import org.vmmagic.unboxed.Offset;
 
 import static org.jikesrvm.classloader.TypeReference.baseReflectionClass;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ConstantPool.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 
 

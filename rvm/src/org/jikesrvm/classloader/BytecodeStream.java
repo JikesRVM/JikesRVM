@@ -13,11 +13,11 @@
 package org.jikesrvm.classloader;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.classloader.ConstantPool.CP_DOUBLE;
+import static org.jikesrvm.classloader.ConstantPool.CP_FLOAT;
+import static org.jikesrvm.classloader.ConstantPool.CP_INT;
+import static org.jikesrvm.classloader.ConstantPool.CP_LONG;
+import static org.jikesrvm.classloader.ConstantPool.CP_STRING;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;

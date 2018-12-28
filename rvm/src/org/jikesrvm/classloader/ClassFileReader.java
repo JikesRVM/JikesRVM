@@ -15,10 +15,19 @@ package org.jikesrvm.classloader;
 
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.classloader.ConstantPool.CP_CLASS;
+import static org.jikesrvm.classloader.ConstantPool.CP_DOUBLE;
+import static org.jikesrvm.classloader.ConstantPool.CP_FLOAT;
+import static org.jikesrvm.classloader.ConstantPool.CP_INT;
+import static org.jikesrvm.classloader.ConstantPool.CP_LONG;
+import static org.jikesrvm.classloader.ConstantPool.CP_MEMBER;
+import static org.jikesrvm.classloader.ConstantPool.CP_STRING;
+import static org.jikesrvm.classloader.ConstantPool.CP_UTF;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_SHORT;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 

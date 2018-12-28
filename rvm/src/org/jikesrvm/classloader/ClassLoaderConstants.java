@@ -119,24 +119,6 @@ public final class ClassLoaderConstants {
   public static final byte DoubleTypeCode = (byte) 'D';
   public static final byte CharTypeCode = (byte) 'C';
 
-  // Constants for our internal encoding of constant pools.
-  /** Constant pool entry for a UTF-8 encoded atom */
-  public static final byte CP_UTF = 0;
-  /** Constant pool entry for int literal */
-  public static final byte CP_INT = 1;
-  /** Constant pool entry for long literal */
-  public static final byte CP_LONG = 2;
-  /** Constant pool entry for float literal */
-  public static final byte CP_FLOAT = 3;
-  /** Constant pool entry for double literal */
-  public static final byte CP_DOUBLE = 4;
-  /** Constant pool entry for string literal (for annotations, may be other objects) */
-  public static final byte CP_STRING = 5;
-  /** Constant pool entry for member (field or method) reference */
-  public static final byte CP_MEMBER = 6;
-  /** Constant pool entry for type reference or class literal */
-  public static final byte CP_CLASS = 7;
-
   private ClassLoaderConstants() {
     // prevent instantiation
   }

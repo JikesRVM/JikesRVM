@@ -13,10 +13,7 @@
 package org.jikesrvm.compilers.baseline;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
+import static org.jikesrvm.classloader.ConstantPool.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;

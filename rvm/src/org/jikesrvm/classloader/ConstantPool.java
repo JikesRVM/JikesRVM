@@ -13,14 +13,6 @@
 package org.jikesrvm.classloader;
 
 import static org.jikesrvm.VM.NOT_REACHED;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_MEMBER;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_UTF;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
@@ -36,6 +28,24 @@ import org.vmmagic.unboxed.Offset;
  * created during class loading.
  */
 public class ConstantPool {
+
+  // Constants for our internal encoding of constant pools.
+  /** Constant pool entry for a UTF-8 encoded atom */
+  public static final byte CP_UTF = 0;
+  /** Constant pool entry for int literal */
+  public static final byte CP_INT = 1;
+  /** Constant pool entry for long literal */
+  public static final byte CP_LONG = 2;
+  /** Constant pool entry for float literal */
+  public static final byte CP_FLOAT = 3;
+  /** Constant pool entry for double literal */
+  public static final byte CP_DOUBLE = 4;
+  /** Constant pool entry for string literal (for annotations, may be other objects) */
+  public static final byte CP_STRING = 5;
+  /** Constant pool entry for member (field or method) reference */
+  public static final byte CP_MEMBER = 6;
+  /** Constant pool entry for type reference or class literal */
+  public static final byte CP_CLASS = 7;
 
   /**
    * Get offset of a literal constant, in bytes.

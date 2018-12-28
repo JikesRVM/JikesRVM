@@ -13,8 +13,7 @@
 package org.jikesrvm.compilers.baseline;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.classloader.ConstantPool.*;
 import static org.jikesrvm.compilers.baseline.BBConstants.ADDRESS_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.DOUBLE_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.FLOAT_TYPE;
