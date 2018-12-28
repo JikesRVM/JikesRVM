@@ -479,7 +479,7 @@ public class BytecodeStream {
     if (VM.VerifyAssertions) {
       VM._assert(JBC_isFieldAccess(opcode));
     }
-    return ClassFileReader.getFieldRef(constantPool, readUnsignedShort());
+    return ConstantPool.getFieldRef(constantPool, readUnsignedShort());
   }
   /**
    * Returns a reference to a method.<p>
@@ -503,7 +503,7 @@ public class BytecodeStream {
     if (VM.VerifyAssertions) {
       VM._assert(JBC_isJava6Call(opcode));
     }
-    return ClassFileReader.getMethodRef(constantPool, readUnsignedShort());
+    return ConstantPool.getMethodRef(constantPool, readUnsignedShort());
   }
 
   /**

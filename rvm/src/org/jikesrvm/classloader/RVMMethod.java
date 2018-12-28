@@ -165,7 +165,7 @@ public abstract class RVMMethod extends RVMMember {
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i < n; i++) {
-      Atom attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
+      Atom attName = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
 
       // Only bother to interpret non-boring Method attributes
@@ -178,7 +178,7 @@ public abstract class RVMMethod extends RVMMember {
 
         // Read the attributes portion of the code attribute
         for (int j = 0, n2 = input.readUnsignedShort(); j < n2; j++) {
-          attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
+          attName = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
           attLength = input.readInt();
 
           if (attName == RVMClassLoader.lineNumberTableAttributeName) {
@@ -206,13 +206,13 @@ public abstract class RVMMethod extends RVMMember {
         if (cnt != 0) {
           tmp_exceptionTypes = new TypeReference[cnt];
           for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
-            tmp_exceptionTypes[j] = ClassFileReader.getTypeRef(constantPool, input.readUnsignedShort());
+            tmp_exceptionTypes[j] = ConstantPool.getTypeRef(constantPool, input.readUnsignedShort());
           }
         }
       } else if (attName == RVMClassLoader.syntheticAttributeName) {
         modifiers |= ACC_SYNTHETIC;
       } else if (attName == RVMClassLoader.signatureAttributeName) {
-        tmp_signature = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
+        tmp_signature = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else if (attName == RVMClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
@@ -896,7 +896,7 @@ public abstract class RVMMethod extends RVMMember {
       if (!parameters[i].isPrimitiveType()) {
         bytecodes[curBC + 5] = (byte)JBC_checkcast;
         if (VM.VerifyAssertions) VM._assert(parameters[i].getId() != 0);
-        constantPool[i + 1] = ClassFileReader.packCPEntry(CP_CLASS, parameters[i].getId());
+        constantPool[i + 1] = ConstantPool.packCPEntry(CP_CLASS, parameters[i].getId());
         bytecodes[curBC + 6] = (byte)((i + 1) >>> 8);
         bytecodes[curBC + 7] = (byte)(i + 1);
       } else if (parameters[i].isWordLikeType()) {
@@ -941,7 +941,7 @@ public abstract class RVMMethod extends RVMMember {
                                                         Atom.findOrCreateUnicodeAtom("unboxAsDouble"),
                                                         Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;)D"));
         }
-        constantPool[i + 1] = ClassFileReader.packCPEntry(CP_MEMBER, unboxMethod.getId());
+        constantPool[i + 1] = ConstantPool.packCPEntry(CP_MEMBER, unboxMethod.getId());
         bytecodes[curBC + 6] = (byte)((i + 1) >>> 8);
         bytecodes[curBC + 7] = (byte)(i + 1);
       }
@@ -956,7 +956,7 @@ public abstract class RVMMethod extends RVMMember {
     } else {
       bytecodes[curBC] = (byte)JBC_invokevirtual;
     }
-    constantPool[numParams + 1] = ClassFileReader.packCPEntry(CP_MEMBER, getId());
+    constantPool[numParams + 1] = ConstantPool.packCPEntry(CP_MEMBER, getId());
     bytecodes[curBC + 1] = (byte)((numParams + 1) >>> 8);
     bytecodes[curBC + 2] = (byte)(numParams + 1);
     if (interfaceCall) {
@@ -1008,7 +1008,7 @@ public abstract class RVMMethod extends RVMMember {
                                                     Atom.findOrCreateUnicodeAtom("boxAsDouble"),
                                                     Atom.findOrCreateUnicodeAtom("(D)Ljava/lang/Object;"));
       }
-      constantPool[numParams + 2] = ClassFileReader.packCPEntry(CP_MEMBER, boxMethod.getId());
+      constantPool[numParams + 2] = ConstantPool.packCPEntry(CP_MEMBER, boxMethod.getId());
       bytecodes[curBC + 3] = (byte)JBC_invokestatic;
       bytecodes[curBC + 4] = (byte)((numParams + 2) >>> 8);
       bytecodes[curBC + 5] = (byte)(numParams + 2);

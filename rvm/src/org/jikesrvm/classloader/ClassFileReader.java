@@ -16,22 +16,15 @@ package org.jikesrvm.classloader;
 import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_SHORT;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
-import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
-import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
-import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * Support code to parse a DataInputStream in the Java classfile format
  * and create the appropriate instance of an RVMClass or UnboxedType.
- * Also low-level support for our internal constant pool format.
  */
 public class ClassFileReader {
 
@@ -80,7 +73,7 @@ public class ClassFileReader {
           byte[] utf = new byte[input.readUnsignedShort()];
           input.readFully(utf);
           int atomId = Atom.findOrCreateUtf8Atom(utf).getId();
-          constantPool[i] = packCPEntry(CP_UTF, atomId);
+          constantPool[i] = ConstantPool.packCPEntry(CP_UTF, atomId);
           break;
         }
         case TAG_UNUSED:
@@ -90,26 +83,26 @@ public class ClassFileReader {
         case TAG_INT: {
           int literal = input.readInt();
           int offset = Statics.findOrCreateIntSizeLiteral(literal);
-          constantPool[i] = packCPEntry(CP_INT, offset);
+          constantPool[i] = ConstantPool.packCPEntry(CP_INT, offset);
           break;
         }
         case TAG_FLOAT: {
           int literal = input.readInt();
           int offset = Statics.findOrCreateIntSizeLiteral(literal);
-          constantPool[i] = packCPEntry(CP_FLOAT, offset);
+          constantPool[i] = ConstantPool.packCPEntry(CP_FLOAT, offset);
           break;
         }
         case TAG_LONG: {
           long literal = input.readLong();
           int offset = Statics.findOrCreateLongSizeLiteral(literal);
-          constantPool[i] = packCPEntry(CP_LONG, offset);
+          constantPool[i] = ConstantPool.packCPEntry(CP_LONG, offset);
           i++;
           break;
         }
         case TAG_DOUBLE: {
           long literal = input.readLong();
           int offset = Statics.findOrCreateLongSizeLiteral(literal);
-          constantPool[i] = packCPEntry(CP_DOUBLE, offset);
+          constantPool[i] = ConstantPool.packCPEntry(CP_DOUBLE, offset);
           i++;
           break;
         }
@@ -126,14 +119,14 @@ public class ClassFileReader {
         case TAG_INTERFACE_METHODREF: {
           int classDescriptorIndex = input.readUnsignedShort();
           int memberNameAndDescriptorIndex = input.readUnsignedShort();
-          constantPool[i] = packTempCPEntry(classDescriptorIndex, memberNameAndDescriptorIndex);
+          constantPool[i] = ConstantPool.packTempCPEntry(classDescriptorIndex, memberNameAndDescriptorIndex);
           break;
         }
 
         case TAG_MEMBERNAME_AND_DESCRIPTOR: {
           int memberNameIndex = input.readUnsignedShort();
           int descriptorIndex = input.readUnsignedShort();
-          constantPool[i] = packTempCPEntry(memberNameIndex, descriptorIndex);
+          constantPool[i] = ConstantPool.packTempCPEntry(memberNameIndex, descriptorIndex);
           break;
         }
 
@@ -155,17 +148,17 @@ public class ClassFileReader {
             break;
 
           case TAG_TYPEREF: { // in: utf index
-            Atom typeName = getUtf(constantPool, constantPool[i]);
+            Atom typeName = ConstantPool.getUtf(constantPool, constantPool[i]);
             int typeRefId =
                 TypeReference.findOrCreate(typeRef.getClassLoader(), typeName.descriptorFromClassName()).getId();
-            constantPool[i] = packCPEntry(CP_CLASS, typeRefId);
+            constantPool[i] = ConstantPool.packCPEntry(CP_CLASS, typeRefId);
             break;
           } // out: type reference id
 
           case TAG_STRING: { // in: utf index
-            Atom literal = getUtf(constantPool, constantPool[i]);
+            Atom literal = ConstantPool.getUtf(constantPool, constantPool[i]);
             int offset = literal.getStringLiteralOffset();
-            constantPool[i] = packCPEntry(CP_STRING, offset);
+            constantPool[i] = ConstantPool.packCPEntry(CP_STRING, offset);
             break;
           } // out: jtoc slot number
         }
@@ -190,18 +183,18 @@ public class ClassFileReader {
         case TAG_METHODREF:
         case TAG_INTERFACE_METHODREF: { // in: classname+membername+memberdescriptor indices
           int bits = constantPool[i];
-          int classNameIndex = unpackTempCPIndex1(bits);
-          int memberNameAndDescriptorIndex = unpackTempCPIndex2(bits);
+          int classNameIndex = ConstantPool.unpackTempCPIndex1(bits);
+          int memberNameAndDescriptorIndex = ConstantPool.unpackTempCPIndex2(bits);
           int memberNameAndDescriptorBits = constantPool[memberNameAndDescriptorIndex];
-          int memberNameIndex = unpackTempCPIndex1(memberNameAndDescriptorBits);
-          int memberDescriptorIndex = unpackTempCPIndex2(memberNameAndDescriptorBits);
+          int memberNameIndex = ConstantPool.unpackTempCPIndex1(memberNameAndDescriptorBits);
+          int memberDescriptorIndex = ConstantPool.unpackTempCPIndex2(memberNameAndDescriptorBits);
 
-          TypeReference tref = getTypeRef(constantPool, classNameIndex);
-          Atom memberName = getUtf(constantPool, memberNameIndex);
-          Atom memberDescriptor = getUtf(constantPool, memberDescriptorIndex);
+          TypeReference tref = ConstantPool.getTypeRef(constantPool, classNameIndex);
+          Atom memberName = ConstantPool.getUtf(constantPool, memberNameIndex);
+          Atom memberDescriptor = ConstantPool.getUtf(constantPool, memberDescriptorIndex);
           MemberReference mr = MemberReference.findOrCreate(tref, memberName, memberDescriptor);
           int mrId = mr.getId();
-          constantPool[i] = packCPEntry(CP_MEMBER, mrId);
+          constantPool[i] = ConstantPool.packCPEntry(CP_MEMBER, mrId);
           break;
         } // out: MemberReference id
       }
@@ -220,7 +213,7 @@ public class ClassFileReader {
    */
   private static int readTypeRef(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException, ClassFormatError {
     int myTypeIndex = input.readUnsignedShort();
-    TypeReference myTypeRef = getTypeRef(constantPool, myTypeIndex);
+    TypeReference myTypeRef = ConstantPool.getTypeRef(constantPool, myTypeIndex);
     if (myTypeRef != typeRef) {
       // eg. file contains a different class than would be
       // expected from its .class file name
@@ -243,7 +236,7 @@ public class ClassFileReader {
 
   private static RVMClass readSuperClass(DataInputStream input, int[] constantPool,
       short modifiers) throws IOException, NoClassDefFoundError {
-    TypeReference superType = getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
+    TypeReference superType = ConstantPool.getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
     RVMClass superClass = null;
     if (((modifiers & ACC_INTERFACE) == 0) && (superType != null)) {
       superClass = superType.resolve().asClass();
@@ -259,7 +252,7 @@ public class ClassFileReader {
     } else {
       declaredInterfaces = new RVMClass[numInterfaces];
       for (int i = 0; i < numInterfaces; ++i) {
-        TypeReference inTR = getTypeRef(constantPool, input.readUnsignedShort());
+        TypeReference inTR = ConstantPool.getTypeRef(constantPool, input.readUnsignedShort());
         declaredInterfaces[i] = inTR.resolve().asClass();
       }
     }
@@ -275,8 +268,8 @@ public class ClassFileReader {
       declaredFields = new RVMField[numFields];
       for (int i = 0; i < numFields; i++) {
         short fmodifiers = input.readShort();
-        Atom fieldName = getUtf(constantPool, input.readUnsignedShort());
-        Atom fieldDescriptor = getUtf(constantPool, input.readUnsignedShort());
+        Atom fieldName = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
+        Atom fieldDescriptor = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
         if (typeRef == TypeReference.JavaLangSystem &&
             (fmodifiers & (ACC_STATIC | ACC_FINAL | ACC_PUBLIC)) == (ACC_STATIC | ACC_FINAL | ACC_PUBLIC)) {
           /* We have to stop System.in .out and .err fields from being final! */
@@ -298,8 +291,8 @@ public class ClassFileReader {
       declaredMethods = new RVMMethod[numMethods];
       for (int i = 0; i < numMethods; i++) {
         short mmodifiers = input.readShort();
-        Atom methodName = getUtf(constantPool, input.readUnsignedShort());
-        Atom methodDescriptor = getUtf(constantPool, input.readUnsignedShort());
+        Atom methodName = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
+        Atom methodDescriptor = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
         MemberReference memRef = MemberReference.findOrCreate(typeRef, methodName, methodDescriptor);
         RVMMethod method = RVMMethod.readMethod(typeRef, constantPool, memRef, mmodifiers, input);
         declaredMethods[i] = method;
@@ -340,7 +333,7 @@ public class ClassFileReader {
       VM.sysWriteln("RVMClass: (begin) load file " + typeRef.getName());
     }
 
-    int[] constantPool = readConstantPool(typeRef, input);
+    int[] constantPool = ClassFileReader.readConstantPool(typeRef, input);
     short modifiers = input.readShort();
     short originalModifiers = modifiers;
     int myTypeIndex = readTypeRef(typeRef, input, constantPool);
@@ -359,12 +352,12 @@ public class ClassFileReader {
     MethodReference enclosingMethod = null;
     // Read attributes.
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
-      Atom attName = getUtf(constantPool, input.readUnsignedShort());
+      Atom attName = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
 
       // Class attributes
       if (attName == RVMClassLoader.sourceFileAttributeName && attLength == 2) {
-        sourceName = getUtf(constantPool, input.readUnsignedShort());
+        sourceName = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.innerClassesAttributeName) {
         // Parse InnerClasses attribute, and use the information to populate
         // the list of declared member classes.  We do this so we can
@@ -382,12 +375,12 @@ public class ClassFileReader {
 
           if (innerClassInfoIndex != 0 && outerClassInfoIndex == myTypeIndex && innerNameIndex != 0) {
             // This looks like a declared inner class.
-            declaredClasses[j] = getTypeRef(constantPool, innerClassInfoIndex);
+            declaredClasses[j] = ConstantPool.getTypeRef(constantPool, innerClassInfoIndex);
           }
 
           if (innerClassInfoIndex == myTypeIndex) {
             if (outerClassInfoIndex != 0) {
-              declaringClass = getTypeRef(constantPool, outerClassInfoIndex);
+              declaringClass = ConstantPool.getTypeRef(constantPool, outerClassInfoIndex);
               if (enclosingClass == null) {
                 // TODO: is this the null test necessary?
                 enclosingClass = declaringClass;
@@ -404,19 +397,19 @@ public class ClassFileReader {
         modifiers |= ACC_SYNTHETIC;
       } else if (attName == RVMClassLoader.enclosingMethodAttributeName) {
         int enclosingClassIndex = input.readUnsignedShort();
-        enclosingClass = getTypeRef(constantPool, enclosingClassIndex);
+        enclosingClass = ConstantPool.getTypeRef(constantPool, enclosingClassIndex);
 
         int enclosingMethodIndex = input.readUnsignedShort();
         if (enclosingMethodIndex != 0) {
           int memberNameIndex = constantPool[enclosingMethodIndex] >>> BITS_IN_SHORT;
           int memberDescriptorIndex = constantPool[enclosingMethodIndex] & ((1 << BITS_IN_SHORT) - 1);
-          Atom memberName = getUtf(constantPool, memberNameIndex);
-          Atom memberDescriptor = getUtf(constantPool, memberDescriptorIndex);
+          Atom memberName = ConstantPool.getUtf(constantPool, memberNameIndex);
+          Atom memberDescriptor = ConstantPool.getUtf(constantPool, memberDescriptorIndex);
           enclosingMethod =
               MemberReference.findOrCreate(enclosingClass, memberName, memberDescriptor).asMethodReference();
         }
       } else if (attName == RVMClassLoader.signatureAttributeName) {
-        signature = getUtf(constantPool, input.readUnsignedShort());
+        signature = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = AnnotatedElement.readAnnotations(constantPool, input, typeRef.getClassLoader());
       } else {
@@ -445,140 +438,4 @@ public class ClassFileReader {
                         annotations);
   }
 
-  @Uninterruptible
-  static int packCPEntry(byte type, int value) {
-    return (type << 29) | (value & 0x1fffffff);
-  }
-
-  @Uninterruptible
-  static byte unpackCPType(int cpValue) {
-    return (byte) (cpValue >>> 29);
-  }
-
-  @Uninterruptible
-  static int unpackSignedCPValue(int cpValue) {
-    return (cpValue << 3) >> 3;
-  }
-
-  @Uninterruptible
-  static int unpackUnsignedCPValue(int cpValue) {
-    return cpValue & 0x1fffffff;
-  }
-
-  @Uninterruptible
-  static boolean packedCPTypeIsClassType(int cpValue) {
-    return (cpValue & (7 << 29)) == (CP_CLASS << 29);
-  }
-
-  @Uninterruptible
-  static int packTempCPEntry(int index1, int index2) {
-    return (index1 << 16) | (index2 & 0xffff);
-  }
-
-  @Uninterruptible
-  static int unpackTempCPIndex1(int cpValue) {
-    return cpValue >>> 16;
-  }
-
-  @Uninterruptible
-  static int unpackTempCPIndex2(int cpValue) {
-    return cpValue & 0xffff;
-  }
-
-  static int getLiteralSize(int[] constantPool, int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    switch (unpackCPType(cpValue)) {
-      case CP_INT:
-      case CP_FLOAT:
-        return BYTES_IN_INT;
-      case CP_LONG:
-      case CP_DOUBLE:
-        return BYTES_IN_LONG;
-      case CP_CLASS:
-      case CP_STRING:
-        return BYTES_IN_ADDRESS;
-      default:
-        if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-        return 0;
-    }
-  }
-
-  /**
-   * Get offset of a literal constant, in bytes.
-   * Offset is with respect to virtual machine's "table of contents" (jtoc).
-   *
-   * @param constantPool the constant pool
-   * @param constantPoolIndex the index into the constant pool
-   * @return the offset in bytes from the JTOC
-   */
-  static Offset getLiteralOffset(int[] constantPool, int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) {
-      int value = unpackSignedCPValue(cpValue);
-      byte type = unpackCPType(cpValue);
-      switch (type) {
-        case CP_INT:
-        case CP_FLOAT:
-        case CP_LONG:
-        case CP_DOUBLE:
-        case CP_STRING:
-          return Offset.fromIntSignExtend(value);
-        case CP_CLASS: {
-          int typeId = unpackUnsignedCPValue(cpValue);
-          Class<?> literalAsClass = TypeReference.getTypeRef(typeId).resolve().getClassForType();
-          return Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(literalAsClass));
-        }
-        default:
-          VM._assert(NOT_REACHED);
-          return Offset.fromIntSignExtend(0xebad0ff5);
-      }
-    } else {
-      if (packedCPTypeIsClassType(cpValue)) {
-        int typeId = unpackUnsignedCPValue(cpValue);
-        Class<?> literalAsClass = TypeReference.getTypeRef(typeId).resolve().getClassForType();
-        return Offset.fromIntSignExtend(Statics.findOrCreateObjectLiteral(literalAsClass));
-      } else {
-        int value = unpackSignedCPValue(cpValue);
-        return Offset.fromIntSignExtend(value);
-      }
-    }
-  }
-
-  static byte getLiteralDescription(int[] constantPool, int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    byte type = unpackCPType(cpValue);
-    return type;
-  }
-
-  @Uninterruptible
-  static TypeReference getTypeRef(int[] constantPool, int constantPoolIndex) {
-    if (constantPoolIndex != 0) {
-      int cpValue = constantPool[constantPoolIndex];
-      if (VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_CLASS);
-      return TypeReference.getTypeRef(unpackUnsignedCPValue(cpValue));
-    } else {
-      return null;
-    }
-  }
-
-  @Uninterruptible
-  static MethodReference getMethodRef(int[] constantPool, int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
-    return (MethodReference) MemberReference.getMemberRef(unpackUnsignedCPValue(cpValue));
-  }
-
-  @Uninterruptible
-  static FieldReference getFieldRef(int[] constantPool, int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_MEMBER);
-    return (FieldReference) MemberReference.getMemberRef(unpackUnsignedCPValue(cpValue));
-  }
-
-  @Uninterruptible
-  static Atom getUtf(int[] constantPool, int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) VM._assert(unpackCPType(cpValue) == CP_UTF);
-    return Atom.getAtom(unpackUnsignedCPValue(cpValue));
-  }
 }
