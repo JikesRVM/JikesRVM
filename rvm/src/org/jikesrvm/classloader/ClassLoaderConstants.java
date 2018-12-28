@@ -105,21 +105,6 @@ public final class ClassLoaderConstants {
   /** statics initialized */
   public static final byte CLASS_INITIALIZED = 6;
 
-  // Constant pool entry tags.
-  //
-  public static final byte TAG_UTF = 1;
-  public static final byte TAG_UNUSED = 2;
-  public static final byte TAG_INT = 3;
-  public static final byte TAG_FLOAT = 4;
-  public static final byte TAG_LONG = 5;
-  public static final byte TAG_DOUBLE = 6;
-  public static final byte TAG_TYPEREF = 7;
-  public static final byte TAG_STRING = 8;
-  public static final byte TAG_FIELDREF = 9;
-  public static final byte TAG_METHODREF = 10;
-  public static final byte TAG_INTERFACE_METHODREF = 11;
-  public static final byte TAG_MEMBERNAME_AND_DESCRIPTOR = 12;
-
   // Type codes for class, array, and primitive types.
   //
   public static final byte ClassTypeCode = (byte) 'L';

@@ -13,8 +13,8 @@
 package org.jikesrvm.classloader;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_TYPEREF;
-import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_UTF;
+import static org.jikesrvm.classloader.ClassFileReader.TAG_TYPEREF;
+import static org.jikesrvm.classloader.ClassFileReader.TAG_UTF;
 import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
