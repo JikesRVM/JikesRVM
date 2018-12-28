@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * RVM uses. The internal constant pool is currently an {@code int[]} that's
  * created during class loading.
  */
-public class ConstantPool {
+public final class ConstantPool {
 
   // Constants for our internal encoding of constant pools.
   /** Constant pool entry for a UTF-8 encoded atom */
@@ -46,6 +46,10 @@ public class ConstantPool {
   public static final byte CP_MEMBER = 6;
   /** Constant pool entry for type reference or class literal */
   public static final byte CP_CLASS = 7;
+
+  private ConstantPool() {
+    // prevent instantiation
+  }
 
   /**
    * Get offset of a literal constant, in bytes.
