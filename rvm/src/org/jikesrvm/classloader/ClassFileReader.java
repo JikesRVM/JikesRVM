@@ -42,7 +42,7 @@ public class ClassFileReader {
    * @return constant pool as int array
    * @throws IOException if it occurs during reading of the input stream
    */
-  static int[] readConstantPool(TypeReference typeRef, DataInputStream input)  throws ClassFormatError, IOException {
+  private static int[] readConstantPool(TypeReference typeRef, DataInputStream input)  throws ClassFormatError, IOException {
 
     int magic = input.readInt();
     if (magic != 0xCAFEBABE) {
@@ -218,7 +218,7 @@ public class ClassFileReader {
    * @throws IOException when a problems occurs while reading the input stream
    * @throws ClassFormatError when the read type ref does not match up with the expected type ref
    */
-  static int readTypeRef(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException, ClassFormatError {
+  private static int readTypeRef(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException, ClassFormatError {
     int myTypeIndex = input.readUnsignedShort();
     TypeReference myTypeRef = getTypeRef(constantPool, myTypeIndex);
     if (myTypeRef != typeRef) {
@@ -241,7 +241,7 @@ public class ClassFileReader {
     return myTypeIndex;
   }
 
-  static RVMClass readSuperClass(DataInputStream input, int[] constantPool,
+  private static RVMClass readSuperClass(DataInputStream input, int[] constantPool,
       short modifiers) throws IOException, NoClassDefFoundError {
     TypeReference superType = getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
     RVMClass superClass = null;
@@ -251,7 +251,7 @@ public class ClassFileReader {
     return superClass;
   }
 
-  static RVMClass[] readDeclaredInterfaces(DataInputStream input, int[] constantPool) throws IOException, NoClassDefFoundError {
+  private static RVMClass[] readDeclaredInterfaces(DataInputStream input, int[] constantPool) throws IOException, NoClassDefFoundError {
     int numInterfaces = input.readUnsignedShort();
     RVMClass[] declaredInterfaces;
     if (numInterfaces == 0) {
@@ -266,7 +266,7 @@ public class ClassFileReader {
     return declaredInterfaces;
   }
 
-  static RVMField[] readDeclaredFields(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
+  private static RVMField[] readDeclaredFields(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numFields = input.readUnsignedShort();
     RVMField[] declaredFields;
     if (numFields == 0) {
@@ -289,7 +289,7 @@ public class ClassFileReader {
     return declaredFields;
   }
 
-  static RVMMethod[] readDeclaredMethods(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
+  private static RVMMethod[] readDeclaredMethods(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numMethods = input.readUnsignedShort();
     RVMMethod[] declaredMethods;
     if (numMethods == 0) {
@@ -314,7 +314,7 @@ public class ClassFileReader {
    * @return the class initializer method {@code <clinit>} of the class or {@code null}
    *  if none was found
    */
-  static RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
+  private static RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
     for (RVMMethod method : declaredMethods) {
       if (method.isClassInitializer()) return method;
     }
