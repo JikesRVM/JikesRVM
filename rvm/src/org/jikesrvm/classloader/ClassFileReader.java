@@ -581,4 +581,90 @@ public class ClassFileReader {
                         annotations);
   }
 
+  // Shamelessly cloned & owned from ClassFileReader.readClass constructor....
+  static TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
+      throws IOException, ClassFormatError {
+    int magic = input.readInt();
+    if (magic != 0xCAFEBABE) {
+      throw new ClassFormatError("bad magic number " + Integer.toHexString(magic));
+    }
+
+    // Drop class file version number on floor. readClass will do the check later.
+    input.readUnsignedShort(); // minor ID
+    input.readUnsignedShort(); // major ID
+
+    //
+    // pass 1: read constant pool
+    //
+    int[] constantPool = new int[input.readUnsignedShort()];
+    byte[] tmpTags = new byte[constantPool.length];
+
+    // note: slot 0 is unused
+    for (int i = 1; i < constantPool.length; i++) {
+      tmpTags[i] = input.readByte();
+      switch (tmpTags[i]) {
+        case TAG_UTF: {
+          byte[] utf = new byte[input.readUnsignedShort()];
+          input.readFully(utf);
+          constantPool[i] = Atom.findOrCreateUtf8Atom(utf).getId();
+          break;
+        }
+
+        case TAG_UNUSED:
+          break;
+
+        case TAG_INT:
+        case TAG_FLOAT:
+        case TAG_FIELDREF:
+        case TAG_METHODREF:
+        case TAG_INTERFACE_METHODREF:
+        case TAG_MEMBERNAME_AND_DESCRIPTOR:
+          input.readInt(); // drop on floor
+          break;
+
+        case TAG_LONG:
+        case TAG_DOUBLE:
+          i++;
+          input.readLong(); // drop on floor
+          break;
+
+        case TAG_TYPEREF:
+          constantPool[i] = input.readUnsignedShort();
+          break;
+
+        case TAG_STRING:
+          input.readUnsignedShort(); // drop on floor
+          break;
+
+        default:
+          throw new ClassFormatError("bad constant pool entry: " + tmpTags[i]);
+      }
+    }
+
+    //
+    // pass 2: post-process type constant pool entries
+    // (we must do this in a second pass because of forward references)
+    //
+    for (int i = 1; i < constantPool.length; i++) {
+      switch (tmpTags[i]) {
+        case TAG_LONG:
+        case TAG_DOUBLE:
+          ++i;
+          break;
+
+        case TAG_TYPEREF: { // in: utf index
+          Atom typeName = Atom.getAtom(constantPool[constantPool[i]]);
+          constantPool[i] = TypeReference.findOrCreate(cl, typeName.descriptorFromClassName()).getId();
+          break;
+        } // out: type reference id
+      }
+    }
+
+    // drop modifiers on floor.
+    input.readUnsignedShort();
+
+    int myTypeIndex = input.readUnsignedShort();
+    return TypeReference.getTypeRef(constantPool[myTypeIndex]);
+  }
+
 }
