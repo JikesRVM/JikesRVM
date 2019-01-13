@@ -86,7 +86,8 @@ public class JikesRVMSupport {
   }
 
   public static void setClassProtectionDomain(Class<?> c, ProtectionDomain pd) {
-    //c.pd = pd;
+    RVMField protectionDomainField = ClassLibraryHelpers.protectionDomainField;
+    Magic.setObjectAtOffset(c, protectionDomainField.getOffset(), pd);
   }
 
   /***

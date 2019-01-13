@@ -29,8 +29,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
@@ -145,13 +147,12 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private java.security.ProtectionDomain getProtectionDomain0() {
-    VM.sysFail("getProtectionDomain0");
-    return null;
+    return (java.security.ProtectionDomain) Magic.getObjectAtOffset(this, ClassLibraryHelpers.protectionDomainField.getOffset());
   }
 
   @ReplaceMember
   void setProtectionDomain0(java.security.ProtectionDomain pd) {
-    VM.sysFail("setProtectionDomain0");
+    JikesRVMSupport.setClassProtectionDomain((Class<?>) (Object) this, pd);
   }
 
   @ReplaceMember

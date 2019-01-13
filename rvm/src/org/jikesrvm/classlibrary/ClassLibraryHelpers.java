@@ -35,9 +35,11 @@ public class ClassLibraryHelpers {
    * reuse the code for setup (e.g. in the boot image writer when copying Class objects).
    */
   private static final String RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS = "type";
+  private static final String PROTECTIOND_DOMAIN_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASSS = "pd";
 
   public static RVMField rvmThreadField;
   public static RVMField rvmTypeField;
+  public static RVMField protectionDomainField;
 
   /**
    * Allocates an object of the given class and runs the no-arg constructor
@@ -68,33 +70,39 @@ public class ClassLibraryHelpers {
 
   public static RVMField[] modifyDeclaredFields(RVMField[] declaredFields, TypeReference typeRef) {
     if (typeRef == TypeReference.findOrCreate(java.lang.Thread.class)) {
-      short modifiers = ACC_SYNTHETIC | ACC_PRIVATE;
-      Atom fieldName = Atom.findOrCreateUnicodeAtom("rvmThread");
-      Atom fieldDescriptor = Atom.findOrCreateUnicodeAtom("Lorg/jikesrvm/scheduler/RVMThread;");
-      MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
-      RVMField newField = RVMField.createSyntheticFieldForReplacementClass(typeRef, modifiers, fieldName, null, memRef);
+      RVMField rvmThreadField = createField(typeRef, "Lorg/jikesrvm/scheduler/RVMThread;", "rvmThread");
       RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
       System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
-      newDeclaredFields[newDeclaredFields.length - 1] = newField;
-      ClassLibraryHelpers.rvmThreadField = newField;
+      newDeclaredFields[newDeclaredFields.length - 1] = rvmThreadField;
+      ClassLibraryHelpers.rvmThreadField = rvmThreadField;
       if (VM.TraceClassLoading) VM.sysWriteln("Added rvmThread field to java.lang.Thread");
       return newDeclaredFields;
     } else if (typeRef == TypeReference.findOrCreate(java.lang.Class.class)) {
       // TODO this really should be final, but that would mean we'd have to add a constructor, too
-      short modifiers = ACC_SYNTHETIC | ACC_PRIVATE;
-      Atom fieldName = Atom.findOrCreateUnicodeAtom(RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS);
-      Atom fieldDescriptor = Atom.findOrCreateUnicodeAtom("Lorg/jikesrvm/classloader/RVMType;");
-      MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
-      RVMField newField = RVMField.createSyntheticFieldForReplacementClass(typeRef, modifiers, fieldName, null, memRef);
-      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
+      RVMField rvmTypeField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMType;", RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS);
+      RVMField pdField = createField(typeRef, "Ljava/security/ProtectionDomain;", PROTECTIOND_DOMAIN_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASSS);
+      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 2];
       System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
-      newDeclaredFields[newDeclaredFields.length - 1] = newField;
-      ClassLibraryHelpers.rvmTypeField = newField;
+      newDeclaredFields[newDeclaredFields.length - 2] = rvmTypeField;
+      newDeclaredFields[newDeclaredFields.length - 1] = pdField;
+      ClassLibraryHelpers.rvmTypeField = rvmTypeField;
+      ClassLibraryHelpers.protectionDomainField = pdField;
       if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS + " field to java.lang.Class");
+      if (VM.TraceClassLoading) VM.sysWriteln("Added " + PROTECTIOND_DOMAIN_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASSS + " field to java.lang.Class");
       return newDeclaredFields;
     }
 
     return declaredFields;
+  }
+
+  private static RVMField createField(TypeReference typeRef,
+      String descriptorString, String fieldNameString) {
+    short modifiers = ACC_SYNTHETIC | ACC_PRIVATE;
+    Atom fieldName = Atom.findOrCreateUnicodeAtom(fieldNameString);
+    Atom fieldDescriptor = Atom.findOrCreateUnicodeAtom(descriptorString);
+    MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
+    RVMField newField = RVMField.createSyntheticFieldForReplacementClass(typeRef, modifiers, fieldName, null, memRef);
+    return newField;
   }
 
 }
