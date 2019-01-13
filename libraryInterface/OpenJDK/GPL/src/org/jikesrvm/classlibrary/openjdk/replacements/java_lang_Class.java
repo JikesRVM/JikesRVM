@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
@@ -37,6 +38,8 @@ import sun.reflect.ConstantPool;
 
 @ReplaceClass(className = "java.lang.Class")
 public class java_lang_Class<T> {
+
+  // TODO compare with GNU Classpath implementation and extract shared code when implementation is done
 
   @ReplaceMember
   private static void registerNatives() {
@@ -88,8 +91,9 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   ClassLoader getClassLoader0() {
-    VM.sysFail("getClassLoader0");
-    return null;
+    ClassLoader classLoader = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).getClassLoader();
+    if (classLoader == BootstrapClassLoader.getBootstrapClassLoader()) return null;
+    return classLoader;
   }
 
   @ReplaceMember
