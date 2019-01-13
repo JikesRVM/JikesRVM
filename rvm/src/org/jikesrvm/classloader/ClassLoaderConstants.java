@@ -105,21 +105,6 @@ public final class ClassLoaderConstants {
   /** statics initialized */
   public static final byte CLASS_INITIALIZED = 6;
 
-  // Constant pool entry tags.
-  //
-  public static final byte TAG_UTF = 1;
-  public static final byte TAG_UNUSED = 2;
-  public static final byte TAG_INT = 3;
-  public static final byte TAG_FLOAT = 4;
-  public static final byte TAG_LONG = 5;
-  public static final byte TAG_DOUBLE = 6;
-  public static final byte TAG_TYPEREF = 7;
-  public static final byte TAG_STRING = 8;
-  public static final byte TAG_FIELDREF = 9;
-  public static final byte TAG_METHODREF = 10;
-  public static final byte TAG_INTERFACE_METHODREF = 11;
-  public static final byte TAG_MEMBERNAME_AND_DESCRIPTOR = 12;
-
   // Type codes for class, array, and primitive types.
   //
   public static final byte ClassTypeCode = (byte) 'L';
@@ -133,24 +118,6 @@ public final class ClassLoaderConstants {
   public static final byte FloatTypeCode = (byte) 'F';
   public static final byte DoubleTypeCode = (byte) 'D';
   public static final byte CharTypeCode = (byte) 'C';
-
-  // Constants for our internal encoding of constant pools.
-  /** Constant pool entry for a UTF-8 encoded atom */
-  public static final byte CP_UTF = 0;
-  /** Constant pool entry for int literal */
-  public static final byte CP_INT = 1;
-  /** Constant pool entry for long literal */
-  public static final byte CP_LONG = 2;
-  /** Constant pool entry for float literal */
-  public static final byte CP_FLOAT = 3;
-  /** Constant pool entry for double literal */
-  public static final byte CP_DOUBLE = 4;
-  /** Constant pool entry for string literal (for annotations, may be other objects) */
-  public static final byte CP_STRING = 5;
-  /** Constant pool entry for member (field or method) reference */
-  public static final byte CP_MEMBER = 6;
-  /** Constant pool entry for type reference or class literal */
-  public static final byte CP_CLASS = 7;
 
   private ClassLoaderConstants() {
     // prevent instantiation

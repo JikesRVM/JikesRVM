@@ -108,7 +108,7 @@ public final class ExceptionHandlerMap {
         startPCs[i] = input.readUnsignedShort();
         endPCs[i] = input.readUnsignedShort();
         handlerPCs[i] = input.readUnsignedShort();
-        TypeReference et = ClassFileReader.getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
+        TypeReference et = ConstantPool.getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
         if (et == null) {
           // A finally block...set to java.lang.Throwable to avoid
           // needing to think about this case anywhere else in the VM.

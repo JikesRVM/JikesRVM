@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.classloader.ConstantPool.*;
 import static org.jikesrvm.compilers.opt.OptimizingCompilerException.opt_assert;
 import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.*;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;

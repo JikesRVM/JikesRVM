@@ -180,16 +180,18 @@ public final class JavaLangSupport {
     byte[] buf = new byte[128]; // Modest amount of space for starters.
 
     byte[] nameBytes = envarName.getBytes();
+    byte[] nameBytesWithNullTerminator = new byte[nameBytes.length + 1];
+    System.arraycopy(nameBytes, 0, nameBytesWithNullTerminator, 0, nameBytes.length);
 
     // sysCall is uninterruptible so passing buf is safe
-    int len = sysCall.sysGetenv(nameBytes, buf, buf.length);
+    int len = sysCall.sysGetenv(nameBytesWithNullTerminator, buf, buf.length);
 
     if (len < 0)                // not set.
       return null;
 
     if (len > buf.length) {
       buf = new byte[len];
-      sysCall.sysGetenv(nameBytes, buf, len);
+      sysCall.sysGetenv(nameBytesWithNullTerminator, buf, len);
     }
     return new String(buf, 0, len);
   }

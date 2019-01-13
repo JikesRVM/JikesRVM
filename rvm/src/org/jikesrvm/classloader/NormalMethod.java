@@ -125,7 +125,9 @@ public final class NormalMethod extends RVMMethod {
   private final int[] lineNumberMap;
 
   /**
-   * the local variable table
+   * The local variable tables for all methods.
+   * <p>
+   * Kept in a separate data structure to save space because not every method has a local variable table.
    */
   private static final HashMapRVM<NormalMethod, LocalVariableTable> localVariableTables = new HashMapRVM<NormalMethod, LocalVariableTable>();
 
@@ -171,7 +173,9 @@ public final class NormalMethod extends RVMMethod {
     bytecodes = bc;
     exceptionHandlerMap = eMap;
     lineNumberMap = lm;
-    localVariableTables.put(this, lvt);
+    if (lvt != null) {
+      localVariableTables.put(this, lvt);
+    }
     computeSummary(constantPool);
   }
 

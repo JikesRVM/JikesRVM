@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.classloader;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.compilers.common.LazyCompilationTrampoline;
@@ -33,15 +31,15 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 import static org.jikesrvm.classloader.TypeReference.baseReflectionClass;
-import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_SHORT;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ConstantPool.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 
 
 /**
  * A method of a java class corresponding to a method_info structure
  * in the class file. A method is read from a class file using the
- * {@link #readMethod} method.
+ * {@link ClassFileReader#readMethod} method.
  */
 public abstract class RVMMethod extends RVMMember {
 
@@ -137,148 +135,6 @@ public abstract class RVMMethod extends RVMMember {
       }
       return value;
     }
-  }
-
-  /**
-   * Called from {@link ClassFileReader#readClass(TypeReference,DataInputStream)} to create an
-   * instance of a RVMMethod by reading the relevant data from the argument bytecode stream.
-   *
-   * @param declaringClass the TypeReference of the class being loaded
-   * @param constantPool the constantPool of the RVMClass object that's being constructed
-   * @param memRef the canonical memberReference for this member.
-   * @param modifiers modifiers associated with this member.
-   * @param input the DataInputStream to read the method's attributes from
-   * @throws IOException when the underlying stream throws an IOException or when
-   *  the skipping of attributes does not work as expected
-   * @return the newly created method
-   */
-  static RVMMethod readMethod(TypeReference declaringClass, int[] constantPool, MemberReference memRef,
-                              short modifiers, DataInputStream input) throws IOException {
-    short tmp_localWords = 0;
-    short tmp_operandWords = 0;
-    byte[] tmp_bytecodes = null;
-    ExceptionHandlerMap tmp_exceptionHandlerMap = null;
-    TypeReference[] tmp_exceptionTypes = null;
-    int[] tmp_lineNumberMap = null;
-    LocalVariableTable tmp_localVariableTable = null;
-    Atom tmp_signature = null;
-    RVMAnnotation[] annotations = null;
-    RVMAnnotation[][] parameterAnnotations = null;
-    Object tmp_annotationDefault = null;
-
-    // Read the attributes
-    for (int i = 0, n = input.readUnsignedShort(); i < n; i++) {
-      Atom attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
-      int attLength = input.readInt();
-
-      // Only bother to interpret non-boring Method attributes
-      if (attName == RVMClassLoader.codeAttributeName) {
-        tmp_operandWords = input.readShort();
-        tmp_localWords = input.readShort();
-        tmp_bytecodes = new byte[input.readInt()];
-        input.readFully(tmp_bytecodes);
-        tmp_exceptionHandlerMap = ExceptionHandlerMap.readExceptionHandlerMap(input, constantPool);
-
-        // Read the attributes portion of the code attribute
-        for (int j = 0, n2 = input.readUnsignedShort(); j < n2; j++) {
-          attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
-          attLength = input.readInt();
-
-          if (attName == RVMClassLoader.lineNumberTableAttributeName) {
-            int cnt = input.readUnsignedShort();
-            if (cnt != 0) {
-              tmp_lineNumberMap = new int[cnt];
-              for (int k = 0; k < cnt; k++) {
-                int startPC = input.readUnsignedShort();
-                int lineNumber = input.readUnsignedShort();
-                tmp_lineNumberMap[k] = (lineNumber << BITS_IN_SHORT) | startPC;
-              }
-            }
-          } else if (attName == RVMClassLoader.localVariableTableAttributeName) {
-            tmp_localVariableTable = LocalVariableTable.readLocalVariableTable(input, constantPool);
-          } else {
-            // All other entries in the attribute portion of the code attribute are boring.
-            int skippedAmount = input.skipBytes(attLength);
-            if (skippedAmount != attLength) {
-              throw new IOException("Unexpected short skip");
-            }
-          }
-        }
-      } else if (attName == RVMClassLoader.exceptionsAttributeName) {
-        int cnt = input.readUnsignedShort();
-        if (cnt != 0) {
-          tmp_exceptionTypes = new TypeReference[cnt];
-          for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
-            tmp_exceptionTypes[j] = ClassFileReader.getTypeRef(constantPool, input.readUnsignedShort());
-          }
-        }
-      } else if (attName == RVMClassLoader.syntheticAttributeName) {
-        modifiers |= ACC_SYNTHETIC;
-      } else if (attName == RVMClassLoader.signatureAttributeName) {
-        tmp_signature = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
-      } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
-      } else if (attName == RVMClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
-        int numParameters = input.readByte() & 0xFF;
-        parameterAnnotations = new RVMAnnotation[numParameters][];
-        for (int a = 0; a < numParameters; ++a) {
-          parameterAnnotations[a] = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
-        }
-      } else if (attName == RVMClassLoader.annotationDefaultAttributeName) {
-        try {
-          tmp_annotationDefault = RVMAnnotation.readValue(memRef.asMethodReference().getReturnType(), constantPool, input, declaringClass.getClassLoader());
-        } catch (ClassNotFoundException e) {
-          throw new Error(e);
-        }
-      } else {
-        // all other method attributes are boring
-        int skippedAmount = input.skipBytes(attLength);
-        if (skippedAmount != attLength) {
-          throw new IOException("Unexpected short skip");
-        }
-      }
-    }
-    RVMMethod method;
-    if ((modifiers & ACC_NATIVE) != 0) {
-      method =
-          new NativeMethod(declaringClass,
-                              memRef,
-                              modifiers,
-                              tmp_exceptionTypes,
-                              tmp_signature,
-                              annotations,
-                              parameterAnnotations,
-                              tmp_annotationDefault);
-    } else if ((modifiers & ACC_ABSTRACT) != 0) {
-      method =
-          new AbstractMethod(declaringClass,
-                                memRef,
-                                modifiers,
-                                tmp_exceptionTypes,
-                                tmp_signature,
-                                annotations,
-                                parameterAnnotations,
-                                tmp_annotationDefault);
-
-    } else {
-      method =
-          new NormalMethod(declaringClass,
-                              memRef,
-                              modifiers,
-                              tmp_exceptionTypes,
-                              tmp_localWords,
-                              tmp_operandWords,
-                              tmp_bytecodes,
-                              tmp_exceptionHandlerMap,
-                              tmp_lineNumberMap,
-                              tmp_localVariableTable,
-                              constantPool,
-                              tmp_signature,
-                              annotations,
-                              parameterAnnotations,
-                              tmp_annotationDefault);
-    }
-    return method;
   }
 
   /**
@@ -917,7 +773,7 @@ public abstract class RVMMethod extends RVMMember {
       if (!parameters[i].isPrimitiveType()) {
         bytecodes[curBC + 5] = (byte)JBC_checkcast;
         if (VM.VerifyAssertions) VM._assert(parameters[i].getId() != 0);
-        constantPool[i + 1] = ClassFileReader.packCPEntry(CP_CLASS, parameters[i].getId());
+        constantPool[i + 1] = ConstantPool.packCPEntry(CP_CLASS, parameters[i].getId());
         bytecodes[curBC + 6] = (byte)((i + 1) >>> 8);
         bytecodes[curBC + 7] = (byte)(i + 1);
       } else if (parameters[i].isWordLikeType()) {
@@ -962,7 +818,7 @@ public abstract class RVMMethod extends RVMMember {
                                                         Atom.findOrCreateUnicodeAtom("unboxAsDouble"),
                                                         Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;)D"));
         }
-        constantPool[i + 1] = ClassFileReader.packCPEntry(CP_MEMBER, unboxMethod.getId());
+        constantPool[i + 1] = ConstantPool.packCPEntry(CP_MEMBER, unboxMethod.getId());
         bytecodes[curBC + 6] = (byte)((i + 1) >>> 8);
         bytecodes[curBC + 7] = (byte)(i + 1);
       }
@@ -977,7 +833,7 @@ public abstract class RVMMethod extends RVMMember {
     } else {
       bytecodes[curBC] = (byte)JBC_invokevirtual;
     }
-    constantPool[numParams + 1] = ClassFileReader.packCPEntry(CP_MEMBER, getId());
+    constantPool[numParams + 1] = ConstantPool.packCPEntry(CP_MEMBER, getId());
     bytecodes[curBC + 1] = (byte)((numParams + 1) >>> 8);
     bytecodes[curBC + 2] = (byte)(numParams + 1);
     if (interfaceCall) {
@@ -1029,7 +885,7 @@ public abstract class RVMMethod extends RVMMember {
                                                     Atom.findOrCreateUnicodeAtom("boxAsDouble"),
                                                     Atom.findOrCreateUnicodeAtom("(D)Ljava/lang/Object;"));
       }
-      constantPool[numParams + 2] = ClassFileReader.packCPEntry(CP_MEMBER, boxMethod.getId());
+      constantPool[numParams + 2] = ConstantPool.packCPEntry(CP_MEMBER, boxMethod.getId());
       bytecodes[curBC + 3] = (byte)JBC_invokestatic;
       bytecodes[curBC + 4] = (byte)((numParams + 2) >>> 8);
       bytecodes[curBC + 5] = (byte)(numParams + 2);

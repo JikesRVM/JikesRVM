@@ -28,8 +28,6 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INITIALIZING;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_INSTANTIATED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_LOADED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CLASS_RESOLVED;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_MEMBER;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_UTF;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
@@ -651,37 +649,31 @@ public final class RVMClass extends RVMType {
    * @return offset of the literal constant to the JTOC, in bytes
    */
   public Offset getLiteralOffset(int constantPoolIndex) {
-    return ClassFileReader.getLiteralOffset(this.constantPool, constantPoolIndex);
+    return ConstantPool.getLiteralOffset(this.constantPool, constantPoolIndex);
   }
 
   public byte getLiteralDescription(int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    byte type = ClassFileReader.unpackCPType(cpValue);
-    return type;
+    return ConstantPool.getLiteralDescription(constantPool, constantPoolIndex);
   }
 
   @Uninterruptible
   public TypeReference getTypeRef(int constantPoolIndex) {
-    return ClassFileReader.getTypeRef(constantPool, constantPoolIndex);
+    return ConstantPool.getTypeRef(constantPool, constantPoolIndex);
   }
 
   @Uninterruptible
   public MethodReference getMethodRef(int constantPoolIndex) {
-    return ClassFileReader.getMethodRef(constantPool, constantPoolIndex);
+    return ConstantPool.getMethodRef(constantPool, constantPoolIndex);
   }
 
   @Uninterruptible
   public FieldReference getFieldRef(int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) VM._assert(ClassFileReader.unpackCPType(cpValue) == CP_MEMBER);
-    return (FieldReference) MemberReference.getMemberRef(ClassFileReader.unpackUnsignedCPValue(cpValue));
+    return ConstantPool.getFieldRef(constantPool, constantPoolIndex);
   }
 
   @Uninterruptible
   Atom getUtf(int constantPoolIndex) {
-    int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) VM._assert(ClassFileReader.unpackCPType(cpValue) == CP_UTF);
-    return Atom.getAtom(ClassFileReader.unpackUnsignedCPValue(cpValue));
+    return ConstantPool.getUtf(constantPool, constantPoolIndex);
   }
 
   /**

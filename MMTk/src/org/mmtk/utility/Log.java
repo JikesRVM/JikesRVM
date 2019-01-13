@@ -555,7 +555,7 @@ public class Log {
    * @param b boolean value to be logged.
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(boolean b, boolean flush) {
+  private static void writeln(boolean b, boolean flush) {
     write(b);
     writelnWithFlush(flush);
   }
@@ -568,7 +568,7 @@ public class Log {
    * @param c character to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(char c, boolean flush) {
+  private static void writeln(char c, boolean flush) {
     write(c);
     writelnWithFlush(flush);
   }
@@ -581,7 +581,7 @@ public class Log {
    * @param l long value to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(long l, boolean flush) {
+  private static void writeln(long l, boolean flush) {
     write(l);
     writelnWithFlush(flush);
   }
@@ -594,7 +594,7 @@ public class Log {
    * @param d the double to be logged
    * @param flush if <code>true</code> then flush the buffer
    */
-  public static void writeln(double d, boolean flush) {
+  private static void writeln(double d, boolean flush) {
     write(d);
     writelnWithFlush(flush);
   }
@@ -610,7 +610,7 @@ public class Log {
    * logged, but the decimal point is.
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(double d, int postDecimalDigits, boolean flush) {
+  private static void writeln(double d, int postDecimalDigits, boolean flush) {
     write(d, postDecimalDigits);
     writelnWithFlush(flush);
   }
@@ -624,7 +624,7 @@ public class Log {
    * @param ca the array of characters to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(char[] ca, boolean flush) {
+  private static void writeln(char[] ca, boolean flush) {
     write(ca);
     writelnWithFlush(flush);
   }
@@ -639,7 +639,7 @@ public class Log {
    * the first character
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(char[] ca, int len, boolean flush) {
+  private static void writeln(char[] ca, int len, boolean flush) {
     write(ca, len);
     writelnWithFlush(flush);
   }
@@ -652,7 +652,7 @@ public class Log {
    * @param b the array of bytes to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(byte[] b, boolean flush) {
+  private static void writeln(byte[] b, boolean flush) {
     write(b);
     writelnWithFlush(flush);
   }
@@ -663,7 +663,7 @@ public class Log {
    * @param s the string to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(String s, boolean flush) {
+  private static void writeln(String s, boolean flush) {
     write(s);
     writelnWithFlush(flush);
   }
@@ -730,7 +730,7 @@ public class Log {
    * @param w the word to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(Word w, boolean flush) {
+  private static void writeln(Word w, boolean flush) {
     write(w);
     writelnWithFlush(flush);
   }
@@ -744,7 +744,7 @@ public class Log {
    * @param a the address to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(Address a, boolean flush) {
+  private static void writeln(Address a, boolean flush) {
     write(a);
     writelnWithFlush(flush);
   }
@@ -757,7 +757,7 @@ public class Log {
    * @param o the object reference to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(ObjectReference o, boolean flush) {
+  private static void writeln(ObjectReference o, boolean flush) {
     write(o);
     writelnWithFlush(flush);
   }
@@ -770,7 +770,7 @@ public class Log {
    * @param o the offset to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(Offset o, boolean flush) {
+  private static void writeln(Offset o, boolean flush) {
     write(o);
     writelnWithFlush(flush);
   }
@@ -783,7 +783,7 @@ public class Log {
    * @param e the extent to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(Extent e, boolean flush) {
+  private static void writeln(Extent e, boolean flush) {
     write(e);
     writelnWithFlush(flush);
   }

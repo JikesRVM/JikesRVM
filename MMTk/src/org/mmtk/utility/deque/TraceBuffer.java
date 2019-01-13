@@ -122,13 +122,13 @@ import org.vmmagic.unboxed.*;
             if (!OMIT_OTHERS) {
               Log.write('G');
               Log.write('C');
-              Log.writeln('B', true);
+              Log.writeln('B');
             }
           } else if (val.EQ(TRACE_GCEND)) {
             if (!OMIT_OTHERS) {
               Log.write('G');
               Log.write('C');
-              Log.writeln('E', true);
+              Log.writeln('E');
             }
           } else {
             traceState = val;

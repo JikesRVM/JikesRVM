@@ -83,8 +83,8 @@ public final class LocalVariableTable {
         LocalVariable lv = new LocalVariable(
             input.readUnsignedShort(),
             input.readUnsignedShort(),
-            ClassFileReader.getUtf(constantPool, input.readUnsignedShort()),
-            ClassFileReader.getUtf(constantPool, input.readUnsignedShort()),
+            ConstantPool.getUtf(constantPool, input.readUnsignedShort()),
+            ConstantPool.getUtf(constantPool, input.readUnsignedShort()),
             input.readUnsignedShort());
         lvs[i] = lv;
       }
