@@ -27,16 +27,21 @@ package org.jikesrvm.classlibrary.openjdk.replacements;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
 import sun.reflect.ConstantPool;
+import sun.reflect.ReflectionFactory;
 
 @ReplaceClass(className = "java.lang.Class")
 public class java_lang_Class<T> {
@@ -184,8 +189,24 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Field[] getDeclaredFields0(boolean publicOnly) {
-    VM.sysFail("getDeclaredFields0");
-    return null;
+    // TODO move out of this class
+    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    RVMField[] declaredFields = myType.getDeclaredFields();
+    List<Field> myFields = new ArrayList<Field>();
+    for (RVMField field : declaredFields) {
+      if (publicOnly) {
+        if (field.isPublic()) {
+          Field createdField = java.lang.reflect.JikesRVMSupport.createField(field);
+          myFields.add(createdField);
+        } else {
+          continue;
+        }
+      } else {
+        Field createdField = java.lang.reflect.JikesRVMSupport.createField(field);
+        myFields.add(createdField);
+      }
+    }
+    return myFields.toArray(new Field[0]);
   }
 
   @ReplaceMember

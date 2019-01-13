@@ -358,6 +358,11 @@ public class VM extends Properties {
 
     RVMThread.boot();
 
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Thread");
+      runClassInitializer("java.lang.Class$Atomic");
+    }
+
     if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
     MemoryManager.enableCollection();
 

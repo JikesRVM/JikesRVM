@@ -37,9 +37,17 @@ public class ClassLibraryHelpers {
   private static final String RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS = "type";
   private static final String PROTECTIOND_DOMAIN_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASSS = "pd";
 
+  private static final String RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_CONSTRUCTOR = "rvmMethod";
+  private static final String RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_METHOD = "rvmMethod";
+  private static final String RVM_FIELD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_FIELD = "rvmField";
+
   public static RVMField rvmThreadField;
   public static RVMField rvmTypeField;
   public static RVMField protectionDomainField;
+
+  public static RVMField javaLangReflectConstructor_rvmMethodField;
+  public static RVMField javaLangReflectMethod_rvmMethodField;
+  public static RVMField javaLangReflectField_rvmFieldField;
 
   /**
    * Allocates an object of the given class and runs the no-arg constructor
@@ -78,7 +86,6 @@ public class ClassLibraryHelpers {
       if (VM.TraceClassLoading) VM.sysWriteln("Added rvmThread field to java.lang.Thread");
       return newDeclaredFields;
     } else if (typeRef == TypeReference.findOrCreate(java.lang.Class.class)) {
-      // TODO this really should be final, but that would mean we'd have to add a constructor, too
       RVMField rvmTypeField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMType;", RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS);
       RVMField pdField = createField(typeRef, "Ljava/security/ProtectionDomain;", PROTECTIOND_DOMAIN_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASSS);
       RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 2];
@@ -89,6 +96,30 @@ public class ClassLibraryHelpers {
       ClassLibraryHelpers.protectionDomainField = pdField;
       if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASS + " field to java.lang.Class");
       if (VM.TraceClassLoading) VM.sysWriteln("Added " + PROTECTIOND_DOMAIN_TYPE_FIELD_NAME_FOR_JAVA_LANG_CLASSS + " field to java.lang.Class");
+      return newDeclaredFields;
+    } else if (typeRef == TypeReference.findOrCreate(java.lang.reflect.Constructor.class)) {
+      RVMField rvmMethodField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMMethod;", RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_CONSTRUCTOR);
+      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
+      System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
+      newDeclaredFields[newDeclaredFields.length - 1] = rvmMethodField;
+      ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField = rvmMethodField;
+      if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_CONSTRUCTOR + " field to " + typeRef.getName().toString());
+      return newDeclaredFields;
+    } else if (typeRef == TypeReference.findOrCreate(java.lang.reflect.Method.class)) {
+      RVMField rvmMethodField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMMethod;", RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_METHOD);
+      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
+      System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
+      newDeclaredFields[newDeclaredFields.length - 1] = rvmMethodField;
+      ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField = rvmMethodField;
+      if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_FIELD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_FIELD + " field to " +  typeRef.getName().toString());
+      return newDeclaredFields;
+    } else if (typeRef == TypeReference.findOrCreate(java.lang.reflect.Field.class)) {
+      RVMField rvmFieldField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMField;", RVM_FIELD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_FIELD);
+      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
+      System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
+      newDeclaredFields[newDeclaredFields.length - 1] = rvmFieldField;
+      ClassLibraryHelpers.javaLangReflectField_rvmFieldField = rvmFieldField;
+      if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_FIELD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_FIELD + " field to " +  typeRef.getName().toString());
       return newDeclaredFields;
     }
 
