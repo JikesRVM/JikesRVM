@@ -208,8 +208,7 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private static boolean desiredAssertionStatus0(Class<?> clazz) {
-    VM.sysFail("desiredAssertionStatus0");
-    return false;
+    return JikesRVMSupport.getTypeForClass(clazz).getDesiredAssertionStatus();
   }
 
 }
