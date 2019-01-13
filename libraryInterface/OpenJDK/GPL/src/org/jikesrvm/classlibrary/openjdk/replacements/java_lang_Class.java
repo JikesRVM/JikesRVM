@@ -87,8 +87,7 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private String getName0() {
-    VM.sysFail("getName");
-    return null;
+    return JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).toString();
   }
 
   @ReplaceMember
