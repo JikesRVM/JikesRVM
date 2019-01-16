@@ -1578,7 +1578,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg path="${generated.asm}:${build.rt.jar}:${build.vm.jar}${build.extra.rt.jars}"/>
       <arg path="${generated.asm}"/>
     </java>
-    <zip destfile="${build.rt.jar}" update="true" basedir="${generated.asm}" compress="false">
+    <zip destfile="${build.rt.jar}" update="true" basedir="${generated.asm}" keepcompression="true">
       <include name="java/**"/>
       <include name="sun/**"/>
       <include name="gnu/**"/>
