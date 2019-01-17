@@ -35,13 +35,13 @@ import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
 import sun.reflect.ConstantPool;
-import sun.reflect.ReflectionFactory;
 
 @ReplaceClass(className = "java.lang.Class")
 public class java_lang_Class<T> {
@@ -116,7 +116,10 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   public Class<?> getComponentType() {
-    VM.sysFail("getComponentType");
+    RVMType typeForClass = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (typeForClass.isArrayType()) {
+      return typeForClass.asArray().getElementType().getClassForType();
+    }
     return null;
   }
 
