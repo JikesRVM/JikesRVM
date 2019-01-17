@@ -92,6 +92,7 @@ Ljava/lang/Integer;
 Ljava/lang/reflect/Method;
 Ljava/lang/reflect/Field;
 Ljava/lang/reflect/Array;
+Ljava/lang/Void;
 Ljava/lang/reflect/Constructor;
 [Ljava/lang/reflect/Constructor;
 Ljava/lang/reflect/AccessibleObject;
