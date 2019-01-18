@@ -25,6 +25,13 @@
 
 package java.lang.ref;
 
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.LightMonitor;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
+
 /**
  * Reference queues, to which registered reference objects are appended by the
  * garbage collector after the appropriate reachability changes are detected.
@@ -35,12 +42,15 @@ package java.lang.ref;
 
 public class ReferenceQueue<T> {
 
+    private static final Atom finalReferenceDescriptor = Atom.findOrCreateAsciiAtom("Ljava/lang/ref/FinalReference;");
+
     /**
      * Constructs a new reference-object queue.
      */
     public ReferenceQueue() { }
 
     private static class Null extends ReferenceQueue {
+        @Unpreemptible
         @Override
         boolean enqueue(Reference r) {
             return false;
@@ -51,25 +61,38 @@ public class ReferenceQueue<T> {
     static ReferenceQueue ENQUEUED = new Null();
 
     static private class Lock { };
-    private Lock lock = new Lock();
+    // was a Lock in original OpenJDK code
+    private LightMonitor lock = new LightMonitor();
     private Reference<? extends T> head = null;
     private long queueLength = 0;
 
+    // rewritten to use Jikes RVM locks
+    @Unpreemptible
     boolean enqueue(Reference<? extends T> r) { /* Called only by Reference class */
-        synchronized (r) {
-            if (r.queue == ENQUEUED) return false;
-            synchronized (lock) {
-                r.queue = ENQUEUED;
-                r.next = (head == null) ? r : head;
-                head = r;
-                queueLength++;
-                if (r instanceof FinalReference) {
-                    sun.misc.VM.addFinalRefCount(1);
-                }
-                lock.notifyAll();
-                return true;
-            }
-        }
+      r.instanceLock.lockWithHandshake();
+      lock.lockWithHandshake();
+      enqueueInternal(r);
+      lock.unlock();
+      r.instanceLock.unlock();
+      return true;
+    }
+
+    // added for Jikes RVM
+    @Uninterruptible
+    boolean enqueueInternal(Reference<? extends T> r) {
+      if (r.queue == ENQUEUED) {
+        return false;
+      }
+      r.queue = ENQUEUED;
+      r.next = (head == null) ? r : head;
+      head = r;
+      queueLength++;
+      RVMType objectType = Magic.getObjectType(r);
+      if (objectType.isClassType() && objectType.asClass().getDescriptor() == finalReferenceDescriptor) {
+          sun.misc.VM.addFinalRefCount(1);
+      }
+      lock.broadcast();
+      return true;
     }
 
     private Reference<? extends T> reallyPoll() {       /* Must hold lock */
@@ -95,10 +118,12 @@ public class ReferenceQueue<T> {
      * @return  A reference object, if one was immediately available,
      *          otherwise <code>null</code>
      */
+    // rewritten to use Jikes RVM locks
     public Reference<? extends T> poll() {
-        synchronized (lock) {
-            return reallyPoll();
-        }
+        lock.lockWithHandshake();
+        Reference<? extends T> reallyPoll = reallyPoll();
+        lock.unlock();
+        return reallyPoll;
     }
 
     /**
@@ -121,20 +146,29 @@ public class ReferenceQueue<T> {
      * @throws  InterruptedException
      *          If the timeout wait is interrupted
      */
+    // rewritten to use Jikes RVM locks
     public Reference<? extends T> remove(long timeout)
         throws IllegalArgumentException, InterruptedException
     {
         if (timeout < 0) {
             throw new IllegalArgumentException("Negative timeout value");
         }
-        synchronized (lock) {
-            Reference<? extends T> r = reallyPoll();
-            if (r != null) return r;
-            for (;;) {
-                lock.wait(timeout);
-                r = reallyPoll();
-                if (r != null) return r;
-                if (timeout != 0) return null;
+        lock.lockWithHandshake();
+        Reference<? extends T> r = reallyPoll();
+        if (r != null) {
+          lock.unlock();
+          return r;
+        }
+        for (;;) {
+            lock.wait(timeout);
+            r = reallyPoll();
+            if (r != null) {
+              lock.unlock();
+              return r;
+            }
+            if (timeout != 0) {
+              lock.unlock();
+              return null;
             }
         }
     }

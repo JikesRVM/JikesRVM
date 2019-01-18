@@ -25,6 +25,8 @@
 
 package java.lang.ref;
 
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.ReferenceFieldsVary;
 
 /**
  * Soft reference objects, which are cleared at the discretion of the garbage
@@ -60,7 +62,7 @@ package java.lang.ref;
  * @author   Mark Reinhold
  * @since    1.2
  */
-
+@ReferenceFieldsVary
 public class SoftReference<T> extends Reference<T> {
 
     /* Timestamp clock, updated by the garbage collector
@@ -81,6 +83,7 @@ public class SoftReference<T> extends Reference<T> {
      */
     public SoftReference(T referent) {
         super(referent);
+        MemoryManager.addSoftReference(this, referent);
         this.timestamp = clock;
     }
 
@@ -95,6 +98,7 @@ public class SoftReference<T> extends Reference<T> {
      */
     public SoftReference(T referent, ReferenceQueue<? super T> q) {
         super(referent, q);
+        MemoryManager.addSoftReference(this, referent);
         this.timestamp = clock;
     }
 

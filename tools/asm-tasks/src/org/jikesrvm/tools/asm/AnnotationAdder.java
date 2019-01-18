@@ -41,6 +41,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 import org.jikesrvm.classloader.RVMClassLoader;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
@@ -449,6 +450,7 @@ public final class AnnotationAdder {
         addToAdapt(Uninterruptible.class, Enum.class.getMethod("ordinal", new Class[0]));
         addToAdapt(Uninterruptible.class, Enum.class.getMethod("name", new Class[0]));
         addToAdapt(Uninterruptible.class, String.class.getMethod("length", new Class[0]));
+        addToAdapt(Uninterruptible.class, "sun/misc/VM", "addFinalRefCount", "(I)V");
       }
     } catch (Exception e) {
       System.out.println("Exception " + e);

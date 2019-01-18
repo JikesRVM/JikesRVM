@@ -25,6 +25,18 @@
 
 package java.lang.ref;
 
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_GETFIELD_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER;
+
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.mm.mminterface.Barriers;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.LightMonitor;
+import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.ReferenceFieldsVary;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+
 import sun.misc.Cleaner;
 
 
@@ -37,7 +49,7 @@ import sun.misc.Cleaner;
  * @author   Mark Reinhold
  * @since    1.2
  */
-
+@ReferenceFieldsVary
 public abstract class Reference<T> {
 
     /* A Reference instance is in one of four possible internal states:
@@ -87,7 +99,14 @@ public abstract class Reference<T> {
      * discovered objects through the discovered field.
      */
 
-    private T referent;         /* Treated specially by GC */
+  /**
+   * The underlying object.  This field is a Address so it will not
+   * be automatically kept alive by the garbage collector.<p>
+   *
+   * Set and maintained by the ReferenceProcessor class.
+   */
+    @Entrypoint
+    private Address _referent;
 
     ReferenceQueue<? super T> queue;
 
@@ -102,6 +121,8 @@ public abstract class Reference<T> {
      */
     static private class Lock { };
     private static Lock lock = new Lock();
+    // added for Jikes RVM to get away from using synchronized on Reference
+    LightMonitor instanceLock = new LightMonitor();
 
 
     /* List of References waiting to be enqueued.  The collector adds
@@ -175,7 +196,33 @@ public abstract class Reference<T> {
      *           <code>null</code> if this reference object has been cleared
      */
     public T get() {
-        return this.referent;
+        // Jikes RVM: changed to use get internal
+        return (T) getInternal();
+    }
+
+    // new method added for Jikes RVM
+    @Uninterruptible
+    public Object getInternal() {
+      // implementation copied from Jikes RVM implementation for Gnu Classpath
+      if (RVMType.JavaLangRefReferenceReferenceField.madeTraced()) {
+        if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+          return Barriers.objectFieldRead(this, RVMType.JavaLangRefReferenceReferenceField.getOffset(), RVMType.JavaLangRefReferenceReferenceField.getId());
+        } else {
+          return Magic.getObjectAtOffset(this, RVMType.JavaLangRefReferenceReferenceField.getOffset(), RVMType.JavaLangRefReferenceReferenceField.getId());
+        }
+      } else {
+        Address tmp = _referent;
+        if (tmp.isZero()) {
+          return null;
+        } else {
+          Object ref = Magic.addressAsObject(tmp);
+
+          if (Barriers.NEEDS_JAVA_LANG_REFERENCE_READ_BARRIER) {
+            ref = Barriers.javaLangReferenceReadBarrier(ref);
+          }
+          return ref;
+        }
+      }
     }
 
     /**
@@ -186,7 +233,14 @@ public abstract class Reference<T> {
      * clears references it does so directly, without invoking this method.
      */
     public void clear() {
-        this.referent = null;
+      // implementation copied from Jikes RVM implementation for Gnu Classpath
+      if (RVMType.JavaLangRefReferenceReferenceField.madeTraced()) {
+        if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+          Barriers.objectFieldWrite(this, null, RVMType.JavaLangRefReferenceReferenceField.getOffset(), RVMType.JavaLangRefReferenceReferenceField.getId());
+        } else {
+          Magic.setObjectAtOffset(this, RVMType.JavaLangRefReferenceReferenceField.getOffset(), null, RVMType.JavaLangRefReferenceReferenceField.getId());
+        }
+      }
     }
 
 
@@ -224,6 +278,11 @@ public abstract class Reference<T> {
         return this.queue.enqueue(this);
     }
 
+    // new method added for Jikes RVM
+    @Uninterruptible
+    public boolean enqueueInternal() {
+      return this.queue.enqueueInternal(this);
+  }
 
     /* -- Constructors -- */
 
@@ -232,7 +291,7 @@ public abstract class Reference<T> {
     }
 
     Reference(T referent, ReferenceQueue<? super T> queue) {
-        this.referent = referent;
+        // Jikes RVM: don't save referent here
         this.queue = (queue == null) ? ReferenceQueue.NULL : queue;
     }
 

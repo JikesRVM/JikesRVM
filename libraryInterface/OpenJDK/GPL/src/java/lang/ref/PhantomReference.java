@@ -25,6 +25,8 @@
 
 package java.lang.ref;
 
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.ReferenceFieldsVary;
 
 /**
  * Phantom reference objects, which are enqueued after the collector
@@ -49,7 +51,7 @@ package java.lang.ref;
  * @author   Mark Reinhold
  * @since    1.2
  */
-
+@ReferenceFieldsVary
 public class PhantomReference<T> extends Reference<T> {
 
     /**
@@ -79,6 +81,7 @@ public class PhantomReference<T> extends Reference<T> {
      */
     public PhantomReference(T referent, ReferenceQueue<? super T> q) {
         super(referent, q);
+        MemoryManager.addPhantomReference(this, referent);
     }
 
 }

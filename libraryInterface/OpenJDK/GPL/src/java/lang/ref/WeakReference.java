@@ -25,6 +25,9 @@
 
 package java.lang.ref;
 
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.ReferenceFieldsVary;
+
 /**
  * Weak reference objects, which do not prevent their referents from being
  * made finalizable, finalized, and then reclaimed.  Weak references are most
@@ -43,7 +46,7 @@ package java.lang.ref;
  * @author   Mark Reinhold
  * @since    1.2
  */
-
+@ReferenceFieldsVary
 public class WeakReference<T> extends Reference<T> {
 
     /**
@@ -54,6 +57,7 @@ public class WeakReference<T> extends Reference<T> {
      */
     public WeakReference(T referent) {
         super(referent);
+        MemoryManager.addWeakReference(this, referent);
     }
 
     /**
@@ -66,6 +70,7 @@ public class WeakReference<T> extends Reference<T> {
      */
     public WeakReference(T referent, ReferenceQueue<? super T> q) {
         super(referent, q);
+        MemoryManager.addWeakReference(this, referent);
     }
 
 }
