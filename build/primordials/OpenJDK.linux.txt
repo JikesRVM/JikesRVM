@@ -127,6 +127,7 @@ Ljava/util/TreeMap;
 Ljava/util/Stack;
 Ljava/util/Vector;
 Ljava/util/WeakHashMap;
+Ljava/util/WeakHashMap$Entry;
 Ljava/util/Arrays;
 Ljava/util/LinkedHashMap;
 Ljava/util/LinkedHashMap$Entry;
