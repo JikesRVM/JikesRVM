@@ -1725,7 +1725,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg path="${generated.asm}:${build.rt.jar}:${build.vm.jar}${build.extra.rt.jars}"/>
       <arg path="${generated.asm}"/>
     </java>
-    <zip destfile="${build.rt.jar}" update="true" basedir="${generated.asm}" compress="false">
+    <zip destfile="${build.rt.jar}" update="true" basedir="${generated.asm}" keepcompression="true">
       <include name="java/**"/>
       <include name="sun/**"/>
       <include name="gnu/**"/>
@@ -1835,6 +1835,13 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="build-bootimage-writer" depends="gen-asm">
+    <!-- The build machines sometimes fail to build the bootimage writer because of a bad class file.
+       This seems to be a race condition (see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=738789 )
+       so attempt to wait a few seconds. The failing builds all took 49 or 50 seconds, so 7 seconds
+       ought to be long enough. We tried 3 but that wasn't sufficient.
+    -->
+    <sleep seconds="7"/>
+
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
