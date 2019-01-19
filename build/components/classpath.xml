@@ -200,7 +200,6 @@
             <equals arg1="${target.name}" arg2="x86_64-linux"/>
             <equals arg1="${target.name}" arg2="x86_64_m32-linux"/>
             <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
-            <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
           </or>
         </not>
         <or>
@@ -219,21 +218,19 @@
         <equals arg1="${target.name}" arg2="x86_64-linux"/>
         <equals arg1="${target.name}" arg2="x86_64_m32-linux"/>
         <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
-        <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
       </or>
     </condition>
 
    <condition property="cp.cflags" value="-m64" else="">
      <or>
        <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
-       <equals arg1="${target.name}" arg2="x86_64_m64s-linux"/>
+       <equals arg1="${target.name}" arg2="x86_64-linux"/>
      </or>
    </condition>
 
 
     <condition property="cp.libdirs" value="  --libdir=/usr/lib32 --x-libraries=/usr/lib32" else="">
       <or>
-        <equals arg1="${target.name}" arg2="x86_64-linux"/>
         <equals arg1="${target.name}" arg2="x86_64_m32-linux"/>
       </or>
     </condition>
