@@ -139,6 +139,7 @@ public final class Unsafe {
   @Inline
   public long objectFieldOffset(Field field) {
     RVMField vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
+    if (VM.VerifyAssertions) VM._assert(vmfield != null);
     return vmfield.getOffset().toLong();
   }
 
