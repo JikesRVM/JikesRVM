@@ -11,6 +11,8 @@
  *  regarding copyright ownership.
  */
 package java.lang.reflect;
+import java.io.UTFDataFormatException;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.*;
@@ -35,12 +37,12 @@ public class JikesRVMSupport {
   public static Field createField(RVMField f) {
     RVMClass declaringRvmClass = f.getDeclaringClass();
     Class<?> declaringClass = declaringRvmClass.getClassForType();
-    String name = f.getName().toString();
+    String name = atomToInternedStringOrError(f.getName());
     Class<?> type = f.getType().resolve().getClassForType();
     int modifiers = f.getModifiers();
     int slot = SLOT_CONTENTS;
     Atom signatureAtom = f.getSignature();
-    String signature = (signatureAtom == null) ? null : signatureAtom.toString();
+    String signature = (signatureAtom == null) ? null : atomToInternedStringOrError(signatureAtom);
     // TODO what does OpenJDK expect here? Seems to be the binary data from the class file
     // See https://bugs.openjdk.java.net/browse/JDK-8009381
     // https://bugs.openjdk.java.net/browse/JDK-8009719
@@ -54,7 +56,7 @@ public class JikesRVMSupport {
 
   public static Method createMethod(RVMMethod m) {
     Class<?> declaringClass = m.getDeclaringClass().getClassForType();
-    String name = m.getName().toString();
+    String name = atomToInternedStringOrError(m.getName());
     // TODO: map this
     Class[] parameterTypes = null;
     //m.getParameterTypes();
@@ -66,7 +68,7 @@ public class JikesRVMSupport {
     int modifiers = m.getModifiers();
     // slot is implementation defined
     int slot = SLOT_CONTENTS;
-    String signature = m.getSignature().toString();
+    String signature = atomToInternedStringOrError(m.getSignature());
     byte[] annotations = new byte[0];
     byte[] parameterAnnotations = new byte[0];
     byte[] annotationDefault = new byte[0];
@@ -81,22 +83,18 @@ public class JikesRVMSupport {
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
     Class<?> declaringClass = m.getDeclaringClass().getClassForType();
-    String name = m.getName().toString();
     // TODO: map this
     Class[] parameterTypes = null;
     //m.getParameterTypes();
-
-    Class<?> returnType = m.getReturnType().resolve().getClassForType();
     // TODO map this
     Class[] checkedExceptions = null;
 //  = m.getExceptionTypes();
     int modifiers = m.getModifiers();
     // slot is implementation defined
     int slot = SLOT_CONTENTS;
-    String signature = m.getSignature().toString();
+    String signature = atomToInternedStringOrError(m.getSignature());
     byte[] annotations = new byte[0];
     byte[] parameterAnnotations = new byte[0];
-    byte[] annotationDefault = new byte[0];
     //    VM.sysWriteln("CreateMethod is called");
     //    throw new Error("Openjdk createmethod");
     // TODO set rvmmethod
@@ -121,4 +119,13 @@ public class JikesRVMSupport {
   public static RVMMethod getMethodOf(Constructor cons) {
     return (RVMMethod) Magic.getObjectAtOffset(cons, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset());
   }
+
+  private static String atomToInternedStringOrError(Atom a) {
+    try {
+      return a.toUnicodeString();
+    } catch (UTFDataFormatException e) {
+      throw new Error(e);
+    }
+  }
+
 }
