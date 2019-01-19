@@ -74,20 +74,18 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   public boolean isInterface() {
-    VM.sysFail("isInterface");
-    return false;
+     RVMType myType = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    return myType.isClassType() && myType.asClass().isInterface();
   }
 
   @ReplaceMember
   public boolean isArray() {
-    VM.sysFail("isArray");
-    return false;
+    return JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).isArrayType();
   }
 
   @ReplaceMember
   public boolean isPrimitive() {
-    VM.sysFail("isPrimitive");
-    return false;
+    return JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).isPrimitiveType();
   }
 
   @ReplaceMember
