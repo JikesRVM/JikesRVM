@@ -12,6 +12,8 @@
  */
 package java.lang.reflect;
 
+import java.io.UTFDataFormatException;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -23,6 +25,21 @@ public class JikesRVMHelpers {
     Atom fieldName = Atom.findUnicodeAtom(fieldNameStr);
     if (VM.VerifyAssertions) VM._assert(fieldName != null);
     return typeForClass.findDeclaredField(fieldName);
+  }
+
+  public static String convertAtomToInternedStringOrNull(Atom a) {
+    if (a == null) {
+      return null;
+    }
+    return atomToInternedStringOrError(a);
+  }
+
+  public static String atomToInternedStringOrError(Atom a) {
+    try {
+      return a.toUnicodeString();
+    } catch (UTFDataFormatException e) {
+      throw new Error(e);
+    }
   }
 
 }

@@ -11,12 +11,12 @@
  *  regarding copyright ownership.
  */
 package java.lang.reflect;
-import java.io.UTFDataFormatException;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.Magic;
+
+import static java.lang.reflect.JikesRVMHelpers.*;
 
 /**
  * Library support interface of Jikes RVM
@@ -41,8 +41,7 @@ public class JikesRVMSupport {
     Class<?> type = f.getType().resolve().getClassForType();
     int modifiers = f.getModifiers();
     int slot = SLOT_CONTENTS;
-    Atom signatureAtom = f.getSignature();
-    String signature = (signatureAtom == null) ? null : atomToInternedStringOrError(signatureAtom);
+    String signature = convertAtomToInternedStringOrNull(f.getSignature());
     // TODO what does OpenJDK expect here? Seems to be the binary data from the class file
     // See https://bugs.openjdk.java.net/browse/JDK-8009381
     // https://bugs.openjdk.java.net/browse/JDK-8009719
@@ -68,7 +67,7 @@ public class JikesRVMSupport {
     int modifiers = m.getModifiers();
     // slot is implementation defined
     int slot = SLOT_CONTENTS;
-    String signature = atomToInternedStringOrError(m.getSignature());
+    String signature = convertAtomToInternedStringOrNull(m.getSignature());
     byte[] annotations = new byte[0];
     byte[] parameterAnnotations = new byte[0];
     byte[] annotationDefault = new byte[0];
@@ -92,7 +91,7 @@ public class JikesRVMSupport {
     int modifiers = m.getModifiers();
     // slot is implementation defined
     int slot = SLOT_CONTENTS;
-    String signature = atomToInternedStringOrError(m.getSignature());
+    String signature = convertAtomToInternedStringOrNull(m.getSignature());
     byte[] annotations = new byte[0];
     byte[] parameterAnnotations = new byte[0];
     //    VM.sysWriteln("CreateMethod is called");
@@ -120,12 +119,6 @@ public class JikesRVMSupport {
     return (RVMMethod) Magic.getObjectAtOffset(cons, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset());
   }
 
-  private static String atomToInternedStringOrError(Atom a) {
-    try {
-      return a.toUnicodeString();
-    } catch (UTFDataFormatException e) {
-      throw new Error(e);
-    }
-  }
+
 
 }
