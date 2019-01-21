@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
@@ -124,8 +125,8 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   public int getModifiers() {
-    VM.sysFail("getModifiers");
-    return 0;
+    RVMType type = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    return JavaLangSupport.getModifiersFromRvmType(type);
   }
 
   @ReplaceMember
