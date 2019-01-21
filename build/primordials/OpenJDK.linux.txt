@@ -101,6 +101,8 @@ Ljava/lang/reflect/ReflectAccess;
 Ljava/lang/reflect/ReflectPermission;
 Ljava/lang/reflect/Modifier;
 Ljava/lang/reflect/Proxy;
+Lsun/reflect/NativeConstructorAccessorImpl;
+Lsun/reflect/DelegatingConstructorAccessorImpl;
 Lsun/reflect/Reflection;
 Lsun/reflect/ReflectionFactory;
 Lsun/reflect/ReflectionFactory$GetReflectionFactoryAction;
