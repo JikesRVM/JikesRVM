@@ -35,6 +35,7 @@ import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
@@ -218,8 +219,24 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Constructor<T>[] getDeclaredConstructors0(boolean publicOnly) {
-    VM.sysFail("getDeclaredConstructors0");
-    return null;
+    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    RVMMethod[] constructorMethods = myType.getConstructorMethods();
+    List<Constructor<T>> myConstructors = new ArrayList<Constructor<T>>();
+    for (RVMMethod c : constructorMethods) {
+      if (publicOnly) {
+        if (c.isPublic()) {
+          Constructor<T> createdConstructor = java.lang.reflect.JikesRVMSupport.createConstructor(c);
+          myConstructors.add(createdConstructor);
+        } else {
+          continue;
+        }
+      } else {
+        Constructor<T> createdConstructor = java.lang.reflect.JikesRVMSupport.createConstructor(c);
+        myConstructors.add(createdConstructor);
+      }
+    }
+
+    return myConstructors.toArray(new Constructor[0]);
   }
 
   @ReplaceMember
