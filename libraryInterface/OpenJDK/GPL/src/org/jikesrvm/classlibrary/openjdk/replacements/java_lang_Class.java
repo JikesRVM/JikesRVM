@@ -104,8 +104,17 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   public Class<? super T> getSuperclass() {
-    VM.sysFail("getSuperclass");
-    return null;
+    RVMType type = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (type.isArrayType()) {
+      return Object.class;
+    } else if (type.isClassType()) {
+      RVMClass myClass = type.asClass();
+      if (myClass.isInterface()) return null;
+      RVMType supe = myClass.getSuperClass();
+      return supe == null ? null : (Class<? super T>) supe.getClassForType();
+    } else {
+      return null;
+    }
   }
 
   @ReplaceMember
