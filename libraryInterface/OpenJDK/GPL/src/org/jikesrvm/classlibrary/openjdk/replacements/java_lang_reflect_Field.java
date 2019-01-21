@@ -26,20 +26,44 @@ package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import java.lang.reflect.Field;
 
-import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
+import org.vmmagic.unboxed.Offset;
 
 @ReplaceClass(className = "java.lang.reflect.Field")
 public class java_lang_reflect_Field {
 
   @ReplaceMember
   Field copy() {
-    // TODO read old rvm field, create new field based on that
-    // TODO read root field, set it to this
-    // TODO copy fieldAccessor and overrideFieldAccessor from this
-    VM.sysFail("copy");
-    return null;
+    // "copy" field
+    Field source = (Field) (Object) this;
+    RVMField rvmField = java.lang.reflect.JikesRVMSupport.getFieldOf(source);
+    Field newField = java.lang.reflect.JikesRVMSupport.createField(rvmField);
+    // set rest of fields from old field
+    RVMClass typeForClass = java.lang.JikesRVMSupport.getTypeForClass(Field.class).asClass();
+
+    // set root field
+    RVMField rootField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "root");
+    Offset rootOffset = rootField.getOffset();
+    Magic.setObjectAtOffset(newField, rootOffset, source);
+
+    // copy fieldAccessor and overrideFieldAccessor from this
+    RVMField fieldAccessorField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "fieldAccessor");
+    Offset fieldAccessorOffset = fieldAccessorField.getOffset();
+    Object sourceFieldAccessor = Magic.getObjectAtOffset(source, fieldAccessorOffset);
+    Magic.setObjectAtOffset(newField, fieldAccessorOffset, sourceFieldAccessor);
+
+    RVMField overrideFieldAccessorField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "overrideFieldAccessor");
+    Offset overrideFieldAccessorOFfset = overrideFieldAccessorField.getOffset();
+    Object sourceOverrideFieldAccessor = Magic.getObjectAtOffset(source, overrideFieldAccessorOFfset);
+    Magic.setObjectAtOffset(newField, overrideFieldAccessorOFfset, sourceOverrideFieldAccessor);
+
+    return newField;
   }
+
+
 
 }
