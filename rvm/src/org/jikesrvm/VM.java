@@ -377,6 +377,9 @@ public class VM extends Properties {
       runClassInitializer("java.io.FileSystem");
     }
 
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.io.DeleteOnExitHook");
+    }
     runClassInitializer("java.io.File"); // needed for when we initialize the
     // system/application class loader.
     runClassInitializer("java.lang.String");
