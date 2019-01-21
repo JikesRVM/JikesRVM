@@ -56,10 +56,7 @@ public class JikesRVMSupport {
   public static Method createMethod(RVMMethod m) {
     Class<?> declaringClass = m.getDeclaringClass().getClassForType();
     String name = atomToInternedStringOrError(m.getName());
-    // TODO: map this
-    Class[] parameterTypes = null;
-    //m.getParameterTypes();
-
+    Class[] parameterTypes = convertMethodParametersTypesToClasses(m);
     Class<?> returnType = m.getReturnType().resolve().getClassForType();
     // TODO map this
     Class[] checkedExceptions = null;
@@ -82,9 +79,7 @@ public class JikesRVMSupport {
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
     Class<?> declaringClass = m.getDeclaringClass().getClassForType();
-    // TODO: map this
-    Class[] parameterTypes = null;
-    //m.getParameterTypes();
+    Class[] parameterTypes = convertMethodParametersTypesToClasses(m);
     // TODO map this
     Class[] checkedExceptions = null;
 //  = m.getExceptionTypes();

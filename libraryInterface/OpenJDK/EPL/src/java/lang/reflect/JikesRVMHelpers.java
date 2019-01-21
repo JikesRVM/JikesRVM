@@ -18,6 +18,9 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.TypeReference;
 
 public class JikesRVMHelpers {
 
@@ -40,6 +43,20 @@ public class JikesRVMHelpers {
     } catch (UTFDataFormatException e) {
       throw new Error(e);
     }
+  }
+
+  public static Class[] convertMethodParametersTypesToClasses(RVMMethod m) {
+    TypeReference[] parameterTypes = m.getParameterTypes();
+    Class[] classes = new Class[parameterTypes.length];
+    for (int i = 0; i < parameterTypes.length; i++) {
+      TypeReference typeReference = parameterTypes[i];
+      RVMType type = typeReference.peekType();
+      if (type == null) {
+        type = typeReference.resolve();
+      }
+      classes[i] = type.getClassForType();
+    }
+    return classes;
   }
 
 }
