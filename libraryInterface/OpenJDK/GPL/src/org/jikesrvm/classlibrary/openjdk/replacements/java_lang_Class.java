@@ -33,12 +33,14 @@ import java.util.List;
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classlibrary.JavaLangSupport;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
@@ -58,8 +60,34 @@ public class java_lang_Class<T> {
   @ReplaceMember
   private static Class<?> forName0(String name, boolean initialize, ClassLoader loader, Class<?> caller)
       throws ClassNotFoundException {
-    VM.sysFail("forName0");
-    return null;
+    if (name == null) {
+      throw new NullPointerException("Name parameter must not be null (but was)!");
+    }
+
+    try {
+      if (name.startsWith("[")) {
+        if (!JavaLangSupport.validArrayDescriptor(name)) {
+          throw new ClassNotFoundException(name);
+        }
+      }
+      Atom descriptor = Atom.findOrCreateAsciiAtom(name.replace('.','/')).descriptorFromClassName();
+      TypeReference tRef = TypeReference.findOrCreate(loader, descriptor);
+      RVMType ans = tRef.resolve();
+      Callbacks.notifyForName(ans);
+      if (initialize && !ans.isInitialized()) {
+        ans.prepareForFirstUse();
+      }
+      return ans.getClassForType();
+    } catch (NoClassDefFoundError ncdfe) {
+      Throwable cause2 = ncdfe.getCause();
+      ClassNotFoundException cnf;
+      // If we get a NCDFE that was caused by a CNFE, throw the original CNFE.
+      if (cause2 instanceof ClassNotFoundException)
+        cnf = (ClassNotFoundException) cause2;
+      else
+        cnf = new ClassNotFoundException(name, ncdfe);
+      throw cnf;
+    }
   }
 
   @ReplaceMember
