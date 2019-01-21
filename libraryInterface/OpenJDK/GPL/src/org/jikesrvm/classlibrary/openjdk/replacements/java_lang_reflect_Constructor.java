@@ -25,18 +25,38 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import java.lang.reflect.Constructor;
-
-import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
+import org.vmmagic.unboxed.Offset;
 
 @ReplaceClass(className = "java.lang.reflect.Constructor")
 public class java_lang_reflect_Constructor {
 
   @ReplaceMember
   Constructor copy() {
-    VM.sysFail("copy");
-    return null;
+    // "copy" constructor
+    Constructor source = (Constructor) (Object) this;
+    RVMMethod rvmMethod = java.lang.reflect.JikesRVMSupport.getMethodOf(source);
+    Constructor newConstructor = java.lang.reflect.JikesRVMSupport.createConstructor(rvmMethod);
+    // set rest of fields from old field
+    RVMClass typeForClass = java.lang.JikesRVMSupport.getTypeForClass(Constructor.class).asClass();
+
+    // set root field
+    RVMField rootField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "root");
+    Offset rootOffset = rootField.getOffset();
+    Magic.setObjectAtOffset(newConstructor, rootOffset, source);
+
+    // copy constructorAccessor from this
+    RVMField constructorAccessorField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "constructorAccessor");
+    Offset constructorAccessorOffset = constructorAccessorField.getOffset();
+    Object sourceConstructorAccessor = Magic.getObjectAtOffset(source, constructorAccessorOffset);
+    Magic.setObjectAtOffset(newConstructor, constructorAccessorOffset, sourceConstructorAccessor);
+
+    return newConstructor;
   }
 
 }
