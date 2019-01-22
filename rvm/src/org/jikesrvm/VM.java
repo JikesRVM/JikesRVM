@@ -380,6 +380,17 @@ public class VM extends Properties {
     if (VM.BuildForOpenJDK) {
       runClassInitializer("java.io.DeleteOnExitHook");
     }
+
+    // properties are needed for java.io.File which calls the constructor of UnixFileSystem
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("sun.misc.Version");
+      runClassInitializer("sun.misc.VM");
+      runClassInitializer("java.io.Console");
+      RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
+      RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
+      Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
+    }
+
     runClassInitializer("java.io.File"); // needed for when we initialize the
     // system/application class loader.
     runClassInitializer("java.lang.String");
@@ -531,15 +542,6 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     FileSystem.initializeStandardStreams();
-
-    if (VM.BuildForOpenJDK) {
-      runClassInitializer("sun.misc.Version");
-      runClassInitializer("sun.misc.VM");
-      runClassInitializer("java.io.Console");
-      RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
-      RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
-      Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
-    }
 
     ///////////////////////////////////////////////////////////////
     // The VM is now fully booted.                               //
