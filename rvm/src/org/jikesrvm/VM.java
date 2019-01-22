@@ -386,6 +386,11 @@ public class VM extends Properties {
       runClassInitializer("sun.misc.Version");
       runClassInitializer("sun.misc.VM");
       runClassInitializer("java.io.Console");
+      runClassInitializer("java.util.concurrent.atomic.AtomicInteger");
+      runClassInitializer("java.io.FileDescriptor");
+      // TODO probably need to initialize more stuff for OpenJDK
+      runClassInitializer("java.io.FileInputStream");
+      runClassInitializer("java.io.FileOutputStream");
       RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
       RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
       Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
@@ -464,7 +469,9 @@ public class VM extends Properties {
       runClassInitializer("gnu.java.nio.VMChannel");
       runClassInitializer("gnu.java.nio.FileChannelImpl");
     }
-    runClassInitializer("java.io.FileDescriptor");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.io.FileDescriptor");
+    }
     runClassInitializer("java.io.FilePermission");
     runClassInitializer("java.util.jar.JarFile");
     if (VM.BuildForGnuClasspath) {
@@ -514,13 +521,9 @@ public class VM extends Properties {
       //    runClassInitializer("java/lang/reflect/Modifier");
       runClassInitializer("sun.reflect.Reflection");
       runClassInitializer("java.lang.reflect.Proxy");
-      runClassInitializer("java.util.concurrent.atomic.AtomicInteger");
       runClassInitializer("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
-      runClassInitializer("java.io.FileInputStream");
-      runClassInitializer("java.io.FileOutputStream");
       runClassInitializer("java.io.DataInputStream");
       runClassInitializer("java.io.BufferedInputStream");
-
       runClassInitializer("java.nio.CharBuffer");
       runClassInitializer("java.nio.ByteBuffer");
       runClassInitializer("java.nio.DirectByteBuffer");

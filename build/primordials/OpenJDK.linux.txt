@@ -86,6 +86,7 @@ Lsun/misc/SoftCache;
 Lsun/misc/VM;
 Lsun/misc/JavaIOFileAccess;
 Lsun/misc/JavaIODeleteOnExitAccess;
+Lsun/misc/JavaIOFileDescriptorAccess;
 Ljava/util/LinkedHashSet;
 Ljava/io/DeleteOnExitHook;
 Ljava/lang/annotation/RetentionPolicy;
