@@ -57,7 +57,6 @@ Ljava/lang/StringIndexOutOfBoundsException;
 Ljava/lang/ThreadDeath;
 Ljava/lang/UnsatisfiedLinkError;
 Ljava/lang/UnsupportedOperationException;
-Ljava/lang/ExceptionInInitializerError;
 Ljava/net/MalformedURLException;
 Ljava/net/UnknownHostException;
 Ljava/nio/charset/UnsupportedCharsetException;
