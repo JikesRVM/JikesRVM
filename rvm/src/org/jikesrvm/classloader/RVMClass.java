@@ -1385,7 +1385,12 @@ public final class RVMClass extends RVMType {
     else
       targetMemberName = member.getName();
 
-    final RVMMember targetMember = MemberReference.findOrCreate(targetClassRef, targetMemberName, member.getDescriptor()).peekResolvedMember();
+    Atom targetDescriptor = member.getDescriptor();
+    if (annotation != null && annotation.descriptor().length() > 0) {
+      targetDescriptor = Atom.findOrCreateAsciiAtom(annotation.descriptor());
+    }
+
+    final RVMMember targetMember = MemberReference.findOrCreate(targetClassRef, targetMemberName, targetDescriptor).peekResolvedMember();
 
     if (VM.verboseClassLoading)
       VM.sysWriteln("Replace: " + "replacing member " + targetMemberName + " of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");

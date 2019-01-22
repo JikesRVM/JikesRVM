@@ -29,4 +29,5 @@ import org.vmmagic.Pragma;
 @Pragma
 public @interface ReplaceMember {
   String value() default "";
+  String descriptor() default "";
 }
