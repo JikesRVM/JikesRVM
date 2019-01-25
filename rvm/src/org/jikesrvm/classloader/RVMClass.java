@@ -81,7 +81,7 @@ public final class RVMClass extends RVMType {
    * constant pool isn't that from the class file, instead it has been
    * processed during class loading (see {@link ClassFileReader#readClass}). The loaded
    * class' constant pool has 3 bits of type information (such as
-   * (see {@link ClassLoaderConstants#CP_INT})), the rest of the int holds data as follows:
+   * (see {@link ConstantPool#CP_INT})), the rest of the int holds data as follows:
    *
    * <ul>
    * <li>utf: value is a UTF atom identifier</li>
