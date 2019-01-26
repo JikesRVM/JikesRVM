@@ -391,6 +391,22 @@ public class VM extends Properties {
       // TODO probably need to initialize more stuff for OpenJDK
       runClassInitializer("java.io.FileInputStream");
       runClassInitializer("java.io.FileOutputStream");
+      //    runClassInitializer("java/lang/reflect/Modifier");
+      runClassInitializer("sun.reflect.Reflection");
+      runClassInitializer("java.lang.reflect.Proxy");
+      runClassInitializer("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
+      runClassInitializer("java.io.DataInputStream");
+      runClassInitializer("java.io.BufferedInputStream");
+      runClassInitializer("java.nio.CharBuffer");
+      runClassInitializer("java.nio.ByteBuffer");
+      runClassInitializer("java.nio.DirectByteBuffer");
+      runClassInitializer("java.nio.Bits");
+      runClassInitializer("sun.nio.cs.StreamEncoder");
+      runClassInitializer("java.util.StringTokenizer");
+      runClassInitializer("java.nio.charset.Charset");
+      if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
+      // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
+      FileSystem.initializeStandardStreams();
       RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
       RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
       Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
@@ -518,19 +534,7 @@ public class VM extends Properties {
     }
 
     if (VM.BuildForOpenJDK) {
-      //    runClassInitializer("java/lang/reflect/Modifier");
-      runClassInitializer("sun.reflect.Reflection");
-      runClassInitializer("java.lang.reflect.Proxy");
-      runClassInitializer("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
-      runClassInitializer("java.io.DataInputStream");
-      runClassInitializer("java.io.BufferedInputStream");
-      runClassInitializer("java.nio.CharBuffer");
-      runClassInitializer("java.nio.ByteBuffer");
-      runClassInitializer("java.nio.DirectByteBuffer");
-      runClassInitializer("java.nio.Bits");
-      runClassInitializer("sun.nio.cs.StreamEncoder");
-      runClassInitializer("java.util.StringTokenizer");
-      runClassInitializer("java.nio.charset.Charset");
+
     }
 
     if (VM.BuildForOpenJDK) {
@@ -542,9 +546,12 @@ public class VM extends Properties {
       runClassInitializer("java.lang.Package");
     }
 
-    if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
-    // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
-    FileSystem.initializeStandardStreams();
+    if (!VM.BuildForOpenJDK) {
+      if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
+      // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
+      FileSystem.initializeStandardStreams();
+    }
+
 
     ///////////////////////////////////////////////////////////////
     // The VM is now fully booted.                               //
