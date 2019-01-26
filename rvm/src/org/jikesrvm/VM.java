@@ -404,6 +404,7 @@ public class VM extends Properties {
       runClassInitializer("sun.nio.cs.StreamEncoder");
       runClassInitializer("java.util.StringTokenizer");
       runClassInitializer("java.nio.charset.Charset");
+      runClassInitializer("java.lang.Shutdown");
       if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
       // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
       FileSystem.initializeStandardStreams();
