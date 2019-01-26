@@ -40,7 +40,7 @@ public class java_lang_Throwable {
 
   @ReplaceMember
   public synchronized Throwable fillInStackTrace() {
-    if (!VM.fullyBooted) {
+    if (!VM.fullyBooted && !VM.safeToCreateStackTrace) {
       this.stackTrace = zeroLengthStackTrace;
       return (Throwable) (Object) this;
     } else if (RVMThread.getCurrentThread().isCollectorThread()) {

@@ -365,6 +365,9 @@ public class VM extends Properties {
 
     if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
     MemoryManager.enableCollection();
+    if (VM.BuildForOpenJDK) {
+      VM.safeToCreateStackTrace = true;
+    }
 
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyluni");
