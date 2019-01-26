@@ -28,8 +28,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.ReplaceClass;
@@ -44,7 +47,7 @@ public class sun_reflect_NativeConstructorAccessorImpl {
       throws InstantiationException, IllegalArgumentException,
       InvocationTargetException {
 
-    RVMType type = JikesRVMSupport.getTypeForClass(c.getDeclaringClass());
+    RVMClass type = JikesRVMSupport.getTypeForClass(c.getDeclaringClass()).asClass();
     if (VM.VerifyAssertions) VM._assert(type.isClassType());
 
     // Allocate an uninitialized instance;
@@ -52,6 +55,22 @@ public class sun_reflect_NativeConstructorAccessorImpl {
 
     // Run the constructor on the it.
     RVMMethod constructorMethod = java.lang.reflect.JikesRVMSupport.getMethodOf(c);
+    if (constructorMethod == null) {
+      Class[] parameterTypes = c.getParameterTypes();
+      StringBuilder descriptorBuilder = new StringBuilder();
+      descriptorBuilder.append("(");
+      for (Class parameterType : parameterTypes) {
+        descriptorBuilder.append(java.lang.JikesRVMSupport.getTypeForClass(parameterType).getDescriptor().toString());
+      }
+      descriptorBuilder.append(")V");
+      String descriptorAsString = descriptorBuilder.toString();
+      Atom constructorDescriptor = Atom.findOrCreateUnicodeAtom(descriptorAsString);
+      RVMMethod initMethod = type.findInitializerMethod(constructorDescriptor);
+      if (VM.VerifyAssertions) VM._assert(initMethod != null);
+      Magic.setObjectAtOffset(c, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset(), initMethod);
+      constructorMethod = java.lang.reflect.JikesRVMSupport.getMethodOf(c);
+    }
+
     if (VM.VerifyAssertions) VM._assert(constructorMethod != null);
     Reflection.invoke(constructorMethod, null, obj, args, true);
 
