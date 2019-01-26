@@ -35,6 +35,10 @@ public class Entrypoints {
   public static final RVMMethod java_lang_reflect_Method_invokeMethod =
       getMethod(java.lang.reflect.Method.class, "invoke",
           "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+  public static final RVMMethod java_lang_reflect_Constructor_newInstance =
+      getMethod(java.lang.reflect.Constructor.class, "newInstance",
+          "([Ljava/lang/Object;)Ljava/lang/Object;");
+
   public static final RVMMethod getClassFromStackFrame =
     getMethod(org.jikesrvm.classloader.RVMClass.class, "getClassFromStackFrame", "(I)Lorg/jikesrvm/classloader/RVMClass;");
   public static final RVMMethod getClassLoaderFromStackFrame =

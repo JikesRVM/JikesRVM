@@ -45,8 +45,12 @@ public class sun_reflect_Reflection {
     b.init();
     b.up(); // skip sun.reflect.Reflection.getCallerClass (this call)
 
-    /* Skip Method.invoke, (if the caller was called by reflection) */
-    if (b.currentMethodIs_Java_Lang_Reflect_Method_InvokeMethod()) {
+    /* Skip Method.invoke and Constructor.newInstance, (if the caller was called by reflection) */
+    if (b.currentMethodIs_Java_Lang_Reflect_Method_InvokeMethod() || b.currentMethodIs_Java_Lang_Reflect_Constructor_NewInstance()) {
+      b.up();
+    }
+    /* Skip JNI if necessary */
+    while (b.currentMethodIsJikesRVMInternal()) {
       b.up();
     }
 
