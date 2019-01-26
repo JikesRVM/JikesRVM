@@ -24,7 +24,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.JikesRVMSupport;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.net.URL;
@@ -134,21 +133,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @Pure
   public int getModifiers() {
-    if (type.isClassType()) {
-      return type.asClass().getOriginalModifiers();
-    } else if (type.isArrayType()) {
-      RVMType innermostElementType = type.asArray().getInnermostElementType();
-      int result = Modifier.FINAL;
-      if (innermostElementType.isClassType()) {
-        int component = innermostElementType.asClass().getOriginalModifiers();
-        result |= (component & (Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE));
-      } else {
-        result |= Modifier.PUBLIC; // primitive
-      }
-      return result;
-    } else {
-      return Modifier.PUBLIC | Modifier.FINAL;
-    }
+    return JavaLangSupport.getModifiersFromRvmType(type);
   }
 
   @Pure
@@ -547,35 +532,6 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     return qualifiedClassName.substring(0, classIndex + 1).replace('.', '/') + resName;
   }
 
-  @Pure
-  private static boolean validArrayDescriptor(String name) {
-    int i;
-    int length = name.length();
-
-    for (i = 0; i < length; i++)
-      if (name.charAt(i) != '[') break;
-    if (i == length) return false;      // string of only ['s
-
-    if (i == length - 1) {
-      switch (name.charAt(i)) {
-      case 'B': return true;    // byte
-      case 'C': return true;    // char
-      case 'D': return true;    // double
-      case 'F': return true;    // float
-      case 'I': return true;    // integer
-      case 'J': return true;    // long
-      case 'S': return true;    // short
-      case 'Z': return true;    // boolean
-      default:  return false;
-      }
-    } else if (name.charAt(i) != 'L') {
-      return false;    // not a class descriptor
-    } else if (name.charAt(length - 1) != ';') {
-      return false;     // ditto
-    }
-    return true;                        // a valid class descriptor
-  }
-
   @NoInline
   private void throwNoSuchMethodException(String name, Class<?>... parameterTypes) throws NoSuchMethodException {
     StringBuilder typeString;
@@ -883,7 +839,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
     try {
       if (className.startsWith("[")) {
-        if (!validArrayDescriptor(className)) {
+        if (!JavaLangSupport.validArrayDescriptor(className)) {
           throw new ClassNotFoundException(className);
         }
       }
