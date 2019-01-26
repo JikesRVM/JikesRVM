@@ -407,6 +407,7 @@ public class VM extends Properties {
       if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
       // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
       FileSystem.initializeStandardStreams();
+      if (verboseBoot >= 1) VM.sysWriteln("invoking initializeSystemClass() for java.lang.System from OpenJDK");
       RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
       RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
       Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
