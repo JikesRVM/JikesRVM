@@ -73,6 +73,17 @@ public class java_lang_Thread {
     myThread.start();
   }
 
+  @ReplaceMember
+  private boolean isInterrupted(boolean ClearInterrupted) {
+    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
+    if (VM.VerifyAssertions) VM._assert(rvmThread != null);
+    boolean interrupted = rvmThread.isInterrupted();
+    if (ClearInterrupted) {
+      rvmThread.clearInterrupted();
+    }
+    return interrupted;
+  }
+
   private Thread thisAsThread() {
     return (Thread) (Object) this;
   }
