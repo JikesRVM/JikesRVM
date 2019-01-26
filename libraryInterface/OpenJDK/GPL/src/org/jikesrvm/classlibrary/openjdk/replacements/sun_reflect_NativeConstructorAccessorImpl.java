@@ -52,6 +52,7 @@ public class sun_reflect_NativeConstructorAccessorImpl {
 
     // Run the constructor on the it.
     RVMMethod constructorMethod = java.lang.reflect.JikesRVMSupport.getMethodOf(c);
+    if (VM.VerifyAssertions) VM._assert(constructorMethod != null);
     Reflection.invoke(constructorMethod, null, obj, args, true);
 
     return obj;
