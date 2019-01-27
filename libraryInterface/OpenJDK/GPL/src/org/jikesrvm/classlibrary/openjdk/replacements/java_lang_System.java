@@ -54,6 +54,12 @@ public class java_lang_System {
     String bootClassPath = props.getProperty("java.boot.class.path");
     props.setProperty("sun.boot.class.path", bootClassPath);
 
+    if (VM.BuildFor32Addr) {
+      props.setProperty("sun.arch.data.model", "32");
+    } else {
+      props.setProperty("sun.arch.data.model", "64");
+    }
+
     VM.sysWriteln("TODO: initProperties: some properties are probably still missing");
 
     // OpenJDK specific properties
