@@ -118,13 +118,29 @@ public class FileSystem {
    * Called from VM.boot to set up java.lang.System.in, java.lang.System.out,
    * and java.lang.System.err
    */
-  public static void initializeStandardStreams() {
+  public static void initializeStandardStreamsForGnuClasspath() {
     FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
     System.setIn(new BufferedInputStream(fdIn));
     System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
     System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
+    Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
+      @Override
+      public void notifyExit(int value) {
+        try {
+          System.err.flush();
+          System.out.flush();
+        } catch (Throwable e) {
+          VM.sysWriteln("vm: error flushing stdout, stderr");
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+
+  public static void initializeStandardStreamsForOpenJDK() {
+    // stream initialization done via java.lang.System
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
       public void notifyExit(int value) {

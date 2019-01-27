@@ -410,7 +410,7 @@ public class VM extends Properties {
       runClassInitializer("java.lang.Shutdown");
       if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
       // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
-      FileSystem.initializeStandardStreams();
+      FileSystem.initializeStandardStreamsForOpenJDK();
       if (verboseBoot >= 1) VM.sysWriteln("invoking initializeSystemClass() for java.lang.System from OpenJDK");
       RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
       RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
@@ -554,7 +554,7 @@ public class VM extends Properties {
     if (!VM.BuildForOpenJDK) {
       if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
       // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
-      FileSystem.initializeStandardStreams();
+      FileSystem.initializeStandardStreamsForGnuClasspath();
     }
 
 
