@@ -84,6 +84,37 @@ public class java_lang_Thread {
     return interrupted;
   }
 
+  @ReplaceMember
+  private void interrupt0() {
+    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
+    if (VM.VerifyAssertions) VM._assert(rvmThread != null);
+    rvmThread.interrupt();
+  }
+
+  @ReplaceMember
+  private void stop0(Object o) {
+    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
+    if (VM.VerifyAssertions) VM._assert(rvmThread != null);
+    if (!(o instanceof Throwable)) {
+      VM.sysFail("Attemptet to stop thread with object that wasn't a throwable but had class " + o.getClass());
+    }
+    rvmThread.stop((Throwable) o);
+  }
+
+  @ReplaceMember
+  private void suspend0() {
+    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
+    if (VM.VerifyAssertions) VM._assert(rvmThread != null);
+    rvmThread.suspend();
+  }
+
+  @ReplaceMember
+  private void resume0() {
+    RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
+    if (VM.VerifyAssertions) VM._assert(rvmThread != null);
+    rvmThread.resume();
+  }
+
   private Thread thisAsThread() {
     return (Thread) (Object) this;
   }
