@@ -51,6 +51,9 @@ public class java_lang_System {
   private static Properties initProperties(Properties props) {
     JavaLangSupport.setupStandardJavaProperties(props);
 
+    String bootClassPath = props.getProperty("java.boot.class.path");
+    props.setProperty("sun.boot.class.path", bootClassPath);
+
     VM.sysWriteln("TODO: initProperties: some properties are probably still missing");
 
     // OpenJDK specific properties
