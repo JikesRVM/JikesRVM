@@ -30,6 +30,7 @@ import java.util.Properties;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.JavaLangSupport;
+import org.jikesrvm.runtime.Time;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
@@ -86,6 +87,16 @@ public class java_lang_System {
   @ReplaceMember
   private static void setErr0(PrintStream err) {
     JavaLangSupport.setSystemStreamField("err", err);
+  }
+
+  @ReplaceMember
+  public static long currentTimeMillis() {
+    return Time.currentTimeMillis();
+  }
+
+  @ReplaceMember
+  public static long nanoTime() {
+    return Time.nanoTime();
   }
 
 }
