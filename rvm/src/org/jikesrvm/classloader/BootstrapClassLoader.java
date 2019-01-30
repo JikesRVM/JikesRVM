@@ -210,7 +210,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     try {
       // TODO Adopt better nomenclature for replacement classes
       classNameAtom = Atom.findOrCreateAsciiAtom(className);
-      Atom classNameDescriptor = Atom.findOrCreateAsciiAtom("L" + classNameAtom.toString().replace('.', '/') + ";");
       replacementClassName = toReplacementClassNameAtom(className);
       // TODO needs a method to convert class names to descriptors and vice versa. possibly in atom if it doesn't exist yet
       Atom replacementClassDescriptor = Atom.findOrCreateAsciiAtom("L" + replacementClassName.toString().replace('.', '/') + ";");
@@ -225,7 +224,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
       boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(classNameAtom);
       // Check if there has been an attempt to load the replacement JDK class of this name
-      if (!isReplacementClass && !alreadyTriedToLoadReplacementClass && classNameDescriptor.isBootstrapClassDescriptor()) {
+      if (!isReplacementClass && !alreadyTriedToLoadReplacementClass) {
         classesCheckedForReplacements.add(classNameAtom);
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Checking for replacement class for " + className + " named " + replacementClassName);
 
@@ -270,7 +269,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     try {
       // TODO Adopt better nomenclature for replacement classes
       classNameAtom = Atom.findOrCreateAsciiAtom(className);
-      Atom classNameDescriptor = Atom.findOrCreateAsciiAtom("L" + classNameAtom.toString().replace('.', '/') + ";");
       replacementClassName = toReplacementClassNameAtom(className);
       // TODO needs a method to convert class names to descriptors and vice versa. possibly in atom if it doesn't exist yet
       Atom replacementClassDescriptor = Atom.findOrCreateAsciiAtom("L" + replacementClassName.toString().replace('.', '/') + ";");
@@ -285,7 +283,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
       boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(classNameAtom);
       // Check if there has been an attempt to load the replacement JDK class of this name
-      if (!isReplacementClass && !alreadyTriedToLoadReplacementClass && classNameDescriptor.isBootstrapClassDescriptor()) {
+      if (!isReplacementClass && !alreadyTriedToLoadReplacementClass) {
         classesCheckedForReplacements.add(classNameAtom);
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Checking for replacement class for " + className + " named " + replacementClassName);
 
