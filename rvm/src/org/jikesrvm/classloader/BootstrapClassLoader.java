@@ -296,6 +296,10 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         loadedReplacementClasses.add(replacementClassName);
         remainingReplacementClassNames.remove(className);
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Replacement class " + replacementClassName + " loaded for " + className);
+      } else {
+        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: NOT LOADING replacement class for " + className + " named " + replacementClassName);
+        if (VM.TraceClassLoading) VM.sysWriteln("alreadyTriedToLoadReplacementClass: " + alreadyTriedToLoadReplacementClass);
+        if (VM.TraceClassLoading) VM.sysWriteln("is replacement class: " + isReplacementClass);
       }
     } catch (NoSuchMethodError e) {
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
