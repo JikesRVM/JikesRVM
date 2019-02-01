@@ -330,9 +330,9 @@ JNIEXPORT jint JNICALL JVM_Open(const char *fileName, jint flags, jint mode) {
 JNIEXPORT jlong JNICALL JVM_Lseek(jint fileDescriptor, jlong offset, jint whence) {
   // TODO Check implementation for correctness
   // TODO 64-bit large file support with lseek64
-  long newPosition;
+  jlong newPosition;
   OPENJDK_DEBUG_PRINTF("JVM_Lseek: %d %ld %d\n", fileDescriptor, (long) offset, (int) whence);
-  newPosition = lseek((int) fileDescriptor, (off_t) offset, (int) whence);
+  newPosition = (jlong) lseek64((int) fileDescriptor, (off64_t) offset, (int) whence);
   if (newPosition < 0) {
     int savedErrorNumber = errno;
     ERROR_PRINTF("JVM_Lseek: error re-positioning offset in open file with file descriptor %d: %s\n", fileDescriptor, strerror(savedErrorNumber));
@@ -342,7 +342,7 @@ JNIEXPORT jlong JNICALL JVM_Lseek(jint fileDescriptor, jlong offset, jint whence
 }
 
 JNIEXPORT jint JNICALL JVM_Read(jint fileDescriptor, char * buffer, jint byteCount) {
-  int bytesRead;
+  jint bytesRead;
   OPENJDK_DEBUG_PRINTF("JVM_Read: %d %p %d\n", (int) fileDescriptor, (void *) buffer, (int) byteCount);
   bytesRead = (jint) read(fileDescriptor, buffer, (size_t) byteCount);
   if (bytesRead < 0) {
@@ -350,11 +350,11 @@ JNIEXPORT jint JNICALL JVM_Read(jint fileDescriptor, char * buffer, jint byteCou
     ERROR_PRINTF("JVM_Read: error reading bytes from open file with file descriptor %d: %s\n", fileDescriptor, strerror(savedErrorNumber));
     return -1;
   }
-  return 0;
+  return bytesRead;
 }
 
 JNIEXPORT jint JNICALL JVM_Write(jint fileDescriptor, char * buffer, jint byteCount) {
-  int bytesWritten;
+  jint bytesWritten;
   OPENJDK_DEBUG_PRINTF("JVM_Write: %d %p %d\n", (int) fileDescriptor, (void *) buffer, (int) byteCount);
   bytesWritten = write((int) fileDescriptor, buffer, (size_t) byteCount);
   if (bytesWritten < 0) {
@@ -362,7 +362,7 @@ JNIEXPORT jint JNICALL JVM_Write(jint fileDescriptor, char * buffer, jint byteCo
     ERROR_PRINTF("JVM_Write: error writing bytes to open file with file descriptor %d: %s\n", fileDescriptor, strerror(savedErrorNumber));
     return -1;
   }
-  return 0;
+  return bytesWritten;
 }
 
 JNIEXPORT jint JNICALL JVM_Close(jint fileDescriptor) {
