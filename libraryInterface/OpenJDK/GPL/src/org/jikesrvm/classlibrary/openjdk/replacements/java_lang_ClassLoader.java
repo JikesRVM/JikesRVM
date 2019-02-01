@@ -25,6 +25,7 @@
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import java.io.File;
+import java.security.ProtectionDomain;
 
 import org.jikesrvm.classlibrary.ClassLoaderSupport;
 import org.jikesrvm.classloader.BootstrapClassLoader;
@@ -62,6 +63,14 @@ public class java_lang_ClassLoader {
   @ReplaceMember
   private Class<?> findBootstrapClass(String name) throws ClassNotFoundException {
       return BootstrapClassLoader.getBootstrapClassLoader().findClass(name);
+  }
+
+  @ReplaceMember
+  private Class defineClass1(String name, byte[] b, int off, int len,
+      ProtectionDomain pd, String source) {
+    // TODO do we need to do something with source? Seems to be the location property
+    // from CodeSource
+    return ClassLoaderSupport.defineClass(thisAsClassLoader(), name, b, off, len, pd);
   }
 
   private ClassLoader thisAsClassLoader() {
