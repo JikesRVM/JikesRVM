@@ -27,6 +27,7 @@ import java.util.zip.ZipFile;
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.AbstractReplacementClasses;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.HashSetRVM;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
@@ -44,6 +45,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
   private final ImmutableEntryHashSetRVM<Atom> loadedReplacementClasses = new ImmutableEntryHashSetRVM<Atom>();
   private final ImmutableEntryHashSetRVM<Atom> classesCheckedForReplacements = new ImmutableEntryHashSetRVM<Atom>();
+
+  private final ImmutableEntryHashMapRVM<String, String> packageSources = new ImmutableEntryHashMapRVM<String, String>();
+
 
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
@@ -379,6 +383,73 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         }
         // We didn't find the class, or it wasn't valid, etc.
         throw new ClassNotFoundException(className, e);
+      }
+    }
+  }
+
+  /**
+   * Gets the filename for a given package name
+   * @param packageName a name of the package in internal format, i.e. {@code org/apache/tools/ant/taskdefs/optional/junit/}
+   * rather than {@code org.apache.tools.ant.taskdefs.optional.junit}
+   * @return {@code null} if this package is not a "system package" (in OpenJDK terminology) and thus
+   *  not loaded by the bootstrap classloader
+   */
+  public synchronized String getFileNameForPackage(String packageName) {
+    if (packageSources.size() != 0) {
+      return packageSources.get(packageName);
+    }
+
+    fillInPackageSource();
+    return packageSources.get(packageName);
+  }
+
+  private void fillInPackageSource() {
+    VM.sysWriteln("Filling in package source");
+    StringTokenizer tok = new StringTokenizer(getBootstrapRepositories(), File.pathSeparator);
+
+    while (tok.hasMoreElements()) {
+      try {
+        String path = tok.nextToken();
+        if (path.endsWith(".jar") || path.endsWith(".zip")) {
+          ZipFile zf = zipFileCache.get(path);
+          if (zf == null) {
+            zf = new ZipFile(path);
+            zipFileCache.put(path, zf);
+          }
+          Enumeration<? extends ZipEntry> entries = zf.entries();
+          while (entries.hasMoreElements()) {
+            ZipEntry ze = entries.nextElement();
+            String name = ze.getName();
+            if (name.endsWith(".class")) {
+              String className = name;
+              int lastSlash = className.lastIndexOf('/');
+              if (lastSlash == -1) {
+                // e.g. for default package
+                continue;
+              }
+              String classesPackage = className.substring(0, lastSlash);
+              classesPackage = classesPackage.replace('/', '.');
+              if (packageSources.get(classesPackage) == null) {
+                packageSources.put(classesPackage, path);
+              } else {
+                String prexistingSource = packageSources.get(classesPackage);
+                if (!prexistingSource.equals(path)) {
+                  VM.sysFail("Wanted to write source " + path + " for classes' package " +
+                      classesPackage + " but was already set to " + prexistingSource);
+                }
+              }
+            }
+          }
+        }
+      } catch (IOException e) {
+        if (VM.fullyBooted) {
+          e.printStackTrace();
+          VM.sysFail("Couldn't determine system packages due to IOException");
+        } else {
+          RVMThread.dumpStack();
+          VM.sysFail("Couldn't determine system packages due to IOException");
+        }
+        VM.sysFail("Couldn't determine system packages");
       }
     }
   }

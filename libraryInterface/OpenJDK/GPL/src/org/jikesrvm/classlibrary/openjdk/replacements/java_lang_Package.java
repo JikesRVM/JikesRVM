@@ -25,7 +25,7 @@
 
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
-import org.jikesrvm.VM;
+import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
@@ -34,11 +34,7 @@ public class java_lang_Package {
 
   @ReplaceMember
   private static String getSystemPackage0(String name) {
-    // FIXME Add a proper implementation
-    // AFAIK the first call is supposed to return null anyway.
-    // The first packages can't have been loaded anyway, so always return null for now.
-    VM.sysFail("NYI. Attempted to create system package for " + name);
-    return null;
+    return BootstrapClassLoader.getBootstrapClassLoader().getFileNameForPackage(name);
   }
 
 }
