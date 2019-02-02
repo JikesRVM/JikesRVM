@@ -18,6 +18,8 @@
 #include <unistd.h> // lseek, read
 #include <errno.h> // errno
 #include <string.h> // strerror
+#include <sys/ioctl.h> // ioctl
+
 
 #include "jni.h"
 
@@ -376,6 +378,12 @@ JNIEXPORT jint JNICALL JVM_Close(jint fileDescriptor) {
   }
   OPENJDK_DEBUG_PRINTF("JVM_Close: returning %d\n", returnVal);
   return (jint) returnVal;
+}
+
+JNIEXPORT jint JNICALL JVM_Available(jint fd, jlong *pbytes) {
+  OPENJDK_DEBUG_PRINTF("JVM_Available: %d %p\n", fd, (void *) pbytes);
+  int ret = ioctl((int) fd, FIONREAD, (void *) pbytes);
+  return (jint) ret;
 }
 
 // Atomic Long
