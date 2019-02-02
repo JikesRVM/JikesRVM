@@ -361,6 +361,10 @@ public final class RVMClass extends RVMType {
    * i.e. the modifiers as present in the Java source file.
    * Those are distinct from the transformed modifiers that
    * the JVM uses internally (e.g. for access control).
+   * <p>
+   * Note that the JavaDoc mentions only some of the possible
+   * modifiers. In fact, we need almost all modifiers from the
+   * class file.
    *
    * @return the modifiers of "this" in the form required
    *  by {@link java.lang.Class#getModifiers()}
