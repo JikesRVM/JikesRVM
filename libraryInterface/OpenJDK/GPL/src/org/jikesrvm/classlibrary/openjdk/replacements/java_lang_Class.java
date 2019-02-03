@@ -251,8 +251,24 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Method[] getDeclaredMethods0(boolean publicOnly) {
-    VM.sysFail("getDeclaredMethods0");
-    return null;
+    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    RVMMethod[] declaredMethods = myType.getDeclaredMethods();
+    List<Method> myMethods = new ArrayList<Method>();
+    for (RVMMethod m : declaredMethods) {
+      if (publicOnly) {
+        if (m.isPublic()) {
+          Method createdMethod = java.lang.reflect.JikesRVMSupport.createMethod(m);
+          myMethods.add(createdMethod);
+        } else {
+          continue;
+        }
+      } else {
+        Method createdMethod = java.lang.reflect.JikesRVMSupport.createMethod(m);
+        myMethods.add(createdMethod);
+      }
+    }
+
+    return myMethods.toArray(new Method[0]);
   }
 
   @ReplaceMember
