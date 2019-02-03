@@ -33,7 +33,7 @@ public class java_lang_Runtime {
 
   @ReplaceMember
   public long maxMemory() {
-    return MemoryManager.getMaxHeapSize().toLong();
+    return MemoryManager.maxMemory().toLong();
   }
 
 }
