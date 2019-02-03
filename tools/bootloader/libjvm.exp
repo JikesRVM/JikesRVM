@@ -27,6 +27,21 @@ JVM_0.1 {
 
 SUNWprivate_1.1 {
   global :
+    /* The following are actually implemented right now */
+    JVM_GetInterfaceVersion;
+    JVM_RawMonitorEnter;
+    JVM_RawMonitorExit;
+    JVM_Open;
+    JVM_Lseek;
+    JVM_Read;
+    JVM_Write;
+    JVM_Close;
+    JVM_SupportsCX8;
+    JVM_GetLastErrorString;
+    JVM_ActiveProcessorCount;
+    /* For the rest, pretend that we implement them and patch out
+       all calls to them via the replacement class mechanism or
+       by overwriting the calling class */
     JVM_GetClassName;
     JVM_GetClassInterfaces;
     JVM_GetClassLoader;
@@ -79,17 +94,7 @@ SUNWprivate_1.1 {
     JVM_HoldsLock;
     JVM_GetAllThreads;
     JVM_DumpThreads;
-    JVM_GetInterfaceVersion;
     JVM_RawMonitorCreate;
     JVM_NativePath;
-    JVM_RawMonitorEnter;
-    JVM_RawMonitorExit;
-    JVM_Open;
-    JVM_Lseek;
-    JVM_Read;
-    JVM_Write;
-    JVM_Close;
-    JVM_SupportsCX8;
-    JVM_GetLastErrorString;
-    JVM_ActiveProcessorCount;
+
 } JVM_0.1;

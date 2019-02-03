@@ -53,221 +53,221 @@ void TODO(const char* functionName) {
 
 // java.lang.Class support ?
 
-JNIEXPORT void JNICALL JVM_GetClassName() {
+JNIEXPORT void JNICALL JVM_GetClassName(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassName");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassInterfaces() {
+JNIEXPORT void JNICALL JVM_GetClassInterfaces(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassInterfaces");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassLoader() {
+JNIEXPORT void JNICALL JVM_GetClassLoader(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassLoader");
 }
 
-JNIEXPORT void JNICALL JVM_IsInterface() {
+JNIEXPORT void JNICALL JVM_IsInterface(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_IsInterface");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassSigners() {
+JNIEXPORT void JNICALL JVM_GetClassSigners(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassSigners");
 }
 
-JNIEXPORT void JNICALL JVM_SetClassSigners() {
+JNIEXPORT void JNICALL JVM_SetClassSigners(JNIEnv *env, jclass cls, jobjectArray signers) {
   UNREACHABLE("JVM_SetClassSigners");
 }
 
-JNIEXPORT void JNICALL JVM_IsArrayClass() {
+JNIEXPORT void JNICALL JVM_IsArrayClass(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_IsArrayClass");
 }
 
-JNIEXPORT void JNICALL JVM_IsPrimitiveClass() {
+JNIEXPORT void JNICALL JVM_IsPrimitiveClass(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_IsPrimitiveClass");
 }
 
-JNIEXPORT void JNICALL JVM_GetComponentType() {
+JNIEXPORT void JNICALL JVM_GetComponentType(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetComponentType");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassModifiers() {
+JNIEXPORT void JNICALL JVM_GetClassModifiers(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassModifiers");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassDeclaredFields() {
+JNIEXPORT void JNICALL JVM_GetClassDeclaredFields(JNIEnv *env, jclass ofClass, jboolean publicOnly) {
   UNREACHABLE("JVM_GetClassDeclaredFields");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassDeclaredMethods() {
+JNIEXPORT void JNICALL JVM_GetClassDeclaredMethods(JNIEnv *env, jclass ofClass, jboolean publicOnly) {
   UNREACHABLE("JVM_GetClassDeclaredMethods");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassDeclaredConstructors() {
+JNIEXPORT void JNICALL JVM_GetClassDeclaredConstructors(JNIEnv *env, jclass ofClass, jboolean publicOnly) {
   UNREACHABLE("JVM_GetClassDeclaredConstructors");
 }
 
-JNIEXPORT void JNICALL JVM_GetProtectionDomain() {
+JNIEXPORT void JNICALL JVM_GetProtectionDomain(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassDeclaredConstructors");
 }
 
-JNIEXPORT void JNICALL JVM_SetProtectionDomain() {
+JNIEXPORT void JNICALL JVM_SetProtectionDomain(JNIEnv *env, jclass cls, jobject protection_domain) {
   UNREACHABLE("JVM_SetProtectionDomain");
 }
 
-JNIEXPORT void JNICALL JVM_GetDeclaredClasses() {
+JNIEXPORT void JNICALL JVM_GetDeclaredClasses(JNIEnv *env, jclass ofClass) {
   UNREACHABLE("JVM_GetDeclaredClasses");
 }
 
-JNIEXPORT void JNICALL JVM_GetDeclaringClass() {
+JNIEXPORT void JNICALL JVM_GetDeclaringClass(JNIEnv *env, jclass ofClass) {
   UNREACHABLE("JVM_GetDeclaringClass");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassSignature() {
+JNIEXPORT void JNICALL JVM_GetClassSignature(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassSignature");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassAnnotations() {
+JNIEXPORT void JNICALL JVM_GetClassAnnotations(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassAnnotations");
 }
 
-JNIEXPORT void JNICALL JVM_GetClassConstantPool() {
+JNIEXPORT void JNICALL JVM_GetClassConstantPool(JNIEnv *env, jclass cls) {
   UNREACHABLE("JVM_GetClassConstantPool");
 }
 
-JNIEXPORT void JNICALL JVM_DesiredAssertionStatus() {
+JNIEXPORT void JNICALL JVM_DesiredAssertionStatus(JNIEnv *env, jclass unused, jclass cls) {
   UNREACHABLE("JVM_DesiredAssertionStatus");
 }
 
-JNIEXPORT void JNICALL JVM_GetEnclosingMethodInfo() {
+JNIEXPORT void JNICALL JVM_GetEnclosingMethodInfo(JNIEnv* env, jclass ofClass) {
   UNREACHABLE("JVM_GetEnclosingMethodInfo");
 }
 
-JNIEXPORT void JNICALL JVM_AssertionStatusDirectives() {
+JNIEXPORT void JNICALL JVM_AssertionStatusDirectives(JNIEnv *env, jclass unused) {
   UNREACHABLE("JVM_AssertionStatusDirectives");
 }
 
-// java.lang.compiler support ?
+// java.lang.Compiler support
 
-JNIEXPORT void JNICALL JVM_CompileClass() {
+JNIEXPORT void JNICALL JVM_CompileClass(JNIEnv *env, jclass compCls, jclass cls) {
   UNREACHABLE("JVM_CompileClass");
 }
 
-JNIEXPORT void JNICALL JVM_CompileClasses() {
+JNIEXPORT void JNICALL JVM_CompileClasses(JNIEnv *env, jclass cls, jstring jname) {
   UNREACHABLE("JVM_CompileClasses");
 }
 
-JNIEXPORT void JNICALL JVM_CompilerCommand() {
+JNIEXPORT void JNICALL JVM_CompilerCommand(JNIEnv *env, jclass compCls, jobject arg) {
   UNREACHABLE("JVM_CompilerCommand");
 }
 
-JNIEXPORT void JNICALL JVM_EnableCompiler() {
+JNIEXPORT void JNICALL JVM_EnableCompiler(JNIEnv *env, jclass compCls) {
   UNREACHABLE("JVM_EnableCompiler");
 }
 
-JNIEXPORT void JNICALL JVM_DisableCompiler() {
+JNIEXPORT void JNICALL JVM_DisableCompiler(JNIEnv *env, jclass compCls) {
   UNREACHABLE("JVM_DisableCompiler");
 }
 
 // java.lang.System support?
 
-JNIEXPORT void JNICALL JVM_IHashCode() {
+JNIEXPORT void JNICALL JVM_IHashCode(JNIEnv *env, jobject obj) {
   UNREACHABLE("JVM_IHashCode");
 }
 
-// java.lang.Object support ?
+// java.lang.Object support
 
-JNIEXPORT void JNICALL JVM_MonitorWait() {
+JNIEXPORT void JNICALL JVM_MonitorWait(JNIEnv *env, jobject obj, jlong ms) {
   UNREACHABLE("JVM_MonitorWait");
 }
 
-JNIEXPORT void JNICALL JVM_MonitorNotify() {
+JNIEXPORT void JNICALL JVM_MonitorNotify(JNIEnv *env, jobject obj) {
   UNREACHABLE("JVM_MonitorNotify");
 }
 
-JNIEXPORT void JNICALL JVM_MonitorNotifyAll() {
+JNIEXPORT void JNICALL JVM_MonitorNotifyAll(JNIEnv *env, jobject obj) {
   UNREACHABLE("JVM_MonitorNotifyAll");
 }
 
-JNIEXPORT void JNICALL JVM_Clone() {
+JNIEXPORT void JNICALL JVM_Clone(JNIEnv *env, jobject obj) {
   UNREACHABLE("JVM_Clone");
 }
 
 // java.lang.Runtime support ?
 
-JNIEXPORT void JNICALL JVM_CurrentTimeMillis() {
+JNIEXPORT void JNICALL JVM_CurrentTimeMillis(JNIEnv *env, jclass ignored) {
   UNREACHABLE("JVM_CurrentTimeMillis");
 }
 
-JNIEXPORT void JNICALL JVM_NanoTime() {
+JNIEXPORT void JNICALL JVM_NanoTime(JNIEnv *env, jclass ignored) {
   UNREACHABLE("JVM_NanoTime");
 }
 
 // java.lang.System support?
-JNIEXPORT void JNICALL JVM_ArrayCopy() {
+JNIEXPORT void JNICALL JVM_ArrayCopy(JNIEnv *env, jclass ignored, jobject src, jint src_pos, jobject dst, jint dst_pos, jint length) {
   UNREACHABLE("JVM_ArrayCopy");
 }
 
 
 // java.lang.Thread support?
 
-JNIEXPORT void JNICALL JVM_StartThread() {
+JNIEXPORT void JNICALL JVM_StartThread(JNIEnv *env, jobject thread) {
   UNREACHABLE("JVM_StartThread");
 }
 
-JNIEXPORT void JNICALL JVM_StopThread() {
+JNIEXPORT void JNICALL JVM_StopThread(JNIEnv *env, jobject thread, jobject exception) {
   UNREACHABLE("JVM_StartThread");
 }
 
-JNIEXPORT void JNICALL JVM_IsThreadAlive() {
+JNIEXPORT void JNICALL JVM_IsThreadAlive(JNIEnv *env, jobject thread) {
   UNREACHABLE("JVM_IsThreadAlive");
 }
 
-JNIEXPORT void JNICALL JVM_SuspendThread() {
+JNIEXPORT void JNICALL JVM_SuspendThread(JNIEnv *env, jobject thread) {
   UNREACHABLE("JVM_SuspendThread");
 }
 
-JNIEXPORT void JNICALL JVM_SetThreadPriority() {
+JNIEXPORT void JNICALL JVM_SetThreadPriority(JNIEnv *env, jobject thread, jint prio) {
   UNREACHABLE("JVM_SetThreadPriority");
 }
 
-JNIEXPORT void JNICALL JVM_ResumeThread() {
+JNIEXPORT void JNICALL JVM_ResumeThread(JNIEnv *env, jobject thread) {
   UNREACHABLE("JVM_ResumeThread");
 }
 
-JNIEXPORT void JNICALL JVM_Yield() {
+JNIEXPORT void JNICALL JVM_Yield(JNIEnv *env, jclass threadClass) {
   UNREACHABLE("JVM_Yield");
 }
 
-JNIEXPORT void JNICALL JVM_Sleep() {
+JNIEXPORT void JNICALL JVM_Sleep(JNIEnv *env, jclass threadClass, jlong millis) {
   UNREACHABLE("JVM_Sleep");
 }
 
-JNIEXPORT void JNICALL JVM_CurrentThread() {
+JNIEXPORT void JNICALL JVM_CurrentThread(JNIEnv *env, jclass threadClass) {
   UNREACHABLE("JVM_CurrentThread");
 }
 
-JNIEXPORT void JNICALL JVM_CountStackFrames() {
+JNIEXPORT void JNICALL JVM_CountStackFrames(JNIEnv *env, jobject thread) {
   UNREACHABLE("JVM_CountStackFrames");
 }
 
-JNIEXPORT void JNICALL JVM_Interrupt() {
+JNIEXPORT void JNICALL JVM_Interrupt(JNIEnv *env, jobject thread) {
   UNREACHABLE("JVM_Interrupt");
 }
 
-JNIEXPORT void JNICALL JVM_IsInterrupted() {
+JNIEXPORT void JNICALL JVM_IsInterrupted(JNIEnv *env, jobject thread, jboolean clearInterrupted) {
   UNREACHABLE("JVM_IsInterrupted");
 }
 
-JNIEXPORT void JNICALL JVM_HoldsLock() {
+JNIEXPORT void JNICALL JVM_HoldsLock(JNIEnv *env, jclass threadClass, jobject obj) {
   UNREACHABLE("JVM_HoldsLock");
 }
 
 // JMX support ?
 
-JNIEXPORT void JNICALL JVM_GetAllThreads() {
+JNIEXPORT void JNICALL JVM_GetAllThreads(JNIEnv *env, jclass dummy) {
   UNREACHABLE("JVM_HoldsLock");
 }
 
-JNIEXPORT void JNICALL JVM_DumpThreads() {
+JNIEXPORT void JNICALL JVM_DumpThreads(JNIEnv *env, jclass threadClass, jobjectArray threads) {
   UNREACHABLE("JVM_DumpThreads");
 }
 
