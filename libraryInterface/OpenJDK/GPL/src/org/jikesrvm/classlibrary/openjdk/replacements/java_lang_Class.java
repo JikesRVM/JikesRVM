@@ -98,8 +98,9 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   public boolean isAssignableFrom(Class<?> cls) {
-    VM.sysFail("isAssignableFrom: " + cls);
-    return false;
+    RVMType otherType = JikesRVMSupport.getTypeForClass(cls);
+    RVMType myType = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    return myType.isAssignableFrom(otherType);
   }
 
   @ReplaceMember
