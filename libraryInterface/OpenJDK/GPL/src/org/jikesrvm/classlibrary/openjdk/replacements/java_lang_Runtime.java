@@ -24,16 +24,43 @@
  */
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
 @ReplaceClass(className = "java.lang.Runtime")
 public class java_lang_Runtime {
 
+  // TODO shared with GNU Classpath
+
+  @ReplaceMember
+  public int availableProcessors() {
+    return RVMThread.availableProcessors;
+  }
+
+  // TODO move the memory parts to a support class, code is shared with Jikes RVM VMRuntime implementation for
+  // GNU Classpath
+
+  @ReplaceMember
+  public long freeMemory() {
+    return MemoryManager.freeMemory().toLong();
+  }
+
+  @ReplaceMember
+  public long totalMemory() {
+    return MemoryManager.totalMemory().toLong();
+  }
+
   @ReplaceMember
   public long maxMemory() {
     return MemoryManager.maxMemory().toLong();
+  }
+
+  @ReplaceMember
+  public void gc() {
+    JavaLangSupport.gc();
   }
 
 }
