@@ -148,8 +148,20 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   public Class<?>[] getInterfaces() {
-    VM.sysFail("getInterfaces");
-    return null;
+    RVMType type = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (type.isArrayType()) {
+      // arrays implement JavaLangSerializable & JavaLangCloneable
+      return new Class[] { RVMType.JavaLangCloneableType.getClassForType(),
+                           RVMType.JavaIoSerializableType.getClassForType() };
+    } else if (type.isClassType()) {
+      RVMClass[] interfaces  = type.asClass().getDeclaredInterfaces();
+      Class<?>[] jinterfaces = new Class[interfaces.length];
+      for (int i = 0; i != interfaces.length; i++)
+        jinterfaces[i] = interfaces[i].getClassForType();
+      return jinterfaces;
+    } else {
+      return new Class[0];
+    }
   }
 
   @ReplaceMember
