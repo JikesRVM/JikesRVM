@@ -13,8 +13,6 @@
 package org.jikesrvm.classloader;
 
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.jikesrvm.Properties;
@@ -311,38 +309,8 @@ public class RVMClassLoader {
 
   public static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader)
       throws ClassFormatError {
-    TypeReference tRef;
-    if (className == null) {
-      // NUTS: Our caller hasn't bothered to tell us what this class is supposed
-      //       to be called, so we must read the input stream and discover it ourselves
-      //       before we actually can create the RVMClass instance.
-      try {
-        is.mark(is.available());
-        tRef = ClassFileReader.getClassTypeRef(new DataInputStream(is), classloader);
-        is.reset();
-      } catch (IOException e) {
-        ClassFormatError cfe = new ClassFormatError(e.getMessage());
-        cfe.initCause(e);
-        throw cfe;
-      }
-    } else {
-      Atom classDescriptor = Atom.findOrCreateAsciiAtom(className).descriptorFromClassName();
-      tRef = TypeReference.findOrCreate(classloader, classDescriptor);
-    }
-
-    try {
-      if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
-      if (VM.TraceClassLoading && VM.runningVM) {
-        VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
-      }
-      RVMClass ans = ClassFileReader.readClass(tRef, new DataInputStream(is));
-      tRef.setType(ans);
-      return ans;
-    } catch (IOException e) {
-      ClassFormatError cfe = new ClassFormatError(e.getMessage());
-      cfe.initCause(e);
-      throw cfe;
-    }
+    ClassFileReader reader = new ClassFileReader(is);
+    return reader.readClass(className, classloader);
   }
 
   /**
