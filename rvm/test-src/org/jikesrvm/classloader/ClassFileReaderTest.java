@@ -41,6 +41,7 @@ public class ClassFileReaderTest {
   private DataInputStream dis;
   private ByteArrayInputStream byteArrayInputStream;
   private ByteArrayOutputStream bos;
+  private ClassFileReader classFileReader;
 
   @Before
   public void setup() {
@@ -60,13 +61,15 @@ public class ClassFileReaderTest {
     bytes = bos.toByteArray();
     byteArrayInputStream = new ByteArrayInputStream(bytes);
     dis = new DataInputStream(byteArrayInputStream);
+    classFileReader = new ClassFileReader(byteArrayInputStream);
   }
 
   @Test(expected = ClassFormatError.class)
   public void classFormatErrorIsThrownWhenMagicNumberIsNotPresent() throws Exception {
     dos.writeInt(0xDEADDEAD);
     transferDataToDataInputStream();
-    ClassFileReader.readClass(null, dis);
+    String className = null;
+    classFileReader.readClass(className, null);
   }
 
   @Test(expected = ClassFormatError.class)
@@ -75,7 +78,8 @@ public class ClassFileReaderTest {
     dos.writeShort(0);
     dos.writeShort(44);
     transferDataToDataInputStream();
-    ClassFileReader.readClass(null, dis);
+    String className = null;
+    classFileReader.readClass(className, null);
   }
 
   @Test(expected = ClassFormatError.class)
@@ -84,7 +88,8 @@ public class ClassFileReaderTest {
     dos.writeShort(1);
     dos.writeShort(50);
     transferDataToDataInputStream();
-    ClassFileReader.readClass(null, dis);
+    String className = null;
+    classFileReader.readClass(className, null);
   }
 
   @Test(expected = ClassFormatError.class)
@@ -93,7 +98,8 @@ public class ClassFileReaderTest {
     dos.writeShort(0);
     dos.writeShort(51);
     transferDataToDataInputStream();
-    ClassFileReader.readClass(null, dis);
+    String className = null;
+    classFileReader.readClass(className, null);
   }
 
   @Test
@@ -134,9 +140,9 @@ public class ClassFileReaderTest {
     // write number of attributes: none
     dos.writeShort(0);
     transferDataToDataInputStream();
-    TypeReference tRef = TypeReference.findOrCreate("Lorg/jikesrvm/classloading/SmokeTest;");
-    RVMClass readClass = ClassFileReader.readClass(tRef, dis);
-    assertThat(readClass.getDescriptor().toString(), is("Lorg/jikesrvm/classloading/SmokeTest;"));
+    String className = "org.jikesrvm.classloading.SmokeTest";
+    RVMType readClass = classFileReader.readClass(className, null);
+    assertThat(readClass.asClass().getDescriptor().toString(), is("Lorg/jikesrvm/classloading/SmokeTest;"));
   }
 
 }

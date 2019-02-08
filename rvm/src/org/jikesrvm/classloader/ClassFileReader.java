@@ -27,6 +27,7 @@ import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_SHORT;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
@@ -52,6 +53,12 @@ public class ClassFileReader {
   public static final byte TAG_METHODREF = 10;
   public static final byte TAG_INTERFACE_METHODREF = 11;
   public static final byte TAG_MEMBERNAME_AND_DESCRIPTOR = 12;
+
+  private InputStream inputStream;
+
+  public ClassFileReader(InputStream inputStream) {
+    this.inputStream = inputStream;
+  }
 
   /**
    * Parse and return the constant pool in a class file
@@ -493,7 +500,7 @@ public class ClassFileReader {
    *  skipping during class construction reads less data than expected
    * @throws ClassFormatError when the class data is corrupt
    */
-  static RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
+  private static RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
 
     if (RVMClass.isClassLoadingDisabled()) {
       throw new RuntimeException("ClassLoading Disabled : " + typeRef);
@@ -609,7 +616,7 @@ public class ClassFileReader {
   }
 
   // Shamelessly cloned & owned from ClassFileReader.readClass constructor....
-  static TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
+  private static TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
       throws IOException, ClassFormatError {
     int magic = input.readInt();
     if (magic != 0xCAFEBABE) {
@@ -692,6 +699,42 @@ public class ClassFileReader {
 
     int myTypeIndex = input.readUnsignedShort();
     return TypeReference.getTypeRef(constantPool[myTypeIndex]);
+  }
+
+  public RVMType readClass(String className, ClassLoader classloader) throws ClassFormatError {
+    TypeReference tRef;
+    if (className == null) {
+      // NUTS: Our caller hasn't bothered to tell us what this class is supposed
+      //       to be called, so we must read the input stream and discover it ourselves
+      //       before we actually can create the RVMClass instance.
+      try {
+        inputStream.mark(inputStream.available());
+        tRef = ClassFileReader.getClassTypeRef(new DataInputStream(inputStream), classloader);
+        inputStream.reset();
+      } catch (IOException e) {
+        ClassFormatError cfe = new ClassFormatError(e.getMessage());
+        cfe.initCause(e);
+        throw cfe;
+      }
+    } else {
+      Atom classDescriptor = Atom.findOrCreateAsciiAtom(className).descriptorFromClassName();
+      tRef = TypeReference.findOrCreate(classloader, classDescriptor);
+    }
+
+    try {
+      if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
+      if (VM.TraceClassLoading) {
+        VM.sysWriteln("(defineClassInternal) loading \"" + tRef.getName() + "\" with " + classloader);
+      }
+      RVMClass ans = ClassFileReader.readClass(tRef, new DataInputStream(inputStream));
+      tRef.setType(ans);
+      return ans;
+    } catch (IOException e) {
+      ClassFormatError cfe = new ClassFormatError(e.getMessage());
+      cfe.initCause(e);
+      throw cfe;
+    }
+
   }
 
 }
