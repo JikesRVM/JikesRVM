@@ -20,7 +20,6 @@
   <classpathentry kind="src" path="libraryInterface/Common/src"/>
   <classpathentry kind="src" path="libraryInterface/OpenJDK/EPL/src"/>
   <classpathentry kind="src" path="libraryInterface/OpenJDK/GPL/src"/>
-  <classpathentry kind="src" path="libraryInterface/OpenJDK/ASF/src"/>
   <classpathentry kind="src" path="tools/bootImageWriter/src"/>
   <classpathentry kind="src" path="common/vmmagic/src"/>
   <classpathentry kind="src" path="external/tuningforklib/src"/>
