@@ -56,6 +56,7 @@ Ljava/net/URL$1;
 Ljava/net/Parts;
 Ljava/net/UnknownContentHandler;
 Ljava/net/ContentHandler;
+Ljava/io/ByteArrayOutputStream;
 Ljava/io/InputStream;
 Ljava/io/PrintWriter;
 Ljava/io/OutputStreamWriter;

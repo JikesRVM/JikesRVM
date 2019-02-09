@@ -230,8 +230,8 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   byte[] getRawAnnotations() {
-    VM.sysFail("getRawAnnotations");
-    return null;
+    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    return myType.getRawAnnotations();
   }
 
   @ReplaceMember

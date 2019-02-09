@@ -209,6 +209,10 @@ public final class RVMClass extends RVMType {
   /** Cached set of inherited and declared annotations. */
   private Annotation[] annotations;
 
+  /** For OpenJDK */
+  // TODO review whether the design is sensible
+  private byte[] rawAnnotations;
+
   /** Set of objects that are cached here to ensure they are not collected by GC **/
   private Object[] objectCache;
 
@@ -543,6 +547,15 @@ public final class RVMClass extends RVMType {
     }
     return annotations;
   }
+
+  public byte[] getRawAnnotations() {
+    return rawAnnotations;
+  }
+
+  public void setRawAnnotations(byte[] rawAnnotations) {
+    this.rawAnnotations = rawAnnotations;
+  }
+
 
   /**
    * Find description of a field of this class.

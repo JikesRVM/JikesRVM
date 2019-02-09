@@ -55,6 +55,8 @@ public class ClassFileReader {
   public static final byte TAG_MEMBERNAME_AND_DESCRIPTOR = 12;
 
   private InputStream inputStream;
+  private LoggingInputStream loggingStream;
+  private byte[] rawAnnotations = {};
 
   public ClassFileReader(InputStream inputStream) {
     this.inputStream = inputStream;
@@ -588,7 +590,10 @@ public class ClassFileReader {
       } else if (attName == RVMClassLoader.signatureAttributeName) {
         signature = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
+        loggingStream.startLogging();
         annotations = AnnotatedElement.readAnnotations(constantPool, input, typeRef.getClassLoader());
+        loggingStream.stopLogging();
+        rawAnnotations = loggingStream.getLoggedBytes();
       } else {
         int skippedAmount = input.skipBytes(attLength);
         if (skippedAmount != attLength) {
@@ -726,7 +731,11 @@ public class ClassFileReader {
       if (VM.TraceClassLoading) {
         VM.sysWriteln("(defineClassInternal) loading \"" + tRef.getName() + "\" with " + classloader);
       }
-      RVMClass ans = readClass(tRef, new DataInputStream(inputStream));
+
+      loggingStream = new LoggingInputStream(inputStream);
+      DataInputStream stream = new DataInputStream(loggingStream);
+      RVMClass ans = readClass(tRef, stream);
+      ans.setRawAnnotations(rawAnnotations);
       tRef.setType(ans);
       return ans;
     } catch (IOException e) {
