@@ -404,7 +404,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   }
 
   private void fillInPackageSource() {
-    VM.sysWriteln("Filling in package source");
     StringTokenizer tok = new StringTokenizer(getBootstrapRepositories(), File.pathSeparator);
 
     while (tok.hasMoreElements()) {
