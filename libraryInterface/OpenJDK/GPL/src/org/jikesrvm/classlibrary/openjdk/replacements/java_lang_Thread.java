@@ -35,7 +35,7 @@ public class java_lang_Thread {
 
   @ReplaceMember
   public static void registerNatives() {
-    VM.sysWriteln("registerNatives: java.lang.Thread");
+    // Nothing to do
   }
 
   @ReplaceMember
