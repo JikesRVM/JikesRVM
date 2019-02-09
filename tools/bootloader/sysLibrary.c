@@ -23,13 +23,13 @@
 EXTERNAL void* sysDlopen(char *libname)
 {
   void * libHandler;
-  CONSOLE_PRINTF("%s: sysDlopen %s\n", Me, libname);
+  TRACE_PRINTF("%s: sysDlopen %s\n", Me, libname);
   do {
     libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
   }
   while( (libHandler == 0 /*null*/) && (errno == EINTR) );
   if (libHandler == 0) {
-    CONSOLE_PRINTF("%s: error loading library %s: %s\n", Me,
+    TRACE_PRINTF("%s: error loading library %s: %s\n", Me,
                  libname, dlerror());
   }
 
@@ -39,6 +39,6 @@ EXTERNAL void* sysDlopen(char *libname)
 /** Look up symbol in dynamic library. */
 EXTERNAL void* sysDlsym(Address libHandler, char *symbolName)
 {
-  CONSOLE_PRINTF("%s: sysDlsym %s\n", Me, symbolName);
+  TRACE_PRINTF("%s: sysDlsym %s\n", Me, symbolName);
   return dlsym((void *) libHandler, symbolName);
 }
