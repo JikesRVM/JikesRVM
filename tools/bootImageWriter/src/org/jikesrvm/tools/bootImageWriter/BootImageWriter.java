@@ -1776,7 +1776,7 @@ public class BootImageWriter {
       if (rvmType == null) {
         if (verbosity.isAtLeast(DETAILED)) traverseObject(jdkObject);
         if (verbosity.isAtLeast(DETAILED)) depth--;
-        System.out.println("Object Not Present " + jdkType.getName());
+        System.out.println("Object Not Present " + jdkType.getName() + " for " + jdkObject.toString());
         return OBJECT_NOT_PRESENT; // object not part of bootimage
       }
 
