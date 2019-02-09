@@ -2672,9 +2672,6 @@ public class VM extends Properties {
     }
     RuntimeEntrypoints.init();
     RVMThread.init();
-
-    VM.verboseClassLoading = true;
-    VM.TraceClassLoading = true;
   }
 
   public static void disableYieldpoints() {
