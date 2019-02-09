@@ -124,6 +124,13 @@ public final class ConstantPool {
   }
 
   @Uninterruptible
+  static MemberReference getMemberRef(int[] constantPool, int constantPoolIndex) {
+    int cpValue = constantPool[constantPoolIndex];
+    if (VM.VerifyAssertions) VM._assert(ConstantPool.unpackCPType(cpValue) == CP_MEMBER);
+    return MemberReference.getMemberRef(ConstantPool.unpackUnsignedCPValue(cpValue));
+  }
+
+  @Uninterruptible
   static Atom getUtf(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     if (VM.VerifyAssertions) VM._assert(ConstantPool.unpackCPType(cpValue) == CP_UTF);

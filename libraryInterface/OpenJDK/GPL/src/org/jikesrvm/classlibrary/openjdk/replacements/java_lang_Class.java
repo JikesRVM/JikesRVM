@@ -33,6 +33,7 @@ import java.util.List;
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classlibrary.JavaLangSupport;
+import org.jikesrvm.classlibrary.OpenJDKConstantPool;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
@@ -236,8 +237,9 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   ConstantPool getConstantPool() {
-    VM.sysFail("getConstantPool");
-    return null;
+    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    OpenJDKConstantPool constantPool = new OpenJDKConstantPool(myType);
+    return constantPool;
   }
 
   @ReplaceMember

@@ -658,6 +658,11 @@ public final class RVMClass extends RVMType {
   // Items are fetched by specifying their "constant pool index".
   //
 
+  // required for OpenJDK
+  public int getConstantPoolSize() {
+    return constantPool.length;
+  }
+
   /**
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" JTOC).
@@ -689,7 +694,12 @@ public final class RVMClass extends RVMType {
   }
 
   @Uninterruptible
-  Atom getUtf(int constantPoolIndex) {
+  public MemberReference getMemberRef(int constantPoolIndex) {
+    return ConstantPool.getMemberRef(constantPool, constantPoolIndex);
+  }
+
+  @Uninterruptible
+  public Atom getUtf(int constantPoolIndex) {
     return ConstantPool.getUtf(constantPool, constantPoolIndex);
   }
 
