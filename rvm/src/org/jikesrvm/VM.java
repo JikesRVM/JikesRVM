@@ -271,7 +271,6 @@ public class VM extends Properties {
     runClassInitializer("java.lang.Character");
 
     if (VM.BuildForOpenJDK) {
-      runClassInitializer("java.lang.CharacterData");
       runClassInitializer("java.lang.CharacterDataLatin1");
       runClassInitializer("java.lang.CharacterData00");
       runClassInitializer("java.lang.CharacterData01");
@@ -280,11 +279,6 @@ public class VM extends Properties {
       runClassInitializer("java.lang.CharacterDataPrivateUse");
       runClassInitializer("java.lang.CharacterDataUndefined");
       runClassInitializer("java.lang.Throwable");
-      runClassInitializer("java.lang.Exception");
-      runClassInitializer("java.lang.ClassNotFoundException");
-      runClassInitializer("java.lang.RuntimeException");
-      runClassInitializer("java.lang.NullPointerException");
-      runClassInitializer("java.lang.Error");
     }
 
     runClassInitializer("org.jikesrvm.classloader.TypeReferenceVector");
@@ -395,14 +389,10 @@ public class VM extends Properties {
       runClassInitializer("sun.reflect.Reflection");
       runClassInitializer("java.lang.reflect.Proxy");
       runClassInitializer("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
-      runClassInitializer("java.io.DataInputStream");
       runClassInitializer("java.io.BufferedInputStream");
-      runClassInitializer("java.nio.CharBuffer");
-      runClassInitializer("java.nio.ByteBuffer");
       runClassInitializer("java.nio.DirectByteBuffer");
       runClassInitializer("java.nio.Bits");
       runClassInitializer("sun.nio.cs.StreamEncoder");
-      runClassInitializer("java.util.StringTokenizer");
       runClassInitializer("java.nio.charset.Charset");
       runClassInitializer("java.lang.Shutdown");
       if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
@@ -438,8 +428,8 @@ public class VM extends Properties {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
       runClassInitializer("java.lang.ClassLoader$StaticData");
+      runClassInitializer("java.lang.Class$StaticData");
     }
-    runClassInitializer("java.lang.Class$StaticData");
 
     if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
       // OpenJDK runs it later
@@ -454,14 +444,18 @@ public class VM extends Properties {
       runClassInitializer("org.apache.harmony.niochar.CharsetProviderImpl");
     }
 
-    runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    }
     System.setProperty("line.separator", "\n");
-    runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
+    }
     if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
       runClassInitializer("java.util.Locale");
       runClassInitializer("java.util.ResourceBundle");
+      runClassInitializer("java.util.zip.CRC32");
     }
-    runClassInitializer("java.util.zip.CRC32");
     if (VM.BuildForOpenJDK) {
       runClassInitializer("java.util.zip.ZipEntry");
     }
@@ -487,10 +481,10 @@ public class VM extends Properties {
       runClassInitializer("gnu.java.nio.VMChannel");
       runClassInitializer("gnu.java.nio.FileChannelImpl");
     }
-    if (!VM.BuildForOpenJDK) {
+    if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.io.FileDescriptor");
+      runClassInitializer("java.io.FilePermission");
     }
-    runClassInitializer("java.io.FilePermission");
     runClassInitializer("java.util.jar.JarFile");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.util.zip.ZipFile$PartialInputStream");
