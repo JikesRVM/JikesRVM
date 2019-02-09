@@ -297,6 +297,11 @@ JNIEXPORT char * JNICALL JVM_NativePath (char *path) {
   return path;
 }
 
+JNIEXPORT void JNICALL JVM_RawMonitorDestroy(void *monitor) {
+  OPENJDK_DEBUG_PRINTF("JVM_RawMonitorDestroy: %p\n", monitor);
+  sysMonitorDestroy((Word)monitor);
+}
+
 JNIEXPORT jint JNICALL JVM_RawMonitorEnter (void *monitor) {
   jint returnVal;
   OPENJDK_DEBUG_PRINTF("JVM_RawMonitorEnter: %p\n", monitor);
