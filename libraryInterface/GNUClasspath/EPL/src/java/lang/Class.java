@@ -33,9 +33,7 @@ import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.jikesrvm.classlibrary.JavaLangSupport;
@@ -109,18 +107,6 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   static <T> Class<T> create(RVMType type) {
     Class<T> c = new Class<T>(type);
     return c;
-  }
-
-  static Class<?> getPrimitiveClass(String name) {
-      if (name.equals("int")) return Integer.class;
-      if (name.equals("boolean")) return Boolean.class;
-      if (name.equals("byte")) return Byte.class;
-      if (name.equals("short")) return Short.class;
-      if (name.equals("char")) return Character.class;
-      if (name.equals("long")) return Long.class;
-      if (name.equals("float")) return Float.class;
-      if (name.equals("double")) return Double.class;
-      return null;
   }
 
   void setSigners(Object[] signers) {
@@ -424,8 +410,6 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     ClassLoader cl = type.getClassLoader();
     return cl == BootstrapClassLoader.getBootstrapClassLoader() ? null : cl;
   }
-  // Package-private to allow ClassLoader access
-  native ClassLoader getClassLoader0();
 
   public Class<?> getComponentType() {
     return type.isArrayType() ? type.asArray().getElementType().getClassForType() : null;
@@ -672,29 +656,6 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
-
-  /**
-   * Returns a map from simple name to enum constant.  This package-private
-   * method is used internally by Enum to implement
-   *     public static <T extends Enum<T>> T valueOf(Class<T>, String)
-   * efficiently.  Note that the map is returned by this method is
-   * created lazily on first use.  Typically it won't ever get created.
-   */
-  Map<String, T> enumConstantDirectory() {
-    if (enumConstantDirectory == null) {
-      T[] universe = getEnumConstants();
-      if (universe == null)
-        throw new IllegalArgumentException(
-            getName() + " is not an enum type");
-      Map<String, T> m = new HashMap<String, T>(2 * universe.length);
-      for (T constant : universe) {
-        m.put(((Enum)constant).name(), constant);
-      }
-      enumConstantDirectory = m;
-    }
-    return enumConstantDirectory;
-  }
-  private transient volatile Map<String, T> enumConstantDirectory = null;
 
   @Pure
   public boolean isEnum() {
