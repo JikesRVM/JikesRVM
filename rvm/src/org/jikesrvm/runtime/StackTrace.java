@@ -570,11 +570,20 @@ public class StackTrace {
       element = removeStackTraceFrames(element);
       compiledMethod = getCompiledMethod(element);
 
-      // (2) remove any VMThrowable frames
+      // (2a) remove any VMThrowable frames
       if (VM.BuildForGnuClasspath) {
         while ((element < compiledMethods.length) &&
               (compiledMethod != null) &&
               compiledMethod.getMethod().getDeclaringClass().getClassForType().getName().equals("java.lang.VMThrowable")) {
+          element++;
+          compiledMethod = getCompiledMethod(element);
+        }
+      }
+      // (2b) remove any java_lang_Throwable frames.
+      if (VM.BuildForOpenJDK) {
+        while ((element < compiledMethods.length) &&
+              (compiledMethod != null) &&
+              compiledMethod.getMethod().getDeclaringClass().getClassForType().getName().equals("org.jikesrvm.classlibrary.openjdk.replacements.java_lang_Throwable")) {
           element++;
           compiledMethod = getCompiledMethod(element);
         }
