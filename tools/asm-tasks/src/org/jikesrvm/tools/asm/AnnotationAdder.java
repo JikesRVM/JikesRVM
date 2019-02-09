@@ -41,7 +41,6 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 import org.jikesrvm.classloader.RVMClassLoader;
-import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 
 import org.vmmagic.pragma.Inline;
