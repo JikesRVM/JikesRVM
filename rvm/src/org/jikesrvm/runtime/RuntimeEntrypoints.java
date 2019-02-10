@@ -701,8 +701,6 @@ public class RuntimeEntrypoints {
     AbstractRegisters exceptionRegisters = myThread.getExceptionRegisters();
     if (VM.verboseSignalHandling) VM.sysWriteln("we have exception registers = ",Magic.objectAsAddress(exceptionRegisters));
 
-    RVMThread.dumpStack();
-
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.getStack().length < (StackFrameLayout.getMaxStackSize() >> LOG_BYTES_IN_ADDRESS) &&
         !myThread.hasNativeStackFrame()) {
