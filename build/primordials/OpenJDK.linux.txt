@@ -152,6 +152,7 @@ Ljava/util/StringTokenizer;
 Ljava/lang/annotation/ElementType;
 Ljava/util/HashMap$EntrySet;
 Ljava/util/HashMap$KeySet;
+Ljava/util/HashMap$KeyIterator;
 #Ljava/util/Hashtable$EmptyEnumerator;
 #Ljava/util/Hashtable$EmptyIterator;
 Ljava/lang/Number;
