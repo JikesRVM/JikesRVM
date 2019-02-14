@@ -28,6 +28,7 @@
 
   <!-- default configuration values. May have already been set by above tasks -->
   <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
+  <property name="debugLevel" value="lines,source"/>
 
   <setBuildName property="build.name" config="${config.name}"/>
 
@@ -490,13 +491,13 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="compile-vmmagic-stub">
     <mkdir dir="${build.vmmagic-stub.classes}"/>
-    <javac srcdir="${vmmagic-stub.java}" destdir="${build.vmmagic-stub.classes}" debug="true" debugLevel="lines,source"
+    <javac srcdir="${vmmagic-stub.java}" destdir="${build.vmmagic-stub.classes}" debug="true" debugLevel="${debugLevel}"
            source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false"/>
   </target>
 
   <target name="compile-options" depends="compile-vmmagic-stub">
     <mkdir dir="${build.options.classes}"/>
-    <javac srcdir="${options.java}" destdir="${build.options.classes}" debug="true" debugLevel="lines,source"
+    <javac srcdir="${options.java}" destdir="${build.options.classes}" debug="true" debugLevel="${debugLevel}"
            source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -508,7 +509,7 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" description="Compile MMTk toolkit.">
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
-    <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
+    <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="${debugLevel}"
            source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false" deprecation="yes">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -530,7 +531,7 @@ Check to make sure all required properties are specified. This includes properti
     <javacc target="${basedir}/MMTk/harness/src-generated/org/mmtk/harness/lang/parser/Parser.jj" javacchome="${javacc.dir}" outputdirectory="${generated.mmtk-harness-parser.java}"/>
     <mkdir dir="${build.mmtk-harness.classes}"/>
     <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" 
-        destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" 
+        destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="${debugLevel}"
         source="${harness.java.version}" target="${harness.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -1020,7 +1021,7 @@ Check to make sure all required properties are specified. This includes properti
           tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"/>
 
     <javac srcdir="${build.ia32-assembler-opt.dir}" destdir="${build.ia32-assembler-opt.dir}" debug="true"
-           debugLevel="lines,source" source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
+           debugLevel="${debugLevel}" source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
       <src path="${ia32-assembler-opt.dir}"/>
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -1368,7 +1369,7 @@ Check to make sure all required properties are specified. This includes properti
                debug="true"
                fork="true"
                memoryMaximumSize="500M"
-               debugLevel="lines,source"
+               debugLevel="${debugLevel}"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
@@ -1404,7 +1405,7 @@ Check to make sure all required properties are specified. This includes properti
                debug="true"
                fork="true"
                memoryMaximumSize="500M"
-               debugLevel="lines,source"
+               debugLevel="${debugLevel}"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
@@ -1450,7 +1451,7 @@ Check to make sure all required properties are specified. This includes properti
                debug="true"
                fork="true"
                memoryMaximumSize="500M"
-               debugLevel="lines,source"
+               debugLevel="${debugLevel}"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
@@ -1533,7 +1534,7 @@ Check to make sure all required properties are specified. This includes properti
     <echo message="second compile (from ${generated.java})"/>
     <javac destdir="${build.classes}"
            debug="true"
-           debugLevel="lines,source"
+           debugLevel="${debugLevel}"
            source="${rvm.java.version}"
            target="${rvm.java.version}"
            srcdir="${build.base}/syscall/java;${build.base}/replacements/java"
@@ -1628,7 +1629,7 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="compile-vmmagic" depends="compile">
     <mkdir dir="${build.vmmagic.classes}"/>
-    <javac srcdir="${vmmagic.java}" destdir="${build.vmmagic.classes}" debug="true" debugLevel="lines,source"
+    <javac srcdir="${vmmagic.java}" destdir="${build.vmmagic.classes}" debug="true" debugLevel="${debugLevel}"
            source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
       <src path="${generated.vmmagic.arch.java}"/>
       <classpath>
@@ -1844,7 +1845,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
-           debugLevel="lines,source" source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
+           debugLevel="${debugLevel}" source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
@@ -2815,7 +2816,7 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="start" emacsmode="true"/>
     <javac destdir="${build.dir}/javadoc/classes-ia32"
            debug="true"
-           debugLevel="lines,source"
+           debugLevel="${debugLevel}"
            source="${rvm.java.version}"
            target="${rvm.java.version}"
            includeantruntime="false">
