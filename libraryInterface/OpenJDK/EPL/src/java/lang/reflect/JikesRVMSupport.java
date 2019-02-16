@@ -13,10 +13,14 @@
 package java.lang.reflect;
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.Magic;
 
 import static java.lang.reflect.JikesRVMHelpers.*;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Library support interface of Jikes RVM
@@ -53,9 +57,7 @@ public class JikesRVMSupport {
     String name = atomToInternedStringOrError(m.getName());
     Class[] parameterTypes = convertMethodParametersTypesToClasses(m);
     Class<?> returnType = m.getReturnType().resolve().getClassForType();
-    // TODO map this
-    Class[] checkedExceptions = null;
-//  = m.getExceptionTypes();
+    Class[] checkedExceptions = determineCheckedExceptionTypes(m.getExceptionTypes());
     int modifiers = m.getModifiers();
     int slot = SLOT_CONTENTS;
     String signature = convertAtomToInternedStringOrNull(m.getSignature());
@@ -68,13 +70,13 @@ public class JikesRVMSupport {
     return newMethod;
   }
 
+
+
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
     Class<?> declaringClass = m.getDeclaringClass().getClassForType();
     Class[] parameterTypes = convertMethodParametersTypesToClasses(m);
-    // TODO map this
-    Class[] checkedExceptions = null;
-//  = m.getExceptionTypes();
+    Class[] checkedExceptions = determineCheckedExceptionTypes(m.getExceptionTypes());
     int modifiers = m.getModifiers();
     // slot is implementation defined
     int slot = SLOT_CONTENTS;
@@ -104,6 +106,37 @@ public class JikesRVMSupport {
     return (RVMMethod) Magic.getObjectAtOffset(cons, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset());
   }
 
+  private static Class[] determineCheckedExceptionTypes(
+      TypeReference[] exceptionTypeReferences) {
+    // TODO partly sharable with GNU Classpath
+    if (exceptionTypeReferences == null) {
+      return new Class[0];
+    } else {
+      // FIXME move this into a shared helper or core VM and add test cases
+      Class<?>[] classes = JavaLangReflectSupport.typesToClasses(exceptionTypeReferences);
+      return determineCheckedExceptionTypes(classes);
+    }
+  }
+
+  private static Class[] determineCheckedExceptionTypes(Class<?>[] classes) {
+    List<Class<?>> checkedExceptionClasses = new LinkedList<Class<?>>();
+    Class<?> ancestor = null;
+    for (Class<?> c : classes) {
+      ancestor = c;
+      while (ancestor != null) {
+        String name = ancestor.getName();
+        if ("java.lang.RuntimeException".equals(name) || "java.lang.Error".equals(name)) {
+          break;
+        } else if ("java.lang.Exception".equals(name)) {
+          checkedExceptionClasses.add(c);
+          break;
+        } else {
+          ancestor = ancestor.getSuperclass();
+        }
+      }
+    }
+    return checkedExceptionClasses.toArray(new Class[0]);
+  }
 
 
 }
