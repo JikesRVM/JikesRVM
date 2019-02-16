@@ -72,10 +72,10 @@ public final class RVMField extends RVMMember {
    * @param modifiers modifiers associated with this field.
    * @param signature generic type of this field.
    * @param constantValueIndex constant pool index of constant value
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
   private RVMField(TypeReference declaringClass, MemberReference memRef, short modifiers, Atom signature,
-                   int constantValueIndex, RVMAnnotation[] annotations) {
+                   int constantValueIndex, Annotations annotations) {
     super(declaringClass, memRef, modifiers, signature, annotations);
     this.constantValueIndex = constantValueIndex;
     TypeReference typeRef = memRef.asFieldReference().getFieldContentsType();
@@ -128,24 +128,24 @@ public final class RVMField extends RVMMember {
         }
       }
     }
+    Annotations encapsulatedAnnotations = new Annotations(annotations);
     return new RVMField(declaringClass,
                         memRef,
                         (short) (modifiers & APPLICABLE_TO_FIELDS),
                         signature,
                         cvi,
-                        annotations);
+                        encapsulatedAnnotations);
   }
 
   public static RVMField createSyntheticFieldForReplacementClass(
       TypeReference declaringClass, short modifiers, Atom fieldName, Atom genericSignature, MemberReference memRef) {
     final int fieldIsNotConstant = 0;
-    final RVMAnnotation[] noAnnotations = {};
     return new RVMField(declaringClass,
                         memRef,
                         (short) (modifiers & APPLICABLE_TO_FIELDS),
                         genericSignature,
                         fieldIsNotConstant,
-                        noAnnotations);
+                        Annotations.noAnnotations());
   }
 
 

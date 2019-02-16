@@ -87,17 +87,14 @@ public abstract class RVMMethod extends RVMMember {
    * @param modifiers modifiers associated with this method.
    * @param exceptionTypes exceptions thrown by this method.
    * @param signature generic type of this method.
-   * @param annotations array of runtime visible annotations
-   * @param parameterAnnotations array of runtime visible parameter annotations
-   * @param annotationDefault value for this annotation that appears
+   * @param methodAnnotations all method annotations
    */
   protected RVMMethod(TypeReference declaringClass, MemberReference memRef, short modifiers,
-                      TypeReference[] exceptionTypes, Atom signature, RVMAnnotation[] annotations,
-                      RVMAnnotation[][] parameterAnnotations, Object annotationDefault) {
-    super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
+                      TypeReference[] exceptionTypes, Atom signature, MethodAnnotations methodAnnotations) {
+    super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, methodAnnotations);
     if (parameterAnnotations != null) {
       synchronized (RVMMethod.parameterAnnotations) {
-        RVMMethod.parameterAnnotations.put(this, parameterAnnotations);
+        RVMMethod.parameterAnnotations.put(this, methodAnnotations.getParameterAnnotations());
       }
     }
     if (exceptionTypes != null) {
@@ -105,9 +102,10 @@ public abstract class RVMMethod extends RVMMember {
         RVMMethod.exceptionTypes.put(this, exceptionTypes);
       }
     }
-    if (annotationDefault != null) {
+    Object methodAnnotationDefaults = methodAnnotations.getAnnotationDefaults();
+    if (methodAnnotationDefaults != null) {
       synchronized (annotationDefaults) {
-        annotationDefaults.put(this, annotationDefault);
+        annotationDefaults.put(this, methodAnnotationDefaults);
       }
     }
   }
@@ -717,9 +715,7 @@ public abstract class RVMMethod extends RVMMember {
                                null,
                                new int[0],
                                null,
-                               null,
-                               null,
-                               null);
+                               MethodAnnotations.noMethodAnnotations());
   }
 
   /**
@@ -903,8 +899,6 @@ public abstract class RVMMethod extends RVMMember {
                                null,
                                constantPool,
                                null,
-                               null,
-                               null,
-                               null);
+                               MethodAnnotations.noMethodAnnotations());
   }
 }

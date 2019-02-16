@@ -436,6 +436,7 @@ public class ClassFileReader {
         }
       }
     }
+    MethodAnnotations methodAnnotations = new MethodAnnotations(annotations, parameterAnnotations, tmp_annotationDefault);
     RVMMethod method;
     if ((modifiers & ACC_NATIVE) != 0) {
       method =
@@ -444,9 +445,7 @@ public class ClassFileReader {
                               modifiers,
                               tmp_exceptionTypes,
                               tmp_signature,
-                              annotations,
-                              parameterAnnotations,
-                              tmp_annotationDefault);
+                              methodAnnotations);
     } else if ((modifiers & ACC_ABSTRACT) != 0) {
       method =
           new AbstractMethod(declaringClass,
@@ -454,9 +453,7 @@ public class ClassFileReader {
                                 modifiers,
                                 tmp_exceptionTypes,
                                 tmp_signature,
-                                annotations,
-                                parameterAnnotations,
-                                tmp_annotationDefault);
+                                methodAnnotations);
 
     } else {
       method =
@@ -472,9 +469,7 @@ public class ClassFileReader {
                               tmp_localVariableTable,
                               constantPool,
                               tmp_signature,
-                              annotations,
-                              parameterAnnotations,
-                              tmp_annotationDefault);
+                              methodAnnotations);
     }
     return method;
   }
@@ -602,6 +597,7 @@ public class ClassFileReader {
       }
     }
 
+    Annotations encapsulatedAnnotations = new Annotations(annotations);
     return new RVMClass(typeRef,
                         constantPool,
                         modifiers,
@@ -617,7 +613,7 @@ public class ClassFileReader {
                         sourceName,
                         classInitializerMethod,
                         signature,
-                        annotations);
+                        encapsulatedAnnotations);
   }
 
   // Shamelessly cloned & owned from ClassFileReader.readClass constructor....

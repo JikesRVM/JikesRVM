@@ -52,21 +52,16 @@ public final class NativeMethod extends RVMMethod {
    * @param modifiers modifiers associated with this member.
    * @param exceptionTypes exceptions thrown by this method.
    * @param signature generic type of this method.
-   * @param annotations array of runtime visible annotations
-   * @param parameterAnnotations array of runtime visible parameter annotations
-   * @param annotationDefault value for this annotation that appears
+   * @param methodAnnotations all method annotations
    */
   NativeMethod(TypeReference declaringClass, MemberReference memRef, short modifiers,
-                  TypeReference[] exceptionTypes, Atom signature, RVMAnnotation[] annotations,
-                  RVMAnnotation[][] parameterAnnotations, Object annotationDefault) {
+                  TypeReference[] exceptionTypes, Atom signature, MethodAnnotations methodAnnotations) {
     super(declaringClass,
           memRef,
           modifiers,
           exceptionTypes,
           signature,
-          annotations,
-          parameterAnnotations,
-          annotationDefault);
+          methodAnnotations);
   }
 
   @Override

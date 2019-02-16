@@ -1034,13 +1034,13 @@ public final class RVMClass extends RVMType {
    * @param sourceName source file name
    * @param classInitializerMethod handle to class initializer method
    * @param signature the generic type name for this class
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
   RVMClass(TypeReference typeRef, int[] constantPool, short modifiers, short originalModifiers, RVMClass superClass,
            RVMClass[] declaredInterfaces, RVMField[] declaredFields, RVMMethod[] declaredMethods,
            TypeReference[] declaredClasses, TypeReference declaringClass, TypeReference enclosingClass,
            MethodReference enclosingMethod, Atom sourceName, RVMMethod classInitializerMethod,
-           Atom signature, RVMAnnotation[] annotations) {
+           Atom signature, Annotations annotations) {
     super(typeRef, 0, annotations);
     if (VM.VerifyAssertions) VM._assert(!getTypeRef().isUnboxedType());
     if (VM.VerifyAssertions && null != superClass) VM._assert(!superClass.getTypeRef().isUnboxedType());
@@ -1242,9 +1242,7 @@ public final class RVMClass extends RVMType {
                                                             (short) (ACC_ABSTRACT | ACC_PUBLIC),
                                                             iMeth.getExceptionTypes(),
                                                             null,
-                                                            null,
-                                                            null,
-                                                            null));
+                                                            MethodAnnotations.noMethodAnnotations()));
           }
         }
       }

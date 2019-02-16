@@ -239,9 +239,9 @@ public abstract class RVMType extends AnnotatedElement {
    * @param typeRef The canonical type reference for this type.
    * @param classForType The java.lang.Class representation
    * @param dimension The dimensionality
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
-  protected RVMType(TypeReference typeRef, Class<?> classForType, int dimension, RVMAnnotation[] annotations) {
+  protected RVMType(TypeReference typeRef, Class<?> classForType, int dimension, Annotations annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = Statics.allocateReferenceSlot(false).toInt();
@@ -260,9 +260,9 @@ public abstract class RVMType extends AnnotatedElement {
    * Create an instance of a {@link RVMType}
    * @param typeRef The canonical type reference for this type.
    * @param dimension The dimensionality
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
-  protected RVMType(TypeReference typeRef, int dimension, RVMAnnotation[] annotations) {
+  protected RVMType(TypeReference typeRef, int dimension, Annotations annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = Statics.allocateReferenceSlot(false).toInt();

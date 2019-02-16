@@ -69,7 +69,7 @@ public class MethodVectorTest {
     short ow = 0;
     byte[] bc = new byte[0];
     int[] constantPool = new int[0];
-    NormalMethod mockMethod = new NormalMethod(tRef, mr, mo, null, lw, ow, bc, null, null, null, constantPool, null, null, null, null);
+    NormalMethod mockMethod = new NormalMethod(tRef, mr, mo, null, lw, ow, bc, null, null, null, constantPool, null, MethodAnnotations.noMethodAnnotations());
     return mockMethod;
   }
 
