@@ -79,6 +79,9 @@ public abstract class RVMMethod extends RVMMember {
   /** Reference to method designated to replace this one when compiled */
   private RVMMethod replacementMethod = null;
 
+  /** All method annotations */
+  protected final MethodAnnotations methodAnnotations;
+
   /**
    * Construct a read method
    *
@@ -92,6 +95,7 @@ public abstract class RVMMethod extends RVMMember {
   protected RVMMethod(TypeReference declaringClass, MemberReference memRef, short modifiers,
                       TypeReference[] exceptionTypes, Atom signature, MethodAnnotations methodAnnotations) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, methodAnnotations);
+    this.methodAnnotations = methodAnnotations;
     if (parameterAnnotations != null) {
       synchronized (RVMMethod.parameterAnnotations) {
         RVMMethod.parameterAnnotations.put(this, methodAnnotations.getParameterAnnotations());

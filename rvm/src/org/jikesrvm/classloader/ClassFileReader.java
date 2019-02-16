@@ -56,7 +56,6 @@ public class ClassFileReader {
 
   private InputStream inputStream;
   private LoggingInputStream loggingStream;
-  private byte[] rawAnnotations = {};
 
   public ClassFileReader(InputStream inputStream) {
     this.inputStream = inputStream;
@@ -310,7 +309,7 @@ public class ClassFileReader {
           fmodifiers -= ACC_FINAL;
         }
         MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
-        declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input);
+        declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input, loggingStream);
       }
     }
     // FIXME review the design for this before merging the OpenJDK branch
@@ -363,6 +362,9 @@ public class ClassFileReader {
     RVMAnnotation[] annotations = null;
     RVMAnnotation[][] parameterAnnotations = null;
     Object tmp_annotationDefault = null;
+    byte[] rawAnnotations = null;
+    byte[] rawParameterAnnotations = null;
+    byte[] rawAnnotationDefault = null;
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i < n; i++) {
@@ -415,17 +417,31 @@ public class ClassFileReader {
       } else if (attName == RVMClassLoader.signatureAttributeName) {
         tmp_signature = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
+        loggingStream.startLogging();
         annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
+        loggingStream.stopLogging();
+        rawAnnotations = loggingStream.getLoggedBytes();
+        loggingStream.clearLoggedBytes();
       } else if (attName == RVMClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
+        loggingStream.startLogging();
         int numParameters = input.readByte() & 0xFF;
         parameterAnnotations = new RVMAnnotation[numParameters][];
         for (int a = 0; a < numParameters; ++a) {
           parameterAnnotations[a] = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
         }
+        loggingStream.stopLogging();
+        rawParameterAnnotations = loggingStream.getLoggedBytes();
+        loggingStream.clearLoggedBytes();
       } else if (attName == RVMClassLoader.annotationDefaultAttributeName) {
         try {
+          loggingStream.startLogging();
           tmp_annotationDefault = RVMAnnotation.readValue(memRef.asMethodReference().getReturnType(), constantPool, input, declaringClass.getClassLoader());
+          loggingStream.stopLogging();
+          rawAnnotationDefault = loggingStream.getLoggedBytes();
+          loggingStream.clearLoggedBytes();
         } catch (ClassNotFoundException e) {
+          loggingStream.stopLogging();
+          loggingStream.clearLoggedBytes();
           throw new Error(e);
         }
       } else {
@@ -437,6 +453,9 @@ public class ClassFileReader {
       }
     }
     MethodAnnotations methodAnnotations = new MethodAnnotations(annotations, parameterAnnotations, tmp_annotationDefault);
+    methodAnnotations.setRawAnnotations(rawAnnotations);
+    methodAnnotations.setRawParameterAnnotations(rawParameterAnnotations);
+    methodAnnotations.setRawAnnotationDefault(rawAnnotationDefault);
     RVMMethod method;
     if ((modifiers & ACC_NATIVE) != 0) {
       method =
@@ -522,6 +541,7 @@ public class ClassFileReader {
     TypeReference declaringClass = null;
     Atom signature = null;
     RVMAnnotation[] annotations = null;
+    byte[] rawAnnotations = {};
     TypeReference enclosingClass = null;
     MethodReference enclosingMethod = null;
     // Read attributes.
@@ -598,6 +618,7 @@ public class ClassFileReader {
     }
 
     Annotations encapsulatedAnnotations = new Annotations(annotations);
+    encapsulatedAnnotations.setRawAnnotations(rawAnnotations);
     return new RVMClass(typeRef,
                         constantPool,
                         modifiers,
@@ -731,7 +752,6 @@ public class ClassFileReader {
       loggingStream = new LoggingInputStream(inputStream);
       DataInputStream stream = new DataInputStream(loggingStream);
       RVMClass ans = readClass(tRef, stream);
-      ans.setRawAnnotations(rawAnnotations);
       tRef.setType(ans);
       return ans;
     } catch (IOException e) {

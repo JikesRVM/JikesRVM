@@ -18,6 +18,8 @@ public class Annotations {
 
   protected final RVMAnnotation[] annotations;
 
+  protected byte[] rawAnnotations;
+
   /**
    * @param annotations array of runtime visible annotations
    */
@@ -33,4 +35,11 @@ public class Annotations {
     return NO_ANNOTATIONS;
   }
 
+  public void setRawAnnotations(byte[] rawAnnotations) {
+    this.rawAnnotations = rawAnnotations;
+  }
+
+  public byte[] getRawAnnotations() {
+    return rawAnnotations;
+  }
 }

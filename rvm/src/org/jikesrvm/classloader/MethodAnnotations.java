@@ -19,6 +19,9 @@ public class MethodAnnotations extends Annotations {
   private final RVMAnnotation[][] parameterAnnotations;
   private final Object annotationDefaults;
 
+  private byte[] rawParameterAnnotations;
+  private byte[] rawAnnotationDefault;
+
   /**
    * @param annotations array of runtime visible annotations
    * @param parameterAnnotations array of runtime visible parameter annotations
@@ -37,6 +40,23 @@ public class MethodAnnotations extends Annotations {
 
   public Object getAnnotationDefaults() {
     return annotationDefaults;
+  }
+
+  public void setRawParameterAnnotations(byte[] rawParameterAnnotations) {
+    this.rawParameterAnnotations = rawParameterAnnotations;
+
+  }
+
+  public void setRawAnnotationDefault(byte[] rawAnnotationDefault) {
+    this.rawAnnotationDefault = rawAnnotationDefault;
+  }
+
+  public byte[] getRawParameterAnnotations() {
+    return rawParameterAnnotations;
+  }
+
+  public byte[] getRawAnnotationDefault() {
+    return rawAnnotationDefault;
   }
 
   static MethodAnnotations noMethodAnnotations() {

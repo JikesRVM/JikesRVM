@@ -42,12 +42,7 @@ public class JikesRVMSupport {
     int modifiers = f.getModifiers();
     int slot = SLOT_CONTENTS;
     String signature = convertAtomToInternedStringOrNull(f.getSignature());
-    // TODO what does OpenJDK expect here? Seems to be the binary data from the class file
-    // See https://bugs.openjdk.java.net/browse/JDK-8009381
-    // https://bugs.openjdk.java.net/browse/JDK-8009719
-    // https://bugs.openjdk.java.net/browse/JDK-8004698
-    byte[] annotations = new byte[0];
-    // TODO set rvmfield
+    byte[] annotations = f.getAnnotationsData().getRawAnnotations();
     Field newField = ra.newField(declaringClass, name, type, modifiers, slot, signature, annotations);
     Magic.setObjectAtOffset(newField, ClassLibraryHelpers.javaLangReflectField_rvmFieldField.getOffset(), f);
     return newField;
@@ -62,15 +57,12 @@ public class JikesRVMSupport {
     Class[] checkedExceptions = null;
 //  = m.getExceptionTypes();
     int modifiers = m.getModifiers();
-    // slot is implementation defined
     int slot = SLOT_CONTENTS;
     String signature = convertAtomToInternedStringOrNull(m.getSignature());
-    byte[] annotations = new byte[0];
-    byte[] parameterAnnotations = new byte[0];
-    byte[] annotationDefault = new byte[0];
-    //    VM.sysWriteln("CreateMethod is called");
-    //    throw new Error("Openjdk createmethod");
-    // TODO set rvmmethod
+    MethodAnnotations annotationsData = (MethodAnnotations) m.getAnnotationsData();
+    byte[] annotations = annotationsData.getRawAnnotations();
+    byte[] parameterAnnotations = annotationsData.getRawParameterAnnotations();
+    byte[] annotationDefault = annotationsData.getRawAnnotationDefault();
     Method newMethod = ra.newMethod(declaringClass, name, parameterTypes, returnType, checkedExceptions, modifiers, slot, signature, annotations, parameterAnnotations, annotationDefault);
     Magic.setObjectAtOffset(newMethod, ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.getOffset(), m);
     return newMethod;
@@ -87,11 +79,9 @@ public class JikesRVMSupport {
     // slot is implementation defined
     int slot = SLOT_CONTENTS;
     String signature = convertAtomToInternedStringOrNull(m.getSignature());
-    byte[] annotations = new byte[0];
-    byte[] parameterAnnotations = new byte[0];
-    //    VM.sysWriteln("CreateMethod is called");
-    //    throw new Error("Openjdk createmethod");
-    // TODO set rvmmethod
+    MethodAnnotations annotationsData = (MethodAnnotations) m.getAnnotationsData();
+    byte[] annotations = annotationsData.getRawAnnotations();
+    byte[] parameterAnnotations = annotationsData.getRawParameterAnnotations();
     Constructor<T> newConstructor = (Constructor<T>) ra.newConstructor(declaringClass, parameterTypes, checkedExceptions, modifiers, slot, signature, annotations, parameterAnnotations);
     Magic.setObjectAtOffset(newConstructor, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset(), m);
     return newConstructor;

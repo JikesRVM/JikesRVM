@@ -209,9 +209,8 @@ public final class RVMClass extends RVMType {
   /** Cached set of inherited and declared annotations. */
   private Annotation[] annotations;
 
-  /** For OpenJDK */
-  // TODO review whether the design is sensible
-  private byte[] rawAnnotations;
+  /** Annotation support for OpenJDK */
+  private Annotations encapsulatedAnnotations;
 
   /** Set of objects that are cached here to ensure they are not collected by GC **/
   private Object[] objectCache;
@@ -549,13 +548,8 @@ public final class RVMClass extends RVMType {
   }
 
   public byte[] getRawAnnotations() {
-    return rawAnnotations;
+    return encapsulatedAnnotations.getRawAnnotations();
   }
-
-  public void setRawAnnotations(byte[] rawAnnotations) {
-    this.rawAnnotations = rawAnnotations;
-  }
-
 
   /**
    * Find description of a field of this class.
@@ -1042,6 +1036,7 @@ public final class RVMClass extends RVMType {
            MethodReference enclosingMethod, Atom sourceName, RVMMethod classInitializerMethod,
            Atom signature, Annotations annotations) {
     super(typeRef, 0, annotations);
+    encapsulatedAnnotations = annotations;
     if (VM.VerifyAssertions) VM._assert(!getTypeRef().isUnboxedType());
     if (VM.VerifyAssertions && null != superClass) VM._assert(!superClass.getTypeRef().isUnboxedType());
 

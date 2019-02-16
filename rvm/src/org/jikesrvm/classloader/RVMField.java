@@ -99,16 +99,18 @@ public final class RVMField extends RVMMember {
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the field's attributed from
+   * @param loggingStream the logging stream used to spy on the DataInputStream
    *
    * @return the newly created field
    * @throws IOException when a skip is shorter than expected
    */
   static RVMField readField(TypeReference declaringClass, int[] constantPool, MemberReference memRef,
-                            short modifiers, DataInputStream input) throws IOException {
+                            short modifiers, DataInputStream input, LoggingInputStream loggingStream) throws IOException {
     // Read the attributes, processing the "non-boring" ones
     int cvi = 0;
     Atom signature = null;
     RVMAnnotation[] annotations = null;
+    byte[] rawAnnotations = null;
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
       Atom attName = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
@@ -119,7 +121,11 @@ public final class RVMField extends RVMMember {
       } else if (attName == RVMClassLoader.signatureAttributeName) {
         signature = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
+        loggingStream.startLogging();
         annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
+        loggingStream.stopLogging();
+        rawAnnotations = loggingStream.getLoggedBytes();
+        loggingStream.clearLoggedBytes();
       } else {
         // all other attributes are boring...
         int skippedAmount = input.skipBytes(attLength);
@@ -129,6 +135,7 @@ public final class RVMField extends RVMMember {
       }
     }
     Annotations encapsulatedAnnotations = new Annotations(annotations);
+    encapsulatedAnnotations.setRawAnnotations(rawAnnotations);
     return new RVMField(declaringClass,
                         memRef,
                         (short) (modifiers & APPLICABLE_TO_FIELDS),
