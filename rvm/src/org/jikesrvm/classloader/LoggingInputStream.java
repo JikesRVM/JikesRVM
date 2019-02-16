@@ -62,4 +62,8 @@ public class LoggingInputStream extends FilterInputStream {
     return out.toByteArray();
   }
 
+  public void clearLoggedBytes() {
+    out = new ByteArrayOutputStream();
+  }
+
 }

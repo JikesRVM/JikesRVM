@@ -129,6 +129,23 @@ public class LoggingInputStreamTest {
     assertThat(Arrays.equals(loggedBytes, buf), is(true));
   }
 
+  @Test
+  public void loggingDataCanBeReset() throws Exception {
+    byte[] buf = { Byte.MIN_VALUE, Byte.MAX_VALUE, 1 };
+    ByteArrayInputStream bis = new ByteArrayInputStream(buf);
+    LoggingInputStream lis = new LoggingInputStream(bis);
+    lis.startLogging();
+    lis.read();
+    lis.read();
+    lis.clearLoggedBytes();
+    lis.read();
+    lis.stopLogging();
+    lis.close();
+    byte[] loggedBytes = lis.getLoggedBytes();
+    byte[] expected = { 1 };
+    assertThat(Arrays.equals(loggedBytes, expected), is(true));
+  }
+
   private LoggingInputStream createLoggingInputStream()
       throws UnsupportedEncodingException {
     byte[] buf = STRING_DATA.getBytes(ENCODING);
