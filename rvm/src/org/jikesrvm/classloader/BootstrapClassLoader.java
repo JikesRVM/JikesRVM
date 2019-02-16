@@ -183,8 +183,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       className = className.substring(1, className.length() - 2);
     }
 
-    attemptToLoadReplacementClassIfNeeded(className);
-
     RVMType loadedType = loaded.get(className);
     Class<?> loadedClass;
     if (loadedType == null) {
@@ -199,65 +197,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   }
 
   // TODO move replacement class stuff to a separate class
-
-  private void attemptToLoadReplacementClassIfNeeded(String className)
-      throws NoClassDefFoundError, ClassNotFoundException {
-    if (remainingReplacementClassNames.contains(className)) {
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " has a replacement!");
-    } else {
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " has NO replacement!");
-      return;
-    }
-
-    Atom classNameAtom = null;
-    Atom replacementClassName = null;
-    try {
-      // TODO Adopt better nomenclature for replacement classes
-      classNameAtom = Atom.findOrCreateAsciiAtom(className);
-      replacementClassName = toReplacementClassNameAtom(className);
-      // TODO needs a method to convert class names to descriptors and vice versa. possibly in atom if it doesn't exist yet
-      Atom replacementClassDescriptor = Atom.findOrCreateAsciiAtom("L" + replacementClassName.toString().replace('.', '/') + ";");
-
-      boolean isReplacementClass = className.startsWith(REPLACEMENT_CLASS_NAME_PREFIX);
-
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " is a replacement class itself and thus won't be checked for a replacement class: " + isReplacementClass);
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " is a bootstrap class descriptor? " + replacementClassDescriptor.isBootstrapClassDescriptor());
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(replacementClassName));
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " would have replacement class name: " + replacementClassName);
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: " + className + " would have replacement class descriptor: " + replacementClassDescriptor);
-
-      boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(classNameAtom);
-      // Check if there has been an attempt to load the replacement JDK class of this name
-      if (!isReplacementClass && !alreadyTriedToLoadReplacementClass) {
-        classesCheckedForReplacements.add(classNameAtom);
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Checking for replacement class for " + className + " named " + replacementClassName);
-
-        // Load, resolve and instantiate the replacement class if it exists.
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: About to call findClass for replacement class for " + className + " named " + replacementClassName);
-        Class<?> findClass = findClass(replacementClassName.toString());
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Finished with call findClass for replacement class for " + className + " named " + replacementClassName);
-        RVMType replacementClassType = TypeReference.findOrCreate(findClass).resolve();
-        replacementClassType.prepareForFirstUse();
-        if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
-
-        loadedReplacementClasses.add(replacementClassName);
-        remainingReplacementClassNames.remove(className);
-
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Replacement class " + replacementClassName + " loaded for " + className);
-      }
-    } catch (ClassNotFoundException ce) {
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: No replacement class for " + className);
-      // FIXME check if this is still the case after porting is far enough along
-      // don't print stack trace by default because it causes class loading issues right now
-      final boolean printStackTrace = false;
-      if (VM.TraceClassLoading && printStackTrace) ce.printStackTrace();
-    } catch (NoSuchMethodError e) {
-        if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_Normal: Failed to load replacement class " + replacementClassName + " for " + classNameAtom);
-        if (VM.TraceClassLoading) VM.sysWriteln(e.toString());
-        if (VM.TraceClassLoading) e.printStackTrace();
-        throw new ClassNotFoundException("Failed to load replacement class " + replacementClassName, e);
-    }
-  }
 
   private void attemptToLoadReplacementClassIfNeededForVmClass(String className)
       throws NoClassDefFoundError, ClassNotFoundException {
