@@ -826,7 +826,7 @@ public final class RVMClass extends RVMType {
         for (int j = 0; j < 32; j++) {
           if ((mask & (1 << j)) != 0) {
             int id = 32 * i + j;
-            ans[idx++] = RVMClass.getInterface(id);
+            ans[idx++] = InterfaceInvocation.getInterface(id);
           }
         }
       }
@@ -1922,9 +1922,6 @@ public final class RVMClass extends RVMType {
   // Additional fields and methods for Interfaces               //
   //------------------------------------------------------------//
 
-  private static final Object interfaceCountLock = new Object();
-  private static int interfaceCount = 0;
-  private static RVMClass[] interfaces;
   private int interfaceId = -1;
   RVMMethod[] noIMTConflictMap; // used by InterfaceInvocation to support resetTIB
 
@@ -1950,29 +1947,9 @@ public final class RVMClass extends RVMType {
     return 1 << (getInterfaceId() & 31);
   }
 
-  public static RVMClass getInterface(int id) {
-    return interfaces[id];
-  }
-
   private synchronized void assignInterfaceId() {
     if (interfaceId == -1) {
-      if (interfaceCountLock != null && interfaces != null) {
-        synchronized (interfaceCountLock) {
-          interfaceId = interfaceCount++;
-          if (interfaceId == interfaces.length) {
-            RVMClass[] tmp = new RVMClass[interfaces.length * 2];
-            System.arraycopy(interfaces, 0, tmp, 0, interfaces.length);
-            interfaces = tmp;
-          }
-          interfaces[interfaceId] = this;
-        }
-      } else {
-        interfaceId = interfaceCount++;
-        if (interfaces == null) {
-          interfaces = new RVMClass[200];
-        }
-        interfaces[interfaceId] = this;
-      }
+      interfaceId = InterfaceInvocation.nextInterfaceId(this);
     }
   }
 
