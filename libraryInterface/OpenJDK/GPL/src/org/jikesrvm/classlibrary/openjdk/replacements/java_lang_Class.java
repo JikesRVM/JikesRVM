@@ -93,8 +93,7 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   public boolean isInstance(Object obj) {
-    VM.sysFail("isInstance: " + obj);
-    return false;
+    return JavaLangSupport.isInstanceOf((Class<?>) (Object) this, obj);
   }
 
   @ReplaceMember

@@ -413,4 +413,12 @@ public final class JavaLangSupport {
     return true;                        // a valid class descriptor
   }
 
+  // TODO use this for GNU Classpath
+  @Pure
+  public static boolean isInstanceOf(Class<?> c, Object o) {
+    if (o == null) return false;
+    if (c.isPrimitive())  return false;
+    return c.isAssignableFrom(o.getClass());
+  }
+
 }
