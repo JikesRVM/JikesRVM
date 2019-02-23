@@ -50,6 +50,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -2469,6 +2470,11 @@ public class BootImageWriter {
         return false;
       }
     } else if (classLibrary == "openjdk") {
+      if (jdkType.equals(java.lang.Class.class) && rvmFieldName.equals("EMPTY_ANNOTATIONS_ARRAY")) {
+        Annotation[] emptyAnnotationsArray = new Annotation[0];
+        Statics.setSlotContents(rvmFieldOffset, emptyAnnotationsArray);
+        return true;
+      }
       if (rvmFieldName.equals("JDK_PACKAGE_PREFIX") && rvmFieldType == TypeReference.JavaLangString) {
         String packagePrefix = "sun.net.www.protocol";
         Statics.setSlotContents(rvmFieldOffset, packagePrefix);
