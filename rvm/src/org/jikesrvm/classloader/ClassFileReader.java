@@ -541,7 +541,7 @@ public class ClassFileReader {
     TypeReference declaringClass = null;
     Atom signature = null;
     RVMAnnotation[] annotations = null;
-    byte[] rawAnnotations = {};
+    byte[] rawAnnotations = null;
     TypeReference enclosingClass = null;
     MethodReference enclosingMethod = null;
     // Read attributes.
