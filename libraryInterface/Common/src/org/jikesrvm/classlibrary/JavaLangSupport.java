@@ -366,6 +366,7 @@ public final class JavaLangSupport {
 
   /* ---- java.lang.Class Support ---- */
 
+  @Pure
   public static int getModifiersFromRvmType(RVMType type) {
     if (type.isClassType()) {
       return type.asClass().getOriginalModifiers();
