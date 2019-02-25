@@ -236,8 +236,12 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Class<?> getDeclaringClass0() {
-    VM.sysFail("getDeclaringClass0");
-    return null;
+    // TODO share with GNU Classpath
+    RVMType type = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (!type.isClassType()) return null;
+    TypeReference dc = type.asClass().getDeclaringClass();
+    if (dc == null) return null;
+    return dc.resolve().getClassForType();
   }
 
   @ReplaceMember
