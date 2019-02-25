@@ -24,6 +24,7 @@
  */
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
+import java.io.UTFDataFormatException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -36,6 +37,7 @@ import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.classlibrary.OpenJDKConstantPool;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
@@ -190,10 +192,46 @@ public class java_lang_Class<T> {
     VM.sysFail("setSigners");
   }
 
+  // OpenJDK expects the following return values
+  // first entry in the array: the immediately enclosing class (never null) <- Class
+  // second entry: name of the enclosing method or constructor (may be null) <- String
+  // third entry: descriptor of the enclosing method or constructor (may only be null when name is null, otherwise non-null) <- String
+  // -> use RVMClass.getEnclosingMethod and get information from there! (getEnclosingClass would return null if the class is not inner/nested)bl
   @ReplaceMember
   private Object[] getEnclosingMethod0() {
-    VM.sysFail("getEnclosingMethod0");
-    return null;
+    RVMType type = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (!type.isClassType()) {
+      return null;
+    }
+    RVMClass thisClass = type.asClass();
+    MethodReference enclosingMethod = thisClass.getEnclosingMethod();
+    if (enclosingMethod == null) {
+      return null;
+    }
+    RVMMethod resolve = enclosingMethod.resolve();
+    Object[] returnValue = new Object[3];
+    Class<?> immediatelyEnclosingClass = resolve.getDeclaringClass().getClassForType();
+    returnValue[0] = immediatelyEnclosingClass;
+    String name = null;
+    String descriptor = null;
+    try {
+      name = enclosingMethod.getName().toUnicodeString();
+      descriptor = enclosingMethod.getDescriptor().toString();
+      returnValue[1] = name;
+      returnValue[2] = descriptor;
+    } catch (UTFDataFormatException e) {
+      throw new Error(e);
+    }
+
+    if (name == null) {
+      returnValue[1] = null;
+      returnValue[2] = null;
+      return returnValue;
+    }
+
+    if (VM.VerifyAssertions) VM._assert(descriptor != null);
+
+    return returnValue;
   }
 
   @ReplaceMember
