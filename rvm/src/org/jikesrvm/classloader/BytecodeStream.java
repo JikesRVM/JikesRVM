@@ -13,19 +13,12 @@
 package org.jikesrvm.classloader;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
-import static org.jikesrvm.classloader.ConstantPool.CP_DOUBLE;
-import static org.jikesrvm.classloader.ConstantPool.CP_FLOAT;
-import static org.jikesrvm.classloader.ConstantPool.CP_INT;
-import static org.jikesrvm.classloader.ConstantPool.CP_LONG;
-import static org.jikesrvm.classloader.ConstantPool.CP_STRING;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
@@ -695,12 +688,9 @@ public class BytecodeStream {
    */
   public final int getIntConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == CP_INT);
+      VM._assert(opcode == JBC_ldc || opcode == JBC_ldc_w);
     }
-    Offset offset = getDeclaringClass().getLiteralOffset(index);
-    int val = Statics.getSlotContentsAsInt(offset);
-    return val;
+    return getDeclaringClass().getIntLiteral(index);
   }
 
   /**
@@ -718,11 +708,9 @@ public class BytecodeStream {
    */
   public final long getLongConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == CP_LONG);
+      VM._assert(opcode == JBC_ldc2_w);
     }
-    Offset offset = getDeclaringClass().getLiteralOffset(index);
-    long val = Statics.getSlotContentsAsLong(offset);
-    return val;
+    return getDeclaringClass().getLongLiteral(index);
   }
 
   /**
@@ -740,13 +728,9 @@ public class BytecodeStream {
    */
   public final float getFloatConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == CP_FLOAT);
+      VM._assert(opcode == JBC_ldc || opcode == JBC_ldc_w);
     }
-    Offset offset = getDeclaringClass().getLiteralOffset(index);
-    int val_raw = Statics.getSlotContentsAsInt(offset);
-    float val = Float.intBitsToFloat(val_raw);
-    return val;
+    return getDeclaringClass().getFloatLiteral(index);
   }
 
   /**
@@ -764,12 +748,9 @@ public class BytecodeStream {
    */
   public final double getDoubleConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == CP_DOUBLE);
+      VM._assert(opcode == JBC_ldc2_w);
     }
-    Offset offset = getDeclaringClass().getLiteralOffset(index);
-    long val_raw = Statics.getSlotContentsAsLong(offset);
-    double val = Double.longBitsToDouble(val_raw);
-    return val;
+    return getDeclaringClass().getDoubleLiteral(index);
   }
 
   /**
@@ -787,12 +768,9 @@ public class BytecodeStream {
    */
   public final String getStringConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == CP_STRING);
+      VM._assert(opcode == JBC_ldc || opcode == JBC_ldc_w);
     }
-    Offset offset = getDeclaringClass().getLiteralOffset(index);
-    String val = (String) Statics.getSlotContentsAsObject(offset);
-    return val;
+    return getDeclaringClass().getStringLiteral(index);
   }
 
   //// HELPER FUNCTIONS

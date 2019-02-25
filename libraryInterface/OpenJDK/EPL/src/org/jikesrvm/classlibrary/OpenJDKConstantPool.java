@@ -137,7 +137,30 @@ public class OpenJDKConstantPool extends sun.reflect.ConstantPool {
     return info;
   }
 
-  // TODO: add support for normal Java types
+  @Override
+  public int getIntAt(int index) {
+    return type.getIntLiteral(index);
+  }
+
+  @Override
+  public long getLongAt(int index) {
+    return type.getLongLiteral(index);
+  }
+
+  @Override
+  public float getFloatAt(int index) {
+    return type.getFloatLiteral(index);
+  }
+
+  @Override
+  public double getDoubleAt(int index) {
+    return type.getDoubleLiteral(index);
+  }
+
+  @Override
+  public String getStringAt(int index) {
+    return type.getStringLiteral(index);
+  }
 
   @Override
   public String getUTF8At(int index) {

@@ -672,6 +672,26 @@ public final class RVMClass extends RVMType {
     return ConstantPool.getLiteralDescription(constantPool, constantPoolIndex);
   }
 
+  public double getDoubleLiteral(int constantPoolIndex) {
+    return ConstantPool.getDoubleLiteral(constantPool, constantPoolIndex);
+  }
+
+  public float getFloatLiteral(int constantPoolIndex) {
+    return ConstantPool.getFloatLiteral(constantPool, constantPoolIndex);
+  }
+
+  public int getIntLiteral(int constantPoolIndex) {
+    return ConstantPool.getIntLiteral(constantPool, constantPoolIndex);
+  }
+
+  public long getLongLiteral(int constantPoolIndex) {
+    return ConstantPool.getLongLiteral(constantPool, constantPoolIndex);
+  }
+
+  public String getStringLiteral(int constantPoolIndex) {
+    return ConstantPool.getStringLiteral(constantPool, constantPoolIndex);
+  }
+
   @Uninterruptible
   public TypeReference getTypeRef(int constantPoolIndex) {
     return ConstantPool.getTypeRef(constantPool, constantPoolIndex);
