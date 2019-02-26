@@ -112,6 +112,8 @@ import org.jikesrvm.tools.bootImageWriter.entrycomparators.ObjectSizeComparator;
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.ReferenceDensityComparator;
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.TypeReferenceComparator;
 import org.jikesrvm.tools.bootImageWriter.types.BootImageTypes;
+import org.jikesrvm.tools.bootImageWriter.types.FieldInfo;
+import org.jikesrvm.tools.bootImageWriter.types.Key;
 import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -194,85 +196,6 @@ public class BootImageWriter {
    * a FieldInfo.
    */
   private static HashMap<Key,FieldInfo> bootImageTypeFields;
-
-  /**
-   * Class to collecting together field information
-   */
-  private static class FieldInfo {
-    /**
-     *  Field table from JDK verion of class
-     */
-    final Field[]  jdkFields;
-
-    /**
-     *  Fields that are the one-to-one match of rvm instanceFields
-     *  includes superclasses
-     */
-    Field[]  jdkInstanceFields;
-
-    /**
-     *  Fields that are the one-to-one match of RVM staticFields
-     */
-    Field[]  jdkStaticFields;
-
-    /**
-     *  RVM type associated with this Field info
-     */
-    RVMType rvmType;
-
-    /**
-     *  JDK type associated with this Field info
-     */
-    final Class<?> jdkType;
-
-    /**
-     * Constructor.
-     * @param jdkType the type to associate with the key
-     */
-    FieldInfo(Class<?> jdkType, RVMType rvmType) {
-      this.jdkFields = jdkType.getDeclaredFields();
-      this.jdkType = jdkType;
-      this.rvmType = rvmType;
-    }
-  }
-
-  /**
-   * Key for looking up fieldInfo
-   */
-  private static class Key {
-    /**
-     * JDK type
-     */
-    final Class<?> jdkType;
-
-    /**
-     * Constructor.
-     * @param jdkType the type to associate with the key
-     */
-    Key(Class<?> jdkType) {
-      this.jdkType = jdkType;
-    }
-
-    /**
-     * Returns a hash code value for the key.
-     * @return a hash code value for this key
-     */
-    @Override
-    public int hashCode() {
-      return jdkType.hashCode();
-    }
-
-    /**
-     * Indicates whether some other key is "equal to" this one.
-     * @param that the object with which to compare
-     * @return true if this key is the same as the that argument;
-     *         false otherwise
-     */
-    @Override
-    public boolean equals(Object that) {
-      return (that instanceof Key) && jdkType == ((Key)that).jdkType;
-    }
-  }
 
   /**
    * Linked list that operates in FIFO manner rather than LIFO
