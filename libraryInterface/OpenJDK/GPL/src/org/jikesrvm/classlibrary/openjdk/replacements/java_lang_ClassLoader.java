@@ -62,7 +62,15 @@ public class java_lang_ClassLoader {
 
   @ReplaceMember
   private Class<?> findBootstrapClass(String name) throws ClassNotFoundException {
-      return BootstrapClassLoader.getBootstrapClassLoader().findClass(name);
+    if (name.startsWith("L") && name.endsWith(";")) {
+      name = name.substring(1, name.length() - 2);
+    }
+    BootstrapClassLoader bootstrapCL = BootstrapClassLoader.getBootstrapClassLoader();
+    Class<?> loadedBootstrapClass = bootstrapCL.findLoadedBootstrapClass(name);
+    if (loadedBootstrapClass != null) {
+      return loadedBootstrapClass;
+    }
+    return bootstrapCL.findClass(name);
   }
 
   @ReplaceMember

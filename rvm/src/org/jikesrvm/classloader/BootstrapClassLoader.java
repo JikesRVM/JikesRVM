@@ -326,6 +326,14 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     }
   }
 
+  public Class<?> findLoadedBootstrapClass(String name) {
+    RVMType loadedType = loaded.get(name);
+    if (loadedType == null) {
+      return null;
+    }
+    return loadedType.getClassForType();
+  }
+
   /**
    * Gets the filename for a given package name
    * @param packageName a name of the package in internal format, i.e. {@code org/apache/tools/ant/taskdefs/optional/junit/}
