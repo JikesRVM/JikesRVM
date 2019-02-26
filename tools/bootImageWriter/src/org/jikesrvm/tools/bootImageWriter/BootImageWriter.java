@@ -112,8 +112,6 @@ import org.jikesrvm.tools.bootImageWriter.entrycomparators.ObjectSizeComparator;
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.ReferenceDensityComparator;
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.TypeReferenceComparator;
 import org.jikesrvm.tools.bootImageWriter.types.BootImageTypes;
-import org.jikesrvm.tools.bootImageWriter.types.FieldInfo;
-import org.jikesrvm.tools.bootImageWriter.types.Key;
 import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -191,13 +189,6 @@ public class BootImageWriter {
   private static BootImage bootImage;
 
   /**
-   * For all the scalar types to be placed into bootimage, keep
-   * key/value pairs where key is a Key(jdkType) and value is
-   * a FieldInfo.
-   */
-  private static HashMap<Key,FieldInfo> bootImageTypeFields;
-
-  /**
    * Linked list that operates in FIFO manner rather than LIFO
    */
   private static final class FIFOLinkedList<T> extends LinkedList<T> {
@@ -242,7 +233,7 @@ public class BootImageWriter {
           new NonFinalReferenceDensityComparator(new TypeReferenceComparator()));
   }
 
-  private static final boolean STATIC_FIELD = true;
+  public static final boolean STATIC_FIELD = true;
   private static final boolean INSTANCE_FIELD = false;
 
   /**
@@ -276,6 +267,10 @@ public class BootImageWriter {
   public static Address getBootImageRMapAddress()  {
     if (bootImageRMapAddress.isZero()) fail("BootImageWrite.getBootImageAddress called before boot image established");
     return bootImageRMapAddress;
+  }
+
+  public static Verbosity verbosity() {
+    return verbosity;
   }
 
   /**
@@ -1159,92 +1154,7 @@ public class BootImageWriter {
       //
       if (verbosity.isAtLeast(SUMMARY)) say("field info gathering");
       if (profile) startTime = System.currentTimeMillis();
-      bootImageTypeFields = new HashMap<Key,FieldInfo>(typeCount);
-      HashSet<String> invalidEntrys = new HashSet<String>();
-
-      // First retrieve the jdk Field table for each class of interest
-      for (RVMType rvmType : BootImageTypes.allTypes()) {
-        FieldInfo fieldInfo;
-        if (!rvmType.isClassType())
-          continue; // arrays and primitives have no static or instance fields
-
-        Class<?> jdkType = getJdkType(rvmType);
-        if (jdkType == null)
-          continue;  // won't need the field info
-
-        Key key   = new Key(jdkType);
-        fieldInfo = bootImageTypeFields.get(key);
-        if (fieldInfo != null) {
-          fieldInfo.rvmType = rvmType;
-        } else {
-          if (verbosity.isAtLeast(SUMMARY)) say("making fieldinfo for " + rvmType);
-          fieldInfo = new FieldInfo(jdkType, rvmType);
-          bootImageTypeFields.put(key, fieldInfo);
-          // Now do all the superclasses if they don't already exist
-          // Can't add them in next loop as Iterator's don't allow updates to collection
-          for (Class<?> cls = jdkType.getSuperclass(); cls != null; cls = cls.getSuperclass()) {
-            key = new Key(cls);
-            fieldInfo = bootImageTypeFields.get(key);
-            if (fieldInfo != null) {
-              break;
-            } else {
-              if (verbosity.isAtLeast(SUMMARY)) say("making fieldinfo for " + jdkType);
-              fieldInfo = new FieldInfo(cls, null);
-              bootImageTypeFields.put(key, fieldInfo);
-            }
-          }
-        }
-      }
-      // Now build the one-to-one instance and static field maps
-      for (FieldInfo fieldInfo : bootImageTypeFields.values()) {
-        RVMType rvmType = fieldInfo.rvmType;
-        if (rvmType == null) {
-          if (verbosity.isAtLeast(SUMMARY)) say("bootImageTypeField entry has no rvmType:" + fieldInfo.jdkType);
-          continue;
-        }
-        Class<?> jdkType   = fieldInfo.jdkType;
-        if (verbosity.isAtLeast(SUMMARY)) say("building static and instance fieldinfo for " + rvmType);
-
-        // First the static fields
-        //
-        RVMField[] rvmFields = rvmType.getStaticFields();
-        fieldInfo.jdkStaticFields = new Field[rvmFields.length];
-
-        for (int j = 0; j < rvmFields.length; j++) {
-          String  rvmName = rvmFields[j].getName().toString();
-          for (Field f : fieldInfo.jdkFields) {
-            if (f.getName().equals(rvmName)) {
-              fieldInfo.jdkStaticFields[j] = f;
-              f.setAccessible(true);
-              break;
-            }
-          }
-        }
-
-        // Now the instance fields
-        //
-        rvmFields = rvmType.getInstanceFields();
-        fieldInfo.jdkInstanceFields = new Field[rvmFields.length];
-
-        for (int j = 0; j < rvmFields.length; j++) {
-          String  rvmName = rvmFields[j].getName().toString();
-          // We look only in the JDK type that corresponds to the
-          // RVMType of the field's declaring class.
-          // This is the only way to correctly handle private fields.
-          jdkType = getJdkType(rvmFields[j].getDeclaringClass());
-          if (jdkType == null) continue;
-          FieldInfo jdkFieldInfo = bootImageTypeFields.get(new Key(jdkType));
-          if (jdkFieldInfo == null) continue;
-          Field[] jdkFields = jdkFieldInfo.jdkFields;
-          for (Field f : jdkFields) {
-            if (f.getName().equals(rvmName)) {
-              fieldInfo.jdkInstanceFields[j] = f;
-              f.setAccessible(true);
-              break;
-            }
-          }
-        }
-      }
+      HashSet<String> invalidEntrys = BootImageTypes.createBootImageTypeFields();
 
       if (profile) {
         stopTime = System.currentTimeMillis();
@@ -1291,7 +1201,7 @@ public class BootImageWriter {
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static fields
 
-        Class<?> jdkType = getJdkType(rvmType);
+        Class<?> jdkType = BootImageTypes.getJdkType(rvmType);
         if (jdkType == null && verbosity.isAtLeast(SUMMARY)) {
           say("host has no class \"" + rvmType + "\"");
         }
@@ -1344,7 +1254,7 @@ public class BootImageWriter {
           }
 
           if (jdkType != null)
-            jdkFieldAcc = getJdkFieldAccessor(jdkType, j, STATIC_FIELD);
+            jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, j, STATIC_FIELD);
 
           if (jdkFieldAcc == null) {
             // we failed to get a reflective field accessors
@@ -1801,7 +1711,7 @@ public class BootImageWriter {
       TypeReference rvmFieldType   = rvmField.getType();
       Address rvmFieldAddress = scalarImageAddress.plus(rvmField.getOffset());
       String  rvmFieldName    = rvmField.getName().toString();
-      Field   jdkFieldAcc     = getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
+      Field   jdkFieldAcc     = BootImageTypes.getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
 
       boolean untracedField = rvmField.isUntraced() || untraced;
 
@@ -2874,56 +2784,6 @@ public class BootImageWriter {
     Statics.setSlotContents(remapper.getOffset(), 0);
   }
 
-
-  /**
-   * Obtain host JDK type corresponding to target RVM type.
-   *
-   * @param rvmType RVM type
-   * @return JDK type ({@code null} --> type does not exist in host namespace)
-   */
-  private static Class<?> getJdkType(RVMType rvmType) {
-    Throwable x;
-    try {
-      return Class.forName(rvmType.toString());
-    } catch (ExceptionInInitializerError e) {
-      throw e;
-    } catch (IllegalAccessError e) {
-      x = e;
-    } catch (UnsatisfiedLinkError e) {
-      x = e;
-    } catch (NoClassDefFoundError e) {
-      x = e;
-    } catch (SecurityException e) {
-      x = e;
-    } catch (ClassNotFoundException e) {
-      x = e;
-    }
-    if (verbosity.isAtLeast(SUMMARY)) {
-      say(x.toString());
-    }
-    return null;
-}
-
-  /**
-   * Obtain accessor via which a field value may be fetched from host JDK
-   * address space.
-   *
-   * @param jdkType class whose field is sought
-   * @param index index in FieldInfo of field sought
-   * @param isStatic is field from Static field table, indicates which table to consult
-   * @return field accessor (null --> host class does not have specified field)
-   */
-  private static Field getJdkFieldAccessor(Class<?> jdkType, int index, boolean isStatic) {
-    FieldInfo fInfo = bootImageTypeFields.get(new Key(jdkType));
-    Field     f;
-    if (isStatic == STATIC_FIELD) {
-      f = fInfo.jdkStaticFields[index];
-      return f;
-    } else {
-      f = fInfo.jdkInstanceFields[index];
-      return f;
-    }
-  }
 
   /**
    * Figure out name of static RVM field whose value lives in specified JTOC

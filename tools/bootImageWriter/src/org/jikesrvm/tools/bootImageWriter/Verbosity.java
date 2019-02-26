@@ -15,7 +15,7 @@ package org.jikesrvm.tools.bootImageWriter;
 /**
  * Verbosity for working. Each level includes the previous ones.
  */
-enum Verbosity {
+public enum Verbosity {
   /** only print highest-level summary information such as space usage */
   NONE(0),
   /**
