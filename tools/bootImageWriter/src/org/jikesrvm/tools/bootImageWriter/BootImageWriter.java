@@ -111,6 +111,7 @@ import org.jikesrvm.tools.bootImageWriter.entrycomparators.NumberOfReferencesCom
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.ObjectSizeComparator;
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.ReferenceDensityComparator;
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.TypeReferenceComparator;
+import org.jikesrvm.tools.bootImageWriter.types.BootImageTypes;
 import org.jikesrvm.util.Services;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -186,14 +187,6 @@ public class BootImageWriter {
    * the bootimage
    */
   private static BootImage bootImage;
-
-  /**
-   * Types to be placed into bootimage, stored as key/value pairs
-   * where key is a String like "java.lang.Object" or "[Ljava.lang.Object;"
-   * and value is the corresponding RVMType.
-   */
-  private static final Hashtable<String,RVMType> bootImageTypes =
-    new Hashtable<String,RVMType>(5000);
 
   /**
    * For all the scalar types to be placed into bootimage, keep
@@ -1125,7 +1118,7 @@ public class BootImageWriter {
         //
         // record name/type pair for later lookup by getRvmType()
         //
-        bootImageTypes.put(typeName, type);
+        BootImageTypes.record(typeName, type);
       }
 
       if (profile) {
@@ -1133,7 +1126,7 @@ public class BootImageWriter {
         System.out.println("PROF: \tloading types " + (stopTime - startTime) + " ms");
       }
 
-      int typeCount = bootImageTypes.size();
+      int typeCount = BootImageTypes.typeCount();
       JMXSupport.CLASS_LOADING_JMX_SUPPORT.setClassLoadedCountForBootimage(typeCount);
       if (verbosity.isAtLeast(SUMMARY)) say(String.valueOf(typeCount), " types");
 
@@ -1142,7 +1135,7 @@ public class BootImageWriter {
       //
       if (profile) startTime = System.currentTimeMillis();
       if (verbosity.isAtLeast(SUMMARY)) say("resolving");
-      for (RVMType type : bootImageTypes.values()) {
+      for (RVMType type : BootImageTypes.allTypes()) {
         if (verbosity.isAtLeast(DETAILED)) say("resolving " + type);
         // The resolution is supposed to be cached already.
         type.resolve();
@@ -1151,7 +1144,7 @@ public class BootImageWriter {
       //
       // Now that all types are resolved, do some additional fixup before we do any compilation
       //
-      for (RVMType type : bootImageTypes.values()) {
+      for (RVMType type : BootImageTypes.allTypes()) {
         type.allBootImageTypesResolved();
       }
 
@@ -1170,7 +1163,7 @@ public class BootImageWriter {
       // than replicate the allocation code here, we perform dummy
       // allocations and then reset the boot image allocator.
       BootRecord bootRecord = BootRecord.the_boot_record;
-      RVMClass rvmBRType = getRvmType(bootRecord.getClass()).asClass();
+      RVMClass rvmBRType = BootImageTypes.getRvmTypeForHostType(bootRecord.getClass()).asClass();
       RVMArray intArrayType =  RVMArray.IntArray;
       // allocate storage for boot record
       bootImage.allocateDataStorage(rvmBRType.getInstanceSize(),
@@ -1194,7 +1187,7 @@ public class BootImageWriter {
 
       if (verbosity.isAtLeast(SUMMARY)) say("setting up compilation infrastructure and pre-compiling easy cases");
       CompilationOrder order = new CompilationOrder(typeCount, numThreads);
-      for (RVMType type: bootImageTypes.values()) {
+      for (RVMType type: BootImageTypes.allTypes()) {
         order.addType(type);
       }
       order.fixUpMissingSuperClasses();
@@ -1247,7 +1240,7 @@ public class BootImageWriter {
       HashSet<String> invalidEntrys = new HashSet<String>();
 
       // First retrieve the jdk Field table for each class of interest
-      for (RVMType rvmType : bootImageTypes.values()) {
+      for (RVMType rvmType : BootImageTypes.allTypes()) {
         FieldInfo fieldInfo;
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static or instance fields
@@ -1370,7 +1363,7 @@ public class BootImageWriter {
       //
       if (verbosity.isAtLeast(SUMMARY)) say("populating jtoc with static fields");
       if (profile) startTime = System.currentTimeMillis();
-      for (RVMType rvmType : bootImageTypes.values()) {
+      for (RVMType rvmType : BootImageTypes.allTypes()) {
         if (verbosity.isAtLeast(SUMMARY)) say("  jtoc for ", rvmType.toString());
         if (!rvmType.isClassType())
           continue; // arrays and primitives have no static fields
@@ -1410,7 +1403,7 @@ public class BootImageWriter {
               try {
               Statics.setSlotContents(
                 rvmFieldOffset,
-                ((RVMClass)getRvmType(Class.forName("java.util.concurrent.locks.AbstractQueuedSynchronizer$Node"))).findDeclaredField(Atom.findOrCreateAsciiAtom("waitStatus")).getOffset().toLong());
+                ((RVMClass)BootImageTypes.getRvmTypeForHostType(Class.forName("java.util.concurrent.locks.AbstractQueuedSynchronizer$Node"))).findDeclaredField(Atom.findOrCreateAsciiAtom("waitStatus")).getOffset().toLong());
               } catch (ClassNotFoundException e) {
                 throw new Error(e);
               }
@@ -1422,7 +1415,7 @@ public class BootImageWriter {
             if (rvmFieldName.equals("parkBlockerOffset")) {
               Statics.setSlotContents(
                 rvmFieldOffset,
-                ((RVMClass)getRvmType(java.lang.Thread.class)).findDeclaredField(Atom.findOrCreateAsciiAtom("parkBlocker")).getOffset().toLong());
+                ((RVMClass)BootImageTypes.getRvmTypeForHostType(java.lang.Thread.class)).findDeclaredField(Atom.findOrCreateAsciiAtom("parkBlocker")).getOffset().toLong());
               continue;
             }
           }
@@ -1730,7 +1723,7 @@ public class BootImageWriter {
 
       // fetch object's type information
       Class<?>   jdkType = jdkObject.getClass();
-      RVMType rvmType = getRvmType(jdkType);
+      RVMType rvmType = BootImageTypes.getRvmTypeForHostType(jdkType);
       if (rvmType == null) {
         if (verbosity.isAtLeast(DETAILED)) traverseObject(jdkObject);
         if (verbosity.isAtLeast(DETAILED)) depth--;
@@ -2958,16 +2951,6 @@ public class BootImageWriter {
     Statics.setSlotContents(remapper.getOffset(), 0);
   }
 
-  /**
-   * Obtain RVM type corresponding to host JDK type.
-   *
-   * @param jdkType JDK type
-   * @return RVM type ({@code null} --> type does not appear in list of classes
-   *         comprising bootimage)
-   */
-  private static RVMType getRvmType(Class<?> jdkType) {
-    return bootImageTypes.get(jdkType.getName());
-  }
 
   /**
    * Obtain host JDK type corresponding to target RVM type.
