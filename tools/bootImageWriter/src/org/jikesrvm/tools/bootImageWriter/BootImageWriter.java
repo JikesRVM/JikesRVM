@@ -768,6 +768,11 @@ public class BootImageWriter {
       System.out.println("PROF: writing RVM.map " + (stopTime - startTime) + " ms");
     }
 
+    // Print report about field differences
+    if (verbosity.isAtLeast(SUMMARY)) {
+      BootImageTypes.printFieldDifferenceReport();
+    }
+
     //
     // Show space usage in boot image by type
     //
@@ -1267,6 +1272,7 @@ public class BootImageWriter {
                   traceContext.traceFieldNotInHostJdk();
                   traceContext.pop();
                 }
+                BootImageTypes.logMissingField(jdkType, rvmField, STATIC_FIELD);
                 Statics.setSlotContents(rvmFieldOffset, 0);
                 if (!VM.runningTool)
                   bootImage.countNulledReference();
@@ -1281,6 +1287,7 @@ public class BootImageWriter {
                 traceContext.pop();
               }
               Statics.setSlotContents(rvmFieldOffset, 0);
+              BootImageTypes.logMissingFieldWithoutType(rvmField, STATIC_FIELD);
               if (!VM.runningTool)
                 bootImage.countNulledReference();
               invalidEntrys.add(rvmField.getDeclaringClass().toString());
@@ -1294,6 +1301,7 @@ public class BootImageWriter {
             if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldNotStaticInHostJdk();
             if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
             Statics.setSlotContents(rvmFieldOffset, 0);
+            BootImageTypes.logStaticFieldNotStaticInHostJDK(jdkType, rvmField);
             if (!VM.runningTool)
               bootImage.countNulledReference();
             invalidEntrys.add(jdkType.getName());
@@ -1305,6 +1313,7 @@ public class BootImageWriter {
                                                 jdkType.getName(), rvmFieldName);
             if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldDifferentTypeInHostJdk();
             if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
+            BootImageTypes.logStaticFieldHasDifferentTypeInHostJDK(jdkType, rvmField);
             Statics.setSlotContents(rvmFieldOffset, 0);
             if (!VM.runningTool)
               bootImage.countNulledReference();
@@ -1728,6 +1737,7 @@ public class BootImageWriter {
             default:fail("unexpected field type: " + rvmFieldType); break;
             }
           } else {
+            BootImageTypes.logMissingField(jdkType, rvmField, INSTANCE_FIELD);
             bootImage.setNullAddressWord(rvmFieldAddress, !untracedField, !untracedField, false);
           }
         }

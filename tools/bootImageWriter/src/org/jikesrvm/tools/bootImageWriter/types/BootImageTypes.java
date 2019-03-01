@@ -16,11 +16,15 @@ import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.say;
 import static org.jikesrvm.tools.bootImageWriter.Verbosity.SUMMARY;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.tools.bootImageWriter.BootImageWriter;
@@ -44,6 +48,10 @@ public abstract class BootImageTypes {
    * a FieldInfo.
    */
   private static HashMap<Key,FieldInfo> bootImageTypeFields;
+
+  private static final Set<MissingField> missing = Collections.synchronizedSet(new HashSet<MissingField>());
+  private static final Set<DifferingField> differing = Collections.synchronizedSet(new HashSet<DifferingField>());
+
 
   public static void record(String typeName, RVMType type) {
     bootImageTypes.put(typeName, type);
@@ -209,6 +217,55 @@ public abstract class BootImageTypes {
       say(x.toString());
     }
     return null;
+  }
+
+  public static void logMissingField(Class<?> jdkType, RVMField rvmField, boolean instanceField) {
+    MissingField mf = new MissingField(jdkType, rvmField, instanceField);
+    missing.add(mf);
+
+  }
+
+  public static void logStaticFieldNotStaticInHostJDK(Class<?> jdkType,
+      RVMField rvmField) {
+    DifferingField df = new DifferingField(jdkType, rvmField, FieldDifference.STATIC_IN_CLASS_LIB_BUT_NOT_STATIC_IN_HOST_JDK);
+    differing.add(df);
+  }
+
+  public static void logStaticFieldHasDifferentTypeInHostJDK(Class<?> jdkType,
+      RVMField rvmField) {
+    DifferingField df = new DifferingField(jdkType, rvmField, FieldDifference.STATIC_FIELD_HAS_DIFFERENT_TYPE_IN_HOST_JDK);
+    differing.add(df);
+  }
+
+  public static void printFieldDifferenceReport() {
+    VM.sysWriteln();
+    VM.sysWriteln("Missing fields in host JDK report:");
+    VM.sysWriteln("------------------------------------------------------------------------------------------");
+    ArrayList<String> missingFieldStrings = new ArrayList<String>(missing.size());
+    for (MissingField mf : missing) {
+      missingFieldStrings.add(mf.toString());
+    }
+    Collections.sort(missingFieldStrings);;
+    for (String s : missingFieldStrings) {
+      VM.sysWriteln(s);
+    }
+    VM.sysWriteln();
+    VM.sysWriteln("Differing fields in host JDK report:");
+    VM.sysWriteln("------------------------------------------------------------------------------------------");
+    ArrayList<String> differingFieldStrings = new ArrayList<String>(differing.size());
+    for (DifferingField df : differing) {
+      differingFieldStrings.add(df.toString());
+    }
+    Collections.sort(differingFieldStrings);
+    for (String s : differingFieldStrings) {
+      VM.sysWriteln(s);
+    }
+  }
+
+  public static void logMissingFieldWithoutType(RVMField rvmField,
+      boolean isStatic) {
+    MissingField mf = new MissingField(null, rvmField, isStatic);
+    missing.add(mf);
   }
 
 }
