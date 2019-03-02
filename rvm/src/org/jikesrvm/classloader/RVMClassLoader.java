@@ -13,6 +13,7 @@
 package org.jikesrvm.classloader;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 
 import org.jikesrvm.Properties;
@@ -138,11 +139,41 @@ public class RVMClassLoader {
    * @param classpath path specification in standard "classpath" format
    */
   public static void setApplicationRepositories(String classpath) {
-    System.setProperty("java.class.path", classpath);
-    stashApplicationRepositories(classpath);
+    String actualClasspath = buildRealClasspath(classpath);
+    System.setProperty("java.class.path", actualClasspath);
+    stashApplicationRepositories(actualClasspath);
     if (DBG_APP_CL) {
       VM.sysWriteln("RVMClassLoader.setApplicationRepositories: applicationRepositories = ", applicationRepositories);
     }
+  }
+
+  /**
+   * Overwrites the application repositories with the given classpath.
+   * <p>
+   * Only for tests.
+   *
+   * @param classpath the new classpath
+   */
+  static void overwriteApplicationRepositoriesForUnitTest(String classpath) {
+    applicationRepositories = classpath;
+  }
+
+  /**
+   * Overwrites the agent repositories with the given classpath.
+   * <p>
+   * Only for tests.
+   *
+   * @param classpath the new classpath
+   */
+  static void overwriteAgentPathForUnitTest(String classpath) {
+    agentRepositories = classpath;
+  }
+
+  private static String buildRealClasspath(String classpath) {
+    if (agentRepositories == null) {
+      return classpath;
+    }
+    return classpath + File.pathSeparator + agentRepositories;
   }
 
   /**
@@ -152,6 +183,25 @@ public class RVMClassLoader {
    */
   public static String getApplicationRepositories() {
     return applicationRepositories;
+  }
+
+  /**
+   * The classpath entries that are added implicitly by Java Agents for
+   * the jars that contain the agents.
+   */
+  private static String agentRepositories;
+
+  /**
+   * Adds repositories for a Java Agent.
+   *
+   * @param agentClasspath the classpath entry to add
+   */
+  public static void addAgentRepositories(String agentClasspath) {
+    if (agentRepositories == null) {
+      agentRepositories = agentClasspath;
+    } else {
+      agentRepositories = agentRepositories + File.pathSeparator + agentClasspath;
+    }
   }
 
   /** Are we getting the application CL?  Access is synchronized via the
