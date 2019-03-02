@@ -609,6 +609,7 @@ public class ClassFileReader {
         annotations = AnnotatedElement.readAnnotations(constantPool, input, typeRef.getClassLoader());
         loggingStream.stopLogging();
         rawAnnotations = loggingStream.getLoggedBytes();
+        loggingStream.clearLoggedBytes();
       } else {
         int skippedAmount = input.skipBytes(attLength);
         if (skippedAmount != attLength) {
