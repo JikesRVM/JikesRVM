@@ -783,37 +783,38 @@ public class FieldValues {
       return;
     }
 
-    setStaticFieldViaJDKMappingOrKnownStaticFieldOrNullItOut(invalidEntrys, jdkType, staticFieldIndex,
+    copiedValue = setStaticFieldViaJDKMapping(invalidEntrys, jdkType, staticFieldIndex,
         rvmField, rvmFieldType, rvmFieldOffset, rvmFieldName);
+    if (copiedValue) {
+      return;
+    }
+
+    copiedValue = copyKnownValueForStaticField(jdkType, rvmFieldName, rvmFieldType, rvmFieldOffset);
+    if (copiedValue) {
+      return;
+    }
+
+    // we didn't know the field so nullify
+    if (BootImageWriter.verbosity().isAtLeast(DETAILED)) {
+      BootImageWriter.traceContext().push(rvmFieldType.toString(),
+                        jdkType.getName(), rvmFieldName);
+      BootImageWriter.traceContext().traceFieldNotInHostJdk();
+      BootImageWriter.traceContext().pop();
+    }
+    BootImageTypes.logMissingField(jdkType, rvmField, BootImageWriter.STATIC_FIELD);
+    Statics.setSlotContents(rvmFieldOffset, 0);
+    if (!VM.runningTool)
+      BootImageWriter.bootImage().countNulledReference();
+    invalidEntrys.add(jdkType.getName());
   }
 
-  private static void setStaticFieldViaJDKMappingOrKnownStaticFieldOrNullItOut(HashSet<String> invalidEntrys,
+  private static boolean setStaticFieldViaJDKMapping(HashSet<String> invalidEntrys,
       Class<?> jdkType, int staticFieldIndex, RVMField rvmField,
       TypeReference rvmFieldType, Offset rvmFieldOffset, String rvmFieldName)
       throws IllegalAccessException, Error {
     Field jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, staticFieldIndex, BootImageWriter.STATIC_FIELD);
-
     if (jdkFieldAcc == null) {
-      // we failed to get a reflective field accessors
-      // we know the type - probably a private field of a java.lang class
-      if (!copyKnownValueForStaticField(jdkType,
-                               rvmFieldName,
-                               rvmFieldType,
-                               rvmFieldOffset)) {
-        // we didn't know the field so nullify
-        if (BootImageWriter.verbosity().isAtLeast(DETAILED)) {
-          BootImageWriter.traceContext().push(rvmFieldType.toString(),
-                            jdkType.getName(), rvmFieldName);
-          BootImageWriter.traceContext().traceFieldNotInHostJdk();
-          BootImageWriter.traceContext().pop();
-        }
-        BootImageTypes.logMissingField(jdkType, rvmField, BootImageWriter.STATIC_FIELD);
-        Statics.setSlotContents(rvmFieldOffset, 0);
-        if (!VM.runningTool)
-          BootImageWriter.bootImage().countNulledReference();
-        invalidEntrys.add(jdkType.getName());
-      }
-      return;
+      return false;
     }
 
     if (! Modifier.isStatic(jdkFieldAcc.getModifiers())) {
@@ -826,7 +827,7 @@ public class FieldValues {
       if (!VM.runningTool)
         BootImageWriter.bootImage().countNulledReference();
       invalidEntrys.add(jdkType.getName());
-      return;
+      return true;
     }
 
     if (!BootImageWriter.equalTypes(jdkFieldAcc.getType().getName(), rvmFieldType)) {
@@ -839,7 +840,7 @@ public class FieldValues {
       if (!VM.runningTool)
         BootImageWriter.bootImage().countNulledReference();
       invalidEntrys.add(jdkType.getName());
-      return;
+      return true;
     }
 
     if (BootImageWriter.verbosity().isAtLeast(DETAILED))
@@ -888,6 +889,7 @@ public class FieldValues {
         say("       setting with ", Services.addressAsHexString(Magic.objectAsAddress(o)));
       Statics.setSlotContents(rvmFieldOffset, o);
     }
+    return true;
   }
 
   private static boolean setStaticFieldFromEquivalentField(RVMType rvmType, Class<?> jdkType,
