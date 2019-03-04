@@ -783,6 +783,14 @@ public class FieldValues {
       return;
     }
 
+    setStaticFieldViaJDKMappingOrKnownStaticFieldOrNullItOut(invalidEntrys, jdkType, staticFieldIndex,
+        rvmField, rvmFieldType, rvmFieldOffset, rvmFieldName);
+  }
+
+  private static void setStaticFieldViaJDKMappingOrKnownStaticFieldOrNullItOut(HashSet<String> invalidEntrys,
+      Class<?> jdkType, int staticFieldIndex, RVMField rvmField,
+      TypeReference rvmFieldType, Offset rvmFieldOffset, String rvmFieldName)
+      throws IllegalAccessException, Error {
     Field jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, staticFieldIndex, BootImageWriter.STATIC_FIELD);
 
     if (jdkFieldAcc == null) {
