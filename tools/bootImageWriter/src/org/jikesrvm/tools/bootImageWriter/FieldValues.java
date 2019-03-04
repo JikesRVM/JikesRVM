@@ -389,7 +389,7 @@ public class FieldValues {
    * @param rvmFieldName the name of the field
    * @param rvmFieldType the type reference of the field
    */
-  static boolean copyKnownValueForStaticField(Class<?> jdkType, String rvmFieldName,
+  private static boolean copyKnownValueForStaticField(Class<?> jdkType, String rvmFieldName,
                                               TypeReference rvmFieldType,
                                               Offset rvmFieldOffset) {
     if (BootImageWriter.classLibrary() == "harmony") {
@@ -634,7 +634,7 @@ public class FieldValues {
         rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
   }
 
-  static void setLanguageDefaultValueForInstanceField(Class<?> jdkType,
+  private static void setLanguageDefaultValueForInstanceField(Class<?> jdkType,
       RVMField rvmField, TypeReference rvmFieldType, Address rvmFieldAddress,
       String rvmFieldName, boolean untracedField) throws Error {
     // Field wasn't a known Classpath field so write null
@@ -675,7 +675,7 @@ public class FieldValues {
    *
    * @see Untraced
    */
-  static boolean setInstanceFieldViaJDKMapping(Object jdkObject,
+  private static boolean setInstanceFieldViaJDKMapping(Object jdkObject,
       RVMClass rvmScalarType, boolean allocOnly, RVMField rvmField,
       TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
       Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
