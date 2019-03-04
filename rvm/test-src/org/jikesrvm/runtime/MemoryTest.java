@@ -36,7 +36,6 @@ public class MemoryTest {
 
   @BeforeClass
   public static void setup() {
-    if (!VM.runningVM) return;
     nativeThreshold = Memory.getNativeThreshold();
     arrayLength = nativeThreshold * 2;
   }
