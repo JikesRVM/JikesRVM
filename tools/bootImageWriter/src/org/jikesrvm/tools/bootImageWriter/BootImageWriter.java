@@ -1732,101 +1732,118 @@ public class BootImageWriter {
       if (jdkFieldAcc == null) {
         // Field not found via reflection
         if (!FieldValues.copyKnownInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress)) {
-          // Field wasn't a known Classpath field so write null
-          if (verbosity.isAtLeast(DETAILED)) traceContext.push(rvmFieldType.toString(),
-              jdkType.getName(), rvmFieldName);
-          if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldNotInHostJdk();
-          if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
-          if (rvmFieldType.isPrimitiveType()) {
-            switch (rvmField.getType().getMemoryBytes()) {
-            case 1: bootImage.setByte(rvmFieldAddress, 0);          break;
-            case 2: bootImage.setHalfWord(rvmFieldAddress, 0);      break;
-            case 4: bootImage.setFullWord(rvmFieldAddress, 0);      break;
-            case 8: bootImage.setDoubleWord(rvmFieldAddress, 0L);   break;
-            default:fail("unexpected field type: " + rvmFieldType); break;
-            }
-          } else {
-            BootImageTypes.logMissingField(jdkType, rvmField, INSTANCE_FIELD);
-            bootImage.setNullAddressWord(rvmFieldAddress, !untracedField, !untracedField, false);
-          }
+          setLanguageDefaultValueForInstanceField(jdkType, rvmField,
+              rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
         }
         continue;
       }
 
-      if (rvmFieldType.isPrimitiveType()) {
-        // field is logical or numeric type
-        if (rvmFieldType.isBooleanType()) {
-          bootImage.setByte(rvmFieldAddress,
-              jdkFieldAcc.getBoolean(jdkObject) ? 1 : 0);
-        } else if (rvmFieldType.isByteType()) {
-          bootImage.setByte(rvmFieldAddress,
-              jdkFieldAcc.getByte(jdkObject));
-        } else if (rvmFieldType.isCharType()) {
-          bootImage.setHalfWord(rvmFieldAddress,
-              jdkFieldAcc.getChar(jdkObject));
-        } else if (rvmFieldType.isShortType()) {
-          bootImage.setHalfWord(rvmFieldAddress,
-              jdkFieldAcc.getShort(jdkObject));
-        } else if (rvmFieldType.isIntType()) {
-          try {
-            bootImage.setFullWord(rvmFieldAddress, jdkFieldAcc.getInt(jdkObject));
-          } catch (IllegalArgumentException ex) {
-            // TODO: Harmony - clean this up
-            if (jdkObject instanceof java.util.WeakHashMap && rvmFieldName.equals("loadFactor")) {
-              // the field load factor field in Sun/Classpath is a float but
-              // in Harmony it has been "optimized" to an int
-              bootImage.setFullWord(rvmFieldAddress, 7500);
-            } else if (jdkObject instanceof java.lang.ref.ReferenceQueue && rvmFieldName.equals("head")) {
-              // Conflicting types between Harmony and Sun
-              bootImage.setFullWord(rvmFieldAddress, 0);
-            } else {
-              System.out.println("type " + rvmScalarType + ", field " + rvmField);
-              throw ex;
-            }
+      setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
+          rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
+          untracedField);
+    }
+    return scalarImageAddress;
+  }
+
+  private static void setLanguageDefaultValueForInstanceField(Class<?> jdkType,
+      RVMField rvmField, TypeReference rvmFieldType, Address rvmFieldAddress,
+      String rvmFieldName, boolean untracedField) throws Error {
+    // Field wasn't a known Classpath field so write null
+    if (verbosity.isAtLeast(DETAILED)) traceContext.push(rvmFieldType.toString(),
+        jdkType.getName(), rvmFieldName);
+    if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldNotInHostJdk();
+    if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
+    if (rvmFieldType.isPrimitiveType()) {
+      switch (rvmField.getType().getMemoryBytes()) {
+      case 1: bootImage.setByte(rvmFieldAddress, 0);          break;
+      case 2: bootImage.setHalfWord(rvmFieldAddress, 0);      break;
+      case 4: bootImage.setFullWord(rvmFieldAddress, 0);      break;
+      case 8: bootImage.setDoubleWord(rvmFieldAddress, 0L);   break;
+      default:fail("unexpected field type: " + rvmFieldType); break;
+      }
+    } else {
+      BootImageTypes.logMissingField(jdkType, rvmField, INSTANCE_FIELD);
+      bootImage.setNullAddressWord(rvmFieldAddress, !untracedField, !untracedField, false);
+    }
+  }
+
+  private static void setInstanceFieldViaJDKMapping(Object jdkObject,
+      RVMClass rvmScalarType, boolean allocOnly, RVMField rvmField,
+      TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
+      Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
+      Error {
+    if (rvmFieldType.isPrimitiveType()) {
+      // field is logical or numeric type
+      if (rvmFieldType.isBooleanType()) {
+        bootImage.setByte(rvmFieldAddress,
+            jdkFieldAcc.getBoolean(jdkObject) ? 1 : 0);
+      } else if (rvmFieldType.isByteType()) {
+        bootImage.setByte(rvmFieldAddress,
+            jdkFieldAcc.getByte(jdkObject));
+      } else if (rvmFieldType.isCharType()) {
+        bootImage.setHalfWord(rvmFieldAddress,
+            jdkFieldAcc.getChar(jdkObject));
+      } else if (rvmFieldType.isShortType()) {
+        bootImage.setHalfWord(rvmFieldAddress,
+            jdkFieldAcc.getShort(jdkObject));
+      } else if (rvmFieldType.isIntType()) {
+        try {
+          bootImage.setFullWord(rvmFieldAddress, jdkFieldAcc.getInt(jdkObject));
+        } catch (IllegalArgumentException ex) {
+          // TODO: Harmony - clean this up
+          if (jdkObject instanceof java.util.WeakHashMap && rvmFieldName.equals("loadFactor")) {
+            // the field load factor field in Sun/Classpath is a float but
+            // in Harmony it has been "optimized" to an int
+            bootImage.setFullWord(rvmFieldAddress, 7500);
+          } else if (jdkObject instanceof java.lang.ref.ReferenceQueue && rvmFieldName.equals("head")) {
+            // Conflicting types between Harmony and Sun
+            bootImage.setFullWord(rvmFieldAddress, 0);
+          } else {
+            System.out.println("type " + rvmScalarType + ", field " + rvmField);
+            throw ex;
           }
-        } else if (rvmFieldType.isLongType()) {
-          bootImage.setDoubleWord(rvmFieldAddress,
-              jdkFieldAcc.getLong(jdkObject));
-        } else if (rvmFieldType.isFloatType()) {
-          float f = jdkFieldAcc.getFloat(jdkObject);
-          bootImage.setFullWord(rvmFieldAddress,
-              Float.floatToIntBits(f));
-        } else if (rvmFieldType.isDoubleType()) {
-          double d = jdkFieldAcc.getDouble(jdkObject);
-          bootImage.setDoubleWord(rvmFieldAddress,
-              Double.doubleToLongBits(d));
-        } else if (rvmFieldType.equals(TypeReference.Address) ||
-            rvmFieldType.equals(TypeReference.Word) ||
-            rvmFieldType.equals(TypeReference.Extent) ||
-            rvmFieldType.equals(TypeReference.Offset)) {
-          Object o = jdkFieldAcc.get(jdkObject);
-          String msg = " instance field " + rvmField.toString();
-          boolean warn = rvmFieldType.equals(TypeReference.Address);
-          bootImage.setAddressWord(rvmFieldAddress, getWordValue(o, msg, warn), false, false);
-        } else {
-          fail("unexpected primitive field type: " + rvmFieldType);
         }
+      } else if (rvmFieldType.isLongType()) {
+        bootImage.setDoubleWord(rvmFieldAddress,
+            jdkFieldAcc.getLong(jdkObject));
+      } else if (rvmFieldType.isFloatType()) {
+        float f = jdkFieldAcc.getFloat(jdkObject);
+        bootImage.setFullWord(rvmFieldAddress,
+            Float.floatToIntBits(f));
+      } else if (rvmFieldType.isDoubleType()) {
+        double d = jdkFieldAcc.getDouble(jdkObject);
+        bootImage.setDoubleWord(rvmFieldAddress,
+            Double.doubleToLongBits(d));
+      } else if (rvmFieldType.equals(TypeReference.Address) ||
+          rvmFieldType.equals(TypeReference.Word) ||
+          rvmFieldType.equals(TypeReference.Extent) ||
+          rvmFieldType.equals(TypeReference.Offset)) {
+        Object o = jdkFieldAcc.get(jdkObject);
+        String msg = " instance field " + rvmField.toString();
+        boolean warn = rvmFieldType.equals(TypeReference.Address);
+        bootImage.setAddressWord(rvmFieldAddress, getWordValue(o, msg, warn), false, false);
       } else {
-        // field is reference type
-        Object value = jdkFieldAcc.get(jdkObject);
-        if (!allocOnly) {
-          Class<?> jdkClass = jdkFieldAcc.getDeclaringClass();
-          if (verbosity.isAtLeast(DETAILED)) {
-            String typeName = (value == null) ? "(unknown: value was null)" :
-              value.getClass().getName();
-            traceContext.push(typeName,
-              jdkClass.getName(),
-              jdkFieldAcc.getName());
-          }
-          copyReferenceFieldToBootImage(rvmFieldAddress, value, jdkObject,
-              !untracedField, !(untracedField || rvmField.isFinal()), rvmFieldName, rvmFieldType);
-          if (verbosity.isAtLeast(DETAILED)) {
-            traceContext.pop();
-          }
+        fail("unexpected primitive field type: " + rvmFieldType);
+      }
+    } else {
+      // field is reference type
+      Object value = jdkFieldAcc.get(jdkObject);
+      if (!allocOnly) {
+        Class<?> jdkClass = jdkFieldAcc.getDeclaringClass();
+        if (verbosity.isAtLeast(DETAILED)) {
+          String typeName = (value == null) ? "(unknown: value was null)" :
+            value.getClass().getName();
+          traceContext.push(typeName,
+            jdkClass.getName(),
+            jdkFieldAcc.getName());
+        }
+        copyReferenceFieldToBootImage(rvmFieldAddress, value, jdkObject,
+            !untracedField, !(untracedField || rvmField.isFinal()), rvmFieldName, rvmFieldType);
+        if (verbosity.isAtLeast(DETAILED)) {
+          traceContext.pop();
         }
       }
     }
-    return scalarImageAddress;
   }
 
   /**
