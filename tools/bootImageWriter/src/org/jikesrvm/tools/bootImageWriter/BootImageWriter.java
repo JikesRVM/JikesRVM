@@ -100,6 +100,7 @@ import org.jikesrvm.tools.bootImageWriter.entrycomparators.ReferenceDensityCompa
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.TypeReferenceComparator;
 import org.jikesrvm.tools.bootImageWriter.types.BootImageTypes;
 import org.jikesrvm.util.Services;
+import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -1729,18 +1730,18 @@ public class BootImageWriter {
 
       boolean untracedField = rvmField.isUntraced() || untraced;
 
-      if (jdkFieldAcc == null) {
+      boolean valueCopied = setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
+          rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
+          untracedField);
+      if (!valueCopied) {
         // Field not found via reflection
+        if (VM.VerifyAssertions) VM._assert(jdkFieldAcc == null);
         if (!FieldValues.copyKnownInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress)) {
+          // Field not found at all, set default value
           setLanguageDefaultValueForInstanceField(jdkType, rvmField,
               rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
         }
-        continue;
       }
-
-      setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
-          rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
-          untracedField);
     }
     return scalarImageAddress;
   }
@@ -1767,11 +1768,34 @@ public class BootImageWriter {
     }
   }
 
-  private static void setInstanceFieldViaJDKMapping(Object jdkObject,
+  /**
+   *
+   * @param jdkObject object to write
+   * @param rvmScalarType RVM class loader version of type
+   * @param allocOnly allocate the object only?
+   * @param rvmField RVM Class loader version of field
+   * @param rvmFieldType type of RVM Class loader version of field
+   * @param rvmFieldAddress address of the concrete field instance (i.e. the location
+   *  in the boot image where the value will be placed)
+   * @param rvmFieldName name of RVM Class loader version of field
+   * @param jdkFieldAcc the JDK reflection accessor for the field, possibly {@code null}
+   * @param untracedField {@code true} if the field is untraced
+   * @return {@code true} if a field value was copied (which implies that nothing more needs
+   *  to be done), {@code false} otherwise
+   * @throws IllegalAccessException
+   * @throws Error
+   *
+   * @see Untraced
+   */
+  private static boolean setInstanceFieldViaJDKMapping(Object jdkObject,
       RVMClass rvmScalarType, boolean allocOnly, RVMField rvmField,
       TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
       Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
       Error {
+    boolean valueCopied = true;
+    if (jdkFieldAcc == null) {
+      return !valueCopied;
+    }
     if (rvmFieldType.isPrimitiveType()) {
       // field is logical or numeric type
       if (rvmFieldType.isBooleanType()) {
@@ -1844,6 +1868,7 @@ public class BootImageWriter {
         }
       }
     }
+    return valueCopied;
   }
 
   /**
