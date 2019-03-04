@@ -767,45 +767,43 @@ public class FieldValues {
       return;
     }
 
-    Field jdkFieldAcc = null;
+    if (jdkType == null) {
+      // We don't know the type and so can't get an accessor, so nullify
+      if (BootImageWriter.verbosity().isAtLeast(DETAILED)) {
+        BootImageWriter.traceContext().push(rvmFieldType.toString(),
+                          rvmFieldType.toString(), rvmFieldName);
+        BootImageWriter.traceContext().traceFieldNotInHostJdk();
+        BootImageWriter.traceContext().pop();
+      }
+      Statics.setSlotContents(rvmFieldOffset, 0);
+      BootImageTypes.logMissingFieldWithoutType(rvmField, BootImageWriter.STATIC_FIELD);
+      if (!VM.runningTool)
+        BootImageWriter.bootImage().countNulledReference();
+      invalidEntrys.add(rvmField.getDeclaringClass().toString());
+      return;
+    }
 
-    if (jdkType != null)
-      jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, staticFieldIndex, BootImageWriter.STATIC_FIELD);
+    Field jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, staticFieldIndex, BootImageWriter.STATIC_FIELD);
 
     if (jdkFieldAcc == null) {
       // we failed to get a reflective field accessors
-      if (jdkType != null) {
-        // we know the type - probably a private field of a java.lang class
-        if (!copyKnownValueForStaticField(jdkType,
-                                 rvmFieldName,
-                                 rvmFieldType,
-                                 rvmFieldOffset)) {
-          // we didn't know the field so nullify
-          if (BootImageWriter.verbosity().isAtLeast(DETAILED)) {
-            BootImageWriter.traceContext().push(rvmFieldType.toString(),
-                              jdkType.getName(), rvmFieldName);
-            BootImageWriter.traceContext().traceFieldNotInHostJdk();
-            BootImageWriter.traceContext().pop();
-          }
-          BootImageTypes.logMissingField(jdkType, rvmField, BootImageWriter.STATIC_FIELD);
-          Statics.setSlotContents(rvmFieldOffset, 0);
-          if (!VM.runningTool)
-            BootImageWriter.bootImage().countNulledReference();
-          invalidEntrys.add(jdkType.getName());
-        }
-      } else {
-        // no accessor and we don't know the type so nullify
+      // we know the type - probably a private field of a java.lang class
+      if (!copyKnownValueForStaticField(jdkType,
+                               rvmFieldName,
+                               rvmFieldType,
+                               rvmFieldOffset)) {
+        // we didn't know the field so nullify
         if (BootImageWriter.verbosity().isAtLeast(DETAILED)) {
           BootImageWriter.traceContext().push(rvmFieldType.toString(),
-                            rvmFieldType.toString(), rvmFieldName);
+                            jdkType.getName(), rvmFieldName);
           BootImageWriter.traceContext().traceFieldNotInHostJdk();
           BootImageWriter.traceContext().pop();
         }
+        BootImageTypes.logMissingField(jdkType, rvmField, BootImageWriter.STATIC_FIELD);
         Statics.setSlotContents(rvmFieldOffset, 0);
-        BootImageTypes.logMissingFieldWithoutType(rvmField, BootImageWriter.STATIC_FIELD);
         if (!VM.runningTool)
           BootImageWriter.bootImage().countNulledReference();
-        invalidEntrys.add(rvmField.getDeclaringClass().toString());
+        invalidEntrys.add(jdkType.getName());
       }
       return;
     }
