@@ -1271,7 +1271,7 @@ public class BootImageWriter {
             // we failed to get a reflective field accessors
             if (jdkType != null) {
               // we know the type - probably a private field of a java.lang class
-              if (!FieldValues.copyKnownStaticField(jdkType,
+              if (!FieldValues.copyKnownValueForStaticField(jdkType,
                                        rvmFieldName,
                                        rvmFieldType,
                                        rvmFieldOffset)) {
@@ -1467,7 +1467,7 @@ public class BootImageWriter {
     } else {
       BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(referencedObject);
       if (mapEntry.imageAddress.EQ(OBJECT_NOT_PRESENT)) {
-        if (rvmFieldName == null || !FieldValues.copyKnownInstanceField(parentObject, rvmFieldName, rvmFieldType, fieldLocation)) {
+        if (rvmFieldName == null || !FieldValues.copyKnownValueForInstanceField(parentObject, rvmFieldName, rvmFieldType, fieldLocation)) {
           // object not part of bootimage: install null reference
           if (verbosity.isAtLeast(DETAILED)) traceContext.traceObjectNotInBootImage();
           bootImage.setNullAddressWord(fieldLocation, objField, root, false);
@@ -1490,7 +1490,7 @@ public class BootImageWriter {
         }
         if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
           if (verbosity.isAtLeast(DETAILED)) traceContext.traceObjectNotInBootImage();
-          if (!FieldValues.copyKnownInstanceField(parentObject, rvmFieldName, rvmFieldType, fieldLocation)) {
+          if (!FieldValues.copyKnownValueForInstanceField(parentObject, rvmFieldName, rvmFieldType, fieldLocation)) {
             // object not part of bootimage: install null reference
             if (verbosity.isAtLeast(DETAILED)) traceContext.traceObjectNotInBootImage();
             bootImage.setNullAddressWord(fieldLocation, objField, root, false);
@@ -1530,7 +1530,7 @@ public class BootImageWriter {
     BootImageMap.Entry.LinkInfo info = mapEntry.removeLinkingAddress();
     while (info != null) {
       if (mapEntry.imageAddress.EQ(OBJECT_NOT_PRESENT)) {
-        if (info.rvmFieldName == null || !FieldValues.copyKnownInstanceField(info.parent, info.rvmFieldName, info.rvmFieldType, info.addressToFixup)) {
+        if (info.rvmFieldName == null || !FieldValues.copyKnownValueForInstanceField(info.parent, info.rvmFieldName, info.rvmFieldType, info.addressToFixup)) {
           // object not part of bootimage: install null reference
           if (verbosity.isAtLeast(DETAILED)) traceContext.traceObjectNotInBootImage();
           bootImage.setNullAddressWord(info.addressToFixup, info.objField, info.root, false);
@@ -1736,7 +1736,7 @@ public class BootImageWriter {
       if (!valueCopied) {
         // Field not found via reflection
         if (VM.VerifyAssertions) VM._assert(jdkFieldAcc == null);
-        if (!FieldValues.copyKnownInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress)) {
+        if (!FieldValues.copyKnownValueForInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress)) {
           // Field not found at all, set default value
           setLanguageDefaultValueForInstanceField(jdkType, rvmField,
               rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);

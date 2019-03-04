@@ -40,7 +40,7 @@ public class FieldValues {
    * @param rvmFieldType the type reference of the field
    * @param rvmFieldAddress the address that the field is being written to
    */
-  static boolean copyKnownInstanceField(Object jdkObject, String rvmFieldName, TypeReference rvmFieldType, Address rvmFieldAddress)
+  static boolean copyKnownValueForInstanceField(Object jdkObject, String rvmFieldName, TypeReference rvmFieldType, Address rvmFieldAddress)
     throws IllegalAccessException {
 
     // Class library independent objects
@@ -379,7 +379,7 @@ public class FieldValues {
    * @param rvmFieldName the name of the field
    * @param rvmFieldType the type reference of the field
    */
-  static boolean copyKnownStaticField(Class<?> jdkType, String rvmFieldName,
+  static boolean copyKnownValueForStaticField(Class<?> jdkType, String rvmFieldName,
                                               TypeReference rvmFieldType,
                                               Offset rvmFieldOffset) {
     if (BootImageWriter.classLibrary() == "harmony") {
