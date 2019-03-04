@@ -1733,15 +1733,20 @@ public class BootImageWriter {
       boolean valueCopied = setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
           rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
           untracedField);
-      if (!valueCopied) {
-        // Field not found via reflection
-        if (VM.VerifyAssertions) VM._assert(jdkFieldAcc == null);
-        if (!FieldValues.copyKnownValueForInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress)) {
-          // Field not found at all, set default value
-          setLanguageDefaultValueForInstanceField(jdkType, rvmField,
-              rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
-        }
+      if (valueCopied) {
+        continue;
       }
+
+      // Field not found via reflection, search hand-crafted list
+      if (VM.VerifyAssertions) VM._assert(jdkFieldAcc == null);
+      valueCopied = FieldValues.copyKnownValueForInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress);
+      if (valueCopied) {
+        continue;
+      }
+
+      // Field not found at all, set default value
+      setLanguageDefaultValueForInstanceField(jdkType, rvmField,
+          rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
     }
     return scalarImageAddress;
   }
