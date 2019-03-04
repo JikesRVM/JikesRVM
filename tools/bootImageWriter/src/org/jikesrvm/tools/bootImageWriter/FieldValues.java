@@ -763,43 +763,9 @@ public class FieldValues {
       RVMType rvmType, Class<?> jdkType, int staticFieldIndex, RVMField rvmField,
       TypeReference rvmFieldType, Offset rvmFieldOffset, String rvmFieldName,
       Field jdkFieldAcc) throws Error, IllegalAccessException {
-    if (jdkType != null &&
-        jdkType.equals(java.util.concurrent.locks.AbstractQueuedSynchronizer.class)) {
-      RVMClass c = (RVMClass) rvmType;
-      if (rvmFieldName.equals("stateOffset")) {
-        Statics.setSlotContents(
-          rvmFieldOffset,
-          c.findDeclaredField(Atom.findOrCreateAsciiAtom("state")).getOffset().toLong());
-        return;
-      } else if (rvmFieldName.equals("headOffset")) {
-        Statics.setSlotContents(
-          rvmFieldOffset,
-          c.findDeclaredField(Atom.findOrCreateAsciiAtom("head")).getOffset().toLong());
-        return;
-      } else if (rvmFieldName.equals("tailOffset")) {
-        Statics.setSlotContents(
-          rvmFieldOffset,
-          c.findDeclaredField(Atom.findOrCreateAsciiAtom("tail")).getOffset().toLong());
-        return;
-      } else if (rvmFieldName.equals("waitStatusOffset")) {
-        try {
-        Statics.setSlotContents(
-          rvmFieldOffset,
-          ((RVMClass)BootImageTypes.getRvmTypeForHostType(Class.forName("java.util.concurrent.locks.AbstractQueuedSynchronizer$Node"))).findDeclaredField(Atom.findOrCreateAsciiAtom("waitStatus")).getOffset().toLong());
-        } catch (ClassNotFoundException e) {
-          throw new Error(e);
-        }
-        return;
-      }
-    } else if (jdkType != null &&
-               jdkType.equals(java.util.concurrent.locks.LockSupport.class)) {
-      RVMClass c = (RVMClass) rvmType;
-      if (rvmFieldName.equals("parkBlockerOffset")) {
-        Statics.setSlotContents(
-          rvmFieldOffset,
-          ((RVMClass)BootImageTypes.getRvmTypeForHostType(java.lang.Thread.class)).findDeclaredField(Atom.findOrCreateAsciiAtom("parkBlocker")).getOffset().toLong());
-        return;
-      }
+    boolean copiedValue = setStaticFieldFromEquivalentField(rvmType, jdkType, rvmFieldOffset, rvmFieldName);
+    if (copiedValue) {
+      return;
     }
 
     if (jdkType != null)
@@ -915,6 +881,50 @@ public class FieldValues {
         say("       setting with ", Services.addressAsHexString(Magic.objectAsAddress(o)));
       Statics.setSlotContents(rvmFieldOffset, o);
     }
+  }
+
+  private static boolean setStaticFieldFromEquivalentField(RVMType rvmType, Class<?> jdkType,
+      Offset rvmFieldOffset, String rvmFieldName) throws Error {
+    boolean copiedValue = false;
+    if (jdkType != null &&
+        jdkType.equals(java.util.concurrent.locks.AbstractQueuedSynchronizer.class)) {
+      RVMClass c = (RVMClass) rvmType;
+      if (rvmFieldName.equals("stateOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          c.findDeclaredField(Atom.findOrCreateAsciiAtom("state")).getOffset().toLong());
+        return true;
+      } else if (rvmFieldName.equals("headOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          c.findDeclaredField(Atom.findOrCreateAsciiAtom("head")).getOffset().toLong());
+        return true;
+      } else if (rvmFieldName.equals("tailOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          c.findDeclaredField(Atom.findOrCreateAsciiAtom("tail")).getOffset().toLong());
+        return true;
+      } else if (rvmFieldName.equals("waitStatusOffset")) {
+        try {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          ((RVMClass)BootImageTypes.getRvmTypeForHostType(Class.forName("java.util.concurrent.locks.AbstractQueuedSynchronizer$Node"))).findDeclaredField(Atom.findOrCreateAsciiAtom("waitStatus")).getOffset().toLong());
+        } catch (ClassNotFoundException e) {
+          throw new Error(e);
+        }
+        return true;
+      }
+    } else if (jdkType != null &&
+               jdkType.equals(java.util.concurrent.locks.LockSupport.class)) {
+      RVMClass c = (RVMClass) rvmType;
+      if (rvmFieldName.equals("parkBlockerOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          ((RVMClass)BootImageTypes.getRvmTypeForHostType(java.lang.Thread.class)).findDeclaredField(Atom.findOrCreateAsciiAtom("parkBlocker")).getOffset().toLong());
+        return true;
+      }
+    }
+    return copiedValue;
   }
 
 }
