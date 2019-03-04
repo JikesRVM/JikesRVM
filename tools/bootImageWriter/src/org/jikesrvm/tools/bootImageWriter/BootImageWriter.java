@@ -1730,25 +1730,35 @@ public class BootImageWriter {
 
       boolean untracedField = rvmField.isUntraced() || untraced;
 
-      boolean valueCopied = setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
+      copyInstanceFieldValue(jdkObject, jdkType, rvmScalarType, allocOnly,
           rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
           untracedField);
-      if (valueCopied) {
-        continue;
-      }
-
-      // Field not found via reflection, search hand-crafted list
-      if (VM.VerifyAssertions) VM._assert(jdkFieldAcc == null);
-      valueCopied = FieldValues.copyKnownValueForInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress);
-      if (valueCopied) {
-        continue;
-      }
-
-      // Field not found at all, set default value
-      setLanguageDefaultValueForInstanceField(jdkType, rvmField,
-          rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
     }
     return scalarImageAddress;
+  }
+
+  private static void copyInstanceFieldValue(Object jdkObject, Class<?> jdkType,
+      RVMClass rvmScalarType, boolean allocOnly, RVMField rvmField,
+      TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
+      Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
+      Error {
+    boolean valueCopied = setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
+        rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
+        untracedField);
+    if (valueCopied) {
+      return;
+    }
+
+    // Field not found via reflection, search hand-crafted list
+    if (VM.VerifyAssertions) VM._assert(jdkFieldAcc == null);
+    valueCopied = FieldValues.copyKnownValueForInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress);
+    if (valueCopied) {
+      return;
+    }
+
+    // Field not found at all, set default value
+    setLanguageDefaultValueForInstanceField(jdkType, rvmField,
+        rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
   }
 
   private static void setLanguageDefaultValueForInstanceField(Class<?> jdkType,
