@@ -100,7 +100,6 @@ import org.jikesrvm.tools.bootImageWriter.entrycomparators.ReferenceDensityCompa
 import org.jikesrvm.tools.bootImageWriter.entrycomparators.TypeReferenceComparator;
 import org.jikesrvm.tools.bootImageWriter.types.BootImageTypes;
 import org.jikesrvm.util.Services;
-import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -222,7 +221,7 @@ public class BootImageWriter {
   }
 
   public static final boolean STATIC_FIELD = true;
-  private static final boolean INSTANCE_FIELD = false;
+  public static final boolean INSTANCE_FIELD = false;
 
   /**
    * The absolute address at which the data portion of the
@@ -1424,7 +1423,7 @@ public class BootImageWriter {
     }
   }
 
-  private static Word getWordValue(Object addr, String msg, boolean warn) {
+  static Word getWordValue(Object addr, String msg, boolean warn) {
     if (addr == null) return Word.zero();
     Word value = Word.zero();
     if (addr instanceof Address) {
@@ -1459,7 +1458,7 @@ public class BootImageWriter {
    * @param rvmFieldName Name of the field
    * @param rvmFieldType Type of the field
     */
-  private static void copyReferenceFieldToBootImage(Address fieldLocation, Object referencedObject,
+  static void copyReferenceFieldToBootImage(Address fieldLocation, Object referencedObject,
       Object parentObject, boolean objField, boolean root, String rvmFieldName,
       TypeReference rvmFieldType) throws IllegalAccessException {
     if (referencedObject == null) {
@@ -1730,160 +1729,11 @@ public class BootImageWriter {
 
       boolean untracedField = rvmField.isUntraced() || untraced;
 
-      copyInstanceFieldValue(jdkObject, jdkType, rvmScalarType, allocOnly,
+      FieldValues.copyInstanceFieldValue(jdkObject, jdkType, rvmScalarType, allocOnly,
           rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
           untracedField);
     }
     return scalarImageAddress;
-  }
-
-  private static void copyInstanceFieldValue(Object jdkObject, Class<?> jdkType,
-      RVMClass rvmScalarType, boolean allocOnly, RVMField rvmField,
-      TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
-      Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
-      Error {
-    boolean valueCopied = setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
-        rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
-        untracedField);
-    if (valueCopied) {
-      return;
-    }
-
-    // Field not found via reflection, search hand-crafted list
-    if (VM.VerifyAssertions) VM._assert(jdkFieldAcc == null);
-    valueCopied = FieldValues.copyKnownValueForInstanceField(jdkObject, rvmFieldName, rvmFieldType, rvmFieldAddress);
-    if (valueCopied) {
-      return;
-    }
-
-    // Field not found at all, set default value
-    setLanguageDefaultValueForInstanceField(jdkType, rvmField,
-        rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
-  }
-
-  private static void setLanguageDefaultValueForInstanceField(Class<?> jdkType,
-      RVMField rvmField, TypeReference rvmFieldType, Address rvmFieldAddress,
-      String rvmFieldName, boolean untracedField) throws Error {
-    // Field wasn't a known Classpath field so write null
-    if (verbosity.isAtLeast(DETAILED)) traceContext.push(rvmFieldType.toString(),
-        jdkType.getName(), rvmFieldName);
-    if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldNotInHostJdk();
-    if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
-    if (rvmFieldType.isPrimitiveType()) {
-      switch (rvmField.getType().getMemoryBytes()) {
-      case 1: bootImage.setByte(rvmFieldAddress, 0);          break;
-      case 2: bootImage.setHalfWord(rvmFieldAddress, 0);      break;
-      case 4: bootImage.setFullWord(rvmFieldAddress, 0);      break;
-      case 8: bootImage.setDoubleWord(rvmFieldAddress, 0L);   break;
-      default:fail("unexpected field type: " + rvmFieldType); break;
-      }
-    } else {
-      BootImageTypes.logMissingField(jdkType, rvmField, INSTANCE_FIELD);
-      bootImage.setNullAddressWord(rvmFieldAddress, !untracedField, !untracedField, false);
-    }
-  }
-
-  /**
-   *
-   * @param jdkObject object to write
-   * @param rvmScalarType RVM class loader version of type
-   * @param allocOnly allocate the object only?
-   * @param rvmField RVM Class loader version of field
-   * @param rvmFieldType type of RVM Class loader version of field
-   * @param rvmFieldAddress address of the concrete field instance (i.e. the location
-   *  in the boot image where the value will be placed)
-   * @param rvmFieldName name of RVM Class loader version of field
-   * @param jdkFieldAcc the JDK reflection accessor for the field, possibly {@code null}
-   * @param untracedField {@code true} if the field is untraced
-   * @return {@code true} if a field value was copied (which implies that nothing more needs
-   *  to be done), {@code false} otherwise
-   * @throws IllegalAccessException
-   * @throws Error
-   *
-   * @see Untraced
-   */
-  private static boolean setInstanceFieldViaJDKMapping(Object jdkObject,
-      RVMClass rvmScalarType, boolean allocOnly, RVMField rvmField,
-      TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
-      Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
-      Error {
-    boolean valueCopied = true;
-    if (jdkFieldAcc == null) {
-      return !valueCopied;
-    }
-    if (rvmFieldType.isPrimitiveType()) {
-      // field is logical or numeric type
-      if (rvmFieldType.isBooleanType()) {
-        bootImage.setByte(rvmFieldAddress,
-            jdkFieldAcc.getBoolean(jdkObject) ? 1 : 0);
-      } else if (rvmFieldType.isByteType()) {
-        bootImage.setByte(rvmFieldAddress,
-            jdkFieldAcc.getByte(jdkObject));
-      } else if (rvmFieldType.isCharType()) {
-        bootImage.setHalfWord(rvmFieldAddress,
-            jdkFieldAcc.getChar(jdkObject));
-      } else if (rvmFieldType.isShortType()) {
-        bootImage.setHalfWord(rvmFieldAddress,
-            jdkFieldAcc.getShort(jdkObject));
-      } else if (rvmFieldType.isIntType()) {
-        try {
-          bootImage.setFullWord(rvmFieldAddress, jdkFieldAcc.getInt(jdkObject));
-        } catch (IllegalArgumentException ex) {
-          // TODO: Harmony - clean this up
-          if (jdkObject instanceof java.util.WeakHashMap && rvmFieldName.equals("loadFactor")) {
-            // the field load factor field in Sun/Classpath is a float but
-            // in Harmony it has been "optimized" to an int
-            bootImage.setFullWord(rvmFieldAddress, 7500);
-          } else if (jdkObject instanceof java.lang.ref.ReferenceQueue && rvmFieldName.equals("head")) {
-            // Conflicting types between Harmony and Sun
-            bootImage.setFullWord(rvmFieldAddress, 0);
-          } else {
-            System.out.println("type " + rvmScalarType + ", field " + rvmField);
-            throw ex;
-          }
-        }
-      } else if (rvmFieldType.isLongType()) {
-        bootImage.setDoubleWord(rvmFieldAddress,
-            jdkFieldAcc.getLong(jdkObject));
-      } else if (rvmFieldType.isFloatType()) {
-        float f = jdkFieldAcc.getFloat(jdkObject);
-        bootImage.setFullWord(rvmFieldAddress,
-            Float.floatToIntBits(f));
-      } else if (rvmFieldType.isDoubleType()) {
-        double d = jdkFieldAcc.getDouble(jdkObject);
-        bootImage.setDoubleWord(rvmFieldAddress,
-            Double.doubleToLongBits(d));
-      } else if (rvmFieldType.equals(TypeReference.Address) ||
-          rvmFieldType.equals(TypeReference.Word) ||
-          rvmFieldType.equals(TypeReference.Extent) ||
-          rvmFieldType.equals(TypeReference.Offset)) {
-        Object o = jdkFieldAcc.get(jdkObject);
-        String msg = " instance field " + rvmField.toString();
-        boolean warn = rvmFieldType.equals(TypeReference.Address);
-        bootImage.setAddressWord(rvmFieldAddress, getWordValue(o, msg, warn), false, false);
-      } else {
-        fail("unexpected primitive field type: " + rvmFieldType);
-      }
-    } else {
-      // field is reference type
-      Object value = jdkFieldAcc.get(jdkObject);
-      if (!allocOnly) {
-        Class<?> jdkClass = jdkFieldAcc.getDeclaringClass();
-        if (verbosity.isAtLeast(DETAILED)) {
-          String typeName = (value == null) ? "(unknown: value was null)" :
-            value.getClass().getName();
-          traceContext.push(typeName,
-            jdkClass.getName(),
-            jdkFieldAcc.getName());
-        }
-        copyReferenceFieldToBootImage(rvmFieldAddress, value, jdkObject,
-            !untracedField, !(untracedField || rvmField.isFinal()), rvmFieldName, rvmFieldType);
-        if (verbosity.isAtLeast(DETAILED)) {
-          traceContext.pop();
-        }
-      }
-    }
-    return valueCopied;
   }
 
   /**
