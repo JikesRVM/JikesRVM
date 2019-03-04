@@ -761,12 +761,13 @@ public class FieldValues {
 
   static void copyStaticFieldValue(HashSet<String> invalidEntrys,
       RVMType rvmType, Class<?> jdkType, int staticFieldIndex, RVMField rvmField,
-      TypeReference rvmFieldType, Offset rvmFieldOffset, String rvmFieldName,
-      Field jdkFieldAcc) throws Error, IllegalAccessException {
+      TypeReference rvmFieldType, Offset rvmFieldOffset, String rvmFieldName) throws Error, IllegalAccessException {
     boolean copiedValue = setStaticFieldFromEquivalentField(rvmType, jdkType, rvmFieldOffset, rvmFieldName);
     if (copiedValue) {
       return;
     }
+
+    Field jdkFieldAcc = null;
 
     if (jdkType != null)
       jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, staticFieldIndex, BootImageWriter.STATIC_FIELD);

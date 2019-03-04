@@ -1219,10 +1219,9 @@ public class BootImageWriter {
           TypeReference rvmFieldType = rvmField.getType();
           Offset rvmFieldOffset = rvmField.getOffset();
           String   rvmFieldName = rvmField.getName().toString();
-          Field    jdkFieldAcc  = null;
 
           FieldValues.copyStaticFieldValue(invalidEntrys, rvmType, jdkType, j, rvmField,
-              rvmFieldType, rvmFieldOffset, rvmFieldName, jdkFieldAcc);
+              rvmFieldType, rvmFieldOffset, rvmFieldName);
         }
       }
       if (verbosity.isAtLeast(DETAILED)) {
