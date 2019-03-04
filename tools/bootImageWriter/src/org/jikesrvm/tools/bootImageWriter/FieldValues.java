@@ -20,14 +20,15 @@ import static org.jikesrvm.tools.bootImageWriter.Verbosity.DETAILED;
 
 import java.lang.reflect.Constructor;
 import java.util.BitSet;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 public class FieldValues {
 
@@ -364,6 +365,234 @@ public class FieldValues {
         }
       } else {
         // Unknown field
+        return false;
+      }
+    } else {
+      throw new Error("Unknown class library: \"" + BootImageWriter.classLibrary() + "\"");
+    }
+  }
+
+  /**
+   * If we can't find a field via reflection we may still determine
+   * and copy a value because we know the internals of Classpath.
+   * @param jdkType the class containing the field
+   * @param rvmFieldName the name of the field
+   * @param rvmFieldType the type reference of the field
+   */
+  static boolean copyKnownStaticField(Class<?> jdkType, String rvmFieldName,
+                                              TypeReference rvmFieldType,
+                                              Offset rvmFieldOffset) {
+    if (BootImageWriter.classLibrary() == "harmony") {
+      if (jdkType.equals(java.lang.Number.class)) {
+        throw new Error("Unknown field in java.lang.Number " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.lang.Boolean.class)) {
+        throw new Error("Unknown field in java.lang.Boolean " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.lang.Byte.class)) {
+        if (rvmFieldName.equals("CACHE") && rvmFieldType.isArrayType()) {
+          Statics.setSlotContents(rvmFieldOffset, new Byte[256]);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Byte " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Double.class)) {
+        throw new Error("Unknown field in java.lang.Double " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.lang.Float.class)) {
+        throw new Error("Unknown field in java.lang.Float " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.lang.Integer.class)) {
+        if (rvmFieldName.equals("decimalScale") && rvmFieldType.isArrayType()) {
+          int[] java_lang_Integer_decimalScale = new int[] { 1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 };
+          Statics.setSlotContents(rvmFieldOffset, java_lang_Integer_decimalScale);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Integer " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Long.class)) {
+          throw new Error("Unknown field in java.lang.Long " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.lang.Short.class)) {
+          throw new Error("Unknown field in java.lang.Short " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.util.HashMap.class)) {
+        if (rvmFieldName.equals("DEFAULT_SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 16);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.util.HashMap " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.util.AbstractMap.class)) {
+        throw new Error("Unknown field in java.util.AbstractMap " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.lang.ref.ReferenceQueue.class)) {
+        if (rvmFieldName.equals("DEFAULT_QUEUE_SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 128);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.ref.ReferenceQueue " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Throwable.class)) {
+        if (rvmFieldName.equals("zeroLengthStackTrace") && rvmFieldType.isArrayType()) {
+          Statics.setSlotContents(rvmFieldOffset, new StackTraceElement[0]);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Throwable " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else {
+        return false;
+      }
+    } else if (BootImageWriter.classLibrary() == "classpath") {
+      if (jdkType.equals(java.lang.Number.class)) {
+        if (rvmFieldName.equals("digits") && rvmFieldType.isArrayType()) {
+          char[] java_lang_Number_digits = new char[]{
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+            'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+            'u', 'v', 'w', 'x', 'y', 'z'
+          };
+          Statics.setSlotContents(rvmFieldOffset, java_lang_Number_digits);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Number " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Boolean.class)) {
+        throw new Error("Unknown field in java.lang.Boolean " + rvmFieldName + " " + rvmFieldType);
+      } else if (jdkType.equals(java.lang.Byte.class)) {
+        if (rvmFieldName.equals("byteCache") && rvmFieldType.isArrayType()) {
+          Byte[] java_lang_Byte_byteCache = new Byte[256];
+          // Populate table
+          for (int i = -128; i < 128; i++) {
+            Byte value = (byte) i;
+            BootImageMap.findOrCreateEntry(value);
+            java_lang_Byte_byteCache[128 + i] = value;
+          }
+          Statics.setSlotContents(rvmFieldOffset, java_lang_Byte_byteCache);
+          return true;
+        } else if (rvmFieldName.equals("MIN_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, -128);
+          return true;
+        } else if (rvmFieldName.equals("MAX_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 127);
+          return true;
+        } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 8); // NB not present in Java 1.4
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Byte " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Double.class)) {
+        if (rvmFieldName.equals("ZERO")) {
+          Statics.setSlotContents(rvmFieldOffset, Double.valueOf(0.0));
+          return true;
+        } else if (rvmFieldName.equals("ONE")) {
+          Statics.setSlotContents(rvmFieldOffset, Double.valueOf(1.0));
+          return true;
+        } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 64); // NB not present in Java 1.4
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Double " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Float.class)) {
+        if (rvmFieldName.equals("ZERO")) {
+          Statics.setSlotContents(rvmFieldOffset, Float.valueOf(0.0f));
+          return true;
+        } else if (rvmFieldName.equals("ONE")) {
+          Statics.setSlotContents(rvmFieldOffset, Float.valueOf(1.0f));
+          return true;
+        } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 32); // NB not present in Java 1.4
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Float " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Integer.class)) {
+        if (rvmFieldName.equals("intCache") && rvmFieldType.isArrayType()) {
+          Integer[] java_lang_Integer_intCache = new Integer[256];
+          // Populate table
+          for (int i = -128; i < 128; i++) {
+            Integer value = i;
+            java_lang_Integer_intCache[128 + i] = value;
+          }
+          Statics.setSlotContents(rvmFieldOffset, java_lang_Integer_intCache);
+          return true;
+        } else if (rvmFieldName.equals("MIN_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, -128);
+          return true;
+        } else if (rvmFieldName.equals("MAX_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 127);
+          return true;
+        } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 32); // NB not present in Java 1.4
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Integer " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Long.class)) {
+        if (rvmFieldName.equals("longCache") && rvmFieldType.isArrayType()) {
+          Long[] java_lang_Long_longCache = new Long[256];
+          // Populate table
+          for (int i = -128; i < 128; i++) {
+            Long value = (long)i;
+            BootImageMap.findOrCreateEntry(value);
+            java_lang_Long_longCache[128 + i] = value;
+          }
+          Statics.setSlotContents(rvmFieldOffset, java_lang_Long_longCache);
+          return true;
+        } else if (rvmFieldName.equals("MIN_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, -128);
+          return true;
+        } else if (rvmFieldName.equals("MAX_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 127);
+          return true;
+        } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 64); // NB not present in Java 1.4
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Long " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.lang.Short.class)) {
+        if (rvmFieldName.equals("shortCache") && rvmFieldType.isArrayType()) {
+          Short[] java_lang_Short_shortCache = new Short[256];
+          // Populate table
+          for (short i = -128; i < 128; i++) {
+            Short value = i;
+            BootImageMap.findOrCreateEntry(value);
+            java_lang_Short_shortCache[128 + i] = value;
+          }
+          Statics.setSlotContents(rvmFieldOffset, java_lang_Short_shortCache);
+          return true;
+        } else if (rvmFieldName.equals("MIN_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, -128);
+          return true;
+        } else if (rvmFieldName.equals("MAX_CACHE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 127);
+          return true;
+        } else if (rvmFieldName.equals("SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 16); // NB not present in Java 1.4
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Short " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.util.HashMap.class)) {
+        if (rvmFieldName.equals("DEFAULT_CAPACITY") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 11);
+          return true;
+        } else if (rvmFieldName.equals("DEFAULT_LOAD_FACTOR") && rvmFieldType.isFloatType()) {
+          Statics.setSlotContents(rvmFieldOffset, Float.floatToIntBits(0.75f));
+          return true;
+        } else {
+          throw new Error("Unknown field in java.util.HashMap " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else if (jdkType.equals(java.util.AbstractMap.class)) {
+        if (rvmFieldName.equals("KEYS") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 0);
+          return true;
+        } else if (rvmFieldName.equals("VALUES") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 1);
+          return true;
+        } else if (rvmFieldName.equals("ENTRIES") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 2);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.util.AbstractMap " + rvmFieldName + " " + rvmFieldType);
+        }
+      } else {
         return false;
       }
     } else {
