@@ -1224,158 +1224,8 @@ public class BootImageWriter {
           String   rvmFieldName = rvmField.getName().toString();
           Field    jdkFieldAcc  = null;
 
-          if (jdkType != null &&
-              jdkType.equals(java.util.concurrent.locks.AbstractQueuedSynchronizer.class)) {
-            RVMClass c = (RVMClass) rvmType;
-            if (rvmFieldName.equals("stateOffset")) {
-              Statics.setSlotContents(
-                rvmFieldOffset,
-                c.findDeclaredField(Atom.findOrCreateAsciiAtom("state")).getOffset().toLong());
-              continue;
-            } else if (rvmFieldName.equals("headOffset")) {
-              Statics.setSlotContents(
-                rvmFieldOffset,
-                c.findDeclaredField(Atom.findOrCreateAsciiAtom("head")).getOffset().toLong());
-              continue;
-            } else if (rvmFieldName.equals("tailOffset")) {
-              Statics.setSlotContents(
-                rvmFieldOffset,
-                c.findDeclaredField(Atom.findOrCreateAsciiAtom("tail")).getOffset().toLong());
-              continue;
-            } else if (rvmFieldName.equals("waitStatusOffset")) {
-              try {
-              Statics.setSlotContents(
-                rvmFieldOffset,
-                ((RVMClass)BootImageTypes.getRvmTypeForHostType(Class.forName("java.util.concurrent.locks.AbstractQueuedSynchronizer$Node"))).findDeclaredField(Atom.findOrCreateAsciiAtom("waitStatus")).getOffset().toLong());
-              } catch (ClassNotFoundException e) {
-                throw new Error(e);
-              }
-              continue;
-            }
-          } else if (jdkType != null &&
-                     jdkType.equals(java.util.concurrent.locks.LockSupport.class)) {
-            RVMClass c = (RVMClass) rvmType;
-            if (rvmFieldName.equals("parkBlockerOffset")) {
-              Statics.setSlotContents(
-                rvmFieldOffset,
-                ((RVMClass)BootImageTypes.getRvmTypeForHostType(java.lang.Thread.class)).findDeclaredField(Atom.findOrCreateAsciiAtom("parkBlocker")).getOffset().toLong());
-              continue;
-            }
-          }
-
-          if (jdkType != null)
-            jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, j, STATIC_FIELD);
-
-          if (jdkFieldAcc == null) {
-            // we failed to get a reflective field accessors
-            if (jdkType != null) {
-              // we know the type - probably a private field of a java.lang class
-              if (!FieldValues.copyKnownValueForStaticField(jdkType,
-                                       rvmFieldName,
-                                       rvmFieldType,
-                                       rvmFieldOffset)) {
-                // we didn't know the field so nullify
-                if (verbosity.isAtLeast(DETAILED)) {
-                  traceContext.push(rvmFieldType.toString(),
-                                    jdkType.getName(), rvmFieldName);
-                  traceContext.traceFieldNotInHostJdk();
-                  traceContext.pop();
-                }
-                BootImageTypes.logMissingField(jdkType, rvmField, STATIC_FIELD);
-                Statics.setSlotContents(rvmFieldOffset, 0);
-                if (!VM.runningTool)
-                  bootImage.countNulledReference();
-                invalidEntrys.add(jdkType.getName());
-              }
-            } else {
-              // no accessor and we don't know the type so nullify
-              if (verbosity.isAtLeast(DETAILED)) {
-                traceContext.push(rvmFieldType.toString(),
-                                  rvmFieldType.toString(), rvmFieldName);
-                traceContext.traceFieldNotInHostJdk();
-                traceContext.pop();
-              }
-              Statics.setSlotContents(rvmFieldOffset, 0);
-              BootImageTypes.logMissingFieldWithoutType(rvmField, STATIC_FIELD);
-              if (!VM.runningTool)
-                bootImage.countNulledReference();
-              invalidEntrys.add(rvmField.getDeclaringClass().toString());
-            }
-            continue;
-          }
-
-          if (! Modifier.isStatic(jdkFieldAcc.getModifiers())) {
-            if (verbosity.isAtLeast(DETAILED)) traceContext.push(rvmFieldType.toString(),
-                                                jdkType.getName(), rvmFieldName);
-            if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldNotStaticInHostJdk();
-            if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
-            Statics.setSlotContents(rvmFieldOffset, 0);
-            BootImageTypes.logStaticFieldNotStaticInHostJDK(jdkType, rvmField);
-            if (!VM.runningTool)
-              bootImage.countNulledReference();
-            invalidEntrys.add(jdkType.getName());
-            continue;
-          }
-
-          if (!equalTypes(jdkFieldAcc.getType().getName(), rvmFieldType)) {
-            if (verbosity.isAtLeast(DETAILED)) traceContext.push(rvmFieldType.toString(),
-                                                jdkType.getName(), rvmFieldName);
-            if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldDifferentTypeInHostJdk();
-            if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
-            BootImageTypes.logStaticFieldHasDifferentTypeInHostJDK(jdkType, rvmField);
-            Statics.setSlotContents(rvmFieldOffset, 0);
-            if (!VM.runningTool)
-              bootImage.countNulledReference();
-            invalidEntrys.add(jdkType.getName());
-            continue;
-          }
-
-          if (verbosity.isAtLeast(DETAILED))
-            say("    populating jtoc slot ", String.valueOf(Statics.offsetAsSlot(rvmFieldOffset)),
-                " with ", rvmField.toString());
-          if (rvmFieldType.isPrimitiveType()) {
-            // field is logical or numeric type
-            if (rvmFieldType.isBooleanType()) {
-              Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getBoolean(null) ? 1 : 0);
-            } else if (rvmFieldType.isByteType()) {
-              Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getByte(null));
-            } else if (rvmFieldType.isCharType()) {
-              Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getChar(null));
-            } else if (rvmFieldType.isShortType()) {
-              Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getShort(null));
-            } else if (rvmFieldType.isIntType()) {
-                Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getInt(null));
-            } else if (rvmFieldType.isLongType()) {
-              // note: Endian issues handled in setSlotContents.
-              Statics.setSlotContents(rvmFieldOffset,
-                                         jdkFieldAcc.getLong(null));
-            } else if (rvmFieldType.isFloatType()) {
-              float f = jdkFieldAcc.getFloat(null);
-              Statics.setSlotContents(rvmFieldOffset,
-                                         Float.floatToIntBits(f));
-            } else if (rvmFieldType.isDoubleType()) {
-              double d = jdkFieldAcc.getDouble(null);
-              // note: Endian issues handled in setSlotContents.
-              Statics.setSlotContents(rvmFieldOffset,
-                                         Double.doubleToLongBits(d));
-            } else if (rvmFieldType.equals(TypeReference.Address) ||
-                       rvmFieldType.equals(TypeReference.Word) ||
-                       rvmFieldType.equals(TypeReference.Extent) ||
-                       rvmFieldType.equals(TypeReference.Offset)) {
-              Object o = jdkFieldAcc.get(null);
-              String msg = " static field " + rvmField.toString();
-              boolean warn = rvmFieldType.equals(TypeReference.Address);
-              Statics.setSlotContents(rvmFieldOffset, getWordValue(o, msg, warn));
-            } else {
-              fail("unexpected primitive field type: " + rvmFieldType);
-            }
-          } else {
-            // field is reference type
-            final Object o = jdkFieldAcc.get(null);
-            if (verbosity.isAtLeast(ADDRESSES))
-              say("       setting with ", Services.addressAsHexString(Magic.objectAsAddress(o)));
-            Statics.setSlotContents(rvmFieldOffset, o);
-          }
+          copyStaticFieldValue(invalidEntrys, rvmType, jdkType, j, rvmField,
+              rvmFieldType, rvmFieldOffset, rvmFieldName, jdkFieldAcc);
         }
       }
       if (verbosity.isAtLeast(DETAILED)) {
@@ -1388,6 +1238,164 @@ public class BootImageWriter {
         stopTime = System.currentTimeMillis();
         System.out.println("PROF: \tinitializing jtoc " + (stopTime - startTime) + " ms");
       }
+  }
+
+  private static void copyStaticFieldValue(HashSet<String> invalidEntrys,
+      RVMType rvmType, Class<?> jdkType, int staticFieldIndex, RVMField rvmField,
+      TypeReference rvmFieldType, Offset rvmFieldOffset, String rvmFieldName,
+      Field jdkFieldAcc) throws Error, IllegalAccessException {
+    if (jdkType != null &&
+        jdkType.equals(java.util.concurrent.locks.AbstractQueuedSynchronizer.class)) {
+      RVMClass c = (RVMClass) rvmType;
+      if (rvmFieldName.equals("stateOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          c.findDeclaredField(Atom.findOrCreateAsciiAtom("state")).getOffset().toLong());
+        return;
+      } else if (rvmFieldName.equals("headOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          c.findDeclaredField(Atom.findOrCreateAsciiAtom("head")).getOffset().toLong());
+        return;
+      } else if (rvmFieldName.equals("tailOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          c.findDeclaredField(Atom.findOrCreateAsciiAtom("tail")).getOffset().toLong());
+        return;
+      } else if (rvmFieldName.equals("waitStatusOffset")) {
+        try {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          ((RVMClass)BootImageTypes.getRvmTypeForHostType(Class.forName("java.util.concurrent.locks.AbstractQueuedSynchronizer$Node"))).findDeclaredField(Atom.findOrCreateAsciiAtom("waitStatus")).getOffset().toLong());
+        } catch (ClassNotFoundException e) {
+          throw new Error(e);
+        }
+        return;
+      }
+    } else if (jdkType != null &&
+               jdkType.equals(java.util.concurrent.locks.LockSupport.class)) {
+      RVMClass c = (RVMClass) rvmType;
+      if (rvmFieldName.equals("parkBlockerOffset")) {
+        Statics.setSlotContents(
+          rvmFieldOffset,
+          ((RVMClass)BootImageTypes.getRvmTypeForHostType(java.lang.Thread.class)).findDeclaredField(Atom.findOrCreateAsciiAtom("parkBlocker")).getOffset().toLong());
+        return;
+      }
+    }
+
+    if (jdkType != null)
+      jdkFieldAcc = BootImageTypes.getJdkFieldAccessor(jdkType, staticFieldIndex, STATIC_FIELD);
+
+    if (jdkFieldAcc == null) {
+      // we failed to get a reflective field accessors
+      if (jdkType != null) {
+        // we know the type - probably a private field of a java.lang class
+        if (!FieldValues.copyKnownValueForStaticField(jdkType,
+                                 rvmFieldName,
+                                 rvmFieldType,
+                                 rvmFieldOffset)) {
+          // we didn't know the field so nullify
+          if (verbosity.isAtLeast(DETAILED)) {
+            traceContext.push(rvmFieldType.toString(),
+                              jdkType.getName(), rvmFieldName);
+            traceContext.traceFieldNotInHostJdk();
+            traceContext.pop();
+          }
+          BootImageTypes.logMissingField(jdkType, rvmField, STATIC_FIELD);
+          Statics.setSlotContents(rvmFieldOffset, 0);
+          if (!VM.runningTool)
+            bootImage.countNulledReference();
+          invalidEntrys.add(jdkType.getName());
+        }
+      } else {
+        // no accessor and we don't know the type so nullify
+        if (verbosity.isAtLeast(DETAILED)) {
+          traceContext.push(rvmFieldType.toString(),
+                            rvmFieldType.toString(), rvmFieldName);
+          traceContext.traceFieldNotInHostJdk();
+          traceContext.pop();
+        }
+        Statics.setSlotContents(rvmFieldOffset, 0);
+        BootImageTypes.logMissingFieldWithoutType(rvmField, STATIC_FIELD);
+        if (!VM.runningTool)
+          bootImage.countNulledReference();
+        invalidEntrys.add(rvmField.getDeclaringClass().toString());
+      }
+      return;
+    }
+
+    if (! Modifier.isStatic(jdkFieldAcc.getModifiers())) {
+      if (verbosity.isAtLeast(DETAILED)) traceContext.push(rvmFieldType.toString(),
+                                          jdkType.getName(), rvmFieldName);
+      if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldNotStaticInHostJdk();
+      if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
+      Statics.setSlotContents(rvmFieldOffset, 0);
+      BootImageTypes.logStaticFieldNotStaticInHostJDK(jdkType, rvmField);
+      if (!VM.runningTool)
+        bootImage.countNulledReference();
+      invalidEntrys.add(jdkType.getName());
+      return;
+    }
+
+    if (!equalTypes(jdkFieldAcc.getType().getName(), rvmFieldType)) {
+      if (verbosity.isAtLeast(DETAILED)) traceContext.push(rvmFieldType.toString(),
+                                          jdkType.getName(), rvmFieldName);
+      if (verbosity.isAtLeast(DETAILED)) traceContext.traceFieldDifferentTypeInHostJdk();
+      if (verbosity.isAtLeast(DETAILED)) traceContext.pop();
+      BootImageTypes.logStaticFieldHasDifferentTypeInHostJDK(jdkType, rvmField);
+      Statics.setSlotContents(rvmFieldOffset, 0);
+      if (!VM.runningTool)
+        bootImage.countNulledReference();
+      invalidEntrys.add(jdkType.getName());
+      return;
+    }
+
+    if (verbosity.isAtLeast(DETAILED))
+      say("    populating jtoc slot ", String.valueOf(Statics.offsetAsSlot(rvmFieldOffset)),
+          " with ", rvmField.toString());
+    if (rvmFieldType.isPrimitiveType()) {
+      // field is logical or numeric type
+      if (rvmFieldType.isBooleanType()) {
+        Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getBoolean(null) ? 1 : 0);
+      } else if (rvmFieldType.isByteType()) {
+        Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getByte(null));
+      } else if (rvmFieldType.isCharType()) {
+        Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getChar(null));
+      } else if (rvmFieldType.isShortType()) {
+        Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getShort(null));
+      } else if (rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, jdkFieldAcc.getInt(null));
+      } else if (rvmFieldType.isLongType()) {
+        // note: Endian issues handled in setSlotContents.
+        Statics.setSlotContents(rvmFieldOffset,
+                                   jdkFieldAcc.getLong(null));
+      } else if (rvmFieldType.isFloatType()) {
+        float f = jdkFieldAcc.getFloat(null);
+        Statics.setSlotContents(rvmFieldOffset,
+                                   Float.floatToIntBits(f));
+      } else if (rvmFieldType.isDoubleType()) {
+        double d = jdkFieldAcc.getDouble(null);
+        // note: Endian issues handled in setSlotContents.
+        Statics.setSlotContents(rvmFieldOffset,
+                                   Double.doubleToLongBits(d));
+      } else if (rvmFieldType.equals(TypeReference.Address) ||
+                 rvmFieldType.equals(TypeReference.Word) ||
+                 rvmFieldType.equals(TypeReference.Extent) ||
+                 rvmFieldType.equals(TypeReference.Offset)) {
+        Object o = jdkFieldAcc.get(null);
+        String msg = " static field " + rvmField.toString();
+        boolean warn = rvmFieldType.equals(TypeReference.Address);
+        Statics.setSlotContents(rvmFieldOffset, getWordValue(o, msg, warn));
+      } else {
+        fail("unexpected primitive field type: " + rvmFieldType);
+      }
+    } else {
+      // field is reference type
+      final Object o = jdkFieldAcc.get(null);
+      if (verbosity.isAtLeast(ADDRESSES))
+        say("       setting with ", Services.addressAsHexString(Magic.objectAsAddress(o)));
+      Statics.setSlotContents(rvmFieldOffset, o);
+    }
   }
 
   private static boolean equalTypes(final String name, final TypeReference rvmFieldType) {
