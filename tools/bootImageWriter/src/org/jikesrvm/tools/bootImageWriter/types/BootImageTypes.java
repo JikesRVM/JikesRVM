@@ -13,6 +13,7 @@
 package org.jikesrvm.tools.bootImageWriter.types;
 
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.say;
+import static org.jikesrvm.tools.bootImageWriter.Verbosity.DETAILED;
 import static org.jikesrvm.tools.bootImageWriter.Verbosity.SUMMARY;
 
 import java.lang.reflect.Field;
@@ -28,6 +29,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.tools.bootImageWriter.BootImageWriter;
+import org.jikesrvm.tools.bootImageWriter.OpenJDKMappingError;
 
 /**
  * Manages information about the mapping between host JDK and boot image types.
@@ -89,7 +91,7 @@ public abstract class BootImageTypes {
 
       Class<?> jdkType = BootImageTypes.getJdkType(rvmType);
       if (jdkType == null) {
-        System.out.println("Rvm->JDK Null " + rvmType.toString());
+        if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) say("Rvm->JDK Null " + rvmType.toString());
         continue;  // won't need the field info
       }
 
@@ -165,6 +167,9 @@ public abstract class BootImageTypes {
           }
         }
       }
+    }
+    if ("openjdk".equals(BootImageWriter.classLibrary())) {
+      fixUpTypesForHashMapForOpenJDK6();
     }
     return invalidEntrys;
   }
@@ -270,4 +275,173 @@ public abstract class BootImageTypes {
     missing.add(mf);
   }
 
+  // Code to fix up differences between OpenJDK 6 (or 7) and OpenJDK 8
+
+  private static void fixUpTypesForHashMapForOpenJDK6()
+      throws OpenJDKMappingError {
+    ArrayList<FieldInfo> fields = new ArrayList<FieldInfo>(2);
+    FieldInfo f1 = attemptToFixUpHashMap();
+    FieldInfo f2 = attemptToFixUpHashMapArray();
+    if (f1 != null && f2 != null) {
+      fields.add(f1);
+      fields.add(f2);
+    } else {
+      return;
+    }
+
+    // Now build the one-to-one instance and static field maps for the affected fields
+    for (FieldInfo fieldInfo : fields) {
+      RVMType rvmType = fieldInfo.rvmType;
+      if (rvmType == null) {
+        if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) say("bootImageTypeField entry has no rvmType:" + fieldInfo.jdkType);
+        continue;
+      }
+      Class<?> jdkType   = fieldInfo.jdkType;
+      if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) say("building static and instance fieldinfo for " + rvmType);
+
+      // First the static fields
+      //
+      RVMField[] rvmFields = rvmType.getStaticFields();
+      fieldInfo.jdkStaticFields = new Field[rvmFields.length];
+
+      for (int j = 0; j < rvmFields.length; j++) {
+        String  rvmName = rvmFields[j].getName().toString();
+        for (Field f : fieldInfo.jdkFields) {
+          if (f.getName().equals(rvmName)) {
+            fieldInfo.jdkStaticFields[j] = f;
+            f.setAccessible(true);
+            break;
+          }
+        }
+      }
+
+      // Now the instance fields
+      //
+      rvmFields = rvmType.getInstanceFields();
+      fieldInfo.jdkInstanceFields = new Field[rvmFields.length];
+
+      for (int j = 0; j < rvmFields.length; j++) {
+        String  rvmName = rvmFields[j].getName().toString();
+        // We look only in the JDK type that was defined previously.
+        // That's the only way to correctly handle the mapping between JDK 8 and JDK 6.
+        if (jdkType == null) continue;
+        FieldInfo jdkFieldInfo = BootImageTypes.bootImageTypeFields.get(new Key(jdkType));
+        if (jdkFieldInfo == null) continue;
+        Field[] jdkFields = jdkFieldInfo.jdkFields;
+        for (Field f : jdkFields) {
+          if (f.getName().equals(rvmName)) {
+            fieldInfo.jdkInstanceFields[j] = f;
+            f.setAccessible(true);
+            break;
+          }
+        }
+      }
+    }
+
+    Class<?> linkedHashMapEntryClass = null;
+    try {
+      linkedHashMapEntryClass = Class.forName("java.util.LinkedHashMap$Entry");
+    } catch (ClassNotFoundException e) {
+      throw new OpenJDKMappingError(e);
+    }
+    // Now adjust the fields for LinkedHashMap$Entry which extends HashMap$Node (JDK 8) or HashMap$Entry (JDK 6)
+    if (linkedHashMapEntryClass == null) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return;
+    }
+    Class<?> hashMapNodeClass = null;
+    try {
+      hashMapNodeClass = Class.forName("java.util.HashMap$Node");
+    } catch (ClassNotFoundException e) {
+      throw new OpenJDKMappingError(e);
+    }
+    if (hashMapNodeClass == null) {
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      return;
+    }
+    Key linkedHashMapEntry = new Key(linkedHashMapEntryClass);
+    FieldInfo fieldInfo = bootImageTypeFields.get(linkedHashMapEntry);
+    if (VM.VerifyAssertions) VM._assert(fieldInfo != null);
+    for (int i = 0; i < fieldInfo.jdkInstanceFields.length; i++) {
+      Field f = fieldInfo.jdkInstanceFields[i];
+      if (BootImageWriter.verbosity().isAtLeast(DETAILED)) say("Processing " + f.getName() + " declared by " + f.getDeclaringClass());
+      if (f.getDeclaringClass().toString().contains("java.util.HashMap$Entry")) {
+        Field realField = null;
+        try {
+          if (BootImageWriter.verbosity().isAtLeast(DETAILED)) say("Trying to get field with name " + f.getName() + " from " + hashMapNodeClass);
+          realField = hashMapNodeClass.getDeclaredField(f.getName());
+          realField.setAccessible(true);
+          if (BootImageWriter.verbosity().isAtLeast(DETAILED)) say("Found real field " + realField + " declared by " + realField.getDeclaringClass());
+        } catch (SecurityException e) {
+          throw new OpenJDKMappingError(e);
+        } catch (NoSuchFieldException e) {
+          throw new OpenJDKMappingError(e);
+        }
+        if (VM.VerifyAssertions) VM._assert(realField != null);
+        fieldInfo.jdkInstanceFields[i] = realField;
+      } else {
+        if (BootImageWriter.verbosity().isAtLeast(DETAILED)) say("No match: " + f.getDeclaringClass().toString());
+      }
+    }
+  }
+
+  private static FieldInfo attemptToFixUpHashMap() {
+    final String hashMapClassInOpenJDK6 = "java.util.HashMap$Entry";
+    String hashMapClassInOpenJDK8 = "java.util.HashMap$Node";
+    return attemptToFixUpClass(hashMapClassInOpenJDK6, hashMapClassInOpenJDK8);
+  }
+
+  private static FieldInfo attemptToFixUpHashMapArray() {
+    final String hashMapClassInOpenJDK6 = "[Ljava.util.HashMap$Entry;";
+    String hashMapClassInOpenJDK8 = "[Ljava.util.HashMap$Node;";
+    return attemptToFixUpClass(hashMapClassInOpenJDK6, hashMapClassInOpenJDK8);
+  }
+
+  private static FieldInfo attemptToFixUpClass(final String jdk6Class,
+      String jdk8Class) {
+    RVMType jdk6RvmType = null;
+    for (RVMType rvmType : allTypes()) {
+      if (jdk6Class.equals(rvmType.toString())) {
+        jdk6RvmType = rvmType;
+        break;
+      }
+    }
+    if (jdk6RvmType == null) {
+      if (BootImageWriter.verbosity().isAtLeast(SUMMARY))say("No need to map " + jdk6Class + ", apparently not running on OpenJDK6");
+      // Apparently not OpenJDK 6
+      return null;
+    }
+    Class<?> jdkType = null;
+    try {
+      jdkType = Class.forName(jdk8Class);
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+    if (jdkType == null) {
+      if (BootImageWriter.verbosity().isAtLeast(SUMMARY))say("Did not find JDK type " + jdk8Class + " corresponding to " + jdk6Class);
+      return null;
+    }
+    Key key   = new Key(jdkType);
+    if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) say("making fieldinfo for " + jdk6RvmType);
+    FieldInfo fieldInfo = new FieldInfo(jdkType, jdk6RvmType);
+    FieldInfo result = fieldInfo;
+    BootImageTypes.bootImageTypeFields.put(key, fieldInfo);
+    record(jdk8Class, jdk6RvmType);
+
+    // Now do all the superclasses if they don't already exist
+    // Can't add them in next loop as Iterator's don't allow updates to collection
+    for (Class<?> cls = jdkType.getSuperclass(); cls != null; cls = cls.getSuperclass()) {
+      key = new Key(cls);
+      fieldInfo = BootImageTypes.bootImageTypeFields.get(key);
+      if (fieldInfo != null) {
+        break;
+      } else {
+        if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) say("making fieldinfo for " + jdkType);
+        fieldInfo = new FieldInfo(cls, null);
+        BootImageTypes.bootImageTypeFields.put(key, fieldInfo);
+      }
+    }
+    return result;
+  }
 }

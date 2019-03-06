@@ -641,6 +641,13 @@ public class FieldValues {
       TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
       Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
       Error {
+
+    if (jdkObject instanceof java.util.HashMap && "table".equals(rvmFieldName)) {
+      if (VM.VerifyAssertions) VM._assert("openjdk".equals(BootImageWriter.classLibrary()));
+      OpenJDKDifferences.rebuildHashMapForOpenJDK6(jdkObject, jdkType, rvmFieldAddress,
+          rvmFieldName);
+    }
+
     boolean valueCopied = FieldValues.setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
         rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
         untracedField);

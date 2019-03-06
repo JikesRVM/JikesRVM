@@ -20,10 +20,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.InvocationHandler;
 import java.util.Arrays;
-import java.util.HashMap;
-
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.vmmagic.pragma.Uninterruptible;
@@ -197,40 +194,6 @@ public final class RVMAnnotation {
             TypeReference.findOrCreate(classLoader,
                                        ConstantPool.getUtf(constantPool, typeNameIndex)).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
-
-        // FIXME: OpenJDK: Horrible hack to work around NPE that's possibly caused by a difference of types for the buckets in HashMap
-        // Those have the type Entry[] in OpenJDK 6 and Node[] in OpenJDK 8. This seems to lead to the buckets not being copied which
-        // means that HahsMaps aren't properly copied. For the map for enums here, we can just null it out because it's only a cache.
-        if (VM.BuildForOpenJDK && VM.runningVM) {
-          RVMType clazz = java.lang.JikesRVMSupport.getTypeForClass(java.lang.Class.class);
-          RVMField[] clazzInstanceFields = clazz.getInstanceFields();
-          RVMField enumConstantsDirectoryField = null;
-          for (RVMField f: clazzInstanceFields) {
-            if ("enumConstantDirectory".equals(f.getName().toString())) {
-              enumConstantsDirectoryField = f;
-              break;
-            }
-          }
-          if (VM.VerifyAssertions) VM._assert(enumConstantsDirectoryField != null);
-          HashMap enumConstantsDirectory = (HashMap) Magic.getObjectAtOffset(enumType, enumConstantsDirectoryField.getOffset());
-
-          RVMType typeForClass = JikesRVMSupport.getTypeForClass(HashMap.class);
-          RVMField[] instanceFields = typeForClass.getInstanceFields();
-          RVMField tableField = null;
-          for (RVMField f : instanceFields) {
-            if ("table".equals(f.getName().toString())) {
-              tableField = f;
-              break;
-            }
-          }
-          if (VM.VerifyAssertions) VM._assert(tableField != null);
-          Object tableValue = Magic.getObjectAtOffset(enumConstantsDirectory, tableField.getOffset());
-          // Blow away whole directory so that it'll be recreated
-          if (tableValue == null) {
-            Magic.setObjectAtOffset(enumType, enumConstantsDirectoryField.getOffset(), null);
-          }
-        }
-
         //noinspection unchecked
         value = Enum.valueOf(enumType, ConstantPool.getUtf(constantPool, constNameIndex).toString());
         break;
