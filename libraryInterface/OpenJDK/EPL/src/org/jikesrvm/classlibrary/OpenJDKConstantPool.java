@@ -120,7 +120,7 @@ public class OpenJDKConstantPool extends sun.reflect.ConstantPool {
     try {
       memberName = memberNameAtom.toUnicodeString();
     } catch (UTFDataFormatException e) {
-      e.printStackTrace();
+      throw new Error(e);
     }
     if (VM.VerifyAssertions) VM._assert(memberName != null);
     Atom memberDescriptorAtom = resolvedMember.getDescriptor();
@@ -128,7 +128,7 @@ public class OpenJDKConstantPool extends sun.reflect.ConstantPool {
     try {
       descriptor = memberDescriptorAtom.toUnicodeString();
     } catch (UTFDataFormatException e) {
-      e.printStackTrace();
+      throw new Error(e);
     }
     if (VM.VerifyAssertions) VM._assert(descriptor != null);
     info[0] = className;
@@ -169,7 +169,7 @@ public class OpenJDKConstantPool extends sun.reflect.ConstantPool {
     try {
       utfString = utf.toUnicodeString();
     } catch (UTFDataFormatException e) {
-      e.printStackTrace();
+      throw new Error(e);
     }
     if (VM.VerifyAssertions) VM._assert(utfString != null);
     return utfString;
