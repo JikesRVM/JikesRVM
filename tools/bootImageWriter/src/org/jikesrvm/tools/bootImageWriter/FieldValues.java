@@ -12,6 +12,14 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
+import static java.lang.reflect.Modifier.ABSTRACT;
+import static java.lang.reflect.Modifier.FINAL;
+import static java.lang.reflect.Modifier.NATIVE;
+import static java.lang.reflect.Modifier.PRIVATE;
+import static java.lang.reflect.Modifier.PROTECTED;
+import static java.lang.reflect.Modifier.PUBLIC;
+import static java.lang.reflect.Modifier.STATIC;
+import static java.lang.reflect.Modifier.SYNCHRONIZED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_ALLOCATED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_PRESENT;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.fail;
@@ -25,6 +33,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.BitSet;
 import java.util.HashSet;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -617,6 +626,19 @@ public class FieldValues {
       if (jdkType.equals(java.lang.Class.class) && rvmFieldName.equals("EMPTY_ANNOTATIONS_ARRAY")) {
         Annotation[] emptyAnnotationsArray = new Annotation[0];
         Statics.setSlotContents(rvmFieldOffset, emptyAnnotationsArray);
+        return true;
+      } else if (rvmFieldName.equals("EMPTY_ANNOTATION_ARRAY") && (jdkType.equals(java.lang.reflect.Field.class) ||
+          jdkType.equals(java.lang.reflect.Method.class) || jdkType.equals(java.lang.reflect.Constructor.class))) {
+        Annotation[] emptyAnnotationsArray = new Annotation[0];
+        Statics.setSlotContents(rvmFieldOffset, emptyAnnotationsArray);
+        return true;
+      } else if (rvmFieldName.equals("LANGUAGE_MODIFIERS") && jdkType.equals(java.lang.reflect.Constructor.class)) {
+        int constructorModifiers = PRIVATE | PROTECTED | PUBLIC;;
+        Statics.setSlotContents(rvmFieldOffset, constructorModifiers);
+        return true;
+      } else if (rvmFieldName.equals("LANGUAGE_MODIFIERS") && jdkType.equals(java.lang.reflect.Method.class)) {
+        int methodModifiers = PRIVATE | PROTECTED | PUBLIC | SYNCHRONIZED | NATIVE | ABSTRACT | FINAL | STATIC;
+        Statics.setSlotContents(rvmFieldOffset, methodModifiers);
         return true;
       }
       if (rvmFieldName.equals("JDK_PACKAGE_PREFIX") && rvmFieldType == TypeReference.JavaLangString) {
