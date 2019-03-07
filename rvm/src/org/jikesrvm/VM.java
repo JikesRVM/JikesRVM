@@ -519,8 +519,10 @@ public class VM extends Properties {
       runClassInitializer("java.util.PropertyPermission");
     }
     runClassInitializer("org.jikesrvm.classloader.RVMAnnotation");
-    runClassInitializer("java.lang.annotation.RetentionPolicy");
-    runClassInitializer("java.lang.annotation.ElementType");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.annotation.RetentionPolicy");
+      runClassInitializer("java.lang.annotation.ElementType");
+    }
     if (!VM.BuildForOpenJDK) {
       runClassInitializer("java.lang.Thread$State");
     }
@@ -697,6 +699,14 @@ public class VM extends Properties {
     TypeReference tRef =
         TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     RVMClass cls = (RVMClass) tRef.peekType();
+    if (cls.isEnum() && VM.BuildForOpenJDK) {
+      sysWrite("Not attempting to run class initializer for ");
+      sysWrite(className);
+      sysWriteln(" because it's not advisable to run because it's an enum for OpenJDK." +
+          " Running the class initializer would break" +
+          " the enumConstantsDirectory in the associated class object.");
+      VM.sysFail("Attempted to run class initializer for enum " + className);
+    }
     if (null == cls) {
       sysWrite("Failed to run class initializer for ");
       sysWrite(className);
