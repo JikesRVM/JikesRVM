@@ -394,7 +394,7 @@ public class Object {
      * @see        java.lang.Object#notifyAll()
      */
     public final void wait(long timeout) throws InterruptedException {
-      RVMThread.wait(this);
+      RVMThread.wait(this, timeout);
     }
 
     /**
