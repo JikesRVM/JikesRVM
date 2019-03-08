@@ -218,6 +218,11 @@ public final class StackBrowser {
     return currentMethod == Entrypoints.java_lang_reflect_Method_invokeMethod;
   }
 
+  public boolean currentMethodIs_Java_Lang_Reflect_Method_GetCallerClass() {
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForOpenJDK);
+    return currentMethod == Entrypoints.java_lang_reflect_Method_getCallerClass;
+  }
+
   public boolean currentMethodIs_Java_Lang_Reflect_Constructor_NewInstance() {
     return currentMethod == Entrypoints.java_lang_reflect_Constructor_newInstance;
   }

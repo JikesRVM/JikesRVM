@@ -49,6 +49,13 @@ public class sun_reflect_Reflection {
     if (b.currentMethodIs_Java_Lang_Reflect_Method_InvokeMethod() || b.currentMethodIs_Java_Lang_Reflect_Constructor_NewInstance()) {
       b.up();
     }
+    /* Work around OpenJDK's work around for Reflection.getCallerClass(..) in java.lang.reflect.Method.invoke(..).
+     * The OpenJDK implementation of getCallerClass assumes a fixed stack depth of 2. The Jikes RVM implementation
+     * is different so we have to work around OpenJDK's work around */
+    if (b.currentMethodIs_Java_Lang_Reflect_Method_GetCallerClass()) {
+      b.up();
+    }
+
     /* Skip JNI if necessary */
     while (b.currentMethodIsJikesRVMInternal()) {
       b.up();

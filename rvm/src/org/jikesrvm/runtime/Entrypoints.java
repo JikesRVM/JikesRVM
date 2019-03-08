@@ -39,6 +39,10 @@ public class Entrypoints {
       getMethod(java.lang.reflect.Constructor.class, "newInstance",
           "([Ljava/lang/Object;)Ljava/lang/Object;");
 
+  // This is only necessary to work around OpenJDKs work around, see sun_reflect_Reflection
+  // in the libraryInterface for details.
+  public static final RVMMethod java_lang_reflect_Method_getCallerClass;
+
   public static final RVMMethod getClassFromStackFrame =
     getMethod(org.jikesrvm.classloader.RVMClass.class, "getClassFromStackFrame", "(I)Lorg/jikesrvm/classloader/RVMClass;");
   public static final RVMMethod getClassLoaderFromStackFrame =
@@ -461,6 +465,13 @@ public class Entrypoints {
       jniExit = getMethod(org.jikesrvm.jni.JNIEnvironment.class,
                                             "exitFromJNI",
                                             "(I)Ljava/lang/Object;");
+    }
+
+    if (VM.BuildForOpenJDK) {
+      java_lang_reflect_Method_getCallerClass = getMethod(java.lang.reflect.Method.class, "getCallerClass",
+          "()Ljava/lang/Class;");
+    } else {
+      java_lang_reflect_Method_getCallerClass = null;
     }
   }
 
