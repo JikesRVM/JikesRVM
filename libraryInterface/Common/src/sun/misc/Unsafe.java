@@ -274,7 +274,7 @@ public final class Unsafe {
 
   @Inline
   public boolean getBoolean(long address) {
-    return Address.fromLong(address).loadByte() == 0;
+    return Address.fromLong(address).loadByte() == 1;
   }
 
   @Inline
@@ -283,7 +283,7 @@ public final class Unsafe {
     if (NEEDS_BOOLEAN_GETFIELD_BARRIER) {
       return booleanFieldRead(obj, off, 0);
     } else {
-      return Magic.getByteAtOffset(obj, off) == 0;
+      return Magic.getByteAtOffset(obj, off) == 1;
     }
   }
 
@@ -635,7 +635,7 @@ public final class Unsafe {
     if (NEEDS_BOOLEAN_GETFIELD_BARRIER) {
       return booleanFieldRead(obj, off, 0);
     } else {
-      return Magic.getByteAtOffset(obj, off) == 0;
+      return Magic.getByteAtOffset(obj, off) == 1;
     }
   }
 
