@@ -311,6 +311,13 @@ public class java_lang_Class<T> {
     RVMMethod[] declaredMethods = myType.getDeclaredMethods();
     List<Method> myMethods = new ArrayList<Method>();
     for (RVMMethod m : declaredMethods) {
+      if (m.isObjectInitializer()) {
+        continue;
+      }
+      if (m.isClassInitializer()) {
+        continue;
+      }
+
       if (publicOnly) {
         if (m.isPublic()) {
           Method createdMethod = java.lang.reflect.JikesRVMSupport.createMethod(m);
