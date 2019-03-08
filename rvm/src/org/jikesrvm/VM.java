@@ -372,6 +372,7 @@ public class VM extends Properties {
     }
 
     if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.ApplicationShutdownHooks");
       runClassInitializer("java.io.DeleteOnExitHook");
     }
 
@@ -529,14 +530,6 @@ public class VM extends Properties {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.VMClassLoader");
-    }
-
-    if (VM.BuildForOpenJDK) {
-
-    }
-
-    if (VM.BuildForOpenJDK) {
-      runClassInitializer("java.lang.Shutdown");
     }
 
     // Class initializers needed for dynamic classloading at runtime

@@ -339,3 +339,5 @@ Ljava/lang/System$2;
 
 # Jikes RVM Helpers - potentially move code somewhere else later
 Ljava/lang/reflect/JikesRVMHelpers;
+# for shutdown hooks
+Ljava/util/IdentityHashMap;
