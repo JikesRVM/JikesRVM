@@ -39,6 +39,7 @@ public class ClassLibraryHelpers {
 
   private static final String RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_CONSTRUCTOR = "rvmMethod";
   private static final String RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_METHOD = "rvmMethod";
+  private static final String RVM_METHOD_FIELD_NAME_FOR_REFLECTION_BASE = "invoker";
   private static final String RVM_FIELD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_FIELD = "rvmField";
 
   public static RVMField rvmThreadField;
@@ -47,6 +48,7 @@ public class ClassLibraryHelpers {
 
   public static RVMField javaLangReflectConstructor_rvmMethodField;
   public static RVMField javaLangReflectMethod_rvmMethodField;
+  public static RVMField javaLangReflectMethod_invokerField;
   public static RVMField javaLangReflectField_rvmFieldField;
 
   /**
@@ -106,12 +108,16 @@ public class ClassLibraryHelpers {
       if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_CONSTRUCTOR + " field to " + typeRef.getName().toString());
       return newDeclaredFields;
     } else if (typeRef == TypeReference.findOrCreate(java.lang.reflect.Method.class)) {
-      RVMField rvmMethodField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMMethod;", RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_METHOD);
-      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];
+      RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 2];
       System.arraycopy(declaredFields, 0, newDeclaredFields, 0, declaredFields.length);
-      newDeclaredFields[newDeclaredFields.length - 1] = rvmMethodField;
+      RVMField rvmMethodField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMMethod;", RVM_METHOD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_METHOD);
+      newDeclaredFields[newDeclaredFields.length - 2] = rvmMethodField;
       ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField = rvmMethodField;
       if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_FIELD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_FIELD + " field to " +  typeRef.getName().toString());
+      RVMField invokerField = createField(typeRef, "Lorg/jikesrvm/runtime/ReflectionBase;", RVM_METHOD_FIELD_NAME_FOR_REFLECTION_BASE);
+      newDeclaredFields[newDeclaredFields.length - 1] = invokerField;
+      ClassLibraryHelpers.javaLangReflectMethod_invokerField = invokerField;
+      if (VM.TraceClassLoading) VM.sysWriteln("Added " + RVM_METHOD_FIELD_NAME_FOR_REFLECTION_BASE + " field to " +  typeRef.getName().toString());
       return newDeclaredFields;
     } else if (typeRef == TypeReference.findOrCreate(java.lang.reflect.Field.class)) {
       RVMField rvmFieldField = createField(typeRef, "Lorg/jikesrvm/classloader/RVMField;", RVM_FIELD_FIELD_NAME_FOR_JAVA_LANG_REFLECT_FIELD);

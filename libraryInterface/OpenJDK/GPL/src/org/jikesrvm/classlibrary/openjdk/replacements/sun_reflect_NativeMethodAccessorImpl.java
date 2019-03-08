@@ -24,24 +24,25 @@
  */
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.ReflectionBase;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
 @ReplaceClass(className = "sun.reflect.NativeMethodAccessorImpl")
 public class sun_reflect_NativeMethodAccessorImpl {
 
-  // FIXME review whether this is a good idea or needs to be implemented in another way
   @ReplaceMember
-  private static Object invoke0(Method m, Object obj, Object[] args) {
+  private static Object invoke0(Method m, Object obj, Object[] args) throws InvocationTargetException, ExceptionInInitializerError, IllegalAccessException {
     RVMClass type = JikesRVMSupport.getTypeForClass(m.getDeclaringClass()).asClass();
     if (VM.VerifyAssertions) VM._assert(type.isClassType());
 
@@ -65,7 +66,10 @@ public class sun_reflect_NativeMethodAccessorImpl {
     }
 
     if (VM.VerifyAssertions) VM._assert(rvmMethod != null);
-    return Reflection.invoke(rvmMethod, null, obj, args, false);
+
+    RVMClass callerClass = RVMClass.getClassFromStackFrame(4);
+    ReflectionBase invoker = (ReflectionBase) Magic.getObjectAtOffset(m, ClassLibraryHelpers.javaLangReflectMethod_invokerField.getOffset());
+    return JavaLangReflectSupport.invoke(obj, args, rvmMethod, m, callerClass, invoker);
   }
 
 }

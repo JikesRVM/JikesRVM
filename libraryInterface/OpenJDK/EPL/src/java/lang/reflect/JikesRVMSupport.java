@@ -16,6 +16,8 @@ import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Reflection;
+import org.jikesrvm.runtime.ReflectionBase;
 
 import static java.lang.reflect.JikesRVMHelpers.*;
 
@@ -67,6 +69,12 @@ public class JikesRVMSupport {
     byte[] annotationDefault = annotationsData.getRawAnnotationDefault();
     Method newMethod = ra.newMethod(declaringClass, name, parameterTypes, returnType, checkedExceptions, modifiers, slot, signature, annotations, parameterAnnotations, annotationDefault);
     Magic.setObjectAtOffset(newMethod, ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.getOffset(), m);
+    ReflectionBase invoker = m.getInvoker();
+    if (Reflection.cacheInvokerInJavaLangReflect) {
+      Magic.setObjectAtOffset(newMethod, ClassLibraryHelpers.javaLangReflectMethod_invokerField.getOffset(), invoker);
+    } else {
+      Magic.setObjectAtOffset(newMethod, ClassLibraryHelpers.javaLangReflectMethod_invokerField.getOffset(), null);
+    }
     return newMethod;
   }
 
