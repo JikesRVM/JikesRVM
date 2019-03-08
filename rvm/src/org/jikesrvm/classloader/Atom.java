@@ -778,6 +778,13 @@ public final class Atom {
       {"Lorg/jikesrvm/".getBytes(), "Lorg/vmmagic/".getBytes(), "Lorg/mmtk/".getBytes()};
 
   /**
+   * The set of class prefixes for class library classes.
+   * @see #isRVMDescriptor()
+   */
+  private static final byte[][] CLASS_LIBRARY_PREFIXES =
+      {"Ljava/".getBytes(), "Lsun/".getBytes(), "Lgnu/".getBytes()};
+
+  /**
    * @return true if this is a class descriptor of a bootstrap class
    * (ie a class that must be loaded by the bootstrap class loader)
    */
@@ -815,6 +822,25 @@ public final class Atom {
   public boolean isRVMDescriptor() {
     outer:
     for (final byte[] test : RVM_CLASS_PREFIXES) {
+      if (test.length > val.length) continue;
+      for (int j = 0; j < test.length; j++) {
+        if (val[j] != test[j]) {
+          continue outer;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @return {@code true} if this is a class descriptor of a class from the Java standard
+   *  library that might inquire about the stack
+   */
+  @Pure
+  public boolean isClassLibraryDescriptor() {
+    outer:
+    for (final byte[] test : CLASS_LIBRARY_PREFIXES) {
       if (test.length > val.length) continue;
       for (int j = 0; j < test.length; j++) {
         if (val[j] != test[j]) {

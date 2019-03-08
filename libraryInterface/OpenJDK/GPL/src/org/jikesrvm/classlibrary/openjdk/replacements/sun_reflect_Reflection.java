@@ -39,6 +39,9 @@ public class sun_reflect_Reflection {
 
   @ReplaceMember
   public static Class<?> getCallerClass() {
+    // TODO this implementation is rather messy. If we have to adjust this again,
+    // we ought to write a better one, with a test case for all the cases.
+
     StackBrowser b = new StackBrowser();
     VM.disableGC();
 
@@ -61,7 +64,10 @@ public class sun_reflect_Reflection {
       b.up();
     }
 
-    b.up(); // skip method that contains the call
+    /* Don't skip if we're already in the application */
+    if (b.currentMethodIsInClassLibrary()) {
+      b.up(); // skip method that contains the call
+    }
     RVMType ret = b.getCurrentClass();
     VM.enableGC();
 

@@ -230,4 +230,8 @@ public final class StackBrowser {
   public boolean currentMethodIsJikesRVMInternal() {
     return currentMethod.getDeclaringClass().getDescriptor().isRVMDescriptor();
   }
+
+  public boolean currentMethodIsInClassLibrary() {
+    return currentMethod.getDeclaringClass().getDescriptor().isClassLibraryDescriptor();
+  }
 }
